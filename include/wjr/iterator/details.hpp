@@ -1,10 +1,6 @@
 #ifndef WJR_ITERATOR_DETAILS_HPP__
 #define WJR_ITERATOR_DETAILS_HPP__
 
-#include <array>
-#include <string>
-#include <vector>
-
 #include <wjr/type_traits.hpp>
 
 namespace wjr {

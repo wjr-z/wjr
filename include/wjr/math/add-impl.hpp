@@ -33,7 +33,7 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U addc_s(uint64_t *dst, const uint64_t *
                                                  size_t n, const uint64_t *src1, size_t m,
                                                  U c_in = 0) noexcept;
 
-// m can be zero
+/// @note m can be zero
 template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U addc_sz(uint64_t *dst, const uint64_t *src0,
                                                   size_t n, const uint64_t *src1,

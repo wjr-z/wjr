@@ -1,6 +1,5 @@
-global  __wjr_asm_mul_1
-
 section .text
+global  __wjr_asm_mul_1
 __wjr_asm_mul_1:
         mov    r11, r8
         push   rbx
@@ -15,7 +14,7 @@ __wjr_asm_mul_1:
         lea    r8,  [r8 + r9]
         jmp    r8
 
-        align 8
+        align   8
         section .data
 .Llookup36:
         dd .Ll036-.Llookup36
@@ -27,7 +26,7 @@ __wjr_asm_mul_1:
         dd .Ll636-.Llookup36
         dd .Ll736-.Llookup36
 
-        align 16
+        align   16
         section .text
 .Ll036:
         mulx rbx, r8, [r10]

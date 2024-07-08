@@ -19,6 +19,8 @@
 
 namespace wjr {
 
+static_assert(sizeof(char) == sizeof(uint8_t), "Not support currently.");
+
 inline constexpr size_t dc_bignum_to_chars_threshold = WJR_DC_BIGNUM_TO_CHARS_THRESHOLD;
 inline constexpr size_t dc_bignum_to_chars_precompute_threshold =
     WJR_DC_BIGNUM_TO_CHARS_THRESHOLD;
@@ -989,28 +991,19 @@ Iter __to_chars_backward_unchecked_impl(Iter first, Value val, IBase ibase,
  * @details Only use fast_convert mode.
  *
  */
-template <typename Iter, typename Value, typename BaseType = unsigned int,
-          BaseType IBase = 10, typename Converter = char_converter_t,
+template <typename Iter, typename Value, unsigned int IBase = 10,
+          typename Converter = char_converter_t,
           WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
                            &&convert_details::__is_valid_converter_v<Value, Converter>)>
 Iter to_chars_backward_unchecked(Iter first, Value val,
-                                 std::integral_constant<BaseType, IBase> = {},
+                                 integral_constant<unsigned int, IBase> ic = {},
                                  Converter conv = {}) noexcept {
-    return __to_chars_backward_unchecked_impl(
-        first, val, std::integral_constant<unsigned int, IBase>(), conv);
+    return __to_chars_backward_unchecked_impl(first, val, ic, conv);
 }
 
-/**
- * @brief Convert an unsigned integer to a string in reverse order without checking
- * buf size.
- *
- *
- */
-template <typename Iter, typename Value, typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
-                           &&convert_details::__is_valid_converter_v<Value, Converter>)>
-Iter to_chars_backward_unchecked(Iter first, Value val, unsigned int base,
-                                 Converter conv = {}) noexcept {
+template <typename Iter, typename Value, typename Converter>
+Iter to_chars_backward_unchecked_dynamic(Iter first, Value val, unsigned int base,
+                                         Converter conv) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
@@ -1032,6 +1025,23 @@ Iter to_chars_backward_unchecked(Iter first, Value val, unsigned int base,
     }
 
     return __to_chars_backward_unchecked_impl(first, val, base, conv);
+}
+
+/**
+ * @brief Convert an unsigned integer to a string in reverse order without checking
+ * buf size.
+ *
+ *
+ */
+template <typename Iter, typename Value, typename IBase,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
+                           &&convert_details::__is_valid_converter_v<Value, Converter>
+                               &&is_nonbool_integral_v<IBase>)>
+Iter to_chars_backward_unchecked(Iter first, Value val, IBase base,
+                                 Converter conv = {}) noexcept {
+    return to_chars_backward_unchecked_dynamic(first, val,
+                                               static_cast<unsigned int>(base), conv);
 }
 
 template <typename Value, typename IBase, typename Converter>
@@ -1419,27 +1429,18 @@ Iter __to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
  * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
  *
  */
-template <typename Iter, typename Value, typename BaseType = unsigned int,
-          BaseType IBase = 10, typename Converter = char_converter_t,
+template <typename Iter, typename Value, unsigned int IBase = 10,
+          typename Converter = char_converter_t,
           WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
 to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val,
-                               std::integral_constant<BaseType, IBase> = {},
+                               integral_constant<unsigned int, IBase> ic = {},
                                Converter conv = {}) noexcept {
-    return __to_chars_impl(ptr, last, val, std::integral_constant<unsigned int, IBase>(),
-                           conv);
+    return __to_chars_impl(ptr, last, val, ic, conv);
 }
 
-/**
- * @brief Convert an unsigned integer to a string with checking buf size.
- *
- * @return to_chars_result<Iter> If the conversion is successful, return {ans,
- * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
- *
- */
-template <typename Iter, typename Value, typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
-to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base,
-                               Converter conv = {}) noexcept {
+template <typename Iter, typename Value, typename Converter>
+to_chars_result<Iter> to_chars_dynamic(Iter ptr, Iter last, Value val, unsigned int base,
+                                       Converter conv) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
@@ -1464,6 +1465,22 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base
 }
 
 /**
+ * @brief Convert an unsigned integer to a string with checking buf size.
+ *
+ * @return to_chars_result<Iter> If the conversion is successful, return {ans,
+ * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
+ *
+ */
+template <typename Iter, typename Value, typename IBase,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>
+                           &&is_nonbool_integral_v<IBase>)>
+to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, IBase base,
+                               Converter conv = {}) noexcept {
+    return to_chars_dynamic(ptr, last, val, static_cast<unsigned int>(base), conv);
+}
+
+/**
  * @brief Convert an unsigned integer to a string without checking buf size.
  *
  * @details Iter can be any output iterator. Support fast_convert mode and fallback mode.
@@ -1473,27 +1490,18 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base
  * store the result and use @ref wjr::copy to copy the result to the output iterator. \n
  *
  */
-template <typename Iter, typename Value, typename BaseType = unsigned int,
-          BaseType IBase = 10, typename Converter = char_converter_t,
+template <typename Iter, typename Value, unsigned int IBase = 10,
+          typename Converter = char_converter_t,
           WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
-Iter to_chars_unchecked(Iter ptr, Value val, std::integral_constant<BaseType, IBase> = {},
+Iter to_chars_unchecked(Iter ptr, Value val,
+                        integral_constant<unsigned int, IBase> ic = {},
                         Converter conv = {}) noexcept {
-    return __to_chars_unchecked_impl(ptr, val,
-                                     std::integral_constant<unsigned int, IBase>(), conv);
+    return __to_chars_unchecked_impl(ptr, val, ic, conv);
 }
 
-/**
- * @brief Convert an unsigned integer to a string without checking buf size.
- *
- * @tparam Iter The iterator type. Must be random access iterator.
- * @tparam Value The value type. If Converter is origin_converter_t, Value must be
- * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
- *
- */
-template <typename Iter, typename Value, typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
-Iter to_chars_unchecked(Iter ptr, Value val, unsigned int base,
-                        Converter conv = {}) noexcept {
+template <typename Iter, typename Value, typename Converter>
+Iter to_chars_unchecked_dynamic(Iter ptr, Value val, unsigned int base,
+                                Converter conv) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
@@ -1515,6 +1523,22 @@ Iter to_chars_unchecked(Iter ptr, Value val, unsigned int base,
     }
 
     return __to_chars_unchecked_impl(ptr, val, base, conv);
+}
+
+/**
+ * @brief Convert an unsigned integer to a string without checking buf size.
+ *
+ * @tparam Iter The iterator type. Must be random access iterator.
+ * @tparam Value The value type. If Converter is origin_converter_t, Value must be
+ * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
+ *
+ */
+template <typename Iter, typename Value, typename IBase,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>
+                           &&is_nonbool_integral_v<IBase>)>
+Iter to_chars_unchecked(Iter ptr, Value val, IBase base, Converter conv = {}) noexcept {
+    return to_chars_unchecked_dynamic(ptr, val, static_cast<unsigned int>(base), conv);
 }
 
 template <typename Converter>
@@ -2439,22 +2463,19 @@ void __from_chars_unchecked_impl(Iter first, Iter last, Value &val, IBase ibase,
     __fast_from_chars_unchecked_impl(__first, __last, val, ibase, conv);
 }
 
-template <typename Iter, typename Value, typename BaseType = unsigned int,
-          BaseType IBase = 10, typename Converter = char_converter_t,
+template <typename Iter, typename Value, unsigned int IBase = 10,
+          typename Converter = char_converter_t,
           WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
                            &&convert_details::__is_valid_converter_v<Value, Converter>)>
 void from_chars_unchecked(Iter first, Iter last, Value &val,
-                          std::integral_constant<BaseType, IBase> = {},
+                          integral_constant<unsigned int, IBase> ic = {},
                           Converter conv = {}) noexcept {
-    __from_chars_unchecked_impl(first, last, val,
-                                std::integral_constant<unsigned int, IBase>(), conv);
+    __from_chars_unchecked_impl(first, last, val, ic, conv);
 }
 
-template <typename Iter, typename Value, typename Converter,
-          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
-                           &&convert_details::__is_valid_converter_v<Value, Converter>)>
-void from_chars_unchecked(Iter first, Iter last, Value &val, unsigned int base,
-                          Converter conv = {}) noexcept {
+template <typename Iter, typename Value, typename IBase, typename Converter>
+void from_chars_unchecked_dynamic(Iter first, Iter last, Value &val, unsigned int base,
+                                  Converter conv) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
@@ -2480,6 +2501,16 @@ void from_chars_unchecked(Iter first, Iter last, Value &val, unsigned int base,
     }
 
     __from_chars_unchecked_impl(first, last, val, base, conv);
+}
+
+template <typename Iter, typename Value, typename IBase,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
+                           &&convert_details::__is_valid_converter_v<Value, Converter>
+                               &&is_nonbool_integral_v<IBase>)>
+void from_chars_unchecked(Iter first, Iter last, Value &val, IBase base,
+                          Converter conv = {}) noexcept {
+    from_chars_unchecked_dynamic(first, last, val, static_cast<unsigned int>(base), conv);
 }
 
 template <uint64_t Base>
@@ -2678,21 +2709,19 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
     return {reinterpret_cast<const char *>(ret.ptr), ret.ec};
 }
 
-template <typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
-          typename Converter = char_converter_t,
+template <typename Value, unsigned int IBase = 10, typename Converter = char_converter_t,
           WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
 from_chars_result<const char *>
 from_chars(const char *first, const char *last, Value &val,
-           std::integral_constant<BaseType, IBase> = {}, Converter conv = {}) noexcept {
-    return __from_chars_impl(first, last, val,
-                             std::integral_constant<unsigned int, IBase>(), conv);
+           integral_constant<unsigned int, IBase> ic = {}, Converter conv = {}) noexcept {
+    return __from_chars_impl(first, last, val, ic, conv);
 }
 
-template <typename Value, typename Converter = char_converter_t,
+template <typename Value, typename Converter,
           WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
-from_chars_result<const char *> from_chars(const char *first, const char *last,
-                                           Value &val, unsigned int base,
-                                           Converter conv = {}) noexcept {
+from_chars_result<const char *> from_chars_dynamic(const char *first, const char *last,
+                                                   Value &val, unsigned int base,
+                                                   Converter conv) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
@@ -2708,6 +2737,15 @@ from_chars_result<const char *> from_chars(const char *first, const char *last,
     }
 
     return __from_chars_impl(first, last, val, base, conv);
+}
+
+template <typename Value, typename IBase, typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>
+                           &&is_nonbool_integral_v<IBase>)>
+from_chars_result<const char *> from_chars(const char *first, const char *last,
+                                           Value &val, IBase base,
+                                           Converter conv = {}) noexcept {
+    return from_chars_dynamic(first, last, val, base, conv);
 }
 
 template <typename Converter>

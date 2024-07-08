@@ -39,13 +39,6 @@ inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
 
 #endif
 
-// preview ...
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST constexpr bool is_zero_or_single_bit(T n) noexcept {
-    return (n & (n - 1)) == 0;
-}
-
 /**
  * @brief
  *
@@ -62,6 +55,11 @@ WJR_CONST constexpr T clear_lowbit(T n) noexcept {
 }
 
 // preview :
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr bool is_zero_or_single_bit(T n) noexcept {
+    return (n & (n - 1)) == 0;
+}
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST constexpr bool __has_high_bit(T n) noexcept {

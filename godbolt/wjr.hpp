@@ -3362,10 +3362,6 @@ struct broadcast_fn<uint8_t, uint64_t> {
 #ifndef WJR_ITERATOR_DETAILS_HPP__
 #define WJR_ITERATOR_DETAILS_HPP__
 
-#include <array>
-#include <string>
-#include <vector>
-
 // Already included
 
 namespace wjr {
@@ -7611,6 +7607,9 @@ inline void __assert_handler(const char *expr, const char *file, const char *fun
 #ifndef WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP__
 #define WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP__
 
+#include <array>
+#include <vector>
+
 #ifndef WJR_VECTOR_HPP__
 #define WJR_VECTOR_HPP__
 
@@ -7662,7 +7661,6 @@ inline void __assert_handler(const char *expr, const char *file, const char *fun
  *
  */
 
-// Already included
 #ifndef WJR_COMPRESSED_PAIR_HPP__
 #define WJR_COMPRESSED_PAIR_HPP__
 
@@ -10890,13 +10888,6 @@ inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
 
 #endif
 
-// preview ...
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST constexpr bool is_zero_or_single_bit(T n) noexcept {
-    return (n & (n - 1)) == 0;
-}
-
 /**
  * @brief
  *
@@ -10913,6 +10904,11 @@ WJR_CONST constexpr T clear_lowbit(T n) noexcept {
 }
 
 // preview :
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr bool is_zero_or_single_bit(T n) noexcept {
+    return (n & (n - 1)) == 0;
+}
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST constexpr bool __has_high_bit(T n) noexcept {
@@ -11093,7 +11089,7 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
     str.resize_and_overwrite(sz, [](char *, Size sz) { return sz; });
 }
 
-#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(NAME, Container)
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container)
 
 #elif (defined(__clang_major__) && __clang_major__ <= 11) ||                             \
     (defined(_MSC_VER) && _MSC_VER <= 1920)
@@ -11104,58 +11100,43 @@ template <typename Container>
 void string_set_length_hacker(Container &bank, typename Container::size_type sz);
 
 #if defined(__GLIBCXX__) || defined(_LIBCPP_VERSION)
-#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container)                \
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(Name, Container)                \
     inline void WJR_PP_CONCAT(string_set_length_hacker_of_,                              \
-                              NAME)(Container & bank, typename Container::size_type sz); \
+                              Name)(Container & bank, typename Container::size_type sz); \
     template <typename Money_t, Money_t Container::*p>                                   \
-    class WJR_PP_CONCAT(string_thief_of_, NAME) {                                        \
-    public:                                                                              \
+    struct WJR_PP_CONCAT(string_thief_of_, Name) {                                       \
         friend void WJR_PP_CONCAT(string_set_length_hacker_of_,                          \
-                                  NAME)(Container & bank,                                \
+                                  Name)(Container & bank,                                \
                                         typename Container::size_type sz) {              \
             (bank.*p)(sz);                                                               \
         }                                                                                \
-    };                                                                                   \
-    template <>                                                                          \
-    inline void string_set_length_hacker<Container>(Container & bank,                    \
-                                                    typename Container::size_type sz) {  \
-        WJR_PP_CONCAT(string_set_length_hacker_of_, NAME)(bank, sz);                     \
     }
 #else
-#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container)                \
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(Name, Container)                \
     inline void WJR_PP_CONCAT(string_set_length_hacker_of_,                              \
-                              NAME)(Container & bank, typename Container::size_type sz); \
+                              Name)(Container & bank, typename Container::size_type sz); \
     template <typename Money_t, Money_t Container::*p>                                   \
-    class WJR_PP_CONCAT(string_thief_of_, NAME) {                                        \
-    public:                                                                              \
+    struct WJR_PP_CONCAT(string_thief_of_, Name) {                                       \
         friend void WJR_PP_CONCAT(string_set_length_hacker_of_,                          \
-                                  NAME)(Container & bank,                                \
+                                  Name)(Container & bank,                                \
                                         typename Container::size_type sz) {              \
             (bank.*p)._Myval2._Mysize = sz;                                              \
         }                                                                                \
-    };                                                                                   \
-    template <>                                                                          \
-    inline void string_set_length_hacker<Container>(Container & bank,                    \
-                                                    typename Container::size_type sz) {  \
-        WJR_PP_CONCAT(string_set_length_hacker_of_, NAME)(bank, sz);                     \
     }
 #endif
 
 #if defined(__GLIBCXX__)
-#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(NAME, Container)             \
-    __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container);                   \
-    template class WJR_PP_CONCAT(                                                        \
-        string_thief_of_, NAME)<void(Container::size_type), &Container::_M_set_length>
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container)             \
+    template struct WJR_PP_CONCAT(                                                       \
+        string_thief_of_, Name)<void(Container::size_type), &Container::_M_set_length>
 #elif defined(_LIBCPP_VERSION)
-#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(NAME, Container)             \
-    __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container);                   \
-    template class WJR_PP_CONCAT(                                                        \
-        string_thief_of_, NAME)<void(Container::size_type), &Container::__set_size>
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container)             \
+    template struct WJR_PP_CONCAT(                                                       \
+        string_thief_of_, Name)<void(Container::size_type), &Container::__set_size>
 #else
-#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(NAME, Container)             \
-    __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container);                   \
-    template class WJR_PP_CONCAT(                                                        \
-        string_thief_of_, NAME)<decltype(Container::_Mypair), &Container::_Mypair>
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container)             \
+    template struct WJR_PP_CONCAT(                                                       \
+        string_thief_of_, Name)<decltype(Container::_Mypair), &Container::_Mypair>
 #endif
 
 template <typename CharT, typename Traits, typename Alloc>
@@ -11175,35 +11156,48 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
 
 #if WJR_HAS_FEATURE(STRING_UNINITIALIZED_RESIZE)
 
+template <typename Container>
+struct __uninitialized_resize_fn_impl : resize_fn_impl_base<Container> {
+    using resize_fn_impl_base<Container>::resize;
+    WJR_INTRINSIC_INLINE static void resize(Container &cont,
+                                            typename Container::size_type sz, dctor_t) {
+        __uninitialized_resize(cont, sz);
+    }
+};
+
+template <typename Container>
+struct __uninitialized_append_fn_impl : append_fn_impl_base<Container> {
+    using append_fn_impl_base<Container>::append;
+    WJR_INTRINSIC_INLINE static void append(Container &cont,
+                                            typename Container::size_type sz, dctor_t) {
+        __uninitialized_resize(cont, cont.size() + sz);
+    }
+};
+
 #define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Name, Container)                        \
+    __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(Name, Container);                   \
     __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container);                \
     template <>                                                                          \
-    struct resize_fn_impl<Container> : resize_fn_impl_base<Container> {                  \
-        using resize_fn_impl_base<Container>::resize;                                    \
-        WJR_INTRINSIC_INLINE static void                                                 \
-        resize(Container &cont, typename Container::size_type sz, dctor_t) {             \
-            __uninitialized_resize(cont, sz);                                            \
-        }                                                                                \
+    inline void string_set_length_hacker<Container>(Container & bank,                    \
+                                                    typename Container::size_type sz) {  \
+        WJR_PP_CONCAT(string_set_length_hacker_of_, Name)(bank, sz);                     \
     };                                                                                   \
     template <>                                                                          \
-    struct append_fn_impl<Container> : append_fn_impl_base<Container> {                  \
-        using append_fn_impl_base<Container>::append;                                    \
-        WJR_INTRINSIC_INLINE static void                                                 \
-        append(Container &cont, typename Container::size_type sz, dctor_t) {             \
-            __uninitialized_resize(cont, cont.size() + sz);                              \
-        }                                                                                \
-    }
+    struct resize_fn_impl<Container> : __uninitialized_resize_fn_impl<Container> {};     \
+    template <>                                                                          \
+    struct append_fn_impl<Container> : __uninitialized_append_fn_impl<Container> {}
 #else
 #define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Name, Container)
 #endif
 
-WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(string, std::string);
+WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(std_string, std::string);
 
 WJR_REGISTER_HAS_TYPE(container_resize,
                       resize_fn_impl<Container>::resize(std::declval<Container &>(),
                                                         std::declval<Size>(),
                                                         std::declval<Args>()...),
                       Container, Size);
+
 WJR_REGISTER_HAS_TYPE(container_reserve,
                       std::declval<Container>().reserve(std::declval<Size>()), Container,
                       Size);
@@ -11557,588 +11551,6 @@ constexpr OutputIt move_n_restrict(InputIt first, Size count, OutputIt d_first) 
 } // namespace wjr
 
 #endif // WJR_MEMORY_COPY_HPP__
-#ifndef WJR_MEMORY_MEMORY_POOL_HPP__
-#define WJR_MEMORY_MEMORY_POOL_HPP__
-
-#ifndef WJR_CONTAINER_INTRUSIVE_LIST_HPP__
-#define WJR_CONTAINER_INTRUSIVE_LIST_HPP__
-
-#ifndef WJR_CONTAINER_INTRUSIVE_DETAILS_HPP__
-#define WJR_CONTAINER_INTRUSIVE_DETAILS_HPP__
-
-// Already included
-
-namespace wjr {
-
-template <typename Hook = void, typename Tag = void>
-struct intrusive_tag {
-    using hook_type = Hook;
-    static constexpr bool use_hook = !std::is_same_v<Hook, void>;
-};
-
-template <typename Tag>
-struct is_intrusive_tag : std::false_type {};
-
-template <typename Hook, typename Tag>
-struct is_intrusive_tag<intrusive_tag<Hook, Tag>> : std::true_type {};
-
-template <typename Tag>
-inline constexpr bool is_intrusive_tag_v = intrusive_tag<Tag>::value;
-
-template <typename Tag>
-using intrusive_hook_t = typename Tag::hook_type;
-
-template <typename Tag>
-inline constexpr bool intrusive_use_hook_v = Tag::use_hook;
-
-} // namespace wjr
-
-#endif // WJR_CONTAINER_INTRUSIVE_DETAILS_HPP__
-
-namespace wjr {
-
-template <typename Tag = intrusive_tag<>>
-struct list_node;
-
-template <typename T>
-constexpr void init(list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr void insert(list_node<T> *prev, list_node<T> *next,
-                      list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr void push_back(list_node<T> *head, list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr void push_front(list_node<T> *head, list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr void remove_uninit(list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr bool empty(const list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr list_node<T> *next(list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr const list_node<T> *next(const list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr list_node<T> *prev(list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr const list_node<T> *prev(const list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr void replace_uninit(list_node<T> *from, list_node<T> *to) noexcept;
-
-template <typename T>
-class list_node_const_iterator {
-    using node_type = list_node<T>;
-
-public:
-    using iterator_category = std::bidirectional_iterator_tag;
-    using value_type = node_type;
-    using reference = const node_type &;
-    using pointer = const node_type *;
-    using difference_type = std::ptrdiff_t;
-
-    constexpr list_node_const_iterator() noexcept = default;
-    constexpr list_node_const_iterator(const list_node_const_iterator &) noexcept =
-        default;
-    constexpr list_node_const_iterator(list_node_const_iterator &&) noexcept = default;
-    constexpr list_node_const_iterator &
-    operator=(const list_node_const_iterator &) noexcept = default;
-    constexpr list_node_const_iterator &
-    operator=(list_node_const_iterator &&) noexcept = default;
-    ~list_node_const_iterator() = default;
-
-    constexpr list_node_const_iterator(pointer node) noexcept
-        : m_node(const_cast<node_type *>(node)) {}
-
-    constexpr reference operator*() const noexcept { return *m_node; }
-    constexpr pointer operator->() const noexcept { return m_node; }
-
-    constexpr list_node_const_iterator &operator++() noexcept {
-        m_node = next(m_node);
-        return *this;
-    }
-
-    constexpr list_node_const_iterator operator++(int) noexcept {
-        list_node_const_iterator tmp(*this);
-        ++(*this);
-        return tmp;
-    }
-
-    constexpr list_node_const_iterator &operator--() noexcept {
-        m_node = prev(m_node);
-        return *this;
-    }
-
-    constexpr list_node_const_iterator operator--(int) noexcept {
-        list_node_const_iterator tmp(*this);
-        --(*this);
-        return tmp;
-    }
-
-    constexpr bool operator==(const list_node_const_iterator &other) const noexcept {
-        return m_node == other.m_node;
-    }
-
-    constexpr bool operator!=(const list_node_const_iterator &other) const noexcept {
-        return !(*this == other);
-    }
-
-private:
-    node_type *m_node{};
-};
-
-template <typename T>
-class list_node_iterator : public list_node_const_iterator<T> {
-    using Mybase = list_node_const_iterator<T>;
-    using node_type = list_node<T>;
-
-public:
-    using iterator_category = typename Mybase::iterator_category;
-    using value_type = typename Mybase::value_type;
-    using reference = node_type &;
-    using pointer = node_type *;
-    using difference_type = typename Mybase::difference_type;
-
-    using Mybase::Mybase;
-
-    constexpr list_node_iterator() noexcept = default;
-    constexpr list_node_iterator(const list_node_iterator &) noexcept = default;
-    constexpr list_node_iterator(list_node_iterator &&) noexcept = default;
-    constexpr list_node_iterator &
-    operator=(const list_node_iterator &) noexcept = default;
-    constexpr list_node_iterator &operator=(list_node_iterator &&) noexcept = default;
-    ~list_node_iterator() = default;
-
-    constexpr reference operator*() const noexcept {
-        return const_cast<reference>(Mybase::operator*());
-    }
-
-    constexpr pointer operator->() const noexcept {
-        return const_cast<pointer>(Mybase::operator->());
-    }
-
-    constexpr list_node_iterator &operator++() noexcept {
-        Mybase::operator++();
-        return *this;
-    }
-
-    constexpr list_node_iterator operator++(int) noexcept {
-        list_node_iterator tmp(*this);
-        ++(*this);
-        return tmp;
-    }
-
-    constexpr list_node_iterator &operator--() noexcept {
-        Mybase::operator--();
-        return *this;
-    }
-
-    constexpr list_node_iterator operator--(int) noexcept {
-        list_node_iterator tmp(*this);
-        --(*this);
-        return tmp;
-    }
-};
-
-template <typename Tag>
-struct list_node {
-    using iterator = list_node_iterator<Tag>;
-    using const_iterator = list_node_const_iterator<Tag>;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-
-    constexpr list_node() noexcept = default;
-    list_node(const list_node &) = delete;
-    list_node(list_node &&) = delete;
-    list_node &operator=(const list_node &) = delete;
-    list_node &operator=(list_node &&) = delete;
-    ~list_node() = default;
-
-    constexpr iterator begin() noexcept { return iterator(wjr::next(this)); }
-    constexpr const_iterator begin() const noexcept {
-        return const_iterator(wjr::next(this));
-    }
-    constexpr const_iterator cbegin() const noexcept {
-        return const_iterator(wjr::next(this));
-    }
-
-    constexpr iterator end() noexcept { return iterator(this); }
-    constexpr const_iterator end() const noexcept { return const_iterator(this); }
-    constexpr const_iterator cend() const noexcept { return const_iterator(this); }
-
-    constexpr reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
-    constexpr const_reverse_iterator rbegin() const noexcept {
-        return const_reverse_iterator(end());
-    }
-    constexpr const_reverse_iterator crbegin() const noexcept {
-        return const_reverse_iterator(end());
-    }
-
-    constexpr reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
-    constexpr const_reverse_iterator rend() const noexcept {
-        return const_reverse_iterator(begin());
-    }
-    constexpr const_reverse_iterator crend() const noexcept {
-        return const_reverse_iterator(begin());
-    }
-
-    constexpr list_node *next() noexcept { return wjr::next(this); }
-    constexpr const list_node *next() const noexcept { return wjr::next(this); }
-
-    constexpr list_node *prev() noexcept { return wjr::prev(this); }
-    constexpr const list_node *prev() const noexcept { return wjr::prev(this); }
-
-    constexpr bool empty() const noexcept { return wjr::empty(this); }
-
-    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
-    constexpr intrusive_hook_t<U> *operator->() noexcept {
-        return static_cast<intrusive_hook_t<U> *>(this);
-    }
-
-    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
-    constexpr const intrusive_hook_t<U> *operator->() const noexcept {
-        return static_cast<const intrusive_hook_t<U> *>(this);
-    }
-
-    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
-    constexpr intrusive_hook_t<U> &operator*() noexcept {
-        return *operator->();
-    }
-
-    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
-    constexpr const intrusive_hook_t<U> &operator*() const noexcept {
-        return *operator->();
-    }
-
-    list_node *m_prev;
-    list_node *m_next;
-};
-
-template <typename T>
-constexpr void init(list_node<T> *node) noexcept {
-    node->m_prev = node;
-    node->m_next = node;
-}
-
-template <typename T>
-constexpr void insert(list_node<T> *prev, list_node<T> *next,
-                      list_node<T> *node) noexcept {
-    prev->m_next = node;
-    node->m_prev = prev;
-    next->m_prev = node;
-    node->m_next = next;
-}
-
-template <typename T>
-constexpr void push_back(list_node<T> *head, list_node<T> *node) noexcept {
-    insert(head->m_prev, head, node);
-}
-
-template <typename T>
-constexpr void push_front(list_node<T> *head, list_node<T> *node) noexcept {
-    insert(head, head->m_next, node);
-}
-
-template <typename T>
-constexpr void remove_uninit(list_node<T> *node) noexcept {
-    node->m_prev->m_next = node->m_next;
-    node->m_next->m_prev = node->m_prev;
-}
-
-template <typename T>
-constexpr bool empty(const list_node<T> *node) noexcept {
-    return node->m_next == node;
-}
-
-template <typename T>
-constexpr list_node<T> *next(list_node<T> *node) noexcept {
-    return node->m_next;
-}
-
-template <typename T>
-constexpr const list_node<T> *next(const list_node<T> *node) noexcept {
-    return node->m_next;
-}
-
-template <typename T>
-constexpr list_node<T> *prev(list_node<T> *node) noexcept {
-    return node->m_prev;
-}
-
-template <typename T>
-constexpr const list_node<T> *prev(const list_node<T> *node) noexcept {
-    return node->m_prev;
-}
-
-template <typename T>
-constexpr void replace_uninit(list_node<T> *from, list_node<T> *to) noexcept {
-    to->m_prev = from->m_prev;
-    to->m_next = from->m_next;
-    from->m_prev->m_next = to;
-    from->m_next->m_prev = to;
-}
-
-} // namespace wjr
-
-#endif // WJR_CONTAINER_INTRUSIVE_LIST_HPP__
-// Already included
-
-namespace wjr {
-
-struct automatic_free_pool {
-    struct chunk : list_node<intrusive_tag<chunk>> {};
-
-    automatic_free_pool() noexcept { init(&head); }
-    ~automatic_free_pool() noexcept {
-        for (auto iter = head.begin(); iter != head.end();) {
-            const auto now = iter++;
-            chunk *node = &**now;
-            free(node);
-        }
-    }
-
-    WJR_MALLOC void *allocate(size_t n) noexcept {
-        const auto ptr = (chunk *)malloc(n + sizeof(chunk));
-        push_back(&head, ptr);
-        return (char *)(ptr) + sizeof(chunk);
-    }
-
-    void deallocate(void *ptr) noexcept {
-        const auto node = (chunk *)((char *)(ptr) - sizeof(chunk));
-        remove_uninit(node);
-        free(node);
-    }
-
-    static automatic_free_pool &get_instance() noexcept {
-        static thread_local automatic_free_pool instance;
-        return instance;
-    }
-
-    chunk head;
-};
-
-namespace memory_pool_details {
-
-static constexpr uint8_t __ctz_table[32] = {
-    0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4,
-    5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-};
-
-} // namespace memory_pool_details
-
-class __default_alloc_template__ {
-private:
-    union obj {
-        union obj *free_list_link;
-        char client_data[1];
-    };
-
-    WJR_CONST static constexpr size_t __round_up(size_t bytes) noexcept {
-        return (((bytes) + 2048 - 1) & ~(2048 - 1));
-    }
-
-    WJR_CONST static constexpr uint8_t __get_index(uint32_t bytes) noexcept {
-        if (bytes <= 256) {
-            return memory_pool_details::__ctz_table[(bytes - 1) >> 3];
-        }
-
-        return memory_pool_details::__ctz_table[(bytes - 1) >> 9] + 6;
-    }
-
-    WJR_CONST static constexpr uint32_t __get_size(uint8_t idx) noexcept {
-        return static_cast<uint32_t>(1) << (idx + 3);
-    }
-
-    static automatic_free_pool &get_chunk() noexcept {
-        return automatic_free_pool::get_instance();
-    }
-
-public:
-    struct object {
-
-        WJR_INTRINSIC_INLINE allocation_result<void *>
-        __small_allocate(uint32_t n) noexcept {
-            const uint8_t idx = __get_index(n);
-            const size_t size = __get_size(idx);
-            obj *volatile *my_free_list = free_list + idx;
-            obj *result = *my_free_list;
-            if (WJR_LIKELY(result != nullptr)) {
-                *my_free_list = result->free_list_link;
-                return {result, size};
-            }
-
-            return {refill(idx), size};
-        }
-
-        WJR_INTRINSIC_INLINE void __small_deallocate(void *p, uint32_t n) noexcept {
-            const auto q = static_cast<obj *>(p);
-            obj *volatile *my_free_list = free_list + __get_index(n);
-            q->free_list_link = *my_free_list;
-            *my_free_list = q;
-        }
-
-        // n must be > 0
-        WJR_INTRINSIC_INLINE allocation_result<void *> allocate(size_t n) noexcept {
-            if (WJR_LIKELY(n <= 16384)) {
-                return __small_allocate(static_cast<uint32_t>(n));
-            }
-
-            return {malloc(n), n};
-        }
-
-        // p must not be 0
-        WJR_INTRINSIC_INLINE void deallocate(void *p, size_t n) noexcept {
-            if (WJR_LIKELY(n <= 16384)) {
-                return __small_deallocate(p, static_cast<uint32_t>(n));
-            }
-
-            free(p);
-        }
-
-        allocation_result<void *> chunk_allocate(size_t n) noexcept {
-            if (WJR_LIKELY(n <= 16384)) {
-                return __small_allocate(static_cast<uint32_t>(n));
-            }
-
-            return {get_chunk().allocate(n), n};
-        }
-
-        // p must not be 0
-        WJR_INTRINSIC_INLINE void chunk_deallocate(void *p, size_t n) noexcept {
-            if (WJR_LIKELY(n <= 16384)) {
-                return __small_deallocate(p, static_cast<uint32_t>(n));
-            }
-
-            get_chunk().deallocate(p);
-        }
-
-    private:
-        // Allocates a chunk for nobjs of size "size".  nobjs may be reduced
-        // if it is inconvenient to allocate the requested number.
-        WJR_MALLOC char *chunk_alloc(uint8_t idx, int &nobjs) noexcept;
-
-        // Returns an object of size n, and optionally adds to size n free list.
-        WJR_MALLOC void *refill(uint8_t idx) noexcept;
-
-        obj *volatile free_list[12] = {nullptr};
-        char *start_free = nullptr;
-        char *end_free = nullptr;
-        size_t heap_size = 0;
-    };
-
-    static object &get_instance() noexcept {
-        static thread_local object instance;
-        return instance;
-    }
-
-    // n must be > 0
-    static allocation_result<void *> allocate(size_t n) noexcept {
-        return get_instance().allocate(n);
-    }
-
-    // p must not be 0
-    WJR_INTRINSIC_INLINE static void deallocate(void *p, size_t n) noexcept {
-        get_instance().deallocate(p, n);
-    }
-
-    // n must be > 0
-    static allocation_result<void *> chunk_allocate(size_t n) noexcept {
-        return get_instance().chunk_allocate(n);
-    }
-
-    // p must not be 0
-    WJR_INTRINSIC_INLINE static void chunk_deallocate(void *p, size_t n) noexcept {
-        get_instance().chunk_deallocate(p, n);
-    }
-};
-
-template <typename Ty>
-class memory_pool {
-private:
-    using allocator_type = __default_alloc_template__;
-
-public:
-    using value_type = Ty;
-    using size_type = size_t;
-    using difference_type = ptrdiff_t;
-    using propagate_on_container_move_assignment = std::true_type;
-    using is_always_equal = std::true_type;
-    using is_trivially_allocator = std::true_type;
-
-    template <typename Other>
-    struct rebind {
-        using other = memory_pool<Other>;
-    };
-
-    constexpr memory_pool() noexcept = default;
-    constexpr memory_pool(const memory_pool &) noexcept = default;
-    template <typename Other>
-    constexpr memory_pool(const memory_pool<Other> &) noexcept {}
-    ~memory_pool() = default;
-    memory_pool &operator=(const memory_pool &) noexcept = default;
-
-    WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
-    allocate_at_least(size_type n) const noexcept {
-        const auto ret = allocator_type::allocate(n * sizeof(Ty));
-        return {static_cast<Ty *>(ret.ptr), ret.count};
-    }
-
-    WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
-    chunk_allocate_at_least(size_type n) const noexcept {
-        const auto ret = allocator_type::chunk_allocate(n * sizeof(Ty));
-        return {static_cast<Ty *>(ret.ptr), ret.count};
-    }
-
-    WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *allocate(size_type n) const noexcept {
-        return allocate_at_least(n).ptr;
-    }
-
-    WJR_CONSTEXPR20 void deallocate(Ty *ptr, size_type n) const noexcept {
-        return allocator_type::deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
-    }
-
-    /**
-     * @details Allocate memory, don't need to deallocate it until the thread exits.   \n
-     * Automatically deallocate memory when the thread exits.                          \n
-     * Used in thread_local memory pool that only needs to allocate memory once and    \n
-     * deallocate it when the thread exits.                                            \n
-     *
-     */
-    WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *
-    chunk_allocate(size_type n) const noexcept {
-        return chunk_allocate_at_least(n).ptr;
-    }
-
-    WJR_CONSTEXPR20 void chunk_deallocate(Ty *ptr, size_type n) const noexcept {
-        return allocator_type::chunk_deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
-    }
-
-    constexpr size_t max_size() const noexcept {
-        return static_cast<size_t>(-1) / sizeof(Ty);
-    }
-};
-
-template <typename T, typename U>
-constexpr bool operator==(const memory_pool<T> &, const memory_pool<U> &) noexcept {
-    return true;
-}
-
-template <typename T, typename U>
-constexpr bool operator!=(const memory_pool<T> &, const memory_pool<U> &) noexcept {
-    return false;
-}
-
-} // namespace wjr
-
-#endif // WJR_MEMORY_MEMORY_POOL_HPP__
 #ifndef WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
 #define WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
 
@@ -12154,7 +11566,6 @@ constexpr bool operator!=(const memory_pool<T> &, const memory_pool<U> &) noexce
  *
  */
 
-// Already included
 #ifndef WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
 #define WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
 
@@ -12248,6 +11659,87 @@ struct trivially_allocator_traits {
 } // namespace wjr
 
 #endif // WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
+#ifndef WJR_MEMORY_ALIGNED_STORAGE_HPP__
+#define WJR_MEMORY_ALIGNED_STORAGE_HPP__
+
+// Already included
+
+namespace wjr {
+
+/// @private
+template <typename T, typename Tag>
+using __aligned_storage_checker_base_enabler_select =
+    enable_special_members_base<true, true, std::is_trivially_copy_constructible_v<T>,
+                                std::is_trivially_move_constructible_v<T>,
+                                std::is_trivially_copy_assignable_v<T>,
+                                std::is_trivially_move_assignable_v<T>, Tag>;
+
+/// @private
+template <typename T, bool Default, bool Destructor>
+class __aligned_storage_base;
+
+#define WJR_REGISTER_UNINITIALIZED_BASE(DEF, DES)                                        \
+    template <typename T>                                                                \
+    class __aligned_storage_base<T, DEF, DES>                                            \
+        : __aligned_storage_checker_base_enabler_select<                                 \
+              T, __aligned_storage_base<T, DEF, DES>> {                                  \
+        using Mybase = __aligned_storage_checker_base_enabler_select<                    \
+            T, __aligned_storage_base<T, DEF, DES>>;                                     \
+                                                                                         \
+    public:                                                                              \
+        constexpr __aligned_storage_base() noexcept WJR_PP_BOOL_IF(DEF, = default,       \
+                                                                   : m_storage(){});     \
+                                                                                         \
+        template <typename... Args,                                                      \
+                  WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>                  \
+        constexpr __aligned_storage_base(Args &&...args) noexcept(                       \
+            std::is_nothrow_constructible_v<T, Args &&...>)                              \
+            : m_value(std::forward<Args>(args)...) {}                                    \
+                                                                                         \
+        ~__aligned_storage_base() noexcept WJR_PP_BOOL_IF(DES, = default, {});           \
+                                                                                         \
+        constexpr T &operator*() & noexcept { return m_value; }                          \
+        constexpr const T &operator*() const & noexcept { return m_value; }              \
+        constexpr T &&operator*() && noexcept { return static_cast<T &&>(operator*()); } \
+        constexpr const T &&operator*() const && noexcept {                              \
+            return static_cast<const T &&>(operator*());                                 \
+        }                                                                                \
+                                                                                         \
+        constexpr T *get() noexcept { return std::addressof(m_value); }                  \
+        constexpr const T *get() const noexcept { return std::addressof(m_value); }      \
+                                                                                         \
+        constexpr T *operator->() noexcept { return get(); }                             \
+        constexpr const T *operator->() const noexcept { return get(); }                 \
+                                                                                         \
+    private:                                                                             \
+        union {                                                                          \
+            T m_value;                                                                   \
+            std::aligned_storage_t<sizeof(T), alignof(T)> m_storage;                     \
+        };                                                                               \
+    }
+
+WJR_REGISTER_UNINITIALIZED_BASE(1, 1);
+WJR_REGISTER_UNINITIALIZED_BASE(1, 0);
+WJR_REGISTER_UNINITIALIZED_BASE(0, 1);
+WJR_REGISTER_UNINITIALIZED_BASE(0, 0);
+
+#undef WJR_REGISTER_UNINITIALIZED_BASE
+
+/// @private
+template <typename T>
+class algined_storage
+    : public __aligned_storage_base<T, std::is_trivially_default_constructible_v<T>,
+                                    std::is_trivially_destructible_v<T>> {
+    using Mybase = __aligned_storage_base<T, std::is_trivially_default_constructible_v<T>,
+                                          std::is_trivially_destructible_v<T>>;
+
+public:
+    using Mybase::Mybase;
+};
+
+} // namespace wjr
+
+#endif // WJR_MEMORY_ALIGNED_STORAGE_HPP__
 // Already included
 
 namespace wjr {
@@ -12553,59 +12045,9 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
     }
 }
 
-/// @private
-template <typename T, typename Tag>
-using __uninitialized_checker_base_enabler_select =
-    enable_special_members_base<true, true, std::is_trivially_copy_constructible_v<T>,
-                                std::is_trivially_move_constructible_v<T>,
-                                std::is_trivially_copy_assignable_v<T>,
-                                std::is_trivially_move_assignable_v<T>, Tag>;
-
-/// @private
-template <bool Default, bool Destructor, typename T>
-struct __uninitialized_base;
-
-#define WJR_REGISTER_UNINITIALIZED_BASE(DEF, DES)                                        \
-    template <typename T>                                                                \
-    struct __uninitialized_base<DEF, DES, T>                                             \
-        : __uninitialized_checker_base_enabler_select<                                   \
-              T, __uninitialized_base<DEF, DES, T>> {                                    \
-        using Mybase = __uninitialized_checker_base_enabler_select<                      \
-            T, __uninitialized_base<DEF, DES, T>>;                                       \
-                                                                                         \
-        constexpr __uninitialized_base() noexcept WJR_PP_BOOL_IF(DEF, = default,         \
-                                                                 : m_storage(){});       \
-                                                                                         \
-        template <typename... Args,                                                      \
-                  WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>                  \
-        constexpr __uninitialized_base(Args &&...args) noexcept(                         \
-            std::is_nothrow_constructible_v<T, Args &&...>)                              \
-            : m_value(std::forward<Args>(args)...) {}                                    \
-                                                                                         \
-        ~__uninitialized_base() noexcept WJR_PP_BOOL_IF(DES, = default, {});             \
-                                                                                         \
-        union {                                                                          \
-            T m_value;                                                                   \
-            std::aligned_storage_t<sizeof(T), alignof(T)> m_storage;                     \
-        };                                                                               \
-    }
-
-WJR_REGISTER_UNINITIALIZED_BASE(1, 1);
-WJR_REGISTER_UNINITIALIZED_BASE(1, 0);
-WJR_REGISTER_UNINITIALIZED_BASE(0, 1);
-WJR_REGISTER_UNINITIALIZED_BASE(0, 0);
-
-#undef WJR_REGISTER_UNINITIALIZED_BASE
-
 #if WJR_DEBUG_LEVEL > 1
 #define WJR_HAS_DEBUG_UNINITIALIZED_CHECKER WJR_HAS_DEF
 #endif
-
-/// @private
-template <typename T>
-using __uninitialized_base_select =
-    __uninitialized_base<std::is_trivially_default_constructible_v<T>,
-                         std::is_trivially_destructible_v<T>, T>;
 
 /**
  * @class uninitialized
@@ -12619,8 +12061,8 @@ using __uninitialized_base_select =
  *
  */
 template <typename T>
-class uninitialized : __uninitialized_base_select<T> {
-    using Mybase = __uninitialized_base_select<T>;
+class uninitialized : algined_storage<T> {
+    using Mybase = algined_storage<T>;
 
 public:
     using Mybase::Mybase;
@@ -12636,20 +12078,6 @@ public:
 
     constexpr uninitialized(dctor_t) noexcept : Mybase() {}
 
-    constexpr T &get() & noexcept {
-        check(true);
-        return Mybase::m_value;
-    }
-
-    constexpr const T &get() const & noexcept {
-        check(true);
-        return Mybase::m_value;
-    }
-
-    constexpr T &&get() && noexcept { return static_cast<T &&>(get()); }
-
-    constexpr const T &&get() const && noexcept { return static_cast<const T &&>(get()); }
-
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
     constexpr T &
     emplace(Args &&...args) noexcept(std::is_nothrow_constructible_v<Mybase, Args...>) {
@@ -12657,7 +12085,7 @@ public:
             check(false);
         }
 
-        (construct_at)(ptr_unsafe(), std::forward<Args>(args)...);
+        (construct_at)(get_unsafe(), std::forward<Args>(args)...);
         checker_set(true);
         return get();
     }
@@ -12667,24 +12095,37 @@ public:
             check(true);
         }
 
-        std::destroy_at(ptr_unsafe());
+        std::destroy_at(get_unsafe());
         checker_set(false);
     }
 
-    constexpr T *operator->() noexcept { return std::addressof(get()); }
-    constexpr const T *operator->() const noexcept { return std::addressof(get()); }
-
-    constexpr T &operator*() & noexcept { return get(); }
-    constexpr const T &operator*() const & noexcept { return get(); }
-    constexpr T &&operator*() && noexcept { return static_cast<T &&>(get()); }
+    constexpr T &operator*() & noexcept {
+        check(true);
+        return Mybase::operator*();
+    }
+    constexpr const T &operator*() const & noexcept {
+        check(true);
+        return Mybase::operator*();
+    }
+    constexpr T &&operator*() && noexcept { return static_cast<T &&>(this->operator*()); }
     constexpr const T &&operator*() const && noexcept {
-        return static_cast<const T &&>(get());
+        return static_cast<const T &&>(this->operator*());
     }
 
-    constexpr T *ptr_unsafe() noexcept { return std::addressof(Mybase::m_value); }
-    constexpr const T *ptr_unsafe() const noexcept {
-        return std::addressof(Mybase::m_value);
+    constexpr T *get_unsafe() noexcept { return Mybase::get(); }
+    constexpr const T *get_unsafe() const noexcept { return Mybase::get(); }
+
+    constexpr T *get() noexcept {
+        check(true);
+        return get_unsafe();
     }
+    constexpr const T *get() const noexcept {
+        check(true);
+        return get_unsafe();
+    }
+
+    constexpr T *operator->() noexcept { return get(); }
+    constexpr const T *operator->() const noexcept { return get(); }
 
 private:
 #if WJR_HAS_DEBUG(UNINITIALIZED_CHECKER)
@@ -12767,10 +12208,10 @@ public:
     using const_pointer = const value_type *;
 
     template <typename... Args>
-    WJR_CONSTEXPR20 temporary_value_allocator(Alloc &al_, Args &&...args) noexcept(
+    WJR_CONSTEXPR20 temporary_value_allocator(Alloc &_al, Args &&...args) noexcept(
         std::is_nothrow_constructible_v<value_type, Args &&...>)
-        : al(al_) {
-        uninitialized_construct_using_allocator(get(), al, std::forward<Args>(args)...);
+        : m_al(_al) {
+        uninitialized_construct_using_allocator(get(), m_al, std::forward<Args>(args)...);
     }
 
     temporary_value_allocator(const temporary_value_allocator &) = delete;
@@ -12780,17 +12221,15 @@ public:
 
     ~temporary_value_allocator() noexcept(noexcept(
         destroy_at_using_allocator(std::declval<pointer>(), std::declval<Alloc &>()))) {
-        destroy_at_using_allocator(get(), al);
+        destroy_at_using_allocator(get(), m_al);
     }
 
-    WJR_CONSTEXPR20 pointer get() noexcept { return reinterpret_cast<pointer>(storage); }
-    WJR_CONSTEXPR20 const_pointer get() const noexcept {
-        return reinterpret_cast<const_pointer>(storage);
-    }
+    pointer get() noexcept { return m_storage.get(); }
+    const_pointer get() const noexcept { return m_storage.get(); }
 
 private:
-    Alloc &al;
-    std::aligned_storage_t<sizeof(value_type), alignof(value_type)> storage[1];
+    Alloc &m_al;
+    algined_storage<value_type> m_storage;
 };
 
 template <typename Alloc, typename... Args>
@@ -12815,118 +12254,6 @@ public:
     using difference_type = typename _Alty_traits::difference_type;
     using allocator_type = Alloc;
     using is_trivially_contiguous = std::true_type;
-
-    template <typename... Args>
-    WJR_CONSTEXPR20 static void
-    uninitialized_construct_using_allocator(pointer ptr, _Alty &al, Args &&...args) {
-        wjr::uninitialized_construct_using_allocator(ptr, al,
-                                                     std::forward<Args>(args)...);
-    }
-
-    WJR_CONSTEXPR20 static void fill(pointer first, pointer last, const value_type &val) {
-        std::fill(first, last, val);
-    }
-
-    WJR_CONSTEXPR20 static pointer fill_n(pointer first, size_type n,
-                                          const value_type &val) {
-        return std::fill_n(first, n, val);
-    }
-
-    template <typename Val>
-    WJR_CONSTEXPR20 static void
-    uninitialized_fill_n_using_allocator(pointer first, size_type n, _Alty &al,
-                                         const Val &val) {
-        wjr::uninitialized_fill_n_using_allocator(first, n, al, val);
-    }
-
-    template <typename InputIt>
-    WJR_CONSTEXPR20 static pointer copy(InputIt first, InputIt last, pointer result) {
-        return std::copy(first, last, result);
-    }
-
-    template <typename InputIt, typename Size>
-    WJR_CONSTEXPR20 static void copy_n(InputIt first, Size size, pointer result) {
-        std::copy_n(first, size, result);
-    }
-
-    template <typename InputIt>
-    WJR_CONSTEXPR20 static void
-    uninitialized_copy_using_allocator(InputIt first, InputIt last, pointer result,
-                                       _Alty &al) {
-        wjr::uninitialized_copy_using_allocator(first, last, result, al);
-    }
-
-    template <typename InputIt, typename Size>
-    WJR_CONSTEXPR20 static void
-    uninitialized_copy_n_using_allocator(InputIt first, Size size, pointer result,
-                                         _Alty &al) {
-        wjr::uninitialized_copy_n_using_allocator(first, size, result, al);
-    }
-
-    template <typename InputIt>
-    WJR_CONSTEXPR20 static void move(InputIt first, InputIt last, pointer result) {
-        std::move(first, last, result);
-    }
-
-    template <typename InputIt>
-    WJR_CONSTEXPR20 static void
-    uninitialized_move_using_allocator(InputIt first, InputIt last, pointer result,
-                                       _Alty &al) {
-        wjr::uninitialized_move_using_allocator(first, last, result, al);
-    }
-
-    template <typename InputIt, typename Size>
-    WJR_CONSTEXPR20 static void
-    uninitialized_move_n_using_allocator(InputIt first, Size size, pointer result,
-                                         _Alty &al) {
-        wjr::uninitialized_move_n_using_allocator(first, size, result, al);
-    }
-
-    template <typename InputIt>
-    WJR_CONSTEXPR20 static void move_backward(InputIt first, InputIt last,
-                                              pointer result) {
-        std::move_backward(first, last, result);
-    }
-
-    template <typename InputIt>
-    WJR_CONSTEXPR20 static pointer copy_restrict(InputIt first, InputIt last,
-                                                 pointer result) {
-        return wjr::copy_restrict(first, last, result);
-    }
-
-    template <typename InputIt, typename Size>
-    WJR_CONSTEXPR20 static pointer copy_n_restrict(InputIt first, Size n,
-                                                   pointer result) {
-        return wjr::copy_n_restrict(first, n, result);
-    }
-
-    template <typename InputIt>
-    WJR_CONSTEXPR20 static void
-    uninitialized_copy_restrict_using_allocator(InputIt first, InputIt last,
-                                                pointer result, _Alty &al) {
-        wjr::uninitialized_copy_restrict_using_allocator(first, last, result, al);
-    }
-
-    template <typename InputIt, typename Size>
-    WJR_CONSTEXPR20 static void
-    uninitialized_copy_n_restrict_using_allocator(InputIt first, Size size,
-                                                  pointer result, _Alty &al) {
-        wjr::uninitialized_copy_n_restrict_using_allocator(first, size, result, al);
-    }
-
-    template <typename InputIt>
-    WJR_CONSTEXPR20 static void
-    uninitialized_move_restrict_using_allocator(InputIt first, InputIt last,
-                                                pointer result, _Alty &al) {
-        wjr::uninitialized_move_restrict_using_allocator(first, last, result, al);
-    }
-
-    template <typename InputIt, typename Size>
-    WJR_CONSTEXPR20 static void
-    uninitialized_move_n_restrict_using_allocator(InputIt first, Size size,
-                                                  pointer result, _Alty &al) {
-        wjr::uninitialized_move_n_restrict_using_allocator(first, size, result, al);
-    }
 };
 
 template <typename pointer, typename size_type>
@@ -12989,13 +12316,13 @@ struct __unref_wrapper_helper<default_vector_size_reference<pointer, size_type>>
  * @details Use one pointer ans two size_type currently.
  *
  */
-template <typename T, typename Alloc, typename STraits>
-class __default_vector_storage_impl {
+template <typename T, typename Alloc>
+class default_vector_storage {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
 public:
-    using storage_traits_type = STraits;
+    using storage_traits_type = vector_storage_traits<T, Alloc>;
     using value_type = typename storage_traits_type::value_type;
     using pointer = typename storage_traits_type::pointer;
     using const_pointer = typename storage_traits_type::const_pointer;
@@ -13015,15 +12342,14 @@ private:
     using size_ref = default_vector_size_reference<pointer, size_type>;
 
 public:
-    __default_vector_storage_impl() noexcept = default;
+    default_vector_storage() noexcept = default;
 
-    __default_vector_storage_impl(const __default_vector_storage_impl &) = delete;
-    __default_vector_storage_impl(__default_vector_storage_impl &&) = delete;
-    __default_vector_storage_impl &
-    operator=(const __default_vector_storage_impl &) = delete;
-    __default_vector_storage_impl &operator=(__default_vector_storage_impl &&) = delete;
+    default_vector_storage(const default_vector_storage &) = delete;
+    default_vector_storage(default_vector_storage &&) = delete;
+    default_vector_storage &operator=(const default_vector_storage &) = delete;
+    default_vector_storage &operator=(default_vector_storage &&) = delete;
 
-    ~__default_vector_storage_impl() noexcept = default;
+    ~default_vector_storage() noexcept = default;
 
     WJR_CONSTEXPR20 void
     destroy(_Alty &al) noexcept(std::is_nothrow_destructible_v<value_type>) {
@@ -13057,7 +12383,7 @@ public:
     }
 
     WJR_CONSTEXPR20 static void uninitialized_construct(
-        __default_vector_storage_impl &other, size_type size, size_type capacity,
+        default_vector_storage &other, size_type size, size_type capacity,
         _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
         if (capacity != 0) {
             const auto result = allocate_at_least(al, capacity);
@@ -13070,15 +12396,13 @@ public:
         }
     }
 
-    WJR_CONSTEXPR20 void take_storage(__default_vector_storage_impl &other,
-                                      _Alty &) noexcept {
+    WJR_CONSTEXPR20 void take_storage(default_vector_storage &other, _Alty &) noexcept {
         auto &other_storage = other.m_storage;
         m_storage = std::move(other_storage);
         other_storage = {};
     }
 
-    WJR_CONSTEXPR20 void swap_storage(__default_vector_storage_impl &other,
-                                      _Alty &) noexcept {
+    WJR_CONSTEXPR20 void swap_storage(default_vector_storage &other, _Alty &) noexcept {
         std::swap(m_storage, other.m_storage);
     }
 
@@ -13103,17 +12427,13 @@ private:
     data_type m_storage;
 };
 
-template <typename T, typename Alloc>
-using default_vector_storage =
-    __default_vector_storage_impl<T, Alloc, vector_storage_traits<T, Alloc>>;
-
-template <typename T, size_t Capacity, typename Alloc, typename STraits>
-class __static_vector_storage_impl {
+template <typename T, size_t Capacity, typename Alloc>
+class static_vector_storage {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
 public:
-    using storage_traits_type = STraits;
+    using storage_traits_type = vector_storage_traits<T, Alloc>;
     using value_type = typename storage_traits_type::value_type;
     using pointer = typename storage_traits_type::pointer;
     using const_pointer = typename storage_traits_type::const_pointer;
@@ -13137,15 +12457,14 @@ private:
     using data_type = Data;
 
 public:
-    __static_vector_storage_impl() noexcept = default;
+    static_vector_storage() noexcept = default;
 
-    __static_vector_storage_impl(const __static_vector_storage_impl &) = delete;
-    __static_vector_storage_impl(__static_vector_storage_impl &&) = delete;
-    __static_vector_storage_impl &
-    operator=(const __static_vector_storage_impl &) = delete;
-    __static_vector_storage_impl &operator=(__static_vector_storage_impl &&) = delete;
+    static_vector_storage(const static_vector_storage &) = delete;
+    static_vector_storage(static_vector_storage &&) = delete;
+    static_vector_storage &operator=(const static_vector_storage &) = delete;
+    static_vector_storage &operator=(static_vector_storage &&) = delete;
 
-    ~__static_vector_storage_impl() noexcept = default;
+    ~static_vector_storage() noexcept = default;
 
     WJR_CONSTEXPR20 void
     destroy(_Alty &al) noexcept(std::is_nothrow_destructible_v<value_type>) {
@@ -13162,14 +12481,14 @@ public:
     }
 
     WJR_CONSTEXPR20 static void
-    uninitialized_construct(__static_vector_storage_impl &other, size_type size,
+    uninitialized_construct(static_vector_storage &other, size_type size,
                             WJR_MAYBE_UNUSED size_type capacity, _Alty &) noexcept {
         WJR_ASSERT_ASSUME(capacity <= Capacity,
                           "capacity must be less than or equal to Capacity");
         other.m_storage.m_size = size;
     }
 
-    WJR_CONSTEXPR20 void take_storage(__static_vector_storage_impl &other, _Alty &al) {
+    WJR_CONSTEXPR20 void take_storage(static_vector_storage &other, _Alty &al) {
         auto &other_storage = other.m_storage;
         const auto lhs = data();
         const auto rhs = other.data();
@@ -13181,14 +12500,14 @@ public:
                 __memcpy(lhs, rhs, Capacity);
             }
         } else {
-            STraits::uninitialized_move_n_restrict_using_allocator(
-                rhs, other_storage.m_size, lhs, al);
+            wjr::uninitialized_move_n_restrict_using_allocator(rhs, other_storage.m_size,
+                                                               lhs, al);
         }
 
         other_storage.m_size = 0;
     }
 
-    WJR_CONSTEXPR20 void swap_storage(__static_vector_storage_impl &other, _Alty &al) {
+    WJR_CONSTEXPR20 void swap_storage(static_vector_storage &other, _Alty &al) {
         auto &other_storage = other.m_storage;
         auto lhs = data();
         auto lsize = size();
@@ -13210,20 +12529,16 @@ public:
                     std::swap(lsize, rsize);
                 }
 
-                STraits::uninitialized_move_n_restrict_using_allocator(lhs, lsize, tmp,
-                                                                       al);
-                STraits::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs,
-                                                                       al);
-                STraits::uninitialized_move_n_restrict_using_allocator(tmp, lsize, rhs,
-                                                                       al);
+                wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize, tmp, al);
+                wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs, al);
+                wjr::uninitialized_move_n_restrict_using_allocator(tmp, lsize, rhs, al);
             }
             return;
         } else if (rsize) {
             if constexpr (__use_memcpy) {
                 __memcpy(lhs, rhs, Capacity);
             } else {
-                STraits::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs,
-                                                                       al);
+                wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs, al);
             }
             m_storage.m_size = rsize;
             other_storage.m_size = 0;
@@ -13232,8 +12547,7 @@ public:
             if constexpr (__use_memcpy) {
                 __memcpy(rhs, lhs, Capacity);
             } else {
-                STraits::uninitialized_move_n_restrict_using_allocator(lhs, lsize, rhs,
-                                                                       al);
+                wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize, rhs, al);
             }
             other_storage.m_size = lsize;
             m_storage.m_size = 0;
@@ -13262,17 +12576,13 @@ private:
     data_type m_storage;
 };
 
-template <typename T, size_t Capacity, typename Alloc>
-using static_vector_storage =
-    __static_vector_storage_impl<T, Capacity, Alloc, vector_storage_traits<T, Alloc>>;
-
-template <typename T, typename Alloc, typename STraits>
-class __fixed_vector_storage_impl {
+template <typename T, typename Alloc>
+class fixed_vector_storage {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
 public:
-    using storage_traits_type = STraits;
+    using storage_traits_type = vector_storage_traits<T, Alloc>;
     using value_type = typename storage_traits_type::value_type;
     using pointer = typename storage_traits_type::pointer;
     using const_pointer = typename storage_traits_type::const_pointer;
@@ -13292,14 +12602,14 @@ private:
     using size_ref = default_vector_size_reference<pointer, size_type>;
 
 public:
-    __fixed_vector_storage_impl() noexcept = default;
+    fixed_vector_storage() noexcept = default;
 
-    __fixed_vector_storage_impl(const __fixed_vector_storage_impl &) = delete;
-    __fixed_vector_storage_impl(__fixed_vector_storage_impl &&) = delete;
-    __fixed_vector_storage_impl &operator=(const __fixed_vector_storage_impl &) = delete;
-    __fixed_vector_storage_impl &operator=(__fixed_vector_storage_impl &&) = delete;
+    fixed_vector_storage(const fixed_vector_storage &) = delete;
+    fixed_vector_storage(fixed_vector_storage &&) = delete;
+    fixed_vector_storage &operator=(const fixed_vector_storage &) = delete;
+    fixed_vector_storage &operator=(fixed_vector_storage &&) = delete;
 
-    ~__fixed_vector_storage_impl() noexcept = default;
+    ~fixed_vector_storage() noexcept = default;
 
 private:
     WJR_PURE WJR_INTRINSIC_INLINE bool __is_null_data() const {
@@ -13339,7 +12649,7 @@ public:
     }
 
     WJR_CONSTEXPR20 static void uninitialized_construct(
-        __fixed_vector_storage_impl &other, size_type size, size_type capacity,
+        fixed_vector_storage &other, size_type size, size_type capacity,
         _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
         if (capacity != 0) {
             const auto result = allocate_at_least(al, capacity);
@@ -13352,15 +12662,13 @@ public:
         }
     }
 
-    WJR_CONSTEXPR20 void take_storage(__fixed_vector_storage_impl &other,
-                                      _Alty &) noexcept {
+    WJR_CONSTEXPR20 void take_storage(fixed_vector_storage &other, _Alty &) noexcept {
         auto &other_storage = other.m_storage;
         m_storage = std::move(other_storage);
         other_storage = {};
     }
 
-    WJR_CONSTEXPR20 void swap_storage(__fixed_vector_storage_impl &other,
-                                      _Alty &) noexcept {
+    WJR_CONSTEXPR20 void swap_storage(fixed_vector_storage &other, _Alty &) noexcept {
         std::swap(m_storage, other.m_storage);
     }
 
@@ -13384,10 +12692,6 @@ public:
 private:
     data_type m_storage;
 };
-
-template <typename T, typename Alloc>
-using fixed_vector_storage =
-    __fixed_vector_storage_impl<T, Alloc, vector_storage_traits<T, Alloc>>;
 
 template <typename T, size_t Capacity, typename Alloc, typename STraits>
 class __sso_vector_storage_impl {
@@ -13505,7 +12809,7 @@ public:
                              __max_capacity);
                 }
             } else {
-                STraits::uninitialized_move_n_restrict_using_allocator(
+                wjr::uninitialized_move_n_restrict_using_allocator(
                     other_storage.m_storage, other.size(), m_storage.m_storage, al);
             }
         } else {
@@ -13543,19 +12847,19 @@ public:
                             std::swap(lsize, rsize);
                         }
 
-                        STraits::uninitialized_move_n_restrict_using_allocator(lhs, lsize,
-                                                                               tmp, al);
-                        STraits::uninitialized_move_n_restrict_using_allocator(rhs, rsize,
-                                                                               lhs, al);
-                        STraits::uninitialized_move_n_restrict_using_allocator(tmp, lsize,
-                                                                               rhs, al);
+                        wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize,
+                                                                           tmp, al);
+                        wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize,
+                                                                           lhs, al);
+                        wjr::uninitialized_move_n_restrict_using_allocator(tmp, lsize,
+                                                                           rhs, al);
                     }
                 } else if (rsize) {
                     if constexpr (__use_memcpy) {
                         __memcpy(lhs, rhs, __max_capacity);
                     } else {
-                        STraits::uninitialized_move_n_restrict_using_allocator(rhs, rsize,
-                                                                               lhs, al);
+                        wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize,
+                                                                           lhs, al);
                     }
                     storage.m_size = rsize;
                     other_storage.m_size = 0;
@@ -13564,8 +12868,8 @@ public:
                     if constexpr (__use_memcpy) {
                         __memcpy(rhs, lhs, __max_capacity);
                     } else {
-                        STraits::uninitialized_move_n_restrict_using_allocator(lhs, lsize,
-                                                                               rhs, al);
+                        wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize,
+                                                                           rhs, al);
                     }
                     other_storage.m_size = lsize;
                     storage.m_size = 0;
@@ -13581,7 +12885,7 @@ public:
                                  __max_capacity);
                     }
                 } else {
-                    STraits::uninitialized_move_n_restrict_using_allocator(
+                    wjr::uninitialized_move_n_restrict_using_allocator(
                         storage.m_storage, size(), other_storage.m_storage, al);
                 }
 
@@ -13598,7 +12902,7 @@ public:
                                  __max_capacity);
                     }
                 } else {
-                    STraits::uninitialized_move_n_restrict_using_allocator(
+                    wjr::uninitialized_move_n_restrict_using_allocator(
                         other_storage.m_storage, other.size(), storage.m_storage, al);
                 }
 
@@ -13759,8 +13063,8 @@ private:
                  wjr::forward_as_tuple()) {
         const auto size = other.size();
         uninitialized_construct(size, other.capacity());
-        STraits::uninitialized_copy_n_restrict_using_allocator(other.data(), size, data(),
-                                                               __get_allocator());
+        wjr::uninitialized_copy_n_restrict_using_allocator(other.data(), size, data(),
+                                                           __get_allocator());
     }
 
     template <typename _Alloc>
@@ -13961,7 +13265,7 @@ public:
                 storage_type new_storage;
                 uninitialized_construct(new_storage, __size, __size);
 
-                STraits::uninitialized_move_n_restrict_using_allocator(
+                wjr::uninitialized_move_n_restrict_using_allocator(
                     data(), __size, new_storage.data(), al);
                 __destroy_and_deallocate();
                 __take_storage(new_storage);
@@ -13997,7 +13301,7 @@ public:
                 storage_type new_storage;
                 uninitialized_construct(new_storage, old_size, new_capacity);
 
-                STraits::uninitialized_move_n_restrict_using_allocator(
+                wjr::uninitialized_move_n_restrict_using_allocator(
                     data(), old_size, new_storage.data(), al);
                 __destroy_and_deallocate();
                 __take_storage(new_storage);
@@ -14077,8 +13381,8 @@ public:
         const pointer __buf_end = buf_end_unsafe();
 
         if (WJR_LIKELY(__end != __buf_end)) {
-            STraits::uninitialized_construct_using_allocator(__end, __get_allocator(),
-                                                             std::forward<Args>(args)...);
+            wjr::uninitialized_construct_using_allocator(__end, __get_allocator(),
+                                                         std::forward<Args>(args)...);
             ++__get_size();
         } else {
             __realloc_insert_at_end(std::forward<Args>(args)...);
@@ -14088,7 +13392,6 @@ public:
     }
 
     WJR_CONSTEXPR20 void push_back(const value_type &val) { emplace_back(val); }
-
     WJR_CONSTEXPR20 void push_back(value_type &&val) { emplace_back(std::move(val)); }
 
     WJR_CONSTEXPR20 void pop_back() noexcept {
@@ -14347,10 +13650,10 @@ private:
             auto &al = __get_allocator();
             uninitialized_construct(get_storage(), n, n);
             if constexpr (sizeof...(Args) == 1) {
-                STraits::uninitialized_fill_n_using_allocator(
-                    data(), n, al, std::forward<Args>(args)...);
+                wjr::uninitialized_fill_n_using_allocator(data(), n, al,
+                                                          std::forward<Args>(args)...);
             } else if constexpr (sizeof...(Args) == 2) {
-                STraits::uninitialized_copy_restrict_using_allocator(
+                wjr::uninitialized_copy_restrict_using_allocator(
                     std::forward<Args>(args)..., data(), al);
             }
         }
@@ -14384,7 +13687,7 @@ private:
     WJR_CONSTEXPR20 iterator __erase(pointer pos) noexcept {
         const pointer __end = end_unsafe();
         if (pos + 1 != __end) {
-            STraits::move(pos + 1, __end, pos);
+            std::move(pos + 1, __end, pos);
         }
 
         destroy_at_using_allocator(__end - 1, __get_allocator());
@@ -14396,7 +13699,7 @@ private:
         const pointer __end = end_unsafe();
         if (WJR_LIKELY(first != last)) {
             if (last != __end) {
-                STraits::move(last, __end, first);
+                std::move(last, __end, first);
             }
 
             __erase_at_end(__end - (last - first));
@@ -14435,18 +13738,16 @@ private:
         if (WJR_LIKELY(__rest >= n)) {
             const auto __elements_after = static_cast<size_type>(__end - pos);
             if (__elements_after > n) {
-                STraits::uninitialized_move_n_restrict_using_allocator(__end - n, n,
-                                                                       __end, al);
-                STraits::move_backward(pos, __end - n, __end);
-                STraits::copy_restrict(first, last, pos);
+                wjr::uninitialized_move_n_restrict_using_allocator(__end - n, n, __end,
+                                                                   al);
+                std::move_backward(pos, __end - n, __end);
+                wjr::copy_restrict(first, last, pos);
             } else {
                 const auto mid = std::next(first, __elements_after);
 
-                STraits::uninitialized_copy_restrict_using_allocator(mid, last, __end,
-                                                                     al);
-                STraits::uninitialized_move_restrict_using_allocator(pos, __end, pos + n,
-                                                                     al);
-                STraits::copy_restrict(first, mid, pos);
+                wjr::uninitialized_copy_restrict_using_allocator(mid, last, __end, al);
+                wjr::uninitialized_move_restrict_using_allocator(pos, __end, pos + n, al);
+                wjr::copy_restrict(first, mid, pos);
             }
 
             __get_size() += n;
@@ -14462,11 +13763,11 @@ private:
 
                 const pointer __new_begin = new_storage.data();
 
-                STraits::uninitialized_copy_restrict_using_allocator(
+                wjr::uninitialized_copy_restrict_using_allocator(
                     first, last, __new_begin + old_pos, al);
-                STraits::uninitialized_move_restrict_using_allocator(__begin, pos,
-                                                                     __new_begin, al);
-                STraits::uninitialized_move_restrict_using_allocator(
+                wjr::uninitialized_move_restrict_using_allocator(__begin, pos,
+                                                                 __new_begin, al);
+                wjr::uninitialized_move_restrict_using_allocator(
                     pos, __end, __new_begin + old_pos + n, al);
 
                 __destroy_and_deallocate();
@@ -14500,7 +13801,7 @@ private:
         const auto __rest = static_cast<size_type>(__buf_end - __end);
 
         if (WJR_LIKELY(__rest >= n)) {
-            STraits::uninitialized_copy_n_restrict_using_allocator(first, n, __end, al);
+            wjr::uninitialized_copy_n_restrict_using_allocator(first, n, __end, al);
             __get_size() += n;
         } else {
             if constexpr (is_reallocatable::value) {
@@ -14513,10 +13814,10 @@ private:
 
                 const pointer __new_begin = new_storage.data();
 
-                STraits::uninitialized_copy_restrict_using_allocator(
+                wjr::uninitialized_copy_restrict_using_allocator(
                     first, last, __new_begin + old_size, al);
-                STraits::uninitialized_move_restrict_using_allocator(__begin, __end,
-                                                                     __new_begin, al);
+                wjr::uninitialized_move_restrict_using_allocator(__begin, __end,
+                                                                 __new_begin, al);
 
                 __destroy_and_deallocate();
                 __take_storage(new_storage);
@@ -14551,13 +13852,13 @@ private:
         const pointer __end = end_unsafe();
 
         if (n <= size()) {
-            STraits::copy_restrict(first, last, __begin);
+            wjr::copy_restrict(first, last, __begin);
             __erase_at_end(__begin + n);
         } else if (WJR_LIKELY(n <= capacity())) {
             auto mid = first;
             std::advance(mid, size());
-            STraits::copy_restrict(first, mid, data());
-            STraits::uninitialized_copy_restrict_using_allocator(mid, last, __end, al);
+            wjr::copy_restrict(first, mid, data());
+            wjr::uninitialized_copy_restrict_using_allocator(mid, last, __end, al);
             __get_size() = n;
         } else {
             if constexpr (is_reallocatable::value) {
@@ -14567,8 +13868,8 @@ private:
                 uninitialized_construct(new_storage, n, new_capacity);
 
                 const pointer __new_begin = new_storage.data();
-                STraits::uninitialized_copy_n_restrict_using_allocator(first, n,
-                                                                       __new_begin, al);
+                wjr::uninitialized_copy_n_restrict_using_allocator(first, n, __new_begin,
+                                                                   al);
 
                 __destroy_and_deallocate();
                 __take_storage(new_storage);
@@ -14588,8 +13889,7 @@ private:
                 storage_type new_storage;
                 uninitialized_construct(new_storage, n, n);
 
-                STraits::uninitialized_fill_n_using_allocator(new_storage.data(), n, al,
-                                                              val);
+                wjr::uninitialized_fill_n_using_allocator(new_storage.data(), n, al, val);
                 __take_storage(new_storage);
                 return;
             } else {
@@ -14598,12 +13898,11 @@ private:
         }
 
         if (n > size()) {
-            STraits::fill(begin_unsafe(), end_unsafe(), val);
-            STraits::uninitialized_fill_n_using_allocator(end_unsafe(), n - size(), al,
-                                                          val);
+            std::fill(begin_unsafe(), end_unsafe(), val);
+            wjr::uninitialized_fill_n_using_allocator(end_unsafe(), n - size(), al, val);
             __get_size() = n;
         } else {
-            __erase_at_end(STraits::fill_n(begin_unsafe(), n, val));
+            __erase_at_end(std::fill_n(begin_unsafe(), n, val));
         }
     }
 
@@ -14625,13 +13924,12 @@ private:
             const pointer __new_begin = new_storage.data();
             const pointer new_pos = __new_begin + old_pos_size;
 
-            STraits::uninitialized_construct_using_allocator(new_pos, al,
-                                                             std::forward<Args>(args)...);
+            wjr::uninitialized_construct_using_allocator(new_pos, al,
+                                                         std::forward<Args>(args)...);
 
-            STraits::uninitialized_move_n_restrict_using_allocator(__begin, old_pos_size,
-                                                                   __new_begin, al);
-            STraits::uninitialized_move_restrict_using_allocator(pos, __end, new_pos + 1,
-                                                                 al);
+            wjr::uninitialized_move_n_restrict_using_allocator(__begin, old_pos_size,
+                                                               __new_begin, al);
+            wjr::uninitialized_move_restrict_using_allocator(pos, __end, new_pos + 1, al);
 
             __destroy_and_deallocate();
             __take_storage(new_storage);
@@ -14657,11 +13955,11 @@ private:
             const pointer __new_begin = new_storage.data();
 
             const pointer new_pos = __new_begin + old_size;
-            STraits::uninitialized_construct_using_allocator(new_pos, al,
-                                                             std::forward<Args>(args)...);
+            wjr::uninitialized_construct_using_allocator(new_pos, al,
+                                                         std::forward<Args>(args)...);
 
-            STraits::uninitialized_move_restrict_using_allocator(__begin, __end,
-                                                                 __new_begin, al);
+            wjr::uninitialized_move_restrict_using_allocator(__begin, __end, __new_begin,
+                                                             al);
 
             __destroy_and_deallocate();
             __take_storage(new_storage);
@@ -14688,16 +13986,15 @@ private:
 
             const auto __elements_after = static_cast<size_type>(__end - pos);
             if (__elements_after > n) {
-                STraits::uninitialized_move_n_restrict_using_allocator(__end - n, n,
-                                                                       __end, al);
-                STraits::move_backward(pos, __end - n, __end);
-                STraits::fill_n(pos, n, real_val);
+                wjr::uninitialized_move_n_restrict_using_allocator(__end - n, n, __end,
+                                                                   al);
+                std::move_backward(pos, __end - n, __end);
+                std::fill_n(pos, n, real_val);
             } else {
-                STraits::uninitialized_fill_n_using_allocator(__end, n - __elements_after,
-                                                              al, real_val);
-                STraits::uninitialized_move_restrict_using_allocator(pos, __end, pos + n,
-                                                                     al);
-                STraits::fill(pos, __end, real_val);
+                wjr::uninitialized_fill_n_using_allocator(__end, n - __elements_after, al,
+                                                          real_val);
+                wjr::uninitialized_move_restrict_using_allocator(pos, __end, pos + n, al);
+                std::fill(pos, __end, real_val);
             }
 
             __get_size() += n;
@@ -14713,11 +14010,11 @@ private:
 
                 const auto old_pos = static_cast<size_type>(pos - __begin);
 
-                STraits::uninitialized_fill_n_using_allocator(__new_begin + old_pos, n,
-                                                              al, val);
-                STraits::uninitialized_move_restrict_using_allocator(__begin, pos,
-                                                                     __new_begin, al);
-                STraits::uninitialized_move_restrict_using_allocator(
+                wjr::uninitialized_fill_n_using_allocator(__new_begin + old_pos, n, al,
+                                                          val);
+                wjr::uninitialized_move_restrict_using_allocator(__begin, pos,
+                                                                 __new_begin, al);
+                wjr::uninitialized_move_restrict_using_allocator(
                     pos, __end, __new_begin + old_pos + n, al);
 
                 __destroy_and_deallocate();
@@ -14749,8 +14046,8 @@ private:
             }
 
             if (new_size > old_size) {
-                STraits::uninitialized_fill_n_using_allocator(__end, new_size - old_size,
-                                                              al, val);
+                wjr::uninitialized_fill_n_using_allocator(__end, new_size - old_size, al,
+                                                          val);
             } else if (new_size < old_size) {
                 destroy_using_allocator(__begin + new_size, __end, al);
             }
@@ -14773,7 +14070,7 @@ private:
         const auto new_size = old_size + n;
 
         if (WJR_LIKELY(__rest >= n)) {
-            STraits::uninitialized_fill_n_using_allocator(__end, n, al, val);
+            wjr::uninitialized_fill_n_using_allocator(__end, n, al, val);
             __get_size() = new_size;
         } else {
             if constexpr (is_reallocatable::value) {
@@ -14784,10 +14081,10 @@ private:
 
                 const pointer __new_begin = new_storage.data();
 
-                STraits::uninitialized_fill_n_using_allocator(__new_begin + old_size, n,
-                                                              al, val);
-                STraits::uninitialized_move_restrict_using_allocator(__begin, __end,
-                                                                     __new_begin, al);
+                wjr::uninitialized_fill_n_using_allocator(__new_begin + old_size, n, al,
+                                                          val);
+                wjr::uninitialized_move_restrict_using_allocator(__begin, __end,
+                                                                 __new_begin, al);
 
                 __destroy_and_deallocate();
                 __take_storage(new_storage);
@@ -14802,10 +14099,9 @@ private:
         auto &al = __get_allocator();
         const pointer __end = end_unsafe();
 
-        STraits::uninitialized_construct_using_allocator(__end, al,
-                                                         std::move(*(__end - 1)));
+        wjr::uninitialized_construct_using_allocator(__end, al, std::move(*(__end - 1)));
 
-        STraits::move_backward(pos, __end - 1, __end);
+        std::move_backward(pos, __end - 1, __end);
         *pos = std::forward<Args>(args);
 
         ++__get_size();
@@ -14819,8 +14115,8 @@ private:
 
         if (WJR_LIKELY(__end != __buf_end)) {
             if (pos == __end) {
-                STraits::uninitialized_construct_using_allocator(
-                    __end, al, std::forward<Args>(args)...);
+                wjr::uninitialized_construct_using_allocator(__end, al,
+                                                             std::forward<Args>(args)...);
                 ++__get_size();
             } else {
                 temporary_value_allocator tmp(al, std::forward<Args>(args)...);
@@ -14858,7 +14154,7 @@ private:
         const auto m = static_cast<size_type>(std::distance(new_begin, new_last));
 
         if (m <= n) {
-            erase(STraits::copy_n(new_begin, m, old_first), old_last);
+            erase(std::copy_n(new_begin, m, old_first), old_last);
         } else {
             const auto __delta = m - n;
 
@@ -14872,17 +14168,17 @@ private:
             if (WJR_LIKLELY(__rest >= __delta)) {
                 const auto __elements_after = static_cast<size_type>(__end - old_first);
                 if (__elements_after > m) {
-                    STraits::uninitialized_move_using_allocator(__end - __delta, __end,
-                                                                __end, al);
-                    STraits::move_backward(old_last, __end - __delta, __end);
-                    STraits::copy(new_begin, new_last, old_first);
+                    wjr::uninitialized_move_using_allocator(__end - __delta, __end, __end,
+                                                            al);
+                    std::move_backward(old_last, __end - __delta, __end);
+                    std::copy(new_begin, new_last, old_first);
                 } else {
                     auto mid = new_begin;
                     std::advance(mid, __elements_after);
-                    STraits::uninitialized_copy_using_allocator(mid, new_last, __end, al);
-                    STraits::uninitialized_move_using_allocator(old_last, __end,
-                                                                old_first + m, al);
-                    STraits::copy(new_begin, mid, old_first);
+                    wjr::uninitialized_copy_using_allocator(mid, new_last, __end, al);
+                    wjr::uninitialized_move_using_allocator(old_last, __end,
+                                                            old_first + m, al);
+                    std::copy(new_begin, mid, old_first);
                 }
                 __get_size() += __delta;
             } else {
@@ -14898,11 +14194,11 @@ private:
 
                     const pointer __new_begin = new_storage.data();
 
-                    STraits::uninitialized_copy_restrict_using_allocator(
+                    wjr::uninitialized_copy_restrict_using_allocator(
                         new_begin, new_last, __new_begin + old_pos, al);
-                    STraits::uninitialized_move_restrict_using_allocator(
-                        __begin, old_first, __new_begin, al);
-                    STraits::uninitialized_move_restrict_using_allocator(
+                    wjr::uninitialized_move_restrict_using_allocator(__begin, old_first,
+                                                                     __new_begin, al);
+                    wjr::uninitialized_move_restrict_using_allocator(
                         old_last, __end, __new_begin + old_pos + m, al);
 
                     __destroy_and_deallocate();
@@ -14919,7 +14215,7 @@ private:
         const auto n = static_cast<size_type>(old_last - old_first);
 
         if (m <= n) {
-            __erase(STraits::fill_n(old_first, m, val), old_last);
+            __erase(std::fill_n(old_first, m, val), old_last);
         } else {
             const auto __delta = m - n;
 
@@ -14936,16 +14232,16 @@ private:
 
                 const auto __elements_after = static_cast<size_type>(__end - old_first);
                 if (__elements_after > m) {
-                    STraits::uninitialized_move_using_allocator(__end - __delta, __end,
-                                                                __end, al);
-                    STraits::move_backward(old_last, __end - __delta, __end);
-                    STraits::fill_n(old_first, m, real_value);
+                    wjr::uninitialized_move_using_allocator(__end - __delta, __end, __end,
+                                                            al);
+                    std::move_backward(old_last, __end - __delta, __end);
+                    std::fill_n(old_first, m, real_value);
                 } else {
-                    STraits::uninitialized_fill_n_using_allocator(
-                        __end, m - __elements_after, al, real_value);
-                    STraits::uninitialized_move_using_allocator(old_last, __end,
-                                                                old_first + m, al);
-                    STraits::fill(old_first, __end, real_value);
+                    wjr::uninitialized_fill_n_using_allocator(__end, m - __elements_after,
+                                                              al, real_value);
+                    wjr::uninitialized_move_using_allocator(old_last, __end,
+                                                            old_first + m, al);
+                    std::fill(old_first, __end, real_value);
                 }
                 __get_size() += __delta;
             } else {
@@ -14961,11 +14257,11 @@ private:
 
                     const pointer __ptr = new_storage.data();
 
-                    STraits::uninitialized_fill_n_using_allocator(__ptr + old_pos, m, al,
-                                                                  val);
-                    STraits::uninitialized_move_restrict_using_allocator(
-                        __begin, old_first, __ptr, al);
-                    STraits::uninitialized_move_restrict_using_allocator(
+                    wjr::uninitialized_fill_n_using_allocator(__ptr + old_pos, m, al,
+                                                              val);
+                    wjr::uninitialized_move_restrict_using_allocator(__begin, old_first,
+                                                                     __ptr, al);
+                    wjr::uninitialized_move_restrict_using_allocator(
                         old_last, __end, __ptr + old_pos + m, al);
 
                     __destroy_and_deallocate();
@@ -19540,6 +18836,8 @@ __greater_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1) noex
 #ifndef WJR_MATH_DIVIDER_HPP__
 #define WJR_MATH_DIVIDER_HPP__
 
+#include <array>
+
 #ifndef WJR_MATH_MUL_HPP__
 #define WJR_MATH_MUL_HPP__
 
@@ -19587,7 +18885,7 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U addc_s(uint64_t *dst, const uint64_t *
                                                  size_t n, const uint64_t *src1, size_t m,
                                                  U c_in = 0) noexcept;
 
-// m can be zero
+/// @note m can be zero
 template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U addc_sz(uint64_t *dst, const uint64_t *src0,
                                                   size_t n, const uint64_t *src1,
@@ -20596,7 +19894,7 @@ WJR_INTRINSIC_INLINE void __builtin_add_128(uint64_t &al, uint64_t &ah, uint64_t
 
 #endif
 
-// <ah, al> = <hi0, lo0> + <hi1, lo1>
+/// @brief <ah, al> = <hi0, lo0> + <hi1, lo1>
 WJR_INTRINSIC_CONSTEXPR20 void __add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                          uint64_t hi0, uint64_t lo1,
                                          uint64_t hi1) noexcept {
@@ -20622,7 +19920,9 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t __fallback_addc_128(uint64_t &al, uint64_t &a
     return c_in;
 }
 
-// return c_out
+/**
+ * @return carry-out 
+ */
 WJR_INTRINSIC_CONSTEXPR20 uint64_t __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,
                                               uint64_t c_in) noexcept {
@@ -20860,10 +20160,19 @@ void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n,
     } while (WJR_LIKELY(idx != 0));
 }
 
+extern template void
+large_builtin_lshift_n_impl<false, uint64_t>(uint64_t *dst, const uint64_t *src, size_t n,
+                                             unsigned int c) noexcept;
+
+extern template void large_builtin_lshift_n_impl<true, uint64_t>(uint64_t *dst,
+                                                                 const uint64_t *src,
+                                                                 size_t n,
+                                                                 unsigned int c) noexcept;
+
 template <typename T>
 WJR_INTRINSIC_INLINE void builtin_lshift_n_impl(T *dst, const T *src, size_t n,
                                                 unsigned int c) noexcept {
-    if (WJR_UNLIKELY(n < 4)) {
+    if (n < 4) {
         switch (n) {
         case 3: {
             dst[2] = shld(src[2], src[1], c);
@@ -20977,10 +20286,19 @@ void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n,
     } while (WJR_LIKELY(idx != 0));
 }
 
+extern template void
+large_builtin_rshift_n_impl<false, uint64_t>(uint64_t *dst, const uint64_t *src, size_t n,
+                                             unsigned int c) noexcept;
+
+extern template void large_builtin_rshift_n_impl<true, uint64_t>(uint64_t *dst,
+                                                                 const uint64_t *src,
+                                                                 size_t n,
+                                                                 unsigned int c) noexcept;
+
 template <typename T>
 WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n,
                                                 unsigned int c) noexcept {
-    if (WJR_UNLIKELY(n < 4)) {
+    if (n < 4) {
         dst += n - 3;
         src += n - 3;
 
@@ -21610,7 +20928,7 @@ namespace wjr {
 #if WJR_HAS_DEBUG(SAFE_POINTER)
 
 template <typename T>
-class safe_array {
+class safe_pointer {
 public:
     using element_type = T;
     using value_type = std::remove_cv_t<T>;
@@ -21619,14 +20937,14 @@ public:
     using difference_type = ptrdiff_t;
     using size_type = size_t;
 
-    constexpr safe_array() noexcept = default;
-    constexpr safe_array(const safe_array &) noexcept = default;
-    constexpr safe_array(safe_array &&) noexcept = default;
-    constexpr safe_array &operator=(const safe_array &) noexcept = default;
-    constexpr safe_array &operator=(safe_array &&) noexcept = default;
-    ~safe_array() noexcept = default;
+    constexpr safe_pointer() noexcept = default;
+    constexpr safe_pointer(const safe_pointer &) noexcept = default;
+    constexpr safe_pointer(safe_pointer &&) noexcept = default;
+    constexpr safe_pointer &operator=(const safe_pointer &) noexcept = default;
+    constexpr safe_pointer &operator=(safe_pointer &&) noexcept = default;
+    ~safe_pointer() noexcept = default;
 
-    constexpr safe_array &reset_range() noexcept {
+    constexpr safe_pointer &reset_range() noexcept {
         m_length -= m_offset;
         m_offset = 0;
         return *this;
@@ -21636,28 +20954,28 @@ public:
     constexpr pointer data() const noexcept { return m_ptr; }
     constexpr reference operator[](size_type i) const noexcept { return m_ptr[i]; }
 
-    constexpr safe_array(span<T> s) noexcept
+    constexpr safe_pointer(span<T> s) noexcept
         : m_ptr(s.data()), m_offset(0), m_size(s.size()), m_length(s.size()) {}
 
-    constexpr safe_array first(size_type count) const noexcept {
-        WJR_ASSERT_L3(m_ptr != nullptr, "safe_array: nullptr");
-        WJR_ASSERT_L3(count <= m_size, "safe_array: out of range");
+    constexpr safe_pointer first(size_type count) const noexcept {
+        WJR_ASSERT_L3(m_ptr != nullptr, "safe_pointer: nullptr");
+        WJR_ASSERT_L3(count <= m_size, "safe_pointer: out of range");
         return {m_ptr, m_offset, count, m_length};
     }
 
-    constexpr safe_array subspan(size_type offset, size_type count) const noexcept {
-        WJR_ASSERT_L3(m_ptr != nullptr, "safe_array: nullptr");
-        WJR_ASSERT_L3(offset + count <= m_size, "safe_array: out of range");
+    constexpr safe_pointer subspan(size_type offset, size_type count) const noexcept {
+        WJR_ASSERT_L3(m_ptr != nullptr, "safe_pointer: nullptr");
+        WJR_ASSERT_L3(offset + count <= m_size, "safe_pointer: out of range");
         return {m_ptr + offset, m_offset + offset, count, m_length};
     }
 
-    constexpr safe_array &append(size_type length) noexcept {
+    constexpr safe_pointer &append(size_type length) noexcept {
         WJR_ASSERT_L3(m_offset + m_size + length <= m_length);
         m_size += length;
         return *this;
     }
 
-    constexpr safe_array &operator=(span<T> s) noexcept {
+    constexpr safe_pointer &operator=(span<T> s) noexcept {
         m_ptr = s.data();
         m_offset = 0;
         m_size = s.size();
@@ -21665,7 +20983,7 @@ public:
         return *this;
     }
 
-    constexpr safe_array &operator=(std::nullptr_t) noexcept {
+    constexpr safe_pointer &operator=(std::nullptr_t) noexcept {
         m_ptr = nullptr;
         m_offset = 0;
         m_size = 0;
@@ -21673,66 +20991,66 @@ public:
         return *this;
     }
 
-    constexpr safe_array &operator+=(size_type n) noexcept {
-        WJR_ASSERT_L3(m_ptr != nullptr, "safe_array: nullptr");
-        WJR_ASSERT_L3(n <= m_size, "safe_array: out of range");
+    constexpr safe_pointer &operator+=(size_type n) noexcept {
+        WJR_ASSERT_L3(m_ptr != nullptr, "safe_pointer: nullptr");
+        WJR_ASSERT_L3(n <= m_size, "safe_pointer: out of range");
         m_ptr += n;
         m_offset += n;
         m_size -= n;
         return *this;
     }
 
-    constexpr friend safe_array operator+(safe_array lhs, size_type rhs) noexcept {
+    constexpr friend safe_pointer operator+(safe_pointer lhs, size_type rhs) noexcept {
         return lhs += rhs;
     }
 
-    constexpr friend safe_array operator+(size_type lhs, safe_array rhs) noexcept {
+    constexpr friend safe_pointer operator+(size_type lhs, safe_pointer rhs) noexcept {
         return rhs += lhs;
     }
 
-    constexpr safe_array &operator++() noexcept {
+    constexpr safe_pointer &operator++() noexcept {
         (*this) += 1;
         return *this;
     }
 
-    constexpr safe_array operator++(int) noexcept {
-        safe_array tmp = *this;
+    constexpr safe_pointer operator++(int) noexcept {
+        safe_pointer tmp = *this;
         ++*this;
         return tmp;
     }
 
-    constexpr safe_array &operator-=(size_type n) noexcept {
-        WJR_ASSERT_L3(m_ptr != nullptr, "safe_array: nullptr");
-        WJR_ASSERT_L3(m_offset >= n, "safe_array: out of range");
+    constexpr safe_pointer &operator-=(size_type n) noexcept {
+        WJR_ASSERT_L3(m_ptr != nullptr, "safe_pointer: nullptr");
+        WJR_ASSERT_L3(m_offset >= n, "safe_pointer: out of range");
         m_ptr -= n;
         m_offset -= n;
         m_size += n;
         return *this;
     }
 
-    constexpr friend safe_array operator-(safe_array lhs, size_type rhs) noexcept {
+    constexpr friend safe_pointer operator-(safe_pointer lhs, size_type rhs) noexcept {
         return lhs -= rhs;
     }
 
-    constexpr friend ptrdiff_t operator-(const safe_array &lhs,
-                                         const safe_array &rhs) noexcept {
+    constexpr friend ptrdiff_t operator-(const safe_pointer &lhs,
+                                         const safe_pointer &rhs) noexcept {
         return lhs.m_ptr - rhs.m_ptr;
     }
 
-    constexpr safe_array &operator--() noexcept {
+    constexpr safe_pointer &operator--() noexcept {
         (*this) -= 1;
         return *this;
     }
 
-    constexpr safe_array operator--(int) noexcept {
-        safe_array tmp = *this;
+    constexpr safe_pointer operator--(int) noexcept {
+        safe_pointer tmp = *this;
         --*this;
         return tmp;
     }
 
 private:
-    constexpr safe_array(pointer ptr, size_type offset, size_type size,
-                         size_type length) noexcept
+    constexpr safe_pointer(pointer ptr, size_type offset, size_type size,
+                           size_type length) noexcept
         : m_ptr(ptr), m_offset(offset), m_size(size), m_length(length) {}
 
     pointer m_ptr = nullptr;
@@ -21744,7 +21062,7 @@ private:
 #else
 
 template <typename T>
-class safe_array {
+class safe_pointer {
 public:
     using element_type = T;
     using value_type = std::remove_cv_t<T>;
@@ -21753,64 +21071,64 @@ public:
     using difference_type = ptrdiff_t;
     using size_type = size_t;
 
-    constexpr safe_array() noexcept = default;
-    constexpr safe_array(const safe_array &) noexcept = default;
-    constexpr safe_array(safe_array &&) noexcept = default;
-    constexpr safe_array &operator=(const safe_array &) noexcept = default;
-    constexpr safe_array &operator=(safe_array &&) noexcept = default;
-    ~safe_array() noexcept = default;
+    constexpr safe_pointer() noexcept = default;
+    constexpr safe_pointer(const safe_pointer &) noexcept = default;
+    constexpr safe_pointer(safe_pointer &&) noexcept = default;
+    constexpr safe_pointer &operator=(const safe_pointer &) noexcept = default;
+    constexpr safe_pointer &operator=(safe_pointer &&) noexcept = default;
+    ~safe_pointer() noexcept = default;
 
-    constexpr safe_array &reset_range() noexcept { return *this; }
+    constexpr safe_pointer &reset_range() noexcept { return *this; }
 
     constexpr pointer get() const noexcept { return m_ptr; }
     constexpr pointer data() const noexcept { return m_ptr; }
     constexpr reference operator[](size_type i) const noexcept { return m_ptr[i]; }
 
-    constexpr safe_array(span<T> s) noexcept : m_ptr(s.data()) {}
+    constexpr safe_pointer(span<T> s) noexcept : m_ptr(s.data()) {}
 
-    constexpr safe_array first(WJR_MAYBE_UNUSED size_type count) const noexcept {
-        return safe_array{m_ptr};
+    constexpr safe_pointer first(WJR_MAYBE_UNUSED size_type count) const noexcept {
+        return safe_pointer{m_ptr};
     }
 
-    constexpr safe_array subspan(size_type offset,
-                                 WJR_MAYBE_UNUSED size_type count) const noexcept {
-        return safe_array{m_ptr + offset};
+    constexpr safe_pointer subspan(size_type offset,
+                                   WJR_MAYBE_UNUSED size_type count) const noexcept {
+        return safe_pointer{m_ptr + offset};
     }
 
-    constexpr safe_array &operator=(span<T> s) noexcept {
+    constexpr safe_pointer &operator=(span<T> s) noexcept {
         m_ptr = s.data();
         return *this;
     }
 
-    constexpr safe_array &operator=(std::nullptr_t) noexcept {
+    constexpr safe_pointer &operator=(std::nullptr_t) noexcept {
         m_ptr = nullptr;
         return *this;
     }
 
-    constexpr safe_array &operator+=(size_type n) noexcept {
+    constexpr safe_pointer &operator+=(size_type n) noexcept {
         m_ptr += n;
         return *this;
     }
 
-    constexpr friend safe_array operator+(safe_array lhs, size_type rhs) noexcept {
+    constexpr friend safe_pointer operator+(safe_pointer lhs, size_type rhs) noexcept {
         return lhs += rhs;
     }
 
-    constexpr friend safe_array operator+(size_type lhs, safe_array rhs) noexcept {
+    constexpr friend safe_pointer operator+(size_type lhs, safe_pointer rhs) noexcept {
         return rhs += lhs;
     }
 
-    constexpr safe_array &operator-=(size_type n) noexcept {
+    constexpr safe_pointer &operator-=(size_type n) noexcept {
         m_ptr -= n;
         return *this;
     }
 
-    constexpr friend safe_array operator-(safe_array lhs, size_type rhs) noexcept {
+    constexpr friend safe_pointer operator-(safe_pointer lhs, size_type rhs) noexcept {
         return lhs -= rhs;
     }
 
-    constexpr friend ptrdiff_t operator-(const safe_array &lhs,
-                                         const safe_array &rhs) noexcept {
+    constexpr friend ptrdiff_t operator-(const safe_pointer &lhs,
+                                         const safe_pointer &rhs) noexcept {
         return lhs.m_ptr - rhs.m_ptr;
     }
 
@@ -21847,10 +21165,10 @@ namespace wjr {
 
 #define WJR_HAS_BUILTIN_UMUL128 WJR_HAS_DEF
 
-#if WJR_HAS_FEATURE(INT128)
-#define WJR_HAS_BUILTIN_INT128_UMUL128 WJR_HAS_DEF
-#elif WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
+#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN_ASM_UMUL128 WJR_HAS_DEF
+#elif WJR_HAS_FEATURE(INT128)
+#define WJR_HAS_BUILTIN_INT128_UMUL128 WJR_HAS_DEF
 #elif defined(WJR_MSVC)
 #define WJR_HAS_BUILTIN_MSVC_UMUL128 WJR_HAS_DEF
 #else
@@ -21929,14 +21247,14 @@ namespace wjr {
 
 WJR_INTRINSIC_INLINE uint64_t builtin_umul128(uint64_t a, uint64_t b,
                                               uint64_t &hi) noexcept {
-#if WJR_HAS_BUILTIN(INT128_UMUL128)
-    const __uint128_t x = static_cast<__uint128_t>(a) * b;
-    hi = x >> 64;
-    return static_cast<uint64_t>(x);
-#elif WJR_HAS_BUILTIN(ASM_UMUL128)
+#if WJR_HAS_BUILTIN(ASM_UMUL128)
     uint64_t lo;
     asm("mul{q %3| %3}\n\t" : "=a,a"(lo), "=d,d"(hi) : "%a,r"(a), "r,a"(b) : "cc");
     return lo;
+#elif WJR_HAS_BUILTIN(INT128_UMUL128)
+    const __uint128_t x = static_cast<__uint128_t>(a) * b;
+    hi = x >> 64;
+    return static_cast<uint64_t>(x);
 #else
     return _umul128(a, b, &hi);
 #endif
@@ -22018,246 +21336,9 @@ WJR_INTRINSIC_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, s
 
 #if WJR_HAS_BUILTIN(__WJR_TEST_ASSEMBLY) == 1
 
-inline uint64_t
-WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(uint64_t *dst, const uint64_t *src0,
-                                                      const uint64_t *src1, size_t n,
-                                                      uint64_t cl) noexcept {
-    WJR_ASSERT(cl != 0);
-
-    size_t rcx = n / 8;
-    uint64_t tcl = 64 - cl;
-    uint64_t r8, r9 = n, r10, r11;
-
-    asm volatile(
-        "and{l $7, %k[r9]| %k[r9], 7}\n\t"
-        "lea{q| %[r8], [rip +} .Llookup%={(%%rip), %[r8]|]}\n\t"
-        "movs{lq (%[r8], %[r9], 4), %[r9]|xd %[r9], DWORD PTR [%[r8] + "
-        "%[r9] * 4]}\n\t"
-        "lea{q (%[r8], %[r9], 1), %[r9]| %[r9], [%[r9] + %[r8]]}\n\t"
-        "jmp{q *%[r9]| %[r9]}\n\t"
-      
-        ".align 8\n\t"
-        ".Llookup%=:\n\t"
-        ".long .Ll0%=-.Llookup%=\n\t"
-        ".long .Ll1%=-.Llookup%=\n\t"
-        ".long .Ll2%=-.Llookup%=\n\t"
-        ".long .Ll3%=-.Llookup%=\n\t"
-        ".long .Ll4%=-.Llookup%=\n\t"
-        ".long .Ll5%=-.Llookup%=\n\t"
-        ".long .Ll6%=-.Llookup%=\n\t"
-        ".long .Ll7%=-.Llookup%=\n\t"
-        ".align 16\n\t"
-
-        ".Ll0%=:\n\t"
-        "mov{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r8], %[r11]| %[r11], %[r8], %[cl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r11]| %[r11], [%[src0]]}\n\t"
-        "shrx{q %[tcl], %[r8], %[r8]| %[r8], %[r8], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r9]| %[r9], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r9], %[r10]| %[r10], %[r9], %[cl]}\n\t"
-        "mov{q %[r11], (%[dst])| [%[dst]], %[r11]}\n\t"
-        "jmp .Lb0%=\n\t"
-
-        ".Ld1%=:\n\t"
-        "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
-        "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q %[rcx], %[r11]| %[r11], %[rcx]}\n\t"
-        "jmp .Ldone%=\n\t"
-
-        ".Ll1%=:\n\t"
-        "mov{q (%[src1]), %[r11]| %[r11], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r11], %[r10]| %[r10], %[r11], %[cl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r10]| %[r10], [%[src0]]}\n\t"
-        "jrcxz .Ld1%=\n\t"
-        "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r8]| %[r8], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r8], %[r9]| %[r9], %[r8], %[cl]}\n\t"
-        "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
-        "lea{q 8(%[src0]), %[src0]| %[src0], [%[src0] + 8]}\n\t"
-        "lea{q 8(%[src1]), %[src1]| %[src1], [%[src1] + 8]}\n\t"
-        "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
-        "jmp .Lb1%=\n\t"
-
-        ".Ll3%=:\n\t"
-        "mov{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r9], %[r8]| %[r8], %[r9], %[cl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r8]| %[r8], [%[src0]]}\n\t"
-        "shrx{q %[tcl], %[r9], %[r9]| %[r9], %[r9], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r10]| %[r10], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r10], %[r11]| %[r11], %[r10], %[cl]}\n\t"
-        "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
-        "lea{q -40(%[src0]), %[src0]| %[src0], [%[src0] - 40]}\n\t"
-        "lea{q -40(%[src1]), %[src1]| %[src1], [%[src1] - 40]}\n\t"
-        "lea{q -40(%[dst]), %[dst]| %[dst], [%[dst] - 40]}\n\t"
-        "jmp .Lb3%=\n\t"
-
-        ".Ll4%=:\n\t"
-        "mov{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r8], %[r11]| %[r11], %[r8], %[cl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r11]| %[r11], [%[src0]]}\n\t"
-        "shrx{q %[tcl], %[r8], %[r8]| %[r8], %[r8], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r9]| %[r9], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r9], %[r10]| %[r10], %[r9], %[cl]}\n\t"
-        "mov{q %[r11], (%[dst])| [%[dst]], %[r11]}\n\t"
-        "lea{q -32(%[src0]), %[src0]| %[src0], [%[src0] - 32]}\n\t"
-        "lea{q -32(%[src1]), %[src1]| %[src1], [%[src1] - 32]}\n\t"
-        "lea{q -32(%[dst]), %[dst]| %[dst], [%[dst] - 32]}\n\t"
-        "jmp .Lb4%=\n\t"
-
-        ".Ll5%=:\n\t"
-        "mov{q (%[src1]), %[r11]| %[r11], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r11], %[r10]| %[r10], %[r11], %[cl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r10]| %[r10], [%[src0]]}\n\t"
-        "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r8]| %[r8], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r8], %[r9]| %[r9], %[r8], %[cl]}\n\t"
-        "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
-        "lea{q -24(%[src0]), %[src0]| %[src0], [%[src0] - 24]}\n\t"
-        "lea{q -24(%[src1]), %[src1]| %[src1], [%[src1] - 24]}\n\t"
-        "lea{q -24(%[dst]), %[dst]| %[dst], [%[dst] - 24]}\n\t"
-        "jmp .Lb5%=\n\t"
-
-        ".Ll6%=:\n\t"
-        "mov{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r10], %[r9]| %[r9], %[r10], %[cl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
-        "shrx{q %[tcl], %[r10], %[r10]| %[r10], %[r10], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r11]| %[r11], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r11], %[r8]| %[r8], %[r11], %[cl]}\n\t"
-        "mov{q %[r9], (%[dst])| [%[dst]], %[r9]}\n\t"
-        "lea{q -16(%[src0]), %[src0]| %[src0], [%[src0] - 16]}\n\t"
-        "lea{q -16(%[src1]), %[src1]| %[src1], [%[src1] - 16]}\n\t"
-        "lea{q -16(%[dst]), %[dst]| %[dst], [%[dst] - 16]}\n\t"
-        "jmp .Lb6%=\n\t"
-
-        ".Ll7%=:\n\t"
-        "mov{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r9], %[r8]| %[r8], %[r9], %[cl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r8]| %[r8], [%[src0]]}\n\t"
-        "shrx{q %[tcl], %[r9], %[r9]| %[r9], %[r9], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r10]| %[r10], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r10], %[r11]| %[r11], %[r10], %[cl]}\n\t"
-        "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
-        "lea{q -8(%[src0]), %[src0]| %[src0], [%[src0] - 8]}\n\t"
-        "lea{q -8(%[src1]), %[src1]| %[src1], [%[src1] - 8]}\n\t"
-        "lea{q -8(%[dst]), %[dst]| %[dst], [%[dst] - 8]}\n\t"
-        "jmp .Lb7%=\n\t"
-
-        ".Ld2%=:\n\t"
-        "lea{q (%[r8], %[r10]), %[r10]| %[r10], [%[r10] + %[r8]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 8(%[src0]), %[r10]| %[r10], [%[src0] + 8]}\n\t"
-        "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q %[rcx], %[r11]| %[r11], %[rcx]}\n\t"
-        "mov{q %[r10], 8(%[dst])| [%[dst] + 8], %[r10]}\n\t"
-        "jmp .Ldone%=\n\t"
-
-        ".Ll2%=:\n\t"
-        "mov{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r10], %[r9]| %[r9], %[r10], %[cl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
-        "shrx{q %[tcl], %[r10], %[r10]| %[r10], %[r10], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r11]| %[r11], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r11], %[r8]| %[r8], %[r11], %[cl]}\n\t"
-        "mov{q %[r9], (%[dst])| [%[dst]], %[r9]}\n\t"
-        "jrcxz .Ld2%=\n\t"
-        "lea{q 16(%[src0]), %[src0]| %[src0], [%[src0] + 16]}\n\t"
-        "lea{q 16(%[src1]), %[src1]| %[src1], [%[src1] + 16]}\n\t"
-        "lea{q 16(%[dst]), %[dst]| %[dst], [%[dst] + 16]}\n\t"
-
-        ".align 32\n\t"
-        ".Lloop%=:\n\t"
-
-        ".Lb2%=:\n\t"
-        "lea{q (%[r8], %[r10]), %[r10]| %[r10], [%[r10] + %[r8]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q -8(%[src0]), %[r10]| %[r10], [%[src0] - 8]}\n\t"
-        "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        "mov{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r8], %[r9]| %[r9], %[r8], %[cl]}\n\t"
-        "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
-
-        ".Lb1%=:\n\t"
-        "lea{q (%[r9], %[r11]), %[r11]| %[r11], [%[r11] + %[r9]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r11]| %[r11], [%[src0]]}\n\t"
-        "shrx{q %[tcl], %[r8], %[r8]| %[r8], %[r8], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r9]| %[r9], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r9], %[r10]| %[r10], %[r9], %[cl]}\n\t"
-        "mov{q %[r11], (%[dst])| [%[dst]], %[r11]}\n\t"
-
-        ".Lb0%=:\n\t"
-        "lea{q (%[r10], %[r8]), %[r8]| %[r8], [%[r8] + %[r10]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 8(%[src0]), %[r8]| %[r8], [%[src0] + 8]}\n\t"
-        "shrx{q %[tcl], %[r9], %[r9]| %[r9], %[r9], %[tcl]}\n\t"
-        "mov{q 16(%[src1]), %[r10]| %[r10], [%[src1] + 16]}\n\t"
-        "shlx{q %[cl], %[r10], %[r11]| %[r11], %[r10], %[cl]}\n\t"
-        "mov{q %[r8], 8(%[dst])| [%[dst] + 8], %[r8]}\n\t"
-
-        "lea{q -1(%[rcx]), %[rcx]| %[rcx], [%[rcx] - 1]}\n\t"
-
-        ".Lb7%=:\n\t"
-        "lea{q (%[r11], %[r9]), %[r9]| %[r9], [%[r9] + %[r11]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 16(%[src0]), %[r9]| %[r9], [%[src0] + 16]}\n\t"
-        "shrx{q %[tcl], %[r10], %[r10]| %[r10], %[r10], %[tcl]}\n\t"
-        "mov{q 24(%[src1]), %[r11]| %[r11], [%[src1] + 24]}\n\t"
-        "shlx{q %[cl], %[r11], %[r8]| %[r8], %[r11], %[cl]}\n\t"
-        "mov{q %[r9], 16(%[dst])| [%[dst] + 16], %[r9]}\n\t"
-
-        ".Lb6%=:\n\t"
-        "lea{q (%[r8], %[r10]), %[r10]| %[r10], [%[r10] + %[r8]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 24(%[src0]), %[r10]| %[r10], [%[src0] + 24]}\n\t"
-        "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        "mov{q 32(%[src1]), %[r8]| %[r8], [%[src1] + 32]}\n\t"
-        "shlx{q %[cl], %[r8], %[r9]| %[r9], %[r8], %[cl]}\n\t"
-        "mov{q %[r10], 24(%[dst])| [%[dst] + 24], %[r10]}\n\t"
-
-        ".Lb5%=:\n\t"
-        "lea{q (%[r9], %[r11]), %[r11]| %[r11], [%[r11] + %[r9]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 32(%[src0]), %[r11]| %[r11], [%[src0] + 32]}\n\t"
-        "shrx{q %[tcl], %[r8], %[r8]| %[r8], %[r8], %[tcl]}\n\t"
-        "mov{q 40(%[src1]), %[r9]| %[r9], [%[src1] + 40]}\n\t"
-        "shlx{q %[cl], %[r9], %[r10]| %[r10], %[r9], %[cl]}\n\t"
-        "mov{q %[r11], 32(%[dst])| [%[dst] + 32], %[r11]}\n\t"
-
-        ".Lb4%=:\n\t"
-        "lea{q (%[r10], %[r8]), %[r8]| %[r8], [%[r8] + %[r10]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 40(%[src0]), %[r8]| %[r8], [%[src0] + 40]}\n\t"
-        "shrx{q %[tcl], %[r9], %[r9]| %[r9], %[r9], %[tcl]}\n\t"
-        "mov{q 48(%[src1]), %[r10]| %[r10], [%[src1] + 48]}\n\t"
-        "shlx{q %[cl], %[r10], %[r11]| %[r11], %[r10], %[cl]}\n\t"
-        "mov{q %[r8], 40(%[dst])| [%[dst] + 40], %[r8]}\n\t"
-
-        ".Lb3%=:\n\t"
-        "lea{q (%[r11], %[r9]), %[r9]| %[r9], [%[r9] + %[r11]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 48(%[src0]), %[r9]| %[r9], [%[src0] + 48]}\n\t"
-        "shrx{q %[tcl], %[r10], %[r10]| %[r10], %[r10], %[tcl]}\n\t"
-        "mov{q 56(%[src1]), %[r11]| %[r11], [%[src1] + 56]}\n\t"
-        "shlx{q %[cl], %[r11], %[r8]| %[r8], %[r11], %[cl]}\n\t"
-        "mov{q %[r9], 48(%[dst])| [%[dst] + 48], %[r9]}\n\t"
-
-        "lea{q 64(%[src0]), %[src0]| %[src0], [%[src0] + 64]}\n\t"
-        "lea{q 64(%[src1]), %[src1]| %[src1], [%[src1] + 64]}\n\t"
-        "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
-
-        "jrcxz .Lloop_out%=\n\t"
-        "jmp .Lloop%=\n\t"
-        ".Lloop_out%=:\n\t"
-
-        "lea{q (%[r8], %[r10]), %[r10]| %[r10], [%[r10] + %[r8]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q -8(%[src0]), %[r10]| %[r10], [%[src0] - 8]}\n\t"
-        "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q %[rcx], %[r11]| %[r11], %[rcx]}\n\t"
-        "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
-
-        ".Ldone%=:"
-
-        : [dst] "+&r"(dst), [src0] "+&r"(src0), [src1] "+&r"(src1), [rcx] "+&c"(rcx),
-          [r8] "=&r"(r8), [r9] "+&r"(r9), [r10] "=&r"(r10), [r11] "=&r"(r11)
-        : [cl] "r"(cl), [tcl] "r"(tcl)
-        : "cc", "memory");
-
-    WJR_ASSERT_ASSUME(rcx == 0);
-
-    return r11;
-}
+extern uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
+    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
+    uint64_t cl) noexcept;
 
 #else
 
@@ -22266,14 +21347,14 @@ extern "C" WJR_MS_ABI uint64_t WJR_PP_CONCAT(
                                                   const uint64_t *src1, size_t n,
                                                   uint64_t cl) noexcept;
 
+#endif
+
 WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
     uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
     uint64_t cl) noexcept {
     return WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(dst, src0, src1, n,
                                                                        cl);
 }
-
-#endif
 
 #undef __WJR_TEST_ASSEMBLY
 #undef WJR_adcsbb
@@ -22304,246 +21385,9 @@ WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_
 
 #if WJR_HAS_BUILTIN(__WJR_TEST_ASSEMBLY) == 1
 
-inline uint64_t
-WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(uint64_t *dst, const uint64_t *src0,
-                                                      const uint64_t *src1, size_t n,
-                                                      uint64_t cl) noexcept {
-    WJR_ASSERT(cl != 0);
-
-    size_t rcx = n / 8;
-    uint64_t tcl = 64 - cl;
-    uint64_t r8, r9 = n, r10, r11;
-
-    asm volatile(
-        "and{l $7, %k[r9]| %k[r9], 7}\n\t"
-        "lea{q| %[r8], [rip +} .Llookup%={(%%rip), %[r8]|]}\n\t"
-        "movs{lq (%[r8], %[r9], 4), %[r9]|xd %[r9], DWORD PTR [%[r8] + "
-        "%[r9] * 4]}\n\t"
-        "lea{q (%[r8], %[r9], 1), %[r9]| %[r9], [%[r9] + %[r8]]}\n\t"
-        "jmp{q *%[r9]| %[r9]}\n\t"
-      
-        ".align 8\n\t"
-        ".Llookup%=:\n\t"
-        ".long .Ll0%=-.Llookup%=\n\t"
-        ".long .Ll1%=-.Llookup%=\n\t"
-        ".long .Ll2%=-.Llookup%=\n\t"
-        ".long .Ll3%=-.Llookup%=\n\t"
-        ".long .Ll4%=-.Llookup%=\n\t"
-        ".long .Ll5%=-.Llookup%=\n\t"
-        ".long .Ll6%=-.Llookup%=\n\t"
-        ".long .Ll7%=-.Llookup%=\n\t"
-        ".align 16\n\t"
-
-        ".Ll0%=:\n\t"
-        "mov{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r8], %[r11]| %[r11], %[r8], %[cl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r11]| %[r11], [%[src0]]}\n\t"
-        "shrx{q %[tcl], %[r8], %[r8]| %[r8], %[r8], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r9]| %[r9], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r9], %[r10]| %[r10], %[r9], %[cl]}\n\t"
-        "mov{q %[r11], (%[dst])| [%[dst]], %[r11]}\n\t"
-        "jmp .Lb0%=\n\t"
-
-        ".Ld1%=:\n\t"
-        "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
-        "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q %[rcx], %[r11]| %[r11], %[rcx]}\n\t"
-        "jmp .Ldone%=\n\t"
-
-        ".Ll1%=:\n\t"
-        "mov{q (%[src1]), %[r11]| %[r11], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r11], %[r10]| %[r10], %[r11], %[cl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r10]| %[r10], [%[src0]]}\n\t"
-        "jrcxz .Ld1%=\n\t"
-        "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r8]| %[r8], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r8], %[r9]| %[r9], %[r8], %[cl]}\n\t"
-        "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
-        "lea{q 8(%[src0]), %[src0]| %[src0], [%[src0] + 8]}\n\t"
-        "lea{q 8(%[src1]), %[src1]| %[src1], [%[src1] + 8]}\n\t"
-        "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
-        "jmp .Lb1%=\n\t"
-
-        ".Ll3%=:\n\t"
-        "mov{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r9], %[r8]| %[r8], %[r9], %[cl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r8]| %[r8], [%[src0]]}\n\t"
-        "shrx{q %[tcl], %[r9], %[r9]| %[r9], %[r9], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r10]| %[r10], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r10], %[r11]| %[r11], %[r10], %[cl]}\n\t"
-        "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
-        "lea{q -40(%[src0]), %[src0]| %[src0], [%[src0] - 40]}\n\t"
-        "lea{q -40(%[src1]), %[src1]| %[src1], [%[src1] - 40]}\n\t"
-        "lea{q -40(%[dst]), %[dst]| %[dst], [%[dst] - 40]}\n\t"
-        "jmp .Lb3%=\n\t"
-
-        ".Ll4%=:\n\t"
-        "mov{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r8], %[r11]| %[r11], %[r8], %[cl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r11]| %[r11], [%[src0]]}\n\t"
-        "shrx{q %[tcl], %[r8], %[r8]| %[r8], %[r8], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r9]| %[r9], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r9], %[r10]| %[r10], %[r9], %[cl]}\n\t"
-        "mov{q %[r11], (%[dst])| [%[dst]], %[r11]}\n\t"
-        "lea{q -32(%[src0]), %[src0]| %[src0], [%[src0] - 32]}\n\t"
-        "lea{q -32(%[src1]), %[src1]| %[src1], [%[src1] - 32]}\n\t"
-        "lea{q -32(%[dst]), %[dst]| %[dst], [%[dst] - 32]}\n\t"
-        "jmp .Lb4%=\n\t"
-
-        ".Ll5%=:\n\t"
-        "mov{q (%[src1]), %[r11]| %[r11], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r11], %[r10]| %[r10], %[r11], %[cl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r10]| %[r10], [%[src0]]}\n\t"
-        "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r8]| %[r8], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r8], %[r9]| %[r9], %[r8], %[cl]}\n\t"
-        "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
-        "lea{q -24(%[src0]), %[src0]| %[src0], [%[src0] - 24]}\n\t"
-        "lea{q -24(%[src1]), %[src1]| %[src1], [%[src1] - 24]}\n\t"
-        "lea{q -24(%[dst]), %[dst]| %[dst], [%[dst] - 24]}\n\t"
-        "jmp .Lb5%=\n\t"
-
-        ".Ll6%=:\n\t"
-        "mov{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r10], %[r9]| %[r9], %[r10], %[cl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
-        "shrx{q %[tcl], %[r10], %[r10]| %[r10], %[r10], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r11]| %[r11], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r11], %[r8]| %[r8], %[r11], %[cl]}\n\t"
-        "mov{q %[r9], (%[dst])| [%[dst]], %[r9]}\n\t"
-        "lea{q -16(%[src0]), %[src0]| %[src0], [%[src0] - 16]}\n\t"
-        "lea{q -16(%[src1]), %[src1]| %[src1], [%[src1] - 16]}\n\t"
-        "lea{q -16(%[dst]), %[dst]| %[dst], [%[dst] - 16]}\n\t"
-        "jmp .Lb6%=\n\t"
-
-        ".Ll7%=:\n\t"
-        "mov{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r9], %[r8]| %[r8], %[r9], %[cl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r8]| %[r8], [%[src0]]}\n\t"
-        "shrx{q %[tcl], %[r9], %[r9]| %[r9], %[r9], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r10]| %[r10], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r10], %[r11]| %[r11], %[r10], %[cl]}\n\t"
-        "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
-        "lea{q -8(%[src0]), %[src0]| %[src0], [%[src0] - 8]}\n\t"
-        "lea{q -8(%[src1]), %[src1]| %[src1], [%[src1] - 8]}\n\t"
-        "lea{q -8(%[dst]), %[dst]| %[dst], [%[dst] - 8]}\n\t"
-        "jmp .Lb7%=\n\t"
-
-        ".Ld2%=:\n\t"
-        "lea{q (%[r8], %[r10]), %[r10]| %[r10], [%[r10] + %[r8]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 8(%[src0]), %[r10]| %[r10], [%[src0] + 8]}\n\t"
-        "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q %[rcx], %[r11]| %[r11], %[rcx]}\n\t"
-        "mov{q %[r10], 8(%[dst])| [%[dst] + 8], %[r10]}\n\t"
-        "jmp .Ldone%=\n\t"
-
-        ".Ll2%=:\n\t"
-        "mov{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r10], %[r9]| %[r9], %[r10], %[cl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
-        "shrx{q %[tcl], %[r10], %[r10]| %[r10], %[r10], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r11]| %[r11], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r11], %[r8]| %[r8], %[r11], %[cl]}\n\t"
-        "mov{q %[r9], (%[dst])| [%[dst]], %[r9]}\n\t"
-        "jrcxz .Ld2%=\n\t"
-        "lea{q 16(%[src0]), %[src0]| %[src0], [%[src0] + 16]}\n\t"
-        "lea{q 16(%[src1]), %[src1]| %[src1], [%[src1] + 16]}\n\t"
-        "lea{q 16(%[dst]), %[dst]| %[dst], [%[dst] + 16]}\n\t"
-
-        ".align 32\n\t"
-        ".Lloop%=:\n\t"
-
-        ".Lb2%=:\n\t"
-        "lea{q (%[r8], %[r10]), %[r10]| %[r10], [%[r10] + %[r8]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q -8(%[src0]), %[r10]| %[r10], [%[src0] - 8]}\n\t"
-        "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        "mov{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
-        "shlx{q %[cl], %[r8], %[r9]| %[r9], %[r8], %[cl]}\n\t"
-        "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
-
-        ".Lb1%=:\n\t"
-        "lea{q (%[r9], %[r11]), %[r11]| %[r11], [%[r11] + %[r9]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r11]| %[r11], [%[src0]]}\n\t"
-        "shrx{q %[tcl], %[r8], %[r8]| %[r8], %[r8], %[tcl]}\n\t"
-        "mov{q 8(%[src1]), %[r9]| %[r9], [%[src1] + 8]}\n\t"
-        "shlx{q %[cl], %[r9], %[r10]| %[r10], %[r9], %[cl]}\n\t"
-        "mov{q %[r11], (%[dst])| [%[dst]], %[r11]}\n\t"
-
-        ".Lb0%=:\n\t"
-        "lea{q (%[r10], %[r8]), %[r8]| %[r8], [%[r8] + %[r10]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 8(%[src0]), %[r8]| %[r8], [%[src0] + 8]}\n\t"
-        "shrx{q %[tcl], %[r9], %[r9]| %[r9], %[r9], %[tcl]}\n\t"
-        "mov{q 16(%[src1]), %[r10]| %[r10], [%[src1] + 16]}\n\t"
-        "shlx{q %[cl], %[r10], %[r11]| %[r11], %[r10], %[cl]}\n\t"
-        "mov{q %[r8], 8(%[dst])| [%[dst] + 8], %[r8]}\n\t"
-
-        "lea{q -1(%[rcx]), %[rcx]| %[rcx], [%[rcx] - 1]}\n\t"
-
-        ".Lb7%=:\n\t"
-        "lea{q (%[r11], %[r9]), %[r9]| %[r9], [%[r9] + %[r11]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 16(%[src0]), %[r9]| %[r9], [%[src0] + 16]}\n\t"
-        "shrx{q %[tcl], %[r10], %[r10]| %[r10], %[r10], %[tcl]}\n\t"
-        "mov{q 24(%[src1]), %[r11]| %[r11], [%[src1] + 24]}\n\t"
-        "shlx{q %[cl], %[r11], %[r8]| %[r8], %[r11], %[cl]}\n\t"
-        "mov{q %[r9], 16(%[dst])| [%[dst] + 16], %[r9]}\n\t"
-
-        ".Lb6%=:\n\t"
-        "lea{q (%[r8], %[r10]), %[r10]| %[r10], [%[r10] + %[r8]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 24(%[src0]), %[r10]| %[r10], [%[src0] + 24]}\n\t"
-        "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        "mov{q 32(%[src1]), %[r8]| %[r8], [%[src1] + 32]}\n\t"
-        "shlx{q %[cl], %[r8], %[r9]| %[r9], %[r8], %[cl]}\n\t"
-        "mov{q %[r10], 24(%[dst])| [%[dst] + 24], %[r10]}\n\t"
-
-        ".Lb5%=:\n\t"
-        "lea{q (%[r9], %[r11]), %[r11]| %[r11], [%[r11] + %[r9]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 32(%[src0]), %[r11]| %[r11], [%[src0] + 32]}\n\t"
-        "shrx{q %[tcl], %[r8], %[r8]| %[r8], %[r8], %[tcl]}\n\t"
-        "mov{q 40(%[src1]), %[r9]| %[r9], [%[src1] + 40]}\n\t"
-        "shlx{q %[cl], %[r9], %[r10]| %[r10], %[r9], %[cl]}\n\t"
-        "mov{q %[r11], 32(%[dst])| [%[dst] + 32], %[r11]}\n\t"
-
-        ".Lb4%=:\n\t"
-        "lea{q (%[r10], %[r8]), %[r8]| %[r8], [%[r8] + %[r10]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 40(%[src0]), %[r8]| %[r8], [%[src0] + 40]}\n\t"
-        "shrx{q %[tcl], %[r9], %[r9]| %[r9], %[r9], %[tcl]}\n\t"
-        "mov{q 48(%[src1]), %[r10]| %[r10], [%[src1] + 48]}\n\t"
-        "shlx{q %[cl], %[r10], %[r11]| %[r11], %[r10], %[cl]}\n\t"
-        "mov{q %[r8], 40(%[dst])| [%[dst] + 40], %[r8]}\n\t"
-
-        ".Lb3%=:\n\t"
-        "lea{q (%[r11], %[r9]), %[r9]| %[r9], [%[r9] + %[r11]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 48(%[src0]), %[r9]| %[r9], [%[src0] + 48]}\n\t"
-        "shrx{q %[tcl], %[r10], %[r10]| %[r10], %[r10], %[tcl]}\n\t"
-        "mov{q 56(%[src1]), %[r11]| %[r11], [%[src1] + 56]}\n\t"
-        "shlx{q %[cl], %[r11], %[r8]| %[r8], %[r11], %[cl]}\n\t"
-        "mov{q %[r9], 48(%[dst])| [%[dst] + 48], %[r9]}\n\t"
-
-        "lea{q 64(%[src0]), %[src0]| %[src0], [%[src0] + 64]}\n\t"
-        "lea{q 64(%[src1]), %[src1]| %[src1], [%[src1] + 64]}\n\t"
-        "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
-
-        "jrcxz .Lloop_out%=\n\t"
-        "jmp .Lloop%=\n\t"
-        ".Lloop_out%=:\n\t"
-
-        "lea{q (%[r8], %[r10]), %[r10]| %[r10], [%[r10] + %[r8]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q -8(%[src0]), %[r10]| %[r10], [%[src0] - 8]}\n\t"
-        "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q %[rcx], %[r11]| %[r11], %[rcx]}\n\t"
-        "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
-
-        ".Ldone%=:"
-
-        : [dst] "+&r"(dst), [src0] "+&r"(src0), [src1] "+&r"(src1), [rcx] "+&c"(rcx),
-          [r8] "=&r"(r8), [r9] "+&r"(r9), [r10] "=&r"(r10), [r11] "=&r"(r11)
-        : [cl] "r"(cl), [tcl] "r"(tcl)
-        : "cc", "memory");
-
-    WJR_ASSERT_ASSUME(rcx == 0);
-
-    return r11;
-}
+extern uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
+    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
+    uint64_t cl) noexcept;
 
 #else
 
@@ -22552,14 +21396,14 @@ extern "C" WJR_MS_ABI uint64_t WJR_PP_CONCAT(
                                                   const uint64_t *src1, size_t n,
                                                   uint64_t cl) noexcept;
 
+#endif
+
 WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
     uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
     uint64_t cl) noexcept {
     return WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(dst, src0, src1, n,
                                                                        cl);
 }
-
-#endif
 
 #undef __WJR_TEST_ASSEMBLY
 #undef WJR_adcsbb
@@ -22645,48 +21489,64 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_mul64(uint64_t a, uint64_t b,
     return rl;
 }
 
+WJR_INTRINSIC_CONSTEXPR20 uint64_t __mul_u64(uint64_t a, uint64_t b,
+                                             uint64_t &hi) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P(a)) {
+        if (a == 0) {
+            hi = 0;
+            return 0;
+        }
+
+        if (is_zero_or_single_bit(a)) {
+            const auto shift = constexpr_ctz(a);
+            hi = b << shift;
+            return b >> (64 - shift);
+        }
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(b)) {
+        if (b == 0) {
+            hi = 0;
+            return 0;
+        }
+
+        if (is_zero_or_single_bit(b)) {
+            const auto shift = constexpr_ctz(b);
+            hi = a << shift;
+            return a >> (64 - shift);
+        }
+    }
+
+#if WJR_HAS_BUILTIN(UMUL128)
+    if (is_constant_evaluated()
+#if WJR_HAS_BUILTIN(ASM_UMUL128)
+        || (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))
+#endif
+    ) {
+        return fallback_mul64(a, b, hi);
+    }
+
+#if WJR_HAS_BUILTIN(ASM_UMUL128)
+    // mov b to rax, then mul a
+    // instead of mov a to rax, mov b to register, then mul
+    if (WJR_BUILTIN_CONSTANT_P(b)) {
+        return builtin_umul128(b, a, hi);
+    }
+#endif
+    return builtin_umul128(a, b, hi);
+#else
+    return fallback_mul64(a, b, hi);
+#endif
+}
+
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 T mul(T a, T b, T &hi) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(a == 0) || WJR_BUILTIN_CONSTANT_P_TRUE(b == 0)) {
-        hi = 0;
-        return 0;
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(a == 1)) {
-        hi = 0;
-        return b;
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(b == 1)) {
-        hi = 0;
-        return a;
-    }
-
     if constexpr (nd < 64) {
         return fallback_mul(a, b, hi);
     } else {
-#if WJR_HAS_BUILTIN(UMUL128)
-        if (is_constant_evaluated()
-#if WJR_HAS_BUILTIN(ASM_UMUL128)
-            || (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))
-#endif
-        ) {
-            return fallback_mul64(a, b, hi);
-        }
-
-#if WJR_HAS_BUILTIN(ASM_UMUL128)
-        // mov b to rax, then mul a
-        // instead of mov a to rax, mov b to register, then mul
-        if (WJR_BUILTIN_CONSTANT_P(b)) {
-            return builtin_umul128(b, a, hi);
-        }
-#endif
-        return builtin_umul128(a, b, hi);
-#else
-        return fallback_mul64(a, b, hi);
-#endif
+        return __mul_u64(a, b, hi);
     }
 }
 
@@ -23119,10 +21979,10 @@ using toom_interpolation_high_p_struct = std::array<uint64_t, P - 2>;
 */
 extern void toom22_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                          const uint64_t *src1, size_t m,
-                         safe_array<uint64_t> stk) noexcept;
+                         safe_pointer<uint64_t> stk) noexcept;
 
 extern void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      safe_array<uint64_t> stk) noexcept;
+                      safe_pointer<uint64_t> stk) noexcept;
 
 /*
  l = ceil(n/3)
@@ -23130,10 +21990,10 @@ extern void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 */
 extern void toom33_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                          const uint64_t *src1, size_t m,
-                         safe_array<uint64_t> stk) noexcept;
+                         safe_pointer<uint64_t> stk) noexcept;
 
 extern void toom3_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      safe_array<uint64_t> stk) noexcept;
+                      safe_pointer<uint64_t> stk) noexcept;
 
 WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom22_s_itch(size_t m) noexcept {
     return m * 4 + (m / 2) + 64;
@@ -23180,8 +22040,8 @@ WJR_INTRINSIC_INLINE void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0
 }
 
 template <typename T>
-safe_array<uint64_t> __mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n) noexcept {
-    if constexpr (std::is_same_v<T, safe_array<uint64_t>>) {
+safe_pointer<uint64_t> __mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n) noexcept {
+    if constexpr (std::is_same_v<T, safe_pointer<uint64_t>>) {
         return al;
     } else {
         return span<uint64_t>(static_cast<uint64_t *>(al.allocate(sizeof(uint64_t) * n)),
@@ -23192,7 +22052,7 @@ safe_array<uint64_t> __mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n) noexcept
 template <__mul_mode mode>
 void __inline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                          const uint64_t *src1, size_t n,
-                         safe_array<uint64_t> mal) noexcept {
+                         safe_pointer<uint64_t> mal) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
     WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
@@ -23202,11 +22062,11 @@ void __inline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
     }
 
     if (mode <= __mul_mode::toom22 || n < toom33_mul_threshold) {
-        safe_array<uint64_t> stk = __mul_s_allocate(mal, toom22_n_itch(n));
+        safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom22_n_itch(n));
         return toom22_mul_s(dst, src0, n, src1, n, stk);
     }
 
-    safe_array<uint64_t> stk = __mul_s_allocate(mal, toom33_n_itch(n));
+    safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom33_n_itch(n));
     return toom33_mul_s(dst, src0, n, src1, n, stk);
 }
 
@@ -23216,7 +22076,7 @@ extern void __noinline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *sr
 template <__mul_mode mode>
 WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                   const uint64_t *src1, size_t n,
-                                  WJR_MAYBE_UNUSED safe_array<uint64_t> stk) noexcept {
+                                  WJR_MAYBE_UNUSED safe_pointer<uint64_t> stk) noexcept {
     if constexpr (mode <= __mul_mode::toom33) {
         __inline_mul_n_impl<mode>(dst, src0, src1, n, stk);
     } else {
@@ -23226,7 +22086,7 @@ WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *sr
 
 template <__mul_mode mode, uint64_t m0 = in_place_max, uint64_t m1 = in_place_max>
 void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
-             size_t n, safe_array<uint64_t> stk, uint64_t &c_out, uint64_t cf0,
+             size_t n, safe_pointer<uint64_t> stk, uint64_t &c_out, uint64_t cf0,
              uint64_t cf1) noexcept {
     WJR_ASSERT_ASSUME(cf0 <= m0);
     WJR_ASSERT_ASSUME(cf1 <= m1);
@@ -23262,7 +22122,7 @@ WJR_INTRINSIC_INLINE void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0
 
 template <__mul_mode mode>
 inline void __inline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                              safe_array<uint64_t> mal) noexcept {
+                              safe_pointer<uint64_t> mal) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
 
@@ -23271,11 +22131,11 @@ inline void __inline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, s
     }
 
     if (mode <= __mul_mode::toom22 || n < toom3_sqr_threshold) {
-        safe_array<uint64_t> stk = __mul_s_allocate(mal, toom22_n_itch(n));
+        safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom22_n_itch(n));
         return toom2_sqr(dst, src, n, stk);
     }
 
-    safe_array<uint64_t> stk = __mul_s_allocate(mal, toom33_n_itch(n));
+    safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom33_n_itch(n));
     return toom3_sqr(dst, src, n, stk);
 }
 
@@ -23284,7 +22144,7 @@ extern void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
 
 template <__mul_mode mode>
 void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-           WJR_MAYBE_UNUSED safe_array<uint64_t> stk) noexcept {
+           WJR_MAYBE_UNUSED safe_pointer<uint64_t> stk) noexcept {
     if constexpr (mode <= __mul_mode ::toom33) {
         __inline_sqr_impl<mode>(dst, src, n, stk);
     } else {
@@ -23294,7 +22154,7 @@ void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 
 template <__mul_mode mode, uint64_t m = in_place_max>
 void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-           safe_array<uint64_t> stk, uint64_t &c_out, uint64_t cf) noexcept {
+           safe_pointer<uint64_t> stk, uint64_t &c_out, uint64_t cf) noexcept {
     WJR_ASSERT_ASSUME(cf <= m);
 
     __sqr<mode>(dst, src, n, stk);
@@ -25093,7 +23953,588 @@ protected:
 } // namespace wjr
 
 #endif // WJR_CRTP_NONSENDABLE_HPP__
+#ifndef WJR_MEMORY_MEMORY_POOL_HPP__
+#define WJR_MEMORY_MEMORY_POOL_HPP__
+
+#ifndef WJR_CONTAINER_INTRUSIVE_LIST_HPP__
+#define WJR_CONTAINER_INTRUSIVE_LIST_HPP__
+
+#ifndef WJR_CONTAINER_INTRUSIVE_DETAILS_HPP__
+#define WJR_CONTAINER_INTRUSIVE_DETAILS_HPP__
+
 // Already included
+
+namespace wjr {
+
+template <typename Hook = void, typename Tag = void>
+struct intrusive_tag {
+    using hook_type = Hook;
+    static constexpr bool use_hook = !std::is_same_v<Hook, void>;
+};
+
+template <typename Tag>
+struct is_intrusive_tag : std::false_type {};
+
+template <typename Hook, typename Tag>
+struct is_intrusive_tag<intrusive_tag<Hook, Tag>> : std::true_type {};
+
+template <typename Tag>
+inline constexpr bool is_intrusive_tag_v = intrusive_tag<Tag>::value;
+
+template <typename Tag>
+using intrusive_hook_t = typename Tag::hook_type;
+
+template <typename Tag>
+inline constexpr bool intrusive_use_hook_v = Tag::use_hook;
+
+} // namespace wjr
+
+#endif // WJR_CONTAINER_INTRUSIVE_DETAILS_HPP__
+
+namespace wjr {
+
+template <typename Tag = intrusive_tag<>>
+struct list_node;
+
+template <typename T>
+constexpr void init(list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr void insert(list_node<T> *prev, list_node<T> *next,
+                      list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr void push_back(list_node<T> *head, list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr void push_front(list_node<T> *head, list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr void remove_uninit(list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr bool empty(const list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr list_node<T> *next(list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr const list_node<T> *next(const list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr list_node<T> *prev(list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr const list_node<T> *prev(const list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr void replace_uninit(list_node<T> *from, list_node<T> *to) noexcept;
+
+template <typename T>
+class list_node_const_iterator {
+    using node_type = list_node<T>;
+
+public:
+    using iterator_category = std::bidirectional_iterator_tag;
+    using value_type = node_type;
+    using reference = const node_type &;
+    using pointer = const node_type *;
+    using difference_type = std::ptrdiff_t;
+
+    constexpr list_node_const_iterator() noexcept = default;
+    constexpr list_node_const_iterator(const list_node_const_iterator &) noexcept =
+        default;
+    constexpr list_node_const_iterator(list_node_const_iterator &&) noexcept = default;
+    constexpr list_node_const_iterator &
+    operator=(const list_node_const_iterator &) noexcept = default;
+    constexpr list_node_const_iterator &
+    operator=(list_node_const_iterator &&) noexcept = default;
+    ~list_node_const_iterator() = default;
+
+    constexpr list_node_const_iterator(pointer node) noexcept
+        : m_node(const_cast<node_type *>(node)) {}
+
+    constexpr reference operator*() const noexcept { return *m_node; }
+    constexpr pointer operator->() const noexcept { return m_node; }
+
+    constexpr list_node_const_iterator &operator++() noexcept {
+        m_node = next(m_node);
+        return *this;
+    }
+
+    constexpr list_node_const_iterator operator++(int) noexcept {
+        list_node_const_iterator tmp(*this);
+        ++(*this);
+        return tmp;
+    }
+
+    constexpr list_node_const_iterator &operator--() noexcept {
+        m_node = prev(m_node);
+        return *this;
+    }
+
+    constexpr list_node_const_iterator operator--(int) noexcept {
+        list_node_const_iterator tmp(*this);
+        --(*this);
+        return tmp;
+    }
+
+    constexpr bool operator==(const list_node_const_iterator &other) const noexcept {
+        return m_node == other.m_node;
+    }
+
+    constexpr bool operator!=(const list_node_const_iterator &other) const noexcept {
+        return !(*this == other);
+    }
+
+private:
+    node_type *m_node{};
+};
+
+template <typename T>
+class list_node_iterator : public list_node_const_iterator<T> {
+    using Mybase = list_node_const_iterator<T>;
+    using node_type = list_node<T>;
+
+public:
+    using iterator_category = typename Mybase::iterator_category;
+    using value_type = typename Mybase::value_type;
+    using reference = node_type &;
+    using pointer = node_type *;
+    using difference_type = typename Mybase::difference_type;
+
+    using Mybase::Mybase;
+
+    constexpr list_node_iterator() noexcept = default;
+    constexpr list_node_iterator(const list_node_iterator &) noexcept = default;
+    constexpr list_node_iterator(list_node_iterator &&) noexcept = default;
+    constexpr list_node_iterator &
+    operator=(const list_node_iterator &) noexcept = default;
+    constexpr list_node_iterator &operator=(list_node_iterator &&) noexcept = default;
+    ~list_node_iterator() = default;
+
+    constexpr reference operator*() const noexcept {
+        return const_cast<reference>(Mybase::operator*());
+    }
+
+    constexpr pointer operator->() const noexcept {
+        return const_cast<pointer>(Mybase::operator->());
+    }
+
+    constexpr list_node_iterator &operator++() noexcept {
+        Mybase::operator++();
+        return *this;
+    }
+
+    constexpr list_node_iterator operator++(int) noexcept {
+        list_node_iterator tmp(*this);
+        ++(*this);
+        return tmp;
+    }
+
+    constexpr list_node_iterator &operator--() noexcept {
+        Mybase::operator--();
+        return *this;
+    }
+
+    constexpr list_node_iterator operator--(int) noexcept {
+        list_node_iterator tmp(*this);
+        --(*this);
+        return tmp;
+    }
+};
+
+template <typename Tag>
+struct list_node {
+    using iterator = list_node_iterator<Tag>;
+    using const_iterator = list_node_const_iterator<Tag>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    constexpr list_node() noexcept = default;
+    list_node(const list_node &) = delete;
+    list_node(list_node &&) = delete;
+    list_node &operator=(const list_node &) = delete;
+    list_node &operator=(list_node &&) = delete;
+    ~list_node() = default;
+
+    constexpr iterator begin() noexcept { return iterator(wjr::next(this)); }
+    constexpr const_iterator begin() const noexcept {
+        return const_iterator(wjr::next(this));
+    }
+    constexpr const_iterator cbegin() const noexcept {
+        return const_iterator(wjr::next(this));
+    }
+
+    constexpr iterator end() noexcept { return iterator(this); }
+    constexpr const_iterator end() const noexcept { return const_iterator(this); }
+    constexpr const_iterator cend() const noexcept { return const_iterator(this); }
+
+    constexpr reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+    constexpr const_reverse_iterator rbegin() const noexcept {
+        return const_reverse_iterator(end());
+    }
+    constexpr const_reverse_iterator crbegin() const noexcept {
+        return const_reverse_iterator(end());
+    }
+
+    constexpr reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+    constexpr const_reverse_iterator rend() const noexcept {
+        return const_reverse_iterator(begin());
+    }
+    constexpr const_reverse_iterator crend() const noexcept {
+        return const_reverse_iterator(begin());
+    }
+
+    constexpr list_node *next() noexcept { return wjr::next(this); }
+    constexpr const list_node *next() const noexcept { return wjr::next(this); }
+
+    constexpr list_node *prev() noexcept { return wjr::prev(this); }
+    constexpr const list_node *prev() const noexcept { return wjr::prev(this); }
+
+    constexpr bool empty() const noexcept { return wjr::empty(this); }
+
+    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
+    constexpr intrusive_hook_t<U> *operator->() noexcept {
+        return static_cast<intrusive_hook_t<U> *>(this);
+    }
+
+    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
+    constexpr const intrusive_hook_t<U> *operator->() const noexcept {
+        return static_cast<const intrusive_hook_t<U> *>(this);
+    }
+
+    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
+    constexpr intrusive_hook_t<U> &operator*() noexcept {
+        return *operator->();
+    }
+
+    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
+    constexpr const intrusive_hook_t<U> &operator*() const noexcept {
+        return *operator->();
+    }
+
+    list_node *m_prev;
+    list_node *m_next;
+};
+
+template <typename T>
+constexpr void init(list_node<T> *node) noexcept {
+    node->m_prev = node;
+    node->m_next = node;
+}
+
+template <typename T>
+constexpr void insert(list_node<T> *prev, list_node<T> *next,
+                      list_node<T> *node) noexcept {
+    prev->m_next = node;
+    node->m_prev = prev;
+    next->m_prev = node;
+    node->m_next = next;
+}
+
+template <typename T>
+constexpr void push_back(list_node<T> *head, list_node<T> *node) noexcept {
+    insert(head->m_prev, head, node);
+}
+
+template <typename T>
+constexpr void push_front(list_node<T> *head, list_node<T> *node) noexcept {
+    insert(head, head->m_next, node);
+}
+
+template <typename T>
+constexpr void remove_uninit(list_node<T> *node) noexcept {
+    node->m_prev->m_next = node->m_next;
+    node->m_next->m_prev = node->m_prev;
+}
+
+template <typename T>
+constexpr bool empty(const list_node<T> *node) noexcept {
+    return node->m_next == node;
+}
+
+template <typename T>
+constexpr list_node<T> *next(list_node<T> *node) noexcept {
+    return node->m_next;
+}
+
+template <typename T>
+constexpr const list_node<T> *next(const list_node<T> *node) noexcept {
+    return node->m_next;
+}
+
+template <typename T>
+constexpr list_node<T> *prev(list_node<T> *node) noexcept {
+    return node->m_prev;
+}
+
+template <typename T>
+constexpr const list_node<T> *prev(const list_node<T> *node) noexcept {
+    return node->m_prev;
+}
+
+template <typename T>
+constexpr void replace_uninit(list_node<T> *from, list_node<T> *to) noexcept {
+    to->m_prev = from->m_prev;
+    to->m_next = from->m_next;
+    from->m_prev->m_next = to;
+    from->m_next->m_prev = to;
+}
+
+} // namespace wjr
+
+#endif // WJR_CONTAINER_INTRUSIVE_LIST_HPP__
+// Already included
+
+namespace wjr {
+
+struct automatic_free_pool {
+    struct chunk : list_node<intrusive_tag<chunk>> {};
+
+    automatic_free_pool() noexcept { init(&head); }
+    ~automatic_free_pool() noexcept {
+        for (auto iter = head.begin(); iter != head.end();) {
+            const auto now = iter++;
+            chunk *node = &**now;
+            free(node);
+        }
+    }
+
+    WJR_MALLOC void *allocate(size_t n) noexcept {
+        const auto ptr = (chunk *)malloc(n + sizeof(chunk));
+        push_back(&head, ptr);
+        return (char *)(ptr) + sizeof(chunk);
+    }
+
+    void deallocate(void *ptr) noexcept {
+        const auto node = (chunk *)((char *)(ptr) - sizeof(chunk));
+        remove_uninit(node);
+        free(node);
+    }
+
+    static automatic_free_pool &get_instance() noexcept {
+        static thread_local automatic_free_pool instance;
+        return instance;
+    }
+
+    chunk head;
+};
+
+namespace memory_pool_details {
+
+static constexpr uint8_t __ctz_table[32] = {
+    0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4,
+    5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+};
+
+} // namespace memory_pool_details
+
+class __default_alloc_template__ {
+private:
+    union obj {
+        union obj *free_list_link;
+        char client_data[1];
+    };
+
+    WJR_CONST static constexpr size_t __round_up(size_t bytes) noexcept {
+        return (((bytes) + 2048 - 1) & ~(2048 - 1));
+    }
+
+    WJR_CONST static constexpr uint8_t __get_index(uint32_t bytes) noexcept {
+        if (bytes <= 256) {
+            return memory_pool_details::__ctz_table[(bytes - 1) >> 3];
+        }
+
+        return memory_pool_details::__ctz_table[(bytes - 1) >> 9] + 6;
+    }
+
+    WJR_CONST static constexpr uint32_t __get_size(uint8_t idx) noexcept {
+        return static_cast<uint32_t>(1) << (idx + 3);
+    }
+
+    static automatic_free_pool &get_chunk() noexcept {
+        return automatic_free_pool::get_instance();
+    }
+
+public:
+    struct object {
+
+        WJR_INTRINSIC_INLINE allocation_result<void *>
+        __small_allocate(uint32_t n) noexcept {
+            const uint8_t idx = __get_index(n);
+            const size_t size = __get_size(idx);
+            obj *volatile *my_free_list = free_list + idx;
+            obj *result = *my_free_list;
+            if (WJR_LIKELY(result != nullptr)) {
+                *my_free_list = result->free_list_link;
+                return {result, size};
+            }
+
+            return {refill(idx), size};
+        }
+
+        WJR_INTRINSIC_INLINE void __small_deallocate(void *p, uint32_t n) noexcept {
+            const auto q = static_cast<obj *>(p);
+            obj *volatile *my_free_list = free_list + __get_index(n);
+            q->free_list_link = *my_free_list;
+            *my_free_list = q;
+        }
+
+        // n must be > 0
+        WJR_INTRINSIC_INLINE allocation_result<void *> allocate(size_t n) noexcept {
+            if (WJR_LIKELY(n <= 16384)) {
+                return __small_allocate(static_cast<uint32_t>(n));
+            }
+
+            return {malloc(n), n};
+        }
+
+        // p must not be 0
+        WJR_INTRINSIC_INLINE void deallocate(void *p, size_t n) noexcept {
+            if (WJR_LIKELY(n <= 16384)) {
+                return __small_deallocate(p, static_cast<uint32_t>(n));
+            }
+
+            free(p);
+        }
+
+        allocation_result<void *> chunk_allocate(size_t n) noexcept {
+            if (WJR_LIKELY(n <= 16384)) {
+                return __small_allocate(static_cast<uint32_t>(n));
+            }
+
+            return {get_chunk().allocate(n), n};
+        }
+
+        // p must not be 0
+        WJR_INTRINSIC_INLINE void chunk_deallocate(void *p, size_t n) noexcept {
+            if (WJR_LIKELY(n <= 16384)) {
+                return __small_deallocate(p, static_cast<uint32_t>(n));
+            }
+
+            get_chunk().deallocate(p);
+        }
+
+    private:
+        // Allocates a chunk for nobjs of size "size".  nobjs may be reduced
+        // if it is inconvenient to allocate the requested number.
+        WJR_MALLOC char *chunk_alloc(uint8_t idx, int &nobjs) noexcept;
+
+        // Returns an object of size n, and optionally adds to size n free list.
+        WJR_MALLOC void *refill(uint8_t idx) noexcept;
+
+        obj *volatile free_list[12] = {nullptr};
+        char *start_free = nullptr;
+        char *end_free = nullptr;
+        size_t heap_size = 0;
+    };
+
+    static object &get_instance() noexcept {
+        static thread_local object instance;
+        return instance;
+    }
+
+    // n must be > 0
+    static allocation_result<void *> allocate(size_t n) noexcept {
+        return get_instance().allocate(n);
+    }
+
+    // p must not be 0
+    WJR_INTRINSIC_INLINE static void deallocate(void *p, size_t n) noexcept {
+        get_instance().deallocate(p, n);
+    }
+
+    // n must be > 0
+    static allocation_result<void *> chunk_allocate(size_t n) noexcept {
+        return get_instance().chunk_allocate(n);
+    }
+
+    // p must not be 0
+    WJR_INTRINSIC_INLINE static void chunk_deallocate(void *p, size_t n) noexcept {
+        get_instance().chunk_deallocate(p, n);
+    }
+};
+
+template <typename Ty>
+class memory_pool {
+private:
+    using allocator_type = __default_alloc_template__;
+
+public:
+    using value_type = Ty;
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
+    using propagate_on_container_move_assignment = std::true_type;
+    using is_always_equal = std::true_type;
+    using is_trivially_allocator = std::true_type;
+
+    template <typename Other>
+    struct rebind {
+        using other = memory_pool<Other>;
+    };
+
+    constexpr memory_pool() noexcept = default;
+    constexpr memory_pool(const memory_pool &) noexcept = default;
+    template <typename Other>
+    constexpr memory_pool(const memory_pool<Other> &) noexcept {}
+    ~memory_pool() = default;
+    memory_pool &operator=(const memory_pool &) noexcept = default;
+
+    WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
+    allocate_at_least(size_type n) const noexcept {
+        const auto ret = allocator_type::allocate(n * sizeof(Ty));
+        return {static_cast<Ty *>(ret.ptr), ret.count};
+    }
+
+    WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
+    chunk_allocate_at_least(size_type n) const noexcept {
+        const auto ret = allocator_type::chunk_allocate(n * sizeof(Ty));
+        return {static_cast<Ty *>(ret.ptr), ret.count};
+    }
+
+    WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *allocate(size_type n) const noexcept {
+        return allocate_at_least(n).ptr;
+    }
+
+    WJR_CONSTEXPR20 void deallocate(Ty *ptr, size_type n) const noexcept {
+        return allocator_type::deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
+    }
+
+    /**
+     * @details Allocate memory, don't need to deallocate it until the thread exits.   \n
+     * Automatically deallocate memory when the thread exits.                          \n
+     * Used in thread_local memory pool that only needs to allocate memory once and    \n
+     * deallocate it when the thread exits.                                            \n
+     *
+     */
+    WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *
+    chunk_allocate(size_type n) const noexcept {
+        return chunk_allocate_at_least(n).ptr;
+    }
+
+    WJR_CONSTEXPR20 void chunk_deallocate(Ty *ptr, size_type n) const noexcept {
+        return allocator_type::chunk_deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
+    }
+
+    constexpr size_t max_size() const noexcept {
+        return static_cast<size_t>(-1) / sizeof(Ty);
+    }
+};
+
+template <typename T, typename U>
+constexpr bool operator==(const memory_pool<T> &, const memory_pool<U> &) noexcept {
+    return true;
+}
+
+template <typename T, typename U>
+constexpr bool operator!=(const memory_pool<T> &, const memory_pool<U> &) noexcept {
+    return false;
+}
+
+} // namespace wjr
+
+#endif // WJR_MEMORY_MEMORY_POOL_HPP__
 // Already included
 
 namespace wjr {
@@ -25625,6 +25066,8 @@ uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, origin_converter_t) 
 #endif
 
 namespace wjr {
+
+static_assert(sizeof(char) == sizeof(uint8_t), "Not support currently.");
 
 inline constexpr size_t dc_bignum_to_chars_threshold = WJR_DC_BIGNUM_TO_CHARS_THRESHOLD;
 inline constexpr size_t dc_bignum_to_chars_precompute_threshold =
@@ -26596,28 +26039,19 @@ Iter __to_chars_backward_unchecked_impl(Iter first, Value val, IBase ibase,
  * @details Only use fast_convert mode.
  *
  */
-template <typename Iter, typename Value, typename BaseType = unsigned int,
-          BaseType IBase = 10, typename Converter = char_converter_t,
+template <typename Iter, typename Value, unsigned int IBase = 10,
+          typename Converter = char_converter_t,
           WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
                            &&convert_details::__is_valid_converter_v<Value, Converter>)>
 Iter to_chars_backward_unchecked(Iter first, Value val,
-                                 std::integral_constant<BaseType, IBase> = {},
+                                 integral_constant<unsigned int, IBase> ic = {},
                                  Converter conv = {}) noexcept {
-    return __to_chars_backward_unchecked_impl(
-        first, val, std::integral_constant<unsigned int, IBase>(), conv);
+    return __to_chars_backward_unchecked_impl(first, val, ic, conv);
 }
 
-/**
- * @brief Convert an unsigned integer to a string in reverse order without checking
- * buf size.
- *
- *
- */
-template <typename Iter, typename Value, typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
-                           &&convert_details::__is_valid_converter_v<Value, Converter>)>
-Iter to_chars_backward_unchecked(Iter first, Value val, unsigned int base,
-                                 Converter conv = {}) noexcept {
+template <typename Iter, typename Value, typename Converter>
+Iter to_chars_backward_unchecked_dynamic(Iter first, Value val, unsigned int base,
+                                         Converter conv) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
@@ -26639,6 +26073,23 @@ Iter to_chars_backward_unchecked(Iter first, Value val, unsigned int base,
     }
 
     return __to_chars_backward_unchecked_impl(first, val, base, conv);
+}
+
+/**
+ * @brief Convert an unsigned integer to a string in reverse order without checking
+ * buf size.
+ *
+ *
+ */
+template <typename Iter, typename Value, typename IBase,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
+                           &&convert_details::__is_valid_converter_v<Value, Converter>
+                               &&is_nonbool_integral_v<IBase>)>
+Iter to_chars_backward_unchecked(Iter first, Value val, IBase base,
+                                 Converter conv = {}) noexcept {
+    return to_chars_backward_unchecked_dynamic(first, val,
+                                               static_cast<unsigned int>(base), conv);
 }
 
 template <typename Value, typename IBase, typename Converter>
@@ -27026,27 +26477,18 @@ Iter __to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
  * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
  *
  */
-template <typename Iter, typename Value, typename BaseType = unsigned int,
-          BaseType IBase = 10, typename Converter = char_converter_t,
+template <typename Iter, typename Value, unsigned int IBase = 10,
+          typename Converter = char_converter_t,
           WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
 to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val,
-                               std::integral_constant<BaseType, IBase> = {},
+                               integral_constant<unsigned int, IBase> ic = {},
                                Converter conv = {}) noexcept {
-    return __to_chars_impl(ptr, last, val, std::integral_constant<unsigned int, IBase>(),
-                           conv);
+    return __to_chars_impl(ptr, last, val, ic, conv);
 }
 
-/**
- * @brief Convert an unsigned integer to a string with checking buf size.
- *
- * @return to_chars_result<Iter> If the conversion is successful, return {ans,
- * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
- *
- */
-template <typename Iter, typename Value, typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
-to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base,
-                               Converter conv = {}) noexcept {
+template <typename Iter, typename Value, typename Converter>
+to_chars_result<Iter> to_chars_dynamic(Iter ptr, Iter last, Value val, unsigned int base,
+                                       Converter conv) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
@@ -27071,6 +26513,22 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base
 }
 
 /**
+ * @brief Convert an unsigned integer to a string with checking buf size.
+ *
+ * @return to_chars_result<Iter> If the conversion is successful, return {ans,
+ * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
+ *
+ */
+template <typename Iter, typename Value, typename IBase,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>
+                           &&is_nonbool_integral_v<IBase>)>
+to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, IBase base,
+                               Converter conv = {}) noexcept {
+    return to_chars_dynamic(ptr, last, val, static_cast<unsigned int>(base), conv);
+}
+
+/**
  * @brief Convert an unsigned integer to a string without checking buf size.
  *
  * @details Iter can be any output iterator. Support fast_convert mode and fallback mode.
@@ -27080,27 +26538,18 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base
  * store the result and use @ref wjr::copy to copy the result to the output iterator. \n
  *
  */
-template <typename Iter, typename Value, typename BaseType = unsigned int,
-          BaseType IBase = 10, typename Converter = char_converter_t,
+template <typename Iter, typename Value, unsigned int IBase = 10,
+          typename Converter = char_converter_t,
           WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
-Iter to_chars_unchecked(Iter ptr, Value val, std::integral_constant<BaseType, IBase> = {},
+Iter to_chars_unchecked(Iter ptr, Value val,
+                        integral_constant<unsigned int, IBase> ic = {},
                         Converter conv = {}) noexcept {
-    return __to_chars_unchecked_impl(ptr, val,
-                                     std::integral_constant<unsigned int, IBase>(), conv);
+    return __to_chars_unchecked_impl(ptr, val, ic, conv);
 }
 
-/**
- * @brief Convert an unsigned integer to a string without checking buf size.
- *
- * @tparam Iter The iterator type. Must be random access iterator.
- * @tparam Value The value type. If Converter is origin_converter_t, Value must be
- * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
- *
- */
-template <typename Iter, typename Value, typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
-Iter to_chars_unchecked(Iter ptr, Value val, unsigned int base,
-                        Converter conv = {}) noexcept {
+template <typename Iter, typename Value, typename Converter>
+Iter to_chars_unchecked_dynamic(Iter ptr, Value val, unsigned int base,
+                                Converter conv) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
@@ -27122,6 +26571,22 @@ Iter to_chars_unchecked(Iter ptr, Value val, unsigned int base,
     }
 
     return __to_chars_unchecked_impl(ptr, val, base, conv);
+}
+
+/**
+ * @brief Convert an unsigned integer to a string without checking buf size.
+ *
+ * @tparam Iter The iterator type. Must be random access iterator.
+ * @tparam Value The value type. If Converter is origin_converter_t, Value must be
+ * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
+ *
+ */
+template <typename Iter, typename Value, typename IBase,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>
+                           &&is_nonbool_integral_v<IBase>)>
+Iter to_chars_unchecked(Iter ptr, Value val, IBase base, Converter conv = {}) noexcept {
+    return to_chars_unchecked_dynamic(ptr, val, static_cast<unsigned int>(base), conv);
 }
 
 template <typename Converter>
@@ -28046,22 +27511,19 @@ void __from_chars_unchecked_impl(Iter first, Iter last, Value &val, IBase ibase,
     __fast_from_chars_unchecked_impl(__first, __last, val, ibase, conv);
 }
 
-template <typename Iter, typename Value, typename BaseType = unsigned int,
-          BaseType IBase = 10, typename Converter = char_converter_t,
+template <typename Iter, typename Value, unsigned int IBase = 10,
+          typename Converter = char_converter_t,
           WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
                            &&convert_details::__is_valid_converter_v<Value, Converter>)>
 void from_chars_unchecked(Iter first, Iter last, Value &val,
-                          std::integral_constant<BaseType, IBase> = {},
+                          integral_constant<unsigned int, IBase> ic = {},
                           Converter conv = {}) noexcept {
-    __from_chars_unchecked_impl(first, last, val,
-                                std::integral_constant<unsigned int, IBase>(), conv);
+    __from_chars_unchecked_impl(first, last, val, ic, conv);
 }
 
-template <typename Iter, typename Value, typename Converter,
-          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
-                           &&convert_details::__is_valid_converter_v<Value, Converter>)>
-void from_chars_unchecked(Iter first, Iter last, Value &val, unsigned int base,
-                          Converter conv = {}) noexcept {
+template <typename Iter, typename Value, typename IBase, typename Converter>
+void from_chars_unchecked_dynamic(Iter first, Iter last, Value &val, unsigned int base,
+                                  Converter conv) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
@@ -28087,6 +27549,16 @@ void from_chars_unchecked(Iter first, Iter last, Value &val, unsigned int base,
     }
 
     __from_chars_unchecked_impl(first, last, val, base, conv);
+}
+
+template <typename Iter, typename Value, typename IBase,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
+                           &&convert_details::__is_valid_converter_v<Value, Converter>
+                               &&is_nonbool_integral_v<IBase>)>
+void from_chars_unchecked(Iter first, Iter last, Value &val, IBase base,
+                          Converter conv = {}) noexcept {
+    from_chars_unchecked_dynamic(first, last, val, static_cast<unsigned int>(base), conv);
 }
 
 template <uint64_t Base>
@@ -28285,21 +27757,19 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
     return {reinterpret_cast<const char *>(ret.ptr), ret.ec};
 }
 
-template <typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
-          typename Converter = char_converter_t,
+template <typename Value, unsigned int IBase = 10, typename Converter = char_converter_t,
           WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
 from_chars_result<const char *>
 from_chars(const char *first, const char *last, Value &val,
-           std::integral_constant<BaseType, IBase> = {}, Converter conv = {}) noexcept {
-    return __from_chars_impl(first, last, val,
-                             std::integral_constant<unsigned int, IBase>(), conv);
+           integral_constant<unsigned int, IBase> ic = {}, Converter conv = {}) noexcept {
+    return __from_chars_impl(first, last, val, ic, conv);
 }
 
-template <typename Value, typename Converter = char_converter_t,
+template <typename Value, typename Converter,
           WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
-from_chars_result<const char *> from_chars(const char *first, const char *last,
-                                           Value &val, unsigned int base,
-                                           Converter conv = {}) noexcept {
+from_chars_result<const char *> from_chars_dynamic(const char *first, const char *last,
+                                                   Value &val, unsigned int base,
+                                                   Converter conv) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
@@ -28315,6 +27785,15 @@ from_chars_result<const char *> from_chars(const char *first, const char *last,
     }
 
     return __from_chars_impl(first, last, val, base, conv);
+}
+
+template <typename Value, typename IBase, typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>
+                           &&is_nonbool_integral_v<IBase>)>
+from_chars_result<const char *> from_chars(const char *first, const char *last,
+                                           Value &val, IBase base,
+                                           Converter conv = {}) noexcept {
+    return from_chars_dynamic(first, last, val, base, conv);
 }
 
 template <typename Converter>
@@ -29250,11 +28729,14 @@ public:
     // extension
 
     WJR_PURE int32_t get_ssize() const noexcept { return m_storage.m_size; }
-    template <typename T, WJR_REQUIRES(is_any_of_v<T, int32_t>)>
-    void set_ssize(T size) noexcept {
+
+    void set_ssize(int32_t size) noexcept {
         WJR_ASSERT_ASSUME(__fasts_abs(size) <= capacity());
         m_storage.m_size = size;
     }
+
+    template <typename T>
+    void set_ssize(int32_t size) noexcept = delete;
 
     WJR_PURE const biginteger_data *__get_data() const noexcept { return &m_storage; }
 

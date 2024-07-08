@@ -11,7 +11,7 @@
 #include <wjr/math/bit.hpp>
 #include <wjr/math/shift.hpp>
 #include <wjr/math/sub.hpp>
-#include <wjr/memory/safe_array.hpp>
+#include <wjr/memory/safe_pointer.hpp>
 #include <wjr/tuple.hpp>
 
 #if defined(WJR_MSVC) && defined(WJR_X86)
@@ -56,48 +56,64 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_mul64(uint64_t a, uint64_t b,
     return rl;
 }
 
+WJR_INTRINSIC_CONSTEXPR20 uint64_t __mul_u64(uint64_t a, uint64_t b,
+                                             uint64_t &hi) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P(a)) {
+        if (a == 0) {
+            hi = 0;
+            return 0;
+        }
+
+        if (is_zero_or_single_bit(a)) {
+            const auto shift = constexpr_ctz(a);
+            hi = b << shift;
+            return b >> (64 - shift);
+        }
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(b)) {
+        if (b == 0) {
+            hi = 0;
+            return 0;
+        }
+
+        if (is_zero_or_single_bit(b)) {
+            const auto shift = constexpr_ctz(b);
+            hi = a << shift;
+            return a >> (64 - shift);
+        }
+    }
+
+#if WJR_HAS_BUILTIN(UMUL128)
+    if (is_constant_evaluated()
+#if WJR_HAS_BUILTIN(ASM_UMUL128)
+        || (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))
+#endif
+    ) {
+        return fallback_mul64(a, b, hi);
+    }
+
+#if WJR_HAS_BUILTIN(ASM_UMUL128)
+    // mov b to rax, then mul a
+    // instead of mov a to rax, mov b to register, then mul
+    if (WJR_BUILTIN_CONSTANT_P(b)) {
+        return builtin_umul128(b, a, hi);
+    }
+#endif
+    return builtin_umul128(a, b, hi);
+#else
+    return fallback_mul64(a, b, hi);
+#endif
+}
+
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 T mul(T a, T b, T &hi) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(a == 0) || WJR_BUILTIN_CONSTANT_P_TRUE(b == 0)) {
-        hi = 0;
-        return 0;
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(a == 1)) {
-        hi = 0;
-        return b;
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(b == 1)) {
-        hi = 0;
-        return a;
-    }
-
     if constexpr (nd < 64) {
         return fallback_mul(a, b, hi);
     } else {
-#if WJR_HAS_BUILTIN(UMUL128)
-        if (is_constant_evaluated()
-#if WJR_HAS_BUILTIN(ASM_UMUL128)
-            || (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))
-#endif
-        ) {
-            return fallback_mul64(a, b, hi);
-        }
-
-#if WJR_HAS_BUILTIN(ASM_UMUL128)
-        // mov b to rax, then mul a
-        // instead of mov a to rax, mov b to register, then mul
-        if (WJR_BUILTIN_CONSTANT_P(b)) {
-            return builtin_umul128(b, a, hi);
-        }
-#endif
-        return builtin_umul128(a, b, hi);
-#else
-        return fallback_mul64(a, b, hi);
-#endif
+        return __mul_u64(a, b, hi);
     }
 }
 
@@ -530,10 +546,10 @@ using toom_interpolation_high_p_struct = std::array<uint64_t, P - 2>;
 */
 extern void toom22_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                          const uint64_t *src1, size_t m,
-                         safe_array<uint64_t> stk) noexcept;
+                         safe_pointer<uint64_t> stk) noexcept;
 
 extern void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      safe_array<uint64_t> stk) noexcept;
+                      safe_pointer<uint64_t> stk) noexcept;
 
 /*
  l = ceil(n/3)
@@ -541,10 +557,10 @@ extern void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 */
 extern void toom33_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                          const uint64_t *src1, size_t m,
-                         safe_array<uint64_t> stk) noexcept;
+                         safe_pointer<uint64_t> stk) noexcept;
 
 extern void toom3_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      safe_array<uint64_t> stk) noexcept;
+                      safe_pointer<uint64_t> stk) noexcept;
 
 WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom22_s_itch(size_t m) noexcept {
     return m * 4 + (m / 2) + 64;
@@ -591,8 +607,8 @@ WJR_INTRINSIC_INLINE void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0
 }
 
 template <typename T>
-safe_array<uint64_t> __mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n) noexcept {
-    if constexpr (std::is_same_v<T, safe_array<uint64_t>>) {
+safe_pointer<uint64_t> __mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n) noexcept {
+    if constexpr (std::is_same_v<T, safe_pointer<uint64_t>>) {
         return al;
     } else {
         return span<uint64_t>(static_cast<uint64_t *>(al.allocate(sizeof(uint64_t) * n)),
@@ -603,7 +619,7 @@ safe_array<uint64_t> __mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n) noexcept
 template <__mul_mode mode>
 void __inline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                          const uint64_t *src1, size_t n,
-                         safe_array<uint64_t> mal) noexcept {
+                         safe_pointer<uint64_t> mal) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
     WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
@@ -613,11 +629,11 @@ void __inline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
     }
 
     if (mode <= __mul_mode::toom22 || n < toom33_mul_threshold) {
-        safe_array<uint64_t> stk = __mul_s_allocate(mal, toom22_n_itch(n));
+        safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom22_n_itch(n));
         return toom22_mul_s(dst, src0, n, src1, n, stk);
     }
 
-    safe_array<uint64_t> stk = __mul_s_allocate(mal, toom33_n_itch(n));
+    safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom33_n_itch(n));
     return toom33_mul_s(dst, src0, n, src1, n, stk);
 }
 
@@ -627,7 +643,7 @@ extern void __noinline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *sr
 template <__mul_mode mode>
 WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                   const uint64_t *src1, size_t n,
-                                  WJR_MAYBE_UNUSED safe_array<uint64_t> stk) noexcept {
+                                  WJR_MAYBE_UNUSED safe_pointer<uint64_t> stk) noexcept {
     if constexpr (mode <= __mul_mode::toom33) {
         __inline_mul_n_impl<mode>(dst, src0, src1, n, stk);
     } else {
@@ -637,7 +653,7 @@ WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *sr
 
 template <__mul_mode mode, uint64_t m0 = in_place_max, uint64_t m1 = in_place_max>
 void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
-             size_t n, safe_array<uint64_t> stk, uint64_t &c_out, uint64_t cf0,
+             size_t n, safe_pointer<uint64_t> stk, uint64_t &c_out, uint64_t cf0,
              uint64_t cf1) noexcept {
     WJR_ASSERT_ASSUME(cf0 <= m0);
     WJR_ASSERT_ASSUME(cf1 <= m1);
@@ -673,7 +689,7 @@ WJR_INTRINSIC_INLINE void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0
 
 template <__mul_mode mode>
 inline void __inline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                              safe_array<uint64_t> mal) noexcept {
+                              safe_pointer<uint64_t> mal) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
 
@@ -682,11 +698,11 @@ inline void __inline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, s
     }
 
     if (mode <= __mul_mode::toom22 || n < toom3_sqr_threshold) {
-        safe_array<uint64_t> stk = __mul_s_allocate(mal, toom22_n_itch(n));
+        safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom22_n_itch(n));
         return toom2_sqr(dst, src, n, stk);
     }
 
-    safe_array<uint64_t> stk = __mul_s_allocate(mal, toom33_n_itch(n));
+    safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom33_n_itch(n));
     return toom3_sqr(dst, src, n, stk);
 }
 
@@ -695,7 +711,7 @@ extern void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
 
 template <__mul_mode mode>
 void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-           WJR_MAYBE_UNUSED safe_array<uint64_t> stk) noexcept {
+           WJR_MAYBE_UNUSED safe_pointer<uint64_t> stk) noexcept {
     if constexpr (mode <= __mul_mode ::toom33) {
         __inline_sqr_impl<mode>(dst, src, n, stk);
     } else {
@@ -705,7 +721,7 @@ void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 
 template <__mul_mode mode, uint64_t m = in_place_max>
 void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-           safe_array<uint64_t> stk, uint64_t &c_out, uint64_t cf) noexcept {
+           safe_pointer<uint64_t> stk, uint64_t &c_out, uint64_t cf) noexcept {
     WJR_ASSERT_ASSUME(cf <= m);
 
     __sqr<mode>(dst, src, n, stk);

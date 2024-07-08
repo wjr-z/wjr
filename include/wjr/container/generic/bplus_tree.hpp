@@ -18,9 +18,9 @@
  * number of queries will be less. If the comparison operation of key_type is more
  * complex, it is not recommended to use B+ tree, because the number of queries of B+ tree
  * will be more, thus offsetting the advantages of B+ tree.
- * 
+ *
  * @note Currently not needed for use, and some bugs exists, don't use it.
- * 
+ *
  * @version 0.1
  * @date 2024-05-06
  *
@@ -30,7 +30,7 @@
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/generic/container_fn.hpp>
 #include <wjr/container/intrusive/list.hpp>
-#include <wjr/inline_key.hpp>
+#include <wjr/inline_arg.hpp>
 #include <wjr/memory/uninitialized.hpp>
 
 #if defined(WJR_X86)
@@ -57,7 +57,6 @@ WJR_INTRINSIC_INLINE static void copy(Other *first, Other *last, Other *dest) no
         builtin_bplus_tree_copy<Min, Max>(first, last, dest);
     } else {
 #endif
-        WJR_ASSUME((last - first) >= Min && (last - first) <= Max);
         (void)std::copy(first, last, dest);
 #if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
     }
@@ -72,7 +71,6 @@ WJR_INTRINSIC_INLINE static void copy_backward(Other *first, Other *last,
         builtin_bplus_tree_copy_backward<Min, Max>(first, last, dest);
     } else {
 #endif
-        WJR_ASSUME((last - first) >= Min && (last - first) <= Max);
         (void)std::copy_backward(first, last, dest);
 #if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
     }
@@ -91,12 +89,15 @@ struct bplus_tree_traits {
     using key_compare = Compare;
 
     static constexpr size_t node_size = Size;
-    static constexpr bool inline_keys =
-        is_possible_inline_key_v<std::remove_const_t<key_type>> && sizeof(key_type) <= 8;
-    using InlineKey = inline_key<std::remove_const_t<key_type>, inline_keys>;
+    using InlineKey = auto_key<std::remove_const_t<key_type>, 8>;
+    static constexpr bool is_inline_key = InlineKey::is_inlined;
+    static constexpr bool is_inline_value =
+        std::is_trivially_copyable_v<value_type> && sizeof(value_type) <= 16;
+    using InlineValue = std::conditional_t<is_inline_value, value_type, value_type *>;
+
     using node_type = bplus_tree_node<bplus_tree_traits>;
     using inner_node_type = bplus_tree_inner_node<bplus_tree_traits>;
-    using leaf_node_type = bplus_tree_leaf_node<bplus_tree_traits, inline_keys>;
+    using leaf_node_type = bplus_tree_leaf_node<bplus_tree_traits, is_inline_key>;
     static constexpr bool multi = Multi;
 
     WJR_INTRINSIC_INLINE static const key_type &
@@ -441,7 +442,7 @@ class basic_bplus_tree {
 
     using mapped_type = typename Traits::mapped_type;
     static constexpr size_t node_size = Traits::node_size;
-    static constexpr bool inline_keys = Traits::inline_keys;
+    static constexpr bool is_inline_key = Traits::is_inline_key;
     using InlineKey = typename Traits::InlineKey;
     static constexpr size_t floor_half = node_size / 2;
     static constexpr size_t ceil_half = node_size - floor_half;
@@ -1545,7 +1546,7 @@ private:
         } while (0);
 
         lhs->m_size = -(merge_size - 1);
-        remove_uninit(lhs);
+        remove_uninit(rhs);
         _Alty_traits::deallocate(__get_allocator(), (uint8_t *)rhs,
                                  sizeof(leaf_node_type));
 

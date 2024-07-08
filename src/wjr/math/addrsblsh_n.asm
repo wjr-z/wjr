@@ -6,10 +6,8 @@
 %define FUNC_NAME __wjr_asm_rsblsh_n
 %endif
 
-
-global  FUNC_NAME
-
 section .text
+global  FUNC_NAME
 FUNC_NAME:
         push   rdi
         mov    r10,  r9

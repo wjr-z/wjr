@@ -13,10 +13,10 @@ public:
     using const_pointer = const value_type *;
 
     template <typename... Args>
-    WJR_CONSTEXPR20 temporary_value_allocator(Alloc &al_, Args &&...args) noexcept(
+    WJR_CONSTEXPR20 temporary_value_allocator(Alloc &_al, Args &&...args) noexcept(
         std::is_nothrow_constructible_v<value_type, Args &&...>)
-        : al(al_) {
-        uninitialized_construct_using_allocator(get(), al, std::forward<Args>(args)...);
+        : m_al(_al) {
+        uninitialized_construct_using_allocator(get(), m_al, std::forward<Args>(args)...);
     }
 
     temporary_value_allocator(const temporary_value_allocator &) = delete;
@@ -26,17 +26,15 @@ public:
 
     ~temporary_value_allocator() noexcept(noexcept(
         destroy_at_using_allocator(std::declval<pointer>(), std::declval<Alloc &>()))) {
-        destroy_at_using_allocator(get(), al);
+        destroy_at_using_allocator(get(), m_al);
     }
 
-    WJR_CONSTEXPR20 pointer get() noexcept { return reinterpret_cast<pointer>(storage); }
-    WJR_CONSTEXPR20 const_pointer get() const noexcept {
-        return reinterpret_cast<const_pointer>(storage);
-    }
+    pointer get() noexcept { return m_storage.get(); }
+    const_pointer get() const noexcept { return m_storage.get(); }
 
 private:
-    Alloc &al;
-    std::aligned_storage_t<sizeof(value_type), alignof(value_type)> storage[1];
+    Alloc &m_al;
+    algined_storage<value_type> m_storage;
 };
 
 template <typename Alloc, typename... Args>

@@ -79,7 +79,7 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
     str.resize_and_overwrite(sz, [](char *, Size sz) { return sz; });
 }
 
-#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(NAME, Container)
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container)
 
 #elif (defined(__clang_major__) && __clang_major__ <= 11) ||                             \
     (defined(_MSC_VER) && _MSC_VER <= 1920)
@@ -90,58 +90,43 @@ template <typename Container>
 void string_set_length_hacker(Container &bank, typename Container::size_type sz);
 
 #if defined(__GLIBCXX__) || defined(_LIBCPP_VERSION)
-#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container)                \
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(Name, Container)                \
     inline void WJR_PP_CONCAT(string_set_length_hacker_of_,                              \
-                              NAME)(Container & bank, typename Container::size_type sz); \
+                              Name)(Container & bank, typename Container::size_type sz); \
     template <typename Money_t, Money_t Container::*p>                                   \
-    class WJR_PP_CONCAT(string_thief_of_, NAME) {                                        \
-    public:                                                                              \
+    struct WJR_PP_CONCAT(string_thief_of_, Name) {                                       \
         friend void WJR_PP_CONCAT(string_set_length_hacker_of_,                          \
-                                  NAME)(Container & bank,                                \
+                                  Name)(Container & bank,                                \
                                         typename Container::size_type sz) {              \
             (bank.*p)(sz);                                                               \
         }                                                                                \
-    };                                                                                   \
-    template <>                                                                          \
-    inline void string_set_length_hacker<Container>(Container & bank,                    \
-                                                    typename Container::size_type sz) {  \
-        WJR_PP_CONCAT(string_set_length_hacker_of_, NAME)(bank, sz);                     \
     }
 #else
-#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container)                \
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(Name, Container)                \
     inline void WJR_PP_CONCAT(string_set_length_hacker_of_,                              \
-                              NAME)(Container & bank, typename Container::size_type sz); \
+                              Name)(Container & bank, typename Container::size_type sz); \
     template <typename Money_t, Money_t Container::*p>                                   \
-    class WJR_PP_CONCAT(string_thief_of_, NAME) {                                        \
-    public:                                                                              \
+    struct WJR_PP_CONCAT(string_thief_of_, Name) {                                       \
         friend void WJR_PP_CONCAT(string_set_length_hacker_of_,                          \
-                                  NAME)(Container & bank,                                \
+                                  Name)(Container & bank,                                \
                                         typename Container::size_type sz) {              \
             (bank.*p)._Myval2._Mysize = sz;                                              \
         }                                                                                \
-    };                                                                                   \
-    template <>                                                                          \
-    inline void string_set_length_hacker<Container>(Container & bank,                    \
-                                                    typename Container::size_type sz) {  \
-        WJR_PP_CONCAT(string_set_length_hacker_of_, NAME)(bank, sz);                     \
     }
 #endif
 
 #if defined(__GLIBCXX__)
-#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(NAME, Container)             \
-    __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container);                   \
-    template class WJR_PP_CONCAT(                                                        \
-        string_thief_of_, NAME)<void(Container::size_type), &Container::_M_set_length>
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container)             \
+    template struct WJR_PP_CONCAT(                                                       \
+        string_thief_of_, Name)<void(Container::size_type), &Container::_M_set_length>
 #elif defined(_LIBCPP_VERSION)
-#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(NAME, Container)             \
-    __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container);                   \
-    template class WJR_PP_CONCAT(                                                        \
-        string_thief_of_, NAME)<void(Container::size_type), &Container::__set_size>
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container)             \
+    template struct WJR_PP_CONCAT(                                                       \
+        string_thief_of_, Name)<void(Container::size_type), &Container::__set_size>
 #else
-#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(NAME, Container)             \
-    __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container);                   \
-    template class WJR_PP_CONCAT(                                                        \
-        string_thief_of_, NAME)<decltype(Container::_Mypair), &Container::_Mypair>
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container)             \
+    template struct WJR_PP_CONCAT(                                                       \
+        string_thief_of_, Name)<decltype(Container::_Mypair), &Container::_Mypair>
 #endif
 
 template <typename CharT, typename Traits, typename Alloc>
@@ -161,35 +146,48 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
 
 #if WJR_HAS_FEATURE(STRING_UNINITIALIZED_RESIZE)
 
+template <typename Container>
+struct __uninitialized_resize_fn_impl : resize_fn_impl_base<Container> {
+    using resize_fn_impl_base<Container>::resize;
+    WJR_INTRINSIC_INLINE static void resize(Container &cont,
+                                            typename Container::size_type sz, dctor_t) {
+        __uninitialized_resize(cont, sz);
+    }
+};
+
+template <typename Container>
+struct __uninitialized_append_fn_impl : append_fn_impl_base<Container> {
+    using append_fn_impl_base<Container>::append;
+    WJR_INTRINSIC_INLINE static void append(Container &cont,
+                                            typename Container::size_type sz, dctor_t) {
+        __uninitialized_resize(cont, cont.size() + sz);
+    }
+};
+
 #define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Name, Container)                        \
+    __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(Name, Container);                   \
     __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container);                \
     template <>                                                                          \
-    struct resize_fn_impl<Container> : resize_fn_impl_base<Container> {                  \
-        using resize_fn_impl_base<Container>::resize;                                    \
-        WJR_INTRINSIC_INLINE static void                                                 \
-        resize(Container &cont, typename Container::size_type sz, dctor_t) {             \
-            __uninitialized_resize(cont, sz);                                            \
-        }                                                                                \
+    inline void string_set_length_hacker<Container>(Container & bank,                    \
+                                                    typename Container::size_type sz) {  \
+        WJR_PP_CONCAT(string_set_length_hacker_of_, Name)(bank, sz);                     \
     };                                                                                   \
     template <>                                                                          \
-    struct append_fn_impl<Container> : append_fn_impl_base<Container> {                  \
-        using append_fn_impl_base<Container>::append;                                    \
-        WJR_INTRINSIC_INLINE static void                                                 \
-        append(Container &cont, typename Container::size_type sz, dctor_t) {             \
-            __uninitialized_resize(cont, cont.size() + sz);                              \
-        }                                                                                \
-    }
+    struct resize_fn_impl<Container> : __uninitialized_resize_fn_impl<Container> {};     \
+    template <>                                                                          \
+    struct append_fn_impl<Container> : __uninitialized_append_fn_impl<Container> {}
 #else
 #define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Name, Container)
 #endif
 
-WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(string, std::string);
+WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(std_string, std::string);
 
 WJR_REGISTER_HAS_TYPE(container_resize,
                       resize_fn_impl<Container>::resize(std::declval<Container &>(),
                                                         std::declval<Size>(),
                                                         std::declval<Args>()...),
                       Container, Size);
+
 WJR_REGISTER_HAS_TYPE(container_reserve,
                       std::declval<Container>().reserve(std::declval<Size>()), Container,
                       Size);

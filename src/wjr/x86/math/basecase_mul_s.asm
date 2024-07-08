@@ -1,6 +1,5 @@
-global  __wjr_asm_basecase_mul_s_impl
-
 section .text
+global  __wjr_asm_basecase_mul_s_impl
 __wjr_asm_basecase_mul_s_impl:
         push r13
         mov  r10, rcx

@@ -10,8 +10,8 @@
  *
  */
 
-#include <wjr/crtp/class_base.hpp>
 #include <wjr/crtp/trivially_allocator_base.hpp>
+#include <wjr/memory/aligned_storage.hpp>
 #include <wjr/memory/details.hpp>
 
 namespace wjr {
@@ -317,59 +317,9 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
     }
 }
 
-/// @private
-template <typename T, typename Tag>
-using __uninitialized_checker_base_enabler_select =
-    enable_special_members_base<true, true, std::is_trivially_copy_constructible_v<T>,
-                                std::is_trivially_move_constructible_v<T>,
-                                std::is_trivially_copy_assignable_v<T>,
-                                std::is_trivially_move_assignable_v<T>, Tag>;
-
-/// @private
-template <bool Default, bool Destructor, typename T>
-struct __uninitialized_base;
-
-#define WJR_REGISTER_UNINITIALIZED_BASE(DEF, DES)                                        \
-    template <typename T>                                                                \
-    struct __uninitialized_base<DEF, DES, T>                                             \
-        : __uninitialized_checker_base_enabler_select<                                   \
-              T, __uninitialized_base<DEF, DES, T>> {                                    \
-        using Mybase = __uninitialized_checker_base_enabler_select<                      \
-            T, __uninitialized_base<DEF, DES, T>>;                                       \
-                                                                                         \
-        constexpr __uninitialized_base() noexcept WJR_PP_BOOL_IF(DEF, = default,         \
-                                                                 : m_storage(){});       \
-                                                                                         \
-        template <typename... Args,                                                      \
-                  WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>                  \
-        constexpr __uninitialized_base(Args &&...args) noexcept(                         \
-            std::is_nothrow_constructible_v<T, Args &&...>)                              \
-            : m_value(std::forward<Args>(args)...) {}                                    \
-                                                                                         \
-        ~__uninitialized_base() noexcept WJR_PP_BOOL_IF(DES, = default, {});             \
-                                                                                         \
-        union {                                                                          \
-            T m_value;                                                                   \
-            std::aligned_storage_t<sizeof(T), alignof(T)> m_storage;                     \
-        };                                                                               \
-    }
-
-WJR_REGISTER_UNINITIALIZED_BASE(1, 1);
-WJR_REGISTER_UNINITIALIZED_BASE(1, 0);
-WJR_REGISTER_UNINITIALIZED_BASE(0, 1);
-WJR_REGISTER_UNINITIALIZED_BASE(0, 0);
-
-#undef WJR_REGISTER_UNINITIALIZED_BASE
-
 #if WJR_DEBUG_LEVEL > 1
 #define WJR_HAS_DEBUG_UNINITIALIZED_CHECKER WJR_HAS_DEF
 #endif
-
-/// @private
-template <typename T>
-using __uninitialized_base_select =
-    __uninitialized_base<std::is_trivially_default_constructible_v<T>,
-                         std::is_trivially_destructible_v<T>, T>;
 
 /**
  * @class uninitialized
@@ -383,8 +333,8 @@ using __uninitialized_base_select =
  *
  */
 template <typename T>
-class uninitialized : __uninitialized_base_select<T> {
-    using Mybase = __uninitialized_base_select<T>;
+class uninitialized : algined_storage<T> {
+    using Mybase = algined_storage<T>;
 
 public:
     using Mybase::Mybase;
@@ -400,20 +350,6 @@ public:
 
     constexpr uninitialized(dctor_t) noexcept : Mybase() {}
 
-    constexpr T &get() & noexcept {
-        check(true);
-        return Mybase::m_value;
-    }
-
-    constexpr const T &get() const & noexcept {
-        check(true);
-        return Mybase::m_value;
-    }
-
-    constexpr T &&get() && noexcept { return static_cast<T &&>(get()); }
-
-    constexpr const T &&get() const && noexcept { return static_cast<const T &&>(get()); }
-
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
     constexpr T &
     emplace(Args &&...args) noexcept(std::is_nothrow_constructible_v<Mybase, Args...>) {
@@ -421,7 +357,7 @@ public:
             check(false);
         }
 
-        (construct_at)(ptr_unsafe(), std::forward<Args>(args)...);
+        (construct_at)(get_unsafe(), std::forward<Args>(args)...);
         checker_set(true);
         return get();
     }
@@ -431,24 +367,37 @@ public:
             check(true);
         }
 
-        std::destroy_at(ptr_unsafe());
+        std::destroy_at(get_unsafe());
         checker_set(false);
     }
 
-    constexpr T *operator->() noexcept { return std::addressof(get()); }
-    constexpr const T *operator->() const noexcept { return std::addressof(get()); }
-
-    constexpr T &operator*() & noexcept { return get(); }
-    constexpr const T &operator*() const & noexcept { return get(); }
-    constexpr T &&operator*() && noexcept { return static_cast<T &&>(get()); }
+    constexpr T &operator*() & noexcept {
+        check(true);
+        return Mybase::operator*();
+    }
+    constexpr const T &operator*() const & noexcept {
+        check(true);
+        return Mybase::operator*();
+    }
+    constexpr T &&operator*() && noexcept { return static_cast<T &&>(this->operator*()); }
     constexpr const T &&operator*() const && noexcept {
-        return static_cast<const T &&>(get());
+        return static_cast<const T &&>(this->operator*());
     }
 
-    constexpr T *ptr_unsafe() noexcept { return std::addressof(Mybase::m_value); }
-    constexpr const T *ptr_unsafe() const noexcept {
-        return std::addressof(Mybase::m_value);
+    constexpr T *get_unsafe() noexcept { return Mybase::get(); }
+    constexpr const T *get_unsafe() const noexcept { return Mybase::get(); }
+
+    constexpr T *get() noexcept {
+        check(true);
+        return get_unsafe();
     }
+    constexpr const T *get() const noexcept {
+        check(true);
+        return get_unsafe();
+    }
+
+    constexpr T *operator->() noexcept { return get(); }
+    constexpr const T *operator->() const noexcept { return get(); }
 
 private:
 #if WJR_HAS_DEBUG(UNINITIALIZED_CHECKER)

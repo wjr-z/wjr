@@ -119,10 +119,19 @@ void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n,
     } while (WJR_LIKELY(idx != 0));
 }
 
+extern template void
+large_builtin_lshift_n_impl<false, uint64_t>(uint64_t *dst, const uint64_t *src, size_t n,
+                                             unsigned int c) noexcept;
+
+extern template void large_builtin_lshift_n_impl<true, uint64_t>(uint64_t *dst,
+                                                                 const uint64_t *src,
+                                                                 size_t n,
+                                                                 unsigned int c) noexcept;
+
 template <typename T>
 WJR_INTRINSIC_INLINE void builtin_lshift_n_impl(T *dst, const T *src, size_t n,
                                                 unsigned int c) noexcept {
-    if (WJR_UNLIKELY(n < 4)) {
+    if (n < 4) {
         switch (n) {
         case 3: {
             dst[2] = shld(src[2], src[1], c);
@@ -236,10 +245,19 @@ void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n,
     } while (WJR_LIKELY(idx != 0));
 }
 
+extern template void
+large_builtin_rshift_n_impl<false, uint64_t>(uint64_t *dst, const uint64_t *src, size_t n,
+                                             unsigned int c) noexcept;
+
+extern template void large_builtin_rshift_n_impl<true, uint64_t>(uint64_t *dst,
+                                                                 const uint64_t *src,
+                                                                 size_t n,
+                                                                 unsigned int c) noexcept;
+
 template <typename T>
 WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n,
                                                 unsigned int c) noexcept {
-    if (WJR_UNLIKELY(n < 4)) {
+    if (n < 4) {
         dst += n - 3;
         src += n - 3;
 

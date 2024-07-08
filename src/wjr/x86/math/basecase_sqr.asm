@@ -1,6 +1,5 @@
-global  __wjr_asm_basecase_sqr_impl
-
 section .text
+global  __wjr_asm_basecase_sqr_impl
 __wjr_asm_basecase_sqr_impl:
         push rbp
         mov  rax, rcx

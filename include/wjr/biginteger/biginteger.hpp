@@ -194,11 +194,14 @@ public:
     // extension
 
     WJR_PURE int32_t get_ssize() const noexcept { return m_storage.m_size; }
-    template <typename T, WJR_REQUIRES(is_any_of_v<T, int32_t>)>
-    void set_ssize(T size) noexcept {
+
+    void set_ssize(int32_t size) noexcept {
         WJR_ASSERT_ASSUME(__fasts_abs(size) <= capacity());
         m_storage.m_size = size;
     }
+
+    template <typename T>
+    void set_ssize(int32_t size) noexcept = delete;
 
     WJR_PURE const biginteger_data *__get_data() const noexcept { return &m_storage; }
 

@@ -372,7 +372,7 @@ WJR_INTRINSIC_INLINE void __builtin_add_128(uint64_t &al, uint64_t &ah, uint64_t
 
 #endif
 
-// <ah, al> = <hi0, lo0> + <hi1, lo1>
+/// @brief <ah, al> = <hi0, lo0> + <hi1, lo1>
 WJR_INTRINSIC_CONSTEXPR20 void __add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                          uint64_t hi0, uint64_t lo1,
                                          uint64_t hi1) noexcept {
@@ -398,7 +398,9 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t __fallback_addc_128(uint64_t &al, uint64_t &a
     return c_in;
 }
 
-// return c_out
+/**
+ * @return carry-out 
+ */
 WJR_INTRINSIC_CONSTEXPR20 uint64_t __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,
                                               uint64_t c_in) noexcept {

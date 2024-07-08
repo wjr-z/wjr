@@ -6,9 +6,8 @@
 %define FUNC_NAME __wjr_asm_subc_n_impl
 %endif
 
-global  FUNC_NAME
-
 section .text
+global  FUNC_NAME
 FUNC_NAME:
         mov    r10,  r9
         push   rbx

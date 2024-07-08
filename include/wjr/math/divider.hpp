@@ -1,6 +1,8 @@
 #ifndef WJR_MATH_DIVIDER_HPP__
 #define WJR_MATH_DIVIDER_HPP__
 
+#include <array>
+
 #include <wjr/math/mul.hpp>
 
 #if defined(WJR_X86)

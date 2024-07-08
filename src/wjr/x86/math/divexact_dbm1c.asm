@@ -1,6 +1,5 @@
-global __wjr_asm_divexact_dbm1c
-
 section .text
+global  __wjr_asm_divexact_dbm1c
 __wjr_asm_divexact_dbm1c:
         mov rax, rdx
         mov rdx, r9

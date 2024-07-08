@@ -80,13 +80,7 @@ target_link_libraries(wjr PRIVATE
    ${WJR_LIBS}
 )
 
-set(WJR_PCH PUBLIC ${WJR_INCLUDE_DIR}/wjr/preprocessor.hpp
-   PUBLIC ${WJR_INCLUDE_DIR}/wjr/assert.hpp
-   PUBLIC ${WJR_INCLUDE_DIR}/wjr/type_traits.hpp)
-
-if(WJR_X86)
-   list(APPEND WJR_PCH PUBLIC ${WJR_INCLUDE_DIR}/wjr/x86/simd/intrin.hpp PUBLIC ${WJR_INCLUDE_DIR}/wjr/x86/simd/simd.hpp)
-endif()
+set(WJR_PCH PUBLIC ${WJR_INCLUDE_DIR}/wjr/math.hpp)
 
 target_precompile_headers(
    wjr

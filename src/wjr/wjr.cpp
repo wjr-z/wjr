@@ -2,7 +2,8 @@
 
 namespace wjr {
 
-void __assert_failed(const char *expr, const char *file, const char *func, int line)noexcept {
+void __assert_failed(const char *expr, const char *file, const char *func,
+                     int line) noexcept {
     if (file[0] != '\0') {
         std::cerr << file << ':';
     }
