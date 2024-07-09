@@ -205,9 +205,8 @@ WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t 
     dst[n - 1] = div_qr_1_impl(dst, rem, src, n, div);
 }
 
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
-                                        size_t n,
-                                        type_identity_t<uint64_t> div) noexcept {
+WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
+                                   size_t n, type_identity_t<uint64_t> div) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_ASSUME(div != 0);
 

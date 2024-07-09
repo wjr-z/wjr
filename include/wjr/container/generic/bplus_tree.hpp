@@ -5,21 +5,18 @@
  * @file bplus_tree.hpp
  * @brief B+ tree implementation.
  *
- * @details The addition, deletion, query, iterator and other functions have been
- * implemented. The multiset/multimap/set/map adapter has not been implemented yet. The
+ * @details The multiset/multimap/set/map adapter has not been implemented yet. The
  * node_size should be set to 16 by default, and optimization has been made for queries
- * less than or equal to
- * 16. The general B+ tree query is proportional to node_size. For example, when node_size
- * is 16, the number of queries per bit is [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
- * 14, 15, 16, 16], and the average number of queries is 8.9 times. After improvement, the
- * number of queries for the i-th query is [1, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9,
- * 10, 10], and the average number of queries is 6.56 times. In fact, the probability of
- * querying smaller nodes is slightly greater than that of larger nodes, so the actual
- * number of queries will be less. If the comparison operation of key_type is more
- * complex, it is not recommended to use B+ tree, because the number of queries of B+ tree
- * will be more, thus offsetting the advantages of B+ tree.
+ * less than or equal to 16. \n
+ * After improvement, the number of queries for the i-th query is
+ * [1, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10], the average number of queries
+ * is 6.56 times. In fact, the probability of querying smaller nodes is slightly greater
+ * than that of larger nodes, so the actual number of queries will be less. If the
+ * comparison operation of key_type is more complex, it is not recommended to use B+ tree,
+ * because the number of queries of B+ tree will be more, thus offsetting the advantages
+ * of B+ tree.
  *
- * @note Currently not needed for use, and some bugs exists, don't use it.
+ * @todo
  *
  * @version 0.1
  * @date 2024-05-06
@@ -30,7 +27,6 @@
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/generic/container_fn.hpp>
 #include <wjr/container/intrusive/list.hpp>
-#include <wjr/inline_arg.hpp>
 #include <wjr/memory/uninitialized.hpp>
 
 #if defined(WJR_X86)
@@ -49,6 +45,67 @@ template <typename Traits, bool InlineKeys>
 struct bplus_tree_leaf_node;
 
 namespace bplus_tree_details {
+
+template <typename T, bool Inlined>
+class inline_key {
+public:
+    static_assert(!std::is_const_v<T>, "");
+
+    using value_type = T;
+    using reference = std::add_const_t<T> &;
+    using pointer = std::add_const_t<T> *;
+
+    constexpr inline_key() noexcept = default;
+    constexpr inline_key(const inline_key &other) noexcept = default;
+    constexpr inline_key(inline_key &&other) noexcept = default;
+    constexpr inline_key &operator=(const inline_key &other) noexcept = default;
+    constexpr inline_key &operator=(inline_key &&other) noexcept = default;
+    ~inline_key() noexcept = default;
+
+    constexpr inline_key(reference value) noexcept(
+        std::is_nothrow_constructible_v<algined_storage<T>, reference>)
+        : m_storage(value) {}
+
+    constexpr reference operator*() const noexcept { return *m_storage; }
+    constexpr reference get() const noexcept { return m_storage.get(); }
+    constexpr pointer operator->() const noexcept { return get(); }
+
+private:
+    // no need to check
+    algined_storage<T> m_storage;
+};
+
+template <typename T>
+class inline_key<T, false> {
+public:
+    static_assert(!std::is_const_v<T>, "");
+
+    using value_type = T;
+    using reference = std::add_const_t<T> &;
+    using pointer = std::add_const_t<T> *;
+
+    constexpr inline_key() noexcept = default;
+    constexpr inline_key(const inline_key &other) noexcept = default;
+    constexpr inline_key(inline_key &&other) noexcept = default;
+    constexpr inline_key &operator=(const inline_key &other) noexcept = default;
+    constexpr inline_key &operator=(inline_key &&other) noexcept = default;
+    ~inline_key() noexcept = default;
+
+    constexpr inline_key(reference value) noexcept : m_ptr(std::addressof(value)) {}
+
+    constexpr reference operator*() const noexcept { return *m_ptr; }
+    constexpr pointer operator->() const noexcept { return m_ptr; }
+    constexpr reference get() const noexcept { return *m_ptr; }
+
+private:
+    pointer m_ptr;
+};
+
+template <typename T>
+struct is_possible_inline_key : std::is_trivially_copyable<algined_storage<T>> {};
+
+template <typename T>
+inline constexpr bool is_possible_inline_key_v = is_possible_inline_key<T>::value;
 
 template <size_t Min, size_t Max, typename Other>
 WJR_INTRINSIC_INLINE static void copy(Other *first, Other *last, Other *dest) noexcept {
@@ -89,15 +146,24 @@ struct bplus_tree_traits {
     using key_compare = Compare;
 
     static constexpr size_t node_size = Size;
-    using InlineKey = auto_key<std::remove_const_t<key_type>, 8>;
-    static constexpr bool is_inline_key = InlineKey::is_inlined;
+    static constexpr bool is_inline_key =
+        bplus_tree_details::is_possible_inline_key_v<std::remove_const_t<key_type>> &&
+        sizeof(key_type) <= 8;
     static constexpr bool is_inline_value =
-        std::is_trivially_copyable_v<value_type> && sizeof(value_type) <= 16;
-    using InlineValue = std::conditional_t<is_inline_value, value_type, value_type *>;
+        bplus_tree_details::is_possible_inline_key_v<std::remove_const_t<value_type>> &&
+        sizeof(value_type) <= 8;
+
+    using InlineKey =
+        bplus_tree_details::inline_key<std::remove_const_t<key_type>, is_inline_key>;
+    using InlineValue = std::conditional_t<
+        is_inline_value,
+        bplus_tree_details::inline_key<std::remove_const_t<value_type>, true>,
+        value_type *>;
 
     using node_type = bplus_tree_node<bplus_tree_traits>;
     using inner_node_type = bplus_tree_inner_node<bplus_tree_traits>;
-    using leaf_node_type = bplus_tree_leaf_node<bplus_tree_traits, is_inline_key>;
+    using leaf_node_type =
+        bplus_tree_leaf_node<bplus_tree_traits, is_inline_key && !is_inline_value>;
     static constexpr bool multi = Multi;
 
     WJR_INTRINSIC_INLINE static const key_type &
@@ -110,13 +176,13 @@ struct bplus_tree_traits {
     }
 
 public:
-    template <size_t Min = 0, size_t Max = node_size, typename Other = char>
+    template <size_t Min = 0, size_t Max = node_size, typename Other = void>
     WJR_INTRINSIC_INLINE static void copy(Other *first, Other *last,
                                           Other *dest) noexcept {
         return bplus_tree_details::copy<Min, Max>(first, last, dest);
     }
 
-    template <size_t Min = 0, size_t Max = node_size, typename Other = char>
+    template <size_t Min = 0, size_t Max = node_size, typename Other = void>
     WJR_INTRINSIC_INLINE static void copy_backward(Other *first, Other *last,
                                                    Other *dest) noexcept {
         return bplus_tree_details::copy_backward<Min, Max>(first, last, dest);
@@ -202,6 +268,8 @@ struct bplus_tree_leaf_node<Traits, false> : bplus_tree_node<Traits>, list_node<
     using key_type = typename Traits::key_type;
     using value_type = typename Traits::value_type;
     constexpr static size_t node_size = Traits::node_size;
+    constexpr static bool is_inline_value = Traits::is_inline_value;
+    using InlineValue = typename Traits::InlineValue;
     using ListNode = list_node<>;
 
     const key_type &__get_key(unsigned int pos) const noexcept {
@@ -224,15 +292,14 @@ struct bplus_tree_leaf_node<Traits, false> : bplus_tree_node<Traits>, list_node<
                                                  dst->m_values + dst_end);
     }
 
-    WJR_INTRINSIC_INLINE void __assign(unsigned int idx,
-                                       value_type *const value) noexcept {
+    WJR_INTRINSIC_INLINE void __assign(unsigned int idx, InlineValue value) noexcept {
         m_values[idx] = value;
     }
 
     constexpr ListNode *__get_list() noexcept { return this; }
     constexpr const ListNode *__get_list() const noexcept { return this; }
 
-    alignas(16) value_type *m_values[node_size];
+    alignas(16) InlineValue m_values[node_size];
 };
 
 template <typename Traits>
@@ -443,7 +510,9 @@ class basic_bplus_tree {
     using mapped_type = typename Traits::mapped_type;
     static constexpr size_t node_size = Traits::node_size;
     static constexpr bool is_inline_key = Traits::is_inline_key;
+    static constexpr bool is_inline_value = Traits::is_inline_value;
     using InlineKey = typename Traits::InlineKey;
+    using InlineValue = typename Traits::InlineValue;
     static constexpr size_t floor_half = node_size / 2;
     static constexpr size_t ceil_half = node_size - floor_half;
     static constexpr bool Multi = Traits::Multi;
@@ -532,19 +601,27 @@ public:
 
 private:
     template <typename... Args>
-    value_type *__create_node(Args &&...args) noexcept {
-        auto &al = __get_allocator();
-        value_type *const xval =
-            (value_type *)_Alty_traits::allocate(al, sizeof(value_type));
-        uninitialized_construct_using_allocator(xval, al, std::forward<Args>(args)...);
-        return xval;
+    InlineValue __create_node(Args &&...args) noexcept {
+        if constexpr (is_inline_value) {
+            InlineValue ret(std::forward<Args>(args)...);
+            return ret;
+        } else {
+            auto &al = __get_allocator();
+            value_type *const xval =
+                (value_type *)_Alty_traits::allocate(al, sizeof(value_type));
+            uninitialized_construct_using_allocator(xval, al,
+                                                    std::forward<Args>(args)...);
+            return xval;
+        }
     }
 
     template <typename... Args>
-    void __drop_node(value_type *xval) noexcept {
-        auto &al = __get_allocator();
-        _Alty_traits::destroy(al, xval);
-        _Alty_traits::deallocate(al, (uint8_t *)xval, sizeof(value_type));
+    void __drop_node(InlineValue xval) noexcept {
+        if constexpr (!is_inline_value) {
+            auto &al = __get_allocator();
+            _Alty_traits::destroy(al, xval);
+            _Alty_traits::deallocate(al, (uint8_t *)xval, sizeof(value_type));
+        }
     }
 
     const_iterator __get_insert_multi_pos(const key_type &key) const noexcept {
@@ -842,7 +919,7 @@ private:
         return;
     }
 
-    WJR_NODISCARD iterator __insert_iter(const_iterator iter, value_type *xval) noexcept {
+    WJR_NODISCARD iterator __insert_iter(const_iterator iter, InlineValue xval) noexcept {
         auto &al = __get_allocator();
 
         leaf_node_type *leaf;
@@ -1006,7 +1083,7 @@ private:
         WJR_ASSERT_ASSUME(size <= Max);
 
         if constexpr (Min == 1 && Offset == 1) {
-            if (size == 1) {
+            if (WJR_UNLIKELY(size == 1)) {
                 return 1;
             }
         }

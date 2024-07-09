@@ -44,7 +44,7 @@ public:
         std::is_nothrow_move_assignable_v<__pointer>) = default;
 
     WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 pointer operator->() const noexcept {
-#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
+#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_ASSERT_L0(m_container != nullptr,
                       "Can't dereference an value-initialized iterator.");
         WJR_ASSERT_L0(m_ptr != nullptr, "Can't dereference an invalid iterator.");
@@ -59,7 +59,7 @@ public:
     }
 
     WJR_CONSTEXPR20 contiguous_const_iterator_adapter &operator++() noexcept {
-#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
+#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_ASSERT_L0(m_container != nullptr,
                       "Can't increment an value-initialized iterator.");
         WJR_ASSERT_L0(m_ptr != nullptr, "Can't increment an invalid iterator.");
@@ -77,7 +77,7 @@ public:
     }
 
     WJR_CONSTEXPR20 contiguous_const_iterator_adapter &operator--() noexcept {
-#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
+#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_ASSERT_L0(m_container != nullptr,
                       "Can't decrement an value-initialized iterator.");
         WJR_ASSERT_L0(m_ptr != nullptr, "Can't decrement an invalid iterator.");
@@ -171,7 +171,7 @@ public:
 
     WJR_CONSTEXPR20 void
     check_same_container(WJR_MAYBE_UNUSED const Container *cont) const noexcept {
-#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
+#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_ASSERT_L0(m_container == cont,
                       "Can't compare iterators from different containers.");
 #else
@@ -180,7 +180,7 @@ public:
     }
 
 private:
-#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
+#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
     /// @private
     WJR_CONSTEXPR20 void __set_container(const Container *container) noexcept {
         m_container = container;
@@ -235,7 +235,7 @@ public:
 #endif
 
     __pointer m_ptr;
-#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
+#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
     const Container *m_container;
 #endif
 };
@@ -344,7 +344,7 @@ struct pointer_traits<wjr::contiguous_const_iterator_adapter<Container, Traits>>
     using difference_type = typename pointer::difference_type;
 
     WJR_NODISCARD constexpr static element_type *to_address(const pointer &ptr) noexcept {
-#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
+#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         const auto cont = ptr.m_container;
         if (cont) {
             WJR_ASSERT_L0(ptr.m_ptr >= ptr.__begin() && ptr.m_ptr <= ptr.__end(),
@@ -365,7 +365,7 @@ struct pointer_traits<wjr::contiguous_iterator_adapter<Container, Traits>> {
     using difference_type = typename pointer::difference_type;
 
     WJR_NODISCARD constexpr static element_type *to_address(const pointer &ptr) noexcept {
-#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
+#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         const auto cont = ptr.m_container;
         if (cont) {
             WJR_ASSERT_L0(ptr.m_ptr >= ptr.__begin() && ptr.m_ptr <= ptr.__end(),

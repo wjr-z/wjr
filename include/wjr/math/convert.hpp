@@ -74,11 +74,14 @@ inline constexpr bool __is_fast_convert_iterator_v =
     __is_fast_convert_iterator<Iter>::value;
 
 template <typename Value, typename Converter>
-struct __is_valid_converter
-    : std::disjunction<std::conjunction<std::is_same<Converter, char_converter_t>,
-                                        is_nonbool_integral<Value>>,
-                       std::conjunction<std::is_same<Converter, origin_converter_t>,
-                                        is_nonbool_unsigned_integral<Value>>> {};
+struct __is_valid_converter : std::false_type {};
+
+template <typename Value>
+struct __is_valid_converter<Value, char_converter_t> : is_nonbool_integral<Value> {};
+
+template <typename Value>
+struct __is_valid_converter<Value, origin_converter_t>
+    : is_nonbool_unsigned_integral<Value> {};
 
 template <typename Value, typename Converter>
 inline constexpr bool __is_valid_converter_v =
@@ -2405,8 +2408,7 @@ public:
     }
 };
 
-template <typename Value, typename IBase, typename Converter,
-          WJR_REQUIRES(is_nonbool_integral_v<Value>)>
+template <typename Value, typename IBase, typename Converter>
 void __fast_from_chars_unchecked_impl(const uint8_t *first, const uint8_t *last,
                                       Value &val, IBase ibase, Converter conv) noexcept {
     int sign = 0;
@@ -2454,8 +2456,7 @@ void __fast_from_chars_unchecked_impl(const uint8_t *first, const uint8_t *last,
     }
 }
 
-template <typename Iter, typename Value, typename IBase, typename Converter,
-          WJR_REQUIRES(is_nonbool_integral_v<Value>)>
+template <typename Iter, typename Value, typename IBase, typename Converter>
 void __from_chars_unchecked_impl(Iter first, Iter last, Value &val, IBase ibase,
                                  Converter conv) noexcept {
     const auto __first = reinterpret_cast<const uint8_t *>(wjr::to_address(first));
@@ -2628,8 +2629,7 @@ struct __unsigned_from_chars_fn<10> {
     }
 };
 
-template <typename Value, typename IBase, typename Converter,
-          WJR_REQUIRES(is_nonbool_integral_v<Value>)>
+template <typename Value, typename IBase, typename Converter>
 from_chars_result<const uint8_t *>
 __fast_from_chars_impl(const uint8_t *first, const uint8_t *last, Value &val, IBase ibase,
                        Converter conv) noexcept {
@@ -2698,8 +2698,7 @@ __fast_from_chars_impl(const uint8_t *first, const uint8_t *last, Value &val, IB
     return ret;
 }
 
-template <typename Value, typename IBase, typename Converter,
-          WJR_REQUIRES(is_nonbool_integral_v<Value>)>
+template <typename Value, typename IBase, typename Converter>
 from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
                                                   Value &val, IBase ibase,
                                                   Converter conv) noexcept {

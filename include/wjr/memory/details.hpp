@@ -49,13 +49,13 @@ constexpr auto to_address(const std::move_iterator<Iter> &p) noexcept {
  */
 template <typename T>
 constexpr decltype(auto) to_contiguous_address(T &&t) noexcept {
-#if !WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
+#if !WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
     if constexpr (is_contiguous_iterator_v<remove_cvref_t<T>>) {
         return wjr::to_address(std::forward<T>(t));
     } else {
 #endif
         return std::forward<T>(t);
-#if !WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
+#if !WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
     }
 #endif
 }

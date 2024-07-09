@@ -24,8 +24,6 @@ uint64_t WJR_PP_CONCAT(__wjr_asm_,
                                                          const uint64_t *src0,
                                                          const uint64_t *src1, size_t n,
                                                          uint64_t cl) noexcept {
-    WJR_ASSERT(cl != 0);
-
     size_t rcx = n / 8;
     uint64_t tcl = 64 - cl;
     uint64_t r8, r9 = n, r10, r11;
@@ -255,8 +253,6 @@ uint64_t WJR_PP_CONCAT(__wjr_asm_,
           [r8] "=&r"(r8), [r9] "+&r"(r9), [r10] "=&r"(r10), [r11] "=&r"(r11)
         : [cl] "r"(cl), [tcl] "r"(tcl)
         : "cc", "memory");
-
-    WJR_ASSERT_ASSUME(rcx == 0);
 
     return r11;
 }
