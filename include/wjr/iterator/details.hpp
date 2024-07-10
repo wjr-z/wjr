@@ -81,13 +81,13 @@ inline constexpr bool is_random_access_iterator_v =
     is_random_access_iterator<Iter>::value;
 
 /// @private
-template <typename Iter, typename = void>
+template <typename Iter>
 struct __is_contiguous_iterator_impl
     : std::disjunction<std::is_pointer<Iter>, std::is_array<Iter>> {};
 
 /// @private
 template <typename Iter>
-struct __is_contiguous_iterator_impl<std::move_iterator<Iter>, void>
+struct __is_contiguous_iterator_impl<std::move_iterator<Iter>>
     : std::conjunction<__is_contiguous_iterator_impl<Iter>,
                        std::is_trivial<iterator_value_t<Iter>>> {};
 
