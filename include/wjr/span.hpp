@@ -16,9 +16,9 @@ namespace wjr {
 template <typename T, size_t Extent>
 struct __span_static_storage {
 
-    __span_static_storage() noexcept = default;
-    __span_static_storage(const __span_static_storage &) noexcept = default;
-    __span_static_storage &operator=(const __span_static_storage &) noexcept = default;
+    __span_static_storage() = default;
+    __span_static_storage(const __span_static_storage &) = default;
+    __span_static_storage &operator=(const __span_static_storage &) = default;
 
     __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) noexcept : ptr(p) {
         WJR_ASSERT_L2(s == size);
@@ -34,9 +34,9 @@ struct __span_static_storage {
 template <typename T>
 struct __span_dynamic_storage {
 
-    __span_dynamic_storage() noexcept = default;
-    __span_dynamic_storage(const __span_dynamic_storage &) noexcept = default;
-    __span_dynamic_storage &operator=(const __span_dynamic_storage &) noexcept = default;
+    __span_dynamic_storage() = default;
+    __span_dynamic_storage(const __span_dynamic_storage &) = default;
+    __span_dynamic_storage &operator=(const __span_dynamic_storage &) = default;
 
     __span_dynamic_storage(T *p, size_t s) noexcept : ptr(p), size(s) {}
 
@@ -229,8 +229,8 @@ public:
         : storage(source.data(), source.size()) {}
 #endif
 
-    constexpr span(const span &other) noexcept = default;
-    constexpr span &operator=(const span &other) noexcept = default;
+    constexpr span(const span &other) = default;
+    constexpr span &operator=(const span &other) = default;
 
     ~span() = default;
 

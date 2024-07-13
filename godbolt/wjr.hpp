@@ -7686,22 +7686,22 @@ inline void __assert_handler(const char *expr, const char *file, const char *fun
 namespace wjr {
 
 struct enable_default_constructor_t {
-    constexpr explicit enable_default_constructor_t() noexcept = default;
+    constexpr explicit enable_default_constructor_t() = default;
 };
 
 inline constexpr enable_default_constructor_t enable_default_constructor{};
 
 template <bool Enable, typename = void>
 struct enable_default_constructor_base {
-    constexpr enable_default_constructor_base() noexcept = default;
-    constexpr enable_default_constructor_base(
-        const enable_default_constructor_base &) noexcept = default;
-    constexpr enable_default_constructor_base(
-        enable_default_constructor_base &&) noexcept = default;
+    constexpr enable_default_constructor_base() = default;
+    constexpr enable_default_constructor_base(const enable_default_constructor_base &) =
+        default;
+    constexpr enable_default_constructor_base(enable_default_constructor_base &&) =
+        default;
     constexpr enable_default_constructor_base &
-    operator=(const enable_default_constructor_base &) noexcept = default;
+    operator=(const enable_default_constructor_base &) = default;
     constexpr enable_default_constructor_base &
-    operator=(enable_default_constructor_base &&) noexcept = default;
+    operator=(enable_default_constructor_base &&) = default;
 
 protected:
     constexpr explicit enable_default_constructor_base(
@@ -7711,14 +7711,14 @@ protected:
 template <typename Tag>
 struct enable_default_constructor_base<false, Tag> {
     constexpr enable_default_constructor_base() noexcept = delete;
-    constexpr enable_default_constructor_base(
-        const enable_default_constructor_base &) noexcept = default;
-    constexpr enable_default_constructor_base(
-        enable_default_constructor_base &&) noexcept = default;
+    constexpr enable_default_constructor_base(const enable_default_constructor_base &) =
+        default;
+    constexpr enable_default_constructor_base(enable_default_constructor_base &&) =
+        default;
     constexpr enable_default_constructor_base &
-    operator=(const enable_default_constructor_base &) noexcept = default;
+    operator=(const enable_default_constructor_base &) = default;
     constexpr enable_default_constructor_base &
-    operator=(enable_default_constructor_base &&) noexcept = default;
+    operator=(enable_default_constructor_base &&) = default;
 
 protected:
     constexpr explicit enable_default_constructor_base(
@@ -7727,14 +7727,12 @@ protected:
 
 template <bool Enable, typename Tag = void>
 struct enable_destructor_base {
-    constexpr enable_destructor_base() noexcept = default;
-    constexpr enable_destructor_base(const enable_destructor_base &) noexcept = default;
-    constexpr enable_destructor_base(enable_destructor_base &&) noexcept = default;
-    constexpr enable_destructor_base &
-    operator=(const enable_destructor_base &) noexcept = default;
-    constexpr enable_destructor_base &
-    operator=(enable_destructor_base &&) noexcept = default;
-    ~enable_destructor_base() noexcept = default;
+    constexpr enable_destructor_base() = default;
+    constexpr enable_destructor_base(const enable_destructor_base &) = default;
+    constexpr enable_destructor_base(enable_destructor_base &&) = default;
+    constexpr enable_destructor_base &operator=(const enable_destructor_base &) = default;
+    constexpr enable_destructor_base &operator=(enable_destructor_base &&) = default;
+    ~enable_destructor_base() = default;
 
 protected:
     constexpr explicit enable_destructor_base(enable_default_constructor_t) noexcept {}
@@ -7742,13 +7740,11 @@ protected:
 
 template <typename Tag>
 struct enable_destructor_base<false, Tag> {
-    constexpr enable_destructor_base() noexcept = default;
-    constexpr enable_destructor_base(const enable_destructor_base &) noexcept = default;
-    constexpr enable_destructor_base(enable_destructor_base &&) noexcept = default;
-    constexpr enable_destructor_base &
-    operator=(const enable_destructor_base &) noexcept = default;
-    constexpr enable_destructor_base &
-    operator=(enable_destructor_base &&) noexcept = default;
+    constexpr enable_destructor_base() = default;
+    constexpr enable_destructor_base(const enable_destructor_base &) = default;
+    constexpr enable_destructor_base(enable_destructor_base &&) = default;
+    constexpr enable_destructor_base &operator=(const enable_destructor_base &) = default;
+    constexpr enable_destructor_base &operator=(enable_destructor_base &&) = default;
     ~enable_destructor_base() noexcept = delete;
 
 protected:
@@ -7757,14 +7753,12 @@ protected:
 
 template <bool Copy, bool Move, bool CopyAssign, bool MoveAssign, typename Tag = void>
 struct enable_copy_move_base {
-    constexpr enable_copy_move_base() noexcept = default;
-    constexpr enable_copy_move_base(const enable_copy_move_base &) noexcept = default;
-    constexpr enable_copy_move_base(enable_copy_move_base &&) noexcept = default;
-    constexpr enable_copy_move_base &
-    operator=(const enable_copy_move_base &) noexcept = default;
-    constexpr enable_copy_move_base &
-    operator=(enable_copy_move_base &&) noexcept = default;
-    ~enable_copy_move_base() noexcept = default;
+    constexpr enable_copy_move_base() = default;
+    constexpr enable_copy_move_base(const enable_copy_move_base &) = default;
+    constexpr enable_copy_move_base(enable_copy_move_base &&) = default;
+    constexpr enable_copy_move_base &operator=(const enable_copy_move_base &) = default;
+    constexpr enable_copy_move_base &operator=(enable_copy_move_base &&) = default;
+    ~enable_copy_move_base() = default;
 
 protected:
     constexpr explicit enable_copy_move_base(enable_default_constructor_t) noexcept {}
@@ -7774,16 +7768,14 @@ template <bool Default, bool Destructor, bool Copy, bool Move, bool CopyAssign,
           bool MoveAssign, typename Tag = void>
 struct enable_special_members_base
     : public enable_copy_move_base<Copy, Move, CopyAssign, MoveAssign, Tag> {
-    constexpr enable_special_members_base() noexcept = default;
-    constexpr enable_special_members_base(const enable_special_members_base &) noexcept =
-        default;
-    constexpr enable_special_members_base(enable_special_members_base &&) noexcept =
-        default;
+    constexpr enable_special_members_base() = default;
+    constexpr enable_special_members_base(const enable_special_members_base &) = default;
+    constexpr enable_special_members_base(enable_special_members_base &&) = default;
     constexpr enable_special_members_base &
-    operator=(const enable_special_members_base &) noexcept = default;
+    operator=(const enable_special_members_base &) = default;
     constexpr enable_special_members_base &
-    operator=(enable_special_members_base &&) noexcept = default;
-    ~enable_special_members_base() noexcept = default;
+    operator=(enable_special_members_base &&) = default;
+    ~enable_special_members_base() = default;
 
 protected:
     constexpr explicit enable_special_members_base(
@@ -7796,7 +7788,7 @@ protected:
 #define WJR_REGISTER_ENABLE_COPY_MOVE_BASE(Copy, Move, CopyAssign, MoveAssign)           \
     template <typename Tag>                                                              \
     struct enable_copy_move_base<Copy, Move, CopyAssign, MoveAssign, Tag> {              \
-        constexpr enable_copy_move_base() noexcept = default;                            \
+        constexpr enable_copy_move_base() = default;                                     \
         constexpr enable_copy_move_base(const enable_copy_move_base &) noexcept =        \
             WJR_PP_CONCAT(__WJR_ENABLE_BSAE_, Copy);                                     \
         constexpr enable_copy_move_base(enable_copy_move_base &&) noexcept =             \
@@ -7833,14 +7825,13 @@ WJR_REGISTER_ENABLE_COPY_MOVE_BASE(false, false, false, false);
         : public enable_copy_move_base<Copy, Move, CopyAssign, MoveAssign, Tag> {        \
         constexpr enable_special_members_base() noexcept =                               \
             WJR_PP_CONCAT(__WJR_ENABLE_BSAE_, Default);                                  \
-        constexpr enable_special_members_base(                                           \
-            const enable_special_members_base &) noexcept = default;                     \
-        constexpr enable_special_members_base(enable_special_members_base &&) noexcept = \
+        constexpr enable_special_members_base(const enable_special_members_base &) =     \
             default;                                                                     \
+        constexpr enable_special_members_base(enable_special_members_base &&) = default; \
         constexpr enable_special_members_base &                                          \
-        operator=(const enable_special_members_base &) noexcept = default;               \
+        operator=(const enable_special_members_base &) = default;                        \
         constexpr enable_special_members_base &                                          \
-        operator=(enable_special_members_base &&) noexcept = default;                    \
+        operator=(enable_special_members_base &&) = default;                             \
         ~enable_special_members_base() noexcept = WJR_PP_CONCAT(__WJR_ENABLE_BSAE_,      \
                                                                 Destructor);             \
                                                                                          \
@@ -8414,12 +8405,12 @@ template <template <typename...> typename C, typename T>
 struct __tp_zip_helper;
 
 /// @private
-template <template <typename...> typename C, size_t... Indexs>
-struct __tp_zip_helper<C, std::index_sequence<Indexs...>> {
+template <template <typename...> typename C, size_t... Idxs>
+struct __tp_zip_helper<C, std::index_sequence<Idxs...>> {
     template <size_t I, typename... Args>
     using __type = C<tp_at_t<Args, I>...>;
     template <typename... Args>
-    using type = tp_list<__type<Indexs, Args...>...>;
+    using type = tp_list<__type<Idxs, Args...>...>;
 };
 
 template <template <typename...> typename C>
@@ -8985,9 +8976,9 @@ template <typename T, typename S>
 struct __tp_make_integer_sequence_helper;
 
 /// @private
-template <typename T, T... Indexs>
-struct __tp_make_integer_sequence_helper<T, std::integer_sequence<T, Indexs...>> {
-    using type = tp_list<std::integral_constant<T, Indexs>...>;
+template <typename T, T... Idxs>
+struct __tp_make_integer_sequence_helper<T, std::integer_sequence<T, Idxs...>> {
+    using type = tp_list<std::integral_constant<T, Idxs>...>;
 };
 
 template <typename T, T N>
@@ -9005,10 +8996,10 @@ template <typename T, typename S>
 struct __tp_make_std_integer_sequence_helper;
 
 /// @private
-template <typename T, T... Indexs>
+template <typename T, T... Idxs>
 struct __tp_make_std_integer_sequence_helper<
-    T, tp_list<std::integral_constant<T, Indexs>...>> {
-    using type = std::integer_sequence<T, Indexs...>;
+    T, tp_list<std::integral_constant<T, Idxs>...>> {
+    using type = std::integer_sequence<T, Idxs...>;
 };
 
 template <typename S>
@@ -9192,12 +9183,12 @@ struct integral_constant {
     using value_type = T;
     using type = integral_constant;
 
-    constexpr integral_constant() noexcept = default;
-    constexpr integral_constant(const integral_constant &) noexcept = default;
-    constexpr integral_constant(integral_constant &&) noexcept = default;
-    constexpr integral_constant &operator=(const integral_constant &) noexcept = default;
-    constexpr integral_constant &operator=(integral_constant &&) noexcept = default;
-    ~integral_constant() noexcept = default;
+    constexpr integral_constant() = default;
+    constexpr integral_constant(const integral_constant &) = default;
+    constexpr integral_constant(integral_constant &&) = default;
+    constexpr integral_constant &operator=(const integral_constant &) = default;
+    constexpr integral_constant &operator=(integral_constant &&) = default;
+    ~integral_constant() = default;
 
     constexpr integral_constant(std::integral_constant<T, val>) noexcept {}
 
@@ -9448,12 +9439,12 @@ struct __tuple_like<Tuple<Args...>>
 template <>
 class tuple<> {
 public:
-    constexpr tuple() noexcept = default;
-    constexpr tuple(const tuple &) noexcept = default;
-    constexpr tuple(tuple &&) noexcept = default;
-    constexpr tuple &operator=(const tuple &) noexcept = default;
-    constexpr tuple &operator=(tuple &&) noexcept = default;
-    ~tuple() noexcept = default;
+    constexpr tuple() = default;
+    constexpr tuple(const tuple &) = default;
+    constexpr tuple(tuple &&) = default;
+    constexpr tuple &operator=(const tuple &) = default;
+    constexpr tuple &operator=(tuple &&) = default;
+    ~tuple() = default;
 
     constexpr void swap(tuple &) noexcept {}
 };
@@ -9777,34 +9768,6 @@ template <typename... TArgs, typename... UArgs>
 constexpr bool operator>=(const tuple<TArgs...> &lhs,
                           const tuple<UArgs...> &rhs) noexcept(noexcept(lhs < rhs)) {
     return !(lhs < rhs);
-}
-
-template <size_t I, typename... Args>
-struct __in_place_index_tuple_t_tag {};
-
-template <size_t I, typename... Args>
-using in_place_index_tuple_t =
-    capture_leaf<tuple<Args...>, __in_place_index_tuple_t_tag<I, Args...>>;
-
-template <size_t I, typename... Args>
-constexpr in_place_index_tuple_t<I, Args &&...>
-in_place_index_tuple(Args &&...args) noexcept(
-    std::conjunction_v<std::is_nothrow_constructible<Args &&, Args &&>...>) {
-    return in_place_index_tuple_t<I, Args &&...>(std::forward<Args>(args)...);
-}
-
-template <typename T, typename... Args>
-struct __in_place_type_tuple_t_tag {};
-
-template <typename T, typename... Args>
-using in_place_type_tuple_t =
-    capture_leaf<tuple<Args...>, __in_place_type_tuple_t_tag<T, Args...>>;
-
-template <typename T, typename... Args>
-constexpr in_place_type_tuple_t<T, Args &&...>
-in_place_type_tuple(Args &&...args) noexcept(
-    std::conjunction_v<std::is_nothrow_constructible<Args &&, Args &&>...>) {
-    return in_place_type_tuple_t<T, Args &&...>(std::forward<Args>(args)...);
 }
 
 } // namespace wjr
@@ -12068,7 +12031,7 @@ class uninitialized : algined_storage<T> {
 public:
     using Mybase::Mybase;
 
-    constexpr uninitialized() noexcept = default;
+    constexpr uninitialized() = default;
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Mybase, Args &&...>)>
     constexpr uninitialized(Args &&...args) noexcept(
@@ -12343,14 +12306,14 @@ private:
     using size_ref = default_vector_size_reference<pointer, size_type>;
 
 public:
-    default_vector_storage() noexcept = default;
+    default_vector_storage() = default;
 
     default_vector_storage(const default_vector_storage &) = delete;
     default_vector_storage(default_vector_storage &&) = delete;
     default_vector_storage &operator=(const default_vector_storage &) = delete;
     default_vector_storage &operator=(default_vector_storage &&) = delete;
 
-    ~default_vector_storage() noexcept = default;
+    ~default_vector_storage() = default;
 
     WJR_CONSTEXPR20 void
     destroy(_Alty &al) noexcept(std::is_nothrow_destructible_v<value_type>) {
@@ -12458,14 +12421,14 @@ private:
     using data_type = Data;
 
 public:
-    static_vector_storage() noexcept = default;
+    static_vector_storage() = default;
 
     static_vector_storage(const static_vector_storage &) = delete;
     static_vector_storage(static_vector_storage &&) = delete;
     static_vector_storage &operator=(const static_vector_storage &) = delete;
     static_vector_storage &operator=(static_vector_storage &&) = delete;
 
-    ~static_vector_storage() noexcept = default;
+    ~static_vector_storage() = default;
 
     WJR_CONSTEXPR20 void
     destroy(_Alty &al) noexcept(std::is_nothrow_destructible_v<value_type>) {
@@ -12603,14 +12566,14 @@ private:
     using size_ref = default_vector_size_reference<pointer, size_type>;
 
 public:
-    fixed_vector_storage() noexcept = default;
+    fixed_vector_storage() = default;
 
     fixed_vector_storage(const fixed_vector_storage &) = delete;
     fixed_vector_storage(fixed_vector_storage &&) = delete;
     fixed_vector_storage &operator=(const fixed_vector_storage &) = delete;
     fixed_vector_storage &operator=(fixed_vector_storage &&) = delete;
 
-    ~fixed_vector_storage() noexcept = default;
+    ~fixed_vector_storage() = default;
 
 private:
     WJR_PURE WJR_INTRINSIC_INLINE bool __is_null_data() const {
@@ -12751,14 +12714,14 @@ private:
     using data_type = Data;
 
 public:
-    __sso_vector_storage_impl() noexcept = default;
+    __sso_vector_storage_impl() = default;
 
     __sso_vector_storage_impl(const __sso_vector_storage_impl &) = delete;
     __sso_vector_storage_impl(__sso_vector_storage_impl &&) = delete;
     __sso_vector_storage_impl &operator=(const __sso_vector_storage_impl &) = delete;
     __sso_vector_storage_impl &operator=(__sso_vector_storage_impl &&) = delete;
 
-    ~__sso_vector_storage_impl() noexcept = default;
+    ~__sso_vector_storage_impl() = default;
 
     WJR_CONSTEXPR20 void
     destroy(_Alty &al) noexcept(std::is_nothrow_destructible_v<value_type>) {
@@ -13202,20 +13165,12 @@ public:
         return __make_iterator(begin_unsafe());
     }
 
-    WJR_PURE WJR_CONSTEXPR20 const_iterator cbegin() const noexcept {
-        return __make_iterator(cbegin_unsafe());
-    }
-
     WJR_PURE WJR_CONSTEXPR20 iterator end() noexcept {
         return __make_iterator(end_unsafe());
     }
 
     WJR_PURE WJR_CONSTEXPR20 const_iterator end() const noexcept {
         return __make_iterator(end_unsafe());
-    }
-
-    WJR_PURE WJR_CONSTEXPR20 const_iterator cend() const noexcept {
-        return __make_iterator(cend_unsafe());
     }
 
     WJR_PURE WJR_CONSTEXPR20 reverse_iterator rbegin() noexcept {
@@ -13226,10 +13181,6 @@ public:
         return const_reverse_iterator(end());
     }
 
-    WJR_PURE WJR_CONSTEXPR20 const_reverse_iterator crbegin() const noexcept {
-        return const_reverse_iterator(cend());
-    }
-
     WJR_PURE WJR_CONSTEXPR20 reverse_iterator rend() noexcept {
         return reverse_iterator(begin());
     }
@@ -13238,8 +13189,16 @@ public:
         return const_reverse_iterator(begin());
     }
 
+    WJR_PURE WJR_CONSTEXPR20 const_iterator cbegin() const noexcept { return begin(); }
+
+    WJR_PURE WJR_CONSTEXPR20 const_iterator cend() const noexcept { return end(); }
+
+    WJR_PURE WJR_CONSTEXPR20 const_reverse_iterator crbegin() const noexcept {
+        return rbegin();
+    }
+
     WJR_PURE WJR_CONSTEXPR20 const_reverse_iterator crend() const noexcept {
-        return const_reverse_iterator(cbegin());
+        return rend();
     }
 
     WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept {
@@ -20497,9 +20456,9 @@ namespace wjr {
 template <typename T, size_t Extent>
 struct __span_static_storage {
 
-    __span_static_storage() noexcept = default;
-    __span_static_storage(const __span_static_storage &) noexcept = default;
-    __span_static_storage &operator=(const __span_static_storage &) noexcept = default;
+    __span_static_storage() = default;
+    __span_static_storage(const __span_static_storage &) = default;
+    __span_static_storage &operator=(const __span_static_storage &) = default;
 
     __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) noexcept : ptr(p) {
         WJR_ASSERT_L2(s == size);
@@ -20515,9 +20474,9 @@ struct __span_static_storage {
 template <typename T>
 struct __span_dynamic_storage {
 
-    __span_dynamic_storage() noexcept = default;
-    __span_dynamic_storage(const __span_dynamic_storage &) noexcept = default;
-    __span_dynamic_storage &operator=(const __span_dynamic_storage &) noexcept = default;
+    __span_dynamic_storage() = default;
+    __span_dynamic_storage(const __span_dynamic_storage &) = default;
+    __span_dynamic_storage &operator=(const __span_dynamic_storage &) = default;
 
     __span_dynamic_storage(T *p, size_t s) noexcept : ptr(p), size(s) {}
 
@@ -20710,8 +20669,8 @@ public:
         : storage(source.data(), source.size()) {}
 #endif
 
-    constexpr span(const span &other) noexcept = default;
-    constexpr span &operator=(const span &other) noexcept = default;
+    constexpr span(const span &other) = default;
+    constexpr span &operator=(const span &other) = default;
 
     ~span() = default;
 
@@ -20938,12 +20897,12 @@ public:
     using difference_type = ptrdiff_t;
     using size_type = size_t;
 
-    constexpr safe_pointer() noexcept = default;
-    constexpr safe_pointer(const safe_pointer &) noexcept = default;
-    constexpr safe_pointer(safe_pointer &&) noexcept = default;
-    constexpr safe_pointer &operator=(const safe_pointer &) noexcept = default;
-    constexpr safe_pointer &operator=(safe_pointer &&) noexcept = default;
-    ~safe_pointer() noexcept = default;
+    constexpr safe_pointer() = default;
+    constexpr safe_pointer(const safe_pointer &) = default;
+    constexpr safe_pointer(safe_pointer &&) = default;
+    constexpr safe_pointer &operator=(const safe_pointer &) = default;
+    constexpr safe_pointer &operator=(safe_pointer &&) = default;
+    ~safe_pointer() = default;
 
     constexpr safe_pointer &reset_range() noexcept {
         m_length -= m_offset;
@@ -21072,12 +21031,12 @@ public:
     using difference_type = ptrdiff_t;
     using size_type = size_t;
 
-    constexpr safe_pointer() noexcept = default;
-    constexpr safe_pointer(const safe_pointer &) noexcept = default;
-    constexpr safe_pointer(safe_pointer &&) noexcept = default;
-    constexpr safe_pointer &operator=(const safe_pointer &) noexcept = default;
-    constexpr safe_pointer &operator=(safe_pointer &&) noexcept = default;
-    ~safe_pointer() noexcept = default;
+    constexpr safe_pointer() = default;
+    constexpr safe_pointer(const safe_pointer &) = default;
+    constexpr safe_pointer(safe_pointer &&) = default;
+    constexpr safe_pointer &operator=(const safe_pointer &) = default;
+    constexpr safe_pointer &operator=(safe_pointer &&) = default;
+    ~safe_pointer() = default;
 
     constexpr safe_pointer &reset_range() noexcept { return *this; }
 
@@ -22840,12 +22799,12 @@ namespace wjr {
  */
 class uint128_t {
 public:
-    WJR_CONSTEXPR20 uint128_t() noexcept = default;
-    constexpr uint128_t(const uint128_t &) noexcept = default;
-    constexpr uint128_t(uint128_t &&) noexcept = default;
-    constexpr uint128_t &operator=(const uint128_t &) noexcept = default;
-    constexpr uint128_t &operator=(uint128_t &&) noexcept = default;
-    ~uint128_t() noexcept = default;
+    WJR_CONSTEXPR20 uint128_t() = default;
+    constexpr uint128_t(const uint128_t &) = default;
+    constexpr uint128_t(uint128_t &&) = default;
+    constexpr uint128_t &operator=(const uint128_t &) = default;
+    constexpr uint128_t &operator=(uint128_t &&) = default;
+    ~uint128_t() = default;
 
     template <size_t I>
     constexpr uint64_t &get() & noexcept {
@@ -23902,10 +23861,10 @@ public:
 
 protected:
     nonsendable() noexcept : m_thread_id(std::this_thread::get_id()) {}
-    nonsendable(const nonsendable &) noexcept = default;
-    nonsendable(nonsendable &&) noexcept = default;
-    nonsendable &operator=(const nonsendable &) noexcept = default;
-    nonsendable &operator=(nonsendable &&) noexcept = default;
+    nonsendable(const nonsendable &) = default;
+    nonsendable(nonsendable &&) = default;
+    nonsendable &operator=(const nonsendable &) = default;
+    nonsendable &operator=(nonsendable &&) = default;
     ~nonsendable() noexcept { check(); }
 
     void check() const noexcept {
@@ -23965,6 +23924,8 @@ protected:
 // Already included
 
 namespace wjr {
+
+struct default_intrusive_tag {};
 
 template <typename Hook = void, typename Tag = void>
 struct intrusive_tag {
@@ -24041,14 +24002,12 @@ public:
     using pointer = const node_type *;
     using difference_type = std::ptrdiff_t;
 
-    constexpr list_node_const_iterator() noexcept = default;
-    constexpr list_node_const_iterator(const list_node_const_iterator &) noexcept =
-        default;
-    constexpr list_node_const_iterator(list_node_const_iterator &&) noexcept = default;
+    constexpr list_node_const_iterator() = default;
+    constexpr list_node_const_iterator(const list_node_const_iterator &) = default;
+    constexpr list_node_const_iterator(list_node_const_iterator &&) = default;
     constexpr list_node_const_iterator &
-    operator=(const list_node_const_iterator &) noexcept = default;
-    constexpr list_node_const_iterator &
-    operator=(list_node_const_iterator &&) noexcept = default;
+    operator=(const list_node_const_iterator &) = default;
+    constexpr list_node_const_iterator &operator=(list_node_const_iterator &&) = default;
     ~list_node_const_iterator() = default;
 
     constexpr list_node_const_iterator(pointer node) noexcept
@@ -24105,12 +24064,11 @@ public:
 
     using Mybase::Mybase;
 
-    constexpr list_node_iterator() noexcept = default;
-    constexpr list_node_iterator(const list_node_iterator &) noexcept = default;
-    constexpr list_node_iterator(list_node_iterator &&) noexcept = default;
-    constexpr list_node_iterator &
-    operator=(const list_node_iterator &) noexcept = default;
-    constexpr list_node_iterator &operator=(list_node_iterator &&) noexcept = default;
+    constexpr list_node_iterator() = default;
+    constexpr list_node_iterator(const list_node_iterator &) = default;
+    constexpr list_node_iterator(list_node_iterator &&) = default;
+    constexpr list_node_iterator &operator=(const list_node_iterator &) = default;
+    constexpr list_node_iterator &operator=(list_node_iterator &&) = default;
     ~list_node_iterator() = default;
 
     constexpr reference operator*() const noexcept {
@@ -24151,7 +24109,7 @@ struct list_node {
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    constexpr list_node() noexcept = default;
+    constexpr list_node() = default;
     list_node(const list_node &) = delete;
     list_node(list_node &&) = delete;
     list_node &operator=(const list_node &) = delete;
@@ -24474,12 +24432,12 @@ public:
         using other = memory_pool<Other>;
     };
 
-    constexpr memory_pool() noexcept = default;
-    constexpr memory_pool(const memory_pool &) noexcept = default;
+    constexpr memory_pool() = default;
+    constexpr memory_pool(const memory_pool &) = default;
     template <typename Other>
     constexpr memory_pool(const memory_pool<Other> &) noexcept {}
     ~memory_pool() = default;
-    memory_pool &operator=(const memory_pool &) noexcept = default;
+    memory_pool &operator=(const memory_pool &) = default;
 
     WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
     allocate_at_least(size_type n) const noexcept {
@@ -24663,12 +24621,12 @@ public:
     using difference_type = ptrdiff_t;
     using propagate_on_container_move_assignment = std::true_type;
 
-    stack_allocator_object() noexcept = default;
+    stack_allocator_object() = default;
     stack_allocator_object(stack_allocator_object &) = delete;
     stack_allocator_object(stack_allocator_object &&) = delete;
     stack_allocator_object &operator=(stack_allocator_object &) = delete;
     stack_allocator_object &operator=(stack_allocator_object &&) = delete;
-    ~stack_allocator_object() noexcept = default;
+    ~stack_allocator_object() = default;
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top,
                                                             size_t threshold) noexcept {
@@ -24813,13 +24771,13 @@ public:
         using other = weak_stack_allocator<Other, StackAllocator>;
     };
 
-    weak_stack_allocator() noexcept = default;
+    weak_stack_allocator() = default;
     weak_stack_allocator(UniqueStackAllocator &alloc) noexcept : m_alloc(&alloc) {}
-    weak_stack_allocator(const weak_stack_allocator &) noexcept = default;
-    weak_stack_allocator &operator=(const weak_stack_allocator &) noexcept = default;
-    weak_stack_allocator(weak_stack_allocator &&) noexcept = default;
-    weak_stack_allocator &operator=(weak_stack_allocator &&) noexcept = default;
-    ~weak_stack_allocator() noexcept = default;
+    weak_stack_allocator(const weak_stack_allocator &) = default;
+    weak_stack_allocator &operator=(const weak_stack_allocator &) = default;
+    weak_stack_allocator(weak_stack_allocator &&) = default;
+    weak_stack_allocator &operator=(weak_stack_allocator &&) = default;
+    ~weak_stack_allocator() = default;
 
     template <typename U>
     weak_stack_allocator(const weak_stack_allocator<U, StackAllocator> &other) noexcept
@@ -28655,7 +28613,7 @@ public:
     using is_reallocatable = std::true_type;
 
 public:
-    default_biginteger_vector_storage() noexcept = default;
+    default_biginteger_vector_storage() = default;
 
     default_biginteger_vector_storage(const default_biginteger_vector_storage &) = delete;
     default_biginteger_vector_storage(default_biginteger_vector_storage &&) noexcept =
@@ -28665,7 +28623,7 @@ public:
     default_biginteger_vector_storage &
     operator=(default_biginteger_vector_storage &&) noexcept = delete;
 
-    ~default_biginteger_vector_storage() noexcept = default;
+    ~default_biginteger_vector_storage() = default;
 
     void destroy(_Alty &al) noexcept {
         if (WJR_BUILTIN_CONSTANT_P_TRUE(data() == nullptr)) {
@@ -32422,12 +32380,12 @@ public:
     using reference = std::add_const_t<T> &;
     using pointer = std::add_const_t<T> *;
 
-    constexpr inline_key() noexcept = default;
-    constexpr inline_key(const inline_key &other) noexcept = default;
-    constexpr inline_key(inline_key &&other) noexcept = default;
-    constexpr inline_key &operator=(const inline_key &other) noexcept = default;
-    constexpr inline_key &operator=(inline_key &&other) noexcept = default;
-    ~inline_key() noexcept = default;
+    constexpr inline_key() = default;
+    constexpr inline_key(const inline_key &other) = default;
+    constexpr inline_key(inline_key &&other) = default;
+    constexpr inline_key &operator=(const inline_key &other) = default;
+    constexpr inline_key &operator=(inline_key &&other) = default;
+    ~inline_key() = default;
 
     constexpr inline_key(reference value) noexcept(
         std::is_nothrow_constructible_v<algined_storage<T>, reference>)
@@ -32451,12 +32409,12 @@ public:
     using reference = std::add_const_t<T> &;
     using pointer = std::add_const_t<T> *;
 
-    constexpr inline_key() noexcept = default;
-    constexpr inline_key(const inline_key &other) noexcept = default;
-    constexpr inline_key(inline_key &&other) noexcept = default;
-    constexpr inline_key &operator=(const inline_key &other) noexcept = default;
-    constexpr inline_key &operator=(inline_key &&other) noexcept = default;
-    ~inline_key() noexcept = default;
+    constexpr inline_key() = default;
+    constexpr inline_key(const inline_key &other) = default;
+    constexpr inline_key(inline_key &&other) = default;
+    constexpr inline_key &operator=(const inline_key &other) = default;
+    constexpr inline_key &operator=(inline_key &&other) = default;
+    ~inline_key() = default;
 
     constexpr inline_key(reference value) noexcept : m_ptr(std::addressof(value)) {}
 
@@ -32714,13 +32672,13 @@ public:
     using pointer = const value_type *;
     using reference = const value_type &;
 
-    bplus_tree_const_iterator() noexcept = default;
-    bplus_tree_const_iterator(const bplus_tree_const_iterator &) noexcept = default;
-    bplus_tree_const_iterator(bplus_tree_const_iterator &&) noexcept = default;
+    bplus_tree_const_iterator() = default;
+    bplus_tree_const_iterator(const bplus_tree_const_iterator &) = default;
+    bplus_tree_const_iterator(bplus_tree_const_iterator &&) = default;
     bplus_tree_const_iterator &
-    operator=(const bplus_tree_const_iterator &) noexcept = default;
-    bplus_tree_const_iterator &operator=(bplus_tree_const_iterator &&) noexcept = default;
-    ~bplus_tree_const_iterator() noexcept = default;
+    operator=(const bplus_tree_const_iterator &) = default;
+    bplus_tree_const_iterator &operator=(bplus_tree_const_iterator &&) = default;
+    ~bplus_tree_const_iterator() = default;
 
 protected:
     bplus_tree_const_iterator(const ListNode *list_node, unsigned int pos) noexcept

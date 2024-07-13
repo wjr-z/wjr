@@ -156,14 +156,14 @@ private:
     using size_ref = default_vector_size_reference<pointer, size_type>;
 
 public:
-    default_vector_storage() noexcept = default;
+    default_vector_storage() = default;
 
     default_vector_storage(const default_vector_storage &) = delete;
     default_vector_storage(default_vector_storage &&) = delete;
     default_vector_storage &operator=(const default_vector_storage &) = delete;
     default_vector_storage &operator=(default_vector_storage &&) = delete;
 
-    ~default_vector_storage() noexcept = default;
+    ~default_vector_storage() = default;
 
     WJR_CONSTEXPR20 void
     destroy(_Alty &al) noexcept(std::is_nothrow_destructible_v<value_type>) {
@@ -271,14 +271,14 @@ private:
     using data_type = Data;
 
 public:
-    static_vector_storage() noexcept = default;
+    static_vector_storage() = default;
 
     static_vector_storage(const static_vector_storage &) = delete;
     static_vector_storage(static_vector_storage &&) = delete;
     static_vector_storage &operator=(const static_vector_storage &) = delete;
     static_vector_storage &operator=(static_vector_storage &&) = delete;
 
-    ~static_vector_storage() noexcept = default;
+    ~static_vector_storage() = default;
 
     WJR_CONSTEXPR20 void
     destroy(_Alty &al) noexcept(std::is_nothrow_destructible_v<value_type>) {
@@ -416,14 +416,14 @@ private:
     using size_ref = default_vector_size_reference<pointer, size_type>;
 
 public:
-    fixed_vector_storage() noexcept = default;
+    fixed_vector_storage() = default;
 
     fixed_vector_storage(const fixed_vector_storage &) = delete;
     fixed_vector_storage(fixed_vector_storage &&) = delete;
     fixed_vector_storage &operator=(const fixed_vector_storage &) = delete;
     fixed_vector_storage &operator=(fixed_vector_storage &&) = delete;
 
-    ~fixed_vector_storage() noexcept = default;
+    ~fixed_vector_storage() = default;
 
 private:
     WJR_PURE WJR_INTRINSIC_INLINE bool __is_null_data() const {
@@ -564,14 +564,14 @@ private:
     using data_type = Data;
 
 public:
-    __sso_vector_storage_impl() noexcept = default;
+    __sso_vector_storage_impl() = default;
 
     __sso_vector_storage_impl(const __sso_vector_storage_impl &) = delete;
     __sso_vector_storage_impl(__sso_vector_storage_impl &&) = delete;
     __sso_vector_storage_impl &operator=(const __sso_vector_storage_impl &) = delete;
     __sso_vector_storage_impl &operator=(__sso_vector_storage_impl &&) = delete;
 
-    ~__sso_vector_storage_impl() noexcept = default;
+    ~__sso_vector_storage_impl() = default;
 
     WJR_CONSTEXPR20 void
     destroy(_Alty &al) noexcept(std::is_nothrow_destructible_v<value_type>) {
@@ -1015,20 +1015,12 @@ public:
         return __make_iterator(begin_unsafe());
     }
 
-    WJR_PURE WJR_CONSTEXPR20 const_iterator cbegin() const noexcept {
-        return __make_iterator(cbegin_unsafe());
-    }
-
     WJR_PURE WJR_CONSTEXPR20 iterator end() noexcept {
         return __make_iterator(end_unsafe());
     }
 
     WJR_PURE WJR_CONSTEXPR20 const_iterator end() const noexcept {
         return __make_iterator(end_unsafe());
-    }
-
-    WJR_PURE WJR_CONSTEXPR20 const_iterator cend() const noexcept {
-        return __make_iterator(cend_unsafe());
     }
 
     WJR_PURE WJR_CONSTEXPR20 reverse_iterator rbegin() noexcept {
@@ -1039,10 +1031,6 @@ public:
         return const_reverse_iterator(end());
     }
 
-    WJR_PURE WJR_CONSTEXPR20 const_reverse_iterator crbegin() const noexcept {
-        return const_reverse_iterator(cend());
-    }
-
     WJR_PURE WJR_CONSTEXPR20 reverse_iterator rend() noexcept {
         return reverse_iterator(begin());
     }
@@ -1051,8 +1039,16 @@ public:
         return const_reverse_iterator(begin());
     }
 
+    WJR_PURE WJR_CONSTEXPR20 const_iterator cbegin() const noexcept { return begin(); }
+
+    WJR_PURE WJR_CONSTEXPR20 const_iterator cend() const noexcept { return end(); }
+
+    WJR_PURE WJR_CONSTEXPR20 const_reverse_iterator crbegin() const noexcept {
+        return rbegin();
+    }
+
     WJR_PURE WJR_CONSTEXPR20 const_reverse_iterator crend() const noexcept {
-        return const_reverse_iterator(cbegin());
+        return rend();
     }
 
     WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept {

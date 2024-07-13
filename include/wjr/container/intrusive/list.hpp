@@ -53,14 +53,12 @@ public:
     using pointer = const node_type *;
     using difference_type = std::ptrdiff_t;
 
-    constexpr list_node_const_iterator() noexcept = default;
-    constexpr list_node_const_iterator(const list_node_const_iterator &) noexcept =
-        default;
-    constexpr list_node_const_iterator(list_node_const_iterator &&) noexcept = default;
+    constexpr list_node_const_iterator() = default;
+    constexpr list_node_const_iterator(const list_node_const_iterator &) = default;
+    constexpr list_node_const_iterator(list_node_const_iterator &&) = default;
     constexpr list_node_const_iterator &
-    operator=(const list_node_const_iterator &) noexcept = default;
-    constexpr list_node_const_iterator &
-    operator=(list_node_const_iterator &&) noexcept = default;
+    operator=(const list_node_const_iterator &) = default;
+    constexpr list_node_const_iterator &operator=(list_node_const_iterator &&) = default;
     ~list_node_const_iterator() = default;
 
     constexpr list_node_const_iterator(pointer node) noexcept
@@ -117,12 +115,11 @@ public:
 
     using Mybase::Mybase;
 
-    constexpr list_node_iterator() noexcept = default;
-    constexpr list_node_iterator(const list_node_iterator &) noexcept = default;
-    constexpr list_node_iterator(list_node_iterator &&) noexcept = default;
-    constexpr list_node_iterator &
-    operator=(const list_node_iterator &) noexcept = default;
-    constexpr list_node_iterator &operator=(list_node_iterator &&) noexcept = default;
+    constexpr list_node_iterator() = default;
+    constexpr list_node_iterator(const list_node_iterator &) = default;
+    constexpr list_node_iterator(list_node_iterator &&) = default;
+    constexpr list_node_iterator &operator=(const list_node_iterator &) = default;
+    constexpr list_node_iterator &operator=(list_node_iterator &&) = default;
     ~list_node_iterator() = default;
 
     constexpr reference operator*() const noexcept {
@@ -163,7 +160,7 @@ struct list_node {
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    constexpr list_node() noexcept = default;
+    constexpr list_node() = default;
     list_node(const list_node &) = delete;
     list_node(list_node &&) = delete;
     list_node &operator=(const list_node &) = delete;

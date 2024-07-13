@@ -45,7 +45,7 @@ public:
             init(get_node());
         }
 
-        ~task_type() noexcept = default;
+        ~task_type() = default;
 
         void operator()() noexcept { m_func(); }
 

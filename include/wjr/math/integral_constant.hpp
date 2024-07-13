@@ -12,12 +12,12 @@ struct integral_constant {
     using value_type = T;
     using type = integral_constant;
 
-    constexpr integral_constant() noexcept = default;
-    constexpr integral_constant(const integral_constant &) noexcept = default;
-    constexpr integral_constant(integral_constant &&) noexcept = default;
-    constexpr integral_constant &operator=(const integral_constant &) noexcept = default;
-    constexpr integral_constant &operator=(integral_constant &&) noexcept = default;
-    ~integral_constant() noexcept = default;
+    constexpr integral_constant() = default;
+    constexpr integral_constant(const integral_constant &) = default;
+    constexpr integral_constant(integral_constant &&) = default;
+    constexpr integral_constant &operator=(const integral_constant &) = default;
+    constexpr integral_constant &operator=(integral_constant &&) = default;
+    ~integral_constant() = default;
 
     constexpr integral_constant(std::integral_constant<T, val>) noexcept {}
 

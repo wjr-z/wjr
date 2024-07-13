@@ -121,7 +121,7 @@ public:
     using is_reallocatable = std::true_type;
 
 public:
-    default_biginteger_vector_storage() noexcept = default;
+    default_biginteger_vector_storage() = default;
 
     default_biginteger_vector_storage(const default_biginteger_vector_storage &) = delete;
     default_biginteger_vector_storage(default_biginteger_vector_storage &&) noexcept =
@@ -131,7 +131,7 @@ public:
     default_biginteger_vector_storage &
     operator=(default_biginteger_vector_storage &&) noexcept = delete;
 
-    ~default_biginteger_vector_storage() noexcept = default;
+    ~default_biginteger_vector_storage() = default;
 
     void destroy(_Alty &al) noexcept {
         if (WJR_BUILTIN_CONSTANT_P_TRUE(data() == nullptr)) {

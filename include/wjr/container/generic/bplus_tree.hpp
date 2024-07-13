@@ -55,12 +55,12 @@ public:
     using reference = std::add_const_t<T> &;
     using pointer = std::add_const_t<T> *;
 
-    constexpr inline_key() noexcept = default;
-    constexpr inline_key(const inline_key &other) noexcept = default;
-    constexpr inline_key(inline_key &&other) noexcept = default;
-    constexpr inline_key &operator=(const inline_key &other) noexcept = default;
-    constexpr inline_key &operator=(inline_key &&other) noexcept = default;
-    ~inline_key() noexcept = default;
+    constexpr inline_key() = default;
+    constexpr inline_key(const inline_key &other) = default;
+    constexpr inline_key(inline_key &&other) = default;
+    constexpr inline_key &operator=(const inline_key &other) = default;
+    constexpr inline_key &operator=(inline_key &&other) = default;
+    ~inline_key() = default;
 
     constexpr inline_key(reference value) noexcept(
         std::is_nothrow_constructible_v<algined_storage<T>, reference>)
@@ -84,12 +84,12 @@ public:
     using reference = std::add_const_t<T> &;
     using pointer = std::add_const_t<T> *;
 
-    constexpr inline_key() noexcept = default;
-    constexpr inline_key(const inline_key &other) noexcept = default;
-    constexpr inline_key(inline_key &&other) noexcept = default;
-    constexpr inline_key &operator=(const inline_key &other) noexcept = default;
-    constexpr inline_key &operator=(inline_key &&other) noexcept = default;
-    ~inline_key() noexcept = default;
+    constexpr inline_key() = default;
+    constexpr inline_key(const inline_key &other) = default;
+    constexpr inline_key(inline_key &&other) = default;
+    constexpr inline_key &operator=(const inline_key &other) = default;
+    constexpr inline_key &operator=(inline_key &&other) = default;
+    ~inline_key() = default;
 
     constexpr inline_key(reference value) noexcept : m_ptr(std::addressof(value)) {}
 
@@ -347,13 +347,13 @@ public:
     using pointer = const value_type *;
     using reference = const value_type &;
 
-    bplus_tree_const_iterator() noexcept = default;
-    bplus_tree_const_iterator(const bplus_tree_const_iterator &) noexcept = default;
-    bplus_tree_const_iterator(bplus_tree_const_iterator &&) noexcept = default;
+    bplus_tree_const_iterator() = default;
+    bplus_tree_const_iterator(const bplus_tree_const_iterator &) = default;
+    bplus_tree_const_iterator(bplus_tree_const_iterator &&) = default;
     bplus_tree_const_iterator &
-    operator=(const bplus_tree_const_iterator &) noexcept = default;
-    bplus_tree_const_iterator &operator=(bplus_tree_const_iterator &&) noexcept = default;
-    ~bplus_tree_const_iterator() noexcept = default;
+    operator=(const bplus_tree_const_iterator &) = default;
+    bplus_tree_const_iterator &operator=(bplus_tree_const_iterator &&) = default;
+    ~bplus_tree_const_iterator() = default;
 
 protected:
     bplus_tree_const_iterator(const ListNode *list_node, unsigned int pos) noexcept

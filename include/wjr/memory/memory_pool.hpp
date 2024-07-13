@@ -191,12 +191,12 @@ public:
         using other = memory_pool<Other>;
     };
 
-    constexpr memory_pool() noexcept = default;
-    constexpr memory_pool(const memory_pool &) noexcept = default;
+    constexpr memory_pool() = default;
+    constexpr memory_pool(const memory_pool &) = default;
     template <typename Other>
     constexpr memory_pool(const memory_pool<Other> &) noexcept {}
     ~memory_pool() = default;
-    memory_pool &operator=(const memory_pool &) noexcept = default;
+    memory_pool &operator=(const memory_pool &) = default;
 
     WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
     allocate_at_least(size_type n) const noexcept {

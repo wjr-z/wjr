@@ -339,7 +339,7 @@ class uninitialized : algined_storage<T> {
 public:
     using Mybase::Mybase;
 
-    constexpr uninitialized() noexcept = default;
+    constexpr uninitialized() = default;
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Mybase, Args &&...>)>
     constexpr uninitialized(Args &&...args) noexcept(

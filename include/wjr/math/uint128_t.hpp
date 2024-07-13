@@ -13,12 +13,12 @@ namespace wjr {
  */
 class uint128_t {
 public:
-    WJR_CONSTEXPR20 uint128_t() noexcept = default;
-    constexpr uint128_t(const uint128_t &) noexcept = default;
-    constexpr uint128_t(uint128_t &&) noexcept = default;
-    constexpr uint128_t &operator=(const uint128_t &) noexcept = default;
-    constexpr uint128_t &operator=(uint128_t &&) noexcept = default;
-    ~uint128_t() noexcept = default;
+    WJR_CONSTEXPR20 uint128_t() = default;
+    constexpr uint128_t(const uint128_t &) = default;
+    constexpr uint128_t(uint128_t &&) = default;
+    constexpr uint128_t &operator=(const uint128_t &) = default;
+    constexpr uint128_t &operator=(uint128_t &&) = default;
+    ~uint128_t() = default;
 
     template <size_t I>
     constexpr uint64_t &get() & noexcept {

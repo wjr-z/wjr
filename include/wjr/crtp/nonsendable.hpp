@@ -40,10 +40,10 @@ public:
 
 protected:
     nonsendable() noexcept : m_thread_id(std::this_thread::get_id()) {}
-    nonsendable(const nonsendable &) noexcept = default;
-    nonsendable(nonsendable &&) noexcept = default;
-    nonsendable &operator=(const nonsendable &) noexcept = default;
-    nonsendable &operator=(nonsendable &&) noexcept = default;
+    nonsendable(const nonsendable &) = default;
+    nonsendable(nonsendable &&) = default;
+    nonsendable &operator=(const nonsendable &) = default;
+    nonsendable &operator=(nonsendable &&) = default;
     ~nonsendable() noexcept { check(); }
 
     void check() const noexcept {

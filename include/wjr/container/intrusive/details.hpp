@@ -5,6 +5,8 @@
 
 namespace wjr {
 
+struct default_intrusive_tag {};
+
 template <typename Hook = void, typename Tag = void>
 struct intrusive_tag {
     using hook_type = Hook;

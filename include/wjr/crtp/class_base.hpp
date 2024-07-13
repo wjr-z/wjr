@@ -9,22 +9,22 @@
 namespace wjr {
 
 struct enable_default_constructor_t {
-    constexpr explicit enable_default_constructor_t() noexcept = default;
+    constexpr explicit enable_default_constructor_t() = default;
 };
 
 inline constexpr enable_default_constructor_t enable_default_constructor{};
 
 template <bool Enable, typename = void>
 struct enable_default_constructor_base {
-    constexpr enable_default_constructor_base() noexcept = default;
-    constexpr enable_default_constructor_base(
-        const enable_default_constructor_base &) noexcept = default;
-    constexpr enable_default_constructor_base(
-        enable_default_constructor_base &&) noexcept = default;
+    constexpr enable_default_constructor_base() = default;
+    constexpr enable_default_constructor_base(const enable_default_constructor_base &) =
+        default;
+    constexpr enable_default_constructor_base(enable_default_constructor_base &&) =
+        default;
     constexpr enable_default_constructor_base &
-    operator=(const enable_default_constructor_base &) noexcept = default;
+    operator=(const enable_default_constructor_base &) = default;
     constexpr enable_default_constructor_base &
-    operator=(enable_default_constructor_base &&) noexcept = default;
+    operator=(enable_default_constructor_base &&) = default;
 
 protected:
     constexpr explicit enable_default_constructor_base(
@@ -34,14 +34,14 @@ protected:
 template <typename Tag>
 struct enable_default_constructor_base<false, Tag> {
     constexpr enable_default_constructor_base() noexcept = delete;
-    constexpr enable_default_constructor_base(
-        const enable_default_constructor_base &) noexcept = default;
-    constexpr enable_default_constructor_base(
-        enable_default_constructor_base &&) noexcept = default;
+    constexpr enable_default_constructor_base(const enable_default_constructor_base &) =
+        default;
+    constexpr enable_default_constructor_base(enable_default_constructor_base &&) =
+        default;
     constexpr enable_default_constructor_base &
-    operator=(const enable_default_constructor_base &) noexcept = default;
+    operator=(const enable_default_constructor_base &) = default;
     constexpr enable_default_constructor_base &
-    operator=(enable_default_constructor_base &&) noexcept = default;
+    operator=(enable_default_constructor_base &&) = default;
 
 protected:
     constexpr explicit enable_default_constructor_base(
@@ -50,14 +50,12 @@ protected:
 
 template <bool Enable, typename Tag = void>
 struct enable_destructor_base {
-    constexpr enable_destructor_base() noexcept = default;
-    constexpr enable_destructor_base(const enable_destructor_base &) noexcept = default;
-    constexpr enable_destructor_base(enable_destructor_base &&) noexcept = default;
-    constexpr enable_destructor_base &
-    operator=(const enable_destructor_base &) noexcept = default;
-    constexpr enable_destructor_base &
-    operator=(enable_destructor_base &&) noexcept = default;
-    ~enable_destructor_base() noexcept = default;
+    constexpr enable_destructor_base() = default;
+    constexpr enable_destructor_base(const enable_destructor_base &) = default;
+    constexpr enable_destructor_base(enable_destructor_base &&) = default;
+    constexpr enable_destructor_base &operator=(const enable_destructor_base &) = default;
+    constexpr enable_destructor_base &operator=(enable_destructor_base &&) = default;
+    ~enable_destructor_base() = default;
 
 protected:
     constexpr explicit enable_destructor_base(enable_default_constructor_t) noexcept {}
@@ -65,13 +63,11 @@ protected:
 
 template <typename Tag>
 struct enable_destructor_base<false, Tag> {
-    constexpr enable_destructor_base() noexcept = default;
-    constexpr enable_destructor_base(const enable_destructor_base &) noexcept = default;
-    constexpr enable_destructor_base(enable_destructor_base &&) noexcept = default;
-    constexpr enable_destructor_base &
-    operator=(const enable_destructor_base &) noexcept = default;
-    constexpr enable_destructor_base &
-    operator=(enable_destructor_base &&) noexcept = default;
+    constexpr enable_destructor_base() = default;
+    constexpr enable_destructor_base(const enable_destructor_base &) = default;
+    constexpr enable_destructor_base(enable_destructor_base &&) = default;
+    constexpr enable_destructor_base &operator=(const enable_destructor_base &) = default;
+    constexpr enable_destructor_base &operator=(enable_destructor_base &&) = default;
     ~enable_destructor_base() noexcept = delete;
 
 protected:
@@ -80,14 +76,12 @@ protected:
 
 template <bool Copy, bool Move, bool CopyAssign, bool MoveAssign, typename Tag = void>
 struct enable_copy_move_base {
-    constexpr enable_copy_move_base() noexcept = default;
-    constexpr enable_copy_move_base(const enable_copy_move_base &) noexcept = default;
-    constexpr enable_copy_move_base(enable_copy_move_base &&) noexcept = default;
-    constexpr enable_copy_move_base &
-    operator=(const enable_copy_move_base &) noexcept = default;
-    constexpr enable_copy_move_base &
-    operator=(enable_copy_move_base &&) noexcept = default;
-    ~enable_copy_move_base() noexcept = default;
+    constexpr enable_copy_move_base() = default;
+    constexpr enable_copy_move_base(const enable_copy_move_base &) = default;
+    constexpr enable_copy_move_base(enable_copy_move_base &&) = default;
+    constexpr enable_copy_move_base &operator=(const enable_copy_move_base &) = default;
+    constexpr enable_copy_move_base &operator=(enable_copy_move_base &&) = default;
+    ~enable_copy_move_base() = default;
 
 protected:
     constexpr explicit enable_copy_move_base(enable_default_constructor_t) noexcept {}
@@ -97,16 +91,14 @@ template <bool Default, bool Destructor, bool Copy, bool Move, bool CopyAssign,
           bool MoveAssign, typename Tag = void>
 struct enable_special_members_base
     : public enable_copy_move_base<Copy, Move, CopyAssign, MoveAssign, Tag> {
-    constexpr enable_special_members_base() noexcept = default;
-    constexpr enable_special_members_base(const enable_special_members_base &) noexcept =
-        default;
-    constexpr enable_special_members_base(enable_special_members_base &&) noexcept =
-        default;
+    constexpr enable_special_members_base() = default;
+    constexpr enable_special_members_base(const enable_special_members_base &) = default;
+    constexpr enable_special_members_base(enable_special_members_base &&) = default;
     constexpr enable_special_members_base &
-    operator=(const enable_special_members_base &) noexcept = default;
+    operator=(const enable_special_members_base &) = default;
     constexpr enable_special_members_base &
-    operator=(enable_special_members_base &&) noexcept = default;
-    ~enable_special_members_base() noexcept = default;
+    operator=(enable_special_members_base &&) = default;
+    ~enable_special_members_base() = default;
 
 protected:
     constexpr explicit enable_special_members_base(
@@ -119,7 +111,7 @@ protected:
 #define WJR_REGISTER_ENABLE_COPY_MOVE_BASE(Copy, Move, CopyAssign, MoveAssign)           \
     template <typename Tag>                                                              \
     struct enable_copy_move_base<Copy, Move, CopyAssign, MoveAssign, Tag> {              \
-        constexpr enable_copy_move_base() noexcept = default;                            \
+        constexpr enable_copy_move_base() = default;                                     \
         constexpr enable_copy_move_base(const enable_copy_move_base &) noexcept =        \
             WJR_PP_CONCAT(__WJR_ENABLE_BSAE_, Copy);                                     \
         constexpr enable_copy_move_base(enable_copy_move_base &&) noexcept =             \
@@ -156,14 +148,13 @@ WJR_REGISTER_ENABLE_COPY_MOVE_BASE(false, false, false, false);
         : public enable_copy_move_base<Copy, Move, CopyAssign, MoveAssign, Tag> {        \
         constexpr enable_special_members_base() noexcept =                               \
             WJR_PP_CONCAT(__WJR_ENABLE_BSAE_, Default);                                  \
-        constexpr enable_special_members_base(                                           \
-            const enable_special_members_base &) noexcept = default;                     \
-        constexpr enable_special_members_base(enable_special_members_base &&) noexcept = \
+        constexpr enable_special_members_base(const enable_special_members_base &) =     \
             default;                                                                     \
+        constexpr enable_special_members_base(enable_special_members_base &&) = default; \
         constexpr enable_special_members_base &                                          \
-        operator=(const enable_special_members_base &) noexcept = default;               \
+        operator=(const enable_special_members_base &) = default;                        \
         constexpr enable_special_members_base &                                          \
-        operator=(enable_special_members_base &&) noexcept = default;                    \
+        operator=(enable_special_members_base &&) = default;                             \
         ~enable_special_members_base() noexcept = WJR_PP_CONCAT(__WJR_ENABLE_BSAE_,      \
                                                                 Destructor);             \
                                                                                          \

@@ -66,7 +66,7 @@ public:
     static constexpr bool is_inlined = false;
 
     constexpr inline_arg(reference value) noexcept : m_ptr(std::addressof(value)) {}
-    ~inline_arg() noexcept = default;
+    ~inline_arg() = default;
 
     inline_arg() = delete;
     inline_arg(const inline_arg &) = delete;

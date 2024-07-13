@@ -116,12 +116,12 @@ struct __tuple_like<Tuple<Args...>>
 template <>
 class tuple<> {
 public:
-    constexpr tuple() noexcept = default;
-    constexpr tuple(const tuple &) noexcept = default;
-    constexpr tuple(tuple &&) noexcept = default;
-    constexpr tuple &operator=(const tuple &) noexcept = default;
-    constexpr tuple &operator=(tuple &&) noexcept = default;
-    ~tuple() noexcept = default;
+    constexpr tuple() = default;
+    constexpr tuple(const tuple &) = default;
+    constexpr tuple(tuple &&) = default;
+    constexpr tuple &operator=(const tuple &) = default;
+    constexpr tuple &operator=(tuple &&) = default;
+    ~tuple() = default;
 
     constexpr void swap(tuple &) noexcept {}
 };
@@ -445,34 +445,6 @@ template <typename... TArgs, typename... UArgs>
 constexpr bool operator>=(const tuple<TArgs...> &lhs,
                           const tuple<UArgs...> &rhs) noexcept(noexcept(lhs < rhs)) {
     return !(lhs < rhs);
-}
-
-template <size_t I, typename... Args>
-struct __in_place_index_tuple_t_tag {};
-
-template <size_t I, typename... Args>
-using in_place_index_tuple_t =
-    capture_leaf<tuple<Args...>, __in_place_index_tuple_t_tag<I, Args...>>;
-
-template <size_t I, typename... Args>
-constexpr in_place_index_tuple_t<I, Args &&...>
-in_place_index_tuple(Args &&...args) noexcept(
-    std::conjunction_v<std::is_nothrow_constructible<Args &&, Args &&>...>) {
-    return in_place_index_tuple_t<I, Args &&...>(std::forward<Args>(args)...);
-}
-
-template <typename T, typename... Args>
-struct __in_place_type_tuple_t_tag {};
-
-template <typename T, typename... Args>
-using in_place_type_tuple_t =
-    capture_leaf<tuple<Args...>, __in_place_type_tuple_t_tag<T, Args...>>;
-
-template <typename T, typename... Args>
-constexpr in_place_type_tuple_t<T, Args &&...>
-in_place_type_tuple(Args &&...args) noexcept(
-    std::conjunction_v<std::is_nothrow_constructible<Args &&, Args &&>...>) {
-    return in_place_type_tuple_t<T, Args &&...>(std::forward<Args>(args)...);
 }
 
 } // namespace wjr

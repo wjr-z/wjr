@@ -133,12 +133,12 @@ public:
     using difference_type = ptrdiff_t;
     using propagate_on_container_move_assignment = std::true_type;
 
-    stack_allocator_object() noexcept = default;
+    stack_allocator_object() = default;
     stack_allocator_object(stack_allocator_object &) = delete;
     stack_allocator_object(stack_allocator_object &&) = delete;
     stack_allocator_object &operator=(stack_allocator_object &) = delete;
     stack_allocator_object &operator=(stack_allocator_object &&) = delete;
-    ~stack_allocator_object() noexcept = default;
+    ~stack_allocator_object() = default;
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top,
                                                             size_t threshold) noexcept {
@@ -283,13 +283,13 @@ public:
         using other = weak_stack_allocator<Other, StackAllocator>;
     };
 
-    weak_stack_allocator() noexcept = default;
+    weak_stack_allocator() = default;
     weak_stack_allocator(UniqueStackAllocator &alloc) noexcept : m_alloc(&alloc) {}
-    weak_stack_allocator(const weak_stack_allocator &) noexcept = default;
-    weak_stack_allocator &operator=(const weak_stack_allocator &) noexcept = default;
-    weak_stack_allocator(weak_stack_allocator &&) noexcept = default;
-    weak_stack_allocator &operator=(weak_stack_allocator &&) noexcept = default;
-    ~weak_stack_allocator() noexcept = default;
+    weak_stack_allocator(const weak_stack_allocator &) = default;
+    weak_stack_allocator &operator=(const weak_stack_allocator &) = default;
+    weak_stack_allocator(weak_stack_allocator &&) = default;
+    weak_stack_allocator &operator=(weak_stack_allocator &&) = default;
+    ~weak_stack_allocator() = default;
 
     template <typename U>
     weak_stack_allocator(const weak_stack_allocator<U, StackAllocator> &other) noexcept

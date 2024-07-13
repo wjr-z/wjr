@@ -524,12 +524,12 @@ template <template <typename...> typename C, typename T>
 struct __tp_zip_helper;
 
 /// @private
-template <template <typename...> typename C, size_t... Indexs>
-struct __tp_zip_helper<C, std::index_sequence<Indexs...>> {
+template <template <typename...> typename C, size_t... Idxs>
+struct __tp_zip_helper<C, std::index_sequence<Idxs...>> {
     template <size_t I, typename... Args>
     using __type = C<tp_at_t<Args, I>...>;
     template <typename... Args>
-    using type = tp_list<__type<Indexs, Args...>...>;
+    using type = tp_list<__type<Idxs, Args...>...>;
 };
 
 template <template <typename...> typename C>
@@ -1095,9 +1095,9 @@ template <typename T, typename S>
 struct __tp_make_integer_sequence_helper;
 
 /// @private
-template <typename T, T... Indexs>
-struct __tp_make_integer_sequence_helper<T, std::integer_sequence<T, Indexs...>> {
-    using type = tp_list<std::integral_constant<T, Indexs>...>;
+template <typename T, T... Idxs>
+struct __tp_make_integer_sequence_helper<T, std::integer_sequence<T, Idxs...>> {
+    using type = tp_list<std::integral_constant<T, Idxs>...>;
 };
 
 template <typename T, T N>
@@ -1115,10 +1115,10 @@ template <typename T, typename S>
 struct __tp_make_std_integer_sequence_helper;
 
 /// @private
-template <typename T, T... Indexs>
+template <typename T, T... Idxs>
 struct __tp_make_std_integer_sequence_helper<
-    T, tp_list<std::integral_constant<T, Indexs>...>> {
-    using type = std::integer_sequence<T, Indexs...>;
+    T, tp_list<std::integral_constant<T, Idxs>...>> {
+    using type = std::integer_sequence<T, Idxs...>;
 };
 
 template <typename S>
