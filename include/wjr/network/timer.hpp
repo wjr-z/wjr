@@ -1,3 +1,14 @@
+/**
+ * @file timer.hpp
+ * @author wjr
+ * @brief only preview
+ * @version 0.1
+ * @date 2024-07-14
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #ifndef WJR_NETWORK_TIMER_HPP__
 #define WJR_NETWORK_TIMER_HPP__
 

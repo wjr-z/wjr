@@ -62,51 +62,27 @@
 #define WJR_ASM_CCOUT(c) [_cc_##c] "=r"
 #endif
 
-// WJR_EXCEPTIONS_LEVEL : 0 ~ 3
-// 0 : Disable exceptions
-// 1 ~ 3 : Enable exceptions
-#ifndef WJR_EXCEPTIONS_LEVEL
-#define WJR_EXCEPTIONS_LEVEL 1 // enable exceptions by default
+#if WJR_NO_EXCEPTIONS
+#define WJR_EXCEPTIONS_IF(ENABLE, DISABLE) DISABLE
+#else
+#define WJR_EXCEPTIONS_IF(ENABLE, DISABLE) ENABLE
 #endif
 
-#define WJR_EXCEPTIONS_IF(level, expr0, expr1)                                           \
-    WJR_PP_BOOL_IF(WJR_PP_GT(WJR_EXCEPTIONS_LEVEL, level), expr0, expr1)
-
-#define WJR_EXCEPTIONS_EXPR_L(level, expr) WJR_EXCEPTIONS_IF(level, expr, )
-#define WJR_EXCEPTIONS_EXPR(expr) WJR_EXCEPTIONS_EXPR_L(0, expr)
-
 #define WJR_ENABLE_EXCEPTIONS_TRY_I try
-#define WJR_ENABLE_EXCEPTIONS_CATCH_I(X) catch (X)
+#define WJR_ENABLE_EXCEPTIONS_CATCH_I(...) catch (__VA_ARGS__)
 #define WJR_ENABLE_EXCEPTIONS_THROW_I(X) throw X
 
 #define WJR_DISABLE_EXCEPTIONS_TRY_I if (true)
-#define WJR_DISABLE_EXCEPTIONS_CATCH_I(X) if (false)
+#define WJR_DISABLE_EXCEPTIONS_CATCH_I(...) if (false)
 #define WJR_DISABLE_EXCEPTIONS_THROW_I(X)
 
-#define WJR_TRY_L(level)                                                                 \
-    WJR_EXCEPTIONS_IF(level, WJR_ENABLE_EXCEPTIONS_TRY_I, WJR_DISABLE_EXCEPTIONS_TRY_I)
-#define WJR_CATCH_L(level, X)                                                            \
-    WJR_EXCEPTIONS_IF(level, WJR_ENABLE_EXCEPTIONS_CATCH_I(X),                           \
-                      WJR_DISABLE_EXCEPTIONS_CATCH_I(X))
-#define WJR_THROW_L(level, X)                                                            \
-    WJR_EXCEPTIONS_IF(level, WJR_ENABLE_EXCEPTIONS_THROW_I(X),                           \
-                      WJR_DISABLE_EXCEPTIONS_THROW_I(X))
-
-#define WJR_TRY WJR_TRY_L(0)
-#define WJR_CATCH(X) WJR_CATCH_L(0, X)
-#define WJR_THROW(X) WJR_THROW_L(0, X)
-
-#define WJR_TRY_L1 WJR_TRY_L(1)
-#define WJR_CATCH_L1(X) WJR_CATCH_L(1, X)
-#define WJR_THROW_L1(X) WJR_THROW_L(1, X)
-
-#define WJR_TRY_L2 WJR_TRY_L(2)
-#define WJR_CATCH_L2(X) WJR_CATCH_L(2, X)
-#define WJR_THROW_L2(X) WJR_THROW_L(2, X)
-
-#define WJR_TRY_L3 WJR_TRY_L(3)
-#define WJR_CATCH_L3(X) WJR_CATCH_L(3, X)
-#define WJR_THROW_L3(X) WJR_THROW_L(3, X)
+#define WJR_TRY                                                                          \
+    WJR_EXCEPTIONS_IF(WJR_ENABLE_EXCEPTIONS_TRY_I, WJR_DISABLE_EXCEPTIONS_TRY_I)
+#define WJR_CATCH(...)                                                                   \
+    WJR_EXCEPTIONS_IF(WJR_ENABLE_EXCEPTIONS_CATCH_I(__VA_ARGS__),                        \
+                      WJR_DISABLE_EXCEPTIONS_CATCH_I(__VA_ARGS__))
+#define WJR_THROW(X)                                                                     \
+    WJR_EXCEPTIONS_IF(WJR_ENABLE_EXCEPTIONS_THROW_I(X), WJR_DISABLE_EXCEPTIONS_THROW_I(X))
 
 #define WJR_REQUIRES(...) std::enable_if_t<(__VA_ARGS__), int> = 0
 #define WJR_REQUIRES_I(...) std::enable_if_t<(__VA_ARGS__), int>

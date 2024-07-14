@@ -938,10 +938,8 @@ public:
 
     WJR_CONSTEXPR20 basic_vector &operator=(basic_vector &&other) noexcept(
         noexcept(storage_fn_type::move_assign(*this, std::move(other)))) {
-        if (WJR_LIKELY(this != std::addressof(other))) {
-            storage_fn_type::move_assign(*this, std::move(other));
-        }
-
+        WJR_ASSERT(this != std::addressof(other));
+        storage_fn_type::move_assign(*this, std::move(other));
         return *this;
     }
 

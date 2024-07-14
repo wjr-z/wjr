@@ -214,7 +214,7 @@ public:
     template <typename TupleLike,
               WJR_REQUIRES(__is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>)>
     constexpr tuple(TupleLike &&other) noexcept(
-        noexcept(m_impl(in_place_empty, std::forward<TupleLike>(other))))
+        std::is_nothrow_constructible_v<Impl, in_place_empty_t, TupleLike &&>)
         : m_impl(in_place_empty, std::forward<TupleLike>(other)) {}
 
 private:

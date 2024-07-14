@@ -76,10 +76,13 @@ template <typename CharT, typename Traits, typename Alloc>
 WJR_INTRINSIC_INLINE void
 __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
                        typename std::basic_string<CharT, Traits, Alloc>::size_type sz) {
+    using Size = typename std::basic_string<CharT, Traits, Alloc>::size_type;
     str.resize_and_overwrite(sz, [](char *, Size sz) { return sz; });
 }
 
-#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container)
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(...)
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(...)
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_HACKER(...)
 
 #elif (defined(__clang_major__) && __clang_major__ <= 11) ||                             \
     (defined(_MSC_VER) && _MSC_VER <= 1920)
@@ -114,6 +117,13 @@ void string_set_length_hacker(Container &bank, typename Container::size_type sz)
         }                                                                                \
     }
 #endif
+
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_HACKER(Name, Container)               \
+    template <>                                                                          \
+    inline void string_set_length_hacker<Container>(Container & bank,                    \
+                                                    typename Container::size_type sz) {  \
+        WJR_PP_CONCAT(string_set_length_hacker_of_, Name)(bank, sz);                     \
+    };
 
 #if defined(__GLIBCXX__)
 #define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container)             \
@@ -167,11 +177,7 @@ struct __uninitialized_append_fn_impl : append_fn_impl_base<Container> {
 #define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Name, Container)                        \
     __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(Name, Container);                   \
     __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container);                \
-    template <>                                                                          \
-    inline void string_set_length_hacker<Container>(Container & bank,                    \
-                                                    typename Container::size_type sz) {  \
-        WJR_PP_CONCAT(string_set_length_hacker_of_, Name)(bank, sz);                     \
-    };                                                                                   \
+    __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_HACKER(Name, Container);                  \
     template <>                                                                          \
     struct resize_fn_impl<Container> : __uninitialized_resize_fn_impl<Container> {};     \
     template <>                                                                          \

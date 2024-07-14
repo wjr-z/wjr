@@ -1109,10 +1109,6 @@ public:
     }
 
     basic_biginteger &operator=(const basic_biginteger &other) {
-        if (WJR_UNLIKELY(this == std::addressof(other))) {
-            return *this;
-        }
-
         m_vec = other.m_vec;
         set_ssize(other.get_ssize());
         return *this;

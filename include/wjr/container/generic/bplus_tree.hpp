@@ -350,8 +350,7 @@ public:
     bplus_tree_const_iterator() = default;
     bplus_tree_const_iterator(const bplus_tree_const_iterator &) = default;
     bplus_tree_const_iterator(bplus_tree_const_iterator &&) = default;
-    bplus_tree_const_iterator &
-    operator=(const bplus_tree_const_iterator &) = default;
+    bplus_tree_const_iterator &operator=(const bplus_tree_const_iterator &) = default;
     bplus_tree_const_iterator &operator=(bplus_tree_const_iterator &&) = default;
     ~bplus_tree_const_iterator() = default;
 
@@ -561,10 +560,8 @@ public:
 
     basic_bplus_tree &operator=(basic_bplus_tree &&other) noexcept(
         noexcept(storage_fn_type::move_assign(*this, std::move(other)))) {
-        if (WJR_LIKELY(this != std::addressof(other))) {
-            storage_fn_type::move_assign(*this, std::move(other));
-        }
-
+        WJR_ASSERT(this != std::addressof(other));
+        storage_fn_type::move_assign(*this, std::move(other));
         return *this;
     }
 
