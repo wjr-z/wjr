@@ -26,9 +26,9 @@ public:
     constexpr capture_leaf() noexcept(std::is_nothrow_constructible_v<T>)
         : Mybase(enable_default_constructor), m_value() {}
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr capture_leaf(Args &&...args) noexcept(
-        std::is_constructible_v<T, Args &&...>)
+        std::is_constructible_v<T, Args...>)
         : Mybase(enable_default_constructor), m_value(std::forward<Args>(args)...) {}
 
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
@@ -48,7 +48,7 @@ private:
  *
  * @brief Compressed capture any type as a new type.
  *
- * @details Use `EBO`(empty base optimization) to compress the size of the object.
+ * @detail Use `EBO`(empty base optimization) to compress the size of the object.
  *
  */
 template <typename T, typename Tag = void>
@@ -62,9 +62,9 @@ public:
     constexpr compressed_capture_leaf() noexcept(std::is_nothrow_constructible_v<T>)
         : Mybase() {}
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr compressed_capture_leaf(Args &&...args) noexcept(
-        std::is_constructible_v<T, Args &&...>)
+        std::is_constructible_v<T, Args...>)
         : Mybase(std::forward<Args>(args)...) {}
 
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
@@ -80,7 +80,7 @@ public:
  *
  * @brief Check if a class can be compressed.
  *
- * @details A class can be compressed if it is a `empty` `class`, and it is not `final`.
+ * @detail A class can be compressed if it is a `empty` `class`, and it is not `final`.
  *
  */
 template <typename T>
@@ -109,7 +109,7 @@ struct __is_tuple_like_impl<
 /**
  * @brief Use template<...>typename like to like all element of LP and RP.
  *
- * @details For example, like is std::is_assignable, LP is std::tuple<T0, U0>, RP is
+ * @detail For example, like is std::is_assignable, LP is std::tuple<T0, U0>, RP is
  * std::tuple<T1, U1>. \n
  * Then __is_tuple_like = std::conjunction<std::is_assignable<T0,
  * T1>, std::is_assignable<U0, U1>>.
@@ -140,7 +140,7 @@ struct __is_tuple_test_impl<Test, std::index_sequence<Idxs...>, LP, RP,
 /**
  * @brief Use template<...>typename Test to test all element of LP and RP.
  *
- * @details For example, Test is std::is_assignable, LP is std::tuple<T0, U0>, RP is
+ * @detail For example, Test is std::is_assignable, LP is std::tuple<T0, U0>, RP is
  * std::tuple<T1, U1>. \n
  * Then __is_tuple_test = std::conjunction<std::is_assignable<T0,
  * T1>, std::is_assignable<U0, U1>>.

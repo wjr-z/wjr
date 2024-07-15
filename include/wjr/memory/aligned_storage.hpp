@@ -12,9 +12,9 @@ class algined_storage : union2_storage<T, std::aligned_storage_t<sizeof(T), alig
 public:
     using Mybase::Mybase;
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr algined_storage(Args &&...args) noexcept(
-        std::is_nothrow_constructible_v<T, Args &&...>)
+        std::is_nothrow_constructible_v<T, Args...>)
         : Mybase(std::in_place_index<0>, std::forward<Args>(args)...) {}
 
     constexpr T &operator*() & noexcept { return Mybase::first; }

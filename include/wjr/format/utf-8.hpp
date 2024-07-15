@@ -1,7 +1,7 @@
 #ifndef WJR_FORMAT_UTF_8_HPP__
 #define WJR_FORMAT_UTF_8_HPP__
 
-#include <wjr/memory/details.hpp>
+#include <wjr/memory/detail.hpp>
 #include <wjr/span.hpp>
 #include <wjr/type_traits.hpp>
 

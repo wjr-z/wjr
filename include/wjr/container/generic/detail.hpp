@@ -1,9 +1,9 @@
-#ifndef WJR_CONTAINER_GENERIC_DETAILS_HPP__
-#define WJR_CONTAINER_GENERIC_DETAILS_HPP__
+#ifndef WJR_CONTAINER_GENERIC_DETAIL_HPP__
+#define WJR_CONTAINER_GENERIC_DETAIL_HPP__
 
 #include <string>
 
-#include <wjr/iterator/details.hpp>
+#include <wjr/iterator/detail.hpp>
 
 namespace wjr {
 
@@ -255,7 +255,7 @@ public:
     constexpr static bool is_contiguous_v = is_contiguous_iterator_v<iterator>;
 
     /**
-     * @details Trivially contiguous means that the container can be resized and then
+     * @detail Trivially contiguous means that the container can be resized and then
      * filled, and the result should be consistent with the element by element push_back
      * result. It does not verify whether the element is trial. Because different
      * containers may have different ways of constructing elements. The main purpose is
@@ -272,4 +272,4 @@ struct container_traits;
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_GENERIC_DETAILS_HPP__
+#endif // WJR_CONTAINER_GENERIC_DETAIL_HPP__

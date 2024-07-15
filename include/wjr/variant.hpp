@@ -7,7 +7,7 @@
 
 namespace wjr {
 
-namespace variant_details {
+namespace variant_detail {
 
 template <typename... Ts>
 struct WJR_EMPTY_BASES overloaded : Ts... {
@@ -17,7 +17,7 @@ struct WJR_EMPTY_BASES overloaded : Ts... {
 template <typename... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
-} // namespace variant_details
+} // namespace variant_detail
 
 template <typename... Args>
 std::variant<Args...> &__is_as_variant_impl(std::variant<Args...> &);
@@ -50,7 +50,7 @@ constexpr decltype(auto) visit(Callable &&obj, Variants &&...vars) {
 
 template <typename Var, typename... Args, WJR_REQUIRES(is_as_variant_v<Var>)>
 constexpr decltype(auto) match(Var &&var, Args &&...args) {
-    return std::visit(variant_details::overloaded{std::forward<Args>(args)...},
+    return std::visit(variant_detail::overloaded{std::forward<Args>(args)...},
                       std::forward<Var>(var));
 }
 

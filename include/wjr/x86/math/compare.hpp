@@ -10,7 +10,7 @@ namespace wjr {
 /**
  * @brief Compare two arrays of uint64_t.
  *
- * @details Expand first 4 elements to compare, then use @ref large_builtin_compare_n to
+ * @detail Expand first 4 elements to compare, then use @ref large_builtin_compare_n to
  * compare the rest.
  *
  * @tparam T Requires uint64_t currently.
@@ -73,7 +73,7 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1,
 /**
  * @brief Compare two arrays of uint64_t in reverse order.
  *
- * @details @ref builtin_compare_n in reverse order.
+ * @detail @ref builtin_compare_n in reverse order.
  */
 template <typename T>
 WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,

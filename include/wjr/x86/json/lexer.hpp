@@ -13,7 +13,7 @@ namespace wjr::json {
 
 #if WJR_HAS_BUILTIN(JSON_LEXER_READER_READ_BUF)
 
-namespace lexer_details {
+namespace lexer_detail {
 
 #if !WJR_HAS_SIMD(AVX2)
 const static __m128i lh8_mask = sse::set1_epi8(0x0f);
@@ -47,11 +47,11 @@ void load_simd(const char *first, typename simd::int_type *arr) {
     }
 }
 
-} // namespace lexer_details
+} // namespace lexer_detail
 
 template <uint32_t token_buf_size>
 uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
-    using namespace lexer_details;
+    using namespace lexer_detail;
 
     using simd = std::conditional_t<WJR_HAS_SIMD(AVX2), avx, sse>;
     using simd_int = typename simd::int_type;

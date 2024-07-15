@@ -104,7 +104,7 @@ private:
 };
 
 /**
- * @details Return true if parsing needs to be terminated.
+ * @detail Return true if parsing needs to be terminated.
  *
  */
 struct empty_parser {
@@ -338,7 +338,7 @@ struct check_parser : empty_parser {
  */
 template <typename TokenReader, typename Parser>
 WJR_NOINLINE void reader_parse(TokenReader &reader, Parser &parser) {
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
 
     struct stack {
         uint8_t type;
@@ -1080,7 +1080,7 @@ template <typename Parser>
 WJR_INTRINSIC_INLINE void parse(span<const char> sp, Parser &parser) {
     constexpr uint32_t token_buf_size = 1024;
 
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
 
     uint32_t *token_buf = static_cast<uint32_t *>(
         stkal.allocate((token_buf_size * 2 - 1) * sizeof(uint32_t)));

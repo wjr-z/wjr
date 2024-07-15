@@ -259,7 +259,7 @@ uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div
     size_t qn;
     uint64_t qh, cy;
 
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
     const auto tp = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * m));
 
     qn = n - m;
@@ -422,7 +422,7 @@ void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n
 
         const auto shift = clz(div[m - 1]);
         const size_t alloc = n + 1 + (shift != 0 ? m : 0);
-        unique_stack_allocator stkal(math_details::stack_alloc);
+        unique_stack_allocator stkal(math_detail::stack_alloc);
         auto stk = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * alloc));
         sp = stk;
 
@@ -469,7 +469,7 @@ void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n
     const auto shift = clz(div[m - 1]);
 
     const size_t alloc = 2 * qn + (shift != 0 ? qn : 0);
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
     auto stk = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * alloc));
     sp = stk;
 

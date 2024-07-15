@@ -1,7 +1,7 @@
 #ifndef WJR_MATH_POPCOUNT_HPP__
 #define WJR_MATH_POPCOUNT_HPP__
 
-#include <wjr/math/details.hpp>
+#include <wjr/math/detail.hpp>
 
 namespace wjr {
 

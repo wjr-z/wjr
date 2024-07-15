@@ -3,8 +3,8 @@
 
 #include <wjr/capture_leaf.hpp>
 #include <wjr/crtp/trivially_allocator_base.hpp>
-#include <wjr/math/details.hpp>
-#include <wjr/memory/details.hpp>
+#include <wjr/math/detail.hpp>
+#include <wjr/memory/detail.hpp>
 
 namespace wjr {
 
@@ -62,9 +62,9 @@ public:
     static_assert(sizeof(typename std::allocator_traits<Alty>::value_type) == 1, "");
     static_assert(alignment > 0 && alignment < 256, "alignment must be in [1, 255].");
 
-    WJR_CONSTEXPR20 aligned_allocator() noexcept(
-        std::is_nothrow_default_constructible_v<Mybase>) = default;
-    WJR_CONSTEXPR20 aligned_allocator(const aligned_allocator &) noexcept(
+    aligned_allocator() noexcept(std::is_nothrow_default_constructible_v<Mybase>) =
+        default;
+    aligned_allocator(const aligned_allocator &) noexcept(
         std::is_nothrow_copy_constructible_v<Mybase>) = default;
     template <typename U, size_t alignment2>
     WJR_CONSTEXPR20 aligned_allocator(
@@ -73,9 +73,9 @@ public:
 
     ~aligned_allocator() = default;
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Alty, Args &&...>)>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Alty, Args...>)>
     WJR_CONSTEXPR20 aligned_allocator(Args &&...args) noexcept(
-        std::is_nothrow_constructible_v<Alty, Args &&...>)
+        std::is_nothrow_constructible_v<Alty, Args...>)
         : Mybase(std::forward<Args>(args)...) {}
 
     WJR_CONSTEXPR20 WJR_ALIGNED(alignment) pointer allocate(size_type n) {

@@ -1,4 +1,4 @@
-#include "details.hpp"
+#include "detail.hpp"
 
 using namespace wjr;
 
@@ -94,7 +94,7 @@ TEST(preprocessor, compiler) {
 
 #define WJR_TEST_STR(a, b) WJR_ASSERT(std::string_view(a) == std::string_view(b))
 
-TEST(preprocessor, details) {
+TEST(preprocessor, detail) {
     WJR_TEST_STR(WJR_PP_STR((WJR_PP_IOTA(0))), "()");
     WJR_TEST_STR(WJR_PP_STR((WJR_PP_IOTA(1))), "(0)");
     WJR_TEST_STR(WJR_PP_STR((WJR_PP_IOTA(2))), "(0, 1)");

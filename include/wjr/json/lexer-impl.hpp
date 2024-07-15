@@ -39,16 +39,16 @@ public:
     constexpr basic_lexer(span<const char> input) noexcept : m_storage(input) {}
 
     basic_lexer() = delete;
-    constexpr basic_lexer(const basic_lexer &) = delete;
-    constexpr basic_lexer(basic_lexer &&) = default;
-    constexpr basic_lexer &operator=(const basic_lexer &) = delete;
-    constexpr basic_lexer &operator=(basic_lexer &&) = default;
+    basic_lexer(const basic_lexer &) = delete;
+    basic_lexer(basic_lexer &&) = default;
+    basic_lexer &operator=(const basic_lexer &) = delete;
+    basic_lexer &operator=(basic_lexer &&) = default;
     ~basic_lexer() = default;
 
     /**
      * @brief read tokens
      *
-     * @details Read at least token_buf_size tokens from the input.
+     * @detail Read at least token_buf_size tokens from the input.
      * token_buf' size must be at least token_buf_size * 2 - 1.
      *
      * @return return the number of tokens read.
@@ -68,7 +68,7 @@ using forward_lexer = basic_lexer<token_buf_size>;
 
 using dynamic_lexer = basic_lexer<in_place_max>;
 
-namespace lexer_details {
+namespace lexer_detail {
 inline uint64_t calc_backslash(uint64_t B) {
     uint64_t maybe_escaped = B << 1;
 
@@ -77,7 +77,7 @@ inline uint64_t calc_backslash(uint64_t B) {
 
     return even_series_codes_and_odd_bits ^ 0xAAAAAAAAAAAAAAAAULL;
 }
-} // namespace lexer_details
+} // namespace lexer_detail
 
 } // namespace wjr::json
 

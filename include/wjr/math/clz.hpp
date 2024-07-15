@@ -51,9 +51,9 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_clz(T x) noexcept {
         ++x;
 
         if constexpr (nd <= 32) {
-            return math_details::de_bruijn32.getr(x);
+            return math_detail::de_bruijn32.getr(x);
         } else if constexpr (nd <= 64) {
-            return math_details::de_bruijn64.getr(x);
+            return math_detail::de_bruijn64.getr(x);
         } else {
             static_assert(nd <= 64, "not support yet");
         }

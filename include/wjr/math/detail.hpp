@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_DETAILS_HPP__
-#define WJR_MATH_DETAILS_HPP__
+#ifndef WJR_MATH_DETAIL_HPP__
+#define WJR_MATH_DETAIL_HPP__
 
 #include <wjr/type_traits.hpp>
 
@@ -7,7 +7,7 @@ namespace wjr {
 
 #if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
 
-namespace math_details {
+namespace math_detail {
 
 template <typename T, T seed>
 class de_bruijn {
@@ -35,7 +35,7 @@ private:
 inline constexpr de_bruijn<uint32_t, 0x077C'B531> de_bruijn32 = {};
 inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
 
-} // namespace math_details
+} // namespace math_detail
 
 #endif
 
@@ -153,4 +153,4 @@ WJR_CONST constexpr T __fasts_sub(T x, std::make_unsigned_t<T> y) noexcept {
 
 } // namespace wjr
 
-#endif // WJR_MATH_DETAILS_HPP__
+#endif // WJR_MATH_DETAIL_HPP__

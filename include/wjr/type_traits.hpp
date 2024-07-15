@@ -19,7 +19,7 @@ inline constexpr in_place_empty_t in_place_empty = {};
 /**
  * @brief Tag of default constructor.
  *
- * @details Use dctor to indicate default constructor. \n
+ * @detail Use dctor to indicate default constructor. \n
  * Used to avoid value initialization.  \n
  * For example : \n
  * @code
@@ -241,7 +241,7 @@ using add_restrict_t = typename add_restrict<T>::type;
 /**
  * @brief Return if is constant evaluated.
  *
- * @details Use macro WJR_IS_CONSTANT_EVALUATED(). \n
+ * @detail Use macro WJR_IS_CONSTANT_EVALUATED(). \n
  * Use std::is_constant_evaluated() if C++ 20 is supported. \n
  * Otherwise, use __builtin_constant_evaluated() if
  * WJR_HAS_BUILTIN(__builtin_is_constant_evaluated). Otherwise, return false.

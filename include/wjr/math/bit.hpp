@@ -3,7 +3,7 @@
 
 #include <wjr/math/clz.hpp>
 #include <wjr/math/ctz.hpp>
-#include <wjr/memory/details.hpp>
+#include <wjr/memory/detail.hpp>
 
 namespace wjr {
 

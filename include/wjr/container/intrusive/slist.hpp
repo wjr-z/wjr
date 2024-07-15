@@ -1,7 +1,7 @@
 #ifndef WJR_CONTAINER_INTRUSIVE_SLIST_HPP__
 #define WJR_CONTAINER_INTRUSIVE_SLIST_HPP__
 
-#include <wjr/container/intrusive/details.hpp>
+#include <wjr/container/intrusive/detail.hpp>
 
 namespace wjr {
 
@@ -37,13 +37,11 @@ public:
     using pointer = const node_type *;
     using difference_type = std::ptrdiff_t;
 
-    constexpr slist_node_const_iterator() = default;
-    constexpr slist_node_const_iterator(const slist_node_const_iterator &) = default;
-    constexpr slist_node_const_iterator(slist_node_const_iterator &&) = default;
-    constexpr slist_node_const_iterator &
-    operator=(const slist_node_const_iterator &) = default;
-    constexpr slist_node_const_iterator &
-    operator=(slist_node_const_iterator &&) = default;
+    slist_node_const_iterator() = default;
+    slist_node_const_iterator(const slist_node_const_iterator &) = default;
+    slist_node_const_iterator(slist_node_const_iterator &&) = default;
+    slist_node_const_iterator &operator=(const slist_node_const_iterator &) = default;
+    slist_node_const_iterator &operator=(slist_node_const_iterator &&) = default;
     ~slist_node_const_iterator() = default;
 
     constexpr slist_node_const_iterator(const node_type *node) noexcept
@@ -91,12 +89,11 @@ public:
 
     using Mybase::Mybase;
 
-    constexpr slist_node_iterator() = default;
-    constexpr slist_node_iterator(const slist_node_iterator &) = default;
-    constexpr slist_node_iterator(slist_node_iterator &&) = default;
-    constexpr slist_node_iterator &
-    operator=(const slist_node_iterator &) = default;
-    constexpr slist_node_iterator &operator=(slist_node_iterator &&) = default;
+    slist_node_iterator() = default;
+    slist_node_iterator(const slist_node_iterator &) = default;
+    slist_node_iterator(slist_node_iterator &&) = default;
+    slist_node_iterator &operator=(const slist_node_iterator &) = default;
+    slist_node_iterator &operator=(slist_node_iterator &&) = default;
     ~slist_node_iterator() = default;
 
     constexpr reference operator*() const noexcept {
@@ -128,7 +125,7 @@ struct slist_node {
     using iterator = slist_node_iterator<Tag>;
     using const_iterator = slist_node_const_iterator<Tag>;
 
-    constexpr slist_node() = default;
+    slist_node() = default;
     slist_node(const slist_node &) = delete;
     slist_node(slist_node &&) = delete;
     slist_node &operator=(const slist_node &) = delete;

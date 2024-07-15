@@ -1,7 +1,7 @@
 #include <charconv>
 #include <vector>
 
-#include "details.hpp"
+#include "detail.hpp"
 
 #include <wjr/biginteger.hpp>
 #include <wjr/math.hpp>

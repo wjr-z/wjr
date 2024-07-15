@@ -2,7 +2,7 @@
 #define WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP__
 
 #include <wjr/preprocessor/arithmatic.hpp>
-#include <wjr/preprocessor/details.hpp>
+#include <wjr/preprocessor/detail.hpp>
 #include <wjr/preprocessor/queue/call.hpp>
 
 #define WJR_PP_QUEUE_INIT_N(x, N) WJR_PP_QUEUE_INIT_N_I(x, N)

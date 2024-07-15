@@ -5,7 +5,7 @@
  * @file vector.hpp
  * @brief Vector container with definable internal structure
  *
- * @details
+ * @detail
  * Customized internal structure needs to follow the following function signature: \n
  * -# storage() noexcept
  * -# ~storage() noexcept
@@ -49,7 +49,7 @@
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/generic/container_fn.hpp>
 #include <wjr/iterator/contiguous_iterator_adpater.hpp>
-#include <wjr/math/details.hpp>
+#include <wjr/math/detail.hpp>
 #include <wjr/memory/copy.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
 
@@ -127,7 +127,7 @@ struct __unref_wrapper_helper<default_vector_size_reference<pointer, size_type>>
 /**
  * @brief Default vector storage
  *
- * @details Use one pointer ans two size_type currently.
+ * @detail Use one pointer ans two size_type currently.
  *
  */
 template <typename T, typename Alloc>
@@ -789,7 +789,7 @@ struct basic_vector_traits {
 /**
  * @brief Customized vector by storage.
  *
- * @details Type of pointer is same as iterator.
+ * @detail Type of pointer is same as iterator.
  *
  */
 template <typename Storage>
@@ -848,7 +848,6 @@ private:
                                                            std::declval<_Alty &>()));
 
 public:
-    WJR_CONSTEXPR20
     basic_vector() noexcept(std::is_nothrow_default_constructible_v<_Alty>) = default;
 
     WJR_CONSTEXPR20 explicit basic_vector(const allocator_type &al) noexcept(
@@ -2098,7 +2097,7 @@ using static_vector = basic_vector<static_vector_storage<T, Capacity, Alloc>>;
 /**
  * @brief A vector with fixed capacity by construction.
  *
- * @details Only allocate memory on construction and deallocation on destruction.
+ * @detail Only allocate memory on construction and deallocation on destruction.
  * After construction, it cannot be expanded and can only be modified through move
  * assignment. For example, vector that using stack allocator.
  */
@@ -2151,5 +2150,15 @@ bool operator>=(const basic_vector<Storage> &lhs, const basic_vector<Storage> &r
 }
 
 } // namespace wjr
+
+namespace std {
+
+template <typename Storage>
+constexpr void swap(wjr::basic_vector<Storage> &lhs,
+                    wjr::basic_vector<Storage> &rhs) noexcept(noexcept(lhs.swap(rhs))) {
+    lhs.swap(rhs);
+}
+
+} // namespace std
 
 #endif // WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__

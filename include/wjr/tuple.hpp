@@ -116,11 +116,11 @@ struct __tuple_like<Tuple<Args...>>
 template <>
 class tuple<> {
 public:
-    constexpr tuple() = default;
-    constexpr tuple(const tuple &) = default;
-    constexpr tuple(tuple &&) = default;
-    constexpr tuple &operator=(const tuple &) = default;
-    constexpr tuple &operator=(tuple &&) = default;
+    tuple() = default;
+    tuple(const tuple &) = default;
+    tuple(tuple &&) = default;
+    tuple &operator=(const tuple &) = default;
+    tuple &operator=(tuple &&) = default;
     ~tuple() = default;
 
     constexpr void swap(tuple &) noexcept {}
@@ -206,9 +206,9 @@ public:
                          std::negation<std::conjunction<
                              std::is_same<This, std::remove_reference_t<Other>>,
                              std::is_same<Args, std::remove_reference_t<_Args>>...>>,
-                         std::is_constructible<Impl, Other &&, _Args &&...>>)>
+                         std::is_constructible<Impl, Other &&, _Args...>>)>
     constexpr tuple(Other &&other, _Args &&...args) noexcept(
-        std::is_nothrow_constructible_v<Impl, Other &&, _Args &&...>)
+        std::is_nothrow_constructible_v<Impl, Other &&, _Args...>)
         : m_impl(std::forward<Other>(other), std::forward<_Args>(args)...) {}
 
     template <typename TupleLike,
@@ -320,9 +320,9 @@ constexpr tuple<Args &...> tie(Args &...args) noexcept {
 }
 
 template <typename... Args>
-constexpr tuple<Args &&...> forward_as_tuple(Args &&...args) noexcept(
+constexpr tuple<Args...> forward_as_tuple(Args &&...args) noexcept(
     std::conjunction_v<std::is_nothrow_constructible<Args &&, Args &&>...>) {
-    return tuple<Args &&...>(std::forward<Args>(args)...);
+    return tuple<Args...>(std::forward<Args>(args)...);
 }
 
 /// @private

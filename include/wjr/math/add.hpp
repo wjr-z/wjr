@@ -102,7 +102,7 @@ WJR_INTRINSIC_CONSTEXPR20 T addc(T a, T b, type_identity_t<U> c_in, U &c_out) no
  * @brief Performs addition with carry-in and carry-out, optimized for subsequent
  * branching based on carry-out.
  *
- * @details This function, `addc_cc`, adds two numbers with a carry-in, and returns the
+ * @detail This function, `addc_cc`, adds two numbers with a carry-in, and returns the
  * result and a carry-out. The carry-out (`c_out`) is optimized for subsequent code that
  * branches based on its value. For example, it can be used with jump instructions like
  * `je` or `jne`. This is in contrast to the `addc` function, which may use instructions

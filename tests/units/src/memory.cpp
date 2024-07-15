@@ -1,6 +1,6 @@
 #include <vector>
 
-#include "details.hpp"
+#include "detail.hpp"
 
 #include <wjr/math.hpp>
 #include <wjr/memory/aligned_allocator.hpp>
@@ -10,16 +10,16 @@ using namespace wjr;
 
 TEST(memory, stack_allocator) {
 
-    static_assert(is_trivially_allocator_v<math_details::weak_stack_alloc<char>>,
+    static_assert(is_trivially_allocator_v<math_detail::weak_stack_alloc<char>>,
                   "error");
 
     do {
-        math_details::stack_alloc_object obj;
+        math_detail::stack_alloc_object obj;
         (void)(obj);
     } while (0);
 
     do {
-        math_details::stack_alloc_object obj = {};
+        math_detail::stack_alloc_object obj = {};
         unique_stack_allocator stkal(obj);
 
         for (int i = 0; i < 32 * 1024; ++i) {
@@ -29,7 +29,7 @@ TEST(memory, stack_allocator) {
     } while (0);
 
     do {
-        math_details::stack_alloc_object obj = {};
+        math_detail::stack_alloc_object obj = {};
         unique_stack_allocator stkal(obj);
         (void)stkal.allocate(36 * 1024);
 
@@ -56,11 +56,11 @@ TEST(memory, algined_allocator) {
     } while (0);
 
     do {
-        using weak_alloc = math_details::weak_stack_alloc<int>;
+        using weak_alloc = math_detail::weak_stack_alloc<int>;
         using alloc = aligned_allocator<weak_alloc, 64>;
         static_assert(is_trivially_allocator_v<alloc>, "error");
 
-        math_details::unique_stack_alloc stkal(math_details::stack_alloc);
+        math_detail::unique_stack_alloc stkal(math_detail::stack_alloc);
         alloc al(stkal);
 
         auto ptr = al.allocate(1);

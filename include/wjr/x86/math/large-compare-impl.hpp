@@ -199,7 +199,7 @@ large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
 /**
  * @brief Use SIMD to compare two arrays of uint64_t in reverse order.
  *
- * @details @ref large_builtin_compare_n in reverse order.
+ * @detail @ref large_builtin_compare_n in reverse order.
  *
  */
 template <typename T>

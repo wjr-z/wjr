@@ -6,7 +6,7 @@
  * @author wjr
  * @brief Assertion utilities
  *
- * @details WJR_DEBUG_LEVEL : 0 ~ 3 \n
+ * @detail WJR_DEBUG_LEVEL : 0 ~ 3 \n
  * 0 : Release \n
  * 1 : Beta \n
  * 2 : Runtime detect \n

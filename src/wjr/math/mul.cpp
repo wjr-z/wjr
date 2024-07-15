@@ -5,7 +5,7 @@
 namespace wjr {
 
 /**
- * @details \n
+ * @detail \n
  * l = max(ceil(n/3), ceil(m/2)) \n
  * stk usage : l * 4
  *
@@ -45,7 +45,7 @@ void toom4_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
                safe_pointer<uint64_t> stk) noexcept;
 
 /**
- * @details \n
+ * @detail \n
  * l = max(ceil(n/6), ceil(m/3)) \n
  * stk usage : l * 10 \n
  *
@@ -98,7 +98,7 @@ void __toom22_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
     safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom22_s_itch(m));
 
     if (n >= 3 * m) {
-        unique_stack_allocator stkal(math_details::stack_alloc);
+        unique_stack_allocator stkal(math_detail::stack_alloc);
         uint64_t *tmp = __mul_s_allocate(stkal, (4 * m)).data();
 
         toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
@@ -156,7 +156,7 @@ void __noinline_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, siz
         return basecase_mul_s(dst, src0, n, src1, m);
     }
 
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
 
     if (m < toom33_mul_threshold) {
         safe_pointer<uint64_t> stk = __mul_s_allocate(stkal, toom22_s_itch(m));
@@ -320,7 +320,7 @@ void __noinline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
         return basecase_mul_s(dst, src0, n, src1, n);
     }
 
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
 
     if (n < toom33_mul_threshold) {
         safe_pointer<uint64_t> stk = __mul_s_allocate(stkal, toom22_n_itch(n));
@@ -350,7 +350,7 @@ void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
         return basecase_sqr(dst, src, n);
     }
 
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
 
     if (n < toom3_sqr_threshold) {
         safe_pointer<uint64_t> stk = __mul_s_allocate(stkal, toom22_n_itch(n));
@@ -2282,7 +2282,7 @@ toom_eval_opposite_half_exp(toom_eval_opposite_exp_args &args) noexcept {
 }
 
 /**
- * @details \n
+ * @detail \n
  * A is postive, B's sign is `sign' \n
  * abs(A) >= abs(B) \n
  * A -> (A - B) / (2^sA) \n
@@ -2308,7 +2308,7 @@ toom_eval_opposite_half_exp(toom_eval_opposite_exp_args &args) noexcept {
     } while (0)
 
 /**
- * @details \n
+ * @detail \n
  * A is postive, B's sign is `sign' \n
  * abs(A) >= abs(B) \n
  * A -> (A - B) / 2 \n

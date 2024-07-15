@@ -2,7 +2,7 @@
 #define WJR_MATH_SUB_HPP__
 
 #include <wjr/assert.hpp>
-#include <wjr/math/details.hpp>
+#include <wjr/math/detail.hpp>
 #include <wjr/math/replace.hpp>
 #include <wjr/math/sub-impl.hpp>
 

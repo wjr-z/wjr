@@ -1,5 +1,5 @@
-#ifndef WJR_CONTAINER_INTRUSIVE_DETAILS_HPP__
-#define WJR_CONTAINER_INTRUSIVE_DETAILS_HPP__
+#ifndef WJR_CONTAINER_INTRUSIVE_DETAIL_HPP__
+#define WJR_CONTAINER_INTRUSIVE_DETAIL_HPP__
 
 #include <wjr/type_traits.hpp>
 
@@ -30,4 +30,4 @@ inline constexpr bool intrusive_use_hook_v = Tag::use_hook;
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_INTRUSIVE_DETAILS_HPP__
+#endif // WJR_CONTAINER_INTRUSIVE_DETAIL_HPP__

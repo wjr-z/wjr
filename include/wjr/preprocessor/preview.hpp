@@ -5,7 +5,7 @@
 
 #include <wjr/preprocessor/arithmatic.hpp>
 #include <wjr/preprocessor/compiler.hpp>
-#include <wjr/preprocessor/details.hpp>
+#include <wjr/preprocessor/detail.hpp>
 #include <wjr/preprocessor/logical.hpp>
 
 // Due to the fact that call is not a simple expansion, but takes the previous output as
@@ -71,10 +71,12 @@
 #define WJR_ENABLE_EXCEPTIONS_TRY_I try
 #define WJR_ENABLE_EXCEPTIONS_CATCH_I(...) catch (__VA_ARGS__)
 #define WJR_ENABLE_EXCEPTIONS_THROW_I(X) throw X
+#define WJR_ENABLE_EXCEPTIONS_XTHROW_I throw
 
-#define WJR_DISABLE_EXCEPTIONS_TRY_I if (true)
-#define WJR_DISABLE_EXCEPTIONS_CATCH_I(...) if (false)
+#define WJR_DISABLE_EXCEPTIONS_TRY_I if constexpr (true)
+#define WJR_DISABLE_EXCEPTIONS_CATCH_I(...) if constexpr (false)
 #define WJR_DISABLE_EXCEPTIONS_THROW_I(X)
+#define WJR_DISABLE_EXCEPTIONS_XTHROW_I
 
 #define WJR_TRY                                                                          \
     WJR_EXCEPTIONS_IF(WJR_ENABLE_EXCEPTIONS_TRY_I, WJR_DISABLE_EXCEPTIONS_TRY_I)
@@ -83,6 +85,8 @@
                       WJR_DISABLE_EXCEPTIONS_CATCH_I(__VA_ARGS__))
 #define WJR_THROW(X)                                                                     \
     WJR_EXCEPTIONS_IF(WJR_ENABLE_EXCEPTIONS_THROW_I(X), WJR_DISABLE_EXCEPTIONS_THROW_I(X))
+#define WJR_XTHROW                                                                       \
+    WJR_EXCEPTIONS_IF(WJR_ENABLE_EXCEPTIONS_XTHROW_I, WJR_DISABLE_EXCEPTIONS_XTHROW_I)
 
 #define WJR_REQUIRES(...) std::enable_if_t<(__VA_ARGS__), int> = 0
 #define WJR_REQUIRES_I(...) std::enable_if_t<(__VA_ARGS__), int>

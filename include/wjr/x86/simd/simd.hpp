@@ -6,7 +6,7 @@
 #include <cstring>
 
 #include <wjr/math/broadcast.hpp>
-#include <wjr/memory/details.hpp>
+#include <wjr/memory/detail.hpp>
 
 namespace wjr {
 
@@ -1340,7 +1340,7 @@ struct avx {
 #endif // AVX2
 };
 
-namespace sse_details {
+namespace sse_detail {
 #if WJR_HAS_SIMD(SSE2)
 
 const static __m128i srli_epi8_mask[8] = {
@@ -1350,9 +1350,9 @@ const static __m128i srli_epi8_mask[8] = {
 };
 
 #endif
-} // namespace sse_details
+} // namespace sse_detail
 
-namespace avx_details {
+namespace avx_detail {
 #if WJR_HAS_SIMD(AVX2)
 
 const static __m256i srli_epi8_mask[8] = {
@@ -1362,7 +1362,7 @@ const static __m256i srli_epi8_mask[8] = {
 };
 
 #endif
-} // namespace avx_details
+} // namespace avx_detail
 
 #if WJR_HAS_SIMD(SSE2)
 
@@ -2520,7 +2520,7 @@ __m128i sse::srli(__m128i v) {
     return _mm_srli_si128(v, imm8);
 }
 __m128i sse::srli_epi8(__m128i a, int imm8) {
-    return And(srli_epi16(a, imm8), sse_details::srli_epi8_mask[imm8]);
+    return And(srli_epi16(a, imm8), sse_detail::srli_epi8_mask[imm8]);
 }
 __m128i sse::srli_epi16(__m128i a, int imm8) { return _mm_srli_epi16(a, imm8); }
 __m128i sse::srli_epi32(__m128i a, int imm8) { return _mm_srli_epi32(a, imm8); }
@@ -3594,7 +3594,7 @@ __m256i avx::srli(__m256i a) {
 }
 
 __m256i avx::srli_epi8(__m256i a, int imm8) {
-    return And(srli_epi16(a, imm8), avx_details::srli_epi8_mask[imm8]);
+    return And(srli_epi16(a, imm8), avx_detail::srli_epi8_mask[imm8]);
 }
 __m256i avx::srli_epi16(__m256i a, int imm8) { return _mm256_srli_epi16(a, imm8); }
 __m256i avx::srli_epi32(__m256i a, int imm8) { return _mm256_srli_epi32(a, imm8); }

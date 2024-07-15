@@ -53,7 +53,7 @@ struct __is_span_iterator
 template <typename T, size_t Extent = dynamic_extent>
 class span;
 
-namespace span_details {
+namespace span_detail {
 
 WJR_REGISTER_HAS_TYPE(data,
                       std::data(std::declval<std::add_lvalue_reference_t<Container>>()),
@@ -126,7 +126,7 @@ struct basic_span_traits {
     using const_reference = const T &;
 };
 
-} // namespace span_details
+} // namespace span_detail
 
 /**
  * @class span
@@ -142,7 +142,7 @@ class span {
     using __storage = std::conditional_t<__is_dynamic, __span_dynamic_storage<T>,
                                          __span_static_storage<T, Extent>>;
 
-    using IteratorTraits = span_details::basic_span_traits<T>;
+    using IteratorTraits = span_detail::basic_span_traits<T>;
 
 public:
     using element_type = T;
@@ -229,8 +229,8 @@ public:
         : storage(source.data(), source.size()) {}
 #endif
 
-    constexpr span(const span &other) = default;
-    constexpr span &operator=(const span &other) = default;
+    span(const span &other) = default;
+    span &operator=(const span &other) = default;
 
     ~span() = default;
 
@@ -392,24 +392,24 @@ public:
     /**
      * @brief Construct a span from a container.
      *
-     * @details The container must have a `data()` member function that returns a @ref
+     * @detail The container must have a `data()` member function that returns a @ref
      * __is_span_iterator. The container must also have a `size()` member function that
      * can be converted to `size_type`.
      *
      */
-    template <typename Container, WJR_REQUIRES(span_details::__is_span_like_v<
+    template <typename Container, WJR_REQUIRES(span_detail::__is_span_like_v<
                                                Container, element_type> &&__is_dynamic)>
     constexpr span(Container &&c) noexcept : storage(std::data(c), std::size(c)) {}
 
     /**
      * @brief Construct a span from a container.
      *
-     * @details Like @ref span(Container &&), but the span is not dynamic-sized, so the
+     * @detail Like @ref span(Container &&), but the span is not dynamic-sized, so the
      * construct must be explicit.
      *
      */
     template <typename Container,
-              WJR_REQUIRES(span_details::__is_span_like_v<Container, element_type> &&
+              WJR_REQUIRES(span_detail::__is_span_like_v<Container, element_type> &&
                            !__is_dynamic)>
     constexpr explicit span(Container &&c) noexcept
         : storage(std::data(c), std::size(c)) {}
@@ -430,8 +430,7 @@ span(const std::array<T, Size> &) -> span<const T, Size>;
 template <typename It, typename End, WJR_REQUIRES(is_contiguous_iterator_v<It>)>
 span(It, End) -> span<iterator_contiguous_value_t<It>>;
 
-template <typename Container,
-          WJR_REQUIRES(span_details::__is_container_like_v<Container>)>
+template <typename Container, WJR_REQUIRES(span_detail::__is_container_like_v<Container>)>
 span(Container &&) -> span<
     iterator_contiguous_value_t<decltype(std::data(std::declval<Container &>()))>>;
 

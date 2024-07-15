@@ -1,7 +1,7 @@
 #ifndef WJR_MATH_COPY_HPP__
 #define WJR_MATH_COPY_HPP__
 
-#include <wjr/iterator/details.hpp>
+#include <wjr/iterator/detail.hpp>
 
 namespace wjr {
 

@@ -14,7 +14,7 @@ public:
 
     template <typename... Args>
     WJR_CONSTEXPR20 temporary_value_allocator(Alloc &_al, Args &&...args) noexcept(
-        std::is_nothrow_constructible_v<value_type, Args &&...>)
+        std::is_nothrow_constructible_v<value_type, Args...>)
         : m_al(_al) {
         uninitialized_construct_using_allocator(get(), m_al, std::forward<Args>(args)...);
     }

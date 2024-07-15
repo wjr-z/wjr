@@ -1,4 +1,4 @@
-#include "details.hpp"
+#include "detail.hpp"
 
 #include <charconv>
 #include <list>
@@ -1108,7 +1108,7 @@ TEST(math, rshift_n) {
     }
 }
 
-TEST(math_details, default_stack_allocator) {}
+TEST(math_detail, default_stack_allocator) {}
 
 TEST(math, __add_128) {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1,
@@ -1607,7 +1607,7 @@ TEST(math, div_qr_s) {
 
 namespace convert_tests {
 using namespace wjr;
-using namespace convert_details;
+using namespace convert_detail;
 
 static_assert(std::is_same_v<fast_buffer_t<char *>, char>, "");
 static_assert(std::is_same_v<fast_buffer_t<uint8_t *>, uint8_t>, "");

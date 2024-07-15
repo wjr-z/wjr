@@ -3,7 +3,7 @@
 
 #include <cstring>
 
-#include <wjr/iterator/details.hpp>
+#include <wjr/iterator/detail.hpp>
 
 namespace wjr {
 
@@ -20,7 +20,7 @@ constexpr T *to_address(T *p) noexcept {
 }
 
 /**
- * @details If std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p) is valid, return
+ * @detail If std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p) is valid, return
  * std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p), otherwise return
  * to_address(p.operator->()).
  */

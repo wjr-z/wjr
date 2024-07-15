@@ -11,7 +11,7 @@
 
 namespace wjr {
 
-namespace math_details {
+namespace math_detail {
 
 inline constexpr std::array<uint16_t, 0x100> div2by1_u64_lookup = {
     0x7fd, 0x7f5, 0x7ed, 0x7e5, 0x7dd, 0x7d5, 0x7ce, 0x7c6, 0x7bf, 0x7b7, 0x7b0, 0x7a8,
@@ -50,7 +50,7 @@ inline constexpr std::array<uint8_t, 0x80> divexact1_lookup = {
     0x31, 0x5B, 0x7D, 0xE7, 0x69, 0x53, 0x75, 0x1F, 0x21, 0xCB, 0xED, 0xD7, 0x59,
     0xC3, 0xE5, 0x0F, 0x11, 0x3B, 0x5D, 0xC7, 0x49, 0x33, 0x55, 0xFF};
 
-} // namespace math_details
+} // namespace math_detail
 
 template <typename T>
 class div2by1_divider_noshift {
@@ -179,7 +179,7 @@ WJR_CONST WJR_CONSTEXPR20 T div2by1_divider_noshift<T>::reciprocal(T d) noexcept
     // 63 bit
     d63 = (d + 1) >> 1;
     // 11 bit
-    v0 = math_details::div2by1_u64_lookup[((d >> 55) - 0x100)];
+    v0 = math_detail::div2by1_u64_lookup[((d >> 55) - 0x100)];
     // 22 bit
     v1 = (v0 << 11) - (mullo<uint64_t>(mullo<uint32_t>(v0, v0), d40) >> 40) - 1;
 
@@ -455,7 +455,7 @@ public:
     constexpr bool is_zero_or_single_bit() const noexcept { return m_divisor == 1; }
 
     WJR_CONST constexpr static T reciprocal(T divisor) noexcept {
-        T inv = math_details::divexact1_lookup[(divisor & 0xFF) >> 1];
+        T inv = math_detail::divexact1_lookup[(divisor & 0xFF) >> 1];
         inv = inv * (2 - inv * divisor);
         inv = inv * (2 - inv * divisor);
         inv = inv * (2 - inv * divisor);

@@ -5,7 +5,7 @@
  * @file bplus_tree.hpp
  * @brief B+ tree implementation.
  *
- * @details The multiset/multimap/set/map adapter has not been implemented yet. The
+ * @detail The multiset/multimap/set/map adapter has not been implemented yet. The
  * node_size should be set to 16 by default, and optimization has been made for queries
  * less than or equal to 16. \n
  * After improvement, the number of queries for the i-th query is
@@ -44,7 +44,7 @@ struct bplus_tree_inner_node;
 template <typename Traits, bool InlineKeys>
 struct bplus_tree_leaf_node;
 
-namespace bplus_tree_details {
+namespace bplus_tree_detail {
 
 template <typename T, bool Inlined>
 class inline_key {
@@ -55,11 +55,11 @@ public:
     using reference = std::add_const_t<T> &;
     using pointer = std::add_const_t<T> *;
 
-    constexpr inline_key() = default;
-    constexpr inline_key(const inline_key &other) = default;
-    constexpr inline_key(inline_key &&other) = default;
-    constexpr inline_key &operator=(const inline_key &other) = default;
-    constexpr inline_key &operator=(inline_key &&other) = default;
+    inline_key() = default;
+    inline_key(const inline_key &other) = default;
+    inline_key(inline_key &&other) = default;
+    inline_key &operator=(const inline_key &other) = default;
+    inline_key &operator=(inline_key &&other) = default;
     ~inline_key() = default;
 
     constexpr inline_key(reference value) noexcept(
@@ -84,11 +84,11 @@ public:
     using reference = std::add_const_t<T> &;
     using pointer = std::add_const_t<T> *;
 
-    constexpr inline_key() = default;
-    constexpr inline_key(const inline_key &other) = default;
-    constexpr inline_key(inline_key &&other) = default;
-    constexpr inline_key &operator=(const inline_key &other) = default;
-    constexpr inline_key &operator=(inline_key &&other) = default;
+    inline_key() = default;
+    inline_key(const inline_key &other) = default;
+    inline_key(inline_key &&other) = default;
+    inline_key &operator=(const inline_key &other) = default;
+    inline_key &operator=(inline_key &&other) = default;
     ~inline_key() = default;
 
     constexpr inline_key(reference value) noexcept : m_ptr(std::addressof(value)) {}
@@ -134,7 +134,7 @@ WJR_INTRINSIC_INLINE static void copy_backward(Other *first, Other *last,
 #endif
 }
 
-} // namespace bplus_tree_details
+} // namespace bplus_tree_detail
 
 template <typename Key, typename Value, typename Compare, size_t Size, bool Multi>
 struct bplus_tree_traits {
@@ -147,17 +147,17 @@ struct bplus_tree_traits {
 
     static constexpr size_t node_size = Size;
     static constexpr bool is_inline_key =
-        bplus_tree_details::is_possible_inline_key_v<std::remove_const_t<key_type>> &&
+        bplus_tree_detail::is_possible_inline_key_v<std::remove_const_t<key_type>> &&
         sizeof(key_type) <= 8;
     static constexpr bool is_inline_value =
-        bplus_tree_details::is_possible_inline_key_v<std::remove_const_t<value_type>> &&
+        bplus_tree_detail::is_possible_inline_key_v<std::remove_const_t<value_type>> &&
         sizeof(value_type) <= 8;
 
     using InlineKey =
-        bplus_tree_details::inline_key<std::remove_const_t<key_type>, is_inline_key>;
+        bplus_tree_detail::inline_key<std::remove_const_t<key_type>, is_inline_key>;
     using InlineValue = std::conditional_t<
         is_inline_value,
-        bplus_tree_details::inline_key<std::remove_const_t<value_type>, true>,
+        bplus_tree_detail::inline_key<std::remove_const_t<value_type>, true>,
         value_type *>;
 
     using node_type = bplus_tree_node<bplus_tree_traits>;
@@ -179,13 +179,13 @@ public:
     template <size_t Min = 0, size_t Max = node_size, typename Other = void>
     WJR_INTRINSIC_INLINE static void copy(Other *first, Other *last,
                                           Other *dest) noexcept {
-        return bplus_tree_details::copy<Min, Max>(first, last, dest);
+        return bplus_tree_detail::copy<Min, Max>(first, last, dest);
     }
 
     template <size_t Min = 0, size_t Max = node_size, typename Other = void>
     WJR_INTRINSIC_INLINE static void copy_backward(Other *first, Other *last,
                                                    Other *dest) noexcept {
-        return bplus_tree_details::copy_backward<Min, Max>(first, last, dest);
+        return bplus_tree_detail::copy_backward<Min, Max>(first, last, dest);
     }
 };
 

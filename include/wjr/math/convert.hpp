@@ -37,7 +37,7 @@ inline constexpr auto div2by1_divider_noshift_of_big_base_10 =
 inline constexpr auto div3by2_divider_shift_of_big_base_10 = div3by2_divider<uint64_t>(
     1374799102801346560ull, 10842021724855044340ull, 12'938'764'603'223'852'203ull, 1);
 
-namespace convert_details {
+namespace convert_detail {
 
 WJR_CONST constexpr bool __isspace(uint8_t ch) noexcept {
     return char_converter.from(ch) == 64;
@@ -64,7 +64,7 @@ struct __is_fast_convert_iterator : __is_fast_convert_iterator_helper<Iter> {};
 /**
  * @brief Iterator concept that can be used in fast_convert.
  *
- * @details The iterator must be contiguous iterator and the value_type must be
+ * @detail The iterator must be contiguous iterator and the value_type must be
  * trivial and sizeof(value_type) == 1. Cast to_address(iter) to uint8_t*(to_chars)/const
  * uint8_t*(from_chars) in fast_convert.
  *
@@ -163,7 +163,7 @@ template <typename Iter>
 inline constexpr int is_fast_container_inserter_v =
     __is_fast_container_inserter<Iter>::value;
 
-} // namespace convert_details
+} // namespace convert_detail
 
 // require operator() of Converter is constexpr
 template <typename Converter, uint64_t Base, int Unroll>
@@ -299,8 +299,8 @@ public:
     template <typename Converter>
     WJR_INTRINSIC_INLINE void operator()(uint8_t *ptr, uint32_t val,
                                          Converter conv) const noexcept {
-        if constexpr (convert_details::has_to_chars_fast_fn_fast_conv_v<Mybase, uint32_t,
-                                                                        Converter>) {
+        if constexpr (convert_detail::has_to_chars_fast_fn_fast_conv_v<Mybase, uint32_t,
+                                                                       Converter>) {
             Mybase::__fast_conv(ptr, val, conv);
         } else {
             ptr[0] = conv.template to<Base>(val / Base);
@@ -320,8 +320,8 @@ public:
     template <typename Converter>
     WJR_INTRINSIC_INLINE void operator()(uint8_t *ptr, uint32_t val,
                                          Converter conv) const noexcept {
-        if constexpr (convert_details::has_to_chars_fast_fn_fast_conv_v<Mybase, uint32_t,
-                                                                        Converter>) {
+        if constexpr (convert_detail::has_to_chars_fast_fn_fast_conv_v<Mybase, uint32_t,
+                                                                       Converter>) {
             Mybase::__fast_conv(ptr, val, conv);
         } else {
             constexpr auto Base2 = Base * Base;
@@ -342,8 +342,8 @@ public:
     template <typename Converter>
     WJR_INTRINSIC_INLINE void operator()(uint8_t *ptr, uint64_t val,
                                          Converter conv) const noexcept {
-        if constexpr (convert_details::has_to_chars_fast_fn_fast_conv_v<Mybase, uint64_t,
-                                                                        Converter>) {
+        if constexpr (convert_detail::has_to_chars_fast_fn_fast_conv_v<Mybase, uint64_t,
+                                                                       Converter>) {
             Mybase::__fast_conv(ptr, val, conv);
         } else {
             constexpr auto Base4 = Base * Base * Base * Base;
@@ -360,7 +360,7 @@ template <uint64_t Base>
 class __from_chars_unroll_4_fast_fn_impl_base {
 protected:
     WJR_CONST WJR_INTRINSIC_INLINE static uint32_t __fast_conv(uint32_t val) noexcept {
-        return digits_literal_details::__fast_conv_4<Base>(val);
+        return digits_literal_detail::__fast_conv_4<Base>(val);
     }
 
 public:
@@ -379,7 +379,7 @@ template <uint64_t Base>
 class __from_chars_unroll_8_fast_fn_impl_base {
 protected:
     WJR_CONST WJR_INTRINSIC_INLINE static uint32_t __fast_conv(uint64_t val) noexcept {
-        return digits_literal_details::__fast_conv_8<Base>(val);
+        return digits_literal_detail::__fast_conv_8<Base>(val);
     }
 
 public:
@@ -467,8 +467,8 @@ public:
     template <typename Converter>
     WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(const uint8_t *ptr,
                                                       Converter conv) const noexcept {
-        if constexpr (convert_details::has_from_chars_fast_fn_fast_conv_v<Mybase,
-                                                                          Converter>) {
+        if constexpr (convert_detail::has_from_chars_fast_fn_fast_conv_v<Mybase,
+                                                                         Converter>) {
             return Mybase::__fast_conv(ptr, conv);
         } else {
             uint64_t value = 0;
@@ -491,8 +491,8 @@ public:
     template <typename Converter>
     WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(const uint8_t *ptr,
                                                       Converter conv) const noexcept {
-        if constexpr (convert_details::has_from_chars_fast_fn_fast_conv_v<Mybase,
-                                                                          Converter>) {
+        if constexpr (convert_detail::has_from_chars_fast_fn_fast_conv_v<Mybase,
+                                                                         Converter>) {
             return Mybase::__fast_conv(ptr, conv);
         } else {
             constexpr uint64_t Base4 = Base * Base * Base * Base;
@@ -513,8 +513,8 @@ public:
     template <typename Converter>
     WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(const uint8_t *ptr,
                                                       Converter conv) const noexcept {
-        if constexpr (convert_details::has_from_chars_fast_fn_fast_conv_v<Mybase,
-                                                                          Converter>) {
+        if constexpr (convert_detail::has_from_chars_fast_fn_fast_conv_v<Mybase,
+                                                                         Converter>) {
             return Mybase::__fast_conv(ptr, conv);
         } else {
             constexpr uint64_t Base4 = Base * Base * Base * Base;
@@ -991,13 +991,13 @@ Iter __to_chars_backward_unchecked_impl(Iter first, Value val, IBase ibase,
  * @brief Convert an unsigned integer to a string in reverse order without checking
  * buf size.
  *
- * @details Only use fast_convert mode.
+ * @detail Only use fast_convert mode.
  *
  */
 template <typename Iter, typename Value, unsigned int IBase = 10,
           typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
-                           &&convert_details::__is_valid_converter_v<Value, Converter>)>
+          WJR_REQUIRES(convert_detail::__is_fast_convert_iterator_v<Iter>
+                           &&convert_detail::__is_valid_converter_v<Value, Converter>)>
 Iter to_chars_backward_unchecked(Iter first, Value val,
                                  integral_constant<unsigned int, IBase> ic = {},
                                  Converter conv = {}) noexcept {
@@ -1038,8 +1038,8 @@ Iter to_chars_backward_unchecked_dynamic(Iter first, Value val, unsigned int bas
  */
 template <typename Iter, typename Value, typename IBase,
           typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
-                           &&convert_details::__is_valid_converter_v<Value, Converter>
+          WJR_REQUIRES(convert_detail::__is_fast_convert_iterator_v<Iter>
+                           &&convert_detail::__is_valid_converter_v<Value, Converter>
                                &&is_nonbool_integral_v<IBase>)>
 Iter to_chars_backward_unchecked(Iter first, Value val, IBase base,
                                  Converter conv = {}) noexcept {
@@ -1172,9 +1172,9 @@ to_chars_result<Iter> __fallback_to_chars_impl(Iter first, Iter last, Value val,
                                }),                                                       \
                            ()))                                                          \
                                                                                          \
-        convert_details::fast_buffer_t<Iter> buffer[TABLE + is_signed];                  \
+        convert_detail::fast_buffer_t<Iter> buffer[TABLE + is_signed];                   \
         const auto __end = buffer + TABLE + is_signed;                                   \
-        auto __ptr = (convert_details::fast_buffer_t<Iter> *)                            \
+        auto __ptr = (convert_detail::fast_buffer_t<Iter> *)                             \
             __unsigned_to_chars_backward_unchecked<BASE>(                                \
                 (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
                                                                                          \
@@ -1202,9 +1202,9 @@ to_chars_result<Iter> __fallback_to_chars_impl(Iter first, Iter last, Value val,
                                                                                          \
         return wjr::copy(__ptr, __end, first);                                           \
     } else {                                                                             \
-        convert_details::fast_buffer_t<Iter> buffer[TABLE];                              \
+        convert_detail::fast_buffer_t<Iter> buffer[TABLE];                               \
         const auto __end = buffer + TABLE;                                               \
-        auto __ptr = (convert_details::fast_buffer_t<Iter> *)                            \
+        auto __ptr = (convert_detail::fast_buffer_t<Iter> *)                             \
             __unsigned_to_chars_backward_unchecked<BASE>(                                \
                 (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
                                                                                          \
@@ -1252,7 +1252,7 @@ to_chars_result<Iter> __fallback_to_chars_impl(Iter first, Iter last, Value val,
 template <typename Iter, typename Value, typename IBase, typename Converter>
 to_chars_result<Iter> __to_chars_impl(Iter first, Iter last, Value val, IBase ibase,
                                       Converter conv) noexcept {
-    if constexpr (convert_details::__is_fast_convert_iterator_v<Iter>) {
+    if constexpr (convert_detail::__is_fast_convert_iterator_v<Iter>) {
         const auto __first = reinterpret_cast<uint8_t *>(wjr::to_address(first));
         const auto __last = reinterpret_cast<uint8_t *>(wjr::to_address(last));
         const auto __result = __fast_to_chars_impl(__first, __last, val, ibase, conv);
@@ -1346,7 +1346,7 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
 
 #define WJR_TO_CHARS_IMPL(BASE, TABLE, CALL)                                             \
     constexpr auto __fast_container_inserter_v =                                         \
-        convert_details::is_fast_container_inserter_v<Iter>;                             \
+        convert_detail::is_fast_container_inserter_v<Iter>;                              \
     if constexpr (__fast_container_inserter_v != 0) {                                    \
         WJR_PP_BOOL_IF(WJR_PP_EQ(BASE, 10), const int n = count_digits<10>(uVal), );     \
         auto &cont = get_inserter_container(ptr);                                        \
@@ -1356,7 +1356,7 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
             append(cont, n + sign, dctor);                                               \
         }                                                                                \
         const auto __end = wjr::to_address(cont.data() + cont.size());                   \
-        auto __ptr = (convert_details::fast_buffer_t<Iter> *)                            \
+        auto __ptr = (convert_detail::fast_buffer_t<Iter> *)                             \
             __unsigned_to_chars_backward_unchecked<BASE>(                                \
                 (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
                                                                                          \
@@ -1368,9 +1368,9 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
                                                                                          \
         return ptr;                                                                      \
     } else {                                                                             \
-        convert_details::fast_buffer_t<Iter> buffer[TABLE + is_signed];                  \
+        convert_detail::fast_buffer_t<Iter> buffer[TABLE + is_signed];                   \
         const auto __end = buffer + TABLE + is_signed;                                   \
-        auto __ptr = (convert_details::fast_buffer_t<Iter> *)                            \
+        auto __ptr = (convert_detail::fast_buffer_t<Iter> *)                             \
             __unsigned_to_chars_backward_unchecked<BASE>(                                \
                 (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
                                                                                          \
@@ -1416,7 +1416,7 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
 template <typename Iter, typename Value, typename IBase, typename Converter>
 Iter __to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
                                Converter conv) noexcept {
-    if constexpr (convert_details::__is_fast_convert_iterator_v<Iter>) {
+    if constexpr (convert_detail::__is_fast_convert_iterator_v<Iter>) {
         const auto __ptr = reinterpret_cast<uint8_t *>(wjr::to_address(ptr));
         const auto __result = __fast_to_chars_unchecked_impl(__ptr, val, ibase, conv);
         return ptr + std::distance(__ptr, __result);
@@ -1434,7 +1434,7 @@ Iter __to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
  */
 template <typename Iter, typename Value, unsigned int IBase = 10,
           typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
+          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>)>
 to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val,
                                integral_constant<unsigned int, IBase> ic = {},
                                Converter conv = {}) noexcept {
@@ -1476,7 +1476,7 @@ to_chars_result<Iter> to_chars_dynamic(Iter ptr, Iter last, Value val, unsigned 
  */
 template <typename Iter, typename Value, typename IBase,
           typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>
+          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>
                            &&is_nonbool_integral_v<IBase>)>
 to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, IBase base,
                                Converter conv = {}) noexcept {
@@ -1486,7 +1486,7 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, IBase base,
 /**
  * @brief Convert an unsigned integer to a string without checking buf size.
  *
- * @details Iter can be any output iterator. Support fast_convert mode and fallback mode.
+ * @detail Iter can be any output iterator. Support fast_convert mode and fallback mode.
  * \n fast_convert mode : \n fast_convert mode is used when
  * __is_fast_convert_iterator_v<Iter> is true. \n caclulate the number of digits and
  * convert the integer to a string in reverse order. \n fallback mode : \n use buffer to
@@ -1495,7 +1495,7 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, IBase base,
  */
 template <typename Iter, typename Value, unsigned int IBase = 10,
           typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
+          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>)>
 Iter to_chars_unchecked(Iter ptr, Value val,
                         integral_constant<unsigned int, IBase> ic = {},
                         Converter conv = {}) noexcept {
@@ -1538,7 +1538,7 @@ Iter to_chars_unchecked_dynamic(Iter ptr, Value val, unsigned int base,
  */
 template <typename Iter, typename Value, typename IBase,
           typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>
+          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>
                            &&is_nonbool_integral_v<IBase>)>
 Iter to_chars_unchecked(Iter ptr, Value val, IBase base, Converter conv = {}) noexcept {
     return to_chars_unchecked_dynamic(ptr, val, static_cast<unsigned int>(base), conv);
@@ -1954,7 +1954,7 @@ uint8_t *__biginteger_basecase_to_chars(uint8_t *first, const uint64_t *up, size
 
     precompute_chars_convert_t pre[64 - 3];
 
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
     auto stk =
         static_cast<uint64_t *>(stkal.allocate((n * 18 / 5 + 192) * sizeof(uint64_t)));
     const auto __up = stk;
@@ -1998,7 +1998,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
                                                Converter conv) noexcept {
 #define WJR_BIGINTEGER_TO_CHARS_IMPL(BASE, NAME, TAIL, SIZE, CALL)                       \
     constexpr auto __fast_container_inserter_v =                                         \
-        convert_details::is_fast_container_inserter_v<Iter>;                             \
+        convert_detail::is_fast_container_inserter_v<Iter>;                              \
     if constexpr (__fast_container_inserter_v != 0) {                                    \
         auto &cont = get_inserter_container(ptr);                                        \
         const auto __presize = cont.size();                                              \
@@ -2018,11 +2018,11 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
                                                                                          \
         return ptr;                                                                      \
     } else {                                                                             \
-        unique_stack_allocator stkal(math_details::stack_alloc);                         \
+        unique_stack_allocator stkal(math_detail::stack_alloc);                          \
         const auto __ptr = (uint8_t *)stkal.allocate(SIZE * sizeof(uint64_t));           \
         const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;           \
                                                                                          \
-        return wjr::copy_n((convert_details::fast_buffer_t<Iter> *)__ptr, __size, ptr);  \
+        return wjr::copy_n((convert_detail::fast_buffer_t<Iter> *)__ptr, __size, ptr);   \
     }
 
     switch (base) {
@@ -2067,7 +2067,7 @@ Iter __biginteger_to_chars_impl(Iter first, const uint64_t *up, size_t n,
         return to_chars_unchecked(first, up[0], base, conv);
     }
 
-    if constexpr (convert_details::__is_fast_convert_iterator_v<Iter>) {
+    if constexpr (convert_detail::__is_fast_convert_iterator_v<Iter>) {
         const auto __first = reinterpret_cast<uint8_t *>(wjr::to_address(first));
         const auto __result =
             __fast_biginteger_large_to_chars_impl(__first, up, n, base, conv);
@@ -2466,8 +2466,8 @@ void __from_chars_unchecked_impl(Iter first, Iter last, Value &val, IBase ibase,
 
 template <typename Iter, typename Value, unsigned int IBase = 10,
           typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
-                           &&convert_details::__is_valid_converter_v<Value, Converter>)>
+          WJR_REQUIRES(convert_detail::__is_fast_convert_iterator_v<Iter>
+                           &&convert_detail::__is_valid_converter_v<Value, Converter>)>
 void from_chars_unchecked(Iter first, Iter last, Value &val,
                           integral_constant<unsigned int, IBase> ic = {},
                           Converter conv = {}) noexcept {
@@ -2506,8 +2506,8 @@ void from_chars_unchecked_dynamic(Iter first, Iter last, Value &val, unsigned in
 
 template <typename Iter, typename Value, typename IBase,
           typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
-                           &&convert_details::__is_valid_converter_v<Value, Converter>
+          WJR_REQUIRES(convert_detail::__is_fast_convert_iterator_v<Iter>
+                           &&convert_detail::__is_valid_converter_v<Value, Converter>
                                &&is_nonbool_integral_v<IBase>)>
 void from_chars_unchecked(Iter first, Iter last, Value &val, IBase base,
                           Converter conv = {}) noexcept {
@@ -2709,7 +2709,7 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
 }
 
 template <typename Value, unsigned int IBase = 10, typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
+          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>)>
 from_chars_result<const char *>
 from_chars(const char *first, const char *last, Value &val,
            integral_constant<unsigned int, IBase> ic = {}, Converter conv = {}) noexcept {
@@ -2717,7 +2717,7 @@ from_chars(const char *first, const char *last, Value &val,
 }
 
 template <typename Value, typename Converter,
-          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
+          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>)>
 from_chars_result<const char *> from_chars_dynamic(const char *first, const char *last,
                                                    Value &val, unsigned int base,
                                                    Converter conv) noexcept {
@@ -2739,7 +2739,7 @@ from_chars_result<const char *> from_chars_dynamic(const char *first, const char
 }
 
 template <typename Value, typename IBase, typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>
+          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>
                            &&is_nonbool_integral_v<IBase>)>
 from_chars_result<const char *> from_chars(const char *first, const char *last,
                                            Value &val, IBase base,
@@ -3070,7 +3070,7 @@ uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last
 
     precompute_chars_convert_t pre[64 - 3];
 
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
     const size_t un = n / per_digits + 1;
     auto stk =
         static_cast<uint64_t *>(stkal.allocate((un * 16 / 5 + 192) * sizeof(uint64_t)));
@@ -3091,7 +3091,7 @@ uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last
  * @return Pointer after the conversion
  */
 template <typename Iter, typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>)>
+          WJR_REQUIRES(convert_detail::__is_fast_convert_iterator_v<Iter>)>
 uint64_t *biginteger_from_chars(Iter first, Iter last, uint64_t *up,
                                 unsigned int base = 10, Converter conv = {}) noexcept {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));

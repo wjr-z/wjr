@@ -3,7 +3,7 @@
 
 #include <wjr/preprocessor/arithmatic/dec.hpp>
 #include <wjr/preprocessor/arithmatic/inc.hpp>
-#include <wjr/preprocessor/details/basic.hpp>
+#include <wjr/preprocessor/detail/basic.hpp>
 #include <wjr/preprocessor/queue/basic.hpp>
 
 #define WJR_PP_QUEUE_CALL(args, ops)                                                     \

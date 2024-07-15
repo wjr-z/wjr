@@ -1,7 +1,7 @@
 #ifndef WJR_PREPROCCESSOR_QUEUE_BASIC_HPP__
 #define WJR_PREPROCCESSOR_QUEUE_BASIC_HPP__
 
-#include <wjr/preprocessor/details/basic.hpp>
+#include <wjr/preprocessor/detail/basic.hpp>
 
 #define WJR_PP_QUEUE_EXPAND(queue) WJR_PP_QUEUE_EXPAND_I queue
 #define WJR_PP_QUEUE_EXPAND_I(...) __VA_ARGS__

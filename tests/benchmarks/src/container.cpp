@@ -1,4 +1,4 @@
-#include "details.hpp"
+#include "detail.hpp"
 
 #include <wjr/vector.hpp>
 

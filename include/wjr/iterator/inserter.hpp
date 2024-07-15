@@ -1,7 +1,7 @@
 #ifndef WJR_ITERATOR_INSERTER_HPP__
 #define WJR_ITERATOR_INSERTER_HPP__
 
-#include <wjr/iterator/details.hpp>
+#include <wjr/iterator/detail.hpp>
 
 namespace wjr {
 

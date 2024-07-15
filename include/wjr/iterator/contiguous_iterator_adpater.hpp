@@ -2,7 +2,7 @@
 #define WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP__
 
 #include <wjr/assert.hpp>
-#include <wjr/memory/details.hpp>
+#include <wjr/memory/detail.hpp>
 
 namespace wjr {
 
@@ -20,7 +20,7 @@ public:
     using pointer = typename Traits::const_pointer;
     using reference = typename Traits::const_reference;
 
-    WJR_CONSTEXPR20 contiguous_const_iterator_adapter() noexcept(
+    contiguous_const_iterator_adapter() noexcept(
         std::is_nothrow_default_constructible_v<__pointer>) = default;
 
     WJR_CONSTEXPR20
@@ -30,16 +30,14 @@ public:
         __set_container(container);
     }
 
-    WJR_CONSTEXPR20
     contiguous_const_iterator_adapter(const contiguous_const_iterator_adapter &) noexcept(
         std::is_nothrow_copy_constructible_v<__pointer>) = default;
-    WJR_CONSTEXPR20
     contiguous_const_iterator_adapter(contiguous_const_iterator_adapter &&) noexcept(
         std::is_nothrow_move_constructible_v<__pointer>) = default;
-    WJR_CONSTEXPR20 contiguous_const_iterator_adapter &
+    contiguous_const_iterator_adapter &
     operator=(const contiguous_const_iterator_adapter &) noexcept(
         std::is_nothrow_copy_assignable_v<__pointer>) = default;
-    WJR_CONSTEXPR20 contiguous_const_iterator_adapter &
+    contiguous_const_iterator_adapter &
     operator=(contiguous_const_iterator_adapter &&) noexcept(
         std::is_nothrow_move_assignable_v<__pointer>) = default;
 

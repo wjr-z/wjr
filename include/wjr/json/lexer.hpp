@@ -12,7 +12,7 @@ namespace wjr::json {
 
 #if !WJR_HAS_BUILTIN(JSON_LEXER_READER_READ_BUF)
 
-namespace lexer_details {
+namespace lexer_detail {
 
 const static std::array<uint8_t, 256> code_table = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
@@ -34,7 +34,7 @@ uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
         return 0;
     }
 
-    using namespace lexer_details;
+    using namespace lexer_detail;
 
     auto first = m_storage.first;
     const auto last = m_storage.last;

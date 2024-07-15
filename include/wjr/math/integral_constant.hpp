@@ -12,11 +12,11 @@ struct integral_constant {
     using value_type = T;
     using type = integral_constant;
 
-    constexpr integral_constant() = default;
-    constexpr integral_constant(const integral_constant &) = default;
-    constexpr integral_constant(integral_constant &&) = default;
-    constexpr integral_constant &operator=(const integral_constant &) = default;
-    constexpr integral_constant &operator=(integral_constant &&) = default;
+    integral_constant() = default;
+    integral_constant(const integral_constant &) = default;
+    integral_constant(integral_constant &&) = default;
+    integral_constant &operator=(const integral_constant &) = default;
+    integral_constant &operator=(integral_constant &&) = default;
     ~integral_constant() = default;
 
     constexpr integral_constant(std::integral_constant<T, val>) noexcept {}
@@ -41,7 +41,7 @@ struct integral_constant {
     }
 };
 
-namespace digits_literal_details {
+namespace digits_literal_detail {
 
 template <uint64_t Base>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR static uint32_t __fast_conv_4(uint32_t val) noexcept {
@@ -124,12 +124,12 @@ WJR_CONST constexpr T parse() noexcept {
     return __parse_impl<T, Chars...>().result;
 }
 
-} // namespace digits_literal_details
+} // namespace digits_literal_detail
 
 #define WJR_REGISTER_INTEGRAL_LITERAL(NAME, TYPE)                                        \
     template <char... Chars>                                                             \
     WJR_CONST WJR_INTRINSIC_CONSTEXPR auto operator"" _##NAME() noexcept                 \
-        -> integral_constant<TYPE, digits_literal_details::parse<TYPE, Chars...>()> {    \
+        -> integral_constant<TYPE, digits_literal_detail::parse<TYPE, Chars...>()> {     \
         return {};                                                                       \
     }
 

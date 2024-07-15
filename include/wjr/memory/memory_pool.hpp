@@ -2,7 +2,7 @@
 #define WJR_MEMORY_MEMORY_POOL_HPP__
 
 #include <wjr/container/intrusive/list.hpp>
-#include <wjr/memory/details.hpp>
+#include <wjr/memory/detail.hpp>
 
 namespace wjr {
 
@@ -38,14 +38,14 @@ struct automatic_free_pool {
     chunk head;
 };
 
-namespace memory_pool_details {
+namespace memory_pool_detail {
 
 static constexpr uint8_t __ctz_table[32] = {
     0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4,
     5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
 };
 
-} // namespace memory_pool_details
+} // namespace memory_pool_detail
 
 class __default_alloc_template__ {
 private:
@@ -60,10 +60,10 @@ private:
 
     WJR_CONST static constexpr uint8_t __get_index(uint32_t bytes) noexcept {
         if (bytes <= 256) {
-            return memory_pool_details::__ctz_table[(bytes - 1) >> 3];
+            return memory_pool_detail::__ctz_table[(bytes - 1) >> 3];
         }
 
-        return memory_pool_details::__ctz_table[(bytes - 1) >> 9] + 6;
+        return memory_pool_detail::__ctz_table[(bytes - 1) >> 9] + 6;
     }
 
     WJR_CONST static constexpr uint32_t __get_size(uint8_t idx) noexcept {
@@ -191,8 +191,8 @@ public:
         using other = memory_pool<Other>;
     };
 
-    constexpr memory_pool() = default;
-    constexpr memory_pool(const memory_pool &) = default;
+    memory_pool() = default;
+    memory_pool(const memory_pool &) = default;
     template <typename Other>
     constexpr memory_pool(const memory_pool<Other> &) noexcept {}
     ~memory_pool() = default;
@@ -219,7 +219,7 @@ public:
     }
 
     /**
-     * @details Allocate memory, don't need to deallocate it until the thread exits.   \n
+     * @detail Allocate memory, don't need to deallocate it until the thread exits.   \n
      * Automatically deallocate memory when the thread exits.                          \n
      * Used in thread_local memory pool that only needs to allocate memory once and    \n
      * deallocate it when the thread exits.                                            \n

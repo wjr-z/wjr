@@ -1,5 +1,5 @@
 /**
- * @details WJR_ADDSUB_I \n
+ * @detail WJR_ADDSUB_I \n
  * 0 : SUB
  * 1 : ADD
  *

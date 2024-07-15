@@ -1,7 +1,7 @@
 #ifndef WJR_X86_MATH_NOT_HPP__
 #define WJR_X86_MATH_NOT_HPP__
 
-#include <wjr/math/details.hpp>
+#include <wjr/math/detail.hpp>
 #include <wjr/x86/simd/simd.hpp>
 
 #ifndef WJR_X86

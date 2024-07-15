@@ -12,7 +12,7 @@ namespace wjr {
  * @class container_fn<Alloc>
  * @brief The same characteristics and behavior of all allocator containers
  *
- * @details container must have the following member functions:
+ * @detail container must have the following member functions:
  * -# auto& __get_allocator() noexcept
  * -# void __destroy() noexcept
  * -# void __destroy_and_deallocate() noexcept

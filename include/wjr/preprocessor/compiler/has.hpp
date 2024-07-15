@@ -3,11 +3,11 @@
 
 #include <wjr/preprocessor/compiler/arch.hpp>
 #include <wjr/preprocessor/compiler/compiler.hpp>
-#include <wjr/preprocessor/details/basic.hpp>
+#include <wjr/preprocessor/detail/basic.hpp>
 #include <wjr/preprocessor/logical/basic.hpp>
 
 /**
- * @details
+ * @detail
  * 0 : non-defined  \n
  * 1 : builtin  \n
  * 2 : intrinsic    \n

@@ -1,4 +1,4 @@
-#include "details.hpp"
+#include "detail.hpp"
 
 #if defined(WJR_USE_GMP)
 #include <gmp.h>

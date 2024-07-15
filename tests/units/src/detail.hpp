@@ -1,5 +1,5 @@
-#ifndef WJR_UNITS_DETAILS_HPP__
-#define WJR_UNITS_DETAILS_HPP__
+#ifndef WJR_UNITS_DETAIL_HPP__
+#define WJR_UNITS_DETAIL_HPP__
 
 #include <functional>
 #include <gtest/gtest.h>
@@ -12,4 +12,4 @@ static auto mt_rand = std::ref(__mt_rand);
 
 #define WJR_TESTS_NOT_OPT(x) (*(volatile decltype(x) *)&(x))
 
-#endif // WJR_UNITS_DETAILS_HPP__
+#endif // WJR_UNITS_DETAIL_HPP__

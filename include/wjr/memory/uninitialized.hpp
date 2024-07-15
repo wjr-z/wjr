@@ -12,18 +12,20 @@
 
 #include <wjr/crtp/trivially_allocator_base.hpp>
 #include <wjr/memory/aligned_storage.hpp>
-#include <wjr/memory/details.hpp>
+#include <wjr/memory/detail.hpp>
 
 namespace wjr {
 
 template <typename Iter, typename... Args>
-WJR_CONSTEXPR20 void construct_at(Iter iter, Args &&...args) {
+WJR_CONSTEXPR20 void construct_at(Iter iter, Args &&...args) noexcept(
+    std::is_nothrow_constructible_v<iterator_value_t<Iter>, Args...>) {
     ::new (static_cast<void *>(wjr::to_address(iter)))
         iterator_value_t<Iter>(std::forward<Args>(args)...);
 }
 
 template <typename Iter>
-WJR_CONSTEXPR20 void construct_at(Iter iter, dctor_t) {
+WJR_CONSTEXPR20 void construct_at(Iter iter, dctor_t) noexcept(
+    std::is_nothrow_default_constructible_v<iterator_value_t<Iter>>) {
     ::new (static_cast<void *>(wjr::to_address(iter))) iterator_value_t<Iter>;
 }
 
@@ -324,10 +326,10 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
 /**
  * @class uninitialized
  *
- * @details Uninitialized object. Make trivially constructible and destructible of
+ * @detail Uninitialized object. Make trivially constructible and destructible of
  * any type.+
  *
- * @details Trivially constructible and destructible uninitialized object. Copy/move
+ * @detail Trivially constructible and destructible uninitialized object. Copy/move
  * constructor and assignment operators are deleted if the type is not trivially
  * copy/move constructible/assignable.
  *
@@ -339,9 +341,9 @@ class uninitialized : algined_storage<T> {
 public:
     using Mybase::Mybase;
 
-    constexpr uninitialized() = default;
+    uninitialized() = default;
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Mybase, Args &&...>)>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Mybase, Args...>)>
     constexpr uninitialized(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<Mybase, Args...>)
         : Mybase(std::forward<Args>(args)...) {
@@ -350,7 +352,7 @@ public:
 
     constexpr uninitialized(dctor_t) noexcept : Mybase() {}
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr T &
     emplace(Args &&...args) noexcept(std::is_nothrow_constructible_v<Mybase, Args...>) {
         if constexpr (!std::is_trivially_destructible_v<T>) {

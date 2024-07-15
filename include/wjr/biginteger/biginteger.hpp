@@ -17,7 +17,7 @@ struct is_biginteger_storage : std::false_type {};
 template <typename Storage>
 inline constexpr bool is_biginteger_storage_v = is_biginteger_storage<Storage>::value;
 
-namespace biginteger_details {
+namespace biginteger_detail {
 
 /**
  * @brief Remove leading zeros.
@@ -27,7 +27,7 @@ inline uint32_t normalize(const uint64_t *ptr, uint32_t n) noexcept {
     return reverse_find_not_n(ptr, 0, n);
 }
 
-} // namespace biginteger_details
+} // namespace biginteger_detail
 
 class default_biginteger_size_reference {
 public:
@@ -82,7 +82,7 @@ struct __unref_wrapper_helper<default_biginteger_size_reference> {
 /**
  * @brief data_type of biginteger
  *
- * @details View the data of biginteger. Used for type erasure. Manage memory allocation
+ * @detail View the data of biginteger. Used for type erasure. Manage memory allocation
  * and release on your own.
  *
  */
@@ -129,7 +129,7 @@ public:
     default_biginteger_vector_storage &
     operator=(const default_biginteger_vector_storage &) = delete;
     default_biginteger_vector_storage &
-    operator=(default_biginteger_vector_storage &&) noexcept = delete;
+    operator=(default_biginteger_vector_storage &&) = delete;
 
     ~default_biginteger_vector_storage() = default;
 
@@ -201,7 +201,7 @@ public:
     }
 
     template <typename T>
-    void set_ssize(int32_t size) noexcept = delete;
+    void set_ssize(int32_t size) = delete;
 
     WJR_PURE const biginteger_data *__get_data() const noexcept { return &m_storage; }
 
@@ -216,7 +216,7 @@ struct is_biginteger_storage<default_biginteger_vector_storage<Alloc>> : std::tr
 template <typename Storage>
 class basic_biginteger;
 
-namespace biginteger_details {
+namespace biginteger_detail {
 
 // const basic_biginteger<Storage>* don't need to get allocator
 // use const Storage* instead of const basic_biginteger<Storage>*
@@ -658,7 +658,7 @@ template <typename S>
 void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint64_t exp,
                    const biginteger_data *mod) noexcept;
 
-} // namespace biginteger_details
+} // namespace biginteger_detail
 
 template <typename S>
 from_chars_result<> from_chars(const char *first, const char *last,
@@ -688,12 +688,12 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
 
 WJR_NODISCARD WJR_PURE inline int32_t compare(const biginteger_data &lhs,
                                               const biginteger_data &rhs) noexcept {
-    return biginteger_details::__compare_impl(&lhs, &rhs);
+    return biginteger_detail::__compare_impl(&lhs, &rhs);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_NODISCARD WJR_PURE int32_t compare(const biginteger_data &lhs, T rhs) noexcept {
-    return biginteger_details::__compare_impl(&lhs, rhs);
+    return biginteger_detail::__compare_impl(&lhs, rhs);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
@@ -730,18 +730,18 @@ WJR_REGISTER_BIGINTEGER_COMPARE(>=)
     template <typename S>                                                                \
     void ADDSUB(basic_biginteger<S> &dst, const biginteger_data &lhs,                    \
                 const biginteger_data &rhs) noexcept {                                   \
-        biginteger_details::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, &lhs,  \
-                                                                            &rhs);       \
+        biginteger_detail::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, &lhs,   \
+                                                                           &rhs);        \
     }                                                                                    \
     template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>            \
     void ADDSUB(basic_biginteger<S> &dst, const biginteger_data &lhs, T rhs) noexcept {  \
-        biginteger_details::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, &lhs,  \
-                                                                            rhs);        \
+        biginteger_detail::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, &lhs,   \
+                                                                           rhs);         \
     }                                                                                    \
     template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>            \
     void ADDSUB(basic_biginteger<S> &dst, T lhs, const biginteger_data &rhs) noexcept {  \
-        biginteger_details::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, lhs,   \
-                                                                            &rhs);       \
+        biginteger_detail::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, lhs,    \
+                                                                           &rhs);        \
     }
 
 WJR_REGISTER_BIGINTEGER_ADDSUB(add)
@@ -767,7 +767,7 @@ void absolute(basic_biginteger<S> &dst) noexcept;
 
 template <typename S>
 void sqr(basic_biginteger<S> &dst, const biginteger_data &src) noexcept {
-    biginteger_details::__sqr_impl(&dst, &src);
+    biginteger_detail::__sqr_impl(&dst, &src);
 }
 
 template <typename S>
@@ -778,232 +778,232 @@ void mul(basic_biginteger<S> &dst, const biginteger_data &lhs,
         return;
     }
 
-    biginteger_details::__mul_impl(&dst, &lhs, &rhs);
+    biginteger_detail::__mul_impl(&dst, &lhs, &rhs);
 }
 
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 void mul(basic_biginteger<S> &dst, const biginteger_data &lhs, T rhs) noexcept {
-    biginteger_details::__mul_impl(&dst, &lhs, rhs);
+    biginteger_detail::__mul_impl(&dst, &lhs, rhs);
 }
 
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 void mul(basic_biginteger<S> &dst, T lhs, const biginteger_data &rhs) noexcept {
-    biginteger_details::__mul_impl(&dst, &rhs, lhs);
+    biginteger_detail::__mul_impl(&dst, &rhs, lhs);
 }
 
 template <typename S>
 void addmul(basic_biginteger<S> &dst, const biginteger_data &lhs,
             const biginteger_data &rhs) noexcept {
-    biginteger_details::__addmul_impl(&dst, &lhs, &rhs);
+    biginteger_detail::__addmul_impl(&dst, &lhs, &rhs);
 }
 
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 void addmul(basic_biginteger<S> &dst, const biginteger_data &lhs, T rhs) noexcept {
-    biginteger_details::__addmul_impl(&dst, &lhs, rhs);
+    biginteger_detail::__addmul_impl(&dst, &lhs, rhs);
 }
 
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 void addmul(basic_biginteger<S> &dst, T lhs, const biginteger_data &rhs) noexcept {
-    biginteger_details::__addmul_impl(&dst, &rhs, lhs);
+    biginteger_detail::__addmul_impl(&dst, &rhs, lhs);
 }
 
 template <typename S>
 void submul(basic_biginteger<S> &dst, const biginteger_data &lhs,
             const biginteger_data &rhs) noexcept {
-    biginteger_details::__submul_impl(&dst, &lhs, &rhs);
+    biginteger_detail::__submul_impl(&dst, &lhs, &rhs);
 }
 
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 void submul(basic_biginteger<S> &dst, const biginteger_data &lhs, T rhs) noexcept {
-    biginteger_details::__submul_impl(&dst, &lhs, rhs);
+    biginteger_detail::__submul_impl(&dst, &lhs, rhs);
 }
 
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 void submul(basic_biginteger<S> &dst, T lhs, const biginteger_data &rhs) noexcept {
-    biginteger_details::__submul_impl(&dst, &rhs, lhs);
+    biginteger_detail::__submul_impl(&dst, &rhs, lhs);
 }
 
 template <typename S>
 void mul_2exp(basic_biginteger<S> &dst, const biginteger_data &lhs,
               uint32_t shift) noexcept {
-    biginteger_details::__mul_2exp_impl(&dst, &lhs, shift);
+    biginteger_detail::__mul_2exp_impl(&dst, &lhs, shift);
 }
 
 template <typename S0, typename S1>
 void tdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
              const biginteger_data &num, const biginteger_data &div) noexcept {
-    biginteger_details::__tdiv_qr_impl(&quot, &rem, &num, &div);
+    biginteger_detail::__tdiv_qr_impl(&quot, &rem, &num, &div);
 }
 
 template <typename S>
 void tdiv_q(basic_biginteger<S> &quot, const biginteger_data &num,
             const biginteger_data &div) noexcept {
-    biginteger_details::__tdiv_q_impl(&quot, &num, &div);
+    biginteger_detail::__tdiv_q_impl(&quot, &num, &div);
 }
 
 template <typename S0>
 void tdiv_r(basic_biginteger<S0> &rem, const biginteger_data &num,
             const biginteger_data &div) noexcept {
-    biginteger_details::__tdiv_r_impl(&rem, &num, &div);
+    biginteger_detail::__tdiv_r_impl(&rem, &num, &div);
 }
 
 template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t tdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
                  const biginteger_data &num, T div) noexcept {
-    return biginteger_details::__tdiv_qr_impl(&quot, &rem, &num, div);
+    return biginteger_detail::__tdiv_qr_impl(&quot, &rem, &num, div);
 }
 
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t tdiv_q(basic_biginteger<S> &quot, const biginteger_data &num, T div) noexcept {
-    return biginteger_details::__tdiv_q_impl(&quot, &num, div);
+    return biginteger_detail::__tdiv_q_impl(&quot, &num, div);
 }
 
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t tdiv_r(basic_biginteger<S> &rem, const biginteger_data &num, T div) noexcept {
-    return biginteger_details::__tdiv_r_impl(&rem, &num, div);
+    return biginteger_detail::__tdiv_r_impl(&rem, &num, div);
 }
 
 template <typename S0, typename S1>
 void fdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
              const biginteger_data &num, const biginteger_data &div) noexcept {
-    biginteger_details::__fdiv_qr_impl(&quot, &rem, &num, &div);
+    biginteger_detail::__fdiv_qr_impl(&quot, &rem, &num, &div);
 }
 
 template <typename S>
 void fdiv_q(basic_biginteger<S> &quot, const biginteger_data &num,
             const biginteger_data &div) noexcept {
-    biginteger_details::__fdiv_q_impl(&quot, &num, &div);
+    biginteger_detail::__fdiv_q_impl(&quot, &num, &div);
 }
 
 template <typename S0>
 void fdiv_r(basic_biginteger<S0> &rem, const biginteger_data &num,
             const biginteger_data &div) noexcept {
-    biginteger_details::__fdiv_r_impl(&rem, &num, &div);
+    biginteger_detail::__fdiv_r_impl(&rem, &num, &div);
 }
 
 template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t fdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
                  const biginteger_data &num, T div) noexcept {
-    return biginteger_details::__fdiv_qr_impl(&quot, &rem, &num, div);
+    return biginteger_detail::__fdiv_qr_impl(&quot, &rem, &num, div);
 }
 
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t fdiv_q(basic_biginteger<S> &quot, const biginteger_data &num, T div) noexcept {
-    return biginteger_details::__fdiv_q_impl(&quot, &num, div);
+    return biginteger_detail::__fdiv_q_impl(&quot, &num, div);
 }
 
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t fdiv_r(basic_biginteger<S> &rem, const biginteger_data &num, T div) noexcept {
-    return biginteger_details::__fdiv_r_impl(&rem, &num, div);
+    return biginteger_detail::__fdiv_r_impl(&rem, &num, div);
 }
 
 template <typename S0, typename S1>
 void cdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
              const biginteger_data &num, const biginteger_data &div) noexcept {
-    biginteger_details::__cdiv_qr_impl(&quot, &rem, &num, &div);
+    biginteger_detail::__cdiv_qr_impl(&quot, &rem, &num, &div);
 }
 
 template <typename S>
 void cdiv_q(basic_biginteger<S> &quot, const biginteger_data &num,
             const biginteger_data &div) noexcept {
-    biginteger_details::__cdiv_q_impl(&quot, &num, &div);
+    biginteger_detail::__cdiv_q_impl(&quot, &num, &div);
 }
 
 template <typename S0>
 void cdiv_r(basic_biginteger<S0> &rem, const biginteger_data &num,
             const biginteger_data &div) noexcept {
-    biginteger_details::__cdiv_r_impl(&rem, &num, &div);
+    biginteger_detail::__cdiv_r_impl(&rem, &num, &div);
 }
 
 template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t cdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
                  const biginteger_data &num, T div) noexcept {
-    return biginteger_details::__cdiv_qr_impl(&quot, &rem, &num, div);
+    return biginteger_detail::__cdiv_qr_impl(&quot, &rem, &num, div);
 }
 
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t cdiv_q(basic_biginteger<S> &quot, const biginteger_data &num, T div) noexcept {
-    return biginteger_details::__cdiv_q_impl(&quot, &num, div);
+    return biginteger_detail::__cdiv_q_impl(&quot, &num, div);
 }
 
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t cdiv_r(basic_biginteger<S> &rem, const biginteger_data &num, T div) noexcept {
-    return biginteger_details::__cdiv_r_impl(&rem, &num, div);
+    return biginteger_detail::__cdiv_r_impl(&rem, &num, div);
 }
 
 template <typename S>
 void tdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num,
                  uint32_t shift) noexcept {
-    biginteger_details::__tdiv_q_2exp_impl(&quot, &num, shift);
+    biginteger_detail::__tdiv_q_2exp_impl(&quot, &num, shift);
 }
 
 template <typename S>
 void tdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num,
                  uint32_t shift) noexcept {
-    biginteger_details::__tdiv_r_2exp_impl(&rem, &num, shift);
+    biginteger_detail::__tdiv_r_2exp_impl(&rem, &num, shift);
 }
 
 template <typename S>
 void fdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num,
                  uint32_t shift) noexcept {
-    biginteger_details::__fdiv_q_2exp_impl(&quot, &num, shift);
+    biginteger_detail::__fdiv_q_2exp_impl(&quot, &num, shift);
 }
 
 template <typename S>
 void cdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num,
                  uint32_t shift) noexcept {
-    biginteger_details::__cdiv_q_2exp_impl(&quot, &num, shift);
+    biginteger_detail::__cdiv_q_2exp_impl(&quot, &num, shift);
 }
 
 template <typename S>
 void cdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num,
                  uint32_t shift) noexcept {
-    biginteger_details::__cdiv_r_2exp_impl(&rem, &num, shift);
+    biginteger_detail::__cdiv_r_2exp_impl(&rem, &num, shift);
 }
 
 template <typename S>
 void fdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num,
                  uint32_t shift) noexcept {
-    biginteger_details::__fdiv_r_2exp_impl(&rem, &num, shift);
+    biginteger_detail::__fdiv_r_2exp_impl(&rem, &num, shift);
 }
 
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
 void urandom_bit(basic_biginteger<S> &dst, uint32_t size, Engine &engine) noexcept {
-    biginteger_details::__urandom_bit_impl(&dst, size, engine);
+    biginteger_detail::__urandom_bit_impl(&dst, size, engine);
 }
 
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
 void urandom_exact_bit(basic_biginteger<S> &dst, uint32_t size, Engine &engine) noexcept {
-    biginteger_details::__urandom_exact_bit_impl(&dst, size, engine);
+    biginteger_detail::__urandom_exact_bit_impl(&dst, size, engine);
 }
 
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
 void urandom(basic_biginteger<S> &dst, const biginteger_data &limit,
              Engine &engine) noexcept {
-    biginteger_details::__urandom_impl(&dst, &limit, engine);
+    biginteger_detail::__urandom_impl(&dst, &limit, engine);
 }
 
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
 void urandom_exact(basic_biginteger<S> &dst, const biginteger_data &limit,
                    Engine &engine) noexcept {
-    biginteger_details::__urandom_exact_impl(&dst, &limit, engine);
+    biginteger_detail::__urandom_exact_impl(&dst, &limit, engine);
 }
 
 inline uint32_t bit_width(const biginteger_data &num) noexcept {
-    return biginteger_details::__bit_width_impl(&num);
+    return biginteger_detail::__bit_width_impl(&num);
 }
 
 inline uint32_t ctz(const biginteger_data &num) noexcept {
-    return biginteger_details::__ctz_impl(&num);
+    return biginteger_detail::__ctz_impl(&num);
 }
 
 template <typename S>
 void pow(basic_biginteger<S> &dst, const biginteger_data &num, uint32_t exp) noexcept {
-    biginteger_details::__pow_impl(&dst, &num, exp);
+    biginteger_detail::__pow_impl(&dst, &num, exp);
 }
 
 /**
@@ -1012,7 +1012,7 @@ void pow(basic_biginteger<S> &dst, const biginteger_data &num, uint32_t exp) noe
 template <typename S>
 void powmod(basic_biginteger<S> &dst, const biginteger_data &num,
             const biginteger_data &exp, const biginteger_data &mod) noexcept {
-    biginteger_details::__powmod_impl(&dst, &num, &exp, &mod);
+    biginteger_detail::__powmod_impl(&dst, &num, &exp, &mod);
 }
 
 /**
@@ -1021,7 +1021,7 @@ void powmod(basic_biginteger<S> &dst, const biginteger_data &num,
 template <typename S>
 void powmod(basic_biginteger<S> &dst, const biginteger_data &num, uint64_t exp,
             const biginteger_data &mod) noexcept {
-    biginteger_details::__powmod_impl(&dst, &num, exp, &mod);
+    biginteger_detail::__powmod_impl(&dst, &num, exp, &mod);
 }
 
 template <typename Storage>
@@ -1333,14 +1333,14 @@ template <typename Alloc>
 using default_biginteger = basic_biginteger<default_biginteger_vector_storage<Alloc>>;
 
 using biginteger = default_biginteger<memory_pool<uint64_t>>;
-using stack_biginteger = default_biginteger<math_details::weak_stack_alloc<uint64_t>>;
+using stack_biginteger = default_biginteger<math_detail::weak_stack_alloc<uint64_t>>;
 
 template <typename Storage>
 void swap(basic_biginteger<Storage> &lhs, basic_biginteger<Storage> &rhs) noexcept {
     lhs.swap(rhs);
 }
 
-namespace biginteger_details {
+namespace biginteger_detail {
 
 /// @private
 template <typename S>
@@ -1394,7 +1394,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last,
         return invalid();
     }
 
-    while (convert_details::__isspace(ch = *first++) && first != last)
+    while (convert_detail::__isspace(ch = *first++) && first != last)
         ;
 
     int sign = 0;
@@ -1779,7 +1779,7 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 
     std::optional<uninitialized<basic_biginteger<S>>> tmp;
 
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
 
     if (dst->capacity() < dusize) {
         tmp.emplace(dst->get_growth_capacity(dst->capacity(), dusize), in_place_reserve,
@@ -1850,7 +1850,7 @@ void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept {
 
     std::optional<uninitialized<basic_biginteger<S>>> tmp;
 
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
 
     if (dst->capacity() < dusize) {
         tmp.emplace(dst->get_growth_capacity(dst->capacity(), dusize), in_place_reserve,
@@ -2024,7 +2024,7 @@ void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
         return;
     }
 
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
     auto tp = (uint64_t *)stkal.allocate(tusize * sizeof(uint64_t));
 
     mul_s(tp, lhs->data(), lusize, rhs->data(), rusize);
@@ -2130,7 +2130,7 @@ void __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
     auto np = (pointer)num->data();
     auto dp = (pointer)div->data();
 
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
 
     if (dp == rp || dp == qp) {
         auto tp = (pointer)stkal.allocate(dusize * sizeof(uint64_t));
@@ -2178,7 +2178,7 @@ void __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
     auto np = (pointer)num->data();
     auto dp = (pointer)div->data();
 
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
 
     if (dp == qp) {
         auto tp = (pointer)stkal.allocate(dusize * sizeof(uint64_t));
@@ -2231,7 +2231,7 @@ void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
     auto np = (pointer)num->data();
     auto dp = (pointer)div->data();
 
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
 
     if (dp == rp) {
         const auto tp = (pointer)stkal.allocate(dusize * sizeof(uint64_t));
@@ -2405,7 +2405,7 @@ void __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
 
     WJR_ASSERT_ASSUME(!__equal_pointer(quot, rem), "quot should not be the same as rem");
 
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
 
     biginteger_data tmp_div;
 
@@ -2433,7 +2433,7 @@ void __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
 template <typename S>
 void __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
                    const biginteger_data *div) noexcept {
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
     stack_biginteger rem(stkal);
 
     const auto xsize = num->get_ssize() ^ div->get_ssize();
@@ -2448,7 +2448,7 @@ void __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
 template <typename S>
 void __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                    const biginteger_data *div) noexcept {
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
 
     biginteger_data tmp_div;
 
@@ -2600,7 +2600,7 @@ void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
 
     WJR_ASSERT_ASSUME(!__equal_pointer(quot, rem), "quot should not be the same as rem");
 
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
 
     biginteger_data tmp_div;
 
@@ -2628,7 +2628,7 @@ void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
 template <typename S>
 void __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
                    const biginteger_data *div) noexcept {
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
     stack_biginteger rem(stkal);
 
     const auto xsize = num->get_ssize() ^ div->get_ssize();
@@ -2643,7 +2643,7 @@ void __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
 template <typename S>
 void __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                    const biginteger_data *div) noexcept {
-    unique_stack_allocator stkal(math_details::stack_alloc);
+    unique_stack_allocator stkal(math_detail::stack_alloc);
 
     biginteger_data tmp_div;
 
@@ -3041,7 +3041,7 @@ template <typename S, typename Engine,
           WJR_REQUIRES_I(biginteger_uniform_random_bit_generator_v<Engine>)>
 void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
                     Engine &engine) noexcept {
-    std::optional<uninitialized<math_details::unique_stack_alloc>> stkal;
+    std::optional<uninitialized<math_detail::unique_stack_alloc>> stkal;
     uint32_t size = limit->size();
 
     WJR_ASSERT(size != 0);
@@ -3062,7 +3062,7 @@ void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
     const uint64_t *lp = limit->data();
 
     if (__equal_pointer(dst, limit)) {
-        stkal.emplace(math_details::stack_alloc);
+        stkal.emplace(math_detail::stack_alloc);
         const auto tp = (uint64_t *)(*stkal)->allocate(size * sizeof(uint64_t));
         std::copy_n(lp, size, tp);
         lp = tp;
@@ -3118,7 +3118,7 @@ template <typename S, typename Engine,
           WJR_REQUIRES_I(biginteger_uniform_random_bit_generator_v<Engine>)>
 void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
                           Engine &engine) noexcept {
-    std::optional<uninitialized<math_details::unique_stack_alloc>> stkal;
+    std::optional<uninitialized<math_detail::unique_stack_alloc>> stkal;
     uint32_t size = limit->size();
 
     if (WJR_UNLIKELY(size <= 1)) {
@@ -3142,7 +3142,7 @@ void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit
     const uint64_t *lp = limit->data();
 
     if (__equal_pointer(dst, limit)) {
-        stkal.emplace(math_details::stack_alloc);
+        stkal.emplace(math_detail::stack_alloc);
         const auto tp = (uint64_t *)(*stkal)->allocate(size * sizeof(uint64_t));
         std::copy_n(lp, size, tp);
         lp = tp;
@@ -3327,12 +3327,12 @@ void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint64_
     __powmod_impl(dst, num, &iter, mod);
 }
 
-} // namespace biginteger_details
+} // namespace biginteger_detail
 
 template <typename S>
 from_chars_result<> from_chars(const char *first, const char *last,
                                basic_biginteger<S> &dst, unsigned int base) noexcept {
-    return biginteger_details::__from_chars_impl(first, last, &dst, base);
+    return biginteger_detail::__from_chars_impl(first, last, &dst, base);
 }
 
 template <typename S>
@@ -3359,9 +3359,9 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
     std::ios_base::iostate state = std::ios::goodbit;
 
     if (const std::ostream::sentry ok(os); ok) {
-        unique_stack_allocator stkal(math_details::stack_alloc);
+        unique_stack_allocator stkal(math_detail::stack_alloc);
 
-        vector<char, math_details::weak_stack_alloc<char>> buffer(stkal);
+        vector<char, math_detail::weak_stack_alloc<char>> buffer(stkal);
         buffer.reserve(128);
 
         const std::ios_base::fmtflags flags = os.flags();
@@ -3398,5 +3398,16 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
 }
 
 } // namespace wjr
+
+namespace std {
+
+template <typename Storage>
+constexpr void
+swap(wjr::basic_biginteger<Storage> &lhs,
+     wjr::basic_biginteger<Storage> &rhs) noexcept(noexcept(lhs.swap(rhs))) {
+    lhs.swap(rhs);
+}
+
+} // namespace std
 
 #endif

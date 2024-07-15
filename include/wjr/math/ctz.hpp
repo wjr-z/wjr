@@ -34,9 +34,9 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_ctz(T x) noexcept {
         x = lowbit(x);
 
         if constexpr (nd <= 32) {
-            return math_details::de_bruijn32.get(x);
+            return math_detail::de_bruijn32.get(x);
         } else if constexpr (nd <= 64) {
-            return math_details::de_bruijn64.get(x);
+            return math_detail::de_bruijn64.get(x);
         } else {
             static_assert(nd <= 64, "not support yet");
         }
@@ -95,7 +95,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int ctz_impl(T x) noexcept {
 /**
  * @brief Fast count trailing zeros
  *
- * @details Very fast even on non-optimized platforms by using a De Bruijn sequence. \n
+ * @detail Very fast even on non-optimized platforms by using a De Bruijn sequence. \n
  * Try __builtin_clz if available, otherwise fallback to a portable implementation. \n
  * In fallback_clz, use popcount and lowbit if POPCOUNT and POPCNT are available, make
  * sure popcount is fast. \n

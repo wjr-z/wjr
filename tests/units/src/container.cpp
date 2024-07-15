@@ -4,7 +4,7 @@
 #include <string_view>
 #include <vector>
 
-#include "details.hpp"
+#include "detail.hpp"
 
 #include <wjr/math.hpp>
 #include <wjr/vector.hpp>

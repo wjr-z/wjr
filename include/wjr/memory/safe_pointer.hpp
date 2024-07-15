@@ -21,11 +21,11 @@ public:
     using difference_type = ptrdiff_t;
     using size_type = size_t;
 
-    constexpr safe_pointer() = default;
-    constexpr safe_pointer(const safe_pointer &) = default;
-    constexpr safe_pointer(safe_pointer &&) = default;
-    constexpr safe_pointer &operator=(const safe_pointer &) = default;
-    constexpr safe_pointer &operator=(safe_pointer &&) = default;
+    safe_pointer() = default;
+    safe_pointer(const safe_pointer &) = default;
+    safe_pointer(safe_pointer &&) = default;
+    safe_pointer &operator=(const safe_pointer &) = default;
+    safe_pointer &operator=(safe_pointer &&) = default;
     ~safe_pointer() = default;
 
     constexpr safe_pointer &reset_range() noexcept {
@@ -155,11 +155,11 @@ public:
     using difference_type = ptrdiff_t;
     using size_type = size_t;
 
-    constexpr safe_pointer() = default;
-    constexpr safe_pointer(const safe_pointer &) = default;
-    constexpr safe_pointer(safe_pointer &&) = default;
-    constexpr safe_pointer &operator=(const safe_pointer &) = default;
-    constexpr safe_pointer &operator=(safe_pointer &&) = default;
+    safe_pointer() = default;
+    safe_pointer(const safe_pointer &) = default;
+    safe_pointer(safe_pointer &&) = default;
+    safe_pointer &operator=(const safe_pointer &) = default;
+    safe_pointer &operator=(safe_pointer &&) = default;
     ~safe_pointer() = default;
 
     constexpr safe_pointer &reset_range() noexcept { return *this; }

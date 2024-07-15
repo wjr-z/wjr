@@ -3,16 +3,16 @@
 
 #include <algorithm>
 
-#include <wjr/container/generic/details.hpp>
+#include <wjr/container/generic/detail.hpp>
 #include <wjr/iterator/inserter.hpp>
-#include <wjr/memory/details.hpp>
+#include <wjr/memory/detail.hpp>
 
 namespace wjr {
 
 /**
  * @fn copy
  *
- * @details Optimized for back_insert_iterator and insert_iterator.
+ * @detail Optimized for back_insert_iterator and insert_iterator.
  *
  */
 template <typename InputIt, typename OutputIt>
@@ -66,7 +66,7 @@ constexpr OutputIt __copy_restrict_impl(InputIt first, InputIt last,
 /**
  * @brief Copy elements from a range to another range with restricted pointers.
  *
- * @details Use @ref wjr::copy. \n
+ * @detail Use @ref wjr::copy. \n
  * If iterator is contiguouse, then get restricted pointer
  * by iterator to optimize.
  */
@@ -86,7 +86,7 @@ constexpr OutputIt copy_restrict(InputIt first, InputIt last, OutputIt d_first) 
 /**
  * @fn wjr::copy_n
  *
- * @details Optimized for back_insert_iterator and insert_iterator.
+ * @detail Optimized for back_insert_iterator and insert_iterator.
  *
  */
 template <typename InputIt, typename Size, typename OutputIt>
@@ -139,7 +139,7 @@ constexpr OutputIt __copy_n_restrict_impl(InputIt first, Size count, OutputIt d_
 /**
  * @brief Copy elements from a range to another range with restricted pointers.
  *
- * @details @see wjr::copy_restrict. \n
+ * @detail @see wjr::copy_restrict. \n
  *
  */
 template <typename InputIt, typename Size, typename OutputIt>
