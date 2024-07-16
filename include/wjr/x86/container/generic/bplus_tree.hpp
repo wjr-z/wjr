@@ -82,10 +82,10 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
                 }
             }
 
-            const auto x0 = sse::loadu((__m128i *)first);
-            const auto x1 = sse::loadu((__m128i *)(last - 16));
-            sse::storeu((__m128i *)(dest), x0);
-            sse::storeu((__m128i *)(dest + n - 16), x1);
+            const auto x0 = sse::loadu(first);
+            const auto x1 = sse::loadu(last - 16);
+            sse::storeu(dest, x0);
+            sse::storeu(dest + n - 16, x1);
             return;
         } while (0);
     }
@@ -99,19 +99,19 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
             }
 
 #if WJR_HAS_SIMD(AVX2)
-            const auto x0 = avx::loadu((__m256i *)first);
-            const auto x1 = avx::loadu((__m256i *)(last - 32));
-            avx::storeu((__m256i *)(dest), x0);
-            avx::storeu((__m256i *)(dest + n - 32), x1);
+            const auto x0 = avx::loadu(first);
+            const auto x1 = avx::loadu(last - 32);
+            avx::storeu(dest, x0);
+            avx::storeu(dest + n - 32, x1);
 #else
-            const auto x0 = sse::loadu((__m128i *)first);
-            const auto x1 = sse::loadu((__m128i *)(first + 16));
-            const auto x2 = sse::loadu((__m128i *)(last - 32));
-            const auto x3 = sse::loadu((__m128i *)(last - 16));
-            sse::storeu((__m128i *)(dest), x0);
-            sse::storeu((__m128i *)(dest + 16), x1);
-            sse::storeu((__m128i *)(dest + n - 32), x2);
-            sse::storeu((__m128i *)(dest + n - 16), x3);
+            const auto x0 = sse::loadu(first);
+            const auto x1 = sse::loadu(first + 16);
+            const auto x2 = sse::loadu(last - 32);
+            const auto x3 = sse::loadu(last - 16);
+            sse::storeu((dest), x0);
+            sse::storeu((dest + 16), x1);
+            sse::storeu((dest + n - 32), x2);
+            sse::storeu((dest + n - 16), x3);
 #endif
             return;
         } while (0);
@@ -119,31 +119,31 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
 
     if constexpr (size == 8) {
 #if WJR_HAS_SIMD(AVX2)
-        const auto x0 = avx::loadu((__m256i *)first);
-        const auto x1 = avx::loadu((__m256i *)(first + 32));
-        const auto x2 = avx::loadu((__m256i *)(last - 64));
-        const auto x3 = avx::loadu((__m256i *)(last - 32));
-        avx::storeu((__m256i *)(dest), x0);
-        avx::storeu((__m256i *)(dest + 32), x1);
-        avx::storeu((__m256i *)(dest + n - 64), x2);
-        avx::storeu((__m256i *)(dest + n - 32), x3);
+        const auto x0 = avx::loadu(first);
+        const auto x1 = avx::loadu(first + 32);
+        const auto x2 = avx::loadu(last - 64);
+        const auto x3 = avx::loadu(last - 32);
+        avx::storeu((dest), x0);
+        avx::storeu((dest + 32), x1);
+        avx::storeu((dest + n - 64), x2);
+        avx::storeu((dest + n - 32), x3);
 #else
-        const auto x0 = sse::loadu((__m128i *)first);
-        const auto x1 = sse::loadu((__m128i *)(first + 16));
-        const auto x2 = sse::loadu((__m128i *)(first + 32));
-        const auto x3 = sse::loadu((__m128i *)(first + 48));
-        const auto x4 = sse::loadu((__m128i *)(last - 64));
-        const auto x5 = sse::loadu((__m128i *)(last - 48));
-        const auto x6 = sse::loadu((__m128i *)(last - 32));
-        const auto x7 = sse::loadu((__m128i *)(last - 16));
-        sse::storeu((__m128i *)(dest), x0);
-        sse::storeu((__m128i *)(dest + 16), x1);
-        sse::storeu((__m128i *)(dest + 32), x2);
-        sse::storeu((__m128i *)(dest + 48), x3);
-        sse::storeu((__m128i *)(dest + n - 64), x4);
-        sse::storeu((__m128i *)(dest + n - 48), x5);
-        sse::storeu((__m128i *)(dest + n - 32), x6);
-        sse::storeu((__m128i *)(dest + n - 16), x7);
+        const auto x0 = sse::loadu(first);
+        const auto x1 = sse::loadu(first + 16);
+        const auto x2 = sse::loadu(first + 32);
+        const auto x3 = sse::loadu(first + 48);
+        const auto x4 = sse::loadu(last - 64);
+        const auto x5 = sse::loadu(last - 48);
+        const auto x6 = sse::loadu(last - 32);
+        const auto x7 = sse::loadu(last - 16);
+        sse::storeu((dest), x0);
+        sse::storeu((dest + 16), x1);
+        sse::storeu((dest + 32), x2);
+        sse::storeu((dest + 48), x3);
+        sse::storeu((dest + n - 64), x4);
+        sse::storeu((dest + n - 48), x5);
+        sse::storeu((dest + n - 32), x6);
+        sse::storeu((dest + n - 16), x7);
 #endif
     }
 }
@@ -225,10 +225,10 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
                 }
             }
 
-            const auto x0 = sse::loadu((__m128i *)first);
-            const auto x1 = sse::loadu((__m128i *)(last - 16));
-            sse::storeu((__m128i *)(dest - n), x0);
-            sse::storeu((__m128i *)(dest - 16), x1);
+            const auto x0 = sse::loadu(first);
+            const auto x1 = sse::loadu(last - 16);
+            sse::storeu((dest - n), x0);
+            sse::storeu((dest - 16), x1);
             return;
         } while (0);
     }
@@ -242,19 +242,19 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
             }
 
 #if WJR_HAS_SIMD(AVX2)
-            const auto x0 = avx::loadu((__m256i *)first);
-            const auto x1 = avx::loadu((__m256i *)(last - 32));
-            avx::storeu((__m256i *)(dest - n), x0);
-            avx::storeu((__m256i *)(dest - 32), x1);
+            const auto x0 = avx::loadu(first);
+            const auto x1 = avx::loadu(last - 32);
+            avx::storeu((dest - n), x0);
+            avx::storeu((dest - 32), x1);
 #else
-            const auto x0 = sse::loadu((__m128i *)first);
-            const auto x1 = sse::loadu((__m128i *)(first + 16));
-            const auto x2 = sse::loadu((__m128i *)(last - 32));
-            const auto x3 = sse::loadu((__m128i *)(last - 16));
-            sse::storeu((__m128i *)(dest - n), x0);
-            sse::storeu((__m128i *)(dest - n + 16), x1);
-            sse::storeu((__m128i *)(dest - 32), x2);
-            sse::storeu((__m128i *)(dest - 16), x3);
+            const auto x0 = sse::loadu(first);
+            const auto x1 = sse::loadu(first + 16);
+            const auto x2 = sse::loadu(last - 32);
+            const auto x3 = sse::loadu(last - 16);
+            sse::storeu((dest - n), x0);
+            sse::storeu((dest - n + 16), x1);
+            sse::storeu((dest - 32), x2);
+            sse::storeu((dest - 16), x3);
 #endif
             return;
         } while (0);
@@ -262,31 +262,31 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
 
     if constexpr (size == 8) {
 #if WJR_HAS_SIMD(AVX2)
-        const auto x0 = avx::loadu((__m256i *)first);
-        const auto x1 = avx::loadu((__m256i *)(first + 32));
-        const auto x2 = avx::loadu((__m256i *)(last - 64));
-        const auto x3 = avx::loadu((__m256i *)(last - 32));
-        avx::storeu((__m256i *)(dest - n), x0);
-        avx::storeu((__m256i *)(dest - n + 32), x1);
-        avx::storeu((__m256i *)(dest - 64), x2);
-        avx::storeu((__m256i *)(dest - 32), x3);
+        const auto x0 = avx::loadu(first);
+        const auto x1 = avx::loadu(first + 32);
+        const auto x2 = avx::loadu(last - 64);
+        const auto x3 = avx::loadu(last - 32);
+        avx::storeu((dest - n), x0);
+        avx::storeu((dest - n + 32), x1);
+        avx::storeu((dest - 64), x2);
+        avx::storeu((dest - 32), x3);
 #else
-        const auto x0 = sse::loadu((__m128i *)first);
-        const auto x1 = sse::loadu((__m128i *)(first + 16));
-        const auto x2 = sse::loadu((__m128i *)(first + 32));
-        const auto x3 = sse::loadu((__m128i *)(first + 48));
-        const auto x4 = sse::loadu((__m128i *)(last - 64));
-        const auto x5 = sse::loadu((__m128i *)(last - 48));
-        const auto x6 = sse::loadu((__m128i *)(last - 32));
-        const auto x7 = sse::loadu((__m128i *)(last - 16));
-        sse::storeu((__m128i *)(dest - n), x0);
-        sse::storeu((__m128i *)(dest - n + 16), x1);
-        sse::storeu((__m128i *)(dest - n + 32), x2);
-        sse::storeu((__m128i *)(dest - n + 48), x3);
-        sse::storeu((__m128i *)(dest - 64), x4);
-        sse::storeu((__m128i *)(dest - 48), x5);
-        sse::storeu((__m128i *)(dest - 32), x6);
-        sse::storeu((__m128i *)(dest - 16), x7);
+        const auto x0 = sse::loadu(first);
+        const auto x1 = sse::loadu(first + 16);
+        const auto x2 = sse::loadu(first + 32);
+        const auto x3 = sse::loadu(first + 48);
+        const auto x4 = sse::loadu(last - 64);
+        const auto x5 = sse::loadu(last - 48);
+        const auto x6 = sse::loadu(last - 32);
+        const auto x7 = sse::loadu(last - 16);
+        sse::storeu((dest - n), x0);
+        sse::storeu((dest - n + 16), x1);
+        sse::storeu((dest - n + 32), x2);
+        sse::storeu((dest - n + 48), x3);
+        sse::storeu((dest - 64), x4);
+        sse::storeu((dest - 48), x5);
+        sse::storeu((dest - 32), x6);
+        sse::storeu((dest - 16), x7);
 #endif
     }
 }

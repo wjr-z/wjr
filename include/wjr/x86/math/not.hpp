@@ -46,7 +46,7 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
         break;
     }
     case 2: {
-        sse::storeu((__m128i *)(dst), sse::Xor(sse::loadu((__m128i *)(src)), y));
+        sse::storeu(dst, sse::Xor(sse::loadu(src), y));
 
         dst += 2;
         src += 2;
@@ -55,7 +55,7 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
     }
 
     case 3: {
-        sse::storeu((__m128i *)(dst), sse::Xor(sse::loadu((__m128i *)(src)), y));
+        sse::storeu(dst, sse::Xor(sse::loadu(src), y));
         dst[2] = ~src[2];
 
         dst += 3;
@@ -77,15 +77,15 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
     WJR_ASSUME(idx != m);
 
     do {
-        auto x0 = simd::loadu((simd_int *)(src + idx));
-        auto x1 = simd::loadu((simd_int *)(src + idx + type_width));
-        auto x2 = simd::loadu((simd_int *)(src + idx + type_width * 2));
-        auto x3 = simd::loadu((simd_int *)(src + idx + type_width * 3));
+        auto x0 = simd::loadu(src + idx);
+        auto x1 = simd::loadu(src + idx + type_width);
+        auto x2 = simd::loadu(src + idx + type_width * 2);
+        auto x3 = simd::loadu(src + idx + type_width * 3);
 
-        simd::store((simd_int *)(dst + idx), simd::Xor(x0, z));
-        simd::store((simd_int *)(dst + idx + type_width), simd::Xor(x1, z));
-        simd::store((simd_int *)(dst + idx + type_width * 2), simd::Xor(x2, z));
-        simd::store((simd_int *)(dst + idx + type_width * 3), simd::Xor(x3, z));
+        simd::store(dst + idx, simd::Xor(x0, z));
+        simd::store(dst + idx + type_width, simd::Xor(x1, z));
+        simd::store(dst + idx + type_width * 2, simd::Xor(x2, z));
+        simd::store(dst + idx + type_width * 3, simd::Xor(x3, z));
 
         idx += type_width * 4;
     } while (idx != m);
@@ -103,17 +103,17 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
 
     switch (m) {
     case 3: {
-        simd::store((simd_int *)(dst), simd::Xor(simd::loadu((simd_int *)(src)), z));
+        simd::store(dst, simd::Xor(simd::loadu(src), z));
         WJR_FALLTHROUGH;
     }
     case 2: {
-        simd::store((simd_int *)(dst + type_width * (m - 2)),
-                    simd::Xor(simd::loadu((simd_int *)(src + type_width * (m - 2))), z));
+        simd::store(dst + type_width * (m - 2),
+                    simd::Xor(simd::loadu(src + type_width * (m - 2)), z));
         WJR_FALLTHROUGH;
     }
     case 1: {
-        simd::store((simd_int *)(dst + type_width * (m - 1)),
-                    simd::Xor(simd::loadu((simd_int *)(src + type_width * (m - 1))), z));
+        simd::store(dst + type_width * (m - 1),
+                    simd::Xor(simd::loadu(src + type_width * (m - 1)), z));
         WJR_FALLTHROUGH;
     }
     case 0: {
@@ -138,12 +138,12 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
         break;
     }
     case 2: {
-        sse::store((__m128i *)(dst + m), sse::Xor(sse::loadu((__m128i *)(src + m)), y));
+        sse::store(dst + m, sse::Xor(sse::loadu(src + m), y));
         break;
     }
 
     case 3: {
-        sse::store((__m128i *)(dst + m), sse::Xor(sse::loadu((__m128i *)(src + m)), y));
+        sse::store(dst + m, sse::Xor(sse::loadu(src + m), y));
         dst[m + 2] = ~src[m + 2];
         break;
     }
@@ -195,18 +195,17 @@ WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) noexcept
     const auto y = sse::ones();
 
     if (n & 4) {
-        auto x0 = sse::loadu((__m128i *)(src + idx));
-        auto x1 = sse::loadu((__m128i *)(src + idx + 2));
+        auto x0 = sse::loadu(src + idx);
+        auto x1 = sse::loadu(src + idx + 2);
 
-        sse::storeu((__m128i *)(dst + idx), sse::Xor(x0, y));
-        sse::storeu((__m128i *)(dst + idx + 2), sse::Xor(x1, y));
+        sse::storeu(dst + idx, sse::Xor(x0, y));
+        sse::storeu(dst + idx + 2, sse::Xor(x1, y));
 
         idx += 4;
     }
 
     if (n & 2) {
-        sse::storeu((__m128i *)(dst + idx),
-                    sse::Xor(sse::loadu((__m128i *)(src + idx)), y));
+        sse::storeu(dst + idx, sse::Xor(sse::loadu(src + idx), y));
 
         idx += 2;
     }
@@ -224,15 +223,15 @@ WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) noexcept
     WJR_ASSUME((n - idx) % 8 == 0);
 
     do {
-        auto x0 = sse::loadu((__m128i *)(src + idx));
-        auto x1 = sse::loadu((__m128i *)(src + idx + 2));
-        auto x2 = sse::loadu((__m128i *)(src + idx + 4));
-        auto x3 = sse::loadu((__m128i *)(src + idx + 6));
+        auto x0 = sse::loadu(src + idx);
+        auto x1 = sse::loadu(src + idx + 2);
+        auto x2 = sse::loadu(src + idx + 4);
+        auto x3 = sse::loadu(src + idx + 6);
 
-        sse::storeu((__m128i *)(dst + idx), sse::Xor(x0, y));
-        sse::storeu((__m128i *)(dst + idx + 2), sse::Xor(x1, y));
-        sse::storeu((__m128i *)(dst + idx + 4), sse::Xor(x2, y));
-        sse::storeu((__m128i *)(dst + idx + 6), sse::Xor(x3, y));
+        sse::storeu(dst + idx, sse::Xor(x0, y));
+        sse::storeu(dst + idx + 2, sse::Xor(x1, y));
+        sse::storeu(dst + idx + 4, sse::Xor(x2, y));
+        sse::storeu(dst + idx + 6, sse::Xor(x3, y));
 
         idx += 8;
     } while (idx != n);

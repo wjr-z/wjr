@@ -277,8 +277,8 @@ struct sse {
 
     WJR_INTRINSIC_INLINE static void lfence();
 
-    WJR_INTRINSIC_INLINE static __m128i load(const __m128i *ptr);
-    WJR_INTRINSIC_INLINE static __m128i loadu(const __m128i *ptr);
+    WJR_INTRINSIC_INLINE static __m128i load(const void *ptr);
+    WJR_INTRINSIC_INLINE static __m128i loadu(const void *ptr);
     WJR_INTRINSIC_INLINE static __m128i loadu_si16(const void *ptr);
     WJR_INTRINSIC_INLINE static __m128i loadu_si32(const void *ptr);
     WJR_INTRINSIC_INLINE static __m128i loadu_si64(const void *ptr);
@@ -561,8 +561,8 @@ struct sse {
 
     WJR_INTRINSIC_INLINE static void stream(__m128i *ptr, __m128i v);
 
-    WJR_INTRINSIC_INLINE static void store(__m128i *ptr, __m128i val);
-    WJR_INTRINSIC_INLINE static void storeu(__m128i *ptr, __m128i val);
+    WJR_INTRINSIC_INLINE static void store(void *ptr, __m128i val);
+    WJR_INTRINSIC_INLINE static void storeu(void *ptr, __m128i val);
 
     WJR_INTRINSIC_INLINE static __m128i sub_epi8(__m128i a, __m128i b);
     WJR_INTRINSIC_INLINE static __m128i sub_epi16(__m128i a, __m128i b);
@@ -696,7 +696,7 @@ struct sse {
 
     WJR_INTRINSIC_INLINE static __m128i packus_epi32(__m128i a, __m128i b);
 
-    WJR_INTRINSIC_INLINE static __m128i stream_load(__m128i *p);
+    WJR_INTRINSIC_INLINE static __m128i stream_load(const void *p);
 
     WJR_INTRINSIC_INLINE static int test_all_ones(__m128i a);
 
@@ -766,8 +766,8 @@ struct avx {
     template <int imm8>
     WJR_INTRINSIC_INLINE static __m256i insert_si128(__m256i a, __m128i b);
 
-    WJR_INTRINSIC_INLINE static __m256i load(const __m256i *p);
-    WJR_INTRINSIC_INLINE static __m256i loadu(const __m256i *p);
+    WJR_INTRINSIC_INLINE static __m256i load(const void *p);
+    WJR_INTRINSIC_INLINE static __m256i loadu(const void *p);
 
     WJR_INTRINSIC_INLINE static __m256i ones();
 
@@ -864,8 +864,8 @@ struct avx {
 
     WJR_INTRINSIC_INLINE static void stream(__m256i *p, __m256i a);
 
-    WJR_INTRINSIC_INLINE static void store(__m256i *p, __m256i a);
-    WJR_INTRINSIC_INLINE static void storeu(__m256i *p, __m256i a);
+    WJR_INTRINSIC_INLINE static void store(void *p, __m256i a);
+    WJR_INTRINSIC_INLINE static void storeu(void *p, __m256i a);
 
     WJR_INTRINSIC_INLINE static int test_all_zeros(__m256i a);
 
@@ -1254,7 +1254,7 @@ struct avx {
     WJR_INTRINSIC_INLINE static __m256i srai(__m256i a, int imm8, int16_t);
     WJR_INTRINSIC_INLINE static __m256i srai(__m256i a, int imm8, int32_t);
 
-    WJR_INTRINSIC_INLINE static __m256i stream_load(__m256i const *p);
+    WJR_INTRINSIC_INLINE static __m256i stream_load(const void *p);
 
     WJR_INTRINSIC_INLINE static __m256i srl_epi16(__m256i a, __m128i b);
     WJR_INTRINSIC_INLINE static __m256i srl_epi32(__m256i a, __m128i b);
@@ -1965,8 +1965,12 @@ __m128i sse::insert(__m128i a, int i, uint16_t) {
 
 void sse::lfence() { _mm_lfence(); }
 
-__m128i sse::load(const __m128i *ptr) { return _mm_load_si128(ptr); }
-__m128i sse::loadu(const __m128i *ptr) { return _mm_loadu_si128(ptr); }
+__m128i sse::load(const void *ptr) {
+    return _mm_load_si128(static_cast<const __m128i *>(ptr));
+}
+__m128i sse::loadu(const void *ptr) {
+    return _mm_loadu_si128(static_cast<const __m128i *>(ptr));
+}
 __m128i sse::loadu_si16(const void *ptr) {
     return simd_cast<uint16_t, __m128i_t>(read_memory<uint16_t>(ptr));
 }
@@ -2306,7 +2310,7 @@ __m128i sse::preloadu_si112(const void *ptr) {
                            reinterpret_cast<const uint16_t *>(ptr)[6]);
 }
 
-__m128i sse::preloadu_si128(const void *ptr) { return loadu((__m128i *)ptr); }
+__m128i sse::preloadu_si128(const void *ptr) { return loadu(ptr); }
 
 __m128i sse::preloadu_si16x(const void *ptr, int n) {
     // preloadu_si(n * 16)
@@ -2537,8 +2541,12 @@ __m128i sse::srli(__m128i a, int imm8, uint64_t) { return srli_epi64(a, imm8); }
 
 void sse::stream(__m128i *ptr, __m128i v) { _mm_stream_si128(ptr, v); }
 
-void sse::store(__m128i *ptr, __m128i val) { _mm_store_si128(ptr, val); }
-void sse::storeu(__m128i *ptr, __m128i val) { _mm_storeu_si128(ptr, val); }
+void sse::store(void *ptr, __m128i val) {
+    _mm_store_si128(static_cast<__m128i *>(ptr), val);
+}
+void sse::storeu(void *ptr, __m128i val) {
+    _mm_storeu_si128(static_cast<__m128i *>(ptr), val);
+}
 
 __m128i sse::sub_epi8(__m128i a, __m128i b) { return _mm_sub_epi8(a, b); }
 __m128i sse::sub_epi16(__m128i a, __m128i b) { return _mm_sub_epi16(a, b); }
@@ -2699,7 +2707,9 @@ __m128i sse::mullo_epi32(__m128i a, __m128i b) { return _mm_mullo_epi32(a, b); }
 
 __m128i sse::packus_epi32(__m128i a, __m128i b) { return _mm_packus_epi32(a, b); }
 
-__m128i sse::stream_load(__m128i *p) { return _mm_stream_load_si128(p); }
+__m128i sse::stream_load(const void *p) {
+    return _mm_stream_load_si128(static_cast<const __m128i *>(p));
+}
 
 int sse::test_all_ones(__m128i a) { return _mm_test_all_ones(a); }
 
@@ -2793,8 +2803,12 @@ __m256i avx::insert_si128(__m256i a, __m128i b) {
 #endif
 }
 
-__m256i avx::load(const __m256i *p) { return _mm256_load_si256(p); }
-__m256i avx::loadu(const __m256i *p) { return _mm256_loadu_si256(p); }
+__m256i avx::load(const void *p) {
+    return _mm256_load_si256(static_cast<const __m256i *>(p));
+}
+__m256i avx::loadu(const void *p) {
+    return _mm256_loadu_si256(static_cast<const __m256i *>(p));
+}
 
 __m256i avx::ones() { return _mm256_set1_epi32(-1); }
 
@@ -2857,7 +2871,9 @@ __m256i avx::preloadu_si240(const void *ptr) {
     return concat(sse::preloadu_si128(ptr), sse::preloadu_si112((const char *)ptr + 16));
 }
 
-__m256i avx::preloadu_si256(const void *ptr) { return loadu((const __m256i *)ptr); }
+__m256i avx::preloadu_si256(const void *ptr) {
+    return loadu(static_cast<const __m256i *>(ptr));
+}
 
 __m256i avx::preloadu_si16x(const void *ptr, int n) {
     switch (n) {
@@ -2984,8 +3000,10 @@ __m256i avx::setmax(int64_t) { return setmax_epi64(); }
 
 void avx::stream(__m256i *p, __m256i a) { _mm256_stream_si256(p, a); }
 
-void avx::store(__m256i *p, __m256i a) { _mm256_store_si256(p, a); }
-void avx::storeu(__m256i *p, __m256i a) { _mm256_storeu_si256(p, a); }
+void avx::store(void *p, __m256i a) { _mm256_store_si256(static_cast<__m256i *>(p), a); }
+void avx::storeu(void *p, __m256i a) {
+    _mm256_storeu_si256(static_cast<__m256i *>(p), a);
+}
 
 int avx::test_all_zeros(__m256i a) { return testz(a, a); }
 
@@ -3575,7 +3593,9 @@ __m256i avx::srai_epi32(__m256i a, int imm8) { return _mm256_srai_epi32(a, imm8)
 __m256i avx::srai(__m256i a, int imm8, int16_t) { return srai_epi16(a, imm8); }
 __m256i avx::srai(__m256i a, int imm8, int32_t) { return srai_epi32(a, imm8); }
 
-__m256i avx::stream_load(__m256i const *p) { return _mm256_stream_load_si256(p); }
+__m256i avx::stream_load(const void *p) {
+    return _mm256_stream_load_si256(static_cast<const __m256i *>(p));
+}
 
 __m256i avx::srl_epi16(__m256i a, __m128i b) { return _mm256_srl_epi16(a, b); }
 __m256i avx::srl_epi32(__m256i a, __m128i b) { return _mm256_srl_epi32(a, b); }

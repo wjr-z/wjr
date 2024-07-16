@@ -14,7 +14,8 @@
 
 #include <exception>
 
-#include <wjr/memory/uninitialized.hpp>
+#include <wjr/crtp/class_base.hpp>
+#include <wjr/type_traits.hpp>
 
 namespace wjr {
 
@@ -151,6 +152,11 @@ struct expected_storage_base {
         std::is_nothrow_constructible_v<E, Args...>)
         : m_has_val(false), m_err(std::forward<Args>(args)...) {}
 
+    expected_storage_base(const expected_storage_base &) = default;
+    expected_storage_base(expected_storage_base &&) = default;
+    expected_storage_base &operator=(const expected_storage_base &) = default;
+    expected_storage_base &operator=(expected_storage_base &&) = default;
+
     constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
 
     ~expected_storage_base() = default;
@@ -176,6 +182,11 @@ struct expected_storage_base<T, E, false> {
     constexpr expected_storage_base(unexpect_t, Args &&...args) noexcept(
         std::is_nothrow_constructible_v<E, Args...>)
         : m_has_val(false), m_err(std::forward<Args>(args)...) {}
+
+    expected_storage_base(const expected_storage_base &) = default;
+    expected_storage_base(expected_storage_base &&) = default;
+    expected_storage_base &operator=(const expected_storage_base &) = default;
+    expected_storage_base &operator=(expected_storage_base &&) = default;
 
     constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
 
@@ -214,16 +225,34 @@ struct expected_operations_base : expected_storage_base<T, E> {
         construct_at(this->m_err, std::forward<Args>(args)...);
     }
 
-    WJR_CONSTEXPR20 void copy_assign(const expected_operations_base &other) {
+    WJR_CONSTEXPR20 void __copy_construct(const expected_operations_base &other) {
+        if (other.has_value()) {
+            construct_value(other.m_val);
+        } else {
+            construct_error(other.m_err);
+        }
+    }
+
+    WJR_CONSTEXPR20 void __move_construct(expected_operations_base &&other) noexcept(
+        std::is_nothrow_move_constructible_v<T>
+            &&std::is_nothrow_move_constructible_v<E>) {
+        if (other.has_value()) {
+            construct_value(std::move(other.m_val));
+        } else {
+            construct_error(std::move(other.m_err));
+        }
+    }
+
+    WJR_CONSTEXPR20 void __copy_assign(const expected_operations_base &other) {
         if (this->m_has_val) {
-            if (WJR_LIKELY(other->m_has_val)) {
+            if (WJR_LIKELY(other.m_has_val)) {
                 this->m_val = other.m_val;
             } else {
                 reinit_expected(this->m_err, this->m_val, other.m_err);
                 this->m_has_val = false;
             }
         } else {
-            if (WJR_LIKELY(!other->m_has_val)) {
+            if (WJR_LIKELY(!other.m_has_val)) {
                 this->m_err = other.m_err;
             } else {
                 reinit_expected(this->m_val, this->m_err, other.m_val);
@@ -232,17 +261,17 @@ struct expected_operations_base : expected_storage_base<T, E> {
         }
     }
 
-    WJR_CONSTEXPR20 void move_assign(expected_operations_base &&other) noexcept(
+    WJR_CONSTEXPR20 void __move_assign(expected_operations_base &&other) noexcept(
         std::is_nothrow_move_assignable_v<T> &&std::is_nothrow_move_assignable_v<E>) {
         if (this->m_has_val) {
-            if (WJR_LIKELY(other->m_has_val)) {
+            if (WJR_LIKELY(other.m_has_val)) {
                 this->m_val = std::move(other.m_val);
             } else {
                 reinit_expected(this->m_err, this->m_val, std::move(other.m_err));
                 this->m_has_val = false;
             }
         } else {
-            if (WJR_LIKELY(!other->m_has_val)) {
+            if (WJR_LIKELY(!other.m_has_val)) {
                 this->m_err = std::move(other.m_err);
             } else {
                 reinit_expected(this->m_val, this->m_err, std::move(other.m_val));
@@ -254,115 +283,33 @@ struct expected_operations_base : expected_storage_base<T, E> {
     constexpr bool has_value() const { return this->m_has_val; }
 };
 
-template <typename T, typename E,
-          bool = std::is_trivially_copy_constructible_v<T>
-              &&std::is_trivially_copy_constructible_v<E>>
-struct expected_copy_ctor_base : expected_operations_base<T, E> {
-    using expected_operations_base<T, E>::expected_operations_base;
-};
+template <typename T, typename E>
+using expected_storage = control_special_members_base<
+    expected_operations_base<T, E>,
+    std::is_trivially_copy_constructible_v<T> &&
+        std::is_trivially_copy_constructible_v<E>,
+    std::is_trivially_move_constructible_v<T> &&
+        std::is_trivially_move_constructible_v<E>,
+    std::is_trivially_copy_assignable_v<T> && std::is_trivially_copy_constructible_v<T> &&
+        std::is_trivially_destructible_v<T> && std::is_trivially_copy_assignable_v<E> &&
+        std::is_trivially_copy_constructible_v<E> && std::is_trivially_destructible_v<E>,
+    std::is_trivially_move_assignable_v<T> && std::is_trivially_move_constructible_v<T> &&
+        std::is_trivially_destructible_v<T> && std::is_trivially_move_assignable_v<E> &&
+        std::is_trivially_move_constructible_v<E> && std::is_trivially_destructible_v<E>>;
 
 template <typename T, typename E>
-struct expected_copy_ctor_base<T, E, false> : expected_operations_base<T, E> {
-    using Mybase = expected_operations_base<T, E>;
-    using Mybase::Mybase;
-
-    expected_copy_ctor_base() = default;
-    constexpr expected_copy_ctor_base(const expected_copy_ctor_base &other)
-        : Mybase(enable_default_constructor) {
-        if (other.has_value()) {
-            this->construct_value(other.m_val);
-        } else {
-            this->construct_error(other.m_err);
-        }
-    }
-
-    expected_copy_ctor_base(expected_copy_ctor_base &&other) = default;
-    expected_copy_ctor_base &operator=(const expected_copy_ctor_base &other) = default;
-    expected_copy_ctor_base &operator=(expected_copy_ctor_base &&other) = default;
-};
-
-template <typename T, typename E,
-          bool = std::is_trivially_move_constructible_v<T>
-              &&std::is_trivially_move_constructible_v<E>>
-struct expected_move_ctor_base : expected_copy_ctor_base<T, E> {
-    using expected_copy_ctor_base<T, E>::expected_copy_ctor_base;
-};
-template <typename T, typename E>
-struct expected_move_ctor_base<T, E, false> : expected_copy_ctor_base<T, E> {
-    using Mybase = expected_copy_ctor_base<T, E>;
-    using Mybase::Mybase;
-
-    expected_move_ctor_base() = default;
-    expected_move_ctor_base(const expected_move_ctor_base &other) = default;
-
-    constexpr expected_move_ctor_base(expected_move_ctor_base &&other) noexcept(
-        std::is_nothrow_move_constructible_v<T> &&std::is_nothrow_move_constructible_v<E>)
-        : Mybase(enable_default_constructor) {
-        if (other.has_value()) {
-            this->construct_value(std::move(other.m_val));
-        } else {
-            this->construct_error(std::move(other.m_err));
-        }
-    }
-
-    expected_move_ctor_base &operator=(const expected_move_ctor_base &other) = default;
-    expected_move_ctor_base &operator=(expected_move_ctor_base &&other) = default;
-};
-
-template <typename T, typename E,
-          bool = std::is_trivially_copy_assignable_v<T>
-              &&std::is_trivially_copy_assignable_v<E>>
-struct expected_copy_assign_base : expected_move_ctor_base<T, E> {
-    using expected_move_ctor_base<T, E>::expected_move_ctor_base;
-};
-
-template <typename T, typename E>
-struct expected_copy_assign_base<T, E, false> : expected_move_ctor_base<T, E> {
-    using Mybase = expected_move_ctor_base<T, E>;
-    using Mybase::Mybase;
-
-    expected_copy_assign_base() = default;
-    expected_copy_assign_base(const expected_copy_assign_base &other) = default;
-
-    expected_copy_assign_base(expected_copy_assign_base &&other) = default;
-
-    WJR_CONSTEXPR20 expected_copy_assign_base &
-    operator=(const expected_copy_assign_base &other) {
-        this->copy_assign(other);
-        return *this;
-    }
-
-    expected_copy_assign_base &operator=(expected_copy_assign_base &&other) = default;
-};
-
-template <typename T, typename E,
-          bool = std::is_trivially_move_assignable_v<T>
-              &&std::is_trivially_move_assignable_v<E>>
-struct expected_move_assign_base : expected_copy_assign_base<T, E> {
-    using expected_copy_assign_base<T, E>::expected_copy_assign_base;
-};
-
-template <typename T, typename E>
-struct expected_move_assign_base<T, E, false> : expected_copy_assign_base<T, E> {
-    using Mybase = expected_copy_assign_base<T, E>;
-    using Mybase::Mybase;
-
-    expected_move_assign_base() = default;
-    expected_move_assign_base(const expected_move_assign_base &other) = default;
-
-    expected_move_assign_base(expected_move_assign_base &&other) = default;
-
-    expected_move_assign_base &
-    operator=(const expected_move_assign_base &other) = default;
-
-    WJR_CONSTEXPR20 expected_move_assign_base &
-    operator=(expected_move_assign_base &&other) noexcept(
-        std::is_nothrow_move_constructible_v<T>
-            &&std::is_nothrow_move_constructible_v<T>) {
-        this->move_assign(std::move(other));
-        return *this;
-    }
-};
+using enable_expected_storage = enable_special_members_base<
+    std::is_default_constructible_v<T> && std::is_default_constructible_v<E>, true,
+    std::is_copy_constructible_v<T> && std::is_copy_constructible_v<E>,
+    std::is_move_constructible_v<T> && std::is_move_constructible_v<E>,
+    std::is_copy_assignable_v<T> && std::is_copy_constructible_v<T> &&
+        std::is_copy_assignable_v<E> && std::is_copy_constructible_v<E> &&
+        (std::is_nothrow_move_constructible_v<T> ||
+         std::is_nothrow_move_constructible_v<E>),
+    std::is_move_assignable_v<T> && std::is_move_constructible_v<T> &&
+        std::is_move_assignable_v<E> && std::is_move_constructible_v<E> &&
+        (std::is_nothrow_move_constructible_v<T> ||
+         std::is_nothrow_move_constructible_v<E>)>;
 
 template <typename T, typename E, typename U, typename G>
 struct expected_construct_with
@@ -421,10 +368,9 @@ inline constexpr bool expected_construct_with_arg_v =
 } // namespace expected_detail
 
 template <typename T, typename E>
-class WJR_EMPTY_BASES expected
-    : expected_detail::expected_move_assign_base<T, E>,
-      enable_special_members_of_args_base<expected<T, E>, T, E> {
-    using Mybase = expected_detail::expected_move_assign_base<T, E>;
+class WJR_EMPTY_BASES expected : expected_detail::expected_storage<T, E>,
+                                 expected_detail::enable_expected_storage<T, E> {
+    using Mybase = expected_detail::expected_storage<T, E>;
 
 public:
     using value_type = T;

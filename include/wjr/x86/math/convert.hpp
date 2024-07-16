@@ -178,15 +178,14 @@ uint64_t builtin_from_chars_unroll_16_fast(__m128i in) noexcept {
 template <uint64_t Base>
 uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, char_converter_t) noexcept {
     static_assert(Base <= 10, "");
-    const __m128i in =
-        _mm_sub_epi8(sse::loadu((__m128i *)(ptr)), from_chars_detail::ascii);
+    const __m128i in = _mm_sub_epi8(sse::loadu(ptr), from_chars_detail::ascii);
     return builtin_from_chars_unroll_16_fast<Base>(in);
 }
 
 template <uint64_t Base>
 uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, origin_converter_t) noexcept {
     static_assert(Base <= 10, "");
-    const __m128i in = sse::loadu((__m128i *)(ptr));
+    const __m128i in = sse::loadu(ptr);
     return builtin_from_chars_unroll_16_fast<Base>(in);
 }
 

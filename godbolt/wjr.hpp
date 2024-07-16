@@ -2345,7 +2345,7 @@
 #define WJR_ASM_CCOUT(c) [_cc_##c] "=r"
 #endif
 
-#if WJR_NO_EXCEPTIONS
+#if defined(WJR_DISABLE_EXCEPTIONS)
 #define WJR_EXCEPTIONS_IF(ENABLE, DISABLE) DISABLE
 #else
 #define WJR_EXCEPTIONS_IF(ENABLE, DISABLE) ENABLE
@@ -3912,8 +3912,8 @@ struct sse {
 
     WJR_INTRINSIC_INLINE static void lfence();
 
-    WJR_INTRINSIC_INLINE static __m128i load(const __m128i *ptr);
-    WJR_INTRINSIC_INLINE static __m128i loadu(const __m128i *ptr);
+    WJR_INTRINSIC_INLINE static __m128i load(const void *ptr);
+    WJR_INTRINSIC_INLINE static __m128i loadu(const void *ptr);
     WJR_INTRINSIC_INLINE static __m128i loadu_si16(const void *ptr);
     WJR_INTRINSIC_INLINE static __m128i loadu_si32(const void *ptr);
     WJR_INTRINSIC_INLINE static __m128i loadu_si64(const void *ptr);
@@ -4196,8 +4196,8 @@ struct sse {
 
     WJR_INTRINSIC_INLINE static void stream(__m128i *ptr, __m128i v);
 
-    WJR_INTRINSIC_INLINE static void store(__m128i *ptr, __m128i val);
-    WJR_INTRINSIC_INLINE static void storeu(__m128i *ptr, __m128i val);
+    WJR_INTRINSIC_INLINE static void store(void *ptr, __m128i val);
+    WJR_INTRINSIC_INLINE static void storeu(void *ptr, __m128i val);
 
     WJR_INTRINSIC_INLINE static __m128i sub_epi8(__m128i a, __m128i b);
     WJR_INTRINSIC_INLINE static __m128i sub_epi16(__m128i a, __m128i b);
@@ -4331,7 +4331,7 @@ struct sse {
 
     WJR_INTRINSIC_INLINE static __m128i packus_epi32(__m128i a, __m128i b);
 
-    WJR_INTRINSIC_INLINE static __m128i stream_load(__m128i *p);
+    WJR_INTRINSIC_INLINE static __m128i stream_load(const void *p);
 
     WJR_INTRINSIC_INLINE static int test_all_ones(__m128i a);
 
@@ -4401,8 +4401,8 @@ struct avx {
     template <int imm8>
     WJR_INTRINSIC_INLINE static __m256i insert_si128(__m256i a, __m128i b);
 
-    WJR_INTRINSIC_INLINE static __m256i load(const __m256i *p);
-    WJR_INTRINSIC_INLINE static __m256i loadu(const __m256i *p);
+    WJR_INTRINSIC_INLINE static __m256i load(const void *p);
+    WJR_INTRINSIC_INLINE static __m256i loadu(const void *p);
 
     WJR_INTRINSIC_INLINE static __m256i ones();
 
@@ -4499,8 +4499,8 @@ struct avx {
 
     WJR_INTRINSIC_INLINE static void stream(__m256i *p, __m256i a);
 
-    WJR_INTRINSIC_INLINE static void store(__m256i *p, __m256i a);
-    WJR_INTRINSIC_INLINE static void storeu(__m256i *p, __m256i a);
+    WJR_INTRINSIC_INLINE static void store(void *p, __m256i a);
+    WJR_INTRINSIC_INLINE static void storeu(void *p, __m256i a);
 
     WJR_INTRINSIC_INLINE static int test_all_zeros(__m256i a);
 
@@ -4889,7 +4889,7 @@ struct avx {
     WJR_INTRINSIC_INLINE static __m256i srai(__m256i a, int imm8, int16_t);
     WJR_INTRINSIC_INLINE static __m256i srai(__m256i a, int imm8, int32_t);
 
-    WJR_INTRINSIC_INLINE static __m256i stream_load(__m256i const *p);
+    WJR_INTRINSIC_INLINE static __m256i stream_load(const void *p);
 
     WJR_INTRINSIC_INLINE static __m256i srl_epi16(__m256i a, __m128i b);
     WJR_INTRINSIC_INLINE static __m256i srl_epi32(__m256i a, __m128i b);
@@ -5600,8 +5600,12 @@ __m128i sse::insert(__m128i a, int i, uint16_t) {
 
 void sse::lfence() { _mm_lfence(); }
 
-__m128i sse::load(const __m128i *ptr) { return _mm_load_si128(ptr); }
-__m128i sse::loadu(const __m128i *ptr) { return _mm_loadu_si128(ptr); }
+__m128i sse::load(const void *ptr) {
+    return _mm_load_si128(static_cast<const __m128i *>(ptr));
+}
+__m128i sse::loadu(const void *ptr) {
+    return _mm_loadu_si128(static_cast<const __m128i *>(ptr));
+}
 __m128i sse::loadu_si16(const void *ptr) {
     return simd_cast<uint16_t, __m128i_t>(read_memory<uint16_t>(ptr));
 }
@@ -5941,7 +5945,7 @@ __m128i sse::preloadu_si112(const void *ptr) {
                            reinterpret_cast<const uint16_t *>(ptr)[6]);
 }
 
-__m128i sse::preloadu_si128(const void *ptr) { return loadu((__m128i *)ptr); }
+__m128i sse::preloadu_si128(const void *ptr) { return loadu(ptr); }
 
 __m128i sse::preloadu_si16x(const void *ptr, int n) {
     // preloadu_si(n * 16)
@@ -6172,8 +6176,12 @@ __m128i sse::srli(__m128i a, int imm8, uint64_t) { return srli_epi64(a, imm8); }
 
 void sse::stream(__m128i *ptr, __m128i v) { _mm_stream_si128(ptr, v); }
 
-void sse::store(__m128i *ptr, __m128i val) { _mm_store_si128(ptr, val); }
-void sse::storeu(__m128i *ptr, __m128i val) { _mm_storeu_si128(ptr, val); }
+void sse::store(void *ptr, __m128i val) {
+    _mm_store_si128(static_cast<__m128i *>(ptr), val);
+}
+void sse::storeu(void *ptr, __m128i val) {
+    _mm_storeu_si128(static_cast<__m128i *>(ptr), val);
+}
 
 __m128i sse::sub_epi8(__m128i a, __m128i b) { return _mm_sub_epi8(a, b); }
 __m128i sse::sub_epi16(__m128i a, __m128i b) { return _mm_sub_epi16(a, b); }
@@ -6334,7 +6342,9 @@ __m128i sse::mullo_epi32(__m128i a, __m128i b) { return _mm_mullo_epi32(a, b); }
 
 __m128i sse::packus_epi32(__m128i a, __m128i b) { return _mm_packus_epi32(a, b); }
 
-__m128i sse::stream_load(__m128i *p) { return _mm_stream_load_si128(p); }
+__m128i sse::stream_load(const void *p) {
+    return _mm_stream_load_si128(static_cast<const __m128i *>(p));
+}
 
 int sse::test_all_ones(__m128i a) { return _mm_test_all_ones(a); }
 
@@ -6428,8 +6438,12 @@ __m256i avx::insert_si128(__m256i a, __m128i b) {
 #endif
 }
 
-__m256i avx::load(const __m256i *p) { return _mm256_load_si256(p); }
-__m256i avx::loadu(const __m256i *p) { return _mm256_loadu_si256(p); }
+__m256i avx::load(const void *p) {
+    return _mm256_load_si256(static_cast<const __m256i *>(p));
+}
+__m256i avx::loadu(const void *p) {
+    return _mm256_loadu_si256(static_cast<const __m256i *>(p));
+}
 
 __m256i avx::ones() { return _mm256_set1_epi32(-1); }
 
@@ -6492,7 +6506,9 @@ __m256i avx::preloadu_si240(const void *ptr) {
     return concat(sse::preloadu_si128(ptr), sse::preloadu_si112((const char *)ptr + 16));
 }
 
-__m256i avx::preloadu_si256(const void *ptr) { return loadu((const __m256i *)ptr); }
+__m256i avx::preloadu_si256(const void *ptr) {
+    return loadu(static_cast<const __m256i *>(ptr));
+}
 
 __m256i avx::preloadu_si16x(const void *ptr, int n) {
     switch (n) {
@@ -6619,8 +6635,10 @@ __m256i avx::setmax(int64_t) { return setmax_epi64(); }
 
 void avx::stream(__m256i *p, __m256i a) { _mm256_stream_si256(p, a); }
 
-void avx::store(__m256i *p, __m256i a) { _mm256_store_si256(p, a); }
-void avx::storeu(__m256i *p, __m256i a) { _mm256_storeu_si256(p, a); }
+void avx::store(void *p, __m256i a) { _mm256_store_si256(static_cast<__m256i *>(p), a); }
+void avx::storeu(void *p, __m256i a) {
+    _mm256_storeu_si256(static_cast<__m256i *>(p), a);
+}
 
 int avx::test_all_zeros(__m256i a) { return testz(a, a); }
 
@@ -7210,7 +7228,9 @@ __m256i avx::srai_epi32(__m256i a, int imm8) { return _mm256_srai_epi32(a, imm8)
 __m256i avx::srai(__m256i a, int imm8, int16_t) { return srai_epi16(a, imm8); }
 __m256i avx::srai(__m256i a, int imm8, int32_t) { return srai_epi32(a, imm8); }
 
-__m256i avx::stream_load(__m256i const *p) { return _mm256_stream_load_si256(p); }
+__m256i avx::stream_load(const void *p) {
+    return _mm256_stream_load_si256(static_cast<const __m256i *>(p));
+}
 
 __m256i avx::srl_epi16(__m256i a, __m128i b) { return _mm256_srl_epi16(a, b); }
 __m256i avx::srl_epi32(__m256i a, __m128i b) { return _mm256_srl_epi32(a, b); }
@@ -7680,7 +7700,6 @@ struct enable_default_constructor_base {
     operator=(const enable_default_constructor_base &) = default;
     enable_default_constructor_base &
     operator=(enable_default_constructor_base &&) = default;
-    ~enable_default_constructor_base() = default;
 
 protected:
     constexpr explicit enable_default_constructor_base(
@@ -7696,7 +7715,6 @@ struct enable_default_constructor_base<false, Tag> {
     operator=(const enable_default_constructor_base &) = default;
     enable_default_constructor_base &
     operator=(enable_default_constructor_base &&) = default;
-    ~enable_default_constructor_base() = default;
 
 protected:
     constexpr explicit enable_default_constructor_base(
@@ -7711,7 +7729,6 @@ struct enable_copy_constructor_base {
     enable_copy_constructor_base &
     operator=(const enable_copy_constructor_base &) = default;
     enable_copy_constructor_base &operator=(enable_copy_constructor_base &&) = default;
-    ~enable_copy_constructor_base() = default;
 
 protected:
     constexpr explicit enable_copy_constructor_base(
@@ -7726,7 +7743,6 @@ struct enable_copy_constructor_base<false, Tag> {
     enable_copy_constructor_base &
     operator=(const enable_copy_constructor_base &) = default;
     enable_copy_constructor_base &operator=(enable_copy_constructor_base &&) = default;
-    ~enable_copy_constructor_base() = default;
 
 protected:
     constexpr explicit enable_copy_constructor_base(
@@ -7741,7 +7757,6 @@ struct enable_move_constructor_base {
     enable_move_constructor_base &
     operator=(const enable_move_constructor_base &) = default;
     enable_move_constructor_base &operator=(enable_move_constructor_base &&) = default;
-    ~enable_move_constructor_base() = default;
 
 protected:
     constexpr explicit enable_move_constructor_base(
@@ -7756,7 +7771,6 @@ struct enable_move_constructor_base<false, Tag> {
     enable_move_constructor_base &
     operator=(const enable_move_constructor_base &) = default;
     enable_move_constructor_base &operator=(enable_move_constructor_base &&) = default;
-    ~enable_move_constructor_base() = default;
 
 protected:
     constexpr explicit enable_move_constructor_base(
@@ -7770,7 +7784,6 @@ struct enable_copy_assignment_base {
     enable_copy_assignment_base(enable_copy_assignment_base &&) = default;
     enable_copy_assignment_base &operator=(const enable_copy_assignment_base &) = default;
     enable_copy_assignment_base &operator=(enable_copy_assignment_base &&) = default;
-    ~enable_copy_assignment_base() = default;
 
 protected:
     constexpr explicit enable_copy_assignment_base(
@@ -7784,7 +7797,6 @@ struct enable_copy_assignment_base<false, Tag> {
     enable_copy_assignment_base(enable_copy_assignment_base &&) = default;
     enable_copy_assignment_base &operator=(const enable_copy_assignment_base &) = delete;
     enable_copy_assignment_base &operator=(enable_copy_assignment_base &&) = default;
-    ~enable_copy_assignment_base() = default;
 
 protected:
     constexpr explicit enable_copy_assignment_base(
@@ -7798,7 +7810,6 @@ struct enable_move_assignment_base {
     enable_move_assignment_base(enable_move_assignment_base &&) = default;
     enable_move_assignment_base &operator=(const enable_move_assignment_base &) = default;
     enable_move_assignment_base &operator=(enable_move_assignment_base &&) = default;
-    ~enable_move_assignment_base() = default;
 
 protected:
     constexpr explicit enable_move_assignment_base(
@@ -7812,7 +7823,6 @@ struct enable_move_assignment_base<false, Tag> {
     enable_move_assignment_base(enable_move_assignment_base &&) = default;
     enable_move_assignment_base &operator=(const enable_move_assignment_base &) = default;
     enable_move_assignment_base &operator=(enable_move_assignment_base &&) = delete;
-    ~enable_move_assignment_base() = default;
 
 protected:
     constexpr explicit enable_move_assignment_base(
@@ -7864,7 +7874,6 @@ public:
     enable_special_members_base(enable_special_members_base &&) = default;
     enable_special_members_base &operator=(const enable_special_members_base &) = default;
     enable_special_members_base &operator=(enable_special_members_base &&) = default;
-    ~enable_special_members_base() = default;
 
 protected:
     constexpr explicit enable_special_members_base(enable_default_constructor_t) noexcept
@@ -7901,6 +7910,92 @@ using enable_trivially_special_members_of_args_base = enable_special_members_bas
 
 template <size_t I, typename T>
 struct enable_base_identity_t {};
+
+template <typename Mybase>
+struct control_copy_ctor_base : Mybase {
+    using Mybase ::Mybase;
+    control_copy_ctor_base() = default;
+    constexpr control_copy_ctor_base(const control_copy_ctor_base &other) noexcept(
+        noexcept(Mybase::__copy_construct(static_cast<const Mybase &>(other))))
+        : Mybase(enable_default_constructor) {
+        Mybase::__copy_construct(static_cast<const Mybase &>(other));
+    }
+    control_copy_ctor_base(control_copy_ctor_base &&) = default;
+    control_copy_ctor_base &operator=(const control_copy_ctor_base &) = default;
+    control_copy_ctor_base &operator=(control_copy_ctor_base &&) = default;
+
+protected:
+    constexpr explicit control_copy_ctor_base(enable_default_constructor_t) noexcept
+        : Mybase(enable_default_constructor) {}
+};
+
+template <typename Mybase>
+struct control_move_ctor_base : Mybase {
+    using Mybase ::Mybase;
+    control_move_ctor_base() = default;
+    control_move_ctor_base(const control_move_ctor_base &) = default;
+    constexpr control_move_ctor_base(control_move_ctor_base &&other) noexcept(
+        noexcept(Mybase::__move_construct(static_cast<Mybase &&>(other))))
+        : Mybase(enable_default_constructor) {
+        Mybase::__move_construct(static_cast<Mybase &&>(other));
+    }
+    control_move_ctor_base &operator=(const control_move_ctor_base &) = default;
+    control_move_ctor_base &operator=(control_move_ctor_base &&) = default;
+
+protected:
+    constexpr explicit control_move_ctor_base(enable_default_constructor_t) noexcept
+        : Mybase(enable_default_constructor) {}
+};
+
+template <typename Mybase>
+struct control_copy_assign_base : Mybase {
+    using Mybase ::Mybase;
+    control_copy_assign_base() = default;
+    control_copy_assign_base(const control_copy_assign_base &) = default;
+    control_copy_assign_base(control_copy_assign_base &&) = default;
+    constexpr control_copy_assign_base &
+    operator=(const control_copy_assign_base &other) noexcept(
+        noexcept(Mybase::__copy_assign(static_cast<const Mybase &>(other)))) {
+        Mybase::__copy_assign(static_cast<const Mybase &>(other));
+        return *this;
+    }
+    control_copy_assign_base &operator=(control_copy_assign_base &&) = default;
+
+protected:
+    constexpr explicit control_copy_assign_base(enable_default_constructor_t) noexcept
+        : Mybase(enable_default_constructor) {}
+};
+
+template <typename Mybase>
+struct control_move_assign_base : Mybase {
+    using Mybase ::Mybase;
+    control_move_assign_base() = default;
+    control_move_assign_base(const control_move_assign_base &) = default;
+    control_move_assign_base(control_move_assign_base &&) = default;
+    control_move_assign_base &operator=(const control_move_assign_base &) = default;
+    constexpr control_move_assign_base &
+    operator=(control_move_assign_base &&other) noexcept(
+        noexcept(Mybase::__move_assign(static_cast<Mybase &&>(other)))) {
+        Mybase::__move_assign(static_cast<Mybase &&>(other));
+        return *this;
+    }
+
+protected:
+    constexpr explicit control_move_assign_base(enable_default_constructor_t) noexcept
+        : Mybase(enable_default_constructor) {}
+};
+
+template <bool F, template <typename> typename Control, typename Mybase>
+using __control_base_select = std::conditional_t<F, Mybase, Control<Mybase>>;
+
+template <typename Mybase, bool Copy, bool Move, bool CopyAssign, bool MoveAssign>
+using control_special_members_base = __control_base_select<
+    Copy, control_copy_ctor_base,
+    __control_base_select<
+        Move, control_move_ctor_base,
+        __control_base_select<
+            CopyAssign, control_copy_assign_base,
+            __control_base_select<MoveAssign, control_move_assign_base, Mybase>>>>;
 
 } // namespace wjr
 
@@ -11704,13 +11799,13 @@ class __union2_storage_base;
         template <typename... Args>                                                      \
         constexpr __union2_storage_base(                                                 \
             std::in_place_index_t<0>,                                                    \
-            Args &&...args) noexcept(std::is_nothrow_constructible_v<T, Args...>)     \
+            Args &&...args) noexcept(std::is_nothrow_constructible_v<T, Args...>)        \
             : first(std::forward<Args>(args)...) {}                                      \
                                                                                          \
         template <typename... Args>                                                      \
         constexpr __union2_storage_base(                                                 \
             std::in_place_index_t<1>,                                                    \
-            Args &&...args) noexcept(std::is_nothrow_constructible_v<U, Args...>)     \
+            Args &&...args) noexcept(std::is_nothrow_constructible_v<U, Args...>)        \
             : second(std::forward<Args>(args)...) {}                                     \
                                                                                          \
         ~__union2_storage_base() WJR_PP_BOOL_IF(DES, = default, noexcept {});            \
@@ -14952,8 +15047,8 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1,
                                                   size_t n) noexcept {
 #define WJR_REGISTER_FIND_NOT_N_AVX(index)                                               \
     do {                                                                                 \
-        auto x = avx::loadu((__m256i *)(src0 + (index)));                                \
-        auto y = avx::loadu((__m256i *)(src1 + (index)));                                \
+        auto x = avx::loadu(src0 + (index));                                             \
+        auto y = avx::loadu(src1 + (index));                                             \
         auto r = avx::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
@@ -14966,10 +15061,10 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1,
 
     if (rem > 4) {
 #if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu((__m128i *)(src0 + (rem - 4)));
-        auto x1 = sse::loadu((__m128i *)(src0 + (rem - 2)));
-        auto y0 = sse::loadu((__m128i *)(src1 + (rem - 4)));
-        auto y1 = sse::loadu((__m128i *)(src1 + (rem - 2)));
+        auto x0 = sse::loadu(src0 + (rem - 4));
+        auto x1 = sse::loadu(src0 + (rem - 2));
+        auto y0 = sse::loadu(src1 + (rem - 4));
+        auto y1 = sse::loadu(src1 + (rem - 2));
 
         auto r0 = sse::cmpeq_epi64(x0, y0);
         auto r1 = sse::cmpeq_epi64(x1, y1);
@@ -14994,14 +15089,14 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1,
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu((__m128i *)(src0 + rem));
-        auto x1 = sse::loadu((__m128i *)(src0 + rem + 2));
-        auto x2 = sse::loadu((__m128i *)(src0 + rem + 4));
-        auto x3 = sse::loadu((__m128i *)(src0 + rem + 6));
-        auto y0 = sse::loadu((__m128i *)(src1 + rem));
-        auto y1 = sse::loadu((__m128i *)(src1 + rem + 2));
-        auto y2 = sse::loadu((__m128i *)(src1 + rem + 4));
-        auto y3 = sse::loadu((__m128i *)(src1 + rem + 6));
+        auto x0 = sse::loadu(src0 + rem);
+        auto x1 = sse::loadu(src0 + rem + 2);
+        auto x2 = sse::loadu(src0 + rem + 4);
+        auto x3 = sse::loadu(src0 + rem + 6);
+        auto y0 = sse::loadu(src1 + rem);
+        auto y1 = sse::loadu(src1 + rem + 2);
+        auto y2 = sse::loadu(src1 + rem + 4);
+        auto y3 = sse::loadu(src1 + rem + 6);
 
         auto r0 = sse::cmpeq_epi64(x0, y0);
         auto r1 = sse::cmpeq_epi64(x1, y1);
@@ -15045,14 +15140,14 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1,
     }
 
     do {
-        auto x0 = avx::loadu((__m256i *)(src0 + rem));
-        auto x1 = avx::loadu((__m256i *)(src0 + rem + 4));
-        auto x2 = avx::loadu((__m256i *)(src0 + rem + 8));
-        auto x3 = avx::loadu((__m256i *)(src0 + rem + 12));
-        auto y0 = avx::loadu((__m256i *)(src1 + rem));
-        auto y1 = avx::loadu((__m256i *)(src1 + rem + 4));
-        auto y2 = avx::loadu((__m256i *)(src1 + rem + 8));
-        auto y3 = avx::loadu((__m256i *)(src1 + rem + 12));
+        auto x0 = avx::loadu(src0 + rem);
+        auto x1 = avx::loadu(src0 + rem + 4);
+        auto x2 = avx::loadu(src0 + rem + 8);
+        auto x3 = avx::loadu(src0 + rem + 12);
+        auto y0 = avx::loadu(src1 + rem);
+        auto y1 = avx::loadu(src1 + rem + 4);
+        auto y2 = avx::loadu(src1 + rem + 8);
+        auto y3 = avx::loadu(src1 + rem + 12);
 
         auto r0 = avx::cmpeq_epi64(x0, y0);
         auto r1 = avx::cmpeq_epi64(x1, y1);
@@ -15098,7 +15193,7 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src, T val,
                                                   size_t n) noexcept {
 #define WJR_REGISTER_FIND_NOT_N_AVX(index)                                               \
     do {                                                                                 \
-        auto x = avx::loadu((__m256i *)(src + (index)));                                 \
+        auto x = avx::loadu(src + (index));                                              \
         auto r = avx::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         auto mask = ~avx::movemask_epi8(r);                                              \
@@ -15117,8 +15212,8 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src, T val,
 
     if (rem > 4) {
 #if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu((__m128i *)(src + (rem - 4)));
-        auto x1 = sse::loadu((__m128i *)(src + (rem - 2)));
+        auto x0 = sse::loadu(src + (rem - 4));
+        auto x1 = sse::loadu(src + (rem - 2));
 
         auto r0 = sse::cmpeq_epi64(x0, y);
         auto r1 = sse::cmpeq_epi64(x1, y);
@@ -15143,10 +15238,10 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src, T val,
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu((__m128i *)(src + rem));
-        auto x1 = sse::loadu((__m128i *)(src + rem + 2));
-        auto x2 = sse::loadu((__m128i *)(src + rem + 4));
-        auto x3 = sse::loadu((__m128i *)(src + rem + 6));
+        auto x0 = sse::loadu(src + rem);
+        auto x1 = sse::loadu(src + rem + 2);
+        auto x2 = sse::loadu(src + rem + 4);
+        auto x3 = sse::loadu(src + rem + 6);
 
         auto r0 = sse::cmpeq_epi64(x0, y);
         auto r1 = sse::cmpeq_epi64(x1, y);
@@ -15190,10 +15285,10 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src, T val,
     }
 
     do {
-        auto x0 = avx::loadu((__m256i *)(src + rem));
-        auto x1 = avx::loadu((__m256i *)(src + rem + 4));
-        auto x2 = avx::loadu((__m256i *)(src + rem + 8));
-        auto x3 = avx::loadu((__m256i *)(src + rem + 12));
+        auto x0 = avx::loadu(src + rem);
+        auto x1 = avx::loadu(src + rem + 4);
+        auto x2 = avx::loadu(src + rem + 8);
+        auto x3 = avx::loadu(src + rem + 12);
 
         auto r0 = avx::cmpeq_epi64(x0, y);
         auto r1 = avx::cmpeq_epi64(x1, y);
@@ -15243,8 +15338,8 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T
                                                           size_t n) noexcept {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
-        auto x = avx::loadu((__m256i *)(src0 - 4 + (index)));                            \
-        auto y = avx::loadu((__m256i *)(src1 - 4 + (index)));                            \
+        auto x = avx::loadu(src0 - 4 + (index));                                         \
+        auto y = avx::loadu(src1 - 4 + (index));                                         \
         auto r = avx::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
@@ -15258,10 +15353,10 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T
 
     if (rem > 4) {
 #if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu((__m128i *)(src0 + n + 2));
-        auto x1 = sse::loadu((__m128i *)(src0 + n));
-        auto y0 = sse::loadu((__m128i *)(src1 + n + 2));
-        auto y1 = sse::loadu((__m128i *)(src1 + n));
+        auto x0 = sse::loadu(src0 + n + 2);
+        auto x1 = sse::loadu(src0 + n);
+        auto y0 = sse::loadu(src1 + n + 2);
+        auto y1 = sse::loadu(src1 + n);
 
         auto r0 = sse::cmpeq_epi64(x0, y0);
         auto r1 = sse::cmpeq_epi64(x1, y1);
@@ -15286,14 +15381,14 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu((__m128i *)(src0 + n - 8));
-        auto x1 = sse::loadu((__m128i *)(src0 + n - 6));
-        auto x2 = sse::loadu((__m128i *)(src0 + n - 4));
-        auto x3 = sse::loadu((__m128i *)(src0 + n - 2));
-        auto y0 = sse::loadu((__m128i *)(src1 + n - 8));
-        auto y1 = sse::loadu((__m128i *)(src1 + n - 6));
-        auto y2 = sse::loadu((__m128i *)(src1 + n - 4));
-        auto y3 = sse::loadu((__m128i *)(src1 + n - 2));
+        auto x0 = sse::loadu(src0 + n - 8);
+        auto x1 = sse::loadu(src0 + n - 6);
+        auto x2 = sse::loadu(src0 + n - 4);
+        auto x3 = sse::loadu(src0 + n - 2);
+        auto y0 = sse::loadu(src1 + n - 8);
+        auto y1 = sse::loadu(src1 + n - 6);
+        auto y2 = sse::loadu(src1 + n - 4);
+        auto y3 = sse::loadu(src1 + n - 2);
 
         auto r0 = sse::cmpeq_epi64(x0, y0);
         auto r1 = sse::cmpeq_epi64(x1, y1);
@@ -15337,14 +15432,14 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T
     }
 
     do {
-        auto x0 = avx::loadu((__m256i *)(src0 + n - 16));
-        auto x1 = avx::loadu((__m256i *)(src0 + n - 12));
-        auto x2 = avx::loadu((__m256i *)(src0 + n - 8));
-        auto x3 = avx::loadu((__m256i *)(src0 + n - 4));
-        auto y0 = avx::loadu((__m256i *)(src1 + n - 16));
-        auto y1 = avx::loadu((__m256i *)(src1 + n - 12));
-        auto y2 = avx::loadu((__m256i *)(src1 + n - 8));
-        auto y3 = avx::loadu((__m256i *)(src1 + n - 4));
+        auto x0 = avx::loadu(src0 + n - 16);
+        auto x1 = avx::loadu(src0 + n - 12);
+        auto x2 = avx::loadu(src0 + n - 8);
+        auto x3 = avx::loadu(src0 + n - 4);
+        auto y0 = avx::loadu(src1 + n - 16);
+        auto y1 = avx::loadu(src1 + n - 12);
+        auto y2 = avx::loadu(src1 + n - 8);
+        auto y3 = avx::loadu(src1 + n - 4);
 
         auto r0 = avx::cmpeq_epi64(x0, y0);
         auto r1 = avx::cmpeq_epi64(x1, y1);
@@ -15390,7 +15485,7 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val,
                                                           size_t n) noexcept {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
-        auto x = avx::loadu((__m256i *)(src - 4 + (index)));                             \
+        auto x = avx::loadu(src - 4 + (index));                                          \
         auto r = avx::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
@@ -15410,8 +15505,8 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val,
 
     if (rem > 4) {
 #if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu((__m128i *)(src + n + 2));
-        auto x1 = sse::loadu((__m128i *)(src + n));
+        auto x0 = sse::loadu(src + n + 2);
+        auto x1 = sse::loadu(src + n);
 
         auto r0 = sse::cmpeq_epi64(x0, y);
         auto r1 = sse::cmpeq_epi64(x1, y);
@@ -15436,10 +15531,10 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val,
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu((__m128i *)(src + n - 8));
-        auto x1 = sse::loadu((__m128i *)(src + n - 6));
-        auto x2 = sse::loadu((__m128i *)(src + n - 4));
-        auto x3 = sse::loadu((__m128i *)(src + n - 2));
+        auto x0 = sse::loadu(src + n - 8);
+        auto x1 = sse::loadu(src + n - 6);
+        auto x2 = sse::loadu(src + n - 4);
+        auto x3 = sse::loadu(src + n - 2);
 
         auto r0 = sse::cmpeq_epi64(x0, y);
         auto r1 = sse::cmpeq_epi64(x1, y);
@@ -15483,10 +15578,10 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val,
     }
 
     do {
-        auto x0 = avx::loadu((__m256i *)(src + n - 16));
-        auto x1 = avx::loadu((__m256i *)(src + n - 12));
-        auto x2 = avx::loadu((__m256i *)(src + n - 8));
-        auto x3 = avx::loadu((__m256i *)(src + n - 4));
+        auto x0 = avx::loadu(src + n - 16);
+        auto x1 = avx::loadu(src + n - 12);
+        auto x2 = avx::loadu(src + n - 8);
+        auto x3 = avx::loadu(src + n - 4);
 
         auto r0 = avx::cmpeq_epi64(x0, y);
         auto r1 = avx::cmpeq_epi64(x1, y);
@@ -15542,8 +15637,8 @@ WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src0, const T *src1,
                                               size_t n) noexcept {
 #define WJR_REGISTER_FIND_N_AVX(index)                                                   \
     do {                                                                                 \
-        auto x = avx::loadu((__m256i *)(src0 + (index)));                                \
-        auto y = avx::loadu((__m256i *)(src1 + (index)));                                \
+        auto x = avx::loadu(src0 + (index));                                             \
+        auto y = avx::loadu(src1 + (index));                                             \
         auto r = avx::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         avx::mask_type mask = avx::movemask_epi8(r);                                     \
@@ -15556,10 +15651,10 @@ WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src0, const T *src1,
 
     if (rem > 4) {
 #if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu((__m128i *)(src0 + (rem - 4)));
-        auto x1 = sse::loadu((__m128i *)(src0 + (rem - 2)));
-        auto y1 = sse::loadu((__m128i *)(src1 + (rem - 2)));
-        auto y0 = sse::loadu((__m128i *)(src1 + (rem - 4)));
+        auto x0 = sse::loadu(src0 + (rem - 4));
+        auto x1 = sse::loadu(src0 + (rem - 2));
+        auto y1 = sse::loadu(src1 + (rem - 2));
+        auto y0 = sse::loadu(src1 + (rem - 4));
 
         auto r0 = sse::cmpeq_epi64(x0, y0);
         auto r1 = sse::cmpeq_epi64(x1, y1);
@@ -15584,14 +15679,14 @@ WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src0, const T *src1,
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu((__m128i *)(src0 + rem));
-        auto x1 = sse::loadu((__m128i *)(src0 + rem + 2));
-        auto x2 = sse::loadu((__m128i *)(src0 + rem + 4));
-        auto x3 = sse::loadu((__m128i *)(src0 + rem + 6));
-        auto y0 = sse::loadu((__m128i *)(src1 + rem));
-        auto y1 = sse::loadu((__m128i *)(src1 + rem + 2));
-        auto y2 = sse::loadu((__m128i *)(src1 + rem + 4));
-        auto y3 = sse::loadu((__m128i *)(src1 + rem + 6));
+        auto x0 = sse::loadu(src0 + rem);
+        auto x1 = sse::loadu(src0 + rem + 2);
+        auto x2 = sse::loadu(src0 + rem + 4);
+        auto x3 = sse::loadu(src0 + rem + 6);
+        auto y0 = sse::loadu(src1 + rem);
+        auto y1 = sse::loadu(src1 + rem + 2);
+        auto y2 = sse::loadu(src1 + rem + 4);
+        auto y3 = sse::loadu(src1 + rem + 6);
 
         auto r0 = sse::cmpeq_epi64(x0, y0);
         auto r1 = sse::cmpeq_epi64(x1, y1);
@@ -15635,14 +15730,14 @@ WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src0, const T *src1,
     }
 
     do {
-        auto x0 = avx::loadu((__m256i *)(src0 + rem));
-        auto x2 = avx::loadu((__m256i *)(src0 + rem + 8));
-        auto x3 = avx::loadu((__m256i *)(src0 + rem + 12));
-        auto x1 = avx::loadu((__m256i *)(src0 + rem + 4));
-        auto y0 = avx::loadu((__m256i *)(src1 + rem));
-        auto y1 = avx::loadu((__m256i *)(src1 + rem + 4));
-        auto y2 = avx::loadu((__m256i *)(src1 + rem + 8));
-        auto y3 = avx::loadu((__m256i *)(src1 + rem + 12));
+        auto x0 = avx::loadu(src0 + rem);
+        auto x2 = avx::loadu(src0 + rem + 8);
+        auto x3 = avx::loadu(src0 + rem + 12);
+        auto x1 = avx::loadu(src0 + rem + 4);
+        auto y0 = avx::loadu(src1 + rem);
+        auto y1 = avx::loadu(src1 + rem + 4);
+        auto y2 = avx::loadu(src1 + rem + 8);
+        auto y3 = avx::loadu(src1 + rem + 12);
 
         auto r0 = avx::cmpeq_epi64(x0, y0);
         auto r1 = avx::cmpeq_epi64(x1, y1);
@@ -15712,7 +15807,7 @@ template <typename T>
 WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src, T val, size_t n) noexcept {
 #define WJR_REGISTER_FIND_N_AVX(index)                                                   \
     do {                                                                                 \
-        auto x = avx::loadu((__m256i *)(src + (index)));                                 \
+        auto x = avx::loadu(src + (index));                                              \
         auto r = avx::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         auto mask = avx::movemask_epi8(r);                                               \
@@ -15731,8 +15826,8 @@ WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src, T val, size_t n) noe
 
     if (rem > 4) {
 #if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu((__m128i *)(src + (rem - 4)));
-        auto x1 = sse::loadu((__m128i *)(src + (rem - 2)));
+        auto x0 = sse::loadu(src + (rem - 4));
+        auto x1 = sse::loadu(src + (rem - 2));
 
         auto r0 = sse::cmpeq_epi64(x0, y);
         auto r1 = sse::cmpeq_epi64(x1, y);
@@ -15757,10 +15852,10 @@ WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src, T val, size_t n) noe
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu((__m128i *)(src + rem));
-        auto x1 = sse::loadu((__m128i *)(src + rem + 2));
-        auto x2 = sse::loadu((__m128i *)(src + rem + 4));
-        auto x3 = sse::loadu((__m128i *)(src + rem + 6));
+        auto x0 = sse::loadu(src + rem);
+        auto x1 = sse::loadu(src + rem + 2);
+        auto x2 = sse::loadu(src + rem + 4);
+        auto x3 = sse::loadu(src + rem + 6);
 
         auto r0 = sse::cmpeq_epi64(x0, y);
         auto r1 = sse::cmpeq_epi64(x1, y);
@@ -15804,10 +15899,10 @@ WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src, T val, size_t n) noe
     }
 
     do {
-        auto x0 = avx::loadu((__m256i *)(src + rem));
-        auto x1 = avx::loadu((__m256i *)(src + rem + 4));
-        auto x2 = avx::loadu((__m256i *)(src + rem + 8));
-        auto x3 = avx::loadu((__m256i *)(src + rem + 12));
+        auto x0 = avx::loadu(src + rem);
+        auto x1 = avx::loadu(src + rem + 4);
+        auto x2 = avx::loadu(src + rem + 8);
+        auto x3 = avx::loadu(src + rem + 12);
 
         auto r0 = avx::cmpeq_epi64(x0, y);
         auto r1 = avx::cmpeq_epi64(x1, y);
@@ -15940,8 +16035,8 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src0, const T *sr
                                                       size_t n) noexcept {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
-        auto x = avx::loadu((__m256i *)(src0 - 4 + (index)));                            \
-        auto y = avx::loadu((__m256i *)(src1 - 4 + (index)));                            \
+        auto x = avx::loadu(src0 - 4 + (index));                                         \
+        auto y = avx::loadu(src1 - 4 + (index));                                         \
         auto r = avx::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         avx::mask_type mask = avx::movemask_epi8(r);                                     \
@@ -15955,10 +16050,10 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src0, const T *sr
 
     if (rem > 4) {
 #if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu((__m128i *)(src0 + n + 2));
-        auto x1 = sse::loadu((__m128i *)(src0 + n));
-        auto y0 = sse::loadu((__m128i *)(src1 + n + 2));
-        auto y1 = sse::loadu((__m128i *)(src1 + n));
+        auto x0 = sse::loadu(src0 + n + 2);
+        auto x1 = sse::loadu(src0 + n);
+        auto y0 = sse::loadu(src1 + n + 2);
+        auto y1 = sse::loadu(src1 + n);
 
         auto r0 = sse::cmpeq_epi64(x0, y0);
         auto r1 = sse::cmpeq_epi64(x1, y1);
@@ -15983,14 +16078,14 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src0, const T *sr
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu((__m128i *)(src0 + n - 8));
-        auto x1 = sse::loadu((__m128i *)(src0 + n - 6));
-        auto x2 = sse::loadu((__m128i *)(src0 + n - 4));
-        auto x3 = sse::loadu((__m128i *)(src0 + n - 2));
-        auto y0 = sse::loadu((__m128i *)(src1 + n - 8));
-        auto y1 = sse::loadu((__m128i *)(src1 + n - 6));
-        auto y2 = sse::loadu((__m128i *)(src1 + n - 4));
-        auto y3 = sse::loadu((__m128i *)(src1 + n - 2));
+        auto x0 = sse::loadu(src0 + n - 8);
+        auto x1 = sse::loadu(src0 + n - 6);
+        auto x2 = sse::loadu(src0 + n - 4);
+        auto x3 = sse::loadu(src0 + n - 2);
+        auto y0 = sse::loadu(src1 + n - 8);
+        auto y1 = sse::loadu(src1 + n - 6);
+        auto y2 = sse::loadu(src1 + n - 4);
+        auto y3 = sse::loadu(src1 + n - 2);
 
         auto r0 = sse::cmpeq_epi64(x0, y0);
         auto r1 = sse::cmpeq_epi64(x1, y1);
@@ -16034,14 +16129,14 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src0, const T *sr
     }
 
     do {
-        auto x0 = avx::loadu((__m256i *)(src0 + n - 16));
-        auto x1 = avx::loadu((__m256i *)(src0 + n - 12));
-        auto x2 = avx::loadu((__m256i *)(src0 + n - 8));
-        auto x3 = avx::loadu((__m256i *)(src0 + n - 4));
-        auto y0 = avx::loadu((__m256i *)(src1 + n - 16));
-        auto y1 = avx::loadu((__m256i *)(src1 + n - 12));
-        auto y2 = avx::loadu((__m256i *)(src1 + n - 8));
-        auto y3 = avx::loadu((__m256i *)(src1 + n - 4));
+        auto x0 = avx::loadu(src0 + n - 16);
+        auto x1 = avx::loadu(src0 + n - 12);
+        auto x2 = avx::loadu(src0 + n - 8);
+        auto x3 = avx::loadu(src0 + n - 4);
+        auto y0 = avx::loadu(src1 + n - 16);
+        auto y1 = avx::loadu(src1 + n - 12);
+        auto y2 = avx::loadu(src1 + n - 8);
+        auto y3 = avx::loadu(src1 + n - 4);
 
         auto r0 = avx::cmpeq_epi64(x0, y0);
         auto r1 = avx::cmpeq_epi64(x1, y1);
@@ -16113,7 +16208,7 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src, T val,
                                                       size_t n) noexcept {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
-        auto x = avx::loadu((__m256i *)(src - 4 + (index)));                             \
+        auto x = avx::loadu(src - 4 + (index));                                          \
         auto r = avx::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         avx::mask_type mask = avx::movemask_epi8(r);                                     \
@@ -16133,8 +16228,8 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src, T val,
 
     if (rem > 4) {
 #if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu((__m128i *)(src + n + 2));
-        auto x1 = sse::loadu((__m128i *)(src + n));
+        auto x0 = sse::loadu(src + n + 2);
+        auto x1 = sse::loadu(src + n);
 
         auto r0 = sse::cmpeq_epi64(x0, y);
         auto r1 = sse::cmpeq_epi64(x1, y);
@@ -16159,10 +16254,10 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src, T val,
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu((__m128i *)(src + n - 8));
-        auto x1 = sse::loadu((__m128i *)(src + n - 6));
-        auto x2 = sse::loadu((__m128i *)(src + n - 4));
-        auto x3 = sse::loadu((__m128i *)(src + n - 2));
+        auto x0 = sse::loadu(src + n - 8);
+        auto x1 = sse::loadu(src + n - 6);
+        auto x2 = sse::loadu(src + n - 4);
+        auto x3 = sse::loadu(src + n - 2);
 
         auto r0 = sse::cmpeq_epi64(x0, y);
         auto r1 = sse::cmpeq_epi64(x1, y);
@@ -16206,10 +16301,10 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src, T val,
     }
 
     do {
-        auto x0 = avx::loadu((__m256i *)(src + n - 16));
-        auto x1 = avx::loadu((__m256i *)(src + n - 12));
-        auto x2 = avx::loadu((__m256i *)(src + n - 8));
-        auto x3 = avx::loadu((__m256i *)(src + n - 4));
+        auto x0 = avx::loadu(src + n - 16);
+        auto x1 = avx::loadu(src + n - 12);
+        auto x2 = avx::loadu(src + n - 8);
+        auto x3 = avx::loadu(src + n - 4);
 
         auto r0 = avx::cmpeq_epi64(x0, y);
         auto r1 = avx::cmpeq_epi64(x1, y);
@@ -16747,14 +16842,14 @@ WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) noexcept {
 
     auto y = simd::set1(val, T());
 
-    simd::storeu((simd_int *)(dst), y);
-    simd::storeu((simd_int *)(dst + n - type_width), y);
-    simd::storeu((simd_int *)(dst + type_width), y);
-    simd::storeu((simd_int *)(dst + n - type_width * 2), y);
-    simd::storeu((simd_int *)(dst + type_width * 2), y);
-    simd::storeu((simd_int *)(dst + n - type_width * 3), y);
-    simd::storeu((simd_int *)(dst + type_width * 3), y);
-    simd::storeu((simd_int *)(dst + n - type_width * 4), y);
+    simd::storeu(dst, y);
+    simd::storeu(dst + n - type_width, y);
+    simd::storeu(dst + type_width, y);
+    simd::storeu(dst + n - type_width * 2, y);
+    simd::storeu(dst + type_width * 2, y);
+    simd::storeu(dst + n - type_width * 3, y);
+    simd::storeu(dst + type_width * 3, y);
+    simd::storeu(dst + n - type_width * 4, y);
 
     uintptr_t ps = reinterpret_cast<uintptr_t>(dst);
     uintptr_t pe = reinterpret_cast<uintptr_t>(dst + n);
@@ -16792,11 +16887,9 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
     constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 
     using simd = std::conditional_t<is_avx, avx, sse>;
-    using simd_int = typename simd::int_type;
     constexpr auto simd_width = simd::width();
     constexpr auto type_width = simd_width / nd;
 
-    using sse_int = typename sse::int_type;
     constexpr auto sse_width = sse::width();
     constexpr auto sse_loop = sse_width / nd;
 
@@ -16820,10 +16913,10 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
 
         auto y = simd::set1(val, T());
 
-        simd::storeu((simd_int *)(dst), y);
-        simd::storeu((simd_int *)(dst + type_width), y);
-        simd::storeu((simd_int *)(dst + n - type_width), y);
-        simd::storeu((simd_int *)(dst + n - type_width * 2), y);
+        simd::storeu(dst, y);
+        simd::storeu(dst + type_width, y);
+        simd::storeu(dst + n - type_width, y);
+        simd::storeu(dst + n - type_width * 2, y);
         return;
     }
 
@@ -16832,8 +16925,8 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
 
     if (WJR_UNLIKELY(n <= sse_loop * 2)) {
         if (WJR_UNLIKELY(n >= sse_loop)) {
-            sse::storeu((sse_int *)(dst), y);
-            sse::storeu((sse_int *)(dst + n - sse_loop), y);
+            sse::storeu(dst, y);
+            sse::storeu(dst + n - sse_loop, y);
             return;
         }
 
@@ -16881,8 +16974,8 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
 #if WJR_HAS_SIMD(AVX2)
     if constexpr (is_avx) {
         auto z = broadcast<__m128i_t, __m256i_t>(y);
-        avx::storeu((simd_int *)(dst), z);
-        avx::storeu((simd_int *)(dst + n - type_width), z);
+        avx::storeu(dst, z);
+        avx::storeu(dst + n - type_width, z);
         return;
     }
 #endif
@@ -18203,8 +18296,8 @@ WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1,
                                               size_t n) noexcept {
 #define WJR_REGISTER_COMPARE_NOT_N_AVX(index)                                            \
     do {                                                                                 \
-        auto x = avx::loadu((__m256i *)(src0 + (index)));                                \
-        auto y = avx::loadu((__m256i *)(src1 + (index)));                                \
+        auto x = avx::loadu(src0 + (index));                                             \
+        auto y = avx::loadu(src1 + (index));                                             \
         auto r = avx::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
@@ -18218,10 +18311,10 @@ WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1,
 
     if (rem > 4) {
 #if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu((__m128i *)(src0 + (rem - 4)));
-        auto x1 = sse::loadu((__m128i *)(src0 + (rem - 2)));
-        auto y0 = sse::loadu((__m128i *)(src1 + (rem - 4)));
-        auto y1 = sse::loadu((__m128i *)(src1 + (rem - 2)));
+        auto x0 = sse::loadu(src0 + (rem - 4));
+        auto x1 = sse::loadu(src0 + (rem - 2));
+        auto y0 = sse::loadu(src1 + (rem - 4));
+        auto y1 = sse::loadu(src1 + (rem - 2));
 
         auto r0 = sse::cmpeq_epi64(x0, y0);
         auto r1 = sse::cmpeq_epi64(x1, y1);
@@ -18252,14 +18345,14 @@ WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1,
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu((__m128i *)(src0 + rem));
-        auto x1 = sse::loadu((__m128i *)(src0 + rem + 2));
-        auto x2 = sse::loadu((__m128i *)(src0 + rem + 4));
-        auto x3 = sse::loadu((__m128i *)(src0 + rem + 6));
-        auto y0 = sse::loadu((__m128i *)(src1 + rem));
-        auto y1 = sse::loadu((__m128i *)(src1 + rem + 2));
-        auto y2 = sse::loadu((__m128i *)(src1 + rem + 4));
-        auto y3 = sse::loadu((__m128i *)(src1 + rem + 6));
+        auto x0 = sse::loadu(src0 + rem);
+        auto x1 = sse::loadu(src0 + rem + 2);
+        auto x2 = sse::loadu(src0 + rem + 4);
+        auto x3 = sse::loadu(src0 + rem + 6);
+        auto y0 = sse::loadu(src1 + rem);
+        auto y1 = sse::loadu(src1 + rem + 2);
+        auto y2 = sse::loadu(src1 + rem + 4);
+        auto y3 = sse::loadu(src1 + rem + 6);
 
         auto r0 = sse::cmpeq_epi64(x0, y0);
         auto r1 = sse::cmpeq_epi64(x1, y1);
@@ -18315,14 +18408,14 @@ WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1,
     }
 
     do {
-        auto x0 = avx::loadu((__m256i *)(src0 + rem));
-        auto x1 = avx::loadu((__m256i *)(src0 + rem + 4));
-        auto x2 = avx::loadu((__m256i *)(src0 + rem + 8));
-        auto x3 = avx::loadu((__m256i *)(src0 + rem + 12));
-        auto y0 = avx::loadu((__m256i *)(src1 + rem));
-        auto y1 = avx::loadu((__m256i *)(src1 + rem + 4));
-        auto y2 = avx::loadu((__m256i *)(src1 + rem + 8));
-        auto y3 = avx::loadu((__m256i *)(src1 + rem + 12));
+        auto x0 = avx::loadu(src0 + rem);
+        auto x1 = avx::loadu(src0 + rem + 4);
+        auto x2 = avx::loadu(src0 + rem + 8);
+        auto x3 = avx::loadu(src0 + rem + 12);
+        auto y0 = avx::loadu(src1 + rem);
+        auto y1 = avx::loadu(src1 + rem + 4);
+        auto y2 = avx::loadu(src1 + rem + 8);
+        auto y3 = avx::loadu(src1 + rem + 12);
 
         auto r0 = avx::cmpeq_epi64(x0, y0);
         auto r1 = avx::cmpeq_epi64(x1, y1);
@@ -18383,8 +18476,8 @@ WJR_PURE WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *sr
                                                       size_t n) noexcept {
 #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(index)                                    \
     do {                                                                                 \
-        auto x = avx::loadu((__m256i *)(src0 - 4 + (index)));                            \
-        auto y = avx::loadu((__m256i *)(src1 - 4 + (index)));                            \
+        auto x = avx::loadu(src0 - 4 + (index));                                         \
+        auto y = avx::loadu(src1 - 4 + (index));                                         \
         auto r = avx::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
@@ -18399,10 +18492,10 @@ WJR_PURE WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *sr
 
     if (rem > 4) {
 #if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu((__m128i *)(src0 + n + 2));
-        auto x1 = sse::loadu((__m128i *)(src0 + n));
-        auto y0 = sse::loadu((__m128i *)(src1 + n + 2));
-        auto y1 = sse::loadu((__m128i *)(src1 + n));
+        auto x0 = sse::loadu(src0 + n + 2);
+        auto x1 = sse::loadu(src0 + n);
+        auto y0 = sse::loadu(src1 + n + 2);
+        auto y1 = sse::loadu(src1 + n);
 
         auto r0 = sse::cmpeq_epi64(x0, y0);
         auto r1 = sse::cmpeq_epi64(x1, y1);
@@ -18432,14 +18525,14 @@ WJR_PURE WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *sr
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu((__m128i *)(src0 + n - 8));
-        auto x1 = sse::loadu((__m128i *)(src0 + n - 6));
-        auto x2 = sse::loadu((__m128i *)(src0 + n - 4));
-        auto x3 = sse::loadu((__m128i *)(src0 + n - 2));
-        auto y0 = sse::loadu((__m128i *)(src1 + n - 8));
-        auto y1 = sse::loadu((__m128i *)(src1 + n - 6));
-        auto y2 = sse::loadu((__m128i *)(src1 + n - 4));
-        auto y3 = sse::loadu((__m128i *)(src1 + n - 2));
+        auto x0 = sse::loadu(src0 + n - 8);
+        auto x1 = sse::loadu(src0 + n - 6);
+        auto x2 = sse::loadu(src0 + n - 4);
+        auto x3 = sse::loadu(src0 + n - 2);
+        auto y0 = sse::loadu(src1 + n - 8);
+        auto y1 = sse::loadu(src1 + n - 6);
+        auto y2 = sse::loadu(src1 + n - 4);
+        auto y3 = sse::loadu(src1 + n - 2);
 
         auto r0 = sse::cmpeq_epi64(x0, y0);
         auto r1 = sse::cmpeq_epi64(x1, y1);
@@ -18495,14 +18588,14 @@ WJR_PURE WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *sr
     }
 
     do {
-        auto x0 = avx::loadu((__m256i *)(src0 + n - 16));
-        auto x1 = avx::loadu((__m256i *)(src0 + n - 12));
-        auto x2 = avx::loadu((__m256i *)(src0 + n - 8));
-        auto x3 = avx::loadu((__m256i *)(src0 + n - 4));
-        auto y0 = avx::loadu((__m256i *)(src1 + n - 16));
-        auto y1 = avx::loadu((__m256i *)(src1 + n - 12));
-        auto y2 = avx::loadu((__m256i *)(src1 + n - 8));
-        auto y3 = avx::loadu((__m256i *)(src1 + n - 4));
+        auto x0 = avx::loadu(src0 + n - 16);
+        auto x1 = avx::loadu(src0 + n - 12);
+        auto x2 = avx::loadu(src0 + n - 8);
+        auto x3 = avx::loadu(src0 + n - 4);
+        auto y0 = avx::loadu(src1 + n - 16);
+        auto y1 = avx::loadu(src1 + n - 12);
+        auto y2 = avx::loadu(src1 + n - 8);
+        auto y3 = avx::loadu(src1 + n - 4);
 
         auto r0 = avx::cmpeq_epi64(x0, y0);
         auto r1 = avx::cmpeq_epi64(x1, y1);
@@ -20143,7 +20236,7 @@ WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, __m128i c) noexcept {
 
 #define WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED(index)                                      \
     do {                                                                                 \
-        __m128i x1 = sse::loadu((__m128i *)(src - 3 - (index)));                         \
+        __m128i x1 = sse::loadu(src - 3 - (index));                                      \
         x0 = simd_cast<__m128_t, __m128i_t>(sse::template shuffle_ps<78>(                \
             simd_cast<__m128i_t, __m128_t>(x1), simd_cast<__m128i_t, __m128_t>(x0)));    \
                                                                                          \
@@ -20152,7 +20245,7 @@ WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, __m128i c) noexcept {
                                                                                          \
         __m128i r = sse::Or(r0, r1);                                                     \
                                                                                          \
-        sse::storeu((__m128i *)(dst - 2 - (index)), r);                                  \
+        sse::storeu(dst - 2 - (index), r);                                               \
                                                                                          \
         x0 = x1;                                                                         \
     } while (0)
@@ -20269,7 +20362,7 @@ WJR_INTRINSIC_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned
 
 #define WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED(index)                                      \
     do {                                                                                 \
-        __m128i x1 = sse::loadu((__m128i *)(src + 1 + (index)));                         \
+        __m128i x1 = sse::loadu(src + 1 + (index));                                      \
         x0 = simd_cast<__m128_t, __m128i_t>(sse::template shuffle_ps<78>(                \
             simd_cast<__m128i_t, __m128_t>(x0), simd_cast<__m128i_t, __m128_t>(x1)));    \
                                                                                          \
@@ -20278,7 +20371,7 @@ WJR_INTRINSIC_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned
                                                                                          \
         __m128i r = sse::Or(r0, r1);                                                     \
                                                                                          \
-        sse::storeu((__m128i *)(dst + (index)), r);                                      \
+        sse::storeu(dst + (index), r);                                                   \
                                                                                          \
         x0 = x1;                                                                         \
     } while (0)
@@ -25086,15 +25179,14 @@ uint64_t builtin_from_chars_unroll_16_fast(__m128i in) noexcept {
 template <uint64_t Base>
 uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, char_converter_t) noexcept {
     static_assert(Base <= 10, "");
-    const __m128i in =
-        _mm_sub_epi8(sse::loadu((__m128i *)(ptr)), from_chars_detail::ascii);
+    const __m128i in = _mm_sub_epi8(sse::loadu(ptr), from_chars_detail::ascii);
     return builtin_from_chars_unroll_16_fast<Base>(in);
 }
 
 template <uint64_t Base>
 uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, origin_converter_t) noexcept {
     static_assert(Base <= 10, "");
-    const __m128i in = sse::loadu((__m128i *)(ptr));
+    const __m128i in = sse::loadu(ptr);
     return builtin_from_chars_unroll_16_fast<Base>(in);
 }
 
@@ -28272,7 +28364,7 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
         break;
     }
     case 2: {
-        sse::storeu((__m128i *)(dst), sse::Xor(sse::loadu((__m128i *)(src)), y));
+        sse::storeu(dst, sse::Xor(sse::loadu(src), y));
 
         dst += 2;
         src += 2;
@@ -28281,7 +28373,7 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
     }
 
     case 3: {
-        sse::storeu((__m128i *)(dst), sse::Xor(sse::loadu((__m128i *)(src)), y));
+        sse::storeu(dst, sse::Xor(sse::loadu(src), y));
         dst[2] = ~src[2];
 
         dst += 3;
@@ -28303,15 +28395,15 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
     WJR_ASSUME(idx != m);
 
     do {
-        auto x0 = simd::loadu((simd_int *)(src + idx));
-        auto x1 = simd::loadu((simd_int *)(src + idx + type_width));
-        auto x2 = simd::loadu((simd_int *)(src + idx + type_width * 2));
-        auto x3 = simd::loadu((simd_int *)(src + idx + type_width * 3));
+        auto x0 = simd::loadu(src + idx);
+        auto x1 = simd::loadu(src + idx + type_width);
+        auto x2 = simd::loadu(src + idx + type_width * 2);
+        auto x3 = simd::loadu(src + idx + type_width * 3);
 
-        simd::store((simd_int *)(dst + idx), simd::Xor(x0, z));
-        simd::store((simd_int *)(dst + idx + type_width), simd::Xor(x1, z));
-        simd::store((simd_int *)(dst + idx + type_width * 2), simd::Xor(x2, z));
-        simd::store((simd_int *)(dst + idx + type_width * 3), simd::Xor(x3, z));
+        simd::store(dst + idx, simd::Xor(x0, z));
+        simd::store(dst + idx + type_width, simd::Xor(x1, z));
+        simd::store(dst + idx + type_width * 2, simd::Xor(x2, z));
+        simd::store(dst + idx + type_width * 3, simd::Xor(x3, z));
 
         idx += type_width * 4;
     } while (idx != m);
@@ -28329,17 +28421,17 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
 
     switch (m) {
     case 3: {
-        simd::store((simd_int *)(dst), simd::Xor(simd::loadu((simd_int *)(src)), z));
+        simd::store(dst, simd::Xor(simd::loadu(src), z));
         WJR_FALLTHROUGH;
     }
     case 2: {
-        simd::store((simd_int *)(dst + type_width * (m - 2)),
-                    simd::Xor(simd::loadu((simd_int *)(src + type_width * (m - 2))), z));
+        simd::store(dst + type_width * (m - 2),
+                    simd::Xor(simd::loadu(src + type_width * (m - 2)), z));
         WJR_FALLTHROUGH;
     }
     case 1: {
-        simd::store((simd_int *)(dst + type_width * (m - 1)),
-                    simd::Xor(simd::loadu((simd_int *)(src + type_width * (m - 1))), z));
+        simd::store(dst + type_width * (m - 1),
+                    simd::Xor(simd::loadu(src + type_width * (m - 1)), z));
         WJR_FALLTHROUGH;
     }
     case 0: {
@@ -28364,12 +28456,12 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
         break;
     }
     case 2: {
-        sse::store((__m128i *)(dst + m), sse::Xor(sse::loadu((__m128i *)(src + m)), y));
+        sse::store(dst + m, sse::Xor(sse::loadu(src + m), y));
         break;
     }
 
     case 3: {
-        sse::store((__m128i *)(dst + m), sse::Xor(sse::loadu((__m128i *)(src + m)), y));
+        sse::store(dst + m, sse::Xor(sse::loadu(src + m), y));
         dst[m + 2] = ~src[m + 2];
         break;
     }
@@ -28421,18 +28513,17 @@ WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) noexcept
     const auto y = sse::ones();
 
     if (n & 4) {
-        auto x0 = sse::loadu((__m128i *)(src + idx));
-        auto x1 = sse::loadu((__m128i *)(src + idx + 2));
+        auto x0 = sse::loadu(src + idx);
+        auto x1 = sse::loadu(src + idx + 2);
 
-        sse::storeu((__m128i *)(dst + idx), sse::Xor(x0, y));
-        sse::storeu((__m128i *)(dst + idx + 2), sse::Xor(x1, y));
+        sse::storeu(dst + idx, sse::Xor(x0, y));
+        sse::storeu(dst + idx + 2, sse::Xor(x1, y));
 
         idx += 4;
     }
 
     if (n & 2) {
-        sse::storeu((__m128i *)(dst + idx),
-                    sse::Xor(sse::loadu((__m128i *)(src + idx)), y));
+        sse::storeu(dst + idx, sse::Xor(sse::loadu(src + idx), y));
 
         idx += 2;
     }
@@ -28450,15 +28541,15 @@ WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) noexcept
     WJR_ASSUME((n - idx) % 8 == 0);
 
     do {
-        auto x0 = sse::loadu((__m128i *)(src + idx));
-        auto x1 = sse::loadu((__m128i *)(src + idx + 2));
-        auto x2 = sse::loadu((__m128i *)(src + idx + 4));
-        auto x3 = sse::loadu((__m128i *)(src + idx + 6));
+        auto x0 = sse::loadu(src + idx);
+        auto x1 = sse::loadu(src + idx + 2);
+        auto x2 = sse::loadu(src + idx + 4);
+        auto x3 = sse::loadu(src + idx + 6);
 
-        sse::storeu((__m128i *)(dst + idx), sse::Xor(x0, y));
-        sse::storeu((__m128i *)(dst + idx + 2), sse::Xor(x1, y));
-        sse::storeu((__m128i *)(dst + idx + 4), sse::Xor(x2, y));
-        sse::storeu((__m128i *)(dst + idx + 6), sse::Xor(x3, y));
+        sse::storeu(dst + idx, sse::Xor(x0, y));
+        sse::storeu(dst + idx + 2, sse::Xor(x1, y));
+        sse::storeu(dst + idx + 4, sse::Xor(x2, y));
+        sse::storeu(dst + idx + 6, sse::Xor(x3, y));
 
         idx += 8;
     } while (idx != n);
@@ -32221,10 +32312,10 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
                 }
             }
 
-            const auto x0 = sse::loadu((__m128i *)first);
-            const auto x1 = sse::loadu((__m128i *)(last - 16));
-            sse::storeu((__m128i *)(dest), x0);
-            sse::storeu((__m128i *)(dest + n - 16), x1);
+            const auto x0 = sse::loadu(first);
+            const auto x1 = sse::loadu(last - 16);
+            sse::storeu(dest, x0);
+            sse::storeu(dest + n - 16, x1);
             return;
         } while (0);
     }
@@ -32238,19 +32329,19 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
             }
 
 #if WJR_HAS_SIMD(AVX2)
-            const auto x0 = avx::loadu((__m256i *)first);
-            const auto x1 = avx::loadu((__m256i *)(last - 32));
-            avx::storeu((__m256i *)(dest), x0);
-            avx::storeu((__m256i *)(dest + n - 32), x1);
+            const auto x0 = avx::loadu(first);
+            const auto x1 = avx::loadu(last - 32);
+            avx::storeu(dest, x0);
+            avx::storeu(dest + n - 32, x1);
 #else
-            const auto x0 = sse::loadu((__m128i *)first);
-            const auto x1 = sse::loadu((__m128i *)(first + 16));
-            const auto x2 = sse::loadu((__m128i *)(last - 32));
-            const auto x3 = sse::loadu((__m128i *)(last - 16));
-            sse::storeu((__m128i *)(dest), x0);
-            sse::storeu((__m128i *)(dest + 16), x1);
-            sse::storeu((__m128i *)(dest + n - 32), x2);
-            sse::storeu((__m128i *)(dest + n - 16), x3);
+            const auto x0 = sse::loadu(first);
+            const auto x1 = sse::loadu(first + 16);
+            const auto x2 = sse::loadu(last - 32);
+            const auto x3 = sse::loadu(last - 16);
+            sse::storeu((dest), x0);
+            sse::storeu((dest + 16), x1);
+            sse::storeu((dest + n - 32), x2);
+            sse::storeu((dest + n - 16), x3);
 #endif
             return;
         } while (0);
@@ -32258,31 +32349,31 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
 
     if constexpr (size == 8) {
 #if WJR_HAS_SIMD(AVX2)
-        const auto x0 = avx::loadu((__m256i *)first);
-        const auto x1 = avx::loadu((__m256i *)(first + 32));
-        const auto x2 = avx::loadu((__m256i *)(last - 64));
-        const auto x3 = avx::loadu((__m256i *)(last - 32));
-        avx::storeu((__m256i *)(dest), x0);
-        avx::storeu((__m256i *)(dest + 32), x1);
-        avx::storeu((__m256i *)(dest + n - 64), x2);
-        avx::storeu((__m256i *)(dest + n - 32), x3);
+        const auto x0 = avx::loadu(first);
+        const auto x1 = avx::loadu(first + 32);
+        const auto x2 = avx::loadu(last - 64);
+        const auto x3 = avx::loadu(last - 32);
+        avx::storeu((dest), x0);
+        avx::storeu((dest + 32), x1);
+        avx::storeu((dest + n - 64), x2);
+        avx::storeu((dest + n - 32), x3);
 #else
-        const auto x0 = sse::loadu((__m128i *)first);
-        const auto x1 = sse::loadu((__m128i *)(first + 16));
-        const auto x2 = sse::loadu((__m128i *)(first + 32));
-        const auto x3 = sse::loadu((__m128i *)(first + 48));
-        const auto x4 = sse::loadu((__m128i *)(last - 64));
-        const auto x5 = sse::loadu((__m128i *)(last - 48));
-        const auto x6 = sse::loadu((__m128i *)(last - 32));
-        const auto x7 = sse::loadu((__m128i *)(last - 16));
-        sse::storeu((__m128i *)(dest), x0);
-        sse::storeu((__m128i *)(dest + 16), x1);
-        sse::storeu((__m128i *)(dest + 32), x2);
-        sse::storeu((__m128i *)(dest + 48), x3);
-        sse::storeu((__m128i *)(dest + n - 64), x4);
-        sse::storeu((__m128i *)(dest + n - 48), x5);
-        sse::storeu((__m128i *)(dest + n - 32), x6);
-        sse::storeu((__m128i *)(dest + n - 16), x7);
+        const auto x0 = sse::loadu(first);
+        const auto x1 = sse::loadu(first + 16);
+        const auto x2 = sse::loadu(first + 32);
+        const auto x3 = sse::loadu(first + 48);
+        const auto x4 = sse::loadu(last - 64);
+        const auto x5 = sse::loadu(last - 48);
+        const auto x6 = sse::loadu(last - 32);
+        const auto x7 = sse::loadu(last - 16);
+        sse::storeu((dest), x0);
+        sse::storeu((dest + 16), x1);
+        sse::storeu((dest + 32), x2);
+        sse::storeu((dest + 48), x3);
+        sse::storeu((dest + n - 64), x4);
+        sse::storeu((dest + n - 48), x5);
+        sse::storeu((dest + n - 32), x6);
+        sse::storeu((dest + n - 16), x7);
 #endif
     }
 }
@@ -32364,10 +32455,10 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
                 }
             }
 
-            const auto x0 = sse::loadu((__m128i *)first);
-            const auto x1 = sse::loadu((__m128i *)(last - 16));
-            sse::storeu((__m128i *)(dest - n), x0);
-            sse::storeu((__m128i *)(dest - 16), x1);
+            const auto x0 = sse::loadu(first);
+            const auto x1 = sse::loadu(last - 16);
+            sse::storeu((dest - n), x0);
+            sse::storeu((dest - 16), x1);
             return;
         } while (0);
     }
@@ -32381,19 +32472,19 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
             }
 
 #if WJR_HAS_SIMD(AVX2)
-            const auto x0 = avx::loadu((__m256i *)first);
-            const auto x1 = avx::loadu((__m256i *)(last - 32));
-            avx::storeu((__m256i *)(dest - n), x0);
-            avx::storeu((__m256i *)(dest - 32), x1);
+            const auto x0 = avx::loadu(first);
+            const auto x1 = avx::loadu(last - 32);
+            avx::storeu((dest - n), x0);
+            avx::storeu((dest - 32), x1);
 #else
-            const auto x0 = sse::loadu((__m128i *)first);
-            const auto x1 = sse::loadu((__m128i *)(first + 16));
-            const auto x2 = sse::loadu((__m128i *)(last - 32));
-            const auto x3 = sse::loadu((__m128i *)(last - 16));
-            sse::storeu((__m128i *)(dest - n), x0);
-            sse::storeu((__m128i *)(dest - n + 16), x1);
-            sse::storeu((__m128i *)(dest - 32), x2);
-            sse::storeu((__m128i *)(dest - 16), x3);
+            const auto x0 = sse::loadu(first);
+            const auto x1 = sse::loadu(first + 16);
+            const auto x2 = sse::loadu(last - 32);
+            const auto x3 = sse::loadu(last - 16);
+            sse::storeu((dest - n), x0);
+            sse::storeu((dest - n + 16), x1);
+            sse::storeu((dest - 32), x2);
+            sse::storeu((dest - 16), x3);
 #endif
             return;
         } while (0);
@@ -32401,31 +32492,31 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
 
     if constexpr (size == 8) {
 #if WJR_HAS_SIMD(AVX2)
-        const auto x0 = avx::loadu((__m256i *)first);
-        const auto x1 = avx::loadu((__m256i *)(first + 32));
-        const auto x2 = avx::loadu((__m256i *)(last - 64));
-        const auto x3 = avx::loadu((__m256i *)(last - 32));
-        avx::storeu((__m256i *)(dest - n), x0);
-        avx::storeu((__m256i *)(dest - n + 32), x1);
-        avx::storeu((__m256i *)(dest - 64), x2);
-        avx::storeu((__m256i *)(dest - 32), x3);
+        const auto x0 = avx::loadu(first);
+        const auto x1 = avx::loadu(first + 32);
+        const auto x2 = avx::loadu(last - 64);
+        const auto x3 = avx::loadu(last - 32);
+        avx::storeu((dest - n), x0);
+        avx::storeu((dest - n + 32), x1);
+        avx::storeu((dest - 64), x2);
+        avx::storeu((dest - 32), x3);
 #else
-        const auto x0 = sse::loadu((__m128i *)first);
-        const auto x1 = sse::loadu((__m128i *)(first + 16));
-        const auto x2 = sse::loadu((__m128i *)(first + 32));
-        const auto x3 = sse::loadu((__m128i *)(first + 48));
-        const auto x4 = sse::loadu((__m128i *)(last - 64));
-        const auto x5 = sse::loadu((__m128i *)(last - 48));
-        const auto x6 = sse::loadu((__m128i *)(last - 32));
-        const auto x7 = sse::loadu((__m128i *)(last - 16));
-        sse::storeu((__m128i *)(dest - n), x0);
-        sse::storeu((__m128i *)(dest - n + 16), x1);
-        sse::storeu((__m128i *)(dest - n + 32), x2);
-        sse::storeu((__m128i *)(dest - n + 48), x3);
-        sse::storeu((__m128i *)(dest - 64), x4);
-        sse::storeu((__m128i *)(dest - 48), x5);
-        sse::storeu((__m128i *)(dest - 32), x6);
-        sse::storeu((__m128i *)(dest - 16), x7);
+        const auto x0 = sse::loadu(first);
+        const auto x1 = sse::loadu(first + 16);
+        const auto x2 = sse::loadu(first + 32);
+        const auto x3 = sse::loadu(first + 48);
+        const auto x4 = sse::loadu(last - 64);
+        const auto x5 = sse::loadu(last - 48);
+        const auto x6 = sse::loadu(last - 32);
+        const auto x7 = sse::loadu(last - 16);
+        sse::storeu((dest - n), x0);
+        sse::storeu((dest - n + 16), x1);
+        sse::storeu((dest - n + 32), x2);
+        sse::storeu((dest - n + 48), x3);
+        sse::storeu((dest - 64), x4);
+        sse::storeu((dest - 48), x5);
+        sse::storeu((dest - 32), x6);
+        sse::storeu((dest - 16), x7);
 #endif
     }
 }
@@ -34075,6 +34166,7 @@ private:
 #include <exception>
 
 // Already included
+// Already included
 
 namespace wjr {
 
@@ -34211,6 +34303,11 @@ struct expected_storage_base {
         std::is_nothrow_constructible_v<E, Args...>)
         : m_has_val(false), m_err(std::forward<Args>(args)...) {}
 
+    expected_storage_base(const expected_storage_base &) = default;
+    expected_storage_base(expected_storage_base &&) = default;
+    expected_storage_base &operator=(const expected_storage_base &) = default;
+    expected_storage_base &operator=(expected_storage_base &&) = default;
+
     constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
 
     ~expected_storage_base() = default;
@@ -34236,6 +34333,11 @@ struct expected_storage_base<T, E, false> {
     constexpr expected_storage_base(unexpect_t, Args &&...args) noexcept(
         std::is_nothrow_constructible_v<E, Args...>)
         : m_has_val(false), m_err(std::forward<Args>(args)...) {}
+
+    expected_storage_base(const expected_storage_base &) = default;
+    expected_storage_base(expected_storage_base &&) = default;
+    expected_storage_base &operator=(const expected_storage_base &) = default;
+    expected_storage_base &operator=(expected_storage_base &&) = default;
 
     constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
 
@@ -34274,16 +34376,34 @@ struct expected_operations_base : expected_storage_base<T, E> {
         construct_at(this->m_err, std::forward<Args>(args)...);
     }
 
-    WJR_CONSTEXPR20 void copy_assign(const expected_operations_base &other) {
+    WJR_CONSTEXPR20 void __copy_construct(const expected_operations_base &other) {
+        if (other.has_value()) {
+            construct_value(other.m_val);
+        } else {
+            construct_error(other.m_err);
+        }
+    }
+
+    WJR_CONSTEXPR20 void __move_construct(expected_operations_base &&other) noexcept(
+        std::is_nothrow_move_constructible_v<T>
+            &&std::is_nothrow_move_constructible_v<E>) {
+        if (other.has_value()) {
+            construct_value(std::move(other.m_val));
+        } else {
+            construct_error(std::move(other.m_err));
+        }
+    }
+
+    WJR_CONSTEXPR20 void __copy_assign(const expected_operations_base &other) {
         if (this->m_has_val) {
-            if (WJR_LIKELY(other->m_has_val)) {
+            if (WJR_LIKELY(other.m_has_val)) {
                 this->m_val = other.m_val;
             } else {
                 reinit_expected(this->m_err, this->m_val, other.m_err);
                 this->m_has_val = false;
             }
         } else {
-            if (WJR_LIKELY(!other->m_has_val)) {
+            if (WJR_LIKELY(!other.m_has_val)) {
                 this->m_err = other.m_err;
             } else {
                 reinit_expected(this->m_val, this->m_err, other.m_val);
@@ -34292,17 +34412,17 @@ struct expected_operations_base : expected_storage_base<T, E> {
         }
     }
 
-    WJR_CONSTEXPR20 void move_assign(expected_operations_base &&other) noexcept(
+    WJR_CONSTEXPR20 void __move_assign(expected_operations_base &&other) noexcept(
         std::is_nothrow_move_assignable_v<T> &&std::is_nothrow_move_assignable_v<E>) {
         if (this->m_has_val) {
-            if (WJR_LIKELY(other->m_has_val)) {
+            if (WJR_LIKELY(other.m_has_val)) {
                 this->m_val = std::move(other.m_val);
             } else {
                 reinit_expected(this->m_err, this->m_val, std::move(other.m_err));
                 this->m_has_val = false;
             }
         } else {
-            if (WJR_LIKELY(!other->m_has_val)) {
+            if (WJR_LIKELY(!other.m_has_val)) {
                 this->m_err = std::move(other.m_err);
             } else {
                 reinit_expected(this->m_val, this->m_err, std::move(other.m_val));
@@ -34314,115 +34434,33 @@ struct expected_operations_base : expected_storage_base<T, E> {
     constexpr bool has_value() const { return this->m_has_val; }
 };
 
-template <typename T, typename E,
-          bool = std::is_trivially_copy_constructible_v<T>
-              &&std::is_trivially_copy_constructible_v<E>>
-struct expected_copy_ctor_base : expected_operations_base<T, E> {
-    using expected_operations_base<T, E>::expected_operations_base;
-};
+template <typename T, typename E>
+using expected_storage = control_special_members_base<
+    expected_operations_base<T, E>,
+    std::is_trivially_copy_constructible_v<T> &&
+        std::is_trivially_copy_constructible_v<E>,
+    std::is_trivially_move_constructible_v<T> &&
+        std::is_trivially_move_constructible_v<E>,
+    std::is_trivially_copy_assignable_v<T> && std::is_trivially_copy_constructible_v<T> &&
+        std::is_trivially_destructible_v<T> && std::is_trivially_copy_assignable_v<E> &&
+        std::is_trivially_copy_constructible_v<E> && std::is_trivially_destructible_v<E>,
+    std::is_trivially_move_assignable_v<T> && std::is_trivially_move_constructible_v<T> &&
+        std::is_trivially_destructible_v<T> && std::is_trivially_move_assignable_v<E> &&
+        std::is_trivially_move_constructible_v<E> && std::is_trivially_destructible_v<E>>;
 
 template <typename T, typename E>
-struct expected_copy_ctor_base<T, E, false> : expected_operations_base<T, E> {
-    using Mybase = expected_operations_base<T, E>;
-    using Mybase::Mybase;
-
-    expected_copy_ctor_base() = default;
-    constexpr expected_copy_ctor_base(const expected_copy_ctor_base &other)
-        : Mybase(enable_default_constructor) {
-        if (other.has_value()) {
-            this->construct_value(other.m_val);
-        } else {
-            this->construct_error(other.m_err);
-        }
-    }
-
-    expected_copy_ctor_base(expected_copy_ctor_base &&other) = default;
-    expected_copy_ctor_base &operator=(const expected_copy_ctor_base &other) = default;
-    expected_copy_ctor_base &operator=(expected_copy_ctor_base &&other) = default;
-};
-
-template <typename T, typename E,
-          bool = std::is_trivially_move_constructible_v<T>
-              &&std::is_trivially_move_constructible_v<E>>
-struct expected_move_ctor_base : expected_copy_ctor_base<T, E> {
-    using expected_copy_ctor_base<T, E>::expected_copy_ctor_base;
-};
-template <typename T, typename E>
-struct expected_move_ctor_base<T, E, false> : expected_copy_ctor_base<T, E> {
-    using Mybase = expected_copy_ctor_base<T, E>;
-    using Mybase::Mybase;
-
-    expected_move_ctor_base() = default;
-    expected_move_ctor_base(const expected_move_ctor_base &other) = default;
-
-    constexpr expected_move_ctor_base(expected_move_ctor_base &&other) noexcept(
-        std::is_nothrow_move_constructible_v<T> &&std::is_nothrow_move_constructible_v<E>)
-        : Mybase(enable_default_constructor) {
-        if (other.has_value()) {
-            this->construct_value(std::move(other.m_val));
-        } else {
-            this->construct_error(std::move(other.m_err));
-        }
-    }
-
-    expected_move_ctor_base &operator=(const expected_move_ctor_base &other) = default;
-    expected_move_ctor_base &operator=(expected_move_ctor_base &&other) = default;
-};
-
-template <typename T, typename E,
-          bool = std::is_trivially_copy_assignable_v<T>
-              &&std::is_trivially_copy_assignable_v<E>>
-struct expected_copy_assign_base : expected_move_ctor_base<T, E> {
-    using expected_move_ctor_base<T, E>::expected_move_ctor_base;
-};
-
-template <typename T, typename E>
-struct expected_copy_assign_base<T, E, false> : expected_move_ctor_base<T, E> {
-    using Mybase = expected_move_ctor_base<T, E>;
-    using Mybase::Mybase;
-
-    expected_copy_assign_base() = default;
-    expected_copy_assign_base(const expected_copy_assign_base &other) = default;
-
-    expected_copy_assign_base(expected_copy_assign_base &&other) = default;
-
-    WJR_CONSTEXPR20 expected_copy_assign_base &
-    operator=(const expected_copy_assign_base &other) {
-        this->copy_assign(other);
-        return *this;
-    }
-
-    expected_copy_assign_base &operator=(expected_copy_assign_base &&other) = default;
-};
-
-template <typename T, typename E,
-          bool = std::is_trivially_move_assignable_v<T>
-              &&std::is_trivially_move_assignable_v<E>>
-struct expected_move_assign_base : expected_copy_assign_base<T, E> {
-    using expected_copy_assign_base<T, E>::expected_copy_assign_base;
-};
-
-template <typename T, typename E>
-struct expected_move_assign_base<T, E, false> : expected_copy_assign_base<T, E> {
-    using Mybase = expected_copy_assign_base<T, E>;
-    using Mybase::Mybase;
-
-    expected_move_assign_base() = default;
-    expected_move_assign_base(const expected_move_assign_base &other) = default;
-
-    expected_move_assign_base(expected_move_assign_base &&other) = default;
-
-    expected_move_assign_base &
-    operator=(const expected_move_assign_base &other) = default;
-
-    WJR_CONSTEXPR20 expected_move_assign_base &
-    operator=(expected_move_assign_base &&other) noexcept(
-        std::is_nothrow_move_constructible_v<T>
-            &&std::is_nothrow_move_constructible_v<T>) {
-        this->move_assign(std::move(other));
-        return *this;
-    }
-};
+using enable_expected_storage = enable_special_members_base<
+    std::is_default_constructible_v<T> && std::is_default_constructible_v<E>, true,
+    std::is_copy_constructible_v<T> && std::is_copy_constructible_v<E>,
+    std::is_move_constructible_v<T> && std::is_move_constructible_v<E>,
+    std::is_copy_assignable_v<T> && std::is_copy_constructible_v<T> &&
+        std::is_copy_assignable_v<E> && std::is_copy_constructible_v<E> &&
+        (std::is_nothrow_move_constructible_v<T> ||
+         std::is_nothrow_move_constructible_v<E>),
+    std::is_move_assignable_v<T> && std::is_move_constructible_v<T> &&
+        std::is_move_assignable_v<E> && std::is_move_constructible_v<E> &&
+        (std::is_nothrow_move_constructible_v<T> ||
+         std::is_nothrow_move_constructible_v<E>)>;
 
 template <typename T, typename E, typename U, typename G>
 struct expected_construct_with
@@ -34481,10 +34519,9 @@ inline constexpr bool expected_construct_with_arg_v =
 } // namespace expected_detail
 
 template <typename T, typename E>
-class WJR_EMPTY_BASES expected
-    : expected_detail::expected_move_assign_base<T, E>,
-      enable_special_members_of_args_base<expected<T, E>, T, E> {
-    using Mybase = expected_detail::expected_move_assign_base<T, E>;
+class WJR_EMPTY_BASES expected : expected_detail::expected_storage<T, E>,
+                                 expected_detail::enable_expected_storage<T, E> {
+    using Mybase = expected_detail::expected_storage<T, E>;
 
 public:
     using value_type = T;

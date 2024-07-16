@@ -43,7 +43,7 @@ void load_simd(const char *first, typename simd::int_type *arr) {
     constexpr auto u8_width = simd_width / 8;
     constexpr auto u8_loop = 64 / u8_width;
     for (unsigned i = 0; i < u8_loop; ++i) {
-        arr[i] = simd::loadu((typename simd::int_type *)(first + i * u8_width));
+        arr[i] = simd::loadu(first + i * u8_width);
     }
 }
 

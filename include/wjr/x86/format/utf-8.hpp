@@ -17,8 +17,7 @@ namespace wjr::utf8 {
 #if WJR_HAS_BUILTIN(IS_ASCII_16)
 
 WJR_PURE bool builtin_is_ascii_16(uint8_t *ptr) {
-    return sse::test_all_ones(
-        sse::cmplt_epi8(sse::loadu((__m128i *)(ptr)), sse::set1_epi8(0x80)));
+    return sse::test_all_ones(sse::cmplt_epi8(sse::loadu(ptr), sse::set1_epi8(0x80)));
 }
 
 #endif
@@ -26,8 +25,7 @@ WJR_PURE bool builtin_is_ascii_16(uint8_t *ptr) {
 #if WJR_HAS_BUILTIN(IS_ASCII_32)
 
 WJR_PURE bool builtin_is_ascii_32(uint8_t *ptr) {
-    return avx::test_all_ones(
-        avx::cmplt_epi8(avx::loadu((__m256i *)(ptr)), avx::set1_epi8(0x80)));
+    return avx::test_all_ones(avx::cmplt_epi8(avx::loadu(ptr), avx::set1_epi8(0x80)));
 }
 
 #endif

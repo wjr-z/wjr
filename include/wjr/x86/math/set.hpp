@@ -33,14 +33,14 @@ WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) noexcept {
 
     auto y = simd::set1(val, T());
 
-    simd::storeu((simd_int *)(dst), y);
-    simd::storeu((simd_int *)(dst + n - type_width), y);
-    simd::storeu((simd_int *)(dst + type_width), y);
-    simd::storeu((simd_int *)(dst + n - type_width * 2), y);
-    simd::storeu((simd_int *)(dst + type_width * 2), y);
-    simd::storeu((simd_int *)(dst + n - type_width * 3), y);
-    simd::storeu((simd_int *)(dst + type_width * 3), y);
-    simd::storeu((simd_int *)(dst + n - type_width * 4), y);
+    simd::storeu(dst, y);
+    simd::storeu(dst + n - type_width, y);
+    simd::storeu(dst + type_width, y);
+    simd::storeu(dst + n - type_width * 2, y);
+    simd::storeu(dst + type_width * 2, y);
+    simd::storeu(dst + n - type_width * 3, y);
+    simd::storeu(dst + type_width * 3, y);
+    simd::storeu(dst + n - type_width * 4, y);
 
     uintptr_t ps = reinterpret_cast<uintptr_t>(dst);
     uintptr_t pe = reinterpret_cast<uintptr_t>(dst + n);
@@ -78,11 +78,9 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
     constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 
     using simd = std::conditional_t<is_avx, avx, sse>;
-    using simd_int = typename simd::int_type;
     constexpr auto simd_width = simd::width();
     constexpr auto type_width = simd_width / nd;
 
-    using sse_int = typename sse::int_type;
     constexpr auto sse_width = sse::width();
     constexpr auto sse_loop = sse_width / nd;
 
@@ -106,10 +104,10 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
 
         auto y = simd::set1(val, T());
 
-        simd::storeu((simd_int *)(dst), y);
-        simd::storeu((simd_int *)(dst + type_width), y);
-        simd::storeu((simd_int *)(dst + n - type_width), y);
-        simd::storeu((simd_int *)(dst + n - type_width * 2), y);
+        simd::storeu(dst, y);
+        simd::storeu(dst + type_width, y);
+        simd::storeu(dst + n - type_width, y);
+        simd::storeu(dst + n - type_width * 2, y);
         return;
     }
 
@@ -118,8 +116,8 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
 
     if (WJR_UNLIKELY(n <= sse_loop * 2)) {
         if (WJR_UNLIKELY(n >= sse_loop)) {
-            sse::storeu((sse_int *)(dst), y);
-            sse::storeu((sse_int *)(dst + n - sse_loop), y);
+            sse::storeu(dst, y);
+            sse::storeu(dst + n - sse_loop, y);
             return;
         }
 
@@ -167,8 +165,8 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
 #if WJR_HAS_SIMD(AVX2)
     if constexpr (is_avx) {
         auto z = broadcast<__m128i_t, __m256i_t>(y);
-        avx::storeu((simd_int *)(dst), z);
-        avx::storeu((simd_int *)(dst + n - type_width), z);
+        avx::storeu(dst, z);
+        avx::storeu(dst + n - type_width, z);
         return;
     }
 #endif

@@ -25,8 +25,8 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1,
                                                   size_t n) noexcept {
 #define WJR_REGISTER_FIND_NOT_N_AVX(index)                                               \
     do {                                                                                 \
-        auto x = avx::loadu((__m256i *)(src0 + (index)));                                \
-        auto y = avx::loadu((__m256i *)(src1 + (index)));                                \
+        auto x = avx::loadu(src0 + (index));                                             \
+        auto y = avx::loadu(src1 + (index));                                             \
         auto r = avx::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
@@ -39,10 +39,10 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1,
 
     if (rem > 4) {
 #if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu((__m128i *)(src0 + (rem - 4)));
-        auto x1 = sse::loadu((__m128i *)(src0 + (rem - 2)));
-        auto y0 = sse::loadu((__m128i *)(src1 + (rem - 4)));
-        auto y1 = sse::loadu((__m128i *)(src1 + (rem - 2)));
+        auto x0 = sse::loadu(src0 + (rem - 4));
+        auto x1 = sse::loadu(src0 + (rem - 2));
+        auto y0 = sse::loadu(src1 + (rem - 4));
+        auto y1 = sse::loadu(src1 + (rem - 2));
 
         auto r0 = sse::cmpeq_epi64(x0, y0);
         auto r1 = sse::cmpeq_epi64(x1, y1);
@@ -67,14 +67,14 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1,
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu((__m128i *)(src0 + rem));
-        auto x1 = sse::loadu((__m128i *)(src0 + rem + 2));
-        auto x2 = sse::loadu((__m128i *)(src0 + rem + 4));
-        auto x3 = sse::loadu((__m128i *)(src0 + rem + 6));
-        auto y0 = sse::loadu((__m128i *)(src1 + rem));
-        auto y1 = sse::loadu((__m128i *)(src1 + rem + 2));
-        auto y2 = sse::loadu((__m128i *)(src1 + rem + 4));
-        auto y3 = sse::loadu((__m128i *)(src1 + rem + 6));
+        auto x0 = sse::loadu(src0 + rem);
+        auto x1 = sse::loadu(src0 + rem + 2);
+        auto x2 = sse::loadu(src0 + rem + 4);
+        auto x3 = sse::loadu(src0 + rem + 6);
+        auto y0 = sse::loadu(src1 + rem);
+        auto y1 = sse::loadu(src1 + rem + 2);
+        auto y2 = sse::loadu(src1 + rem + 4);
+        auto y3 = sse::loadu(src1 + rem + 6);
 
         auto r0 = sse::cmpeq_epi64(x0, y0);
         auto r1 = sse::cmpeq_epi64(x1, y1);
@@ -118,14 +118,14 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1,
     }
 
     do {
-        auto x0 = avx::loadu((__m256i *)(src0 + rem));
-        auto x1 = avx::loadu((__m256i *)(src0 + rem + 4));
-        auto x2 = avx::loadu((__m256i *)(src0 + rem + 8));
-        auto x3 = avx::loadu((__m256i *)(src0 + rem + 12));
-        auto y0 = avx::loadu((__m256i *)(src1 + rem));
-        auto y1 = avx::loadu((__m256i *)(src1 + rem + 4));
-        auto y2 = avx::loadu((__m256i *)(src1 + rem + 8));
-        auto y3 = avx::loadu((__m256i *)(src1 + rem + 12));
+        auto x0 = avx::loadu(src0 + rem);
+        auto x1 = avx::loadu(src0 + rem + 4);
+        auto x2 = avx::loadu(src0 + rem + 8);
+        auto x3 = avx::loadu(src0 + rem + 12);
+        auto y0 = avx::loadu(src1 + rem);
+        auto y1 = avx::loadu(src1 + rem + 4);
+        auto y2 = avx::loadu(src1 + rem + 8);
+        auto y3 = avx::loadu(src1 + rem + 12);
 
         auto r0 = avx::cmpeq_epi64(x0, y0);
         auto r1 = avx::cmpeq_epi64(x1, y1);
@@ -171,7 +171,7 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src, T val,
                                                   size_t n) noexcept {
 #define WJR_REGISTER_FIND_NOT_N_AVX(index)                                               \
     do {                                                                                 \
-        auto x = avx::loadu((__m256i *)(src + (index)));                                 \
+        auto x = avx::loadu(src + (index));                                              \
         auto r = avx::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         auto mask = ~avx::movemask_epi8(r);                                              \
@@ -190,8 +190,8 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src, T val,
 
     if (rem > 4) {
 #if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu((__m128i *)(src + (rem - 4)));
-        auto x1 = sse::loadu((__m128i *)(src + (rem - 2)));
+        auto x0 = sse::loadu(src + (rem - 4));
+        auto x1 = sse::loadu(src + (rem - 2));
 
         auto r0 = sse::cmpeq_epi64(x0, y);
         auto r1 = sse::cmpeq_epi64(x1, y);
@@ -216,10 +216,10 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src, T val,
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu((__m128i *)(src + rem));
-        auto x1 = sse::loadu((__m128i *)(src + rem + 2));
-        auto x2 = sse::loadu((__m128i *)(src + rem + 4));
-        auto x3 = sse::loadu((__m128i *)(src + rem + 6));
+        auto x0 = sse::loadu(src + rem);
+        auto x1 = sse::loadu(src + rem + 2);
+        auto x2 = sse::loadu(src + rem + 4);
+        auto x3 = sse::loadu(src + rem + 6);
 
         auto r0 = sse::cmpeq_epi64(x0, y);
         auto r1 = sse::cmpeq_epi64(x1, y);
@@ -263,10 +263,10 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src, T val,
     }
 
     do {
-        auto x0 = avx::loadu((__m256i *)(src + rem));
-        auto x1 = avx::loadu((__m256i *)(src + rem + 4));
-        auto x2 = avx::loadu((__m256i *)(src + rem + 8));
-        auto x3 = avx::loadu((__m256i *)(src + rem + 12));
+        auto x0 = avx::loadu(src + rem);
+        auto x1 = avx::loadu(src + rem + 4);
+        auto x2 = avx::loadu(src + rem + 8);
+        auto x3 = avx::loadu(src + rem + 12);
 
         auto r0 = avx::cmpeq_epi64(x0, y);
         auto r1 = avx::cmpeq_epi64(x1, y);
@@ -316,8 +316,8 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T
                                                           size_t n) noexcept {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
-        auto x = avx::loadu((__m256i *)(src0 - 4 + (index)));                            \
-        auto y = avx::loadu((__m256i *)(src1 - 4 + (index)));                            \
+        auto x = avx::loadu(src0 - 4 + (index));                                         \
+        auto y = avx::loadu(src1 - 4 + (index));                                         \
         auto r = avx::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
@@ -331,10 +331,10 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T
 
     if (rem > 4) {
 #if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu((__m128i *)(src0 + n + 2));
-        auto x1 = sse::loadu((__m128i *)(src0 + n));
-        auto y0 = sse::loadu((__m128i *)(src1 + n + 2));
-        auto y1 = sse::loadu((__m128i *)(src1 + n));
+        auto x0 = sse::loadu(src0 + n + 2);
+        auto x1 = sse::loadu(src0 + n);
+        auto y0 = sse::loadu(src1 + n + 2);
+        auto y1 = sse::loadu(src1 + n);
 
         auto r0 = sse::cmpeq_epi64(x0, y0);
         auto r1 = sse::cmpeq_epi64(x1, y1);
@@ -359,14 +359,14 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu((__m128i *)(src0 + n - 8));
-        auto x1 = sse::loadu((__m128i *)(src0 + n - 6));
-        auto x2 = sse::loadu((__m128i *)(src0 + n - 4));
-        auto x3 = sse::loadu((__m128i *)(src0 + n - 2));
-        auto y0 = sse::loadu((__m128i *)(src1 + n - 8));
-        auto y1 = sse::loadu((__m128i *)(src1 + n - 6));
-        auto y2 = sse::loadu((__m128i *)(src1 + n - 4));
-        auto y3 = sse::loadu((__m128i *)(src1 + n - 2));
+        auto x0 = sse::loadu(src0 + n - 8);
+        auto x1 = sse::loadu(src0 + n - 6);
+        auto x2 = sse::loadu(src0 + n - 4);
+        auto x3 = sse::loadu(src0 + n - 2);
+        auto y0 = sse::loadu(src1 + n - 8);
+        auto y1 = sse::loadu(src1 + n - 6);
+        auto y2 = sse::loadu(src1 + n - 4);
+        auto y3 = sse::loadu(src1 + n - 2);
 
         auto r0 = sse::cmpeq_epi64(x0, y0);
         auto r1 = sse::cmpeq_epi64(x1, y1);
@@ -410,14 +410,14 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T
     }
 
     do {
-        auto x0 = avx::loadu((__m256i *)(src0 + n - 16));
-        auto x1 = avx::loadu((__m256i *)(src0 + n - 12));
-        auto x2 = avx::loadu((__m256i *)(src0 + n - 8));
-        auto x3 = avx::loadu((__m256i *)(src0 + n - 4));
-        auto y0 = avx::loadu((__m256i *)(src1 + n - 16));
-        auto y1 = avx::loadu((__m256i *)(src1 + n - 12));
-        auto y2 = avx::loadu((__m256i *)(src1 + n - 8));
-        auto y3 = avx::loadu((__m256i *)(src1 + n - 4));
+        auto x0 = avx::loadu(src0 + n - 16);
+        auto x1 = avx::loadu(src0 + n - 12);
+        auto x2 = avx::loadu(src0 + n - 8);
+        auto x3 = avx::loadu(src0 + n - 4);
+        auto y0 = avx::loadu(src1 + n - 16);
+        auto y1 = avx::loadu(src1 + n - 12);
+        auto y2 = avx::loadu(src1 + n - 8);
+        auto y3 = avx::loadu(src1 + n - 4);
 
         auto r0 = avx::cmpeq_epi64(x0, y0);
         auto r1 = avx::cmpeq_epi64(x1, y1);
@@ -463,7 +463,7 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val,
                                                           size_t n) noexcept {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
-        auto x = avx::loadu((__m256i *)(src - 4 + (index)));                             \
+        auto x = avx::loadu(src - 4 + (index));                                          \
         auto r = avx::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
@@ -483,8 +483,8 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val,
 
     if (rem > 4) {
 #if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu((__m128i *)(src + n + 2));
-        auto x1 = sse::loadu((__m128i *)(src + n));
+        auto x0 = sse::loadu(src + n + 2);
+        auto x1 = sse::loadu(src + n);
 
         auto r0 = sse::cmpeq_epi64(x0, y);
         auto r1 = sse::cmpeq_epi64(x1, y);
@@ -509,10 +509,10 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val,
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu((__m128i *)(src + n - 8));
-        auto x1 = sse::loadu((__m128i *)(src + n - 6));
-        auto x2 = sse::loadu((__m128i *)(src + n - 4));
-        auto x3 = sse::loadu((__m128i *)(src + n - 2));
+        auto x0 = sse::loadu(src + n - 8);
+        auto x1 = sse::loadu(src + n - 6);
+        auto x2 = sse::loadu(src + n - 4);
+        auto x3 = sse::loadu(src + n - 2);
 
         auto r0 = sse::cmpeq_epi64(x0, y);
         auto r1 = sse::cmpeq_epi64(x1, y);
@@ -556,10 +556,10 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val,
     }
 
     do {
-        auto x0 = avx::loadu((__m256i *)(src + n - 16));
-        auto x1 = avx::loadu((__m256i *)(src + n - 12));
-        auto x2 = avx::loadu((__m256i *)(src + n - 8));
-        auto x3 = avx::loadu((__m256i *)(src + n - 4));
+        auto x0 = avx::loadu(src + n - 16);
+        auto x1 = avx::loadu(src + n - 12);
+        auto x2 = avx::loadu(src + n - 8);
+        auto x3 = avx::loadu(src + n - 4);
 
         auto r0 = avx::cmpeq_epi64(x0, y);
         auto r1 = avx::cmpeq_epi64(x1, y);

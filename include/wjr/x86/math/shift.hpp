@@ -58,7 +58,7 @@ WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, __m128i c) noexcept {
 
 #define WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED(index)                                      \
     do {                                                                                 \
-        __m128i x1 = sse::loadu((__m128i *)(src - 3 - (index)));                         \
+        __m128i x1 = sse::loadu(src - 3 - (index));                                      \
         x0 = simd_cast<__m128_t, __m128i_t>(sse::template shuffle_ps<78>(                \
             simd_cast<__m128i_t, __m128_t>(x1), simd_cast<__m128i_t, __m128_t>(x0)));    \
                                                                                          \
@@ -67,7 +67,7 @@ WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, __m128i c) noexcept {
                                                                                          \
         __m128i r = sse::Or(r0, r1);                                                     \
                                                                                          \
-        sse::storeu((__m128i *)(dst - 2 - (index)), r);                                  \
+        sse::storeu(dst - 2 - (index), r);                                               \
                                                                                          \
         x0 = x1;                                                                         \
     } while (0)
@@ -184,7 +184,7 @@ WJR_INTRINSIC_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned
 
 #define WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED(index)                                      \
     do {                                                                                 \
-        __m128i x1 = sse::loadu((__m128i *)(src + 1 + (index)));                         \
+        __m128i x1 = sse::loadu(src + 1 + (index));                                      \
         x0 = simd_cast<__m128_t, __m128i_t>(sse::template shuffle_ps<78>(                \
             simd_cast<__m128i_t, __m128_t>(x0), simd_cast<__m128i_t, __m128_t>(x1)));    \
                                                                                          \
@@ -193,7 +193,7 @@ WJR_INTRINSIC_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned
                                                                                          \
         __m128i r = sse::Or(r0, r1);                                                     \
                                                                                          \
-        sse::storeu((__m128i *)(dst + (index)), r);                                      \
+        sse::storeu(dst + (index), r);                                                   \
                                                                                          \
         x0 = x1;                                                                         \
     } while (0)

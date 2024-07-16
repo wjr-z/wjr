@@ -44,13 +44,13 @@ class __union2_storage_base;
         template <typename... Args>                                                      \
         constexpr __union2_storage_base(                                                 \
             std::in_place_index_t<0>,                                                    \
-            Args &&...args) noexcept(std::is_nothrow_constructible_v<T, Args...>)     \
+            Args &&...args) noexcept(std::is_nothrow_constructible_v<T, Args...>)        \
             : first(std::forward<Args>(args)...) {}                                      \
                                                                                          \
         template <typename... Args>                                                      \
         constexpr __union2_storage_base(                                                 \
             std::in_place_index_t<1>,                                                    \
-            Args &&...args) noexcept(std::is_nothrow_constructible_v<U, Args...>)     \
+            Args &&...args) noexcept(std::is_nothrow_constructible_v<U, Args...>)        \
             : second(std::forward<Args>(args)...) {}                                     \
                                                                                          \
         ~__union2_storage_base() WJR_PP_BOOL_IF(DES, = default, noexcept {});            \

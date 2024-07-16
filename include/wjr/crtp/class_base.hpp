@@ -23,7 +23,6 @@ struct enable_default_constructor_base {
     operator=(const enable_default_constructor_base &) = default;
     enable_default_constructor_base &
     operator=(enable_default_constructor_base &&) = default;
-    ~enable_default_constructor_base() = default;
 
 protected:
     constexpr explicit enable_default_constructor_base(
@@ -39,7 +38,6 @@ struct enable_default_constructor_base<false, Tag> {
     operator=(const enable_default_constructor_base &) = default;
     enable_default_constructor_base &
     operator=(enable_default_constructor_base &&) = default;
-    ~enable_default_constructor_base() = default;
 
 protected:
     constexpr explicit enable_default_constructor_base(
@@ -54,7 +52,6 @@ struct enable_copy_constructor_base {
     enable_copy_constructor_base &
     operator=(const enable_copy_constructor_base &) = default;
     enable_copy_constructor_base &operator=(enable_copy_constructor_base &&) = default;
-    ~enable_copy_constructor_base() = default;
 
 protected:
     constexpr explicit enable_copy_constructor_base(
@@ -69,7 +66,6 @@ struct enable_copy_constructor_base<false, Tag> {
     enable_copy_constructor_base &
     operator=(const enable_copy_constructor_base &) = default;
     enable_copy_constructor_base &operator=(enable_copy_constructor_base &&) = default;
-    ~enable_copy_constructor_base() = default;
 
 protected:
     constexpr explicit enable_copy_constructor_base(
@@ -84,7 +80,6 @@ struct enable_move_constructor_base {
     enable_move_constructor_base &
     operator=(const enable_move_constructor_base &) = default;
     enable_move_constructor_base &operator=(enable_move_constructor_base &&) = default;
-    ~enable_move_constructor_base() = default;
 
 protected:
     constexpr explicit enable_move_constructor_base(
@@ -99,7 +94,6 @@ struct enable_move_constructor_base<false, Tag> {
     enable_move_constructor_base &
     operator=(const enable_move_constructor_base &) = default;
     enable_move_constructor_base &operator=(enable_move_constructor_base &&) = default;
-    ~enable_move_constructor_base() = default;
 
 protected:
     constexpr explicit enable_move_constructor_base(
@@ -113,7 +107,6 @@ struct enable_copy_assignment_base {
     enable_copy_assignment_base(enable_copy_assignment_base &&) = default;
     enable_copy_assignment_base &operator=(const enable_copy_assignment_base &) = default;
     enable_copy_assignment_base &operator=(enable_copy_assignment_base &&) = default;
-    ~enable_copy_assignment_base() = default;
 
 protected:
     constexpr explicit enable_copy_assignment_base(
@@ -127,7 +120,6 @@ struct enable_copy_assignment_base<false, Tag> {
     enable_copy_assignment_base(enable_copy_assignment_base &&) = default;
     enable_copy_assignment_base &operator=(const enable_copy_assignment_base &) = delete;
     enable_copy_assignment_base &operator=(enable_copy_assignment_base &&) = default;
-    ~enable_copy_assignment_base() = default;
 
 protected:
     constexpr explicit enable_copy_assignment_base(
@@ -141,7 +133,6 @@ struct enable_move_assignment_base {
     enable_move_assignment_base(enable_move_assignment_base &&) = default;
     enable_move_assignment_base &operator=(const enable_move_assignment_base &) = default;
     enable_move_assignment_base &operator=(enable_move_assignment_base &&) = default;
-    ~enable_move_assignment_base() = default;
 
 protected:
     constexpr explicit enable_move_assignment_base(
@@ -155,7 +146,6 @@ struct enable_move_assignment_base<false, Tag> {
     enable_move_assignment_base(enable_move_assignment_base &&) = default;
     enable_move_assignment_base &operator=(const enable_move_assignment_base &) = default;
     enable_move_assignment_base &operator=(enable_move_assignment_base &&) = delete;
-    ~enable_move_assignment_base() = default;
 
 protected:
     constexpr explicit enable_move_assignment_base(
@@ -207,7 +197,6 @@ public:
     enable_special_members_base(enable_special_members_base &&) = default;
     enable_special_members_base &operator=(const enable_special_members_base &) = default;
     enable_special_members_base &operator=(enable_special_members_base &&) = default;
-    ~enable_special_members_base() = default;
 
 protected:
     constexpr explicit enable_special_members_base(enable_default_constructor_t) noexcept
@@ -244,6 +233,92 @@ using enable_trivially_special_members_of_args_base = enable_special_members_bas
 
 template <size_t I, typename T>
 struct enable_base_identity_t {};
+
+template <typename Mybase>
+struct control_copy_ctor_base : Mybase {
+    using Mybase ::Mybase;
+    control_copy_ctor_base() = default;
+    constexpr control_copy_ctor_base(const control_copy_ctor_base &other) noexcept(
+        noexcept(Mybase::__copy_construct(static_cast<const Mybase &>(other))))
+        : Mybase(enable_default_constructor) {
+        Mybase::__copy_construct(static_cast<const Mybase &>(other));
+    }
+    control_copy_ctor_base(control_copy_ctor_base &&) = default;
+    control_copy_ctor_base &operator=(const control_copy_ctor_base &) = default;
+    control_copy_ctor_base &operator=(control_copy_ctor_base &&) = default;
+
+protected:
+    constexpr explicit control_copy_ctor_base(enable_default_constructor_t) noexcept
+        : Mybase(enable_default_constructor) {}
+};
+
+template <typename Mybase>
+struct control_move_ctor_base : Mybase {
+    using Mybase ::Mybase;
+    control_move_ctor_base() = default;
+    control_move_ctor_base(const control_move_ctor_base &) = default;
+    constexpr control_move_ctor_base(control_move_ctor_base &&other) noexcept(
+        noexcept(Mybase::__move_construct(static_cast<Mybase &&>(other))))
+        : Mybase(enable_default_constructor) {
+        Mybase::__move_construct(static_cast<Mybase &&>(other));
+    }
+    control_move_ctor_base &operator=(const control_move_ctor_base &) = default;
+    control_move_ctor_base &operator=(control_move_ctor_base &&) = default;
+
+protected:
+    constexpr explicit control_move_ctor_base(enable_default_constructor_t) noexcept
+        : Mybase(enable_default_constructor) {}
+};
+
+template <typename Mybase>
+struct control_copy_assign_base : Mybase {
+    using Mybase ::Mybase;
+    control_copy_assign_base() = default;
+    control_copy_assign_base(const control_copy_assign_base &) = default;
+    control_copy_assign_base(control_copy_assign_base &&) = default;
+    constexpr control_copy_assign_base &
+    operator=(const control_copy_assign_base &other) noexcept(
+        noexcept(Mybase::__copy_assign(static_cast<const Mybase &>(other)))) {
+        Mybase::__copy_assign(static_cast<const Mybase &>(other));
+        return *this;
+    }
+    control_copy_assign_base &operator=(control_copy_assign_base &&) = default;
+
+protected:
+    constexpr explicit control_copy_assign_base(enable_default_constructor_t) noexcept
+        : Mybase(enable_default_constructor) {}
+};
+
+template <typename Mybase>
+struct control_move_assign_base : Mybase {
+    using Mybase ::Mybase;
+    control_move_assign_base() = default;
+    control_move_assign_base(const control_move_assign_base &) = default;
+    control_move_assign_base(control_move_assign_base &&) = default;
+    control_move_assign_base &operator=(const control_move_assign_base &) = default;
+    constexpr control_move_assign_base &
+    operator=(control_move_assign_base &&other) noexcept(
+        noexcept(Mybase::__move_assign(static_cast<Mybase &&>(other)))) {
+        Mybase::__move_assign(static_cast<Mybase &&>(other));
+        return *this;
+    }
+
+protected:
+    constexpr explicit control_move_assign_base(enable_default_constructor_t) noexcept
+        : Mybase(enable_default_constructor) {}
+};
+
+template <bool F, template <typename> typename Control, typename Mybase>
+using __control_base_select = std::conditional_t<F, Mybase, Control<Mybase>>;
+
+template <typename Mybase, bool Copy, bool Move, bool CopyAssign, bool MoveAssign>
+using control_special_members_base = __control_base_select<
+    Copy, control_copy_ctor_base,
+    __control_base_select<
+        Move, control_move_ctor_base,
+        __control_base_select<
+            CopyAssign, control_copy_assign_base,
+            __control_base_select<MoveAssign, control_move_assign_base, Mybase>>>>;
 
 } // namespace wjr
 
