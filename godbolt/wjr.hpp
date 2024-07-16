@@ -34279,7 +34279,7 @@ WJR_CONSTEXPR20 void reinit_expected(NewType &new_val, OldType &old_val, Args &&
         WJR_TRY { construct_at(std::addressof(new_val), std::forward<Args>(args)...); }
         WJR_CATCH(...) {
             construct_at(std::addressof(old_val), std::move(temp));
-            throw;
+            WJR_XTHROW;
         }
     }
 }
@@ -34341,7 +34341,7 @@ struct expected_storage_base<T, E, false> {
 
     constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
 
-    constexpr ~expected_storage_base() noexcept(
+    ~expected_storage_base() noexcept(
         std::is_nothrow_destructible_v<T> &&std::is_nothrow_destructible_v<E>) {
         if (this->m_has_val) {
             std::destroy_at(std::addressof(this->m_val));
