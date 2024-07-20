@@ -108,8 +108,7 @@ public:
 
 // back_inserter or inserter
 template <typename Iter>
-struct fast_buffer<Iter, std::void_t<decltype(std::declval<std::enable_if_t<
-                                                  is_any_insert_iterator_v<Iter>>>())>> {
+struct fast_buffer<Iter, std::enable_if_t<is_any_insert_iterator_v<Iter>>> {
 private:
     using value_type = typename Iter::container_type::value_type;
 

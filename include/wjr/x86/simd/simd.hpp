@@ -696,7 +696,7 @@ struct sse {
 
     WJR_INTRINSIC_INLINE static __m128i packus_epi32(__m128i a, __m128i b);
 
-    WJR_INTRINSIC_INLINE static __m128i stream_load(const void *p);
+    WJR_INTRINSIC_INLINE static __m128i stream_load(void *p);
 
     WJR_INTRINSIC_INLINE static int test_all_ones(__m128i a);
 
@@ -2707,8 +2707,8 @@ __m128i sse::mullo_epi32(__m128i a, __m128i b) { return _mm_mullo_epi32(a, b); }
 
 __m128i sse::packus_epi32(__m128i a, __m128i b) { return _mm_packus_epi32(a, b); }
 
-__m128i sse::stream_load(const void *p) {
-    return _mm_stream_load_si128(static_cast<const __m128i *>(p));
+__m128i sse::stream_load(void *p) {
+    return _mm_stream_load_si128(static_cast<__m128i *>(p));
 }
 
 int sse::test_all_ones(__m128i a) { return _mm_test_all_ones(a); }

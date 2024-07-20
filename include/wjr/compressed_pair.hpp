@@ -8,7 +8,7 @@ namespace wjr {
 template <typename T, typename U>
 class compressed_pair;
 
-}
+} // namespace wjr
 
 namespace std {
 

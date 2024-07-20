@@ -17,7 +17,7 @@
 namespace wjr {
 
 template <typename T, typename U, typename Tag>
-using __union2_storage_enabler_select = enable_special_members_base<
+using __union2_storage_enabler_selector = enable_special_members_base<
     true, true,
     std::is_trivially_copy_constructible_v<T> &&
         std::is_trivially_copy_constructible_v<U>,
@@ -33,10 +33,11 @@ class __union2_storage_base;
 #define WJR_REGISTER_UNION_BASE(CON, DES)                                                \
     template <typename T, typename U>                                                    \
     class __union2_storage_base<T, U, CON, DES>                                          \
-        : __union2_storage_enabler_select<T, U, __union2_storage_base<T, U, CON, DES>> { \
+        : __union2_storage_enabler_selector<T, U,                                        \
+                                            __union2_storage_base<T, U, CON, DES>> {     \
         using Mybase =                                                                   \
-            __union2_storage_enabler_select<T, U,                                        \
-                                            __union2_storage_base<T, U, CON, DES>>;      \
+            __union2_storage_enabler_selector<T, U,                                      \
+                                              __union2_storage_base<T, U, CON, DES>>;    \
                                                                                          \
     public:                                                                              \
         constexpr __union2_storage_base() WJR_PP_BOOL_IF(CON, = default, noexcept {});   \
@@ -69,7 +70,7 @@ WJR_REGISTER_UNION_BASE(1, 1);
 #undef WJR_REGISTER_UNION_BASE
 
 template <typename T, typename U>
-using __union2_storage_base_select =
+using __union2_storage_base_selector =
     __union2_storage_base<T, U,
                           std::is_trivially_default_constructible_v<T> &&
                               std::is_trivially_default_constructible_v<U>,
@@ -77,8 +78,8 @@ using __union2_storage_base_select =
                               std::is_trivially_destructible_v<U>>;
 
 template <typename T, typename U>
-class union2_storage : public __union2_storage_base_select<T, U> {
-    using Mybase = __union2_storage_base_select<T, U>;
+class union2_storage : public __union2_storage_base_selector<T, U> {
+    using Mybase = __union2_storage_base_selector<T, U>;
 
 public:
     using Mybase::Mybase;

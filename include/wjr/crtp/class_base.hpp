@@ -309,16 +309,16 @@ protected:
 };
 
 template <bool F, template <typename> typename Control, typename Mybase>
-using __control_base_select = std::conditional_t<F, Mybase, Control<Mybase>>;
+using __control_base_selector = std::conditional_t<F, Mybase, Control<Mybase>>;
 
 template <typename Mybase, bool Copy, bool Move, bool CopyAssign, bool MoveAssign>
-using control_special_members_base = __control_base_select<
+using control_special_members_base = __control_base_selector<
     Copy, control_copy_ctor_base,
-    __control_base_select<
+    __control_base_selector<
         Move, control_move_ctor_base,
-        __control_base_select<
+        __control_base_selector<
             CopyAssign, control_copy_assign_base,
-            __control_base_select<MoveAssign, control_move_assign_base, Mybase>>>>;
+            __control_base_selector<MoveAssign, control_move_assign_base, Mybase>>>>;
 
 } // namespace wjr
 

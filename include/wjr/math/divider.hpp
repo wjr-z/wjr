@@ -3,6 +3,7 @@
 
 #include <array>
 
+#include <wjr/math/compare.hpp>
 #include <wjr/math/mul.hpp>
 
 #if defined(WJR_X86)

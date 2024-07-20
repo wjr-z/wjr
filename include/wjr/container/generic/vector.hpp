@@ -1012,6 +1012,8 @@ public:
         return __make_iterator(begin_unsafe());
     }
 
+    WJR_PURE WJR_CONSTEXPR20 const_iterator cbegin() const noexcept { return begin(); }
+
     WJR_PURE WJR_CONSTEXPR20 iterator end() noexcept {
         return __make_iterator(end_unsafe());
     }
@@ -1020,8 +1022,14 @@ public:
         return __make_iterator(end_unsafe());
     }
 
+    WJR_PURE WJR_CONSTEXPR20 const_iterator cend() const noexcept { return end(); }
+
     WJR_PURE WJR_CONSTEXPR20 reverse_iterator rbegin() noexcept {
         return reverse_iterator(end());
+    }
+
+    WJR_PURE WJR_CONSTEXPR20 const_reverse_iterator crbegin() const noexcept {
+        return rbegin();
     }
 
     WJR_PURE WJR_CONSTEXPR20 const_reverse_iterator rbegin() const noexcept {
@@ -1034,14 +1042,6 @@ public:
 
     WJR_PURE WJR_CONSTEXPR20 const_reverse_iterator rend() const noexcept {
         return const_reverse_iterator(begin());
-    }
-
-    WJR_PURE WJR_CONSTEXPR20 const_iterator cbegin() const noexcept { return begin(); }
-
-    WJR_PURE WJR_CONSTEXPR20 const_iterator cend() const noexcept { return end(); }
-
-    WJR_PURE WJR_CONSTEXPR20 const_reverse_iterator crbegin() const noexcept {
-        return rbegin();
     }
 
     WJR_PURE WJR_CONSTEXPR20 const_reverse_iterator crend() const noexcept {

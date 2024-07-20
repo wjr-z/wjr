@@ -2714,12 +2714,12 @@ inline constexpr size_t get_place_index_v = get_place_index<T>::value;
 
 // ....
 
-template <class P, class M>
+template <typename P, typename M>
 WJR_INTRINSIC_CONSTEXPR20 size_t container_of_offset(const M P::*member) noexcept {
     return reinterpret_cast<size_t>(&(reinterpret_cast<P *>(nullptr)->*member));
 }
 
-template <class P, class M>
+template <typename P, typename M>
 WJR_INTRINSIC_CONSTEXPR20 P *container_of_offset_impl(M *ptr,
                                                       const M P::*member) noexcept {
     return reinterpret_cast<P *>(reinterpret_cast<char *>(ptr) -
@@ -2900,6 +2900,217 @@ WJR_REGISTER_HAS_COMPARE(greater_equal, std::greater_equal<>);
 
 WJR_REGISTER_HAS_TYPE(invocable,
                       std::invoke(std::declval<Func>(), std::declval<Args>()...), Func);
+
+template <typename T>
+struct is_bounded_array : std::false_type {};
+
+template <typename T, std::size_t N>
+struct is_bounded_array<T[N]> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_bounded_array_v = is_bounded_array<T>::value;
+
+template <typename T>
+struct is_unbounded_array : std::false_type {};
+
+template <typename T>
+struct is_unbounded_array<T[]> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_unbounded_array_v = is_unbounded_array<T>::value;
+
+template <typename Unqualified, bool IsConst, bool IsVol>
+struct __cv_selector;
+
+template <typename Unqualified>
+struct __cv_selector<Unqualified, false, false> {
+    using __type = Unqualified;
+};
+
+template <typename Unqualified>
+struct __cv_selector<Unqualified, false, true> {
+    using __type = volatile Unqualified;
+};
+
+template <typename Unqualified>
+struct __cv_selector<Unqualified, true, false> {
+    using __type = const Unqualified;
+};
+
+template <typename Unqualified>
+struct __cv_selector<Unqualified, true, true> {
+    using __type = const volatile Unqualified;
+};
+
+template <typename _Qualified, typename Unqualified,
+          bool IsConst = std::is_const<_Qualified>::value,
+          bool IsVol = std::is_volatile<_Qualified>::value>
+class __match_cv_qualifiers {
+    using __match = __cv_selector<Unqualified, IsConst, IsVol>;
+
+public:
+    using __type = typename __match::__type;
+};
+
+template <typename From, typename To>
+using __copy_cv = typename __match_cv_qualifiers<From, To>::__type;
+
+template <typename Xp, typename Yp>
+using __cond_res =
+    decltype(false ? std::declval<Xp (&)()>()() : std::declval<Yp (&)()>()());
+
+template <typename _Ap, typename _Bp, typename = void>
+struct __common_ref_impl {};
+
+// [meta.trans.other], COMMON-REF(A, B)
+template <typename _Ap, typename _Bp>
+using __common_ref = typename __common_ref_impl<_Ap, _Bp>::type;
+
+// COND-RES(COPYCV(X, Y) &, COPYCV(Y, X) &)
+template <typename _Xp, typename _Yp>
+using __condres_cvref = __cond_res<__copy_cv<_Xp, _Yp> &, __copy_cv<_Yp, _Xp> &>;
+
+// If A and B are both lvalue reference types, ...
+template <typename _Xp, typename _Yp>
+struct __common_ref_impl<_Xp &, _Yp &, std::void_t<__condres_cvref<_Xp, _Yp>>>
+    : std::enable_if<std::is_reference_v<__condres_cvref<_Xp, _Yp>>,
+                     __condres_cvref<_Xp, _Yp>> {};
+
+// let C be remove_reference_t<COMMON-REF(X&, Y&)>&&
+template <typename _Xp, typename _Yp>
+using __common_ref_C = std::remove_reference_t<__common_ref<_Xp &, _Yp &>> &&;
+
+// If A and B are both rvalue reference types, ...
+template <typename _Xp, typename _Yp>
+struct __common_ref_impl<_Xp &&, _Yp &&,
+                         std::enable_if_t<std::conjunction_v<
+                             std::is_convertible<_Xp &&, __common_ref_C<_Xp, _Yp>>,
+                             std::is_convertible<_Yp &&, __common_ref_C<_Xp, _Yp>>>>> {
+    using type = __common_ref_C<_Xp, _Yp>;
+};
+
+// let D be COMMON-REF(const X&, Y&)
+template <typename _Xp, typename _Yp>
+using __common_ref_D = __common_ref<const _Xp &, _Yp &>;
+
+// If A is an rvalue reference and B is an lvalue reference, ...
+template <typename _Xp, typename _Yp>
+struct __common_ref_impl<
+    _Xp &&, _Yp &,
+    std::enable_if_t<std::is_convertible_v<_Xp &&, __common_ref_D<_Xp, _Yp>>>> {
+    using type = __common_ref_D<_Xp, _Yp>;
+};
+
+// If A is an lvalue reference and B is an rvalue reference, ...
+template <typename _Xp, typename _Yp>
+struct __common_ref_impl<_Xp &, _Yp &&> : __common_ref_impl<_Yp &&, _Xp &> {};
+
+template <typename Tp, typename Up, template <typename> typename TQual,
+          template <typename> typename UQual, typename Enable = void>
+struct __basic_common_reference_impl {};
+
+template <typename Tp, typename Up, template <typename> typename TQual,
+          template <typename> typename UQual>
+struct basic_common_reference : __basic_common_reference_impl<Tp, Up, TQual, UQual> {};
+
+/// @cond undocumented
+template <typename Tp>
+struct __xref {
+    template <typename Up>
+    using __type = __copy_cv<Tp, Up>;
+};
+
+template <typename Tp>
+struct __xref<Tp &> {
+    template <typename Up>
+    using __type = __copy_cv<Tp, Up> &;
+};
+
+template <typename Tp>
+struct __xref<Tp &&> {
+    template <typename Up>
+    using __type = __copy_cv<Tp, Up> &&;
+};
+
+template <typename Tp1, typename Tp2>
+using __basic_common_ref =
+    typename basic_common_reference<remove_cvref_t<Tp1>, remove_cvref_t<Tp2>,
+                                    __xref<Tp1>::template __type,
+                                    __xref<Tp2>::template __type>::type;
+
+template <typename... Tp>
+struct common_reference;
+
+template <typename... Tp>
+using common_reference_t = typename common_reference<Tp...>::type;
+
+// If sizeof...(T) is zero, there shall be no member type.
+template <>
+struct common_reference<> {};
+
+// If sizeof...(T) is one ...
+template <typename Tp0>
+struct common_reference<Tp0> {
+    using type = Tp0;
+};
+
+template <typename Tp1, typename Tp2, int _Bullet = 1, typename = void>
+struct __common_reference_impl : __common_reference_impl<Tp1, Tp2, _Bullet + 1> {};
+
+// If sizeof...(T) is two ...
+template <typename Tp1, typename Tp2>
+struct common_reference<Tp1, Tp2> : __common_reference_impl<Tp1, Tp2> {};
+
+// If T1 and T2 are reference types and COMMON-REF(T1, T2) is well-formed, ...
+template <typename Tp1, typename Tp2>
+struct __common_reference_impl<Tp1 &, Tp2 &, 1, std::void_t<__common_ref<Tp1 &, Tp2 &>>> {
+    using type = __common_ref<Tp1 &, Tp2 &>;
+};
+
+template <typename Tp1, typename Tp2>
+struct __common_reference_impl<Tp1 &&, Tp2 &&, 1,
+                               std::void_t<__common_ref<Tp1 &&, Tp2 &&>>> {
+    using type = __common_ref<Tp1 &&, Tp2 &&>;
+};
+
+template <typename Tp1, typename Tp2>
+struct __common_reference_impl<Tp1 &, Tp2 &&, 1,
+                               std::void_t<__common_ref<Tp1 &, Tp2 &&>>> {
+    using type = __common_ref<Tp1 &, Tp2 &&>;
+};
+
+template <typename Tp1, typename Tp2>
+struct __common_reference_impl<Tp1 &&, Tp2 &, 1,
+                               std::void_t<__common_ref<Tp1 &&, Tp2 &>>> {
+    using type = __common_ref<Tp1 &&, Tp2 &>;
+};
+
+// Otherwise, if basic_common_reference<...>::type is well-formed, ...
+template <typename Tp1, typename Tp2>
+struct __common_reference_impl<Tp1, Tp2, 2, std::void_t<__basic_common_ref<Tp1, Tp2>>> {
+    using type = __basic_common_ref<Tp1, Tp2>;
+};
+
+// Otherwise, if COND-RES(T1, T2) is well-formed, ...
+template <typename Tp1, typename Tp2>
+struct __common_reference_impl<Tp1, Tp2, 3, std::void_t<__cond_res<Tp1, Tp2>>> {
+    using type = __cond_res<Tp1, Tp2>;
+};
+
+// Otherwise, if common_type_t<T1, T2> is well-formed, ...
+template <typename Tp1, typename Tp2>
+struct __common_reference_impl<Tp1, Tp2, 4, std::void_t<std::common_type_t<Tp1, Tp2>>> {
+    using type = std::common_type_t<Tp1, Tp2>;
+};
+
+// Otherwise, there shall be no member type.
+template <typename Tp1, typename Tp2>
+struct __common_reference_impl<Tp1, Tp2, 5, void> {};
+
+// Otherwise, if sizeof...(T) is greater than two, ...
+template <typename Tp1, typename Tp2, typename... Rest>
+struct common_reference<Tp1, Tp2, Rest...>
+    : common_reference<common_reference_t<Tp1, Tp2>, Rest...> {};
 
 } // namespace wjr
 
@@ -3334,8 +3545,8 @@ struct broadcast_fn<uint8_t, uint64_t> {
 } // namespace wjr
 
 #endif // WJR_MATH_BROADCAST_HPP__
-#ifndef WJR_MEMORY_TO_ADDRESS_HPP__
-#define WJR_MEMORY_TO_ADDRESS_HPP__
+#ifndef WJR_MEMORY_DETAIL_HPP__
+#define WJR_MEMORY_DETAIL_HPP__
 
 #include <cstring>
 
@@ -3360,6 +3571,17 @@ using iterator_pointer_t = typename std::iterator_traits<Iter>::pointer;
 
 template <typename Iter>
 using iterator_category_t = typename std::iterator_traits<Iter>::iterator_category;
+
+template <typename T>
+using iterator_common_reference_t =
+    common_reference_t<iterator_reference_t<T>, iterator_value_t<T> &>;
+
+template <typename In, typename = void>
+struct __is_indirectly_readable_impl : std::false_type {};
+
+// template <typename In>
+// struct __is_indirectly_readable_impl<In, std::void_t<
+// >> : std::true_type {};
 
 template <typename Iter, typename = void>
 struct __is_iterator_impl : std::false_type {};
@@ -3641,7 +3863,7 @@ WJR_NODISCARD auto allocate_at_least(Allocator &alloc, SizeType count) {
 
 } // namespace wjr
 
-#endif // WJR_MEMORY_TO_ADDRESS_HPP__
+#endif // WJR_MEMORY_DETAIL_HPP__
 
 namespace wjr {
 
@@ -4331,7 +4553,7 @@ struct sse {
 
     WJR_INTRINSIC_INLINE static __m128i packus_epi32(__m128i a, __m128i b);
 
-    WJR_INTRINSIC_INLINE static __m128i stream_load(const void *p);
+    WJR_INTRINSIC_INLINE static __m128i stream_load(void *p);
 
     WJR_INTRINSIC_INLINE static int test_all_ones(__m128i a);
 
@@ -6342,8 +6564,8 @@ __m128i sse::mullo_epi32(__m128i a, __m128i b) { return _mm_mullo_epi32(a, b); }
 
 __m128i sse::packus_epi32(__m128i a, __m128i b) { return _mm_packus_epi32(a, b); }
 
-__m128i sse::stream_load(const void *p) {
-    return _mm_stream_load_si128(static_cast<const __m128i *>(p));
+__m128i sse::stream_load(void *p) {
+    return _mm_stream_load_si128(static_cast<__m128i *>(p));
 }
 
 int sse::test_all_ones(__m128i a) { return _mm_test_all_ones(a); }
@@ -7986,16 +8208,16 @@ protected:
 };
 
 template <bool F, template <typename> typename Control, typename Mybase>
-using __control_base_select = std::conditional_t<F, Mybase, Control<Mybase>>;
+using __control_base_selector = std::conditional_t<F, Mybase, Control<Mybase>>;
 
 template <typename Mybase, bool Copy, bool Move, bool CopyAssign, bool MoveAssign>
-using control_special_members_base = __control_base_select<
+using control_special_members_base = __control_base_selector<
     Copy, control_copy_ctor_base,
-    __control_base_select<
+    __control_base_selector<
         Move, control_move_ctor_base,
-        __control_base_select<
+        __control_base_selector<
             CopyAssign, control_copy_assign_base,
-            __control_base_select<MoveAssign, control_move_assign_base, Mybase>>>>;
+            __control_base_selector<MoveAssign, control_move_assign_base, Mybase>>>>;
 
 } // namespace wjr
 
@@ -9954,7 +10176,7 @@ namespace wjr {
 template <typename T, typename U>
 class compressed_pair;
 
-}
+} // namespace wjr
 
 namespace std {
 
@@ -10956,7 +11178,7 @@ public:
 private:
     constexpr void initialize() noexcept {
         for (uint8_t i = 0; i < digits; ++i) {
-            auto idx = (seed << i) >> mv;
+            const auto idx = (seed << i) >> mv;
             lookup[idx] = i;
             lookupr[idx] = i == 0 ? 0 : digits - i;
         }
@@ -11772,7 +11994,7 @@ struct trivially_allocator_traits {
 namespace wjr {
 
 template <typename T, typename U, typename Tag>
-using __union2_storage_enabler_select = enable_special_members_base<
+using __union2_storage_enabler_selector = enable_special_members_base<
     true, true,
     std::is_trivially_copy_constructible_v<T> &&
         std::is_trivially_copy_constructible_v<U>,
@@ -11788,10 +12010,11 @@ class __union2_storage_base;
 #define WJR_REGISTER_UNION_BASE(CON, DES)                                                \
     template <typename T, typename U>                                                    \
     class __union2_storage_base<T, U, CON, DES>                                          \
-        : __union2_storage_enabler_select<T, U, __union2_storage_base<T, U, CON, DES>> { \
+        : __union2_storage_enabler_selector<T, U,                                        \
+                                            __union2_storage_base<T, U, CON, DES>> {     \
         using Mybase =                                                                   \
-            __union2_storage_enabler_select<T, U,                                        \
-                                            __union2_storage_base<T, U, CON, DES>>;      \
+            __union2_storage_enabler_selector<T, U,                                      \
+                                              __union2_storage_base<T, U, CON, DES>>;    \
                                                                                          \
     public:                                                                              \
         constexpr __union2_storage_base() WJR_PP_BOOL_IF(CON, = default, noexcept {});   \
@@ -11824,7 +12047,7 @@ WJR_REGISTER_UNION_BASE(1, 1);
 #undef WJR_REGISTER_UNION_BASE
 
 template <typename T, typename U>
-using __union2_storage_base_select =
+using __union2_storage_base_selector =
     __union2_storage_base<T, U,
                           std::is_trivially_default_constructible_v<T> &&
                               std::is_trivially_default_constructible_v<U>,
@@ -11832,8 +12055,8 @@ using __union2_storage_base_select =
                               std::is_trivially_destructible_v<U>>;
 
 template <typename T, typename U>
-class union2_storage : public __union2_storage_base_select<T, U> {
-    using Mybase = __union2_storage_base_select<T, U>;
+class union2_storage : public __union2_storage_base_selector<T, U> {
+    using Mybase = __union2_storage_base_selector<T, U>;
 
 public:
     using Mybase::Mybase;
@@ -13334,6 +13557,8 @@ public:
         return __make_iterator(begin_unsafe());
     }
 
+    WJR_PURE WJR_CONSTEXPR20 const_iterator cbegin() const noexcept { return begin(); }
+
     WJR_PURE WJR_CONSTEXPR20 iterator end() noexcept {
         return __make_iterator(end_unsafe());
     }
@@ -13342,8 +13567,14 @@ public:
         return __make_iterator(end_unsafe());
     }
 
+    WJR_PURE WJR_CONSTEXPR20 const_iterator cend() const noexcept { return end(); }
+
     WJR_PURE WJR_CONSTEXPR20 reverse_iterator rbegin() noexcept {
         return reverse_iterator(end());
+    }
+
+    WJR_PURE WJR_CONSTEXPR20 const_reverse_iterator crbegin() const noexcept {
+        return rbegin();
     }
 
     WJR_PURE WJR_CONSTEXPR20 const_reverse_iterator rbegin() const noexcept {
@@ -13356,14 +13587,6 @@ public:
 
     WJR_PURE WJR_CONSTEXPR20 const_reverse_iterator rend() const noexcept {
         return const_reverse_iterator(begin());
-    }
-
-    WJR_PURE WJR_CONSTEXPR20 const_iterator cbegin() const noexcept { return begin(); }
-
-    WJR_PURE WJR_CONSTEXPR20 const_iterator cend() const noexcept { return end(); }
-
-    WJR_PURE WJR_CONSTEXPR20 const_reverse_iterator crbegin() const noexcept {
-        return rbegin();
     }
 
     WJR_PURE WJR_CONSTEXPR20 const_reverse_iterator crend() const noexcept {
@@ -14622,6 +14845,29 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount(T x) noexcept {
 namespace wjr {
 
 template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int constexpr_clz(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+    x |= (x >> 1);
+    x |= (x >> 2);
+    x |= (x >> 4);
+
+    if constexpr (nd >= 16) {
+        x |= (x >> 8);
+    }
+
+    if constexpr (nd >= 32) {
+        x |= (x >> 16);
+    }
+
+    if constexpr (nd >= 64) {
+        x |= (x >> 32);
+    }
+
+    return fallback_popcount(~x);
+}
+
+template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_clz(T x) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
@@ -14859,18 +15105,24 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
+    // If not use __builtin_clz and use popcount, then don't need to handle zero.
+#if WJR_HAS_BUILTIN(CLZ) || !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
     if (WJR_UNLIKELY(x == 0)) {
         return std::numeric_limits<T>::digits;
     }
+#endif
 
     return clz(x);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_zero(T x) noexcept {
+    // If not use __builtin_ctz and use popcount, then don't need to handle zero.
+#if WJR_HAS_BUILTIN(CTZ) || !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
     if (WJR_UNLIKELY(x == 0)) {
         return std::numeric_limits<T>::digits;
     }
+#endif
 
     return ctz(x);
 }
@@ -14999,6 +15251,93 @@ inline constexpr origin_converter_t origin_converter;
 #endif // WJR_MATH_CONVERT_IMPL_HPP__
 #ifndef WJR_MATH_DIV_HPP__
 #define WJR_MATH_DIV_HPP__
+
+#ifndef WJR_MATH_UINT128_T_HPP__
+#define WJR_MATH_UINT128_T_HPP__
+
+#ifndef WJR_MATH_DIV_IMPL_HPP__
+#define WJR_MATH_DIV_IMPL_HPP__
+
+#include <utility>
+
+// Already included
+
+namespace wjr {
+
+template <typename T>
+class div2by1_divider;
+
+template <typename T>
+class div3by2_divider;
+
+template <typename T>
+class divexact1_divider;
+
+class uint128_t;
+
+WJR_INLINE_CONSTEXPR20 uint64_t
+div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
+               const div2by1_divider<uint64_t> &divider) noexcept;
+
+WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                               uint64_t div) noexcept;
+
+inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                 const div2by1_divider<uint64_t> &divider) noexcept;
+
+inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                 uint64_t div) noexcept;
+
+WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
+                                   size_t n,
+                                   const div2by1_divider<uint64_t> &div) noexcept;
+
+WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
+                                   size_t n, uint64_t div) noexcept;
+
+WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                   size_t n,
+                                   const div3by2_divider<uint64_t> &div) noexcept;
+
+WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                   size_t n, const uint64_t *div) noexcept;
+
+WJR_INTRINSIC_INLINE void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                   size_t n, const uint64_t *div, size_t m) noexcept;
+
+WJR_INTRINSIC_CONSTEXPR20 uint64_t divexact_dbm1c(uint64_t *dst, const uint64_t *src,
+                                                  size_t n, uint64_t bd,
+                                                  uint64_t h) noexcept;
+
+WJR_INTRINSIC_CONSTEXPR20 void divexact_dbm1c_shift(uint64_t *dst, const uint64_t *src,
+                                                    size_t n, uint64_t bd, uint64_t cl,
+                                                    uint64_t hicf) noexcept;
+
+template <uint64_t c>
+WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
+                                            integral_constant<uint64_t, c>,
+                                            WJR_MAYBE_UNUSED uint64_t cf) noexcept;
+
+WJR_INTRINSIC_CONSTEXPR20 void
+divexact_1(uint64_t *dst, const uint64_t *src, size_t n,
+           const divexact1_divider<uint64_t> &div) noexcept;
+
+WJR_INTRINSIC_CONSTEXPR20 void divexact_1(uint64_t *dst, const uint64_t *src, size_t n,
+                                          uint64_t div) noexcept;
+
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 uint64_t
+mod_1(const uint64_t *src, size_t n, const div2by1_divider<uint64_t> &div) noexcept;
+
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 uint64_t mod_1(const uint64_t *src, size_t n,
+                                                  uint64_t div) noexcept;
+
+} // namespace wjr
+
+#endif // WJR_MATH_DIV_IMPL_HPP__
+#ifndef WJR_MATH_DIVIDER_HPP__
+#define WJR_MATH_DIVIDER_HPP__
+
+#include <array>
 
 #ifndef WJR_MATH_CMP_HPP__
 #define WJR_MATH_CMP_HPP__
@@ -18970,11 +19309,6 @@ __greater_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1) noex
 } // namespace wjr
 
 #endif // WJR_MATH_CMP_HPP__
-#ifndef WJR_MATH_DIVIDER_HPP__
-#define WJR_MATH_DIVIDER_HPP__
-
-#include <array>
-
 #ifndef WJR_MATH_MUL_HPP__
 #define WJR_MATH_MUL_HPP__
 
@@ -21277,7 +21611,6 @@ private:
 } // namespace wjr
 
 #endif // WJR_MEMORY_SAFE_POINTER_HPP__
-// Already included
 
 #if defined(WJR_MSVC) && defined(WJR_X86)
 #define WJR_HAS_BUILTIN_MSVC_MULH64 WJR_HAS_DEF
@@ -21999,37 +22332,44 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t try_addmul_1(uint64_t *dst, const uint64_t *s
 
     if constexpr (maxn == 0) {
         return 0;
-    }
-
-    if constexpr (maxn <= 3) {
-        if (ml == 0) {
-            return 0;
-        }
     } else {
-        if (WJR_UNLIKELY(ml == 0)) {
-            return 0;
-        }
-    }
-
-    if constexpr (maxn == 1) {
-        return addc_n(dst, dst, src, n);
-    } else {
-        if (ml == 1) {
-            return addc_n(dst, dst, src, n);
-        }
-
         if constexpr (maxn <= 3) {
-            // addlsh is slightly faster than addmul
-            if constexpr (maxn == 2) {
-                return addlsh_n(dst, dst, src, n, 1);
+            if (ml == 0) {
+                return 0;
+            }
+
+            if constexpr (maxn == 1) {
+                return addc_n(dst, dst, src, n);
             } else {
-                if (ml == 2) {
-                    return addlsh_n(dst, dst, src, n, 1);
+                if (ml == 1) {
+                    return addc_n(dst, dst, src, n);
                 }
 
-                return addmul_1(dst, src, n, ml);
+                if constexpr (maxn == 2) {
+                    return addlsh_n(dst, dst, src, n, 1);
+                } else {
+                    if (ml == 2) {
+                        return addlsh_n(dst, dst, src, n, 1);
+                    }
+
+                    return addmul_1(dst, src, n, ml);
+                }
             }
         } else {
+            if (WJR_UNLIKELY(ml <= 2)) {
+                switch (ml) {
+                case 0: {
+                    return 0;
+                }
+                case 1: {
+                    return addc_n(dst, dst, src, n);
+                }
+                default: {
+                    return addlsh_n(dst, dst, src, n, 1);
+                }
+                }
+            }
+
             return addmul_1(dst, src, n, ml);
         }
     }
@@ -22882,88 +23222,6 @@ private:
 } // namespace wjr
 
 #endif // WJR_MATH_DIVIDER_HPP__
-#ifndef WJR_MATH_UINT128_T_HPP__
-#define WJR_MATH_UINT128_T_HPP__
-
-#ifndef WJR_MATH_DIV_IMPL_HPP__
-#define WJR_MATH_DIV_IMPL_HPP__
-
-#include <utility>
-
-// Already included
-
-namespace wjr {
-
-template <typename T>
-class div2by1_divider;
-
-template <typename T>
-class div3by2_divider;
-
-template <typename T>
-class divexact1_divider;
-
-class uint128_t;
-
-WJR_INLINE_CONSTEXPR20 uint64_t
-div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
-               const div2by1_divider<uint64_t> &divider) noexcept;
-
-WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
-                                               uint64_t div) noexcept;
-
-inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
-                                 const div2by1_divider<uint64_t> &divider) noexcept;
-
-inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
-                                 uint64_t div) noexcept;
-
-WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
-                                   size_t n,
-                                   const div2by1_divider<uint64_t> &div) noexcept;
-
-WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
-                                   size_t n, uint64_t div) noexcept;
-
-WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                   size_t n,
-                                   const div3by2_divider<uint64_t> &div) noexcept;
-
-WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                   size_t n, const uint64_t *div) noexcept;
-
-WJR_INTRINSIC_INLINE void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                   size_t n, const uint64_t *div, size_t m) noexcept;
-
-WJR_INTRINSIC_CONSTEXPR20 uint64_t divexact_dbm1c(uint64_t *dst, const uint64_t *src,
-                                                  size_t n, uint64_t bd,
-                                                  uint64_t h) noexcept;
-
-WJR_INTRINSIC_CONSTEXPR20 void divexact_dbm1c_shift(uint64_t *dst, const uint64_t *src,
-                                                    size_t n, uint64_t bd, uint64_t cl,
-                                                    uint64_t hicf) noexcept;
-
-template <uint64_t c>
-WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
-                                            integral_constant<uint64_t, c>,
-                                            WJR_MAYBE_UNUSED uint64_t cf) noexcept;
-
-WJR_INTRINSIC_CONSTEXPR20 void
-divexact_1(uint64_t *dst, const uint64_t *src, size_t n,
-           const divexact1_divider<uint64_t> &div) noexcept;
-
-WJR_INTRINSIC_CONSTEXPR20 void divexact_1(uint64_t *dst, const uint64_t *src, size_t n,
-                                          uint64_t div) noexcept;
-
-WJR_PURE WJR_INTRINSIC_CONSTEXPR20 uint64_t
-mod_1(const uint64_t *src, size_t n, const div2by1_divider<uint64_t> &div) noexcept;
-
-WJR_PURE WJR_INTRINSIC_CONSTEXPR20 uint64_t mod_1(const uint64_t *src, size_t n,
-                                                  uint64_t div) noexcept;
-
-} // namespace wjr
-
-#endif // WJR_MATH_DIV_IMPL_HPP__
 
 namespace wjr {
 
@@ -23995,99 +24253,6 @@ precompute_chars_convert(precompute_chars_convert_t *pre, size_t n, unsigned int
 
 #include <algorithm>
 
-#ifndef WJR_CRTP_NONSENDABLE_HPP__
-#define WJR_CRTP_NONSENDABLE_HPP__
-
-/**
- * @file nonsendable.hpp
- * @author wjr
- * @brief  A type to disable sending the object to another thread.
- *
- * @version 0.1
- * @date 2024-05-26
- *
- * @copyright Copyright (c) 2024
- *
- */
-
-#include <memory>
-
-// Already included
-
-#if WJR_DEBUG_LEVEL > 2
-#define WJR_HAS_DEBUG_NONSENDABLE_CHECKER WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_DEBUG(NONSENDABLE_CHECKER)
-#include <thread>
-#endif
-
-namespace wjr {
-
-#if WJR_HAS_DEBUG(NONSENDABLE_CHECKER)
-
-/**
- * @brief A type to disable sending the object to another thread.
- *
- */
-template <typename Tag = void>
-class nonsendable {
-public:
-    static constexpr bool is_nonsendable = true;
-
-protected:
-    nonsendable() noexcept : m_thread_id(std::this_thread::get_id()) {}
-    nonsendable(const nonsendable &) = default;
-    nonsendable(nonsendable &&) = default;
-    nonsendable &operator=(const nonsendable &) = default;
-    nonsendable &operator=(nonsendable &&) = default;
-    ~nonsendable() noexcept { check(); }
-
-    void check() const noexcept {
-        WJR_ASSERT_L0(m_thread_id == std::this_thread::get_id(),
-                      "Cross-thread access detected when using a nonsendable object.");
-    }
-
-    friend bool operator==(const nonsendable &lhs, const nonsendable &rhs) noexcept {
-        return lhs.m_thread_id == rhs.m_thread_id;
-    }
-
-    friend bool operator!=(const nonsendable &lhs, const nonsendable &rhs) noexcept {
-        return lhs.m_thread_id != rhs.m_thread_id;
-    }
-
-private:
-    std::thread::id m_thread_id;
-};
-
-#else
-
-/**
- * @brief A type to disable sending the object to another thread.
- *
- */
-template <typename Tag = void>
-class nonsendable {
-public:
-    static constexpr bool is_nonsendable = true;
-
-protected:
-    constexpr static void check() noexcept {}
-
-    friend bool operator==(const nonsendable &, const nonsendable &) noexcept {
-        return true;
-    }
-
-    friend bool operator!=(const nonsendable &, const nonsendable &) noexcept {
-        return false;
-    }
-};
-
-#endif
-
-} // namespace wjr
-
-#endif // WJR_CRTP_NONSENDABLE_HPP__
 #ifndef WJR_MEMORY_MEMORY_POOL_HPP__
 #define WJR_MEMORY_MEMORY_POOL_HPP__
 
@@ -24635,7 +24800,7 @@ public:
     }
 
     /**
-     * @detail Allocate memory, don't need to deallocate it until the thread exits.   \n
+     * @detail Allocate memory, don't need to deallocate it until the thread exits.    \n
      * Automatically deallocate memory when the thread exits.                          \n
      * Used in thread_local memory pool that only needs to allocate memory once and    \n
      * deallocate it when the thread exits.                                            \n
@@ -24873,9 +25038,7 @@ class weak_stack_allocator;
  *
  */
 template <typename StackAllocator>
-class unique_stack_allocator
-    : public nonsendable<unique_stack_allocator<StackAllocator>> {
-    using Mybase = nonsendable<unique_stack_allocator<StackAllocator>>;
+class unique_stack_allocator {
     using Instance = typename StackAllocator::Instance;
     using stack_top = typename Instance::stack_top;
 
@@ -24899,13 +25062,11 @@ public:
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *
     allocate(size_t n, size_t threshold = __default_threshold) noexcept {
-        Mybase::check();
         return m_instance->allocate(n, m_top, threshold);
     }
 
 private:
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n) noexcept {
-        Mybase::check();
         return m_instance->__small_allocate(n, m_top);
     }
 
@@ -25288,8 +25449,7 @@ public:
 
 // back_inserter or inserter
 template <typename Iter>
-struct fast_buffer<Iter, std::void_t<decltype(std::declval<std::enable_if_t<
-                                                  is_any_insert_iterator_v<Iter>>>())>> {
+struct fast_buffer<Iter, std::enable_if_t<is_any_insert_iterator_v<Iter>>> {
 private:
     using value_type = typename Iter::container_type::value_type;
 
@@ -28339,7 +28499,6 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
     constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 
     using simd = std::conditional_t<is_avx, avx, sse>;
-    using simd_int = typename simd::int_type;
     constexpr auto simd_width = simd::width();
     constexpr auto type_width = simd_width / 64;
 
@@ -34286,9 +34445,18 @@ WJR_CONSTEXPR20 void reinit_expected(NewType &new_val, OldType &old_val, Args &&
 
 namespace expected_detail {
 
+template <typename T, typename U>
+struct is_void_or : U {};
+
+template <typename U>
+struct is_void_or<void, U> : std::true_type {};
+
+template <typename T, typename U>
+inline constexpr bool is_void_or_v = is_void_or<T, U>::value;
+
 template <typename T, typename E,
-          bool Destructor =
-              std::is_trivially_destructible_v<T> &&std::is_trivially_destructible_v<E>>
+          bool Destructor = is_void_or_v<T, std::is_trivially_destructible<T>>
+              &&std::is_trivially_destructible_v<E>>
 struct expected_storage_base {
     constexpr expected_storage_base() noexcept(std::is_nothrow_default_constructible_v<T>)
         : m_has_val(true), m_val() {}
@@ -34357,6 +34525,62 @@ struct expected_storage_base<T, E, false> {
     };
 };
 
+template <typename E>
+struct expected_storage_base<void, E, true> {
+    constexpr expected_storage_base() noexcept : m_has_val(true) {}
+
+    constexpr expected_storage_base(std::in_place_t) noexcept : m_has_val(true) {}
+
+    template <typename... Args>
+    constexpr expected_storage_base(unexpect_t, Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<E, Args...>)
+        : m_has_val(false), m_err(std::forward<Args>(args)...) {}
+
+    expected_storage_base(const expected_storage_base &) = default;
+    expected_storage_base(expected_storage_base &&) = default;
+    expected_storage_base &operator=(const expected_storage_base &) = default;
+    expected_storage_base &operator=(expected_storage_base &&) = default;
+
+    constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
+
+    ~expected_storage_base() = default;
+
+    bool m_has_val;
+    union {
+        E m_err;
+    };
+};
+
+template <typename E>
+struct expected_storage_base<void, E, false> {
+    constexpr expected_storage_base() noexcept : m_has_val(true) {}
+
+    constexpr expected_storage_base(std::in_place_t) noexcept : m_has_val(true) {}
+
+    template <typename... Args>
+    constexpr expected_storage_base(unexpect_t, Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<E, Args...>)
+        : m_has_val(false), m_err(std::forward<Args>(args)...) {}
+
+    expected_storage_base(const expected_storage_base &) = default;
+    expected_storage_base(expected_storage_base &&) = default;
+    expected_storage_base &operator=(const expected_storage_base &) = default;
+    expected_storage_base &operator=(expected_storage_base &&) = default;
+
+    constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
+
+    ~expected_storage_base() noexcept(std::is_nothrow_destructible_v<E>) {
+        if (!this->m_has_val) {
+            std::destroy_at(std::addressof(this->m_err));
+        }
+    }
+
+    bool m_has_val;
+    union {
+        E m_err;
+    };
+};
+
 template <typename T, typename E>
 struct expected_operations_base : expected_storage_base<T, E> {
     using Mybase = expected_storage_base<T, E>;
@@ -34377,7 +34601,7 @@ struct expected_operations_base : expected_storage_base<T, E> {
     }
 
     WJR_CONSTEXPR20 void __copy_construct(const expected_operations_base &other) {
-        if (other.has_value()) {
+        if (other.m_has_val) {
             construct_value(other.m_val);
         } else {
             construct_error(other.m_err);
@@ -34387,7 +34611,7 @@ struct expected_operations_base : expected_storage_base<T, E> {
     WJR_CONSTEXPR20 void __move_construct(expected_operations_base &&other) noexcept(
         std::is_nothrow_move_constructible_v<T>
             &&std::is_nothrow_move_constructible_v<E>) {
-        if (other.has_value()) {
+        if (other.m_has_val) {
             construct_value(std::move(other.m_val));
         } else {
             construct_error(std::move(other.m_err));
@@ -34434,33 +34658,133 @@ struct expected_operations_base : expected_storage_base<T, E> {
     constexpr bool has_value() const { return this->m_has_val; }
 };
 
-template <typename T, typename E>
-using expected_storage = control_special_members_base<
-    expected_operations_base<T, E>,
-    std::is_trivially_copy_constructible_v<T> &&
-        std::is_trivially_copy_constructible_v<E>,
-    std::is_trivially_move_constructible_v<T> &&
-        std::is_trivially_move_constructible_v<E>,
-    std::is_trivially_copy_assignable_v<T> && std::is_trivially_copy_constructible_v<T> &&
-        std::is_trivially_destructible_v<T> && std::is_trivially_copy_assignable_v<E> &&
-        std::is_trivially_copy_constructible_v<E> && std::is_trivially_destructible_v<E>,
-    std::is_trivially_move_assignable_v<T> && std::is_trivially_move_constructible_v<T> &&
-        std::is_trivially_destructible_v<T> && std::is_trivially_move_assignable_v<E> &&
-        std::is_trivially_move_constructible_v<E> && std::is_trivially_destructible_v<E>>;
+template <typename E>
+struct expected_operations_base<void, E> : expected_storage_base<void, E> {
+    using Mybase = expected_storage_base<void, E>;
+    using Mybase::Mybase;
+
+    template <typename... Args>
+    constexpr void construct_error(Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<E, Args...>) {
+        this->m_has_val = false;
+        construct_at(this->m_err, std::forward<Args>(args)...);
+    }
+
+    WJR_CONSTEXPR20 void __copy_construct(const expected_operations_base &other) {
+        if (!other.m_has_val) {
+            construct_error(other.m_err);
+        }
+    }
+
+    WJR_CONSTEXPR20 void __move_construct(expected_operations_base &&other) noexcept(
+        std::is_nothrow_move_constructible_v<E>) {
+        if (!other.m_has_val) {
+            construct_error(std::move(other.m_err));
+        }
+    }
+
+    WJR_CONSTEXPR20 void __copy_assign(const expected_operations_base &other) {
+        if (this->m_has_val) {
+            if (!other.m_has_val) {
+                construct_at(std::addressof(this->m_err), other.m_err);
+                this->m_has_val = false;
+            }
+        } else {
+            if (WJR_LIKELY(!other.m_has_val)) {
+                this->m_err = other.m_err;
+            } else {
+                std::destroy_at(std::addressof(this->m_err));
+                this->m_has_val = true;
+            }
+        }
+    }
+
+    WJR_CONSTEXPR20 void __move_assign(expected_operations_base &&other) noexcept(
+        std::is_nothrow_move_assignable_v<E>) {
+        if (this->m_has_val) {
+            if (!other.m_has_val) {
+                construct_at(std::addressof(this->m_err), std::move(other.m_err));
+                this->m_has_val = false;
+            }
+        } else {
+            if (WJR_LIKELY(!other.m_has_val)) {
+                this->m_err = std::move(other.m_err);
+            } else {
+                std::destroy_at(std::addressof(this->m_err));
+                this->m_has_val = true;
+            }
+        }
+    }
+
+    constexpr bool has_value() const { return this->m_has_val; }
+};
 
 template <typename T, typename E>
-using enable_expected_storage = enable_special_members_base<
-    std::is_default_constructible_v<T> && std::is_default_constructible_v<E>, true,
-    std::is_copy_constructible_v<T> && std::is_copy_constructible_v<E>,
-    std::is_move_constructible_v<T> && std::is_move_constructible_v<E>,
-    std::is_copy_assignable_v<T> && std::is_copy_constructible_v<T> &&
-        std::is_copy_assignable_v<E> && std::is_copy_constructible_v<E> &&
-        (std::is_nothrow_move_constructible_v<T> ||
-         std::is_nothrow_move_constructible_v<E>),
-    std::is_move_assignable_v<T> && std::is_move_constructible_v<T> &&
-        std::is_move_assignable_v<E> && std::is_move_constructible_v<E> &&
-        (std::is_nothrow_move_constructible_v<T> ||
-         std::is_nothrow_move_constructible_v<E>)>;
+struct __expected_storage_impl {
+    using type =
+        control_special_members_base<expected_operations_base<T, E>,
+                                     std::is_trivially_copy_constructible_v<T> &&
+                                         std::is_trivially_copy_constructible_v<E>,
+                                     std::is_trivially_move_constructible_v<T> &&
+                                         std::is_trivially_move_constructible_v<E>,
+                                     std::is_trivially_copy_assignable_v<T> &&
+                                         std::is_trivially_copy_constructible_v<T> &&
+                                         std::is_trivially_destructible_v<T> &&
+                                         std::is_trivially_copy_assignable_v<E> &&
+                                         std::is_trivially_copy_constructible_v<E> &&
+                                         std::is_trivially_destructible_v<E>,
+                                     std::is_trivially_move_assignable_v<T> &&
+                                         std::is_trivially_move_constructible_v<T> &&
+                                         std::is_trivially_destructible_v<T> &&
+                                         std::is_trivially_move_assignable_v<E> &&
+                                         std::is_trivially_move_constructible_v<E> &&
+                                         std::is_trivially_destructible_v<E>>;
+};
+
+template <typename E>
+struct __expected_storage_impl<void, E> {
+    using type =
+        control_special_members_base<expected_operations_base<void, E>,
+                                     std::is_trivially_copy_constructible_v<E>,
+                                     std::is_trivially_move_constructible_v<E>,
+                                     std::is_trivially_copy_assignable_v<E> &&
+                                         std::is_trivially_copy_constructible_v<E> &&
+                                         std::is_trivially_destructible_v<E>,
+                                     std::is_trivially_move_assignable_v<E> &&
+                                         std::is_trivially_move_constructible_v<E> &&
+                                         std::is_trivially_destructible_v<E>>;
+};
+
+template <typename T, typename E>
+using expected_storage = typename __expected_storage_impl<T, E>::type;
+
+template <typename T, typename E>
+struct __enable_expeted_storage_impl {
+    using type = enable_special_members_base<
+        std::is_default_constructible_v<T> && std::is_default_constructible_v<E>, true,
+        std::is_copy_constructible_v<T> && std::is_copy_constructible_v<E>,
+        std::is_move_constructible_v<T> && std::is_move_constructible_v<E>,
+        std::is_copy_assignable_v<T> && std::is_copy_constructible_v<T> &&
+            std::is_copy_assignable_v<E> && std::is_copy_constructible_v<E> &&
+            (std::is_nothrow_move_constructible_v<T> ||
+             std::is_nothrow_move_constructible_v<E>),
+        std::is_move_assignable_v<T> && std::is_move_constructible_v<T> &&
+            std::is_move_assignable_v<E> && std::is_move_constructible_v<E> &&
+            (std::is_nothrow_move_constructible_v<T> ||
+             std::is_nothrow_move_constructible_v<E>)>;
+};
+
+template <typename E>
+struct __enable_expeted_storage_impl<void, E> {
+    using type = enable_special_members_base<
+        std::is_default_constructible_v<E>, true, std::is_copy_constructible_v<E>,
+        std::is_move_constructible_v<E>,
+        std::is_copy_assignable_v<E> && std::is_copy_constructible_v<E>,
+        std::is_move_assignable_v<E> && std::is_move_constructible_v<E>>;
+};
+
+template <typename T, typename E>
+using enable_expected_storage = typename __enable_expeted_storage_impl<T, E>::type;
 
 template <typename T, typename E, typename U, typename G>
 struct expected_construct_with
@@ -34481,6 +34805,14 @@ struct expected_construct_with
               std::is_constructible<unexpected<E>, const expected<U, G> &>,
               std::is_constructible<unexpected<E>, const expected<U, G>>>>> {};
 
+template <typename E, typename G>
+struct expected_construct_with<void, E, void, G>
+    : std::negation<std::disjunction<
+          std::is_constructible<unexpected<E>, expected<void, G> &>,
+          std::is_constructible<unexpected<E>, expected<void, G>>,
+          std::is_constructible<unexpected<E>, const expected<void, G> &>,
+          std::is_constructible<unexpected<E>, const expected<void, G>>>> {};
+
 template <typename T, typename E, typename U, typename G>
 inline constexpr bool expected_construct_with_v =
     expected_construct_with<T, E, U, G>::value;
@@ -34496,13 +34828,6 @@ struct is_not_expected : std::true_type {};
 
 template <typename T, typename E>
 struct is_not_expected<expected<T, E>> : std::false_type {};
-
-//     std::is_same_v<std::remove_cvref_t<U>, std::in_place_t> 是 false。
-// std::is_same_v<std::expected<T, E>, std::remove_cvref_t<U>> 是 false。
-// std::is_constructible_v<T, U> 是 true。
-// std::remove_cvref_t<U> 不是 std::unexpected 的特化。
-// 如果 T 不是（可有 cv 限定的）bool，那么 std::remove_cvref_t<U> 不是 std::expected
-// 的特化。
 
 template <typename T, typename E, typename U>
 struct expected_construct_with_arg
@@ -34824,13 +35149,12 @@ public:
 
     template <typename G = E>
     constexpr E error_or(G &&default_value) const & {
-        return has_value() ? static_cast<T>(std::forward<G>(default_value)) : error();
+        return has_value() ? std::forward<G>(default_value) : error();
     }
 
     template <typename G = E>
     constexpr E error_or(G &&default_value) && {
-        return has_value() ? static_cast<T>(std::forward<G>(default_value))
-                           : std::move(error());
+        return has_value() ? std::forward<G>(default_value) : std::move(error());
     }
 
     template <typename... Args, WJR_REQUIRES(std::is_nothrow_constructible_v<T, Args...>)>
@@ -34843,7 +35167,7 @@ public:
         }
 
         construct_at(std::addressof(this->m_val), std::forward<Args>(args)...);
-        return *this;
+        return this->m_val;
     }
 
     template <typename U, typename... Args,
@@ -34858,11 +35182,11 @@ public:
         }
 
         construct_at(std::addressof(this->m_val), il, std::forward<Args>(args)...);
-        return *this;
+        return this->m_val;
     }
 
 private:
-    constexpr void __swap_impl(expected &other) noexcept(
+    WJR_CONSTEXPR20 void __swap_impl(expected &other) noexcept(
         std::is_nothrow_move_constructible_v<T> &&std::is_nothrow_swappable_v<T>
             &&std::is_nothrow_move_constructible_v<E> &&std::is_nothrow_swappable_v<E>) {
         if constexpr (std::is_nothrow_move_constructible_v<E>) {
@@ -34898,7 +35222,7 @@ public:
                                                 &&std::is_move_constructible_v<E> &&
                                             (std::is_nothrow_move_constructible_v<_T> ||
                                              std::is_nothrow_move_constructible_v<E>))>
-    constexpr void swap(expected &other) noexcept(
+    WJR_CONSTEXPR20 void swap(expected &other) noexcept(
         std::is_nothrow_move_constructible_v<T> &&std::is_nothrow_swappable_v<T>
             &&std::is_nothrow_move_constructible_v<E> &&std::is_nothrow_swappable_v<E>) {
         using std::swap;
@@ -34957,6 +35281,274 @@ public:
     }
 };
 
+template <typename E>
+class WJR_EMPTY_BASES expected<void, E>
+    : expected_detail::expected_storage<void, E>,
+      expected_detail::enable_expected_storage<void, E> {
+    using Mybase = expected_detail::expected_storage<void, E>;
+
+public:
+    using value_type = void;
+    using error_type = E;
+    using unexpected_type = unexpected<E>;
+
+    using Mybase::Mybase;
+
+    expected() = default;
+    expected(const expected &) = default;
+    expected(expected &&) = default;
+    expected &operator=(const expected &) = default;
+    expected &operator=(expected &&) = default;
+    ~expected() = default;
+
+    constexpr explicit expected(std::in_place_t) : Mybase(std::in_place) {}
+
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<E, Args...>)>
+    constexpr explicit expected(unexpect_t, Args &&...args)
+        : Mybase(unexpect, std::forward<Args>(args)...) {}
+
+    template <
+        typename U, typename... Args,
+        WJR_REQUIRES(std::is_constructible_v<E, std::initializer_list<U> &, Args...>)>
+    constexpr explicit expected(unexpect_t, std::initializer_list<U> il, Args &&...args)
+        : Mybase(unexpect, il, std::forward<Args>(args)...) {}
+
+#if defined(__cpp_conditional_explicit)
+    template <typename G, WJR_REQUIRES(std::is_constructible_v<E, const G &>)>
+    constexpr explicit(!std::is_convertible_v<const G &, E>)
+        expected(const unexpected<G> &e)
+        : Mybase(unexpect, std::forward<const G &>(e.error())) {}
+
+    template <typename G, WJR_REQUIRES(std::is_constructible_v<E, G>)>
+    constexpr explicit(!std::is_convertible_v<G, E>) expected(unexpected<G> &&e)
+        : Mybase(unexpect, std::forward<G>(e.error())) {}
+#else
+    template <typename G, WJR_REQUIRES(std::is_constructible_v<E, const G &>
+                                           &&std::is_convertible_v<const G &, E>)>
+    constexpr expected(const unexpected<G> &e)
+        : Mybase(unexpect, std::forward<const G &>(e.error())) {}
+
+    template <typename G, WJR_REQUIRES(std::is_constructible_v<E, const G &> &&
+                                       !std::is_convertible_v<const G &, E>)>
+    constexpr explicit expected(const unexpected<G> &e)
+        : Mybase(unexpect, std::forward<const G &>(e.error())) {}
+
+    template <typename G,
+              WJR_REQUIRES(std::is_constructible_v<E, G> &&std::is_convertible_v<G, E>)>
+    constexpr expected(unexpected<G> &&e)
+        : Mybase(unexpect, std::forward<G>(e.error())) {}
+    template <typename G,
+              WJR_REQUIRES(std::is_constructible_v<E, G> && !std::is_convertible_v<G, E>)>
+    constexpr explicit expected(unexpected<G> &&e)
+        : Mybase(unexpect, std::forward<G>(e.error())) {}
+#endif
+
+#if defined(__cpp_conditional_explicit)
+    template <typename G,
+              WJR_REQUIRES(std::is_constructible_v<E, const G &> &&expected_detail::
+                               expected_construct_with_v<void, E, void, G>)>
+    constexpr explicit(!std::is_convertible_v<const G &, E>)
+        expected(const expected<void, G> &other)
+        : Mybase(enable_default_constructor) {
+        if (!other.has_value()) {
+            this->construct_error(std::forward<const G &>(other.m_err));
+        }
+    }
+
+    template <typename G, WJR_REQUIRES(std::is_constructible_v<E, G> &&expected_detail::
+                                           expected_construct_with_v<void, E, void, G>)>
+    constexpr explicit(!std::is_convertible_v<G, E>) expected(expected<void, G> &&other)
+        : Mybase(enable_default_constructor) {
+        if (!other.has_value()) {
+            this->construct_error(std::forward<G>(other.m_err));
+        }
+    }
+#else
+    template <typename G,
+              WJR_REQUIRES(std::is_constructible_v<E, const G &> &&expected_detail::
+                               expected_construct_with_v<void, E, void, G>
+                                   &&std::is_convertible_v<const G &, E>)>
+    constexpr expected(const expected<void, G> &other)
+        : Mybase(enable_default_constructor) {
+        if (!other.has_value()) {
+            this->construct_error(std::forward<const G &>(other.m_err));
+        }
+    }
+
+    template <typename G,
+              WJR_REQUIRES(std::is_constructible_v<E, const G &> &&expected_detail::
+                               expected_construct_with_v<void, E, void, G> &&
+                           !std::is_convertible_v<const G &, E>)>
+    constexpr explicit expected(const expected<void, G> &other)
+        : Mybase(enable_default_constructor) {
+        if (!other.has_value()) {
+            this->construct_error(std::forward<const G &>(other.m_err));
+        }
+    }
+
+    template <typename G, WJR_REQUIRES(std::is_constructible_v<E, G> &&expected_detail::
+                                           expected_construct_with_v<void, E, void, G>
+                                               &&std::is_convertible_v<G, E>)>
+    constexpr expected(expected<void, G> &&other) : Mybase(enable_default_constructor) {
+        if (!other.has_value()) {
+            this->construct_error(std::forward<G>(other.m_err));
+        }
+    }
+
+    template <typename G, WJR_REQUIRES(std::is_constructible_v<E, G> &&expected_detail::
+                                           expected_construct_with_v<void, E, void, G> &&
+                                       !std::is_convertible_v<G, E>)>
+    constexpr explicit expected(expected<void, G> &&other)
+        : Mybase(enable_default_constructor) {
+        if (!other.has_value()) {
+            this->construct_error(std::forward<G>(other.m_err));
+        }
+    }
+#endif
+
+    template <typename G, WJR_REQUIRES(std::is_constructible_v<E, const G &>
+                                           &&std::is_assignable_v<E &, const G &>)>
+    WJR_CONSTEXPR20 expected &operator=(const unexpected<G> &e) {
+        if (has_value()) {
+            construct_at(std::addressof(this->m_err), std::forward<const G &>(e.error()));
+            this->m_has_val = false;
+        } else {
+            this->m_err = std::forward<const G &>(e.error());
+        }
+
+        return *this;
+    }
+
+    template <typename G,
+              WJR_REQUIRES(std::is_constructible_v<E, G> &&std::is_assignable_v<E &, G>)>
+    WJR_CONSTEXPR20 expected &operator=(unexpected<G> &&e) {
+        if (has_value()) {
+            construct_at(std::addressof(this->m_err), std::forward<G>(e.error()));
+            this->m_has_val = false;
+        } else {
+            this->m_err = std::forward<G>(e.error());
+        }
+
+        return *this;
+    }
+
+    using Mybase::has_value;
+    constexpr explicit operator bool() const noexcept { return has_value(); }
+
+    constexpr void operator*() const noexcept { WJR_ASSERT(has_value()); }
+
+    constexpr void value() const & {
+        if (WJR_UNLIKELY(!has_value())) {
+            WJR_THROW(bad_expected_access<std::decay_t<E>>(std::as_const(error())));
+        }
+    }
+
+    constexpr void value() && {
+        if (WJR_UNLIKELY(!has_value())) {
+            WJR_THROW(bad_expected_access<std::decay_t<E>>(std::move(error())));
+        }
+    }
+
+    constexpr E &error() & noexcept {
+        WJR_ASSERT(!has_value());
+        return this->m_err;
+    }
+    constexpr const E &error() const & noexcept {
+        WJR_ASSERT(!has_value());
+        return this->m_err;
+    }
+    constexpr E &&error() && noexcept {
+        WJR_ASSERT(!has_value());
+        return std::move(this->m_err);
+    }
+    constexpr const E &&error() const && noexcept {
+        WJR_ASSERT(!has_value());
+        return std::move(this->m_err);
+    }
+
+    template <typename G = E>
+    constexpr E error_or(G &&default_value) const & {
+        return has_value() ? std::forward<G>(default_value) : error();
+    }
+
+    template <typename G = E>
+    constexpr E error_or(G &&default_value) && {
+        return has_value() ? std::forward<G>(default_value) : std::move(error());
+    }
+
+    constexpr void emplace() noexcept {
+        if (!has_value()) {
+            std::destroy_at(std::addressof(this->m_err));
+            this->m_has_val = true;
+        }
+    }
+
+private:
+    WJR_CONSTEXPR20 void __swap_impl(expected &other) noexcept(
+        std::is_nothrow_move_constructible_v<E> &&std::is_nothrow_swappable_v<E>) {
+        if constexpr (std::is_nothrow_move_constructible_v<E>) {
+            construct_at(std::addressof(this->m_err), std::move(other.m_err));
+            std::destroy_at(std::addressof(other.m_err));
+        } else {
+            WJR_TRY {
+                construct_at(std::addressof(this->m_err), std::move(other.m_err));
+                std::destroy_at(std::addressof(other.m_err));
+            }
+            WJR_CATCH(...) { WJR_XTHROW; }
+        }
+    }
+
+public:
+    template <typename _E = E,
+              WJR_REQUIRES(std::is_swappable_v<_E> &&std::is_move_constructible_v<_E>)>
+    WJR_CONSTEXPR20 void swap(expected &other) noexcept(
+        std::is_nothrow_move_constructible_v<E> &&std::is_nothrow_swappable_v<E>) {
+        using std::swap;
+        if (has_value()) {
+            if (!other.has_value()) {
+                __swap_impl(other);
+            }
+        } else {
+            if (!other.has_value()) {
+                std::swap(this->m_err, other.m_err);
+            } else {
+                other.__swap_impl(*this);
+            }
+        }
+    }
+
+    template <typename T2, typename E2>
+    friend constexpr bool operator==(const expected &lhs, const expected<T2, E2> &rhs) {
+        if (WJR_UNLIKELY(lhs.has_value() != rhs.has_value())) {
+            return false;
+        }
+
+        if (lhs.has_value()) {
+            return true;
+        }
+
+        return lhs.error() == rhs.error();
+    }
+
+    template <typename E2>
+    friend constexpr bool operator==(const expected &lhs, const unexpected<E2> &rhs) {
+        return !lhs.has_value() && lhs.error() == rhs.error();
+    }
+
+    template <typename E2>
+    friend constexpr bool operator==(const unexpected<E2> &lhs, const expected &rhs) {
+        return rhs == lhs;
+    }
+};
+
+#define WJR_EXPECTED_TRY(expr)                                                           \
+    do {                                                                                 \
+        if (auto result = (expr); !result) {                                             \
+            return ::wjr::unexpected<typename decltype(expr)::error_type>(               \
+                std::move(result).error());                                              \
+        }                                                                                \
+    } while (0)
+
 } // namespace wjr
 
 namespace std {
@@ -34976,3 +35568,184 @@ constexpr void swap(wjr::expected<T, E> &lhs,
 } // namespace std
 
 #endif // WJR_EXPECTED_HPP__
+#ifndef WJR_JSON_TOKEN_READER_HPP__
+#define WJR_JSON_TOKEN_READER_HPP__
+
+#ifndef WJR_JSON_LEXER_HPP__
+#define WJR_JSON_LEXER_HPP__
+
+#ifndef WJR_JSON_LEXER_IMPL_HPP__
+#define WJR_JSON_LEXER_IMPL_HPP__
+
+// Already included
+// Already included
+
+namespace wjr::json {
+
+namespace lexer_detail {
+
+inline constexpr uint64_t calc_backslash(uint64_t B) noexcept {
+    uint64_t maybe_escaped = B << 1;
+
+    uint64_t maybe_escaped_and_odd_bits = maybe_escaped | 0xAAAAAAAAAAAAAAAAULL;
+    uint64_t even_series_codes_and_odd_bits = maybe_escaped_and_odd_bits - B;
+
+    return even_series_codes_and_odd_bits ^ 0xAAAAAAAAAAAAAAAAULL;
+}
+
+} // namespace lexer_detail
+
+template <typename Lexer>
+using lexer_enabler =
+    enable_special_members_base<false, true, false, true, false, true, Lexer>;
+
+class lexer : lexer_enabler<lexer> {
+    using Mybase = lexer_enabler<lexer>;
+
+public:
+    using size_type = uint32_t;
+
+    using Mybase::Mybase;
+
+    constexpr lexer(span<const char> input) noexcept
+        : Mybase(enable_default_constructor), first(input.data()),
+          last(input.data() + input.size()) {}
+
+    class result_type {
+
+    public:
+        constexpr static uint32_t mask = static_cast<uint32_t>(1) << 31;
+        
+        result_type() = default;
+        result_type(const result_type &) = default;
+        result_type(result_type &&) = default;
+        result_type &operator=(const result_type &) = default;
+        result_type &operator=(result_type &&) = default;
+        ~result_type() = default;
+
+        constexpr result_type(uint32_t result) noexcept : result(result) {}
+        constexpr uint32_t get() const noexcept { return result & (mask - 1); }
+        constexpr bool done() const noexcept { return (result & mask) != 0; }
+
+    private:
+        uint32_t result;
+    };
+
+    /**
+     * @brief read tokens
+     *
+     * @detail Read at least token_buf_size tokens from the input.
+     * token_buf' size must be at least token_buf_size * 2 - 1.
+     *
+     * @return return the number of tokens read.
+     *
+     */
+    result_type read(uint32_t *token_buf, size_type token_buf_size) noexcept;
+
+    constexpr const char *begin() const noexcept { return first; }
+    constexpr const char *end() const noexcept { return last; }
+
+private:
+    const char *first;
+    const char *last;
+
+    uint64_t prev_in_string = 0;
+    uint64_t prev_is_escape = 0;
+    uint64_t prev_is_ws = ~0ull;
+    uint32_t idx = 0;
+};
+
+} // namespace wjr::json
+
+#endif // WJR_JSON_LEXER_IMPL_HPP__
+
+#if defined(WJR_X86)
+#ifndef WJR_X86_JSON_LEXER_HPP__
+#define WJR_X86_JSON_LEXER_HPP__
+
+// Already included
+
+#if WJR_HAS_SIMD(SSSE3)
+#define WJR_HAS_BUILTIN_JSON_LEXER_READER_READ_BUF WJR_HAS_DEF
+#endif
+
+#endif // WJR_X86_JSON_LEXER_HPP__
+#endif
+
+#endif // WJR_JSON_LEXER_HPP__
+// Already included
+
+namespace wjr::json {
+
+template <typename Reader>
+using token_reader_enabler =
+    enable_special_members_base<false, true, true, true, true, true, Reader>;
+
+class token_reader : token_reader_enabler<token_reader> {
+    using Mybase = token_reader_enabler<token_reader>;
+    using storage_type = vector<uint32_t>;
+
+public:
+    using value_type = uint32_t;
+    using pointer = value_type *;
+    using const_pointer = const value_type *;
+    using size_type = typename lexer::size_type;
+
+    using iterator = typename storage_type::iterator;
+    using const_iterator = typename storage_type::const_iterator;
+    using reverse_iterator = typename storage_type::reverse_iterator;
+    using const_reverse_iterator = typename storage_type::const_reverse_iterator;
+
+    using Mybase::Mybase;
+
+    WJR_CONSTEXPR20 token_reader(span<const char> sp) noexcept
+        : Mybase(enable_default_constructor) {
+        read(sp);
+    }
+
+    constexpr iterator begin() noexcept { return tokens.begin(); }
+    constexpr const_iterator begin() const noexcept { return tokens.begin(); }
+    constexpr const_iterator cbegin() const noexcept { return tokens.begin(); }
+
+    constexpr iterator end() noexcept { return tokens.end(); }
+    constexpr const_iterator end() const noexcept { return tokens.end(); }
+    constexpr const_iterator cend() const noexcept { return tokens.end(); }
+
+    constexpr reverse_iterator rbegin() noexcept { return tokens.rbegin(); }
+    constexpr const_reverse_iterator rbegin() const noexcept { return tokens.rbegin(); }
+    constexpr const_reverse_iterator crbegin() const noexcept { return tokens.rbegin(); }
+
+    constexpr reverse_iterator rend() noexcept { return tokens.rend(); }
+    constexpr const_reverse_iterator rend() const noexcept { return tokens.rend(); }
+    constexpr const_reverse_iterator crend() const noexcept { return tokens.rend(); }
+
+    constexpr pointer data() noexcept { return tokens.data(); }
+    constexpr const_pointer data() const noexcept { return tokens.data(); }
+
+    constexpr size_type size() const noexcept {
+        return static_cast<size_type>(tokens.size());
+    }
+
+private:
+    void read(span<const char> sp) noexcept {
+        lexer lex(sp);
+        const size_type n = sp.size();
+        size_type capacity = n <= 2048 ? n : std::max<size_type>(2048, n / 32);
+        size_type buf_size = capacity;
+        json::lexer::result_type result;
+
+        do {
+            tokens.reserve(capacity + 64);
+            result = lex.read(tokens.end_unsafe(), buf_size);
+            tokens.get_storage().size() += result.get();
+            buf_size = capacity;
+            capacity <<= 1;
+        } while (!result.done());
+    }
+
+    vector<uint32_t> tokens;
+};
+
+} // namespace wjr::json
+
+#endif // WJR_JSON_TOKEN_READER_HPP__

@@ -1,6 +1,7 @@
 #include <wjr/math/div.hpp>
 #include <wjr/math/mul.hpp>
 #include <wjr/math/stack_allocator.hpp>
+#include <wjr/tuple.hpp>
 
 namespace wjr {
 

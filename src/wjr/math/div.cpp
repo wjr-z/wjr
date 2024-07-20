@@ -516,10 +516,9 @@ void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n
 
     WJR_ASSUME(st >= 1);
 
-    auto stk2 = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * m));
-    auto rp = stk2;
+    const auto rp = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * m));
 
-    unsigned int cf;
+    size_t cf;
 
     if (!shift) {
         if (qn >= st) {

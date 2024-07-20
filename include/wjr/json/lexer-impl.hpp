@@ -1,49 +1,59 @@
 #ifndef WJR_JSON_LEXER_IMPL_HPP__
 #define WJR_JSON_LEXER_IMPL_HPP__
 
+#include <wjr/crtp/class_base.hpp>
 #include <wjr/span.hpp>
 
 namespace wjr::json {
 
-struct dynamic_lexer_storage {
-    dynamic_lexer_storage(span<const char> input) noexcept
-        : first(input.data()), last(input.data() + input.size()) {}
+namespace lexer_detail {
 
-    const char *first;
-    const char *last;
-};
+inline constexpr uint64_t calc_backslash(uint64_t B) noexcept {
+    uint64_t maybe_escaped = B << 1;
 
-struct forward_lexer_storage : dynamic_lexer_storage {
-    using dynamic_lexer_storage::dynamic_lexer_storage;
+    uint64_t maybe_escaped_and_odd_bits = maybe_escaped | 0xAAAAAAAAAAAAAAAAULL;
+    uint64_t even_series_codes_and_odd_bits = maybe_escaped_and_odd_bits - B;
 
-    uint64_t prev_in_string = 0;
-    uint64_t prev_is_escape = 0;
-    uint64_t prev_is_ws = ~0ull;
-    uint32_t idx = 0;
-};
+    return even_series_codes_and_odd_bits ^ 0xAAAAAAAAAAAAAAAAULL;
+}
 
-template <uint32_t token_buf_size>
-class basic_lexer {
-    static_assert(((token_buf_size & (token_buf_size - 1)) == 0 &&
-                   token_buf_size <= 65536) ||
-                      token_buf_size == (uint32_t)in_place_max,
-                  "token_buf_size must be a power of 2");
+} // namespace lexer_detail
 
-    constexpr static bool __is_dynamic = token_buf_size == (uint32_t)in_place_max;
-    using storage_type =
-        std::conditional_t<__is_dynamic, dynamic_lexer_storage, forward_lexer_storage>;
+template <typename Lexer>
+using lexer_enabler =
+    enable_special_members_base<false, true, false, true, false, true, Lexer>;
 
-    constexpr static uint32_t token_buf_mask = token_buf_size * 2;
+class lexer : lexer_enabler<lexer> {
+    using Mybase = lexer_enabler<lexer>;
 
 public:
-    constexpr basic_lexer(span<const char> input) noexcept : m_storage(input) {}
+    using size_type = uint32_t;
 
-    basic_lexer() = delete;
-    basic_lexer(const basic_lexer &) = delete;
-    basic_lexer(basic_lexer &&) = default;
-    basic_lexer &operator=(const basic_lexer &) = delete;
-    basic_lexer &operator=(basic_lexer &&) = default;
-    ~basic_lexer() = default;
+    using Mybase::Mybase;
+
+    constexpr lexer(span<const char> input) noexcept
+        : Mybase(enable_default_constructor), first(input.data()),
+          last(input.data() + input.size()) {}
+
+    class result_type {
+
+    public:
+        constexpr static uint32_t mask = static_cast<uint32_t>(1) << 31;
+        
+        result_type() = default;
+        result_type(const result_type &) = default;
+        result_type(result_type &&) = default;
+        result_type &operator=(const result_type &) = default;
+        result_type &operator=(result_type &&) = default;
+        ~result_type() = default;
+
+        constexpr result_type(uint32_t result) noexcept : result(result) {}
+        constexpr uint32_t get() const noexcept { return result & (mask - 1); }
+        constexpr bool done() const noexcept { return (result & mask) != 0; }
+
+    private:
+        uint32_t result;
+    };
 
     /**
      * @brief read tokens
@@ -54,30 +64,20 @@ public:
      * @return return the number of tokens read.
      *
      */
+    result_type read(uint32_t *token_buf, size_type token_buf_size) noexcept;
 
-    uint32_t read(uint32_t *token_buf) noexcept;
-
-    WJR_PURE const char *end() const noexcept { return m_storage.last; }
+    constexpr const char *begin() const noexcept { return first; }
+    constexpr const char *end() const noexcept { return last; }
 
 private:
-    storage_type m_storage;
+    const char *first;
+    const char *last;
+
+    uint64_t prev_in_string = 0;
+    uint64_t prev_is_escape = 0;
+    uint64_t prev_is_ws = ~0ull;
+    uint32_t idx = 0;
 };
-
-template <uint32_t token_buf_size>
-using forward_lexer = basic_lexer<token_buf_size>;
-
-using dynamic_lexer = basic_lexer<in_place_max>;
-
-namespace lexer_detail {
-inline uint64_t calc_backslash(uint64_t B) {
-    uint64_t maybe_escaped = B << 1;
-
-    uint64_t maybe_escaped_and_odd_bits = maybe_escaped | 0xAAAAAAAAAAAAAAAAULL;
-    uint64_t even_series_codes_and_odd_bits = maybe_escaped_and_odd_bits - B;
-
-    return even_series_codes_and_odd_bits ^ 0xAAAAAAAAAAAAAAAAULL;
-}
-} // namespace lexer_detail
 
 } // namespace wjr::json
 

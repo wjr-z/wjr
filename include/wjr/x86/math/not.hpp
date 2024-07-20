@@ -21,7 +21,6 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
     constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 
     using simd = std::conditional_t<is_avx, avx, sse>;
-    using simd_int = typename simd::int_type;
     constexpr auto simd_width = simd::width();
     constexpr auto type_width = simd_width / 64;
 

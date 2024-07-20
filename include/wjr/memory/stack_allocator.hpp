@@ -3,7 +3,6 @@
 
 #include <algorithm>
 
-#include <wjr/crtp/nonsendable.hpp>
 #include <wjr/memory/memory_pool.hpp>
 #include <wjr/type_traits.hpp>
 
@@ -210,9 +209,7 @@ class weak_stack_allocator;
  *
  */
 template <typename StackAllocator>
-class unique_stack_allocator
-    : public nonsendable<unique_stack_allocator<StackAllocator>> {
-    using Mybase = nonsendable<unique_stack_allocator<StackAllocator>>;
+class unique_stack_allocator {
     using Instance = typename StackAllocator::Instance;
     using stack_top = typename Instance::stack_top;
 
@@ -236,13 +233,11 @@ public:
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *
     allocate(size_t n, size_t threshold = __default_threshold) noexcept {
-        Mybase::check();
         return m_instance->allocate(n, m_top, threshold);
     }
 
 private:
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n) noexcept {
-        Mybase::check();
         return m_instance->__small_allocate(n, m_top);
     }
 

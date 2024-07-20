@@ -1,5 +1,5 @@
-#ifndef WJR_MEMORY_TO_ADDRESS_HPP__
-#define WJR_MEMORY_TO_ADDRESS_HPP__
+#ifndef WJR_MEMORY_DETAIL_HPP__
+#define WJR_MEMORY_DETAIL_HPP__
 
 #include <cstring>
 
@@ -186,4 +186,4 @@ WJR_NODISCARD auto allocate_at_least(Allocator &alloc, SizeType count) {
 
 } // namespace wjr
 
-#endif // WJR_MEMORY_TO_ADDRESS_HPP__
+#endif // WJR_MEMORY_DETAIL_HPP__

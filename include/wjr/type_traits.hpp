@@ -346,12 +346,12 @@ inline constexpr size_t get_place_index_v = get_place_index<T>::value;
 
 // ....
 
-template <class P, class M>
+template <typename P, typename M>
 WJR_INTRINSIC_CONSTEXPR20 size_t container_of_offset(const M P::*member) noexcept {
     return reinterpret_cast<size_t>(&(reinterpret_cast<P *>(nullptr)->*member));
 }
 
-template <class P, class M>
+template <typename P, typename M>
 WJR_INTRINSIC_CONSTEXPR20 P *container_of_offset_impl(M *ptr,
                                                       const M P::*member) noexcept {
     return reinterpret_cast<P *>(reinterpret_cast<char *>(ptr) -
@@ -532,6 +532,217 @@ WJR_REGISTER_HAS_COMPARE(greater_equal, std::greater_equal<>);
 
 WJR_REGISTER_HAS_TYPE(invocable,
                       std::invoke(std::declval<Func>(), std::declval<Args>()...), Func);
+
+template <typename T>
+struct is_bounded_array : std::false_type {};
+
+template <typename T, std::size_t N>
+struct is_bounded_array<T[N]> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_bounded_array_v = is_bounded_array<T>::value;
+
+template <typename T>
+struct is_unbounded_array : std::false_type {};
+
+template <typename T>
+struct is_unbounded_array<T[]> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_unbounded_array_v = is_unbounded_array<T>::value;
+
+template <typename Unqualified, bool IsConst, bool IsVol>
+struct __cv_selector;
+
+template <typename Unqualified>
+struct __cv_selector<Unqualified, false, false> {
+    using __type = Unqualified;
+};
+
+template <typename Unqualified>
+struct __cv_selector<Unqualified, false, true> {
+    using __type = volatile Unqualified;
+};
+
+template <typename Unqualified>
+struct __cv_selector<Unqualified, true, false> {
+    using __type = const Unqualified;
+};
+
+template <typename Unqualified>
+struct __cv_selector<Unqualified, true, true> {
+    using __type = const volatile Unqualified;
+};
+
+template <typename _Qualified, typename Unqualified,
+          bool IsConst = std::is_const<_Qualified>::value,
+          bool IsVol = std::is_volatile<_Qualified>::value>
+class __match_cv_qualifiers {
+    using __match = __cv_selector<Unqualified, IsConst, IsVol>;
+
+public:
+    using __type = typename __match::__type;
+};
+
+template <typename From, typename To>
+using __copy_cv = typename __match_cv_qualifiers<From, To>::__type;
+
+template <typename Xp, typename Yp>
+using __cond_res =
+    decltype(false ? std::declval<Xp (&)()>()() : std::declval<Yp (&)()>()());
+
+template <typename _Ap, typename _Bp, typename = void>
+struct __common_ref_impl {};
+
+// [meta.trans.other], COMMON-REF(A, B)
+template <typename _Ap, typename _Bp>
+using __common_ref = typename __common_ref_impl<_Ap, _Bp>::type;
+
+// COND-RES(COPYCV(X, Y) &, COPYCV(Y, X) &)
+template <typename _Xp, typename _Yp>
+using __condres_cvref = __cond_res<__copy_cv<_Xp, _Yp> &, __copy_cv<_Yp, _Xp> &>;
+
+// If A and B are both lvalue reference types, ...
+template <typename _Xp, typename _Yp>
+struct __common_ref_impl<_Xp &, _Yp &, std::void_t<__condres_cvref<_Xp, _Yp>>>
+    : std::enable_if<std::is_reference_v<__condres_cvref<_Xp, _Yp>>,
+                     __condres_cvref<_Xp, _Yp>> {};
+
+// let C be remove_reference_t<COMMON-REF(X&, Y&)>&&
+template <typename _Xp, typename _Yp>
+using __common_ref_C = std::remove_reference_t<__common_ref<_Xp &, _Yp &>> &&;
+
+// If A and B are both rvalue reference types, ...
+template <typename _Xp, typename _Yp>
+struct __common_ref_impl<_Xp &&, _Yp &&,
+                         std::enable_if_t<std::conjunction_v<
+                             std::is_convertible<_Xp &&, __common_ref_C<_Xp, _Yp>>,
+                             std::is_convertible<_Yp &&, __common_ref_C<_Xp, _Yp>>>>> {
+    using type = __common_ref_C<_Xp, _Yp>;
+};
+
+// let D be COMMON-REF(const X&, Y&)
+template <typename _Xp, typename _Yp>
+using __common_ref_D = __common_ref<const _Xp &, _Yp &>;
+
+// If A is an rvalue reference and B is an lvalue reference, ...
+template <typename _Xp, typename _Yp>
+struct __common_ref_impl<
+    _Xp &&, _Yp &,
+    std::enable_if_t<std::is_convertible_v<_Xp &&, __common_ref_D<_Xp, _Yp>>>> {
+    using type = __common_ref_D<_Xp, _Yp>;
+};
+
+// If A is an lvalue reference and B is an rvalue reference, ...
+template <typename _Xp, typename _Yp>
+struct __common_ref_impl<_Xp &, _Yp &&> : __common_ref_impl<_Yp &&, _Xp &> {};
+
+template <typename Tp, typename Up, template <typename> typename TQual,
+          template <typename> typename UQual, typename Enable = void>
+struct __basic_common_reference_impl {};
+
+template <typename Tp, typename Up, template <typename> typename TQual,
+          template <typename> typename UQual>
+struct basic_common_reference : __basic_common_reference_impl<Tp, Up, TQual, UQual> {};
+
+/// @cond undocumented
+template <typename Tp>
+struct __xref {
+    template <typename Up>
+    using __type = __copy_cv<Tp, Up>;
+};
+
+template <typename Tp>
+struct __xref<Tp &> {
+    template <typename Up>
+    using __type = __copy_cv<Tp, Up> &;
+};
+
+template <typename Tp>
+struct __xref<Tp &&> {
+    template <typename Up>
+    using __type = __copy_cv<Tp, Up> &&;
+};
+
+template <typename Tp1, typename Tp2>
+using __basic_common_ref =
+    typename basic_common_reference<remove_cvref_t<Tp1>, remove_cvref_t<Tp2>,
+                                    __xref<Tp1>::template __type,
+                                    __xref<Tp2>::template __type>::type;
+
+template <typename... Tp>
+struct common_reference;
+
+template <typename... Tp>
+using common_reference_t = typename common_reference<Tp...>::type;
+
+// If sizeof...(T) is zero, there shall be no member type.
+template <>
+struct common_reference<> {};
+
+// If sizeof...(T) is one ...
+template <typename Tp0>
+struct common_reference<Tp0> {
+    using type = Tp0;
+};
+
+template <typename Tp1, typename Tp2, int _Bullet = 1, typename = void>
+struct __common_reference_impl : __common_reference_impl<Tp1, Tp2, _Bullet + 1> {};
+
+// If sizeof...(T) is two ...
+template <typename Tp1, typename Tp2>
+struct common_reference<Tp1, Tp2> : __common_reference_impl<Tp1, Tp2> {};
+
+// If T1 and T2 are reference types and COMMON-REF(T1, T2) is well-formed, ...
+template <typename Tp1, typename Tp2>
+struct __common_reference_impl<Tp1 &, Tp2 &, 1, std::void_t<__common_ref<Tp1 &, Tp2 &>>> {
+    using type = __common_ref<Tp1 &, Tp2 &>;
+};
+
+template <typename Tp1, typename Tp2>
+struct __common_reference_impl<Tp1 &&, Tp2 &&, 1,
+                               std::void_t<__common_ref<Tp1 &&, Tp2 &&>>> {
+    using type = __common_ref<Tp1 &&, Tp2 &&>;
+};
+
+template <typename Tp1, typename Tp2>
+struct __common_reference_impl<Tp1 &, Tp2 &&, 1,
+                               std::void_t<__common_ref<Tp1 &, Tp2 &&>>> {
+    using type = __common_ref<Tp1 &, Tp2 &&>;
+};
+
+template <typename Tp1, typename Tp2>
+struct __common_reference_impl<Tp1 &&, Tp2 &, 1,
+                               std::void_t<__common_ref<Tp1 &&, Tp2 &>>> {
+    using type = __common_ref<Tp1 &&, Tp2 &>;
+};
+
+// Otherwise, if basic_common_reference<...>::type is well-formed, ...
+template <typename Tp1, typename Tp2>
+struct __common_reference_impl<Tp1, Tp2, 2, std::void_t<__basic_common_ref<Tp1, Tp2>>> {
+    using type = __basic_common_ref<Tp1, Tp2>;
+};
+
+// Otherwise, if COND-RES(T1, T2) is well-formed, ...
+template <typename Tp1, typename Tp2>
+struct __common_reference_impl<Tp1, Tp2, 3, std::void_t<__cond_res<Tp1, Tp2>>> {
+    using type = __cond_res<Tp1, Tp2>;
+};
+
+// Otherwise, if common_type_t<T1, T2> is well-formed, ...
+template <typename Tp1, typename Tp2>
+struct __common_reference_impl<Tp1, Tp2, 4, std::void_t<std::common_type_t<Tp1, Tp2>>> {
+    using type = std::common_type_t<Tp1, Tp2>;
+};
+
+// Otherwise, there shall be no member type.
+template <typename Tp1, typename Tp2>
+struct __common_reference_impl<Tp1, Tp2, 5, void> {};
+
+// Otherwise, if sizeof...(T) is greater than two, ...
+template <typename Tp1, typename Tp2, typename... Rest>
+struct common_reference<Tp1, Tp2, Rest...>
+    : common_reference<common_reference_t<Tp1, Tp2>, Rest...> {};
 
 } // namespace wjr
 

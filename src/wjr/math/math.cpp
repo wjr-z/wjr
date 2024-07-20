@@ -325,8 +325,8 @@ precompute_chars_convert_t *precompute_chars_convert(precompute_chars_convert_t 
     const uint64_t big_base = p16n->big_base;
     const size_t digits_in_one_base = p16n->digits_in_one_base;
 
-    auto set = [base](precompute_chars_convert_t *pre, const uint64_t *ptr, size_t n,
-                      size_t shift, size_t digits_in_base) {
+    const auto set = [base](precompute_chars_convert_t *pre, const uint64_t *ptr,
+                            size_t n, size_t shift, size_t digits_in_base) {
         *pre = {ptr, n, shift, digits_in_base, base};
     };
 

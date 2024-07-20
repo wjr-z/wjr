@@ -12,7 +12,6 @@
 #include <wjr/math/shift.hpp>
 #include <wjr/math/sub.hpp>
 #include <wjr/memory/safe_pointer.hpp>
-#include <wjr/tuple.hpp>
 
 #if defined(WJR_MSVC) && defined(WJR_X86)
 #define WJR_HAS_BUILTIN_MSVC_MULH64 WJR_HAS_DEF
@@ -430,37 +429,44 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t try_addmul_1(uint64_t *dst, const uint64_t *s
 
     if constexpr (maxn == 0) {
         return 0;
-    }
-
-    if constexpr (maxn <= 3) {
-        if (ml == 0) {
-            return 0;
-        }
     } else {
-        if (WJR_UNLIKELY(ml == 0)) {
-            return 0;
-        }
-    }
-
-    if constexpr (maxn == 1) {
-        return addc_n(dst, dst, src, n);
-    } else {
-        if (ml == 1) {
-            return addc_n(dst, dst, src, n);
-        }
-
         if constexpr (maxn <= 3) {
-            // addlsh is slightly faster than addmul
-            if constexpr (maxn == 2) {
-                return addlsh_n(dst, dst, src, n, 1);
+            if (ml == 0) {
+                return 0;
+            }
+
+            if constexpr (maxn == 1) {
+                return addc_n(dst, dst, src, n);
             } else {
-                if (ml == 2) {
-                    return addlsh_n(dst, dst, src, n, 1);
+                if (ml == 1) {
+                    return addc_n(dst, dst, src, n);
                 }
 
-                return addmul_1(dst, src, n, ml);
+                if constexpr (maxn == 2) {
+                    return addlsh_n(dst, dst, src, n, 1);
+                } else {
+                    if (ml == 2) {
+                        return addlsh_n(dst, dst, src, n, 1);
+                    }
+
+                    return addmul_1(dst, src, n, ml);
+                }
             }
         } else {
+            if (WJR_UNLIKELY(ml <= 2)) {
+                switch (ml) {
+                case 0: {
+                    return 0;
+                }
+                case 1: {
+                    return addc_n(dst, dst, src, n);
+                }
+                default: {
+                    return addlsh_n(dst, dst, src, n, 1);
+                }
+                }
+            }
+
             return addmul_1(dst, src, n, ml);
         }
     }

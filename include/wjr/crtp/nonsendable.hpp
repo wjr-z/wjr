@@ -40,26 +40,24 @@ public:
 
 protected:
     nonsendable() noexcept : m_thread_id(std::this_thread::get_id()) {}
-    nonsendable(const nonsendable &) = default;
-    nonsendable(nonsendable &&) = default;
-    nonsendable &operator=(const nonsendable &) = default;
-    nonsendable &operator=(nonsendable &&) = default;
-    ~nonsendable() noexcept { check(); }
+    nonsendable(const nonsendable &other) noexcept { check(other); }
+    nonsendable(nonsendable &&other) noexcept { check(other); }
+    nonsendable &operator=(const nonsendable &other) noexcept {
+        check(other);
+        return *this;
+    }
+    nonsendable &operator=(nonsendable &&other) noexcept {
+        check(other);
+        return *this;
+    }
+    ~nonsendable() = default;
 
-    void check() const noexcept {
-        WJR_ASSERT_L0(m_thread_id == std::this_thread::get_id(),
+private:
+    void check(const nonsendable &other) noexcept {
+        WJR_ASSERT_L0(m_thread_id == other.m_thread_id,
                       "Cross-thread access detected when using a nonsendable object.");
     }
 
-    friend bool operator==(const nonsendable &lhs, const nonsendable &rhs) noexcept {
-        return lhs.m_thread_id == rhs.m_thread_id;
-    }
-
-    friend bool operator!=(const nonsendable &lhs, const nonsendable &rhs) noexcept {
-        return lhs.m_thread_id != rhs.m_thread_id;
-    }
-
-private:
     std::thread::id m_thread_id;
 };
 
@@ -75,15 +73,12 @@ public:
     static constexpr bool is_nonsendable = true;
 
 protected:
-    constexpr static void check() noexcept {}
-
-    friend bool operator==(const nonsendable &, const nonsendable &) noexcept {
-        return true;
-    }
-
-    friend bool operator!=(const nonsendable &, const nonsendable &) noexcept {
-        return false;
-    }
+    nonsendable() = default;
+    nonsendable(const nonsendable &) = default;
+    nonsendable(nonsendable &&) = default;
+    nonsendable &operator=(const nonsendable &) = default;
+    nonsendable &operator=(nonsendable &&) = default;
+    ~nonsendable() = default;
 };
 
 #endif

@@ -22,7 +22,7 @@ public:
 private:
     constexpr void initialize() noexcept {
         for (uint8_t i = 0; i < digits; ++i) {
-            auto idx = (seed << i) >> mv;
+            const auto idx = (seed << i) >> mv;
             lookup[idx] = i;
             lookupr[idx] = i == 0 ? 0 : digits - i;
         }

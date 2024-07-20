@@ -1,8 +1,6 @@
 #ifndef WJR_MATH_DIV_HPP__
 #define WJR_MATH_DIV_HPP__
 
-#include <wjr/math/compare.hpp>
-#include <wjr/math/divider.hpp>
 #include <wjr/math/uint128_t.hpp>
 
 #if defined(WJR_X86)

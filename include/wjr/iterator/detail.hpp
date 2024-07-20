@@ -20,6 +20,17 @@ using iterator_pointer_t = typename std::iterator_traits<Iter>::pointer;
 template <typename Iter>
 using iterator_category_t = typename std::iterator_traits<Iter>::iterator_category;
 
+template <typename T>
+using iterator_common_reference_t =
+    common_reference_t<iterator_reference_t<T>, iterator_value_t<T> &>;
+
+template <typename In, typename = void>
+struct __is_indirectly_readable_impl : std::false_type {};
+
+// template <typename In>
+// struct __is_indirectly_readable_impl<In, std::void_t<
+// >> : std::true_type {};
+
 template <typename Iter, typename = void>
 struct __is_iterator_impl : std::false_type {};
 
