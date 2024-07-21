@@ -29,22 +29,12 @@ inline typename simd::int_type equal(typename simd::int_type stk, uint8_t ch) {
     return simd::cmpeq_epi8(stk, simd::set1_epi8(ch));
 }
 
-template <typename simd>
-void load_simd(const char *first, typename simd::int_type *arr) {
-    constexpr auto simd_width = simd::width();
-    constexpr auto u8_width = simd_width / 8;
-    constexpr auto u8_loop = 64 / u8_width;
-    for (unsigned i = 0; i < u8_loop; ++i) {
-        arr[i] = simd::loadu(first + i * u8_width);
-    }
-}
-
 } // namespace lexer_detail
 
 typename lexer::result_type lexer::read(uint32_t *token_buf,
                                         size_type token_buf_size) noexcept {
     if (WJR_UNLIKELY(first == last)) {
-        return 0;
+        return result_type::mask;
     }
 
     using namespace lexer_detail;
@@ -64,11 +54,16 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
         const size_t diff = last - first;
 
         if (WJR_LIKELY(diff > 64)) {
-            load_simd<simd>(first, stk);
+            for (size_t i = 0; i < u8_loop; ++i) {
+                stk[i] = simd::loadu(first + i * u8_width);
+            }
+
             first += 64;
         } else {
             if (diff == 64) {
-                load_simd<simd>(first, stk);
+                for (size_t i = 0; i < u8_loop; ++i) {
+                    stk[i] = simd::loadu(first + i * u8_width);
+                }
             } else {
                 char ch;
                 switch (last[-1]) {
@@ -92,7 +87,10 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
                 char buf[64];
                 std::memcpy(buf, first, diff);
                 std::memset(buf + diff, ch, 64 - diff);
-                load_simd<simd>(buf, stk);
+
+                for (size_t i = 0; i < u8_loop; ++i) {
+                    stk[i] = simd::loadu(buf + i * u8_width);
+                }
             }
 
             first = last;
@@ -219,12 +217,6 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
 
         idx += 64;
     } while (WJR_LIKELY(count <= token_buf_size));
-
-    first = first;
-    prev_is_escape = prev_is_escape;
-    prev_in_string = prev_in_string;
-    prev_is_ws = prev_is_ws;
-    idx = idx;
 
     return count;
 }

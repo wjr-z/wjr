@@ -121,8 +121,13 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
 
 #endif
 
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz_impl(T x) noexcept {
+/**
+ * @brief Fast count leading zeros
+ *
+ * @tparam T Must be an unsigned integral type
+ */
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
 #if WJR_HAS_BUILTIN(CLZ)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
         return fallback_clz(x);
@@ -132,19 +137,6 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz_impl(T x) noexcept {
 #else
     return fallback_clz(x);
 #endif
-}
-
-/**
- * @brief Fast count leading zeros
- *
- * @tparam T Must be an unsigned integral type
- */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
-    WJR_ASSERT_ASSUME_L2(x != 0);
-    const int ret = clz_impl(x);
-    WJR_ASSUME(0 <= ret && ret < std::numeric_limits<T>::digits);
-    return ret;
 }
 
 } // namespace wjr

@@ -110,6 +110,31 @@ private:
     E m_val;
 };
 
+template <typename E, E init>
+struct inlined_unexpected {
+    static_assert(std::is_trivial_v<E>, "Only support trivial type currently.");
+
+    inlined_unexpected() = delete;
+    inlined_unexpected(const inlined_unexpected &) = default;
+    inlined_unexpected(inlined_unexpected &&) = default;
+    inlined_unexpected &operator=(const inlined_unexpected &) = default;
+    inlined_unexpected &operator=(inlined_unexpected &&) = default;
+    ~inlined_unexpected() = default;
+
+    constexpr inlined_unexpected(const E &other) noexcept : m_err(other) {
+        WJR_ASSERT(other != init);
+    }
+
+    constexpr inlined_unexpected &operator=(const E &other) noexcept {
+        WJR_ASSERT(other != init);
+
+        m_err = other;
+        return *this;
+    }
+
+    E m_err;
+};
+
 template <typename T, typename E>
 class expected;
 
@@ -170,6 +195,10 @@ struct expected_storage_base {
 
     ~expected_storage_base() = default;
 
+    constexpr bool has_value() const noexcept { return m_has_val; }
+    constexpr void set_valid() noexcept { m_has_val = true; }
+    constexpr void set_invalid() noexcept { m_has_val = false; }
+
     bool m_has_val;
     union {
         T m_val;
@@ -208,6 +237,10 @@ struct expected_storage_base<T, E, false> {
         }
     }
 
+    constexpr bool has_value() const noexcept { return m_has_val; }
+    constexpr void set_valid() noexcept { m_has_val = true; }
+    constexpr void set_invalid() noexcept { m_has_val = false; }
+
     bool m_has_val;
     union {
         T m_val;
@@ -234,6 +267,10 @@ struct expected_storage_base<void, E, true> {
     constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
 
     ~expected_storage_base() = default;
+
+    constexpr bool has_value() const noexcept { return m_has_val; }
+    constexpr void set_valid() noexcept { m_has_val = true; }
+    constexpr void set_invalid() noexcept { m_has_val = false; }
 
     bool m_has_val;
     union {
@@ -265,10 +302,118 @@ struct expected_storage_base<void, E, false> {
         }
     }
 
+    constexpr bool has_value() const noexcept { return m_has_val; }
+    constexpr void set_valid() noexcept { m_has_val = true; }
+    constexpr void set_invalid() noexcept { m_has_val = false; }
+
     bool m_has_val;
     union {
         E m_err;
     };
+};
+
+template <typename T, typename E, E init>
+struct expected_storage_base<T, inlined_unexpected<E, init>, true> {
+    constexpr expected_storage_base() noexcept(std::is_nothrow_default_constructible_v<T>)
+        : m_val(), m_err(init) {}
+
+    template <typename... Args>
+    constexpr expected_storage_base(std::in_place_t, Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<T, Args...>)
+        : m_val(std::forward<Args>(args)...), m_err(init) {}
+
+    template <typename... Args>
+    constexpr expected_storage_base(unexpect_t, Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<E, Args...>)
+        : m_err(std::forward<Args>(args)...) {}
+
+    expected_storage_base(const expected_storage_base &) = default;
+    expected_storage_base(expected_storage_base &&) = default;
+    expected_storage_base &operator=(const expected_storage_base &) = default;
+    expected_storage_base &operator=(expected_storage_base &&) = default;
+
+    constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
+
+    ~expected_storage_base() = default;
+
+    constexpr bool has_value() const noexcept { return m_err == init; }
+    constexpr void set_valid() noexcept { m_err = init; }
+    constexpr void set_invalid() noexcept {}
+
+    union {
+        T m_val;
+    };
+
+    E m_err;
+};
+
+template <typename T, typename E, E init>
+struct expected_storage_base<T, inlined_unexpected<E, init>, false> {
+    constexpr expected_storage_base() noexcept(std::is_nothrow_default_constructible_v<T>)
+        : m_val(), m_err(init) {}
+
+    template <typename... Args>
+    constexpr expected_storage_base(std::in_place_t, Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<T, Args...>)
+        : m_val(std::forward<Args>(args)...), m_err(init) {}
+
+    template <typename... Args>
+    constexpr expected_storage_base(unexpect_t, Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<E, Args...>)
+        : m_err(std::forward<Args>(args)...) {}
+
+    expected_storage_base(const expected_storage_base &) = default;
+    expected_storage_base(expected_storage_base &&) = default;
+    expected_storage_base &operator=(const expected_storage_base &) = default;
+    expected_storage_base &operator=(expected_storage_base &&) = default;
+
+    constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
+
+    ~expected_storage_base() noexcept(
+        std::is_nothrow_destructible_v<T> &&std::is_nothrow_destructible_v<E>) {
+        if (this->has_value()) {
+            std::destroy_at(std::addressof(this->m_val));
+        } else {
+            std::destroy_at(std::addressof(this->m_err));
+        }
+    }
+
+    constexpr bool has_value() const noexcept { return m_err == init; }
+    constexpr void set_valid() noexcept { m_err = init; }
+    constexpr void set_invalid() noexcept {}
+
+    union {
+        T m_val;
+    };
+
+    E m_err;
+};
+
+template <typename E, E init>
+struct expected_storage_base<void, inlined_unexpected<E, init>, true> {
+    constexpr expected_storage_base() noexcept : m_err(init) {}
+
+    constexpr expected_storage_base(std::in_place_t) noexcept : m_err(init) {}
+
+    template <typename... Args>
+    constexpr expected_storage_base(unexpect_t, Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<E, Args...>)
+        : m_err(std::forward<Args>(args)...) {}
+
+    expected_storage_base(const expected_storage_base &) = default;
+    expected_storage_base(expected_storage_base &&) = default;
+    expected_storage_base &operator=(const expected_storage_base &) = default;
+    expected_storage_base &operator=(expected_storage_base &&) = default;
+
+    constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
+
+    ~expected_storage_base() = default;
+
+    constexpr bool has_value() const noexcept { return m_err == init; }
+    constexpr void set_valid() noexcept { m_err = init; }
+    constexpr void set_invalid() noexcept {}
+
+    E m_err;
 };
 
 template <typename T, typename E>
@@ -279,19 +424,19 @@ struct expected_operations_base : expected_storage_base<T, E> {
     template <typename... Args>
     constexpr void construct_value(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<T, Args...>) {
-        this->m_has_val = true;
+        this->set_valid();
         construct_at(this->m_val, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     constexpr void construct_error(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<E, Args...>) {
-        this->m_has_val = false;
+        this->set_invalid();
         construct_at(this->m_err, std::forward<Args>(args)...);
     }
 
     WJR_CONSTEXPR20 void __copy_construct(const expected_operations_base &other) {
-        if (other.m_has_val) {
+        if (other.has_value()) {
             construct_value(other.m_val);
         } else {
             construct_error(other.m_err);
@@ -301,7 +446,7 @@ struct expected_operations_base : expected_storage_base<T, E> {
     WJR_CONSTEXPR20 void __move_construct(expected_operations_base &&other) noexcept(
         std::is_nothrow_move_constructible_v<T>
             &&std::is_nothrow_move_constructible_v<E>) {
-        if (other.m_has_val) {
+        if (other.has_value()) {
             construct_value(std::move(other.m_val));
         } else {
             construct_error(std::move(other.m_err));
@@ -309,43 +454,41 @@ struct expected_operations_base : expected_storage_base<T, E> {
     }
 
     WJR_CONSTEXPR20 void __copy_assign(const expected_operations_base &other) {
-        if (this->m_has_val) {
-            if (WJR_LIKELY(other.m_has_val)) {
+        if (this->has_value()) {
+            if (WJR_LIKELY(other.has_value())) {
                 this->m_val = other.m_val;
             } else {
                 reinit_expected(this->m_err, this->m_val, other.m_err);
-                this->m_has_val = false;
+                this->set_invalid();
             }
         } else {
-            if (WJR_LIKELY(!other.m_has_val)) {
+            if (WJR_LIKELY(!other.has_value())) {
                 this->m_err = other.m_err;
             } else {
                 reinit_expected(this->m_val, this->m_err, other.m_val);
-                this->m_has_val = true;
+                this->set_valid();
             }
         }
     }
 
     WJR_CONSTEXPR20 void __move_assign(expected_operations_base &&other) noexcept(
         std::is_nothrow_move_assignable_v<T> &&std::is_nothrow_move_assignable_v<E>) {
-        if (this->m_has_val) {
-            if (WJR_LIKELY(other.m_has_val)) {
+        if (this->has_value()) {
+            if (WJR_LIKELY(other.has_value())) {
                 this->m_val = std::move(other.m_val);
             } else {
                 reinit_expected(this->m_err, this->m_val, std::move(other.m_err));
-                this->m_has_val = false;
+                this->set_invalid();
             }
         } else {
-            if (WJR_LIKELY(!other.m_has_val)) {
+            if (WJR_LIKELY(!other.has_value())) {
                 this->m_err = std::move(other.m_err);
             } else {
                 reinit_expected(this->m_val, this->m_err, std::move(other.m_val));
-                this->m_has_val = true;
+                this->set_valid();
             }
         }
     }
-
-    constexpr bool has_value() const { return this->m_has_val; }
 };
 
 template <typename E>
@@ -356,57 +499,55 @@ struct expected_operations_base<void, E> : expected_storage_base<void, E> {
     template <typename... Args>
     constexpr void construct_error(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<E, Args...>) {
-        this->m_has_val = false;
+        this->set_invalid();
         construct_at(this->m_err, std::forward<Args>(args)...);
     }
 
     WJR_CONSTEXPR20 void __copy_construct(const expected_operations_base &other) {
-        if (!other.m_has_val) {
+        if (!other.has_value()) {
             construct_error(other.m_err);
         }
     }
 
     WJR_CONSTEXPR20 void __move_construct(expected_operations_base &&other) noexcept(
         std::is_nothrow_move_constructible_v<E>) {
-        if (!other.m_has_val) {
+        if (!other.has_value()) {
             construct_error(std::move(other.m_err));
         }
     }
 
     WJR_CONSTEXPR20 void __copy_assign(const expected_operations_base &other) {
-        if (this->m_has_val) {
-            if (!other.m_has_val) {
+        if (this->has_value()) {
+            if (!other.has_value()) {
                 construct_at(std::addressof(this->m_err), other.m_err);
-                this->m_has_val = false;
+                this->set_invalid();
             }
         } else {
-            if (WJR_LIKELY(!other.m_has_val)) {
+            if (WJR_LIKELY(!other.has_value())) {
                 this->m_err = other.m_err;
             } else {
                 std::destroy_at(std::addressof(this->m_err));
-                this->m_has_val = true;
+                this->set_valid();
             }
         }
     }
 
     WJR_CONSTEXPR20 void __move_assign(expected_operations_base &&other) noexcept(
         std::is_nothrow_move_assignable_v<E>) {
-        if (this->m_has_val) {
-            if (!other.m_has_val) {
+        if (this->has_value()) {
+            if (!other.has_value()) {
                 construct_at(std::addressof(this->m_err), std::move(other.m_err));
-                this->m_has_val = false;
+                this->set_invalid();
             }
         } else {
-            if (WJR_LIKELY(!other.m_has_val)) {
+            if (WJR_LIKELY(!other.has_value())) {
                 this->m_err = std::move(other.m_err);
             } else {
                 std::destroy_at(std::addressof(this->m_err));
-                this->m_has_val = true;
+                this->set_valid();
             }
         }
     }
-
-    constexpr bool has_value() const { return this->m_has_val; }
 };
 
 template <typename T, typename E>
@@ -451,7 +592,7 @@ using expected_storage = typename __expected_storage_impl<T, E>::type;
 template <typename T, typename E>
 struct __enable_expeted_storage_impl {
     using type = enable_special_members_base<
-        std::is_default_constructible_v<T> && std::is_default_constructible_v<E>, true,
+        std::is_default_constructible_v<T>, true,
         std::is_copy_constructible_v<T> && std::is_copy_constructible_v<E>,
         std::is_move_constructible_v<T> && std::is_move_constructible_v<E>,
         std::is_copy_assignable_v<T> && std::is_copy_constructible_v<T> &&
@@ -467,8 +608,7 @@ struct __enable_expeted_storage_impl {
 template <typename E>
 struct __enable_expeted_storage_impl<void, E> {
     using type = enable_special_members_base<
-        std::is_default_constructible_v<E>, true, std::is_copy_constructible_v<E>,
-        std::is_move_constructible_v<E>,
+        true, true, std::is_copy_constructible_v<E>, std::is_move_constructible_v<E>,
         std::is_copy_assignable_v<E> && std::is_copy_constructible_v<E>,
         std::is_move_assignable_v<E> && std::is_move_constructible_v<E>>;
 };
@@ -711,7 +851,7 @@ public:
     WJR_CONSTEXPR20 expected &operator=(const unexpected<G> &e) {
         if (has_value()) {
             reinit_expected(this->m_err, this->m_val, std::forward<const G &>(e.error()));
-            this->m_has_val = false;
+            this->set_invalid();
         } else {
             this->m_err = std::forward<const G &>(e.error());
         }
@@ -727,7 +867,7 @@ public:
     WJR_CONSTEXPR20 expected &operator=(unexpected<G> &&e) {
         if (has_value()) {
             reinit_expected(this->m_err, this->m_val, std::forward<G>(e.error()));
-            this->m_has_val = false;
+            this->set_invalid();
         } else {
             this->m_err = std::forward<G>(e.error());
         }
@@ -748,7 +888,7 @@ public:
             this->m_val = std::forward<U>(v);
         } else {
             reinit_expected(this->m_val, this->m_err, std::forward<U>(v));
-            this->m_has_val = true;
+            this->set_valid();
         }
 
         return *this;
@@ -853,7 +993,7 @@ public:
             std::destroy_at(std::addressof(this->m_val));
         } else {
             std::destroy_at(std::addressof(this->m_err));
-            this->m_has_val = true;
+            this->set_valid();
         }
 
         construct_at(std::addressof(this->m_val), std::forward<Args>(args)...);
@@ -868,7 +1008,7 @@ public:
             std::destroy_at(std::addressof(this->m_val));
         } else {
             std::destroy_at(std::addressof(this->m_err));
-            this->m_has_val = true;
+            this->set_valid();
         }
 
         construct_at(std::addressof(this->m_val), il, std::forward<Args>(args)...);
@@ -1101,7 +1241,7 @@ public:
     WJR_CONSTEXPR20 expected &operator=(const unexpected<G> &e) {
         if (has_value()) {
             construct_at(std::addressof(this->m_err), std::forward<const G &>(e.error()));
-            this->m_has_val = false;
+            this->set_invalid();
         } else {
             this->m_err = std::forward<const G &>(e.error());
         }
@@ -1114,7 +1254,7 @@ public:
     WJR_CONSTEXPR20 expected &operator=(unexpected<G> &&e) {
         if (has_value()) {
             construct_at(std::addressof(this->m_err), std::forward<G>(e.error()));
-            this->m_has_val = false;
+            this->set_invalid();
         } else {
             this->m_err = std::forward<G>(e.error());
         }
@@ -1169,7 +1309,7 @@ public:
     constexpr void emplace() noexcept {
         if (!has_value()) {
             std::destroy_at(std::addressof(this->m_err));
-            this->m_has_val = true;
+            this->set_valid();
         }
     }
 
@@ -1230,14 +1370,6 @@ public:
         return rhs == lhs;
     }
 };
-
-#define WJR_EXPECTED_TRY(expr)                                                           \
-    do {                                                                                 \
-        if (auto result = (expr); !result) {                                             \
-            return ::wjr::unexpected<typename decltype(expr)::error_type>(               \
-                std::move(result).error());                                              \
-        }                                                                                \
-    } while (0)
 
 } // namespace wjr
 

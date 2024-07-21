@@ -199,15 +199,13 @@ public:
     WJR_CONSTEXPR20 static void uninitialized_construct(
         default_vector_storage &other, size_type size, size_type capacity,
         _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
-        if (capacity != 0) {
-            const auto result = allocate_at_least(al, capacity);
+        const auto result = allocate_at_least(al, capacity);
 
-            other.m_storage = {
-                result.ptr,
-                result.ptr + size,
-                result.ptr + capacity,
-            };
-        }
+        other.m_storage = {
+            result.ptr,
+            result.ptr + size,
+            result.ptr + capacity,
+        };
     }
 
     WJR_CONSTEXPR20 void take_storage(default_vector_storage &other, _Alty &) noexcept {
@@ -465,15 +463,13 @@ public:
     WJR_CONSTEXPR20 static void uninitialized_construct(
         fixed_vector_storage &other, size_type size, size_type capacity,
         _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
-        if (capacity != 0) {
-            const auto result = allocate_at_least(al, capacity);
+        const auto result = allocate_at_least(al, capacity);
 
-            other.m_storage = {
-                result.ptr,
-                result.ptr + size,
-                result.ptr + capacity,
-            };
-        }
+        other.m_storage = {
+            result.ptr,
+            result.ptr + size,
+            result.ptr + capacity,
+        };
     }
 
     WJR_CONSTEXPR20 void take_storage(fixed_vector_storage &other, _Alty &) noexcept {
@@ -875,9 +871,11 @@ private:
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al),
                  wjr::forward_as_tuple()) {
         const auto size = other.size();
-        uninitialized_construct(size, other.capacity());
-        wjr::uninitialized_copy_n_restrict_using_allocator(other.data(), size, data(),
-                                                           __get_allocator());
+        if (size != 0) {
+            uninitialized_construct(size, other.capacity());
+            wjr::uninitialized_copy_n_restrict_using_allocator(other.data(), size, data(),
+                                                               __get_allocator());
+        }
     }
 
     template <typename _Alloc>
@@ -1066,7 +1064,11 @@ public:
             get_storage().shrink_to_fit();
         } else if constexpr (is_reallocatable::value) {
             const size_type __size = size();
-            if (__size < capacity()) {
+            if (__size == 0) {
+                __destroy_and_deallocate();
+                storage_type new_storage;
+                __take_storage(new_storage);
+            } else if (__size < capacity()) {
                 auto &al = __get_allocator();
 
                 storage_type new_storage;
@@ -1099,10 +1101,10 @@ public:
 
     WJR_CONSTEXPR20 void reserve(size_type n) {
         if constexpr (is_reallocatable::value) {
-            const size_type old_size = size();
             const size_type old_capacity = capacity();
             if (WJR_UNLIKELY(old_capacity < n)) {
                 auto &al = __get_allocator();
+                const size_type old_size = size();
                 const size_type new_capacity = get_growth_capacity(old_capacity, n);
 
                 storage_type new_storage;
@@ -1276,7 +1278,9 @@ public:
                                  const allocator_type &al = allocator_type())
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al),
                  wjr::forward_as_tuple()) {
-        uninitialized_construct(0, n);
+        if (n != 0) {
+            uninitialized_construct(0, n);
+        }
     }
 
     WJR_CONSTEXPR20 basic_vector(storage_type &&other,
@@ -1381,10 +1385,12 @@ public:
 
     WJR_CONSTEXPR20 void uninitialized_construct(storage_type &other, size_type siz,
                                                  size_type cap) noexcept {
+        WJR_ASSERT_ASSUME(cap != 0);
         get_storage().uninitialized_construct(other, siz, cap, __get_allocator());
     }
 
     WJR_CONSTEXPR20 void uninitialized_construct(size_type siz, size_type cap) noexcept {
+        WJR_ASSERT_ASSUME(cap != 0);
         if constexpr (has_vector_storage_uninitialized_construct_v<storage_type,
                                                                    size_type, _Alty>) {
             get_storage().uninitialized_construct(siz, cap, __get_allocator());

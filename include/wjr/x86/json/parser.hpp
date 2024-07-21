@@ -3,6 +3,8 @@
 
 #include <wjr/x86/simd/simd.hpp>
 
-namespace wjr::json {} // namespace wjr::json
+#if WJR_HAS_SIMD(SSE2)
+#define WJR_HAS_BUILTIN_JSON_PARSE_STRING WJR_HAS_DEF
+#endif
 
-#endif                 // WJR_X86_JSON_PARSER_HPP__
+#endif // WJR_X86_JSON_PARSER_HPP__

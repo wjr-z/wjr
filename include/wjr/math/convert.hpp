@@ -689,8 +689,11 @@ inline constexpr __unsigned_to_chars_backward_unchecked_fn<Base>
 
 template <>
 class __unsigned_to_chars_backward_unchecked_fn<2> {
-    template <typename UnsignedValue, typename Converter>
-    static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, Converter conv) noexcept {
+public:
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x,
+                                             Converter conv) const noexcept {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
         WJR_ASSERT_L2(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= nd);
@@ -732,20 +735,15 @@ class __unsigned_to_chars_backward_unchecked_fn<2> {
 
         return ptr;
     }
-
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x,
-                        Converter conv) const noexcept {
-        return fn(ptr, n, x, conv);
-    }
 };
 
 template <>
 class __unsigned_to_chars_backward_unchecked_fn<8> {
-    template <typename UnsignedValue, typename Converter>
-    static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, Converter conv) noexcept {
+public:
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x,
+                                             Converter conv) const noexcept {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
         WJR_ASSERT_L2(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 2) / 3);
@@ -788,20 +786,15 @@ class __unsigned_to_chars_backward_unchecked_fn<8> {
 
         return ptr;
     }
-
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x,
-                        Converter conv) const noexcept {
-        return fn(ptr, n, x, conv);
-    }
 };
 
 template <>
 class __unsigned_to_chars_backward_unchecked_fn<16> {
-    template <typename UnsignedValue, typename Converter>
-    static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, Converter conv) noexcept {
+public:
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x,
+                                             Converter conv) const noexcept {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
         WJR_ASSERT_L2(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 3) / 4);
@@ -844,22 +837,15 @@ class __unsigned_to_chars_backward_unchecked_fn<16> {
 
         return ptr;
     }
-
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x,
-                        Converter conv) const noexcept {
-        return fn(ptr, n, x, conv);
-    }
 };
 
 template <>
 class __unsigned_to_chars_backward_unchecked_fn<1> {
-private:
-    template <typename UnsignedValue, typename Converter>
-    static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, int bits,
-                       Converter conv) noexcept {
+public:
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x,
+                                             int bits, Converter conv) const noexcept {
         WJR_ASSERT_L2(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= std::numeric_limits<UnsignedValue>::digits);
 
@@ -873,22 +859,15 @@ private:
 
         return ptr;
     }
-
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, int bits,
-                        Converter conv) const noexcept {
-        return fn(ptr, n, x, bits, conv);
-    }
 };
 
 template <>
 class __unsigned_to_chars_backward_unchecked_fn<10> {
-private:
+public:
     template <typename UnsignedValue, typename Converter,
               WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    static uint8_t *fn(uint8_t *ptr, UnsignedValue val, Converter conv) noexcept {
+    WJR_INTRINSIC_INLINE uint8_t *operator()(uint8_t *ptr, UnsignedValue val,
+                                             Converter conv) const noexcept {
         WJR_ASSERT_ASSUME(val != 0);
 
         if (WJR_LIKELY(val >= 100)) {
@@ -907,13 +886,6 @@ private:
         __to_chars_unroll_2<10>(ptr - 2, val, conv);
         ptr -= 2;
         return ptr;
-    }
-
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    uint8_t *operator()(uint8_t *ptr, UnsignedValue val, Converter conv) const noexcept {
-        return fn(ptr, val, conv);
     }
 };
 
@@ -2105,9 +2077,12 @@ inline constexpr __unsigned_from_chars_unchecked_fn<Base>
 
 template <>
 class __unsigned_from_chars_unchecked_fn<2> {
-    template <typename UnsignedValue, typename Converter>
-    static void fn(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
-                   Converter conv) noexcept {
+public:
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE void operator()(const uint8_t *first, const uint8_t *last,
+                                         UnsignedValue &val,
+                                         Converter conv) const noexcept {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
 
         auto n = std::distance(first, last);
@@ -2170,21 +2145,16 @@ class __unsigned_from_chars_unchecked_fn<2> {
         }
         }
     }
-
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
-                    Converter conv) const noexcept {
-        return fn(first, last, val, conv);
-    }
 };
 
 template <>
 class __unsigned_from_chars_unchecked_fn<8> {
-    template <typename UnsignedValue, typename Converter>
-    static void fn(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
-                   Converter conv) noexcept {
+public:
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE void operator()(const uint8_t *first, const uint8_t *last,
+                                         UnsignedValue &val,
+                                         Converter conv) const noexcept {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
 
         auto n = std::distance(first, last);
@@ -2241,21 +2211,16 @@ class __unsigned_from_chars_unchecked_fn<8> {
         }
         }
     }
-
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
-                    Converter conv) const noexcept {
-        return fn(first, last, val, conv);
-    }
 };
 
 template <>
 class __unsigned_from_chars_unchecked_fn<16> {
-    template <typename UnsignedValue, typename Converter>
-    static void fn(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
-                   Converter conv) noexcept {
+public:
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE void operator()(const uint8_t *first, const uint8_t *last,
+                                         UnsignedValue &val,
+                                         Converter conv) const noexcept {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
 
         auto n = std::distance(first, last);
@@ -2318,14 +2283,6 @@ class __unsigned_from_chars_unchecked_fn<16> {
         }
         }
     }
-
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
-                    Converter conv) const noexcept {
-        return fn(first, last, val, conv);
-    }
 };
 
 template <>
@@ -2333,9 +2290,12 @@ class __unsigned_from_chars_unchecked_fn<1> {};
 
 template <>
 class __unsigned_from_chars_unchecked_fn<10> {
-    template <typename UnsignedValue, typename Converter>
-    static void fn(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
-                   Converter conv) noexcept {
+public:
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE void operator()(const uint8_t *first, const uint8_t *last,
+                                         UnsignedValue &val,
+                                         Converter conv) const noexcept {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits10 + 1;
 
         auto n = std::distance(first, last);
@@ -2396,14 +2356,6 @@ class __unsigned_from_chars_unchecked_fn<10> {
             break;
         }
         }
-    }
-
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
-                    Converter conv) const noexcept {
-        return fn(first, last, val, conv);
     }
 };
 
@@ -2516,6 +2468,7 @@ void from_chars_unchecked(Iter first, Iter last, Value &val, IBase base,
 template <uint64_t Base>
 struct __unsigned_from_chars_fn {};
 
+/** @todo Can be optimized. */
 template <uint64_t Base>
 inline constexpr __unsigned_from_chars_fn<Base> __unsigned_from_chars{};
 
@@ -2523,13 +2476,14 @@ template <>
 struct __unsigned_from_chars_fn<2> {
     template <typename UnsignedValue, typename Converter,
               WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    int operator()(const uint8_t *&first, const uint8_t *last, UnsignedValue &value,
-                   Converter conv) const noexcept {
+    WJR_INTRINSIC_INLINE int operator()(const uint8_t *&first, const uint8_t *last,
+                                        UnsignedValue &value,
+                                        Converter conv) const noexcept {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
         constexpr auto zero = conv.template to<2>(0);
         constexpr auto one = conv.template to<2>(1);
 
-        if (first == last) {
+        if (WJR_UNLIKELY(first == last)) {
             return 2;
         }
 
@@ -2575,8 +2529,9 @@ template <>
 struct __unsigned_from_chars_fn<10> {
     template <typename UnsignedValue, typename Converter,
               WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    int operator()(const uint8_t *&first, const uint8_t *last, UnsignedValue &value,
-                   Converter conv) const noexcept {
+    WJR_INTRINSIC_INLINE int operator()(const uint8_t *&first, const uint8_t *last,
+                                        UnsignedValue &value,
+                                        Converter conv) const noexcept {
         constexpr auto zero = conv.template to<10>(0);
         constexpr auto nine = conv.template to<10>(9);
 
@@ -2596,7 +2551,7 @@ struct __unsigned_from_chars_fn<10> {
             }
         };
 
-        if (first == last) {
+        if (WJR_UNLIKELY(first == last)) {
             return 2;
         }
 

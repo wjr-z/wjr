@@ -121,41 +121,53 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
             return;
         }
 
-        if (WJR_UNLIKELY(n >= sse_loop / 2)) {
+        if constexpr (sse_loop == 2) {
             std::memcpy(dst, &x, 8);
-            if constexpr (sse_loop != 2) {
-                std::memcpy(dst + n - sse_loop / 2, &x, 8);
-            }
             return;
+        } else {
+            if (WJR_UNLIKELY(n >= sse_loop / 2)) {
+                std::memcpy(dst, &x, 8);
+                std::memcpy(dst + n - sse_loop / 2, &x, 8);
+                return;
+            }
         }
 
         if constexpr (sse_loop >= 4) {
-            if (WJR_UNLIKELY(n >= sse_loop / 4)) {
+            if constexpr (sse_loop == 4) {
                 std::memcpy(dst, &x, 4);
-                if constexpr (sse_loop != 4) {
-                    std::memcpy(dst + n - sse_loop / 4, &x, 4);
-                }
                 return;
+            } else {
+                if (WJR_UNLIKELY(n >= sse_loop / 4)) {
+                    std::memcpy(dst, &x, 4);
+                    std::memcpy(dst + n - sse_loop / 4, &x, 4);
+                    return;
+                }
             }
         }
 
         if constexpr (sse_loop >= 8) {
-            if (WJR_UNLIKELY(n >= sse_loop / 8)) {
+            if constexpr (sse_loop == 8) {
                 std::memcpy(dst, &x, 2);
-                if constexpr (sse_loop != 8) {
-                    std::memcpy(dst + n - sse_loop / 8, &x, 2);
-                }
                 return;
+            } else {
+                if (WJR_UNLIKELY(n >= sse_loop / 8)) {
+                    std::memcpy(dst, &x, 2);
+                    std::memcpy(dst + n - sse_loop / 8, &x, 2);
+                    return;
+                }
             }
         }
 
         if constexpr (sse_loop >= 16) {
-            if (WJR_UNLIKELY(n >= sse_loop / 16)) {
+            if constexpr (sse_loop == 16) {
                 std::memcpy(dst, &x, 1);
-                if constexpr (sse_loop != 16) {
-                    std::memcpy(dst + n - sse_loop / 16, &x, 1);
-                }
                 return;
+            } else {
+                if (WJR_UNLIKELY(n >= sse_loop / 16)) {
+                    std::memcpy(dst, &x, 16);
+                    std::memcpy(dst + n - sse_loop / 16, &x, 16);
+                    return;
+                }
             }
         }
 

@@ -1,7 +1,14 @@
 #ifndef WJR_JSON_PARSER_HPP__
 #define WJR_JSON_PARSER_HPP__
 
-#include <wjr/json/token_reader.hpp>
+#include <array>
+
+#include <wjr/expected.hpp>
+#include <wjr/json/reader.hpp>
+
+#if defined(WJR_X86)
+#include <wjr/x86/json/parser.hpp>
+#endif
 
 namespace wjr::json {
 
@@ -40,20 +47,200 @@ enum error_code {
     SCALAR_DOCUMENT_AS_VALUE,   ///< A scalar document is treated as a value.
     OUT_OF_BOUNDS,              ///< Attempted to access location outside of document.
     TRAILING_CONTENT,           ///< Unexpected trailing content in the JSON input
-    NUM_ERROR_CODES
+    NUM_ERROR_CODES,
 };
+
+template <typename T>
+using result = expected<T, inlined_unexpected<error_code, error_code::SUCCESS>>;
+
+namespace parser_detail {
+
+inline result<void> parse_null(const char *first, const char *last) noexcept {
+    if (WJR_LIKELY(last - first == 4 && std::memcmp(first, "null", 4)) == 0) {
+        return {};
+    }
+
+    return unexpected(error_code::N_ATOM_ERROR);
+}
+
+inline result<void> parse_true(const char *first, const char *last) noexcept {
+    if (WJR_LIKELY(last - first == 4 && std::memcmp(first, "true", 4)) == 0) {
+        return {};
+    }
+
+    return unexpected(error_code::T_ATOM_ERROR);
+}
+
+inline result<void> parse_false(const char *first, const char *last) noexcept {
+    if (WJR_LIKELY(last - first == 5 && std::memcmp(first + 1, "alse", 4)) == 0) {
+        return {};
+    }
+
+    return unexpected(error_code::F_ATOM_ERROR);
+}
+
+inline result<void> parse_number(const char *first, const char *last) noexcept {
+    constexpr auto __matches = [](uint8_t ch) { return '0' <= ch && ch <= '9'; };
+
+    WJR_ASSERT_ASSUME_L2(first < last);
+
+    if (*first == '-') {
+        if (++first == last) {
+            goto FAILED;
+        }
+    }
+
+    if (*first++ == '0') {
+        if (first == last) {
+            return {};
+        }
+    } else {
+        if (first == last) {
+            return {};
+        }
+
+        do {
+            if (WJR_UNLIKELY(!__matches(*first))) {
+                goto NEXT0;
+            }
+        } while (++first != last);
+        return {};
+    NEXT0 : {}
+    }
+
+    if (*first == '.') {
+        if (++first == last) {
+            goto FAILED;
+        }
+
+        if (WJR_UNLIKELY(!__matches(*first))) {
+            goto FAILED;
+        }
+
+        while (++first != last) {
+            if (WJR_UNLIKELY(!__matches(*first))) {
+                goto NEXT1;
+            }
+        }
+        return {};
+    NEXT1 : {}
+    }
+
+    switch (*first) {
+    case 'e':
+    case 'E': {
+        break;
+    }
+    default: {
+        goto FAILED;
+    }
+    }
+
+    if (++first == last) {
+        goto FAILED;
+    }
+
+    if (*first == '+' || *first == '-') {
+        if (++first == last) {
+            goto FAILED;
+        }
+    }
+
+    if (WJR_UNLIKELY(!__matches(*first))) {
+        goto FAILED;
+    }
+
+    while (++first != last) {
+        if (WJR_UNLIKELY(!__matches(*first))) {
+            goto FAILED;
+        }
+    }
+
+    return {};
+
+FAILED:
+    return unexpected(error_code::NUMBER_ERROR);
+}
+
+/**
+ * @todo Move to other header.
+ *
+ */
+static constexpr std::array<uint8_t, 256> escape_table = {
+    0, 0, 0,    0, 0,    0, 0,    0, 0, 0,    0, 0, 0,    0, 0,    0, // 0x0.
+    0, 0, 0,    0, 0,    0, 0,    0, 0, 0,    0, 0, 0,    0, 0,    0, 0, 0, 0x22, 0, 0, 0,
+    0, 0, 0,    0, 0,    0, 0,    0, 0, 0x2f, 0, 0, 0,    0, 0,    0, 0, 0, 0,    0, 0, 0,
+    0, 0, 0,    0,
+
+    0, 0, 0,    0, 0,    0, 0,    0, 0, 0,    0, 0, 0,    0, 0,    0, // 0x4.
+    0, 0, 0,    0, 0,    0, 0,    0, 0, 0,    0, 0, 0x5c, 0, 0,    0, // 0x5.
+    0, 0, 0x08, 0, 0,    0, 0x0c, 0, 0, 0,    0, 0, 0,    0, 0x0a, 0, // 0x6.
+    0, 0, 0x0d, 0, 0x09, 0, 0,    0, 0, 0,    0, 0, 0,    0, 0,    0, // 0x7.
+
+    0, 0, 0,    0, 0,    0, 0,    0, 0, 0,    0, 0, 0,    0, 0,    0, 0, 0, 0,    0, 0, 0,
+    0, 0, 0,    0, 0,    0, 0,    0, 0, 0,    0, 0, 0,    0, 0,    0, 0, 0, 0,    0, 0, 0,
+    0, 0, 0,    0, 0,    0, 0,    0, 0, 0,    0, 0, 0,    0, 0,    0, 0, 0, 0,    0,
+
+    0, 0, 0,    0, 0,    0, 0,    0, 0, 0,    0, 0, 0,    0, 0,    0, 0, 0, 0,    0, 0, 0,
+    0, 0, 0,    0, 0,    0, 0,    0, 0, 0,    0, 0, 0,    0, 0,    0, 0, 0, 0,    0, 0, 0,
+    0, 0, 0,    0, 0,    0, 0,    0, 0, 0,    0, 0, 0,    0, 0,    0, 0, 0, 0,    0,
+};
+
+WJR_INTRINSIC_INLINE char *parse_unicode_codepoint(char *dst, const char *ptr) noexcept {
+    return dst;
+}
+
+WJR_INTRINSIC_INLINE result<char *> generic_parse_string(char *dst, const char *first,
+                                                         const char *last) noexcept {
+    while (first != last) {
+        uint8_t ch = *first++;
+
+        if (WJR_LIKELY(ch != '\\')) {
+            *dst++ = ch;
+        } else {
+            WJR_ASSERT(first != last);
+            ch = *first++;
+
+            if (ch == 'u') {
+                if (WJR_UNLIKELY(first + 4 > last)) {
+                    return unexpected(error_code::STRING_ERROR);
+                }
+
+                dst = parse_unicode_codepoint(dst, first);
+                first += 4;
+            } else {
+                const uint8_t code = escape_table[ch];
+
+                if (WJR_UNLIKELY(code == 0)) {
+                    return unexpected(error_code::STRING_ERROR);
+                }
+
+                *dst++ = code;
+            }
+        }
+    }
+
+    return dst;
+}
+
+#if WJR_HAS_BUILTIN(JSON_PARSE_STRING)
+extern result<char *> parse_string(char *dst, const char *first,
+                                   const char *last) noexcept;
+#else
+inline result<char *> parse_string(char *dst, const char *first,
+                                   const char *last) noexcept {
+    return generic_parse_string(dst, first, last);
+}
+#endif
+
+} // namespace parser_detail
 
 class default_parser_base {
 public:
 private:
 };
 
-/**
- * @param parser Return type of
- * success_t/failure_t/left_bracket_t/right_bracket_t/left_brace_t/right_brace_t must be
- * void. Otherwise, return type must be bool.
- *
- */
+/*
 template <typename TokenReader, typename Parser>
 WJR_NOINLINE void reader_parse(TokenReader &reader, Parser &parser) {
     unique_stack_allocator stkal(math_detail::stack_alloc);
@@ -803,6 +990,8 @@ WJR_INTRINSIC_INLINE void parse(span<const char> sp, Parser &parser) {
     token_reader<token_buf_size> reader(sp, token_buf);
     reader_parse(reader, parser);
 }
+
+*/
 
 } // namespace wjr::json
 
