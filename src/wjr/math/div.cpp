@@ -3,9 +3,7 @@
 
 namespace wjr {
 
-namespace {
 inline constexpr size_t dc_div_qr_threshold = WJR_DC_DIV_QR_THRESHOLD;
-}
 
 uint64_t div_qr_1_shift(uint64_t *dst, uint64_t &rem, const uint64_t *src, size_t n,
                         const div2by1_divider<uint64_t> &div) noexcept {
@@ -304,7 +302,7 @@ uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div
 
             if (WJR_UNLIKELY(n1 == d1) && n0 == d0) {
                 q = in_place_max;
-                cy = submul_1(src - m, div - m, m, q);
+                (void)submul_1(src - m, div - m, m, q);
             } else {
                 q = wjr::div3by2_divider<uint64_t>::divide(d0, d1, dinv, src[-2], n0, n1);
 
@@ -413,7 +411,7 @@ void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n
     }
     }
 
-    unsigned int adjust = src[n - 1] >= div[m - 1];
+    const unsigned int adjust = src[n - 1] >= div[m - 1];
     if (n + adjust >= 2 * m) {
         uint64_t *sp;
         uint64_t *dp;
@@ -423,7 +421,8 @@ void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n
         const auto shift = clz(div[m - 1]);
         const size_t alloc = n + 1 + (shift != 0 ? m : 0);
         unique_stack_allocator stkal(math_detail::stack_alloc);
-        auto stk = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * alloc));
+        auto *const stk =
+            static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * alloc));
         sp = stk;
 
         if (shift != 0) {
@@ -470,7 +469,7 @@ void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n
 
     const size_t alloc = 2 * qn + (shift != 0 ? qn : 0);
     unique_stack_allocator stkal(math_detail::stack_alloc);
-    auto stk = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * alloc));
+    auto *const stk = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * alloc));
     sp = stk;
 
     if (shift != 0) {
@@ -516,7 +515,7 @@ void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n
 
     WJR_ASSUME(st >= 1);
 
-    const auto rp = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * m));
+    auto *const rp = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * m));
 
     size_t cf;
 

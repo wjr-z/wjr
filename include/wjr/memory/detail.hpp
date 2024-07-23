@@ -76,6 +76,8 @@ enum class endian {
     native = __is_little_endian_helper::value ? little : big
 };
 
+static_assert(endian::native == endian::little, "Don't support big endian currently.");
+
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T fallback_byteswap(T x) noexcept {
     constexpr auto digits = std::numeric_limits<T>::digits;
@@ -160,6 +162,24 @@ WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x,
     }
 
     std::memcpy(ptr, &x, sizeof(T));
+}
+
+template <typename T, size_t Bytes, size_t Maxn = std::numeric_limits<T>::digits / 8,
+          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&Bytes <= Maxn)>
+WJR_INTRINSIC_INLINE T read_bytes(const void *ptr, endian to = endian::little) noexcept {
+    if constexpr (Bytes == Maxn) {
+        return read_memory<T>(ptr, to);
+    } else {
+        T x = 0;
+        if (to == endian::native) {
+            std::memcpy(&x, ptr, Bytes);
+        } else {
+            std::memcpy(((uint8_t *)&x) + (Maxn - Bytes), ptr, Bytes);
+            x = byteswap(x);
+        }
+
+        return x;
+    }
 }
 
 template <class Pointer, class SizeType = std::size_t>

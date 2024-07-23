@@ -88,13 +88,14 @@ inline constexpr bool __is_valid_converter_v =
     __is_valid_converter<Value, Converter>::value;
 
 WJR_REGISTER_HAS_TYPE(to_chars_fast_fn_fast_conv,
-                      Base::__fast_conv(std::declval<void *>(), std::declval<Args>()...),
-                      Base);
+                      MyBase::__fast_conv(std::declval<void *>(),
+                                          std::declval<Args>()...),
+                      MyBase);
 
 WJR_REGISTER_HAS_TYPE(from_chars_fast_fn_fast_conv,
-                      Base::__fast_conv(std::declval<const void *>(),
-                                        std::declval<Args>()...),
-                      Base);
+                      MyBase::__fast_conv(std::declval<const void *>(),
+                                          std::declval<Args>()...),
+                      MyBase);
 
 template <typename Iter, typename = void>
 struct fast_buffer {
@@ -2464,6 +2465,12 @@ void from_chars_unchecked(Iter first, Iter last, Value &val, IBase base,
                           Converter conv = {}) noexcept {
     from_chars_unchecked_dynamic(first, last, val, static_cast<unsigned int>(base), conv);
 }
+
+template <uint64_t Base>
+struct check_four_digits_fn {};
+
+template <uint64_t Base>
+inline constexpr check_four_digits_fn<Base> check_four_digits{};
 
 template <uint64_t Base>
 struct __unsigned_from_chars_fn {};

@@ -186,13 +186,23 @@ static constexpr std::array<uint8_t, 256> escape_table = {
     0, 0, 0,    0, 0,    0, 0,    0, 0, 0,    0, 0, 0,    0, 0,    0, 0, 0, 0,    0,
 };
 
-WJR_INTRINSIC_INLINE char *parse_unicode_codepoint(char *dst, const char *ptr) noexcept {
+/// @todo complete this function
+WJR_INTRINSIC_INLINE result<char *> parse_unicode_codepoint(char *dst,
+                                                            const char *ptr) noexcept {
     return dst;
+}
+
+WJR_INTRINSIC_INLINE result<void> parse_unicode_codepoint(const char *ptr) noexcept {
+    return {};
 }
 
 WJR_INTRINSIC_INLINE result<char *> generic_parse_string(char *dst, const char *first,
                                                          const char *last) noexcept {
-    while (first != last) {
+    if (WJR_UNLIKELY(first == last)) {
+        return dst;
+    }
+
+    do {
         uint8_t ch = *first++;
 
         if (WJR_LIKELY(ch != '\\')) {
@@ -206,7 +216,7 @@ WJR_INTRINSIC_INLINE result<char *> generic_parse_string(char *dst, const char *
                     return unexpected(error_code::STRING_ERROR);
                 }
 
-                dst = parse_unicode_codepoint(dst, first);
+                WJR_EXPECTED_SET(dst, parse_unicode_codepoint(dst, first));
                 first += 4;
             } else {
                 const uint8_t code = escape_table[ch];
@@ -218,7 +228,7 @@ WJR_INTRINSIC_INLINE result<char *> generic_parse_string(char *dst, const char *
                 *dst++ = code;
             }
         }
-    }
+    } while (first != last);
 
     return dst;
 }
@@ -237,6 +247,7 @@ inline result<char *> parse_string(char *dst, const char *first,
 
 class default_parser_base {
 public:
+protected:
 private:
 };
 

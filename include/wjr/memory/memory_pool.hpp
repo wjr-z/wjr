@@ -136,7 +136,7 @@ public:
     private:
         // Allocates a chunk for nobjs of size "size".  nobjs may be reduced
         // if it is inconvenient to allocate the requested number.
-        WJR_MALLOC char *chunk_alloc(uint8_t idx, int &nobjs) noexcept;
+        WJR_MALLOC char *chunk_alloc(uint8_t idx, unsigned int &nobjs) noexcept;
 
         // Returns an object of size n, and optionally adds to size n free list.
         WJR_MALLOC void *refill(uint8_t idx) noexcept;
