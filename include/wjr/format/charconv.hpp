@@ -5,6 +5,7 @@
 
 #include <wjr/assert.hpp>
 #include <wjr/container/generic/type_traits.hpp>
+#include <wjr/expected.hpp>
 #include <wjr/format/charconv-impl.hpp>
 #include <wjr/math/bit.hpp>
 #include <wjr/math/mul.hpp>
@@ -345,14 +346,22 @@ protected:
     }
 
 public:
-    WJR_PURE WJR_INTRINSIC_INLINE static uint32_t __fast_conv(const void *ptr,
-                                                              char_converter_t) noexcept {
+    WJR_PURE WJR_INTRINSIC_INLINE static uint32_t
+    __fast_conv(const void *ptr, char_converter_t conv) noexcept {
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_4_FAST)
+        return builtin_from_chars_unroll_4_fast<Base>(ptr, conv);
+#else
         return __fast_conv(read_memory<uint32_t>(ptr) - 0x30303030u);
+#endif
     }
 
     WJR_PURE WJR_INTRINSIC_INLINE static uint32_t
-    __fast_conv(const void *ptr, origin_converter_t) noexcept {
+    __fast_conv(const void *ptr, origin_converter_t conv) noexcept {
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_4_FAST) || 1
+        return builtin_from_chars_unroll_4_fast<Base>(ptr, conv);
+#else
         return __fast_conv(read_memory<uint32_t>(ptr));
+#endif
     }
 };
 
@@ -920,6 +929,7 @@ uint8_t *__fast_to_chars_backward_unchecked_impl(uint8_t *ptr, Value val, IBase 
     }
     default: {
         WJR_UNREACHABLE();
+        break;
     }
     }
 
@@ -1058,6 +1068,7 @@ to_chars_result<uint8_t *> __fast_to_chars_impl(uint8_t *first, uint8_t *last, V
     }
     default: {
         WJR_UNREACHABLE();
+        break;
     }
     }
 
@@ -1196,6 +1207,7 @@ to_chars_result<Iter> __fallback_to_chars_impl(Iter first, Iter last, Value val,
     }
     default: {
         WJR_UNREACHABLE();
+        break;
     }
     }
 
@@ -1269,6 +1281,7 @@ uint8_t *__fast_to_chars_unchecked_impl(uint8_t *ptr, Value val, IBase ibase,
     }
     default: {
         WJR_UNREACHABLE();
+        break;
     }
     }
 }
@@ -1360,6 +1373,7 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
     }
     default: {
         WJR_UNREACHABLE();
+        break;
     }
     }
 
@@ -1894,9 +1908,12 @@ void from_chars_unchecked(Iter first, Iter last, Value &val, IBase base,
     from_chars_unchecked_dynamic(first, last, val, static_cast<unsigned int>(base), conv);
 }
 
-template <typename T, T expe>
+template <typename T, uint8_t __mask8>
 class result_type {
 public:
+    constexpr static uint8_t mask8 = __mask8;
+    constexpr static T mask = broadcast<uint8_t, T>(mask8);
+
     result_type() = default;
     result_type(const result_type &) = default;
     result_type(result_type &&) = default;
@@ -1905,8 +1922,13 @@ public:
     ~result_type() = default;
 
     constexpr result_type(T result) noexcept : result(result) {}
-    constexpr operator bool() const noexcept { return result == expe; }
-    constexpr int pos() const noexcept { return ctz(result - expe) / 8; }
+    constexpr operator bool() const noexcept { return result == mask; }
+
+    template <unsigned idx>
+    constexpr bool mismatch() const noexcept {
+        constexpr T __maskx = ((static_cast<T>(1) << ((idx + 1) * 8)) - 1);
+        return (result & __maskx) != (mask & __maskx);
+    }
 
 private:
     T result;
@@ -1920,12 +1942,12 @@ inline constexpr check_four_digits_fn<Base> check_four_digits{};
 
 template <>
 struct check_four_digits_fn<10> {
-    WJR_INTRINSIC_INLINE result_type<uint32_t, 0x33'33'33'33>
+    WJR_INTRINSIC_INLINE result_type<uint32_t, 0x33>
     operator()(const uint8_t *first, char_converter_t) const noexcept {
         return get(first);
     }
 
-    WJR_INTRINSIC_INLINE result_type<uint32_t, 0x00'00'00'00>
+    WJR_INTRINSIC_INLINE result_type<uint32_t, 0x00>
     operator()(const uint8_t *first, origin_converter_t) const noexcept {
         return get(first);
     }
@@ -1946,112 +1968,423 @@ struct __unsigned_from_chars_fn {};
 template <uint64_t Base>
 inline constexpr __unsigned_from_chars_fn<Base> __unsigned_from_chars{};
 
-enum class __unsigned_from_chars_result {
-    INVALID,
-    SUCCESS,
-    OUT_OF_RANGE,
-};
-
 template <>
 struct __unsigned_from_chars_fn<2> {
-    template <typename Value, typename UnsignedValue, typename Converter,
+    template <typename UnsignedValue, typename Converter,
               WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    WJR_INTRINSIC_INLINE static __unsigned_from_chars_result
-    get(const uint8_t *&first, const uint8_t *last, UnsignedValue &value,
-        Converter conv) noexcept {
-
+    WJR_INTRINSIC_INLINE from_chars_result<const uint8_t *>
+    operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &value,
+               Converter conv) const noexcept {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
         constexpr auto zero = conv.template to<2>(0);
         constexpr auto one = conv.template to<2>(1);
 
         if (WJR_UNLIKELY(first == last)) {
-            return __unsigned_from_chars_result::INVALID;
-        }
-
-        uint8_t ch = first[0];
-
-        if (ch == one) {
-        } else if (ch == zero) {
-            do {
-                ++first;
-                if (first == last) {
-                    return __unsigned_from_chars_result::SUCCESS;
-                }
-
-                ch = first[0];
-            } while (ch == zero);
-            if (ch != one) {
-                return __unsigned_from_chars_result::SUCCESS;
-            }
-        } else {
-            return __unsigned_from_chars_result::INVALID;
-        }
-
-        const size_t n = std::distance(first, last);
-        ch = 1;
-        size_t idx = 0;
-
-        do {
-            value = value << 1 | ch;
-            ++idx;
-            if (idx == n) {
-                break;
-            }
-
-            ch = conv.template from<2>(first[idx]);
-        } while (ch < 2);
-
-        first += idx;
-        return idx <= nd ? __unsigned_from_chars_result::SUCCESS
-                         : __unsigned_from_chars_result::OUT_OF_RANGE;
-    }
-};
-
-template <>
-struct __unsigned_from_chars_fn<10> {
-    template <typename Value, typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    WJR_INTRINSIC_INLINE static __unsigned_from_chars_result
-    get(const uint8_t *&first, const uint8_t *last, UnsignedValue &value,
-        Converter conv) noexcept {
-        constexpr auto zero = conv.template to<10>(0);
-        constexpr auto nine = conv.template to<10>(9);
-
-        constexpr auto __try_matches = [](uint8_t &ch) {
-            if constexpr (zero != 0) {
-                return ch <= nine && !sub_overflow(ch, zero, ch);
-            } else {
-                return ch <= nine;
-            }
-        };
-
-        constexpr auto __matches = [](uint8_t ch) {
-            if constexpr (zero != 0) {
-                return zero <= ch && ch <= nine;
-            } else {
-                return ch <= nine;
-            }
-        };
-
-        if (WJR_UNLIKELY(first == last)) {
-            return __unsigned_from_chars_result::INVALID;
+            return {{}, std::errc::invalid_argument};
         }
 
         uint8_t ch = *first;
 
-        if (WJR_UNLIKELY(!__try_matches(ch))) {
-            return __unsigned_from_chars_result::INVALID;
+        if (ch == zero) {
+            do {
+                ++first;
+                if (first == last) {
+                    value = 0;
+                    return {first, std::errc{}};
+                }
+
+                ch = *first;
+            } while (ch == zero);
+
+            if (ch != one) {
+                value = 0;
+                return {first, std::errc{}};
+            }
+        } else if (ch != one) {
+            return {{}, std::errc::invalid_argument};
+        }
+
+        ++first;
+        value = 1;
+
+        if (WJR_UNLIKELY(first == last)) {
+            return {first, std::errc{}};
+        }
+
+        ch = conv.template from<2>(*first);
+
+        if (ch >= 2) {
+            return {first, std::errc{}};
+        }
+
+        const auto __first = first;
+
+        do {
+            ++first;
+            value = value << 1 | ch;
+
+            if (first == last) {
+                break;
+            }
+
+            ch = conv.template from<2>(*first);
+        } while (ch < 2);
+
+        const auto len = first - __first + 1;
+        if (WJR_LIKELY(len <= nd)) {
+            return {first, std::errc{}};
+        }
+
+        return {first, std::errc::result_out_of_range};
+    }
+};
+
+template <typename UnsignedValue, typename Converter>
+from_chars_result<const uint8_t *>
+__unsigned_from_chars_of_10_impl(const uint8_t *first, const uint8_t *last,
+                                 UnsignedValue &value, Converter conv) noexcept {
+    constexpr auto zero = conv.template to<10>(0);
+    constexpr auto nine = conv.template to<10>(9);
+    constexpr auto nd10 = std::numeric_limits<UnsignedValue>::digits10;
+
+    // digits10 of uint8_t/uint16_t/uint32_t/uint64_t
+    static_assert(nd10 >= 2 || nd10 == 4 || nd10 == 9 || nd10 == 19, "");
+
+    constexpr auto __try_match = [](uint8_t &ch) {
+        if constexpr (zero != 0) {
+            return ch <= nine && !sub_overflow(ch, zero, ch);
+        } else {
+            return ch <= nine;
+        }
+    };
+
+    constexpr auto __match = [](uint8_t ch) {
+        if constexpr (zero != 0) {
+            return zero <= ch && ch <= nine;
+        } else {
+            return ch <= nine;
+        }
+    };
+
+    if (WJR_UNLIKELY(first == last)) {
+        return {{}, std::errc::invalid_argument};
+    }
+
+    uint8_t ch = *first;
+
+    // Clear all leading zeros
+    if (ch == zero) {
+        do {
+            if (++first == last) {
+                value = 0;
+                return {first, std::errc{}};
+            }
+
+            ch = *first;
+        } while (ch == zero);
+
+        if (WJR_UNLIKELY(!__match(ch))) {
+            value = 0;
+            return {first, std::errc{}};
+        }
+    } else if (WJR_UNLIKELY(!__match(ch))) {
+        return {{}, std::errc::invalid_argument};
+    }
+
+    if (WJR_LIKELY(first + 4 <= last)) {
+        do {
+            if (const auto result = check_four_digits<10>(first, conv);
+                WJR_LIKELY(!result)) {
+                do {
+                    if (result.template mismatch<0>()) {
+                        value = 0;
+                        return {first, std::errc{}};
+                    }
+
+                    ch = *first - zero;
+                    ++first;
+
+                    value = ch;
+
+                    if (result.template mismatch<1>()) {
+                        return {first, std::errc{}};
+                    }
+
+                    ch = *first - zero;
+                    ++first;
+
+                    value = value * 10 + ch;
+
+                    if (result.template mismatch<2>()) {
+                        return {first, std::errc{}};
+                    }
+
+                    ch = *first - zero;
+                    ++first;
+
+                    if constexpr (nd10 == 2) {
+                        if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
+                                         add_overflow(value, ch, value))) {
+                            goto OVERFLOW_HANDLER;
+                        }
+                    } else {
+                        value = value * 10 + ch;
+                    }
+                } while (0);
+
+                return {first, std::errc{}};
+            }
+
+            if constexpr (nd10 == 2) {
+                goto OVERFLOW_HANDLER;
+            }
+
+            if constexpr (nd10 >= 4) {
+                uint32_t xval = __from_chars_unroll_4<10>(first, conv);
+                first += 4;
+
+                value = xval;
+
+                if (first + 4 > last) {
+                    break;
+                }
+
+                if (const auto result = check_four_digits<10>(first, conv);
+                    WJR_LIKELY(!result)) {
+                    do {
+                        if (result.template mismatch<0>()) {
+                            return {first, std::errc{}};
+                        }
+
+                        ch = *first - zero;
+                        ++first;
+
+                        if constexpr (nd10 == 4) {
+                            if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
+                                             add_overflow(value, ch, value) ||
+                                             !result.template mismatch<1>())) {
+                                goto OVERFLOW_HANDLER;
+                            } else {
+                                break;
+                            }
+                        } else {
+                            value = value * 10 + ch;
+                        }
+
+                        if constexpr (nd10 != 4) {
+                            if (result.template mismatch<1>()) {
+                                return {first, std::errc{}};
+                            }
+
+                            ch = *first - zero;
+                            ++first;
+
+                            value = value * 10 + ch;
+
+                            if (result.template mismatch<2>()) {
+                                return {first, std::errc{}};
+                            }
+
+                            ch = *first - zero;
+                            ++first;
+
+                            value = value * 10 + ch;
+                        }
+                    } while (0);
+
+                    return {first, std::errc{}};
+                }
+
+                if constexpr (nd10 == 4) {
+                    goto OVERFLOW_HANDLER;
+                }
+            }
+
+            if constexpr (nd10 >= 9) {
+                uint32_t xval = __from_chars_unroll_4<10>(first, conv);
+                first += 4;
+
+                value = value * 10000 + xval;
+
+                if (first + 4 > last) {
+                    break;
+                }
+
+                if (const auto result = check_four_digits<10>(first, conv);
+                    WJR_LIKELY(!result)) {
+                    do {
+                        if (result.template mismatch<0>()) {
+                            return {first, std::errc{}};
+                        }
+
+                        ch = *first - zero;
+                        ++first;
+
+                        value = value * 10 + ch;
+
+                        if (result.template mismatch<1>()) {
+                            return {first, std::errc{}};
+                        }
+
+                        ch = *first - zero;
+                        ++first;
+
+                        if constexpr (nd10 == 9) {
+                            if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
+                                             add_overflow(value, ch, value) ||
+                                             !result.template mismatch<2>())) {
+                                goto OVERFLOW_HANDLER;
+                            } else {
+                                break;
+                            }
+                        } else {
+                            value = value * 10 + ch;
+                        }
+
+                        if constexpr (nd10 != 9) {
+                            if (result.template mismatch<2>()) {
+                                return {first, std::errc{}};
+                            }
+
+                            ch = *first - zero;
+                            ++first;
+
+                            value = value * 10 + ch;
+                        }
+                    } while (0);
+
+                    return {first, std::errc{}};
+                }
+
+                if constexpr (nd10 == 9) {
+                    goto OVERFLOW_HANDLER;
+                }
+            }
+
+            if constexpr (nd10 >= 19) {
+                uint32_t xval = __from_chars_unroll_4<10>(first, conv);
+                first += 4;
+
+                value = value * 10000 + xval;
+
+                if (first + 4 > last) {
+                    break;
+                }
+
+                if (const auto result = check_four_digits<10>(first, conv);
+                    WJR_LIKELY(!result)) {
+                    do {
+                        if (result.template mismatch<0>()) {
+                            return {first, std::errc{}};
+                        }
+
+                        ch = *first - zero;
+                        ++first;
+
+                        value = value * 10 + ch;
+
+                        if (result.template mismatch<1>()) {
+                            return {first, std::errc{}};
+                        }
+
+                        ch = *first - zero;
+                        ++first;
+
+                        value = value * 10 + ch;
+
+                        if (result.template mismatch<2>()) {
+                            return {first, std::errc{}};
+                        }
+
+                        ch = *first - zero;
+                        ++first;
+
+                        value = value * 10 + ch;
+                    } while (0);
+
+                    return {first, std::errc{}};
+                }
+
+                xval = __from_chars_unroll_4<10>(first, conv);
+                first += 4;
+
+                value = value * 10000 + xval;
+
+                if (first + 4 > last) {
+                    break;
+                }
+
+                if (const auto result = check_four_digits<10>(first, conv);
+                    WJR_LIKELY(!result)) {
+                    do {
+                        if (result.template mismatch<0>()) {
+                            return {first, std::errc{}};
+                        }
+
+                        ch = *first - zero;
+                        ++first;
+
+                        value = value * 10 + ch;
+
+                        if (result.template mismatch<1>()) {
+                            return {first, std::errc{}};
+                        }
+
+                        ch = *first - zero;
+                        ++first;
+
+                        value = value * 10 + ch;
+
+                        if (result.template mismatch<2>()) {
+                            return {first, std::errc{}};
+                        }
+
+                        ch = *first - zero;
+                        ++first;
+
+                        value = value * 10 + ch;
+                    } while (0);
+
+                    return {first, std::errc{}};
+                }
+
+                xval = __from_chars_unroll_4<10>(first, conv);
+                first += 4;
+
+                if (WJR_UNLIKELY(mul_overflow(value, 10000, value) ||
+                                 add_overflow(value, xval, value))) {
+                    goto OVERFLOW_HANDLER;
+                }
+
+                if (WJR_LIKELY(first == last || !__match(*first))) {
+                    return {first, std::errc{}};
+                }
+
+                goto OVERFLOW_HANDLER;
+            }
+        } while (0);
+
+        if (WJR_UNLIKELY(first == last)) {
+            return {first, std::errc{}};
+        }
+
+        WJR_ASSERT(first + 4 > last);
+
+        ch = *first;
+        if (WJR_UNLIKELY(!__try_match(ch))) {
+            return {first, std::errc{}};
         }
 
         do {
             ++first;
-            if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
-                             add_overflow(value, ch, value))) {
-                while (first != last && __matches(*first)) {
-                    ++first;
-                }
 
-                return __unsigned_from_chars_result::OUT_OF_RANGE;
+            if constexpr (nd10 != 2 && nd10 != 9 && nd10 != 19) {
+                if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
+                                 add_overflow(value, ch, value))) {
+                    goto OVERFLOW_HANDLER;
+                }
+            } else {
+                value = value * 10 + ch;
             }
 
             if (first == last) {
@@ -2059,14 +2392,132 @@ struct __unsigned_from_chars_fn<10> {
             }
 
             ch = *first;
-        } while (__try_matches(ch));
 
-        return __unsigned_from_chars_result::SUCCESS;
+            if (!__try_match(ch)) {
+                break;
+            }
+
+            ++first;
+
+            if constexpr (nd10 != 2 && nd10 != 19) {
+                if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
+                                 add_overflow(value, ch, value))) {
+                    goto OVERFLOW_HANDLER;
+                }
+            } else {
+                value = value * 10 + ch;
+            }
+
+            if (first == last) {
+                break;
+            }
+
+            ch = *first;
+
+            if (!__try_match(ch)) {
+                break;
+            }
+
+            ++first;
+
+            if constexpr (nd10 != 4 && nd10 != 19) {
+                if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
+                                 add_overflow(value, ch, value))) {
+                    goto OVERFLOW_HANDLER;
+                }
+            } else {
+                value = value * 10 + ch;
+            }
+        } while (0);
+
+        return {first, std::errc{}};
+    }
+
+    do {
+        ++first;
+        value = ch - zero;
+
+        if (first == last) {
+            break;
+        }
+
+        ch = *first;
+
+        if (!__try_match(ch)) {
+            break;
+        }
+
+        ++first;
+        value = value * 10 + ch;
+
+        if (first == last) {
+            break;
+        }
+
+        ch = *first;
+
+        if (!__try_match(ch)) {
+            break;
+        }
+
+        ++first;
+        WJR_ASSERT(first == last);
+
+        if constexpr (nd10 >= 4) {
+            value = value * 10 + ch;
+        } else {
+            if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
+                             add_overflow(value, ch, value))) {
+                return {first, std::errc::result_out_of_range};
+            }
+        }
+
+    } while (0);
+
+    return {first, std::errc{}};
+
+OVERFLOW_HANDLER : {
+    while (first != last && __match(*first)) {
+        ++first;
+    }
+
+    return {first, std::errc::result_out_of_range};
+}
+}
+
+extern template from_chars_result<const uint8_t *>
+__unsigned_from_chars_of_10_impl<uint8_t, char_converter_t>(
+    const uint8_t *first, const uint8_t *last, uint8_t &value,
+    char_converter_t conv) noexcept;
+
+extern template from_chars_result<const uint8_t *>
+__unsigned_from_chars_of_10_impl<uint16_t, char_converter_t>(
+    const uint8_t *first, const uint8_t *last, uint16_t &value,
+    char_converter_t conv) noexcept;
+
+extern template from_chars_result<const uint8_t *>
+__unsigned_from_chars_of_10_impl<uint32_t, char_converter_t>(
+    const uint8_t *first, const uint8_t *last, uint32_t &value,
+    char_converter_t conv) noexcept;
+
+extern template from_chars_result<const uint8_t *>
+__unsigned_from_chars_of_10_impl<uint64_t, char_converter_t>(
+    const uint8_t *first, const uint8_t *last, uint64_t &value,
+    char_converter_t conv) noexcept;
+
+template <>
+struct __unsigned_from_chars_fn<10> {
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE from_chars_result<const uint8_t *>
+    operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &value,
+               Converter conv) const noexcept {
+        return __unsigned_from_chars_of_10_impl(first, last, value, conv);
     }
 };
 
 template <typename Value, typename IBase, typename Converter>
-from_chars_result<const uint8_t *>
+WJR_INTRINSIC_INLINE from_chars_result<const uint8_t *>
 __fast_from_chars_impl(const uint8_t *first, const uint8_t *last, Value &val, IBase ibase,
                        Converter conv) noexcept {
     constexpr auto is_signed = std::is_signed_v<Value>;
@@ -2081,72 +2532,71 @@ __fast_from_chars_impl(const uint8_t *first, const uint8_t *last, Value &val, IB
     }
 
     using UnsignedValue = std::make_unsigned_t<Value>;
+    UnsignedValue uVal;
 
-    UnsignedValue uVal = 0;
+    from_chars_result<const uint8_t *> ret;
 
     const unsigned int base = ibase;
-    from_chars_result<const uint8_t *> ret{first, std::errc{}};
-    __unsigned_from_chars_result valid;
-
     switch (base) {
     case 2: {
-        valid = __unsigned_from_chars<2>.template get<Value>(first, last, uVal, conv);
+        ret = __unsigned_from_chars<2>(first, last, uVal, conv);
         break;
     }
     case 10: {
-        valid = __unsigned_from_chars<10>.template get<Value>(first, last, uVal, conv);
+        ret = __unsigned_from_chars<10>(first, last, uVal, conv);
         break;
     }
     default: {
-        return {first, std::errc::invalid_argument};
+        WJR_UNREACHABLE();
+        break;
     }
     }
 
-    if (WJR_UNLIKELY(valid == __unsigned_from_chars_result::INVALID)) {
-        ret.ec = std::errc::invalid_argument;
-    } else {
-        ret.ptr = first;
-        if (valid == __unsigned_from_chars_result::OUT_OF_RANGE) {
-            ret.ec = std::errc::result_out_of_range;
-        } else {
-            if constexpr (is_signed) {
-                if (sign) {
-                    if (uVal >
-                        static_cast<UnsignedValue>(std::numeric_limits<Value>::min())) {
-                        ret.ec = std::errc::result_out_of_range;
-                    } else {
-                        val = -static_cast<Value>(uVal);
-                    }
+    if (WJR_LIKELY(ret)) {
+        if constexpr (is_signed) {
+            if (sign) {
+                if (uVal >
+                    static_cast<UnsignedValue>(std::numeric_limits<Value>::min())) {
+                    ret.ec = std::errc::result_out_of_range;
                 } else {
-                    if (uVal >
-                        static_cast<UnsignedValue>(std::numeric_limits<Value>::max())) {
-                        ret.ec = std::errc::result_out_of_range;
-                    } else {
-                        val = static_cast<Value>(uVal);
-                    }
+                    val = -static_cast<Value>(uVal);
                 }
             } else {
-                val = uVal;
+                if (uVal >
+                    static_cast<UnsignedValue>(std::numeric_limits<Value>::max())) {
+                    ret.ec = std::errc::result_out_of_range;
+                } else {
+                    val = static_cast<Value>(uVal);
+                }
             }
+        } else {
+            val = uVal;
         }
+    } else if (ret.ec == std::errc::invalid_argument) {
+        ret.ptr = first;
     }
 
     return ret;
 }
 
 template <typename Value, typename IBase, typename Converter>
-from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
-                                                  Value &val, IBase ibase,
-                                                  Converter conv) noexcept {
+WJR_INTRINSIC_INLINE from_chars_result<const char *>
+__from_chars_impl(const char *first, const char *last, Value &val, IBase ibase,
+                  Converter conv) noexcept {
+    using type = usint_t<sizeof(Value) * 8, std::is_signed_v<Value>>;
+
     const auto __first = reinterpret_cast<const uint8_t *>(first);
     const auto __last = reinterpret_cast<const uint8_t *>(last);
-    const auto ret = __fast_from_chars_impl(__first, __last, val, ibase, conv);
+
+    const auto ret = __fast_from_chars_impl(__first, __last,
+                                            reinterpret_cast<type &>(val), ibase, conv);
+
     return {reinterpret_cast<const char *>(ret.ptr), ret.ec};
 }
 
 template <typename Value, unsigned int IBase = 10, typename Converter = char_converter_t,
           WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>)>
-from_chars_result<const char *>
+WJR_INTRINSIC_INLINE from_chars_result<const char *>
 from_chars(const char *first, const char *last, Value &val,
            integral_constant<unsigned int, IBase> ic = {}, Converter conv = {}) noexcept {
     return __from_chars_impl(first, last, val, ic, conv);

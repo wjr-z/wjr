@@ -13,6 +13,7 @@ namespace wjr {
 #if WJR_HAS_SIMD(SSE4_1)
 #define WJR_HAS_BUILTIN_TO_CHARS_UNROLL_8_FAST WJR_HAS_DEF
 
+#define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_4_FAST WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_8_FAST WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_16_FAST WJR_HAS_DEF
 #endif
@@ -128,6 +129,32 @@ const static __m128i baseu8 =
 static __m128i ascii = sse::set1_epi8(0x30);
 
 } // namespace from_chars_detail
+
+#endif
+
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_4_FAST)
+
+template <uint64_t Base>
+uint32_t builtin_from_chars_unroll_4_fast(__m128i in) noexcept {
+    const __m128i t1 = _mm_maddubs_epi16(in, from_chars_detail::mulp1x<Base>);
+    const __m128i t2 = _mm_madd_epi16(t1, from_chars_detail::mulp2x<Base>);
+
+    return simd_cast<__m128i_t, uint32_t>(t2);
+}
+
+template <uint64_t Base>
+uint32_t builtin_from_chars_unroll_4_fast(const void *ptr, char_converter_t) noexcept {
+    static_assert(Base <= 10, "");
+    const __m128i in = _mm_sub_epi8(sse::loadu_si32(ptr), from_chars_detail::ascii);
+    return builtin_from_chars_unroll_4_fast<Base>(in);
+}
+
+template <uint64_t Base>
+uint32_t builtin_from_chars_unroll_4_fast(const void *ptr, origin_converter_t) noexcept {
+    static_assert(Base <= 10, "");
+    const __m128i in = sse::loadu_si32(ptr);
+    return builtin_from_chars_unroll_4_fast<Base>(in);
+}
 
 #endif
 

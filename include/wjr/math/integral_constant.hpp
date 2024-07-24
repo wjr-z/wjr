@@ -51,7 +51,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR static uint32_t __fast_conv_4(uint32_t val) no
     constexpr uint32_t mul = 1 + (Base2 << 16);
     val = (val * Base) + (val >> 8);
     val = ((val & mask) * mul) >> 16;
-    return uint32_t(val);
+    return val;
 }
 
 template <uint64_t Base>

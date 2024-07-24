@@ -84,7 +84,7 @@ WJR_INTRINSIC_INLINE result<void> parse_false(const char *first,
 
 WJR_INTRINSIC_INLINE result<void> parse_number(const char *first,
                                                const char *last) noexcept {
-    constexpr auto __matches = [](uint8_t ch) { return '0' <= ch && ch <= '9'; };
+    constexpr auto __match = [](uint8_t ch) { return '0' <= ch && ch <= '9'; };
 
     WJR_ASSERT_ASSUME_L2(first < last);
 
@@ -104,7 +104,7 @@ WJR_INTRINSIC_INLINE result<void> parse_number(const char *first,
         }
 
         do {
-            if (WJR_UNLIKELY(!__matches(*first))) {
+            if (WJR_UNLIKELY(!__match(*first))) {
                 goto NEXT0;
             }
         } while (++first != last);
@@ -117,12 +117,12 @@ WJR_INTRINSIC_INLINE result<void> parse_number(const char *first,
             goto FAILED;
         }
 
-        if (WJR_UNLIKELY(!__matches(*first))) {
+        if (WJR_UNLIKELY(!__match(*first))) {
             goto FAILED;
         }
 
         while (++first != last) {
-            if (WJR_UNLIKELY(!__matches(*first))) {
+            if (WJR_UNLIKELY(!__match(*first))) {
                 goto NEXT1;
             }
         }
@@ -150,12 +150,12 @@ WJR_INTRINSIC_INLINE result<void> parse_number(const char *first,
         }
     }
 
-    if (WJR_UNLIKELY(!__matches(*first))) {
+    if (WJR_UNLIKELY(!__match(*first))) {
         goto FAILED;
     }
 
     while (++first != last) {
-        if (WJR_UNLIKELY(!__matches(*first))) {
+        if (WJR_UNLIKELY(!__match(*first))) {
             goto FAILED;
         }
     }
