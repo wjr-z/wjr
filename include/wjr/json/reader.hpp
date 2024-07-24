@@ -20,12 +20,14 @@ public:
 
     using const_iterator = typename Storage::const_iterator;
 
-    constexpr const_iterator token_begin() const noexcept { return m_tokens.begin(); }
-    constexpr const_iterator token_end() const noexcept { return m_tokens.end(); }
+    WJR_CONSTEXPR20 const_iterator token_begin() const noexcept {
+        return m_tokens.begin();
+    }
+    WJR_CONSTEXPR20 const_iterator token_end() const noexcept { return m_tokens.end(); }
 
-    constexpr const_pointer data() const noexcept { return m_str.data(); }
+    WJR_CONSTEXPR20 const_pointer data() const noexcept { return m_str.data(); }
 
-    constexpr size_type size() const noexcept {
+    WJR_CONSTEXPR20 size_type size() const noexcept {
         return static_cast<size_type>(m_str.size());
     }
 

@@ -3841,24 +3841,6 @@ WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x,
     std::memcpy(ptr, &x, sizeof(T));
 }
 
-template <typename T, size_t Bytes, size_t Maxn = std::numeric_limits<T>::digits / 8,
-          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&Bytes <= Maxn)>
-WJR_INTRINSIC_INLINE T read_bytes(const void *ptr, endian to = endian::little) noexcept {
-    if constexpr (Bytes == Maxn) {
-        return read_memory<T>(ptr, to);
-    } else {
-        T x = 0;
-        if (to == endian::native) {
-            std::memcpy(&x, ptr, Bytes);
-        } else {
-            std::memcpy(((uint8_t *)&x) + (Maxn - Bytes), ptr, Bytes);
-            x = byteswap(x);
-        }
-
-        return x;
-    }
-}
-
 template <class Pointer, class SizeType = std::size_t>
 struct allocation_result {
     Pointer ptr;
@@ -7715,8 +7697,10 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #ifndef WJR_MATH_CONVERT_HPP__
 #define WJR_MATH_CONVERT_HPP__
 
+#ifndef WJR_FORMAT_CHARCONV_HPP__
+#define WJR_FORMAT_CHARCONV_HPP__
+
 #include <array>
-#include <system_error>
 
 #ifndef WJR_ASSERT_HPP__
 #define WJR_ASSERT_HPP__
@@ -14759,6 +14743,92 @@ struct container_traits<basic_vector<Storage>>
 } // namespace wjr
 
 #endif // WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP__
+#ifndef WJR_FORMAT_CHARCONV_IMPL_HPP__
+#define WJR_FORMAT_CHARCONV_IMPL_HPP__
+
+#include <array>
+
+// Already included
+
+namespace wjr {
+
+class char_converter_t {
+    static constexpr std::array<uint8_t, 36> to_table = {
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b',
+        'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+        'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+
+    static constexpr std::array<uint8_t, 256> from_table = {
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 64,  64,  64,  64,  64,  127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        64,  127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        0,   1,   2,   3,   4,   5,   6,   7,   8,   9,   127, 127, 127, 127, 127, 127,
+        127, 10,  11,  12,  13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,
+        25,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  127, 127, 127, 127, 127,
+        127, 10,  11,  12,  13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,
+        25,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127};
+
+public:
+    template <uint64_t Base = 0>
+    WJR_CONST static constexpr uint8_t to(uint8_t x) noexcept {
+        if constexpr (Base == 0) {
+            WJR_ASSERT_L3(x < 36);
+        } else {
+            WJR_ASSERT_L3(x < Base);
+        }
+
+        if constexpr (Base == 0 || Base > 10) {
+
+            if (WJR_BUILTIN_CONSTANT_P_TRUE(x < 10)) {
+                return x + '0';
+            }
+
+            return to_table[x];
+        } else {
+            return x + '0';
+        }
+    }
+
+    template <uint64_t Base = 0>
+    WJR_CONST static constexpr uint8_t from(uint8_t x) noexcept {
+        if constexpr (Base == 0 || Base > 10) {
+            return from_table[x];
+        } else {
+            return x - '0';
+        }
+    }
+
+private:
+};
+
+inline constexpr char_converter_t char_converter;
+
+class origin_converter_t {
+public:
+    template <uint64_t Base = 0>
+    WJR_CONST static constexpr uint64_t to(uint64_t x) noexcept {
+        return x;
+    }
+
+    template <uint64_t Base = 0>
+    WJR_CONST static constexpr uint64_t from(uint64_t x) noexcept {
+        return x;
+    }
+};
+
+inline constexpr origin_converter_t origin_converter;
+
+} // namespace wjr
+
+#endif // WJR_FORMAT_CHARCONV_IMPL_HPP__
 #ifndef WJR_MATH_BIT_HPP__
 #define WJR_MATH_BIT_HPP__
 
@@ -15163,186 +15233,75 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_floor(T x) noexcept {
 } // namespace wjr
 
 #endif // WJR_MATH_BIT_HPP__
-#ifndef WJR_MATH_CONVERT_IMPL_HPP__
-#define WJR_MATH_CONVERT_IMPL_HPP__
+#ifndef WJR_MATH_MUL_HPP__
+#define WJR_MATH_MUL_HPP__
 
-namespace wjr {
+/**
+ * @todo optimize temporary memory usage of mul_s, mul_n, sqr
+ *
+ */
 
-class char_converter_t {
-    static constexpr std::array<uint8_t, 36> to_table = {
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b',
-        'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
-        'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+#ifndef WJR_MATH_ADD_HPP__
+#define WJR_MATH_ADD_HPP__
 
-    static constexpr std::array<uint8_t, 256> from_table = {
-        127, 127, 127, 127, 127, 127, 127, 127, 127, 64,  64,  64,  64,  64,  127, 127,
-        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-        64,  127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-        0,   1,   2,   3,   4,   5,   6,   7,   8,   9,   127, 127, 127, 127, 127, 127,
-        127, 10,  11,  12,  13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,
-        25,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  127, 127, 127, 127, 127,
-        127, 10,  11,  12,  13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,
-        25,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  127, 127, 127, 127, 127,
-        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127};
-
-public:
-    template <uint64_t Base = 0>
-    WJR_CONST static constexpr uint8_t to(uint8_t x) noexcept {
-        if constexpr (Base == 0) {
-            WJR_ASSERT_L3(x < 36);
-        } else {
-            WJR_ASSERT_L3(x < Base);
-        }
-
-        if constexpr (Base == 0 || Base > 10) {
-
-            if (WJR_BUILTIN_CONSTANT_P_TRUE(x < 10)) {
-                return x + '0';
-            }
-
-            return to_table[x];
-        } else {
-            return x + '0';
-        }
-    }
-
-    template <uint64_t Base = 0>
-    WJR_CONST static constexpr uint8_t from(uint8_t x) noexcept {
-        if constexpr (Base == 0 || Base > 10) {
-            return from_table[x];
-        } else {
-            return x - '0';
-        }
-    }
-
-private:
-};
-
-inline constexpr char_converter_t char_converter;
-
-class origin_converter_t {
-public:
-    template <uint64_t Base = 0>
-    WJR_CONST static constexpr uint64_t to(uint64_t x) noexcept {
-        return x;
-    }
-
-    template <uint64_t Base = 0>
-    WJR_CONST static constexpr uint64_t from(uint64_t x) noexcept {
-        return x;
-    }
-};
-
-inline constexpr origin_converter_t origin_converter;
-
-} // namespace wjr
-
-#endif // WJR_MATH_CONVERT_IMPL_HPP__
-#ifndef WJR_MATH_DIV_HPP__
-#define WJR_MATH_DIV_HPP__
-
-#ifndef WJR_MATH_UINT128_T_HPP__
-#define WJR_MATH_UINT128_T_HPP__
-
-#ifndef WJR_MATH_DIV_IMPL_HPP__
-#define WJR_MATH_DIV_IMPL_HPP__
-
-#include <utility>
+// Already included
+#ifndef WJR_MATH_ADD_IMPL_HPP__
+#define WJR_MATH_ADD_IMPL_HPP__
 
 // Already included
 
 namespace wjr {
 
-template <typename T>
-class div2by1_divider;
+template <typename T, typename U,
+          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T addc(T a, T b, type_identity_t<U> c_in,
+                                               U &c_out) noexcept;
 
-template <typename T>
-class div3by2_divider;
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T addc_cc(T a, T b, uint8_t c_in,
+                                                  uint8_t &c_out) noexcept;
 
-template <typename T>
-class divexact1_divider;
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool
+add_overflow(type_identity_t<T> a, type_identity_t<T> b, T &ret) noexcept;
 
-class uint128_t;
+template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U addc_1(uint64_t *dst, const uint64_t *src0,
+                                                 size_t n, uint64_t src1,
+                                                 U c_in = 0) noexcept;
 
-WJR_INLINE_CONSTEXPR20 uint64_t
-div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
-               const div2by1_divider<uint64_t> &divider) noexcept;
+template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U addc_n(uint64_t *dst, const uint64_t *src0,
+                                                 const uint64_t *src1, size_t n,
+                                                 U c_in = 0) noexcept;
 
-WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
-                                               uint64_t div) noexcept;
+template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U addc_s(uint64_t *dst, const uint64_t *src0,
+                                                 size_t n, const uint64_t *src1, size_t m,
+                                                 U c_in = 0) noexcept;
 
-inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
-                                 const div2by1_divider<uint64_t> &divider) noexcept;
+/// @note m can be zero
+template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U addc_sz(uint64_t *dst, const uint64_t *src0,
+                                                  size_t n, const uint64_t *src1,
+                                                  size_t m, U c_in = 0) noexcept;
 
-inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
-                                 uint64_t div) noexcept;
+WJR_INTRINSIC_CONSTEXPR20 void __add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                         uint64_t hi0, uint64_t lo1,
+                                         uint64_t hi1) noexcept;
 
-WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
-                                   size_t n,
-                                   const div2by1_divider<uint64_t> &div) noexcept;
+WJR_INTRINSIC_CONSTEXPR20 uint64_t __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                              uint64_t c_in) noexcept;
 
-WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
-                                   size_t n, uint64_t div) noexcept;
-
-WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                   size_t n,
-                                   const div3by2_divider<uint64_t> &div) noexcept;
-
-WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                   size_t n, const uint64_t *div) noexcept;
-
-WJR_INTRINSIC_INLINE void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                   size_t n, const uint64_t *div, size_t m) noexcept;
-
-WJR_INTRINSIC_CONSTEXPR20 uint64_t divexact_dbm1c(uint64_t *dst, const uint64_t *src,
-                                                  size_t n, uint64_t bd,
-                                                  uint64_t h) noexcept;
-
-WJR_INTRINSIC_CONSTEXPR20 void divexact_dbm1c_shift(uint64_t *dst, const uint64_t *src,
-                                                    size_t n, uint64_t bd, uint64_t cl,
-                                                    uint64_t hicf) noexcept;
-
-template <uint64_t c>
-WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
-                                            integral_constant<uint64_t, c>,
-                                            WJR_MAYBE_UNUSED uint64_t cf) noexcept;
-
-WJR_INTRINSIC_CONSTEXPR20 void
-divexact_1(uint64_t *dst, const uint64_t *src, size_t n,
-           const divexact1_divider<uint64_t> &div) noexcept;
-
-WJR_INTRINSIC_CONSTEXPR20 void divexact_1(uint64_t *dst, const uint64_t *src, size_t n,
-                                          uint64_t div) noexcept;
-
-WJR_PURE WJR_INTRINSIC_CONSTEXPR20 uint64_t
-mod_1(const uint64_t *src, size_t n, const div2by1_divider<uint64_t> &div) noexcept;
-
-WJR_PURE WJR_INTRINSIC_CONSTEXPR20 uint64_t mod_1(const uint64_t *src, size_t n,
-                                                  uint64_t div) noexcept;
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah,
+                                                              uint64_t lo0, uint64_t hi0,
+                                                              uint64_t lo1, uint64_t hi1,
+                                                              uint8_t c_in) noexcept;
 
 } // namespace wjr
 
-#endif // WJR_MATH_DIV_IMPL_HPP__
-#ifndef WJR_MATH_DIVIDER_HPP__
-#define WJR_MATH_DIVIDER_HPP__
-
-#include <array>
-
-#ifndef WJR_MATH_CMP_HPP__
-#define WJR_MATH_CMP_HPP__
-
-#ifndef WJR_MATH_SUB_HPP__
-#define WJR_MATH_SUB_HPP__
-
-// Already included
-// Already included
+#endif // WJR_MATH_ADD_IMPL_HPP__
 #ifndef WJR_MATH_REPLACE_HPP__
 #define WJR_MATH_REPLACE_HPP__
 
@@ -17411,1982 +17370,6 @@ reverse_replace_find_not(T *dst, const T *src, size_t n, type_identity_t<T> from
 } // namespace wjr
 
 #endif // WJR_MATH_REPLACE_HPP__
-#ifndef WJR_MATH_SUB_IMPL_HPP__
-#define WJR_MATH_SUB_IMPL_HPP__
-
-// Already included
-
-namespace wjr {
-
-template <typename T, typename U,
-          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T subc(T a, T b, type_identity_t<U> c_in,
-                                               U &c_out) noexcept;
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T subc_cc(T a, T b, uint8_t c_in,
-                                                  uint8_t &c_out) noexcept;
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool
-sub_overflow(type_identity_t<T> a, type_identity_t<T> b, T &ret) noexcept;
-
-template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U subc_1(uint64_t *dst, const uint64_t *src0,
-                                                 size_t n, uint64_t src1,
-                                                 U c_in = 0) noexcept;
-
-template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U subc_n(uint64_t *dst, const uint64_t *src0,
-                                                 const uint64_t *src1, size_t n,
-                                                 U c_in = 0) noexcept;
-
-template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U subc_s(uint64_t *dst, const uint64_t *src0,
-                                                 size_t n, const uint64_t *src1, size_t m,
-                                                 U c_in = 0) noexcept;
-
-template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U subc_sz(uint64_t *dst, const uint64_t *src0,
-                                                  size_t n, const uint64_t *src1,
-                                                  size_t m, U c_in = 0) noexcept;
-
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n(uint64_t *dst,
-                                                           const uint64_t *src0,
-                                                           const uint64_t *src1,
-                                                           size_t n) noexcept;
-
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n_pos(uint64_t *dst,
-                                                               const uint64_t *src0,
-                                                               const uint64_t *src1,
-                                                               size_t n) noexcept;
-
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s1(uint64_t *dst,
-                                                            const uint64_t *src0,
-                                                            size_t n,
-                                                            const uint64_t *src1,
-                                                            size_t m) noexcept;
-
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s(uint64_t *dst,
-                                                           const uint64_t *src0, size_t n,
-                                                           const uint64_t *src1,
-                                                           size_t m) noexcept;
-
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s_pos(uint64_t *dst,
-                                                               const uint64_t *src0,
-                                                               size_t n,
-                                                               const uint64_t *src1,
-                                                               size_t m) noexcept;
-
-template <typename U, WJR_REQUIRES(is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 ssize_t
-abs_subc_n(uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, U &c_out,
-           type_identity_t<U> cf0, type_identity_t<U> cf1) noexcept;
-
-// preview :
-
-WJR_INTRINSIC_CONSTEXPR20 void __sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                         uint64_t hi0, uint64_t lo1,
-                                         uint64_t hi1) noexcept;
-
-WJR_INTRINSIC_CONSTEXPR20 uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                              uint64_t c_in) noexcept;
-
-WJR_INTRINSIC_CONSTEXPR20 uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                                uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                                uint8_t c_in) noexcept;
-
-} // namespace wjr
-
-#endif // WJR_MATH_SUB_IMPL_HPP__
-
-#if defined(WJR_X86)
-#ifndef WJR_X86_SUB_HPP__
-#define WJR_X86_SUB_HPP__
-
-// Already included
-
-#ifndef WJR_X86
-#error "x86 required"
-#endif
-
-#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
-#define WJR_HAS_BUILTIN_ASM_SUBC WJR_HAS_DEF
-#define WJR_HAS_BUILTIN_ASM_SUBC_N WJR_HAS_DEF
-#define WJR_HAS_BUILTIN___ASM_SUB_128 WJR_HAS_DEF
-#define WJR_HAS_BUILTIN___ASM_SUBC_128 WJR_HAS_DEF
-
-#if WJR_HAS_FEATURE(INLINE_ASM_CCCOND)
-#define WJR_HAS_BUILTIN_ASM_SUBC_CC WJR_HAS_DEF
-#define WJR_HAS_BUILTIN___ASM_SUBC_CC_128 WJR_HAS_DEF
-#endif
-#else
-
-#if defined(WJR_MSVC)
-#define WJR_HAS_BUILTIN_ASM_SUBC WJR_HAS_DEF_VAR(2)
-#endif
-
-#if defined(WJR_ENABLE_ASSEMBLY)
-#define WJR_HAS_BUILTIN_ASM_SUBC_N WJR_HAS_DEF_VAR(3)
-#endif
-
-#endif
-
-#if WJR_HAS_BUILTIN(ASM_SUBC) == 2
-// Already included
-#endif
-
-namespace wjr {
-
-#if WJR_HAS_BUILTIN(ASM_SUBC)
-
-template <typename U>
-WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in,
-                                       U &c_out) noexcept {
-#if WJR_HAS_BUILTIN(ASM_SUBC) == 1
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 1)) {
-        if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
-            asm("stc\n\t"
-                "sbb{q %2, %0| %0, %2}\n\t"
-                "setb %b1"
-                : "=r"(a), "+r"(c_in)
-                : "ri"(b), "0"(a)
-                : "cc");
-        } else {
-            asm("stc\n\t"
-                "sbb{q %2, %0| %0, %2}\n\t"
-                "setb %b1"
-                : "=r"(a), "+r"(c_in)
-                : "r"(b), "0"(a)
-                : "cc");
-        }
-        c_out = c_in;
-        return a;
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
-        asm("add{b $255, %b1| %b1, 255}\n\t"
-            "sbb{q %2, %0| %0, %2}\n\t"
-            "setb %b1"
-            : "=r"(a), "+&r"(c_in)
-            : "ri"(b), "0"(a)
-            : "cc");
-    } else {
-        asm("add{b $255, %b1| %b1, 255}\n\t"
-            "sbb{q %2, %0| %0, %2}\n\t"
-            "setb %b1"
-            : "=r"(a), "+&r"(c_in)
-            : "r"(b), "0"(a)
-            : "cc");
-    }
-    c_out = c_in;
-    return a;
-#else
-    uint64_t ret;
-    c_out = fast_cast<U>(_subborrow_u64(fast_cast<unsigned char>(c_in), a, b, &ret));
-    return ret;
-#endif
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(ASM_SUBC_CC)
-
-WJR_INTRINSIC_INLINE uint64_t asm_subc_cc(uint64_t a, uint64_t b, uint8_t c_in,
-                                          uint8_t &c_out) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 1)) {
-        if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
-            asm("stc\n\t"
-                "sbb{q %2, %0| %0, %2}\n\t" WJR_ASM_CCSET(c)
-                : "=r"(a), WJR_ASM_CCOUT(c)(c_out)
-                : "ri"(b), "0"(a)
-                : "cc");
-        } else {
-            asm("stc\n\t"
-                "sbb{q %2, %0| %0, %2}\n\t" WJR_ASM_CCSET(c)
-                : "=r"(a), WJR_ASM_CCOUT(c)(c_out)
-                : "r"(b), "0"(a)
-                : "cc");
-        }
-        return a;
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
-        asm("add{b $255, %b1| %b1, 255}\n\t"
-            "sbb{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
-            : "=r"(a), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
-            : "ri"(b), "0"(a)
-            : "cc");
-    } else {
-        asm("add{b $255, %b1| %b1, 255}\n\t"
-            "sbb{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
-            : "=r"(a), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
-            : "r"(b), "0"(a)
-            : "cc");
-    }
-    return a;
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(ASM_SUBC_N)
-#define WJR_ADDSUB_I 0
-// WJR_ADDSUB_I :
-// 0 : SUB
-// 1 : ADD
-
-// Already included
-
-#ifndef WJR_ADDSUB_I
-#error "abort"
-#endif
-
-#if WJR_ADDSUB_I == 1
-#define WJR_addcsubc addc
-#define WJR_adcsbb adc
-#define __WJR_TEST_ASSEMBLY ASM_ADDC_N
-#else
-#define WJR_addcsubc subc
-#define WJR_adcsbb sbb
-#define __WJR_TEST_ASSEMBLY ASM_SUBC_N
-#endif
-
-#if WJR_HAS_BUILTIN(__WJR_TEST_ASSEMBLY) == 1
-
-inline uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
-    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
-    uint64_t c_in) noexcept {
-    size_t rcx = n / 8;
-    uint64_t r8 = c_in, r9, r10 = n & 7, r11;
-
-    asm volatile(
-        "add{b $255, %b[r8]| %b[r8], 255}\n\t"
-        "lea{q| %[r9], [rip +} .Llookup%={(%%rip), %[r9]|]}\n\t"
-        "movs{lq (%[r9], %[r10], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + %[r10] * 4]}\n\t"
-        "lea{q (%[r9], %[r10], 1), %[r10]| %[r10], [%[r9] + %[r10]]}\n\t"
-        "jmp{q *%[r10]| %[r10]}\n\t"
-        
-        ".align 8\n\t"
-        ".Llookup%=:\n\t"
-        ".long .Ll0%=-.Llookup%=\n\t"
-        ".long .Ll1%=-.Llookup%=\n\t"
-        ".long .Ll2%=-.Llookup%=\n\t"
-        ".long .Ll3%=-.Llookup%=\n\t"
-        ".long .Ll4%=-.Llookup%=\n\t"
-        ".long .Ll5%=-.Llookup%=\n\t"
-        ".long .Ll6%=-.Llookup%=\n\t"
-        ".long .Ll7%=-.Llookup%=\n\t"
-        ".align 16\n\t"
-        
-        ".Ll0%=:\n\t"
-        "mov{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
-        "mov{q 8(%[src0]), %[r11]| %[r11], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
-        "jmp .Lb0%=\n\t"
-
-        ".Ld1%=:\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
-        "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
-        "jmp .Ldone%=\n\t"
-
-        ".Ll1%=:\n\t"
-        "mov{q (%[src0]), %[r10]| %[r10], [%[src0]]}\n\t"
-        "jrcxz .Ld1%=\n\t"
-        "mov{q 8(%[src0]), %[r9]| %[r9], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
-        "lea{q 8(%[src0]), %[src0]| %[src0], [%[src0] + 8]}\n\t"
-        "lea{q 8(%[src1]), %[src1]| %[src1], [%[src1] + 8]}\n\t"
-        "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
-        "jmp .Lb1%=\n\t"
-
-        ".Ll3%=:\n\t"
-        "mov{q (%[src0]), %[r11]| %[r11], [%[src0]]}\n\t"
-        "mov{q 8(%[src0]), %[r8]| %[r8], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r11]| %[r11], [%[src1]]}\n\t"
-        "lea{q -40(%[src0]), %[src0]| %[src0], [%[src0] - 40]}\n\t"
-        "lea{q -40(%[src1]), %[src1]| %[src1], [%[src1] - 40]}\n\t"
-        "lea{q -40(%[dst]), %[dst]| %[dst], [%[dst] - 40]}\n\t"
-        "inc %[rcx]\n\t"
-        "jmp .Lb3%=\n\t"
-
-        ".Ll4%=:\n\t"
-        "mov{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
-        "mov{q 8(%[src0]), %[r11]| %[r11], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
-        "lea{q -32(%[src0]), %[src0]| %[src0], [%[src0] - 32]}\n\t"
-        "lea{q -32(%[src1]), %[src1]| %[src1], [%[src1] - 32]}\n\t"
-        "lea{q -32(%[dst]), %[dst]| %[dst], [%[dst] - 32]}\n\t"
-        "inc %[rcx]\n\t"
-        "jmp .Lb4%=\n\t"
-
-        ".Ll5%=:\n\t"
-        "mov{q (%[src0]), %[r10]| %[r10], [%[src0]]}\n\t"
-        "mov{q 8(%[src0]), %[r9]| %[r9], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
-        "lea{q -24(%[src0]), %[src0]| %[src0], [%[src0] - 24]}\n\t"
-        "lea{q -24(%[src1]), %[src1]| %[src1], [%[src1] - 24]}\n\t"
-        "lea{q -24(%[dst]), %[dst]| %[dst], [%[dst] - 24]}\n\t"
-        "inc %[rcx]\n\t"
-        "jmp .Lb5%=\n\t"
-
-        ".Ll6%=:\n\t"
-        "mov{q (%[src0]), %[r8]| %[r8], [%[src0]]}\n\t"
-        "mov{q 8(%[src0]), %[r10]| %[r10], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
-        "lea{q -16(%[src0]), %[src0]| %[src0], [%[src0] - 16]}\n\t"
-        "lea{q -16(%[src1]), %[src1]| %[src1], [%[src1] - 16]}\n\t"
-        "lea{q -16(%[dst]), %[dst]| %[dst], [%[dst] - 16]}\n\t"
-        "inc %[rcx]\n\t"
-        "jmp .Lb6%=\n\t"
-
-        ".Ll7%=:\n\t"
-        "mov{q (%[src0]), %[r11]| %[r11], [%[src0]]}\n\t"
-        "mov{q 8(%[src0]), %[r8]| %[r8], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r11]| %[r11], [%[src1]]}\n\t"
-        "lea{q -8(%[src0]), %[src0]| %[src0], [%[src0] - 8]}\n\t"
-        "lea{q -8(%[src1]), %[src1]| %[src1], [%[src1] - 8]}\n\t"
-        "lea{q -8(%[dst]), %[dst]| %[dst], [%[dst] - 8]}\n\t"
-        "inc %[rcx]\n\t"
-        "jmp .Lb7%=\n\t"
-
-        ".Ld2%=:\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 8(%[src1]), %[r10]| %[r10], [%[src1] + 8]}\n\t"
-        "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
-        "mov{q %[r10], 8(%[dst])| [%[dst] + 8], %[r10]}\n\t"
-        "jmp .Ldone%=\n\t"
-
-        ".Ll2%=:\n\t"
-        "mov{q (%[src0]), %[r8]| %[r8], [%[src0]]}\n\t"
-        "mov{q 8(%[src0]), %[r10]| %[r10], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
-        "jrcxz .Ld2%=\n\t"
-        "lea{q 16(%[src0]), %[src0]| %[src0], [%[src0] + 16]}\n\t"
-        "lea{q 16(%[src1]), %[src1]| %[src1], [%[src1] + 16]}\n\t"
-        "lea{q 16(%[dst]), %[dst]| %[dst], [%[dst] + 16]}\n\t"
-
-        ".align 32\n\t"
-        ".Lloop%=:\n\t"
-
-        ".Lb2%=:\n\t"
-        "mov{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q -8(%[src1]), %[r10]| %[r10], [%[src1] - 8]}\n\t"
-        "mov{q %[r8], -16(%[dst])| [%[dst] - 16], %[r8]}\n\t"
-
-        ".Lb1%=:\n\t"
-        "mov{q 8(%[src0]), %[r11]| %[r11], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
-        "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
-
-        ".Lb0%=:\n\t"
-        "mov{q 16(%[src0]), %[r8]| %[r8], [%[src0] + 16]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 8(%[src1]), %[r11]| %[r11], [%[src1] + 8]}\n\t"
-        "mov{q %[r9], (%[dst])| [%[dst]], %[r9]}\n\t"
-
-        ".Lb7%=:\n\t"
-        "mov{q 24(%[src0]), %[r10]| %[r10], [%[src0] + 24]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 16(%[src1]), %[r8]| %[r8], [%[src1] + 16]}\n\t"
-        "mov{q %[r11], 8(%[dst])| [%[dst] + 8], %[r11]}\n\t"
-
-        ".Lb6%=:\n\t"
-        "mov{q 32(%[src0]), %[r9]| %[r9], [%[src0] + 32]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 24(%[src1]), %[r10]| %[r10], [%[src1] + 24]}\n\t"
-        "mov{q %[r8], 16(%[dst])| [%[dst] + 16], %[r8]}\n\t"
-
-        ".Lb5%=:\n\t"
-        "mov{q 40(%[src0]), %[r11]| %[r11], [%[src0] + 40]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 32(%[src1]), %[r9]| %[r9], [%[src1] + 32]}\n\t"
-        "mov{q %[r10], 24(%[dst])| [%[dst] + 24], %[r10]}\n\t"
-
-        ".Lb4%=:\n\t"
-        "mov{q 48(%[src0]), %[r8]| %[r8], [%[src0] + 48]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 40(%[src1]), %[r11]| %[r11], [%[src1] + 40]}\n\t"
-        "mov{q %[r9], 32(%[dst])| [%[dst] + 32], %[r9]}\n\t"
-
-        ".Lb3%=:\n\t"
-        "mov{q 56(%[src0]), %[r10]| %[r10], [%[src0] + 56]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 48(%[src1]), %[r8]| %[r8], [%[src1] + 48]}\n\t"
-        "mov{q %[r11], 40(%[dst])| [%[dst] + 40], %[r11]}\n\t"
-
-        // TODO : optimize pipeline
-        "lea{q 64(%[src0]), %[src0]| %[src0], [%[src0] + 64]}\n\t"
-        "lea{q 64(%[src1]), %[src1]| %[src1], [%[src1] + 64]}\n\t"
-        "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
-        "dec %[rcx]\n\t"
-        
-        "jne .Lloop%=\n\t"
-
-        WJR_PP_STR(WJR_adcsbb) "{q -8(%[src1]), %[r10]| %[r10], [%[src1] - 8]}\n\t"
-        "mov{q %[r8], -16(%[dst])| [%[dst] - 16], %[r8]}\n\t"
-        "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
-
-        ".Ldone%=:\n\t"
-        "mov{l %k[rcx], %k[r9]| %k[r9], %k[rcx]}\n\t"
-        "adc{l %k[rcx], %k[r9]| %k[r9], %k[rcx]}"
-
-        : [dst] "+r"(dst), [src0] "+r"(src0), [src1] "+r"(src1), [rcx] "+c"(rcx), 
-          [r8] "+r"(r8), [r9] "=&r"(r9), [r10] "+r"(r10), [r11] "=&r"(r11)
-        :
-        : "cc", "memory");
-
-    WJR_ASSERT_ASSUME(rcx == 0);
-    WJR_ASSERT_ASSUME(r9 <= 1);
-
-    return r9;
-}
-
-#else
-extern "C" WJR_MS_ABI uint64_t WJR_PP_CONCAT(
-    __wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(uint64_t *dst, const uint64_t *src0,
-                                                      const uint64_t *src1, size_t n,
-                                                      uint64_t c_in) noexcept;
-#endif
-
-WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(
-    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
-    uint64_t c_in) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(n)) {
-        if (n == 1) {
-            dst[0] = WJR_PP_CONCAT(asm_, WJR_addcsubc)(src0[0], src1[0], c_in, c_in);
-            return c_in;
-        }
-    }
-
-    return WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(dst, src0,
-                                                                           src1, n, c_in);
-}
-
-#undef __WJR_TEST_ASSEMBLY
-#undef WJR_adcsbb
-#undef WJR_addcsubc
-
-#undef WJR_ADDSUB_I
-#endif
-
-#if WJR_HAS_BUILTIN(__ASM_SUB_128)
-
-WJR_INTRINSIC_INLINE void __asm_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                        uint64_t hi0, uint64_t lo1,
-                                        uint64_t hi1) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
-        asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}"
-            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
-            : [lo1] "r"(lo1), [hi1] "i"(hi1)
-            : "cc");
-        al = lo0;
-        ah = hi0;
-        return;
-    }
-    asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}"
-        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
-        : [lo1] "r"(lo1), [hi1] "r"(hi1)
-        : "cc");
-    al = lo0;
-    ah = hi0;
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(__ASM_SUBC_128) || WJR_HAS_BUILTIN(__ASM_SUBC_CC_128)
-
-WJR_INTRINSIC_INLINE uint8_t __asm_subc_cc_zero_128(uint64_t &al, uint64_t &ah,
-                                                    uint64_t lo0, uint64_t hi0,
-                                                    uint64_t lo1, uint64_t hi1) noexcept {
-    uint8_t c_out;
-    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
-        asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
-            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), WJR_ASM_CCOUT(c)(c_out)
-            : [lo1] "r"(lo1), [hi1] "i"(hi1)
-            : "cc");
-        al = lo0;
-        ah = hi0;
-        return c_out;
-    }
-
-    asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
-        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), WJR_ASM_CCOUT(c)(c_out)
-        : [lo1] "r"(lo1), [hi1] "r"(hi1)
-        : "cc");
-    al = lo0;
-    ah = hi0;
-    return c_out;
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(__ASM_SUBC_128)
-
-WJR_INTRINSIC_INLINE uint64_t __asm_subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                             uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                             uint64_t c_in) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 0)) {
-        return __asm_subc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
-        asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
-            "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
-            "setb %b[c_in]"
-            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in)
-            : [lo1] "r"(lo1), [hi1] "i"(hi1)
-            : "cc");
-        al = lo0;
-        ah = hi0;
-        return c_in;
-    }
-
-    asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
-        "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
-        "setb %b[c_in]"
-        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in)
-        : [lo1] "r"(lo1), [hi1] "r"(hi1)
-        : "cc");
-    al = lo0;
-    ah = hi0;
-    return c_in;
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(__ASM_SUBC_CC_128)
-
-WJR_INTRINSIC_INLINE uint8_t __asm_subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                               uint8_t c_in) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 0)) {
-        return __asm_subc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
-    }
-
-    uint8_t c_out;
-    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
-        asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
-            "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
-            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in),
-              WJR_ASM_CCOUT(c)(c_out)
-            : [lo1] "r"(lo1), [hi1] "i"(hi1)
-            : "cc");
-        al = lo0;
-        ah = hi0;
-        return c_out;
-    }
-
-    asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
-        "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
-        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
-        : [lo1] "r"(lo1), [hi1] "r"(hi1)
-        : "cc");
-    al = lo0;
-    ah = hi0;
-    return c_out;
-}
-
-#endif
-
-} // namespace wjr
-
-#endif // WJR_X86_SUB_HPP__
-#endif
-
-namespace wjr {
-
-template <typename T, typename U>
-WJR_INTRINSIC_CONSTEXPR T fallback_subc(T a, T b, U c_in, U &c_out) noexcept {
-    T ret = a - b;
-    U c = ret > a;
-    a = ret;
-    ret -= c_in;
-    c |= ret > a;
-    c_out = c;
-    return ret;
-}
-
-#if WJR_HAS_BUILTIN(__builtin_subc)
-#define WJR_HAS_BUILTIN_SUBC WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(SUBC)
-
-template <typename T, typename U>
-WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-#define WJR_REGISTER_BUILTIN_SUBC(suffix, type)                                          \
-    if constexpr (nd <= std::numeric_limits<type>::digits) {                             \
-        type __c_out;                                                                    \
-        T ret = __builtin_subc##suffix(a, b, static_cast<type>(c_in), &__c_out);         \
-        c_out = static_cast<U>(__c_out);                                                 \
-        return ret;                                                                      \
-    } else
-
-    WJR_REGISTER_BUILTIN_SUBC(b, unsigned char)
-    WJR_REGISTER_BUILTIN_SUBC(s, unsigned short)
-    WJR_REGISTER_BUILTIN_SUBC(, unsigned int)
-    WJR_REGISTER_BUILTIN_SUBC(l, unsigned long)
-    WJR_REGISTER_BUILTIN_SUBC(ll, unsigned long long) {
-        static_assert(nd <= 64, "not supported yet");
-    }
-
-#undef WJR_REGISTER_BUILTIN_SUBC
-}
-
-#endif // WJR_HAS_BUILTIN(SUBC)
-
-template <typename T, typename U,
-          WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR20 T subc(T a, T b, type_identity_t<U> c_in, U &c_out) noexcept {
-    WJR_ASSERT_ASSUME_L2(c_in <= 1);
-
-#if !WJR_HAS_BUILTIN(SUBC) && !WJR_HAS_BUILTIN(ASM_SUBC)
-    return fallback_subc(a, b, c_in, c_out);
-#else
-    constexpr auto is_constant_or_zero = [](auto x) -> int {
-        return WJR_BUILTIN_CONSTANT_P(x == 0) && x == 0 ? 2
-               : WJR_BUILTIN_CONSTANT_P(x)              ? 1
-                                                        : 0;
-    };
-
-    // The compiler should be able to optimize the judgment condition of if when enabling
-    // optimization. If it doesn't work, then there should be a issue
-    if (is_constant_evaluated() ||
-        // constant value is zero or constant value number greater or equal than 2
-        (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >=
-         2)) {
-        return fallback_subc(a, b, c_in, c_out);
-    }
-
-    if constexpr (sizeof(T) == 8) {
-        return WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(ASM_SUBC), asm_subc,
-                                 WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(SUBC), builtin_subc,
-                                                fallback_subc))(a, b, c_in, c_out);
-    } else {
-        return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(SUBC), builtin_subc,
-                              fallback_subc)(a, b, c_in, c_out);
-    }
-#endif
-}
-
-/*
- Used for subc and then jump according to cc flag. Therefore, the types of c_in and
- c_out are limited to uint8_t, while the default c_in and c_out types of normal subc are
- the same as T, so that the high register is not cleared. Currently, GCC/Clang @=cccond
- cannot know that the high register is not cleared, so the performance is worse than the
- normal version when cc flag is not needed immediately.
-*/
-template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_CONSTEXPR20 T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noexcept {
-    WJR_ASSERT_ASSUME_L2(c_in <= 1);
-
-#if WJR_HAS_BUILTIN(ASM_SUBC_CC)
-    constexpr auto is_constant_or_zero = [](auto x) -> int {
-        return WJR_BUILTIN_CONSTANT_P(x == 0) && x == 0 ? 2
-               : WJR_BUILTIN_CONSTANT_P(x)              ? 1
-                                                        : 0;
-    };
-
-    // The compiler should be able to optimize the judgment condition of if when enabling
-    // optimization. If it doesn't work, then there should be a issue
-    if (is_constant_evaluated() ||
-        // constant value is zero or constant value number greater or equal than 2
-        (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >=
-         2)) {
-        return fallback_subc(a, b, c_in, c_out);
-    }
-
-    if constexpr (sizeof(T) == 8) {
-        return asm_subc_cc(a, b, c_in, c_out);
-    } else {
-        return subc(a, b, c_in, c_out);
-    }
-#else
-    return subc(a, b, c_in, c_out);
-#endif
-}
-
-#if WJR_HAS_BUILTIN(__builtin_sub_overflow)
-#define WJR_HAS_BUILTIN_SUB_OVERFLOW WJR_HAS_DEF
-#endif
-
-template <typename T>
-WJR_INTRINSIC_CONSTEXPR20 bool fallback_sub_overflow(T a, T b, T &ret) noexcept {
-    ret = a - b;
-    return ret > a;
-}
-
-template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_CONSTEXPR20 bool sub_overflow(type_identity_t<T> a, type_identity_t<T> b,
-                                            T &ret) noexcept {
-#if WJR_HAS_BUILTIN(SUB_OVERFLOW)
-    if (is_constant_evaluated() ||
-        (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
-        return fallback_sub_overflow(a, b, ret);
-    }
-
-    return __builtin_sub_overflow(a, b, &ret);
-#else
-    return fallback_sub_overflow(a, b, ret);
-#endif
-}
-
-template <typename U>
-WJR_INTRINSIC_CONSTEXPR20 U __subc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
-                                          uint64_t src1, U c_in) noexcept {
-    uint8_t overflow = 0;
-    dst[0] = subc_cc(src0[0], src1, c_in, overflow);
-
-    if (overflow) {
-        size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, 0, in_place_max);
-
-        if (WJR_UNLIKELY(idx == n)) {
-            return static_cast<U>(1);
-        }
-
-        dst[idx] = src0[idx] - 1;
-
-        dst += idx;
-        src0 += idx;
-        n -= idx;
-    }
-
-    if (src0 != dst) {
-        std::copy(src0 + 1, src0 + n, dst + 1);
-    }
-
-    return static_cast<U>(0);
-}
-
-/*
-require :
-1. n >= 1
-2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-*/
-template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR20 U subc_1(uint64_t *dst, const uint64_t *src0, size_t n,
-                                   uint64_t src1, U c_in) noexcept {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
-
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == 1)) {
-        uint8_t overflow = 0;
-        dst[0] = subc_cc(src0[0], src1, c_in, overflow);
-        return static_cast<U>(overflow);
-    }
-
-    return __subc_1_impl(dst, src0, n, src1, c_in);
-}
-
-template <typename U>
-WJR_INTRINSIC_CONSTEXPR U fallback_subc_n(uint64_t *dst, const uint64_t *src0,
-                                          const uint64_t *src1, size_t n,
-                                          U c_in) noexcept {
-    size_t m = n / 4;
-
-    for (size_t i = 0; i < m; ++i) {
-        dst[0] = subc(src0[0], src1[0], c_in, c_in);
-        dst[1] = subc(src0[1], src1[1], c_in, c_in);
-        dst[2] = subc(src0[2], src1[2], c_in, c_in);
-        dst[3] = subc(src0[3], src1[3], c_in, c_in);
-
-        dst += 4;
-        src0 += 4;
-        src1 += 4;
-    }
-
-    n &= 3;
-    if (WJR_UNLIKELY(n == 0)) {
-        return c_in;
-    }
-
-    dst += n;
-    src0 += n;
-    src1 += n;
-
-    switch (n) {
-    case 3: {
-        dst[-3] = subc(src0[-3], src1[-3], c_in, c_in);
-        WJR_FALLTHROUGH;
-    }
-    case 2: {
-        dst[-2] = subc(src0[-2], src1[-2], c_in, c_in);
-        WJR_FALLTHROUGH;
-    }
-    case 1: {
-        dst[-1] = subc(src0[-1], src1[-1], c_in, c_in);
-        WJR_FALLTHROUGH;
-    }
-    default: {
-        break;
-    }
-    }
-
-    return c_in;
-}
-
-/*
-require :
-1. n >= 1
-2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-3. WJR_IS_SAME_OR_INCR_P(dst, n, src1, n)
-*/
-template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR20 U subc_n(uint64_t *dst, const uint64_t *src0,
-                                   const uint64_t *src1, size_t n, U c_in) noexcept {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
-    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
-
-#if WJR_HAS_BUILTIN(ASM_SUBC_N)
-    if (is_constant_evaluated()) {
-        return fallback_subc_n(dst, src0, src1, n, c_in);
-    }
-
-    return asm_subc_n(dst, src0, src1, n, c_in);
-#else
-    return fallback_subc_n(dst, src0, src1, n, c_in);
-#endif
-}
-
-/*
-require :
-1. m >= 1
-2. n >= m
-3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
-*/
-template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR20 U subc_s(uint64_t *dst, const uint64_t *src0, size_t n,
-                                   const uint64_t *src1, size_t m, U c_in) noexcept {
-    WJR_ASSERT_ASSUME(m >= 1);
-    WJR_ASSERT_ASSUME(n >= m);
-
-    c_in = subc_n(dst, src0, src1, m, c_in);
-
-    if (n != m) {
-        c_in = subc_1(dst + m, src0 + m, n - m, 0, c_in);
-    }
-
-    return c_in;
-}
-
-/*
-require :
-1. n >= 0
-2. n >= m
-3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
-*/
-template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR20 U subc_sz(uint64_t *dst, const uint64_t *src0, size_t n,
-                                    const uint64_t *src1, size_t m, U c_in) noexcept {
-    WJR_ASSERT_ASSUME(n >= m);
-
-    if (WJR_LIKELY(m != 0)) {
-        c_in = subc_n(dst, src0, src1, m, c_in);
-    }
-
-    if (n != m) {
-        c_in = subc_1(dst + m, src0 + m, n - m, 0, c_in);
-    }
-
-    return c_in;
-}
-
-WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0,
-                                             const uint64_t *src1, size_t n) noexcept {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
-    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
-
-    size_t idx = reverse_find_not_n(src0, src1, n);
-
-    if (WJR_UNLIKELY(idx != n)) {
-        set_n(dst + idx, 0, n - idx);
-
-        if (WJR_UNLIKELY(idx == 0)) {
-            return 0;
-        }
-    }
-
-    WJR_ASSUME(idx >= 1);
-
-    uint64_t hi = 0;
-    WJR_ASSUME(src0[idx - 1] != src1[idx - 1]);
-    const bool overflow = sub_overflow(src0[idx - 1], src1[idx - 1], hi);
-
-    if (overflow) {
-        std::swap(src0, src1);
-        hi = -hi;
-    }
-
-    do {
-        if (WJR_UNLIKELY(idx == 1)) {
-            dst[0] = hi;
-            break;
-        }
-
-        hi -= subc_n(dst, src0, src1, idx - 1);
-        dst[idx - 1] = hi;
-    } while (0);
-
-    return overflow ? -1 : 1;
-}
-
-WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n_pos(uint64_t *dst, const uint64_t *src0,
-                                                 const uint64_t *src1,
-                                                 size_t n) noexcept {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
-    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
-
-    size_t idx = reverse_find_not_n(src0, src1, n);
-
-    if (WJR_UNLIKELY(idx != n)) {
-        set_n(dst + idx, 0, n - idx);
-
-        if (WJR_UNLIKELY(idx == 0)) {
-            return 0;
-        }
-    }
-
-    WJR_ASSUME(idx >= 1);
-
-    uint64_t hi = 0;
-    WJR_ASSUME(src0[idx - 1] != src1[idx - 1]);
-    const bool overflow = sub_overflow(src0[idx - 1], src1[idx - 1], hi);
-
-    if (overflow) {
-        std::swap(src0, src1);
-        hi = -hi;
-    }
-
-    ssize_t ret = __fasts_from_unsigned(idx);
-    WJR_ASSUME(ret >= 1);
-
-    do {
-        if (WJR_UNLIKELY(idx == 1)) {
-            dst[0] = hi;
-            break;
-        }
-
-        WJR_ASSUME(ret >= 2);
-
-        hi -= subc_n(dst, src0, src1, idx - 1);
-
-        if (WJR_LIKELY(hi != 0)) {
-            dst[idx - 1] = hi;
-        } else {
-            --ret;
-        }
-    } while (0);
-
-    WJR_ASSUME(ret > 0);
-    return overflow ? -ret : ret;
-}
-
-WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s1(uint64_t *dst, const uint64_t *src0,
-                                              size_t n, const uint64_t *src1,
-                                              size_t m) noexcept {
-    WJR_ASSERT_ASSUME(m >= 1);
-    WJR_ASSERT_ASSUME(n >= m);
-
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == m)) {
-        return abs_subc_n(dst, src0, src1, m);
-    }
-
-    WJR_ASSERT(n - m <= 1);
-
-    do {
-        if (n == m) {
-            break;
-        }
-
-        if (WJR_UNLIKELY(src0[m] == 0)) {
-            dst[m] = 0;
-            break;
-        }
-
-        uint64_t hi = src0[m];
-        hi -= subc_n(dst, src0, src1, m);
-        dst[m] = hi;
-        return 1;
-    } while (0);
-
-    return abs_subc_n(dst, src0, src1, m);
-}
-
-WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s(uint64_t *dst, const uint64_t *src0,
-                                             size_t n, const uint64_t *src1,
-                                             size_t m) noexcept {
-    WJR_ASSERT_ASSUME(m >= 1);
-    WJR_ASSERT_ASSUME(n >= m);
-
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == m)) {
-        return abs_subc_n(dst, src0, src1, m);
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n - m <= 1)) {
-        return abs_subc_s1(dst, src0, n, src1, m);
-    }
-
-    size_t idx = reverse_replace_find_not(dst + m, src0 + m, n - m, 0, 0);
-
-    if (WJR_UNLIKELY(idx == 0)) {
-        return abs_subc_n(dst, src0, src1, m);
-    }
-
-    (void)subc_s(dst, src0, m + idx, src1, m);
-    return 1;
-}
-
-WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s_pos(uint64_t *dst, const uint64_t *src0,
-                                                 size_t n, const uint64_t *src1,
-                                                 size_t m) noexcept {
-    WJR_ASSERT_ASSUME(m >= 1);
-    WJR_ASSERT_ASSUME(n >= m);
-
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == m)) {
-        return abs_subc_n_pos(dst, src0, src1, m);
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n - m <= 1)) {
-        do {
-            if (n == m) {
-                break;
-            }
-
-            if (WJR_UNLIKELY(src0[m] == 0)) {
-                dst[m] = 0;
-                break;
-            }
-
-            uint64_t hi = src0[m];
-            hi -= subc_n(dst, src0, src1, m);
-            ssize_t ret = __fasts_from_unsigned(m + 1);
-
-            if (WJR_LIKELY(hi != 0)) {
-                dst[m] = hi;
-            } else {
-                --ret;
-            }
-
-            WJR_ASSUME(ret > 0);
-            return ret;
-        } while (0);
-
-        return abs_subc_n_pos(dst, src0, src1, m);
-    }
-
-    size_t idx = reverse_replace_find_not(dst + m, src0 + m, n - m, 0, 0);
-
-    if (WJR_UNLIKELY(idx == 0)) {
-        return abs_subc_n_pos(dst, src0, src1, m);
-    }
-
-    (void)subc_s(dst, src0, m + idx, src1, m);
-    uint64_t ret = __fasts_from_unsigned(m + idx);
-    WJR_ASSUME(ret >= 2);
-    ret -= dst[m + idx - 1] == 0;
-    WJR_ASSUME(ret >= 1);
-    return ret;
-}
-
-// just like abs_subc_n.
-template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0,
-                                             const uint64_t *src1, size_t n, U &c_out,
-                                             type_identity_t<U> cf0,
-                                             type_identity_t<U> cf1) noexcept {
-    WJR_ASSERT_ASSUME(n >= 1);
-    if (cf0 != cf1) {
-        ssize_t ret = __fasts_from_unsigned(n);
-        U cf = 0;
-        if (cf0 < cf1) {
-            std::swap(src0, src1);
-            ret = __fasts_negate(ret);
-            cf = cf1 - cf0;
-        } else {
-            cf = cf0 - cf1;
-        }
-
-        c_out = cf - subc_n(dst, src0, src1, n);
-        return ret;
-    } else {
-        c_out = 0;
-        return abs_subc_n(dst, src0, src1, n);
-    }
-}
-
-WJR_INTRINSIC_CONSTEXPR void __fallback_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                                uint64_t hi0, uint64_t lo1,
-                                                uint64_t hi1) noexcept {
-    uint64_t __al = lo0 - lo1;
-    ah = hi0 - hi1 - (__al > lo0);
-    al = __al;
-}
-
-#if WJR_HAS_FEATURE(FAST_INT128_ADDSUB)
-#define WJR_HAS_BUILTIN___BUILTIN_SUB_128 WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(__BUILTIN_SUBC_128)
-
-WJR_INTRINSIC_INLINE void __builtin_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                            uint64_t hi0, uint64_t lo1,
-                                            uint64_t hi1) noexcept {
-    const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
-    const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
-    x0 -= x1;
-
-    al = x0;
-    ah = x0 >> 64;
-}
-
-#endif
-
-// <ah, al> = <hi0, lo0> - <hi1, lo1>
-WJR_INTRINSIC_CONSTEXPR20 void __sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                         uint64_t hi0, uint64_t lo1,
-                                         uint64_t hi1) noexcept {
-#if WJR_HAS_BUILTIN(__BUILTIN_SUB_128) || WJR_HAS_BUILTIN(__ASM_SUB_128)
-    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P_TRUE(lo0 == 0) ||
-        WJR_BUILTIN_CONSTANT_P_TRUE(lo1 == 0) || WJR_BUILTIN_CONSTANT_P(lo0 + hi0)) {
-        return __fallback_sub_128(al, ah, lo0, hi0, lo1, hi1);
-    }
-
-    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_SUB_128), __builtin_sub_128,
-                          __asm_sub_128)(al, ah, lo0, hi0, lo1, hi1);
-#else
-    return __fallback_sub_128(al, ah, lo0, hi0, lo1, hi1);
-#endif
-}
-
-WJR_INTRINSIC_CONSTEXPR20 uint64_t __fallback_subc_128(uint64_t &al, uint64_t &ah,
-                                                       uint64_t lo0, uint64_t hi0,
-                                                       uint64_t lo1, uint64_t hi1,
-                                                       uint64_t c_in) noexcept {
-    al = subc(lo0, lo1, c_in, c_in);
-    ah = subc(hi0, hi1, c_in, c_in);
-    return c_in;
-}
-
-// return c_out
-WJR_INTRINSIC_CONSTEXPR20 uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                              uint64_t c_in) noexcept {
-#if WJR_HAS_BUILTIN(__ASM_SUBC_128)
-    if (is_constant_evaluated()) {
-        return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
-    }
-
-    return __asm_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
-#else
-    return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
-#endif
-}
-
-WJR_INTRINSIC_CONSTEXPR20 uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                                uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                                uint8_t c_in) noexcept {
-#if WJR_HAS_BUILTIN(__ASM_SUBC_CC_128)
-    if (is_constant_evaluated()) {
-        return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
-    }
-
-    return __asm_subc_cc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
-#else
-    return fast_cast<uint8_t>(__subc_128(al, ah, lo0, hi0, lo1, hi1, c_in));
-#endif
-}
-
-} // namespace wjr
-
-#endif // WJR_MATH_SUB_HPP__
-// Already included
-
-#if defined(WJR_X86)
-#ifndef WJR_X86_MATH_COMPARE_HPP__
-#define WJR_X86_MATH_COMPARE_HPP__
-
-#ifndef WJR_X86_MATH_LARGE_COMPARE_IMPL_HPP__
-#define WJR_X86_MATH_LARGE_COMPARE_IMPL_HPP__
-
-// Already included
-// Already included
-// Already included
-
-#ifndef WJR_X86
-#error "x86 required"
-#endif
-
-namespace wjr {
-
-#if WJR_HAS_SIMD(SSE4_1)
-#define WJR_HAS_BUILTIN_COMPARE_N WJR_HAS_DEF
-#define WJR_HAS_BUILTIN_REVERSE_COMPARE_N WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(COMPARE_N)
-
-/**
- * @brief Use SIMD to compare two arrays of uint64_t.
- *
- */
-template <typename T>
-WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1,
-                                              size_t n) noexcept {
-#define WJR_REGISTER_COMPARE_NOT_N_AVX(index)                                            \
-    do {                                                                                 \
-        auto x = avx::loadu(src0 + (index));                                             \
-        auto y = avx::loadu(src1 + (index));                                             \
-        auto r = avx::cmpeq_epi64(x, y);                                                 \
-                                                                                         \
-        avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
-        if (WJR_LIKELY(mask != 0)) {                                                     \
-            auto offset = ctz(mask) / 8;                                                 \
-            return src0[(index) + offset] < src1[(index) + offset] ? -1 : 1;             \
-        }                                                                                \
-    } while (0)
-
-    size_t rem = n & 7;
-
-    if (rem > 4) {
-#if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu(src0 + (rem - 4));
-        auto x1 = sse::loadu(src0 + (rem - 2));
-        auto y0 = sse::loadu(src1 + (rem - 4));
-        auto y1 = sse::loadu(src1 + (rem - 2));
-
-        auto r0 = sse::cmpeq_epi64(x0, y0);
-        auto r1 = sse::cmpeq_epi64(x1, y1);
-
-        if (WJR_LIKELY(!sse::test_all_ones(sse::And(r0, r1)))) {
-            sse::mask_type mask = ~sse::movemask_epi8(r0);
-            if (mask != 0) {
-                if (mask == 0xFF00) {
-                    return src0[(rem - 4) + 1] < src1[(rem - 4) + 1] ? -1 : 1;
-                }
-                return src0[(rem - 4)] < src1[(rem - 4)] ? -1 : 1;
-            }
-
-            mask = ~sse::movemask_epi8(r1);
-            if (mask == 0xFF00) {
-                return src0[(rem - 2) + 1] < src1[(rem - 2) + 1] ? -1 : 1;
-            }
-            return src0[(rem - 2)] < src1[(rem - 2)] ? -1 : 1;
-        }
-#else
-        WJR_REGISTER_COMPARE_NOT_N_AVX(rem - 4);
-#endif
-    }
-
-    if (WJR_UNLIKELY(rem == n)) {
-        return 0;
-    }
-
-#if !WJR_HAS_SIMD(AVX2)
-    do {
-        auto x0 = sse::loadu(src0 + rem);
-        auto x1 = sse::loadu(src0 + rem + 2);
-        auto x2 = sse::loadu(src0 + rem + 4);
-        auto x3 = sse::loadu(src0 + rem + 6);
-        auto y0 = sse::loadu(src1 + rem);
-        auto y1 = sse::loadu(src1 + rem + 2);
-        auto y2 = sse::loadu(src1 + rem + 4);
-        auto y3 = sse::loadu(src1 + rem + 6);
-
-        auto r0 = sse::cmpeq_epi64(x0, y0);
-        auto r1 = sse::cmpeq_epi64(x1, y1);
-        auto r2 = sse::cmpeq_epi64(x2, y2);
-        auto r3 = sse::cmpeq_epi64(x3, y3);
-
-        auto z = sse::And(sse::And(r0, r1), sse::And(r2, r3));
-
-        if (WJR_UNLIKELY(!sse::test_all_ones(z))) {
-            sse::mask_type mask = ~sse::movemask_epi8(r0);
-            if (mask != 0) {
-                if (mask == 0xFF00) {
-                    return src0[rem + 1] < src1[rem + 1] ? -1 : 1;
-                }
-                return src0[rem] < src1[rem] ? -1 : 1;
-            }
-
-            mask = ~sse::movemask_epi8(r1);
-            if (mask != 0) {
-                if (mask == 0xFF00) {
-                    return src0[rem + 3] < src1[rem + 3] ? -1 : 1;
-                }
-                return src0[rem + 2] < src1[rem + 2] ? -1 : 1;
-            }
-
-            mask = ~sse::movemask_epi8(r2);
-            if (mask != 0) {
-                if (mask == 0xFF00) {
-                    return src0[rem + 5] < src1[rem + 5] ? -1 : 1;
-                }
-                return src0[rem + 4] < src1[rem + 4] ? -1 : 1;
-            }
-
-            mask = ~sse::movemask_epi8(r3);
-            if (mask == 0xFF00) {
-                return src0[rem + 7] < src1[rem + 7] ? -1 : 1;
-            }
-            return src0[rem + 6] < src1[rem + 6] ? -1 : 1;
-        }
-
-        rem += 8;
-    } while (WJR_LIKELY(rem != n));
-#else
-    if ((n - rem) & 8) {
-        WJR_REGISTER_COMPARE_NOT_N_AVX(rem);
-        WJR_REGISTER_COMPARE_NOT_N_AVX(rem + 4);
-
-        rem += 8;
-
-        if (WJR_UNLIKELY(rem == n)) {
-            return 0;
-        }
-    }
-
-    do {
-        auto x0 = avx::loadu(src0 + rem);
-        auto x1 = avx::loadu(src0 + rem + 4);
-        auto x2 = avx::loadu(src0 + rem + 8);
-        auto x3 = avx::loadu(src0 + rem + 12);
-        auto y0 = avx::loadu(src1 + rem);
-        auto y1 = avx::loadu(src1 + rem + 4);
-        auto y2 = avx::loadu(src1 + rem + 8);
-        auto y3 = avx::loadu(src1 + rem + 12);
-
-        auto r0 = avx::cmpeq_epi64(x0, y0);
-        auto r1 = avx::cmpeq_epi64(x1, y1);
-        auto r2 = avx::cmpeq_epi64(x2, y2);
-        auto r3 = avx::cmpeq_epi64(x3, y3);
-
-        auto z = avx::And(avx::And(r0, r1), avx::And(r2, r3));
-
-        if (WJR_UNLIKELY(!avx::test_all_ones(z))) {
-            avx::mask_type mask = ~avx::movemask_epi8(r0);
-            if (WJR_UNLIKELY(mask != 0)) {
-                auto offset = ctz(mask) / 8;
-                return src0[rem + offset] < src1[rem + offset] ? -1 : 1;
-            }
-
-            mask = ~avx::movemask_epi8(r1);
-            if (WJR_UNLIKELY(mask != 0)) {
-                auto offset = ctz(mask) / 8;
-                return src0[rem + offset + 4] < src1[rem + offset + 4] ? -1 : 1;
-            }
-
-            mask = ~avx::movemask_epi8(r2);
-            if (WJR_UNLIKELY(mask != 0)) {
-                auto offset = ctz(mask) / 8;
-                return src0[rem + offset + 8] < src1[rem + offset + 8] ? -1 : 1;
-            }
-
-            mask = ~avx::movemask_epi8(r3);
-            auto offset = ctz(mask) / 8;
-            return src0[rem + offset + 12] < src1[rem + offset + 12] ? -1 : 1;
-        }
-
-        rem += 16;
-    } while (WJR_LIKELY(rem != n));
-#endif
-
-    return 0;
-
-#undef WJR_REGISTER_COMPARE_NOT_N_AVX
-}
-
-extern template WJR_PURE WJR_COLD int
-large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
-                                  size_t n) noexcept;
-
-#endif
-
-#if WJR_HAS_BUILTIN(REVERSE_COMPARE_N)
-
-/**
- * @brief Use SIMD to compare two arrays of uint64_t in reverse order.
- *
- * @detail @ref large_builtin_compare_n in reverse order.
- *
- */
-template <typename T>
-WJR_PURE WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1,
-                                                      size_t n) noexcept {
-#define WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(index)                                    \
-    do {                                                                                 \
-        auto x = avx::loadu(src0 - 4 + (index));                                         \
-        auto y = avx::loadu(src1 - 4 + (index));                                         \
-        auto r = avx::cmpeq_epi64(x, y);                                                 \
-                                                                                         \
-        avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
-        if (WJR_LIKELY(mask != 0)) {                                                     \
-            auto offset = clz(mask) / 8;                                                 \
-            return src0[(index)-1 - offset] < src1[(index)-1 - offset] ? -1 : 1;         \
-        }                                                                                \
-    } while (0)
-
-    const size_t rem = n & 7;
-    n -= rem;
-
-    if (rem > 4) {
-#if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu(src0 + n + 2);
-        auto x1 = sse::loadu(src0 + n);
-        auto y0 = sse::loadu(src1 + n + 2);
-        auto y1 = sse::loadu(src1 + n);
-
-        auto r0 = sse::cmpeq_epi64(x0, y0);
-        auto r1 = sse::cmpeq_epi64(x1, y1);
-
-        if (WJR_LIKELY(!sse::test_all_ones(sse::And(r0, r1)))) {
-            sse::mask_type mask = ~sse::movemask_epi8(r0);
-            if (mask != 0) {
-                if (mask == 0x00FF) {
-                    return src0[n + 2] < src1[n + 2] ? -1 : 1;
-                }
-                return src0[n + 3] < src1[n + 3] ? -1 : 1;
-            }
-            mask = ~sse::movemask_epi8(r1);
-            if (mask == 0x00FF) {
-                return src0[n] < src1[n] ? -1 : 1;
-            }
-            return src0[n + 1] < src1[n + 1] ? -1 : 1;
-        }
-#else
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(n + 4);
-#endif
-    }
-
-    if (WJR_UNLIKELY(n == 0)) {
-        return 0;
-    }
-
-#if !WJR_HAS_SIMD(AVX2)
-    do {
-        auto x0 = sse::loadu(src0 + n - 8);
-        auto x1 = sse::loadu(src0 + n - 6);
-        auto x2 = sse::loadu(src0 + n - 4);
-        auto x3 = sse::loadu(src0 + n - 2);
-        auto y0 = sse::loadu(src1 + n - 8);
-        auto y1 = sse::loadu(src1 + n - 6);
-        auto y2 = sse::loadu(src1 + n - 4);
-        auto y3 = sse::loadu(src1 + n - 2);
-
-        auto r0 = sse::cmpeq_epi64(x0, y0);
-        auto r1 = sse::cmpeq_epi64(x1, y1);
-        auto r2 = sse::cmpeq_epi64(x2, y2);
-        auto r3 = sse::cmpeq_epi64(x3, y3);
-
-        auto z = sse::And(sse::And(r0, r1), sse::And(r2, r3));
-
-        if (WJR_UNLIKELY(!sse::test_all_ones(z))) {
-            sse::mask_type mask = ~sse::movemask_epi8(r3);
-            if (mask != 0) {
-                if (mask == 0x00FF) {
-                    return src0[n - 2] < src1[n - 2] ? -1 : 1;
-                }
-                return src0[n - 1] < src1[n - 1] ? -1 : 1;
-            }
-
-            mask = ~sse::movemask_epi8(r2);
-            if (mask != 0) {
-                if (mask == 0x00FF) {
-                    return src0[n - 4] < src1[n - 4] ? -1 : 1;
-                }
-                return src0[n - 3] < src1[n - 3] ? -1 : 1;
-            }
-
-            mask = ~sse::movemask_epi8(r1);
-            if (mask != 0) {
-                if (mask == 0x00FF) {
-                    return src0[n - 6] < src1[n - 6] ? -1 : 1;
-                }
-                return src0[n - 5] < src1[n - 5] ? -1 : 1;
-            }
-
-            mask = ~sse::movemask_epi8(r0);
-            if (mask == 0x00FF) {
-                return src0[n - 8] < src1[n - 8] ? -1 : 1;
-            }
-            return src0[n - 7] < src1[n - 7] ? -1 : 1;
-        }
-
-        n -= 8;
-    } while (WJR_LIKELY(n != 0));
-#else
-    if (n & 8) {
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(n);
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(n - 4);
-
-        n -= 8;
-
-        if (WJR_UNLIKELY(n == 0)) {
-            return 0;
-        }
-    }
-
-    do {
-        auto x0 = avx::loadu(src0 + n - 16);
-        auto x1 = avx::loadu(src0 + n - 12);
-        auto x2 = avx::loadu(src0 + n - 8);
-        auto x3 = avx::loadu(src0 + n - 4);
-        auto y0 = avx::loadu(src1 + n - 16);
-        auto y1 = avx::loadu(src1 + n - 12);
-        auto y2 = avx::loadu(src1 + n - 8);
-        auto y3 = avx::loadu(src1 + n - 4);
-
-        auto r0 = avx::cmpeq_epi64(x0, y0);
-        auto r1 = avx::cmpeq_epi64(x1, y1);
-        auto r2 = avx::cmpeq_epi64(x2, y2);
-        auto r3 = avx::cmpeq_epi64(x3, y3);
-
-        auto z = avx::And(avx::And(r0, r1), avx::And(r2, r3));
-
-        if (WJR_UNLIKELY(!avx::test_all_ones(z))) {
-            avx::mask_type mask = ~avx::movemask_epi8(r3);
-            if (mask != 0) {
-                auto offset = clz(mask) / 8;
-                return src0[n - 1 - offset] < src1[n - 1 - offset] ? -1 : 1;
-            }
-
-            mask = ~avx::movemask_epi8(r2);
-            if (mask != 0) {
-                auto offset = clz(mask) / 8;
-                return src0[n - 5 - offset] < src1[n - 5 - offset] ? -1 : 1;
-            }
-
-            mask = ~avx::movemask_epi8(r1);
-            if (mask != 0) {
-                auto offset = clz(mask) / 8;
-                return src0[n - 9 - offset] < src1[n - 9 - offset] ? -1 : 1;
-            }
-
-            mask = ~avx::movemask_epi8(r0);
-            auto offset = clz(mask) / 8;
-            return src0[n - 13 - offset] < src1[n - 13 - offset] ? -1 : 1;
-        }
-
-        n -= 16;
-    } while (WJR_LIKELY(n != 0));
-#endif
-
-    return 0;
-
-#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX
-}
-
-extern template WJR_PURE WJR_COLD int
-large_builtin_reverse_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
-                                          size_t n) noexcept;
-
-#endif
-
-} // namespace wjr
-
-#endif // WJR_X86_MATH_LARGE_COMPARE_IMPL_HPP__
-
-namespace wjr {
-
-#if WJR_HAS_BUILTIN(COMPARE_N)
-
-/**
- * @brief Compare two arrays of uint64_t.
- *
- * @detail Expand first 4 elements to compare, then use @ref large_builtin_compare_n to
- * compare the rest.
- *
- * @tparam T Requires uint64_t currently.
- * @param src0 Pointer to the first array.
- * @param src1 Pointer to the second array.
- * @param n Number of elements to compare.
- * @return
- * \code
- * negative : src0 < src1
- * 0        : src0 == src1
- * positive : src0 > src1
- * \endcode
- */
-template <typename T>
-WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1,
-                                           size_t n) noexcept {
-    if (WJR_UNLIKELY(n == 0)) {
-        return 0;
-    }
-
-    if (WJR_LIKELY(src0[0] != src1[0])) {
-        return src0[0] < src1[0] ? -1 : 1;
-    }
-
-    if (n == 1) {
-        return 0;
-    }
-
-    if (WJR_LIKELY(src0[1] != src1[1])) {
-        return src0[1] < src1[1] ? -1 : 1;
-    }
-
-    if (n == 2) {
-        return 0;
-    }
-
-    if (WJR_LIKELY(src0[2] != src1[2])) {
-        return src0[2] < src1[2] ? -1 : 1;
-    }
-
-    if (n == 3) {
-        return 0;
-    }
-
-    if (WJR_LIKELY(src0[3] != src1[3])) {
-        return src0[3] < src1[3] ? -1 : 1;
-    }
-
-    if (n == 4) {
-        return 0;
-    }
-
-    return large_builtin_compare_n(src0, src1, n);
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(REVERSE_COMPARE_N)
-
-/**
- * @brief Compare two arrays of uint64_t in reverse order.
- *
- * @detail @ref builtin_compare_n in reverse order.
- */
-template <typename T>
-WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
-                                                   size_t n) noexcept {
-    if (WJR_UNLIKELY(n == 0)) {
-        return 0;
-    }
-
-    if (WJR_LIKELY(src0[n - 1] != src1[n - 1])) {
-        return src0[n - 1] < src1[n - 1] ? -1 : 1;
-    }
-
-    if (n == 1) {
-        return 0;
-    }
-
-    if (WJR_LIKELY(src0[n - 2] != src1[n - 2])) {
-        return src0[n - 2] < src1[n - 2] ? -1 : 1;
-    }
-
-    if (n == 2) {
-        return 0;
-    }
-
-    if (WJR_LIKELY(src0[n - 3] != src1[n - 3])) {
-        return src0[n - 3] < src1[n - 3] ? -1 : 1;
-    }
-
-    if (n == 3) {
-        return 0;
-    }
-
-    if (WJR_LIKELY(src0[n - 4] != src1[n - 4])) {
-        return src0[n - 4] < src1[n - 4] ? -1 : 1;
-    }
-
-    if (n == 4) {
-        return 0;
-    }
-
-    return large_builtin_reverse_compare_n(src0, src1, n);
-}
-
-#endif
-
-// __uint128_t has certain bugs in GCC 13.2, resulting in low performance
-#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
-#define WJR_HAS_BUILTIN___ASM_LESS_128 WJR_HAS_DEF
-#define WJR_HAS_BUILTIN___ASM_LESS_EQUAL_128 WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(__ASM_LESS_128)
-
-WJR_CONST WJR_INTRINSIC_INLINE bool __asm_less_128(uint64_t lo0, uint64_t hi0,
-                                                   uint64_t lo1, uint64_t hi1) noexcept {
-    bool ret;
-    asm("cmp{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(b)
-        : WJR_ASM_CCOUT(b)(ret), [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
-        : [lo1] "r"(lo1), [hi1] "r"(hi1)
-        : "cc");
-    return ret;
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(__ASM_LESS_EQUAL_128)
-
-WJR_CONST WJR_INTRINSIC_INLINE bool
-__asm_less_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1) noexcept {
-    bool ret;
-    asm("cmp{q %[lo0], %[lo1]| %[lo1], %[lo0]}\n\t"
-        "sbb{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t" WJR_ASM_CCSET(ae)
-        : WJR_ASM_CCOUT(ae)(ret), [lo1] "+&r"(lo1), [hi1] "+r"(hi1)
-        : [lo0] "r"(lo0), [hi0] "r"(hi0)
-        : "cc");
-    return ret;
-}
-
-#endif
-
-} // namespace wjr
-
-#endif // WJR_X86_MATH_COMPARE_HPP__
-#endif
-
-namespace wjr {
-
-template <typename T>
-WJR_INTRINSIC_CONSTEXPR int fallback_compare_n(const T *src0, const T *src1,
-                                               size_t n) noexcept {
-    for (size_t idx = 0; idx < n; ++idx) {
-        if (src0[idx] != src1[idx]) {
-            return src0[idx] < src1[idx] ? -1 : 1;
-        }
-    }
-
-    return 0;
-}
-
-template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR20 int compare_n(const T *src0, const T *src1,
-                                                 size_t n) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
-        return 0;
-    }
-
-#if WJR_HAS_BUILTIN(COMPARE_N)
-    if constexpr (sizeof(T) == 8) {
-        static_assert(sizeof(T) != 8 || std::is_unsigned_v<T>,
-                      "T must be unsigned if sizeof(T) == 8");
-
-        if (is_constant_evaluated()) {
-            return fallback_compare_n(src0, src1, n);
-        }
-
-        return builtin_compare_n(src0, src1, n);
-    } else {
-        return fallback_compare_n(src0, src1, n);
-    }
-#else
-    return fallback_compare_n(src0, src1, n);
-#endif
-}
-
-template <typename T>
-WJR_INTRINSIC_CONSTEXPR int fallback_reverse_compare_n(const T *src0, const T *src1,
-                                                       size_t n) noexcept {
-    src0 += n;
-    src1 += n;
-
-    for (size_t idx = 0; idx < n; ++idx) {
-        if (src0[-1 - idx] != src1[-1 - idx]) {
-            return src0[-1 - idx] < src1[-1 - idx] ? -1 : 1;
-        }
-    }
-
-    return 0;
-}
-
-template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR20 int reverse_compare_n(const T *src0, const T *src1,
-                                                         size_t n) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
-        return 0;
-    }
-
-#if WJR_HAS_BUILTIN(COMPARE_N)
-    if constexpr (sizeof(T) == 8) {
-        static_assert(sizeof(T) != 8 || std::is_unsigned_v<T>,
-                      "T must be unsigned if sizeof(T) == 8");
-
-        if (is_constant_evaluated()) {
-            return fallback_reverse_compare_n(src0, src1, n);
-        }
-
-        return builtin_reverse_compare_n(src0, src1, n);
-    } else {
-        return fallback_reverse_compare_n(src0, src1, n);
-    }
-#else
-    return fallback_reverse_compare_n(src0, src1, n);
-#endif
-}
-
-#if WJR_HAS_FEATURE(FAST_INT128_COMPARE)
-#define WJR_HAS_BUILTIN___BUILTIN_LESS_128 WJR_HAS_DEF
-#define WJR_HAS_BUILTIN___BUILTIN_LESS_EQUAL_128 WJR_HAS_DEF
-#endif
-
-WJR_INTRINSIC_CONSTEXPR20 bool __fallback_less_128(uint64_t lo0, uint64_t hi0,
-                                                   uint64_t lo1, uint64_t hi1) noexcept {
-    uint8_t f = lo0 < lo1;
-    (void)subc_cc(hi0, hi1, f, f);
-    WJR_ASSUME(f <= 1);
-    return f;
-}
-
-#if WJR_HAS_BUILTIN(__BUILTIN_LESS_128)
-
-WJR_INTRINSIC_INLINE bool __builtin_less_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
-                                             uint64_t hi1) noexcept {
-    const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
-    const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
-
-    return x0 < x1;
-}
-
-#endif
-
-// return <hi0, lo0> < <hi1, lo1>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 bool __less_128(uint64_t lo0, uint64_t hi0,
-                                                    uint64_t lo1, uint64_t hi1) noexcept {
-#if WJR_HAS_BUILTIN(__BUILTIN_LESS_128) || WJR_HAS_BUILTIN(__ASM_LESS_128)
-    if (is_constant_evaluated()) {
-        return __fallback_less_128(lo0, hi0, lo1, hi1);
-    }
-
-    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_LESS_128), __builtin_less_128,
-                          __asm_less_128)(lo0, hi0, lo1, hi1);
-#else
-    return __fallback_less_128(lo0, hi0, lo1, hi1);
-#endif
-}
-
-WJR_INTRINSIC_CONSTEXPR20 bool __fallback_less_equal_128(uint64_t lo0, uint64_t hi0,
-                                                         uint64_t lo1,
-                                                         uint64_t hi1) noexcept {
-    return !__less_128(lo1, hi1, lo0, hi0);
-}
-
-#if WJR_HAS_BUILTIN(__BUILTIN_LESS_EQUAL_128)
-
-WJR_INTRINSIC_INLINE bool __builtin_less_equal_128(uint64_t lo0, uint64_t hi0,
-                                                   uint64_t lo1, uint64_t hi1) noexcept {
-    const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
-    const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
-
-    return x0 <= x1;
-}
-
-#endif
-
-// return <hi0, lo0> < <hi1, lo1>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 bool
-__less_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1) noexcept {
-#if WJR_HAS_BUILTIN(__BUILTIN_LESS_EQUAL_128) || WJR_HAS_BUILTIN(__ASM_LESS_EQUAL_128)
-    if (is_constant_evaluated()) {
-        return __fallback_less_equal_128(lo0, hi0, lo1, hi1);
-    }
-
-    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_LESS_EQUAL_128),
-                          __builtin_less_equal_128,
-                          __asm_less_equal_128)(lo0, hi0, lo1, hi1);
-#else
-    return __fallback_less_equal_128(lo0, hi0, lo1, hi1);
-#endif
-}
-
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 bool
-__greater_128(uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1) noexcept {
-    return __less_128(lo1, hi1, lo0, hi0);
-}
-
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 bool
-__greater_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1) noexcept {
-    return __less_equal_128(lo1, hi1, lo0, hi0);
-}
-
-} // namespace wjr
-
-#endif // WJR_MATH_CMP_HPP__
-#ifndef WJR_MATH_MUL_HPP__
-#define WJR_MATH_MUL_HPP__
-
-/**
- * @todo optimize temporary memory usage of mul_s, mul_n, sqr
- *
- */
-
-#ifndef WJR_MATH_ADD_HPP__
-#define WJR_MATH_ADD_HPP__
-
-// Already included
-#ifndef WJR_MATH_ADD_IMPL_HPP__
-#define WJR_MATH_ADD_IMPL_HPP__
-
-// Already included
-
-namespace wjr {
-
-template <typename T, typename U,
-          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T addc(T a, T b, type_identity_t<U> c_in,
-                                               U &c_out) noexcept;
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T addc_cc(T a, T b, uint8_t c_in,
-                                                  uint8_t &c_out) noexcept;
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool
-add_overflow(type_identity_t<T> a, type_identity_t<T> b, T &ret) noexcept;
-
-template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U addc_1(uint64_t *dst, const uint64_t *src0,
-                                                 size_t n, uint64_t src1,
-                                                 U c_in = 0) noexcept;
-
-template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U addc_n(uint64_t *dst, const uint64_t *src0,
-                                                 const uint64_t *src1, size_t n,
-                                                 U c_in = 0) noexcept;
-
-template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U addc_s(uint64_t *dst, const uint64_t *src0,
-                                                 size_t n, const uint64_t *src1, size_t m,
-                                                 U c_in = 0) noexcept;
-
-/// @note m can be zero
-template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U addc_sz(uint64_t *dst, const uint64_t *src0,
-                                                  size_t n, const uint64_t *src1,
-                                                  size_t m, U c_in = 0) noexcept;
-
-WJR_INTRINSIC_CONSTEXPR20 void __add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                         uint64_t hi0, uint64_t lo1,
-                                         uint64_t hi1) noexcept;
-
-WJR_INTRINSIC_CONSTEXPR20 uint64_t __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                              uint64_t c_in) noexcept;
-
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah,
-                                                              uint64_t lo0, uint64_t hi0,
-                                                              uint64_t lo1, uint64_t hi1,
-                                                              uint8_t c_in) noexcept;
-
-} // namespace wjr
-
-#endif // WJR_MATH_ADD_IMPL_HPP__
-// Already included
 
 #if defined(WJR_X86)
 #ifndef WJR_X86_MATH_ADD_HPP__
@@ -20953,7 +18936,1209 @@ WJR_INTRINSIC_CONSTEXPR20 T rshift_n(T *dst, const T *src, size_t n, unsigned in
 } // namespace wjr
 
 #endif // WJR_MATH_SHIFT_HPP__
+#ifndef WJR_MATH_SUB_HPP__
+#define WJR_MATH_SUB_HPP__
+
 // Already included
+// Already included
+// Already included
+#ifndef WJR_MATH_SUB_IMPL_HPP__
+#define WJR_MATH_SUB_IMPL_HPP__
+
+// Already included
+
+namespace wjr {
+
+template <typename T, typename U,
+          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T subc(T a, T b, type_identity_t<U> c_in,
+                                               U &c_out) noexcept;
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T subc_cc(T a, T b, uint8_t c_in,
+                                                  uint8_t &c_out) noexcept;
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool
+sub_overflow(type_identity_t<T> a, type_identity_t<T> b, T &ret) noexcept;
+
+template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U subc_1(uint64_t *dst, const uint64_t *src0,
+                                                 size_t n, uint64_t src1,
+                                                 U c_in = 0) noexcept;
+
+template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U subc_n(uint64_t *dst, const uint64_t *src0,
+                                                 const uint64_t *src1, size_t n,
+                                                 U c_in = 0) noexcept;
+
+template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U subc_s(uint64_t *dst, const uint64_t *src0,
+                                                 size_t n, const uint64_t *src1, size_t m,
+                                                 U c_in = 0) noexcept;
+
+template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 U subc_sz(uint64_t *dst, const uint64_t *src0,
+                                                  size_t n, const uint64_t *src1,
+                                                  size_t m, U c_in = 0) noexcept;
+
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n(uint64_t *dst,
+                                                           const uint64_t *src0,
+                                                           const uint64_t *src1,
+                                                           size_t n) noexcept;
+
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n_pos(uint64_t *dst,
+                                                               const uint64_t *src0,
+                                                               const uint64_t *src1,
+                                                               size_t n) noexcept;
+
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s1(uint64_t *dst,
+                                                            const uint64_t *src0,
+                                                            size_t n,
+                                                            const uint64_t *src1,
+                                                            size_t m) noexcept;
+
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s(uint64_t *dst,
+                                                           const uint64_t *src0, size_t n,
+                                                           const uint64_t *src1,
+                                                           size_t m) noexcept;
+
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s_pos(uint64_t *dst,
+                                                               const uint64_t *src0,
+                                                               size_t n,
+                                                               const uint64_t *src1,
+                                                               size_t m) noexcept;
+
+template <typename U, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 ssize_t
+abs_subc_n(uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, U &c_out,
+           type_identity_t<U> cf0, type_identity_t<U> cf1) noexcept;
+
+// preview :
+
+WJR_INTRINSIC_CONSTEXPR20 void __sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                         uint64_t hi0, uint64_t lo1,
+                                         uint64_t hi1) noexcept;
+
+WJR_INTRINSIC_CONSTEXPR20 uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                              uint64_t c_in) noexcept;
+
+WJR_INTRINSIC_CONSTEXPR20 uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                                uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                                uint8_t c_in) noexcept;
+
+} // namespace wjr
+
+#endif // WJR_MATH_SUB_IMPL_HPP__
+
+#if defined(WJR_X86)
+#ifndef WJR_X86_SUB_HPP__
+#define WJR_X86_SUB_HPP__
+
+// Already included
+
+#ifndef WJR_X86
+#error "x86 required"
+#endif
+
+#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
+#define WJR_HAS_BUILTIN_ASM_SUBC WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_ASM_SUBC_N WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___ASM_SUB_128 WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___ASM_SUBC_128 WJR_HAS_DEF
+
+#if WJR_HAS_FEATURE(INLINE_ASM_CCCOND)
+#define WJR_HAS_BUILTIN_ASM_SUBC_CC WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___ASM_SUBC_CC_128 WJR_HAS_DEF
+#endif
+#else
+
+#if defined(WJR_MSVC)
+#define WJR_HAS_BUILTIN_ASM_SUBC WJR_HAS_DEF_VAR(2)
+#endif
+
+#if defined(WJR_ENABLE_ASSEMBLY)
+#define WJR_HAS_BUILTIN_ASM_SUBC_N WJR_HAS_DEF_VAR(3)
+#endif
+
+#endif
+
+#if WJR_HAS_BUILTIN(ASM_SUBC) == 2
+// Already included
+#endif
+
+namespace wjr {
+
+#if WJR_HAS_BUILTIN(ASM_SUBC)
+
+template <typename U>
+WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in,
+                                       U &c_out) noexcept {
+#if WJR_HAS_BUILTIN(ASM_SUBC) == 1
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 1)) {
+        if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
+            asm("stc\n\t"
+                "sbb{q %2, %0| %0, %2}\n\t"
+                "setb %b1"
+                : "=r"(a), "+r"(c_in)
+                : "ri"(b), "0"(a)
+                : "cc");
+        } else {
+            asm("stc\n\t"
+                "sbb{q %2, %0| %0, %2}\n\t"
+                "setb %b1"
+                : "=r"(a), "+r"(c_in)
+                : "r"(b), "0"(a)
+                : "cc");
+        }
+        c_out = c_in;
+        return a;
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
+        asm("add{b $255, %b1| %b1, 255}\n\t"
+            "sbb{q %2, %0| %0, %2}\n\t"
+            "setb %b1"
+            : "=r"(a), "+&r"(c_in)
+            : "ri"(b), "0"(a)
+            : "cc");
+    } else {
+        asm("add{b $255, %b1| %b1, 255}\n\t"
+            "sbb{q %2, %0| %0, %2}\n\t"
+            "setb %b1"
+            : "=r"(a), "+&r"(c_in)
+            : "r"(b), "0"(a)
+            : "cc");
+    }
+    c_out = c_in;
+    return a;
+#else
+    uint64_t ret;
+    c_out = fast_cast<U>(_subborrow_u64(fast_cast<unsigned char>(c_in), a, b, &ret));
+    return ret;
+#endif
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(ASM_SUBC_CC)
+
+WJR_INTRINSIC_INLINE uint64_t asm_subc_cc(uint64_t a, uint64_t b, uint8_t c_in,
+                                          uint8_t &c_out) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 1)) {
+        if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
+            asm("stc\n\t"
+                "sbb{q %2, %0| %0, %2}\n\t" WJR_ASM_CCSET(c)
+                : "=r"(a), WJR_ASM_CCOUT(c)(c_out)
+                : "ri"(b), "0"(a)
+                : "cc");
+        } else {
+            asm("stc\n\t"
+                "sbb{q %2, %0| %0, %2}\n\t" WJR_ASM_CCSET(c)
+                : "=r"(a), WJR_ASM_CCOUT(c)(c_out)
+                : "r"(b), "0"(a)
+                : "cc");
+        }
+        return a;
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
+        asm("add{b $255, %b1| %b1, 255}\n\t"
+            "sbb{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
+            : "=r"(a), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
+            : "ri"(b), "0"(a)
+            : "cc");
+    } else {
+        asm("add{b $255, %b1| %b1, 255}\n\t"
+            "sbb{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
+            : "=r"(a), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
+            : "r"(b), "0"(a)
+            : "cc");
+    }
+    return a;
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(ASM_SUBC_N)
+#define WJR_ADDSUB_I 0
+// WJR_ADDSUB_I :
+// 0 : SUB
+// 1 : ADD
+
+// Already included
+
+#ifndef WJR_ADDSUB_I
+#error "abort"
+#endif
+
+#if WJR_ADDSUB_I == 1
+#define WJR_addcsubc addc
+#define WJR_adcsbb adc
+#define __WJR_TEST_ASSEMBLY ASM_ADDC_N
+#else
+#define WJR_addcsubc subc
+#define WJR_adcsbb sbb
+#define __WJR_TEST_ASSEMBLY ASM_SUBC_N
+#endif
+
+#if WJR_HAS_BUILTIN(__WJR_TEST_ASSEMBLY) == 1
+
+inline uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
+    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
+    uint64_t c_in) noexcept {
+    size_t rcx = n / 8;
+    uint64_t r8 = c_in, r9, r10 = n & 7, r11;
+
+    asm volatile(
+        "add{b $255, %b[r8]| %b[r8], 255}\n\t"
+        "lea{q| %[r9], [rip +} .Llookup%={(%%rip), %[r9]|]}\n\t"
+        "movs{lq (%[r9], %[r10], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + %[r10] * 4]}\n\t"
+        "lea{q (%[r9], %[r10], 1), %[r10]| %[r10], [%[r9] + %[r10]]}\n\t"
+        "jmp{q *%[r10]| %[r10]}\n\t"
+        
+        ".align 8\n\t"
+        ".Llookup%=:\n\t"
+        ".long .Ll0%=-.Llookup%=\n\t"
+        ".long .Ll1%=-.Llookup%=\n\t"
+        ".long .Ll2%=-.Llookup%=\n\t"
+        ".long .Ll3%=-.Llookup%=\n\t"
+        ".long .Ll4%=-.Llookup%=\n\t"
+        ".long .Ll5%=-.Llookup%=\n\t"
+        ".long .Ll6%=-.Llookup%=\n\t"
+        ".long .Ll7%=-.Llookup%=\n\t"
+        ".align 16\n\t"
+        
+        ".Ll0%=:\n\t"
+        "mov{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r11]| %[r11], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
+        "jmp .Lb0%=\n\t"
+
+        ".Ld1%=:\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
+        "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
+        "jmp .Ldone%=\n\t"
+
+        ".Ll1%=:\n\t"
+        "mov{q (%[src0]), %[r10]| %[r10], [%[src0]]}\n\t"
+        "jrcxz .Ld1%=\n\t"
+        "mov{q 8(%[src0]), %[r9]| %[r9], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
+        "lea{q 8(%[src0]), %[src0]| %[src0], [%[src0] + 8]}\n\t"
+        "lea{q 8(%[src1]), %[src1]| %[src1], [%[src1] + 8]}\n\t"
+        "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
+        "jmp .Lb1%=\n\t"
+
+        ".Ll3%=:\n\t"
+        "mov{q (%[src0]), %[r11]| %[r11], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r8]| %[r8], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r11]| %[r11], [%[src1]]}\n\t"
+        "lea{q -40(%[src0]), %[src0]| %[src0], [%[src0] - 40]}\n\t"
+        "lea{q -40(%[src1]), %[src1]| %[src1], [%[src1] - 40]}\n\t"
+        "lea{q -40(%[dst]), %[dst]| %[dst], [%[dst] - 40]}\n\t"
+        "inc %[rcx]\n\t"
+        "jmp .Lb3%=\n\t"
+
+        ".Ll4%=:\n\t"
+        "mov{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r11]| %[r11], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
+        "lea{q -32(%[src0]), %[src0]| %[src0], [%[src0] - 32]}\n\t"
+        "lea{q -32(%[src1]), %[src1]| %[src1], [%[src1] - 32]}\n\t"
+        "lea{q -32(%[dst]), %[dst]| %[dst], [%[dst] - 32]}\n\t"
+        "inc %[rcx]\n\t"
+        "jmp .Lb4%=\n\t"
+
+        ".Ll5%=:\n\t"
+        "mov{q (%[src0]), %[r10]| %[r10], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r9]| %[r9], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
+        "lea{q -24(%[src0]), %[src0]| %[src0], [%[src0] - 24]}\n\t"
+        "lea{q -24(%[src1]), %[src1]| %[src1], [%[src1] - 24]}\n\t"
+        "lea{q -24(%[dst]), %[dst]| %[dst], [%[dst] - 24]}\n\t"
+        "inc %[rcx]\n\t"
+        "jmp .Lb5%=\n\t"
+
+        ".Ll6%=:\n\t"
+        "mov{q (%[src0]), %[r8]| %[r8], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r10]| %[r10], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
+        "lea{q -16(%[src0]), %[src0]| %[src0], [%[src0] - 16]}\n\t"
+        "lea{q -16(%[src1]), %[src1]| %[src1], [%[src1] - 16]}\n\t"
+        "lea{q -16(%[dst]), %[dst]| %[dst], [%[dst] - 16]}\n\t"
+        "inc %[rcx]\n\t"
+        "jmp .Lb6%=\n\t"
+
+        ".Ll7%=:\n\t"
+        "mov{q (%[src0]), %[r11]| %[r11], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r8]| %[r8], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r11]| %[r11], [%[src1]]}\n\t"
+        "lea{q -8(%[src0]), %[src0]| %[src0], [%[src0] - 8]}\n\t"
+        "lea{q -8(%[src1]), %[src1]| %[src1], [%[src1] - 8]}\n\t"
+        "lea{q -8(%[dst]), %[dst]| %[dst], [%[dst] - 8]}\n\t"
+        "inc %[rcx]\n\t"
+        "jmp .Lb7%=\n\t"
+
+        ".Ld2%=:\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 8(%[src1]), %[r10]| %[r10], [%[src1] + 8]}\n\t"
+        "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
+        "mov{q %[r10], 8(%[dst])| [%[dst] + 8], %[r10]}\n\t"
+        "jmp .Ldone%=\n\t"
+
+        ".Ll2%=:\n\t"
+        "mov{q (%[src0]), %[r8]| %[r8], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r10]| %[r10], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
+        "jrcxz .Ld2%=\n\t"
+        "lea{q 16(%[src0]), %[src0]| %[src0], [%[src0] + 16]}\n\t"
+        "lea{q 16(%[src1]), %[src1]| %[src1], [%[src1] + 16]}\n\t"
+        "lea{q 16(%[dst]), %[dst]| %[dst], [%[dst] + 16]}\n\t"
+
+        ".align 32\n\t"
+        ".Lloop%=:\n\t"
+
+        ".Lb2%=:\n\t"
+        "mov{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q -8(%[src1]), %[r10]| %[r10], [%[src1] - 8]}\n\t"
+        "mov{q %[r8], -16(%[dst])| [%[dst] - 16], %[r8]}\n\t"
+
+        ".Lb1%=:\n\t"
+        "mov{q 8(%[src0]), %[r11]| %[r11], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
+        "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
+
+        ".Lb0%=:\n\t"
+        "mov{q 16(%[src0]), %[r8]| %[r8], [%[src0] + 16]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 8(%[src1]), %[r11]| %[r11], [%[src1] + 8]}\n\t"
+        "mov{q %[r9], (%[dst])| [%[dst]], %[r9]}\n\t"
+
+        ".Lb7%=:\n\t"
+        "mov{q 24(%[src0]), %[r10]| %[r10], [%[src0] + 24]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 16(%[src1]), %[r8]| %[r8], [%[src1] + 16]}\n\t"
+        "mov{q %[r11], 8(%[dst])| [%[dst] + 8], %[r11]}\n\t"
+
+        ".Lb6%=:\n\t"
+        "mov{q 32(%[src0]), %[r9]| %[r9], [%[src0] + 32]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 24(%[src1]), %[r10]| %[r10], [%[src1] + 24]}\n\t"
+        "mov{q %[r8], 16(%[dst])| [%[dst] + 16], %[r8]}\n\t"
+
+        ".Lb5%=:\n\t"
+        "mov{q 40(%[src0]), %[r11]| %[r11], [%[src0] + 40]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 32(%[src1]), %[r9]| %[r9], [%[src1] + 32]}\n\t"
+        "mov{q %[r10], 24(%[dst])| [%[dst] + 24], %[r10]}\n\t"
+
+        ".Lb4%=:\n\t"
+        "mov{q 48(%[src0]), %[r8]| %[r8], [%[src0] + 48]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 40(%[src1]), %[r11]| %[r11], [%[src1] + 40]}\n\t"
+        "mov{q %[r9], 32(%[dst])| [%[dst] + 32], %[r9]}\n\t"
+
+        ".Lb3%=:\n\t"
+        "mov{q 56(%[src0]), %[r10]| %[r10], [%[src0] + 56]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 48(%[src1]), %[r8]| %[r8], [%[src1] + 48]}\n\t"
+        "mov{q %[r11], 40(%[dst])| [%[dst] + 40], %[r11]}\n\t"
+
+        // TODO : optimize pipeline
+        "lea{q 64(%[src0]), %[src0]| %[src0], [%[src0] + 64]}\n\t"
+        "lea{q 64(%[src1]), %[src1]| %[src1], [%[src1] + 64]}\n\t"
+        "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
+        "dec %[rcx]\n\t"
+        
+        "jne .Lloop%=\n\t"
+
+        WJR_PP_STR(WJR_adcsbb) "{q -8(%[src1]), %[r10]| %[r10], [%[src1] - 8]}\n\t"
+        "mov{q %[r8], -16(%[dst])| [%[dst] - 16], %[r8]}\n\t"
+        "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
+
+        ".Ldone%=:\n\t"
+        "mov{l %k[rcx], %k[r9]| %k[r9], %k[rcx]}\n\t"
+        "adc{l %k[rcx], %k[r9]| %k[r9], %k[rcx]}"
+
+        : [dst] "+r"(dst), [src0] "+r"(src0), [src1] "+r"(src1), [rcx] "+c"(rcx), 
+          [r8] "+r"(r8), [r9] "=&r"(r9), [r10] "+r"(r10), [r11] "=&r"(r11)
+        :
+        : "cc", "memory");
+
+    WJR_ASSERT_ASSUME(rcx == 0);
+    WJR_ASSERT_ASSUME(r9 <= 1);
+
+    return r9;
+}
+
+#else
+extern "C" WJR_MS_ABI uint64_t WJR_PP_CONCAT(
+    __wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(uint64_t *dst, const uint64_t *src0,
+                                                      const uint64_t *src1, size_t n,
+                                                      uint64_t c_in) noexcept;
+#endif
+
+WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(
+    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
+    uint64_t c_in) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P(n)) {
+        if (n == 1) {
+            dst[0] = WJR_PP_CONCAT(asm_, WJR_addcsubc)(src0[0], src1[0], c_in, c_in);
+            return c_in;
+        }
+    }
+
+    return WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(dst, src0,
+                                                                           src1, n, c_in);
+}
+
+#undef __WJR_TEST_ASSEMBLY
+#undef WJR_adcsbb
+#undef WJR_addcsubc
+
+#undef WJR_ADDSUB_I
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_SUB_128)
+
+WJR_INTRINSIC_INLINE void __asm_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                        uint64_t hi0, uint64_t lo1,
+                                        uint64_t hi1) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
+        asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}"
+            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
+            : [lo1] "r"(lo1), [hi1] "i"(hi1)
+            : "cc");
+        al = lo0;
+        ah = hi0;
+        return;
+    }
+    asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}"
+        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
+        : [lo1] "r"(lo1), [hi1] "r"(hi1)
+        : "cc");
+    al = lo0;
+    ah = hi0;
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_SUBC_128) || WJR_HAS_BUILTIN(__ASM_SUBC_CC_128)
+
+WJR_INTRINSIC_INLINE uint8_t __asm_subc_cc_zero_128(uint64_t &al, uint64_t &ah,
+                                                    uint64_t lo0, uint64_t hi0,
+                                                    uint64_t lo1, uint64_t hi1) noexcept {
+    uint8_t c_out;
+    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
+        asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
+            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), WJR_ASM_CCOUT(c)(c_out)
+            : [lo1] "r"(lo1), [hi1] "i"(hi1)
+            : "cc");
+        al = lo0;
+        ah = hi0;
+        return c_out;
+    }
+
+    asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
+        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), WJR_ASM_CCOUT(c)(c_out)
+        : [lo1] "r"(lo1), [hi1] "r"(hi1)
+        : "cc");
+    al = lo0;
+    ah = hi0;
+    return c_out;
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_SUBC_128)
+
+WJR_INTRINSIC_INLINE uint64_t __asm_subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                             uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                             uint64_t c_in) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 0)) {
+        return __asm_subc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
+        asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
+            "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
+            "setb %b[c_in]"
+            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in)
+            : [lo1] "r"(lo1), [hi1] "i"(hi1)
+            : "cc");
+        al = lo0;
+        ah = hi0;
+        return c_in;
+    }
+
+    asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
+        "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
+        "setb %b[c_in]"
+        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in)
+        : [lo1] "r"(lo1), [hi1] "r"(hi1)
+        : "cc");
+    al = lo0;
+    ah = hi0;
+    return c_in;
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_SUBC_CC_128)
+
+WJR_INTRINSIC_INLINE uint8_t __asm_subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                               uint8_t c_in) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 0)) {
+        return __asm_subc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
+    }
+
+    uint8_t c_out;
+    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
+        asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
+            "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
+            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in),
+              WJR_ASM_CCOUT(c)(c_out)
+            : [lo1] "r"(lo1), [hi1] "i"(hi1)
+            : "cc");
+        al = lo0;
+        ah = hi0;
+        return c_out;
+    }
+
+    asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
+        "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
+        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
+        : [lo1] "r"(lo1), [hi1] "r"(hi1)
+        : "cc");
+    al = lo0;
+    ah = hi0;
+    return c_out;
+}
+
+#endif
+
+} // namespace wjr
+
+#endif // WJR_X86_SUB_HPP__
+#endif
+
+namespace wjr {
+
+template <typename T, typename U>
+WJR_INTRINSIC_CONSTEXPR T fallback_subc(T a, T b, U c_in, U &c_out) noexcept {
+    T ret = a - b;
+    U c = ret > a;
+    a = ret;
+    ret -= c_in;
+    c |= ret > a;
+    c_out = c;
+    return ret;
+}
+
+#if WJR_HAS_BUILTIN(__builtin_subc)
+#define WJR_HAS_BUILTIN_SUBC WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(SUBC)
+
+template <typename T, typename U>
+WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+#define WJR_REGISTER_BUILTIN_SUBC(suffix, type)                                          \
+    if constexpr (nd <= std::numeric_limits<type>::digits) {                             \
+        type __c_out;                                                                    \
+        T ret = __builtin_subc##suffix(a, b, static_cast<type>(c_in), &__c_out);         \
+        c_out = static_cast<U>(__c_out);                                                 \
+        return ret;                                                                      \
+    } else
+
+    WJR_REGISTER_BUILTIN_SUBC(b, unsigned char)
+    WJR_REGISTER_BUILTIN_SUBC(s, unsigned short)
+    WJR_REGISTER_BUILTIN_SUBC(, unsigned int)
+    WJR_REGISTER_BUILTIN_SUBC(l, unsigned long)
+    WJR_REGISTER_BUILTIN_SUBC(ll, unsigned long long) {
+        static_assert(nd <= 64, "not supported yet");
+    }
+
+#undef WJR_REGISTER_BUILTIN_SUBC
+}
+
+#endif // WJR_HAS_BUILTIN(SUBC)
+
+template <typename T, typename U,
+          WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
+WJR_INTRINSIC_CONSTEXPR20 T subc(T a, T b, type_identity_t<U> c_in, U &c_out) noexcept {
+    WJR_ASSERT_ASSUME_L2(c_in <= 1);
+
+#if !WJR_HAS_BUILTIN(SUBC) && !WJR_HAS_BUILTIN(ASM_SUBC)
+    return fallback_subc(a, b, c_in, c_out);
+#else
+    constexpr auto is_constant_or_zero = [](auto x) -> int {
+        return WJR_BUILTIN_CONSTANT_P(x == 0) && x == 0 ? 2
+               : WJR_BUILTIN_CONSTANT_P(x)              ? 1
+                                                        : 0;
+    };
+
+    // The compiler should be able to optimize the judgment condition of if when enabling
+    // optimization. If it doesn't work, then there should be a issue
+    if (is_constant_evaluated() ||
+        // constant value is zero or constant value number greater or equal than 2
+        (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >=
+         2)) {
+        return fallback_subc(a, b, c_in, c_out);
+    }
+
+    if constexpr (sizeof(T) == 8) {
+        return WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(ASM_SUBC), asm_subc,
+                                 WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(SUBC), builtin_subc,
+                                                fallback_subc))(a, b, c_in, c_out);
+    } else {
+        return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(SUBC), builtin_subc,
+                              fallback_subc)(a, b, c_in, c_out);
+    }
+#endif
+}
+
+/*
+ Used for subc and then jump according to cc flag. Therefore, the types of c_in and
+ c_out are limited to uint8_t, while the default c_in and c_out types of normal subc are
+ the same as T, so that the high register is not cleared. Currently, GCC/Clang @=cccond
+ cannot know that the high register is not cleared, so the performance is worse than the
+ normal version when cc flag is not needed immediately.
+*/
+template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+WJR_INTRINSIC_CONSTEXPR20 T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noexcept {
+    WJR_ASSERT_ASSUME_L2(c_in <= 1);
+
+#if WJR_HAS_BUILTIN(ASM_SUBC_CC)
+    constexpr auto is_constant_or_zero = [](auto x) -> int {
+        return WJR_BUILTIN_CONSTANT_P(x == 0) && x == 0 ? 2
+               : WJR_BUILTIN_CONSTANT_P(x)              ? 1
+                                                        : 0;
+    };
+
+    // The compiler should be able to optimize the judgment condition of if when enabling
+    // optimization. If it doesn't work, then there should be a issue
+    if (is_constant_evaluated() ||
+        // constant value is zero or constant value number greater or equal than 2
+        (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >=
+         2)) {
+        return fallback_subc(a, b, c_in, c_out);
+    }
+
+    if constexpr (sizeof(T) == 8) {
+        return asm_subc_cc(a, b, c_in, c_out);
+    } else {
+        return subc(a, b, c_in, c_out);
+    }
+#else
+    return subc(a, b, c_in, c_out);
+#endif
+}
+
+#if WJR_HAS_BUILTIN(__builtin_sub_overflow)
+#define WJR_HAS_BUILTIN_SUB_OVERFLOW WJR_HAS_DEF
+#endif
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR20 bool fallback_sub_overflow(T a, T b, T &ret) noexcept {
+    ret = a - b;
+    return ret > a;
+}
+
+template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+WJR_INTRINSIC_CONSTEXPR20 bool sub_overflow(type_identity_t<T> a, type_identity_t<T> b,
+                                            T &ret) noexcept {
+#if WJR_HAS_BUILTIN(SUB_OVERFLOW)
+    if (is_constant_evaluated() ||
+        (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
+        return fallback_sub_overflow(a, b, ret);
+    }
+
+    return __builtin_sub_overflow(a, b, &ret);
+#else
+    return fallback_sub_overflow(a, b, ret);
+#endif
+}
+
+template <typename U>
+WJR_INTRINSIC_CONSTEXPR20 U __subc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
+                                          uint64_t src1, U c_in) noexcept {
+    uint8_t overflow = 0;
+    dst[0] = subc_cc(src0[0], src1, c_in, overflow);
+
+    if (overflow) {
+        size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, 0, in_place_max);
+
+        if (WJR_UNLIKELY(idx == n)) {
+            return static_cast<U>(1);
+        }
+
+        dst[idx] = src0[idx] - 1;
+
+        dst += idx;
+        src0 += idx;
+        n -= idx;
+    }
+
+    if (src0 != dst) {
+        std::copy(src0 + 1, src0 + n, dst + 1);
+    }
+
+    return static_cast<U>(0);
+}
+
+/*
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+*/
+template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
+WJR_INTRINSIC_CONSTEXPR20 U subc_1(uint64_t *dst, const uint64_t *src0, size_t n,
+                                   uint64_t src1, U c_in) noexcept {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == 1)) {
+        uint8_t overflow = 0;
+        dst[0] = subc_cc(src0[0], src1, c_in, overflow);
+        return static_cast<U>(overflow);
+    }
+
+    return __subc_1_impl(dst, src0, n, src1, c_in);
+}
+
+template <typename U>
+WJR_INTRINSIC_CONSTEXPR U fallback_subc_n(uint64_t *dst, const uint64_t *src0,
+                                          const uint64_t *src1, size_t n,
+                                          U c_in) noexcept {
+    size_t m = n / 4;
+
+    for (size_t i = 0; i < m; ++i) {
+        dst[0] = subc(src0[0], src1[0], c_in, c_in);
+        dst[1] = subc(src0[1], src1[1], c_in, c_in);
+        dst[2] = subc(src0[2], src1[2], c_in, c_in);
+        dst[3] = subc(src0[3], src1[3], c_in, c_in);
+
+        dst += 4;
+        src0 += 4;
+        src1 += 4;
+    }
+
+    n &= 3;
+    if (WJR_UNLIKELY(n == 0)) {
+        return c_in;
+    }
+
+    dst += n;
+    src0 += n;
+    src1 += n;
+
+    switch (n) {
+    case 3: {
+        dst[-3] = subc(src0[-3], src1[-3], c_in, c_in);
+        WJR_FALLTHROUGH;
+    }
+    case 2: {
+        dst[-2] = subc(src0[-2], src1[-2], c_in, c_in);
+        WJR_FALLTHROUGH;
+    }
+    case 1: {
+        dst[-1] = subc(src0[-1], src1[-1], c_in, c_in);
+        WJR_FALLTHROUGH;
+    }
+    default: {
+        break;
+    }
+    }
+
+    return c_in;
+}
+
+/*
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+3. WJR_IS_SAME_OR_INCR_P(dst, n, src1, n)
+*/
+template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
+WJR_INTRINSIC_CONSTEXPR20 U subc_n(uint64_t *dst, const uint64_t *src0,
+                                   const uint64_t *src1, size_t n, U c_in) noexcept {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
+
+#if WJR_HAS_BUILTIN(ASM_SUBC_N)
+    if (is_constant_evaluated()) {
+        return fallback_subc_n(dst, src0, src1, n, c_in);
+    }
+
+    return asm_subc_n(dst, src0, src1, n, c_in);
+#else
+    return fallback_subc_n(dst, src0, src1, n, c_in);
+#endif
+}
+
+/*
+require :
+1. m >= 1
+2. n >= m
+3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
+*/
+template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
+WJR_INTRINSIC_CONSTEXPR20 U subc_s(uint64_t *dst, const uint64_t *src0, size_t n,
+                                   const uint64_t *src1, size_t m, U c_in) noexcept {
+    WJR_ASSERT_ASSUME(m >= 1);
+    WJR_ASSERT_ASSUME(n >= m);
+
+    c_in = subc_n(dst, src0, src1, m, c_in);
+
+    if (n != m) {
+        c_in = subc_1(dst + m, src0 + m, n - m, 0, c_in);
+    }
+
+    return c_in;
+}
+
+/*
+require :
+1. n >= 0
+2. n >= m
+3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
+*/
+template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
+WJR_INTRINSIC_CONSTEXPR20 U subc_sz(uint64_t *dst, const uint64_t *src0, size_t n,
+                                    const uint64_t *src1, size_t m, U c_in) noexcept {
+    WJR_ASSERT_ASSUME(n >= m);
+
+    if (WJR_LIKELY(m != 0)) {
+        c_in = subc_n(dst, src0, src1, m, c_in);
+    }
+
+    if (n != m) {
+        c_in = subc_1(dst + m, src0 + m, n - m, 0, c_in);
+    }
+
+    return c_in;
+}
+
+WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0,
+                                             const uint64_t *src1, size_t n) noexcept {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
+
+    size_t idx = reverse_find_not_n(src0, src1, n);
+
+    if (WJR_UNLIKELY(idx != n)) {
+        set_n(dst + idx, 0, n - idx);
+
+        if (WJR_UNLIKELY(idx == 0)) {
+            return 0;
+        }
+    }
+
+    WJR_ASSUME(idx >= 1);
+
+    uint64_t hi = 0;
+    WJR_ASSUME(src0[idx - 1] != src1[idx - 1]);
+    const bool overflow = sub_overflow(src0[idx - 1], src1[idx - 1], hi);
+
+    if (overflow) {
+        std::swap(src0, src1);
+        hi = -hi;
+    }
+
+    do {
+        if (WJR_UNLIKELY(idx == 1)) {
+            dst[0] = hi;
+            break;
+        }
+
+        hi -= subc_n(dst, src0, src1, idx - 1);
+        dst[idx - 1] = hi;
+    } while (0);
+
+    return overflow ? -1 : 1;
+}
+
+WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n_pos(uint64_t *dst, const uint64_t *src0,
+                                                 const uint64_t *src1,
+                                                 size_t n) noexcept {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
+
+    size_t idx = reverse_find_not_n(src0, src1, n);
+
+    if (WJR_UNLIKELY(idx != n)) {
+        set_n(dst + idx, 0, n - idx);
+
+        if (WJR_UNLIKELY(idx == 0)) {
+            return 0;
+        }
+    }
+
+    WJR_ASSUME(idx >= 1);
+
+    uint64_t hi = 0;
+    WJR_ASSUME(src0[idx - 1] != src1[idx - 1]);
+    const bool overflow = sub_overflow(src0[idx - 1], src1[idx - 1], hi);
+
+    if (overflow) {
+        std::swap(src0, src1);
+        hi = -hi;
+    }
+
+    ssize_t ret = __fasts_from_unsigned(idx);
+    WJR_ASSUME(ret >= 1);
+
+    do {
+        if (WJR_UNLIKELY(idx == 1)) {
+            dst[0] = hi;
+            break;
+        }
+
+        WJR_ASSUME(ret >= 2);
+
+        hi -= subc_n(dst, src0, src1, idx - 1);
+
+        if (WJR_LIKELY(hi != 0)) {
+            dst[idx - 1] = hi;
+        } else {
+            --ret;
+        }
+    } while (0);
+
+    WJR_ASSUME(ret > 0);
+    return overflow ? -ret : ret;
+}
+
+WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s1(uint64_t *dst, const uint64_t *src0,
+                                              size_t n, const uint64_t *src1,
+                                              size_t m) noexcept {
+    WJR_ASSERT_ASSUME(m >= 1);
+    WJR_ASSERT_ASSUME(n >= m);
+
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == m)) {
+        return abs_subc_n(dst, src0, src1, m);
+    }
+
+    WJR_ASSERT(n - m <= 1);
+
+    do {
+        if (n == m) {
+            break;
+        }
+
+        if (WJR_UNLIKELY(src0[m] == 0)) {
+            dst[m] = 0;
+            break;
+        }
+
+        uint64_t hi = src0[m];
+        hi -= subc_n(dst, src0, src1, m);
+        dst[m] = hi;
+        return 1;
+    } while (0);
+
+    return abs_subc_n(dst, src0, src1, m);
+}
+
+WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s(uint64_t *dst, const uint64_t *src0,
+                                             size_t n, const uint64_t *src1,
+                                             size_t m) noexcept {
+    WJR_ASSERT_ASSUME(m >= 1);
+    WJR_ASSERT_ASSUME(n >= m);
+
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == m)) {
+        return abs_subc_n(dst, src0, src1, m);
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n - m <= 1)) {
+        return abs_subc_s1(dst, src0, n, src1, m);
+    }
+
+    size_t idx = reverse_replace_find_not(dst + m, src0 + m, n - m, 0, 0);
+
+    if (WJR_UNLIKELY(idx == 0)) {
+        return abs_subc_n(dst, src0, src1, m);
+    }
+
+    (void)subc_s(dst, src0, m + idx, src1, m);
+    return 1;
+}
+
+WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s_pos(uint64_t *dst, const uint64_t *src0,
+                                                 size_t n, const uint64_t *src1,
+                                                 size_t m) noexcept {
+    WJR_ASSERT_ASSUME(m >= 1);
+    WJR_ASSERT_ASSUME(n >= m);
+
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == m)) {
+        return abs_subc_n_pos(dst, src0, src1, m);
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n - m <= 1)) {
+        do {
+            if (n == m) {
+                break;
+            }
+
+            if (WJR_UNLIKELY(src0[m] == 0)) {
+                dst[m] = 0;
+                break;
+            }
+
+            uint64_t hi = src0[m];
+            hi -= subc_n(dst, src0, src1, m);
+            ssize_t ret = __fasts_from_unsigned(m + 1);
+
+            if (WJR_LIKELY(hi != 0)) {
+                dst[m] = hi;
+            } else {
+                --ret;
+            }
+
+            WJR_ASSUME(ret > 0);
+            return ret;
+        } while (0);
+
+        return abs_subc_n_pos(dst, src0, src1, m);
+    }
+
+    size_t idx = reverse_replace_find_not(dst + m, src0 + m, n - m, 0, 0);
+
+    if (WJR_UNLIKELY(idx == 0)) {
+        return abs_subc_n_pos(dst, src0, src1, m);
+    }
+
+    (void)subc_s(dst, src0, m + idx, src1, m);
+    uint64_t ret = __fasts_from_unsigned(m + idx);
+    WJR_ASSUME(ret >= 2);
+    ret -= dst[m + idx - 1] == 0;
+    WJR_ASSUME(ret >= 1);
+    return ret;
+}
+
+// just like abs_subc_n.
+template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
+WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0,
+                                             const uint64_t *src1, size_t n, U &c_out,
+                                             type_identity_t<U> cf0,
+                                             type_identity_t<U> cf1) noexcept {
+    WJR_ASSERT_ASSUME(n >= 1);
+    if (cf0 != cf1) {
+        ssize_t ret = __fasts_from_unsigned(n);
+        U cf = 0;
+        if (cf0 < cf1) {
+            std::swap(src0, src1);
+            ret = __fasts_negate(ret);
+            cf = cf1 - cf0;
+        } else {
+            cf = cf0 - cf1;
+        }
+
+        c_out = cf - subc_n(dst, src0, src1, n);
+        return ret;
+    } else {
+        c_out = 0;
+        return abs_subc_n(dst, src0, src1, n);
+    }
+}
+
+WJR_INTRINSIC_CONSTEXPR void __fallback_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                                uint64_t hi0, uint64_t lo1,
+                                                uint64_t hi1) noexcept {
+    uint64_t __al = lo0 - lo1;
+    ah = hi0 - hi1 - (__al > lo0);
+    al = __al;
+}
+
+#if WJR_HAS_FEATURE(FAST_INT128_ADDSUB)
+#define WJR_HAS_BUILTIN___BUILTIN_SUB_128 WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(__BUILTIN_SUBC_128)
+
+WJR_INTRINSIC_INLINE void __builtin_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                            uint64_t hi0, uint64_t lo1,
+                                            uint64_t hi1) noexcept {
+    const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
+    const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
+    x0 -= x1;
+
+    al = x0;
+    ah = x0 >> 64;
+}
+
+#endif
+
+// <ah, al> = <hi0, lo0> - <hi1, lo1>
+WJR_INTRINSIC_CONSTEXPR20 void __sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                         uint64_t hi0, uint64_t lo1,
+                                         uint64_t hi1) noexcept {
+#if WJR_HAS_BUILTIN(__BUILTIN_SUB_128) || WJR_HAS_BUILTIN(__ASM_SUB_128)
+    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P_TRUE(lo0 == 0) ||
+        WJR_BUILTIN_CONSTANT_P_TRUE(lo1 == 0) || WJR_BUILTIN_CONSTANT_P(lo0 + hi0)) {
+        return __fallback_sub_128(al, ah, lo0, hi0, lo1, hi1);
+    }
+
+    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_SUB_128), __builtin_sub_128,
+                          __asm_sub_128)(al, ah, lo0, hi0, lo1, hi1);
+#else
+    return __fallback_sub_128(al, ah, lo0, hi0, lo1, hi1);
+#endif
+}
+
+WJR_INTRINSIC_CONSTEXPR20 uint64_t __fallback_subc_128(uint64_t &al, uint64_t &ah,
+                                                       uint64_t lo0, uint64_t hi0,
+                                                       uint64_t lo1, uint64_t hi1,
+                                                       uint64_t c_in) noexcept {
+    al = subc(lo0, lo1, c_in, c_in);
+    ah = subc(hi0, hi1, c_in, c_in);
+    return c_in;
+}
+
+// return c_out
+WJR_INTRINSIC_CONSTEXPR20 uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                              uint64_t c_in) noexcept {
+#if WJR_HAS_BUILTIN(__ASM_SUBC_128)
+    if (is_constant_evaluated()) {
+        return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+    }
+
+    return __asm_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+#else
+    return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+#endif
+}
+
+WJR_INTRINSIC_CONSTEXPR20 uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                                uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                                uint8_t c_in) noexcept {
+#if WJR_HAS_BUILTIN(__ASM_SUBC_CC_128)
+    if (is_constant_evaluated()) {
+        return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+    }
+
+    return __asm_subc_cc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+#else
+    return fast_cast<uint8_t>(__subc_128(al, ah, lo0, hi0, lo1, hi1, c_in));
+#endif
+}
+
+} // namespace wjr
+
+#endif // WJR_MATH_SUB_HPP__
 #ifndef WJR_MEMORY_SAFE_POINTER_HPP__
 #define WJR_MEMORY_SAFE_POINTER_HPP__
 
@@ -22705,6 +21890,3184 @@ WJR_INTRINSIC_INLINE void basecase_sqr(uint64_t *WJR_RESTRICT dst, const uint64_
 } // namespace wjr
 
 #endif // WJR_MATH_MUL_HPP__
+// Already included
+
+#if defined(WJR_X86)
+#ifndef WJR_X86_FORMAT_CHARCONV_HPP__
+#define WJR_X86_FORMAT_CHARCONV_HPP__
+
+// Already included
+// Already included
+
+#ifndef WJR_X86
+#error "x86 required"
+#endif
+
+namespace wjr {
+
+#if WJR_HAS_SIMD(SSE4_1)
+#define WJR_HAS_BUILTIN_TO_CHARS_UNROLL_8_FAST WJR_HAS_DEF
+
+#define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_8_FAST WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_16_FAST WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
+
+namespace to_chars_detail {
+
+const static __m128i mul10p4 = simd_cast<uint32_t, __m128i_t>(3518437209);
+const static __m128i mul10p4x = simd_cast<uint32_t, __m128i_t>(10000);
+const static __m128i mul10p2 = sse::set1_epi16(5243);
+const static __m128i mul10p2x = sse::set1_epi16(100);
+const static __m128i mul10p1 = sse::set1_epi16((short)52429u);
+const static __m128i mul10p1x = sse::set1_epi16(10);
+
+const static __m128i shuf =
+    sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
+
+} // namespace to_chars_detail
+
+#endif
+
+#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
+
+inline uint64_t builtin_to_chars_unroll_8_fast_10(uint32_t in) noexcept {
+
+    __m128i x = simd_cast<uint32_t, __m128i_t>(in);
+    __m128i q, r;
+
+    q = _mm_mul_epu32(x, to_chars_detail::mul10p4);
+    q = _mm_srli_epi64(q, 45);
+
+    r = _mm_sub_epi32(x, _mm_mul_epu32(q, to_chars_detail::mul10p4x));
+    x = _mm_packus_epi32(q, r);
+
+    q = _mm_mulhi_epu16(x, to_chars_detail::mul10p2);
+    q = _mm_srli_epi16(q, 3);
+
+    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, to_chars_detail::mul10p2x));
+    x = _mm_packus_epi16(q, r);
+
+    q = _mm_mulhi_epu16(x, to_chars_detail::mul10p1);
+    q = _mm_srli_epi16(q, 3);
+
+    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, to_chars_detail::mul10p1x));
+    x = _mm_packus_epi16(q, r);
+
+    return simd_cast<__m128i_t, uint64_t>(sse::shuffle_epi8(x, to_chars_detail::shuf));
+}
+
+template <uint64_t Base>
+uint64_t builtin_to_chars_unroll_8_fast(uint32_t in) noexcept {
+    if constexpr (Base == 10) {
+        return builtin_to_chars_unroll_8_fast_10(in);
+    } else {
+        static_assert(Base == 10, "");
+    }
+}
+
+template <uint64_t Base>
+void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, char_converter_t) noexcept {
+    const uint64_t x = builtin_to_chars_unroll_8_fast<Base>(in) + 0x3030303030303030ull;
+    write_memory<uint64_t>(ptr, x);
+}
+
+template <uint64_t Base>
+void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, origin_converter_t) noexcept {
+    const uint64_t x = builtin_to_chars_unroll_8_fast<Base>(in);
+    write_memory<uint64_t>(ptr, x);
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST) ||                                         \
+    WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
+
+namespace from_chars_detail {
+
+/// @private
+template <uint64_t Base>
+inline constexpr uint64_t __base2 = Base * Base;
+
+/// @private
+template <uint64_t Base>
+inline constexpr uint64_t __base4 = __base2<Base> * __base2<Base>;
+
+/// @private
+template <uint64_t Base>
+inline constexpr uint64_t __base8 = __base4<Base> * __base4<Base>;
+
+/// @private
+template <uint64_t Base>
+const static __m128i mulp1x = sse::setr_epi8(Base, 1, Base, 1, Base, 1, Base, 1, Base, 1,
+                                             Base, 1, Base, 1, Base, 1);
+
+/// @private
+template <uint64_t Base>
+const static __m128i mulp2x = sse::setr_epi16(__base2<Base>, 1, __base2<Base>, 1,
+                                              __base2<Base>, 1, __base2<Base>, 1);
+
+/// @private
+template <uint64_t Base>
+const static __m128i mulp4x = sse::setr_epi16(__base4<Base>, 1, __base4<Base>, 1,
+                                              __base4<Base>, 1, __base4<Base>, 1);
+
+/// @private
+template <uint64_t Base>
+const static __m128i baseu8 =
+    sse::setr_epi8(Base, Base, Base, Base, Base, Base, Base, 0xff, 0xff, 0xff, 0xff, 0xff,
+                   0xff, 0xff, 0xff, 0xff);
+
+/// @private
+static __m128i ascii = sse::set1_epi8(0x30);
+
+} // namespace from_chars_detail
+
+#endif
+
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
+
+template <uint64_t Base>
+uint32_t builtin_from_chars_unroll_8_fast(__m128i in) noexcept {
+    const __m128i t1 = _mm_maddubs_epi16(in, from_chars_detail::mulp1x<Base>);
+    const __m128i t2 = _mm_madd_epi16(t1, from_chars_detail::mulp2x<Base>);
+    const __m128i t3 = _mm_packus_epi32(t2, t2);
+    const __m128i t4 = _mm_madd_epi16(t3, from_chars_detail::mulp4x<Base>);
+
+    return simd_cast<__m128i_t, uint32_t>(t4);
+}
+
+template <uint64_t Base>
+uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, char_converter_t) noexcept {
+    static_assert(Base <= 10, "");
+    const __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), from_chars_detail::ascii);
+    return builtin_from_chars_unroll_8_fast<Base>(in);
+}
+
+template <uint64_t Base>
+uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, origin_converter_t) noexcept {
+    static_assert(Base <= 10, "");
+    const __m128i in = sse::loadu_si64(ptr);
+    return builtin_from_chars_unroll_8_fast<Base>(in);
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
+
+template <uint64_t Base>
+uint64_t builtin_from_chars_unroll_16_fast(__m128i in) noexcept {
+    const __m128i t1 = _mm_maddubs_epi16(in, from_chars_detail::mulp1x<Base>);
+    const __m128i t2 = _mm_madd_epi16(t1, from_chars_detail::mulp2x<Base>);
+    const __m128i t3 = _mm_packus_epi32(t2, t2);
+    const __m128i t4 = _mm_madd_epi16(t3, from_chars_detail::mulp4x<Base>);
+
+    const uint64_t val = simd_cast<__m128i_t, uint64_t>(t4);
+    const auto lo = static_cast<uint32_t>(val);
+    const auto hi = static_cast<uint32_t>(val >> 32);
+
+    return lo * from_chars_detail::__base8<Base> + hi;
+}
+
+template <uint64_t Base>
+uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, char_converter_t) noexcept {
+    static_assert(Base <= 10, "");
+    const __m128i in = _mm_sub_epi8(sse::loadu(ptr), from_chars_detail::ascii);
+    return builtin_from_chars_unroll_16_fast<Base>(in);
+}
+
+template <uint64_t Base>
+uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, origin_converter_t) noexcept {
+    static_assert(Base <= 10, "");
+    const __m128i in = sse::loadu(ptr);
+    return builtin_from_chars_unroll_16_fast<Base>(in);
+}
+
+#endif
+
+} // namespace wjr
+
+#endif // WJR_X86_FORMAT_CHARCONV_HPP__
+#endif
+
+namespace wjr {
+
+static_assert(sizeof(char) == sizeof(uint8_t), "Not support currently.");
+
+namespace convert_detail {
+
+WJR_CONST constexpr bool __isspace(uint8_t ch) noexcept {
+    return char_converter.from(ch) == 64;
+}
+
+template <typename T>
+struct __is_fast_convert_value
+    : std::conjunction<std::is_trivial<T>, std::bool_constant<sizeof(T) == 1>> {};
+
+template <typename T>
+inline constexpr bool __is_fast_convert_value_v = __is_fast_convert_value<T>::value;
+
+template <typename Iter, typename = void>
+struct __is_fast_convert_iterator_helper : std::false_type {};
+
+template <typename Iter>
+struct __is_fast_convert_iterator_helper<Iter,
+                                         std::enable_if_t<is_contiguous_iterator_v<Iter>>>
+    : __is_fast_convert_value<iterator_contiguous_value_t<Iter>> {};
+
+template <typename Iter>
+struct __is_fast_convert_iterator : __is_fast_convert_iterator_helper<Iter> {};
+
+/**
+ * @brief Iterator concept that can be used in fast_convert.
+ *
+ * @detail The iterator must be contiguous iterator and the value_type must be
+ * trivial and sizeof(value_type) == 1. Cast to_address(iter) to uint8_t*(to_chars)/const
+ * uint8_t*(from_chars) in fast_convert.
+ *
+ */
+template <typename Iter>
+inline constexpr bool __is_fast_convert_iterator_v =
+    __is_fast_convert_iterator<Iter>::value;
+
+template <typename Value, typename Converter>
+struct __is_valid_converter : std::false_type {};
+
+template <typename Value>
+struct __is_valid_converter<Value, char_converter_t> : is_nonbool_integral<Value> {};
+
+template <typename Value>
+struct __is_valid_converter<Value, origin_converter_t>
+    : is_nonbool_unsigned_integral<Value> {};
+
+template <typename Value, typename Converter>
+inline constexpr bool __is_valid_converter_v =
+    __is_valid_converter<Value, Converter>::value;
+
+WJR_REGISTER_HAS_TYPE(to_chars_fast_fn_fast_conv,
+                      MyBase::__fast_conv(std::declval<void *>(),
+                                          std::declval<Args>()...),
+                      MyBase);
+
+WJR_REGISTER_HAS_TYPE(from_chars_fast_fn_fast_conv,
+                      MyBase::__fast_conv(std::declval<const void *>(),
+                                          std::declval<Args>()...),
+                      MyBase);
+
+template <typename Iter, typename = void>
+struct fast_buffer {
+private:
+    using value_type = iterator_value_t<Iter>;
+
+public:
+    using type =
+        std::conditional_t<__is_fast_convert_value_v<value_type>, value_type, char>;
+};
+
+// back_inserter or inserter
+template <typename Iter>
+struct fast_buffer<Iter, std::enable_if_t<is_any_insert_iterator_v<Iter>>> {
+private:
+    using value_type = typename Iter::container_type::value_type;
+
+public:
+    using type =
+        std::conditional_t<__is_fast_convert_value_v<value_type>, value_type, char>;
+};
+
+template <typename Iter>
+using fast_buffer_t = typename fast_buffer<Iter>::type;
+
+template <typename Container>
+struct __fast_container_inserter_test {
+private:
+    using traits_type = container_traits<Container>;
+
+public:
+    static constexpr int value =
+        traits_type::is_trivially_contiguous_v &&
+                has_container_resize_v<Container, size_t>
+            ? (has_container_resize_v<Container, size_t, dctor_t> ? 2 : 1)
+            : 0;
+
+    static_assert(value != 2 || has_container_append_v<Container, size_t, dctor_t>, "");
+};
+
+template <typename Iter, typename = void>
+struct __is_fast_container_inserter {
+    static constexpr int value = 0;
+};
+
+template <typename Iter>
+struct __is_fast_container_inserter<
+    Iter,
+    std::void_t<
+        decltype(std::declval<std::enable_if_t<is_any_insert_iterator_v<Iter>>>(),
+                 __fast_container_inserter_test<typename Iter::container_type>::value)>> {
+private:
+    using container_type = typename Iter::container_type;
+
+public:
+    static constexpr int value =
+        __is_fast_convert_value_v<typename container_type::value_type> &&
+                is_trivially_allocator_constructible_v<
+                    typename container_type::allocator_type>
+            ? __fast_container_inserter_test<container_type>::value
+            : 0;
+};
+
+template <typename Iter>
+inline constexpr int is_fast_container_inserter_v =
+    __is_fast_container_inserter<Iter>::value;
+
+} // namespace convert_detail
+
+// require operator() of Converter is constexpr
+template <typename Converter, uint64_t Base, int Unroll>
+class __char_converter_table_t {
+    static constexpr uint64_t pw2 = Unroll == 2 ? Base * Base : Base * Base * Base * Base;
+
+public:
+    constexpr __char_converter_table_t() : table() {
+        for (uint64_t i = 0, j = 0; i < pw2; ++i, j += Unroll) {
+            int x = i;
+            for (int k = Unroll - 1; ~k; --k) {
+                table[j + k] = Converter::to(x % Base);
+                x /= Base;
+            }
+        }
+    }
+
+    WJR_CONST constexpr char operator[](unsigned int idx) const noexcept {
+        return table[idx];
+    }
+
+    WJR_CONST constexpr const char *data() const noexcept { return table.data(); }
+
+private:
+    std::array<char, pw2 * Unroll> table;
+};
+
+template <typename Converter, uint64_t Base, int Unroll>
+inline constexpr __char_converter_table_t<Converter, Base, Unroll>
+    __char_converter_table{};
+
+template <uint64_t Base>
+class __to_chars_unroll_2_fast_fn_impl_base {
+public:
+    template <typename Converter>
+    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
+                                                 Converter) noexcept {
+        const auto str = (char *)ptr;
+        if constexpr (Base * Base <= 16) {
+            constexpr auto &table = __char_converter_table<Converter, Base, 4>;
+            std::memcpy(str, table.data() + val * 4 + 2, 2);
+        } else {
+            constexpr auto &table = __char_converter_table<Converter, Base, 2>;
+            std::memcpy(str, table.data() + val * 2, 2);
+        }
+    }
+};
+
+template <uint64_t Base>
+class __to_chars_unroll_2_fast_fn_impl {};
+
+template <>
+class __to_chars_unroll_2_fast_fn_impl<2>
+    : public __to_chars_unroll_2_fast_fn_impl_base<2> {};
+
+template <>
+class __to_chars_unroll_2_fast_fn_impl<8>
+    : public __to_chars_unroll_2_fast_fn_impl_base<8> {};
+
+template <>
+class __to_chars_unroll_2_fast_fn_impl<10>
+    : public __to_chars_unroll_2_fast_fn_impl_base<10> {};
+
+template <>
+class __to_chars_unroll_2_fast_fn_impl<16>
+    : public __to_chars_unroll_2_fast_fn_impl_base<16> {};
+
+template <uint64_t Base>
+class __to_chars_unroll_4_fast_fn_impl_base {
+public:
+    template <typename Converter>
+    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
+                                                 Converter) noexcept {
+        auto str = (char *)ptr;
+        if constexpr (Base * Base <= 16) {
+            constexpr auto &table = __char_converter_table<Converter, Base, 4>;
+            std::memcpy(str, table.data() + val * 4, 4);
+        } else {
+            constexpr auto &table = __char_converter_table<Converter, Base, 2>;
+            constexpr auto Base2 = Base * Base;
+            const uint32_t hi = val / Base2;
+            const uint32_t lo = val % Base2;
+
+            std::memcpy(str, table.data() + hi * 2, 2);
+            std::memcpy(str + 2, table.data() + lo * 2, 2);
+        }
+    }
+};
+
+template <uint64_t Base>
+class __to_chars_unroll_4_fast_fn_impl {};
+
+template <>
+class __to_chars_unroll_4_fast_fn_impl<2>
+    : public __to_chars_unroll_4_fast_fn_impl_base<2> {};
+
+template <>
+class __to_chars_unroll_4_fast_fn_impl<8>
+    : public __to_chars_unroll_4_fast_fn_impl_base<8> {};
+
+template <>
+class __to_chars_unroll_4_fast_fn_impl<10>
+    : public __to_chars_unroll_4_fast_fn_impl_base<10> {};
+
+template <>
+class __to_chars_unroll_4_fast_fn_impl<16>
+    : public __to_chars_unroll_4_fast_fn_impl_base<16> {};
+
+template <uint64_t Base>
+class __to_chars_unroll_8_fast_fn_impl_base {
+#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
+public:
+    template <typename Converter>
+    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint64_t val,
+                                                 Converter conv) noexcept {
+        builtin_to_chars_unroll_8_fast<Base>(ptr, static_cast<uint32_t>(val), conv);
+    }
+#endif
+};
+
+template <uint64_t Base>
+class __to_chars_unroll_8_fast_fn_impl {};
+
+template <>
+class __to_chars_unroll_8_fast_fn_impl<10>
+    : public __to_chars_unroll_8_fast_fn_impl_base<10> {};
+
+template <uint64_t Base>
+class __to_chars_unroll_2_fn : public __to_chars_unroll_2_fast_fn_impl<Base> {
+    using Mybase = __to_chars_unroll_2_fast_fn_impl<Base>;
+
+public:
+    template <typename Converter>
+    WJR_INTRINSIC_INLINE void operator()(uint8_t *ptr, uint32_t val,
+                                         Converter conv) const noexcept {
+        if constexpr (convert_detail::has_to_chars_fast_fn_fast_conv_v<Mybase, uint32_t,
+                                                                       Converter>) {
+            Mybase::__fast_conv(ptr, val, conv);
+        } else {
+            ptr[0] = conv.template to<Base>(val / Base);
+            ptr[1] = conv.template to<Base>(val % Base);
+        }
+    }
+};
+
+template <uint64_t Base>
+inline constexpr __to_chars_unroll_2_fn<Base> __to_chars_unroll_2{};
+
+template <uint64_t Base>
+class __to_chars_unroll_4_fn_impl : public __to_chars_unroll_4_fast_fn_impl<Base> {
+    using Mybase = __to_chars_unroll_4_fast_fn_impl<Base>;
+
+public:
+    template <typename Converter>
+    WJR_INTRINSIC_INLINE void operator()(uint8_t *ptr, uint32_t val,
+                                         Converter conv) const noexcept {
+        if constexpr (convert_detail::has_to_chars_fast_fn_fast_conv_v<Mybase, uint32_t,
+                                                                       Converter>) {
+            Mybase::__fast_conv(ptr, val, conv);
+        } else {
+            constexpr auto Base2 = Base * Base;
+            __to_chars_unroll_2<Base>(ptr, val / Base2, conv);
+            __to_chars_unroll_2<Base>(ptr + 2, val % Base2, conv);
+        }
+    }
+};
+
+template <uint64_t Base>
+inline constexpr __to_chars_unroll_4_fn_impl<Base> __to_chars_unroll_4{};
+
+template <uint64_t Base>
+class __to_chars_unroll_8_fn_impl : public __to_chars_unroll_8_fast_fn_impl<Base> {
+    using Mybase = __to_chars_unroll_8_fast_fn_impl<Base>;
+
+public:
+    template <typename Converter>
+    WJR_INTRINSIC_INLINE void operator()(uint8_t *ptr, uint64_t val,
+                                         Converter conv) const noexcept {
+        if constexpr (convert_detail::has_to_chars_fast_fn_fast_conv_v<Mybase, uint64_t,
+                                                                       Converter>) {
+            Mybase::__fast_conv(ptr, val, conv);
+        } else {
+            constexpr auto Base4 = Base * Base * Base * Base;
+            __to_chars_unroll_4<Base>(ptr, val / Base4, conv);
+            __to_chars_unroll_4<Base>(ptr + 4, val % Base4, conv);
+        }
+    }
+};
+
+template <uint64_t Base>
+inline constexpr __to_chars_unroll_8_fn_impl<Base> __to_chars_unroll_8{};
+
+template <uint64_t Base>
+class __from_chars_unroll_4_fast_fn_impl_base {
+protected:
+    WJR_CONST WJR_INTRINSIC_INLINE static uint32_t __fast_conv(uint32_t val) noexcept {
+        return digits_literal_detail::__fast_conv_4<Base>(val);
+    }
+
+public:
+    WJR_PURE WJR_INTRINSIC_INLINE static uint32_t __fast_conv(const void *ptr,
+                                                              char_converter_t) noexcept {
+        return __fast_conv(read_memory<uint32_t>(ptr) - 0x30303030u);
+    }
+
+    WJR_PURE WJR_INTRINSIC_INLINE static uint32_t
+    __fast_conv(const void *ptr, origin_converter_t) noexcept {
+        return __fast_conv(read_memory<uint32_t>(ptr));
+    }
+};
+
+template <uint64_t Base>
+class __from_chars_unroll_8_fast_fn_impl_base {
+protected:
+    WJR_CONST WJR_INTRINSIC_INLINE static uint32_t __fast_conv(uint64_t val) noexcept {
+        return digits_literal_detail::__fast_conv_8<Base>(val);
+    }
+
+public:
+    WJR_PURE WJR_INTRINSIC_INLINE static uint32_t
+    __fast_conv(const void *ptr, WJR_MAYBE_UNUSED char_converter_t conv) noexcept {
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
+        return builtin_from_chars_unroll_8_fast<Base>(ptr, conv);
+#else
+        return __fast_conv(read_memory<uint64_t>(ptr) - 0x3030303030303030ull);
+#endif
+    }
+
+    WJR_PURE WJR_INTRINSIC_INLINE static uint32_t
+    __fast_conv(const void *ptr, WJR_MAYBE_UNUSED origin_converter_t conv) noexcept {
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
+        return builtin_from_chars_unroll_8_fast<Base>(ptr, conv);
+#else
+        return __fast_conv(read_memory<uint64_t>(ptr));
+#endif
+    }
+};
+
+template <uint64_t Base>
+class __from_chars_unroll_16_fast_fn_impl_base {
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
+public:
+    template <typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr,
+                                                              Converter conv) noexcept {
+        return builtin_from_chars_unroll_16_fast<Base>(ptr, conv);
+    }
+#endif
+};
+
+template <uint64_t Base>
+class __from_chars_unroll_4_fast_fn_impl {};
+
+template <>
+class __from_chars_unroll_4_fast_fn_impl<2>
+    : public __from_chars_unroll_4_fast_fn_impl_base<2> {};
+
+template <>
+class __from_chars_unroll_4_fast_fn_impl<8>
+    : public __from_chars_unroll_4_fast_fn_impl_base<8> {};
+
+template <>
+class __from_chars_unroll_4_fast_fn_impl<10>
+    : public __from_chars_unroll_4_fast_fn_impl_base<10> {};
+
+template <uint64_t Base>
+class __from_chars_unroll_8_fast_fn_impl {};
+
+template <>
+class __from_chars_unroll_8_fast_fn_impl<2>
+    : public __from_chars_unroll_8_fast_fn_impl_base<2> {};
+
+template <>
+class __from_chars_unroll_8_fast_fn_impl<8>
+    : public __from_chars_unroll_8_fast_fn_impl_base<8> {};
+
+template <>
+class __from_chars_unroll_8_fast_fn_impl<10>
+    : public __from_chars_unroll_8_fast_fn_impl_base<10> {};
+
+template <uint64_t Base>
+class __from_chars_unroll_16_fast_fn_impl {};
+
+template <>
+class __from_chars_unroll_16_fast_fn_impl<2>
+    : public __from_chars_unroll_16_fast_fn_impl_base<2> {};
+
+template <>
+class __from_chars_unroll_16_fast_fn_impl<8>
+    : public __from_chars_unroll_16_fast_fn_impl_base<8> {};
+
+template <>
+class __from_chars_unroll_16_fast_fn_impl<10>
+    : public __from_chars_unroll_16_fast_fn_impl_base<10> {};
+
+template <uint64_t Base>
+class __from_chars_unroll_4_fn : public __from_chars_unroll_4_fast_fn_impl<Base> {
+    using Mybase = __from_chars_unroll_4_fast_fn_impl<Base>;
+
+public:
+    template <typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(const uint8_t *ptr,
+                                                      Converter conv) const noexcept {
+        if constexpr (convert_detail::has_from_chars_fast_fn_fast_conv_v<Mybase,
+                                                                         Converter>) {
+            return Mybase::__fast_conv(ptr, conv);
+        } else {
+            uint64_t value = 0;
+            value = conv.template from<Base>(*ptr++);
+            value = value * Base + conv.template from<Base>(*ptr++);
+            value = value * Base + conv.template from<Base>(*ptr++);
+            return value * Base + conv.template from<Base>(*ptr++);
+        }
+    }
+};
+
+template <uint64_t Base>
+inline constexpr __from_chars_unroll_4_fn<Base> __from_chars_unroll_4{};
+
+template <uint64_t Base>
+class __from_chars_unroll_8_fn : public __from_chars_unroll_8_fast_fn_impl<Base> {
+    using Mybase = __from_chars_unroll_8_fast_fn_impl<Base>;
+
+public:
+    template <typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(const uint8_t *ptr,
+                                                      Converter conv) const noexcept {
+        if constexpr (convert_detail::has_from_chars_fast_fn_fast_conv_v<Mybase,
+                                                                         Converter>) {
+            return Mybase::__fast_conv(ptr, conv);
+        } else {
+            constexpr uint64_t Base4 = Base * Base * Base * Base;
+            return __from_chars_unroll_4<Base>(ptr, conv) * Base4 +
+                   __from_chars_unroll_4<Base>(ptr + 4, conv);
+        }
+    }
+};
+
+template <uint64_t Base>
+inline constexpr __from_chars_unroll_8_fn<Base> __from_chars_unroll_8{};
+
+template <uint64_t Base>
+class __from_chars_unroll_16_fn : public __from_chars_unroll_16_fast_fn_impl<Base> {
+    using Mybase = __from_chars_unroll_16_fast_fn_impl<Base>;
+
+public:
+    template <typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(const uint8_t *ptr,
+                                                      Converter conv) const noexcept {
+        if constexpr (convert_detail::has_from_chars_fast_fn_fast_conv_v<Mybase,
+                                                                         Converter>) {
+            return Mybase::__fast_conv(ptr, conv);
+        } else {
+            constexpr uint64_t Base4 = Base * Base * Base * Base;
+            constexpr uint64_t Base8 = Base4 * Base4;
+            return __from_chars_unroll_8<Base>(ptr, conv) * Base8 +
+                   __from_chars_unroll_8<Base>(ptr + 8, conv);
+        }
+    }
+};
+
+template <uint64_t Base>
+inline constexpr __from_chars_unroll_16_fn<Base> __from_chars_unroll_16{};
+
+template <typename UnsignedValue>
+constexpr int fallback_count_digits10(UnsignedValue n) noexcept {
+    int count = 1;
+
+    if (WJR_UNLIKELY(n >= 1000)) {
+        do {
+            n /= 10000;
+            count += 4;
+        } while (n >= 1000);
+
+        if (n == 0) {
+            return count;
+        }
+    }
+
+    if (n < 10) {
+        return count;
+    }
+
+    if (n < 100) {
+        return count + 1;
+    }
+
+    return count + 3;
+}
+
+inline int builtin_count_digits10_u32(uint32_t n) noexcept {
+#define WJR_INC(T) (((sizeof(#T) - 1ull) << 32) - T)
+    static constexpr uint64_t table[] = {
+        WJR_INC(0),          WJR_INC(0),          WJR_INC(0),          // 8
+        WJR_INC(10),         WJR_INC(10),         WJR_INC(10),         // 64
+        WJR_INC(100),        WJR_INC(100),        WJR_INC(100),        // 512
+        WJR_INC(1000),       WJR_INC(1000),       WJR_INC(1000),       // 4096
+        WJR_INC(10000),      WJR_INC(10000),      WJR_INC(10000),      // 32k
+        WJR_INC(100000),     WJR_INC(100000),     WJR_INC(100000),     // 256k
+        WJR_INC(1000000),    WJR_INC(1000000),    WJR_INC(1000000),    // 2048k
+        WJR_INC(10000000),   WJR_INC(10000000),   WJR_INC(10000000),   // 16M
+        WJR_INC(100000000),  WJR_INC(100000000),  WJR_INC(100000000),  // 128M
+        WJR_INC(1000000000), WJR_INC(1000000000), WJR_INC(1000000000), // 1024M
+        WJR_INC(1000000000), WJR_INC(1000000000)                       // 4B
+    };
+    const auto inc = table[clz(n | 1) ^ 31];
+    return static_cast<int>((n + inc) >> 32);
+#undef WJR_INC
+}
+
+inline int builtin_count_digits10_u64(uint64_t n) noexcept {
+#define WJR_POWERS_OF_10(factor)                                                         \
+    factor * 10, (factor)*100, (factor)*1000, (factor)*10000, (factor)*100000,           \
+        (factor)*1000000, (factor)*10000000, (factor)*100000000, (factor)*1000000000
+    static constexpr uint8_t bsr2log10[] = {
+        1,  1,  1,  2,  2,  2,  3,  3,  3,  4,  4,  4,  4,  5,  5,  5,
+        6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9,  10, 10, 10,
+        10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14, 15, 15,
+        15, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 19, 20};
+    const auto t = bsr2log10[clz(n | 1) ^ 63];
+    static constexpr const uint64_t zero_or_powers_of_10[] = {
+        0, 0, WJR_POWERS_OF_10(1U), WJR_POWERS_OF_10(1000000000ULL),
+        10000000000000000000ULL};
+    return t - (n < zero_or_powers_of_10[t]);
+#undef WJR_POWERS_OF_10
+}
+
+template <typename T>
+WJR_CONSTEXPR20 int count_digits10_impl(T n) noexcept {
+    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(n)) {
+        return fallback_count_digits10(n);
+    }
+
+    if constexpr (sizeof(T) <= sizeof(uint32_t)) {
+        return builtin_count_digits10_u32(static_cast<uint32_t>(n));
+    } else {
+        return builtin_count_digits10_u64(static_cast<uint64_t>(n));
+    }
+}
+
+template <uint64_t Base>
+struct count_digits_fn {};
+
+template <uint64_t Base>
+inline constexpr count_digits_fn<Base> count_digits{};
+
+template <>
+struct count_digits_fn<2> {
+    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
+        return bit_width(n);
+    }
+};
+
+template <>
+struct count_digits_fn<8> {
+    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
+        return __ceil_div(to_unsigned(bit_width(n)), 3);
+    }
+};
+
+template <>
+struct count_digits_fn<16> {
+    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
+        return __ceil_div(to_unsigned(bit_width(n)), 4);
+    }
+};
+
+template <>
+struct count_digits_fn<1> {
+    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n, int bits) const noexcept {
+        return (bit_width(n) + bits - 1) / bits;
+    }
+};
+
+template <>
+struct count_digits_fn<10> {
+    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
+        const int ret = count_digits10_impl(n);
+        WJR_ASSUME(1 <= ret && ret <= std::numeric_limits<T>::digits10 + 1);
+        return ret;
+    }
+};
+
+template <typename Iter>
+struct to_chars_result {
+    Iter ptr;
+    std::errc ec;
+
+    friend bool operator==(const to_chars_result &lhs,
+                           const to_chars_result &rhs) noexcept {
+        return lhs.ptr == rhs.ptr && lhs.ec == rhs.ec;
+    }
+
+    constexpr explicit operator bool() const noexcept { return ec == std::errc{}; }
+};
+
+template <typename Iter = const char *>
+struct from_chars_result {
+    Iter ptr;
+    std::errc ec;
+
+    friend bool operator==(const from_chars_result &lhs,
+                           const from_chars_result &rhs) noexcept {
+        return lhs.ptr == rhs.ptr && lhs.ec == rhs.ec;
+    }
+
+    constexpr explicit operator bool() const noexcept { return ec == std::errc{}; }
+};
+
+// Base :
+// 0 : dynamic base
+// 1 : base is power of two
+template <uint64_t Base>
+class __unsigned_to_chars_backward_unchecked_fn {};
+
+template <uint64_t Base>
+inline constexpr __unsigned_to_chars_backward_unchecked_fn<Base>
+    __unsigned_to_chars_backward_unchecked{};
+
+template <>
+class __unsigned_to_chars_backward_unchecked_fn<2> {
+public:
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x,
+                                             Converter conv) const noexcept {
+        constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
+        WJR_ASSERT_L2(x != 0);
+        WJR_ASSERT_ASSUME(1 <= n && n <= nd);
+        (void)(nd);
+
+        if (WJR_UNLIKELY(n >= 4)) {
+            do {
+                __to_chars_unroll_4<2>(ptr - 4, x & 0x0f, conv);
+                ptr -= 4;
+                x >>= 4;
+                n -= 4;
+            } while (WJR_LIKELY(n >= 4));
+
+            if (n == 0) {
+                return ptr;
+            }
+        }
+
+        switch (n) {
+        case 3: {
+            *--ptr = conv.template to<2>(x & 1);
+            x >>= 1;
+            WJR_FALLTHROUGH;
+        }
+        case 2: {
+            __to_chars_unroll_2<2>(ptr - 2, x, conv);
+            ptr -= 2;
+            break;
+        }
+        case 1: {
+            *--ptr = conv.template to<2>(x);
+            break;
+        }
+        default: {
+            WJR_UNREACHABLE();
+            break;
+        }
+        }
+
+        return ptr;
+    }
+};
+
+template <>
+class __unsigned_to_chars_backward_unchecked_fn<8> {
+public:
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x,
+                                             Converter conv) const noexcept {
+        constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
+        WJR_ASSERT_L2(x != 0);
+        WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 2) / 3);
+
+        if constexpr (nd >= 16) {
+            if (WJR_UNLIKELY(n >= 4)) {
+                do {
+                    __to_chars_unroll_4<8>(ptr - 4, x & 0x0fff, conv);
+                    ptr -= 4;
+                    x >>= 12;
+                    n -= 4;
+                } while (WJR_LIKELY(n >= 4));
+
+                if (n == 0) {
+                    return ptr;
+                }
+            }
+        }
+
+        switch (n) {
+        case 3: {
+            *--ptr = conv.template to<8>(x & 0x07);
+            x >>= 3;
+            WJR_FALLTHROUGH;
+        }
+        case 2: {
+            __to_chars_unroll_2<8>(ptr - 2, x, conv);
+            ptr -= 2;
+            break;
+        }
+        case 1: {
+            *--ptr = conv.template to<8>(x);
+            break;
+        }
+        default: {
+            WJR_UNREACHABLE();
+            break;
+        }
+        }
+
+        return ptr;
+    }
+};
+
+template <>
+class __unsigned_to_chars_backward_unchecked_fn<16> {
+public:
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x,
+                                             Converter conv) const noexcept {
+        constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
+        WJR_ASSERT_L2(x != 0);
+        WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 3) / 4);
+
+        if constexpr (nd >= 16) {
+            if (WJR_UNLIKELY(n >= 4)) {
+                do {
+                    __to_chars_unroll_4<16>(ptr - 4, x & 0xffff, conv);
+                    ptr -= 4;
+                    x >>= 16;
+                    n -= 4;
+                } while (WJR_LIKELY(n >= 4));
+
+                if (n == 0) {
+                    return ptr;
+                }
+            }
+        }
+
+        switch (n) {
+        case 3: {
+            *--ptr = conv.to(x & 0x0f);
+            x >>= 4;
+            WJR_FALLTHROUGH;
+        }
+        case 2: {
+            __to_chars_unroll_2<16>(ptr - 2, x, conv);
+            ptr -= 2;
+            break;
+        }
+        case 1: {
+            *--ptr = conv.to(x);
+            break;
+        }
+        default: {
+            WJR_UNREACHABLE();
+            break;
+        }
+        }
+
+        return ptr;
+    }
+};
+
+template <>
+class __unsigned_to_chars_backward_unchecked_fn<1> {
+public:
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x,
+                                             int bits, Converter conv) const noexcept {
+        WJR_ASSERT_L2(x != 0);
+        WJR_ASSERT_ASSUME(1 <= n && n <= std::numeric_limits<UnsignedValue>::digits);
+
+        const unsigned int mask = (1u << bits) - 1;
+
+        do {
+            *--ptr = conv.to(x & mask);
+            x >>= bits;
+            --n;
+        } while (WJR_LIKELY(n != 0));
+
+        return ptr;
+    }
+};
+
+template <>
+class __unsigned_to_chars_backward_unchecked_fn<10> {
+public:
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE uint8_t *operator()(uint8_t *ptr, UnsignedValue val,
+                                             Converter conv) const noexcept {
+        WJR_ASSERT_ASSUME(val != 0);
+
+        if (WJR_LIKELY(val >= 100)) {
+            do {
+                __to_chars_unroll_2<10>(ptr - 2, val % 100, conv);
+                ptr -= 2;
+                val /= 100;
+            } while (WJR_LIKELY(val >= 100));
+        }
+
+        if (val < 10) {
+            *--ptr = conv.template to<10>(val);
+            return ptr;
+        }
+
+        __to_chars_unroll_2<10>(ptr - 2, val, conv);
+        ptr -= 2;
+        return ptr;
+    }
+};
+
+template <typename Value, typename IBase, typename Converter>
+uint8_t *__fast_to_chars_backward_unchecked_impl(uint8_t *ptr, Value val, IBase ibase,
+                                                 Converter conv) noexcept {
+    if (WJR_UNLIKELY(val == 0)) {
+        *--ptr = conv.template to<1>(0);
+        return ptr;
+    }
+
+    auto uVal = to_unsigned(val);
+    int sign = 0;
+
+    if constexpr (std::is_signed_v<Value>) {
+        if (val < 0) {
+            sign = 1;
+            uVal = -val;
+        }
+    }
+
+    const unsigned int base = ibase;
+
+    switch (base) {
+    case 2: {
+        ptr = __unsigned_to_chars_backward_unchecked<2>(ptr, count_digits<2>(uVal), uVal,
+                                                        conv);
+        break;
+    }
+    case 8: {
+        ptr = __unsigned_to_chars_backward_unchecked<8>(ptr, count_digits<8>(uVal), uVal,
+                                                        conv);
+        break;
+    }
+    case 16: {
+        ptr = __unsigned_to_chars_backward_unchecked<16>(ptr, count_digits<16>(uVal),
+                                                         uVal, conv);
+        break;
+    }
+    case 4:
+    case 32: {
+        const int bits = base == 4 ? 2 : 5;
+        ptr = __unsigned_to_chars_backward_unchecked<1>(ptr, count_digits<1>(uVal, bits),
+                                                        uVal, bits, conv);
+        break;
+    }
+    case 10: {
+        ptr = __unsigned_to_chars_backward_unchecked<10>(ptr, uVal, conv);
+        break;
+    }
+    default: {
+        WJR_UNREACHABLE();
+    }
+    }
+
+    if constexpr (std::is_signed_v<Value>) {
+        if (sign) {
+            *--ptr = '-';
+        }
+    }
+
+    return ptr;
+}
+
+template <typename Iter, typename Value, typename IBase, typename Converter>
+Iter __to_chars_backward_unchecked_impl(Iter first, Value val, IBase ibase,
+                                        Converter conv) noexcept {
+    const auto __ptr = reinterpret_cast<uint8_t *>(wjr::to_address(first));
+    const auto __end = __fast_to_chars_backward_unchecked_impl(__ptr, val, ibase, conv);
+    return first + std::distance(__ptr, __end);
+}
+
+/**
+ * @brief Convert an unsigned integer to a string in reverse order without checking
+ * buf size.
+ *
+ * @detail Only use fast_convert mode.
+ *
+ */
+template <typename Iter, typename Value, unsigned int IBase = 10,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_detail::__is_fast_convert_iterator_v<Iter>
+                           &&convert_detail::__is_valid_converter_v<Value, Converter>)>
+Iter to_chars_backward_unchecked(Iter first, Value val,
+                                 integral_constant<unsigned int, IBase> ic = {},
+                                 Converter conv = {}) noexcept {
+    return __to_chars_backward_unchecked_impl(first, val, ic, conv);
+}
+
+template <typename Iter, typename Value, typename Converter>
+Iter to_chars_backward_unchecked_dynamic(Iter first, Value val, unsigned int base,
+                                         Converter conv) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            return to_chars_backward_unchecked(first, val, 2_u, conv);
+        }
+        case 8: {
+            return to_chars_backward_unchecked(first, val, 8_u, conv);
+        }
+        case 16: {
+            return to_chars_backward_unchecked(first, val, 16_u, conv);
+        }
+        case 10: {
+            return to_chars_backward_unchecked(first, val, 10_u, conv);
+        }
+        default: {
+            break;
+        }
+        }
+    }
+
+    return __to_chars_backward_unchecked_impl(first, val, base, conv);
+}
+
+/**
+ * @brief Convert an unsigned integer to a string in reverse order without checking
+ * buf size.
+ *
+ *
+ */
+template <typename Iter, typename Value, typename IBase,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_detail::__is_fast_convert_iterator_v<Iter>
+                           &&convert_detail::__is_valid_converter_v<Value, Converter>
+                               &&is_nonbool_integral_v<IBase>)>
+Iter to_chars_backward_unchecked(Iter first, Value val, IBase base,
+                                 Converter conv = {}) noexcept {
+    return to_chars_backward_unchecked_dynamic(first, val,
+                                               static_cast<unsigned int>(base), conv);
+}
+
+template <typename Value, typename IBase, typename Converter>
+to_chars_result<uint8_t *> __fast_to_chars_impl(uint8_t *first, uint8_t *last, Value val,
+                                                IBase ibase, Converter conv) noexcept {
+    if (WJR_UNLIKELY(val == 0)) {
+        if (WJR_UNLIKELY(first == last)) {
+            return {last, std::errc::value_too_large};
+        }
+
+        *first++ = conv.template to<1>(0);
+        return {first, std::errc{}};
+    }
+
+    auto uVal = to_unsigned(val);
+
+    if constexpr (std::is_signed_v<Value>) {
+        if (val < 0) {
+            if (WJR_UNLIKELY(first == last)) {
+                return {last, std::errc::value_too_large};
+            }
+
+            *first++ = '-';
+            uVal = -val;
+        }
+    }
+
+    const unsigned int base = ibase;
+    const auto size = std::distance(first, last);
+
+#define WJR_TO_CHARS_VALIDATE_IMPL(BASE, DIGITS, CALL)                                   \
+    const int n = count_digits<BASE> DIGITS;                                             \
+    if (WJR_LIKELY(n <= size)) {                                                         \
+        first += n;                                                                      \
+        (void)__unsigned_to_chars_backward_unchecked<BASE>(                              \
+            first, WJR_PP_QUEUE_EXPAND(CALL), conv);                                     \
+        return {first, std::errc{}};                                                     \
+    }                                                                                    \
+    return { last, std::errc::value_too_large }
+
+    switch (base) {
+    case 2: {
+        WJR_TO_CHARS_VALIDATE_IMPL(2, (uVal), (n, uVal));
+    }
+    case 8: {
+        WJR_TO_CHARS_VALIDATE_IMPL(8, (uVal), (n, uVal));
+    }
+    case 16: {
+        WJR_TO_CHARS_VALIDATE_IMPL(16, (uVal), (n, uVal));
+    }
+    case 4:
+    case 32: {
+        const int bits = base == 4 ? 2 : 5;
+        WJR_TO_CHARS_VALIDATE_IMPL(1, (uVal, bits), (n, uVal, bits));
+    }
+    case 10: {
+        WJR_TO_CHARS_VALIDATE_IMPL(10, (uVal), (uVal));
+    }
+    default: {
+        WJR_UNREACHABLE();
+    }
+    }
+
+#undef WJR_TO_CHARS_VALIDATE_IMPL
+}
+
+template <typename Iter, typename Value, typename IBase, typename Converter>
+to_chars_result<Iter> __fallback_to_chars_impl(Iter first, Iter last, Value val,
+                                               IBase ibase, Converter conv) noexcept {
+    constexpr auto is_signed = std::is_signed_v<Value>;
+    constexpr auto base_2_table = std::numeric_limits<Value>::digits;
+    constexpr auto base_10_table = std::numeric_limits<Value>::digits10 + 1;
+    constexpr auto is_random_access = is_random_access_iterator_v<Iter>;
+
+    if (WJR_UNLIKELY(val == 0)) {
+        if (WJR_UNLIKELY(first == last)) {
+            return {last, std::errc::value_too_large};
+        }
+
+        *first++ = conv.template to<1>(0);
+        return {first, std::errc{}};
+    }
+
+    auto uVal = to_unsigned(val);
+    int sign = 0;
+
+    if constexpr (is_signed) {
+        if constexpr (is_random_access) {
+            if (val < 0) {
+                if (WJR_UNLIKELY(first == last)) {
+                    return {last, std::errc::value_too_large};
+                }
+
+                sign = 1;
+                uVal = -val;
+            }
+        } else {
+            if (val < 0) {
+                if (WJR_UNLIKELY(first == last)) {
+                    return {last, std::errc::value_too_large};
+                }
+
+                *first++ = '-';
+                uVal = -val;
+            }
+        }
+    }
+
+    const unsigned int base = ibase;
+
+#define WJR_TO_CHARS_VALIDATE_IMPL(BASE, TABLE, CALL)                                    \
+    if constexpr (is_random_access) {                                                    \
+        const auto size = std::distance(first, last);                                    \
+        WJR_PP_QUEUE_EXPAND(                                                             \
+            WJR_PP_BOOL_IF(WJR_PP_NE(BASE, 10),                                          \
+                           (                                                             \
+                               if constexpr (is_signed) {                                \
+                                   if (WJR_UNLIKELY(n + sign > size)) {                  \
+                                       return {last, std::errc::value_too_large};        \
+                                   }                                                     \
+                               } else {                                                  \
+                                   if (WJR_UNLIKELY(n > size)) {                         \
+                                       return {last, std::errc::value_too_large};        \
+                                   }                                                     \
+                               }),                                                       \
+                           ()))                                                          \
+                                                                                         \
+        convert_detail::fast_buffer_t<Iter> buffer[TABLE + is_signed];                   \
+        const auto __end = buffer + TABLE + is_signed;                                   \
+        auto __ptr = (convert_detail::fast_buffer_t<Iter> *)                             \
+            __unsigned_to_chars_backward_unchecked<BASE>(                                \
+                (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
+                                                                                         \
+        WJR_PP_QUEUE_EXPAND(                                                             \
+            WJR_PP_BOOL_IF(WJR_PP_EQ(BASE, 10),                                          \
+                           (                                                             \
+                               const auto n = __end - __ptr;                             \
+                                                                                         \
+                               if constexpr (is_signed) {                                \
+                                   if (WJR_UNLIKELY(n + sign > size)) {                  \
+                                       return {last, std::errc::value_too_large};        \
+                                   }                                                     \
+                               } else {                                                  \
+                                   if (WJR_UNLIKELY(n > size)) {                         \
+                                       return {last, std::errc::value_too_large};        \
+                                   }                                                     \
+                               }),                                                       \
+                           ()))                                                          \
+                                                                                         \
+        if constexpr (is_signed) {                                                       \
+            if (sign) {                                                                  \
+                *--__ptr = '-';                                                          \
+            }                                                                            \
+        }                                                                                \
+                                                                                         \
+        return wjr::copy(__ptr, __end, first);                                           \
+    } else {                                                                             \
+        convert_detail::fast_buffer_t<Iter> buffer[TABLE];                               \
+        const auto __end = buffer + TABLE;                                               \
+        auto __ptr = (convert_detail::fast_buffer_t<Iter> *)                             \
+            __unsigned_to_chars_backward_unchecked<BASE>(                                \
+                (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
+                                                                                         \
+        do {                                                                             \
+            if (WJR_UNLIKELY(first == last)) {                                           \
+                return {last, std::errc::value_too_large};                               \
+            }                                                                            \
+                                                                                         \
+            *first++ = *__ptr++;                                                         \
+        } while (__ptr != __end);                                                        \
+                                                                                         \
+        return {first, std::errc{}};                                                     \
+    }
+
+    switch (base) {
+    case 2: {
+        const int n = count_digits<2>(uVal);
+        WJR_TO_CHARS_VALIDATE_IMPL(2, base_2_table, (n, uVal));
+    }
+    case 8: {
+        const int n = count_digits<8>(uVal);
+        WJR_TO_CHARS_VALIDATE_IMPL(8, (base_2_table + 2) / 3, (n, uVal));
+    }
+    case 16: {
+        const int n = count_digits<16>(uVal);
+        WJR_TO_CHARS_VALIDATE_IMPL(16, (base_2_table + 3) / 4, (n, uVal));
+    }
+    case 4:
+    case 32: {
+        const int bits = base == 4 ? 2 : 5;
+        const int n = count_digits<1>(uVal, bits);
+        WJR_TO_CHARS_VALIDATE_IMPL(1, (base_2_table + 1) / 2, (n, uVal, bits));
+    }
+    case 10: {
+        WJR_TO_CHARS_VALIDATE_IMPL(10, base_10_table, (uVal));
+    }
+    default: {
+        WJR_UNREACHABLE();
+    }
+    }
+
+#undef WJR_TO_CHARS_VALIDATE_IMPL
+}
+
+template <typename Iter, typename Value, typename IBase, typename Converter>
+to_chars_result<Iter> __to_chars_impl(Iter first, Iter last, Value val, IBase ibase,
+                                      Converter conv) noexcept {
+    if constexpr (convert_detail::__is_fast_convert_iterator_v<Iter>) {
+        const auto __first = reinterpret_cast<uint8_t *>(wjr::to_address(first));
+        const auto __last = reinterpret_cast<uint8_t *>(wjr::to_address(last));
+        const auto __result = __fast_to_chars_impl(__first, __last, val, ibase, conv);
+        return {first + std::distance(__first, __result.ptr), __result.ec};
+    } else {
+        return __fallback_to_chars_impl(first, last, val, ibase, conv);
+    }
+}
+
+template <typename Value, typename IBase, typename Converter>
+uint8_t *__fast_to_chars_unchecked_impl(uint8_t *ptr, Value val, IBase ibase,
+                                        Converter conv) noexcept {
+    if (WJR_UNLIKELY(val == 0)) {
+        *ptr++ = conv.template to<1>(0);
+        return ptr;
+    }
+
+    auto uVal = to_unsigned(val);
+
+    if constexpr (std::is_signed_v<Value>) {
+        if (val < 0) {
+            *ptr++ = '-';
+            uVal = -val;
+        }
+    }
+
+    const unsigned int base = ibase;
+
+    switch (base) {
+    case 2: {
+        const int n = count_digits<2>(uVal);
+        ptr += n;
+        (void)__unsigned_to_chars_backward_unchecked<2>(ptr, n, uVal, conv);
+        return ptr;
+    }
+    case 8: {
+        const int n = count_digits<8>(uVal);
+        ptr += n;
+        (void)__unsigned_to_chars_backward_unchecked<8>(ptr, n, uVal, conv);
+        return ptr;
+    }
+    case 16: {
+        const int n = count_digits<16>(uVal);
+        ptr += n;
+        (void)__unsigned_to_chars_backward_unchecked<16>(ptr, n, uVal, conv);
+        return ptr;
+    }
+    case 4:
+    case 32: {
+        const int bits = base == 4 ? 2 : 5;
+        const int n = count_digits<1>(uVal, bits);
+        ptr += n;
+        (void)__unsigned_to_chars_backward_unchecked<1>(ptr, n, uVal, bits, conv);
+        return ptr;
+    }
+    case 10: {
+        const int n = count_digits<10>(uVal);
+        ptr += n;
+        (void)__unsigned_to_chars_backward_unchecked<10>(ptr, uVal, conv);
+        return ptr;
+    }
+    default: {
+        WJR_UNREACHABLE();
+    }
+    }
+}
+
+template <typename Iter, typename Value, typename IBase, typename Converter>
+Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
+                                        Converter conv) noexcept {
+    constexpr auto is_signed = std::is_signed_v<Value>;
+    constexpr auto base_2_table = std::numeric_limits<Value>::digits;
+    constexpr auto base_10_table = std::numeric_limits<Value>::digits10 + 1;
+
+    if (WJR_UNLIKELY(val == 0)) {
+        *ptr++ = conv.template to<1>(0);
+        return ptr;
+    }
+
+    auto uVal = to_unsigned(val);
+    int sign = 0;
+
+    if constexpr (is_signed) {
+        if (val < 0) {
+            sign = 1;
+            uVal = -val;
+        }
+    }
+
+    const unsigned int base = ibase;
+
+#define WJR_TO_CHARS_IMPL(BASE, TABLE, CALL)                                             \
+    constexpr auto __fast_container_inserter_v =                                         \
+        convert_detail::is_fast_container_inserter_v<Iter>;                              \
+    if constexpr (__fast_container_inserter_v != 0) {                                    \
+        WJR_PP_BOOL_IF(WJR_PP_EQ(BASE, 10), const int n = count_digits<10>(uVal), );     \
+        auto &cont = get_inserter_container(ptr);                                        \
+        if constexpr (__fast_container_inserter_v == 1) {                                \
+            resize(cont, cont.size() + n + sign);                                        \
+        } else {                                                                         \
+            append(cont, n + sign, dctor);                                               \
+        }                                                                                \
+        const auto __end = wjr::to_address(cont.data() + cont.size());                   \
+        auto __ptr = (convert_detail::fast_buffer_t<Iter> *)                             \
+            __unsigned_to_chars_backward_unchecked<BASE>(                                \
+                (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
+                                                                                         \
+        if constexpr (is_signed) {                                                       \
+            if (sign) {                                                                  \
+                *--__ptr = '-';                                                          \
+            }                                                                            \
+        }                                                                                \
+                                                                                         \
+        return ptr;                                                                      \
+    } else {                                                                             \
+        convert_detail::fast_buffer_t<Iter> buffer[TABLE + is_signed];                   \
+        const auto __end = buffer + TABLE + is_signed;                                   \
+        auto __ptr = (convert_detail::fast_buffer_t<Iter> *)                             \
+            __unsigned_to_chars_backward_unchecked<BASE>(                                \
+                (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
+                                                                                         \
+        if constexpr (is_signed) {                                                       \
+            if (sign) {                                                                  \
+                *--__ptr = '-';                                                          \
+            }                                                                            \
+        }                                                                                \
+                                                                                         \
+        return wjr::copy(__ptr, __end, ptr);                                             \
+    }
+
+    switch (base) {
+    case 2: {
+        const int n = count_digits<2>(uVal);
+        WJR_TO_CHARS_IMPL(2, base_2_table, (n, uVal));
+    }
+    case 8: {
+        const int n = count_digits<8>(uVal);
+        WJR_TO_CHARS_IMPL(8, (base_2_table + 2) / 3, (n, uVal));
+    }
+    case 16: {
+        const int n = count_digits<16>(uVal);
+        WJR_TO_CHARS_IMPL(16, (base_2_table + 3) / 4, (n, uVal));
+    }
+    case 4:
+    case 32: {
+        const int bits = base == 4 ? 2 : 5;
+        const int n = count_digits<1>(uVal, bits);
+        WJR_TO_CHARS_IMPL(1, (base_2_table + 1) / 2, (n, uVal, bits));
+    }
+    case 10: {
+        WJR_TO_CHARS_IMPL(10, base_10_table, (uVal));
+    }
+    default: {
+        WJR_UNREACHABLE();
+    }
+    }
+
+#undef WJR_TO_CHARS_IMPL
+}
+
+template <typename Iter, typename Value, typename IBase, typename Converter>
+Iter __to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
+                               Converter conv) noexcept {
+    if constexpr (convert_detail::__is_fast_convert_iterator_v<Iter>) {
+        const auto __ptr = reinterpret_cast<uint8_t *>(wjr::to_address(ptr));
+        const auto __result = __fast_to_chars_unchecked_impl(__ptr, val, ibase, conv);
+        return ptr + std::distance(__ptr, __result);
+    } else {
+        return __fallback_to_chars_unchecked_impl(ptr, val, ibase, conv);
+    }
+}
+/**
+ * @brief Convert an unsigned integer to a string with checking buf size.
+ *
+ *
+ * @return to_chars_result<Iter> If the conversion is successful, return {ans,
+ * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
+ *
+ */
+template <typename Iter, typename Value, unsigned int IBase = 10,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>)>
+to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val,
+                               integral_constant<unsigned int, IBase> ic = {},
+                               Converter conv = {}) noexcept {
+    return __to_chars_impl(ptr, last, val, ic, conv);
+}
+
+template <typename Iter, typename Value, typename Converter>
+to_chars_result<Iter> to_chars_dynamic(Iter ptr, Iter last, Value val, unsigned int base,
+                                       Converter conv) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            return to_chars(ptr, last, val, 2_u, conv);
+        }
+        case 8: {
+            return to_chars(ptr, last, val, 8_u, conv);
+        }
+        case 16: {
+            return to_chars(ptr, last, val, 16_u, conv);
+        }
+        case 10: {
+            return to_chars(ptr, last, val, 10_u, conv);
+        }
+        default: {
+            break;
+        }
+        }
+    }
+
+    return __to_chars_impl(ptr, last, val, base, conv);
+}
+
+/**
+ * @brief Convert an unsigned integer to a string with checking buf size.
+ *
+ * @return to_chars_result<Iter> If the conversion is successful, return {ans,
+ * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
+ *
+ */
+template <typename Iter, typename Value, typename IBase,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>
+                           &&is_nonbool_integral_v<IBase>)>
+to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, IBase base,
+                               Converter conv = {}) noexcept {
+    return to_chars_dynamic(ptr, last, val, static_cast<unsigned int>(base), conv);
+}
+
+/**
+ * @brief Convert an unsigned integer to a string without checking buf size.
+ *
+ * @detail Iter can be any output iterator. Support fast_convert mode and fallback mode.
+ * \n fast_convert mode : \n fast_convert mode is used when
+ * __is_fast_convert_iterator_v<Iter> is true. \n caclulate the number of digits and
+ * convert the integer to a string in reverse order. \n fallback mode : \n use buffer to
+ * store the result and use @ref wjr::copy to copy the result to the output iterator. \n
+ *
+ */
+template <typename Iter, typename Value, unsigned int IBase = 10,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>)>
+Iter to_chars_unchecked(Iter ptr, Value val,
+                        integral_constant<unsigned int, IBase> ic = {},
+                        Converter conv = {}) noexcept {
+    return __to_chars_unchecked_impl(ptr, val, ic, conv);
+}
+
+template <typename Iter, typename Value, typename Converter>
+Iter to_chars_unchecked_dynamic(Iter ptr, Value val, unsigned int base,
+                                Converter conv) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            return to_chars_unchecked(ptr, val, 2_u, conv);
+        }
+        case 8: {
+            return to_chars_unchecked(ptr, val, 8_u, conv);
+        }
+        case 16: {
+            return to_chars_unchecked(ptr, val, 16_u, conv);
+        }
+        case 10: {
+            return to_chars_unchecked(ptr, val, 10_u, conv);
+        }
+        default: {
+            break;
+        }
+        }
+    }
+
+    return __to_chars_unchecked_impl(ptr, val, base, conv);
+}
+
+/**
+ * @brief Convert an unsigned integer to a string without checking buf size.
+ *
+ * @tparam Iter The iterator type. Must be random access iterator.
+ * @tparam Value The value type. If Converter is origin_converter_t, Value must be
+ * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
+ *
+ */
+template <typename Iter, typename Value, typename IBase,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>
+                           &&is_nonbool_integral_v<IBase>)>
+Iter to_chars_unchecked(Iter ptr, Value val, IBase base, Converter conv = {}) noexcept {
+    return to_chars_unchecked_dynamic(ptr, val, static_cast<unsigned int>(base), conv);
+}
+
+template <uint64_t Base>
+class __unsigned_from_chars_unchecked_fn {};
+
+template <uint64_t Base>
+inline constexpr __unsigned_from_chars_unchecked_fn<Base>
+    __unsigned_from_chars_unchecked{};
+
+template <>
+class __unsigned_from_chars_unchecked_fn<2> {
+public:
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE void operator()(const uint8_t *first, const uint8_t *last,
+                                         UnsignedValue &val,
+                                         Converter conv) const noexcept {
+        constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
+
+        auto n = std::distance(first, last);
+        WJR_ASSERT_ASSUME(1 <= n && n <= nd);
+
+        if constexpr (nd >= 16) {
+            if (WJR_UNLIKELY(n >= 8)) {
+                do {
+                    val = (val << 8) + __from_chars_unroll_8<2>(first, conv);
+                    first += 8;
+                    n -= 8;
+                } while (WJR_LIKELY(n >= 8));
+
+                if (n == 0) {
+                    return;
+                }
+            }
+        } else if constexpr (nd == 8) {
+            if (WJR_UNLIKELY(n == 8)) {
+                val = __from_chars_unroll_8<2>(first, conv);
+                first += 8;
+                return;
+            }
+        }
+
+        switch (n) {
+        case 7: {
+            val = (val << 1) + conv.template from<2>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 6: {
+            val = (val << 1) + conv.template from<2>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 5: {
+            val = (val << 1) + conv.template from<2>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 4: {
+            val <<= 4;
+            val += __from_chars_unroll_4<2>(first, conv);
+            first += 4;
+            break;
+        }
+        case 3: {
+            val = (val << 1) + conv.template from<2>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 2: {
+            val = (val << 1) + conv.template from<2>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 1: {
+            val = (val << 1) + conv.template from<2>(*first++);
+            break;
+        }
+        default: {
+            WJR_UNREACHABLE();
+            break;
+        }
+        }
+    }
+};
+
+template <>
+class __unsigned_from_chars_unchecked_fn<8> {
+public:
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE void operator()(const uint8_t *first, const uint8_t *last,
+                                         UnsignedValue &val,
+                                         Converter conv) const noexcept {
+        constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
+
+        auto n = std::distance(first, last);
+        WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 2) / 3);
+
+        if constexpr (nd >= 32) {
+            if (WJR_UNLIKELY(n >= 8)) {
+                do {
+                    val = (val << 24) + __from_chars_unroll_8<8>(first, conv);
+                    first += 8;
+                    n -= 8;
+                } while (WJR_LIKELY(n >= 8));
+
+                if (n == 0) {
+                    return;
+                }
+            }
+        }
+
+        switch (n) {
+        case 7: {
+            val = (val << 3) + conv.template from<8>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 6: {
+            val = (val << 3) + conv.template from<8>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 5: {
+            val = (val << 3) + conv.template from<8>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 4: {
+            val <<= 12;
+            val += __from_chars_unroll_4<8>(first, conv);
+            first += 4;
+            break;
+        }
+        case 3: {
+            val = (val << 3) + conv.template from<8>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 2: {
+            val = (val << 3) + conv.template from<8>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 1: {
+            val = (val << 3) + conv.template from<8>(*first++);
+            break;
+        }
+        default: {
+            WJR_UNREACHABLE();
+            break;
+        }
+        }
+    }
+};
+
+template <>
+class __unsigned_from_chars_unchecked_fn<16> {
+public:
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE void operator()(const uint8_t *first, const uint8_t *last,
+                                         UnsignedValue &val,
+                                         Converter conv) const noexcept {
+        constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
+
+        auto n = std::distance(first, last);
+        WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 3) / 4);
+
+        if constexpr (nd >= 64) {
+            if (WJR_UNLIKELY(n >= 8)) {
+                do {
+                    val = (val << 32) + __from_chars_unroll_8<16>(first, conv);
+                    first += 8;
+                    n -= 8;
+                } while (WJR_LIKELY(n >= 8));
+
+                if (n == 0) {
+                    return;
+                }
+            }
+        } else if constexpr (nd == 32) {
+            if (WJR_UNLIKELY(n == 8)) {
+                val = __from_chars_unroll_8<16>(first, conv);
+                first += 8;
+                return;
+            }
+        }
+
+        switch (n) {
+        case 7: {
+            val = (val << 4) + conv.template from<16>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 6: {
+            val = (val << 4) + conv.template from<16>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 5: {
+            val = (val << 4) + conv.template from<16>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 4: {
+            val <<= 16;
+            val += __from_chars_unroll_4<16>(first, conv);
+            first += 4;
+            break;
+        }
+        case 3: {
+            val = (val << 4) + conv.template from<16>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 2: {
+            val = (val << 4) + conv.template from<16>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 1: {
+            val = (val << 4) + conv.template from<16>(*first++);
+            break;
+        }
+        default: {
+            WJR_UNREACHABLE();
+            break;
+        }
+        }
+    }
+};
+
+template <>
+class __unsigned_from_chars_unchecked_fn<1> {};
+
+template <>
+class __unsigned_from_chars_unchecked_fn<10> {
+public:
+    template <typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE void operator()(const uint8_t *first, const uint8_t *last,
+                                         UnsignedValue &val,
+                                         Converter conv) const noexcept {
+        constexpr auto nd = std::numeric_limits<UnsignedValue>::digits10 + 1;
+
+        auto n = std::distance(first, last);
+        WJR_ASSUME(1 <= n && n <= nd);
+
+        if constexpr (nd >= 8) {
+            if (WJR_UNLIKELY(n >= 8)) {
+                if (WJR_UNLIKELY(n >= 16)) {
+                    val = __from_chars_unroll_16<10>(first, conv);
+                    first += 16;
+                    n -= 16;
+                } else {
+                    val = __from_chars_unroll_8<10>(first, conv);
+                    first += 8;
+                    n -= 8;
+                }
+
+                if (WJR_UNLIKELY(n == 0)) {
+                    return;
+                }
+            }
+        }
+
+        switch (n) {
+        case 7: {
+            val = val * 10 + conv.template from<10>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 6: {
+            val = val * 10 + conv.template from<10>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 5: {
+            val = val * 10 + conv.template from<10>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 4: {
+            val = (val * 10000) + __from_chars_unroll_4<10>(first, conv);
+            break;
+        }
+        case 3: {
+            val = val * 10 + conv.template from<10>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 2: {
+            val = val * 10 + conv.template from<10>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 1: {
+            val = val * 10 + conv.template from<10>(*first++);
+            WJR_FALLTHROUGH;
+        }
+        case 0: {
+            break;
+        }
+        default: {
+            WJR_UNREACHABLE();
+            break;
+        }
+        }
+    }
+};
+
+template <typename Value, typename IBase, typename Converter>
+void __fast_from_chars_unchecked_impl(const uint8_t *first, const uint8_t *last,
+                                      Value &val, IBase ibase, Converter conv) noexcept {
+    int sign = 0;
+
+    if constexpr (std::is_signed_v<Value>) {
+        WJR_ASSERT(first != last);
+
+        if (*first == '-') {
+            ++first;
+            sign = 1;
+        }
+    }
+
+    std::make_unsigned_t<Value> uVal = 0;
+
+    const unsigned int base = ibase;
+
+    switch (base) {
+    case 2: {
+        __unsigned_from_chars_unchecked<2>(first, last, uVal, conv);
+        break;
+    }
+    case 8: {
+        __unsigned_from_chars_unchecked<8>(first, last, uVal, conv);
+        break;
+    }
+    case 16: {
+        __unsigned_from_chars_unchecked<16>(first, last, uVal, conv);
+        break;
+    }
+    case 10: {
+        __unsigned_from_chars_unchecked<10>(first, last, uVal, conv);
+        break;
+    }
+    default: {
+        WJR_UNREACHABLE();
+        break;
+    }
+    }
+
+    if (sign) {
+        val = -static_cast<Value>(uVal);
+    } else {
+        val = static_cast<Value>(uVal);
+    }
+}
+
+template <typename Iter, typename Value, typename IBase, typename Converter>
+void __from_chars_unchecked_impl(Iter first, Iter last, Value &val, IBase ibase,
+                                 Converter conv) noexcept {
+    const auto __first = reinterpret_cast<const uint8_t *>(wjr::to_address(first));
+    const auto __last = reinterpret_cast<const uint8_t *>(wjr::to_address(last));
+    __fast_from_chars_unchecked_impl(__first, __last, val, ibase, conv);
+}
+
+template <typename Iter, typename Value, unsigned int IBase = 10,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_detail::__is_fast_convert_iterator_v<Iter>
+                           &&convert_detail::__is_valid_converter_v<Value, Converter>)>
+void from_chars_unchecked(Iter first, Iter last, Value &val,
+                          integral_constant<unsigned int, IBase> ic = {},
+                          Converter conv = {}) noexcept {
+    __from_chars_unchecked_impl(first, last, val, ic, conv);
+}
+
+template <typename Iter, typename Value, typename IBase, typename Converter>
+void from_chars_unchecked_dynamic(Iter first, Iter last, Value &val, unsigned int base,
+                                  Converter conv) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            __from_chars_unchecked_impl(first, last, val, 2_u, conv);
+            return;
+        }
+        case 8: {
+            __from_chars_unchecked_impl(first, last, val, 8_u, conv);
+            return;
+        }
+        case 16: {
+            __from_chars_unchecked_impl(first, last, val, 16_u, conv);
+            return;
+        }
+        case 10: {
+            __from_chars_unchecked_impl(first, last, val, 10_u, conv);
+            return;
+        }
+        default: {
+            break;
+        }
+        }
+    }
+
+    __from_chars_unchecked_impl(first, last, val, base, conv);
+}
+
+template <typename Iter, typename Value, typename IBase,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_detail::__is_fast_convert_iterator_v<Iter>
+                           &&convert_detail::__is_valid_converter_v<Value, Converter>
+                               &&is_nonbool_integral_v<IBase>)>
+void from_chars_unchecked(Iter first, Iter last, Value &val, IBase base,
+                          Converter conv = {}) noexcept {
+    from_chars_unchecked_dynamic(first, last, val, static_cast<unsigned int>(base), conv);
+}
+
+template <typename T, T expe>
+class result_type {
+public:
+    result_type() = default;
+    result_type(const result_type &) = default;
+    result_type(result_type &&) = default;
+    result_type &operator=(const result_type &) = default;
+    result_type &operator=(result_type &&) = default;
+    ~result_type() = default;
+
+    constexpr result_type(T result) noexcept : result(result) {}
+    constexpr operator bool() const noexcept { return result == expe; }
+    constexpr int pos() const noexcept { return ctz(result - expe) / 8; }
+
+private:
+    T result;
+};
+
+template <uint64_t Base>
+struct check_four_digits_fn {};
+
+template <uint64_t Base>
+inline constexpr check_four_digits_fn<Base> check_four_digits{};
+
+template <>
+struct check_four_digits_fn<10> {
+    WJR_INTRINSIC_INLINE result_type<uint32_t, 0x33'33'33'33>
+    operator()(const uint8_t *first, char_converter_t) const noexcept {
+        return get(first);
+    }
+
+    WJR_INTRINSIC_INLINE result_type<uint32_t, 0x00'00'00'00>
+    operator()(const uint8_t *first, origin_converter_t) const noexcept {
+        return get(first);
+    }
+
+private:
+    WJR_INTRINSIC_INLINE static uint32_t get(const uint8_t *first) noexcept {
+        constexpr auto high_mask = broadcast<uint8_t, uint32_t>(0xF0);
+        constexpr auto low_added = broadcast<uint8_t, uint32_t>(0x06);
+        const uint32_t x = read_memory<uint32_t>(first);
+        return (x & high_mask) | (((x + low_added) & high_mask) >> 4);
+    }
+};
+
+template <uint64_t Base>
+struct __unsigned_from_chars_fn {};
+
+/** @todo Can be optimized. */
+template <uint64_t Base>
+inline constexpr __unsigned_from_chars_fn<Base> __unsigned_from_chars{};
+
+enum class __unsigned_from_chars_result {
+    INVALID,
+    SUCCESS,
+    OUT_OF_RANGE,
+};
+
+template <>
+struct __unsigned_from_chars_fn<2> {
+    template <typename Value, typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE static __unsigned_from_chars_result
+    get(const uint8_t *&first, const uint8_t *last, UnsignedValue &value,
+        Converter conv) noexcept {
+
+        constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
+        constexpr auto zero = conv.template to<2>(0);
+        constexpr auto one = conv.template to<2>(1);
+
+        if (WJR_UNLIKELY(first == last)) {
+            return __unsigned_from_chars_result::INVALID;
+        }
+
+        uint8_t ch = first[0];
+
+        if (ch == one) {
+        } else if (ch == zero) {
+            do {
+                ++first;
+                if (first == last) {
+                    return __unsigned_from_chars_result::SUCCESS;
+                }
+
+                ch = first[0];
+            } while (ch == zero);
+            if (ch != one) {
+                return __unsigned_from_chars_result::SUCCESS;
+            }
+        } else {
+            return __unsigned_from_chars_result::INVALID;
+        }
+
+        const size_t n = std::distance(first, last);
+        ch = 1;
+        size_t idx = 0;
+
+        do {
+            value = value << 1 | ch;
+            ++idx;
+            if (idx == n) {
+                break;
+            }
+
+            ch = conv.template from<2>(first[idx]);
+        } while (ch < 2);
+
+        first += idx;
+        return idx <= nd ? __unsigned_from_chars_result::SUCCESS
+                         : __unsigned_from_chars_result::OUT_OF_RANGE;
+    }
+};
+
+template <>
+struct __unsigned_from_chars_fn<10> {
+    template <typename Value, typename UnsignedValue, typename Converter,
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    WJR_INTRINSIC_INLINE static __unsigned_from_chars_result
+    get(const uint8_t *&first, const uint8_t *last, UnsignedValue &value,
+        Converter conv) noexcept {
+        constexpr auto zero = conv.template to<10>(0);
+        constexpr auto nine = conv.template to<10>(9);
+
+        constexpr auto __try_matches = [](uint8_t &ch) {
+            if constexpr (zero != 0) {
+                return ch <= nine && !sub_overflow(ch, zero, ch);
+            } else {
+                return ch <= nine;
+            }
+        };
+
+        constexpr auto __matches = [](uint8_t ch) {
+            if constexpr (zero != 0) {
+                return zero <= ch && ch <= nine;
+            } else {
+                return ch <= nine;
+            }
+        };
+
+        if (WJR_UNLIKELY(first == last)) {
+            return __unsigned_from_chars_result::INVALID;
+        }
+
+        uint8_t ch = *first;
+
+        if (WJR_UNLIKELY(!__try_matches(ch))) {
+            return __unsigned_from_chars_result::INVALID;
+        }
+
+        do {
+            ++first;
+            if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
+                             add_overflow(value, ch, value))) {
+                while (first != last && __matches(*first)) {
+                    ++first;
+                }
+
+                return __unsigned_from_chars_result::OUT_OF_RANGE;
+            }
+
+            if (first == last) {
+                break;
+            }
+
+            ch = *first;
+        } while (__try_matches(ch));
+
+        return __unsigned_from_chars_result::SUCCESS;
+    }
+};
+
+template <typename Value, typename IBase, typename Converter>
+from_chars_result<const uint8_t *>
+__fast_from_chars_impl(const uint8_t *first, const uint8_t *last, Value &val, IBase ibase,
+                       Converter conv) noexcept {
+    constexpr auto is_signed = std::is_signed_v<Value>;
+
+    int sign = 0;
+
+    if constexpr (is_signed) {
+        if (first != last && *first == '-') {
+            ++first;
+            sign = 1;
+        }
+    }
+
+    using UnsignedValue = std::make_unsigned_t<Value>;
+
+    UnsignedValue uVal = 0;
+
+    const unsigned int base = ibase;
+    from_chars_result<const uint8_t *> ret{first, std::errc{}};
+    __unsigned_from_chars_result valid;
+
+    switch (base) {
+    case 2: {
+        valid = __unsigned_from_chars<2>.template get<Value>(first, last, uVal, conv);
+        break;
+    }
+    case 10: {
+        valid = __unsigned_from_chars<10>.template get<Value>(first, last, uVal, conv);
+        break;
+    }
+    default: {
+        return {first, std::errc::invalid_argument};
+    }
+    }
+
+    if (WJR_UNLIKELY(valid == __unsigned_from_chars_result::INVALID)) {
+        ret.ec = std::errc::invalid_argument;
+    } else {
+        ret.ptr = first;
+        if (valid == __unsigned_from_chars_result::OUT_OF_RANGE) {
+            ret.ec = std::errc::result_out_of_range;
+        } else {
+            if constexpr (is_signed) {
+                if (sign) {
+                    if (uVal >
+                        static_cast<UnsignedValue>(std::numeric_limits<Value>::min())) {
+                        ret.ec = std::errc::result_out_of_range;
+                    } else {
+                        val = -static_cast<Value>(uVal);
+                    }
+                } else {
+                    if (uVal >
+                        static_cast<UnsignedValue>(std::numeric_limits<Value>::max())) {
+                        ret.ec = std::errc::result_out_of_range;
+                    } else {
+                        val = static_cast<Value>(uVal);
+                    }
+                }
+            } else {
+                val = uVal;
+            }
+        }
+    }
+
+    return ret;
+}
+
+template <typename Value, typename IBase, typename Converter>
+from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
+                                                  Value &val, IBase ibase,
+                                                  Converter conv) noexcept {
+    const auto __first = reinterpret_cast<const uint8_t *>(first);
+    const auto __last = reinterpret_cast<const uint8_t *>(last);
+    const auto ret = __fast_from_chars_impl(__first, __last, val, ibase, conv);
+    return {reinterpret_cast<const char *>(ret.ptr), ret.ec};
+}
+
+template <typename Value, unsigned int IBase = 10, typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>)>
+from_chars_result<const char *>
+from_chars(const char *first, const char *last, Value &val,
+           integral_constant<unsigned int, IBase> ic = {}, Converter conv = {}) noexcept {
+    return __from_chars_impl(first, last, val, ic, conv);
+}
+
+template <typename Value, typename Converter,
+          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>)>
+from_chars_result<const char *> from_chars_dynamic(const char *first, const char *last,
+                                                   Value &val, unsigned int base,
+                                                   Converter conv) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            return __from_chars_impl(first, last, val, 2_u, conv);
+        }
+        case 10: {
+            return __from_chars_impl(first, last, val, 10_u, conv);
+        }
+        default: {
+            break;
+        }
+        }
+    }
+
+    return __from_chars_impl(first, last, val, base, conv);
+}
+
+template <typename Value, typename IBase, typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>
+                           &&is_nonbool_integral_v<IBase>)>
+from_chars_result<const char *> from_chars(const char *first, const char *last,
+                                           Value &val, IBase base,
+                                           Converter conv = {}) noexcept {
+    return from_chars_dynamic(first, last, val, base, conv);
+}
+
+} // namespace wjr
+
+#endif // WJR_FORMAT_CHARCONV_HPP__
+
+#ifndef WJR_MATH_DIV_HPP__
+#define WJR_MATH_DIV_HPP__
+
+#ifndef WJR_MATH_UINT128_T_HPP__
+#define WJR_MATH_UINT128_T_HPP__
+
+#ifndef WJR_MATH_DIV_IMPL_HPP__
+#define WJR_MATH_DIV_IMPL_HPP__
+
+#include <utility>
+
+// Already included
+
+namespace wjr {
+
+template <typename T>
+class div2by1_divider;
+
+template <typename T>
+class div3by2_divider;
+
+template <typename T>
+class divexact1_divider;
+
+class uint128_t;
+
+WJR_INLINE_CONSTEXPR20 uint64_t
+div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
+               const div2by1_divider<uint64_t> &divider) noexcept;
+
+WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                               uint64_t div) noexcept;
+
+inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                 const div2by1_divider<uint64_t> &divider) noexcept;
+
+inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                 uint64_t div) noexcept;
+
+WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
+                                   size_t n,
+                                   const div2by1_divider<uint64_t> &div) noexcept;
+
+WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
+                                   size_t n, uint64_t div) noexcept;
+
+WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                   size_t n,
+                                   const div3by2_divider<uint64_t> &div) noexcept;
+
+WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                   size_t n, const uint64_t *div) noexcept;
+
+WJR_INTRINSIC_INLINE void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                   size_t n, const uint64_t *div, size_t m) noexcept;
+
+WJR_INTRINSIC_CONSTEXPR20 uint64_t divexact_dbm1c(uint64_t *dst, const uint64_t *src,
+                                                  size_t n, uint64_t bd,
+                                                  uint64_t h) noexcept;
+
+WJR_INTRINSIC_CONSTEXPR20 void divexact_dbm1c_shift(uint64_t *dst, const uint64_t *src,
+                                                    size_t n, uint64_t bd, uint64_t cl,
+                                                    uint64_t hicf) noexcept;
+
+template <uint64_t c>
+WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
+                                            integral_constant<uint64_t, c>,
+                                            WJR_MAYBE_UNUSED uint64_t cf) noexcept;
+
+WJR_INTRINSIC_CONSTEXPR20 void
+divexact_1(uint64_t *dst, const uint64_t *src, size_t n,
+           const divexact1_divider<uint64_t> &div) noexcept;
+
+WJR_INTRINSIC_CONSTEXPR20 void divexact_1(uint64_t *dst, const uint64_t *src, size_t n,
+                                          uint64_t div) noexcept;
+
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 uint64_t
+mod_1(const uint64_t *src, size_t n, const div2by1_divider<uint64_t> &div) noexcept;
+
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 uint64_t mod_1(const uint64_t *src, size_t n,
+                                                  uint64_t div) noexcept;
+
+} // namespace wjr
+
+#endif // WJR_MATH_DIV_IMPL_HPP__
+#ifndef WJR_MATH_DIVIDER_HPP__
+#define WJR_MATH_DIVIDER_HPP__
+
+#include <array>
+
+#ifndef WJR_MATH_CMP_HPP__
+#define WJR_MATH_CMP_HPP__
+
+// Already included
+// Already included
+
+#if defined(WJR_X86)
+#ifndef WJR_X86_MATH_COMPARE_HPP__
+#define WJR_X86_MATH_COMPARE_HPP__
+
+#ifndef WJR_X86_MATH_LARGE_COMPARE_IMPL_HPP__
+#define WJR_X86_MATH_LARGE_COMPARE_IMPL_HPP__
+
+// Already included
+// Already included
+// Already included
+
+#ifndef WJR_X86
+#error "x86 required"
+#endif
+
+namespace wjr {
+
+#if WJR_HAS_SIMD(SSE4_1)
+#define WJR_HAS_BUILTIN_COMPARE_N WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_REVERSE_COMPARE_N WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(COMPARE_N)
+
+/**
+ * @brief Use SIMD to compare two arrays of uint64_t.
+ *
+ */
+template <typename T>
+WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1,
+                                              size_t n) noexcept {
+#define WJR_REGISTER_COMPARE_NOT_N_AVX(index)                                            \
+    do {                                                                                 \
+        auto x = avx::loadu(src0 + (index));                                             \
+        auto y = avx::loadu(src1 + (index));                                             \
+        auto r = avx::cmpeq_epi64(x, y);                                                 \
+                                                                                         \
+        avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
+        if (WJR_LIKELY(mask != 0)) {                                                     \
+            auto offset = ctz(mask) / 8;                                                 \
+            return src0[(index) + offset] < src1[(index) + offset] ? -1 : 1;             \
+        }                                                                                \
+    } while (0)
+
+    size_t rem = n & 7;
+
+    if (rem > 4) {
+#if !WJR_HAS_SIMD(AVX2)
+        auto x0 = sse::loadu(src0 + (rem - 4));
+        auto x1 = sse::loadu(src0 + (rem - 2));
+        auto y0 = sse::loadu(src1 + (rem - 4));
+        auto y1 = sse::loadu(src1 + (rem - 2));
+
+        auto r0 = sse::cmpeq_epi64(x0, y0);
+        auto r1 = sse::cmpeq_epi64(x1, y1);
+
+        if (WJR_LIKELY(!sse::test_all_ones(sse::And(r0, r1)))) {
+            sse::mask_type mask = ~sse::movemask_epi8(r0);
+            if (mask != 0) {
+                if (mask == 0xFF00) {
+                    return src0[(rem - 4) + 1] < src1[(rem - 4) + 1] ? -1 : 1;
+                }
+                return src0[(rem - 4)] < src1[(rem - 4)] ? -1 : 1;
+            }
+
+            mask = ~sse::movemask_epi8(r1);
+            if (mask == 0xFF00) {
+                return src0[(rem - 2) + 1] < src1[(rem - 2) + 1] ? -1 : 1;
+            }
+            return src0[(rem - 2)] < src1[(rem - 2)] ? -1 : 1;
+        }
+#else
+        WJR_REGISTER_COMPARE_NOT_N_AVX(rem - 4);
+#endif
+    }
+
+    if (WJR_UNLIKELY(rem == n)) {
+        return 0;
+    }
+
+#if !WJR_HAS_SIMD(AVX2)
+    do {
+        auto x0 = sse::loadu(src0 + rem);
+        auto x1 = sse::loadu(src0 + rem + 2);
+        auto x2 = sse::loadu(src0 + rem + 4);
+        auto x3 = sse::loadu(src0 + rem + 6);
+        auto y0 = sse::loadu(src1 + rem);
+        auto y1 = sse::loadu(src1 + rem + 2);
+        auto y2 = sse::loadu(src1 + rem + 4);
+        auto y3 = sse::loadu(src1 + rem + 6);
+
+        auto r0 = sse::cmpeq_epi64(x0, y0);
+        auto r1 = sse::cmpeq_epi64(x1, y1);
+        auto r2 = sse::cmpeq_epi64(x2, y2);
+        auto r3 = sse::cmpeq_epi64(x3, y3);
+
+        auto z = sse::And(sse::And(r0, r1), sse::And(r2, r3));
+
+        if (WJR_UNLIKELY(!sse::test_all_ones(z))) {
+            sse::mask_type mask = ~sse::movemask_epi8(r0);
+            if (mask != 0) {
+                if (mask == 0xFF00) {
+                    return src0[rem + 1] < src1[rem + 1] ? -1 : 1;
+                }
+                return src0[rem] < src1[rem] ? -1 : 1;
+            }
+
+            mask = ~sse::movemask_epi8(r1);
+            if (mask != 0) {
+                if (mask == 0xFF00) {
+                    return src0[rem + 3] < src1[rem + 3] ? -1 : 1;
+                }
+                return src0[rem + 2] < src1[rem + 2] ? -1 : 1;
+            }
+
+            mask = ~sse::movemask_epi8(r2);
+            if (mask != 0) {
+                if (mask == 0xFF00) {
+                    return src0[rem + 5] < src1[rem + 5] ? -1 : 1;
+                }
+                return src0[rem + 4] < src1[rem + 4] ? -1 : 1;
+            }
+
+            mask = ~sse::movemask_epi8(r3);
+            if (mask == 0xFF00) {
+                return src0[rem + 7] < src1[rem + 7] ? -1 : 1;
+            }
+            return src0[rem + 6] < src1[rem + 6] ? -1 : 1;
+        }
+
+        rem += 8;
+    } while (WJR_LIKELY(rem != n));
+#else
+    if ((n - rem) & 8) {
+        WJR_REGISTER_COMPARE_NOT_N_AVX(rem);
+        WJR_REGISTER_COMPARE_NOT_N_AVX(rem + 4);
+
+        rem += 8;
+
+        if (WJR_UNLIKELY(rem == n)) {
+            return 0;
+        }
+    }
+
+    do {
+        auto x0 = avx::loadu(src0 + rem);
+        auto x1 = avx::loadu(src0 + rem + 4);
+        auto x2 = avx::loadu(src0 + rem + 8);
+        auto x3 = avx::loadu(src0 + rem + 12);
+        auto y0 = avx::loadu(src1 + rem);
+        auto y1 = avx::loadu(src1 + rem + 4);
+        auto y2 = avx::loadu(src1 + rem + 8);
+        auto y3 = avx::loadu(src1 + rem + 12);
+
+        auto r0 = avx::cmpeq_epi64(x0, y0);
+        auto r1 = avx::cmpeq_epi64(x1, y1);
+        auto r2 = avx::cmpeq_epi64(x2, y2);
+        auto r3 = avx::cmpeq_epi64(x3, y3);
+
+        auto z = avx::And(avx::And(r0, r1), avx::And(r2, r3));
+
+        if (WJR_UNLIKELY(!avx::test_all_ones(z))) {
+            avx::mask_type mask = ~avx::movemask_epi8(r0);
+            if (WJR_UNLIKELY(mask != 0)) {
+                auto offset = ctz(mask) / 8;
+                return src0[rem + offset] < src1[rem + offset] ? -1 : 1;
+            }
+
+            mask = ~avx::movemask_epi8(r1);
+            if (WJR_UNLIKELY(mask != 0)) {
+                auto offset = ctz(mask) / 8;
+                return src0[rem + offset + 4] < src1[rem + offset + 4] ? -1 : 1;
+            }
+
+            mask = ~avx::movemask_epi8(r2);
+            if (WJR_UNLIKELY(mask != 0)) {
+                auto offset = ctz(mask) / 8;
+                return src0[rem + offset + 8] < src1[rem + offset + 8] ? -1 : 1;
+            }
+
+            mask = ~avx::movemask_epi8(r3);
+            auto offset = ctz(mask) / 8;
+            return src0[rem + offset + 12] < src1[rem + offset + 12] ? -1 : 1;
+        }
+
+        rem += 16;
+    } while (WJR_LIKELY(rem != n));
+#endif
+
+    return 0;
+
+#undef WJR_REGISTER_COMPARE_NOT_N_AVX
+}
+
+extern template WJR_PURE WJR_COLD int
+large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
+                                  size_t n) noexcept;
+
+#endif
+
+#if WJR_HAS_BUILTIN(REVERSE_COMPARE_N)
+
+/**
+ * @brief Use SIMD to compare two arrays of uint64_t in reverse order.
+ *
+ * @detail @ref large_builtin_compare_n in reverse order.
+ *
+ */
+template <typename T>
+WJR_PURE WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1,
+                                                      size_t n) noexcept {
+#define WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(index)                                    \
+    do {                                                                                 \
+        auto x = avx::loadu(src0 - 4 + (index));                                         \
+        auto y = avx::loadu(src1 - 4 + (index));                                         \
+        auto r = avx::cmpeq_epi64(x, y);                                                 \
+                                                                                         \
+        avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
+        if (WJR_LIKELY(mask != 0)) {                                                     \
+            auto offset = clz(mask) / 8;                                                 \
+            return src0[(index)-1 - offset] < src1[(index)-1 - offset] ? -1 : 1;         \
+        }                                                                                \
+    } while (0)
+
+    const size_t rem = n & 7;
+    n -= rem;
+
+    if (rem > 4) {
+#if !WJR_HAS_SIMD(AVX2)
+        auto x0 = sse::loadu(src0 + n + 2);
+        auto x1 = sse::loadu(src0 + n);
+        auto y0 = sse::loadu(src1 + n + 2);
+        auto y1 = sse::loadu(src1 + n);
+
+        auto r0 = sse::cmpeq_epi64(x0, y0);
+        auto r1 = sse::cmpeq_epi64(x1, y1);
+
+        if (WJR_LIKELY(!sse::test_all_ones(sse::And(r0, r1)))) {
+            sse::mask_type mask = ~sse::movemask_epi8(r0);
+            if (mask != 0) {
+                if (mask == 0x00FF) {
+                    return src0[n + 2] < src1[n + 2] ? -1 : 1;
+                }
+                return src0[n + 3] < src1[n + 3] ? -1 : 1;
+            }
+            mask = ~sse::movemask_epi8(r1);
+            if (mask == 0x00FF) {
+                return src0[n] < src1[n] ? -1 : 1;
+            }
+            return src0[n + 1] < src1[n + 1] ? -1 : 1;
+        }
+#else
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(n + 4);
+#endif
+    }
+
+    if (WJR_UNLIKELY(n == 0)) {
+        return 0;
+    }
+
+#if !WJR_HAS_SIMD(AVX2)
+    do {
+        auto x0 = sse::loadu(src0 + n - 8);
+        auto x1 = sse::loadu(src0 + n - 6);
+        auto x2 = sse::loadu(src0 + n - 4);
+        auto x3 = sse::loadu(src0 + n - 2);
+        auto y0 = sse::loadu(src1 + n - 8);
+        auto y1 = sse::loadu(src1 + n - 6);
+        auto y2 = sse::loadu(src1 + n - 4);
+        auto y3 = sse::loadu(src1 + n - 2);
+
+        auto r0 = sse::cmpeq_epi64(x0, y0);
+        auto r1 = sse::cmpeq_epi64(x1, y1);
+        auto r2 = sse::cmpeq_epi64(x2, y2);
+        auto r3 = sse::cmpeq_epi64(x3, y3);
+
+        auto z = sse::And(sse::And(r0, r1), sse::And(r2, r3));
+
+        if (WJR_UNLIKELY(!sse::test_all_ones(z))) {
+            sse::mask_type mask = ~sse::movemask_epi8(r3);
+            if (mask != 0) {
+                if (mask == 0x00FF) {
+                    return src0[n - 2] < src1[n - 2] ? -1 : 1;
+                }
+                return src0[n - 1] < src1[n - 1] ? -1 : 1;
+            }
+
+            mask = ~sse::movemask_epi8(r2);
+            if (mask != 0) {
+                if (mask == 0x00FF) {
+                    return src0[n - 4] < src1[n - 4] ? -1 : 1;
+                }
+                return src0[n - 3] < src1[n - 3] ? -1 : 1;
+            }
+
+            mask = ~sse::movemask_epi8(r1);
+            if (mask != 0) {
+                if (mask == 0x00FF) {
+                    return src0[n - 6] < src1[n - 6] ? -1 : 1;
+                }
+                return src0[n - 5] < src1[n - 5] ? -1 : 1;
+            }
+
+            mask = ~sse::movemask_epi8(r0);
+            if (mask == 0x00FF) {
+                return src0[n - 8] < src1[n - 8] ? -1 : 1;
+            }
+            return src0[n - 7] < src1[n - 7] ? -1 : 1;
+        }
+
+        n -= 8;
+    } while (WJR_LIKELY(n != 0));
+#else
+    if (n & 8) {
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(n);
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(n - 4);
+
+        n -= 8;
+
+        if (WJR_UNLIKELY(n == 0)) {
+            return 0;
+        }
+    }
+
+    do {
+        auto x0 = avx::loadu(src0 + n - 16);
+        auto x1 = avx::loadu(src0 + n - 12);
+        auto x2 = avx::loadu(src0 + n - 8);
+        auto x3 = avx::loadu(src0 + n - 4);
+        auto y0 = avx::loadu(src1 + n - 16);
+        auto y1 = avx::loadu(src1 + n - 12);
+        auto y2 = avx::loadu(src1 + n - 8);
+        auto y3 = avx::loadu(src1 + n - 4);
+
+        auto r0 = avx::cmpeq_epi64(x0, y0);
+        auto r1 = avx::cmpeq_epi64(x1, y1);
+        auto r2 = avx::cmpeq_epi64(x2, y2);
+        auto r3 = avx::cmpeq_epi64(x3, y3);
+
+        auto z = avx::And(avx::And(r0, r1), avx::And(r2, r3));
+
+        if (WJR_UNLIKELY(!avx::test_all_ones(z))) {
+            avx::mask_type mask = ~avx::movemask_epi8(r3);
+            if (mask != 0) {
+                auto offset = clz(mask) / 8;
+                return src0[n - 1 - offset] < src1[n - 1 - offset] ? -1 : 1;
+            }
+
+            mask = ~avx::movemask_epi8(r2);
+            if (mask != 0) {
+                auto offset = clz(mask) / 8;
+                return src0[n - 5 - offset] < src1[n - 5 - offset] ? -1 : 1;
+            }
+
+            mask = ~avx::movemask_epi8(r1);
+            if (mask != 0) {
+                auto offset = clz(mask) / 8;
+                return src0[n - 9 - offset] < src1[n - 9 - offset] ? -1 : 1;
+            }
+
+            mask = ~avx::movemask_epi8(r0);
+            auto offset = clz(mask) / 8;
+            return src0[n - 13 - offset] < src1[n - 13 - offset] ? -1 : 1;
+        }
+
+        n -= 16;
+    } while (WJR_LIKELY(n != 0));
+#endif
+
+    return 0;
+
+#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX
+}
+
+extern template WJR_PURE WJR_COLD int
+large_builtin_reverse_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
+                                          size_t n) noexcept;
+
+#endif
+
+} // namespace wjr
+
+#endif // WJR_X86_MATH_LARGE_COMPARE_IMPL_HPP__
+
+namespace wjr {
+
+#if WJR_HAS_BUILTIN(COMPARE_N)
+
+/**
+ * @brief Compare two arrays of uint64_t.
+ *
+ * @detail Expand first 4 elements to compare, then use @ref large_builtin_compare_n to
+ * compare the rest.
+ *
+ * @tparam T Requires uint64_t currently.
+ * @param src0 Pointer to the first array.
+ * @param src1 Pointer to the second array.
+ * @param n Number of elements to compare.
+ * @return
+ * \code
+ * negative : src0 < src1
+ * 0        : src0 == src1
+ * positive : src0 > src1
+ * \endcode
+ */
+template <typename T>
+WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1,
+                                           size_t n) noexcept {
+    if (WJR_UNLIKELY(n == 0)) {
+        return 0;
+    }
+
+    if (WJR_LIKELY(src0[0] != src1[0])) {
+        return src0[0] < src1[0] ? -1 : 1;
+    }
+
+    if (n == 1) {
+        return 0;
+    }
+
+    if (WJR_LIKELY(src0[1] != src1[1])) {
+        return src0[1] < src1[1] ? -1 : 1;
+    }
+
+    if (n == 2) {
+        return 0;
+    }
+
+    if (WJR_LIKELY(src0[2] != src1[2])) {
+        return src0[2] < src1[2] ? -1 : 1;
+    }
+
+    if (n == 3) {
+        return 0;
+    }
+
+    if (WJR_LIKELY(src0[3] != src1[3])) {
+        return src0[3] < src1[3] ? -1 : 1;
+    }
+
+    if (n == 4) {
+        return 0;
+    }
+
+    return large_builtin_compare_n(src0, src1, n);
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(REVERSE_COMPARE_N)
+
+/**
+ * @brief Compare two arrays of uint64_t in reverse order.
+ *
+ * @detail @ref builtin_compare_n in reverse order.
+ */
+template <typename T>
+WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
+                                                   size_t n) noexcept {
+    if (WJR_UNLIKELY(n == 0)) {
+        return 0;
+    }
+
+    if (WJR_LIKELY(src0[n - 1] != src1[n - 1])) {
+        return src0[n - 1] < src1[n - 1] ? -1 : 1;
+    }
+
+    if (n == 1) {
+        return 0;
+    }
+
+    if (WJR_LIKELY(src0[n - 2] != src1[n - 2])) {
+        return src0[n - 2] < src1[n - 2] ? -1 : 1;
+    }
+
+    if (n == 2) {
+        return 0;
+    }
+
+    if (WJR_LIKELY(src0[n - 3] != src1[n - 3])) {
+        return src0[n - 3] < src1[n - 3] ? -1 : 1;
+    }
+
+    if (n == 3) {
+        return 0;
+    }
+
+    if (WJR_LIKELY(src0[n - 4] != src1[n - 4])) {
+        return src0[n - 4] < src1[n - 4] ? -1 : 1;
+    }
+
+    if (n == 4) {
+        return 0;
+    }
+
+    return large_builtin_reverse_compare_n(src0, src1, n);
+}
+
+#endif
+
+// __uint128_t has certain bugs in GCC 13.2, resulting in low performance
+#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
+#define WJR_HAS_BUILTIN___ASM_LESS_128 WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___ASM_LESS_EQUAL_128 WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_LESS_128)
+
+WJR_CONST WJR_INTRINSIC_INLINE bool __asm_less_128(uint64_t lo0, uint64_t hi0,
+                                                   uint64_t lo1, uint64_t hi1) noexcept {
+    bool ret;
+    asm("cmp{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(b)
+        : WJR_ASM_CCOUT(b)(ret), [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
+        : [lo1] "r"(lo1), [hi1] "r"(hi1)
+        : "cc");
+    return ret;
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_LESS_EQUAL_128)
+
+WJR_CONST WJR_INTRINSIC_INLINE bool
+__asm_less_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1) noexcept {
+    bool ret;
+    asm("cmp{q %[lo0], %[lo1]| %[lo1], %[lo0]}\n\t"
+        "sbb{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t" WJR_ASM_CCSET(ae)
+        : WJR_ASM_CCOUT(ae)(ret), [lo1] "+&r"(lo1), [hi1] "+r"(hi1)
+        : [lo0] "r"(lo0), [hi0] "r"(hi0)
+        : "cc");
+    return ret;
+}
+
+#endif
+
+} // namespace wjr
+
+#endif // WJR_X86_MATH_COMPARE_HPP__
+#endif
+
+namespace wjr {
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR int fallback_compare_n(const T *src0, const T *src1,
+                                               size_t n) noexcept {
+    for (size_t idx = 0; idx < n; ++idx) {
+        if (src0[idx] != src1[idx]) {
+            return src0[idx] < src1[idx] ? -1 : 1;
+        }
+    }
+
+    return 0;
+}
+
+template <typename T>
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 int compare_n(const T *src0, const T *src1,
+                                                 size_t n) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
+        return 0;
+    }
+
+#if WJR_HAS_BUILTIN(COMPARE_N)
+    if constexpr (sizeof(T) == 8) {
+        static_assert(sizeof(T) != 8 || std::is_unsigned_v<T>,
+                      "T must be unsigned if sizeof(T) == 8");
+
+        if (is_constant_evaluated()) {
+            return fallback_compare_n(src0, src1, n);
+        }
+
+        return builtin_compare_n(src0, src1, n);
+    } else {
+        return fallback_compare_n(src0, src1, n);
+    }
+#else
+    return fallback_compare_n(src0, src1, n);
+#endif
+}
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR int fallback_reverse_compare_n(const T *src0, const T *src1,
+                                                       size_t n) noexcept {
+    src0 += n;
+    src1 += n;
+
+    for (size_t idx = 0; idx < n; ++idx) {
+        if (src0[-1 - idx] != src1[-1 - idx]) {
+            return src0[-1 - idx] < src1[-1 - idx] ? -1 : 1;
+        }
+    }
+
+    return 0;
+}
+
+template <typename T>
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 int reverse_compare_n(const T *src0, const T *src1,
+                                                         size_t n) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
+        return 0;
+    }
+
+#if WJR_HAS_BUILTIN(COMPARE_N)
+    if constexpr (sizeof(T) == 8) {
+        static_assert(sizeof(T) != 8 || std::is_unsigned_v<T>,
+                      "T must be unsigned if sizeof(T) == 8");
+
+        if (is_constant_evaluated()) {
+            return fallback_reverse_compare_n(src0, src1, n);
+        }
+
+        return builtin_reverse_compare_n(src0, src1, n);
+    } else {
+        return fallback_reverse_compare_n(src0, src1, n);
+    }
+#else
+    return fallback_reverse_compare_n(src0, src1, n);
+#endif
+}
+
+#if WJR_HAS_FEATURE(FAST_INT128_COMPARE)
+#define WJR_HAS_BUILTIN___BUILTIN_LESS_128 WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___BUILTIN_LESS_EQUAL_128 WJR_HAS_DEF
+#endif
+
+WJR_INTRINSIC_CONSTEXPR20 bool __fallback_less_128(uint64_t lo0, uint64_t hi0,
+                                                   uint64_t lo1, uint64_t hi1) noexcept {
+    uint8_t f = lo0 < lo1;
+    (void)subc_cc(hi0, hi1, f, f);
+    WJR_ASSUME(f <= 1);
+    return f;
+}
+
+#if WJR_HAS_BUILTIN(__BUILTIN_LESS_128)
+
+WJR_INTRINSIC_INLINE bool __builtin_less_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
+                                             uint64_t hi1) noexcept {
+    const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
+    const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
+
+    return x0 < x1;
+}
+
+#endif
+
+// return <hi0, lo0> < <hi1, lo1>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 bool __less_128(uint64_t lo0, uint64_t hi0,
+                                                    uint64_t lo1, uint64_t hi1) noexcept {
+#if WJR_HAS_BUILTIN(__BUILTIN_LESS_128) || WJR_HAS_BUILTIN(__ASM_LESS_128)
+    if (is_constant_evaluated()) {
+        return __fallback_less_128(lo0, hi0, lo1, hi1);
+    }
+
+    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_LESS_128), __builtin_less_128,
+                          __asm_less_128)(lo0, hi0, lo1, hi1);
+#else
+    return __fallback_less_128(lo0, hi0, lo1, hi1);
+#endif
+}
+
+WJR_INTRINSIC_CONSTEXPR20 bool __fallback_less_equal_128(uint64_t lo0, uint64_t hi0,
+                                                         uint64_t lo1,
+                                                         uint64_t hi1) noexcept {
+    return !__less_128(lo1, hi1, lo0, hi0);
+}
+
+#if WJR_HAS_BUILTIN(__BUILTIN_LESS_EQUAL_128)
+
+WJR_INTRINSIC_INLINE bool __builtin_less_equal_128(uint64_t lo0, uint64_t hi0,
+                                                   uint64_t lo1, uint64_t hi1) noexcept {
+    const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
+    const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
+
+    return x0 <= x1;
+}
+
+#endif
+
+// return <hi0, lo0> < <hi1, lo1>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 bool
+__less_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1) noexcept {
+#if WJR_HAS_BUILTIN(__BUILTIN_LESS_EQUAL_128) || WJR_HAS_BUILTIN(__ASM_LESS_EQUAL_128)
+    if (is_constant_evaluated()) {
+        return __fallback_less_equal_128(lo0, hi0, lo1, hi1);
+    }
+
+    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_LESS_EQUAL_128),
+                          __builtin_less_equal_128,
+                          __asm_less_equal_128)(lo0, hi0, lo1, hi1);
+#else
+    return __fallback_less_equal_128(lo0, hi0, lo1, hi1);
+#endif
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 bool
+__greater_128(uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1) noexcept {
+    return __less_128(lo1, hi1, lo0, hi0);
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 bool
+__greater_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1) noexcept {
+    return __less_equal_128(lo1, hi1, lo0, hi0);
+}
+
+} // namespace wjr
+
+#endif // WJR_MATH_CMP_HPP__
+// Already included
 
 #if defined(WJR_X86)
 #ifndef WJR_X86_MATH_DIVIDER_HPP__
@@ -25165,210 +27528,8 @@ using weak_stack_alloc = weak_stack_allocator<T, stack_alloc_object>;
 } // namespace wjr::math_detail
 
 #endif // WJR_MATH_STACK_ALLOCATOR_HPP__
-// Already included
-
-#if defined(WJR_X86)
-#ifndef WJR_X86_MATH_CONVERT_HPP__
-#define WJR_X86_MATH_CONVERT_HPP__
-
-// Already included
-// Already included
-
-#ifndef WJR_X86
-#error "x86 required"
-#endif
 
 namespace wjr {
-
-#if WJR_HAS_SIMD(SSE4_1)
-#define WJR_HAS_BUILTIN_TO_CHARS_UNROLL_8_FAST WJR_HAS_DEF
-
-#define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_8_FAST WJR_HAS_DEF
-#define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_16_FAST WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
-
-namespace to_chars_detail {
-
-const static __m128i mul10p4 = simd_cast<uint32_t, __m128i_t>(3518437209);
-const static __m128i mul10p4x = simd_cast<uint32_t, __m128i_t>(10000);
-const static __m128i mul10p2 = sse::set1_epi16(5243);
-const static __m128i mul10p2x = sse::set1_epi16(100);
-const static __m128i mul10p1 = sse::set1_epi16((short)52429u);
-const static __m128i mul10p1x = sse::set1_epi16(10);
-
-const static __m128i shuf =
-    sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
-
-} // namespace to_chars_detail
-
-#endif
-
-#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
-
-inline uint64_t builtin_to_chars_unroll_8_fast_10(uint32_t in) noexcept {
-
-    __m128i x = simd_cast<uint32_t, __m128i_t>(in);
-    __m128i q, r;
-
-    q = _mm_mul_epu32(x, to_chars_detail::mul10p4);
-    q = _mm_srli_epi64(q, 45);
-
-    r = _mm_sub_epi32(x, _mm_mul_epu32(q, to_chars_detail::mul10p4x));
-    x = _mm_packus_epi32(q, r);
-
-    q = _mm_mulhi_epu16(x, to_chars_detail::mul10p2);
-    q = _mm_srli_epi16(q, 3);
-
-    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, to_chars_detail::mul10p2x));
-    x = _mm_packus_epi16(q, r);
-
-    q = _mm_mulhi_epu16(x, to_chars_detail::mul10p1);
-    q = _mm_srli_epi16(q, 3);
-
-    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, to_chars_detail::mul10p1x));
-    x = _mm_packus_epi16(q, r);
-
-    return simd_cast<__m128i_t, uint64_t>(sse::shuffle_epi8(x, to_chars_detail::shuf));
-}
-
-template <uint64_t Base>
-uint64_t builtin_to_chars_unroll_8_fast(uint32_t in) noexcept {
-    if constexpr (Base == 10) {
-        return builtin_to_chars_unroll_8_fast_10(in);
-    } else {
-        static_assert(Base == 10, "");
-    }
-}
-
-template <uint64_t Base>
-void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, char_converter_t) noexcept {
-    const uint64_t x = builtin_to_chars_unroll_8_fast<Base>(in) + 0x3030303030303030ull;
-    write_memory<uint64_t>(ptr, x);
-}
-
-template <uint64_t Base>
-void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, origin_converter_t) noexcept {
-    const uint64_t x = builtin_to_chars_unroll_8_fast<Base>(in);
-    write_memory<uint64_t>(ptr, x);
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST) ||                                         \
-    WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
-
-namespace from_chars_detail {
-
-/// @private
-template <uint64_t Base>
-inline constexpr uint64_t __base2 = Base * Base;
-
-/// @private
-template <uint64_t Base>
-inline constexpr uint64_t __base4 = __base2<Base> * __base2<Base>;
-
-/// @private
-template <uint64_t Base>
-inline constexpr uint64_t __base8 = __base4<Base> * __base4<Base>;
-
-/// @private
-template <uint64_t Base>
-const static __m128i mulp1x = sse::setr_epi8(Base, 1, Base, 1, Base, 1, Base, 1, Base, 1,
-                                             Base, 1, Base, 1, Base, 1);
-
-/// @private
-template <uint64_t Base>
-const static __m128i mulp2x = sse::setr_epi16(__base2<Base>, 1, __base2<Base>, 1,
-                                              __base2<Base>, 1, __base2<Base>, 1);
-
-/// @private
-template <uint64_t Base>
-const static __m128i mulp4x = sse::setr_epi16(__base4<Base>, 1, __base4<Base>, 1,
-                                              __base4<Base>, 1, __base4<Base>, 1);
-
-/// @private
-template <uint64_t Base>
-const static __m128i baseu8 =
-    sse::setr_epi8(Base, Base, Base, Base, Base, Base, Base, 0xff, 0xff, 0xff, 0xff, 0xff,
-                   0xff, 0xff, 0xff, 0xff);
-
-/// @private
-static __m128i ascii = sse::set1_epi8(0x30);
-
-} // namespace from_chars_detail
-
-#endif
-
-#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
-
-template <uint64_t Base>
-uint32_t builtin_from_chars_unroll_8_fast(__m128i in) noexcept {
-    const __m128i t1 = _mm_maddubs_epi16(in, from_chars_detail::mulp1x<Base>);
-    const __m128i t2 = _mm_madd_epi16(t1, from_chars_detail::mulp2x<Base>);
-    const __m128i t3 = _mm_packus_epi32(t2, t2);
-    const __m128i t4 = _mm_madd_epi16(t3, from_chars_detail::mulp4x<Base>);
-
-    return simd_cast<__m128i_t, uint32_t>(t4);
-}
-
-template <uint64_t Base>
-uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, char_converter_t) noexcept {
-    static_assert(Base <= 10, "");
-    const __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), from_chars_detail::ascii);
-    return builtin_from_chars_unroll_8_fast<Base>(in);
-}
-
-template <uint64_t Base>
-uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, origin_converter_t) noexcept {
-    static_assert(Base <= 10, "");
-    const __m128i in = sse::loadu_si64(ptr);
-    return builtin_from_chars_unroll_8_fast<Base>(in);
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
-
-template <uint64_t Base>
-uint64_t builtin_from_chars_unroll_16_fast(__m128i in) noexcept {
-    const __m128i t1 = _mm_maddubs_epi16(in, from_chars_detail::mulp1x<Base>);
-    const __m128i t2 = _mm_madd_epi16(t1, from_chars_detail::mulp2x<Base>);
-    const __m128i t3 = _mm_packus_epi32(t2, t2);
-    const __m128i t4 = _mm_madd_epi16(t3, from_chars_detail::mulp4x<Base>);
-
-    const uint64_t val = simd_cast<__m128i_t, uint64_t>(t4);
-    const auto lo = static_cast<uint32_t>(val);
-    const auto hi = static_cast<uint32_t>(val >> 32);
-
-    return lo * from_chars_detail::__base8<Base> + hi;
-}
-
-template <uint64_t Base>
-uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, char_converter_t) noexcept {
-    static_assert(Base <= 10, "");
-    const __m128i in = _mm_sub_epi8(sse::loadu(ptr), from_chars_detail::ascii);
-    return builtin_from_chars_unroll_16_fast<Base>(in);
-}
-
-template <uint64_t Base>
-uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, origin_converter_t) noexcept {
-    static_assert(Base <= 10, "");
-    const __m128i in = sse::loadu(ptr);
-    return builtin_from_chars_unroll_16_fast<Base>(in);
-}
-
-#endif
-
-} // namespace wjr
-
-#endif // WJR_X86_MATH_CONVERT_HPP__
-#endif
-
-namespace wjr {
-
-static_assert(sizeof(char) == sizeof(uint8_t), "Not support currently.");
 
 inline constexpr size_t dc_bignum_to_chars_threshold = WJR_DC_BIGNUM_TO_CHARS_THRESHOLD;
 inline constexpr size_t dc_bignum_to_chars_precompute_threshold =
@@ -25385,1485 +27546,6 @@ inline constexpr auto div2by1_divider_noshift_of_big_base_10 =
 
 inline constexpr auto div3by2_divider_shift_of_big_base_10 = div3by2_divider<uint64_t>(
     1374799102801346560ull, 10842021724855044340ull, 12'938'764'603'223'852'203ull, 1);
-
-namespace convert_detail {
-
-WJR_CONST constexpr bool __isspace(uint8_t ch) noexcept {
-    return char_converter.from(ch) == 64;
-}
-
-template <typename T>
-struct __is_fast_convert_value
-    : std::conjunction<std::is_trivial<T>, std::bool_constant<sizeof(T) == 1>> {};
-
-template <typename T>
-inline constexpr bool __is_fast_convert_value_v = __is_fast_convert_value<T>::value;
-
-template <typename Iter, typename = void>
-struct __is_fast_convert_iterator_helper : std::false_type {};
-
-template <typename Iter>
-struct __is_fast_convert_iterator_helper<Iter,
-                                         std::enable_if_t<is_contiguous_iterator_v<Iter>>>
-    : __is_fast_convert_value<iterator_contiguous_value_t<Iter>> {};
-
-template <typename Iter>
-struct __is_fast_convert_iterator : __is_fast_convert_iterator_helper<Iter> {};
-
-/**
- * @brief Iterator concept that can be used in fast_convert.
- *
- * @detail The iterator must be contiguous iterator and the value_type must be
- * trivial and sizeof(value_type) == 1. Cast to_address(iter) to uint8_t*(to_chars)/const
- * uint8_t*(from_chars) in fast_convert.
- *
- */
-template <typename Iter>
-inline constexpr bool __is_fast_convert_iterator_v =
-    __is_fast_convert_iterator<Iter>::value;
-
-template <typename Value, typename Converter>
-struct __is_valid_converter : std::false_type {};
-
-template <typename Value>
-struct __is_valid_converter<Value, char_converter_t> : is_nonbool_integral<Value> {};
-
-template <typename Value>
-struct __is_valid_converter<Value, origin_converter_t>
-    : is_nonbool_unsigned_integral<Value> {};
-
-template <typename Value, typename Converter>
-inline constexpr bool __is_valid_converter_v =
-    __is_valid_converter<Value, Converter>::value;
-
-WJR_REGISTER_HAS_TYPE(to_chars_fast_fn_fast_conv,
-                      MyBase::__fast_conv(std::declval<void *>(),
-                                          std::declval<Args>()...),
-                      MyBase);
-
-WJR_REGISTER_HAS_TYPE(from_chars_fast_fn_fast_conv,
-                      MyBase::__fast_conv(std::declval<const void *>(),
-                                          std::declval<Args>()...),
-                      MyBase);
-
-template <typename Iter, typename = void>
-struct fast_buffer {
-private:
-    using value_type = iterator_value_t<Iter>;
-
-public:
-    using type =
-        std::conditional_t<__is_fast_convert_value_v<value_type>, value_type, char>;
-};
-
-// back_inserter or inserter
-template <typename Iter>
-struct fast_buffer<Iter, std::enable_if_t<is_any_insert_iterator_v<Iter>>> {
-private:
-    using value_type = typename Iter::container_type::value_type;
-
-public:
-    using type =
-        std::conditional_t<__is_fast_convert_value_v<value_type>, value_type, char>;
-};
-
-template <typename Iter>
-using fast_buffer_t = typename fast_buffer<Iter>::type;
-
-template <typename Container>
-struct __fast_container_inserter_test {
-private:
-    using traits_type = container_traits<Container>;
-
-public:
-    static constexpr int value =
-        traits_type::is_trivially_contiguous_v &&
-                has_container_resize_v<Container, size_t>
-            ? (has_container_resize_v<Container, size_t, dctor_t> ? 2 : 1)
-            : 0;
-
-    static_assert(value != 2 || has_container_append_v<Container, size_t, dctor_t>, "");
-};
-
-template <typename Iter, typename = void>
-struct __is_fast_container_inserter {
-    static constexpr int value = 0;
-};
-
-template <typename Iter>
-struct __is_fast_container_inserter<
-    Iter,
-    std::void_t<
-        decltype(std::declval<std::enable_if_t<is_any_insert_iterator_v<Iter>>>(),
-                 __fast_container_inserter_test<typename Iter::container_type>::value)>> {
-private:
-    using container_type = typename Iter::container_type;
-
-public:
-    static constexpr int value =
-        __is_fast_convert_value_v<typename container_type::value_type> &&
-                is_trivially_allocator_constructible_v<
-                    typename container_type::allocator_type>
-            ? __fast_container_inserter_test<container_type>::value
-            : 0;
-};
-
-template <typename Iter>
-inline constexpr int is_fast_container_inserter_v =
-    __is_fast_container_inserter<Iter>::value;
-
-} // namespace convert_detail
-
-// require operator() of Converter is constexpr
-template <typename Converter, uint64_t Base, int Unroll>
-class __char_converter_table_t {
-    static constexpr uint64_t pw2 = Unroll == 2 ? Base * Base : Base * Base * Base * Base;
-
-public:
-    constexpr __char_converter_table_t() : table() {
-        for (uint64_t i = 0, j = 0; i < pw2; ++i, j += Unroll) {
-            int x = i;
-            for (int k = Unroll - 1; ~k; --k) {
-                table[j + k] = Converter::to(x % Base);
-                x /= Base;
-            }
-        }
-    }
-
-    WJR_CONST constexpr char operator[](unsigned int idx) const noexcept {
-        return table[idx];
-    }
-
-    WJR_CONST constexpr const char *data() const noexcept { return table.data(); }
-
-private:
-    std::array<char, pw2 * Unroll> table;
-};
-
-template <typename Converter, uint64_t Base, int Unroll>
-inline constexpr __char_converter_table_t<Converter, Base, Unroll>
-    __char_converter_table{};
-
-template <uint64_t Base>
-class __to_chars_unroll_2_fast_fn_impl_base {
-public:
-    template <typename Converter>
-    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
-                                                 Converter) noexcept {
-        const auto str = (char *)ptr;
-        if constexpr (Base * Base <= 16) {
-            constexpr auto &table = __char_converter_table<Converter, Base, 4>;
-            std::memcpy(str, table.data() + val * 4 + 2, 2);
-        } else {
-            constexpr auto &table = __char_converter_table<Converter, Base, 2>;
-            std::memcpy(str, table.data() + val * 2, 2);
-        }
-    }
-};
-
-template <uint64_t Base>
-class __to_chars_unroll_2_fast_fn_impl {};
-
-template <>
-class __to_chars_unroll_2_fast_fn_impl<2>
-    : public __to_chars_unroll_2_fast_fn_impl_base<2> {};
-
-template <>
-class __to_chars_unroll_2_fast_fn_impl<8>
-    : public __to_chars_unroll_2_fast_fn_impl_base<8> {};
-
-template <>
-class __to_chars_unroll_2_fast_fn_impl<10>
-    : public __to_chars_unroll_2_fast_fn_impl_base<10> {};
-
-template <>
-class __to_chars_unroll_2_fast_fn_impl<16>
-    : public __to_chars_unroll_2_fast_fn_impl_base<16> {};
-
-template <uint64_t Base>
-class __to_chars_unroll_4_fast_fn_impl_base {
-public:
-    template <typename Converter>
-    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
-                                                 Converter) noexcept {
-        auto str = (char *)ptr;
-        if constexpr (Base * Base <= 16) {
-            constexpr auto &table = __char_converter_table<Converter, Base, 4>;
-            std::memcpy(str, table.data() + val * 4, 4);
-        } else {
-            constexpr auto &table = __char_converter_table<Converter, Base, 2>;
-            constexpr auto Base2 = Base * Base;
-            const uint32_t hi = val / Base2;
-            const uint32_t lo = val % Base2;
-
-            std::memcpy(str, table.data() + hi * 2, 2);
-            std::memcpy(str + 2, table.data() + lo * 2, 2);
-        }
-    }
-};
-
-template <uint64_t Base>
-class __to_chars_unroll_4_fast_fn_impl {};
-
-template <>
-class __to_chars_unroll_4_fast_fn_impl<2>
-    : public __to_chars_unroll_4_fast_fn_impl_base<2> {};
-
-template <>
-class __to_chars_unroll_4_fast_fn_impl<8>
-    : public __to_chars_unroll_4_fast_fn_impl_base<8> {};
-
-template <>
-class __to_chars_unroll_4_fast_fn_impl<10>
-    : public __to_chars_unroll_4_fast_fn_impl_base<10> {};
-
-template <>
-class __to_chars_unroll_4_fast_fn_impl<16>
-    : public __to_chars_unroll_4_fast_fn_impl_base<16> {};
-
-template <uint64_t Base>
-class __to_chars_unroll_8_fast_fn_impl_base {
-#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
-public:
-    template <typename Converter>
-    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint64_t val,
-                                                 Converter conv) noexcept {
-        builtin_to_chars_unroll_8_fast<Base>(ptr, static_cast<uint32_t>(val), conv);
-    }
-#endif
-};
-
-template <uint64_t Base>
-class __to_chars_unroll_8_fast_fn_impl {};
-
-template <>
-class __to_chars_unroll_8_fast_fn_impl<10>
-    : public __to_chars_unroll_8_fast_fn_impl_base<10> {};
-
-template <uint64_t Base>
-class __to_chars_unroll_2_fn : public __to_chars_unroll_2_fast_fn_impl<Base> {
-    using Mybase = __to_chars_unroll_2_fast_fn_impl<Base>;
-
-public:
-    template <typename Converter>
-    WJR_INTRINSIC_INLINE void operator()(uint8_t *ptr, uint32_t val,
-                                         Converter conv) const noexcept {
-        if constexpr (convert_detail::has_to_chars_fast_fn_fast_conv_v<Mybase, uint32_t,
-                                                                       Converter>) {
-            Mybase::__fast_conv(ptr, val, conv);
-        } else {
-            ptr[0] = conv.template to<Base>(val / Base);
-            ptr[1] = conv.template to<Base>(val % Base);
-        }
-    }
-};
-
-template <uint64_t Base>
-inline constexpr __to_chars_unroll_2_fn<Base> __to_chars_unroll_2{};
-
-template <uint64_t Base>
-class __to_chars_unroll_4_fn_impl : public __to_chars_unroll_4_fast_fn_impl<Base> {
-    using Mybase = __to_chars_unroll_4_fast_fn_impl<Base>;
-
-public:
-    template <typename Converter>
-    WJR_INTRINSIC_INLINE void operator()(uint8_t *ptr, uint32_t val,
-                                         Converter conv) const noexcept {
-        if constexpr (convert_detail::has_to_chars_fast_fn_fast_conv_v<Mybase, uint32_t,
-                                                                       Converter>) {
-            Mybase::__fast_conv(ptr, val, conv);
-        } else {
-            constexpr auto Base2 = Base * Base;
-            __to_chars_unroll_2<Base>(ptr, val / Base2, conv);
-            __to_chars_unroll_2<Base>(ptr + 2, val % Base2, conv);
-        }
-    }
-};
-
-template <uint64_t Base>
-inline constexpr __to_chars_unroll_4_fn_impl<Base> __to_chars_unroll_4{};
-
-template <uint64_t Base>
-class __to_chars_unroll_8_fn_impl : public __to_chars_unroll_8_fast_fn_impl<Base> {
-    using Mybase = __to_chars_unroll_8_fast_fn_impl<Base>;
-
-public:
-    template <typename Converter>
-    WJR_INTRINSIC_INLINE void operator()(uint8_t *ptr, uint64_t val,
-                                         Converter conv) const noexcept {
-        if constexpr (convert_detail::has_to_chars_fast_fn_fast_conv_v<Mybase, uint64_t,
-                                                                       Converter>) {
-            Mybase::__fast_conv(ptr, val, conv);
-        } else {
-            constexpr auto Base4 = Base * Base * Base * Base;
-            __to_chars_unroll_4<Base>(ptr, val / Base4, conv);
-            __to_chars_unroll_4<Base>(ptr + 4, val % Base4, conv);
-        }
-    }
-};
-
-template <uint64_t Base>
-inline constexpr __to_chars_unroll_8_fn_impl<Base> __to_chars_unroll_8{};
-
-template <uint64_t Base>
-class __from_chars_unroll_4_fast_fn_impl_base {
-protected:
-    WJR_CONST WJR_INTRINSIC_INLINE static uint32_t __fast_conv(uint32_t val) noexcept {
-        return digits_literal_detail::__fast_conv_4<Base>(val);
-    }
-
-public:
-    WJR_PURE WJR_INTRINSIC_INLINE static uint32_t __fast_conv(const void *ptr,
-                                                              char_converter_t) noexcept {
-        return __fast_conv(read_memory<uint32_t>(ptr) - 0x30303030u);
-    }
-
-    WJR_PURE WJR_INTRINSIC_INLINE static uint32_t
-    __fast_conv(const void *ptr, origin_converter_t) noexcept {
-        return __fast_conv(read_memory<uint32_t>(ptr));
-    }
-};
-
-template <uint64_t Base>
-class __from_chars_unroll_8_fast_fn_impl_base {
-protected:
-    WJR_CONST WJR_INTRINSIC_INLINE static uint32_t __fast_conv(uint64_t val) noexcept {
-        return digits_literal_detail::__fast_conv_8<Base>(val);
-    }
-
-public:
-    WJR_PURE WJR_INTRINSIC_INLINE static uint32_t
-    __fast_conv(const void *ptr, WJR_MAYBE_UNUSED char_converter_t conv) noexcept {
-#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
-        return builtin_from_chars_unroll_8_fast<Base>(ptr, conv);
-#else
-        return __fast_conv(read_memory<uint64_t>(ptr) - 0x3030303030303030ull);
-#endif
-    }
-
-    WJR_PURE WJR_INTRINSIC_INLINE static uint32_t
-    __fast_conv(const void *ptr, WJR_MAYBE_UNUSED origin_converter_t conv) noexcept {
-#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
-        return builtin_from_chars_unroll_8_fast<Base>(ptr, conv);
-#else
-        return __fast_conv(read_memory<uint64_t>(ptr));
-#endif
-    }
-};
-
-template <uint64_t Base>
-class __from_chars_unroll_16_fast_fn_impl_base {
-#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
-public:
-    template <typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr,
-                                                              Converter conv) noexcept {
-        return builtin_from_chars_unroll_16_fast<Base>(ptr, conv);
-    }
-#endif
-};
-
-template <uint64_t Base>
-class __from_chars_unroll_4_fast_fn_impl {};
-
-template <>
-class __from_chars_unroll_4_fast_fn_impl<2>
-    : public __from_chars_unroll_4_fast_fn_impl_base<2> {};
-
-template <>
-class __from_chars_unroll_4_fast_fn_impl<8>
-    : public __from_chars_unroll_4_fast_fn_impl_base<8> {};
-
-template <>
-class __from_chars_unroll_4_fast_fn_impl<10>
-    : public __from_chars_unroll_4_fast_fn_impl_base<10> {};
-
-template <uint64_t Base>
-class __from_chars_unroll_8_fast_fn_impl {};
-
-template <>
-class __from_chars_unroll_8_fast_fn_impl<2>
-    : public __from_chars_unroll_8_fast_fn_impl_base<2> {};
-
-template <>
-class __from_chars_unroll_8_fast_fn_impl<8>
-    : public __from_chars_unroll_8_fast_fn_impl_base<8> {};
-
-template <>
-class __from_chars_unroll_8_fast_fn_impl<10>
-    : public __from_chars_unroll_8_fast_fn_impl_base<10> {};
-
-template <uint64_t Base>
-class __from_chars_unroll_16_fast_fn_impl {};
-
-template <>
-class __from_chars_unroll_16_fast_fn_impl<2>
-    : public __from_chars_unroll_16_fast_fn_impl_base<2> {};
-
-template <>
-class __from_chars_unroll_16_fast_fn_impl<8>
-    : public __from_chars_unroll_16_fast_fn_impl_base<8> {};
-
-template <>
-class __from_chars_unroll_16_fast_fn_impl<10>
-    : public __from_chars_unroll_16_fast_fn_impl_base<10> {};
-
-template <uint64_t Base>
-class __from_chars_unroll_4_fn : public __from_chars_unroll_4_fast_fn_impl<Base> {
-    using Mybase = __from_chars_unroll_4_fast_fn_impl<Base>;
-
-public:
-    template <typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(const uint8_t *ptr,
-                                                      Converter conv) const noexcept {
-        if constexpr (convert_detail::has_from_chars_fast_fn_fast_conv_v<Mybase,
-                                                                         Converter>) {
-            return Mybase::__fast_conv(ptr, conv);
-        } else {
-            uint64_t value = 0;
-            value = conv.template from<Base>(*ptr++);
-            value = value * Base + conv.template from<Base>(*ptr++);
-            value = value * Base + conv.template from<Base>(*ptr++);
-            return value * Base + conv.template from<Base>(*ptr++);
-        }
-    }
-};
-
-template <uint64_t Base>
-inline constexpr __from_chars_unroll_4_fn<Base> __from_chars_unroll_4{};
-
-template <uint64_t Base>
-class __from_chars_unroll_8_fn : public __from_chars_unroll_8_fast_fn_impl<Base> {
-    using Mybase = __from_chars_unroll_8_fast_fn_impl<Base>;
-
-public:
-    template <typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(const uint8_t *ptr,
-                                                      Converter conv) const noexcept {
-        if constexpr (convert_detail::has_from_chars_fast_fn_fast_conv_v<Mybase,
-                                                                         Converter>) {
-            return Mybase::__fast_conv(ptr, conv);
-        } else {
-            constexpr uint64_t Base4 = Base * Base * Base * Base;
-            return __from_chars_unroll_4<Base>(ptr, conv) * Base4 +
-                   __from_chars_unroll_4<Base>(ptr + 4, conv);
-        }
-    }
-};
-
-template <uint64_t Base>
-inline constexpr __from_chars_unroll_8_fn<Base> __from_chars_unroll_8{};
-
-template <uint64_t Base>
-class __from_chars_unroll_16_fn : public __from_chars_unroll_16_fast_fn_impl<Base> {
-    using Mybase = __from_chars_unroll_16_fast_fn_impl<Base>;
-
-public:
-    template <typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(const uint8_t *ptr,
-                                                      Converter conv) const noexcept {
-        if constexpr (convert_detail::has_from_chars_fast_fn_fast_conv_v<Mybase,
-                                                                         Converter>) {
-            return Mybase::__fast_conv(ptr, conv);
-        } else {
-            constexpr uint64_t Base4 = Base * Base * Base * Base;
-            constexpr uint64_t Base8 = Base4 * Base4;
-            return __from_chars_unroll_8<Base>(ptr, conv) * Base8 +
-                   __from_chars_unroll_8<Base>(ptr + 8, conv);
-        }
-    }
-};
-
-template <uint64_t Base>
-inline constexpr __from_chars_unroll_16_fn<Base> __from_chars_unroll_16{};
-
-template <typename UnsignedValue>
-constexpr int fallback_count_digits10(UnsignedValue n) noexcept {
-    int count = 1;
-
-    if (WJR_UNLIKELY(n >= 1000)) {
-        do {
-            n /= 10000;
-            count += 4;
-        } while (n >= 1000);
-
-        if (n == 0) {
-            return count;
-        }
-    }
-
-    if (n < 10) {
-        return count;
-    }
-
-    if (n < 100) {
-        return count + 1;
-    }
-
-    return count + 3;
-}
-
-inline int builtin_count_digits10_u32(uint32_t n) noexcept {
-#define WJR_INC(T) (((sizeof(#T) - 1ull) << 32) - T)
-    static constexpr uint64_t table[] = {
-        WJR_INC(0),          WJR_INC(0),          WJR_INC(0),          // 8
-        WJR_INC(10),         WJR_INC(10),         WJR_INC(10),         // 64
-        WJR_INC(100),        WJR_INC(100),        WJR_INC(100),        // 512
-        WJR_INC(1000),       WJR_INC(1000),       WJR_INC(1000),       // 4096
-        WJR_INC(10000),      WJR_INC(10000),      WJR_INC(10000),      // 32k
-        WJR_INC(100000),     WJR_INC(100000),     WJR_INC(100000),     // 256k
-        WJR_INC(1000000),    WJR_INC(1000000),    WJR_INC(1000000),    // 2048k
-        WJR_INC(10000000),   WJR_INC(10000000),   WJR_INC(10000000),   // 16M
-        WJR_INC(100000000),  WJR_INC(100000000),  WJR_INC(100000000),  // 128M
-        WJR_INC(1000000000), WJR_INC(1000000000), WJR_INC(1000000000), // 1024M
-        WJR_INC(1000000000), WJR_INC(1000000000)                       // 4B
-    };
-    const auto inc = table[clz(n | 1) ^ 31];
-    return static_cast<int>((n + inc) >> 32);
-#undef WJR_INC
-}
-
-inline int builtin_count_digits10_u64(uint64_t n) noexcept {
-#define WJR_POWERS_OF_10(factor)                                                         \
-    factor * 10, (factor)*100, (factor)*1000, (factor)*10000, (factor)*100000,           \
-        (factor)*1000000, (factor)*10000000, (factor)*100000000, (factor)*1000000000
-    static constexpr uint8_t bsr2log10[] = {
-        1,  1,  1,  2,  2,  2,  3,  3,  3,  4,  4,  4,  4,  5,  5,  5,
-        6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9,  10, 10, 10,
-        10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14, 15, 15,
-        15, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 19, 20};
-    const auto t = bsr2log10[clz(n | 1) ^ 63];
-    static constexpr const uint64_t zero_or_powers_of_10[] = {
-        0, 0, WJR_POWERS_OF_10(1U), WJR_POWERS_OF_10(1000000000ULL),
-        10000000000000000000ULL};
-    return t - (n < zero_or_powers_of_10[t]);
-#undef WJR_POWERS_OF_10
-}
-
-template <typename T>
-WJR_CONSTEXPR20 int count_digits10_impl(T n) noexcept {
-    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(n)) {
-        return fallback_count_digits10(n);
-    }
-
-    if constexpr (sizeof(T) <= sizeof(uint32_t)) {
-        return builtin_count_digits10_u32(static_cast<uint32_t>(n));
-    } else {
-        return builtin_count_digits10_u64(static_cast<uint64_t>(n));
-    }
-}
-
-template <uint64_t Base>
-struct count_digits_fn {};
-
-template <uint64_t Base>
-inline constexpr count_digits_fn<Base> count_digits{};
-
-template <>
-struct count_digits_fn<2> {
-    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
-        return bit_width(n);
-    }
-};
-
-template <>
-struct count_digits_fn<8> {
-    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
-        return __ceil_div(to_unsigned(bit_width(n)), 3);
-    }
-};
-
-template <>
-struct count_digits_fn<16> {
-    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
-        return __ceil_div(to_unsigned(bit_width(n)), 4);
-    }
-};
-
-template <>
-struct count_digits_fn<1> {
-    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n, int bits) const noexcept {
-        return (bit_width(n) + bits - 1) / bits;
-    }
-};
-
-template <>
-struct count_digits_fn<10> {
-    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
-        const int ret = count_digits10_impl(n);
-        WJR_ASSUME(1 <= ret && ret <= std::numeric_limits<T>::digits10 + 1);
-        return ret;
-    }
-};
-
-template <typename Iter>
-struct to_chars_result {
-    Iter ptr;
-    std::errc ec;
-
-    friend bool operator==(const to_chars_result &lhs,
-                           const to_chars_result &rhs) noexcept {
-        return lhs.ptr == rhs.ptr && lhs.ec == rhs.ec;
-    }
-
-    constexpr explicit operator bool() const noexcept { return ec == std::errc{}; }
-};
-
-template <typename Iter = const char *>
-struct from_chars_result {
-    Iter ptr;
-    std::errc ec;
-
-    friend bool operator==(const from_chars_result &lhs,
-                           const from_chars_result &rhs) noexcept {
-        return lhs.ptr == rhs.ptr && lhs.ec == rhs.ec;
-    }
-
-    constexpr explicit operator bool() const noexcept { return ec == std::errc{}; }
-};
-
-// Base :
-// 0 : dynamic base
-// 1 : base is power of two
-template <uint64_t Base>
-class __unsigned_to_chars_backward_unchecked_fn {};
-
-template <uint64_t Base>
-inline constexpr __unsigned_to_chars_backward_unchecked_fn<Base>
-    __unsigned_to_chars_backward_unchecked{};
-
-template <>
-class __unsigned_to_chars_backward_unchecked_fn<2> {
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    WJR_INTRINSIC_INLINE uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x,
-                                             Converter conv) const noexcept {
-        constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-        WJR_ASSERT_L2(x != 0);
-        WJR_ASSERT_ASSUME(1 <= n && n <= nd);
-        (void)(nd);
-
-        if (WJR_UNLIKELY(n >= 4)) {
-            do {
-                __to_chars_unroll_4<2>(ptr - 4, x & 0x0f, conv);
-                ptr -= 4;
-                x >>= 4;
-                n -= 4;
-            } while (WJR_LIKELY(n >= 4));
-
-            if (n == 0) {
-                return ptr;
-            }
-        }
-
-        switch (n) {
-        case 3: {
-            *--ptr = conv.template to<2>(x & 1);
-            x >>= 1;
-            WJR_FALLTHROUGH;
-        }
-        case 2: {
-            __to_chars_unroll_2<2>(ptr - 2, x, conv);
-            ptr -= 2;
-            break;
-        }
-        case 1: {
-            *--ptr = conv.template to<2>(x);
-            break;
-        }
-        default: {
-            WJR_UNREACHABLE();
-            break;
-        }
-        }
-
-        return ptr;
-    }
-};
-
-template <>
-class __unsigned_to_chars_backward_unchecked_fn<8> {
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    WJR_INTRINSIC_INLINE uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x,
-                                             Converter conv) const noexcept {
-        constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-        WJR_ASSERT_L2(x != 0);
-        WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 2) / 3);
-
-        if constexpr (nd >= 16) {
-            if (WJR_UNLIKELY(n >= 4)) {
-                do {
-                    __to_chars_unroll_4<8>(ptr - 4, x & 0x0fff, conv);
-                    ptr -= 4;
-                    x >>= 12;
-                    n -= 4;
-                } while (WJR_LIKELY(n >= 4));
-
-                if (n == 0) {
-                    return ptr;
-                }
-            }
-        }
-
-        switch (n) {
-        case 3: {
-            *--ptr = conv.template to<8>(x & 0x07);
-            x >>= 3;
-            WJR_FALLTHROUGH;
-        }
-        case 2: {
-            __to_chars_unroll_2<8>(ptr - 2, x, conv);
-            ptr -= 2;
-            break;
-        }
-        case 1: {
-            *--ptr = conv.template to<8>(x);
-            break;
-        }
-        default: {
-            WJR_UNREACHABLE();
-            break;
-        }
-        }
-
-        return ptr;
-    }
-};
-
-template <>
-class __unsigned_to_chars_backward_unchecked_fn<16> {
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    WJR_INTRINSIC_INLINE uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x,
-                                             Converter conv) const noexcept {
-        constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-        WJR_ASSERT_L2(x != 0);
-        WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 3) / 4);
-
-        if constexpr (nd >= 16) {
-            if (WJR_UNLIKELY(n >= 4)) {
-                do {
-                    __to_chars_unroll_4<16>(ptr - 4, x & 0xffff, conv);
-                    ptr -= 4;
-                    x >>= 16;
-                    n -= 4;
-                } while (WJR_LIKELY(n >= 4));
-
-                if (n == 0) {
-                    return ptr;
-                }
-            }
-        }
-
-        switch (n) {
-        case 3: {
-            *--ptr = conv.to(x & 0x0f);
-            x >>= 4;
-            WJR_FALLTHROUGH;
-        }
-        case 2: {
-            __to_chars_unroll_2<16>(ptr - 2, x, conv);
-            ptr -= 2;
-            break;
-        }
-        case 1: {
-            *--ptr = conv.to(x);
-            break;
-        }
-        default: {
-            WJR_UNREACHABLE();
-            break;
-        }
-        }
-
-        return ptr;
-    }
-};
-
-template <>
-class __unsigned_to_chars_backward_unchecked_fn<1> {
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    WJR_INTRINSIC_INLINE uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x,
-                                             int bits, Converter conv) const noexcept {
-        WJR_ASSERT_L2(x != 0);
-        WJR_ASSERT_ASSUME(1 <= n && n <= std::numeric_limits<UnsignedValue>::digits);
-
-        const unsigned int mask = (1u << bits) - 1;
-
-        do {
-            *--ptr = conv.to(x & mask);
-            x >>= bits;
-            --n;
-        } while (WJR_LIKELY(n != 0));
-
-        return ptr;
-    }
-};
-
-template <>
-class __unsigned_to_chars_backward_unchecked_fn<10> {
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    WJR_INTRINSIC_INLINE uint8_t *operator()(uint8_t *ptr, UnsignedValue val,
-                                             Converter conv) const noexcept {
-        WJR_ASSERT_ASSUME(val != 0);
-
-        if (WJR_LIKELY(val >= 100)) {
-            do {
-                __to_chars_unroll_2<10>(ptr - 2, val % 100, conv);
-                ptr -= 2;
-                val /= 100;
-            } while (WJR_LIKELY(val >= 100));
-        }
-
-        if (val < 10) {
-            *--ptr = conv.template to<10>(val);
-            return ptr;
-        }
-
-        __to_chars_unroll_2<10>(ptr - 2, val, conv);
-        ptr -= 2;
-        return ptr;
-    }
-};
-
-template <typename Value, typename IBase, typename Converter>
-uint8_t *__fast_to_chars_backward_unchecked_impl(uint8_t *ptr, Value val, IBase ibase,
-                                                 Converter conv) noexcept {
-    if (WJR_UNLIKELY(val == 0)) {
-        *--ptr = conv.template to<1>(0);
-        return ptr;
-    }
-
-    auto uVal = to_unsigned(val);
-    int sign = 0;
-
-    if constexpr (std::is_signed_v<Value>) {
-        if (val < 0) {
-            sign = 1;
-            uVal = -val;
-        }
-    }
-
-    const unsigned int base = ibase;
-
-    switch (base) {
-    case 2: {
-        ptr = __unsigned_to_chars_backward_unchecked<2>(ptr, count_digits<2>(uVal), uVal,
-                                                        conv);
-        break;
-    }
-    case 8: {
-        ptr = __unsigned_to_chars_backward_unchecked<8>(ptr, count_digits<8>(uVal), uVal,
-                                                        conv);
-        break;
-    }
-    case 16: {
-        ptr = __unsigned_to_chars_backward_unchecked<16>(ptr, count_digits<16>(uVal),
-                                                         uVal, conv);
-        break;
-    }
-    case 4:
-    case 32: {
-        const int bits = base == 4 ? 2 : 5;
-        ptr = __unsigned_to_chars_backward_unchecked<1>(ptr, count_digits<1>(uVal, bits),
-                                                        uVal, bits, conv);
-        break;
-    }
-    case 10: {
-        ptr = __unsigned_to_chars_backward_unchecked<10>(ptr, uVal, conv);
-        break;
-    }
-    default: {
-        WJR_UNREACHABLE();
-    }
-    }
-
-    if constexpr (std::is_signed_v<Value>) {
-        if (sign) {
-            *--ptr = '-';
-        }
-    }
-
-    return ptr;
-}
-
-template <typename Iter, typename Value, typename IBase, typename Converter>
-Iter __to_chars_backward_unchecked_impl(Iter first, Value val, IBase ibase,
-                                        Converter conv) noexcept {
-    const auto __ptr = reinterpret_cast<uint8_t *>(wjr::to_address(first));
-    const auto __end = __fast_to_chars_backward_unchecked_impl(__ptr, val, ibase, conv);
-    return first + std::distance(__ptr, __end);
-}
-
-/**
- * @brief Convert an unsigned integer to a string in reverse order without checking
- * buf size.
- *
- * @detail Only use fast_convert mode.
- *
- */
-template <typename Iter, typename Value, unsigned int IBase = 10,
-          typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_detail::__is_fast_convert_iterator_v<Iter>
-                           &&convert_detail::__is_valid_converter_v<Value, Converter>)>
-Iter to_chars_backward_unchecked(Iter first, Value val,
-                                 integral_constant<unsigned int, IBase> ic = {},
-                                 Converter conv = {}) noexcept {
-    return __to_chars_backward_unchecked_impl(first, val, ic, conv);
-}
-
-template <typename Iter, typename Value, typename Converter>
-Iter to_chars_backward_unchecked_dynamic(Iter first, Value val, unsigned int base,
-                                         Converter conv) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(base)) {
-        switch (base) {
-        case 2: {
-            return to_chars_backward_unchecked(first, val, 2_u, conv);
-        }
-        case 8: {
-            return to_chars_backward_unchecked(first, val, 8_u, conv);
-        }
-        case 16: {
-            return to_chars_backward_unchecked(first, val, 16_u, conv);
-        }
-        case 10: {
-            return to_chars_backward_unchecked(first, val, 10_u, conv);
-        }
-        default: {
-            break;
-        }
-        }
-    }
-
-    return __to_chars_backward_unchecked_impl(first, val, base, conv);
-}
-
-/**
- * @brief Convert an unsigned integer to a string in reverse order without checking
- * buf size.
- *
- *
- */
-template <typename Iter, typename Value, typename IBase,
-          typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_detail::__is_fast_convert_iterator_v<Iter>
-                           &&convert_detail::__is_valid_converter_v<Value, Converter>
-                               &&is_nonbool_integral_v<IBase>)>
-Iter to_chars_backward_unchecked(Iter first, Value val, IBase base,
-                                 Converter conv = {}) noexcept {
-    return to_chars_backward_unchecked_dynamic(first, val,
-                                               static_cast<unsigned int>(base), conv);
-}
-
-template <typename Value, typename IBase, typename Converter>
-to_chars_result<uint8_t *> __fast_to_chars_impl(uint8_t *first, uint8_t *last, Value val,
-                                                IBase ibase, Converter conv) noexcept {
-    if (WJR_UNLIKELY(val == 0)) {
-        if (WJR_UNLIKELY(first == last)) {
-            return {last, std::errc::value_too_large};
-        }
-
-        *first++ = conv.template to<1>(0);
-        return {first, std::errc{}};
-    }
-
-    auto uVal = to_unsigned(val);
-
-    if constexpr (std::is_signed_v<Value>) {
-        if (val < 0) {
-            if (WJR_UNLIKELY(first == last)) {
-                return {last, std::errc::value_too_large};
-            }
-
-            *first++ = '-';
-            uVal = -val;
-        }
-    }
-
-    const unsigned int base = ibase;
-    const auto size = std::distance(first, last);
-
-#define WJR_TO_CHARS_VALIDATE_IMPL(BASE, DIGITS, CALL)                                   \
-    const int n = count_digits<BASE> DIGITS;                                             \
-    if (WJR_LIKELY(n <= size)) {                                                         \
-        first += n;                                                                      \
-        (void)__unsigned_to_chars_backward_unchecked<BASE>(                              \
-            first, WJR_PP_QUEUE_EXPAND(CALL), conv);                                     \
-        return {first, std::errc{}};                                                     \
-    }                                                                                    \
-    return { last, std::errc::value_too_large }
-
-    switch (base) {
-    case 2: {
-        WJR_TO_CHARS_VALIDATE_IMPL(2, (uVal), (n, uVal));
-    }
-    case 8: {
-        WJR_TO_CHARS_VALIDATE_IMPL(8, (uVal), (n, uVal));
-    }
-    case 16: {
-        WJR_TO_CHARS_VALIDATE_IMPL(16, (uVal), (n, uVal));
-    }
-    case 4:
-    case 32: {
-        const int bits = base == 4 ? 2 : 5;
-        WJR_TO_CHARS_VALIDATE_IMPL(1, (uVal, bits), (n, uVal, bits));
-    }
-    case 10: {
-        WJR_TO_CHARS_VALIDATE_IMPL(10, (uVal), (uVal));
-    }
-    default: {
-        WJR_UNREACHABLE();
-    }
-    }
-
-#undef WJR_TO_CHARS_VALIDATE_IMPL
-}
-
-template <typename Iter, typename Value, typename IBase, typename Converter>
-to_chars_result<Iter> __fallback_to_chars_impl(Iter first, Iter last, Value val,
-                                               IBase ibase, Converter conv) noexcept {
-    constexpr auto is_signed = std::is_signed_v<Value>;
-    constexpr auto base_2_table = std::numeric_limits<Value>::digits;
-    constexpr auto base_10_table = std::numeric_limits<Value>::digits10 + 1;
-    constexpr auto is_random_access = is_random_access_iterator_v<Iter>;
-
-    if (WJR_UNLIKELY(val == 0)) {
-        if (WJR_UNLIKELY(first == last)) {
-            return {last, std::errc::value_too_large};
-        }
-
-        *first++ = conv.template to<1>(0);
-        return {first, std::errc{}};
-    }
-
-    auto uVal = to_unsigned(val);
-    int sign = 0;
-
-    if constexpr (is_signed) {
-        if constexpr (is_random_access) {
-            if (val < 0) {
-                if (WJR_UNLIKELY(first == last)) {
-                    return {last, std::errc::value_too_large};
-                }
-
-                sign = 1;
-                uVal = -val;
-            }
-        } else {
-            if (val < 0) {
-                if (WJR_UNLIKELY(first == last)) {
-                    return {last, std::errc::value_too_large};
-                }
-
-                *first++ = '-';
-                uVal = -val;
-            }
-        }
-    }
-
-    const unsigned int base = ibase;
-
-#define WJR_TO_CHARS_VALIDATE_IMPL(BASE, TABLE, CALL)                                    \
-    if constexpr (is_random_access) {                                                    \
-        const auto size = std::distance(first, last);                                    \
-        WJR_PP_QUEUE_EXPAND(                                                             \
-            WJR_PP_BOOL_IF(WJR_PP_NE(BASE, 10),                                          \
-                           (                                                             \
-                               if constexpr (is_signed) {                                \
-                                   if (WJR_UNLIKELY(n + sign > size)) {                  \
-                                       return {last, std::errc::value_too_large};        \
-                                   }                                                     \
-                               } else {                                                  \
-                                   if (WJR_UNLIKELY(n > size)) {                         \
-                                       return {last, std::errc::value_too_large};        \
-                                   }                                                     \
-                               }),                                                       \
-                           ()))                                                          \
-                                                                                         \
-        convert_detail::fast_buffer_t<Iter> buffer[TABLE + is_signed];                   \
-        const auto __end = buffer + TABLE + is_signed;                                   \
-        auto __ptr = (convert_detail::fast_buffer_t<Iter> *)                             \
-            __unsigned_to_chars_backward_unchecked<BASE>(                                \
-                (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
-                                                                                         \
-        WJR_PP_QUEUE_EXPAND(                                                             \
-            WJR_PP_BOOL_IF(WJR_PP_EQ(BASE, 10),                                          \
-                           (                                                             \
-                               const auto n = __end - __ptr;                             \
-                                                                                         \
-                               if constexpr (is_signed) {                                \
-                                   if (WJR_UNLIKELY(n + sign > size)) {                  \
-                                       return {last, std::errc::value_too_large};        \
-                                   }                                                     \
-                               } else {                                                  \
-                                   if (WJR_UNLIKELY(n > size)) {                         \
-                                       return {last, std::errc::value_too_large};        \
-                                   }                                                     \
-                               }),                                                       \
-                           ()))                                                          \
-                                                                                         \
-        if constexpr (is_signed) {                                                       \
-            if (sign) {                                                                  \
-                *--__ptr = '-';                                                          \
-            }                                                                            \
-        }                                                                                \
-                                                                                         \
-        return wjr::copy(__ptr, __end, first);                                           \
-    } else {                                                                             \
-        convert_detail::fast_buffer_t<Iter> buffer[TABLE];                               \
-        const auto __end = buffer + TABLE;                                               \
-        auto __ptr = (convert_detail::fast_buffer_t<Iter> *)                             \
-            __unsigned_to_chars_backward_unchecked<BASE>(                                \
-                (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
-                                                                                         \
-        do {                                                                             \
-            if (WJR_UNLIKELY(first == last)) {                                           \
-                return {last, std::errc::value_too_large};                               \
-            }                                                                            \
-                                                                                         \
-            *first++ = *__ptr++;                                                         \
-        } while (__ptr != __end);                                                        \
-                                                                                         \
-        return {first, std::errc{}};                                                     \
-    }
-
-    switch (base) {
-    case 2: {
-        const int n = count_digits<2>(uVal);
-        WJR_TO_CHARS_VALIDATE_IMPL(2, base_2_table, (n, uVal));
-    }
-    case 8: {
-        const int n = count_digits<8>(uVal);
-        WJR_TO_CHARS_VALIDATE_IMPL(8, (base_2_table + 2) / 3, (n, uVal));
-    }
-    case 16: {
-        const int n = count_digits<16>(uVal);
-        WJR_TO_CHARS_VALIDATE_IMPL(16, (base_2_table + 3) / 4, (n, uVal));
-    }
-    case 4:
-    case 32: {
-        const int bits = base == 4 ? 2 : 5;
-        const int n = count_digits<1>(uVal, bits);
-        WJR_TO_CHARS_VALIDATE_IMPL(1, (base_2_table + 1) / 2, (n, uVal, bits));
-    }
-    case 10: {
-        WJR_TO_CHARS_VALIDATE_IMPL(10, base_10_table, (uVal));
-    }
-    default: {
-        WJR_UNREACHABLE();
-    }
-    }
-
-#undef WJR_TO_CHARS_VALIDATE_IMPL
-}
-
-template <typename Iter, typename Value, typename IBase, typename Converter>
-to_chars_result<Iter> __to_chars_impl(Iter first, Iter last, Value val, IBase ibase,
-                                      Converter conv) noexcept {
-    if constexpr (convert_detail::__is_fast_convert_iterator_v<Iter>) {
-        const auto __first = reinterpret_cast<uint8_t *>(wjr::to_address(first));
-        const auto __last = reinterpret_cast<uint8_t *>(wjr::to_address(last));
-        const auto __result = __fast_to_chars_impl(__first, __last, val, ibase, conv);
-        return {first + std::distance(__first, __result.ptr), __result.ec};
-    } else {
-        return __fallback_to_chars_impl(first, last, val, ibase, conv);
-    }
-}
-
-template <typename Value, typename IBase, typename Converter>
-uint8_t *__fast_to_chars_unchecked_impl(uint8_t *ptr, Value val, IBase ibase,
-                                        Converter conv) noexcept {
-    if (WJR_UNLIKELY(val == 0)) {
-        *ptr++ = conv.template to<1>(0);
-        return ptr;
-    }
-
-    auto uVal = to_unsigned(val);
-
-    if constexpr (std::is_signed_v<Value>) {
-        if (val < 0) {
-            *ptr++ = '-';
-            uVal = -val;
-        }
-    }
-
-    const unsigned int base = ibase;
-
-    switch (base) {
-    case 2: {
-        const int n = count_digits<2>(uVal);
-        ptr += n;
-        (void)__unsigned_to_chars_backward_unchecked<2>(ptr, n, uVal, conv);
-        return ptr;
-    }
-    case 8: {
-        const int n = count_digits<8>(uVal);
-        ptr += n;
-        (void)__unsigned_to_chars_backward_unchecked<8>(ptr, n, uVal, conv);
-        return ptr;
-    }
-    case 16: {
-        const int n = count_digits<16>(uVal);
-        ptr += n;
-        (void)__unsigned_to_chars_backward_unchecked<16>(ptr, n, uVal, conv);
-        return ptr;
-    }
-    case 4:
-    case 32: {
-        const int bits = base == 4 ? 2 : 5;
-        const int n = count_digits<1>(uVal, bits);
-        ptr += n;
-        (void)__unsigned_to_chars_backward_unchecked<1>(ptr, n, uVal, bits, conv);
-        return ptr;
-    }
-    case 10: {
-        const int n = count_digits<10>(uVal);
-        ptr += n;
-        (void)__unsigned_to_chars_backward_unchecked<10>(ptr, uVal, conv);
-        return ptr;
-    }
-    default: {
-        WJR_UNREACHABLE();
-    }
-    }
-}
-
-template <typename Iter, typename Value, typename IBase, typename Converter>
-Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
-                                        Converter conv) noexcept {
-    constexpr auto is_signed = std::is_signed_v<Value>;
-    constexpr auto base_2_table = std::numeric_limits<Value>::digits;
-    constexpr auto base_10_table = std::numeric_limits<Value>::digits10 + 1;
-
-    if (WJR_UNLIKELY(val == 0)) {
-        *ptr++ = conv.template to<1>(0);
-        return ptr;
-    }
-
-    auto uVal = to_unsigned(val);
-    int sign = 0;
-
-    if constexpr (is_signed) {
-        if (val < 0) {
-            sign = 1;
-            uVal = -val;
-        }
-    }
-
-    const unsigned int base = ibase;
-
-#define WJR_TO_CHARS_IMPL(BASE, TABLE, CALL)                                             \
-    constexpr auto __fast_container_inserter_v =                                         \
-        convert_detail::is_fast_container_inserter_v<Iter>;                              \
-    if constexpr (__fast_container_inserter_v != 0) {                                    \
-        WJR_PP_BOOL_IF(WJR_PP_EQ(BASE, 10), const int n = count_digits<10>(uVal), );     \
-        auto &cont = get_inserter_container(ptr);                                        \
-        if constexpr (__fast_container_inserter_v == 1) {                                \
-            resize(cont, cont.size() + n + sign);                                        \
-        } else {                                                                         \
-            append(cont, n + sign, dctor);                                               \
-        }                                                                                \
-        const auto __end = wjr::to_address(cont.data() + cont.size());                   \
-        auto __ptr = (convert_detail::fast_buffer_t<Iter> *)                             \
-            __unsigned_to_chars_backward_unchecked<BASE>(                                \
-                (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
-                                                                                         \
-        if constexpr (is_signed) {                                                       \
-            if (sign) {                                                                  \
-                *--__ptr = '-';                                                          \
-            }                                                                            \
-        }                                                                                \
-                                                                                         \
-        return ptr;                                                                      \
-    } else {                                                                             \
-        convert_detail::fast_buffer_t<Iter> buffer[TABLE + is_signed];                   \
-        const auto __end = buffer + TABLE + is_signed;                                   \
-        auto __ptr = (convert_detail::fast_buffer_t<Iter> *)                             \
-            __unsigned_to_chars_backward_unchecked<BASE>(                                \
-                (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
-                                                                                         \
-        if constexpr (is_signed) {                                                       \
-            if (sign) {                                                                  \
-                *--__ptr = '-';                                                          \
-            }                                                                            \
-        }                                                                                \
-                                                                                         \
-        return wjr::copy(__ptr, __end, ptr);                                             \
-    }
-
-    switch (base) {
-    case 2: {
-        const int n = count_digits<2>(uVal);
-        WJR_TO_CHARS_IMPL(2, base_2_table, (n, uVal));
-    }
-    case 8: {
-        const int n = count_digits<8>(uVal);
-        WJR_TO_CHARS_IMPL(8, (base_2_table + 2) / 3, (n, uVal));
-    }
-    case 16: {
-        const int n = count_digits<16>(uVal);
-        WJR_TO_CHARS_IMPL(16, (base_2_table + 3) / 4, (n, uVal));
-    }
-    case 4:
-    case 32: {
-        const int bits = base == 4 ? 2 : 5;
-        const int n = count_digits<1>(uVal, bits);
-        WJR_TO_CHARS_IMPL(1, (base_2_table + 1) / 2, (n, uVal, bits));
-    }
-    case 10: {
-        WJR_TO_CHARS_IMPL(10, base_10_table, (uVal));
-    }
-    default: {
-        WJR_UNREACHABLE();
-    }
-    }
-
-#undef WJR_TO_CHARS_IMPL
-}
-
-template <typename Iter, typename Value, typename IBase, typename Converter>
-Iter __to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
-                               Converter conv) noexcept {
-    if constexpr (convert_detail::__is_fast_convert_iterator_v<Iter>) {
-        const auto __ptr = reinterpret_cast<uint8_t *>(wjr::to_address(ptr));
-        const auto __result = __fast_to_chars_unchecked_impl(__ptr, val, ibase, conv);
-        return ptr + std::distance(__ptr, __result);
-    } else {
-        return __fallback_to_chars_unchecked_impl(ptr, val, ibase, conv);
-    }
-}
-/**
- * @brief Convert an unsigned integer to a string with checking buf size.
- *
- *
- * @return to_chars_result<Iter> If the conversion is successful, return {ans,
- * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
- *
- */
-template <typename Iter, typename Value, unsigned int IBase = 10,
-          typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>)>
-to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val,
-                               integral_constant<unsigned int, IBase> ic = {},
-                               Converter conv = {}) noexcept {
-    return __to_chars_impl(ptr, last, val, ic, conv);
-}
-
-template <typename Iter, typename Value, typename Converter>
-to_chars_result<Iter> to_chars_dynamic(Iter ptr, Iter last, Value val, unsigned int base,
-                                       Converter conv) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(base)) {
-        switch (base) {
-        case 2: {
-            return to_chars(ptr, last, val, 2_u, conv);
-        }
-        case 8: {
-            return to_chars(ptr, last, val, 8_u, conv);
-        }
-        case 16: {
-            return to_chars(ptr, last, val, 16_u, conv);
-        }
-        case 10: {
-            return to_chars(ptr, last, val, 10_u, conv);
-        }
-        default: {
-            break;
-        }
-        }
-    }
-
-    return __to_chars_impl(ptr, last, val, base, conv);
-}
-
-/**
- * @brief Convert an unsigned integer to a string with checking buf size.
- *
- * @return to_chars_result<Iter> If the conversion is successful, return {ans,
- * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
- *
- */
-template <typename Iter, typename Value, typename IBase,
-          typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>
-                           &&is_nonbool_integral_v<IBase>)>
-to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, IBase base,
-                               Converter conv = {}) noexcept {
-    return to_chars_dynamic(ptr, last, val, static_cast<unsigned int>(base), conv);
-}
-
-/**
- * @brief Convert an unsigned integer to a string without checking buf size.
- *
- * @detail Iter can be any output iterator. Support fast_convert mode and fallback mode.
- * \n fast_convert mode : \n fast_convert mode is used when
- * __is_fast_convert_iterator_v<Iter> is true. \n caclulate the number of digits and
- * convert the integer to a string in reverse order. \n fallback mode : \n use buffer to
- * store the result and use @ref wjr::copy to copy the result to the output iterator. \n
- *
- */
-template <typename Iter, typename Value, unsigned int IBase = 10,
-          typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>)>
-Iter to_chars_unchecked(Iter ptr, Value val,
-                        integral_constant<unsigned int, IBase> ic = {},
-                        Converter conv = {}) noexcept {
-    return __to_chars_unchecked_impl(ptr, val, ic, conv);
-}
-
-template <typename Iter, typename Value, typename Converter>
-Iter to_chars_unchecked_dynamic(Iter ptr, Value val, unsigned int base,
-                                Converter conv) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(base)) {
-        switch (base) {
-        case 2: {
-            return to_chars_unchecked(ptr, val, 2_u, conv);
-        }
-        case 8: {
-            return to_chars_unchecked(ptr, val, 8_u, conv);
-        }
-        case 16: {
-            return to_chars_unchecked(ptr, val, 16_u, conv);
-        }
-        case 10: {
-            return to_chars_unchecked(ptr, val, 10_u, conv);
-        }
-        default: {
-            break;
-        }
-        }
-    }
-
-    return __to_chars_unchecked_impl(ptr, val, base, conv);
-}
-
-/**
- * @brief Convert an unsigned integer to a string without checking buf size.
- *
- * @tparam Iter The iterator type. Must be random access iterator.
- * @tparam Value The value type. If Converter is origin_converter_t, Value must be
- * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
- *
- */
-template <typename Iter, typename Value, typename IBase,
-          typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>
-                           &&is_nonbool_integral_v<IBase>)>
-Iter to_chars_unchecked(Iter ptr, Value val, IBase base, Converter conv = {}) noexcept {
-    return to_chars_unchecked_dynamic(ptr, val, static_cast<unsigned int>(base), conv);
-}
 
 template <typename Converter>
 size_t __biginteger_to_chars_2_impl(uint8_t *first, const uint64_t *up, size_t n,
@@ -27416,645 +28098,6 @@ Iter biginteger_to_chars(Iter first, const uint64_t *up, size_t n, unsigned int 
     WJR_ASSERT_ASSUME(up[n - 1] != 0);
 
     return __biginteger_to_chars_impl(first, up, n, base, conv);
-}
-
-template <uint64_t Base>
-class __unsigned_from_chars_unchecked_fn {};
-
-template <uint64_t Base>
-inline constexpr __unsigned_from_chars_unchecked_fn<Base>
-    __unsigned_from_chars_unchecked{};
-
-template <>
-class __unsigned_from_chars_unchecked_fn<2> {
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    WJR_INTRINSIC_INLINE void operator()(const uint8_t *first, const uint8_t *last,
-                                         UnsignedValue &val,
-                                         Converter conv) const noexcept {
-        constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-
-        auto n = std::distance(first, last);
-        WJR_ASSERT_ASSUME(1 <= n && n <= nd);
-
-        if constexpr (nd >= 16) {
-            if (WJR_UNLIKELY(n >= 8)) {
-                do {
-                    val = (val << 8) + __from_chars_unroll_8<2>(first, conv);
-                    first += 8;
-                    n -= 8;
-                } while (WJR_LIKELY(n >= 8));
-
-                if (n == 0) {
-                    return;
-                }
-            }
-        } else if constexpr (nd == 8) {
-            if (WJR_UNLIKELY(n == 8)) {
-                val = __from_chars_unroll_8<2>(first, conv);
-                first += 8;
-                return;
-            }
-        }
-
-        switch (n) {
-        case 7: {
-            val = (val << 1) + conv.template from<2>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 6: {
-            val = (val << 1) + conv.template from<2>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 5: {
-            val = (val << 1) + conv.template from<2>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 4: {
-            val <<= 4;
-            val += __from_chars_unroll_4<2>(first, conv);
-            first += 4;
-            break;
-        }
-        case 3: {
-            val = (val << 1) + conv.template from<2>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 2: {
-            val = (val << 1) + conv.template from<2>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 1: {
-            val = (val << 1) + conv.template from<2>(*first++);
-            break;
-        }
-        default: {
-            WJR_UNREACHABLE();
-            break;
-        }
-        }
-    }
-};
-
-template <>
-class __unsigned_from_chars_unchecked_fn<8> {
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    WJR_INTRINSIC_INLINE void operator()(const uint8_t *first, const uint8_t *last,
-                                         UnsignedValue &val,
-                                         Converter conv) const noexcept {
-        constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-
-        auto n = std::distance(first, last);
-        WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 2) / 3);
-
-        if constexpr (nd >= 32) {
-            if (WJR_UNLIKELY(n >= 8)) {
-                do {
-                    val = (val << 24) + __from_chars_unroll_8<8>(first, conv);
-                    first += 8;
-                    n -= 8;
-                } while (WJR_LIKELY(n >= 8));
-
-                if (n == 0) {
-                    return;
-                }
-            }
-        }
-
-        switch (n) {
-        case 7: {
-            val = (val << 3) + conv.template from<8>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 6: {
-            val = (val << 3) + conv.template from<8>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 5: {
-            val = (val << 3) + conv.template from<8>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 4: {
-            val <<= 12;
-            val += __from_chars_unroll_4<8>(first, conv);
-            first += 4;
-            break;
-        }
-        case 3: {
-            val = (val << 3) + conv.template from<8>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 2: {
-            val = (val << 3) + conv.template from<8>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 1: {
-            val = (val << 3) + conv.template from<8>(*first++);
-            break;
-        }
-        default: {
-            WJR_UNREACHABLE();
-            break;
-        }
-        }
-    }
-};
-
-template <>
-class __unsigned_from_chars_unchecked_fn<16> {
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    WJR_INTRINSIC_INLINE void operator()(const uint8_t *first, const uint8_t *last,
-                                         UnsignedValue &val,
-                                         Converter conv) const noexcept {
-        constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-
-        auto n = std::distance(first, last);
-        WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 3) / 4);
-
-        if constexpr (nd >= 64) {
-            if (WJR_UNLIKELY(n >= 8)) {
-                do {
-                    val = (val << 32) + __from_chars_unroll_8<16>(first, conv);
-                    first += 8;
-                    n -= 8;
-                } while (WJR_LIKELY(n >= 8));
-
-                if (n == 0) {
-                    return;
-                }
-            }
-        } else if constexpr (nd == 32) {
-            if (WJR_UNLIKELY(n == 8)) {
-                val = __from_chars_unroll_8<16>(first, conv);
-                first += 8;
-                return;
-            }
-        }
-
-        switch (n) {
-        case 7: {
-            val = (val << 4) + conv.template from<16>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 6: {
-            val = (val << 4) + conv.template from<16>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 5: {
-            val = (val << 4) + conv.template from<16>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 4: {
-            val <<= 16;
-            val += __from_chars_unroll_4<16>(first, conv);
-            first += 4;
-            break;
-        }
-        case 3: {
-            val = (val << 4) + conv.template from<16>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 2: {
-            val = (val << 4) + conv.template from<16>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 1: {
-            val = (val << 4) + conv.template from<16>(*first++);
-            break;
-        }
-        default: {
-            WJR_UNREACHABLE();
-            break;
-        }
-        }
-    }
-};
-
-template <>
-class __unsigned_from_chars_unchecked_fn<1> {};
-
-template <>
-class __unsigned_from_chars_unchecked_fn<10> {
-public:
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    WJR_INTRINSIC_INLINE void operator()(const uint8_t *first, const uint8_t *last,
-                                         UnsignedValue &val,
-                                         Converter conv) const noexcept {
-        constexpr auto nd = std::numeric_limits<UnsignedValue>::digits10 + 1;
-
-        auto n = std::distance(first, last);
-        WJR_ASSUME(1 <= n && n <= nd);
-
-        if constexpr (nd >= 8) {
-            if (WJR_UNLIKELY(n >= 8)) {
-                if (WJR_UNLIKELY(n >= 16)) {
-                    val = __from_chars_unroll_16<10>(first, conv);
-                    first += 16;
-                    n -= 16;
-                } else {
-                    val = __from_chars_unroll_8<10>(first, conv);
-                    first += 8;
-                    n -= 8;
-                }
-
-                if (WJR_UNLIKELY(n == 0)) {
-                    return;
-                }
-            }
-        }
-
-        switch (n) {
-        case 7: {
-            val = val * 10 + conv.template from<10>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 6: {
-            val = val * 10 + conv.template from<10>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 5: {
-            val = val * 10 + conv.template from<10>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 4: {
-            val = (val * 10000) + __from_chars_unroll_4<10>(first, conv);
-            break;
-        }
-        case 3: {
-            val = val * 10 + conv.template from<10>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 2: {
-            val = val * 10 + conv.template from<10>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 1: {
-            val = val * 10 + conv.template from<10>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 0: {
-            break;
-        }
-        default: {
-            WJR_UNREACHABLE();
-            break;
-        }
-        }
-    }
-};
-
-template <typename Value, typename IBase, typename Converter>
-void __fast_from_chars_unchecked_impl(const uint8_t *first, const uint8_t *last,
-                                      Value &val, IBase ibase, Converter conv) noexcept {
-    int sign = 0;
-
-    if constexpr (std::is_signed_v<Value>) {
-        WJR_ASSERT(first != last);
-
-        if (*first == '-') {
-            ++first;
-            sign = 1;
-        }
-    }
-
-    std::make_unsigned_t<Value> uVal = 0;
-
-    const unsigned int base = ibase;
-
-    switch (base) {
-    case 2: {
-        __unsigned_from_chars_unchecked<2>(first, last, uVal, conv);
-        break;
-    }
-    case 8: {
-        __unsigned_from_chars_unchecked<8>(first, last, uVal, conv);
-        break;
-    }
-    case 16: {
-        __unsigned_from_chars_unchecked<16>(first, last, uVal, conv);
-        break;
-    }
-    case 10: {
-        __unsigned_from_chars_unchecked<10>(first, last, uVal, conv);
-        break;
-    }
-    default: {
-        WJR_UNREACHABLE();
-        break;
-    }
-    }
-
-    if (sign) {
-        val = -static_cast<Value>(uVal);
-    } else {
-        val = static_cast<Value>(uVal);
-    }
-}
-
-template <typename Iter, typename Value, typename IBase, typename Converter>
-void __from_chars_unchecked_impl(Iter first, Iter last, Value &val, IBase ibase,
-                                 Converter conv) noexcept {
-    const auto __first = reinterpret_cast<const uint8_t *>(wjr::to_address(first));
-    const auto __last = reinterpret_cast<const uint8_t *>(wjr::to_address(last));
-    __fast_from_chars_unchecked_impl(__first, __last, val, ibase, conv);
-}
-
-template <typename Iter, typename Value, unsigned int IBase = 10,
-          typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_detail::__is_fast_convert_iterator_v<Iter>
-                           &&convert_detail::__is_valid_converter_v<Value, Converter>)>
-void from_chars_unchecked(Iter first, Iter last, Value &val,
-                          integral_constant<unsigned int, IBase> ic = {},
-                          Converter conv = {}) noexcept {
-    __from_chars_unchecked_impl(first, last, val, ic, conv);
-}
-
-template <typename Iter, typename Value, typename IBase, typename Converter>
-void from_chars_unchecked_dynamic(Iter first, Iter last, Value &val, unsigned int base,
-                                  Converter conv) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(base)) {
-        switch (base) {
-        case 2: {
-            __from_chars_unchecked_impl(first, last, val, 2_u, conv);
-            return;
-        }
-        case 8: {
-            __from_chars_unchecked_impl(first, last, val, 8_u, conv);
-            return;
-        }
-        case 16: {
-            __from_chars_unchecked_impl(first, last, val, 16_u, conv);
-            return;
-        }
-        case 10: {
-            __from_chars_unchecked_impl(first, last, val, 10_u, conv);
-            return;
-        }
-        default: {
-            break;
-        }
-        }
-    }
-
-    __from_chars_unchecked_impl(first, last, val, base, conv);
-}
-
-template <typename Iter, typename Value, typename IBase,
-          typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_detail::__is_fast_convert_iterator_v<Iter>
-                           &&convert_detail::__is_valid_converter_v<Value, Converter>
-                               &&is_nonbool_integral_v<IBase>)>
-void from_chars_unchecked(Iter first, Iter last, Value &val, IBase base,
-                          Converter conv = {}) noexcept {
-    from_chars_unchecked_dynamic(first, last, val, static_cast<unsigned int>(base), conv);
-}
-
-template <uint64_t Base>
-struct check_four_digits_fn {};
-
-template <uint64_t Base>
-inline constexpr check_four_digits_fn<Base> check_four_digits{};
-
-template <uint64_t Base>
-struct __unsigned_from_chars_fn {};
-
-/** @todo Can be optimized. */
-template <uint64_t Base>
-inline constexpr __unsigned_from_chars_fn<Base> __unsigned_from_chars{};
-
-template <>
-struct __unsigned_from_chars_fn<2> {
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    WJR_INTRINSIC_INLINE int operator()(const uint8_t *&first, const uint8_t *last,
-                                        UnsignedValue &value,
-                                        Converter conv) const noexcept {
-        constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-        constexpr auto zero = conv.template to<2>(0);
-        constexpr auto one = conv.template to<2>(1);
-
-        if (WJR_UNLIKELY(first == last)) {
-            return 2;
-        }
-
-        uint8_t ch = first[0];
-
-        if (ch == one) {
-        } else if (ch == zero) {
-            do {
-                ++first;
-                if (first == last) {
-                    return 1;
-                }
-
-                ch = first[0];
-            } while (ch == zero);
-            if (ch != one) {
-                return 1;
-            }
-        } else {
-            return 2;
-        }
-
-        const size_t n = std::distance(first, last);
-        ch = 1;
-        size_t idx = 0;
-
-        do {
-            value = value << 1 | ch;
-            ++idx;
-            if (idx == n) {
-                break;
-            }
-
-            ch = conv.template from<2>(first[idx]);
-        } while (ch < 2);
-
-        first += idx;
-        return idx <= nd;
-    }
-};
-
-template <>
-struct __unsigned_from_chars_fn<10> {
-    template <typename UnsignedValue, typename Converter,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
-    WJR_INTRINSIC_INLINE int operator()(const uint8_t *&first, const uint8_t *last,
-                                        UnsignedValue &value,
-                                        Converter conv) const noexcept {
-        constexpr auto zero = conv.template to<10>(0);
-        constexpr auto nine = conv.template to<10>(9);
-
-        constexpr auto __try_matches = [](uint8_t &ch) {
-            if constexpr (zero != 0) {
-                return ch <= nine && !sub_overflow(ch, zero, ch);
-            } else {
-                return ch <= nine;
-            }
-        };
-
-        constexpr auto __matches = [](uint8_t ch) {
-            if constexpr (zero != 0) {
-                return zero <= ch && ch <= nine;
-            } else {
-                return ch <= nine;
-            }
-        };
-
-        if (WJR_UNLIKELY(first == last)) {
-            return 2;
-        }
-
-        uint8_t ch = *first;
-
-        if (WJR_UNLIKELY(!__try_matches(ch))) {
-            return 2;
-        }
-
-        do {
-            ++first;
-            if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
-                             add_overflow(value, ch, value))) {
-                while (first != last && __matches(*first)) {
-                    ++first;
-                }
-
-                return 0;
-            }
-
-            if (first == last) {
-                break;
-            }
-
-            ch = *first;
-        } while (__try_matches(ch));
-
-        return 1;
-    }
-};
-
-template <typename Value, typename IBase, typename Converter>
-from_chars_result<const uint8_t *>
-__fast_from_chars_impl(const uint8_t *first, const uint8_t *last, Value &val, IBase ibase,
-                       Converter conv) noexcept {
-    constexpr auto is_signed = std::is_signed_v<Value>;
-
-    int sign = 0;
-
-    if constexpr (is_signed) {
-        if (first != last && *first == '-') {
-            ++first;
-            sign = 1;
-        }
-    }
-
-    using UnsignedValue = std::make_unsigned_t<Value>;
-
-    UnsignedValue uVal = 0;
-
-    const unsigned int base = ibase;
-    from_chars_result<const uint8_t *> ret{first, std::errc{}};
-    int valid;
-
-    switch (base) {
-    case 2: {
-        valid = __unsigned_from_chars<2>(first, last, uVal, conv);
-        break;
-    }
-    case 10: {
-        valid = __unsigned_from_chars<10>(first, last, uVal, conv);
-        break;
-    }
-    default: {
-        return {first, std::errc::invalid_argument};
-    }
-    }
-
-    if (WJR_UNLIKELY(valid == 2)) {
-        ret.ec = std::errc::invalid_argument;
-    } else {
-        ret.ptr = first;
-        if (!valid) {
-            ret.ec = std::errc::result_out_of_range;
-        } else {
-            if constexpr (is_signed) {
-                if (sign) {
-                    if (uVal >
-                        static_cast<UnsignedValue>(std::numeric_limits<Value>::min())) {
-                        ret.ec = std::errc::result_out_of_range;
-                    } else {
-                        val = -static_cast<Value>(uVal);
-                    }
-                } else {
-                    if (uVal >
-                        static_cast<UnsignedValue>(std::numeric_limits<Value>::max())) {
-                        ret.ec = std::errc::result_out_of_range;
-                    } else {
-                        val = static_cast<Value>(uVal);
-                    }
-                }
-            } else {
-                val = uVal;
-            }
-        }
-    }
-
-    return ret;
-}
-
-template <typename Value, typename IBase, typename Converter>
-from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
-                                                  Value &val, IBase ibase,
-                                                  Converter conv) noexcept {
-    const auto __first = reinterpret_cast<const uint8_t *>(first);
-    const auto __last = reinterpret_cast<const uint8_t *>(last);
-    const auto ret = __fast_from_chars_impl(__first, __last, val, ibase, conv);
-    return {reinterpret_cast<const char *>(ret.ptr), ret.ec};
-}
-
-template <typename Value, unsigned int IBase = 10, typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>)>
-from_chars_result<const char *>
-from_chars(const char *first, const char *last, Value &val,
-           integral_constant<unsigned int, IBase> ic = {}, Converter conv = {}) noexcept {
-    return __from_chars_impl(first, last, val, ic, conv);
-}
-
-template <typename Value, typename Converter,
-          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>)>
-from_chars_result<const char *> from_chars_dynamic(const char *first, const char *last,
-                                                   Value &val, unsigned int base,
-                                                   Converter conv) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(base)) {
-        switch (base) {
-        case 2: {
-            return __from_chars_impl(first, last, val, 2_u, conv);
-        }
-        case 10: {
-            return __from_chars_impl(first, last, val, 10_u, conv);
-        }
-        default: {
-            break;
-        }
-        }
-    }
-
-    return __from_chars_impl(first, last, val, base, conv);
-}
-
-template <typename Value, typename IBase, typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_detail::__is_valid_converter_v<Value, Converter>
-                           &&is_nonbool_integral_v<IBase>)>
-from_chars_result<const char *> from_chars(const char *first, const char *last,
-                                           Value &val, IBase base,
-                                           Converter conv = {}) noexcept {
-    return from_chars_dynamic(first, last, val, base, conv);
 }
 
 template <typename Converter>
@@ -35832,12 +35875,14 @@ public:
 
     using const_iterator = typename Storage::const_iterator;
 
-    constexpr const_iterator token_begin() const noexcept { return m_tokens.begin(); }
-    constexpr const_iterator token_end() const noexcept { return m_tokens.end(); }
+    WJR_CONSTEXPR20 const_iterator token_begin() const noexcept {
+        return m_tokens.begin();
+    }
+    WJR_CONSTEXPR20 const_iterator token_end() const noexcept { return m_tokens.end(); }
 
-    constexpr const_pointer data() const noexcept { return m_str.data(); }
+    WJR_CONSTEXPR20 const_pointer data() const noexcept { return m_str.data(); }
 
-    constexpr size_type size() const noexcept {
+    WJR_CONSTEXPR20 size_type size() const noexcept {
         return static_cast<size_type>(m_str.size());
     }
 

@@ -1,7 +1,7 @@
-#ifndef WJR_X86_MATH_CONVERT_HPP__
-#define WJR_X86_MATH_CONVERT_HPP__
+#ifndef WJR_X86_FORMAT_CHARCONV_HPP__
+#define WJR_X86_FORMAT_CHARCONV_HPP__
 
-#include <wjr/math/convert-impl.hpp>
+#include <wjr/format/charconv-impl.hpp>
 #include <wjr/x86/simd/simd.hpp>
 
 #ifndef WJR_X86
@@ -193,4 +193,4 @@ uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, origin_converter_t) 
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_CONVERT_HPP__
+#endif // WJR_X86_FORMAT_CHARCONV_HPP__

@@ -1,5 +1,9 @@
-#ifndef WJR_MATH_CONVERT_IMPL_HPP__
-#define WJR_MATH_CONVERT_IMPL_HPP__
+#ifndef WJR_FORMAT_CHARCONV_IMPL_HPP__
+#define WJR_FORMAT_CHARCONV_IMPL_HPP__
+
+#include <array>
+
+#include <wjr/preprocessor.hpp>
 
 namespace wjr {
 
@@ -79,4 +83,4 @@ inline constexpr origin_converter_t origin_converter;
 
 } // namespace wjr
 
-#endif // WJR_MATH_CONVERT_IMPL_HPP__
+#endif // WJR_FORMAT_CHARCONV_IMPL_HPP__

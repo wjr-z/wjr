@@ -164,24 +164,6 @@ WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x,
     std::memcpy(ptr, &x, sizeof(T));
 }
 
-template <typename T, size_t Bytes, size_t Maxn = std::numeric_limits<T>::digits / 8,
-          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&Bytes <= Maxn)>
-WJR_INTRINSIC_INLINE T read_bytes(const void *ptr, endian to = endian::little) noexcept {
-    if constexpr (Bytes == Maxn) {
-        return read_memory<T>(ptr, to);
-    } else {
-        T x = 0;
-        if (to == endian::native) {
-            std::memcpy(&x, ptr, Bytes);
-        } else {
-            std::memcpy(((uint8_t *)&x) + (Maxn - Bytes), ptr, Bytes);
-            x = byteswap(x);
-        }
-
-        return x;
-    }
-}
-
 template <class Pointer, class SizeType = std::size_t>
 struct allocation_result {
     Pointer ptr;

@@ -170,7 +170,7 @@ FAILED:
  * @todo Move to other header.
  *
  */
-static constexpr std::array<uint8_t, 256> escape_table = {
+inline constexpr std::array<uint8_t, 256> escape_table = {
     0, 0, 0,    0, 0,    0, 0,    0, 0, 0,    0, 0, 0,    0, 0,    0, // 0x0.
     0, 0, 0,    0, 0,    0, 0,    0, 0, 0,    0, 0, 0,    0, 0,    0, 0, 0, 0x22, 0, 0, 0,
     0, 0, 0,    0, 0,    0, 0,    0, 0, 0x2f, 0, 0, 0,    0, 0,    0, 0, 0, 0,    0, 0, 0,
