@@ -57,10 +57,6 @@ WJR_PURE WJR_INTRINSIC_INLINE bool is_ascii_32(uint8_t *ptr) {
 #endif
 }
 
-WJR_PURE WJR_INTRINSIC_INLINE bool is_bom(uint8_t *ptr) {
-    return read_memory<uint32_t>(ptr) == 0xEFBBBF;
-}
-
 } // namespace wjr::utf8
 
 #endif // WJR_FORMAT_UTF_8_HPP__

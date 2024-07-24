@@ -55,7 +55,8 @@ using result = expected<T, inlined_unexpected<error_code, error_code::SUCCESS>>;
 
 namespace parser_detail {
 
-inline result<void> parse_null(const char *first, const char *last) noexcept {
+WJR_INTRINSIC_INLINE result<void> parse_null(const char *first,
+                                             const char *last) noexcept {
     if (WJR_LIKELY(last - first == 4 && std::memcmp(first, "null", 4)) == 0) {
         return {};
     }
@@ -63,7 +64,8 @@ inline result<void> parse_null(const char *first, const char *last) noexcept {
     return unexpected(error_code::N_ATOM_ERROR);
 }
 
-inline result<void> parse_true(const char *first, const char *last) noexcept {
+WJR_INTRINSIC_INLINE result<void> parse_true(const char *first,
+                                             const char *last) noexcept {
     if (WJR_LIKELY(last - first == 4 && std::memcmp(first, "true", 4)) == 0) {
         return {};
     }
@@ -71,7 +73,8 @@ inline result<void> parse_true(const char *first, const char *last) noexcept {
     return unexpected(error_code::T_ATOM_ERROR);
 }
 
-inline result<void> parse_false(const char *first, const char *last) noexcept {
+WJR_INTRINSIC_INLINE result<void> parse_false(const char *first,
+                                              const char *last) noexcept {
     if (WJR_LIKELY(last - first == 5 && std::memcmp(first + 1, "alse", 4)) == 0) {
         return {};
     }
@@ -79,7 +82,8 @@ inline result<void> parse_false(const char *first, const char *last) noexcept {
     return unexpected(error_code::F_ATOM_ERROR);
 }
 
-inline result<void> parse_number(const char *first, const char *last) noexcept {
+WJR_INTRINSIC_INLINE result<void> parse_number(const char *first,
+                                               const char *last) noexcept {
     constexpr auto __matches = [](uint8_t ch) { return '0' <= ch && ch <= '9'; };
 
     WJR_ASSERT_ASSUME_L2(first < last);
@@ -187,13 +191,9 @@ static constexpr std::array<uint8_t, 256> escape_table = {
 };
 
 /// @todo complete this function
-WJR_INTRINSIC_INLINE result<char *> parse_unicode_codepoint(char *dst,
-                                                            const char *ptr) noexcept {
+WJR_INTRINSIC_INLINE result<char *>
+parse_unicode_codepoint(char *dst, WJR_MAYBE_UNUSED const char *ptr) noexcept {
     return dst;
-}
-
-WJR_INTRINSIC_INLINE result<void> parse_unicode_codepoint(const char *ptr) noexcept {
-    return {};
 }
 
 WJR_INTRINSIC_INLINE result<char *> generic_parse_string(char *dst, const char *first,
