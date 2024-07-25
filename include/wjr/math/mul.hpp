@@ -163,8 +163,8 @@ WJR_INTRINSIC_CONSTEXPR20 bool mul_overflow(type_identity_t<T> a, type_identity_
 #endif
 }
 
-WJR_INTRINSIC_CONSTEXPR uint64_t fallback_mul_1(uint64_t *dst, const uint64_t *src,
-                                                size_t n, uint64_t ml) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_mul_1(uint64_t *dst, const uint64_t *src,
+                                                  size_t n, uint64_t ml) noexcept {
     uint64_t lo = 0, hi = 0;
     uint64_t c_in = 0;
 
@@ -226,8 +226,8 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
                                             const uint64_t *src1, size_t n,
                                             uint64_t cl) noexcept;
 
-WJR_INTRINSIC_CONSTEXPR uint64_t fallback_addmul_1(uint64_t *dst, const uint64_t *src,
-                                                   size_t n, uint64_t ml) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_addmul_1(uint64_t *dst, const uint64_t *src,
+                                                     size_t n, uint64_t ml) noexcept {
     uint64_t lo = 0, hi = 0;
     uint64_t o_in = 0, c_in = 0;
 
@@ -275,8 +275,8 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t addmul_1(uint64_t *dst, const uint64_t *src, 
 #endif
 }
 
-WJR_INTRINSIC_CONSTEXPR uint64_t fallback_submul_1(uint64_t *dst, const uint64_t *src,
-                                                   size_t n, uint64_t ml) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_submul_1(uint64_t *dst, const uint64_t *src,
+                                                     size_t n, uint64_t ml) noexcept {
     uint64_t lo = 0, hi = 0;
     uint64_t o_in = 0, c_in = 0;
 
@@ -319,9 +319,9 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t submul_1(uint64_t *dst, const uint64_t *src, 
 #endif
 }
 
-WJR_INTRINSIC_CONSTEXPR uint64_t fallback_addlsh_n(uint64_t *dst, const uint64_t *src0,
-                                                   const uint64_t *src1, size_t n,
-                                                   uint64_t cl) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_addlsh_n(uint64_t *dst, const uint64_t *src0,
+                                                     const uint64_t *src1, size_t n,
+                                                     uint64_t cl) noexcept {
     uint64_t tcl = std::numeric_limits<uint64_t>::digits - cl;
     uint64_t lo = 0, hi = 0;
     uint64_t c_in = 0, x = 0;
@@ -369,9 +369,9 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t addlsh_n(uint64_t *dst, const uint64_t *src0,
 #endif
 }
 
-WJR_INTRINSIC_CONSTEXPR uint64_t fallback_rsblsh_n(uint64_t *dst, const uint64_t *src0,
-                                                   const uint64_t *src1, size_t n,
-                                                   uint64_t cl) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_rsblsh_n(uint64_t *dst, const uint64_t *src0,
+                                                     const uint64_t *src1, size_t n,
+                                                     uint64_t cl) noexcept {
     uint64_t tcl = std::numeric_limits<uint64_t>::digits - cl;
     uint64_t lo = 0, hi = 0;
     uint64_t c_in = 0, x = 0;

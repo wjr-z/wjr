@@ -47,26 +47,25 @@ template <uint64_t Base>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR static uint32_t __fast_conv_4(uint32_t val) noexcept {
     constexpr uint32_t Base2 = Base * Base;
 
-    constexpr uint32_t mask = 0x00FF00FF;
-    constexpr uint32_t mul = 1 + (Base2 << 16);
-    val = (val * Base) + (val >> 8);
-    val = ((val & mask) * mul) >> 16;
-    return val;
+    constexpr uint32_t mul1 = 1 + (Base << 8);
+    constexpr uint32_t mul2 = 1 + (Base2 << 16);
+
+    val = ((val * mul1) >> 8) & 0x00FF00FF;
+    return (val * mul2) >> 16;
 }
 
 template <uint64_t Base>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR static uint32_t __fast_conv_8(uint64_t val) noexcept {
     constexpr uint64_t Base2 = Base * Base;
     constexpr uint64_t Base4 = Base2 * Base2;
-    constexpr uint64_t Base6 = Base4 * Base2;
 
-    constexpr uint64_t mask = 0x000000FF000000FF;
-    constexpr uint64_t mul1 = Base2 + (Base6 << 32);
-    constexpr uint64_t mul2 = 1 + (Base4 << 32);
+    constexpr uint64_t mul1 = 1 + (Base << 8);
+    constexpr uint64_t mul2 = 1 + (Base2 << 16);
+    constexpr uint64_t mul3 = 1 + (Base4 << 32);
 
-    val = (val * Base) + (val >> 8);
-    val = (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
-    return val;
+    val = ((val * mul1) >> 8) & 0x00FF00FF00FF00FF;
+    val = ((val * mul2) >> 16) & 0x0000FFFF0000FFFF;
+    return (val * mul3) >> 32;
 }
 
 template <typename T>

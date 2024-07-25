@@ -460,7 +460,7 @@ WJR_CONST constexpr bool in_range(U value) noexcept {
 template <typename T, typename U,
           WJR_REQUIRES(std::is_integral_v<T> &&std::is_integral_v<U>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T fast_cast(U value) noexcept {
-    WJR_ASSERT_ASSUME_L2(in_range<T>(value));
+    WJR_ASSUME(in_range<T>(value));
     return static_cast<T>(value);
 }
 

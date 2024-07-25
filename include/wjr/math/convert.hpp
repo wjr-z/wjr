@@ -479,7 +479,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
                                                Converter conv) noexcept {
 #define WJR_BIGINTEGER_TO_CHARS_IMPL(BASE, NAME, TAIL, SIZE, CALL)                       \
     constexpr auto __fast_container_inserter_v =                                         \
-        convert_detail::is_fast_container_inserter_v<Iter>;                              \
+        charconv_detail::is_fast_container_inserter_v<Iter>;                              \
     if constexpr (__fast_container_inserter_v != 0) {                                    \
         auto &cont = get_inserter_container(ptr);                                        \
         const auto __presize = cont.size();                                              \
@@ -503,7 +503,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
         const auto __ptr = (uint8_t *)stkal.allocate(SIZE * sizeof(uint64_t));           \
         const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;           \
                                                                                          \
-        return wjr::copy_n((convert_detail::fast_buffer_t<Iter> *)__ptr, __size, ptr);   \
+        return wjr::copy_n((charconv_detail::fast_buffer_t<Iter> *)__ptr, __size, ptr);   \
     }
 
     switch (base) {
@@ -548,7 +548,7 @@ Iter __biginteger_to_chars_impl(Iter first, const uint64_t *up, size_t n,
         return to_chars_unchecked(first, up[0], base, conv);
     }
 
-    if constexpr (convert_detail::__is_fast_convert_iterator_v<Iter>) {
+    if constexpr (charconv_detail::__is_fast_convert_iterator_v<Iter>) {
         const auto __first = reinterpret_cast<uint8_t *>(wjr::to_address(first));
         const auto __result =
             __fast_biginteger_large_to_chars_impl(__first, up, n, base, conv);
@@ -922,7 +922,7 @@ uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last
  * @return Pointer after the conversion
  */
 template <typename Iter, typename Converter = char_converter_t,
-          WJR_REQUIRES(convert_detail::__is_fast_convert_iterator_v<Iter>)>
+          WJR_REQUIRES(charconv_detail::__is_fast_convert_iterator_v<Iter>)>
 uint64_t *biginteger_from_chars(Iter first, Iter last, uint64_t *up,
                                 unsigned int base = 10, Converter conv = {}) noexcept {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));

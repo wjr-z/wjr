@@ -60,8 +60,6 @@ public:
             return x - '0';
         }
     }
-
-private:
 };
 
 inline constexpr char_converter_t char_converter;
