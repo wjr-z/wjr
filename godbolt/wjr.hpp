@@ -1310,7 +1310,11 @@
 #endif
 
 #if WJR_HAS_GCC(11, 1, 0) || WJR_HAS_CLANG(5, 0, 0)
-#define WJR_HAS_ATTRIBUTE_FORCEINLINE_LAMBDA WJR_HAS_DEF
+#define WJR_HAS_FEATURE_FORCEINLINE_LAMBDA WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_GCC(8, 1, 0) || WJR_HAS_CLANG(7, 0, 0)
+#define WJR_HAS_FEATURE_GOTO_POINTER WJR_HAS_DEF
 #endif
 
 #if defined(__AVX512VL__)
@@ -1448,7 +1452,7 @@
 #define WJR_FORCEINLINE
 #endif
 
-#if WJR_HAS_ATTRIBUTE(FORCEINLINE_LAMBDA)
+#if WJR_HAS_FEATURE(FORCEINLINE_LAMBDA)
 #define WJR_FORCEINLINE_LAMBDA WJR_FORCEINLINE
 #else
 #define WJR_FORCEINLINE_LAMBDA
@@ -7590,7 +7594,7 @@ constexpr T fallback_prefix_xor(T x) noexcept {
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_CONSTEXPR20 T prefix_xor(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T prefix_xor(T x) noexcept {
 #if WJR_HAS_BUILTIN(PREFIX_XOR)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
         return fallback_prefix_xor(x);
@@ -9629,33 +9633,39 @@ WJR_CONST constexpr T parse() noexcept {
 
 } // namespace digits_literal_detail
 
-#define WJR_REGISTER_INTEGRAL_LITERAL(NAME, TYPE)                                        \
+#define WJR_REGISTER_INTEGRAL_LITERALS(NAME, TYPE)                                       \
     template <char... Chars>                                                             \
     WJR_CONST WJR_INTRINSIC_CONSTEXPR auto operator"" _##NAME() noexcept                 \
         -> integral_constant<TYPE, digits_literal_detail::parse<TYPE, Chars...>()> {     \
         return {};                                                                       \
     }
 
-WJR_REGISTER_INTEGRAL_LITERAL(u, unsigned int);
-WJR_REGISTER_INTEGRAL_LITERAL(ul, unsigned long);
-WJR_REGISTER_INTEGRAL_LITERAL(ull, unsigned long long);
-WJR_REGISTER_INTEGRAL_LITERAL(i, int);
-WJR_REGISTER_INTEGRAL_LITERAL(l, long);
-WJR_REGISTER_INTEGRAL_LITERAL(ll, long long);
+namespace literals {
 
-WJR_REGISTER_INTEGRAL_LITERAL(i8, int8_t);
-WJR_REGISTER_INTEGRAL_LITERAL(i16, int16_t);
-WJR_REGISTER_INTEGRAL_LITERAL(i32, int32_t);
-WJR_REGISTER_INTEGRAL_LITERAL(i64, int64_t);
-WJR_REGISTER_INTEGRAL_LITERAL(u8, uint8_t);
-WJR_REGISTER_INTEGRAL_LITERAL(u16, uint16_t);
-WJR_REGISTER_INTEGRAL_LITERAL(u32, uint32_t);
-WJR_REGISTER_INTEGRAL_LITERAL(u64, uint64_t);
+WJR_REGISTER_INTEGRAL_LITERALS(u, unsigned int);
+WJR_REGISTER_INTEGRAL_LITERALS(ul, unsigned long);
+WJR_REGISTER_INTEGRAL_LITERALS(ull, unsigned long long);
+WJR_REGISTER_INTEGRAL_LITERALS(i, int);
+WJR_REGISTER_INTEGRAL_LITERALS(l, long);
+WJR_REGISTER_INTEGRAL_LITERALS(ll, long long);
 
-WJR_REGISTER_INTEGRAL_LITERAL(zu, size_t);
-WJR_REGISTER_INTEGRAL_LITERAL(z, ssize_t);
+WJR_REGISTER_INTEGRAL_LITERALS(i8, int8_t);
+WJR_REGISTER_INTEGRAL_LITERALS(i16, int16_t);
+WJR_REGISTER_INTEGRAL_LITERALS(i32, int32_t);
+WJR_REGISTER_INTEGRAL_LITERALS(i64, int64_t);
+WJR_REGISTER_INTEGRAL_LITERALS(u8, uint8_t);
+WJR_REGISTER_INTEGRAL_LITERALS(u16, uint16_t);
+WJR_REGISTER_INTEGRAL_LITERALS(u32, uint32_t);
+WJR_REGISTER_INTEGRAL_LITERALS(u64, uint64_t);
 
-#undef WJR_REGISTER_INTEGRAL_LITERAL
+WJR_REGISTER_INTEGRAL_LITERALS(zu, size_t);
+WJR_REGISTER_INTEGRAL_LITERALS(z, ssize_t);
+
+#undef WJR_REGISTER_INTEGRAL_LITERALS
+
+} // namespace literals
+
+using namespace literals;
 
 } // namespace wjr
 
@@ -16140,18 +16150,18 @@ public:
     }
 };
 
-#define WJR_EXPECTED_THROW(EXP) return unexpected(std::move(EXP).error());
+#define WJR_EXPECTED_THROW(EXP) return unexpected((EXP).error())
 
 #define WJR_EXPECTED_TRY(...)                                                            \
     if (auto exp = (__VA_ARGS__); WJR_UNLIKELY(!exp)) {                                  \
-        WJR_EXPECTED_THROW(exp);                                                         \
+        WJR_EXPECTED_THROW(std::move(exp));                                              \
     }
 
 #define WJR_EXPECTED_SET(VAR, ...)                                                       \
     if (auto exp = (__VA_ARGS__); WJR_LIKELY(exp)) {                                     \
         VAR = *std::move(exp);                                                           \
     } else {                                                                             \
-        WJR_EXPECTED_THROW(exp);                                                         \
+        WJR_EXPECTED_THROW(std::move(exp));                                              \
     }
 
 } // namespace wjr
@@ -23552,7 +23562,7 @@ static_assert(sizeof(char) == sizeof(uint8_t), "Not support currently.");
 
 namespace charconv_detail {
 
-WJR_CONST constexpr bool __isspace(uint8_t ch) noexcept {
+WJR_CONST constexpr bool isspace(uint8_t ch) noexcept {
     return char_converter.from(ch) == 64;
 }
 
@@ -25450,7 +25460,12 @@ struct __unsigned_from_chars_fn<2> {
 
         uint8_t ch = *first;
 
-        if (ch == zero) {
+        // The probability that the first character is 1 is greater than 0
+        if (ch != one) {
+            if (WJR_UNLIKELY(ch != zero)) {
+                return {{}, std::errc::invalid_argument};
+            }
+
             do {
                 ++first;
                 if (first == last) {
@@ -25465,9 +25480,9 @@ struct __unsigned_from_chars_fn<2> {
                 value = 0;
                 return {first, std::errc{}};
             }
-        } else if (ch != one) {
-            return {{}, std::errc::invalid_argument};
         }
+
+        const auto __first = first;
 
         ++first;
         value = 1;
@@ -25478,11 +25493,9 @@ struct __unsigned_from_chars_fn<2> {
 
         ch = conv.template from<2>(*first);
 
-        if (ch >= 2) {
+        if (WJR_UNLIKELY(ch >= 2)) {
             return {first, std::errc{}};
         }
-
-        const auto __first = first;
 
         do {
             ++first;
@@ -25495,8 +25508,7 @@ struct __unsigned_from_chars_fn<2> {
             ch = conv.template from<2>(*first);
         } while (ch < 2);
 
-        const auto len = first - __first + 1;
-        if (WJR_LIKELY(len <= nd)) {
+        if (WJR_LIKELY(first - __first <= nd)) {
             return {first, std::errc{}};
         }
 
@@ -25504,531 +25516,83 @@ struct __unsigned_from_chars_fn<2> {
     }
 };
 
-template <typename T, uint8_t __mask8>
-class __check_four_digits_result {
-public:
-    constexpr static uint8_t mask8 = __mask8;
-    constexpr static T mask = broadcast<uint8_t, T>(mask8);
-
-    __check_four_digits_result() = default;
-    __check_four_digits_result(const __check_four_digits_result &) = default;
-    __check_four_digits_result(__check_four_digits_result &&) = default;
-    __check_four_digits_result &operator=(const __check_four_digits_result &) = default;
-    __check_four_digits_result &operator=(__check_four_digits_result &&) = default;
-    ~__check_four_digits_result() = default;
-
-    constexpr __check_four_digits_result(T result) noexcept : result(result) {}
-    WJR_PURE constexpr operator bool() const noexcept { return result == mask; }
-
-    template <unsigned idx>
-    WJR_PURE constexpr bool mismatch() const noexcept {
-        constexpr T __maskx = ((static_cast<T>(1) << ((idx + 1) * 8)) - 1);
-        return (result & __maskx) != (mask & __maskx);
-    }
-
-private:
-    T result;
-};
-
-template <uint64_t Base>
-struct check_four_digits_fn {};
-
-template <uint64_t Base>
-inline constexpr check_four_digits_fn<Base> check_four_digits{};
-
-template <>
-struct check_four_digits_fn<10> {
-    template <typename T, uint8_t __mask8>
-    using result_type = __check_four_digits_result<T, __mask8>;
-
-    WJR_PURE WJR_INTRINSIC_INLINE result_type<uint32_t, 0x33>
-    operator()(const uint8_t *first, char_converter_t) const noexcept {
-        return get(first);
-    }
-
-    WJR_PURE WJR_INTRINSIC_INLINE result_type<uint32_t, 0x00>
-    operator()(const uint8_t *first, origin_converter_t) const noexcept {
-        return get(first);
-    }
-
-private:
-    WJR_PURE WJR_INTRINSIC_INLINE static uint32_t get(const uint8_t *first) noexcept {
-        constexpr auto high_mask = broadcast<uint8_t, uint32_t>(0xF0);
-        constexpr auto low_added = broadcast<uint8_t, uint32_t>(0x06);
-        const uint32_t x = read_memory<uint32_t>(first);
-        return (x & high_mask) | (((x + low_added) & high_mask) >> 4);
-    }
-};
-
-template <typename UnsignedValue, typename Converter>
-from_chars_result<const uint8_t *>
-__unsigned_from_chars_of_10_impl(const uint8_t *first, const uint8_t *last,
-                                 UnsignedValue &value, Converter conv) noexcept {
-    constexpr auto zero = conv.template to<10>(0);
-    constexpr auto nine = conv.template to<10>(9);
-
-    constexpr auto __try_match = [](uint8_t &ch) {
-        if constexpr (zero != 0) {
-            return ch <= nine && !sub_overflow(ch, zero, ch);
-        } else {
-            return ch <= nine;
-        }
-    };
-
-    constexpr auto __match = [](uint8_t ch) {
-        if constexpr (zero != 0) {
-            return zero <= ch && ch <= nine;
-        } else {
-            return ch <= nine;
-        }
-    };
-
-    WJR_ASSERT_ASSUME(first != last);
-
-    uint8_t ch = *first;
-
-    // Clear all leading zeros
-    if (WJR_UNLIKELY(!__match(ch))) {
-        return {{}, std::errc::invalid_argument};
-    }
-
-    if (WJR_UNLIKELY(ch == zero)) {
-        do {
-            if (++first == last) {
-                value = 0;
-                return {first, std::errc{}};
-            }
-
-            ch = *first;
-        } while (ch == zero);
-
-        if (!__match(ch)) {
-            value = 0;
-            return {first, std::errc{}};
-        }
-    }
-
-    constexpr auto nd10 = std::numeric_limits<UnsignedValue>::digits10;
-
-    // digits10 of uint8_t/uint16_t/uint32_t/uint64_t
-    static_assert(nd10 >= 2 || nd10 == 4 || nd10 == 9 || nd10 == 19, "");
-
-    if (WJR_LIKELY(first + 4 <= last)) {
-        do {
-            if (const auto result = check_four_digits<10>(first, conv);
-                WJR_LIKELY(!result)) {
-                // the first char won't mismatch
-
-                ch = *first - zero;
-                ++first;
-
-                value = ch;
-
-                if (result.template mismatch<1>()) {
-                    return {first, std::errc{}};
-                }
-
-                ch = *first - zero;
-                ++first;
-
-                value = value * 10 + ch;
-
-                if (result.template mismatch<2>()) {
-                    return {first, std::errc{}};
-                }
-
-                ch = *first - zero;
-                ++first;
-
-                if constexpr (nd10 == 2) {
-                    if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
-                                     add_overflow(value, ch, value))) {
-                        return {first, std::errc::result_out_of_range};
-                    }
-                } else {
-                    value = value * 10 + ch;
-                }
-
-                return {first, std::errc{}};
-            }
-
-            if constexpr (nd10 == 2) {
-                first += 4;
-                goto OVERFLOW_HANDLER;
-            }
-
-            if constexpr (nd10 >= 4) {
-                const uint32_t xval = __from_chars_unroll_4<10>(first, conv);
-                first += 4;
-
-                value = xval;
-
-                if (first + 4 > last) {
-                    break;
-                }
-
-                if (const auto result = check_four_digits<10>(first, conv);
-                    WJR_LIKELY(!result)) {
-                    if (result.template mismatch<0>()) {
-                        return {first, std::errc{}};
-                    }
-
-                    ch = *first - zero;
-                    ++first;
-
-                    if constexpr (nd10 == 4) {
-                        if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
-                                         add_overflow(value, ch, value) ||
-                                         !result.template mismatch<1>())) {
-                            goto OVERFLOW_HANDLER;
-                        } else {
-                            return {first, std::errc{}};
-                        }
-                    } else {
-                        value = value * 10 + ch;
-                    }
-
-                    if constexpr (nd10 != 4) {
-                        if (result.template mismatch<1>()) {
-                            return {first, std::errc{}};
-                        }
-
-                        ch = *first - zero;
-                        ++first;
-
-                        value = value * 10 + ch;
-
-                        if (result.template mismatch<2>()) {
-                            return {first, std::errc{}};
-                        }
-
-                        ch = *first - zero;
-                        ++first;
-
-                        value = value * 10 + ch;
-                    }
-
-                    return {first, std::errc{}};
-                }
-
-                if constexpr (nd10 == 4) {
-                    first += 4;
-                    goto OVERFLOW_HANDLER;
-                }
-            }
-
-            if constexpr (nd10 >= 9) {
-                const uint32_t xval = __from_chars_unroll_4<10>(first, conv);
-                first += 4;
-
-                value = value * 10000 + xval;
-
-                if (first + 4 > last) {
-                    break;
-                }
-
-                if (const auto result = check_four_digits<10>(first, conv);
-                    WJR_LIKELY(!result)) {
-                    if (result.template mismatch<0>()) {
-                        return {first, std::errc{}};
-                    }
-
-                    ch = *first - zero;
-                    ++first;
-
-                    value = value * 10 + ch;
-
-                    if (result.template mismatch<1>()) {
-                        return {first, std::errc{}};
-                    }
-
-                    ch = *first - zero;
-                    ++first;
-
-                    if constexpr (nd10 == 9) {
-                        if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
-                                         add_overflow(value, ch, value) ||
-                                         !result.template mismatch<2>())) {
-                            goto OVERFLOW_HANDLER;
-                        } else {
-                            return {first, std::errc{}};
-                        }
-                    } else {
-                        value = value * 10 + ch;
-                    }
-
-                    if constexpr (nd10 != 9) {
-                        if (result.template mismatch<2>()) {
-                            return {first, std::errc{}};
-                        }
-
-                        ch = *first - zero;
-                        ++first;
-
-                        value = value * 10 + ch;
-                    }
-
-                    return {first, std::errc{}};
-                }
-
-                if constexpr (nd10 == 9) {
-                    first += 4;
-                    goto OVERFLOW_HANDLER;
-                }
-            }
-
-            if constexpr (nd10 >= 19) {
-                uint32_t xval = __from_chars_unroll_4<10>(first, conv);
-                first += 4;
-
-                value = value * 10000 + xval;
-
-                if (first + 4 > last) {
-                    break;
-                }
-
-                if (const auto result = check_four_digits<10>(first, conv);
-                    WJR_LIKELY(!result)) {
-                    if (result.template mismatch<0>()) {
-                        return {first, std::errc{}};
-                    }
-
-                    ch = *first - zero;
-                    ++first;
-
-                    value = value * 10 + ch;
-
-                    if (result.template mismatch<1>()) {
-                        return {first, std::errc{}};
-                    }
-
-                    ch = *first - zero;
-                    ++first;
-
-                    value = value * 10 + ch;
-
-                    if (result.template mismatch<2>()) {
-                        return {first, std::errc{}};
-                    }
-
-                    ch = *first - zero;
-                    ++first;
-
-                    value = value * 10 + ch;
-
-                    return {first, std::errc{}};
-                }
-
-                xval = __from_chars_unroll_4<10>(first, conv);
-                first += 4;
-
-                value = value * 10000 + xval;
-
-                if (first + 4 > last) {
-                    break;
-                }
-
-                if (const auto result = check_four_digits<10>(first, conv);
-                    WJR_LIKELY(!result)) {
-                    if (result.template mismatch<0>()) {
-                        return {first, std::errc{}};
-                    }
-
-                    ch = *first - zero;
-                    ++first;
-
-                    value = value * 10 + ch;
-
-                    if (result.template mismatch<1>()) {
-                        return {first, std::errc{}};
-                    }
-
-                    ch = *first - zero;
-                    ++first;
-
-                    value = value * 10 + ch;
-
-                    if (result.template mismatch<2>()) {
-                        return {first, std::errc{}};
-                    }
-
-                    ch = *first - zero;
-                    ++first;
-
-                    value = value * 10 + ch;
-
-                    return {first, std::errc{}};
-                }
-
-                xval = __from_chars_unroll_4<10>(first, conv);
-                first += 4;
-
-                if (WJR_UNLIKELY(mul_overflow(value, 10000, value) ||
-                                 add_overflow(value, xval, value))) {
-                    goto OVERFLOW_HANDLER;
-                }
-
-                if (WJR_LIKELY(first == last || !__match(*first))) {
-                    return {first, std::errc{}};
-                }
-
-                goto OVERFLOW_HANDLER;
-            }
-        } while (0);
-
-        if (WJR_UNLIKELY(first == last)) {
-            return {first, std::errc{}};
-        }
-
-        WJR_ASSERT(first + 4 > last);
-
-        ch = *first;
-        if (WJR_UNLIKELY(!__try_match(ch))) {
-            return {first, std::errc{}};
-        }
-
-        do {
-            ++first;
-
-            if constexpr (nd10 != 2 && nd10 != 9 && nd10 != 19) {
-                if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
-                                 add_overflow(value, ch, value))) {
-                    goto OVERFLOW_HANDLER;
-                }
-            } else {
-                value = value * 10 + ch;
-            }
-
-            if (first == last) {
-                break;
-            }
-
-            ch = *first;
-
-            if (!__try_match(ch)) {
-                break;
-            }
-
-            ++first;
-
-            if constexpr (nd10 != 2 && nd10 != 19) {
-                if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
-                                 add_overflow(value, ch, value))) {
-                    goto OVERFLOW_HANDLER;
-                }
-            } else {
-                value = value * 10 + ch;
-            }
-
-            if (first == last) {
-                break;
-            }
-
-            ch = *first;
-
-            if (!__try_match(ch)) {
-                break;
-            }
-
-            ++first;
-
-            if constexpr (nd10 != 4 && nd10 != 19) {
-                if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
-                                 add_overflow(value, ch, value))) {
-                    goto OVERFLOW_HANDLER;
-                }
-            } else {
-                value = value * 10 + ch;
-            }
-        } while (0);
-
-        return {first, std::errc{}};
-    }
-
-    do {
-        ++first;
-        value = ch - zero;
-
-        if (first == last) {
-            break;
-        }
-
-        ch = *first;
-
-        if (!__try_match(ch)) {
-            break;
-        }
-
-        ++first;
-        value = value * 10 + ch;
-
-        if (first == last) {
-            break;
-        }
-
-        ch = *first;
-
-        if (!__try_match(ch)) {
-            break;
-        }
-
-        ++first;
-        WJR_ASSERT(first == last);
-
-        if constexpr (nd10 >= 4) {
-            value = value * 10 + ch;
-        } else {
-            if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
-                             add_overflow(value, ch, value))) {
-                return {first, std::errc::result_out_of_range};
-            }
-        }
-
-    } while (0);
-
-    return {first, std::errc{}};
-
-OVERFLOW_HANDLER : {
-    while (first != last && __match(*first)) {
-        ++first;
-    }
-
-    return {first, std::errc::result_out_of_range};
-}
-}
-
-template <typename UnsignedValue, typename Converter>
-from_chars_result<const uint8_t *>
-__unsigned_from_chars_of_10_impl(const uint8_t *first, const uint8_t *last,
-                                 UnsignedValue &value, Converter conv) noexcept;
-
-extern template from_chars_result<const uint8_t *>
-__unsigned_from_chars_of_10_impl<uint8_t, char_converter_t>(
-    const uint8_t *first, const uint8_t *last, uint8_t &value,
-    char_converter_t conv) noexcept;
-
-extern template from_chars_result<const uint8_t *>
-__unsigned_from_chars_of_10_impl<uint16_t, char_converter_t>(
-    const uint8_t *first, const uint8_t *last, uint16_t &value,
-    char_converter_t conv) noexcept;
-
-extern template from_chars_result<const uint8_t *>
-__unsigned_from_chars_of_10_impl<uint32_t, char_converter_t>(
-    const uint8_t *first, const uint8_t *last, uint32_t &value,
-    char_converter_t conv) noexcept;
-
-extern template from_chars_result<const uint8_t *>
-__unsigned_from_chars_of_10_impl<uint64_t, char_converter_t>(
-    const uint8_t *first, const uint8_t *last, uint64_t &value,
-    char_converter_t conv) noexcept;
-
 template <>
 struct __unsigned_from_chars_fn<10> {
     template <typename UnsignedValue, typename Converter>
     WJR_INTRINSIC_INLINE from_chars_result<const uint8_t *>
     operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &value,
                Converter conv) const noexcept {
-        return __unsigned_from_chars_of_10_impl(first, last, value, conv);
+        constexpr auto zero = conv.template to<10>(0);
+        constexpr auto nine = conv.template to<10>(9);
+
+        constexpr auto __try_match = [](uint8_t &ch) {
+            if constexpr (zero != 0) {
+                return ch <= nine && !sub_overflow(ch, zero, ch);
+            } else {
+                return ch <= nine;
+            }
+        };
+
+        constexpr auto __match = [](uint8_t ch) {
+            if constexpr (zero != 0) {
+                return zero <= ch && ch <= nine;
+            } else {
+                return ch <= nine;
+            }
+        };
+
+        WJR_ASSERT_ASSUME(first != last);
+
+        uint8_t ch = *first;
+
+        // Clear all leading zeros
+        if (WJR_UNLIKELY(!__try_match(ch))) {
+            return {{}, std::errc::invalid_argument};
+        }
+
+        value = 0;
+
+        if (WJR_UNLIKELY(ch == 0)) {
+            // this is a optimization for Clang to reduce code size.
+
+            goto LOOP_HEAD;
+
+            do {
+                ch = *first;
+                if (ch != zero) {
+                    goto LOOP_END;
+                }
+
+            LOOP_HEAD:
+                ++first;
+            } while (first != last);
+            return {first, std::errc{}};
+        LOOP_END:
+
+            if (!__try_match(ch)) {
+                return {first, std::errc{}};
+            }
+        }
+
+        do {
+            ++first;
+            if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
+                             add_overflow(value, ch, value))) {
+                while (first != last && __match(*first)) {
+                    ++first;
+                }
+
+                return {first, std::errc::result_out_of_range};
+            }
+
+            if (first == last) {
+                break;
+            }
+
+            ch = *first;
+        } while (__try_match(ch));
+
+        return {first, std::errc{}};
     }
 };
 
@@ -32126,7 +31690,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last,
         return invalid();
     }
 
-    while (charconv_detail::__isspace(ch = *first++) && first != last)
+    while (charconv_detail::isspace(ch = *first++) && first != last)
         ;
 
     int sign = 0;
@@ -36233,7 +35797,7 @@ namespace wjr::json {
 
 namespace lexer_detail {
 
-inline constexpr uint64_t calc_backslash(uint64_t B) noexcept {
+WJR_CONST WJR_INLINE_CONSTEXPR uint64_t calc_backslash(uint64_t B) noexcept {
     uint64_t maybe_escaped = B << 1;
 
     uint64_t maybe_escaped_and_odd_bits = maybe_escaped | 0xAAAAAAAAAAAAAAAAULL;
@@ -36264,7 +35828,7 @@ public:
 
     public:
         constexpr static uint32_t mask = static_cast<uint32_t>(1) << 31;
-        
+
         result_type() = default;
         result_type(const result_type &) = default;
         result_type(result_type &&) = default;
@@ -36337,12 +35901,21 @@ public:
     using value_type = uint32_t;
     using const_pointer = const char *;
     using size_type = typename lexer::size_type;
-
     using const_iterator = typename Storage::const_iterator;
+
+    reader() = default;
+    reader(const reader &) = default;
+    reader(reader &&) = default;
+    reader &operator=(const reader &) = default;
+    reader &operator=(reader &&) = default;
+    ~reader() = default;
+
+    reader(span<const char> sp) noexcept { read(sp); }
 
     WJR_CONSTEXPR20 const_iterator token_begin() const noexcept {
         return m_tokens.begin();
     }
+
     WJR_CONSTEXPR20 const_iterator token_end() const noexcept { return m_tokens.end(); }
 
     WJR_CONSTEXPR20 const_pointer data() const noexcept { return m_str.data(); }
@@ -36354,14 +35927,21 @@ public:
     void read(span<const char> sp) noexcept {
         m_str = sp;
         m_tokens.clear();
+
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(sp.size() == 0)) {
+            return;
+        }
+
         __read_impl();
     }
+
+    void shrink_to_fit() noexcept { m_tokens.shrink_to_fit(); }
 
 private:
     void __read_impl() noexcept {
         lexer lex(m_str);
         const size_type n = m_str.size();
-        size_type capacity = n <= 2048 ? n : std::max<size_type>(2048, n / 32);
+        size_type capacity = n <= 2048 ? n : std::max<size_type>(2048, n / 20);
         size_type buf_size = capacity;
         json::lexer::result_type result;
 

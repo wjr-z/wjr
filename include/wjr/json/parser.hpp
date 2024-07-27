@@ -491,27 +491,27 @@ public:
             }
         }
 
-    OBJECT_ELEMENT:
+    OBJECT_ELEMENT : {
         WJR_EXPECTED_TRY(read(token));
 
-        switch (ptr[token]) {
+        switch (static_cast<uint8_t>(ptr[token])) {
         case 'n': {
             WJR_EXPECTED_TRY(read(next_token));
 
             WJR_EXPECTED_TRY(par.visit_null(ptr + token, ptr + next_token));
-            break;
+            goto OBJECT_ELEMENTS_SPACE;
         }
         case 't': {
             WJR_EXPECTED_TRY(read(next_token));
 
             WJR_EXPECTED_TRY(par.visit_true(ptr + token, ptr + next_token));
-            break;
+            goto OBJECT_ELEMENTS_SPACE;
         }
         case 'f': {
             WJR_EXPECTED_TRY(read(next_token));
 
             WJR_EXPECTED_TRY(par.visit_false(ptr + token, ptr + next_token));
-            break;
+            goto OBJECT_ELEMENTS_SPACE;
         }
         case '0':
         case '1':
@@ -527,13 +527,13 @@ public:
             WJR_EXPECTED_TRY(read(next_token));
 
             WJR_EXPECTED_TRY(par.visit_number(ptr + token, ptr + next_token));
-            break;
+            goto OBJECT_ELEMENTS_SPACE;
         }
         case '"': {
             WJR_EXPECTED_TRY(read(next_token, error_code::UNCLOSED_STRING));
 
             WJR_EXPECTED_TRY(par.visit_string(ptr + token + 1, ptr + next_token - 1));
-            break;
+            goto OBJECT_ELEMENTS_SPACE;
         }
         case '{': {
             if (WJR_UNLIKELY(depth == max_depth)) {
@@ -559,8 +559,7 @@ public:
             return unexpected(error_code::TAPE_ERROR);
         }
         }
-
-        goto OBJECT_ELEMENTS_SPACE;
+    }
     }
 
     ARRAY : {
@@ -616,8 +615,7 @@ public:
 
         WJR_EXPECTED_TRY(read(token));
     ARRAY_ELEMENT:
-
-        switch (ptr[token]) {
+        switch (static_cast<uint8_t>(ptr[token])) {
         case 'n': {
             WJR_EXPECTED_TRY(read(next_token));
 
