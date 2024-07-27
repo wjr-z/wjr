@@ -2147,7 +2147,7 @@ toom_eval_opposite_half_exp(toom_eval_opposite_exp_args_k3 &args) noexcept {
     WJR_ADDLSH_NS(t1p, wp + len * 2, rest, wp, len, 0, 0, exp * 2, cft1);
 
     // deal with even position
-    uint64_t cfstk = lshift_n(stk, wp + len, len, exp);
+    const uint64_t cfstk = lshift_n(stk, wp + len, len, exp);
 
     cf0 = cft1 + cfstk + addc_n(t0p, t1p, stk, len);
     return abs_subc_n(t1p, t1p, stk, len, cf1, cft1, cfstk) < 0;

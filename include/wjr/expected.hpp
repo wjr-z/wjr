@@ -1396,18 +1396,18 @@ public:
     }
 };
 
-#define WJR_EXPECTED_THROW(EXP) return unexpected(std::move(EXP).error());
+#define WJR_EXPECTED_THROW(EXP) return unexpected((EXP).error())
 
 #define WJR_EXPECTED_TRY(...)                                                            \
     if (auto exp = (__VA_ARGS__); WJR_UNLIKELY(!exp)) {                                  \
-        WJR_EXPECTED_THROW(exp);                                                         \
+        WJR_EXPECTED_THROW(std::move(exp));                                              \
     }
 
 #define WJR_EXPECTED_SET(VAR, ...)                                                       \
     if (auto exp = (__VA_ARGS__); WJR_LIKELY(exp)) {                                     \
         VAR = *std::move(exp);                                                           \
     } else {                                                                             \
-        WJR_EXPECTED_THROW(exp);                                                         \
+        WJR_EXPECTED_THROW(std::move(exp));                                              \
     }
 
 } // namespace wjr

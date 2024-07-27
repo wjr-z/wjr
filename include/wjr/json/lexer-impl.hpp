@@ -8,7 +8,7 @@ namespace wjr::json {
 
 namespace lexer_detail {
 
-inline constexpr uint64_t calc_backslash(uint64_t B) noexcept {
+WJR_CONST WJR_INLINE_CONSTEXPR uint64_t calc_backslash(uint64_t B) noexcept {
     uint64_t maybe_escaped = B << 1;
 
     uint64_t maybe_escaped_and_odd_bits = maybe_escaped | 0xAAAAAAAAAAAAAAAAULL;
@@ -39,7 +39,7 @@ public:
 
     public:
         constexpr static uint32_t mask = static_cast<uint32_t>(1) << 31;
-        
+
         result_type() = default;
         result_type(const result_type &) = default;
         result_type(result_type &&) = default;

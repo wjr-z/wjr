@@ -107,7 +107,7 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
         uint64_t Q = 0; // quote
 
         for (unsigned i = 0; i < u8_loop; ++i) {
-            const auto quote = equal<simd>(stk[i], '\"');
+            const auto quote = equal<simd>(stk[i], '"');
             Q |= (uint64_t)simd::movemask_epi8(quote) << (i * u8_width);
         }
 
@@ -134,58 +134,67 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
             W |= (uint64_t)(wsp) << (i * u8_width);
         }
 
+        const uint64_t NWS = S & W;
+
         S = ~S;
         W = ~W;
 
-        do {
-            if (WJR_LIKELY(!B)) {
-                B = prev_is_escape;
-                Q &= ~B;
-                prev_is_escape = 0;
-            } else {
-                const uint64_t codeB = calc_backslash(B & ~prev_is_escape);
-                const auto escape = (codeB & B) >> 63;
-                B = codeB ^ (B | prev_is_escape);
-                Q &= ~B;
-                prev_is_escape = escape;
-            }
-        } while (0);
+        if (WJR_LIKELY(!B)) {
+            B = prev_is_escape;
+            prev_is_escape = 0;
+        } else {
+            const uint64_t codeB = calc_backslash(B & ~prev_is_escape);
+            const auto escape = (codeB & B) >> 63;
+            B = codeB ^ (B | prev_is_escape);
+            prev_is_escape = escape;
+        }
 
-        const uint64_t R = prefix_xor(Q) ^ prev_in_string;
+        Q &= ~B;
+        uint64_t R = prefix_xor(Q) ^ prev_in_string;
+        prev_in_string = static_cast<uint64_t>(static_cast<int64_t>(R) >> 63);
 
         const auto WS = S | W;
         const auto WT = shld(WS, prev_is_ws, 1);
-        const auto TW = shld(~WS, ~prev_is_ws, 1);
+        const auto TW = shld(NWS, ~prev_is_ws, 1);
         prev_is_ws = WS;
 
+        S |= (TW & W) | (WT & ~W);
         S &= ~R;
-        prev_in_string = static_cast<uint64_t>(static_cast<int64_t>(R) >> 63);
-
+        R |= ~Q;
         S |= Q;
-        S |= ((TW & W) | (WT & ~W)) & ~R;
-        S &= ~(Q & ~R);
+        S &= R;
 
         if (S) {
             const auto num = popcount(S);
 
             do {
-                for (int i = 0; i < 4; ++i) {
-                    token_buf[i] = idx + ctz(S);
-                    S &= S - 1;
-                }
+                token_buf[0] = idx + ctz(S);
+                S &= S - 1;
+                token_buf[1] = idx + ctz(S);
+                S &= S - 1;
+                token_buf[2] = idx + ctz(S);
+                S &= S - 1;
+                token_buf[3] = idx + ctz(S);
 
                 if (WJR_UNLIKELY(num <= 4)) {
                     break;
                 }
 
-                for (int i = 4; i < 8; ++i) {
-                    token_buf[i] = idx + ctz(S);
-                    S &= S - 1;
-                }
+                S &= S - 1;
+
+                token_buf[4] = idx + ctz(S);
+                S &= S - 1;
+                token_buf[5] = idx + ctz(S);
+                S &= S - 1;
+                token_buf[6] = idx + ctz(S);
+                S &= S - 1;
+                token_buf[7] = idx + ctz(S);
 
                 if (WJR_LIKELY(num <= 8)) {
                     break;
                 }
+
+                S &= S - 1;
 
                 for (int i = 8; i < 12; ++i) {
                     token_buf[i] = idx + ctz(S);

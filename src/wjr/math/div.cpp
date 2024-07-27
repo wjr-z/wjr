@@ -258,7 +258,7 @@ uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div
     uint64_t qh, cy;
 
     unique_stack_allocator stkal(math_detail::stack_alloc);
-    const auto tp = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * m));
+    auto *const tp = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * m));
 
     qn = n - m;
     dst += qn;

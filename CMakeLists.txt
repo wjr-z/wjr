@@ -32,6 +32,7 @@ endmacro()
 set(WJR_SRCS ${WJR_LIB_DIR}/wjr/wjr.cpp)
 WJR_ADD_SRCS(WJR_SRCS biginteger)
 WJR_ADD_SRCS(WJR_SRCS format)
+WJR_ADD_SRCS(WJR_SRCS json)
 WJR_ADD_SRCS(WJR_SRCS math)
 WJR_ADD_SRCS(WJR_SRCS memory)
 

@@ -1394,7 +1394,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last,
         return invalid();
     }
 
-    while (charconv_detail::__isspace(ch = *first++) && first != last)
+    while (charconv_detail::isspace(ch = *first++) && first != last)
         ;
 
     int sign = 0;

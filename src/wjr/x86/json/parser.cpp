@@ -1,8 +1,6 @@
 #include <wjr/json/parser.hpp>
 #include <wjr/math/ctz.hpp>
 
-#if WJR_HAS_BUILTIN(JSON_PARSE_STRING)
-
 namespace wjr::json ::parser_detail {
 
 template <typename simd>
@@ -45,6 +43,193 @@ WJR_INTRINSIC_INLINE char *copy_small(char *dst, const char *src, size_t n) noex
     return dst + 1;
 }
 
+#if WJR_HAS_BUILTIN(JSON_CHECK_STRING)
+
+result<void> check_string(const char *first, const char *last) noexcept {
+    constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
+    using simd = std::conditional_t<is_avx, avx, sse>;
+    using simd_mask_type = typename simd::mask_type;
+
+    constexpr auto simd_width = simd::width();
+    constexpr auto u8_width = simd_width / 8;
+
+    if (first + u8_width <= last) {
+        do {
+            const auto x = simd::loadu(first);
+            auto B =
+                static_cast<simd_mask_type>(simd::movemask_epi8(equal<simd>(x, '\\')));
+
+            if (WJR_UNLIKELY(B != 0)) {
+                do {
+                    const int pos = ctz(B);
+
+                    // last backslash, special handling
+                    if (WJR_UNLIKELY(pos == u8_width - 1)) {
+                        WJR_ASSERT(first + u8_width + 1 <= last);
+
+                        const uint8_t ch = first[u8_width];
+
+                        if (ch == 'u') {
+                            WJR_EXPECTED_SET(first, check_unicode_codepoint(
+                                                        first + u8_width + 1, last));
+                            first -= u8_width;
+                        } else {
+                            const uint8_t code = escape_table[ch];
+
+                            if (WJR_UNLIKELY(code == 0)) {
+                                return unexpected(error_code::STRING_ERROR);
+                            }
+
+                            first += 1;
+                        }
+
+                        break;
+                    }
+
+                    const uint8_t ch = first[pos + 1];
+
+                    if (ch == 'u') {
+                        const char *__first;
+                        WJR_EXPECTED_SET(__first,
+                                         check_unicode_codepoint(first + pos + 2, last));
+
+                        if (to_unsigned(__first - first) >= u8_width) {
+                            first = __first - u8_width;
+                            break;
+                        }
+                    } else {
+                        const uint8_t code = escape_table[ch];
+
+                        if (WJR_UNLIKELY(code == 0)) {
+                            return unexpected(error_code::STRING_ERROR);
+                        }
+
+                        // backslash
+                        if (WJR_UNLIKELY(code == 0x5c)) {
+                            B &= B - 1;
+                        }
+                    }
+
+                    B &= B - 1;
+                } while (B);
+            }
+
+            first += u8_width;
+        } while (first + u8_width <= last);
+    }
+
+    const auto n = last - first;
+    const auto floor = (n >> 1) << 1;
+    simd_mask_type B;
+
+#define WJR_REGISTER_PARSE_STRING_CASE(IDX, SUFFIX)                                      \
+    case IDX: {                                                                          \
+        const auto x = simd::loadu_si##SUFFIX(first);                                    \
+        B = static_cast<simd_mask_type>(simd::movemask_epi8(equal<simd>(x, '\\')));      \
+        if (WJR_LIKELY(B == 0)) {                                                        \
+            goto LAST;                                                                   \
+        }                                                                                \
+        break;                                                                           \
+    }
+
+    switch (floor) {
+    case 0: {
+        if (WJR_UNLIKELY(first == last)) {
+            return {};
+        }
+
+        const uint8_t ch = *first++;
+        if (WJR_UNLIKELY(ch == '\\')) {
+            return unexpected(error_code::STRING_ERROR);
+        }
+
+        return {};
+    }
+        WJR_REGISTER_PARSE_STRING_CASE(2, 16)
+        WJR_REGISTER_PARSE_STRING_CASE(4, 32)
+        WJR_REGISTER_PARSE_STRING_CASE(6, 48)
+        WJR_REGISTER_PARSE_STRING_CASE(8, 64)
+        WJR_REGISTER_PARSE_STRING_CASE(10, 80)
+        WJR_REGISTER_PARSE_STRING_CASE(12, 96)
+        WJR_REGISTER_PARSE_STRING_CASE(14, 112)
+#if WJR_HAS_SIMD(AVX2)
+        WJR_REGISTER_PARSE_STRING_CASE(16, 128)
+        WJR_REGISTER_PARSE_STRING_CASE(18, 144)
+        WJR_REGISTER_PARSE_STRING_CASE(20, 160)
+        WJR_REGISTER_PARSE_STRING_CASE(22, 176)
+        WJR_REGISTER_PARSE_STRING_CASE(24, 192)
+        WJR_REGISTER_PARSE_STRING_CASE(26, 208)
+        WJR_REGISTER_PARSE_STRING_CASE(28, 224)
+        WJR_REGISTER_PARSE_STRING_CASE(30, 240)
+#endif
+    default: {
+        WJR_UNREACHABLE();
+        break;
+    }
+    }
+
+#undef WJR_REGISTER_PARSE_STRING_CASE
+
+    do {
+        do {
+            const int pos = ctz(B);
+
+            if (WJR_UNLIKELY(pos == floor - 1)) {
+                WJR_ASSERT(floor != n);
+
+                const uint8_t ch = first[floor];
+
+                if (ch == 'u') {
+                    return unexpected(error_code::STRING_ERROR);
+                } else {
+                    const uint8_t code = escape_table[ch];
+
+                    if (WJR_UNLIKELY(code == 0)) {
+                        return unexpected(error_code::STRING_ERROR);
+                    }
+                }
+
+                return {};
+            }
+
+            const uint8_t ch = first[pos + 1];
+
+            if (ch == 'u') {
+                const char *__first = first;
+                WJR_EXPECTED_SET(__first, check_unicode_codepoint(first + pos + 2, last));
+
+                if (__first == last) {
+                    return {};
+                }
+            } else {
+                const uint8_t code = escape_table[ch];
+
+                if (WJR_UNLIKELY(code == 0)) {
+                    return unexpected(error_code::STRING_ERROR);
+                }
+
+                // backslash
+                if (WJR_UNLIKELY(code == 0x5c)) {
+                    B &= B - 1;
+                }
+            }
+
+            B &= B - 1;
+        } while (B);
+    } while (0);
+
+LAST:
+    if (floor != n) {
+        WJR_ASSERT(first[floor] != '\\');
+    }
+
+    return {};
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(JSON_PARSE_STRING)
+
 result<char *> parse_string(char *dst, const char *first, const char *last) noexcept {
     constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
     using simd = std::conditional_t<is_avx, avx, sse>;
@@ -59,17 +244,13 @@ result<char *> parse_string(char *dst, const char *first, const char *last) noex
             auto B =
                 static_cast<simd_mask_type>(simd::movemask_epi8(equal<simd>(x, '\\')));
 
-            if (WJR_LIKELY(B == 0)) {
-                simd::storeu(dst, x);
-                dst += u8_width;
-            } else {
+            if (WJR_UNLIKELY(B != 0)) {
                 int last_pos = 0;
 
                 do {
                     const int pos = ctz(B);
 
                     dst = copy_small(dst, first + last_pos, pos - last_pos);
-                    last_pos = pos;
 
                     // last backslash, special handling
                     if (WJR_UNLIKELY(pos == u8_width - 1)) {
@@ -78,14 +259,9 @@ result<char *> parse_string(char *dst, const char *first, const char *last) noex
                         const uint8_t ch = first[u8_width];
 
                         if (ch == 'u') {
-                            if (WJR_UNLIKELY(first + u8_width + 5 > last)) {
-                                return unexpected(error_code::STRING_ERROR);
-                            }
-
-                            WJR_EXPECTED_SET(
-                                dst, parse_unicode_codepoint(dst, first + u8_width + 1));
-
-                            first += 5;
+                            WJR_EXPECTED_SET(first, parse_unicode_codepoint(
+                                                        dst, first + u8_width + 1, last));
+                            first -= u8_width;
                         } else {
                             const uint8_t code = escape_table[ch];
 
@@ -103,19 +279,16 @@ result<char *> parse_string(char *dst, const char *first, const char *last) noex
                     const uint8_t ch = first[pos + 1];
 
                     if (ch == 'u') {
-                        int offset = 0;
-                        if (WJR_UNLIKELY(to_unsigned(pos) > u8_width - 6)) {
-                            offset = pos - (u8_width - 6);
-                            if (first + u8_width + offset > last) {
-                                return unexpected(error_code::STRING_ERROR);
-                            }
+                        const char *__first;
+                        WJR_EXPECTED_SET(
+                            __first, parse_unicode_codepoint(dst, first + pos + 2, last));
+
+                        if (to_unsigned(__first - first) >= u8_width) {
+                            first = __first - u8_width;
+                            break;
                         }
 
-                        WJR_EXPECTED_SET(dst,
-                                         parse_unicode_codepoint(dst, first + pos + 2));
-
                         last_pos = pos + 6;
-                        first += offset;
                     } else {
                         const uint8_t code = escape_table[ch];
 
@@ -135,6 +308,9 @@ result<char *> parse_string(char *dst, const char *first, const char *last) noex
 
                     B &= B - 1;
                 } while (B);
+            } else {
+                simd::storeu(dst, x);
+                dst += u8_width;
             }
 
             first += u8_width;
@@ -163,13 +339,12 @@ result<char *> parse_string(char *dst, const char *first, const char *last) noex
             return dst;
         }
 
-        uint8_t ch = *first++;
-        if (WJR_LIKELY(ch != '\\')) {
-            *dst++ = ch;
-        } else {
+        const uint8_t ch = *first++;
+        if (WJR_UNLIKELY(ch == '\\')) {
             return unexpected(error_code::STRING_ERROR);
         }
 
+        *dst++ = ch;
         return dst;
     }
         WJR_REGISTER_PARSE_STRING_CASE(2, 16)
@@ -195,6 +370,8 @@ result<char *> parse_string(char *dst, const char *first, const char *last) noex
     }
     }
 
+#undef WJR_REGISTER_PARSE_STRING_CASE
+
     do {
         int last_pos = 0;
 
@@ -202,7 +379,6 @@ result<char *> parse_string(char *dst, const char *first, const char *last) noex
             const int pos = ctz(B);
 
             copy_small(dst, first + last_pos, pos - last_pos);
-            last_pos = pos;
 
             if (WJR_UNLIKELY(pos == floor - 1)) {
                 WJR_ASSERT(floor != n);
@@ -227,18 +403,15 @@ result<char *> parse_string(char *dst, const char *first, const char *last) noex
             const uint8_t ch = first[pos + 1];
 
             if (ch == 'u') {
-                int offset = 0;
-                if (WJR_UNLIKELY(pos > floor - 6)) {
-                    offset = pos - (floor - 6);
-                    if (floor + offset > n) {
-                        return unexpected(error_code::STRING_ERROR);
-                    }
+                const char *__first = first;
+                WJR_EXPECTED_SET(__first,
+                                 parse_unicode_codepoint(dst, first + pos + 2, last));
+
+                if (__first == last) {
+                    return dst;
                 }
 
-                WJR_EXPECTED_SET(dst, parse_unicode_codepoint(dst, first + pos + 2));
-
                 last_pos = pos + 6;
-                first += offset;
             } else {
                 const uint8_t code = escape_table[ch];
 
@@ -269,6 +442,6 @@ LAST:
     return dst;
 }
 
-} // namespace wjr::json::parser_detail
-
 #endif
+
+} // namespace wjr::json::parser_detail

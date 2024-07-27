@@ -125,33 +125,39 @@ WJR_CONST constexpr T parse() noexcept {
 
 } // namespace digits_literal_detail
 
-#define WJR_REGISTER_INTEGRAL_LITERAL(NAME, TYPE)                                        \
+#define WJR_REGISTER_INTEGRAL_LITERALS(NAME, TYPE)                                       \
     template <char... Chars>                                                             \
     WJR_CONST WJR_INTRINSIC_CONSTEXPR auto operator"" _##NAME() noexcept                 \
         -> integral_constant<TYPE, digits_literal_detail::parse<TYPE, Chars...>()> {     \
         return {};                                                                       \
     }
 
-WJR_REGISTER_INTEGRAL_LITERAL(u, unsigned int);
-WJR_REGISTER_INTEGRAL_LITERAL(ul, unsigned long);
-WJR_REGISTER_INTEGRAL_LITERAL(ull, unsigned long long);
-WJR_REGISTER_INTEGRAL_LITERAL(i, int);
-WJR_REGISTER_INTEGRAL_LITERAL(l, long);
-WJR_REGISTER_INTEGRAL_LITERAL(ll, long long);
+namespace literals {
 
-WJR_REGISTER_INTEGRAL_LITERAL(i8, int8_t);
-WJR_REGISTER_INTEGRAL_LITERAL(i16, int16_t);
-WJR_REGISTER_INTEGRAL_LITERAL(i32, int32_t);
-WJR_REGISTER_INTEGRAL_LITERAL(i64, int64_t);
-WJR_REGISTER_INTEGRAL_LITERAL(u8, uint8_t);
-WJR_REGISTER_INTEGRAL_LITERAL(u16, uint16_t);
-WJR_REGISTER_INTEGRAL_LITERAL(u32, uint32_t);
-WJR_REGISTER_INTEGRAL_LITERAL(u64, uint64_t);
+WJR_REGISTER_INTEGRAL_LITERALS(u, unsigned int);
+WJR_REGISTER_INTEGRAL_LITERALS(ul, unsigned long);
+WJR_REGISTER_INTEGRAL_LITERALS(ull, unsigned long long);
+WJR_REGISTER_INTEGRAL_LITERALS(i, int);
+WJR_REGISTER_INTEGRAL_LITERALS(l, long);
+WJR_REGISTER_INTEGRAL_LITERALS(ll, long long);
 
-WJR_REGISTER_INTEGRAL_LITERAL(zu, size_t);
-WJR_REGISTER_INTEGRAL_LITERAL(z, ssize_t);
+WJR_REGISTER_INTEGRAL_LITERALS(i8, int8_t);
+WJR_REGISTER_INTEGRAL_LITERALS(i16, int16_t);
+WJR_REGISTER_INTEGRAL_LITERALS(i32, int32_t);
+WJR_REGISTER_INTEGRAL_LITERALS(i64, int64_t);
+WJR_REGISTER_INTEGRAL_LITERALS(u8, uint8_t);
+WJR_REGISTER_INTEGRAL_LITERALS(u16, uint16_t);
+WJR_REGISTER_INTEGRAL_LITERALS(u32, uint32_t);
+WJR_REGISTER_INTEGRAL_LITERALS(u64, uint64_t);
 
-#undef WJR_REGISTER_INTEGRAL_LITERAL
+WJR_REGISTER_INTEGRAL_LITERALS(zu, size_t);
+WJR_REGISTER_INTEGRAL_LITERALS(z, ssize_t);
+
+#undef WJR_REGISTER_INTEGRAL_LITERALS
+
+} // namespace literals
+
+using namespace literals;
 
 } // namespace wjr
 
