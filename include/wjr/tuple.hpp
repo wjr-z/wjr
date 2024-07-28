@@ -116,13 +116,6 @@ struct __tuple_like<Tuple<Args...>>
 template <>
 class tuple<> {
 public:
-    tuple() = default;
-    tuple(const tuple &) = default;
-    tuple(tuple &&) = default;
-    tuple &operator=(const tuple &) = default;
-    tuple &operator=(tuple &&) = default;
-    ~tuple() = default;
-
     constexpr void swap(tuple &) noexcept {}
 };
 

@@ -73,12 +73,7 @@ public:
     static constexpr bool is_nonsendable = true;
 
 protected:
-    nonsendable() = default;
-    nonsendable(const nonsendable &) = default;
-    nonsendable(nonsendable &&) = default;
-    nonsendable &operator=(const nonsendable &) = default;
-    nonsendable &operator=(nonsendable &&) = default;
-    ~nonsendable() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(nonsendable);
 };
 
 #endif

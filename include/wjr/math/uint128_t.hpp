@@ -14,12 +14,7 @@ namespace wjr {
  */
 class uint128_t {
 public:
-    uint128_t() = default;
-    uint128_t(const uint128_t &) = default;
-    uint128_t(uint128_t &&) = default;
-    uint128_t &operator=(const uint128_t &) = default;
-    uint128_t &operator=(uint128_t &&) = default;
-    ~uint128_t() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(uint128_t);
 
     template <size_t I>
     constexpr uint64_t &get() & noexcept {

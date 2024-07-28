@@ -62,10 +62,9 @@ public:
     static_assert(sizeof(typename std::allocator_traits<Alty>::value_type) == 1, "");
     static_assert(alignment > 0 && alignment < 256, "alignment must be in [1, 255].");
 
-    aligned_allocator() noexcept(std::is_nothrow_default_constructible_v<Mybase>) =
-        default;
-    aligned_allocator(const aligned_allocator &) noexcept(
-        std::is_nothrow_copy_constructible_v<Mybase>) = default;
+    aligned_allocator() = default;
+    aligned_allocator(const aligned_allocator &) = default;
+
     template <typename U, size_t alignment2>
     WJR_CONSTEXPR20 aligned_allocator(
         const aligned_allocator<U, alignment2> &other) noexcept(noexcept(Mybase(other)))

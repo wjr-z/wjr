@@ -20,8 +20,7 @@ public:
     using pointer = typename Traits::const_pointer;
     using reference = typename Traits::const_reference;
 
-    contiguous_const_iterator_adapter() noexcept(
-        std::is_nothrow_default_constructible_v<__pointer>) = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(contiguous_const_iterator_adapter);
 
     WJR_CONSTEXPR20
     contiguous_const_iterator_adapter(__pointer ptr, const Container *container) noexcept(
@@ -29,17 +28,6 @@ public:
         : m_ptr(ptr) {
         __set_container(container);
     }
-
-    contiguous_const_iterator_adapter(const contiguous_const_iterator_adapter &) noexcept(
-        std::is_nothrow_copy_constructible_v<__pointer>) = default;
-    contiguous_const_iterator_adapter(contiguous_const_iterator_adapter &&) noexcept(
-        std::is_nothrow_move_constructible_v<__pointer>) = default;
-    contiguous_const_iterator_adapter &
-    operator=(const contiguous_const_iterator_adapter &) noexcept(
-        std::is_nothrow_copy_assignable_v<__pointer>) = default;
-    contiguous_const_iterator_adapter &
-    operator=(contiguous_const_iterator_adapter &&) noexcept(
-        std::is_nothrow_move_assignable_v<__pointer>) = default;
 
     WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 pointer operator->() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)

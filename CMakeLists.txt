@@ -17,6 +17,22 @@ if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE Release)
 endif()
 
+if (WJR_DEBUG_LEVEL AND (NOT WJR_DEBUG_LEVEL_DEBUG))
+   set(WJR_DEBUG_LEVEL_DEBUG ${WJR_DEBUG_LEVEL})
+endif()
+
+if (WJR_DEBUG_LEVEL AND (NOT WJR_DEBUG_LEVEL_RELEASE))
+   set(WJR_DEBUG_LEVEL_RELEASE ${WJR_DEBUG_LEVEL})
+endif()
+
+if (NOT WJR_DEBUG_LEVEL_DEBUG)
+   set(WJR_DEBUG_LEVEL_DEBUG 3)
+endif()
+
+if (NOT WJR_DEBUG_LEVEL_RELEASE)
+   set(WJR_DEBUG_LEVEL_RELEASE 0)
+endif()
+
 option(WJR_ENABLE_ASSEMBLY "Link with assembly by using NASM" OFF)
 option(WJR_ENABLE_INLINE_ASM "Enable inline assembly in GCC/Clang" ON)
 option(WJR_DISABLE_EXCEPTIONS "Disable exceptions" OFF)
@@ -39,8 +55,6 @@ WJR_ADD_SRCS(WJR_SRCS memory)
 if(WJR_X86)
    WJR_ADD_SRCS(WJR_SRCS x86)
 endif()
-
-message(${WJR_SRCS})
 
 set(WJR_LIBS "")
 set(WJR_COMPILE_DEFINITIONS "")
@@ -91,8 +105,8 @@ if(MSVC)
 
    list(APPEND WJR_CXX_FLAGS /Wall /Zc:preprocessor /Zc:lambda /EHsc)
 
-   list(APPEND WJR_CXX_FLAGS_DEBUG /DWJR_DEBUG_LEVEL=3)
-   list(APPEND WJR_CXX_FLAGS_RELEASE /DWJR_DEBUG_LEVEL=0)
+   list(APPEND WJR_CXX_FLAGS_DEBUG /DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_DEBUG})
+   list(APPEND WJR_CXX_FLAGS_RELEASE /DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_RELEASE})
 
    if(WJR_X86)
       list(APPEND WJR_CXX_FLAGS /arch:AVX2)
@@ -104,8 +118,8 @@ else()
 
    list(APPEND WJR_CXX_FLAGS -march=native -Wall -Wextra -Wshadow -Wformat=2 -Wunused)
 
-   list(APPEND WJR_CXX_FLAGS_DEBUG -DWJR_DEBUG_LEVEL=3)
-   list(APPEND WJR_CXX_FLAGS_RELEASE -DWJR_DEBUG_LEVEL=0)
+   list(APPEND WJR_CXX_FLAGS_DEBUG -DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_DEBUG})
+   list(APPEND WJR_CXX_FLAGS_RELEASE -DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_RELEASE})
 endif()
 
 target_compile_features(wjr PUBLIC cxx_std_17)
@@ -134,7 +148,7 @@ target_link_libraries(wjr PRIVATE
    ${WJR_LIBS}
 )
 
-set(WJR_PCH PUBLIC ${WJR_INCLUDE_DIR}/wjr/math.hpp)
+set(WJR_PCH PUBLIC ${WJR_INCLUDE_DIR}/wjr/biginteger.hpp)
 
 target_precompile_headers(
    wjr

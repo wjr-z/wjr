@@ -365,4 +365,12 @@ precompute_chars_convert_t *precompute_chars_convert(precompute_chars_convert_t 
     return pre;
 }
 
+template uint8_t *__fast_biginteger_large_to_chars_impl<char_converter_t>(
+    uint8_t *, const uint64_t *, size_t, unsigned int, char_converter_t) noexcept;
+
+template uint64_t *
+__biginteger_from_chars_impl<char_converter_t>(const uint8_t *, const uint8_t *,
+                                               uint64_t *, unsigned int,
+                                               char_converter_t) noexcept;
+
 } // namespace wjr

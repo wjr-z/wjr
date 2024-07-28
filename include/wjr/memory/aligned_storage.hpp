@@ -6,14 +6,16 @@
 namespace wjr {
 
 template <typename T>
-class algined_storage : union2_storage<T, std::aligned_storage_t<sizeof(T), alignof(T)>> {
+class aligned_storage : union2_storage<T, std::aligned_storage_t<sizeof(T), alignof(T)>> {
     using Mybase = union2_storage<T, std::aligned_storage_t<sizeof(T), alignof(T)>>;
 
 public:
     using Mybase::Mybase;
 
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(aligned_storage);
+
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
-    constexpr algined_storage(Args &&...args) noexcept(
+    constexpr aligned_storage(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<T, Args...>)
         : Mybase(std::in_place_index<0>, std::forward<Args>(args)...) {}
 

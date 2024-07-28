@@ -79,36 +79,36 @@ public:
     default_vector_size_reference &
     operator=(const default_vector_size_reference &) = delete;
     default_vector_size_reference &operator=(default_vector_size_reference &&) = default;
-
-    explicit default_vector_size_reference(pointer ptr, pointer &pos) noexcept
-        : m_ptr(ptr), m_pos(pos) {}
     ~default_vector_size_reference() = default;
 
-    default_vector_size_reference &operator=(size_type size) noexcept {
+    constexpr explicit default_vector_size_reference(pointer ptr, pointer &pos) noexcept
+        : m_ptr(ptr), m_pos(pos) {}
+
+    constexpr default_vector_size_reference &operator=(size_type size) noexcept {
         m_pos = m_ptr + size;
         return *this;
     }
 
-    WJR_PURE operator size_type() const noexcept {
+    WJR_PURE constexpr operator size_type() const noexcept {
         return static_cast<size_type>(m_pos - m_ptr);
     }
 
-    default_vector_size_reference &operator++() noexcept {
+    constexpr default_vector_size_reference &operator++() noexcept {
         ++m_pos;
         return *this;
     }
 
-    default_vector_size_reference &operator--() noexcept {
+    constexpr default_vector_size_reference &operator--() noexcept {
         --m_pos;
         return *this;
     }
 
-    default_vector_size_reference &operator+=(uint32_t size) noexcept {
+    constexpr default_vector_size_reference &operator+=(uint32_t size) noexcept {
         m_pos += size;
         return *this;
     }
 
-    default_vector_size_reference &operator-=(uint32_t size) noexcept {
+    constexpr default_vector_size_reference &operator-=(uint32_t size) noexcept {
         m_pos -= size;
         return *this;
     }
@@ -844,7 +844,7 @@ private:
                                                            std::declval<_Alty &>()));
 
 public:
-    basic_vector() noexcept(std::is_nothrow_default_constructible_v<_Alty>) = default;
+    basic_vector() = default;
 
     WJR_CONSTEXPR20 explicit basic_vector(const allocator_type &al) noexcept(
         std::is_nothrow_constructible_v<_Alty, const allocator_type &>)

@@ -53,12 +53,7 @@ public:
     using pointer = const node_type *;
     using difference_type = std::ptrdiff_t;
 
-    list_node_const_iterator() = default;
-    list_node_const_iterator(const list_node_const_iterator &) = default;
-    list_node_const_iterator(list_node_const_iterator &&) = default;
-    list_node_const_iterator &operator=(const list_node_const_iterator &) = default;
-    list_node_const_iterator &operator=(list_node_const_iterator &&) = default;
-    ~list_node_const_iterator() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(list_node_const_iterator);
 
     constexpr list_node_const_iterator(pointer node) noexcept
         : m_node(const_cast<node_type *>(node)) {}
@@ -113,13 +108,6 @@ public:
     using difference_type = typename Mybase::difference_type;
 
     using Mybase::Mybase;
-
-    list_node_iterator() = default;
-    list_node_iterator(const list_node_iterator &) = default;
-    list_node_iterator(list_node_iterator &&) = default;
-    list_node_iterator &operator=(const list_node_iterator &) = default;
-    list_node_iterator &operator=(list_node_iterator &&) = default;
-    ~list_node_iterator() = default;
 
     constexpr reference operator*() const noexcept {
         return const_cast<reference>(Mybase::operator*());

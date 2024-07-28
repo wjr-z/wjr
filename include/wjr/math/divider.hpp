@@ -58,10 +58,7 @@ class div2by1_divider_noshift {
     static_assert(std::is_same_v<T, uint64_t>, "Currently only support uint64_t");
 
 public:
-    div2by1_divider_noshift() = default;
-    div2by1_divider_noshift(const div2by1_divider_noshift &) = default;
-    div2by1_divider_noshift &operator=(const div2by1_divider_noshift &) = default;
-    ~div2by1_divider_noshift() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(div2by1_divider_noshift);
 
     explicit div2by1_divider_noshift(T divisor) noexcept : m_divisor(divisor) {
         m_value = reciprocal(divisor);
@@ -218,10 +215,7 @@ private:
 public:
     static_assert(std::is_same_v<T, uint64_t>, "Currently only support uint64_t");
 
-    div2by1_divider() = default;
-    div2by1_divider(const div2by1_divider &) = default;
-    div2by1_divider &operator=(const div2by1_divider &) = default;
-    ~div2by1_divider() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(div2by1_divider);
 
     constexpr explicit div2by1_divider(const Mybase &base) noexcept
         : Mybase(base), m_shift(0) {}
@@ -275,10 +269,7 @@ class div3by2_divider_noshift {
 public:
     static_assert(std::is_same_v<T, uint64_t>, "");
 
-    div3by2_divider_noshift() = default;
-    div3by2_divider_noshift(const div3by2_divider_noshift &) = default;
-    div3by2_divider_noshift &operator=(const div3by2_divider_noshift &) = default;
-    ~div3by2_divider_noshift() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(div3by2_divider_noshift);
 
     WJR_INTRINSIC_CONSTEXPR20 div3by2_divider_noshift(T d0, T d1) noexcept
         : m_divisor0(d0), m_divisor1(d1) {
@@ -381,10 +372,7 @@ class div3by2_divider : public div3by2_divider_noshift<T> {
 public:
     static_assert(std::is_same_v<T, uint64_t>, "");
 
-    div3by2_divider() = default;
-    div3by2_divider(const div3by2_divider &) = default;
-    div3by2_divider &operator=(const div3by2_divider &) = default;
-    ~div3by2_divider() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(div3by2_divider);
 
     constexpr explicit div3by2_divider(const Mybase &base) noexcept
         : Mybase(base), m_shift(0) {}
@@ -436,10 +424,7 @@ class divexact1_divider {
 public:
     static_assert(std::is_same_v<T, uint64_t>, "Currently only support uint64_t");
 
-    divexact1_divider() = default;
-    divexact1_divider(const divexact1_divider &) = default;
-    divexact1_divider &operator=(const divexact1_divider &) = default;
-    ~divexact1_divider() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(divexact1_divider);
 
     WJR_INTRINSIC_CONSTEXPR20 explicit divexact1_divider(T divisor) noexcept
         : m_divisor(divisor) {

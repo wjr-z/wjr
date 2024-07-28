@@ -473,13 +473,16 @@ uint8_t *__fast_biginteger_large_to_chars_impl(uint8_t *first, const uint64_t *u
     return __biginteger_basecase_to_chars(first, up, n, base, conv);
 }
 
+extern template uint8_t *__fast_biginteger_large_to_chars_impl<char_converter_t>(
+    uint8_t *, const uint64_t *, size_t, unsigned int, char_converter_t) noexcept;
+
 template <typename Iter, typename Converter>
 Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, size_t n,
                                                unsigned int base,
                                                Converter conv) noexcept {
 #define WJR_BIGINTEGER_TO_CHARS_IMPL(BASE, NAME, TAIL, SIZE, CALL)                       \
     constexpr auto __fast_container_inserter_v =                                         \
-        charconv_detail::is_fast_container_inserter_v<Iter>;                              \
+        charconv_detail::is_fast_container_inserter_v<Iter>;                             \
     if constexpr (__fast_container_inserter_v != 0) {                                    \
         auto &cont = get_inserter_container(ptr);                                        \
         const auto __presize = cont.size();                                              \
@@ -503,7 +506,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
         const auto __ptr = (uint8_t *)stkal.allocate(SIZE * sizeof(uint64_t));           \
         const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;           \
                                                                                          \
-        return wjr::copy_n((charconv_detail::fast_buffer_t<Iter> *)__ptr, __size, ptr);   \
+        return wjr::copy_n((charconv_detail::fast_buffer_t<Iter> *)__ptr, __size, ptr);  \
     }
 
     switch (base) {
@@ -544,7 +547,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
 template <typename Iter, typename Converter>
 Iter __biginteger_to_chars_impl(Iter first, const uint64_t *up, size_t n,
                                 unsigned int base, Converter conv) noexcept {
-    if (n == 1) {
+    if (WJR_UNLIKELY(n == 1)) {
         return to_chars_unchecked(first, up[0], base, conv);
     }
 
@@ -871,7 +874,7 @@ size_t dc_from_chars(const uint8_t *first, size_t n, uint64_t *up,
 template <typename Converter>
 uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last,
                                        uint64_t *up, unsigned int base,
-                                       Converter conv = {}) noexcept {
+                                       Converter conv) noexcept {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
 
     const size_t n = std::distance(first, last);
@@ -909,6 +912,11 @@ uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last
     stk += un * 8 / 5 + 128;
     return up + dc_from_chars(first, n, up, mpre, stk, conv);
 }
+
+extern template uint64_t *
+__biginteger_from_chars_impl<char_converter_t>(const uint8_t *, const uint8_t *,
+                                               uint64_t *, unsigned int,
+                                               char_converter_t) noexcept;
 
 /**
  * @brief Convert a string to a biginteger by a given base.

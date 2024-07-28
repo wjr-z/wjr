@@ -16,9 +16,7 @@ namespace wjr {
 template <typename T, size_t Extent>
 struct __span_static_storage {
 
-    __span_static_storage() = default;
-    __span_static_storage(const __span_static_storage &) = default;
-    __span_static_storage &operator=(const __span_static_storage &) = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(__span_static_storage);
 
     __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) noexcept : ptr(p) {
         WJR_ASSERT_L2(s == size);
@@ -34,9 +32,7 @@ struct __span_static_storage {
 template <typename T>
 struct __span_dynamic_storage {
 
-    __span_dynamic_storage() = default;
-    __span_dynamic_storage(const __span_dynamic_storage &) = default;
-    __span_dynamic_storage &operator=(const __span_dynamic_storage &) = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(__span_dynamic_storage);
 
     __span_dynamic_storage(T *p, size_t s) noexcept : ptr(p), size(s) {}
 
@@ -229,9 +225,10 @@ public:
         : storage(source.data(), source.size()) {}
 #endif
 
-    span(const span &other) = default;
-    span &operator=(const span &other) = default;
-
+    span(const span &) = default;
+    span(span &&) = default;
+    span &operator=(const span &) = default;
+    span &operator=(span &&) = default;
     ~span() = default;
 
     WJR_PURE WJR_CONSTEXPR20 pointer begin_unsafe() noexcept { return data(); }
@@ -330,12 +327,15 @@ public:
         return data()[pos];
     }
 
-    constexpr pointer data() const noexcept { return storage.ptr; }
-    constexpr size_type size() const noexcept { return storage.size; }
-    constexpr size_type size_bytes() const noexcept {
+    WJR_PURE constexpr pointer data() const noexcept { return storage.ptr; }
+    
+    WJR_PURE constexpr size_type size() const noexcept { return storage.size; }
+
+    WJR_PURE constexpr size_type size_bytes() const noexcept {
         return size() * sizeof(element_type);
     }
-    constexpr bool empty() const noexcept { return size() == 0; }
+
+    WJR_PURE constexpr bool empty() const noexcept { return size() == 0; }
 
     template <size_t Count>
     constexpr span<element_type, Count> first() const noexcept {

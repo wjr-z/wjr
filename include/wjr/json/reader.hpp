@@ -19,12 +19,7 @@ public:
     using size_type = typename lexer::size_type;
     using const_iterator = typename Storage::const_iterator;
 
-    reader() = default;
-    reader(const reader &) = default;
-    reader(reader &&) = default;
-    reader &operator=(const reader &) = default;
-    reader &operator=(reader &&) = default;
-    ~reader() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(reader);
 
     reader(span<const char> sp) noexcept { read(sp); }
 

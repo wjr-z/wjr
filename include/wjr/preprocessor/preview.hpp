@@ -91,4 +91,12 @@
 #define WJR_REQUIRES(...) std::enable_if_t<(__VA_ARGS__), int> = 0
 #define WJR_REQUIRES_I(...) std::enable_if_t<(__VA_ARGS__), int>
 
+#define WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(CLASS)                                        \
+    CLASS() = default;                                                                   \
+    CLASS(const CLASS &) = default;                                                      \
+    CLASS(CLASS &&) = default;                                                           \
+    CLASS &operator=(const CLASS &) = default;                                           \
+    CLASS &operator=(CLASS &&) = default;                                                \
+    ~CLASS() = default
+
 #endif // ! WJR_PREPROCESSOR_PREVIEW_HPP__

@@ -36,15 +36,16 @@ private:
     using storage_type = aligned_storage<value_type>;
 
 public:
-    constexpr inline_arg(reference value) noexcept(
-        std::is_nothrow_constructible_v<storage_type, reference>)
-        : m_storage(value) {}
-
     inline_arg() = delete;
     inline_arg(const inline_arg &) = delete;
     inline_arg(inline_arg &&) = delete;
     inline_arg &operator=(const inline_arg &) = delete;
     inline_arg &operator=(inline_arg &&) = delete;
+    ~inline_arg() = default;
+
+    constexpr inline_arg(reference value) noexcept(
+        std::is_nothrow_constructible_v<storage_type, reference>)
+        : m_storage(value) {}
 
     constexpr reference get() const noexcept { return m_storage.get(); }
     constexpr reference operator*() const noexcept { return *m_storage; }
@@ -65,14 +66,14 @@ public:
 
     static constexpr bool is_inlined = false;
 
-    constexpr inline_arg(reference value) noexcept : m_ptr(std::addressof(value)) {}
-    ~inline_arg() = default;
-
     inline_arg() = delete;
     inline_arg(const inline_arg &) = delete;
     inline_arg(inline_arg &&) = delete;
     inline_arg &operator=(const inline_arg &) = delete;
     inline_arg &operator=(inline_arg &&) = delete;
+    ~inline_arg() = default;
+
+    constexpr inline_arg(reference value) noexcept : m_ptr(std::addressof(value)) {}
 
     constexpr reference get() const noexcept { return *m_ptr; }
     constexpr reference operator*() const noexcept { return *m_ptr; }
@@ -88,12 +89,12 @@ struct __is_possible_inline_arg_impl
                        std::is_trivially_destructible<T>> {};
 
 template <typename T>
-struct is_possible_inline_arg : __is_possible_inline_arg_impl<lazy<T>> {};
+struct is_possible_inline_arg : __is_possible_inline_arg_impl<aligned_storage<T>> {};
 
 template <typename T>
 inline constexpr bool is_possible_inline_arg_v = is_possible_inline_arg<T>::value;
 
-template <typename T, size_t Threshold = sizeof(void *)>
+template <typename T, size_t Threshold = sizeof(void *) * 2>
 using auto_arg = inline_arg<T, is_possible_inline_arg_v<T> && sizeof(T) <= Threshold>;
 
 } // namespace wjr

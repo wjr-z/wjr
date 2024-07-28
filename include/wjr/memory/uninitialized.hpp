@@ -335,13 +335,13 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
  *
  */
 template <typename T>
-class uninitialized : algined_storage<T> {
-    using Mybase = algined_storage<T>;
+class uninitialized : aligned_storage<T> {
+    using Mybase = aligned_storage<T>;
 
 public:
     using Mybase::Mybase;
 
-    uninitialized() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(uninitialized);
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Mybase, Args...>)>
     constexpr uninitialized(Args &&...args) noexcept(
@@ -393,6 +393,7 @@ public:
         check(true);
         return get_unsafe();
     }
+    
     constexpr const T *get() const noexcept {
         check(true);
         return get_unsafe();
@@ -432,7 +433,7 @@ private:
 
 /// @private
 template <typename T, bool = true>
-class __lazy_base : public uninitialized<T> {
+class __lazy_initialized_base : public uninitialized<T> {
     using Mybase = uninitialized<T>;
 
 public:
@@ -441,28 +442,28 @@ public:
 
 /// @private
 template <typename T>
-class __lazy_base<T, false> : public uninitialized<T> {
+class __lazy_initialized_base<T, false> : public uninitialized<T> {
     using Mybase = uninitialized<T>;
 
 public:
     using Mybase::Mybase;
 
-    ~__lazy_base() noexcept(noexcept(Mybase::reset())) { Mybase::reset(); }
+    ~__lazy_initialized_base() noexcept(noexcept(Mybase::reset())) { Mybase::reset(); }
 };
 
 /// @private
 template <typename T>
-using lazy_base = __lazy_base<T,
+using lazy_initialized_base = __lazy_initialized_base<T,
 #if WJR_HAS_DEBUG(UNINITIALIZED_CHECKER)
-                              false
+                                                      false
 #else
-                              std::is_trivially_destructible_v<T>
+                                                      std::is_trivially_destructible_v<T>
 #endif
-                              >;
+                                                      >;
 
 template <typename T>
-class lazy : public lazy_base<T> {
-    using Mybase = lazy_base<T>;
+class lazy_initialized : public lazy_initialized_base<T> {
+    using Mybase = lazy_initialized_base<T>;
 
 public:
     using Mybase::Mybase;

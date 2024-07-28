@@ -19,33 +19,26 @@ WJR_CONST WJR_INLINE_CONSTEXPR uint64_t calc_backslash(uint64_t B) noexcept {
 
 } // namespace lexer_detail
 
-template <typename Lexer>
-using lexer_enabler =
-    enable_special_members_base<false, true, false, true, false, true, Lexer>;
-
-class lexer : lexer_enabler<lexer> {
-    using Mybase = lexer_enabler<lexer>;
-
+class lexer {
 public:
     using size_type = uint32_t;
 
-    using Mybase::Mybase;
+    lexer() = delete;
+    lexer(const lexer &) = delete;
+    lexer(lexer &&) = default;
+    lexer &operator=(const lexer &) = delete;
+    lexer &operator=(lexer &&) = default;
+    ~lexer() = default;
 
     constexpr lexer(span<const char> input) noexcept
-        : Mybase(enable_default_constructor), first(input.data()),
-          last(input.data() + input.size()) {}
+        : first(input.data()), last(input.data() + input.size()) {}
 
     class result_type {
 
     public:
         constexpr static uint32_t mask = static_cast<uint32_t>(1) << 31;
 
-        result_type() = default;
-        result_type(const result_type &) = default;
-        result_type(result_type &&) = default;
-        result_type &operator=(const result_type &) = default;
-        result_type &operator=(result_type &&) = default;
-        ~result_type() = default;
+        WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(result_type);
 
         constexpr result_type(uint32_t result) noexcept : result(result) {}
         constexpr uint32_t get() const noexcept { return result & (mask - 1); }

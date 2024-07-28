@@ -278,13 +278,9 @@ public:
         using other = weak_stack_allocator<Other, StackAllocator>;
     };
 
-    weak_stack_allocator() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(weak_stack_allocator);
+
     weak_stack_allocator(UniqueStackAllocator &alloc) noexcept : m_alloc(&alloc) {}
-    weak_stack_allocator(const weak_stack_allocator &) = default;
-    weak_stack_allocator &operator=(const weak_stack_allocator &) = default;
-    weak_stack_allocator(weak_stack_allocator &&) = default;
-    weak_stack_allocator &operator=(weak_stack_allocator &&) = default;
-    ~weak_stack_allocator() = default;
 
     template <typename U>
     weak_stack_allocator(const weak_stack_allocator<U, StackAllocator> &other) noexcept

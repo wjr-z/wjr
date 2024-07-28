@@ -184,12 +184,7 @@ private:
     using dispatcher_t = div1by1_uint_t<T, branchfree>;
 
 public:
-    div1by1_divider() = default;
-    div1by1_divider(const div1by1_divider &) = default;
-    div1by1_divider(div1by1_divider &&) = default;
-    div1by1_divider &operator=(const div1by1_divider &) = default;
-    div1by1_divider &operator=(div1by1_divider &&) = default;
-    ~div1by1_divider() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(div1by1_divider);
 
     WJR_INTRINSIC_INLINE div1by1_divider(T d) {
         div = div1by1_uint_gen<T, branchfree>(d);

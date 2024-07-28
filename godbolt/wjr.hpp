@@ -2378,6 +2378,14 @@
 #define WJR_REQUIRES(...) std::enable_if_t<(__VA_ARGS__), int> = 0
 #define WJR_REQUIRES_I(...) std::enable_if_t<(__VA_ARGS__), int>
 
+#define WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(CLASS)                                        \
+    CLASS() = default;                                                                   \
+    CLASS(const CLASS &) = default;                                                      \
+    CLASS(CLASS &&) = default;                                                           \
+    CLASS &operator=(const CLASS &) = default;                                           \
+    CLASS &operator=(CLASS &&) = default;                                                \
+    ~CLASS() = default
+
 #endif // ! WJR_PREPROCESSOR_PREVIEW_HPP__
 
 #endif // WJR_PREPROCESSOR_HPP__
@@ -9520,12 +9528,7 @@ struct integral_constant {
     using value_type = T;
     using type = integral_constant;
 
-    integral_constant() = default;
-    integral_constant(const integral_constant &) = default;
-    integral_constant(integral_constant &&) = default;
-    integral_constant &operator=(const integral_constant &) = default;
-    integral_constant &operator=(integral_constant &&) = default;
-    ~integral_constant() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(integral_constant);
 
     constexpr integral_constant(std::integral_constant<T, val>) noexcept {}
 
@@ -9781,13 +9784,6 @@ struct __tuple_like<Tuple<Args...>>
 template <>
 class tuple<> {
 public:
-    tuple() = default;
-    tuple(const tuple &) = default;
-    tuple(tuple &&) = default;
-    tuple &operator=(const tuple &) = default;
-    tuple &operator=(tuple &&) = default;
-    ~tuple() = default;
-
     constexpr void swap(tuple &) noexcept {}
 };
 
@@ -10793,8 +10789,7 @@ public:
     using pointer = typename Traits::const_pointer;
     using reference = typename Traits::const_reference;
 
-    contiguous_const_iterator_adapter() noexcept(
-        std::is_nothrow_default_constructible_v<__pointer>) = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(contiguous_const_iterator_adapter);
 
     WJR_CONSTEXPR20
     contiguous_const_iterator_adapter(__pointer ptr, const Container *container) noexcept(
@@ -10802,17 +10797,6 @@ public:
         : m_ptr(ptr) {
         __set_container(container);
     }
-
-    contiguous_const_iterator_adapter(const contiguous_const_iterator_adapter &) noexcept(
-        std::is_nothrow_copy_constructible_v<__pointer>) = default;
-    contiguous_const_iterator_adapter(contiguous_const_iterator_adapter &&) noexcept(
-        std::is_nothrow_move_constructible_v<__pointer>) = default;
-    contiguous_const_iterator_adapter &
-    operator=(const contiguous_const_iterator_adapter &) noexcept(
-        std::is_nothrow_copy_assignable_v<__pointer>) = default;
-    contiguous_const_iterator_adapter &
-    operator=(contiguous_const_iterator_adapter &&) noexcept(
-        std::is_nothrow_move_assignable_v<__pointer>) = default;
 
     WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 pointer operator->() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
@@ -12068,14 +12052,16 @@ public:
 namespace wjr {
 
 template <typename T>
-class algined_storage : union2_storage<T, std::aligned_storage_t<sizeof(T), alignof(T)>> {
+class aligned_storage : union2_storage<T, std::aligned_storage_t<sizeof(T), alignof(T)>> {
     using Mybase = union2_storage<T, std::aligned_storage_t<sizeof(T), alignof(T)>>;
 
 public:
     using Mybase::Mybase;
 
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(aligned_storage);
+
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
-    constexpr algined_storage(Args &&...args) noexcept(
+    constexpr aligned_storage(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<T, Args...>)
         : Mybase(std::in_place_index<0>, std::forward<Args>(args)...) {}
 
@@ -12419,13 +12405,13 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
  *
  */
 template <typename T>
-class uninitialized : algined_storage<T> {
-    using Mybase = algined_storage<T>;
+class uninitialized : aligned_storage<T> {
+    using Mybase = aligned_storage<T>;
 
 public:
     using Mybase::Mybase;
 
-    uninitialized() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(uninitialized);
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Mybase, Args...>)>
     constexpr uninitialized(Args &&...args) noexcept(
@@ -12477,6 +12463,7 @@ public:
         check(true);
         return get_unsafe();
     }
+    
     constexpr const T *get() const noexcept {
         check(true);
         return get_unsafe();
@@ -12516,7 +12503,7 @@ private:
 
 /// @private
 template <typename T, bool = true>
-class __lazy_base : public uninitialized<T> {
+class __lazy_initialized_base : public uninitialized<T> {
     using Mybase = uninitialized<T>;
 
 public:
@@ -12525,28 +12512,28 @@ public:
 
 /// @private
 template <typename T>
-class __lazy_base<T, false> : public uninitialized<T> {
+class __lazy_initialized_base<T, false> : public uninitialized<T> {
     using Mybase = uninitialized<T>;
 
 public:
     using Mybase::Mybase;
 
-    ~__lazy_base() noexcept(noexcept(Mybase::reset())) { Mybase::reset(); }
+    ~__lazy_initialized_base() noexcept(noexcept(Mybase::reset())) { Mybase::reset(); }
 };
 
 /// @private
 template <typename T>
-using lazy_base = __lazy_base<T,
+using lazy_initialized_base = __lazy_initialized_base<T,
 #if WJR_HAS_DEBUG(UNINITIALIZED_CHECKER)
-                              false
+                                                      false
 #else
-                              std::is_trivially_destructible_v<T>
+                                                      std::is_trivially_destructible_v<T>
 #endif
-                              >;
+                                                      >;
 
 template <typename T>
-class lazy : public lazy_base<T> {
-    using Mybase = lazy_base<T>;
+class lazy_initialized : public lazy_initialized_base<T> {
+    using Mybase = lazy_initialized_base<T>;
 
 public:
     using Mybase::Mybase;
@@ -12587,7 +12574,7 @@ public:
 
 private:
     Alloc &m_al;
-    algined_storage<value_type> m_storage;
+    aligned_storage<value_type> m_storage;
 };
 
 template <typename Alloc, typename... Args>
@@ -12623,36 +12610,36 @@ public:
     default_vector_size_reference &
     operator=(const default_vector_size_reference &) = delete;
     default_vector_size_reference &operator=(default_vector_size_reference &&) = default;
-
-    explicit default_vector_size_reference(pointer ptr, pointer &pos) noexcept
-        : m_ptr(ptr), m_pos(pos) {}
     ~default_vector_size_reference() = default;
 
-    default_vector_size_reference &operator=(size_type size) noexcept {
+    constexpr explicit default_vector_size_reference(pointer ptr, pointer &pos) noexcept
+        : m_ptr(ptr), m_pos(pos) {}
+
+    constexpr default_vector_size_reference &operator=(size_type size) noexcept {
         m_pos = m_ptr + size;
         return *this;
     }
 
-    WJR_PURE operator size_type() const noexcept {
+    WJR_PURE constexpr operator size_type() const noexcept {
         return static_cast<size_type>(m_pos - m_ptr);
     }
 
-    default_vector_size_reference &operator++() noexcept {
+    constexpr default_vector_size_reference &operator++() noexcept {
         ++m_pos;
         return *this;
     }
 
-    default_vector_size_reference &operator--() noexcept {
+    constexpr default_vector_size_reference &operator--() noexcept {
         --m_pos;
         return *this;
     }
 
-    default_vector_size_reference &operator+=(uint32_t size) noexcept {
+    constexpr default_vector_size_reference &operator+=(uint32_t size) noexcept {
         m_pos += size;
         return *this;
     }
 
-    default_vector_size_reference &operator-=(uint32_t size) noexcept {
+    constexpr default_vector_size_reference &operator-=(uint32_t size) noexcept {
         m_pos -= size;
         return *this;
     }
@@ -13388,7 +13375,7 @@ private:
                                                            std::declval<_Alty &>()));
 
 public:
-    basic_vector() noexcept(std::is_nothrow_default_constructible_v<_Alty>) = default;
+    basic_vector() = default;
 
     WJR_CONSTEXPR20 explicit basic_vector(const allocator_type &al) noexcept(
         std::is_nothrow_constructible_v<_Alty, const allocator_type &>)
@@ -14770,6 +14757,7 @@ struct container_traits<basic_vector<Storage>>
 
 // Already included
 // Already included
+// Already included
 
 namespace wjr {
 
@@ -14789,6 +14777,8 @@ class unexpected : unexpected_base<E, unexpected<E>> {
 
 public:
     using Mybase::Mybase;
+
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(unexpected);
 
     template <typename Err = E,
               WJR_REQUIRES(!std::is_same_v<remove_cvref_t<Err>, unexpected> &&
@@ -14944,7 +14934,7 @@ struct expected_storage_base {
 
     ~expected_storage_base() = default;
 
-    constexpr bool has_value() const noexcept { return m_has_val; }
+    WJR_PURE constexpr bool has_value() const noexcept { return m_has_val; }
     constexpr void set_valid() noexcept { m_has_val = true; }
     constexpr void set_invalid() noexcept { m_has_val = false; }
 
@@ -14986,7 +14976,7 @@ struct expected_storage_base<T, E, false> {
         }
     }
 
-    constexpr bool has_value() const noexcept { return m_has_val; }
+    WJR_PURE constexpr bool has_value() const noexcept { return m_has_val; }
     constexpr void set_valid() noexcept { m_has_val = true; }
     constexpr void set_invalid() noexcept { m_has_val = false; }
 
@@ -15017,7 +15007,7 @@ struct expected_storage_base<void, E, true> {
 
     ~expected_storage_base() = default;
 
-    constexpr bool has_value() const noexcept { return m_has_val; }
+    WJR_PURE constexpr bool has_value() const noexcept { return m_has_val; }
     constexpr void set_valid() noexcept { m_has_val = true; }
     constexpr void set_invalid() noexcept { m_has_val = false; }
 
@@ -15051,7 +15041,7 @@ struct expected_storage_base<void, E, false> {
         }
     }
 
-    constexpr bool has_value() const noexcept { return m_has_val; }
+    WJR_PURE constexpr bool has_value() const noexcept { return m_has_val; }
     constexpr void set_valid() noexcept { m_has_val = true; }
     constexpr void set_invalid() noexcept { m_has_val = false; }
 
@@ -15085,7 +15075,7 @@ struct expected_storage_base<T, inlined_unexpected<E, init>, true> {
 
     ~expected_storage_base() = default;
 
-    constexpr bool has_value() const noexcept { return m_err == init; }
+    WJR_PURE constexpr bool has_value() const noexcept { return m_err == init; }
     constexpr void set_valid() noexcept { m_err = init; }
     constexpr void set_invalid() noexcept {}
 
@@ -15127,7 +15117,7 @@ struct expected_storage_base<T, inlined_unexpected<E, init>, false> {
         }
     }
 
-    constexpr bool has_value() const noexcept { return m_err == init; }
+    WJR_PURE constexpr bool has_value() const noexcept { return m_err == init; }
     constexpr void set_valid() noexcept { m_err = init; }
     constexpr void set_invalid() noexcept {}
 
@@ -15158,7 +15148,7 @@ struct expected_storage_base<void, inlined_unexpected<E, init>, true> {
 
     ~expected_storage_base() = default;
 
-    constexpr bool has_value() const noexcept { return m_err == init; }
+    WJR_PURE constexpr bool has_value() const noexcept { return m_err == init; }
     constexpr void set_valid() noexcept { m_err = init; }
     constexpr void set_invalid() noexcept {}
 
@@ -15660,7 +15650,7 @@ public:
     }
 
     using Mybase::has_value;
-    constexpr explicit operator bool() const noexcept { return has_value(); }
+    WJR_PURE constexpr explicit operator bool() const noexcept { return has_value(); }
 
     constexpr T *operator->() noexcept { return std::addressof(this->m_val); }
     constexpr const T *operator->() const noexcept { return std::addressof(this->m_val); }
@@ -16039,7 +16029,7 @@ public:
     }
 
     using Mybase::has_value;
-    constexpr explicit operator bool() const noexcept { return has_value(); }
+    WJR_PURE constexpr explicit operator bool() const noexcept { return has_value(); }
 
     constexpr void operator*() const noexcept { WJR_ASSERT(has_value()); }
 
@@ -21598,9 +21588,7 @@ namespace wjr {
 template <typename T, size_t Extent>
 struct __span_static_storage {
 
-    __span_static_storage() = default;
-    __span_static_storage(const __span_static_storage &) = default;
-    __span_static_storage &operator=(const __span_static_storage &) = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(__span_static_storage);
 
     __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) noexcept : ptr(p) {
         WJR_ASSERT_L2(s == size);
@@ -21616,9 +21604,7 @@ struct __span_static_storage {
 template <typename T>
 struct __span_dynamic_storage {
 
-    __span_dynamic_storage() = default;
-    __span_dynamic_storage(const __span_dynamic_storage &) = default;
-    __span_dynamic_storage &operator=(const __span_dynamic_storage &) = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(__span_dynamic_storage);
 
     __span_dynamic_storage(T *p, size_t s) noexcept : ptr(p), size(s) {}
 
@@ -21811,9 +21797,10 @@ public:
         : storage(source.data(), source.size()) {}
 #endif
 
-    span(const span &other) = default;
-    span &operator=(const span &other) = default;
-
+    span(const span &) = default;
+    span(span &&) = default;
+    span &operator=(const span &) = default;
+    span &operator=(span &&) = default;
     ~span() = default;
 
     WJR_PURE WJR_CONSTEXPR20 pointer begin_unsafe() noexcept { return data(); }
@@ -21912,12 +21899,15 @@ public:
         return data()[pos];
     }
 
-    constexpr pointer data() const noexcept { return storage.ptr; }
-    constexpr size_type size() const noexcept { return storage.size; }
-    constexpr size_type size_bytes() const noexcept {
+    WJR_PURE constexpr pointer data() const noexcept { return storage.ptr; }
+    
+    WJR_PURE constexpr size_type size() const noexcept { return storage.size; }
+
+    WJR_PURE constexpr size_type size_bytes() const noexcept {
         return size() * sizeof(element_type);
     }
-    constexpr bool empty() const noexcept { return size() == 0; }
+
+    WJR_PURE constexpr bool empty() const noexcept { return size() == 0; }
 
     template <size_t Count>
     constexpr span<element_type, Count> first() const noexcept {
@@ -22038,12 +22028,7 @@ public:
     using difference_type = ptrdiff_t;
     using size_type = size_t;
 
-    safe_pointer() = default;
-    safe_pointer(const safe_pointer &) = default;
-    safe_pointer(safe_pointer &&) = default;
-    safe_pointer &operator=(const safe_pointer &) = default;
-    safe_pointer &operator=(safe_pointer &&) = default;
-    ~safe_pointer() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(safe_pointer);
 
     constexpr safe_pointer &reset_range() noexcept {
         m_length -= m_offset;
@@ -22172,12 +22157,7 @@ public:
     using difference_type = ptrdiff_t;
     using size_type = size_t;
 
-    safe_pointer() = default;
-    safe_pointer(const safe_pointer &) = default;
-    safe_pointer(safe_pointer &&) = default;
-    safe_pointer &operator=(const safe_pointer &) = default;
-    safe_pointer &operator=(safe_pointer &&) = default;
-    ~safe_pointer() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(safe_pointer);
 
     constexpr safe_pointer &reset_range() noexcept { return *this; }
 
@@ -26623,10 +26603,7 @@ class div2by1_divider_noshift {
     static_assert(std::is_same_v<T, uint64_t>, "Currently only support uint64_t");
 
 public:
-    div2by1_divider_noshift() = default;
-    div2by1_divider_noshift(const div2by1_divider_noshift &) = default;
-    div2by1_divider_noshift &operator=(const div2by1_divider_noshift &) = default;
-    ~div2by1_divider_noshift() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(div2by1_divider_noshift);
 
     explicit div2by1_divider_noshift(T divisor) noexcept : m_divisor(divisor) {
         m_value = reciprocal(divisor);
@@ -26783,10 +26760,7 @@ private:
 public:
     static_assert(std::is_same_v<T, uint64_t>, "Currently only support uint64_t");
 
-    div2by1_divider() = default;
-    div2by1_divider(const div2by1_divider &) = default;
-    div2by1_divider &operator=(const div2by1_divider &) = default;
-    ~div2by1_divider() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(div2by1_divider);
 
     constexpr explicit div2by1_divider(const Mybase &base) noexcept
         : Mybase(base), m_shift(0) {}
@@ -26840,10 +26814,7 @@ class div3by2_divider_noshift {
 public:
     static_assert(std::is_same_v<T, uint64_t>, "");
 
-    div3by2_divider_noshift() = default;
-    div3by2_divider_noshift(const div3by2_divider_noshift &) = default;
-    div3by2_divider_noshift &operator=(const div3by2_divider_noshift &) = default;
-    ~div3by2_divider_noshift() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(div3by2_divider_noshift);
 
     WJR_INTRINSIC_CONSTEXPR20 div3by2_divider_noshift(T d0, T d1) noexcept
         : m_divisor0(d0), m_divisor1(d1) {
@@ -26946,10 +26917,7 @@ class div3by2_divider : public div3by2_divider_noshift<T> {
 public:
     static_assert(std::is_same_v<T, uint64_t>, "");
 
-    div3by2_divider() = default;
-    div3by2_divider(const div3by2_divider &) = default;
-    div3by2_divider &operator=(const div3by2_divider &) = default;
-    ~div3by2_divider() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(div3by2_divider);
 
     constexpr explicit div3by2_divider(const Mybase &base) noexcept
         : Mybase(base), m_shift(0) {}
@@ -27001,10 +26969,7 @@ class divexact1_divider {
 public:
     static_assert(std::is_same_v<T, uint64_t>, "Currently only support uint64_t");
 
-    divexact1_divider() = default;
-    divexact1_divider(const divexact1_divider &) = default;
-    divexact1_divider &operator=(const divexact1_divider &) = default;
-    ~divexact1_divider() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(divexact1_divider);
 
     WJR_INTRINSIC_CONSTEXPR20 explicit divexact1_divider(T divisor) noexcept
         : m_divisor(divisor) {
@@ -27063,12 +27028,7 @@ namespace wjr {
  */
 class uint128_t {
 public:
-    uint128_t() = default;
-    uint128_t(const uint128_t &) = default;
-    uint128_t(uint128_t &&) = default;
-    uint128_t &operator=(const uint128_t &) = default;
-    uint128_t &operator=(uint128_t &&) = default;
-    ~uint128_t() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(uint128_t);
 
     template <size_t I>
     constexpr uint64_t &get() & noexcept {
@@ -28173,12 +28133,7 @@ public:
     using pointer = const node_type *;
     using difference_type = std::ptrdiff_t;
 
-    list_node_const_iterator() = default;
-    list_node_const_iterator(const list_node_const_iterator &) = default;
-    list_node_const_iterator(list_node_const_iterator &&) = default;
-    list_node_const_iterator &operator=(const list_node_const_iterator &) = default;
-    list_node_const_iterator &operator=(list_node_const_iterator &&) = default;
-    ~list_node_const_iterator() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(list_node_const_iterator);
 
     constexpr list_node_const_iterator(pointer node) noexcept
         : m_node(const_cast<node_type *>(node)) {}
@@ -28233,13 +28188,6 @@ public:
     using difference_type = typename Mybase::difference_type;
 
     using Mybase::Mybase;
-
-    list_node_iterator() = default;
-    list_node_iterator(const list_node_iterator &) = default;
-    list_node_iterator(list_node_iterator &&) = default;
-    list_node_iterator &operator=(const list_node_iterator &) = default;
-    list_node_iterator &operator=(list_node_iterator &&) = default;
-    ~list_node_iterator() = default;
 
     constexpr reference operator*() const noexcept {
         return const_cast<reference>(Mybase::operator*());
@@ -28602,12 +28550,10 @@ public:
         using other = memory_pool<Other>;
     };
 
-    memory_pool() = default;
-    memory_pool(const memory_pool &) = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(memory_pool);
+
     template <typename Other>
     constexpr memory_pool(const memory_pool<Other> &) noexcept {}
-    ~memory_pool() = default;
-    memory_pool &operator=(const memory_pool &) = default;
 
     WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
     allocate_at_least(size_type n) const noexcept {
@@ -28937,13 +28883,9 @@ public:
         using other = weak_stack_allocator<Other, StackAllocator>;
     };
 
-    weak_stack_allocator() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(weak_stack_allocator);
+
     weak_stack_allocator(UniqueStackAllocator &alloc) noexcept : m_alloc(&alloc) {}
-    weak_stack_allocator(const weak_stack_allocator &) = default;
-    weak_stack_allocator &operator=(const weak_stack_allocator &) = default;
-    weak_stack_allocator(weak_stack_allocator &&) = default;
-    weak_stack_allocator &operator=(weak_stack_allocator &&) = default;
-    ~weak_stack_allocator() = default;
 
     template <typename U>
     weak_stack_allocator(const weak_stack_allocator<U, StackAllocator> &other) noexcept
@@ -29454,13 +29396,16 @@ uint8_t *__fast_biginteger_large_to_chars_impl(uint8_t *first, const uint64_t *u
     return __biginteger_basecase_to_chars(first, up, n, base, conv);
 }
 
+extern template uint8_t *__fast_biginteger_large_to_chars_impl<char_converter_t>(
+    uint8_t *, const uint64_t *, size_t, unsigned int, char_converter_t) noexcept;
+
 template <typename Iter, typename Converter>
 Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, size_t n,
                                                unsigned int base,
                                                Converter conv) noexcept {
 #define WJR_BIGINTEGER_TO_CHARS_IMPL(BASE, NAME, TAIL, SIZE, CALL)                       \
     constexpr auto __fast_container_inserter_v =                                         \
-        charconv_detail::is_fast_container_inserter_v<Iter>;                              \
+        charconv_detail::is_fast_container_inserter_v<Iter>;                             \
     if constexpr (__fast_container_inserter_v != 0) {                                    \
         auto &cont = get_inserter_container(ptr);                                        \
         const auto __presize = cont.size();                                              \
@@ -29484,7 +29429,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
         const auto __ptr = (uint8_t *)stkal.allocate(SIZE * sizeof(uint64_t));           \
         const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;           \
                                                                                          \
-        return wjr::copy_n((charconv_detail::fast_buffer_t<Iter> *)__ptr, __size, ptr);   \
+        return wjr::copy_n((charconv_detail::fast_buffer_t<Iter> *)__ptr, __size, ptr);  \
     }
 
     switch (base) {
@@ -29525,7 +29470,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
 template <typename Iter, typename Converter>
 Iter __biginteger_to_chars_impl(Iter first, const uint64_t *up, size_t n,
                                 unsigned int base, Converter conv) noexcept {
-    if (n == 1) {
+    if (WJR_UNLIKELY(n == 1)) {
         return to_chars_unchecked(first, up[0], base, conv);
     }
 
@@ -29852,7 +29797,7 @@ size_t dc_from_chars(const uint8_t *first, size_t n, uint64_t *up,
 template <typename Converter>
 uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last,
                                        uint64_t *up, unsigned int base,
-                                       Converter conv = {}) noexcept {
+                                       Converter conv) noexcept {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
 
     const size_t n = std::distance(first, last);
@@ -29890,6 +29835,11 @@ uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last
     stk += un * 8 / 5 + 128;
     return up + dc_from_chars(first, n, up, mpre, stk, conv);
 }
+
+extern template uint64_t *
+__biginteger_from_chars_impl<char_converter_t>(const uint8_t *, const uint8_t *,
+                                               uint64_t *, unsigned int,
+                                               char_converter_t) noexcept;
 
 /**
  * @brief Convert a string to a biginteger by a given base.
@@ -30334,33 +30284,34 @@ public:
     operator=(const default_biginteger_size_reference &) = delete;
     default_biginteger_size_reference &
     operator=(default_biginteger_size_reference &&) = default;
-
-    explicit default_biginteger_size_reference(int32_t &size) noexcept : m_size(&size) {}
     ~default_biginteger_size_reference() = default;
 
-    default_biginteger_size_reference &operator=(uint32_t size) noexcept {
+    constexpr explicit default_biginteger_size_reference(int32_t &size) noexcept
+        : m_size(&size) {}
+
+    constexpr default_biginteger_size_reference &operator=(uint32_t size) noexcept {
         *m_size = __fasts_negate_with<int32_t>(*m_size, size);
         return *this;
     }
 
-    WJR_PURE operator uint32_t() const noexcept { return __fasts_abs(*m_size); }
+    WJR_PURE constexpr operator uint32_t() const noexcept { return __fasts_abs(*m_size); }
 
-    default_biginteger_size_reference &operator++() noexcept {
+    constexpr default_biginteger_size_reference &operator++() noexcept {
         *m_size = __fasts_increment(*m_size);
         return *this;
     }
 
-    default_biginteger_size_reference &operator--() noexcept {
+    constexpr default_biginteger_size_reference &operator--() noexcept {
         *m_size = __fasts_decrement(*m_size);
         return *this;
     }
 
-    default_biginteger_size_reference &operator+=(uint32_t size) noexcept {
+    constexpr default_biginteger_size_reference &operator+=(uint32_t size) noexcept {
         *m_size = __fasts_add(*m_size, size);
         return *this;
     }
 
-    default_biginteger_size_reference &operator-=(uint32_t size) noexcept {
+    constexpr default_biginteger_size_reference &operator-=(uint32_t size) noexcept {
         *m_size = __fasts_sub(*m_size, size);
         return *this;
     }
@@ -30491,13 +30442,13 @@ public:
 
     WJR_PURE int32_t get_ssize() const noexcept { return m_storage.m_size; }
 
+    template <typename T>
+    void set_ssize(T size) = delete;
+
     void set_ssize(int32_t size) noexcept {
         WJR_ASSERT_ASSUME(__fasts_abs(size) <= capacity());
         m_storage.m_size = size;
     }
-
-    template <typename T>
-    void set_ssize(int32_t size) = delete;
 
     WJR_PURE const biginteger_data *__get_data() const noexcept { return &m_storage; }
 
@@ -30519,23 +30470,25 @@ namespace biginteger_detail {
 
 /// @private
 template <typename S>
-from_chars_result<> __from_chars_impl(const char *first, const char *last,
-                                      basic_biginteger<S> *dst,
-                                      unsigned int base) noexcept;
+from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
+                                                  basic_biginteger<S> *dst,
+                                                  unsigned int base) noexcept;
 
 /// @private
-inline int32_t __compare_impl(const biginteger_data *lhs,
-                              const biginteger_data *rhs) noexcept;
+WJR_PURE inline int32_t __compare_impl(const biginteger_data *lhs,
+                                       const biginteger_data *rhs) noexcept;
 
 /// @private
-inline int32_t __compare_ui_impl(const biginteger_data *lhs, uint64_t rhs) noexcept;
+WJR_PURE inline int32_t __compare_ui_impl(const biginteger_data *lhs,
+                                          uint64_t rhs) noexcept;
 
 /// @private
-inline int32_t __compare_si_impl(const biginteger_data *lhs, int64_t rhs) noexcept;
+WJR_PURE inline int32_t __compare_si_impl(const biginteger_data *lhs,
+                                          int64_t rhs) noexcept;
 
 /// @private
 template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-int32_t __compare_impl(const biginteger_data *lhs, T rhs) noexcept {
+WJR_PURE int32_t __compare_impl(const biginteger_data *lhs, T rhs) noexcept {
     if (WJR_BUILTIN_CONSTANT_P_TRUE(rhs == 0)) {
         const int32_t ssize = lhs->get_ssize();
         return ssize == 0 ? 0 : ssize < 0 ? -1 : 1;
@@ -30905,10 +30858,10 @@ void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit
                           Engine &engine) noexcept;
 
 /// @private
-inline uint32_t __bit_width_impl(const biginteger_data *num) noexcept;
+WJR_PURE inline uint32_t __bit_width_impl(const biginteger_data *num) noexcept;
 
 /// @private
-inline uint32_t __ctz_impl(const biginteger_data *num) noexcept;
+WJR_PURE inline uint32_t __ctz_impl(const biginteger_data *num) noexcept;
 
 /// @private
 template <typename S>
@@ -30957,8 +30910,9 @@ void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint64_
 } // namespace biginteger_detail
 
 template <typename S>
-from_chars_result<> from_chars(const char *first, const char *last,
-                               basic_biginteger<S> &dst, unsigned int base = 10) noexcept;
+from_chars_result<const char *> from_chars(const char *first, const char *last,
+                                           basic_biginteger<S> &dst,
+                                           unsigned int base = 10) noexcept;
 
 template <typename Iter>
 Iter to_chars_unchecked(Iter ptr, const biginteger_data &src,
@@ -31673,146 +31627,145 @@ WJR_PURE inline bool __equal_pointer(const biginteger_data *lhs,
 }
 
 template <typename S>
-from_chars_result<> __from_chars_impl(const char *first, const char *last,
-                                      basic_biginteger<S> *dst,
-                                      unsigned int base) noexcept {
+from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
+                                                  basic_biginteger<S> *dst,
+                                                  unsigned int base) noexcept {
+    const auto *const __firstx = first;
 
-    uint8_t ch;
-    from_chars_result<> result{first, std::errc{}};
-
-    auto invalid = [&dst, &result]() {
-        dst->clear();
-        result.ec = std::errc::invalid_argument;
-        return result;
-    };
-
-    if (first == last) {
-        return invalid();
-    }
-
-    while (charconv_detail::isspace(ch = *first++) && first != last)
-        ;
-
-    int sign = 0;
-    if (ch == '-') {
-        sign = 1;
+    do {
+        uint8_t ch;
 
         if (WJR_UNLIKELY(first == last)) {
-            return invalid();
+            break;
         }
 
-        ch = *first++;
-    }
+        while (charconv_detail::isspace(ch = *first++) && first != last)
+            ;
 
-    if (base == 0) {
-        base = 10;
-        if (ch == '0') {
-            base = 8;
+        int sign = 0;
+        if (ch == '-') {
+            sign = 1;
+
             if (WJR_UNLIKELY(first == last)) {
-                return invalid();
+                break;
             }
+
             ch = *first++;
-            if (ch == 'x' || ch == 'X') {
-                base = 16;
+        }
+
+        if (base == 0) {
+            base = 10;
+            if (ch == '0') {
+                base = 8;
                 if (WJR_UNLIKELY(first == last)) {
-                    return invalid();
+                    break;
                 }
+
                 ch = *first++;
-            } else {
-                if (ch == 'b' || ch == 'B') {
-                    base = 2;
+                if (ch == 'x' || ch == 'X') {
+                    base = 16;
                     if (WJR_UNLIKELY(first == last)) {
-                        return invalid();
+                        break;
                     }
+
                     ch = *first++;
+                } else {
+                    if (ch == 'b' || ch == 'B') {
+                        base = 2;
+                        if (WJR_UNLIKELY(first == last)) {
+                            break;
+                        }
+
+                        ch = *first++;
+                    }
                 }
             }
         }
-    }
 
-    auto __first = first;
+        const auto *const __first = first;
 
-    while (ch == '0') {
-        if (WJR_UNLIKELY(first == last)) {
-            dst->clear();
-            result.ptr = first;
-            return result;
-        }
-
-        ch = *first++;
-    }
-
-    const auto start = first;
-    if (base <= 10) {
-        while (ch >= '0' && ch < '0' + base) {
-            if (first == last) {
-                ++first;
-                break;
+        while (ch == '0') {
+            if (WJR_UNLIKELY(first == last)) {
+                dst->clear();
+                return {first, std::errc{}};
             }
 
             ch = *first++;
         }
-    } else {
-        ch = 0;
-        while (ch < base) {
-            if (first == last) {
-                ++first;
-                break;
+
+        const auto *const start = first;
+        if (base <= 10) {
+            while (ch >= '0' && ch < '0' + base) {
+                if (first == last) {
+                    ++first;
+                    break;
+                }
+
+                ch = *first++;
             }
+        } else {
+            ch = 0;
+            while (ch < base) {
+                if (first == last) {
+                    ++first;
+                    break;
+                }
 
-            ch = char_converter.from(*first++);
+                ch = char_converter.from(*first++);
+            }
         }
-    }
 
-    if (WJR_UNLIKELY(first == __first)) {
-        return invalid();
-    }
+        if (WJR_UNLIKELY(first == __first)) {
+            break;
+        }
 
-    if (first == start) {
-        dst->clear();
-        result.ptr = first;
-        return result;
-    }
+        if (first == start) {
+            dst->clear();
+            return {first, std::errc{}};
+        }
 
-    const size_t str_size = first - start;
-    size_t capacity;
+        const size_t str_size = first - start;
+        size_t capacity;
 
-    switch (base) {
-    case 2: {
-        capacity = __ceil_div(str_size, 64);
-        break;
-    }
-    case 8: {
-        capacity = __ceil_div(str_size * 3, 64);
-        break;
-    }
-    case 16: {
-        capacity = __ceil_div(str_size, 16);
-        break;
-    }
-    case 4:
-    case 32: {
-        const int bits = base == 4 ? 2 : 5;
-        capacity = __ceil_div(str_size * bits, 64);
-        break;
-    }
-    case 10: {
-        // capacity = (str_size * log2(10) + 63) / 64;
-        capacity = __ceil_div(str_size * 10 / 3, 64);
-        break;
-    }
-    default: {
-        return invalid();
-    }
-    }
+        switch (base) {
+        case 2: {
+            capacity = __ceil_div(str_size, 64);
+            break;
+        }
+        case 8: {
+            capacity = __ceil_div(str_size * 3, 64);
+            break;
+        }
+        case 16: {
+            capacity = __ceil_div(str_size, 16);
+            break;
+        }
+        case 4:
+        case 32: {
+            const int bits = base == 4 ? 2 : 5;
+            capacity = __ceil_div(str_size * bits, 64);
+            break;
+        }
+        case 10: {
+            // capacity = (str_size * log2(10) + 63) / 64;
+            capacity = __ceil_div(str_size * 10 / 3, 64);
+            break;
+        }
+        default: {
+            break;
+        }
+        }
 
-    dst->reserve(capacity);
-    auto ptr = dst->data();
-    int32_t dssize = biginteger_from_chars(start - 1, first - 1, ptr, base) - ptr;
-    dssize = __fasts_conditional_negate<int32_t>(sign, dssize);
-    dst->set_ssize(dssize);
-    result.ptr = first;
-    return result;
+        dst->reserve(capacity);
+        auto ptr = dst->data();
+        int32_t dssize = biginteger_from_chars(start - 1, first - 1, ptr, base) - ptr;
+        dssize = __fasts_conditional_negate<int32_t>(sign, dssize);
+        dst->set_ssize(dssize);
+        return {first, std::errc{}};
+    } while (0);
+
+    dst->clear();
+    return {__firstx, std::errc::invalid_argument};
 }
 
 inline int32_t __compare_impl(const biginteger_data *lhs,
@@ -33626,8 +33579,9 @@ void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint64_
 } // namespace biginteger_detail
 
 template <typename S>
-from_chars_result<> from_chars(const char *first, const char *last,
-                               basic_biginteger<S> &dst, unsigned int base) noexcept {
+from_chars_result<const char *> from_chars(const char *first, const char *last,
+                                           basic_biginteger<S> &dst,
+                                           unsigned int base) noexcept {
     return biginteger_detail::__from_chars_impl(first, last, &dst, base);
 }
 
@@ -34199,7 +34153,7 @@ public:
     ~inline_key() = default;
 
     constexpr inline_key(reference value) noexcept(
-        std::is_nothrow_constructible_v<algined_storage<T>, reference>)
+        std::is_nothrow_constructible_v<aligned_storage<T>, reference>)
         : m_storage(value) {}
 
     constexpr reference operator*() const noexcept { return *m_storage; }
@@ -34208,7 +34162,7 @@ public:
 
 private:
     // no need to check
-    algined_storage<T> m_storage;
+    aligned_storage<T> m_storage;
 };
 
 template <typename T>
@@ -34238,7 +34192,7 @@ private:
 };
 
 template <typename T>
-struct is_possible_inline_key : std::is_trivially_copyable<algined_storage<T>> {};
+struct is_possible_inline_key : std::is_trivially_copyable<aligned_storage<T>> {};
 
 template <typename T>
 inline constexpr bool is_possible_inline_key_v = is_possible_inline_key<T>::value;
@@ -35808,33 +35762,26 @@ WJR_CONST WJR_INLINE_CONSTEXPR uint64_t calc_backslash(uint64_t B) noexcept {
 
 } // namespace lexer_detail
 
-template <typename Lexer>
-using lexer_enabler =
-    enable_special_members_base<false, true, false, true, false, true, Lexer>;
-
-class lexer : lexer_enabler<lexer> {
-    using Mybase = lexer_enabler<lexer>;
-
+class lexer {
 public:
     using size_type = uint32_t;
 
-    using Mybase::Mybase;
+    lexer() = delete;
+    lexer(const lexer &) = delete;
+    lexer(lexer &&) = default;
+    lexer &operator=(const lexer &) = delete;
+    lexer &operator=(lexer &&) = default;
+    ~lexer() = default;
 
     constexpr lexer(span<const char> input) noexcept
-        : Mybase(enable_default_constructor), first(input.data()),
-          last(input.data() + input.size()) {}
+        : first(input.data()), last(input.data() + input.size()) {}
 
     class result_type {
 
     public:
         constexpr static uint32_t mask = static_cast<uint32_t>(1) << 31;
 
-        result_type() = default;
-        result_type(const result_type &) = default;
-        result_type(result_type &&) = default;
-        result_type &operator=(const result_type &) = default;
-        result_type &operator=(result_type &&) = default;
-        ~result_type() = default;
+        WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(result_type);
 
         constexpr result_type(uint32_t result) noexcept : result(result) {}
         constexpr uint32_t get() const noexcept { return result & (mask - 1); }
@@ -35903,12 +35850,7 @@ public:
     using size_type = typename lexer::size_type;
     using const_iterator = typename Storage::const_iterator;
 
-    reader() = default;
-    reader(const reader &) = default;
-    reader(reader &&) = default;
-    reader &operator=(const reader &) = default;
-    reader &operator=(reader &&) = default;
-    ~reader() = default;
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(reader);
 
     reader(span<const char> sp) noexcept { read(sp); }
 
