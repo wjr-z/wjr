@@ -40,12 +40,12 @@ public:
 
         WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(result_type);
 
-        constexpr result_type(uint32_t result) noexcept : result(result) {}
-        constexpr uint32_t get() const noexcept { return result & (mask - 1); }
-        constexpr bool done() const noexcept { return (result & mask) != 0; }
+        constexpr result_type(uint32_t result) noexcept : m_result(result) {}
+        constexpr uint32_t get() const noexcept { return m_result & (mask - 1); }
+        constexpr bool done() const noexcept { return (m_result & mask) != 0; }
 
     private:
-        uint32_t result;
+        uint32_t m_result;
     };
 
     /**

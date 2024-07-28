@@ -364,6 +364,10 @@ uint8_t *basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n,
     WJR_UNREACHABLE();
 }
 
+extern template uint8_t *
+basecase_to_chars_10<char_converter_t>(uint8_t *, uint64_t *, size_t,
+                                       char_converter_t) noexcept;
+
 template <typename Converter>
 uint8_t *basecase_to_chars(uint8_t *first, size_t len, uint64_t *up, size_t n,
                            unsigned int base, Converter conv) noexcept {

@@ -1,15 +1,7 @@
-#ifndef WJR_MATH_PREFIX_XOR_HPP__
-#define WJR_MATH_PREFIX_XOR_HPP__
+#ifndef WJR_MATH_BROADCAST_HPP__
+#define WJR_MATH_BROADCAST_HPP__
 
-#ifndef WJR_TYPE_TRAITS_HPP__
-#define WJR_TYPE_TRAITS_HPP__
-
-#include <cstddef>
 #include <cstdint>
-#include <functional>
-#include <limits>
-#include <type_traits>
-#include <utility>
 
 #ifndef WJR_PREPROCESSOR_HPP__
 #define WJR_PREPROCESSOR_HPP__
@@ -2392,6 +2384,113 @@
 
 namespace wjr {
 
+template <typename From, typename To>
+struct broadcast_fn {};
+
+/**
+ * @brief Broadcast a value to a wider type.
+ *
+ * @note From must be a smaller type than To.
+ */
+template <typename From, typename To>
+inline constexpr broadcast_fn<From, To> broadcast{};
+
+template <>
+struct broadcast_fn<uint8_t, uint8_t> {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint8_t operator()(uint8_t x) const noexcept {
+        return x;
+    }
+};
+
+template <>
+struct broadcast_fn<uint16_t, uint16_t> {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint16_t operator()(uint16_t x) const noexcept {
+        return x;
+    }
+};
+
+template <>
+struct broadcast_fn<uint32_t, uint32_t> {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint32_t operator()(uint32_t x) const noexcept {
+        return x;
+    }
+};
+
+template <>
+struct broadcast_fn<uint64_t, uint64_t> {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint64_t x) const noexcept {
+        return x;
+    }
+};
+
+template <>
+struct broadcast_fn<uint8_t, uint16_t> {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint16_t operator()(uint8_t x) const noexcept {
+        return static_cast<uint16_t>(static_cast<uint32_t>(x) |
+                                     (static_cast<uint16_t>(x) << 8));
+    }
+};
+
+template <>
+struct broadcast_fn<uint16_t, uint32_t> {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint32_t operator()(uint16_t x) const noexcept {
+        return x | (static_cast<uint32_t>(x) << 16);
+    }
+};
+
+template <>
+struct broadcast_fn<uint32_t, uint64_t> {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint32_t x) const noexcept {
+        return static_cast<uint64_t>(x) | (static_cast<uint64_t>(x) << 32);
+    }
+};
+
+template <>
+struct broadcast_fn<uint8_t, uint32_t> {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint32_t operator()(uint8_t x) const noexcept {
+        return x * static_cast<uint32_t>(0x01010101u);
+    }
+};
+
+template <>
+struct broadcast_fn<uint16_t, uint64_t> {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint16_t x) const noexcept {
+        return x * static_cast<uint64_t>(0x0001000100010001ull);
+    }
+};
+
+template <>
+struct broadcast_fn<uint8_t, uint64_t> {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint8_t x) const noexcept {
+        return x * static_cast<uint64_t>(0x0101010101010101ull);
+    }
+};
+
+} // namespace wjr
+
+#endif // WJR_MATH_BROADCAST_HPP__
+#ifndef WJR_MEMORY_DETAIL_HPP__
+#define WJR_MEMORY_DETAIL_HPP__
+
+#include <cstring>
+
+#ifndef WJR_ITERATOR_DETAIL_HPP__
+#define WJR_ITERATOR_DETAIL_HPP__
+
+#ifndef WJR_TYPE_TRAITS_HPP__
+#define WJR_TYPE_TRAITS_HPP__
+
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <limits>
+#include <type_traits>
+#include <utility>
+
+// Already included
+
+namespace wjr {
+
 struct in_place_empty_t {};
 
 inline constexpr in_place_empty_t in_place_empty = {};
@@ -3128,16 +3227,334 @@ struct common_reference<Tp1, Tp2, Rest...>
 
 #endif // ! WJR_TYPE_TRAITS_HPP__
 
+namespace wjr {
+
+template <typename Iter>
+using iterator_difference_t = typename std::iterator_traits<Iter>::difference_type;
+
+template <typename Iter>
+using iterator_value_t = typename std::iterator_traits<Iter>::value_type;
+
+template <typename Iter>
+using iterator_reference_t = typename std::iterator_traits<Iter>::reference;
+
+template <typename Iter>
+using iterator_pointer_t = typename std::iterator_traits<Iter>::pointer;
+
+template <typename Iter>
+using iterator_category_t = typename std::iterator_traits<Iter>::iterator_category;
+
+template <typename T>
+using iterator_common_reference_t =
+    common_reference_t<iterator_reference_t<T>, iterator_value_t<T> &>;
+
+template <typename In, typename = void>
+struct __is_indirectly_readable_impl : std::false_type {};
+
+// template <typename In>
+// struct __is_indirectly_readable_impl<In, std::void_t<
+// >> : std::true_type {};
+
+template <typename Iter, typename = void>
+struct __is_iterator_impl : std::false_type {};
+
+template <typename Iter>
+struct __is_iterator_impl<
+    Iter, std::void_t<typename std::iterator_traits<Iter>::iterator_category>>
+    : std::true_type {};
+
+template <typename Iter>
+struct is_iterator : __is_iterator_impl<Iter> {};
+
+template <typename Iter>
+inline constexpr bool is_iterator_v = is_iterator<Iter>::value;
+
+/// @private
+template <typename Iter, typename Category, typename = void>
+struct __is_category_iterator_impl : std::false_type {};
+
+/// @private
+template <typename Iter, typename Category>
+struct __is_category_iterator_impl<
+    Iter, Category, std::void_t<typename std::iterator_traits<Iter>::iterator_category>>
+    : std::is_base_of<Category, iterator_category_t<Iter>> {};
+
+template <typename Iter>
+struct is_input_iterator : __is_category_iterator_impl<Iter, std::input_iterator_tag> {};
+
+template <typename Iter>
+inline constexpr bool is_input_iterator_v = is_input_iterator<Iter>::value;
+
+template <typename Iter>
+struct is_output_iterator : __is_category_iterator_impl<Iter, std::output_iterator_tag> {
+};
+
+template <typename Iter>
+inline constexpr bool is_output_iterator_v = is_output_iterator<Iter>::value;
+
+template <typename Iter>
+struct is_forward_iterator
+    : __is_category_iterator_impl<Iter, std::forward_iterator_tag> {};
+
+template <typename Iter>
+inline constexpr bool is_forward_iterator_v = is_forward_iterator<Iter>::value;
+
+template <typename Iter>
+struct is_bidirectional_iterator
+    : __is_category_iterator_impl<Iter, std::bidirectional_iterator_tag> {};
+
+template <typename Iter>
+inline constexpr bool is_bidirectional_iterator_v =
+    is_bidirectional_iterator<Iter>::value;
+
+template <typename Iter>
+struct is_random_access_iterator
+    : __is_category_iterator_impl<Iter, std::random_access_iterator_tag> {};
+
+template <typename Iter>
+inline constexpr bool is_random_access_iterator_v =
+    is_random_access_iterator<Iter>::value;
+
+/// @private
+template <typename Iter>
+struct __is_contiguous_iterator_impl
+    : std::disjunction<std::is_pointer<Iter>, std::is_array<Iter>> {};
+
+/// @private
+template <typename Iter>
+struct __is_contiguous_iterator_impl<std::move_iterator<Iter>>
+    : std::conjunction<__is_contiguous_iterator_impl<Iter>,
+                       std::is_trivial<iterator_value_t<Iter>>> {};
+
+#if defined(WJR_CXX_20)
+template <typename Iter>
+struct is_contiguous_iterator
+    : std::bool_constant<std::contiguous_iterator<Iter> ||
+                         __is_contiguous_iterator_impl<Iter>::value> {};
+#else
+template <typename Iter>
+struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
+#endif
+
+template <typename Iter>
+inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
+
+template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<Iter>)>
+using iterator_contiguous_value_t = std::remove_reference_t<iterator_reference_t<Iter>>;
+
+template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<Iter>)>
+using iterator_contiguous_pointer_t =
+    std::add_pointer_t<iterator_contiguous_value_t<Iter>>;
+
+#if WJR_DEBUG_LEVEL > 1
+#define WJR_HAS_DEBUG_CONTIGUOUS_ITERATOR_CHECK WJR_HAS_DEF
+#endif
+
+} // namespace wjr
+
+#endif // WJR_ITERATOR_DETAIL_HPP__
+
+namespace wjr {
+
+WJR_REGISTER_HAS_TYPE(pointer_traits_to_address,
+                      std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()),
+                      Ptr);
+
+WJR_REGISTER_HAS_TYPE(pointer_access, std::declval<const Ptr &>().operator->(), Ptr);
+
+template <typename T>
+constexpr T *to_address(T *p) noexcept {
+    static_assert(!std::is_function_v<T>, "T cannot be a function.");
+    return p;
+}
+
+/**
+ * @detail If std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p) is valid, return
+ * std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p), otherwise return
+ * to_address(p.operator->()).
+ */
+template <typename Ptr>
+constexpr auto to_address(const Ptr &p) noexcept {
+    if constexpr (has_pointer_traits_to_address_v<remove_cvref_t<Ptr>>) {
+        return std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p);
+    } else {
+        return wjr::to_address(p.operator->());
+    }
+}
+
+/**
+ * @return to_address(p.base()).
+ *
+ */
+template <typename Iter>
+constexpr auto to_address(const std::move_iterator<Iter> &p) noexcept {
+    return wjr::to_address(p.base());
+}
+
+/**
+ * @brief Return to_address(p) if p is a contiguous iterator and contiguouse iterato check
+ * is disabled, otherwise return p.
+ *
+ */
+template <typename T>
+constexpr decltype(auto) to_contiguous_address(T &&t) noexcept {
+#if !WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
+    if constexpr (is_contiguous_iterator_v<remove_cvref_t<T>>) {
+        return wjr::to_address(std::forward<T>(t));
+    } else {
+#endif
+        return std::forward<T>(t);
+#if !WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
+    }
+#endif
+}
+
+/// @private
+class __is_little_endian_helper {
+    constexpr static std::uint32_t u4 = 1;
+    constexpr static std::uint8_t u1 = static_cast<const std::uint8_t &>(u4);
+
+public:
+    constexpr static bool value = u1 != 0;
+};
+
+// constexpr endian
+enum class endian {
+    little = 0,
+    big = 1,
+    native = __is_little_endian_helper::value ? little : big
+};
+
+static_assert(endian::native == endian::little, "Don't support big endian currently.");
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T fallback_byteswap(T x) noexcept {
+    constexpr auto digits = std::numeric_limits<T>::digits;
+    auto val = static_cast<uint_t<digits>>(x);
+    if constexpr (digits == 8) {
+        return val;
+    } else if constexpr (digits == 16) {
+        return (val >> 8) | (val << 8);
+    } else if constexpr (digits == 32) {
+        return ((val >> 24) & 0xff) | ((val >> 8) & 0xff00) | ((val << 8) & 0xff0000) |
+               ((val << 24));
+    } else if constexpr (digits == 64) {
+        return ((val >> 56) & 0xff) | ((val >> 40) & 0xff00) | ((val >> 24) & 0xff0000) |
+               ((val >> 8) & 0xff000000) | ((val << 8) & 0xff00000000) |
+               ((val << 24) & 0xff0000000000) | ((val << 40) & 0xff000000000000) |
+               ((val << 56));
+    } else {
+        static_assert(digits <= 64, "Unsupported bit width");
+    }
+}
+
+#if WJR_HAS_BUILTIN(__builtin_bswap16)
+#define WJR_HAS_BUILTIN_BYTESWAP WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(BYTESWAP)
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T builtin_byteswap(T x) noexcept {
+    constexpr auto digits = std::numeric_limits<T>::digits;
+    auto val = static_cast<uint_t<digits>>(x);
+    if constexpr (digits == 8) {
+        return val;
+    } else if constexpr (digits == 16) {
+        return __builtin_bswap16(val);
+    } else if constexpr (digits == 32) {
+        return __builtin_bswap32(val);
+    } else if constexpr (digits == 64) {
+        return __builtin_bswap64(val);
+    } else {
+        static_assert(digits <= 64, "Unsupported bit width");
+    }
+}
+
+#endif
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x, endian to = endian::little) noexcept {
+    if (to == endian::native) {
+        return x;
+    }
+
+#if WJR_HAS_BUILTIN(BYTESWAP)
+    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
+        return fallback_byteswap(x);
+    }
+
+    return builtin_byteswap(x);
+#else
+    return fallback_byteswap(x);
+#endif
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr,
+                                            endian to = endian::little) noexcept {
+    T x;
+    std::memcpy(&x, ptr, sizeof(T));
+
+    if (to != endian::native) {
+        x = byteswap(x);
+    }
+
+    return x;
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x,
+                                       endian to = endian::little) noexcept {
+    if (to != endian::native) {
+        x = byteswap(x);
+    }
+
+    std::memcpy(ptr, &x, sizeof(T));
+}
+
+template <class Pointer, class SizeType = std::size_t>
+struct allocation_result {
+    Pointer ptr;
+    SizeType count;
+};
+
+WJR_REGISTER_HAS_TYPE(
+    allocate_at_least,
+    std::declval<Allocator>().allocate_at_least(std::declval<SizeType>()), Allocator,
+    SizeType);
+
+template <typename Allocator, typename SizeType,
+          typename Pointer = typename std::allocator_traits<Allocator>::pointer>
+WJR_NODISCARD auto allocate_at_least(Allocator &alloc, SizeType count) {
+    if constexpr (has_allocate_at_least_v<Allocator, SizeType>) {
+        return alloc.allocate_at_least(count);
+    } else {
+        const auto ptr = std::allocator_traits<Allocator>::allocate(alloc, count);
+        return allocation_result<decltype(ptr), SizeType>{ptr, count};
+    }
+}
+
+} // namespace wjr
+
+#endif // WJR_MEMORY_DETAIL_HPP__
+// Already included
+
+#ifndef WJR_MATH_PREFIX_XOR_HPP__
+#define WJR_MATH_PREFIX_XOR_HPP__
+
+// Already included
+
 #if defined(WJR_X86)
 #ifndef WJR_X86_MATH_PREFIX_XOR_HPP__
 #define WJR_X86_MATH_PREFIX_XOR_HPP__
 
 // Already included
-#ifndef WJR_SIMD_SIMD_HPP__
-#define WJR_SIMD_SIMD_HPP__
+#ifndef WJR_X86_SIMD_SIMD_HPP__
+#define WJR_X86_SIMD_SIMD_HPP__
 
-#ifndef WJR_SIMD_SIMD_CAST_HPP__
-#define WJR_SIMD_SIMD_CAST_HPP__
+#ifndef WJR_X86_SIMD_SIMD_CAST_HPP__
+#define WJR_X86_SIMD_SIMD_CAST_HPP__
 
 // Already included
 #ifndef WJR_X86_SIMD_INTRIN_HPP__
@@ -3472,412 +3889,12 @@ struct simd_cast_fn<__m256i_t, uint64_t> {
 
 } // namespace wjr
 
-#endif // WJR_SIMD_SIMD_CAST_HPP__
+#endif // WJR_X86_SIMD_SIMD_CAST_HPP__
 
 #include <cstring>
 
-#ifndef WJR_MATH_BROADCAST_HPP__
-#define WJR_MATH_BROADCAST_HPP__
-
-#include <cstdint>
-
 // Already included
-
-namespace wjr {
-
-template <typename From, typename To>
-struct broadcast_fn {};
-
-/**
- * @brief Broadcast a value to a wider type.
- *
- * @note From must be a smaller type than To.
- */
-template <typename From, typename To>
-inline constexpr broadcast_fn<From, To> broadcast{};
-
-template <>
-struct broadcast_fn<uint8_t, uint8_t> {
-    WJR_INTRINSIC_CONSTEXPR uint8_t operator()(uint8_t x) const noexcept { return x; }
-};
-template <>
-struct broadcast_fn<uint16_t, uint16_t> {
-    WJR_INTRINSIC_CONSTEXPR uint16_t operator()(uint16_t x) const noexcept { return x; }
-};
-template <>
-struct broadcast_fn<uint32_t, uint32_t> {
-    WJR_INTRINSIC_CONSTEXPR uint32_t operator()(uint32_t x) const noexcept { return x; }
-};
-template <>
-struct broadcast_fn<uint64_t, uint64_t> {
-    WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint64_t x) const noexcept { return x; }
-};
-
-template <>
-struct broadcast_fn<uint8_t, uint16_t> {
-    WJR_INTRINSIC_CONSTEXPR uint16_t operator()(uint8_t x) const noexcept {
-        return static_cast<uint16_t>(static_cast<uint32_t>(x) |
-                                     (static_cast<uint16_t>(x) << 8));
-    }
-};
-
-template <>
-struct broadcast_fn<uint16_t, uint32_t> {
-    WJR_INTRINSIC_CONSTEXPR uint32_t operator()(uint16_t x) const noexcept {
-        return x | (static_cast<uint32_t>(x) << 16);
-    }
-};
-template <>
-struct broadcast_fn<uint32_t, uint64_t> {
-    WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint32_t x) const noexcept {
-        return static_cast<uint64_t>(x) | (static_cast<uint64_t>(x) << 32);
-    }
-};
-
-template <>
-struct broadcast_fn<uint8_t, uint32_t> {
-    WJR_INTRINSIC_CONSTEXPR uint32_t operator()(uint8_t x) const noexcept {
-        return x * static_cast<uint32_t>(0x01010101u);
-    }
-};
-template <>
-struct broadcast_fn<uint16_t, uint64_t> {
-    WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint16_t x) const noexcept {
-        return x * static_cast<uint64_t>(0x0001000100010001ull);
-    }
-};
-
-template <>
-struct broadcast_fn<uint8_t, uint64_t> {
-    WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint8_t x) const noexcept {
-        return x * static_cast<uint64_t>(0x0101010101010101ull);
-    }
-};
-
-} // namespace wjr
-
-#endif // WJR_MATH_BROADCAST_HPP__
-#ifndef WJR_MEMORY_DETAIL_HPP__
-#define WJR_MEMORY_DETAIL_HPP__
-
-#include <cstring>
-
-#ifndef WJR_ITERATOR_DETAIL_HPP__
-#define WJR_ITERATOR_DETAIL_HPP__
-
 // Already included
-
-namespace wjr {
-
-template <typename Iter>
-using iterator_difference_t = typename std::iterator_traits<Iter>::difference_type;
-
-template <typename Iter>
-using iterator_value_t = typename std::iterator_traits<Iter>::value_type;
-
-template <typename Iter>
-using iterator_reference_t = typename std::iterator_traits<Iter>::reference;
-
-template <typename Iter>
-using iterator_pointer_t = typename std::iterator_traits<Iter>::pointer;
-
-template <typename Iter>
-using iterator_category_t = typename std::iterator_traits<Iter>::iterator_category;
-
-template <typename T>
-using iterator_common_reference_t =
-    common_reference_t<iterator_reference_t<T>, iterator_value_t<T> &>;
-
-template <typename In, typename = void>
-struct __is_indirectly_readable_impl : std::false_type {};
-
-// template <typename In>
-// struct __is_indirectly_readable_impl<In, std::void_t<
-// >> : std::true_type {};
-
-template <typename Iter, typename = void>
-struct __is_iterator_impl : std::false_type {};
-
-template <typename Iter>
-struct __is_iterator_impl<
-    Iter, std::void_t<typename std::iterator_traits<Iter>::iterator_category>>
-    : std::true_type {};
-
-template <typename Iter>
-struct is_iterator : __is_iterator_impl<Iter> {};
-
-template <typename Iter>
-inline constexpr bool is_iterator_v = is_iterator<Iter>::value;
-
-/// @private
-template <typename Iter, typename Category, typename = void>
-struct __is_category_iterator_impl : std::false_type {};
-
-/// @private
-template <typename Iter, typename Category>
-struct __is_category_iterator_impl<
-    Iter, Category, std::void_t<typename std::iterator_traits<Iter>::iterator_category>>
-    : std::is_base_of<Category, iterator_category_t<Iter>> {};
-
-template <typename Iter>
-struct is_input_iterator : __is_category_iterator_impl<Iter, std::input_iterator_tag> {};
-
-template <typename Iter>
-inline constexpr bool is_input_iterator_v = is_input_iterator<Iter>::value;
-
-template <typename Iter>
-struct is_output_iterator : __is_category_iterator_impl<Iter, std::output_iterator_tag> {
-};
-
-template <typename Iter>
-inline constexpr bool is_output_iterator_v = is_output_iterator<Iter>::value;
-
-template <typename Iter>
-struct is_forward_iterator
-    : __is_category_iterator_impl<Iter, std::forward_iterator_tag> {};
-
-template <typename Iter>
-inline constexpr bool is_forward_iterator_v = is_forward_iterator<Iter>::value;
-
-template <typename Iter>
-struct is_bidirectional_iterator
-    : __is_category_iterator_impl<Iter, std::bidirectional_iterator_tag> {};
-
-template <typename Iter>
-inline constexpr bool is_bidirectional_iterator_v =
-    is_bidirectional_iterator<Iter>::value;
-
-template <typename Iter>
-struct is_random_access_iterator
-    : __is_category_iterator_impl<Iter, std::random_access_iterator_tag> {};
-
-template <typename Iter>
-inline constexpr bool is_random_access_iterator_v =
-    is_random_access_iterator<Iter>::value;
-
-/// @private
-template <typename Iter>
-struct __is_contiguous_iterator_impl
-    : std::disjunction<std::is_pointer<Iter>, std::is_array<Iter>> {};
-
-/// @private
-template <typename Iter>
-struct __is_contiguous_iterator_impl<std::move_iterator<Iter>>
-    : std::conjunction<__is_contiguous_iterator_impl<Iter>,
-                       std::is_trivial<iterator_value_t<Iter>>> {};
-
-#if defined(WJR_CXX_20)
-template <typename Iter>
-struct is_contiguous_iterator
-    : std::bool_constant<std::contiguous_iterator<Iter> ||
-                         __is_contiguous_iterator_impl<Iter>::value> {};
-#else
-template <typename Iter>
-struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
-#endif
-
-template <typename Iter>
-inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
-
-template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<Iter>)>
-using iterator_contiguous_value_t = std::remove_reference_t<iterator_reference_t<Iter>>;
-
-template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<Iter>)>
-using iterator_contiguous_pointer_t =
-    std::add_pointer_t<iterator_contiguous_value_t<Iter>>;
-
-#if WJR_DEBUG_LEVEL > 1
-#define WJR_HAS_DEBUG_CONTIGUOUS_ITERATOR_CHECK WJR_HAS_DEF
-#endif
-
-} // namespace wjr
-
-#endif // WJR_ITERATOR_DETAIL_HPP__
-
-namespace wjr {
-
-WJR_REGISTER_HAS_TYPE(pointer_traits_to_address,
-                      std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()),
-                      Ptr);
-
-WJR_REGISTER_HAS_TYPE(pointer_access, std::declval<const Ptr &>().operator->(), Ptr);
-
-template <typename T>
-constexpr T *to_address(T *p) noexcept {
-    static_assert(!std::is_function_v<T>, "T cannot be a function.");
-    return p;
-}
-
-/**
- * @detail If std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p) is valid, return
- * std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p), otherwise return
- * to_address(p.operator->()).
- */
-template <typename Ptr>
-constexpr auto to_address(const Ptr &p) noexcept {
-    if constexpr (has_pointer_traits_to_address_v<remove_cvref_t<Ptr>>) {
-        return std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p);
-    } else {
-        return wjr::to_address(p.operator->());
-    }
-}
-
-/**
- * @return to_address(p.base()).
- *
- */
-template <typename Iter>
-constexpr auto to_address(const std::move_iterator<Iter> &p) noexcept {
-    return wjr::to_address(p.base());
-}
-
-/**
- * @brief Return to_address(p) if p is a contiguous iterator and contiguouse iterato check
- * is disabled, otherwise return p.
- *
- */
-template <typename T>
-constexpr decltype(auto) to_contiguous_address(T &&t) noexcept {
-#if !WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-    if constexpr (is_contiguous_iterator_v<remove_cvref_t<T>>) {
-        return wjr::to_address(std::forward<T>(t));
-    } else {
-#endif
-        return std::forward<T>(t);
-#if !WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-    }
-#endif
-}
-
-/// @private
-class __is_little_endian_helper {
-    constexpr static std::uint32_t u4 = 1;
-    constexpr static std::uint8_t u1 = static_cast<const std::uint8_t &>(u4);
-
-public:
-    constexpr static bool value = u1 != 0;
-};
-
-// constexpr endian
-enum class endian {
-    little = 0,
-    big = 1,
-    native = __is_little_endian_helper::value ? little : big
-};
-
-static_assert(endian::native == endian::little, "Don't support big endian currently.");
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T fallback_byteswap(T x) noexcept {
-    constexpr auto digits = std::numeric_limits<T>::digits;
-    auto val = static_cast<uint_t<digits>>(x);
-    if constexpr (digits == 8) {
-        return val;
-    } else if constexpr (digits == 16) {
-        return (val >> 8) | (val << 8);
-    } else if constexpr (digits == 32) {
-        return ((val >> 24) & 0xff) | ((val >> 8) & 0xff00) | ((val << 8) & 0xff0000) |
-               ((val << 24));
-    } else if constexpr (digits == 64) {
-        return ((val >> 56) & 0xff) | ((val >> 40) & 0xff00) | ((val >> 24) & 0xff0000) |
-               ((val >> 8) & 0xff000000) | ((val << 8) & 0xff00000000) |
-               ((val << 24) & 0xff0000000000) | ((val << 40) & 0xff000000000000) |
-               ((val << 56));
-    } else {
-        static_assert(digits <= 64, "Unsupported bit width");
-    }
-}
-
-#if WJR_HAS_BUILTIN(__builtin_bswap16)
-#define WJR_HAS_BUILTIN_BYTESWAP WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(BYTESWAP)
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T builtin_byteswap(T x) noexcept {
-    constexpr auto digits = std::numeric_limits<T>::digits;
-    auto val = static_cast<uint_t<digits>>(x);
-    if constexpr (digits == 8) {
-        return val;
-    } else if constexpr (digits == 16) {
-        return __builtin_bswap16(val);
-    } else if constexpr (digits == 32) {
-        return __builtin_bswap32(val);
-    } else if constexpr (digits == 64) {
-        return __builtin_bswap64(val);
-    } else {
-        static_assert(digits <= 64, "Unsupported bit width");
-    }
-}
-
-#endif
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x, endian to = endian::little) noexcept {
-    if (to == endian::native) {
-        return x;
-    }
-
-#if WJR_HAS_BUILTIN(BYTESWAP)
-    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
-        return fallback_byteswap(x);
-    }
-
-    return builtin_byteswap(x);
-#else
-    return fallback_byteswap(x);
-#endif
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr,
-                                            endian to = endian::little) noexcept {
-    T x;
-    std::memcpy(&x, ptr, sizeof(T));
-
-    if (to != endian::native) {
-        x = byteswap(x);
-    }
-
-    return x;
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x,
-                                       endian to = endian::little) noexcept {
-    if (to != endian::native) {
-        x = byteswap(x);
-    }
-
-    std::memcpy(ptr, &x, sizeof(T));
-}
-
-template <class Pointer, class SizeType = std::size_t>
-struct allocation_result {
-    Pointer ptr;
-    SizeType count;
-};
-
-WJR_REGISTER_HAS_TYPE(
-    allocate_at_least,
-    std::declval<Allocator>().allocate_at_least(std::declval<SizeType>()), Allocator,
-    SizeType);
-
-template <typename Allocator, typename SizeType,
-          typename Pointer = typename std::allocator_traits<Allocator>::pointer>
-WJR_NODISCARD auto allocate_at_least(Allocator &alloc, SizeType count) {
-    if constexpr (has_allocate_at_least_v<Allocator, SizeType>) {
-        return alloc.allocate_at_least(count);
-    } else {
-        const auto ptr = std::allocator_traits<Allocator>::allocate(alloc, count);
-        return allocation_result<decltype(ptr), SizeType>{ptr, count};
-    }
-}
-
-} // namespace wjr
-
-#endif // WJR_MEMORY_DETAIL_HPP__
 
 namespace wjr {
 
@@ -5236,33 +5253,35 @@ const static __m256i srli_epi8_mask[8] = {
 
 template <>
 struct broadcast_fn<uint8_t, __m128i_t> {
-    WJR_INTRINSIC_INLINE __m128i operator()(uint8_t v) const { return _mm_set1_epi8(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(uint8_t v) const {
+        return _mm_set1_epi8(v);
+    }
 };
 
 template <>
 struct broadcast_fn<uint16_t, __m128i_t> {
-    WJR_INTRINSIC_INLINE __m128i operator()(uint16_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(uint16_t v) const {
         return _mm_set1_epi16(v);
     }
 };
 
 template <>
 struct broadcast_fn<uint32_t, __m128i_t> {
-    WJR_INTRINSIC_INLINE __m128i operator()(uint32_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(uint32_t v) const {
         return _mm_set1_epi32(v);
     }
 };
 
 template <>
 struct broadcast_fn<uint64_t, __m128i_t> {
-    WJR_INTRINSIC_INLINE __m128i operator()(uint64_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(uint64_t v) const {
         return _mm_set1_epi64x(v);
     }
 };
 
 template <>
 struct broadcast_fn<__m128i_t, __m128i_t> {
-    WJR_INTRINSIC_INLINE __m128i operator()(__m128i v) const { return v; }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(__m128i v) const { return v; }
 };
 
 #endif // SSE2
@@ -5271,40 +5290,40 @@ struct broadcast_fn<__m128i_t, __m128i_t> {
 
 template <>
 struct broadcast_fn<uint8_t, __m256i_t> {
-    WJR_INTRINSIC_INLINE __m256i operator()(uint8_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint8_t v) const {
         return _mm256_set1_epi8(v);
     }
 };
 
 template <>
 struct broadcast_fn<uint16_t, __m256i_t> {
-    WJR_INTRINSIC_INLINE __m256i operator()(uint16_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint16_t v) const {
         return _mm256_set1_epi16(v);
     }
 };
 
 template <>
 struct broadcast_fn<uint32_t, __m256i_t> {
-    WJR_INTRINSIC_INLINE __m256i operator()(uint32_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint32_t v) const {
         return _mm256_set1_epi32(v);
     }
 };
 
 template <>
 struct broadcast_fn<uint64_t, __m256i_t> {
-    WJR_INTRINSIC_INLINE __m256i operator()(uint64_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint64_t v) const {
         return _mm256_set1_epi64x(v);
     }
 };
 
 template <>
 struct broadcast_fn<__m256i_t, __m256i_t> {
-    WJR_INTRINSIC_INLINE __m256i operator()(__m256i v) const { return v; }
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(__m256i v) const { return v; }
 };
 
 template <>
 struct broadcast_fn<__m128i_t, __m256i_t> {
-    WJR_INTRINSIC_INLINE __m256i operator()(__m128i v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(__m128i v) const {
 #if WJR_HAS_SIMD(AVX2)
         return _mm256_broadcastsi128_si256(v);
 #else
@@ -7544,7 +7563,7 @@ __m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) { return unpacklo_epi32(a,
 
 } // namespace wjr
 
-#endif // WJR_SIMD_SIMD_HPP__
+#endif // WJR_X86_SIMD_SIMD_HPP__
 
 namespace wjr {
 
@@ -25507,7 +25526,8 @@ struct __unsigned_from_chars_fn<10> {
 
         constexpr auto __try_match = [](uint8_t &ch) {
             if constexpr (zero != 0) {
-                return ch <= nine && !sub_overflow(ch, zero, ch);
+                ch -= zero;
+                return ch <= nine;
             } else {
                 return ch <= nine;
             }
@@ -25697,6 +25717,124 @@ from_chars_result<const char *> from_chars(const char *first, const char *last,
                                            Value &val, IBase base,
                                            Converter conv = {}) noexcept {
     return from_chars_dynamic(first, last, val, base, conv);
+}
+
+template <typename Converter>
+struct __check_digits_helper {
+    static constexpr uint8_t hi_expe8 =
+        std::is_same_v<Converter, char_converter_t> ? 0x30 : 0x00;
+    static constexpr uint32_t hi_expe32 = broadcast<uint8_t, uint32_t>(hi_expe8);
+    static constexpr uint64_t hi_expe64 = broadcast<uint8_t, uint64_t>(hi_expe8);
+};
+
+template <unsigned int IBase = 10, typename Converter = char_converter_t,
+          WJR_REQUIRES(IBase <= 16)>
+WJR_PURE bool check_eight_digits_branchless(const char *ptr,
+                                            integral_constant<unsigned int, IBase> = {},
+                                            Converter = {}) noexcept {
+    constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
+    constexpr uint64_t added = broadcast<uint8_t, uint64_t>(16 - IBase);
+    constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
+
+    const uint64_t memory = read_memory<uint64_t>(ptr);
+
+    return (memory & (memory + added) & mask) == hi_expe64;
+}
+
+template <typename Converter>
+WJR_PURE bool check_eight_digits_branchless_dynamic(const char *ptr, unsigned int base,
+                                                    Converter conv) noexcept {
+    WJR_ASSERT_L2(base <= 16);
+
+    if (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            return check_eight_digits_branchless(ptr, 2_u, conv);
+        }
+        case 8: {
+            return check_eight_digits_branchless(ptr, 8_u, conv);
+        }
+        case 10: {
+            return check_eight_digits_branchless(ptr, 10_u, conv);
+        }
+        case 16: {
+            return check_eight_digits_branchless(ptr, 16_u, conv);
+        }
+        default: {
+            break;
+        }
+        }
+    }
+
+    constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
+    constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
+
+    const uint64_t added = broadcast<uint8_t, uint64_t>(16 - base);
+    const uint64_t memory = read_memory<uint64_t>(ptr);
+
+    return (memory & (memory + added) & mask) == hi_expe64;
+}
+
+template <typename IBase, typename Converter = char_converter_t,
+          WJR_REQUIRES(is_nonbool_integral_v<IBase>)>
+WJR_PURE bool check_eight_digits_branchless(const char *ptr, IBase base,
+                                            Converter conv = {}) noexcept {
+    return check_eight_digits_branchless_dynamic(ptr, base, conv);
+}
+
+template <unsigned int IBase = 10, typename Converter = char_converter_t,
+          WJR_REQUIRES(IBase <= 16)>
+WJR_PURE bool check_eight_digits_branchcy(const char *ptr,
+                                          integral_constant<unsigned int, IBase> = {},
+                                          Converter = {}) noexcept {
+    constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
+    constexpr uint64_t added = broadcast<uint8_t, uint64_t>(16 - IBase);
+    constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
+
+    const uint64_t memory = read_memory<uint64_t>(ptr);
+
+    return (memory & mask) == hi_expe64 && ((memory + added) & mask) == hi_expe64;
+}
+
+template <typename Converter>
+WJR_PURE bool check_eight_digits_branchcy_dynamic(const char *ptr, unsigned int base,
+                                                  Converter conv) noexcept {
+    WJR_ASSERT_L2(base <= 16);
+
+    if (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            return check_eight_digits_branchcy(ptr, 2_u, conv);
+        }
+        case 8: {
+            return check_eight_digits_branchcy(ptr, 8_u, conv);
+        }
+        case 10: {
+            return check_eight_digits_branchcy(ptr, 10_u, conv);
+        }
+        case 16: {
+            return check_eight_digits_branchcy(ptr, 16_u, conv);
+        }
+        default: {
+            break;
+        }
+        }
+    }
+
+    constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
+    constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
+
+    const uint64_t added = broadcast<uint8_t, uint64_t>(16 - base);
+    const uint64_t memory = read_memory<uint64_t>(ptr);
+
+    return (memory & mask) == hi_expe64 && ((memory + added) & mask) == hi_expe64;
+}
+
+template <typename IBase, typename Converter = char_converter_t,
+          WJR_REQUIRES(is_nonbool_integral_v<IBase>)>
+WJR_PURE bool check_eight_digits_branchcy(const char *ptr, IBase base,
+                                          Converter conv = {}) noexcept {
+    return check_eight_digits_branchcy_dynamic(ptr, base, conv);
 }
 
 } // namespace wjr
@@ -29287,6 +29425,10 @@ uint8_t *basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n,
     WJR_UNREACHABLE();
 }
 
+extern template uint8_t *
+basecase_to_chars_10<char_converter_t>(uint8_t *, uint64_t *, size_t,
+                                       char_converter_t) noexcept;
+
 template <typename Converter>
 uint8_t *basecase_to_chars(uint8_t *first, size_t len, uint64_t *up, size_t n,
                            unsigned int base, Converter conv) noexcept {
@@ -31630,101 +31772,169 @@ template <typename S>
 from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
                                                   basic_biginteger<S> *dst,
                                                   unsigned int base) noexcept {
-    const auto *const __firstx = first;
+    const auto *__first = first;
 
     do {
-        uint8_t ch;
-
         if (WJR_UNLIKELY(first == last)) {
             break;
         }
 
-        while (charconv_detail::isspace(ch = *first++) && first != last)
-            ;
+        uint8_t ch;
+        ch = *first;
+
+        if (charconv_detail::isspace(ch)) {
+            do {
+                if (++first == last) {
+                    break;
+                }
+
+                ch = *first;
+            } while (charconv_detail::isspace(ch));
+        }
 
         int sign = 0;
         if (ch == '-') {
             sign = 1;
-
-            if (WJR_UNLIKELY(first == last)) {
+            if (++first == last) {
                 break;
             }
 
-            ch = *first++;
+            ch = *first;
         }
 
         if (base == 0) {
             base = 10;
             if (ch == '0') {
                 base = 8;
-                if (WJR_UNLIKELY(first == last)) {
+                if (++first == last) {
                     break;
                 }
 
-                ch = *first++;
+                ch = *first;
                 if (ch == 'x' || ch == 'X') {
                     base = 16;
-                    if (WJR_UNLIKELY(first == last)) {
+                    if (++first == last) {
                         break;
                     }
 
-                    ch = *first++;
+                    ch = *first;
                 } else {
                     if (ch == 'b' || ch == 'B') {
                         base = 2;
-                        if (WJR_UNLIKELY(first == last)) {
+                        if (++first == last) {
                             break;
                         }
 
-                        ch = *first++;
+                        ch = *first;
                     }
                 }
             }
         }
 
-        const auto *const __first = first;
+        if (base <= 10) {
+            const auto __try_match = [base](uint8_t &ch) {
+                ch -= '0';
+                return ch < base;
+            };
 
-        while (ch == '0') {
-            if (WJR_UNLIKELY(first == last)) {
+            if (WJR_UNLIKELY(!__try_match(ch))) {
+                break;
+            }
+
+            if (WJR_UNLIKELY(ch == 0)) {
+                goto LOOP_HEAD_0;
+
+                do {
+                    ch = *first;
+                    if (ch != '0') {
+                        goto LOOP_END_0;
+                    }
+
+                LOOP_HEAD_0:
+                    ++first;
+                } while (first != last);
+
                 dst->clear();
                 return {first, std::errc{}};
+            LOOP_END_0:
+
+                if (!__try_match(ch)) {
+                    dst->clear();
+                    return {first, std::errc{}};
+                }
             }
 
-            ch = *first++;
-        }
+            __first = first;
 
-        const auto *const start = first;
-        if (base <= 10) {
-            while (ch >= '0' && ch < '0' + base) {
-                if (first == last) {
-                    ++first;
-                    break;
+            if (++first != last) {
+                if (last - first >= 8) {
+                    do {
+                        if (!check_eight_digits_branchless(first, base)) {
+                            break;
+                        }
+
+                        first += 8;
+                    } while (last - first >= 8);
                 }
 
-                ch = *first++;
+                ch = *first;
+                if (__try_match(ch)) {
+                    do {
+                        ++first;
+                        if (first == last) {
+                            break;
+                        }
+
+                        ch = *first;
+                    } while (__try_match(ch));
+                }
             }
         } else {
-            ch = 0;
-            while (ch < base) {
-                if (first == last) {
+            const auto __try_match = [base](uint8_t &ch) {
+                ch = char_converter.from(ch);
+                return ch < base;
+            };
+
+            if (WJR_UNLIKELY(!__try_match(ch))) {
+                break;
+            }
+
+            if (WJR_UNLIKELY(ch == 0)) {
+                goto LOOP_HEAD_1;
+
+                do {
+                    ch = *first;
+                    if (ch != '0') {
+                        goto LOOP_END_1;
+                    }
+
+                LOOP_HEAD_1:
                     ++first;
+                } while (first != last);
+
+                dst->clear();
+                return {first, std::errc{}};
+            LOOP_END_1:
+
+                if (!__try_match(ch)) {
+                    dst->clear();
+                    return {first, std::errc{}};
+                }
+            }
+
+            __first = first;
+
+            do {
+                ++first;
+                if (first == last) {
                     break;
                 }
 
-                ch = char_converter.from(*first++);
-            }
+                ch = *first;
+            } while (__try_match(ch));
         }
 
-        if (WJR_UNLIKELY(first == __first)) {
-            break;
-        }
-
-        if (first == start) {
-            dst->clear();
-            return {first, std::errc{}};
-        }
-
-        const size_t str_size = first - start;
+        const size_t str_size = first - __first;
         size_t capacity;
 
         switch (base) {
@@ -31752,20 +31962,21 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
             break;
         }
         default: {
+            WJR_UNREACHABLE();
             break;
         }
         }
 
         dst->reserve(capacity);
-        auto ptr = dst->data();
-        int32_t dssize = biginteger_from_chars(start - 1, first - 1, ptr, base) - ptr;
+        auto *const ptr = dst->data();
+        int32_t dssize = biginteger_from_chars(__first, first, ptr, base) - ptr;
         dssize = __fasts_conditional_negate<int32_t>(sign, dssize);
         dst->set_ssize(dssize);
         return {first, std::errc{}};
     } while (0);
 
     dst->clear();
-    return {__firstx, std::errc::invalid_argument};
+    return {__first, std::errc::invalid_argument};
 }
 
 inline int32_t __compare_impl(const biginteger_data *lhs,
@@ -35783,12 +35994,12 @@ public:
 
         WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(result_type);
 
-        constexpr result_type(uint32_t result) noexcept : result(result) {}
-        constexpr uint32_t get() const noexcept { return result & (mask - 1); }
-        constexpr bool done() const noexcept { return (result & mask) != 0; }
+        constexpr result_type(uint32_t result) noexcept : m_result(result) {}
+        constexpr uint32_t get() const noexcept { return m_result & (mask - 1); }
+        constexpr bool done() const noexcept { return (m_result & mask) != 0; }
 
     private:
-        uint32_t result;
+        uint32_t m_result;
     };
 
     /**

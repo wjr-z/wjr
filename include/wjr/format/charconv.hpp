@@ -1986,7 +1986,8 @@ struct __unsigned_from_chars_fn<10> {
 
         constexpr auto __try_match = [](uint8_t &ch) {
             if constexpr (zero != 0) {
-                return ch <= nine && !sub_overflow(ch, zero, ch);
+                ch -= zero;
+                return ch <= nine;
             } else {
                 return ch <= nine;
             }
@@ -2176,6 +2177,124 @@ from_chars_result<const char *> from_chars(const char *first, const char *last,
                                            Value &val, IBase base,
                                            Converter conv = {}) noexcept {
     return from_chars_dynamic(first, last, val, base, conv);
+}
+
+template <typename Converter>
+struct __check_digits_helper {
+    static constexpr uint8_t hi_expe8 =
+        std::is_same_v<Converter, char_converter_t> ? 0x30 : 0x00;
+    static constexpr uint32_t hi_expe32 = broadcast<uint8_t, uint32_t>(hi_expe8);
+    static constexpr uint64_t hi_expe64 = broadcast<uint8_t, uint64_t>(hi_expe8);
+};
+
+template <unsigned int IBase = 10, typename Converter = char_converter_t,
+          WJR_REQUIRES(IBase <= 16)>
+WJR_PURE bool check_eight_digits_branchless(const char *ptr,
+                                            integral_constant<unsigned int, IBase> = {},
+                                            Converter = {}) noexcept {
+    constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
+    constexpr uint64_t added = broadcast<uint8_t, uint64_t>(16 - IBase);
+    constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
+
+    const uint64_t memory = read_memory<uint64_t>(ptr);
+
+    return (memory & (memory + added) & mask) == hi_expe64;
+}
+
+template <typename Converter>
+WJR_PURE bool check_eight_digits_branchless_dynamic(const char *ptr, unsigned int base,
+                                                    Converter conv) noexcept {
+    WJR_ASSERT_L2(base <= 16);
+
+    if (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            return check_eight_digits_branchless(ptr, 2_u, conv);
+        }
+        case 8: {
+            return check_eight_digits_branchless(ptr, 8_u, conv);
+        }
+        case 10: {
+            return check_eight_digits_branchless(ptr, 10_u, conv);
+        }
+        case 16: {
+            return check_eight_digits_branchless(ptr, 16_u, conv);
+        }
+        default: {
+            break;
+        }
+        }
+    }
+
+    constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
+    constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
+
+    const uint64_t added = broadcast<uint8_t, uint64_t>(16 - base);
+    const uint64_t memory = read_memory<uint64_t>(ptr);
+
+    return (memory & (memory + added) & mask) == hi_expe64;
+}
+
+template <typename IBase, typename Converter = char_converter_t,
+          WJR_REQUIRES(is_nonbool_integral_v<IBase>)>
+WJR_PURE bool check_eight_digits_branchless(const char *ptr, IBase base,
+                                            Converter conv = {}) noexcept {
+    return check_eight_digits_branchless_dynamic(ptr, base, conv);
+}
+
+template <unsigned int IBase = 10, typename Converter = char_converter_t,
+          WJR_REQUIRES(IBase <= 16)>
+WJR_PURE bool check_eight_digits_branchcy(const char *ptr,
+                                          integral_constant<unsigned int, IBase> = {},
+                                          Converter = {}) noexcept {
+    constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
+    constexpr uint64_t added = broadcast<uint8_t, uint64_t>(16 - IBase);
+    constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
+
+    const uint64_t memory = read_memory<uint64_t>(ptr);
+
+    return (memory & mask) == hi_expe64 && ((memory + added) & mask) == hi_expe64;
+}
+
+template <typename Converter>
+WJR_PURE bool check_eight_digits_branchcy_dynamic(const char *ptr, unsigned int base,
+                                                  Converter conv) noexcept {
+    WJR_ASSERT_L2(base <= 16);
+
+    if (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            return check_eight_digits_branchcy(ptr, 2_u, conv);
+        }
+        case 8: {
+            return check_eight_digits_branchcy(ptr, 8_u, conv);
+        }
+        case 10: {
+            return check_eight_digits_branchcy(ptr, 10_u, conv);
+        }
+        case 16: {
+            return check_eight_digits_branchcy(ptr, 16_u, conv);
+        }
+        default: {
+            break;
+        }
+        }
+    }
+
+    constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
+    constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
+
+    const uint64_t added = broadcast<uint8_t, uint64_t>(16 - base);
+    const uint64_t memory = read_memory<uint64_t>(ptr);
+
+    return (memory & mask) == hi_expe64 && ((memory + added) & mask) == hi_expe64;
+}
+
+template <typename IBase, typename Converter = char_converter_t,
+          WJR_REQUIRES(is_nonbool_integral_v<IBase>)>
+WJR_PURE bool check_eight_digits_branchcy(const char *ptr, IBase base,
+                                          Converter conv = {}) noexcept {
+    return check_eight_digits_branchcy_dynamic(ptr, base, conv);
 }
 
 } // namespace wjr

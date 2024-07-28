@@ -1,5 +1,5 @@
-#ifndef WJR_SIMD_SIMD_HPP__
-#define WJR_SIMD_SIMD_HPP__
+#ifndef WJR_X86_SIMD_SIMD_HPP__
+#define WJR_X86_SIMD_SIMD_HPP__
 
 #include <wjr/x86/simd/simd_cast.hpp>
 
@@ -1365,33 +1365,35 @@ const static __m256i srli_epi8_mask[8] = {
 
 template <>
 struct broadcast_fn<uint8_t, __m128i_t> {
-    WJR_INTRINSIC_INLINE __m128i operator()(uint8_t v) const { return _mm_set1_epi8(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(uint8_t v) const {
+        return _mm_set1_epi8(v);
+    }
 };
 
 template <>
 struct broadcast_fn<uint16_t, __m128i_t> {
-    WJR_INTRINSIC_INLINE __m128i operator()(uint16_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(uint16_t v) const {
         return _mm_set1_epi16(v);
     }
 };
 
 template <>
 struct broadcast_fn<uint32_t, __m128i_t> {
-    WJR_INTRINSIC_INLINE __m128i operator()(uint32_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(uint32_t v) const {
         return _mm_set1_epi32(v);
     }
 };
 
 template <>
 struct broadcast_fn<uint64_t, __m128i_t> {
-    WJR_INTRINSIC_INLINE __m128i operator()(uint64_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(uint64_t v) const {
         return _mm_set1_epi64x(v);
     }
 };
 
 template <>
 struct broadcast_fn<__m128i_t, __m128i_t> {
-    WJR_INTRINSIC_INLINE __m128i operator()(__m128i v) const { return v; }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(__m128i v) const { return v; }
 };
 
 #endif // SSE2
@@ -1400,40 +1402,40 @@ struct broadcast_fn<__m128i_t, __m128i_t> {
 
 template <>
 struct broadcast_fn<uint8_t, __m256i_t> {
-    WJR_INTRINSIC_INLINE __m256i operator()(uint8_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint8_t v) const {
         return _mm256_set1_epi8(v);
     }
 };
 
 template <>
 struct broadcast_fn<uint16_t, __m256i_t> {
-    WJR_INTRINSIC_INLINE __m256i operator()(uint16_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint16_t v) const {
         return _mm256_set1_epi16(v);
     }
 };
 
 template <>
 struct broadcast_fn<uint32_t, __m256i_t> {
-    WJR_INTRINSIC_INLINE __m256i operator()(uint32_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint32_t v) const {
         return _mm256_set1_epi32(v);
     }
 };
 
 template <>
 struct broadcast_fn<uint64_t, __m256i_t> {
-    WJR_INTRINSIC_INLINE __m256i operator()(uint64_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint64_t v) const {
         return _mm256_set1_epi64x(v);
     }
 };
 
 template <>
 struct broadcast_fn<__m256i_t, __m256i_t> {
-    WJR_INTRINSIC_INLINE __m256i operator()(__m256i v) const { return v; }
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(__m256i v) const { return v; }
 };
 
 template <>
 struct broadcast_fn<__m128i_t, __m256i_t> {
-    WJR_INTRINSIC_INLINE __m256i operator()(__m128i v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(__m128i v) const {
 #if WJR_HAS_SIMD(AVX2)
         return _mm256_broadcastsi128_si256(v);
 #else
@@ -3673,4 +3675,4 @@ __m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) { return unpacklo_epi32(a,
 
 } // namespace wjr
 
-#endif // WJR_SIMD_SIMD_HPP__
+#endif // WJR_X86_SIMD_SIMD_HPP__
