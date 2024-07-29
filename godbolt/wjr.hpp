@@ -12076,8 +12076,13 @@ public:
 namespace wjr {
 
 template <typename T>
-class aligned_storage : union2_storage<T, std::aligned_storage_t<sizeof(T), alignof(T)>> {
-    using Mybase = union2_storage<T, std::aligned_storage_t<sizeof(T), alignof(T)>>;
+struct __aligned_storage_t {
+    alignas(T) char buf[sizeof(T)];
+};
+
+template <typename T>
+class aligned_storage : union2_storage<T, __aligned_storage_t<T>> {
+    using Mybase = union2_storage<T, __aligned_storage_t<T>>;
 
 public:
     using Mybase::Mybase;
@@ -14822,9 +14827,8 @@ public:
         WJR_REQUIRES(std::is_constructible_v<E, std::initializer_list<U> &, Args...>)>
     constexpr explicit unexpected(
         std::in_place_t, std::initializer_list<U> il,
-        Args &&...args) noexcept(std::
-                                     is_nothrow_constructible_v<
-                                         E, std::initializer_list<U> &, Args...>)
+        Args &&...args) noexcept(std::is_constructible_v<E, std::initializer_list<U> &,
+                                                         Args...>)
         : m_err(il, std::forward<Args>(args)...) {}
 
     constexpr E &error() & noexcept { return m_err; }
@@ -14879,10 +14883,11 @@ private:
 };
 
 template <typename E, E init>
-struct inlined_unexpected
-    : enable_special_members_base<false, false, false, false, false, false,
-                                  inlined_unexpected<E, init>> {
+struct inlined_unexpected {
     static_assert(std::is_trivial_v<E>, "Only support trivial type currently.");
+
+private:
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(inlined_unexpected);
 };
 
 template <typename E>
@@ -15190,14 +15195,14 @@ struct expected_operations_base : expected_storage_base<T, E> {
     constexpr void construct_value(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<T, Args...>) {
         this->set_valid();
-        construct_at(this->m_val, std::forward<Args>(args)...);
+        construct_at(std::addressof(this->m_val), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     constexpr void construct_error(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<error_type, Args...>) {
         this->set_invalid();
-        construct_at(this->m_err, std::forward<Args>(args)...);
+        construct_at(std::addressof(this->m_err), std::forward<Args>(args)...);
     }
 
     WJR_CONSTEXPR20 void __copy_construct(const expected_operations_base &other) {
@@ -15267,7 +15272,7 @@ struct expected_operations_base<void, E> : expected_storage_base<void, E> {
     constexpr void construct_error(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<error_type, Args...>) {
         this->set_invalid();
-        construct_at(this->m_err, std::forward<Args>(args)...);
+        construct_at(std::addressof(this->m_err), std::forward<Args>(args)...);
     }
 
     WJR_CONSTEXPR20 void __copy_construct(const expected_operations_base &other) {
@@ -15772,7 +15777,7 @@ public:
         return has_value() ? std::forward<G>(default_value) : std::move(error());
     }
 
-    template <typename... Args, WJR_REQUIRES(std::is_nothrow_constructible_v<T, Args...>)>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr T &emplace(Args &&...args) noexcept {
         if (has_value()) {
             std::destroy_at(std::addressof(this->m_val));
@@ -15785,9 +15790,9 @@ public:
         return this->m_val;
     }
 
-    template <typename U, typename... Args,
-              WJR_REQUIRES(std::is_nothrow_constructible_v<T, std::initializer_list<U> &,
-                                                           Args...>)>
+    template <
+        typename U, typename... Args,
+        WJR_REQUIRES(std::is_constructible_v<T, std::initializer_list<U> &, Args...>)>
     constexpr T &emplace(std::initializer_list<U> il, Args &&...args) noexcept {
         if (has_value()) {
             std::destroy_at(std::addressof(this->m_val));
@@ -32267,9 +32272,8 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     auto lp = (pointer)(lhs->data());
     auto rp = (pointer)(rhs->data());
 
-    std::optional<uninitialized<basic_biginteger<S>>> tmp;
-
     unique_stack_allocator stkal(math_detail::stack_alloc);
+    std::optional<uninitialized<basic_biginteger<S>>> tmp;
 
     if (dst->capacity() < dusize) {
         tmp.emplace(dst->get_growth_capacity(dst->capacity(), dusize), in_place_reserve,
