@@ -6,8 +6,13 @@
 namespace wjr {
 
 template <typename T>
-class aligned_storage : union2_storage<T, std::aligned_storage_t<sizeof(T), alignof(T)>> {
-    using Mybase = union2_storage<T, std::aligned_storage_t<sizeof(T), alignof(T)>>;
+struct __aligned_storage_t {
+    alignas(T) char buf[sizeof(T)];
+};
+
+template <typename T>
+class aligned_storage : union2_storage<T, __aligned_storage_t<T>> {
+    using Mybase = union2_storage<T, __aligned_storage_t<T>>;
 
 public:
     using Mybase::Mybase;
