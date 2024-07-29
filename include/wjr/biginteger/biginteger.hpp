@@ -1481,7 +1481,7 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
             if (++first != last) {
                 if (last - first >= 8) {
                     do {
-                        if (!check_eight_digits_branchless(first, base)) {
+                        if (!check_eight_digits<branch::free>(first, base)) {
                             break;
                         }
 
@@ -1493,10 +1493,6 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
                 if (__try_match(ch)) {
                     do {
                         ++first;
-                        if (first == last) {
-                            break;
-                        }
-
                         ch = *first;
                     } while (__try_match(ch));
                 }

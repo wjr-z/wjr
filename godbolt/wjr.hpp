@@ -2491,6 +2491,11 @@ struct broadcast_fn<uint8_t, uint64_t> {
 
 namespace wjr {
 
+enum class branch {
+    free,
+    full,
+};
+
 struct in_place_empty_t {};
 
 inline constexpr in_place_empty_t in_place_empty = {};
@@ -15314,38 +15319,42 @@ struct expected_operations_base<void, E> : expected_storage_base<void, E> {
 
 template <typename T, typename E>
 struct __expected_storage_impl {
-    using type =
-        control_special_members_base<expected_operations_base<T, E>,
-                                     std::is_trivially_copy_constructible_v<T> &&
-                                         std::is_trivially_copy_constructible_v<E>,
-                                     std::is_trivially_move_constructible_v<T> &&
-                                         std::is_trivially_move_constructible_v<E>,
-                                     std::is_trivially_copy_assignable_v<T> &&
-                                         std::is_trivially_copy_constructible_v<T> &&
-                                         std::is_trivially_destructible_v<T> &&
-                                         std::is_trivially_copy_assignable_v<E> &&
-                                         std::is_trivially_copy_constructible_v<E> &&
-                                         std::is_trivially_destructible_v<E>,
-                                     std::is_trivially_move_assignable_v<T> &&
-                                         std::is_trivially_move_constructible_v<T> &&
-                                         std::is_trivially_destructible_v<T> &&
-                                         std::is_trivially_move_assignable_v<E> &&
-                                         std::is_trivially_move_constructible_v<E> &&
-                                         std::is_trivially_destructible_v<E>>;
+    using error_type = __expected_error_type_t<E>;
+
+    using type = control_special_members_base<
+        expected_operations_base<T, E>,
+        std::is_trivially_copy_constructible_v<T> &&
+            std::is_trivially_copy_constructible_v<error_type>,
+        std::is_trivially_move_constructible_v<T> &&
+            std::is_trivially_move_constructible_v<error_type>,
+        std::is_trivially_copy_assignable_v<T> &&
+            std::is_trivially_copy_constructible_v<T> &&
+            std::is_trivially_destructible_v<T> &&
+            std::is_trivially_copy_assignable_v<error_type> &&
+            std::is_trivially_copy_constructible_v<error_type> &&
+            std::is_trivially_destructible_v<error_type>,
+        std::is_trivially_move_assignable_v<T> &&
+            std::is_trivially_move_constructible_v<T> &&
+            std::is_trivially_destructible_v<T> &&
+            std::is_trivially_move_assignable_v<error_type> &&
+            std::is_trivially_move_constructible_v<error_type> &&
+            std::is_trivially_destructible_v<error_type>>;
 };
 
 template <typename E>
 struct __expected_storage_impl<void, E> {
-    using type =
-        control_special_members_base<expected_operations_base<void, E>,
-                                     std::is_trivially_copy_constructible_v<E>,
-                                     std::is_trivially_move_constructible_v<E>,
-                                     std::is_trivially_copy_assignable_v<E> &&
-                                         std::is_trivially_copy_constructible_v<E> &&
-                                         std::is_trivially_destructible_v<E>,
-                                     std::is_trivially_move_assignable_v<E> &&
-                                         std::is_trivially_move_constructible_v<E> &&
-                                         std::is_trivially_destructible_v<E>>;
+    using error_type = __expected_error_type_t<E>;
+
+    using type = control_special_members_base<
+        expected_operations_base<void, E>,
+        std::is_trivially_copy_constructible_v<error_type>,
+        std::is_trivially_move_constructible_v<error_type>,
+        std::is_trivially_copy_assignable_v<error_type> &&
+            std::is_trivially_copy_constructible_v<error_type> &&
+            std::is_trivially_destructible_v<error_type>,
+        std::is_trivially_move_assignable_v<error_type> &&
+            std::is_trivially_move_constructible_v<error_type> &&
+            std::is_trivially_destructible_v<error_type>>;
 };
 
 template <typename T, typename E>
@@ -16675,6 +16684,16 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_floor(T x) noexcept {
         return T{1} << (bit_width(x) - 1);
     }
     return 0;
+}
+
+template <typename To, typename From,
+          WJR_REQUIRES(sizeof(To) == sizeof(From) && std::is_trivially_copyable_v<From> &&
+                       std::is_trivially_copyable_v<To>)>
+WJR_PURE WJR_INTRINSIC_INLINE To bit_cast(const From &src) noexcept {
+    static_assert(std::is_trivially_constructible_v<To>, "");
+    To dst;
+    std::memcpy(&dst, &src, sizeof(To));
+    return dst;
 }
 
 } // namespace wjr
@@ -25727,115 +25746,130 @@ struct __check_digits_helper {
     static constexpr uint64_t hi_expe64 = broadcast<uint8_t, uint64_t>(hi_expe8);
 };
 
-template <unsigned int IBase = 10, typename Converter = char_converter_t,
-          WJR_REQUIRES(IBase <= 16)>
-WJR_PURE bool check_eight_digits_branchless(const char *ptr,
-                                            integral_constant<unsigned int, IBase> = {},
-                                            Converter = {}) noexcept {
-    constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
-    constexpr uint64_t added = broadcast<uint8_t, uint64_t>(16 - IBase);
-    constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
+template <branch type = branch::free>
+struct check_eight_digits_fn {
+private:
+    template <typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE bool operator()(const char *ptr, unsigned int base,
+                                                  Converter conv) const noexcept {
+        WJR_ASSERT_L2(base <= 16);
 
-    const uint64_t memory = read_memory<uint64_t>(ptr);
+        if (WJR_BUILTIN_CONSTANT_P(base)) {
+            switch (base) {
+            case 2: {
+                return this->operator()(ptr, 2_u, conv);
+            }
+            case 8: {
+                return this->operator()(ptr, 8_u, conv);
+            }
+            case 10: {
+                return this->operator()(ptr, 10_u, conv);
+            }
+            case 16: {
+                return this->operator()(ptr, 16_u, conv);
+            }
+            default: {
+                break;
+            }
+            }
+        }
 
-    return (memory & (memory + added) & mask) == hi_expe64;
-}
+        constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
+        constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
 
-template <typename Converter>
-WJR_PURE bool check_eight_digits_branchless_dynamic(const char *ptr, unsigned int base,
-                                                    Converter conv) noexcept {
-    WJR_ASSERT_L2(base <= 16);
+        const uint64_t added = broadcast<uint8_t, uint64_t>(16 - base);
+        const uint64_t memory = read_memory<uint64_t>(ptr);
 
-    if (WJR_BUILTIN_CONSTANT_P(base)) {
-        switch (base) {
-        case 2: {
-            return check_eight_digits_branchless(ptr, 2_u, conv);
-        }
-        case 8: {
-            return check_eight_digits_branchless(ptr, 8_u, conv);
-        }
-        case 10: {
-            return check_eight_digits_branchless(ptr, 10_u, conv);
-        }
-        case 16: {
-            return check_eight_digits_branchless(ptr, 16_u, conv);
-        }
-        default: {
-            break;
-        }
-        }
+        return (memory & (memory + added) & mask) == hi_expe64;
     }
 
-    constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
-    constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
+public:
+    template <unsigned int IBase = 10, typename Converter = char_converter_t,
+              WJR_REQUIRES(IBase <= 16)>
+    WJR_PURE WJR_INTRINSIC_INLINE bool
+    operator()(const char *ptr, integral_constant<unsigned int, IBase> = {},
+               Converter = {}) const noexcept {
+        constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
+        constexpr uint64_t added = broadcast<uint8_t, uint64_t>(16 - IBase);
+        constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
 
-    const uint64_t added = broadcast<uint8_t, uint64_t>(16 - base);
-    const uint64_t memory = read_memory<uint64_t>(ptr);
+        const uint64_t memory = read_memory<uint64_t>(ptr);
 
-    return (memory & (memory + added) & mask) == hi_expe64;
-}
-
-template <typename IBase, typename Converter = char_converter_t,
-          WJR_REQUIRES(is_nonbool_integral_v<IBase>)>
-WJR_PURE bool check_eight_digits_branchless(const char *ptr, IBase base,
-                                            Converter conv = {}) noexcept {
-    return check_eight_digits_branchless_dynamic(ptr, base, conv);
-}
-
-template <unsigned int IBase = 10, typename Converter = char_converter_t,
-          WJR_REQUIRES(IBase <= 16)>
-WJR_PURE bool check_eight_digits_branchcy(const char *ptr,
-                                          integral_constant<unsigned int, IBase> = {},
-                                          Converter = {}) noexcept {
-    constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
-    constexpr uint64_t added = broadcast<uint8_t, uint64_t>(16 - IBase);
-    constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
-
-    const uint64_t memory = read_memory<uint64_t>(ptr);
-
-    return (memory & mask) == hi_expe64 && ((memory + added) & mask) == hi_expe64;
-}
-
-template <typename Converter>
-WJR_PURE bool check_eight_digits_branchcy_dynamic(const char *ptr, unsigned int base,
-                                                  Converter conv) noexcept {
-    WJR_ASSERT_L2(base <= 16);
-
-    if (WJR_BUILTIN_CONSTANT_P(base)) {
-        switch (base) {
-        case 2: {
-            return check_eight_digits_branchcy(ptr, 2_u, conv);
-        }
-        case 8: {
-            return check_eight_digits_branchcy(ptr, 8_u, conv);
-        }
-        case 10: {
-            return check_eight_digits_branchcy(ptr, 10_u, conv);
-        }
-        case 16: {
-            return check_eight_digits_branchcy(ptr, 16_u, conv);
-        }
-        default: {
-            break;
-        }
-        }
+        return (memory & (memory + added) & mask) == hi_expe64;
     }
 
-    constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
-    constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
+    template <typename IBase, typename Converter = char_converter_t,
+              WJR_REQUIRES(is_nonbool_integral_v<IBase>)>
+    WJR_PURE WJR_INTRINSIC_INLINE bool operator()(const char *ptr, IBase base,
+                                                  Converter conv = {}) const noexcept {
 
-    const uint64_t added = broadcast<uint8_t, uint64_t>(16 - base);
-    const uint64_t memory = read_memory<uint64_t>(ptr);
+        return this->operator()(ptr, base, conv);
+    }
+};
 
-    return (memory & mask) == hi_expe64 && ((memory + added) & mask) == hi_expe64;
-}
+template <>
+struct check_eight_digits_fn<branch::full> {
+private:
+    template <typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE bool operator()(const char *ptr, unsigned int base,
+                                                  Converter conv) const noexcept {
+        WJR_ASSERT_L2(base <= 16);
 
-template <typename IBase, typename Converter = char_converter_t,
-          WJR_REQUIRES(is_nonbool_integral_v<IBase>)>
-WJR_PURE bool check_eight_digits_branchcy(const char *ptr, IBase base,
-                                          Converter conv = {}) noexcept {
-    return check_eight_digits_branchcy_dynamic(ptr, base, conv);
-}
+        if (WJR_BUILTIN_CONSTANT_P(base)) {
+            switch (base) {
+            case 2: {
+                return this->operator()(ptr, 2_u, conv);
+            }
+            case 8: {
+                return this->operator()(ptr, 8_u, conv);
+            }
+            case 10: {
+                return this->operator()(ptr, 10_u, conv);
+            }
+            case 16: {
+                return this->operator()(ptr, 16_u, conv);
+            }
+            default: {
+                break;
+            }
+            }
+        }
+
+        constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
+        constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
+
+        const uint64_t added = broadcast<uint8_t, uint64_t>(16 - base);
+        const uint64_t memory = read_memory<uint64_t>(ptr);
+
+        return (memory & mask) == hi_expe64 && ((memory + added) & mask) == hi_expe64;
+    }
+
+public:
+    template <unsigned int IBase = 10, typename Converter = char_converter_t,
+              WJR_REQUIRES(IBase <= 16)>
+    WJR_PURE WJR_INTRINSIC_INLINE bool
+    operator()(const char *ptr, integral_constant<unsigned int, IBase> = {},
+               Converter = {}) const noexcept {
+        constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
+        constexpr uint64_t added = broadcast<uint8_t, uint64_t>(16 - IBase);
+        constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
+
+        const uint64_t memory = read_memory<uint64_t>(ptr);
+
+        return (memory & mask) == hi_expe64 && ((memory + added) & mask) == hi_expe64;
+    }
+
+    template <typename IBase, typename Converter = char_converter_t,
+              WJR_REQUIRES(is_nonbool_integral_v<IBase>)>
+    WJR_PURE WJR_INTRINSIC_INLINE bool operator()(const char *ptr, IBase base,
+                                                  Converter conv = {}) const noexcept {
+
+        return this->operator()(ptr, base, conv);
+    }
+};
+
+template <branch type>
+inline constexpr check_eight_digits_fn<type> check_eight_digits{};
 
 } // namespace wjr
 
@@ -31869,7 +31903,7 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
             if (++first != last) {
                 if (last - first >= 8) {
                     do {
-                        if (!check_eight_digits_branchless(first, base)) {
+                        if (!check_eight_digits<branch::free>(first, base)) {
                             break;
                         }
 
@@ -31881,10 +31915,6 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
                 if (__try_match(ch)) {
                     do {
                         ++first;
-                        if (first == last) {
-                            break;
-                        }
-
                         ch = *first;
                     } while (__try_match(ch));
                 }

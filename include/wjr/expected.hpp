@@ -554,38 +554,42 @@ struct expected_operations_base<void, E> : expected_storage_base<void, E> {
 
 template <typename T, typename E>
 struct __expected_storage_impl {
-    using type =
-        control_special_members_base<expected_operations_base<T, E>,
-                                     std::is_trivially_copy_constructible_v<T> &&
-                                         std::is_trivially_copy_constructible_v<E>,
-                                     std::is_trivially_move_constructible_v<T> &&
-                                         std::is_trivially_move_constructible_v<E>,
-                                     std::is_trivially_copy_assignable_v<T> &&
-                                         std::is_trivially_copy_constructible_v<T> &&
-                                         std::is_trivially_destructible_v<T> &&
-                                         std::is_trivially_copy_assignable_v<E> &&
-                                         std::is_trivially_copy_constructible_v<E> &&
-                                         std::is_trivially_destructible_v<E>,
-                                     std::is_trivially_move_assignable_v<T> &&
-                                         std::is_trivially_move_constructible_v<T> &&
-                                         std::is_trivially_destructible_v<T> &&
-                                         std::is_trivially_move_assignable_v<E> &&
-                                         std::is_trivially_move_constructible_v<E> &&
-                                         std::is_trivially_destructible_v<E>>;
+    using error_type = __expected_error_type_t<E>;
+
+    using type = control_special_members_base<
+        expected_operations_base<T, E>,
+        std::is_trivially_copy_constructible_v<T> &&
+            std::is_trivially_copy_constructible_v<error_type>,
+        std::is_trivially_move_constructible_v<T> &&
+            std::is_trivially_move_constructible_v<error_type>,
+        std::is_trivially_copy_assignable_v<T> &&
+            std::is_trivially_copy_constructible_v<T> &&
+            std::is_trivially_destructible_v<T> &&
+            std::is_trivially_copy_assignable_v<error_type> &&
+            std::is_trivially_copy_constructible_v<error_type> &&
+            std::is_trivially_destructible_v<error_type>,
+        std::is_trivially_move_assignable_v<T> &&
+            std::is_trivially_move_constructible_v<T> &&
+            std::is_trivially_destructible_v<T> &&
+            std::is_trivially_move_assignable_v<error_type> &&
+            std::is_trivially_move_constructible_v<error_type> &&
+            std::is_trivially_destructible_v<error_type>>;
 };
 
 template <typename E>
 struct __expected_storage_impl<void, E> {
-    using type =
-        control_special_members_base<expected_operations_base<void, E>,
-                                     std::is_trivially_copy_constructible_v<E>,
-                                     std::is_trivially_move_constructible_v<E>,
-                                     std::is_trivially_copy_assignable_v<E> &&
-                                         std::is_trivially_copy_constructible_v<E> &&
-                                         std::is_trivially_destructible_v<E>,
-                                     std::is_trivially_move_assignable_v<E> &&
-                                         std::is_trivially_move_constructible_v<E> &&
-                                         std::is_trivially_destructible_v<E>>;
+    using error_type = __expected_error_type_t<E>;
+
+    using type = control_special_members_base<
+        expected_operations_base<void, E>,
+        std::is_trivially_copy_constructible_v<error_type>,
+        std::is_trivially_move_constructible_v<error_type>,
+        std::is_trivially_copy_assignable_v<error_type> &&
+            std::is_trivially_copy_constructible_v<error_type> &&
+            std::is_trivially_destructible_v<error_type>,
+        std::is_trivially_move_assignable_v<error_type> &&
+            std::is_trivially_move_constructible_v<error_type> &&
+            std::is_trivially_destructible_v<error_type>>;
 };
 
 template <typename T, typename E>

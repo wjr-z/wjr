@@ -11,20 +11,10 @@ namespace wjr {
 #pragma pack(push, 1)
 
 template <typename T>
-struct div1by1_uint_t_impl {
+struct div1by1_uint_t {
     T magic;
     uint8_t more;
 };
-
-template <typename T>
-struct div1by1_uint_branchfree_t_impl {
-    T magic;
-    uint8_t more;
-};
-
-template <typename T, bool branchfree>
-using div1by1_uint_t = std::conditional_t<branchfree, div1by1_uint_branchfree_t_impl<T>,
-                                          div1by1_uint_t_impl<T>>;
 
 #pragma pack(pop)
 
@@ -35,17 +25,15 @@ enum {
     DIV1BY1_ADD_MARKER = 0x40,
 };
 
-template <typename T, bool branchfree>
-WJR_CONST WJR_INTRINSIC_INLINE div1by1_uint_t<T, false>
-div1by1_internal_uint_gen(T d) noexcept;
+template <typename T, branch type>
+WJR_CONST WJR_INTRINSIC_INLINE div1by1_uint_t<T> div1by1_internal_uint_gen(T d) noexcept;
 
-template <typename T, bool branchfree>
-WJR_CONST WJR_INTRINSIC_INLINE div1by1_uint_t<T, branchfree>
-div1by1_uint_gen(T d) noexcept;
+template <typename T, branch type>
+WJR_CONST WJR_INTRINSIC_INLINE div1by1_uint_t<T> div1by1_uint_gen(T d) noexcept;
 
-template <typename T, bool branchfree>
-WJR_CONST WJR_INTRINSIC_INLINE T
-div1by1_uint_do(T d, const div1by1_uint_t<T, branchfree> &denom) noexcept;
+template <typename T, branch type>
+WJR_CONST WJR_INTRINSIC_INLINE T div1by1_uint_do(T d,
+                                                 const div1by1_uint_t<T> &denom) noexcept;
 
 template <typename T>
 WJR_INTRINSIC_INLINE T div1by1_div_half(T hi, T lo, T den, T &rem) noexcept {
@@ -66,9 +54,8 @@ WJR_INTRINSIC_INLINE uint64_t div1by1_div_half<uint64_t>(uint64_t hi, uint64_t l
 
 ////////// UINT16
 
-template <typename T, bool branchfree>
-WJR_CONST WJR_INTRINSIC_INLINE div1by1_uint_t<T, false>
-div1by1_internal_uint_gen(T d) noexcept {
+template <branch type, typename T>
+WJR_CONST WJR_INTRINSIC_INLINE div1by1_uint_t<T> div1by1_internal_uint_gen(T d) noexcept {
     WJR_ASSERT(d != 0, "div1by1_divider must be != 0");
 
     constexpr auto nd = std::numeric_limits<T>::digits;
@@ -83,7 +70,7 @@ div1by1_internal_uint_gen(T d) noexcept {
         // in its division algorithm. Because of this we also need to add back
         // 1 in its recovery algorithm.
         result.magic = 0;
-        result.more = (uint8_t)(floor_log_2_d - (branchfree != 0));
+        result.more = static_cast<uint8_t>(floor_log_2_d - (type == branch::free));
     } else {
         uint8_t more;
         T rem, proposed_m;
@@ -92,7 +79,7 @@ div1by1_internal_uint_gen(T d) noexcept {
         WJR_ASSERT(rem > 0 && rem < d);
         const T e = d - rem;
 
-        if (!branchfree && (e < (static_cast<T>(1) << floor_log_2_d))) {
+        if (type == branch::full && (e < (static_cast<T>(1) << floor_log_2_d))) {
             more = floor_log_2_d;
         } else {
             proposed_m += proposed_m;
@@ -128,23 +115,21 @@ WJR_REGISTER_SHIFT_MASK(64);
 
 #undef WJR_REGISTER_SHIFT_MASK
 
-template <typename T, bool branchfree>
-WJR_CONST WJR_INTRINSIC_INLINE div1by1_uint_t<T, branchfree>
-div1by1_uint_gen(T d) noexcept {
-    if constexpr (!branchfree) {
-        return div1by1_internal_uint_gen<T, false>(d);
+template <typename T, branch type>
+WJR_CONST WJR_INTRINSIC_INLINE div1by1_uint_t<T> div1by1_uint_gen(T d) noexcept {
+    if constexpr (type == branch::full) {
+        return div1by1_internal_uint_gen<type>(d);
     } else {
         WJR_ASSERT(d != 1, "div1by1_divider must be != 1");
-        const auto tmp = div1by1_internal_uint_gen<T, true>(d);
-        div1by1_uint_t<T, true> ret = {
-            tmp.magic, (uint8_t)(tmp.more & div1by1_shift_mask<T>::value)};
-        return ret;
+        const auto ret = div1by1_internal_uint_gen<type>(d);
+        return div1by1_uint_t<T>{
+            tmp.magic, static_cast<uint8_t>(tmp.more & div1by1_shift_mask<T>::value)};
     }
 }
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_INLINE T
-div1by1_uint_do_impl(T d, const div1by1_uint_t<T, false> &denom) noexcept {
+div1by1_uint_branchfull_do_impl(T d, const div1by1_uint_t<T> &denom) noexcept {
     const T magic = denom.magic;
     const uint8_t more = denom.more;
     if (!magic) {
@@ -162,23 +147,23 @@ div1by1_uint_do_impl(T d, const div1by1_uint_t<T, false> &denom) noexcept {
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_INLINE T
-div1by1_uint_branchfree_do_impl(T d, const div1by1_uint_t<T, true> &denom) noexcept {
+div1by1_uint_branchfree_do_impl(T d, const div1by1_uint_t<T> &denom) noexcept {
     const T q = mulhi<T>(denom.magic, d);
     const T t = ((d - q) >> 1) + q;
     return t >> denom.more;
 }
 
-template <typename T, bool branchfree>
+template <typename T, branch type>
 WJR_CONST WJR_INTRINSIC_INLINE T
-div1by1_uint_do(T d, const div1by1_uint_t<T, branchfree> &denom) noexcept {
-    if constexpr (!branchfree) {
-        return div1by1_uint_do_impl(d, denom);
+div1by1_uint_do(T d, const div1by1_uint_t<T> &denom) noexcept {
+    if constexpr (type == branch::full) {
+        return div1by1_uint_branchfull_do_impl(d, denom);
     } else {
         return div1by1_uint_branchfree_do_impl(d, denom);
     }
 }
 
-template <typename T, bool branchfree = false>
+template <typename T, branch type = branch::free>
 class div1by1_divider {
 private:
     using dispatcher_t = div1by1_uint_t<T, branchfree>;
@@ -204,19 +189,16 @@ private:
     dispatcher_t div;
 };
 
-template <typename T, bool branchfree>
-WJR_INTRINSIC_INLINE T operator/(T n, const div1by1_divider<T, branchfree> &div) {
+template <typename T, branch type>
+WJR_INTRINSIC_INLINE T operator/(T n, const div1by1_divider<T, type> &div) {
     return div.divide(n);
 }
 
-template <typename T, bool branchfree>
-WJR_INTRINSIC_INLINE T &operator/=(T &n, const div1by1_divider<T, branchfree> &div) {
+template <typename T, branch type>
+WJR_INTRINSIC_INLINE T &operator/=(T &n, const div1by1_divider<T, type> &div) {
     n = div.divide(n);
     return n;
 }
-
-template <typename T>
-using branchfree_divider = div1by1_divider<T, true>;
 
 } // namespace wjr
 

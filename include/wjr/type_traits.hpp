@@ -12,6 +12,11 @@
 
 namespace wjr {
 
+enum class branch {
+    free,
+    full,
+};
+
 struct in_place_empty_t {};
 
 inline constexpr in_place_empty_t in_place_empty = {};

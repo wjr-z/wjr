@@ -73,6 +73,16 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_floor(T x) noexcept {
     return 0;
 }
 
+template <typename To, typename From,
+          WJR_REQUIRES(sizeof(To) == sizeof(From) && std::is_trivially_copyable_v<From> &&
+                       std::is_trivially_copyable_v<To>)>
+WJR_PURE WJR_INTRINSIC_INLINE To bit_cast(const From &src) noexcept {
+    static_assert(std::is_trivially_constructible_v<To>, "");
+    To dst;
+    std::memcpy(&dst, &src, sizeof(To));
+    return dst;
+}
+
 } // namespace wjr
 
 #endif // WJR_MATH_BIT_HPP__
