@@ -1845,9 +1845,8 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     auto lp = (pointer)(lhs->data());
     auto rp = (pointer)(rhs->data());
 
-    std::optional<uninitialized<basic_biginteger<S>>> tmp;
-
     unique_stack_allocator stkal(math_detail::stack_alloc);
+    std::optional<uninitialized<basic_biginteger<S>>> tmp;
 
     if (dst->capacity() < dusize) {
         tmp.emplace(dst->get_growth_capacity(dst->capacity(), dusize), in_place_reserve,
