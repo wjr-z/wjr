@@ -2,8 +2,8 @@
 #define WJR_JSON_PARSER_HPP__
 
 #include <array>
-#include <bitset>
 
+#include <wjr/container/generic/bitset.hpp>
 #include <wjr/expected.hpp>
 #include <wjr/format/charconv.hpp>
 #include <wjr/json/reader.hpp>
@@ -272,26 +272,11 @@ class parser_visitor {
 public:
     template <typename Parser>
     WJR_NOINLINE static result<void> parse(Parser &par, const reader &rd) noexcept {
-        constexpr unsigned int depth_size = 32;
-        constexpr unsigned int max_depth = depth_size * 64;
+        constexpr unsigned int max_depth = 256;
 
-        uint64_t __stk[depth_size];
+        bitset<max_depth> stk;
         unsigned int depth = 0;
         uint8_t type;
-
-        const auto set_bitset = [stk = __stk](unsigned int depth, bool f) {
-            auto &value = stk[depth / 64];
-            const auto bit = static_cast<uint64_t>(1) << (depth % 64);
-            if (f) {
-                value |= bit;
-            } else {
-                value &= ~bit;
-            }
-        };
-
-        const auto get_bitset = [stk = __stk](unsigned int depth) {
-            return (stk[depth / 64] & (static_cast<uint64_t>(1) << (depth % 64))) != 0;
-        };
 
         // token reader
         auto read = [&rd]() {
@@ -455,7 +440,7 @@ public:
             token = next_token;
             WJR_EXPECTED_TRY(read(next_token));
 
-            type = get_bitset(--depth);
+            type = stk[--depth];
 
             if (type == 0) {
                 WJR_EXPECTED_TRY(par.visit_end_object_to_object(token));
@@ -542,7 +527,7 @@ public:
 
             WJR_EXPECTED_TRY(par.visit_start_object(token));
 
-            set_bitset(depth++, false);
+            stk[depth++] = false;
             goto OBJECT;
         }
         case '[': {
@@ -552,7 +537,7 @@ public:
 
             WJR_EXPECTED_TRY(par.visit_start_array(token));
 
-            set_bitset(depth++, false);
+            stk[depth++] = false;
             goto ARRAY;
         }
         default: {
@@ -600,7 +585,7 @@ public:
             token = next_token;
             WJR_EXPECTED_TRY(read(next_token));
 
-            type = get_bitset(--depth);
+            type = stk[--depth];
 
             if (type == 0) {
                 WJR_EXPECTED_TRY(par.visit_end_array_to_object(token));
@@ -663,7 +648,7 @@ public:
 
             WJR_EXPECTED_TRY(par.visit_start_object(token));
 
-            set_bitset(depth++, true);
+            stk[depth++] = true;
             goto OBJECT;
         }
         case '[': {
@@ -673,7 +658,7 @@ public:
 
             WJR_EXPECTED_TRY(par.visit_start_array(token));
 
-            set_bitset(depth++, true);
+            stk[depth++] = true;
             goto ARRAY;
         }
         default: {

@@ -1052,7 +1052,7 @@ public:
             return std::invoke(std::forward<Func>(func), error());
         }
 
-        return U(in_place, this->m_val);
+        return U(std::in_place, this->m_val);
     }
 
     template <typename Func, typename U = __expected_result<Func, const E &>>
@@ -1061,7 +1061,7 @@ public:
             return std::invoke(std::forward<Func>(func), error());
         }
 
-        return U(in_place, this->m_val);
+        return U(std::in_place, this->m_val);
     }
 
     template <typename Func, typename U = __expected_result<Func, E &&>>
@@ -1070,7 +1070,7 @@ public:
             return std::invoke(std::forward<Func>(func), std::move(error()));
         }
 
-        return U(in_place, std::move(this->m_val));
+        return U(std::in_place, std::move(this->m_val));
     }
 
     template <typename Func, typename U = __expected_result<Func, const E &&>>
@@ -1079,7 +1079,7 @@ public:
             return std::invoke(std::forward<Func>(func), std::move(error()));
         }
 
-        return U(in_place, std::move(this->m_val));
+        return U(std::in_place, std::move(this->m_val));
     }
 
     template <typename Func, typename U = __expected_result<Func, T &>>

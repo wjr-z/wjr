@@ -1180,39 +1180,8 @@ public:
     allocator_type &get_allocator() noexcept { return m_vec.get_allocator(); }
     const allocator_type &get_allocator() const noexcept { return m_vec.get_allocator(); }
 
-    reference at(size_type pos) { return m_vec.at(pos); }
-    const_reference at(size_type pos) const { return m_vec.at(pos); }
-
-    reference operator[](size_type pos) noexcept { return m_vec[pos]; }
-    const_reference operator[](size_type pos) const noexcept { return m_vec[pos]; }
-
-    reference front() { return m_vec.front(); }
-    const_reference front() const { return m_vec.front(); }
-
-    reference back() { return m_vec.back(); }
-    const_reference back() const { return m_vec.back(); }
-
     WJR_PURE pointer data() noexcept { return m_vec.data(); }
     WJR_PURE const_pointer data() const noexcept { return m_vec.data(); }
-
-    WJR_PURE iterator begin() noexcept { return m_vec.begin(); }
-    WJR_PURE const_iterator begin() const noexcept { return m_vec.begin(); }
-
-    WJR_PURE iterator end() noexcept { return m_vec.end(); }
-    WJR_PURE const_iterator end() const noexcept { return m_vec.end(); }
-
-    WJR_PURE const_iterator cbegin() const noexcept { return m_vec.cbegin(); }
-
-    WJR_PURE const_iterator cend() const noexcept { return m_vec.cend(); }
-
-    WJR_PURE reverse_iterator rbegin() noexcept { return m_vec.rbegin(); }
-    WJR_PURE const_reverse_iterator rbegin() const noexcept { return m_vec.rbegin(); }
-
-    WJR_PURE reverse_iterator rend() noexcept { return m_vec.rend(); }
-    WJR_PURE const_reverse_iterator rend() const noexcept { return m_vec.rend(); }
-
-    WJR_PURE const_reverse_iterator crbegin() const noexcept { return m_vec.crbegin(); }
-    WJR_PURE const_reverse_iterator crend() const noexcept { return m_vec.crend(); }
 
     WJR_PURE bool empty() const noexcept { return m_vec.empty(); }
     WJR_PURE size_type size() const noexcept { return m_vec.size(); }
@@ -1287,6 +1256,37 @@ public:
     }
 
     // extension
+
+    reference at(size_type pos) { return m_vec.at(pos); }
+    const_reference at(size_type pos) const { return m_vec.at(pos); }
+
+    reference operator[](size_type pos) noexcept { return m_vec[pos]; }
+    const_reference operator[](size_type pos) const noexcept { return m_vec[pos]; }
+
+    reference front() { return m_vec.front(); }
+    const_reference front() const { return m_vec.front(); }
+
+    reference back() { return m_vec.back(); }
+    const_reference back() const { return m_vec.back(); }
+
+    WJR_PURE iterator begin() noexcept { return m_vec.begin(); }
+    WJR_PURE const_iterator begin() const noexcept { return m_vec.begin(); }
+
+    WJR_PURE iterator end() noexcept { return m_vec.end(); }
+    WJR_PURE const_iterator end() const noexcept { return m_vec.end(); }
+
+    WJR_PURE const_iterator cbegin() const noexcept { return m_vec.cbegin(); }
+
+    WJR_PURE const_iterator cend() const noexcept { return m_vec.cend(); }
+
+    WJR_PURE reverse_iterator rbegin() noexcept { return m_vec.rbegin(); }
+    WJR_PURE const_reverse_iterator rbegin() const noexcept { return m_vec.rbegin(); }
+
+    WJR_PURE reverse_iterator rend() noexcept { return m_vec.rend(); }
+    WJR_PURE const_reverse_iterator rend() const noexcept { return m_vec.rend(); }
+
+    WJR_PURE const_reverse_iterator crbegin() const noexcept { return m_vec.crbegin(); }
+    WJR_PURE const_reverse_iterator crend() const noexcept { return m_vec.crend(); }
 
     WJR_PURE int32_t get_ssize() const { return get_storage().get_ssize(); }
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> ||
@@ -3026,7 +3026,7 @@ void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
         const auto size = std::min<uint32_t>(nusize, offset + 1);
         (void)negate_n(rp, np, size);
         for (uint32_t i = size; i <= offset; ++i) {
-            rp[i] = in_place_max;
+            rp[i] = static_cast<uint64_t>(in_place_max);
         }
 
         nssize = -nssize;
@@ -3265,7 +3265,13 @@ inline uint32_t __bit_width_impl(const biginteger_data *num) noexcept {
 
 /// @private
 inline uint32_t __ctz_impl(const biginteger_data *num) noexcept {
-    auto ptr = num->data();
+    if (num->empty()) {
+        return 0;
+    }
+
+    // can be optimize by using SIMD
+
+    const auto *const ptr = num->data();
     uint32_t idx = 0;
 #if WJR_DEBUG_LEVEL > 0
     const uint32_t size = num->size();

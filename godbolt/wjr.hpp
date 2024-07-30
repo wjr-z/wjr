@@ -15822,7 +15822,7 @@ public:
             return std::invoke(std::forward<Func>(func), error());
         }
 
-        return U(in_place, this->m_val);
+        return U(std::in_place, this->m_val);
     }
 
     template <typename Func, typename U = __expected_result<Func, const E &>>
@@ -15831,7 +15831,7 @@ public:
             return std::invoke(std::forward<Func>(func), error());
         }
 
-        return U(in_place, this->m_val);
+        return U(std::in_place, this->m_val);
     }
 
     template <typename Func, typename U = __expected_result<Func, E &&>>
@@ -15840,7 +15840,7 @@ public:
             return std::invoke(std::forward<Func>(func), std::move(error()));
         }
 
-        return U(in_place, std::move(this->m_val));
+        return U(std::in_place, std::move(this->m_val));
     }
 
     template <typename Func, typename U = __expected_result<Func, const E &&>>
@@ -15849,7 +15849,7 @@ public:
             return std::invoke(std::forward<Func>(func), std::move(error()));
         }
 
-        return U(in_place, std::move(this->m_val));
+        return U(std::in_place, std::move(this->m_val));
     }
 
     template <typename Func, typename U = __expected_result<Func, T &>>
@@ -19084,7 +19084,7 @@ WJR_INTRINSIC_CONSTEXPR20 size_t replace_find_not(T *dst, const T *src, size_t n
                                                   type_identity_t<T> from,
                                                   type_identity_t<T> to) noexcept {
 
-    size_t ret = find_not_n(src, from, n);
+    const size_t ret = find_not_n(src, from, n);
     if (WJR_UNLIKELY(ret != 0) && WJR_LIKELY(dst != src || from != to)) {
         set_n(dst, to, ret);
     }
@@ -19898,7 +19898,8 @@ WJR_INTRINSIC_CONSTEXPR20 U __addc_1_impl(uint64_t *dst, const uint64_t *src0, s
     dst[0] = addc_cc(src0[0], src1, c_in, overflow);
 
     if (overflow) {
-        size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, in_place_max, 0);
+        const size_t idx =
+            1 + replace_find_not(dst + 1, src0 + 1, n - 1, in_place_max, 0);
 
         if (WJR_UNLIKELY(idx == n)) {
             return static_cast<U>(1);
@@ -20122,7 +20123,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t __fallback_addc_128(uint64_t &al, uint64_t &a
 }
 
 /**
- * @return carry-out 
+ * @return carry-out
  */
 WJR_INTRINSIC_CONSTEXPR20 uint64_t __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,
@@ -31875,39 +31876,8 @@ public:
     allocator_type &get_allocator() noexcept { return m_vec.get_allocator(); }
     const allocator_type &get_allocator() const noexcept { return m_vec.get_allocator(); }
 
-    reference at(size_type pos) { return m_vec.at(pos); }
-    const_reference at(size_type pos) const { return m_vec.at(pos); }
-
-    reference operator[](size_type pos) noexcept { return m_vec[pos]; }
-    const_reference operator[](size_type pos) const noexcept { return m_vec[pos]; }
-
-    reference front() { return m_vec.front(); }
-    const_reference front() const { return m_vec.front(); }
-
-    reference back() { return m_vec.back(); }
-    const_reference back() const { return m_vec.back(); }
-
     WJR_PURE pointer data() noexcept { return m_vec.data(); }
     WJR_PURE const_pointer data() const noexcept { return m_vec.data(); }
-
-    WJR_PURE iterator begin() noexcept { return m_vec.begin(); }
-    WJR_PURE const_iterator begin() const noexcept { return m_vec.begin(); }
-
-    WJR_PURE iterator end() noexcept { return m_vec.end(); }
-    WJR_PURE const_iterator end() const noexcept { return m_vec.end(); }
-
-    WJR_PURE const_iterator cbegin() const noexcept { return m_vec.cbegin(); }
-
-    WJR_PURE const_iterator cend() const noexcept { return m_vec.cend(); }
-
-    WJR_PURE reverse_iterator rbegin() noexcept { return m_vec.rbegin(); }
-    WJR_PURE const_reverse_iterator rbegin() const noexcept { return m_vec.rbegin(); }
-
-    WJR_PURE reverse_iterator rend() noexcept { return m_vec.rend(); }
-    WJR_PURE const_reverse_iterator rend() const noexcept { return m_vec.rend(); }
-
-    WJR_PURE const_reverse_iterator crbegin() const noexcept { return m_vec.crbegin(); }
-    WJR_PURE const_reverse_iterator crend() const noexcept { return m_vec.crend(); }
 
     WJR_PURE bool empty() const noexcept { return m_vec.empty(); }
     WJR_PURE size_type size() const noexcept { return m_vec.size(); }
@@ -31982,6 +31952,37 @@ public:
     }
 
     // extension
+
+    reference at(size_type pos) { return m_vec.at(pos); }
+    const_reference at(size_type pos) const { return m_vec.at(pos); }
+
+    reference operator[](size_type pos) noexcept { return m_vec[pos]; }
+    const_reference operator[](size_type pos) const noexcept { return m_vec[pos]; }
+
+    reference front() { return m_vec.front(); }
+    const_reference front() const { return m_vec.front(); }
+
+    reference back() { return m_vec.back(); }
+    const_reference back() const { return m_vec.back(); }
+
+    WJR_PURE iterator begin() noexcept { return m_vec.begin(); }
+    WJR_PURE const_iterator begin() const noexcept { return m_vec.begin(); }
+
+    WJR_PURE iterator end() noexcept { return m_vec.end(); }
+    WJR_PURE const_iterator end() const noexcept { return m_vec.end(); }
+
+    WJR_PURE const_iterator cbegin() const noexcept { return m_vec.cbegin(); }
+
+    WJR_PURE const_iterator cend() const noexcept { return m_vec.cend(); }
+
+    WJR_PURE reverse_iterator rbegin() noexcept { return m_vec.rbegin(); }
+    WJR_PURE const_reverse_iterator rbegin() const noexcept { return m_vec.rbegin(); }
+
+    WJR_PURE reverse_iterator rend() noexcept { return m_vec.rend(); }
+    WJR_PURE const_reverse_iterator rend() const noexcept { return m_vec.rend(); }
+
+    WJR_PURE const_reverse_iterator crbegin() const noexcept { return m_vec.crbegin(); }
+    WJR_PURE const_reverse_iterator crend() const noexcept { return m_vec.crend(); }
 
     WJR_PURE int32_t get_ssize() const { return get_storage().get_ssize(); }
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> ||
@@ -33721,7 +33722,7 @@ void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
         const auto size = std::min<uint32_t>(nusize, offset + 1);
         (void)negate_n(rp, np, size);
         for (uint32_t i = size; i <= offset; ++i) {
-            rp[i] = in_place_max;
+            rp[i] = static_cast<uint64_t>(in_place_max);
         }
 
         nssize = -nssize;
@@ -33960,7 +33961,13 @@ inline uint32_t __bit_width_impl(const biginteger_data *num) noexcept {
 
 /// @private
 inline uint32_t __ctz_impl(const biginteger_data *num) noexcept {
-    auto ptr = num->data();
+    if (num->empty()) {
+        return 0;
+    }
+
+    // can be optimize by using SIMD
+
+    const auto *const ptr = num->data();
     uint32_t idx = 0;
 #if WJR_DEBUG_LEVEL > 0
     const uint32_t size = num->size();
