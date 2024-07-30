@@ -326,10 +326,10 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
 /**
  * @class uninitialized
  *
- * @detail Uninitialized object. Make trivially constructible and destructible of
+ * @details Uninitialized object. Make trivially constructible and destructible of
  * any type.+
  *
- * @detail Trivially constructible and destructible uninitialized object. Copy/move
+ * @details Trivially constructible and destructible uninitialized object. Copy/move
  * constructor and assignment operators are deleted if the type is not trivially
  * copy/move constructible/assignable.
  *

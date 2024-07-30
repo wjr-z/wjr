@@ -41,7 +41,7 @@ namespace wjr {
  * @brief Use inline assembly to add two 64-bit integers with carry-in and return the
  * carry-out.
  *
- * @detail The carry-in and carry-out flags are both 0 or 1. \n
+ * @details The carry-in and carry-out flags are both 0 or 1. \n
  * The carry-out flag is set to 1 if the result overflows. \n
  * Optimization: \n
  * 1. Use constraint "i" if a or b is a constant and is in i32 range. \n
@@ -128,7 +128,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in,
  * @brief Use inline assembly to add two 64-bit integers with carry-in and return the
  * carry-out.
  *
- * @detail Similar to asm_addc, but the carry-out flag is set by using constraint
+ * @details Similar to asm_addc, but the carry-out flag is set by using constraint
  * "=@cccond" instead of "setb". \n
  *
  * @param[in] c_in
@@ -240,7 +240,7 @@ WJR_INTRINSIC_INLINE void __asm_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0
  * @brief Use inline assembly to add two 64-bit integers and return the
  * carry-out.
  *
- * @detail Optimzation for __asm_addc_cc_128 and __asm_addc_128 when the carry-in is 0.
+ * @details Optimzation for __asm_addc_cc_128 and __asm_addc_128 when the carry-in is 0.
  *
  */
 WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_zero_128(uint64_t &al, uint64_t &ah,
@@ -337,7 +337,7 @@ WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_
  * @brief Use inline assembly to add two 64-bit integers with carry-in and return the
  * carry-out.
  *
- * @detail Similar to __asm_addc_128, but the carry-out flag is set by using constraint
+ * @details Similar to __asm_addc_128, but the carry-out flag is set by using constraint
  * "=@cccond" instead of "setb".
  *
  */

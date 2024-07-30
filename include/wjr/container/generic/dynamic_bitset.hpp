@@ -70,7 +70,7 @@ public:
     /**
      * @brief Use from_chars_2 to optimize the performance.
      *
-     * @detail Very fast conversion from string to uint64_t.
+     * @details Very fast conversion from string to uint64_t.
      *
      * @note Only use from_chars_2 when type of T is uint64_t and CharT is char.
      */

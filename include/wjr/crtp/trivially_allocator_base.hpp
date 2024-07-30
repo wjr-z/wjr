@@ -28,7 +28,7 @@ struct __is_trivially_allocator_impl<
 /**
  * @brief Default construct, destruct allocator.
  *
- * @detail If `Alloc::is_trivially_allocator` is not defined or
+ * @details If `Alloc::is_trivially_allocator` is not defined or
  * `Alloc::is_trivially_allocator` is `std::false_type`, derive from `std::false_type`. \n
  * If is_trivially_allocator_v is true, then `construct_at_using_allocator` and
  * `destroy_at_using_allocator` are same as `construct_at` and `destroy_at`.

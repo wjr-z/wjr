@@ -5,7 +5,7 @@
  * @file vector.hpp
  * @brief Vector container with definable internal structure
  *
- * @detail
+ * @details
  * Customized internal structure needs to follow the following function signature: \n
  * -# storage() noexcept
  * -# ~storage() noexcept
@@ -127,7 +127,7 @@ struct __unref_wrapper_helper<default_vector_size_reference<pointer, size_type>>
 /**
  * @brief Default vector storage
  *
- * @detail Use one pointer ans two size_type currently.
+ * @details Use one pointer ans two size_type currently.
  *
  */
 template <typename T, typename Alloc>
@@ -785,7 +785,7 @@ struct basic_vector_traits {
 /**
  * @brief Customized vector by storage.
  *
- * @detail Type of pointer is same as iterator.
+ * @details Type of pointer is same as iterator.
  *
  */
 template <typename Storage>
@@ -2103,7 +2103,7 @@ using static_vector = basic_vector<static_vector_storage<T, Capacity, Alloc>>;
 /**
  * @brief A vector with fixed capacity by construction.
  *
- * @detail Only allocate memory on construction and deallocation on destruction.
+ * @details Only allocate memory on construction and deallocation on destruction.
  * After construction, it cannot be expanded and can only be modified through move
  * assignment. For example, vector that using stack allocator.
  */

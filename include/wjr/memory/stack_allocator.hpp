@@ -193,7 +193,7 @@ struct singleton_stack_allocator_object {
 };
 
 /**
- * @detail Used for container. This allocator won't deallocate memory allocated by
+ * @details Used for container. This allocator won't deallocate memory allocated by
  * __small_allocate until container is destroyed.
  *
  */
@@ -203,7 +203,7 @@ class weak_stack_allocator;
 /**
  * @brief A unique stack allocator for fast simulation of stack memory on the heap.
  *
- * @detail When a unique_stack_allocator object is destroyed, all the memory it allocates
+ * @details When a unique_stack_allocator object is destroyed, all the memory it allocates
  * is released.\n And a new unique_stack_allocator constructed in the lifetime of a
  * unique_stack_allocator object must be destroyed in the current lifetime.
  *
@@ -251,7 +251,7 @@ unique_stack_allocator(const StackAllocator &) -> unique_stack_allocator<StackAl
 /**
  * @brief Point to unique_stack_allocator.
  *
- * @detail Use a pointer to unique_stack_allocator to allocate memory. This class must be
+ * @details Use a pointer to unique_stack_allocator to allocate memory. This class must be
  * used carefully. If recursively using it as a reference and allocating memory,
  * unique_stack_allocator should be avoided from being reused in the current function.
  *

@@ -27,7 +27,7 @@ namespace wjr {
 /**
  * @brief Select the base class of compressed_pair.
  *
- * @detail For compressed_pair<T, U> : \n
+ * @details For compressed_pair<T, U> : \n
  * If `T` is @ref is_compressed_v "compressed" and `U` is not ref is_compressed_v
  * "compressed", then the base class is
  * @ref compressed_capture_leaf \<T> and @ref capture_leaf \<U>. \n
@@ -73,7 +73,7 @@ using __compressed_pair_base2 =
  *
  * @brief A pair used empty base optimization to reduce the size of the pair.
  *
- * @detail See @ref compressed_pair_wrapper for the base class of compressed_pair. \n
+ * @details See @ref compressed_pair_wrapper for the base class of compressed_pair. \n
  * compressed_pair is final, so it can't be derived from. \n
  * For example : \n
  * @code

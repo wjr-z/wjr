@@ -10,8 +10,8 @@ namespace wjr {
 /**
  * @brief Compare two arrays of uint64_t.
  *
- * @detail Expand first 4 elements to compare, then use @ref large_builtin_compare_n to
- * compare the rest.
+ * @details Inline detection of the first two positions, then use @ref
+ * large_builtin_compare_n to compare the rest.
  *
  * @tparam T Requires uint64_t currently.
  * @param src0 Pointer to the first array.
@@ -31,40 +31,24 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1,
         return 0;
     }
 
-    if (WJR_LIKELY(src0[0] != src1[0])) {
-        return src0[0] < src1[0] ? -1 : 1;
-    }
+    if (WJR_UNLIKELY(n == 1)) {
+        if (WJR_LIKELY(src0[0] != src1[0])) {
+            return src0[0] < src1[0] ? -1 : 1;
+        }
 
-    if (n == 1) {
         return 0;
     }
 
-    if (WJR_LIKELY(src0[1] != src1[1])) {
-        return src0[1] < src1[1] ? -1 : 1;
-    }
+    WJR_REGISTER_COMPARE_NOT_N_2(0, true);
 
-    if (n == 2) {
-        return 0;
-    }
-
-    if (WJR_LIKELY(src0[2] != src1[2])) {
-        return src0[2] < src1[2] ? -1 : 1;
-    }
-
-    if (n == 3) {
-        return 0;
-    }
-
-    if (WJR_LIKELY(src0[3] != src1[3])) {
-        return src0[3] < src1[3] ? -1 : 1;
-    }
-
-    if (n == 4) {
+    if (WJR_UNLIKELY(n == 2)) {
         return 0;
     }
 
     return large_builtin_compare_n(src0, src1, n);
 }
+
+#undef WJR_REGISTER_COMPARE_NOT_N_2
 
 #endif
 
@@ -73,7 +57,7 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1,
 /**
  * @brief Compare two arrays of uint64_t in reverse order.
  *
- * @detail @ref builtin_compare_n in reverse order.
+ * @details @ref builtin_compare_n in reverse order.
  */
 template <typename T>
 WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,

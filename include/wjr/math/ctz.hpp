@@ -82,7 +82,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) noexcept {
 /**
  * @brief Fast count trailing zeros
  *
- * @detail Very fast even on non-optimized platforms by using a De Bruijn sequence. \n
+ * @details Very fast even on non-optimized platforms by using a De Bruijn sequence. \n
  * Try __builtin_clz if available, otherwise fallback to a portable implementation. \n
  * In fallback_clz, use popcount and lowbit if POPCOUNT and POPCNT are available, make
  * sure popcount is fast. \n

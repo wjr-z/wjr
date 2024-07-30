@@ -83,7 +83,7 @@ struct __unref_wrapper_helper<default_biginteger_size_reference> {
 /**
  * @brief data_type of biginteger
  *
- * @detail View the data of biginteger. Used for type erasure. Manage memory allocation
+ * @details View the data of biginteger. Used for type erasure. Manage memory allocation
  * and release on your own.
  *
  */
@@ -617,7 +617,7 @@ WJR_PURE inline uint32_t __bit_width_impl(const biginteger_data *num) noexcept;
 /// @private
 WJR_PURE inline uint32_t __ctz_impl(const biginteger_data *num) noexcept;
 
-/// @private
+/// @todo optimize
 template <typename S>
 void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num,
                 uint32_t exp) noexcept;
@@ -646,17 +646,17 @@ struct __powmod_iterator {
     uint32_t size;
 };
 
-/// @private
+/// @todo optimize
 template <typename S>
 void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num,
                    __powmod_iterator *iter, const biginteger_data *mod) noexcept;
 
-/// @private
+/// @todo optimize
 template <typename S>
 void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num,
                    const biginteger_data *exp, const biginteger_data *mod) noexcept;
 
-/// @private
+/// @todo optimize
 template <typename S>
 void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint64_t exp,
                    const biginteger_data *mod) noexcept;
@@ -1601,7 +1601,7 @@ inline int32_t __compare_impl(const biginteger_data *lhs,
 }
 
 inline int32_t __compare_ui_impl(const biginteger_data *lhs, uint64_t rhs) noexcept {
-    const int32_t lssize = lhs->get_ssize();
+    const auto lssize = lhs->get_ssize();
 
     if (lssize == 0) {
         return -(rhs != 0);
@@ -1616,7 +1616,7 @@ inline int32_t __compare_ui_impl(const biginteger_data *lhs, uint64_t rhs) noexc
 }
 
 inline int32_t __compare_si_impl(const biginteger_data *lhs, int64_t rhs) noexcept {
-    const int32_t lssize = lhs->get_ssize();
+    const auto lssize = lhs->get_ssize();
     const int32_t rssize = rhs == 0 ? 0 : __fasts_conditional_negate<int32_t>(rhs < 0, 1);
 
     if (lssize != rssize) {
@@ -1661,8 +1661,8 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     const uint32_t lusize = __fasts_abs(lssize);
     dst->reserve(lusize + 1);
 
-    const auto dp = dst->data();
-    const auto lp = lhs->data();
+    auto *const dp = dst->data();
+    const auto *const lp = lhs->data();
 
     using compare = std::conditional_t<xsign, std::less<>, std::greater<>>;
     int32_t dssize;
@@ -1690,7 +1690,7 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 template <typename S>
 void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs,
                    const biginteger_data *rhs) noexcept {
-    const int32_t rssize = rhs->get_ssize();
+    const auto rssize = rhs->get_ssize();
     if (rssize == 0) {
         dst->reserve(1);
 
@@ -1707,8 +1707,8 @@ void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs,
     const uint32_t rusize = __fasts_abs(rssize);
     dst->reserve(rusize);
 
-    const auto dp = dst->data();
-    const auto rp = rhs->data();
+    auto *const dp = dst->data();
+    const auto *const rp = rhs->data();
     int32_t dssize;
 
     if (rssize < 0) {
@@ -1736,7 +1736,7 @@ void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs,
 template <bool xsign, typename S>
 void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                    const biginteger_data *rhs) noexcept {
-    int32_t lssize = lhs->get_ssize();
+    auto lssize = lhs->get_ssize();
     int32_t rssize = __fasts_conditional_negate<int32_t>(xsign, rhs->get_ssize());
     uint32_t lusize = __fasts_abs(lssize);
     uint32_t rusize = __fasts_abs(rssize);
@@ -1749,9 +1749,9 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 
     dst->reserve(lusize + 1);
 
-    const auto dp = dst->data();
-    const auto lp = lhs->data();
-    const auto rp = rhs->data();
+    auto *const dp = dst->data();
+    const auto *const lp = lhs->data();
+    const auto *const rp = rhs->data();
     int32_t dssize;
 
     if (rusize == 0) {
@@ -1764,8 +1764,7 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 
     // different sign
     if ((lssize ^ rssize) < 0) {
-        const int32_t ans =
-            static_cast<int32_t>(abs_subc_s_pos(dp, lp, lusize, rp, rusize));
+        const auto ans = static_cast<int32_t>(abs_subc_s_pos(dp, lp, lusize, rp, rusize));
         dssize = __fasts_negate_with<int32_t>(lssize, ans);
     } else {
         const auto cf = addc_s(dp, lp, lusize, rp, rusize);
@@ -1781,7 +1780,7 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 template <typename S>
 void __mul_ui_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                    uint64_t rhs) noexcept {
-    const int32_t lssize = lhs->get_ssize();
+    const auto lssize = lhs->get_ssize();
     const uint32_t lusize = __fasts_abs(lssize);
 
     if (lusize == 0 || rhs == 0) {
@@ -1791,8 +1790,8 @@ void __mul_ui_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 
     dst->reserve(lusize + 1);
 
-    const auto dp = dst->data();
-    const auto lp = lhs->data();
+    auto *const dp = dst->data();
+    const auto *const lp = lhs->data();
 
     const auto cf = mul_1(dp, lp, lusize, rhs);
     const uint32_t dusize = lusize + (cf != 0);
@@ -1841,9 +1840,9 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 
     using pointer = uint64_t *;
 
-    auto dp = dst->data();
-    auto lp = (pointer)(lhs->data());
-    auto rp = (pointer)(rhs->data());
+    auto *dp = dst->data();
+    auto *lp = const_cast<pointer>(lhs->data());
+    auto *rp = const_cast<pointer>(rhs->data());
 
     unique_stack_allocator stkal(math_detail::stack_alloc);
     std::optional<uninitialized<basic_biginteger<S>>> tmp;
@@ -1854,13 +1853,13 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
         dp = (**tmp).data();
     } else {
         if (dp == lp) {
-            lp = (pointer)stkal.allocate(lusize * sizeof(uint64_t));
+            lp = static_cast<pointer>(stkal.allocate(lusize * sizeof(uint64_t)));
             if (dp == rp) {
                 rp = lp;
             }
             std::copy_n(dp, lusize, lp);
         } else if (dp == rp) {
-            rp = (pointer)stkal.allocate(rusize * sizeof(uint64_t));
+            rp = static_cast<pointer>(stkal.allocate(rusize * sizeof(uint64_t)));
             std::copy_n(dp, rusize, rp);
         }
     }
@@ -1897,7 +1896,7 @@ void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept {
 
     if (susize == 1) {
         dst->reserve(susize + 1);
-        uint64_t num = src->data()[0];
+        const uint64_t num = src->data()[0];
         uint64_t cf;
         dst->data()[0] = mul(num, num, cf);
         dssize = 1 + (cf != 0);
@@ -1912,8 +1911,8 @@ void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept {
 
     using pointer = uint64_t *;
 
-    auto dp = dst->data();
-    auto sp = (pointer)(src->data());
+    auto *dp = dst->data();
+    auto *sp = const_cast<pointer>(src->data());
 
     std::optional<uninitialized<basic_biginteger<S>>> tmp;
 
@@ -1925,7 +1924,7 @@ void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept {
         dp = (**tmp).data();
     } else {
         if (dp == sp) {
-            sp = (pointer)stkal.allocate(susize * sizeof(uint64_t));
+            sp = static_cast<pointer>(stkal.allocate(susize * sizeof(uint64_t)));
             std::copy_n(dp, susize, sp);
         }
     }
@@ -1977,8 +1976,8 @@ void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, uint
     const uint32_t min_size = std::min(lusize, dusize);
     dst->reserve(new_dusize + 1);
 
-    auto dp = dst->data();
-    auto lp = lhs->data();
+    auto *dp = dst->data();
+    const auto *lp = lhs->data();
 
     uint64_t cf;
 
@@ -2082,7 +2081,7 @@ void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 
     uint32_t tusize = lusize + rusize;
     dst->reserve(std::max(tusize, dusize) + 1);
-    const auto dp = dst->data();
+    auto *const dp = dst->data();
 
     if (dssize == 0) {
         mul_s(dp, lhs->data(), lusize, rhs->data(), rusize);
@@ -2092,12 +2091,12 @@ void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     }
 
     unique_stack_allocator stkal(math_detail::stack_alloc);
-    auto tp = (uint64_t *)stkal.allocate(tusize * sizeof(uint64_t));
+    auto *tp = static_cast<uint64_t *>(stkal.allocate(tusize * sizeof(uint64_t)));
 
     mul_s(tp, lhs->data(), lusize, rhs->data(), rusize);
     tusize -= tp[tusize - 1] == 0;
 
-    auto up = dp;
+    auto *up = dp;
     uint32_t uusize = dusize;
 
     if (xmask >= 0) {
@@ -2149,8 +2148,8 @@ void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     uint32_t dusize = lusize + offset;
 
     dst->reserve(dusize + 1);
-    const auto dp = dst->data();
-    const auto lp = lhs->data();
+    auto *const dp = dst->data();
+    const auto *const lp = lhs->data();
 
     const auto cf = lshift_n(dp + offset, lp, lusize, shift);
     set_n(dp, 0, offset);
@@ -2175,7 +2174,7 @@ void __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
     WJR_ASSERT(dusize != 0, "division by zero");
 
     rem->reserve(dusize);
-    auto rp = rem->data();
+    auto *rp = rem->data();
 
     // num < div
     if (qssize <= 0) {
@@ -2192,21 +2191,21 @@ void __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
     using pointer = uint64_t *;
 
     quot->reserve(qssize);
-    auto qp = quot->data();
+    auto *qp = quot->data();
 
-    auto np = (pointer)num->data();
-    auto dp = (pointer)div->data();
+    auto *np = const_cast<pointer>(num->data());
+    auto *dp = const_cast<pointer>(div->data());
 
     unique_stack_allocator stkal(math_detail::stack_alloc);
 
     if (dp == rp || dp == qp) {
-        auto tp = (pointer)stkal.allocate(dusize * sizeof(uint64_t));
+        auto *tp = (pointer)stkal.allocate(dusize * sizeof(uint64_t));
         std::copy_n(dp, dusize, tp);
         dp = tp;
     }
 
     if (np == rp || np == qp) {
-        auto tp = (pointer)stkal.allocate(nusize * sizeof(uint64_t));
+        auto *tp = (pointer)stkal.allocate(nusize * sizeof(uint64_t));
         std::copy_n(np, nusize, tp);
         np = tp;
     }

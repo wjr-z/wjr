@@ -217,7 +217,7 @@ public:
     }
 
     /**
-     * @detail Allocate memory, don't need to deallocate it until the thread exits.    \n
+     * @details Allocate memory, don't need to deallocate it until the thread exits.    \n
      * Automatically deallocate memory when the thread exits.                          \n
      * Used in thread_local memory pool that only needs to allocate memory once and    \n
      * deallocate it when the thread exits.                                            \n

@@ -181,12 +181,12 @@ result<void> check_string(const char *first, const char *last) noexcept {
 
                 if (ch == 'u') {
                     return unexpected(error_code::STRING_ERROR);
-                } else {
-                    const uint8_t code = escape_table[ch];
+                }
 
-                    if (WJR_UNLIKELY(code == 0)) {
-                        return unexpected(error_code::STRING_ERROR);
-                    }
+                const uint8_t code = escape_table[ch];
+
+                if (WJR_UNLIKELY(code == 0)) {
+                    return unexpected(error_code::STRING_ERROR);
                 }
 
                 return {};
@@ -387,16 +387,15 @@ result<char *> parse_string(char *dst, const char *first, const char *last) noex
 
                 if (ch == 'u') {
                     return unexpected(error_code::STRING_ERROR);
-                } else {
-                    const uint8_t code = escape_table[ch];
-
-                    if (WJR_UNLIKELY(code == 0)) {
-                        return unexpected(error_code::STRING_ERROR);
-                    }
-
-                    *dst++ = code;
                 }
 
+                const uint8_t code = escape_table[ch];
+
+                if (WJR_UNLIKELY(code == 0)) {
+                    return unexpected(error_code::STRING_ERROR);
+                }
+
+                *dst++ = code;
                 return dst;
             }
 

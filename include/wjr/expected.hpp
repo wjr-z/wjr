@@ -1,7 +1,7 @@
 /**
  * @file expected.hpp
  * @author wjr
- * @detail
+ * @details
  * @version 0.1
  * @date 2024-07-13
  *

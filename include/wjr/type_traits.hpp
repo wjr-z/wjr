@@ -24,7 +24,7 @@ inline constexpr in_place_empty_t in_place_empty = {};
 /**
  * @brief Tag of default constructor.
  *
- * @detail Use dctor to indicate default constructor. \n
+ * @details Use dctor to indicate default constructor. \n
  * Used to avoid value initialization.  \n
  * For example : \n
  * @code
@@ -246,7 +246,7 @@ using add_restrict_t = typename add_restrict<T>::type;
 /**
  * @brief Return if is constant evaluated.
  *
- * @detail Use macro WJR_IS_CONSTANT_EVALUATED(). \n
+ * @details Use macro WJR_IS_CONSTANT_EVALUATED(). \n
  * Use std::is_constant_evaluated() if C++ 20 is supported. \n
  * Otherwise, use __builtin_constant_evaluated() if
  * WJR_HAS_BUILTIN(__builtin_is_constant_evaluated). Otherwise, return false.
@@ -404,7 +404,7 @@ WJR_CONST constexpr std::make_unsigned_t<Value> to_unsigned(Value value) noexcep
     return static_cast<std::make_unsigned_t<Value>>(value);
 }
 
-template <class T, class U>
+template <typename T, typename U>
 WJR_CONST constexpr bool cmp_equal(T t, U u) noexcept {
     if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
         return t == u;
@@ -415,12 +415,12 @@ WJR_CONST constexpr bool cmp_equal(T t, U u) noexcept {
     }
 }
 
-template <class T, class U>
+template <typename T, typename U>
 WJR_CONST constexpr bool cmp_not_equal(T t, U u) noexcept {
     return !cmp_equal(t, u);
 }
 
-template <class T, class U>
+template <typename T, typename U>
 WJR_CONST constexpr bool cmp_less(T t, U u) noexcept {
     if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
         return t < u;
@@ -431,17 +431,17 @@ WJR_CONST constexpr bool cmp_less(T t, U u) noexcept {
     }
 }
 
-template <class T, class U>
+template <typename T, typename U>
 WJR_CONST constexpr bool cmp_greater(T t, U u) noexcept {
     return cmp_less(u, t);
 }
 
-template <class T, class U>
+template <typename T, typename U>
 WJR_CONST constexpr bool cmp_less_equal(T t, U u) noexcept {
     return !cmp_less(u, t);
 }
 
-template <class T, class U>
+template <typename T, typename U>
 WJR_CONST constexpr bool cmp_greater_equal(T t, U u) noexcept {
     return !cmp_less(t, u);
 }
@@ -461,6 +461,32 @@ WJR_CONST constexpr bool in_range(U value) noexcept {
         return value >= 0 && to_unsigned(value) <= std::numeric_limits<T>::max();
     }
 }
+
+template <typename T>
+WJR_CONST constexpr bool in_range(T) noexcept {
+    return true;
+}
+
+template <typename From, typename To>
+struct is_value_preserving
+    : std::bool_constant<in_range<To>(std::numeric_limits<From>::min()) &&
+                         in_range<To>(std::numeric_limits<From>::max())> {};
+
+template <typename From>
+struct is_value_preserving<From, From> : std::true_type {};
+
+template <typename From, typename To>
+inline constexpr bool is_value_preserving_v = is_value_preserving<From, To>::value;
+
+template <typename From, typename To>
+struct is_value_preserving_or_int
+    : std::disjunction<
+          std::is_same<From, int>, is_value_preserving<From, To>,
+          std::conjunction<std::is_unsigned<To>, std::is_same<From, unsigned int>>> {};
+
+template <typename From, typename To>
+inline constexpr bool is_value_preserving_or_int_v =
+    is_value_preserving_or_int<From, To>::value;
 
 template <typename T, typename U,
           WJR_REQUIRES(std::is_integral_v<T> &&std::is_integral_v<U>)>

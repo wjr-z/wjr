@@ -826,8 +826,6 @@ void __wjr_asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t r
           [r11] "=r"(r11), [rax] "=r"(rax), [adj] "=r"(adj), [rbp] "=r"(rbp)
         :
         : "cc", "memory");
-
-    return;
 }
 
 #endif // WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)

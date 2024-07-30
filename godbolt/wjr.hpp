@@ -1164,7 +1164,7 @@
 // Already included
 
 /**
- * @detail
+ * @details
  * 0 : non-defined  \n
  * 1 : builtin  \n
  * 2 : intrinsic    \n
@@ -2503,7 +2503,7 @@ inline constexpr in_place_empty_t in_place_empty = {};
 /**
  * @brief Tag of default constructor.
  *
- * @detail Use dctor to indicate default constructor. \n
+ * @details Use dctor to indicate default constructor. \n
  * Used to avoid value initialization.  \n
  * For example : \n
  * @code
@@ -2725,7 +2725,7 @@ using add_restrict_t = typename add_restrict<T>::type;
 /**
  * @brief Return if is constant evaluated.
  *
- * @detail Use macro WJR_IS_CONSTANT_EVALUATED(). \n
+ * @details Use macro WJR_IS_CONSTANT_EVALUATED(). \n
  * Use std::is_constant_evaluated() if C++ 20 is supported. \n
  * Otherwise, use __builtin_constant_evaluated() if
  * WJR_HAS_BUILTIN(__builtin_is_constant_evaluated). Otherwise, return false.
@@ -2883,7 +2883,7 @@ WJR_CONST constexpr std::make_unsigned_t<Value> to_unsigned(Value value) noexcep
     return static_cast<std::make_unsigned_t<Value>>(value);
 }
 
-template <class T, class U>
+template <typename T, typename U>
 WJR_CONST constexpr bool cmp_equal(T t, U u) noexcept {
     if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
         return t == u;
@@ -2894,12 +2894,12 @@ WJR_CONST constexpr bool cmp_equal(T t, U u) noexcept {
     }
 }
 
-template <class T, class U>
+template <typename T, typename U>
 WJR_CONST constexpr bool cmp_not_equal(T t, U u) noexcept {
     return !cmp_equal(t, u);
 }
 
-template <class T, class U>
+template <typename T, typename U>
 WJR_CONST constexpr bool cmp_less(T t, U u) noexcept {
     if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
         return t < u;
@@ -2910,17 +2910,17 @@ WJR_CONST constexpr bool cmp_less(T t, U u) noexcept {
     }
 }
 
-template <class T, class U>
+template <typename T, typename U>
 WJR_CONST constexpr bool cmp_greater(T t, U u) noexcept {
     return cmp_less(u, t);
 }
 
-template <class T, class U>
+template <typename T, typename U>
 WJR_CONST constexpr bool cmp_less_equal(T t, U u) noexcept {
     return !cmp_less(u, t);
 }
 
-template <class T, class U>
+template <typename T, typename U>
 WJR_CONST constexpr bool cmp_greater_equal(T t, U u) noexcept {
     return !cmp_less(t, u);
 }
@@ -2940,6 +2940,32 @@ WJR_CONST constexpr bool in_range(U value) noexcept {
         return value >= 0 && to_unsigned(value) <= std::numeric_limits<T>::max();
     }
 }
+
+template <typename T>
+WJR_CONST constexpr bool in_range(T) noexcept {
+    return true;
+}
+
+template <typename From, typename To>
+struct is_value_preserving
+    : std::bool_constant<in_range<To>(std::numeric_limits<From>::min()) &&
+                         in_range<To>(std::numeric_limits<From>::max())> {};
+
+template <typename From>
+struct is_value_preserving<From, From> : std::true_type {};
+
+template <typename From, typename To>
+inline constexpr bool is_value_preserving_v = is_value_preserving<From, To>::value;
+
+template <typename From, typename To>
+struct is_value_preserving_or_int
+    : std::disjunction<
+          std::is_same<From, int>, is_value_preserving<From, To>,
+          std::conjunction<std::is_unsigned<To>, std::is_same<From, unsigned int>>> {};
+
+template <typename From, typename To>
+inline constexpr bool is_value_preserving_or_int_v =
+    is_value_preserving_or_int<From, To>::value;
 
 template <typename T, typename U,
           WJR_REQUIRES(std::is_integral_v<T> &&std::is_integral_v<U>)>
@@ -3374,7 +3400,7 @@ constexpr T *to_address(T *p) noexcept {
 }
 
 /**
- * @detail If std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p) is valid, return
+ * @details If std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p) is valid, return
  * std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p), otherwise return
  * to_address(p.operator->()).
  */
@@ -7746,7 +7772,7 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
  * @author wjr
  * @brief Assertion utilities
  *
- * @detail WJR_DEBUG_LEVEL : 0 ~ 3 \n
+ * @details WJR_DEBUG_LEVEL : 0 ~ 3 \n
  * 0 : Release \n
  * 1 : Beta \n
  * 2 : Runtime detect \n
@@ -7869,7 +7895,7 @@ inline void __assert_handler(const char *expr, const char *file, const char *fun
  * @file vector.hpp
  * @brief Vector container with definable internal structure
  *
- * @detail
+ * @details
  * Customized internal structure needs to follow the following function signature: \n
  * -# storage() noexcept
  * -# ~storage() noexcept
@@ -9421,7 +9447,7 @@ private:
  *
  * @brief Compressed capture any type as a new type.
  *
- * @detail Use `EBO`(empty base optimization) to compress the size of the object.
+ * @details Use `EBO`(empty base optimization) to compress the size of the object.
  *
  */
 template <typename T, typename Tag = void>
@@ -9453,7 +9479,7 @@ public:
  *
  * @brief Check if a class can be compressed.
  *
- * @detail A class can be compressed if it is a `empty` `class`, and it is not `final`.
+ * @details A class can be compressed if it is a `empty` `class`, and it is not `final`.
  *
  */
 template <typename T>
@@ -9482,7 +9508,7 @@ struct __is_tuple_like_impl<
 /**
  * @brief Use template<...>typename like to like all element of LP and RP.
  *
- * @detail For example, like is std::is_assignable, LP is std::tuple<T0, U0>, RP is
+ * @details For example, like is std::is_assignable, LP is std::tuple<T0, U0>, RP is
  * std::tuple<T1, U1>. \n
  * Then __is_tuple_like = std::conjunction<std::is_assignable<T0,
  * T1>, std::is_assignable<U0, U1>>.
@@ -9513,7 +9539,7 @@ struct __is_tuple_test_impl<Test, std::index_sequence<Idxs...>, LP, RP,
 /**
  * @brief Use template<...>typename Test to test all element of LP and RP.
  *
- * @detail For example, Test is std::is_assignable, LP is std::tuple<T0, U0>, RP is
+ * @details For example, Test is std::is_assignable, LP is std::tuple<T0, U0>, RP is
  * std::tuple<T1, U1>. \n
  * Then __is_tuple_test = std::conjunction<std::is_assignable<T0,
  * T1>, std::is_assignable<U0, U1>>.
@@ -10214,7 +10240,7 @@ namespace wjr {
 /**
  * @brief Select the base class of compressed_pair.
  *
- * @detail For compressed_pair<T, U> : \n
+ * @details For compressed_pair<T, U> : \n
  * If `T` is @ref is_compressed_v "compressed" and `U` is not ref is_compressed_v
  * "compressed", then the base class is
  * @ref compressed_capture_leaf \<T> and @ref capture_leaf \<U>. \n
@@ -10260,7 +10286,7 @@ using __compressed_pair_base2 =
  *
  * @brief A pair used empty base optimization to reduce the size of the pair.
  *
- * @detail See @ref compressed_pair_wrapper for the base class of compressed_pair. \n
+ * @details See @ref compressed_pair_wrapper for the base class of compressed_pair. \n
  * compressed_pair is final, so it can't be derived from. \n
  * For example : \n
  * @code
@@ -10686,7 +10712,7 @@ namespace wjr {
  * @class container_fn<Alloc>
  * @brief The same characteristics and behavior of all allocator containers
  *
- * @detail container must have the following member functions:
+ * @details container must have the following member functions:
  * -# auto& __get_allocator() noexcept
  * -# void __destroy() noexcept
  * -# void __destroy_and_deallocate() noexcept
@@ -11579,7 +11605,7 @@ public:
     constexpr static bool is_contiguous_v = is_contiguous_iterator_v<iterator>;
 
     /**
-     * @detail Trivially contiguous means that the container can be resized and then
+     * @details Trivially contiguous means that the container can be resized and then
      * filled, and the result should be consistent with the element by element push_back
      * result. It does not verify whether the element is trial. Because different
      * containers may have different ways of constructing elements. The main purpose is
@@ -11704,7 +11730,7 @@ namespace wjr {
 /**
  * @fn copy
  *
- * @detail Optimized for back_insert_iterator and insert_iterator.
+ * @details Optimized for back_insert_iterator and insert_iterator.
  *
  */
 template <typename InputIt, typename OutputIt>
@@ -11758,7 +11784,7 @@ constexpr OutputIt __copy_restrict_impl(InputIt first, InputIt last,
 /**
  * @brief Copy elements from a range to another range with restricted pointers.
  *
- * @detail Use @ref wjr::copy. \n
+ * @details Use @ref wjr::copy. \n
  * If iterator is contiguouse, then get restricted pointer
  * by iterator to optimize.
  */
@@ -11778,7 +11804,7 @@ constexpr OutputIt copy_restrict(InputIt first, InputIt last, OutputIt d_first) 
 /**
  * @fn wjr::copy_n
  *
- * @detail Optimized for back_insert_iterator and insert_iterator.
+ * @details Optimized for back_insert_iterator and insert_iterator.
  *
  */
 template <typename InputIt, typename Size, typename OutputIt>
@@ -11831,7 +11857,7 @@ constexpr OutputIt __copy_n_restrict_impl(InputIt first, Size count, OutputIt d_
 /**
  * @brief Copy elements from a range to another range with restricted pointers.
  *
- * @detail @see wjr::copy_restrict. \n
+ * @details @see wjr::copy_restrict. \n
  *
  */
 template <typename InputIt, typename Size, typename OutputIt>
@@ -11916,7 +11942,7 @@ struct __is_trivially_allocator_impl<
 /**
  * @brief Default construct, destruct allocator.
  *
- * @detail If `Alloc::is_trivially_allocator` is not defined or
+ * @details If `Alloc::is_trivially_allocator` is not defined or
  * `Alloc::is_trivially_allocator` is `std::false_type`, derive from `std::false_type`. \n
  * If is_trivially_allocator_v is true, then `construct_at_using_allocator` and
  * `destroy_at_using_allocator` are same as `construct_at` and `destroy_at`.
@@ -12425,10 +12451,10 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
 /**
  * @class uninitialized
  *
- * @detail Uninitialized object. Make trivially constructible and destructible of
+ * @details Uninitialized object. Make trivially constructible and destructible of
  * any type.+
  *
- * @detail Trivially constructible and destructible uninitialized object. Copy/move
+ * @details Trivially constructible and destructible uninitialized object. Copy/move
  * constructor and assignment operators are deleted if the type is not trivially
  * copy/move constructible/assignable.
  *
@@ -12687,7 +12713,7 @@ struct __unref_wrapper_helper<default_vector_size_reference<pointer, size_type>>
 /**
  * @brief Default vector storage
  *
- * @detail Use one pointer ans two size_type currently.
+ * @details Use one pointer ans two size_type currently.
  *
  */
 template <typename T, typename Alloc>
@@ -13345,7 +13371,7 @@ struct basic_vector_traits {
 /**
  * @brief Customized vector by storage.
  *
- * @detail Type of pointer is same as iterator.
+ * @details Type of pointer is same as iterator.
  *
  */
 template <typename Storage>
@@ -14663,7 +14689,7 @@ using static_vector = basic_vector<static_vector_storage<T, Capacity, Alloc>>;
 /**
  * @brief A vector with fixed capacity by construction.
  *
- * @detail Only allocate memory on construction and deallocation on destruction.
+ * @details Only allocate memory on construction and deallocation on destruction.
  * After construction, it cannot be expanded and can only be modified through move
  * assignment. For example, vector that using stack allocator.
  */
@@ -14771,7 +14797,7 @@ struct container_traits<basic_vector<Storage>>
 /**
  * @file expected.hpp
  * @author wjr
- * @detail
+ * @details
  * @version 0.1
  * @date 2024-07-13
  *
@@ -16865,7 +16891,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) noexcept {
 /**
  * @brief Fast count trailing zeros
  *
- * @detail Very fast even on non-optimized platforms by using a De Bruijn sequence. \n
+ * @details Very fast even on non-optimized platforms by using a De Bruijn sequence. \n
  * Try __builtin_clz if available, otherwise fallback to a portable implementation. \n
  * In fallback_clz, use popcount and lowbit if POPCOUNT and POPCNT are available, make
  * sure popcount is fast. \n
@@ -19154,7 +19180,7 @@ namespace wjr {
  * @brief Use inline assembly to add two 64-bit integers with carry-in and return the
  * carry-out.
  *
- * @detail The carry-in and carry-out flags are both 0 or 1. \n
+ * @details The carry-in and carry-out flags are both 0 or 1. \n
  * The carry-out flag is set to 1 if the result overflows. \n
  * Optimization: \n
  * 1. Use constraint "i" if a or b is a constant and is in i32 range. \n
@@ -19241,7 +19267,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in,
  * @brief Use inline assembly to add two 64-bit integers with carry-in and return the
  * carry-out.
  *
- * @detail Similar to asm_addc, but the carry-out flag is set by using constraint
+ * @details Similar to asm_addc, but the carry-out flag is set by using constraint
  * "=@cccond" instead of "setb". \n
  *
  * @param[in] c_in
@@ -19581,7 +19607,7 @@ WJR_INTRINSIC_INLINE void __asm_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0
  * @brief Use inline assembly to add two 64-bit integers and return the
  * carry-out.
  *
- * @detail Optimzation for __asm_addc_cc_128 and __asm_addc_128 when the carry-in is 0.
+ * @details Optimzation for __asm_addc_cc_128 and __asm_addc_128 when the carry-in is 0.
  *
  */
 WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_zero_128(uint64_t &al, uint64_t &ah,
@@ -19678,7 +19704,7 @@ WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_
  * @brief Use inline assembly to add two 64-bit integers with carry-in and return the
  * carry-out.
  *
- * @detail Similar to __asm_addc_128, but the carry-out flag is set by using constraint
+ * @details Similar to __asm_addc_128, but the carry-out flag is set by using constraint
  * "=@cccond" instead of "setb".
  *
  */
@@ -19825,7 +19851,7 @@ WJR_INTRINSIC_CONSTEXPR20 T addc(T a, T b, type_identity_t<U> c_in, U &c_out) no
  * @brief Performs addition with carry-in and carry-out, optimized for subsequent
  * branching based on carry-out.
  *
- * @detail This function, `addc_cc`, adds two numbers with a carry-in, and returns the
+ * @details This function, `addc_cc`, adds two numbers with a carry-in, and returns the
  * result and a carry-out. The carry-out (`c_out`) is optimized for subsequent code that
  * branches based on its value. For example, it can be used with jump instructions like
  * `je` or `jne`. This is in contrast to the `addc` function, which may use instructions
@@ -22276,7 +22302,7 @@ public:
     /**
      * @brief Construct a span from a container.
      *
-     * @detail The container must have a `data()` member function that returns a @ref
+     * @details The container must have a `data()` member function that returns a @ref
      * __is_span_iterator. The container must also have a `size()` member function that
      * can be converted to `size_type`.
      *
@@ -22288,7 +22314,7 @@ public:
     /**
      * @brief Construct a span from a container.
      *
-     * @detail Like @ref span(Container &&), but the span is not dynamic-sized, so the
+     * @details Like @ref span(Container &&), but the span is not dynamic-sized, so the
      * construct must be explicit.
      *
      */
@@ -23879,7 +23905,7 @@ struct __is_fast_convert_iterator : __is_fast_convert_iterator_helper<Iter> {};
 /**
  * @brief Iterator concept that can be used in fast_convert.
  *
- * @detail The iterator must be contiguous iterator and the value_type must be
+ * @details The iterator must be contiguous iterator and the value_type must be
  * trivial and sizeof(value_type) == 1. Cast to_address(iter) to uint8_t*(to_chars)/const
  * uint8_t*(from_chars) in fast_convert.
  *
@@ -24781,7 +24807,7 @@ Iter __to_chars_backward_unchecked_impl(Iter first, Value val, IBase ibase,
  * @brief Convert an unsigned integer to a string in reverse order without checking
  * buf size.
  *
- * @detail Only use fast_convert mode.
+ * @details Only use fast_convert mode.
  *
  */
 template <typename Iter, typename Value, unsigned int IBase = 10,
@@ -25280,7 +25306,7 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, IBase base,
 /**
  * @brief Convert an unsigned integer to a string without checking buf size.
  *
- * @detail Iter can be any output iterator. Support fast_convert mode and fallback mode.
+ * @details Iter can be any output iterator. Support fast_convert mode and fallback mode.
  * \n fast_convert mode : \n fast_convert mode is used when
  * __is_fast_convert_iterator_v<Iter> is true. \n caclulate the number of digits and
  * convert the integer to a string in reverse order. \n fallback mode : \n use buffer to
@@ -26276,167 +26302,186 @@ namespace wjr {
 template <typename T>
 WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1,
                                               size_t n) noexcept {
-#define WJR_REGISTER_COMPARE_NOT_N_AVX(index)                                            \
+#define WJR_REGISTER_COMPARE_NOT_N_2(index, EXPECT)                                      \
     do {                                                                                 \
-        auto x = avx::loadu(src0 + (index));                                             \
-        auto y = avx::loadu(src1 + (index));                                             \
-        auto r = avx::cmpeq_epi64(x, y);                                                 \
+        const auto x = sse::loadu(src0 + (index));                                       \
+        const auto y = sse::loadu(src1 + (index));                                       \
+        const auto r = sse::cmpeq_epi64(x, y);                                           \
                                                                                          \
-        avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
-        if (WJR_LIKELY(mask != 0)) {                                                     \
-            auto offset = ctz(mask) / 8;                                                 \
+        const sse::mask_type mask = ~sse::movemask_epi8(r);                              \
+        if (WJR_EXPECT(mask != 0, EXPECT)) {                                             \
+            if (mask == 0xFF00) {                                                        \
+                return src0[(index) + 1] < src1[(index) + 1] ? -1 : 1;                   \
+            }                                                                            \
+            return src0[index] < src1[index] ? -1 : 1;                                   \
+        }                                                                                \
+    } while (0)
+#if WJR_HAS_SIMD(AVX2)
+#define WJR_REGISTER_COMPARE_NOT_N_4(index)                                              \
+    do {                                                                                 \
+        const auto x = avx::loadu(src0 + (index));                                       \
+        const auto y = avx::loadu(src1 + (index));                                       \
+        const auto r = avx::cmpeq_epi64(x, y);                                           \
+                                                                                         \
+        const avx::mask_type mask = ~avx::movemask_epi8(r);                              \
+        if (WJR_UNLIKELY(mask != 0)) {                                                   \
+            const auto offset = ctz(mask) / 8;                                           \
             return src0[(index) + offset] < src1[(index) + offset] ? -1 : 1;             \
         }                                                                                \
     } while (0)
-
-    size_t rem = n & 7;
-
-    if (rem > 4) {
-#if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu(src0 + (rem - 4));
-        auto x1 = sse::loadu(src0 + (rem - 2));
-        auto y0 = sse::loadu(src1 + (rem - 4));
-        auto y1 = sse::loadu(src1 + (rem - 2));
-
-        auto r0 = sse::cmpeq_epi64(x0, y0);
-        auto r1 = sse::cmpeq_epi64(x1, y1);
-
-        if (WJR_LIKELY(!sse::test_all_ones(sse::And(r0, r1)))) {
-            sse::mask_type mask = ~sse::movemask_epi8(r0);
-            if (mask != 0) {
-                if (mask == 0xFF00) {
-                    return src0[(rem - 4) + 1] < src1[(rem - 4) + 1] ? -1 : 1;
-                }
-                return src0[(rem - 4)] < src1[(rem - 4)] ? -1 : 1;
-            }
-
-            mask = ~sse::movemask_epi8(r1);
-            if (mask == 0xFF00) {
-                return src0[(rem - 2) + 1] < src1[(rem - 2) + 1] ? -1 : 1;
-            }
-            return src0[(rem - 2)] < src1[(rem - 2)] ? -1 : 1;
-        }
 #else
-        WJR_REGISTER_COMPARE_NOT_N_AVX(rem - 4);
+#define WJR_REGISTER_COMPARE_NOT_N_4(index)                                              \
+    WJR_REGISTER_COMPARE_NOT_N_2(index, false);                                          \
+    WJR_REGISTER_COMPARE_NOT_N_2((index) + 2, false)
 #endif
-    }
 
-    if (WJR_UNLIKELY(rem == n)) {
+    WJR_ASSUME(n > 2);
+
+    if (WJR_UNLIKELY(n <= 16)) {
+        if (WJR_UNLIKELY(n <= 4)) {
+            WJR_REGISTER_COMPARE_NOT_N_2(n - 2, false);
+            return 0;
+        }
+
+        WJR_REGISTER_COMPARE_NOT_N_2(2, false);
+
+        if (WJR_LIKELY(n > 8)) {
+            WJR_REGISTER_COMPARE_NOT_N_4(4);
+
+            if (n > 12) {
+                WJR_REGISTER_COMPARE_NOT_N_4(8);
+            }
+        }
+
+        WJR_REGISTER_COMPARE_NOT_N_4(n - 4);
         return 0;
     }
 
+    n -= 3;
+    const size_t rem = n & 7;
+    n &= ~7;
+
+    if (WJR_LIKELY(rem < 5)) {
+        if (rem < 2) {
+            WJR_REGISTER_COMPARE_NOT_N_2(rem + 1, false);
+        } else {
+            WJR_REGISTER_COMPARE_NOT_N_2(2, false);
+            WJR_REGISTER_COMPARE_NOT_N_4(rem - 1);
+        }
+    } else {
+        WJR_REGISTER_COMPARE_NOT_N_4(2);
+        WJR_REGISTER_COMPARE_NOT_N_4(rem - 1);
+    }
+
+#if WJR_HAS_SIMD(AVX2)
+    if (n & 8) {
+        WJR_REGISTER_COMPARE_NOT_N_4(rem + 3);
+        WJR_REGISTER_COMPARE_NOT_N_4(rem + 7);
+
+        if (WJR_UNLIKELY(n == 8)) {
+            return 0;
+        }
+
+        src0 += rem + 11;
+        src1 += rem + 11;
+        n -= 8;
+    } else {
+#endif
+
+        src0 += rem + 3;
+        src1 += rem + 3;
+
+#if WJR_HAS_SIMD(AVX2)
+    }
+#endif
+
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu(src0 + rem);
-        auto x1 = sse::loadu(src0 + rem + 2);
-        auto x2 = sse::loadu(src0 + rem + 4);
-        auto x3 = sse::loadu(src0 + rem + 6);
-        auto y0 = sse::loadu(src1 + rem);
-        auto y1 = sse::loadu(src1 + rem + 2);
-        auto y2 = sse::loadu(src1 + rem + 4);
-        auto y3 = sse::loadu(src1 + rem + 6);
+        const auto r0 = sse::cmpeq_epi64(sse::loadu(src0), sse::loadu(src1));
+        const auto r1 = sse::cmpeq_epi64(sse::loadu(src0 + 2), sse::loadu(src1 + 2));
+        const auto r2 = sse::cmpeq_epi64(sse::loadu(src0 + 4), sse::loadu(src1 + 4));
+        const auto r3 = sse::cmpeq_epi64(sse::loadu(src0 + 6), sse::loadu(src1 + 6));
 
-        auto r0 = sse::cmpeq_epi64(x0, y0);
-        auto r1 = sse::cmpeq_epi64(x1, y1);
-        auto r2 = sse::cmpeq_epi64(x2, y2);
-        auto r3 = sse::cmpeq_epi64(x3, y3);
-
-        auto z = sse::And(sse::And(r0, r1), sse::And(r2, r3));
+        const auto z = sse::And(sse::And(r0, r1), sse::And(r2, r3));
 
         if (WJR_UNLIKELY(!sse::test_all_ones(z))) {
             sse::mask_type mask = ~sse::movemask_epi8(r0);
             if (mask != 0) {
                 if (mask == 0xFF00) {
-                    return src0[rem + 1] < src1[rem + 1] ? -1 : 1;
+                    return src0[1] < src1[1] ? -1 : 1;
                 }
-                return src0[rem] < src1[rem] ? -1 : 1;
+                return src0[0] < src1[0] ? -1 : 1;
             }
 
             mask = ~sse::movemask_epi8(r1);
             if (mask != 0) {
                 if (mask == 0xFF00) {
-                    return src0[rem + 3] < src1[rem + 3] ? -1 : 1;
+                    return src0[3] < src1[3] ? -1 : 1;
                 }
-                return src0[rem + 2] < src1[rem + 2] ? -1 : 1;
+                return src0[2] < src1[2] ? -1 : 1;
             }
 
             mask = ~sse::movemask_epi8(r2);
             if (mask != 0) {
                 if (mask == 0xFF00) {
-                    return src0[rem + 5] < src1[rem + 5] ? -1 : 1;
+                    return src0[5] < src1[5] ? -1 : 1;
                 }
-                return src0[rem + 4] < src1[rem + 4] ? -1 : 1;
+                return src0[4] < src1[4] ? -1 : 1;
             }
 
             mask = ~sse::movemask_epi8(r3);
             if (mask == 0xFF00) {
-                return src0[rem + 7] < src1[rem + 7] ? -1 : 1;
+                return src0[7] < src1[7] ? -1 : 1;
             }
-            return src0[rem + 6] < src1[rem + 6] ? -1 : 1;
+            return src0[6] < src1[6] ? -1 : 1;
         }
 
-        rem += 8;
-    } while (WJR_LIKELY(rem != n));
+        src0 += 8;
+        src1 += 8;
+        n -= 8;
+    } while (WJR_LIKELY(n != 0));
 #else
-    if ((n - rem) & 8) {
-        WJR_REGISTER_COMPARE_NOT_N_AVX(rem);
-        WJR_REGISTER_COMPARE_NOT_N_AVX(rem + 4);
-
-        rem += 8;
-
-        if (WJR_UNLIKELY(rem == n)) {
-            return 0;
-        }
-    }
-
     do {
-        auto x0 = avx::loadu(src0 + rem);
-        auto x1 = avx::loadu(src0 + rem + 4);
-        auto x2 = avx::loadu(src0 + rem + 8);
-        auto x3 = avx::loadu(src0 + rem + 12);
-        auto y0 = avx::loadu(src1 + rem);
-        auto y1 = avx::loadu(src1 + rem + 4);
-        auto y2 = avx::loadu(src1 + rem + 8);
-        auto y3 = avx::loadu(src1 + rem + 12);
+        const auto r0 = avx::cmpeq_epi64(avx::loadu(src0), avx::loadu(src1));
+        const auto r1 = avx::cmpeq_epi64(avx::loadu(src0 + 4), avx::loadu(src1 + 4));
+        const auto r2 = avx::cmpeq_epi64(avx::loadu(src0 + 8), avx::loadu(src1 + 8));
+        const auto r3 = avx::cmpeq_epi64(avx::loadu(src0 + 12), avx::loadu(src1 + 12));
 
-        auto r0 = avx::cmpeq_epi64(x0, y0);
-        auto r1 = avx::cmpeq_epi64(x1, y1);
-        auto r2 = avx::cmpeq_epi64(x2, y2);
-        auto r3 = avx::cmpeq_epi64(x3, y3);
-
-        auto z = avx::And(avx::And(r0, r1), avx::And(r2, r3));
+        const auto z = avx::And(avx::And(r0, r1), avx::And(r2, r3));
 
         if (WJR_UNLIKELY(!avx::test_all_ones(z))) {
             avx::mask_type mask = ~avx::movemask_epi8(r0);
-            if (WJR_UNLIKELY(mask != 0)) {
-                auto offset = ctz(mask) / 8;
-                return src0[rem + offset] < src1[rem + offset] ? -1 : 1;
+            if (mask != 0) {
+                const auto offset = ctz(mask) / 8;
+                return src0[offset] < src1[offset] ? -1 : 1;
             }
 
             mask = ~avx::movemask_epi8(r1);
-            if (WJR_UNLIKELY(mask != 0)) {
+            if (mask != 0) {
                 auto offset = ctz(mask) / 8;
-                return src0[rem + offset + 4] < src1[rem + offset + 4] ? -1 : 1;
+                return src0[offset + 4] < src1[offset + 4] ? -1 : 1;
             }
 
             mask = ~avx::movemask_epi8(r2);
-            if (WJR_UNLIKELY(mask != 0)) {
+            if (mask != 0) {
                 auto offset = ctz(mask) / 8;
-                return src0[rem + offset + 8] < src1[rem + offset + 8] ? -1 : 1;
+                return src0[offset + 8] < src1[offset + 8] ? -1 : 1;
             }
 
             mask = ~avx::movemask_epi8(r3);
-            auto offset = ctz(mask) / 8;
-            return src0[rem + offset + 12] < src1[rem + offset + 12] ? -1 : 1;
+            const auto offset = ctz(mask) / 8;
+            return src0[offset + 12] < src1[offset + 12] ? -1 : 1;
         }
 
-        rem += 16;
-    } while (WJR_LIKELY(rem != n));
+        src0 += 16;
+        src1 += 16;
+        n -= 16;
+    } while (WJR_LIKELY(n != 0));
 #endif
 
     return 0;
 
-#undef WJR_REGISTER_COMPARE_NOT_N_AVX
+#undef WJR_REGISTER_COMPARE_NOT_N_4
 }
 
 extern template WJR_PURE WJR_COLD int
@@ -26450,7 +26495,7 @@ large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
 /**
  * @brief Use SIMD to compare two arrays of uint64_t in reverse order.
  *
- * @detail @ref large_builtin_compare_n in reverse order.
+ * @details @ref large_builtin_compare_n in reverse order.
  *
  */
 template <typename T>
@@ -26636,8 +26681,8 @@ namespace wjr {
 /**
  * @brief Compare two arrays of uint64_t.
  *
- * @detail Expand first 4 elements to compare, then use @ref large_builtin_compare_n to
- * compare the rest.
+ * @details Inline detection of the first two positions, then use @ref
+ * large_builtin_compare_n to compare the rest.
  *
  * @tparam T Requires uint64_t currently.
  * @param src0 Pointer to the first array.
@@ -26657,40 +26702,24 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1,
         return 0;
     }
 
-    if (WJR_LIKELY(src0[0] != src1[0])) {
-        return src0[0] < src1[0] ? -1 : 1;
-    }
+    if (WJR_UNLIKELY(n == 1)) {
+        if (WJR_LIKELY(src0[0] != src1[0])) {
+            return src0[0] < src1[0] ? -1 : 1;
+        }
 
-    if (n == 1) {
         return 0;
     }
 
-    if (WJR_LIKELY(src0[1] != src1[1])) {
-        return src0[1] < src1[1] ? -1 : 1;
-    }
+    WJR_REGISTER_COMPARE_NOT_N_2(0, true);
 
-    if (n == 2) {
-        return 0;
-    }
-
-    if (WJR_LIKELY(src0[2] != src1[2])) {
-        return src0[2] < src1[2] ? -1 : 1;
-    }
-
-    if (n == 3) {
-        return 0;
-    }
-
-    if (WJR_LIKELY(src0[3] != src1[3])) {
-        return src0[3] < src1[3] ? -1 : 1;
-    }
-
-    if (n == 4) {
+    if (WJR_UNLIKELY(n == 2)) {
         return 0;
     }
 
     return large_builtin_compare_n(src0, src1, n);
 }
+
+#undef WJR_REGISTER_COMPARE_NOT_N_2
 
 #endif
 
@@ -26699,7 +26728,7 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1,
 /**
  * @brief Compare two arrays of uint64_t in reverse order.
  *
- * @detail @ref builtin_compare_n in reverse order.
+ * @details @ref builtin_compare_n in reverse order.
  */
 template <typename T>
 WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
@@ -29022,7 +29051,7 @@ public:
     }
 
     /**
-     * @detail Allocate memory, don't need to deallocate it until the thread exits.    \n
+     * @details Allocate memory, don't need to deallocate it until the thread exits.    \n
      * Automatically deallocate memory when the thread exits.                          \n
      * Used in thread_local memory pool that only needs to allocate memory once and    \n
      * deallocate it when the thread exits.                                            \n
@@ -29244,7 +29273,7 @@ struct singleton_stack_allocator_object {
 };
 
 /**
- * @detail Used for container. This allocator won't deallocate memory allocated by
+ * @details Used for container. This allocator won't deallocate memory allocated by
  * __small_allocate until container is destroyed.
  *
  */
@@ -29254,7 +29283,7 @@ class weak_stack_allocator;
 /**
  * @brief A unique stack allocator for fast simulation of stack memory on the heap.
  *
- * @detail When a unique_stack_allocator object is destroyed, all the memory it allocates
+ * @details When a unique_stack_allocator object is destroyed, all the memory it allocates
  * is released.\n And a new unique_stack_allocator constructed in the lifetime of a
  * unique_stack_allocator object must be destroyed in the current lifetime.
  *
@@ -29302,7 +29331,7 @@ unique_stack_allocator(const StackAllocator &) -> unique_stack_allocator<StackAl
 /**
  * @brief Point to unique_stack_allocator.
  *
- * @detail Use a pointer to unique_stack_allocator to allocate memory. This class must be
+ * @details Use a pointer to unique_stack_allocator to allocate memory. This class must be
  * used carefully. If recursively using it as a reference and allocating memory,
  * unique_stack_allocator should be avoided from being reused in the current function.
  *
@@ -30779,7 +30808,7 @@ struct __unref_wrapper_helper<default_biginteger_size_reference> {
 /**
  * @brief data_type of biginteger
  *
- * @detail View the data of biginteger. Used for type erasure. Manage memory allocation
+ * @details View the data of biginteger. Used for type erasure. Manage memory allocation
  * and release on your own.
  *
  */
@@ -31313,7 +31342,7 @@ WJR_PURE inline uint32_t __bit_width_impl(const biginteger_data *num) noexcept;
 /// @private
 WJR_PURE inline uint32_t __ctz_impl(const biginteger_data *num) noexcept;
 
-/// @private
+/// @todo optimize
 template <typename S>
 void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num,
                 uint32_t exp) noexcept;
@@ -31342,17 +31371,17 @@ struct __powmod_iterator {
     uint32_t size;
 };
 
-/// @private
+/// @todo optimize
 template <typename S>
 void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num,
                    __powmod_iterator *iter, const biginteger_data *mod) noexcept;
 
-/// @private
+/// @todo optimize
 template <typename S>
 void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num,
                    const biginteger_data *exp, const biginteger_data *mod) noexcept;
 
-/// @private
+/// @todo optimize
 template <typename S>
 void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint64_t exp,
                    const biginteger_data *mod) noexcept;
@@ -32297,7 +32326,7 @@ inline int32_t __compare_impl(const biginteger_data *lhs,
 }
 
 inline int32_t __compare_ui_impl(const biginteger_data *lhs, uint64_t rhs) noexcept {
-    const int32_t lssize = lhs->get_ssize();
+    const auto lssize = lhs->get_ssize();
 
     if (lssize == 0) {
         return -(rhs != 0);
@@ -32312,7 +32341,7 @@ inline int32_t __compare_ui_impl(const biginteger_data *lhs, uint64_t rhs) noexc
 }
 
 inline int32_t __compare_si_impl(const biginteger_data *lhs, int64_t rhs) noexcept {
-    const int32_t lssize = lhs->get_ssize();
+    const auto lssize = lhs->get_ssize();
     const int32_t rssize = rhs == 0 ? 0 : __fasts_conditional_negate<int32_t>(rhs < 0, 1);
 
     if (lssize != rssize) {
@@ -32357,8 +32386,8 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     const uint32_t lusize = __fasts_abs(lssize);
     dst->reserve(lusize + 1);
 
-    const auto dp = dst->data();
-    const auto lp = lhs->data();
+    auto *const dp = dst->data();
+    const auto *const lp = lhs->data();
 
     using compare = std::conditional_t<xsign, std::less<>, std::greater<>>;
     int32_t dssize;
@@ -32386,7 +32415,7 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 template <typename S>
 void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs,
                    const biginteger_data *rhs) noexcept {
-    const int32_t rssize = rhs->get_ssize();
+    const auto rssize = rhs->get_ssize();
     if (rssize == 0) {
         dst->reserve(1);
 
@@ -32403,8 +32432,8 @@ void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs,
     const uint32_t rusize = __fasts_abs(rssize);
     dst->reserve(rusize);
 
-    const auto dp = dst->data();
-    const auto rp = rhs->data();
+    auto *const dp = dst->data();
+    const auto *const rp = rhs->data();
     int32_t dssize;
 
     if (rssize < 0) {
@@ -32432,7 +32461,7 @@ void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs,
 template <bool xsign, typename S>
 void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                    const biginteger_data *rhs) noexcept {
-    int32_t lssize = lhs->get_ssize();
+    auto lssize = lhs->get_ssize();
     int32_t rssize = __fasts_conditional_negate<int32_t>(xsign, rhs->get_ssize());
     uint32_t lusize = __fasts_abs(lssize);
     uint32_t rusize = __fasts_abs(rssize);
@@ -32445,9 +32474,9 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 
     dst->reserve(lusize + 1);
 
-    const auto dp = dst->data();
-    const auto lp = lhs->data();
-    const auto rp = rhs->data();
+    auto *const dp = dst->data();
+    const auto *const lp = lhs->data();
+    const auto *const rp = rhs->data();
     int32_t dssize;
 
     if (rusize == 0) {
@@ -32460,8 +32489,7 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 
     // different sign
     if ((lssize ^ rssize) < 0) {
-        const int32_t ans =
-            static_cast<int32_t>(abs_subc_s_pos(dp, lp, lusize, rp, rusize));
+        const auto ans = static_cast<int32_t>(abs_subc_s_pos(dp, lp, lusize, rp, rusize));
         dssize = __fasts_negate_with<int32_t>(lssize, ans);
     } else {
         const auto cf = addc_s(dp, lp, lusize, rp, rusize);
@@ -32477,7 +32505,7 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 template <typename S>
 void __mul_ui_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                    uint64_t rhs) noexcept {
-    const int32_t lssize = lhs->get_ssize();
+    const auto lssize = lhs->get_ssize();
     const uint32_t lusize = __fasts_abs(lssize);
 
     if (lusize == 0 || rhs == 0) {
@@ -32487,8 +32515,8 @@ void __mul_ui_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 
     dst->reserve(lusize + 1);
 
-    const auto dp = dst->data();
-    const auto lp = lhs->data();
+    auto *const dp = dst->data();
+    const auto *const lp = lhs->data();
 
     const auto cf = mul_1(dp, lp, lusize, rhs);
     const uint32_t dusize = lusize + (cf != 0);
@@ -32537,9 +32565,9 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 
     using pointer = uint64_t *;
 
-    auto dp = dst->data();
-    auto lp = (pointer)(lhs->data());
-    auto rp = (pointer)(rhs->data());
+    auto *dp = dst->data();
+    auto *lp = const_cast<pointer>(lhs->data());
+    auto *rp = const_cast<pointer>(rhs->data());
 
     unique_stack_allocator stkal(math_detail::stack_alloc);
     std::optional<uninitialized<basic_biginteger<S>>> tmp;
@@ -32550,13 +32578,13 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
         dp = (**tmp).data();
     } else {
         if (dp == lp) {
-            lp = (pointer)stkal.allocate(lusize * sizeof(uint64_t));
+            lp = static_cast<pointer>(stkal.allocate(lusize * sizeof(uint64_t)));
             if (dp == rp) {
                 rp = lp;
             }
             std::copy_n(dp, lusize, lp);
         } else if (dp == rp) {
-            rp = (pointer)stkal.allocate(rusize * sizeof(uint64_t));
+            rp = static_cast<pointer>(stkal.allocate(rusize * sizeof(uint64_t)));
             std::copy_n(dp, rusize, rp);
         }
     }
@@ -32593,7 +32621,7 @@ void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept {
 
     if (susize == 1) {
         dst->reserve(susize + 1);
-        uint64_t num = src->data()[0];
+        const uint64_t num = src->data()[0];
         uint64_t cf;
         dst->data()[0] = mul(num, num, cf);
         dssize = 1 + (cf != 0);
@@ -32608,8 +32636,8 @@ void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept {
 
     using pointer = uint64_t *;
 
-    auto dp = dst->data();
-    auto sp = (pointer)(src->data());
+    auto *dp = dst->data();
+    auto *sp = const_cast<pointer>(src->data());
 
     std::optional<uninitialized<basic_biginteger<S>>> tmp;
 
@@ -32621,7 +32649,7 @@ void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept {
         dp = (**tmp).data();
     } else {
         if (dp == sp) {
-            sp = (pointer)stkal.allocate(susize * sizeof(uint64_t));
+            sp = static_cast<pointer>(stkal.allocate(susize * sizeof(uint64_t)));
             std::copy_n(dp, susize, sp);
         }
     }
@@ -32673,8 +32701,8 @@ void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, uint
     const uint32_t min_size = std::min(lusize, dusize);
     dst->reserve(new_dusize + 1);
 
-    auto dp = dst->data();
-    auto lp = lhs->data();
+    auto *dp = dst->data();
+    const auto *lp = lhs->data();
 
     uint64_t cf;
 
@@ -32778,7 +32806,7 @@ void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 
     uint32_t tusize = lusize + rusize;
     dst->reserve(std::max(tusize, dusize) + 1);
-    const auto dp = dst->data();
+    auto *const dp = dst->data();
 
     if (dssize == 0) {
         mul_s(dp, lhs->data(), lusize, rhs->data(), rusize);
@@ -32788,12 +32816,12 @@ void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     }
 
     unique_stack_allocator stkal(math_detail::stack_alloc);
-    auto tp = (uint64_t *)stkal.allocate(tusize * sizeof(uint64_t));
+    auto *tp = static_cast<uint64_t *>(stkal.allocate(tusize * sizeof(uint64_t)));
 
     mul_s(tp, lhs->data(), lusize, rhs->data(), rusize);
     tusize -= tp[tusize - 1] == 0;
 
-    auto up = dp;
+    auto *up = dp;
     uint32_t uusize = dusize;
 
     if (xmask >= 0) {
@@ -32845,8 +32873,8 @@ void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     uint32_t dusize = lusize + offset;
 
     dst->reserve(dusize + 1);
-    const auto dp = dst->data();
-    const auto lp = lhs->data();
+    auto *const dp = dst->data();
+    const auto *const lp = lhs->data();
 
     const auto cf = lshift_n(dp + offset, lp, lusize, shift);
     set_n(dp, 0, offset);
@@ -32871,7 +32899,7 @@ void __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
     WJR_ASSERT(dusize != 0, "division by zero");
 
     rem->reserve(dusize);
-    auto rp = rem->data();
+    auto *rp = rem->data();
 
     // num < div
     if (qssize <= 0) {
@@ -32888,21 +32916,21 @@ void __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
     using pointer = uint64_t *;
 
     quot->reserve(qssize);
-    auto qp = quot->data();
+    auto *qp = quot->data();
 
-    auto np = (pointer)num->data();
-    auto dp = (pointer)div->data();
+    auto *np = const_cast<pointer>(num->data());
+    auto *dp = const_cast<pointer>(div->data());
 
     unique_stack_allocator stkal(math_detail::stack_alloc);
 
     if (dp == rp || dp == qp) {
-        auto tp = (pointer)stkal.allocate(dusize * sizeof(uint64_t));
+        auto *tp = (pointer)stkal.allocate(dusize * sizeof(uint64_t));
         std::copy_n(dp, dusize, tp);
         dp = tp;
     }
 
     if (np == rp || np == qp) {
-        auto tp = (pointer)stkal.allocate(nusize * sizeof(uint64_t));
+        auto *tp = (pointer)stkal.allocate(nusize * sizeof(uint64_t));
         std::copy_n(np, nusize, tp);
         np = tp;
     }
@@ -34190,7 +34218,7 @@ swap(wjr::basic_biginteger<Storage> &lhs,
  * @file bplus_tree.hpp
  * @brief B+ tree implementation.
  *
- * @detail The multiset/multimap/set/map adapter has not been implemented yet. The
+ * @details The multiset/multimap/set/map adapter has not been implemented yet. The
  * node_size should be set to 16 by default, and optimization has been made for queries
  * less than or equal to 16. \n
  * After improvement, the number of queries for the i-th query is
@@ -34224,7 +34252,7 @@ namespace wjr {
  * @class container_fn<Alloc>
  * @brief The same characteristics and behavior of all allocator containers
  *
- * @detail container must have the following member functions:
+ * @details container must have the following member functions:
  * -# auto& __get_allocator() noexcept
  * -# void __destroy() noexcept
  * -# void __destroy_and_deallocate() noexcept
@@ -36314,7 +36342,7 @@ public:
     /**
      * @brief read tokens
      *
-     * @detail Read at least token_buf_size tokens from the input.
+     * @details Read at least token_buf_size tokens from the input.
      * token_buf' size must be at least token_buf_size * 2 - 1.
      *
      * @return return the number of tokens read.

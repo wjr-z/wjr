@@ -255,7 +255,7 @@ public:
     constexpr static bool is_contiguous_v = is_contiguous_iterator_v<iterator>;
 
     /**
-     * @detail Trivially contiguous means that the container can be resized and then
+     * @details Trivially contiguous means that the container can be resized and then
      * filled, and the result should be consistent with the element by element push_back
      * result. It does not verify whether the element is trial. Because different
      * containers may have different ways of constructing elements. The main purpose is

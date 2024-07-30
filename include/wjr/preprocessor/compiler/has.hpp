@@ -7,7 +7,7 @@
 #include <wjr/preprocessor/logical/basic.hpp>
 
 /**
- * @detail
+ * @details
  * 0 : non-defined  \n
  * 1 : builtin  \n
  * 2 : intrinsic    \n

@@ -5,7 +5,7 @@
  * @file bplus_tree.hpp
  * @brief B+ tree implementation.
  *
- * @detail The multiset/multimap/set/map adapter has not been implemented yet. The
+ * @details The multiset/multimap/set/map adapter has not been implemented yet. The
  * node_size should be set to 16 by default, and optimization has been made for queries
  * less than or equal to 16. \n
  * After improvement, the number of queries for the i-th query is

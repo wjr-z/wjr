@@ -552,8 +552,6 @@ void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n
         (void)subc_1(dst, dst, qn, 1);
         cf -= addc_n(rem, rem, div, m);
     }
-
-    return;
 }
 
 } // namespace wjr

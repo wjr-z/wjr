@@ -51,7 +51,7 @@ public:
     /**
      * @brief read tokens
      *
-     * @detail Read at least token_buf_size tokens from the input.
+     * @details Read at least token_buf_size tokens from the input.
      * token_buf' size must be at least token_buf_size * 2 - 1.
      *
      * @return return the number of tokens read.

@@ -46,7 +46,7 @@ struct __is_fast_convert_iterator : __is_fast_convert_iterator_helper<Iter> {};
 /**
  * @brief Iterator concept that can be used in fast_convert.
  *
- * @detail The iterator must be contiguous iterator and the value_type must be
+ * @details The iterator must be contiguous iterator and the value_type must be
  * trivial and sizeof(value_type) == 1. Cast to_address(iter) to uint8_t*(to_chars)/const
  * uint8_t*(from_chars) in fast_convert.
  *
@@ -948,7 +948,7 @@ Iter __to_chars_backward_unchecked_impl(Iter first, Value val, IBase ibase,
  * @brief Convert an unsigned integer to a string in reverse order without checking
  * buf size.
  *
- * @detail Only use fast_convert mode.
+ * @details Only use fast_convert mode.
  *
  */
 template <typename Iter, typename Value, unsigned int IBase = 10,
@@ -1447,7 +1447,7 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, IBase base,
 /**
  * @brief Convert an unsigned integer to a string without checking buf size.
  *
- * @detail Iter can be any output iterator. Support fast_convert mode and fallback mode.
+ * @details Iter can be any output iterator. Support fast_convert mode and fallback mode.
  * \n fast_convert mode : \n fast_convert mode is used when
  * __is_fast_convert_iterator_v<Iter> is true. \n caclulate the number of digits and
  * convert the integer to a string in reverse order. \n fallback mode : \n use buffer to

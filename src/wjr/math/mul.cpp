@@ -6,7 +6,7 @@
 namespace wjr {
 
 /**
- * @detail \n
+ * @details \n
  * l = max(ceil(n/3), ceil(m/2)) \n
  * stk usage : l * 4
  *
@@ -46,7 +46,7 @@ void toom4_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
                safe_pointer<uint64_t> stk) noexcept;
 
 /**
- * @detail \n
+ * @details \n
  * l = max(ceil(n/6), ceil(m/3)) \n
  * stk usage : l * 10 \n
  *
@@ -2220,7 +2220,7 @@ toom_eval_opposite_half_exp(toom_eval_opposite_exp_args &args) noexcept {
 }
 
 /**
- * @detail \n
+ * @details \n
  * A is postive, B's sign is `sign' \n
  * abs(A) >= abs(B) \n
  * A -> (A - B) / (2^sA) \n
@@ -2246,7 +2246,7 @@ toom_eval_opposite_half_exp(toom_eval_opposite_exp_args &args) noexcept {
     } while (0)
 
 /**
- * @detail \n
+ * @details \n
  * A is postive, B's sign is `sign' \n
  * abs(A) >= abs(B) \n
  * A -> (A - B) / 2 \n

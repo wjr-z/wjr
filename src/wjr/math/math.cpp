@@ -342,19 +342,19 @@ precompute_chars_convert_t *precompute_chars_convert(precompute_chars_convert_t 
         shift <<= 1;
         digits_in_base <<= 1;
 
-        int c = table_mem[0] == 0;
-        table_mem += c;
-        digits -= c;
-        shift += c;
+        auto is_zero = static_cast<int>(table_mem[0] == 0);
+        table_mem += is_zero;
+        digits -= is_zero;
+        shift += is_zero;
 
         if (WJR_UNLIKELY(table_mem[digits - 1] == 0)) {
             table_mem[digits - 1] = mul_1(table_mem, table_mem, digits - 1, big_base);
             digits_in_base += digits_in_one_base;
 
-            c = table_mem[0] == 0;
-            table_mem += c;
-            digits -= c;
-            shift += c;
+            is_zero = table_mem[0] == 0;
+            table_mem += is_zero;
+            digits -= is_zero;
+            shift += is_zero;
         }
 
         ++pre;

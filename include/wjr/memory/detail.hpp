@@ -20,7 +20,7 @@ constexpr T *to_address(T *p) noexcept {
 }
 
 /**
- * @detail If std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p) is valid, return
+ * @details If std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p) is valid, return
  * std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p), otherwise return
  * to_address(p.operator->()).
  */

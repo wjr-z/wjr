@@ -392,7 +392,7 @@ public:
     /**
      * @brief Construct a span from a container.
      *
-     * @detail The container must have a `data()` member function that returns a @ref
+     * @details The container must have a `data()` member function that returns a @ref
      * __is_span_iterator. The container must also have a `size()` member function that
      * can be converted to `size_type`.
      *
@@ -404,7 +404,7 @@ public:
     /**
      * @brief Construct a span from a container.
      *
-     * @detail Like @ref span(Container &&), but the span is not dynamic-sized, so the
+     * @details Like @ref span(Container &&), but the span is not dynamic-sized, so the
      * construct must be explicit.
      *
      */
