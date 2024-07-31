@@ -2397,35 +2397,27 @@ inline constexpr broadcast_fn<From, To> broadcast{};
 
 template <>
 struct broadcast_fn<uint8_t, uint8_t> {
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint8_t operator()(uint8_t x) const noexcept {
-        return x;
-    }
+    WJR_CONST constexpr uint8_t operator()(uint8_t x) const noexcept { return x; }
 };
 
 template <>
 struct broadcast_fn<uint16_t, uint16_t> {
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint16_t operator()(uint16_t x) const noexcept {
-        return x;
-    }
+    WJR_CONST constexpr uint16_t operator()(uint16_t x) const noexcept { return x; }
 };
 
 template <>
 struct broadcast_fn<uint32_t, uint32_t> {
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint32_t operator()(uint32_t x) const noexcept {
-        return x;
-    }
+    WJR_CONST constexpr uint32_t operator()(uint32_t x) const noexcept { return x; }
 };
 
 template <>
 struct broadcast_fn<uint64_t, uint64_t> {
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint64_t x) const noexcept {
-        return x;
-    }
+    WJR_CONST constexpr uint64_t operator()(uint64_t x) const noexcept { return x; }
 };
 
 template <>
 struct broadcast_fn<uint8_t, uint16_t> {
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint16_t operator()(uint8_t x) const noexcept {
+    WJR_CONST constexpr uint16_t operator()(uint8_t x) const noexcept {
         return static_cast<uint16_t>(static_cast<uint32_t>(x) |
                                      (static_cast<uint16_t>(x) << 8));
     }
@@ -2433,35 +2425,35 @@ struct broadcast_fn<uint8_t, uint16_t> {
 
 template <>
 struct broadcast_fn<uint16_t, uint32_t> {
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint32_t operator()(uint16_t x) const noexcept {
+    WJR_CONST constexpr uint32_t operator()(uint16_t x) const noexcept {
         return x | (static_cast<uint32_t>(x) << 16);
     }
 };
 
 template <>
 struct broadcast_fn<uint32_t, uint64_t> {
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint32_t x) const noexcept {
+    WJR_CONST constexpr uint64_t operator()(uint32_t x) const noexcept {
         return static_cast<uint64_t>(x) | (static_cast<uint64_t>(x) << 32);
     }
 };
 
 template <>
 struct broadcast_fn<uint8_t, uint32_t> {
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint32_t operator()(uint8_t x) const noexcept {
+    WJR_CONST constexpr uint32_t operator()(uint8_t x) const noexcept {
         return x * static_cast<uint32_t>(0x01010101u);
     }
 };
 
 template <>
 struct broadcast_fn<uint16_t, uint64_t> {
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint16_t x) const noexcept {
+    WJR_CONST constexpr uint64_t operator()(uint16_t x) const noexcept {
         return x * static_cast<uint64_t>(0x0001000100010001ull);
     }
 };
 
 template <>
 struct broadcast_fn<uint8_t, uint64_t> {
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint8_t x) const noexcept {
+    WJR_CONST constexpr uint64_t operator()(uint8_t x) const noexcept {
         return x * static_cast<uint64_t>(0x0101010101010101ull);
     }
 };
@@ -3587,7 +3579,20 @@ WJR_NODISCARD auto allocate_at_least(Allocator &alloc, SizeType count) {
 #ifndef WJR_X86_SIMD_SIMD_CAST_HPP__
 #define WJR_X86_SIMD_SIMD_CAST_HPP__
 
-// Already included
+#ifndef WJR_SIMD_SIMD_CAST_HPP__
+#define WJR_SIMD_SIMD_CAST_HPP__
+
+namespace wjr {
+
+template <typename From, typename To>
+struct simd_cast_fn;
+
+template <typename From, typename To>
+inline constexpr simd_cast_fn<From, To> simd_cast;
+
+} // namespace wjr
+
+#endif // WJR_SIMD_SIMD_CAST_HPP__
 #ifndef WJR_X86_SIMD_INTRIN_HPP__
 #define WJR_X86_SIMD_INTRIN_HPP__
 
@@ -3604,12 +3609,6 @@ WJR_NODISCARD auto allocate_at_least(Allocator &alloc, SizeType count) {
 #endif // WJR_X86_SIMD_INTRIN_HPP__
 
 namespace wjr {
-
-template <typename From, typename To>
-struct simd_cast_fn;
-
-template <typename From, typename To>
-inline constexpr simd_cast_fn<From, To> simd_cast;
 
 // simd type can't be directly used on template
 template <typename T>
@@ -3640,112 +3639,156 @@ struct __m128d_t {
 
 template <>
 struct simd_cast_fn<__m128_t, __m128i_t> {
-    __m128i operator()(__m128 v) const { return _mm_castps_si128(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(__m128 v) const {
+        return _mm_castps_si128(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m128_t, __m128d_t> {
-    __m128d operator()(__m128 v) const { return _mm_castps_pd(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128d operator()(__m128 v) const {
+        return _mm_castps_pd(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m128i_t, __m128_t> {
-    __m128 operator()(__m128i v) const { return _mm_castsi128_ps(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128 operator()(__m128i v) const {
+        return _mm_castsi128_ps(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m128i_t, __m128d_t> {
-    __m128d operator()(__m128i v) const { return _mm_castsi128_pd(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128d operator()(__m128i v) const {
+        return _mm_castsi128_pd(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m128d_t, __m128_t> {
-    __m128 operator()(__m128d v) const { return _mm_castpd_ps(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128 operator()(__m128d v) const {
+        return _mm_castpd_ps(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m128d_t, __m128i_t> {
-    __m128i operator()(__m128d v) const { return _mm_castpd_si128(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(__m128d v) const {
+        return _mm_castpd_si128(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<int8_t, __m128i_t> {
-    __m128i operator()(int8_t v) const { return _mm_cvtsi32_si128(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(int8_t v) const {
+        return _mm_cvtsi32_si128(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<uint8_t, __m128i_t> {
-    __m128i operator()(uint8_t v) const { return _mm_cvtsi32_si128(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(uint8_t v) const {
+        return _mm_cvtsi32_si128(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m128i_t, int8_t> {
-    int8_t operator()(__m128i v) const { return _mm_cvtsi128_si32(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE int8_t operator()(__m128i v) const {
+        return _mm_cvtsi128_si32(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m128i_t, uint8_t> {
-    uint8_t operator()(__m128i v) const { return _mm_cvtsi128_si32(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE uint8_t operator()(__m128i v) const {
+        return _mm_cvtsi128_si32(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<int16_t, __m128i_t> {
-    __m128i operator()(int16_t v) const { return _mm_cvtsi32_si128(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(int16_t v) const {
+        return _mm_cvtsi32_si128(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<uint16_t, __m128i_t> {
-    __m128i operator()(uint16_t v) const { return _mm_cvtsi32_si128(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(uint16_t v) const {
+        return _mm_cvtsi32_si128(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m128i_t, int16_t> {
-    int16_t operator()(__m128i v) const { return _mm_cvtsi128_si32(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE int16_t operator()(__m128i v) const {
+        return _mm_cvtsi128_si32(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m128i_t, uint16_t> {
-    uint16_t operator()(__m128i v) const { return _mm_cvtsi128_si32(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE uint16_t operator()(__m128i v) const {
+        return _mm_cvtsi128_si32(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<int32_t, __m128i_t> {
-    __m128i operator()(int32_t v) const { return _mm_cvtsi32_si128(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(int32_t v) const {
+        return _mm_cvtsi32_si128(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<uint32_t, __m128i_t> {
-    __m128i operator()(uint32_t v) const { return _mm_cvtsi32_si128(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(uint32_t v) const {
+        return _mm_cvtsi32_si128(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m128i_t, int32_t> {
-    int32_t operator()(__m128i v) const { return _mm_cvtsi128_si32(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE int32_t operator()(__m128i v) const {
+        return _mm_cvtsi128_si32(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m128i_t, uint32_t> {
-    uint32_t operator()(__m128i v) const { return _mm_cvtsi128_si32(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE uint32_t operator()(__m128i v) const {
+        return _mm_cvtsi128_si32(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<int64_t, __m128i_t> {
-    __m128i operator()(int64_t v) const { return _mm_cvtsi64_si128(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(int64_t v) const {
+        return _mm_cvtsi64_si128(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<uint64_t, __m128i_t> {
-    __m128i operator()(uint64_t v) const { return _mm_cvtsi64_si128(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(uint64_t v) const {
+        return _mm_cvtsi64_si128(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m128i_t, int64_t> {
-    int64_t operator()(__m128i v) const { return _mm_cvtsi128_si64(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE int64_t operator()(__m128i v) const {
+        return _mm_cvtsi128_si64(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m128i_t, uint64_t> {
-    uint64_t operator()(__m128i v) const { return _mm_cvtsi128_si64(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE uint64_t operator()(__m128i v) const {
+        return _mm_cvtsi128_si64(v);
+    }
 };
 
 #endif // SSE2
@@ -3766,152 +3809,168 @@ struct __m256d_t {
 
 template <>
 struct simd_cast_fn<__m256_t, __m256i_t> {
-    __m256i operator()(__m256 v) const { return _mm256_castps_si256(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(__m256 v) const {
+        return _mm256_castps_si256(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m256_t, __m256d_t> {
-    __m256d operator()(__m256 v) const { return _mm256_castps_pd(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m256d operator()(__m256 v) const {
+        return _mm256_castps_pd(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m256i_t, __m256_t> {
-    __m256 operator()(__m256i v) const { return _mm256_castsi256_ps(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m256 operator()(__m256i v) const {
+        return _mm256_castsi256_ps(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m256i_t, __m256d_t> {
-    __m256d operator()(__m256i v) const { return _mm256_castsi256_pd(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m256d operator()(__m256i v) const {
+        return _mm256_castsi256_pd(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m256d_t, __m256_t> {
-    __m256 operator()(__m256d v) const { return _mm256_castpd_ps(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m256 operator()(__m256d v) const {
+        return _mm256_castpd_ps(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m256d_t, __m256i_t> {
-    __m256i operator()(__m256d v) const { return _mm256_castpd_si256(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(__m256d v) const {
+        return _mm256_castpd_si256(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m128i_t, __m256i_t> {
-    __m256i operator()(__m128i v) const { return _mm256_castsi128_si256(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(__m128i v) const {
+        return _mm256_castsi128_si256(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<__m256i_t, __m128i_t> {
-    __m128i operator()(__m256i v) const { return _mm256_castsi256_si128(v); }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(__m256i v) const {
+        return _mm256_castsi256_si128(v);
+    }
 };
 
 template <>
 struct simd_cast_fn<int8_t, __m256i_t> {
-    __m256i operator()(int8_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(int8_t v) const {
         return simd_cast<__m128i_t, __m256i_t>(simd_cast<uint32_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<uint8_t, __m256i_t> {
-    __m256i operator()(uint8_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint8_t v) const {
         return simd_cast<__m128i_t, __m256i_t>(simd_cast<uint32_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<__m256i_t, int8_t> {
-    int8_t operator()(__m256i v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE int8_t operator()(__m256i v) const {
         return simd_cast<__m128i_t, uint32_t>(simd_cast<__m256i_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<__m256i_t, uint8_t> {
-    uint8_t operator()(__m256i v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE uint8_t operator()(__m256i v) const {
         return simd_cast<__m128i_t, uint32_t>(simd_cast<__m256i_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<int16_t, __m256i_t> {
-    __m256i operator()(int16_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(int16_t v) const {
         return simd_cast<__m128i_t, __m256i_t>(simd_cast<uint32_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<uint16_t, __m256i_t> {
-    __m256i operator()(uint16_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint16_t v) const {
         return simd_cast<__m128i_t, __m256i_t>(simd_cast<uint32_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<__m256i_t, int16_t> {
-    int16_t operator()(__m256i v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE int16_t operator()(__m256i v) const {
         return simd_cast<__m128i_t, uint32_t>(simd_cast<__m256i_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<__m256i_t, uint16_t> {
-    uint16_t operator()(__m256i v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE uint16_t operator()(__m256i v) const {
         return simd_cast<__m128i_t, uint32_t>(simd_cast<__m256i_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<int32_t, __m256i_t> {
-    __m256i operator()(int32_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(int32_t v) const {
         return simd_cast<__m128i_t, __m256i_t>(simd_cast<uint32_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<uint32_t, __m256i_t> {
-    __m256i operator()(uint32_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint32_t v) const {
         return simd_cast<__m128i_t, __m256i_t>(simd_cast<uint32_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<__m256i_t, int32_t> {
-    int32_t operator()(__m256i v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE int32_t operator()(__m256i v) const {
         return simd_cast<__m128i_t, uint32_t>(simd_cast<__m256i_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<__m256i_t, uint32_t> {
-    uint32_t operator()(__m256i v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE uint32_t operator()(__m256i v) const {
         return simd_cast<__m128i_t, uint32_t>(simd_cast<__m256i_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<int64_t, __m256i_t> {
-    __m256i operator()(int64_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(int64_t v) const {
         return simd_cast<__m128i_t, __m256i_t>(simd_cast<uint64_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<uint64_t, __m256i_t> {
-    __m256i operator()(uint64_t v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint64_t v) const {
         return simd_cast<__m128i_t, __m256i_t>(simd_cast<uint64_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<__m256i_t, int64_t> {
-    int64_t operator()(__m256i v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE int64_t operator()(__m256i v) const {
         return simd_cast<__m128i_t, uint64_t>(simd_cast<__m256i_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<__m256i_t, uint64_t> {
-    uint64_t operator()(__m256i v) const {
+    WJR_CONST WJR_INTRINSIC_INLINE uint64_t operator()(__m256i v) const {
         return simd_cast<__m128i_t, uint64_t>(simd_cast<__m256i_t, __m128i_t>(v));
     }
 };
@@ -3949,7 +4008,6 @@ struct sse {
 #endif // SSE2
 
     constexpr static size_t width();
-
     constexpr static mask_type mask();
 
 #if WJR_HAS_SIMD(SSE)
@@ -4646,7 +4704,6 @@ struct avx {
 #endif // AVX
 
     constexpr static size_t width();
-
     constexpr static mask_type mask();
 
 #if WJR_HAS_SIMD(AVX)
@@ -7591,6 +7648,108 @@ __m256i avx::unpacklo(__m256i a, __m256i b, uint16_t) { return unpacklo_epi16(a,
 __m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) { return unpacklo_epi32(a, b); }
 
 #endif
+
+#define WJR_REGISTER_NORMAL_SIMD_FUNCTION(N, UNROLL2, UNROLL4, IS_UNROLL_8, ADVANCE,     \
+                                          INIT, RET)                                     \
+    if (WJR_UNLIKELY(N <= 16)) {                                                         \
+        if (WJR_UNLIKELY(N <= 4)) {                                                      \
+            UNROLL2(N - 2);                                                              \
+            return RET(N);                                                               \
+        }                                                                                \
+                                                                                         \
+        UNROLL2(2);                                                                      \
+                                                                                         \
+        if (WJR_LIKELY(N > 8)) {                                                         \
+            UNROLL4(4);                                                                  \
+                                                                                         \
+            if (N > 12) {                                                                \
+                UNROLL4(8);                                                              \
+            }                                                                            \
+        }                                                                                \
+                                                                                         \
+        UNROLL4(N - 4);                                                                  \
+        return RET(N);                                                                   \
+    }                                                                                    \
+                                                                                         \
+    N -= 3;                                                                              \
+    const size_t __rem = N & 7;                                                          \
+    N &= ~7;                                                                             \
+                                                                                         \
+    if (WJR_LIKELY(__rem >= 2)) {                                                        \
+        UNROLL4(2);                                                                      \
+        UNROLL4(__rem - 1);                                                              \
+    } else {                                                                             \
+        UNROLL2(__rem + 1);                                                              \
+    }                                                                                    \
+                                                                                         \
+    INIT;                                                                                \
+    WJR_PP_BOOL_IF(                                                                      \
+        IS_UNROLL_8,                                                                     \
+        if (N & 8) {                                                                     \
+            UNROLL4(__rem + 3);                                                          \
+            UNROLL4(__rem + 7);                                                          \
+                                                                                         \
+            if (WJR_UNLIKELY(N == 8)) {                                                  \
+                return RET(N + __rem + 3);                                               \
+            }                                                                            \
+                                                                                         \
+            ADVANCE(__rem + 11);                                                         \
+            N -= 8;                                                                      \
+        } else {, ) \
+            ADVANCE(__rem + 3);                                                          \
+    WJR_PP_BOOL_IF(IS_UNROLL_8,                                                          \
+        }, )
+
+#define WJR_REGISTER_NORMAL_REVERSE_SIMD_FUNCTION(N, UNROLL2, UNROLL4, IS_UNROLL_8,      \
+                                                  ADVANCE, INIT, RET)                    \
+    if (WJR_UNLIKELY(N <= 16)) {                                                         \
+        if (WJR_UNLIKELY(N <= 4)) {                                                      \
+            UNROLL2(0);                                                                  \
+            return RET(0);                                                               \
+        }                                                                                \
+                                                                                         \
+        UNROLL2(N - 4);                                                                  \
+                                                                                         \
+        if (WJR_LIKELY(N > 8)) {                                                         \
+            UNROLL4(N - 8);                                                              \
+                                                                                         \
+            if (N > 12) {                                                                \
+                UNROLL4(N - 12);                                                         \
+            }                                                                            \
+        }                                                                                \
+                                                                                         \
+        UNROLL4(0);                                                                      \
+        return RET(0);                                                                   \
+    }                                                                                    \
+                                                                                         \
+    N -= 3;                                                                              \
+    const size_t __rem = N & 7;                                                          \
+    N &= ~7;                                                                             \
+                                                                                         \
+    if (WJR_LIKELY(__rem >= 2)) {                                                        \
+        UNROLL4(N + __rem - 3);                                                          \
+        UNROLL4(N);                                                                      \
+    } else {                                                                             \
+        UNROLL2(N);                                                                      \
+    }                                                                                    \
+                                                                                         \
+    INIT;                                                                                \
+    WJR_PP_BOOL_IF(                                                                      \
+        IS_UNROLL_8,                                                                     \
+        if (N & 8) {                                                                     \
+            UNROLL4(N - 4);                                                              \
+            UNROLL4(N - 8);                                                              \
+                                                                                         \
+            if (WJR_UNLIKELY(N == 8)) {                                                  \
+                return RET(0);                                                           \
+            }                                                                            \
+                                                                                         \
+            ADVANCE(N - 8);                                                              \
+            N -= 8;                                                                      \
+        } else {, ) \
+            ADVANCE(N);                                                                  \
+    WJR_PP_BOOL_IF(IS_UNROLL_8,                                                          \
+        }, )
 
 } // namespace wjr
 
@@ -17104,144 +17263,121 @@ namespace wjr {
 template <typename T>
 WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1,
                                                   size_t n) noexcept {
-#define WJR_REGISTER_FIND_NOT_N_AVX(index)                                               \
+#define WJR_REGISTER_FIND_NOT_N_2(index)                                                 \
     do {                                                                                 \
-        auto x = avx::loadu(src0 + (index));                                             \
-        auto y = avx::loadu(src1 + (index));                                             \
-        auto r = avx::cmpeq_epi64(x, y);                                                 \
+        const auto x = sse::loadu(src0 + (index));                                       \
+        const auto y = sse::loadu(src1 + (index));                                       \
+        const auto r = sse::cmpeq_epi64(x, y);                                           \
                                                                                          \
-        avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
-        if (WJR_LIKELY(mask != 0)) {                                                     \
-            return (index) + ctz(mask) / 8;                                              \
+        const sse::mask_type mask = ~sse::movemask_epi8(r);                              \
+        if (WJR_UNLIKELY(mask != 0)) {                                                   \
+            return (index) + (mask == 0xFF00);                                           \
         }                                                                                \
     } while (0)
 
-    size_t rem = n & 7;
-
-    if (rem > 4) {
-#if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu(src0 + (rem - 4));
-        auto x1 = sse::loadu(src0 + (rem - 2));
-        auto y0 = sse::loadu(src1 + (rem - 4));
-        auto y1 = sse::loadu(src1 + (rem - 2));
-
-        auto r0 = sse::cmpeq_epi64(x0, y0);
-        auto r1 = sse::cmpeq_epi64(x1, y1);
-
-        if (WJR_LIKELY(!sse::test_all_ones(sse::And(r0, r1)))) {
-            sse::mask_type mask = ~sse::movemask_epi8(r0);
-            if (mask != 0) {
-                return rem - 4 + ctz(mask) / 8;
-            }
-
-            mask = ~sse::movemask_epi8(r1);
-            return rem - 2 + ctz(mask) / 8;
-        }
+#if WJR_HAS_SIMD(AVX2)
+#define WJR_REGISTER_FIND_NOT_N_4(index)                                                 \
+    do {                                                                                 \
+        const auto x = avx::loadu(src0 + (index));                                       \
+        const auto y = avx::loadu(src1 + (index));                                       \
+        const auto r = avx::cmpeq_epi64(x, y);                                           \
+                                                                                         \
+        const avx::mask_type mask = ~avx::movemask_epi8(r);                              \
+        if (WJR_UNLIKELY(mask != 0)) {                                                   \
+            return (index) + ctz(mask) / 8;                                              \
+        }                                                                                \
+    } while (0)
 #else
-        WJR_REGISTER_FIND_NOT_N_AVX(rem - 4);
+#define WJR_REGISTER_FIND_NOT_N_4(index)                                                 \
+    WJR_REGISTER_FIND_NOT_N_2(index);                                                    \
+    WJR_REGISTER_FIND_NOT_N_2((index) + 2)
 #endif
-    }
 
-    if (WJR_UNLIKELY(rem == n)) {
-        return n;
-    }
+#define WJR_REGISTER_FIND_NOT_N_ADVNCE(index)                                            \
+    src0 += index;                                                                       \
+    src1 += index
+
+#define WJR_REGISTER_FIND_NOT_N_RET(index) index
+
+    WJR_REGISTER_NORMAL_SIMD_FUNCTION(
+        n, WJR_REGISTER_FIND_NOT_N_2, WJR_REGISTER_FIND_NOT_N_4, WJR_HAS_SIMD(AVX2),
+        WJR_REGISTER_FIND_NOT_N_ADVNCE, const auto __src0 = src0,
+        WJR_REGISTER_FIND_NOT_N_RET);
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu(src0 + rem);
-        auto x1 = sse::loadu(src0 + rem + 2);
-        auto x2 = sse::loadu(src0 + rem + 4);
-        auto x3 = sse::loadu(src0 + rem + 6);
-        auto y0 = sse::loadu(src1 + rem);
-        auto y1 = sse::loadu(src1 + rem + 2);
-        auto y2 = sse::loadu(src1 + rem + 4);
-        auto y3 = sse::loadu(src1 + rem + 6);
+        const auto r0 = sse::cmpeq_epi64(sse::loadu(src0), sse::loadu(src1));
+        const auto r1 = sse::cmpeq_epi64(sse::loadu(src0 + 2), sse::loadu(src1 + 2));
+        const auto r2 = sse::cmpeq_epi64(sse::loadu(src0 + 4), sse::loadu(src1 + 4));
+        const auto r3 = sse::cmpeq_epi64(sse::loadu(src0 + 6), sse::loadu(src1 + 6));
 
-        auto r0 = sse::cmpeq_epi64(x0, y0);
-        auto r1 = sse::cmpeq_epi64(x1, y1);
-        auto r2 = sse::cmpeq_epi64(x2, y2);
-        auto r3 = sse::cmpeq_epi64(x3, y3);
-
-        auto z = sse::And(sse::And(r0, r1), sse::And(r2, r3));
+        const auto z = sse::And(sse::And(r0, r1), sse::And(r2, r3));
 
         if (WJR_UNLIKELY(!sse::test_all_ones(z))) {
             sse::mask_type mask = ~sse::movemask_epi8(r0);
             if (mask != 0) {
-                return rem + ctz(mask) / 8;
+                return (src0 - __src0) + ctz(mask) / 8;
             }
 
             mask = ~sse::movemask_epi8(r1);
             if (mask != 0) {
-                return rem + 2 + ctz(mask) / 8;
+                return (src0 - __src0) + 2 + ctz(mask) / 8;
             }
 
             mask = ~sse::movemask_epi8(r2);
             if (mask != 0) {
-                return rem + 4 + ctz(mask) / 8;
+                return (src0 - __src0) + 4 + ctz(mask) / 8;
             }
 
             mask = ~sse::movemask_epi8(r3);
-            return rem + 6 + ctz(mask) / 8;
+            return (src0 - __src0) + 6 + ctz(mask) / 8;
         }
 
-        rem += 8;
-    } while (WJR_LIKELY(rem != n));
+        src0 += 8;
+        src1 += 8;
+        n -= 8;
+    } while (WJR_LIKELY(n != 0));
 #else
-    if ((n - rem) & 8) {
-        WJR_REGISTER_FIND_NOT_N_AVX(rem);
-        WJR_REGISTER_FIND_NOT_N_AVX(rem + 4);
-
-        rem += 8;
-
-        if (WJR_UNLIKELY(rem == n)) {
-            return n;
-        }
-    }
-
     do {
-        auto x0 = avx::loadu(src0 + rem);
-        auto x1 = avx::loadu(src0 + rem + 4);
-        auto x2 = avx::loadu(src0 + rem + 8);
-        auto x3 = avx::loadu(src0 + rem + 12);
-        auto y0 = avx::loadu(src1 + rem);
-        auto y1 = avx::loadu(src1 + rem + 4);
-        auto y2 = avx::loadu(src1 + rem + 8);
-        auto y3 = avx::loadu(src1 + rem + 12);
+        const auto r0 = avx::cmpeq_epi64(avx::loadu(src0), avx::loadu(src1));
+        const auto r1 = avx::cmpeq_epi64(avx::loadu(src0 + 4), avx::loadu(src1 + 4));
+        const auto r2 = avx::cmpeq_epi64(avx::loadu(src0 + 8), avx::loadu(src1 + 8));
+        const auto r3 = avx::cmpeq_epi64(avx::loadu(src0 + 12), avx::loadu(src1 + 12));
 
-        auto r0 = avx::cmpeq_epi64(x0, y0);
-        auto r1 = avx::cmpeq_epi64(x1, y1);
-        auto r2 = avx::cmpeq_epi64(x2, y2);
-        auto r3 = avx::cmpeq_epi64(x3, y3);
-
-        auto z = avx::And(avx::And(r0, r1), avx::And(r2, r3));
+        const auto z = avx::And(avx::And(r0, r1), avx::And(r2, r3));
 
         if (WJR_UNLIKELY(!avx::test_all_ones(z))) {
             avx::mask_type mask = ~avx::movemask_epi8(r0);
             if (mask != 0) {
-                return rem + ctz(mask) / 8;
+                return (src0 - __src0) + ctz(mask) / 8;
             }
 
             mask = ~avx::movemask_epi8(r1);
             if (mask != 0) {
-                return rem + 4 + ctz(mask) / 8;
+                return (src0 - __src0) + 4 + ctz(mask) / 8;
             }
 
             mask = ~avx::movemask_epi8(r2);
             if (mask != 0) {
-                return rem + 8 + ctz(mask) / 8;
+                return (src0 - __src0) + 8 + ctz(mask) / 8;
             }
 
             mask = ~avx::movemask_epi8(r3);
-            return rem + 12 + ctz(mask) / 8;
+            return (src0 - __src0) + 12 + ctz(mask) / 8;
         }
 
-        rem += 16;
-    } while (WJR_LIKELY(rem != n));
+        src0 += 16;
+        src1 += 16;
+        n -= 16;
+    } while (WJR_LIKELY(n != 0));
 #endif
 
-    return n;
+    return src0 - __src0;
 
-#undef WJR_REGISTER_FIND_NOT_N_AVX
+#undef WJR_REGISTER_FIND_NOT_N_RET
+#undef WJR_REGISTER_FIND_NOT_N_ADVNCE
+#undef WJR_REGISTER_FIND_NOT_N_4
+#undef WJR_REGISTER_FIND_NOT_N_2
 }
 
 extern template WJR_PURE WJR_COLD size_t large_builtin_find_not_n<uint64_t>(
@@ -17250,139 +17386,118 @@ extern template WJR_PURE WJR_COLD size_t large_builtin_find_not_n<uint64_t>(
 template <typename T>
 WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src, T val,
                                                   size_t n) noexcept {
-#define WJR_REGISTER_FIND_NOT_N_AVX(index)                                               \
+#define WJR_REGISTER_FIND_NOT_N_2(index)                                                 \
     do {                                                                                 \
-        auto x = avx::loadu(src + (index));                                              \
-        auto r = avx::cmpeq_epi64(x, y);                                                 \
+        const auto r = sse::cmpeq_epi64(sse::loadu(src + (index)), y2);                  \
                                                                                          \
-        auto mask = ~avx::movemask_epi8(r);                                              \
-        if (WJR_LIKELY(mask != 0)) {                                                     \
-            return (index) + ctz(mask) / 8;                                              \
+        const sse::mask_type mask = ~sse::movemask_epi8(r);                              \
+        if (WJR_UNLIKELY(mask != 0)) {                                                   \
+            return (index) + (mask == 0xFF00);                                           \
         }                                                                                \
     } while (0)
 
-#if !WJR_HAS_SIMD(AVX2)
-    auto y = sse::set1(val, T());
+#if WJR_HAS_SIMD(AVX2)
+#define WJR_REGISTER_FIND_NOT_N_4(index)                                                 \
+    do {                                                                                 \
+        const auto r = avx::cmpeq_epi64(avx::loadu(src + (index)), y4);                  \
+                                                                                         \
+        const avx::mask_type mask = ~avx::movemask_epi8(r);                              \
+        if (WJR_UNLIKELY(mask != 0)) {                                                   \
+            return (index) + ctz(mask) / 8;                                              \
+        }                                                                                \
+    } while (0)
 #else
-    auto y = avx::set1(val, T());
+#define WJR_REGISTER_FIND_NOT_N_4(index)                                                 \
+    WJR_REGISTER_FIND_NOT_N_2(index);                                                    \
+    WJR_REGISTER_FIND_NOT_N_2((index) + 2)
 #endif
 
-    size_t rem = n & 7;
+#define WJR_REGISTER_FIND_NOT_N_ADVANCE(index) src += index
 
-    if (rem > 4) {
-#if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu(src + (rem - 4));
-        auto x1 = sse::loadu(src + (rem - 2));
+#define WJR_REGISTER_FIND_NOT_N_RET(index) index
 
-        auto r0 = sse::cmpeq_epi64(x0, y);
-        auto r1 = sse::cmpeq_epi64(x1, y);
-
-        if (WJR_LIKELY(!sse::test_all_ones(sse::And(r0, r1)))) {
-            sse::mask_type mask = ~sse::movemask_epi8(r0);
-            if (mask != 0) {
-                return rem - 4 + ctz(mask) / 8;
-            }
-
-            mask = ~sse::movemask_epi8(r1);
-            return rem - 2 + ctz(mask) / 8;
-        }
-#else
-        WJR_REGISTER_FIND_NOT_N_AVX(rem - 4);
+    const auto y2 = sse::set1(val, T());
+#if WJR_HAS_SIMD(AVX2)
+    const auto y4 = broadcast<__m128i_t, __m256i_t>(y2);
 #endif
-    }
 
-    if (WJR_UNLIKELY(rem == n)) {
-        return n;
-    }
+    WJR_REGISTER_NORMAL_SIMD_FUNCTION(
+        n, WJR_REGISTER_FIND_NOT_N_2, WJR_REGISTER_FIND_NOT_N_4, WJR_HAS_SIMD(AVX2),
+        WJR_REGISTER_FIND_NOT_N_ADVANCE, const auto __src = src,
+        WJR_REGISTER_FIND_NOT_N_RET);
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu(src + rem);
-        auto x1 = sse::loadu(src + rem + 2);
-        auto x2 = sse::loadu(src + rem + 4);
-        auto x3 = sse::loadu(src + rem + 6);
+        const auto r0 = sse::cmpeq_epi64(sse::loadu(src), y2);
+        const auto r1 = sse::cmpeq_epi64(sse::loadu(src + 2), y2);
+        const auto r2 = sse::cmpeq_epi64(sse::loadu(src + 4), y2);
+        const auto r3 = sse::cmpeq_epi64(sse::loadu(src + 6), y2);
 
-        auto r0 = sse::cmpeq_epi64(x0, y);
-        auto r1 = sse::cmpeq_epi64(x1, y);
-        auto r2 = sse::cmpeq_epi64(x2, y);
-        auto r3 = sse::cmpeq_epi64(x3, y);
-
-        auto z = sse::And(sse::And(r0, r1), sse::And(r2, r3));
+        const auto z = sse::And(sse::And(r0, r1), sse::And(r2, r3));
 
         if (WJR_UNLIKELY(!sse::test_all_ones(z))) {
             sse::mask_type mask = ~sse::movemask_epi8(r0);
             if (mask != 0) {
-                return rem + ctz(mask) / 8;
+                return (src - __src) + ctz(mask) / 8;
             }
 
             mask = ~sse::movemask_epi8(r1);
             if (mask != 0) {
-                return rem + 2 + ctz(mask) / 8;
+                return (src - __src) + 2 + ctz(mask) / 8;
             }
 
             mask = ~sse::movemask_epi8(r2);
             if (mask != 0) {
-                return rem + 4 + ctz(mask) / 8;
+                return (src - __src) + 4 + ctz(mask) / 8;
             }
 
             mask = ~sse::movemask_epi8(r3);
-            return rem + 6 + ctz(mask) / 8;
+            return (src - __src) + 6 + ctz(mask) / 8;
         }
 
-        rem += 8;
-    } while (WJR_LIKELY(rem != n));
+        src += 8;
+        n -= 8;
+    } while (WJR_LIKELY(n != 0));
 #else
-    if ((n - rem) & 8) {
-        WJR_REGISTER_FIND_NOT_N_AVX(rem);
-        WJR_REGISTER_FIND_NOT_N_AVX(rem + 4);
-
-        rem += 8;
-
-        if (WJR_UNLIKELY(rem == n)) {
-            return n;
-        }
-    }
-
     do {
-        auto x0 = avx::loadu(src + rem);
-        auto x1 = avx::loadu(src + rem + 4);
-        auto x2 = avx::loadu(src + rem + 8);
-        auto x3 = avx::loadu(src + rem + 12);
+        const auto r0 = avx::cmpeq_epi64(avx::loadu(src), y4);
+        const auto r1 = avx::cmpeq_epi64(avx::loadu(src + 4), y4);
+        const auto r2 = avx::cmpeq_epi64(avx::loadu(src + 8), y4);
+        const auto r3 = avx::cmpeq_epi64(avx::loadu(src + 12), y4);
 
-        auto r0 = avx::cmpeq_epi64(x0, y);
-        auto r1 = avx::cmpeq_epi64(x1, y);
-        auto r2 = avx::cmpeq_epi64(x2, y);
-        auto r3 = avx::cmpeq_epi64(x3, y);
-
-        auto z = avx::And(avx::And(r0, r1), avx::And(r2, r3));
+        const auto z = avx::And(avx::And(r0, r1), avx::And(r2, r3));
 
         if (WJR_UNLIKELY(!avx::test_all_ones(z))) {
             avx::mask_type mask = ~avx::movemask_epi8(r0);
             if (mask != 0) {
-                return rem + ctz(mask) / 8;
+                return (src - __src) + ctz(mask) / 8;
             }
 
             mask = ~avx::movemask_epi8(r1);
             if (mask != 0) {
-                return rem + 4 + ctz(mask) / 8;
+                return (src - __src) + 4 + ctz(mask) / 8;
             }
 
             mask = ~avx::movemask_epi8(r2);
             if (mask != 0) {
-                return rem + 8 + ctz(mask) / 8;
+                return (src - __src) + 8 + ctz(mask) / 8;
             }
 
             mask = ~avx::movemask_epi8(r3);
-            return rem + 12 + ctz(mask) / 8;
+            return (src - __src) + 12 + ctz(mask) / 8;
         }
 
-        rem += 16;
-    } while (WJR_LIKELY(rem != n));
+        src += 16;
+        n -= 16;
+    } while (WJR_LIKELY(n != 0));
 #endif
 
-    return n;
+    return src - __src;
 
-#undef WJR_REGISTER_FIND_NOT_N_AVX
+#undef WJR_REGISTER_FIND_NOT_N_RET
+#undef WJR_REGISTER_FIND_NOT_N_ADVANCE
+#undef WJR_REGISTER_FIND_NOT_N_4
+#undef WJR_REGISTER_FIND_NOT_N_2
 }
 
 extern template WJR_PURE WJR_COLD size_t
@@ -17395,66 +17510,55 @@ large_builtin_find_not_n<uint64_t>(const uint64_t *src, uint64_t val, size_t n) 
 template <typename T>
 WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1,
                                                           size_t n) noexcept {
-#define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
+#define WJR_REGISTER_REVERSE_FIND_NOT_N_2(index)                                         \
     do {                                                                                 \
-        auto x = avx::loadu(src0 - 4 + (index));                                         \
-        auto y = avx::loadu(src1 - 4 + (index));                                         \
-        auto r = avx::cmpeq_epi64(x, y);                                                 \
+        const auto x = sse::loadu(src0 + (index));                                       \
+        const auto y = sse::loadu(src1 + (index));                                       \
+        const auto r = sse::cmpeq_epi64(x, y);                                           \
                                                                                          \
-        avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
-        if (WJR_LIKELY(mask != 0)) {                                                     \
-            return (index)-clz(mask) / 8;                                                \
+        const sse::mask_type mask = ~sse::movemask_epi8(r);                              \
+        if (WJR_UNLIKELY(mask != 0)) {                                                   \
+            return (index) + 2 - (mask == 0x00FF);                                       \
         }                                                                                \
     } while (0)
 
-    const size_t rem = n & 7;
-    n -= rem;
-
-    if (rem > 4) {
-#if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu(src0 + n + 2);
-        auto x1 = sse::loadu(src0 + n);
-        auto y0 = sse::loadu(src1 + n + 2);
-        auto y1 = sse::loadu(src1 + n);
-
-        auto r0 = sse::cmpeq_epi64(x0, y0);
-        auto r1 = sse::cmpeq_epi64(x1, y1);
-
-        if (WJR_LIKELY(!sse::test_all_ones(sse::And(r0, r1)))) {
-            sse::mask_type mask = ~sse::movemask_epi8(r0);
-            if (mask != 0) {
-                return n + 4 - (mask == 0x00FF);
-            }
-
-            mask = ~sse::movemask_epi8(r1);
-            return n + 2 - (mask == 0x00FF);
-        }
+#if WJR_HAS_SIMD(AVX2)
+#define WJR_REGISTER_REVERSE_FIND_NOT_N_4(index)                                         \
+    do {                                                                                 \
+        const auto x = avx::loadu(src0 + (index));                                       \
+        const auto y = avx::loadu(src1 + (index));                                       \
+        const auto r = avx::cmpeq_epi64(x, y);                                           \
+                                                                                         \
+        const avx::mask_type mask = ~avx::movemask_epi8(r);                              \
+        if (WJR_UNLIKELY(mask != 0)) {                                                   \
+            return (index) + 4 - clz(mask) / 8;                                          \
+        }                                                                                \
+    } while (0)
 #else
-        WJR_REGISTER_REVERSE_FIND_N_AVX(n + 4);
+#define WJR_REGISTER_REVERSE_FIND_NOT_N_4(index)                                         \
+    WJR_REGISTER_REVERSE_FIND_NOT_N_2((index) + 2);                                      \
+    WJR_REGISTER_REVERSE_FIND_NOT_N_2(index);
 #endif
-    }
 
-    if (WJR_UNLIKELY(n == 0)) {
-        return 0;
-    }
+#define WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE(index)                                   \
+    src0 += index;                                                                       \
+    src1 += index
+
+#define WJR_REGISTER_REVERSE_FIND_NOT_N_RET(index) 0
+
+    WJR_REGISTER_NORMAL_REVERSE_SIMD_FUNCTION(
+        n, WJR_REGISTER_REVERSE_FIND_NOT_N_2, WJR_REGISTER_REVERSE_FIND_NOT_N_4,
+        WJR_HAS_SIMD(AVX2), WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE, ,
+        WJR_REGISTER_REVERSE_FIND_NOT_N_RET);
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu(src0 + n - 8);
-        auto x1 = sse::loadu(src0 + n - 6);
-        auto x2 = sse::loadu(src0 + n - 4);
-        auto x3 = sse::loadu(src0 + n - 2);
-        auto y0 = sse::loadu(src1 + n - 8);
-        auto y1 = sse::loadu(src1 + n - 6);
-        auto y2 = sse::loadu(src1 + n - 4);
-        auto y3 = sse::loadu(src1 + n - 2);
+        const auto r0 = sse::cmpeq_epi64(sse::loadu(src0 - 8), sse::loadu(src1 - 8));
+        const auto r1 = sse::cmpeq_epi64(sse::loadu(src0 - 6), sse::loadu(src1 - 6));
+        const auto r2 = sse::cmpeq_epi64(sse::loadu(src0 - 4), sse::loadu(src1 - 4));
+        const auto r3 = sse::cmpeq_epi64(sse::loadu(src0 - 2), sse::loadu(src1 - 2));
 
-        auto r0 = sse::cmpeq_epi64(x0, y0);
-        auto r1 = sse::cmpeq_epi64(x1, y1);
-        auto r2 = sse::cmpeq_epi64(x2, y2);
-        auto r3 = sse::cmpeq_epi64(x3, y3);
-
-        auto z = sse::And(sse::And(r0, r1), sse::And(r2, r3));
+        const auto z = sse::And(sse::And(r0, r1), sse::And(r2, r3));
 
         if (WJR_UNLIKELY(!sse::test_all_ones(z))) {
             sse::mask_type mask = ~sse::movemask_epi8(r3);
@@ -17476,36 +17580,18 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T
             return n - 6 - (mask == 0x00FF);
         }
 
+        src0 -= 8;
+        src1 -= 8;
         n -= 8;
     } while (WJR_LIKELY(n != 0));
 #else
-    if ((n & 8) != 0) {
-        WJR_REGISTER_REVERSE_FIND_N_AVX(n);
-        WJR_REGISTER_REVERSE_FIND_N_AVX(n - 4);
-
-        n -= 8;
-
-        if (WJR_UNLIKELY(n == 0)) {
-            return 0;
-        }
-    }
-
     do {
-        auto x0 = avx::loadu(src0 + n - 16);
-        auto x1 = avx::loadu(src0 + n - 12);
-        auto x2 = avx::loadu(src0 + n - 8);
-        auto x3 = avx::loadu(src0 + n - 4);
-        auto y0 = avx::loadu(src1 + n - 16);
-        auto y1 = avx::loadu(src1 + n - 12);
-        auto y2 = avx::loadu(src1 + n - 8);
-        auto y3 = avx::loadu(src1 + n - 4);
+        const auto r0 = avx::cmpeq_epi64(avx::loadu(src0 - 16), avx::loadu(src1 - 16));
+        const auto r1 = avx::cmpeq_epi64(avx::loadu(src0 - 12), avx::loadu(src1 - 12));
+        const auto r2 = avx::cmpeq_epi64(avx::loadu(src0 - 8), avx::loadu(src1 - 8));
+        const auto r3 = avx::cmpeq_epi64(avx::loadu(src0 - 4), avx::loadu(src1 - 4));
 
-        auto r0 = avx::cmpeq_epi64(x0, y0);
-        auto r1 = avx::cmpeq_epi64(x1, y1);
-        auto r2 = avx::cmpeq_epi64(x2, y2);
-        auto r3 = avx::cmpeq_epi64(x3, y3);
-
-        auto z = avx::And(avx::And(r0, r1), avx::And(r2, r3));
+        const auto z = avx::And(avx::And(r0, r1), avx::And(r2, r3));
 
         if (WJR_UNLIKELY(!avx::test_all_ones(z))) {
             avx::mask_type mask = ~avx::movemask_epi8(r3);
@@ -17527,13 +17613,18 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T
             return n - 12 - clz(mask) / 8;
         }
 
+        src0 -= 16;
+        src1 -= 16;
         n -= 16;
     } while (WJR_LIKELY(n != 0));
 #endif
 
     return 0;
 
-#undef WJR_REGISTER_REVERSE_FIND_N_AVX
+#undef WJR_REGISTER_REVERSE_FIND_NOT_N_RET
+#undef WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE
+#undef WJR_REGISTER_REVERSE_FIND_NOT_N_4
+#undef WJR_REGISTER_REVERSE_FIND_NOT_N_2
 }
 
 extern template WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n<uint64_t>(
@@ -17542,65 +17633,56 @@ extern template WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n<uint64
 template <typename T>
 WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val,
                                                           size_t n) noexcept {
-#define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
+#define WJR_REGISTER_REVERSE_FIND_NOT_N_2(index)                                         \
     do {                                                                                 \
-        auto x = avx::loadu(src - 4 + (index));                                          \
-        auto r = avx::cmpeq_epi64(x, y);                                                 \
+        const auto x = sse::loadu(src + (index));                                        \
+        const auto r = sse::cmpeq_epi64(x, y2);                                          \
                                                                                          \
-        avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
-        if (WJR_LIKELY(mask != 0)) {                                                     \
-            return (index)-clz(mask) / 8;                                                \
+        const sse::mask_type mask = ~sse::movemask_epi8(r);                              \
+        if (WJR_UNLIKELY(mask != 0)) {                                                   \
+            return (index) + 2 - (mask == 0x00FF);                                       \
         }                                                                                \
     } while (0)
 
-#if !WJR_HAS_SIMD(AVX2)
-    auto y = sse::set1(val, T());
+#if WJR_HAS_SIMD(AVX2)
+#define WJR_REGISTER_REVERSE_FIND_NOT_N_4(index)                                         \
+    do {                                                                                 \
+        const auto x = avx::loadu(src + (index));                                        \
+        const auto r = avx::cmpeq_epi64(x, y4);                                          \
+                                                                                         \
+        const avx::mask_type mask = ~avx::movemask_epi8(r);                              \
+        if (WJR_UNLIKELY(mask != 0)) {                                                   \
+            return (index) + 4 - clz(mask) / 8;                                          \
+        }                                                                                \
+    } while (0)
 #else
-    auto y = avx::set1(val, T());
+#define WJR_REGISTER_REVERSE_FIND_NOT_N_4(index)                                         \
+    WJR_REGISTER_REVERSE_FIND_NOT_N_2((index) + 2);                                      \
+    WJR_REGISTER_REVERSE_FIND_NOT_N_2(index)
 #endif
 
-    const size_t rem = n & 7;
-    n -= rem;
+#define WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE(index) src += index
 
-    if (rem > 4) {
-#if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu(src + n + 2);
-        auto x1 = sse::loadu(src + n);
+#define WJR_REGISTER_REVERSE_FIND_NOT_N_RET(index) 0
 
-        auto r0 = sse::cmpeq_epi64(x0, y);
-        auto r1 = sse::cmpeq_epi64(x1, y);
-
-        if (WJR_LIKELY(!sse::test_all_ones(sse::And(r0, r1)))) {
-            sse::mask_type mask = ~sse::movemask_epi8(r0);
-            if (mask != 0) {
-                return n + 4 - (mask == 0x00FF);
-            }
-
-            mask = ~sse::movemask_epi8(r1);
-            return n + 2 - (mask == 0x00FF);
-        }
-#else
-        WJR_REGISTER_REVERSE_FIND_N_AVX(n + 4);
+    const auto y2 = sse::set1(val, T());
+#if WJR_HAS_SIMD(AVX2)
+    const auto y4 = broadcast<__m128i_t, __m256i_t>(y2);
 #endif
-    }
 
-    if (WJR_UNLIKELY(n == 0)) {
-        return 0;
-    }
+    WJR_REGISTER_NORMAL_REVERSE_SIMD_FUNCTION(
+        n, WJR_REGISTER_REVERSE_FIND_NOT_N_2, WJR_REGISTER_REVERSE_FIND_NOT_N_4,
+        WJR_HAS_SIMD(AVX2), WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE, ,
+        WJR_REGISTER_REVERSE_FIND_NOT_N_RET);
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu(src + n - 8);
-        auto x1 = sse::loadu(src + n - 6);
-        auto x2 = sse::loadu(src + n - 4);
-        auto x3 = sse::loadu(src + n - 2);
+        const auto r0 = sse::cmpeq_epi64(sse::loadu(src - 8), y2);
+        const auto r1 = sse::cmpeq_epi64(sse::loadu(src - 6), y2);
+        const auto r2 = sse::cmpeq_epi64(sse::loadu(src - 4), y2);
+        const auto r3 = sse::cmpeq_epi64(sse::loadu(src - 2), y2);
 
-        auto r0 = sse::cmpeq_epi64(x0, y);
-        auto r1 = sse::cmpeq_epi64(x1, y);
-        auto r2 = sse::cmpeq_epi64(x2, y);
-        auto r3 = sse::cmpeq_epi64(x3, y);
-
-        auto z = sse::And(sse::And(r0, r1), sse::And(r2, r3));
+        const auto z = sse::And(sse::And(r0, r1), sse::And(r2, r3));
 
         if (WJR_UNLIKELY(!sse::test_all_ones(z))) {
             sse::mask_type mask = ~sse::movemask_epi8(r3);
@@ -17622,32 +17704,17 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val,
             return n - 6 - (mask == 0x00FF);
         }
 
+        src -= 8;
         n -= 8;
     } while (WJR_LIKELY(n != 0));
 #else
-    if ((n & 8) != 0) {
-        WJR_REGISTER_REVERSE_FIND_N_AVX(n);
-        WJR_REGISTER_REVERSE_FIND_N_AVX(n - 4);
-
-        n -= 8;
-
-        if (WJR_UNLIKELY(n == 0)) {
-            return 0;
-        }
-    }
-
     do {
-        auto x0 = avx::loadu(src + n - 16);
-        auto x1 = avx::loadu(src + n - 12);
-        auto x2 = avx::loadu(src + n - 8);
-        auto x3 = avx::loadu(src + n - 4);
+        const auto r0 = avx::cmpeq_epi64(avx::loadu(src - 16), y4);
+        const auto r1 = avx::cmpeq_epi64(avx::loadu(src - 12), y4);
+        const auto r2 = avx::cmpeq_epi64(avx::loadu(src - 8), y4);
+        const auto r3 = avx::cmpeq_epi64(avx::loadu(src - 4), y4);
 
-        auto r0 = avx::cmpeq_epi64(x0, y);
-        auto r1 = avx::cmpeq_epi64(x1, y);
-        auto r2 = avx::cmpeq_epi64(x2, y);
-        auto r3 = avx::cmpeq_epi64(x3, y);
-
-        auto z = avx::And(avx::And(r0, r1), avx::And(r2, r3));
+        const auto z = avx::And(avx::And(r0, r1), avx::And(r2, r3));
 
         if (WJR_UNLIKELY(!avx::test_all_ones(z))) {
             avx::mask_type mask = ~avx::movemask_epi8(r3);
@@ -17669,13 +17736,17 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val,
             return n - 12 - clz(mask) / 8;
         }
 
+        src -= 16;
         n -= 16;
     } while (WJR_LIKELY(n != 0));
 #endif
 
     return 0;
 
-#undef WJR_REGISTER_REVERSE_FIND_N_AVX
+#undef WJR_REGISTER_REVERSE_FIND_NOT_N_RET
+#undef WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE
+#undef WJR_REGISTER_REVERSE_FIND_NOT_N_4
+#undef WJR_REGISTER_REVERSE_FIND_NOT_N_2
 }
 
 extern template WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n<uint64_t>(
@@ -18031,57 +18102,41 @@ WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src, T val, size_t n) noexce
 #if WJR_HAS_BUILTIN(FIND_NOT_N)
 
 template <typename T>
-WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) noexcept {
-    if (WJR_UNLIKELY(n == 0) || WJR_LIKELY(src[0] != val)) {
-        return 0;
-    }
-
-    if (n == 1 || WJR_LIKELY(src[1] != val)) {
-        return 1;
-    }
-
-    if (n == 2 || WJR_LIKELY(src[2] != val)) {
-        return 2;
-    }
-
-    if (n == 3 || WJR_LIKELY(src[3] != val)) {
-        return 3;
-    }
-
-    if (n == 4) {
-        return 4;
-    }
-
-    size_t ret = large_builtin_find_not_n(src, val, n);
-    WJR_ASSUME(ret >= 4);
-    return ret;
-}
-
-template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src0, const T *src1,
                                                size_t n) noexcept {
     if (WJR_UNLIKELY(n == 0) || WJR_LIKELY(src0[0] != src1[0])) {
         return 0;
     }
 
-    if (n == 1 || WJR_LIKELY(src0[1] != src1[1])) {
+    if (WJR_UNLIKELY(n == 1) || WJR_LIKELY(src0[1] != src1[1])) {
         return 1;
     }
 
-    if (n == 2 || WJR_LIKELY(src0[2] != src1[2])) {
+    if (WJR_UNLIKELY(n == 2)) {
         return 2;
     }
 
-    if (n == 3 || WJR_LIKELY(src0[3] != src1[3])) {
-        return 3;
+    const size_t ret = large_builtin_find_not_n(src0, src1, n);
+    WJR_ASSUME(ret >= 2 && ret <= n);
+    return ret;
+}
+
+template <typename T>
+WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) noexcept {
+    if (WJR_UNLIKELY(n == 0) || WJR_LIKELY(src[0] != val)) {
+        return 0;
     }
 
-    if (n == 4) {
-        return 4;
+    if (WJR_UNLIKELY(n == 1) || WJR_LIKELY(src[1] != val)) {
+        return 1;
     }
 
-    size_t ret = large_builtin_find_not_n(src0, src1, n);
-    WJR_ASSUME(ret >= 4);
+    if (WJR_UNLIKELY(n == 2)) {
+        return 2;
+    }
+
+    const size_t ret = large_builtin_find_not_n(src, val, n);
+    WJR_ASSUME(ret >= 2 && ret <= n);
     return ret;
 }
 
@@ -18435,58 +18490,41 @@ WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src, T val,
 #if WJR_HAS_BUILTIN(REVERSE_FIND_NOT_N)
 
 template <typename T>
-WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src, T val,
-                                                       size_t n) noexcept {
-    if (WJR_UNLIKELY(n == 0) || WJR_LIKELY(src[n - 1] != val)) {
-        return n;
-    }
-
-    if (n == 1 || WJR_LIKELY(src[n - 2] != val)) {
-        return n - 1;
-    }
-
-    if (n == 2 || WJR_LIKELY(src[n - 3] != val)) {
-        return n - 2;
-    }
-
-    if (n == 3 || WJR_LIKELY(src[n - 4] != val)) {
-        return n - 3;
-    }
-
-    if (n == 4) {
-        return n - 4;
-    }
-
-    size_t ret = large_builtin_reverse_find_not_n(src, val, n);
-    WJR_ASSUME(n > 4);
-    WJR_ASSUME(ret <= n - 4);
-    return ret;
-}
-
-template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src0, const T *src1,
                                                        size_t n) noexcept {
     if (WJR_UNLIKELY(n == 0) || WJR_LIKELY(src0[n - 1] != src1[n - 1])) {
         return n;
     }
 
-    if (n == 1 || WJR_LIKELY(src0[n - 2] != src1[n - 2])) {
+    if (WJR_UNLIKELY(n == 1) || WJR_LIKELY(src0[n - 2] != src1[n - 2])) {
         return n - 1;
     }
 
-    if (n == 2 || WJR_LIKELY(src0[n - 3] != src1[n - 3])) {
+    if (WJR_UNLIKELY(n == 2)) {
         return n - 2;
     }
 
-    if (n == 3 || WJR_LIKELY(src0[n - 4] != src1[n - 4])) {
-        return n - 3;
+    const size_t ret = large_builtin_reverse_find_not_n(src0, src1, n);
+    WJR_ASSUME(ret >= 0 && ret <= n - 2);
+    return ret;
+}
+
+template <typename T>
+WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src, T val,
+                                                       size_t n) noexcept {
+    if (WJR_UNLIKELY(n == 0) || WJR_LIKELY(src[n - 1] != val)) {
+        return n;
     }
 
-    if (n == 4) {
-        return n - 4;
+    if (WJR_UNLIKELY(n == 1) || WJR_LIKELY(src[n - 2] != val)) {
+        return n - 1;
     }
 
-    size_t ret = large_builtin_reverse_find_not_n(src0, src1, n);
+    if (WJR_UNLIKELY(n == 2)) {
+        return n - 2;
+    }
+
+    const size_t ret = large_builtin_reverse_find_not_n(src, val, n);
     WJR_ASSUME(n > 4);
     WJR_ASSUME(ret <= n - 4);
     return ret;
@@ -18965,7 +19003,6 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
     }
 
     if (WJR_UNLIKELY(n > type_width * 2)) {
-
         if (WJR_UNLIKELY(n > type_width * 4)) {
             return large_builtin_set_n(dst, val, n);
         }
@@ -26302,20 +26339,21 @@ namespace wjr {
 template <typename T>
 WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1,
                                               size_t n) noexcept {
-#define WJR_REGISTER_COMPARE_NOT_N_2(index, EXPECT)                                      \
+#define WJR_REGISTER_COMPARE_NOT_N_2(index)                                              \
     do {                                                                                 \
         const auto x = sse::loadu(src0 + (index));                                       \
         const auto y = sse::loadu(src1 + (index));                                       \
         const auto r = sse::cmpeq_epi64(x, y);                                           \
                                                                                          \
         const sse::mask_type mask = ~sse::movemask_epi8(r);                              \
-        if (WJR_EXPECT(mask != 0, EXPECT)) {                                             \
+        if (WJR_UNLIKELY(mask != 0)) {                                                   \
             if (mask == 0xFF00) {                                                        \
                 return src0[(index) + 1] < src1[(index) + 1] ? -1 : 1;                   \
             }                                                                            \
             return src0[index] < src1[index] ? -1 : 1;                                   \
         }                                                                                \
     } while (0)
+
 #if WJR_HAS_SIMD(AVX2)
 #define WJR_REGISTER_COMPARE_NOT_N_4(index)                                              \
     do {                                                                                 \
@@ -26331,69 +26369,20 @@ WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1,
     } while (0)
 #else
 #define WJR_REGISTER_COMPARE_NOT_N_4(index)                                              \
-    WJR_REGISTER_COMPARE_NOT_N_2(index, false);                                          \
-    WJR_REGISTER_COMPARE_NOT_N_2((index) + 2, false)
+    WJR_REGISTER_COMPARE_NOT_N_2(index);                                                 \
+    WJR_REGISTER_COMPARE_NOT_N_2((index) + 2)
 #endif
+
+#define WJR_REGISTER_COMPARE_NOT_N_ADVANCE(index)                                        \
+    src0 += index;                                                                       \
+    src1 += index
+#define WJR_REGISTER_COMPARE_NOT_N_RET(index) 0
 
     WJR_ASSUME(n > 2);
 
-    if (WJR_UNLIKELY(n <= 16)) {
-        if (WJR_UNLIKELY(n <= 4)) {
-            WJR_REGISTER_COMPARE_NOT_N_2(n - 2, false);
-            return 0;
-        }
-
-        WJR_REGISTER_COMPARE_NOT_N_2(2, false);
-
-        if (WJR_LIKELY(n > 8)) {
-            WJR_REGISTER_COMPARE_NOT_N_4(4);
-
-            if (n > 12) {
-                WJR_REGISTER_COMPARE_NOT_N_4(8);
-            }
-        }
-
-        WJR_REGISTER_COMPARE_NOT_N_4(n - 4);
-        return 0;
-    }
-
-    n -= 3;
-    const size_t rem = n & 7;
-    n &= ~7;
-
-    if (WJR_LIKELY(rem < 5)) {
-        if (rem < 2) {
-            WJR_REGISTER_COMPARE_NOT_N_2(rem + 1, false);
-        } else {
-            WJR_REGISTER_COMPARE_NOT_N_2(2, false);
-            WJR_REGISTER_COMPARE_NOT_N_4(rem - 1);
-        }
-    } else {
-        WJR_REGISTER_COMPARE_NOT_N_4(2);
-        WJR_REGISTER_COMPARE_NOT_N_4(rem - 1);
-    }
-
-#if WJR_HAS_SIMD(AVX2)
-    if (n & 8) {
-        WJR_REGISTER_COMPARE_NOT_N_4(rem + 3);
-        WJR_REGISTER_COMPARE_NOT_N_4(rem + 7);
-
-        if (WJR_UNLIKELY(n == 8)) {
-            return 0;
-        }
-
-        src0 += rem + 11;
-        src1 += rem + 11;
-        n -= 8;
-    } else {
-#endif
-
-        src0 += rem + 3;
-        src1 += rem + 3;
-
-#if WJR_HAS_SIMD(AVX2)
-    }
-#endif
+    WJR_REGISTER_NORMAL_SIMD_FUNCTION(
+        n, WJR_REGISTER_COMPARE_NOT_N_2, WJR_REGISTER_COMPARE_NOT_N_4, WJR_HAS_SIMD(AVX2),
+        WJR_REGISTER_COMPARE_NOT_N_ADVANCE, , WJR_REGISTER_COMPARE_NOT_N_RET);
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
@@ -26458,13 +26447,13 @@ WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1,
 
             mask = ~avx::movemask_epi8(r1);
             if (mask != 0) {
-                auto offset = ctz(mask) / 8;
+                const auto offset = ctz(mask) / 8;
                 return src0[offset + 4] < src1[offset + 4] ? -1 : 1;
             }
 
             mask = ~avx::movemask_epi8(r2);
             if (mask != 0) {
-                auto offset = ctz(mask) / 8;
+                const auto offset = ctz(mask) / 8;
                 return src0[offset + 8] < src1[offset + 8] ? -1 : 1;
             }
 
@@ -26481,7 +26470,10 @@ WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1,
 
     return 0;
 
+#undef WJR_REGISTER_COMPARE_NOT_N_RET
+#undef WJR_REGISTER_COMPARE_NOT_N_ADVANCE
 #undef WJR_REGISTER_COMPARE_NOT_N_4
+#undef WJR_REGISTER_COMPARE_NOT_N_2
 }
 
 extern template WJR_PURE WJR_COLD int
@@ -26501,167 +26493,143 @@ large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
 template <typename T>
 WJR_PURE WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1,
                                                       size_t n) noexcept {
-#define WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(index)                                    \
+#define WJR_REGISTER_REVERSE_COMPARE_NOT_N_2(index)                                      \
     do {                                                                                 \
-        auto x = avx::loadu(src0 - 4 + (index));                                         \
-        auto y = avx::loadu(src1 - 4 + (index));                                         \
-        auto r = avx::cmpeq_epi64(x, y);                                                 \
+        const auto x = sse::loadu(src0 + (index));                                       \
+        const auto y = sse::loadu(src1 + (index));                                       \
+        const auto r = sse::cmpeq_epi64(x, y);                                           \
                                                                                          \
-        avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
-        if (WJR_LIKELY(mask != 0)) {                                                     \
-            auto offset = clz(mask) / 8;                                                 \
-            return src0[(index)-1 - offset] < src1[(index)-1 - offset] ? -1 : 1;         \
+        const sse::mask_type mask = ~sse::movemask_epi8(r);                              \
+        if (WJR_UNLIKELY(mask != 0)) {                                                   \
+            if (mask == 0x00FF) {                                                        \
+                return src0[index] < src1[index] ? -1 : 1;                               \
+            }                                                                            \
+            return src0[(index) + 1] < src1[(index) + 1] ? -1 : 1;                       \
         }                                                                                \
     } while (0)
 
-    const size_t rem = n & 7;
-    n -= rem;
-
-    if (rem > 4) {
-#if !WJR_HAS_SIMD(AVX2)
-        auto x0 = sse::loadu(src0 + n + 2);
-        auto x1 = sse::loadu(src0 + n);
-        auto y0 = sse::loadu(src1 + n + 2);
-        auto y1 = sse::loadu(src1 + n);
-
-        auto r0 = sse::cmpeq_epi64(x0, y0);
-        auto r1 = sse::cmpeq_epi64(x1, y1);
-
-        if (WJR_LIKELY(!sse::test_all_ones(sse::And(r0, r1)))) {
-            sse::mask_type mask = ~sse::movemask_epi8(r0);
-            if (mask != 0) {
-                if (mask == 0x00FF) {
-                    return src0[n + 2] < src1[n + 2] ? -1 : 1;
-                }
-                return src0[n + 3] < src1[n + 3] ? -1 : 1;
-            }
-            mask = ~sse::movemask_epi8(r1);
-            if (mask == 0x00FF) {
-                return src0[n] < src1[n] ? -1 : 1;
-            }
-            return src0[n + 1] < src1[n + 1] ? -1 : 1;
-        }
+#if WJR_HAS_SIMD(AVX2)
+#define WJR_REGISTER_REVERSE_COMPARE_NOT_N_4(index)                                      \
+    do {                                                                                 \
+        const auto x = avx::loadu(src0 + (index));                                       \
+        const auto y = avx::loadu(src1 + (index));                                       \
+        const auto r = avx::cmpeq_epi64(x, y);                                           \
+                                                                                         \
+        const avx::mask_type mask = ~avx::movemask_epi8(r);                              \
+        if (WJR_UNLIKELY(mask != 0)) {                                                   \
+            const auto offset = clz(mask) / 8;                                           \
+            return src0[(index) + 3 - offset] < src1[(index) + 3 - offset] ? -1 : 1;     \
+        }                                                                                \
+    } while (0)
 #else
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(n + 4);
+#define WJR_REGISTER_REVERSE_COMPARE_NOT_N_4(index)                                      \
+    WJR_REGISTER_REVERSE_COMPARE_NOT_N_2((index) + 2);                                   \
+    WJR_REGISTER_REVERSE_COMPARE_NOT_N_2(index)
 #endif
-    }
 
-    if (WJR_UNLIKELY(n == 0)) {
-        return 0;
-    }
+#define WJR_REGISTER_REVERSE_COMPARE_NOT_N_ADVANCE(index)                                \
+    src0 += index;                                                                       \
+    src1 += index
+
+#define WJR_REGISTER_REVERSE_COMPARE_NOT_N_RET(index) 0
+
+    WJR_ASSUME(n > 2);
+
+    WJR_REGISTER_NORMAL_REVERSE_SIMD_FUNCTION(
+        n, WJR_REGISTER_REVERSE_COMPARE_NOT_N_2, WJR_REGISTER_REVERSE_COMPARE_NOT_N_4,
+        WJR_HAS_SIMD(AVX2), WJR_REGISTER_REVERSE_COMPARE_NOT_N_ADVANCE, ,
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N_RET);
 
 #if !WJR_HAS_SIMD(AVX2)
     do {
-        auto x0 = sse::loadu(src0 + n - 8);
-        auto x1 = sse::loadu(src0 + n - 6);
-        auto x2 = sse::loadu(src0 + n - 4);
-        auto x3 = sse::loadu(src0 + n - 2);
-        auto y0 = sse::loadu(src1 + n - 8);
-        auto y1 = sse::loadu(src1 + n - 6);
-        auto y2 = sse::loadu(src1 + n - 4);
-        auto y3 = sse::loadu(src1 + n - 2);
+        const auto r0 = sse::cmpeq_epi64(sse::loadu(src0 - 8), sse::loadu(src1 - 8));
+        const auto r1 = sse::cmpeq_epi64(sse::loadu(src0 - 6), sse::loadu(src1 - 6));
+        const auto r2 = sse::cmpeq_epi64(sse::loadu(src0 - 4), sse::loadu(src1 - 4));
+        const auto r3 = sse::cmpeq_epi64(sse::loadu(src0 - 2), sse::loadu(src1 - 2));
 
-        auto r0 = sse::cmpeq_epi64(x0, y0);
-        auto r1 = sse::cmpeq_epi64(x1, y1);
-        auto r2 = sse::cmpeq_epi64(x2, y2);
-        auto r3 = sse::cmpeq_epi64(x3, y3);
-
-        auto z = sse::And(sse::And(r0, r1), sse::And(r2, r3));
+        const auto z = sse::And(sse::And(r0, r1), sse::And(r2, r3));
 
         if (WJR_UNLIKELY(!sse::test_all_ones(z))) {
             sse::mask_type mask = ~sse::movemask_epi8(r3);
             if (mask != 0) {
                 if (mask == 0x00FF) {
-                    return src0[n - 2] < src1[n - 2] ? -1 : 1;
+                    return src0[-2] < src1[-2] ? -1 : 1;
                 }
-                return src0[n - 1] < src1[n - 1] ? -1 : 1;
+                return src0[-1] < src1[-1] ? -1 : 1;
             }
 
             mask = ~sse::movemask_epi8(r2);
             if (mask != 0) {
                 if (mask == 0x00FF) {
-                    return src0[n - 4] < src1[n - 4] ? -1 : 1;
+                    return src0[-4] < src1[-4] ? -1 : 1;
                 }
-                return src0[n - 3] < src1[n - 3] ? -1 : 1;
+                return src0[-3] < src1[-3] ? -1 : 1;
             }
 
             mask = ~sse::movemask_epi8(r1);
             if (mask != 0) {
                 if (mask == 0x00FF) {
-                    return src0[n - 6] < src1[n - 6] ? -1 : 1;
+                    return src0[-6] < src1[-6] ? -1 : 1;
                 }
-                return src0[n - 5] < src1[n - 5] ? -1 : 1;
+                return src0[-5] < src1[-5] ? -1 : 1;
             }
 
             mask = ~sse::movemask_epi8(r0);
             if (mask == 0x00FF) {
-                return src0[n - 8] < src1[n - 8] ? -1 : 1;
+                return src0[-8] < src1[-8] ? -1 : 1;
             }
-            return src0[n - 7] < src1[n - 7] ? -1 : 1;
+            return src0[-7] < src1[-7] ? -1 : 1;
         }
 
+        src0 -= 8;
+        src1 -= 8;
         n -= 8;
     } while (WJR_LIKELY(n != 0));
 #else
-    if (n & 8) {
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(n);
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(n - 4);
-
-        n -= 8;
-
-        if (WJR_UNLIKELY(n == 0)) {
-            return 0;
-        }
-    }
-
     do {
-        auto x0 = avx::loadu(src0 + n - 16);
-        auto x1 = avx::loadu(src0 + n - 12);
-        auto x2 = avx::loadu(src0 + n - 8);
-        auto x3 = avx::loadu(src0 + n - 4);
-        auto y0 = avx::loadu(src1 + n - 16);
-        auto y1 = avx::loadu(src1 + n - 12);
-        auto y2 = avx::loadu(src1 + n - 8);
-        auto y3 = avx::loadu(src1 + n - 4);
+        const auto r0 = avx::cmpeq_epi64(avx::loadu(src0 - 16), avx::loadu(src1 - 16));
+        const auto r1 = avx::cmpeq_epi64(avx::loadu(src0 - 12), avx::loadu(src1 - 12));
+        const auto r2 = avx::cmpeq_epi64(avx::loadu(src0 - 8), avx::loadu(src1 - 8));
+        const auto r3 = avx::cmpeq_epi64(avx::loadu(src0 - 4), avx::loadu(src1 - 4));
 
-        auto r0 = avx::cmpeq_epi64(x0, y0);
-        auto r1 = avx::cmpeq_epi64(x1, y1);
-        auto r2 = avx::cmpeq_epi64(x2, y2);
-        auto r3 = avx::cmpeq_epi64(x3, y3);
-
-        auto z = avx::And(avx::And(r0, r1), avx::And(r2, r3));
+        const auto z = avx::And(avx::And(r0, r1), avx::And(r2, r3));
 
         if (WJR_UNLIKELY(!avx::test_all_ones(z))) {
             avx::mask_type mask = ~avx::movemask_epi8(r3);
             if (mask != 0) {
-                auto offset = clz(mask) / 8;
-                return src0[n - 1 - offset] < src1[n - 1 - offset] ? -1 : 1;
+                const auto offset = clz(mask) / 8;
+                return src0[-1 - offset] < src1[-1 - offset] ? -1 : 1;
             }
 
             mask = ~avx::movemask_epi8(r2);
             if (mask != 0) {
-                auto offset = clz(mask) / 8;
-                return src0[n - 5 - offset] < src1[n - 5 - offset] ? -1 : 1;
+                const auto offset = clz(mask) / 8;
+                return src0[-5 - offset] < src1[-5 - offset] ? -1 : 1;
             }
 
             mask = ~avx::movemask_epi8(r1);
             if (mask != 0) {
-                auto offset = clz(mask) / 8;
-                return src0[n - 9 - offset] < src1[n - 9 - offset] ? -1 : 1;
+                const auto offset = clz(mask) / 8;
+                return src0[-9 - offset] < src1[-9 - offset] ? -1 : 1;
             }
 
             mask = ~avx::movemask_epi8(r0);
-            auto offset = clz(mask) / 8;
-            return src0[n - 13 - offset] < src1[n - 13 - offset] ? -1 : 1;
+            const auto offset = clz(mask) / 8;
+            return src0[-13 - offset] < src1[-13 - offset] ? -1 : 1;
         }
 
+        src0 -= 16;
+        src1 -= 16;
         n -= 16;
     } while (WJR_LIKELY(n != 0));
 #endif
 
     return 0;
 
-#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX
+#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_RET
+#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_ADVANCE
+#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_4
+#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_2
 }
 
 extern template WJR_PURE WJR_COLD int
@@ -26702,15 +26670,17 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1,
         return 0;
     }
 
-    if (WJR_UNLIKELY(n == 1)) {
-        if (WJR_LIKELY(src0[0] != src1[0])) {
-            return src0[0] < src1[0] ? -1 : 1;
-        }
+    if (WJR_LIKELY(src0[0] != src1[0])) {
+        return src0[0] < src1[0] ? -1 : 1;
+    }
 
+    if (WJR_UNLIKELY(n == 1)) {
         return 0;
     }
 
-    WJR_REGISTER_COMPARE_NOT_N_2(0, true);
+    if (WJR_LIKELY(src0[1] != src1[1])) {
+        return src0[1] < src1[1] ? -1 : 1;
+    }
 
     if (WJR_UNLIKELY(n == 2)) {
         return 0;
@@ -26718,8 +26688,6 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1,
 
     return large_builtin_compare_n(src0, src1, n);
 }
-
-#undef WJR_REGISTER_COMPARE_NOT_N_2
 
 #endif
 
@@ -26741,7 +26709,7 @@ WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
         return src0[n - 1] < src1[n - 1] ? -1 : 1;
     }
 
-    if (n == 1) {
+    if (WJR_UNLIKELY(n == 1)) {
         return 0;
     }
 
@@ -26749,23 +26717,7 @@ WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
         return src0[n - 2] < src1[n - 2] ? -1 : 1;
     }
 
-    if (n == 2) {
-        return 0;
-    }
-
-    if (WJR_LIKELY(src0[n - 3] != src1[n - 3])) {
-        return src0[n - 3] < src1[n - 3] ? -1 : 1;
-    }
-
-    if (n == 3) {
-        return 0;
-    }
-
-    if (WJR_LIKELY(src0[n - 4] != src1[n - 4])) {
-        return src0[n - 4] < src1[n - 4] ? -1 : 1;
-    }
-
-    if (n == 4) {
+    if (WJR_UNLIKELY(n == 2)) {
         return 0;
     }
 
@@ -30411,70 +30363,52 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
 
     const auto y = sse::ones();
 
-    switch (offset) {
-    case 0: {
-        break;
-    }
-    case 1: {
-        dst[0] = ~src[0];
+    do {
+        if (offset == 0) {
+            break;
+        }
 
-        ++dst;
-        ++src;
-        --n;
-        break;
-    }
-    case 2: {
+        if (offset == 1) {
+            dst[0] = ~src[0];
+            break;
+        }
+
         sse::storeu(dst, sse::Xor(sse::loadu(src), y));
 
-        dst += 2;
-        src += 2;
-        n -= 2;
-        break;
-    }
+        if (offset == 3) {
+            dst[2] = ~src[2];
+        }
+    } while (0);
 
-    case 3: {
-        sse::storeu(dst, sse::Xor(sse::loadu(src), y));
-        dst[2] = ~src[2];
+    dst += offset;
+    src += offset;
+    n -= offset;
 
-        dst += 3;
-        src += 3;
-        n -= 3;
-        break;
-    }
+    const auto z = broadcast<__m128i_t, typename simd::int_tag_type>(y);
 
-    default: {
-        WJR_UNREACHABLE();
-    }
-    }
-
-    auto z = broadcast<__m128i_t, typename simd::int_tag_type>(y);
-
-    size_t idx = 0;
     size_t m = n & (-type_width * 4);
-
-    WJR_ASSUME(idx != m);
+    n &= (type_width * 4) - 1;
+    WJR_ASSUME(m != 0);
 
     do {
-        auto x0 = simd::loadu(src + idx);
-        auto x1 = simd::loadu(src + idx + type_width);
-        auto x2 = simd::loadu(src + idx + type_width * 2);
-        auto x3 = simd::loadu(src + idx + type_width * 3);
+        auto x0 = simd::loadu(src);
+        auto x1 = simd::loadu(src + type_width);
+        auto x2 = simd::loadu(src + type_width * 2);
+        auto x3 = simd::loadu(src + type_width * 3);
 
-        simd::store(dst + idx, simd::Xor(x0, z));
-        simd::store(dst + idx + type_width, simd::Xor(x1, z));
-        simd::store(dst + idx + type_width * 2, simd::Xor(x2, z));
-        simd::store(dst + idx + type_width * 3, simd::Xor(x3, z));
+        simd::store(dst, simd::Xor(x0, z));
+        simd::store(dst + type_width, simd::Xor(x1, z));
+        simd::store(dst + type_width * 2, simd::Xor(x2, z));
+        simd::store(dst + type_width * 3, simd::Xor(x3, z));
 
-        idx += type_width * 4;
-    } while (idx != m);
+        dst += type_width * 4;
+        src += type_width * 4;
+        m -= type_width * 4;
+    } while (m != 0);
 
-    if (WJR_UNLIKELY(n == m)) {
+    if (WJR_UNLIKELY(n == 0)) {
         return;
     }
-
-    dst += m;
-    src += m;
-    n -= m;
 
     m = n / type_width;
     WJR_ASSUME(m < 4);
@@ -30535,49 +30469,14 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
 }
 
 template <typename T>
-WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) noexcept {
-    static_assert(sizeof(T) == 8, "");
-
-    if (WJR_UNLIKELY(n < 4)) {
-        switch (n) {
-        case 3: {
-            dst[0] = ~src[0];
-            WJR_FALLTHROUGH;
-        }
-        case 2: {
-            dst[n - 2] = ~src[n - 2];
-            WJR_FALLTHROUGH;
-        }
-        case 1: {
-            dst[n - 1] = ~src[n - 1];
-            WJR_FALLTHROUGH;
-        }
-        case 0: {
-            break;
-        }
-        }
-
-        return;
-    }
-
-    if (WJR_UNLIKELY(n >= 35)) {
-        // Can be aligned
-        // TODO : Align those that cannot be aligned with T through uint8_t
-        if (WJR_LIKELY(reinterpret_cast<uintptr_t>(dst) % sizeof(T) == 0)) {
-            return large_builtin_not_n(dst, src, n);
-        }
-    }
-
+WJR_INTRINSIC_INLINE void unaligned_large_builtin_not_n(T *dst, const T *src,
+                                                        size_t n) noexcept {
     size_t idx = 0;
-
     const auto y = sse::ones();
 
     if (n & 4) {
-        auto x0 = sse::loadu(src + idx);
-        auto x1 = sse::loadu(src + idx + 2);
-
-        sse::storeu(dst + idx, sse::Xor(x0, y));
-        sse::storeu(dst + idx + 2, sse::Xor(x1, y));
+        sse::storeu(dst + idx, sse::Xor(sse::loadu(src + idx), y));
+        sse::storeu(dst + idx + 2, sse::Xor(sse::loadu(src + idx + 2), y));
 
         idx += 4;
     }
@@ -30613,6 +30512,40 @@ WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) noexcept
 
         idx += 8;
     } while (idx != n);
+}
+
+template <typename T>
+WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) noexcept {
+    static_assert(sizeof(T) == 8, "");
+
+    if (WJR_UNLIKELY(n < 4)) {
+        if (WJR_UNLIKELY(n == 0)) {
+            return;
+        }
+
+        if (n == 1) {
+            dst[0] = ~src[0];
+            return;
+        }
+
+        sse::storeu(dst, sse::Xor(sse::loadu(src), sse::ones()));
+
+        if (n == 3) {
+            dst[2] = ~src[2];
+        }
+
+        return;
+    }
+
+    if (WJR_UNLIKELY(n >= 35)) {
+        // Can be aligned
+        // TODO : Align those that cannot be aligned with T through uint8_t
+        if (WJR_LIKELY(reinterpret_cast<uintptr_t>(dst) % sizeof(T) == 0)) {
+            return large_builtin_not_n(dst, src, n);
+        }
+    }
+
+    return unaligned_large_builtin_not_n(dst, src, n);
 }
 
 #endif //
