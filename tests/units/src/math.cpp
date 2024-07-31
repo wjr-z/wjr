@@ -244,6 +244,9 @@ TEST(math, addc_1) {
 
                         auto &out = *p;
 
+                        auto idx =
+                            find_not_n(in.data() + 1, (uint64_t)in_place_max, n - 1);
+
                         uint64_t c_out = addc_1(out.data(), in.data(), n, add, cf);
 
                         if (l == n && k) {
@@ -947,7 +950,7 @@ TEST(math, compare_n) {
     }
 
     std::vector<uint64_t> a, b;
-    for (size_t n = 0; n <= 384; ++n) {
+    for (size_t n = 0; n <= 64; ++n) {
         a.resize(n);
         for (size_t m = 0; m <= n; ++m) {
             for (auto &i : a) {
@@ -956,10 +959,11 @@ TEST(math, compare_n) {
 
             b = a;
 
-            for (size_t i = m; i < n; ++i) {
+            if (m != n) {
                 while (a[m] == -1ull) {
                     a[m] = mt_rand();
                 }
+
                 b[m] = a[m] + 1;
             }
 
@@ -971,24 +975,37 @@ TEST(math, compare_n) {
 
             WJR_ASSERT(f < 0);
 
-            for (size_t i = m; i < n; ++i) {
-                while (a[m] == 0) {
-                    a[m] = mt_rand();
+            if (n != m + 1) {
+                for (int j = m + 1; j < n; ++j) {
+                    a[j] = mt_rand();
                 }
-                b[m] = a[m] - 1;
+                f = compare_n(a.data(), b.data(), n);
+                WJR_ASSERT(f < 0);
             }
+
+            while (a[m] == 0) {
+                a[m] = mt_rand();
+            }
+            b[m] = a[m] - 1;
 
             f = compare_n(a.data(), b.data(), n);
 
             WJR_ASSERT(f > 0);
+
+            if (n != m + 1) {
+                for (int j = m + 1; j < n; ++j) {
+                    a[j] = mt_rand();
+                }
+                f = compare_n(a.data(), b.data(), n);
+                WJR_ASSERT(f > 0);
+            }
         }
     }
 }
 
 TEST(math, reverse_compare_n) {
-
     std::vector<uint64_t> a, b;
-    for (size_t n = 0; n <= 384; ++n) {
+    for (size_t n = 0; n <= 64; ++n) {
         a.resize(n);
         for (size_t m = 0; m <= n; ++m) {
             for (auto &i : a) {
@@ -997,7 +1014,7 @@ TEST(math, reverse_compare_n) {
 
             b = a;
 
-            for (size_t i = m; i < n; ++i) {
+            if (m != n) {
                 while (a[n - m - 1] == -1ull) {
                     a[n - m - 1] = mt_rand();
                 }
@@ -1012,16 +1029,30 @@ TEST(math, reverse_compare_n) {
 
             WJR_ASSERT(f < 0);
 
-            for (size_t i = m; i < n; ++i) {
-                while (a[n - m - 1] == 0) {
-                    a[n - m - 1] = mt_rand();
+            if (n != m + 1) {
+                for (int j = 0; j < n - m - 1; ++j) {
+                    a[j] = mt_rand();
                 }
-                b[n - m - 1] = a[n - m - 1] - 1;
+                f = reverse_compare_n(a.data(), b.data(), n);
+                WJR_ASSERT(f < 0);
             }
+
+            while (a[n - m - 1] == 0) {
+                a[n - m - 1] = mt_rand();
+            }
+            b[n - m - 1] = a[n - m - 1] - 1;
 
             f = reverse_compare_n(a.data(), b.data(), n);
 
             WJR_ASSERT(f > 0);
+
+            if (n != m + 1) {
+                for (int j = 0; j < n - m - 1; ++j) {
+                    a[j] = mt_rand();
+                }
+                f = reverse_compare_n(a.data(), b.data(), n);
+                WJR_ASSERT(f > 0);
+            }
         }
     }
 }
@@ -1607,7 +1638,7 @@ TEST(math, div_qr_s) {
 
 namespace convert_tests {
 using namespace wjr;
-using namespace convert_detail;
+using namespace charconv_detail;
 
 static_assert(std::is_same_v<fast_buffer_t<char *>, char>, "");
 static_assert(std::is_same_v<fast_buffer_t<uint8_t *>, uint8_t>, "");

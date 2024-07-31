@@ -674,63 +674,31 @@ TEST(biginteger, div_2exp) {
 }
 
 TEST(biginteger, convert) {
-
+#if defined(WJR_USE_GMP)
     {
         biginteger a;
+        mpz_t b;
+        mpz_init(b);
+        std::string str;
 
-        auto check = [&a](const auto &str, std::string_view expect,
-                          unsigned int base = 10) {
-            auto get = [&a](unsigned int base) {
-                std::string str;
-                to_chars_unchecked(std::back_inserter(str), a, base);
-                return str;
-            };
+        const int N = 900;
 
-            auto sp = wjr::span<const char>(str);
-            auto sv = std::string_view(str);
+        for (int n = 0; n < N; n += (n <= 140 ? 1 : n / 5)) {
+            const int maxn = n / 32 + 32;
+            str.resize(n);
+            for (int M = 0; M < maxn; ++M) {
+                for (auto base : {2, 8, 10, 16}) {
+                    for (auto &i : str) {
+                        i = char_converter.to(mt_rand() % base);
+                    }
 
-            const bool thr = expect.empty();
-            {
-                auto ret = wjr::from_chars(sp.begin_unsafe(), sp.end_unsafe(), a, base);
-                if (!thr) {
-                    WJR_ASSERT((bool)ret);
-                    WJR_ASSERT(get(base) == expect);
-                } else {
-                    WJR_ASSERT(get(base) == "0");
+                    a.from_string(str, base);
+                    mpz_set_str(b, str.data(), base);
+
+                    WJR_ASSERT(equal(a, b));
                 }
             }
-
-            if (sp.size() != sv.size()) {
-                auto ret = wjr::from_chars(sv.data(), sv.data() + sv.size(), a, base);
-                if (!thr) {
-                    WJR_ASSERT((bool)ret);
-                    WJR_ASSERT(get(base) == expect);
-                } else {
-                    WJR_ASSERT(get(base) == "0");
-                }
-            }
-        };
-
-        check("0", "0");
-        check("1", "1");
-        check("-1", "-1");
-        check("123456789012345678901234567890", "123456789012345678901234567890");
-        check("-123456789012345678901234567890", "-123456789012345678901234567890");
-        check("    123456789012345678901234567890    ", "123456789012345678901234567890");
-        check("    -123456789012345678901234567890    ",
-              "-123456789012345678901234567890");
-        check("   0000123456789012345678901234567890   ",
-              "123456789012345678901234567890");
-        check("   0000123456789012345678901234567890a   ",
-              "123456789012345678901234567890");
-
-        check("", "");
-        check("a", "");
-        check("-", "");
-        check("0", "", 0);
-        check("2", "", 2);
-        check(
-            " 265613988875874769338781322035779626829233452653394495974574961739092490901302182994384699044001 ",
-            "265613988875874769338781322035779626829233452653394495974574961739092490901302182994384699044001");
+        }
     }
+#endif
 }

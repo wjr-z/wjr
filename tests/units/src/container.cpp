@@ -617,6 +617,7 @@ TEST(vector, empty) {
     }
 }
 
+#if !defined(WJR_DISABLE_EXCEPTIONS)
 TEST(vector, at) {
     {
         auto test = [](auto _Val, size_t n, size_t i) {
@@ -637,6 +638,7 @@ TEST(vector, at) {
         });
     }
 }
+#endif
 
 TEST(vector, emplace) {
     {

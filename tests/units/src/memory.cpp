@@ -3,15 +3,13 @@
 #include "detail.hpp"
 
 #include <wjr/math.hpp>
-#include <wjr/memory/aligned_allocator.hpp>
 #include <wjr/memory/uninitialized.hpp>
 
 using namespace wjr;
 
 TEST(memory, stack_allocator) {
 
-    static_assert(is_trivially_allocator_v<math_detail::weak_stack_alloc<char>>,
-                  "error");
+    static_assert(is_trivially_allocator_v<math_detail::weak_stack_alloc<char>>, "error");
 
     do {
         math_detail::stack_alloc_object obj;
@@ -39,46 +37,11 @@ TEST(memory, stack_allocator) {
     } while (0);
 }
 
-TEST(memory, algined_allocator) {
-    do {
-        using alloc = aligned_allocator<std::allocator<int>, 64>;
-        static_assert(is_trivially_allocator_v<alloc>, "error");
-
-        alloc al;
-        auto ptr = al.allocate(1);
-        WJR_ASSERT(reinterpret_cast<uintptr_t>(ptr) % 64 == 0, "alignment error");
-        al.deallocate(ptr, 1);
-
-        auto result = allocate_at_least(al, 32);
-        WJR_ASSERT(reinterpret_cast<uintptr_t>(result.ptr) % 64 == 0, "alignment error");
-        WJR_ASSERT(result.count >= 32, "count error");
-        al.deallocate(result.ptr, result.count);
-    } while (0);
-
-    do {
-        using weak_alloc = math_detail::weak_stack_alloc<int>;
-        using alloc = aligned_allocator<weak_alloc, 64>;
-        static_assert(is_trivially_allocator_v<alloc>, "error");
-
-        math_detail::unique_stack_alloc stkal(math_detail::stack_alloc);
-        alloc al(stkal);
-
-        auto ptr = al.allocate(1);
-        WJR_ASSERT(reinterpret_cast<uintptr_t>(ptr) % 64 == 0, "alignment error");
-        al.deallocate(ptr, 1);
-
-        auto result = allocate_at_least(al, 32);
-        WJR_ASSERT(reinterpret_cast<uintptr_t>(result.ptr) % 64 == 0, "alignment error");
-        WJR_ASSERT(result.count >= 32, "count error");
-        al.deallocate(result.ptr, result.count);
-    } while (0);
-}
-
 #if WJR_HAS_DEBUG(UNINITIALIZED_CHECKER)
 #else
 TEST(memory, uninitialized) {
     do {
-        using type = uninitialized<int>;
+        using type = aligned_storage<int>;
         static_assert(std::is_trivially_default_constructible_v<type>,
                       "trivially default constructible error");
         static_assert(std::is_trivially_copy_constructible_v<type>,
