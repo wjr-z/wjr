@@ -31,15 +31,17 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1,
         return 0;
     }
 
-    if (WJR_UNLIKELY(n == 1)) {
-        if (WJR_LIKELY(src0[0] != src1[0])) {
-            return src0[0] < src1[0] ? -1 : 1;
-        }
+    if (WJR_LIKELY(src0[0] != src1[0])) {
+        return src0[0] < src1[0] ? -1 : 1;
+    }
 
+    if (WJR_UNLIKELY(n == 1)) {
         return 0;
     }
 
-    WJR_REGISTER_COMPARE_NOT_N_2(0, true);
+    if (WJR_LIKELY(src0[1] != src1[1])) {
+        return src0[1] < src1[1] ? -1 : 1;
+    }
 
     if (WJR_UNLIKELY(n == 2)) {
         return 0;
@@ -47,8 +49,6 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1,
 
     return large_builtin_compare_n(src0, src1, n);
 }
-
-#undef WJR_REGISTER_COMPARE_NOT_N_2
 
 #endif
 
@@ -70,7 +70,7 @@ WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
         return src0[n - 1] < src1[n - 1] ? -1 : 1;
     }
 
-    if (n == 1) {
+    if (WJR_UNLIKELY(n == 1)) {
         return 0;
     }
 
@@ -78,23 +78,7 @@ WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
         return src0[n - 2] < src1[n - 2] ? -1 : 1;
     }
 
-    if (n == 2) {
-        return 0;
-    }
-
-    if (WJR_LIKELY(src0[n - 3] != src1[n - 3])) {
-        return src0[n - 3] < src1[n - 3] ? -1 : 1;
-    }
-
-    if (n == 3) {
-        return 0;
-    }
-
-    if (WJR_LIKELY(src0[n - 4] != src1[n - 4])) {
-        return src0[n - 4] < src1[n - 4] ? -1 : 1;
-    }
-
-    if (n == 4) {
+    if (WJR_UNLIKELY(n == 2)) {
         return 0;
     }
 

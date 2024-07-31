@@ -32,70 +32,52 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
 
     const auto y = sse::ones();
 
-    switch (offset) {
-    case 0: {
-        break;
-    }
-    case 1: {
-        dst[0] = ~src[0];
+    do {
+        if (offset == 0) {
+            break;
+        }
 
-        ++dst;
-        ++src;
-        --n;
-        break;
-    }
-    case 2: {
+        if (offset == 1) {
+            dst[0] = ~src[0];
+            break;
+        }
+
         sse::storeu(dst, sse::Xor(sse::loadu(src), y));
 
-        dst += 2;
-        src += 2;
-        n -= 2;
-        break;
-    }
+        if (offset == 3) {
+            dst[2] = ~src[2];
+        }
+    } while (0);
 
-    case 3: {
-        sse::storeu(dst, sse::Xor(sse::loadu(src), y));
-        dst[2] = ~src[2];
+    dst += offset;
+    src += offset;
+    n -= offset;
 
-        dst += 3;
-        src += 3;
-        n -= 3;
-        break;
-    }
+    const auto z = broadcast<__m128i_t, typename simd::int_tag_type>(y);
 
-    default: {
-        WJR_UNREACHABLE();
-    }
-    }
-
-    auto z = broadcast<__m128i_t, typename simd::int_tag_type>(y);
-
-    size_t idx = 0;
     size_t m = n & (-type_width * 4);
-
-    WJR_ASSUME(idx != m);
+    n &= (type_width * 4) - 1;
+    WJR_ASSUME(m != 0);
 
     do {
-        auto x0 = simd::loadu(src + idx);
-        auto x1 = simd::loadu(src + idx + type_width);
-        auto x2 = simd::loadu(src + idx + type_width * 2);
-        auto x3 = simd::loadu(src + idx + type_width * 3);
+        auto x0 = simd::loadu(src);
+        auto x1 = simd::loadu(src + type_width);
+        auto x2 = simd::loadu(src + type_width * 2);
+        auto x3 = simd::loadu(src + type_width * 3);
 
-        simd::store(dst + idx, simd::Xor(x0, z));
-        simd::store(dst + idx + type_width, simd::Xor(x1, z));
-        simd::store(dst + idx + type_width * 2, simd::Xor(x2, z));
-        simd::store(dst + idx + type_width * 3, simd::Xor(x3, z));
+        simd::store(dst, simd::Xor(x0, z));
+        simd::store(dst + type_width, simd::Xor(x1, z));
+        simd::store(dst + type_width * 2, simd::Xor(x2, z));
+        simd::store(dst + type_width * 3, simd::Xor(x3, z));
 
-        idx += type_width * 4;
-    } while (idx != m);
+        dst += type_width * 4;
+        src += type_width * 4;
+        m -= type_width * 4;
+    } while (m != 0);
 
-    if (WJR_UNLIKELY(n == m)) {
+    if (WJR_UNLIKELY(n == 0)) {
         return;
     }
-
-    dst += m;
-    src += m;
-    n -= m;
 
     m = n / type_width;
     WJR_ASSUME(m < 4);
@@ -156,49 +138,14 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
 }
 
 template <typename T>
-WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) noexcept {
-    static_assert(sizeof(T) == 8, "");
-
-    if (WJR_UNLIKELY(n < 4)) {
-        switch (n) {
-        case 3: {
-            dst[0] = ~src[0];
-            WJR_FALLTHROUGH;
-        }
-        case 2: {
-            dst[n - 2] = ~src[n - 2];
-            WJR_FALLTHROUGH;
-        }
-        case 1: {
-            dst[n - 1] = ~src[n - 1];
-            WJR_FALLTHROUGH;
-        }
-        case 0: {
-            break;
-        }
-        }
-
-        return;
-    }
-
-    if (WJR_UNLIKELY(n >= 35)) {
-        // Can be aligned
-        // TODO : Align those that cannot be aligned with T through uint8_t
-        if (WJR_LIKELY(reinterpret_cast<uintptr_t>(dst) % sizeof(T) == 0)) {
-            return large_builtin_not_n(dst, src, n);
-        }
-    }
-
+WJR_INTRINSIC_INLINE void unaligned_large_builtin_not_n(T *dst, const T *src,
+                                                        size_t n) noexcept {
     size_t idx = 0;
-
     const auto y = sse::ones();
 
     if (n & 4) {
-        auto x0 = sse::loadu(src + idx);
-        auto x1 = sse::loadu(src + idx + 2);
-
-        sse::storeu(dst + idx, sse::Xor(x0, y));
-        sse::storeu(dst + idx + 2, sse::Xor(x1, y));
+        sse::storeu(dst + idx, sse::Xor(sse::loadu(src + idx), y));
+        sse::storeu(dst + idx + 2, sse::Xor(sse::loadu(src + idx + 2), y));
 
         idx += 4;
     }
@@ -234,6 +181,40 @@ WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) noexcept
 
         idx += 8;
     } while (idx != n);
+}
+
+template <typename T>
+WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) noexcept {
+    static_assert(sizeof(T) == 8, "");
+
+    if (WJR_UNLIKELY(n < 4)) {
+        if (WJR_UNLIKELY(n == 0)) {
+            return;
+        }
+
+        if (n == 1) {
+            dst[0] = ~src[0];
+            return;
+        }
+
+        sse::storeu(dst, sse::Xor(sse::loadu(src), sse::ones()));
+
+        if (n == 3) {
+            dst[2] = ~src[2];
+        }
+
+        return;
+    }
+
+    if (WJR_UNLIKELY(n >= 35)) {
+        // Can be aligned
+        // TODO : Align those that cannot be aligned with T through uint8_t
+        if (WJR_LIKELY(reinterpret_cast<uintptr_t>(dst) % sizeof(T) == 0)) {
+            return large_builtin_not_n(dst, src, n);
+        }
+    }
+
+    return unaligned_large_builtin_not_n(dst, src, n);
 }
 
 #endif //

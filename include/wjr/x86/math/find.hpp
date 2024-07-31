@@ -347,57 +347,41 @@ WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src, T val, size_t n) noexce
 #if WJR_HAS_BUILTIN(FIND_NOT_N)
 
 template <typename T>
-WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) noexcept {
-    if (WJR_UNLIKELY(n == 0) || WJR_LIKELY(src[0] != val)) {
-        return 0;
-    }
-
-    if (n == 1 || WJR_LIKELY(src[1] != val)) {
-        return 1;
-    }
-
-    if (n == 2 || WJR_LIKELY(src[2] != val)) {
-        return 2;
-    }
-
-    if (n == 3 || WJR_LIKELY(src[3] != val)) {
-        return 3;
-    }
-
-    if (n == 4) {
-        return 4;
-    }
-
-    size_t ret = large_builtin_find_not_n(src, val, n);
-    WJR_ASSUME(ret >= 4);
-    return ret;
-}
-
-template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src0, const T *src1,
                                                size_t n) noexcept {
     if (WJR_UNLIKELY(n == 0) || WJR_LIKELY(src0[0] != src1[0])) {
         return 0;
     }
 
-    if (n == 1 || WJR_LIKELY(src0[1] != src1[1])) {
+    if (WJR_UNLIKELY(n == 1) || WJR_LIKELY(src0[1] != src1[1])) {
         return 1;
     }
 
-    if (n == 2 || WJR_LIKELY(src0[2] != src1[2])) {
+    if (WJR_UNLIKELY(n == 2)) {
         return 2;
     }
 
-    if (n == 3 || WJR_LIKELY(src0[3] != src1[3])) {
-        return 3;
+    const size_t ret = large_builtin_find_not_n(src0, src1, n);
+    WJR_ASSUME(ret >= 2 && ret <= n);
+    return ret;
+}
+
+template <typename T>
+WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) noexcept {
+    if (WJR_UNLIKELY(n == 0) || WJR_LIKELY(src[0] != val)) {
+        return 0;
     }
 
-    if (n == 4) {
-        return 4;
+    if (WJR_UNLIKELY(n == 1) || WJR_LIKELY(src[1] != val)) {
+        return 1;
     }
 
-    size_t ret = large_builtin_find_not_n(src0, src1, n);
-    WJR_ASSUME(ret >= 4);
+    if (WJR_UNLIKELY(n == 2)) {
+        return 2;
+    }
+
+    const size_t ret = large_builtin_find_not_n(src, val, n);
+    WJR_ASSUME(ret >= 2 && ret <= n);
     return ret;
 }
 
@@ -751,58 +735,41 @@ WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src, T val,
 #if WJR_HAS_BUILTIN(REVERSE_FIND_NOT_N)
 
 template <typename T>
-WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src, T val,
-                                                       size_t n) noexcept {
-    if (WJR_UNLIKELY(n == 0) || WJR_LIKELY(src[n - 1] != val)) {
-        return n;
-    }
-
-    if (n == 1 || WJR_LIKELY(src[n - 2] != val)) {
-        return n - 1;
-    }
-
-    if (n == 2 || WJR_LIKELY(src[n - 3] != val)) {
-        return n - 2;
-    }
-
-    if (n == 3 || WJR_LIKELY(src[n - 4] != val)) {
-        return n - 3;
-    }
-
-    if (n == 4) {
-        return n - 4;
-    }
-
-    size_t ret = large_builtin_reverse_find_not_n(src, val, n);
-    WJR_ASSUME(n > 4);
-    WJR_ASSUME(ret <= n - 4);
-    return ret;
-}
-
-template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src0, const T *src1,
                                                        size_t n) noexcept {
     if (WJR_UNLIKELY(n == 0) || WJR_LIKELY(src0[n - 1] != src1[n - 1])) {
         return n;
     }
 
-    if (n == 1 || WJR_LIKELY(src0[n - 2] != src1[n - 2])) {
+    if (WJR_UNLIKELY(n == 1) || WJR_LIKELY(src0[n - 2] != src1[n - 2])) {
         return n - 1;
     }
 
-    if (n == 2 || WJR_LIKELY(src0[n - 3] != src1[n - 3])) {
+    if (WJR_UNLIKELY(n == 2)) {
         return n - 2;
     }
 
-    if (n == 3 || WJR_LIKELY(src0[n - 4] != src1[n - 4])) {
-        return n - 3;
+    const size_t ret = large_builtin_reverse_find_not_n(src0, src1, n);
+    WJR_ASSUME(ret >= 0 && ret <= n - 2);
+    return ret;
+}
+
+template <typename T>
+WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src, T val,
+                                                       size_t n) noexcept {
+    if (WJR_UNLIKELY(n == 0) || WJR_LIKELY(src[n - 1] != val)) {
+        return n;
     }
 
-    if (n == 4) {
-        return n - 4;
+    if (WJR_UNLIKELY(n == 1) || WJR_LIKELY(src[n - 2] != val)) {
+        return n - 1;
     }
 
-    size_t ret = large_builtin_reverse_find_not_n(src0, src1, n);
+    if (WJR_UNLIKELY(n == 2)) {
+        return n - 2;
+    }
+
+    const size_t ret = large_builtin_reverse_find_not_n(src, val, n);
     WJR_ASSUME(n > 4);
     WJR_ASSUME(ret <= n - 4);
     return ret;
