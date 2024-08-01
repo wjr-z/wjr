@@ -349,22 +349,6 @@ struct get_place_index<std::in_place_index_t<idx>> {
 template <typename T>
 inline constexpr size_t get_place_index_v = get_place_index<T>::value;
 
-// ....
-
-template <typename P, typename M>
-WJR_INTRINSIC_CONSTEXPR20 size_t container_of_offset(const M P::*member) noexcept {
-    return reinterpret_cast<size_t>(&(reinterpret_cast<P *>(nullptr)->*member));
-}
-
-template <typename P, typename M>
-WJR_INTRINSIC_CONSTEXPR20 P *container_of_offset_impl(M *ptr,
-                                                      const M P::*member) noexcept {
-    return reinterpret_cast<P *>(reinterpret_cast<char *>(ptr) -
-                                 container_of_offset(member));
-}
-
-#define WJR_CONTAINER_OF(ptr, type, member) container_of_offset_impl(ptr, &type::member)
-
 // C++ 17 concept adapt
 
 template <typename Derived, typename Base>
@@ -774,6 +758,11 @@ struct __common_reference_impl<Tp1, Tp2, 5, void> {};
 template <typename Tp1, typename Tp2, typename... Rest>
 struct common_reference<Tp1, Tp2, Rest...>
     : common_reference<common_reference_t<Tp1, Tp2>, Rest...> {};
+
+template <typename Enum>
+WJR_CONST constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept {
+    return static_cast<std::underlying_type_t<Enum>>(e);
+}
 
 } // namespace wjr
 
