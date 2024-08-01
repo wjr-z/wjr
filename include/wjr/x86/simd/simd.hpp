@@ -2831,30 +2831,37 @@ __m256i avx::loadu_si128(const void *ptr) {
 }
 
 __m256i avx::loadu_si144(const void *ptr) {
-    return concat(sse::loadu_si128(ptr), sse::loadu_si16((const char *)ptr + 16));
+    return concat(sse::loadu_si128(ptr),
+                  sse::loadu_si16(static_cast<const char *>(ptr) + 16));
 }
 
 __m256i avx::loadu_si160(const void *ptr) {
-    return concat(sse::loadu_si128(ptr), sse::loadu_si32((const char *)ptr + 16));
+    return concat(sse::loadu_si128(ptr),
+                  sse::loadu_si32(static_cast<const char *>(ptr) + 16));
 }
 
 __m256i avx::loadu_si176(const void *ptr) {
-    return concat(sse::loadu_si128(ptr), sse::loadu_si48((const char *)ptr + 16));
+    return concat(sse::loadu_si128(ptr),
+                  sse::loadu_si48(static_cast<const char *>(ptr) + 16));
 }
 
 __m256i avx::loadu_si192(const void *ptr) {
-    return concat(sse::loadu_si128(ptr), sse::loadu_si64((const char *)ptr + 16));
+    return concat(sse::loadu_si128(ptr),
+                  sse::loadu_si64(static_cast<const char *>(ptr) + 16));
 }
 
 __m256i avx::loadu_si208(const void *ptr) {
-    return concat(sse::loadu_si128(ptr), sse::loadu_si80((const char *)ptr + 16));
+    return concat(sse::loadu_si128(ptr),
+                  sse::loadu_si80(static_cast<const char *>(ptr) + 16));
 }
 
 __m256i avx::loadu_si224(const void *ptr) {
-    return concat(sse::loadu_si128(ptr), sse::loadu_si96((const char *)ptr + 16));
+    return concat(sse::loadu_si128(ptr),
+                  sse::loadu_si96(static_cast<const char *>(ptr) + 16));
 }
 __m256i avx::loadu_si240(const void *ptr) {
-    return concat(sse::loadu_si128(ptr), sse::loadu_si112((const char *)ptr + 16));
+    return concat(sse::loadu_si128(ptr),
+                  sse::loadu_si112(static_cast<const char *>(ptr) + 16));
 }
 
 __m256i avx::loadu_si256(const void *ptr) {
