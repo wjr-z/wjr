@@ -3,9 +3,17 @@
 
 #include <array>
 
-#include <wjr/preprocessor.hpp>
+#include <wjr/math/integral_constant.hpp>
 
 namespace wjr {
+
+enum class convert_option : uint8_t {
+    none = 0x00,
+    no_leading_zeros = 0x01,
+};
+
+template <convert_option option>
+using convert_option_t = integral_constant<convert_option, option>;
 
 class char_converter_t {
     static constexpr std::array<uint8_t, 36> to_table = {
@@ -78,6 +86,48 @@ public:
 };
 
 inline constexpr origin_converter_t origin_converter;
+
+enum class chars_format : uint8_t {
+    scientific = 0x01,
+    fixed = 0x02,
+    hex = 0x04,
+    general = fixed | scientific
+};
+
+template <typename Iter>
+struct to_chars_result {
+    Iter ptr;
+    std::errc ec;
+
+    friend bool operator==(const to_chars_result &lhs,
+                           const to_chars_result &rhs) noexcept {
+        return lhs.ptr == rhs.ptr && lhs.ec == rhs.ec;
+    }
+
+    constexpr explicit operator bool() const noexcept { return ec == std::errc{}; }
+};
+
+template <typename Iter = const char *>
+struct from_chars_result {
+    Iter ptr;
+    std::errc ec;
+
+    friend bool operator==(const from_chars_result &lhs,
+                           const from_chars_result &rhs) noexcept {
+        return lhs.ptr == rhs.ptr && lhs.ec == rhs.ec;
+    }
+
+    constexpr explicit operator bool() const noexcept { return ec == std::errc{}; }
+};
+
+WJR_CONST WJR_INTRINSIC_INLINE bool
+is_made_of_eight_digits_fast(const char *src) noexcept {
+    const auto val = read_memory<uint32_t>(src);
+    return (val & (val + 0x0606060606060606) & 0xF0F0F0F0F0F0F0F0) == 0x3030303030303030;
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR uint32_t
+parse_eight_digits_unrolled(const char *src) noexcept;
 
 } // namespace wjr
 
