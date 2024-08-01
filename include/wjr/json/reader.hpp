@@ -7,17 +7,17 @@
 namespace wjr::json {
 
 /**
- * @brief Save position of all m_tokens.
+ * @brief Save position of all tokens.
  *
  */
 class reader {
-    using Storage = vector<uint32_t>;
+    using Vector = vector<uint32_t>;
 
 public:
     using value_type = uint32_t;
     using const_pointer = const char *;
     using size_type = typename lexer::size_type;
-    using const_iterator = typename Storage::const_iterator;
+    using const_iterator = typename Vector::const_iterator;
 
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(reader);
 
@@ -46,6 +46,7 @@ public:
         __read_impl();
     }
 
+    void clear() noexcept { m_tokens.clear(); }
     void shrink_to_fit() noexcept { m_tokens.shrink_to_fit(); }
 
 private:
@@ -66,7 +67,7 @@ private:
     }
 
     span<const char> m_str;
-    Storage m_tokens;
+    Vector m_tokens;
 };
 
 } // namespace wjr::json
