@@ -73,15 +73,18 @@ public:
 enum class endian {
     little = 0,
     big = 1,
-    native = __is_little_endian_helper::value ? little : big
+    native = __is_little_endian_helper::value ? little : big,
 };
 
-static_assert(endian::native == endian::little, "Don't support big endian currently.");
+inline constexpr bool is_little_endian = endian::native == endian::little;
+inline constexpr bool is_big_endian = !is_little_endian;
+
+static_assert(is_little_endian, "Big endian has not been tested.");
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T fallback_byteswap(T x) noexcept {
     constexpr auto digits = std::numeric_limits<T>::digits;
-    auto val = static_cast<uint_t<digits>>(x);
+    const auto val = static_cast<uint_t<digits>>(x);
     if constexpr (digits == 8) {
         return val;
     } else if constexpr (digits == 16) {
