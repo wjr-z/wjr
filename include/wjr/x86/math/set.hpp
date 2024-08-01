@@ -57,7 +57,7 @@ WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) noexcept {
 
     if (WJR_UNLIKELY(mo != 0)) {
         T stk[2] = {val, val};
-        std::memcpy(&val, (char *)(stk) + mo, sizeof(T));
+        std::memcpy(&val, reinterpret_cast<uint8_t *>(stk) + mo, sizeof(T));
         y = simd::set1(val, T());
     }
 
