@@ -36,14 +36,15 @@ public:
 
 private:
     WJR_CONSTEXPR20 void *__large_allocate(size_t n, stack_top &top) noexcept {
-        const auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
+        auto *const buffer =
+            static_cast<large_stack_top *>(malloc(sizeof(large_stack_top) + n));
         buffer->prev = top.large;
         top.large = buffer;
         return buffer + 1;
     }
 
     WJR_NOINLINE WJR_CONSTEXPR20 void __small_reallocate(stack_top &top) noexcept {
-        if (WJR_UNLIKELY(top.idx == (uint16_t)in_place_max)) {
+        if (WJR_UNLIKELY(top.idx == static_cast<uint16_t>(in_place_max))) {
             top.idx = m_idx;
         }
 
@@ -51,9 +52,9 @@ private:
         if (WJR_UNLIKELY(m_idx == m_size)) {
 
             if (WJR_UNLIKELY(m_size == m_capacity)) {
-                uint16_t new_capacity = m_idx + 2 * (bufsize - 1);
+                const uint16_t new_capacity = m_idx + 2 * (bufsize - 1);
                 memory_pool<alloc_node> pool;
-                auto new_ptr = pool.chunk_allocate(new_capacity);
+                auto *const new_ptr = pool.chunk_allocate(new_capacity);
                 if (WJR_LIKELY(m_idx != 0)) {
                     std::copy_n(m_ptr, m_idx, new_ptr);
                     pool.chunk_deallocate(m_ptr, m_capacity);
@@ -66,8 +67,8 @@ private:
 
             const size_t capacity = Cache << ((3 * m_idx + 2) / 5);
             memory_pool<char> pool;
-            const auto buffer = pool.chunk_allocate(capacity);
-            alloc_node node = {buffer, buffer + capacity};
+            auto *const buffer = pool.chunk_allocate(capacity);
+            const alloc_node node = {buffer, buffer + capacity};
             m_ptr[m_idx] = node;
 
             if (WJR_UNLIKELY(m_idx == 0)) {
@@ -101,7 +102,7 @@ private:
 
         m_cache.ptr = top.ptr;
 
-        if (WJR_UNLIKELY(top.idx != (uint16_t)in_place_max)) {
+        if (WJR_UNLIKELY(top.idx != static_cast<uint16_t>(in_place_max))) {
             const uint16_t idx = top.idx;
             m_cache.end = m_ptr[idx].end;
             m_idx = idx;
@@ -112,18 +113,16 @@ private:
     }
 
     WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) noexcept {
-        auto ptr = m_cache.ptr;
-
-        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - ptr) < n)) {
+        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
             __small_reallocate(top);
-            ptr = m_cache.ptr;
         }
 
         WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
         WJR_ASSERT_ASSUME_L2(top.ptr != nullptr);
 
+        auto *const ret = m_cache.ptr;
         m_cache.ptr += n;
-        return ptr;
+        return ret;
     }
 
 public:
@@ -151,9 +150,9 @@ public:
     WJR_CONSTEXPR20 void deallocate(const stack_top &top) noexcept {
         __small_deallocate(top);
 
-        auto buffer = top.large;
+        auto *buffer = top.large;
         while (WJR_UNLIKELY(buffer != nullptr)) {
-            auto prev = buffer->prev;
+            auto *const prev = buffer->prev;
             free(buffer);
             buffer = prev;
         }

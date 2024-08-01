@@ -13,19 +13,19 @@ struct automatic_free_pool {
     ~automatic_free_pool() noexcept {
         for (auto iter = head.begin(); iter != head.end();) {
             const auto now = iter++;
-            chunk *node = &**now;
+            chunk *const node = &**now;
             free(node);
         }
     }
 
     WJR_MALLOC void *allocate(size_t n) noexcept {
-        const auto ptr = (chunk *)malloc(n + sizeof(chunk));
+        auto *const ptr = (chunk *)malloc(n + sizeof(chunk));
         push_back(&head, ptr);
-        return (char *)(ptr) + sizeof(chunk);
+        return reinterpret_cast<char *>(ptr) + sizeof(chunk);
     }
 
     void deallocate(void *ptr) noexcept {
-        const auto node = (chunk *)((char *)(ptr) - sizeof(chunk));
+        auto *const node = (chunk *)(static_cast<char *>(ptr) - sizeof(chunk));
         remove_uninit(node);
         free(node);
     }
@@ -81,8 +81,8 @@ public:
         __small_allocate(uint32_t n) noexcept {
             const uint8_t idx = __get_index(n);
             const size_t size = __get_size(idx);
-            obj *volatile *my_free_list = free_list + idx;
-            obj *result = *my_free_list;
+            obj *volatile *const my_free_list = free_list + idx;
+            obj *const result = *my_free_list;
             if (WJR_LIKELY(result != nullptr)) {
                 *my_free_list = result->free_list_link;
                 return {result, size};
@@ -92,8 +92,8 @@ public:
         }
 
         WJR_INTRINSIC_INLINE void __small_deallocate(void *p, uint32_t n) noexcept {
-            const auto q = static_cast<obj *>(p);
-            obj *volatile *my_free_list = free_list + __get_index(n);
+            auto *const q = static_cast<obj *>(p);
+            obj *volatile *const my_free_list = free_list + __get_index(n);
             q->free_list_link = *my_free_list;
             *my_free_list = q;
         }
