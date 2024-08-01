@@ -24,11 +24,6 @@ const static __m256i hi8_lookup =
                   4, 0, 4, 0, 2, 17, 0, 8);
 #endif
 
-template <typename simd>
-inline typename simd::int_type equal(typename simd::int_type stk, uint8_t ch) {
-    return simd::cmpeq_epi8(stk, simd::set1_epi8(ch));
-}
-
 } // namespace lexer_detail
 
 typename lexer::result_type lexer::read(uint32_t *token_buf,
@@ -100,14 +95,14 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
         uint64_t B = 0; // backslash
 
         for (unsigned i = 0; i < u8_loop; ++i) {
-            const auto backslash = equal<simd>(stk[i], '\\');
+            const auto backslash = simd::cmpeq_epi8(stk[i], simd::set1_epi8('\\'));
             B |= (uint64_t)simd::movemask_epi8(backslash) << (i * u8_width);
         }
 
         uint64_t Q = 0; // quote
 
         for (unsigned i = 0; i < u8_loop; ++i) {
-            const auto quote = equal<simd>(stk[i], '"');
+            const auto quote = simd::cmpeq_epi8(stk[i], simd::set1_epi8('"'));
             Q |= (uint64_t)simd::movemask_epi8(quote) << (i * u8_width);
         }
 
@@ -134,8 +129,6 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
             W |= (uint64_t)(wsp) << (i * u8_width);
         }
 
-        const uint64_t NWS = S & W;
-
         S = ~S;
         W = ~W;
 
@@ -150,19 +143,16 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
         }
 
         Q &= ~B;
-        uint64_t R = prefix_xor(Q) ^ prev_in_string;
+        const uint64_t R = prefix_xor(Q) ^ prev_in_string;
         prev_in_string = static_cast<uint64_t>(static_cast<int64_t>(R) >> 63);
 
         const auto WS = S | W;
         const auto WT = shld(WS, prev_is_ws, 1);
-        const auto TW = shld(NWS, ~prev_is_ws, 1);
         prev_is_ws = WS;
 
-        S |= (TW & W) | (WT & ~W);
+        S |= (WT & ~W);
         S &= ~R;
-        R |= ~Q;
         S |= Q;
-        S &= R;
 
         if (S) {
             const auto num = popcount(S);
