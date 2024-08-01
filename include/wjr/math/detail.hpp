@@ -97,7 +97,7 @@ WJR_CONST constexpr T __align_up_offset(T n, type_identity_t<T> alignment) noexc
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST constexpr std::make_signed_t<T> __fasts_from_unsigned(T x) noexcept {
-    std::make_signed_t<T> ret = x;
+    const std::make_signed_t<T> ret = x;
     WJR_ASSERT_ASSUME_L2(ret >= 0, "overflow");
     return ret;
 }

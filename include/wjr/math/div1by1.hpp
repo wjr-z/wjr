@@ -61,7 +61,7 @@ WJR_CONST WJR_INTRINSIC_INLINE div1by1_uint_t<T> div1by1_internal_uint_gen(T d) 
     constexpr auto nd = std::numeric_limits<T>::digits;
 
     div1by1_uint_t<T, false> result;
-    uint8_t floor_log_2_d = static_cast<uint8_t>(nd - 1 - clz<T>(d));
+    const uint8_t floor_log_2_d = static_cast<uint8_t>(nd - 1 - clz<T>(d));
 
     // Power of 2
     if (is_zero_or_single_bit(d)) {
@@ -135,9 +135,9 @@ div1by1_uint_branchfull_do_impl(T d, const div1by1_uint_t<T> &denom) noexcept {
     if (!magic) {
         return d >> more;
     } else {
-        T q = mulhi<T>(magic, d);
+        const T q = mulhi<T>(magic, d);
         if (more & DIV1BY1_ADD_MARKER) {
-            T t = ((d - q) >> 1) + q;
+            const T t = ((d - q) >> 1) + q;
             return t >> (more & div1by1_shift_mask<T>::value);
         } else {
             return q >> more;

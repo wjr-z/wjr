@@ -169,6 +169,12 @@ public:
     uint64_t hi;
 };
 
+WJR_INTRINSIC_CONSTEXPR20 uint128_t mul64x64to128(uint64_t a, uint64_t b) noexcept {
+    uint64_t lo, hi;
+    lo = mul(a, b, hi);
+    return uint128_t(lo, hi);
+}
+
 } // namespace wjr
 
 namespace std {

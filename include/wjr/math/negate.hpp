@@ -12,7 +12,7 @@ namespace wjr {
 */
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 bool negate_n(T *dst, const T *src, size_t n) noexcept {
-    size_t idx = replace_find_not(dst, src, n, 0, 0);
+    const size_t idx = replace_find_not(dst, src, n, 0, 0);
 
     if (idx == n) {
         return true;

@@ -349,7 +349,7 @@ WJR_INTRINSIC_CONSTEXPR20 U addc_sz(uint64_t *dst, const uint64_t *src0, size_t 
 WJR_INTRINSIC_CONSTEXPR void __fallback_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                                 uint64_t hi0, uint64_t lo1,
                                                 uint64_t hi1) noexcept {
-    uint64_t __al = lo0 + lo1;
+    const uint64_t __al = lo0 + lo1;
     ah = hi0 + hi1 + (__al < lo0);
     al = __al;
 }
