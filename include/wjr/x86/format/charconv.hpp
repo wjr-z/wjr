@@ -158,13 +158,6 @@ uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, origin_converter_t) n
     return builtin_from_chars_unroll_8_fast<Base>(in);
 }
 
-template <uint64_t Base>
-uint32_t builtin_from_chars_unroll_8_fast(uint64_t val) noexcept {
-    static_assert(Base <= 10, "");
-    const __m128i in = sse::loadu_si64(ptr);
-    return builtin_from_chars_unroll_8_fast<Base>(in);
-}
-
 #endif
 
 #if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
