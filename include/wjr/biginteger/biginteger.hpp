@@ -11,12 +11,6 @@
 
 namespace wjr {
 
-template <typename Storage>
-struct is_biginteger_storage : std::false_type {};
-
-template <typename Storage>
-inline constexpr bool is_biginteger_storage_v = is_biginteger_storage<Storage>::value;
-
 namespace biginteger_detail {
 
 /**
@@ -121,6 +115,8 @@ public:
     using storage_traits_type = vector_storage_traits<uint64_t, Alloc>;
     using is_reallocatable = std::true_type;
 
+    using data_type = biginteger_data;
+
 public:
     default_biginteger_vector_storage() = default;
 
@@ -204,23 +200,43 @@ public:
         m_storage.m_size = size;
     }
 
-    WJR_PURE const biginteger_data *__get_data() const noexcept { return &m_storage; }
+    WJR_PURE const data_type *__get_data() const noexcept { return &m_storage; }
 
 private:
-    biginteger_data m_storage;
+    data_type m_storage;
 };
 
-template <typename Alloc>
-struct is_biginteger_storage<default_biginteger_vector_storage<Alloc>> : std::true_type {
-};
+template <typename T>
+WJR_PURE WJR_INTRINSIC_CONSTEXPR const T *__get_biginteger_data(const T &data) noexcept {
+    return std::addressof(data);
+}
 
 template <typename Storage>
 class basic_biginteger;
 
-namespace biginteger_detail {
+template <typename S>
+WJR_PURE WJR_INTRINSIC_CONSTEXPR auto
+__get_biginteger_data(const basic_biginteger<S> &data) noexcept {
+    return data.__get_data();
+}
 
-// const basic_biginteger<Storage>* don't need to get allocator
-// use const Storage* instead of const basic_biginteger<Storage>*
+template <typename T>
+struct __is_biginteger_data_impl : std::false_type {};
+
+template <>
+struct __is_biginteger_data_impl<biginteger_data> : std::true_type {};
+
+template <typename Storage>
+struct __is_biginteger_data_impl<basic_biginteger<Storage>> : std::true_type {};
+
+template <typename T>
+struct is_biginteger_data : __is_biginteger_data_impl<remove_cvref_t<T>> {};
+
+template <typename... Args>
+inline constexpr bool is_biginteger_data_v =
+    std::conjunction_v<is_biginteger_data<Args>...>;
+
+namespace biginteger_detail {
 
 /// @private
 template <typename S>
@@ -228,21 +244,35 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
                                                   basic_biginteger<S> *dst,
                                                   unsigned int base) noexcept;
 
-/// @private
-WJR_PURE inline int32_t __compare_impl(const biginteger_data *lhs,
-                                       const biginteger_data *rhs) noexcept;
+template <typename Iter, typename D>
+Iter __to_chars_unchecked_impl(Iter ptr, const D *src, unsigned int base = 10) noexcept {
+    if (src.empty()) {
+        *ptr++ = '0';
+        return ptr;
+    }
+
+    if (src.is_negate()) {
+        *ptr++ = '-';
+    }
+
+    return biginteger_to_chars(ptr, src->data(), src->size(), base);
+}
 
 /// @private
-WJR_PURE inline int32_t __compare_ui_impl(const biginteger_data *lhs,
-                                          uint64_t rhs) noexcept;
+template <typename D0, typename D1>
+WJR_PURE int32_t __compare_impl(const D0 *lhs, const D1 *rhs) noexcept;
 
 /// @private
-WJR_PURE inline int32_t __compare_si_impl(const biginteger_data *lhs,
-                                          int64_t rhs) noexcept;
+template <typename D>
+WJR_PURE int32_t __compare_ui_impl(const D *lhs, uint64_t rhs) noexcept;
 
 /// @private
-template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_PURE int32_t __compare_impl(const biginteger_data *lhs, T rhs) noexcept {
+template <typename D>
+WJR_PURE int32_t __compare_si_impl(const D *lhs, int64_t rhs) noexcept;
+
+/// @private
+template <typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+WJR_PURE int32_t __compare_impl(const D *lhs, T rhs) noexcept {
     if (WJR_BUILTIN_CONSTANT_P_TRUE(rhs == 0)) {
         const int32_t ssize = lhs->get_ssize();
         return ssize == 0 ? 0 : ssize < 0 ? -1 : 1;
@@ -260,30 +290,26 @@ WJR_PURE int32_t __compare_impl(const biginteger_data *lhs, T rhs) noexcept {
 }
 
 /// @private
-template <bool xsign, typename S>
-void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                   uint64_t rhs) noexcept;
+template <bool xsign, typename S, typename D>
+void __addsub_impl(basic_biginteger<S> *dst, const D *lhs, uint64_t rhs) noexcept;
 
 /// @private
-template <typename S>
-void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs,
-                   const biginteger_data *rhs) noexcept;
+template <typename S, typename D>
+void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs, const D *rhs) noexcept;
 
 /// @private
-template <bool xsign, typename S>
-void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                   const biginteger_data *rhs) noexcept;
+template <bool xsign, typename S, typename D0, typename D1>
+void __addsub_impl(basic_biginteger<S> *dst, const D0 *lhs, const D1 *rhs) noexcept;
 
 /// @private
-template <typename S>
-void __add_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                const biginteger_data *rhs) noexcept {
+template <typename S, typename D0, typename D1>
+void __add_impl(basic_biginteger<S> *dst, const D0 *lhs, const D1 *rhs) noexcept {
     __addsub_impl<false>(dst, lhs, rhs);
 }
 
 /// @private
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void __add_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) noexcept {
+template <typename S, typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+void __add_impl(basic_biginteger<S> *dst, const D *lhs, T rhs) noexcept {
     if constexpr (std::is_unsigned_v<T>) {
         __addsub_impl<false>(dst, lhs, rhs);
     } else {
@@ -296,21 +322,20 @@ void __add_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) noe
 }
 
 /// @private
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void __add_impl(basic_biginteger<S> *dst, T lhs, const biginteger_data *rhs) noexcept {
+template <typename S, typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+void __add_impl(basic_biginteger<S> *dst, T lhs, const D *rhs) noexcept {
     __add_impl(dst, rhs, lhs);
 }
 
 /// @private
-template <typename S>
-void __sub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                const biginteger_data *rhs) noexcept {
+template <typename S, typename D0, typename D1>
+void __sub_impl(basic_biginteger<S> *dst, const D0 *lhs, const D1 *rhs) noexcept {
     __addsub_impl<true>(dst, lhs, rhs);
 }
 
 /// @private
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void __sub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) noexcept {
+template <typename S, typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+void __sub_impl(basic_biginteger<S> *dst, const D *lhs, T rhs) noexcept {
     if constexpr (std::is_unsigned_v<T>) {
         __addsub_impl<true>(dst, lhs, rhs);
     } else {
@@ -323,8 +348,8 @@ void __sub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) noe
 }
 
 /// @private
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void __sub_impl(basic_biginteger<S> *dst, T lhs, const biginteger_data *rhs) noexcept {
+template <typename S, typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+void __sub_impl(basic_biginteger<S> *dst, T lhs, const D *rhs) noexcept {
     if constexpr (std::is_unsigned_v<T>) {
         __ui_sub_impl(dst, lhs, rhs);
     } else {
@@ -338,18 +363,16 @@ void __sub_impl(basic_biginteger<S> *dst, T lhs, const biginteger_data *rhs) noe
 }
 
 /// @private
-template <typename S>
-void __mul_ui_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                   uint64_t rhs) noexcept;
+template <typename S, typename D>
+void __mul_ui_impl(basic_biginteger<S> *dst, const D *lhs, uint64_t rhs) noexcept;
 
 /// @private
-template <typename S>
-void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                const biginteger_data *rhs) noexcept;
+template <typename S, typename D0, typename D1>
+void __mul_impl(basic_biginteger<S> *dst, const D0 *lhs, const D1 *rhs) noexcept;
 
 /// @private
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) noexcept {
+template <typename S, typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+void __mul_impl(basic_biginteger<S> *dst, const D *lhs, T rhs) noexcept {
     if constexpr (std::is_unsigned_v<T>) {
         __mul_ui_impl(dst, lhs, rhs);
     } else {
@@ -367,17 +390,17 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) noe
 }
 
 /// @private
-template <typename S>
-void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept;
+template <typename S, typename D>
+void __sqr_impl(basic_biginteger<S> *dst, const D *src) noexcept;
 
 /// @private
-template <typename S>
-void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, uint64_t rhs,
+template <typename S, typename D>
+void __addsubmul_impl(basic_biginteger<S> *dst, const D *lhs, uint64_t rhs,
                       int32_t xmask) noexcept;
 
 /// @private
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void __addmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) noexcept {
+template <typename S, typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+void __addmul_impl(basic_biginteger<S> *dst, const D *lhs, T rhs) noexcept {
     if constexpr (std::is_unsigned_v<T>) {
         __addsubmul_impl(dst, lhs, rhs, 0);
     } else {
@@ -394,8 +417,8 @@ void __addmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) 
 }
 
 /// @private
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void __submul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) noexcept {
+template <typename S, typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+void __submul_impl(basic_biginteger<S> *dst, const D *lhs, T rhs) noexcept {
     if constexpr (std::is_unsigned_v<T>) {
         __addsubmul_impl(dst, lhs, rhs, -1);
     } else {
@@ -412,179 +435,161 @@ void __submul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) 
 }
 
 /// @private
-template <typename S>
-void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                      const biginteger_data *rhs, int32_t xmask) noexcept;
+template <typename S, typename D0, typename D1>
+void __addsubmul_impl(basic_biginteger<S> *dst, const D0 *lhs, const D1 *rhs,
+                      int32_t xmask) noexcept;
 
 /// @private
-template <typename S>
-void __addmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                   const biginteger_data *rhs) noexcept {
+template <typename S, typename D0, typename D1>
+void __addmul_impl(basic_biginteger<S> *dst, const D0 *lhs, const D1 *rhs) noexcept {
     __addsubmul_impl(dst, lhs, rhs, 0);
 }
 
 /// @private
-template <typename S>
-void __submul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                   const biginteger_data *rhs) noexcept {
+template <typename S, typename D0, typename D1>
+void __submul_impl(basic_biginteger<S> *dst, const D0 *lhs, const D1 *rhs) noexcept {
     __addsubmul_impl(dst, lhs, rhs, -1);
 }
 
 /// @private
-template <typename S>
-void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                     uint32_t shift) noexcept;
+template <typename S, typename D>
+void __mul_2exp_impl(basic_biginteger<S> *dst, const D *lhs, uint32_t shift) noexcept;
 
 /// @private
-template <typename S0, typename S1>
-void __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
-                    const biginteger_data *num, const biginteger_data *div) noexcept;
+template <typename S0, typename S1, typename D0, typename D1>
+void __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem, const D0 *num,
+                    const D1 *div) noexcept;
 
 /// @private
-template <typename S>
-void __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                   const biginteger_data *div) noexcept;
+template <typename S, typename D0, typename D1>
+void __tdiv_q_impl(basic_biginteger<S> *quot, const D0 *num, const D1 *div) noexcept;
 
 /// @private
-template <typename S>
-void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                   const biginteger_data *div) noexcept;
+template <typename S, typename D0, typename D1>
+void __tdiv_r_impl(basic_biginteger<S> *rem, const D0 *num, const D1 *div) noexcept;
 
 /// @private
-template <typename S0, typename S1>
+template <typename S0, typename S1, typename D>
 uint64_t __tdiv_qr_ui_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
-                           const biginteger_data *num, uint64_t div) noexcept;
+                           const D *num, uint64_t div) noexcept;
 
 /// @private
-template <typename S>
-uint64_t __tdiv_q_ui_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                          uint64_t div) noexcept;
+template <typename S, typename D>
+uint64_t __tdiv_q_ui_impl(basic_biginteger<S> *quot, const D *num, uint64_t div) noexcept;
 
 /// @private
-template <typename S>
-uint64_t __tdiv_r_ui_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                          uint64_t div) noexcept;
+template <typename S, typename D>
+uint64_t __tdiv_r_ui_impl(basic_biginteger<S> *rem, const D *num, uint64_t div) noexcept;
 
 /// @private
-template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+template <typename S0, typename S1, typename D, typename T,
+          WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
-                        const biginteger_data *num, T div) noexcept;
+                        const D *num, T div) noexcept;
 
 /// @private
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-uint64_t __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                       T div) noexcept;
+template <typename S, typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __tdiv_q_impl(basic_biginteger<S> *quot, const D *num, T div) noexcept;
 
 /// @private
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-uint64_t __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                       uint64_t div) noexcept;
+template <typename S, typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __tdiv_r_impl(basic_biginteger<S> *rem, const D *num, T div) noexcept;
 
 /// @private
-template <typename S0, typename S1>
-void __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
-                    const biginteger_data *num, const biginteger_data *div) noexcept;
+template <typename S0, typename S1, typename D0, typename D1>
+void __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem, const D0 *num,
+                    const D1 *div) noexcept;
 
 /// @private
-template <typename S>
-void __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                   const biginteger_data *div) noexcept;
+template <typename S, typename D0, typename D1>
+void __fdiv_q_impl(basic_biginteger<S> *quot, const D0 *num, const D1 *div) noexcept;
 
 /// @private
-template <typename S>
-void __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                   const biginteger_data *div) noexcept;
+template <typename S, typename D0, typename D1>
+void __fdiv_r_impl(basic_biginteger<S> *rem, const D0 *num, const D1 *div) noexcept;
 
 /// @private
-template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+template <typename S0, typename S1, typename D, typename T,
+          WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
-                        const biginteger_data *num, T div) noexcept;
+                        const D *num, T div) noexcept;
 
 /// @private
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-uint64_t __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                       T div) noexcept;
+template <typename S, typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __fdiv_q_impl(basic_biginteger<S> *quot, const D *num, T div) noexcept;
 
 /// @private
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-uint64_t __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                       uint64_t div) noexcept;
+template <typename S, typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __fdiv_r_impl(basic_biginteger<S> *rem, const D *num, T div) noexcept;
 
 /// @private
-template <typename S0, typename S1>
-void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
-                    const biginteger_data *num, const biginteger_data *div) noexcept;
+template <typename S0, typename S1, typename D0, typename D1>
+void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem, const D0 *num,
+                    const D1 *div) noexcept;
 
 /// @private
-template <typename S>
-void __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                   const biginteger_data *div) noexcept;
+template <typename S, typename D0, typename D1>
+void __cdiv_q_impl(basic_biginteger<S> *quot, const D0 *num, const D1 *div) noexcept;
 
 /// @private
-template <typename S>
-void __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                   const biginteger_data *div) noexcept;
+template <typename S, typename D0, typename D1>
+void __cdiv_r_impl(basic_biginteger<S> *rem, const D0 *num, const D1 *div) noexcept;
 
 /// @private
-template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+template <typename S0, typename S1, typename D, typename T,
+          WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
-                        const biginteger_data *num, T div) noexcept;
+                        const D *num, T div) noexcept;
 
 /// @private
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-uint64_t __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                       T div) noexcept;
+template <typename S, typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __cdiv_q_impl(basic_biginteger<S> *quot, const D *num, T div) noexcept;
 
 /// @private
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-uint64_t __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                       uint64_t div) noexcept;
+template <typename S, typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __cdiv_r_impl(basic_biginteger<S> *rem, const D *num, T div) noexcept;
 
 /// @private
-template <typename S>
-void __tdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                        uint32_t shift) noexcept;
+template <typename S, typename D>
+void __tdiv_q_2exp_impl(basic_biginteger<S> *quot, const D *num, uint32_t shift) noexcept;
 
 /// @private
-template <typename S>
-void __tdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                        uint32_t shift) noexcept;
+template <typename S, typename D>
+void __tdiv_r_2exp_impl(basic_biginteger<S> *rem, const D *num, uint32_t shift) noexcept;
 
 /// @private
-template <typename S>
-void __cfdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                         uint32_t shift, int32_t xdir) noexcept;
+template <typename S, typename D>
+void __cfdiv_q_2exp_impl(basic_biginteger<S> *quot, const D *num, uint32_t shift,
+                         int32_t xdir) noexcept;
 
 /// @private
-template <typename S>
-void __cdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
+template <typename S, typename D>
+void __cdiv_q_2exp_impl(basic_biginteger<S> *quot, const D *num,
                         uint32_t shift) noexcept {
     __cfdiv_q_2exp_impl(quot, num, shift, 1);
 }
 
 /// @private
-template <typename S>
-void __fdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
+template <typename S, typename D>
+void __fdiv_q_2exp_impl(basic_biginteger<S> *quot, const D *num,
                         uint32_t shift) noexcept {
     __cfdiv_q_2exp_impl(quot, num, shift, -1);
 }
 
 /// @private
-template <typename S>
-void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                         uint32_t shift, int32_t xdir) noexcept;
+template <typename S, typename D>
+void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const D *num, uint32_t shift,
+                         int32_t xdir) noexcept;
 
 /// @private
-template <typename S>
-void __cdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                        uint32_t shift) noexcept {
+template <typename S, typename D>
+void __cdiv_r_2exp_impl(basic_biginteger<S> *rem, const D *num, uint32_t shift) noexcept {
     __cfdiv_r_2exp_impl(rem, num, shift, 1);
 }
 
 /// @private
-template <typename S>
-void __fdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                        uint32_t shift) noexcept {
+template <typename S, typename D>
+void __fdiv_r_2exp_impl(basic_biginteger<S> *rem, const D *num, uint32_t shift) noexcept {
     __cfdiv_r_2exp_impl(rem, num, shift, -1);
 }
 
@@ -600,27 +605,27 @@ void __urandom_exact_bit_impl(basic_biginteger<S> *dst, uint32_t size,
                               Engine &engine) noexcept;
 
 /// @private
-template <typename S, typename Engine,
+template <typename S, typename D, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
-void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
-                    Engine &engine) noexcept;
+void __urandom_impl(basic_biginteger<S> *dst, const D *limit, Engine &engine) noexcept;
 
 /// @private
-template <typename S, typename Engine,
+template <typename S, typename D, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
-void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
+void __urandom_exact_impl(basic_biginteger<S> *dst, const D *limit,
                           Engine &engine) noexcept;
 
 /// @private
-WJR_PURE inline uint32_t __bit_width_impl(const biginteger_data *num) noexcept;
+template <typename D>
+WJR_PURE uint32_t __bit_width_impl(const D *num) noexcept;
 
 /// @private
-WJR_PURE inline uint32_t __ctz_impl(const biginteger_data *num) noexcept;
+template <typename D>
+WJR_PURE uint32_t __ctz_impl(const D *num) noexcept;
 
 /// @todo optimize
-template <typename S>
-void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num,
-                uint32_t exp) noexcept;
+template <typename S, typename D>
+void __pow_impl(basic_biginteger<S> *dst, const D *num, uint32_t exp) noexcept;
 
 /// @private
 struct __powmod_iterator {
@@ -647,77 +652,72 @@ struct __powmod_iterator {
 };
 
 /// @todo optimize
-template <typename S>
-void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num,
-                   __powmod_iterator *iter, const biginteger_data *mod) noexcept;
+template <typename S, typename D0, typename D1>
+void __powmod_impl(basic_biginteger<S> *dst, const D0 *num, __powmod_iterator *iter,
+                   const D1 *mod) noexcept;
 
 /// @todo optimize
-template <typename S>
-void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num,
-                   const biginteger_data *exp, const biginteger_data *mod) noexcept;
+template <typename S, typename D0, typename D1, typename D2>
+void __powmod_impl(basic_biginteger<S> *dst, const D0 *num, const D1 *exp,
+                   const D2 *mod) noexcept;
 
 /// @todo optimize
-template <typename S>
-void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint64_t exp,
-                   const biginteger_data *mod) noexcept;
+template <typename S, typename D0, typename D1>
+void __powmod_impl(basic_biginteger<S> *dst, const D0 *num, uint64_t exp,
+                   const D1 *mod) noexcept;
 
 } // namespace biginteger_detail
 
 template <typename S>
 from_chars_result<const char *> from_chars(const char *first, const char *last,
                                            basic_biginteger<S> &dst,
-                                           unsigned int base = 10) noexcept;
+                                           unsigned int base = 10) noexcept {
+    return biginteger_detail::__from_chars_impl(first, last, &dst, base);
+}
 
-template <typename Iter>
-Iter to_chars_unchecked(Iter ptr, const biginteger_data &src,
-                        unsigned int base = 10) noexcept {
-    if (src.empty()) {
-        *ptr++ = '0';
-        return ptr;
-    }
-
-    if (src.is_negate()) {
-        *ptr++ = '-';
-    }
-
-    return biginteger_to_chars(ptr, src.data(), src.size(), base);
+template <typename Iter, typename D, WJR_REQUIRES(is_biginteger_data_v<D>)>
+Iter to_chars_unchecked(Iter ptr, const D &src, unsigned int base = 10) noexcept {
+    return biginteger_detail::__to_chars_unchecked_impl(ptr, __get_biginteger_data(src));
 }
 
 template <typename S>
 std::istream &operator>>(std::istream &is, basic_biginteger<S> &dst) noexcept;
 
-template <typename Traits>
+template <typename Traits, typename D, WJR_REQUIRES(is_biginteger_data_v<D>)>
 std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &os,
-                                             const biginteger_data &src) noexcept;
+                                             const D &src) noexcept;
 
-WJR_NODISCARD WJR_PURE inline int32_t compare(const biginteger_data &lhs,
-                                              const biginteger_data &rhs) noexcept {
-    return biginteger_detail::__compare_impl(&lhs, &rhs);
+template <typename D0, typename D1, WJR_REQUIRES(is_biginteger_data_v<D0, D1>)>
+WJR_NODISCARD WJR_PURE int32_t compare(const D0 &lhs, const D1 &rhs) noexcept {
+    return biginteger_detail::__compare_impl(__get_biginteger_data(lhs),
+                                             __get_biginteger_data(rhs));
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_NODISCARD WJR_PURE int32_t compare(const biginteger_data &lhs, T rhs) noexcept {
-    return biginteger_detail::__compare_impl(&lhs, rhs);
+template <typename D, typename T,
+          WJR_REQUIRES(is_nonbool_integral_v<T> &&is_biginteger_data_v<D>)>
+WJR_NODISCARD WJR_PURE int32_t compare(const D &lhs, T rhs) noexcept {
+    return biginteger_detail::__compare_impl(__get_biginteger_data(lhs), rhs);
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_NODISCARD WJR_PURE int32_t compare(T lhs, const biginteger_data &rhs) noexcept {
+template <typename T, typename D,
+          WJR_REQUIRES(is_nonbool_integral_v<T> &&is_biginteger_data_v<D>)>
+WJR_NODISCARD WJR_PURE int32_t compare(T lhs, const D &rhs) noexcept {
     return -compare(rhs, lhs);
 }
 
 #define WJR_REGISTER_BIGINTEGER_COMPARE(op)                                              \
-    WJR_NODISCARD WJR_PURE inline bool operator op(                                      \
-        const biginteger_data &lhs, const biginteger_data &rhs) noexcept {               \
+    template <typename D0, typename D1, WJR_REQUIRES(is_biginteger_data_v<D0, D1>)>      \
+    WJR_NODISCARD WJR_PURE bool operator op(const D0 &lhs, const D1 &rhs) noexcept {     \
         return compare(lhs, rhs) op 0;                                                   \
     }                                                                                    \
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>                        \
-    WJR_NODISCARD WJR_PURE bool operator op(const biginteger_data &lhs,                  \
-                                            T rhs) noexcept {                            \
+    template <typename D, typename T,                                                    \
+              WJR_REQUIRES(is_nonbool_integral_v<T> &&is_biginteger_data_v<D>)>          \
+    WJR_NODISCARD WJR_PURE bool operator op(const D &lhs, T rhs) noexcept {              \
         return compare(lhs, rhs) op 0;                                                   \
     }                                                                                    \
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>                        \
-    WJR_NODISCARD WJR_PURE bool operator op(T lhs,                                       \
-                                            const biginteger_data &rhs) noexcept {       \
+    template <typename T, typename D,                                                    \
+              WJR_REQUIRES(is_nonbool_integral_v<T> &&is_biginteger_data_v<D>)>          \
+    WJR_NODISCARD WJR_PURE bool operator op(T lhs, const D &rhs) noexcept {              \
         return compare(lhs, rhs) op 0;                                                   \
     }
 
@@ -731,21 +731,23 @@ WJR_REGISTER_BIGINTEGER_COMPARE(>=)
 #undef WJR_REGISTER_BIGINTEGER_COMPARE
 
 #define WJR_REGISTER_BIGINTEGER_ADDSUB(ADDSUB)                                           \
-    template <typename S>                                                                \
-    void ADDSUB(basic_biginteger<S> &dst, const biginteger_data &lhs,                    \
-                const biginteger_data &rhs) noexcept {                                   \
-        biginteger_detail::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, &lhs,   \
-                                                                           &rhs);        \
+    template <typename S, typename D0, typename D1,                                      \
+              WJR_REQUIRES(is_biginteger_data_v<D0> &&is_biginteger_data_v<D1>)>         \
+    void ADDSUB(basic_biginteger<S> &dst, const D0 &lhs, const D1 &rhs) noexcept {       \
+        biginteger_detail::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(              \
+            &dst, __get_biginteger_data(lhs), __get_biginteger_data(rhs));               \
     }                                                                                    \
-    template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>            \
-    void ADDSUB(basic_biginteger<S> &dst, const biginteger_data &lhs, T rhs) noexcept {  \
-        biginteger_detail::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, &lhs,   \
-                                                                           rhs);         \
+    template <typename S, typename D, typename T,                                        \
+              WJR_REQUIRES(is_biginteger_data_v<D> &&is_nonbool_integral_v<T>)>          \
+    void ADDSUB(basic_biginteger<S> &dst, const D &lhs, T rhs) noexcept {                \
+        biginteger_detail::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(              \
+            &dst, __get_biginteger_data(lhs), rhs);                                      \
     }                                                                                    \
-    template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>            \
-    void ADDSUB(basic_biginteger<S> &dst, T lhs, const biginteger_data &rhs) noexcept {  \
-        biginteger_detail::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, lhs,    \
-                                                                           &rhs);        \
+    template <typename S, typename T, typename D,                                        \
+              WJR_REQUIRES(is_nonbool_integral_v<T> &&is_biginteger_data_v<D>)>          \
+    void ADDSUB(basic_biginteger<S> &dst, T lhs, const D &rhs) noexcept {                \
+        biginteger_detail::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(              \
+            &dst, lhs, __get_biginteger_data(rhs));                                      \
     }
 
 WJR_REGISTER_BIGINTEGER_ADDSUB(add)
@@ -769,206 +771,217 @@ void negate(basic_biginteger<S> &dst) noexcept;
 template <typename S>
 void absolute(basic_biginteger<S> &dst) noexcept;
 
-template <typename S>
-void sqr(basic_biginteger<S> &dst, const biginteger_data &src) noexcept {
-    biginteger_detail::__sqr_impl(&dst, &src);
+template <typename S, typename D, WJR_REQUIRES(is_biginteger_data_v<D>)>
+void sqr(basic_biginteger<S> &dst, const D &src) noexcept {
+    biginteger_detail::__sqr_impl(&dst, __get_biginteger_data(src));
 }
 
-template <typename S>
-void mul(basic_biginteger<S> &dst, const biginteger_data &lhs,
-         const biginteger_data &rhs) noexcept {
+template <typename S, typename D0, typename D1,
+          WJR_REQUIRES(is_biginteger_data_v<D0> &&is_biginteger_data_v<D1>)>
+void mul(basic_biginteger<S> &dst, const D0 &lhs, const D1 &rhs) noexcept {
     if (WJR_BUILTIN_CONSTANT_P_TRUE(std::addressof(lhs) == std::addressof(rhs))) {
         sqr(dst, lhs);
         return;
     }
 
-    biginteger_detail::__mul_impl(&dst, &lhs, &rhs);
+    biginteger_detail::__mul_impl(&dst, __get_biginteger_data(lhs),
+                                  __get_biginteger_data(rhs));
 }
 
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void mul(basic_biginteger<S> &dst, const biginteger_data &lhs, T rhs) noexcept {
-    biginteger_detail::__mul_impl(&dst, &lhs, rhs);
+template <typename S, typename D, typename T,
+          WJR_REQUIRES(is_biginteger_data_v<D> &&is_nonbool_integral_v<T>)>
+void mul(basic_biginteger<S> &dst, const D &lhs, T rhs) noexcept {
+    biginteger_detail::__mul_impl(&dst, __get_biginteger_data(lhs), rhs);
 }
 
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void mul(basic_biginteger<S> &dst, T lhs, const biginteger_data &rhs) noexcept {
-    biginteger_detail::__mul_impl(&dst, &rhs, lhs);
+template <typename S, typename T, typename D,
+          WJR_REQUIRES(is_nonbool_integral_v<T> &&is_biginteger_data_v<D>)>
+void mul(basic_biginteger<S> &dst, T lhs, const D &rhs) noexcept {
+    biginteger_detail::__mul_impl(&dst, __get_biginteger_data(rhs), lhs);
 }
 
-template <typename S>
-void addmul(basic_biginteger<S> &dst, const biginteger_data &lhs,
-            const biginteger_data &rhs) noexcept {
-    biginteger_detail::__addmul_impl(&dst, &lhs, &rhs);
+template <typename S, typename D0, typename D1,
+          WJR_REQUIRES(is_biginteger_data_v<D0> &&is_biginteger_data_v<D1>)>
+void addmul(basic_biginteger<S> &dst, const D0 &lhs, const D1 &rhs) noexcept {
+    biginteger_detail::__addmul_impl(&dst, __get_biginteger_data(lhs),
+                                     __get_biginteger_data(rhs));
 }
 
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void addmul(basic_biginteger<S> &dst, const biginteger_data &lhs, T rhs) noexcept {
-    biginteger_detail::__addmul_impl(&dst, &lhs, rhs);
+template <typename S, typename D, typename T,
+          WJR_REQUIRES(is_biginteger_data_v<D> &&is_nonbool_integral_v<T>)>
+void addmul(basic_biginteger<S> &dst, const D &lhs, T rhs) noexcept {
+    biginteger_detail::__addmul_impl(&dst, __get_biginteger_data(lhs), rhs);
 }
 
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void addmul(basic_biginteger<S> &dst, T lhs, const biginteger_data &rhs) noexcept {
-    biginteger_detail::__addmul_impl(&dst, &rhs, lhs);
+template <typename S, typename T, typename D,
+          WJR_REQUIRES(is_nonbool_integral_v<T> &&is_biginteger_data_v<D>)>
+void addmul(basic_biginteger<S> &dst, T lhs, const D &rhs) noexcept {
+    biginteger_detail::__addmul_impl(&dst, __get_biginteger_data(rhs), lhs);
 }
 
-template <typename S>
-void submul(basic_biginteger<S> &dst, const biginteger_data &lhs,
-            const biginteger_data &rhs) noexcept {
-    biginteger_detail::__submul_impl(&dst, &lhs, &rhs);
+template <typename S, typename D0, typename D1,
+          WJR_REQUIRES(is_biginteger_data_v<D0> &&is_biginteger_data_v<D1>)>
+void submul(basic_biginteger<S> &dst, const D0 &lhs, const D1 &rhs) noexcept {
+    biginteger_detail::__submul_impl(&dst, __get_biginteger_data(lhs),
+                                     __get_biginteger_data(rhs));
 }
 
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void submul(basic_biginteger<S> &dst, const biginteger_data &lhs, T rhs) noexcept {
-    biginteger_detail::__submul_impl(&dst, &lhs, rhs);
+template <typename S, typename D, typename T,
+          WJR_REQUIRES(is_biginteger_data_v<D> &&is_nonbool_integral_v<T>)>
+void submul(basic_biginteger<S> &dst, const D &lhs, T rhs) noexcept {
+    biginteger_detail::__submul_impl(&dst, __get_biginteger_data(lhs), rhs);
 }
 
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void submul(basic_biginteger<S> &dst, T lhs, const biginteger_data &rhs) noexcept {
-    biginteger_detail::__submul_impl(&dst, &rhs, lhs);
+template <typename S, typename T, typename D,
+          WJR_REQUIRES(is_nonbool_integral_v<T> &&is_biginteger_data_v<D>)>
+void submul(basic_biginteger<S> &dst, T lhs, const D &rhs) noexcept {
+    biginteger_detail::__submul_impl(&dst, __get_biginteger_data(rhs), lhs);
 }
 
-template <typename S>
-void mul_2exp(basic_biginteger<S> &dst, const biginteger_data &lhs,
-              uint32_t shift) noexcept {
-    biginteger_detail::__mul_2exp_impl(&dst, &lhs, shift);
+template <typename S, typename D>
+void mul_2exp(basic_biginteger<S> &dst, const D &lhs, uint32_t shift) noexcept {
+    biginteger_detail::__mul_2exp_impl(&dst, __get_biginteger_data(lhs), shift);
 }
 
-template <typename S0, typename S1>
-void tdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
-             const biginteger_data &num, const biginteger_data &div) noexcept {
-    biginteger_detail::__tdiv_qr_impl(&quot, &rem, &num, &div);
+template <typename S0, typename S1, typename D0, typename D1>
+void tdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem, const D0 &num,
+             const D1 &div) noexcept {
+    biginteger_detail::__tdiv_qr_impl(&quot, &rem, __get_biginteger_data(num),
+                                      __get_biginteger_data(div));
 }
 
-template <typename S>
-void tdiv_q(basic_biginteger<S> &quot, const biginteger_data &num,
-            const biginteger_data &div) noexcept {
-    biginteger_detail::__tdiv_q_impl(&quot, &num, &div);
+template <typename S, typename D0, typename D1>
+void tdiv_q(basic_biginteger<S> &quot, const D0 &num, const D1 &div) noexcept {
+    biginteger_detail::__tdiv_q_impl(&quot, __get_biginteger_data(num),
+                                     __get_biginteger_data(div));
 }
 
-template <typename S0>
-void tdiv_r(basic_biginteger<S0> &rem, const biginteger_data &num,
-            const biginteger_data &div) noexcept {
-    biginteger_detail::__tdiv_r_impl(&rem, &num, &div);
+template <typename S0, typename D0, typename D1>
+void tdiv_r(basic_biginteger<S0> &rem, const D0 &num, const D1 &div) noexcept {
+    biginteger_detail::__tdiv_r_impl(&rem, __get_biginteger_data(num),
+                                     __get_biginteger_data(div));
 }
 
-template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-uint64_t tdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
-                 const biginteger_data &num, T div) noexcept {
-    return biginteger_detail::__tdiv_qr_impl(&quot, &rem, &num, div);
+template <typename S0, typename S1, typename D, typename T,
+          WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t tdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem, const D &num,
+                 T div) noexcept {
+    return biginteger_detail::__tdiv_qr_impl(&quot, &rem, __get_biginteger_data(num),
+                                             div);
 }
 
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-uint64_t tdiv_q(basic_biginteger<S> &quot, const biginteger_data &num, T div) noexcept {
-    return biginteger_detail::__tdiv_q_impl(&quot, &num, div);
+template <typename S, typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t tdiv_q(basic_biginteger<S> &quot, const D &num, T div) noexcept {
+    return biginteger_detail::__tdiv_q_impl(&quot, __get_biginteger_data(num), div);
 }
 
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-uint64_t tdiv_r(basic_biginteger<S> &rem, const biginteger_data &num, T div) noexcept {
-    return biginteger_detail::__tdiv_r_impl(&rem, &num, div);
+template <typename S, typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t tdiv_r(basic_biginteger<S> &rem, const D &num, T div) noexcept {
+    return biginteger_detail::__tdiv_r_impl(&rem, __get_biginteger_data(num), div);
 }
 
-template <typename S0, typename S1>
-void fdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
-             const biginteger_data &num, const biginteger_data &div) noexcept {
-    biginteger_detail::__fdiv_qr_impl(&quot, &rem, &num, &div);
+template <typename S0, typename S1, typename D0, typename D1>
+void fdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem, const D0 &num,
+             const D1 &div) noexcept {
+    biginteger_detail::__fdiv_qr_impl(&quot, &rem, __get_biginteger_data(num),
+                                      __get_biginteger_data(div));
 }
 
-template <typename S>
-void fdiv_q(basic_biginteger<S> &quot, const biginteger_data &num,
-            const biginteger_data &div) noexcept {
-    biginteger_detail::__fdiv_q_impl(&quot, &num, &div);
+template <typename S, typename D0, typename D1>
+void fdiv_q(basic_biginteger<S> &quot, const D0 &num, const D1 &div) noexcept {
+    biginteger_detail::__fdiv_q_impl(&quot, __get_biginteger_data(num),
+                                     __get_biginteger_data(div));
 }
 
-template <typename S0>
-void fdiv_r(basic_biginteger<S0> &rem, const biginteger_data &num,
-            const biginteger_data &div) noexcept {
-    biginteger_detail::__fdiv_r_impl(&rem, &num, &div);
+template <typename S0, typename D0, typename D1>
+void fdiv_r(basic_biginteger<S0> &rem, const D0 &num, const D1 &div) noexcept {
+    biginteger_detail::__fdiv_r_impl(&rem, __get_biginteger_data(num),
+                                     __get_biginteger_data(div));
 }
 
-template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-uint64_t fdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
-                 const biginteger_data &num, T div) noexcept {
-    return biginteger_detail::__fdiv_qr_impl(&quot, &rem, &num, div);
+template <typename S0, typename S1, typename D, typename T,
+          WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t fdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem, const D &num,
+                 T div) noexcept {
+    return biginteger_detail::__fdiv_qr_impl(&quot, &rem, __get_biginteger_data(num),
+                                             div);
 }
 
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-uint64_t fdiv_q(basic_biginteger<S> &quot, const biginteger_data &num, T div) noexcept {
-    return biginteger_detail::__fdiv_q_impl(&quot, &num, div);
+template <typename S, typename T, typename D, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t fdiv_q(basic_biginteger<S> &quot, const D &num, T div) noexcept {
+    return biginteger_detail::__fdiv_q_impl(&quot, __get_biginteger_data(num), div);
 }
 
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-uint64_t fdiv_r(basic_biginteger<S> &rem, const biginteger_data &num, T div) noexcept {
-    return biginteger_detail::__fdiv_r_impl(&rem, &num, div);
+template <typename S, typename T, typename D, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t fdiv_r(basic_biginteger<S> &rem, const D &num, T div) noexcept {
+    return biginteger_detail::__fdiv_r_impl(&rem, __get_biginteger_data(num), div);
 }
 
-template <typename S0, typename S1>
-void cdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
-             const biginteger_data &num, const biginteger_data &div) noexcept {
-    biginteger_detail::__cdiv_qr_impl(&quot, &rem, &num, &div);
+template <typename S0, typename S1, typename D0, typename D1>
+void cdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem, const D0 &num,
+             const D1 &div) noexcept {
+    biginteger_detail::__cdiv_qr_impl(&quot, &rem, __get_biginteger_data(num),
+                                      __get_biginteger_data(div));
 }
 
-template <typename S>
-void cdiv_q(basic_biginteger<S> &quot, const biginteger_data &num,
-            const biginteger_data &div) noexcept {
-    biginteger_detail::__cdiv_q_impl(&quot, &num, &div);
+template <typename S, typename D0, typename D1>
+void cdiv_q(basic_biginteger<S> &quot, const D0 &num, const D1 &div) noexcept {
+    biginteger_detail::__cdiv_q_impl(&quot, __get_biginteger_data(num),
+                                     __get_biginteger_data(div));
 }
 
-template <typename S0>
-void cdiv_r(basic_biginteger<S0> &rem, const biginteger_data &num,
-            const biginteger_data &div) noexcept {
-    biginteger_detail::__cdiv_r_impl(&rem, &num, &div);
+template <typename S0, typename D0, typename D1>
+void cdiv_r(basic_biginteger<S0> &rem, const D0 &num, const D1 &div) noexcept {
+    biginteger_detail::__cdiv_r_impl(&rem, __get_biginteger_data(num),
+                                     __get_biginteger_data(div));
 }
 
-template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-uint64_t cdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
-                 const biginteger_data &num, T div) noexcept {
-    return biginteger_detail::__cdiv_qr_impl(&quot, &rem, &num, div);
+template <typename S0, typename S1, typename D, typename T,
+          WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t cdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem, const D &num,
+                 T div) noexcept {
+    return biginteger_detail::__cdiv_qr_impl(&quot, &rem, __get_biginteger_data(num),
+                                             div);
 }
 
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-uint64_t cdiv_q(basic_biginteger<S> &quot, const biginteger_data &num, T div) noexcept {
-    return biginteger_detail::__cdiv_q_impl(&quot, &num, div);
+template <typename S, typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t cdiv_q(basic_biginteger<S> &quot, const D &num, T div) noexcept {
+    return biginteger_detail::__cdiv_q_impl(&quot, __get_biginteger_data(num), div);
 }
 
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-uint64_t cdiv_r(basic_biginteger<S> &rem, const biginteger_data &num, T div) noexcept {
-    return biginteger_detail::__cdiv_r_impl(&rem, &num, div);
+template <typename S, typename D, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t cdiv_r(basic_biginteger<S> &rem, const D &num, T div) noexcept {
+    return biginteger_detail::__cdiv_r_impl(&rem, __get_biginteger_data(num), div);
 }
 
-template <typename S>
-void tdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num,
-                 uint32_t shift) noexcept {
-    biginteger_detail::__tdiv_q_2exp_impl(&quot, &num, shift);
+template <typename S, typename D>
+void tdiv_q_2exp(basic_biginteger<S> &quot, const D &num, uint32_t shift) noexcept {
+    biginteger_detail::__tdiv_q_2exp_impl(&quot, __get_biginteger_data(num), shift);
 }
 
-template <typename S>
-void tdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num,
-                 uint32_t shift) noexcept {
-    biginteger_detail::__tdiv_r_2exp_impl(&rem, &num, shift);
+template <typename S, typename D>
+void tdiv_r_2exp(basic_biginteger<S> &rem, const D &num, uint32_t shift) noexcept {
+    biginteger_detail::__tdiv_r_2exp_impl(&rem, __get_biginteger_data(num), shift);
 }
 
-template <typename S>
-void fdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num,
-                 uint32_t shift) noexcept {
-    biginteger_detail::__fdiv_q_2exp_impl(&quot, &num, shift);
+template <typename S, typename D>
+void fdiv_q_2exp(basic_biginteger<S> &quot, const D &num, uint32_t shift) noexcept {
+    biginteger_detail::__fdiv_q_2exp_impl(&quot, __get_biginteger_data(num), shift);
 }
 
-template <typename S>
-void cdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num,
-                 uint32_t shift) noexcept {
-    biginteger_detail::__cdiv_q_2exp_impl(&quot, &num, shift);
+template <typename S, typename D>
+void cdiv_q_2exp(basic_biginteger<S> &quot, const D &num, uint32_t shift) noexcept {
+    biginteger_detail::__cdiv_q_2exp_impl(&quot, __get_biginteger_data(num), shift);
 }
 
-template <typename S>
-void cdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num,
-                 uint32_t shift) noexcept {
-    biginteger_detail::__cdiv_r_2exp_impl(&rem, &num, shift);
+template <typename S, typename D>
+void cdiv_r_2exp(basic_biginteger<S> &rem, const D &num, uint32_t shift) noexcept {
+    biginteger_detail::__cdiv_r_2exp_impl(&rem, __get_biginteger_data(num), shift);
 }
 
-template <typename S>
-void fdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num,
-                 uint32_t shift) noexcept {
-    biginteger_detail::__fdiv_r_2exp_impl(&rem, &num, shift);
+template <typename S, typename D>
+void fdiv_r_2exp(basic_biginteger<S> &rem, const D &num, uint32_t shift) noexcept {
+    biginteger_detail::__fdiv_r_2exp_impl(&rem, __get_biginteger_data(num), shift);
 }
 
 template <typename S, typename Engine,
@@ -983,49 +996,57 @@ void urandom_exact_bit(basic_biginteger<S> &dst, uint32_t size, Engine &engine) 
     biginteger_detail::__urandom_exact_bit_impl(&dst, size, engine);
 }
 
-template <typename S, typename Engine,
-          WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
-void urandom(basic_biginteger<S> &dst, const biginteger_data &limit,
-             Engine &engine) noexcept {
-    biginteger_detail::__urandom_impl(&dst, &limit, engine);
+template <typename S, typename D, typename Engine,
+          WJR_REQUIRES(is_biginteger_data_v<D>
+                           &&biginteger_uniform_random_bit_generator_v<Engine>)>
+void urandom(basic_biginteger<S> &dst, const D &limit, Engine &engine) noexcept {
+    biginteger_detail::__urandom_impl(&dst, __get_biginteger_data(limit), engine);
 }
 
-template <typename S, typename Engine,
-          WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
-void urandom_exact(basic_biginteger<S> &dst, const biginteger_data &limit,
-                   Engine &engine) noexcept {
-    biginteger_detail::__urandom_exact_impl(&dst, &limit, engine);
+template <typename S, typename D, typename Engine,
+          WJR_REQUIRES(is_biginteger_data_v<D>
+                           &&biginteger_uniform_random_bit_generator_v<Engine>)>
+void urandom_exact(basic_biginteger<S> &dst, const D &limit, Engine &engine) noexcept {
+    biginteger_detail::__urandom_exact_impl(&dst, __get_biginteger_data(limit), engine);
 }
 
-inline uint32_t bit_width(const biginteger_data &num) noexcept {
-    return biginteger_detail::__bit_width_impl(&num);
+template <typename D, WJR_REQUIRES(is_biginteger_data_v<D>)>
+uint32_t bit_width(const D &num) noexcept {
+    return biginteger_detail::__bit_width_impl(__get_biginteger_data(num));
 }
 
-inline uint32_t ctz(const biginteger_data &num) noexcept {
-    return biginteger_detail::__ctz_impl(&num);
+template <typename D, WJR_REQUIRES(is_biginteger_data_v<D>)>
+uint32_t ctz(const D &num) noexcept {
+    return biginteger_detail::__ctz_impl(__get_biginteger_data(num));
 }
 
-template <typename S>
-void pow(basic_biginteger<S> &dst, const biginteger_data &num, uint32_t exp) noexcept {
-    biginteger_detail::__pow_impl(&dst, &num, exp);
-}
-
-/**
- * @todo Need to optimize
- */
-template <typename S>
-void powmod(basic_biginteger<S> &dst, const biginteger_data &num,
-            const biginteger_data &exp, const biginteger_data &mod) noexcept {
-    biginteger_detail::__powmod_impl(&dst, &num, &exp, &mod);
+template <typename S, typename D, WJR_REQUIRES(is_biginteger_data_v<D>)>
+void pow(basic_biginteger<S> &dst, const D &num, uint32_t exp) noexcept {
+    biginteger_detail::__pow_impl(&dst, __get_biginteger_data(num), exp);
 }
 
 /**
  * @todo Need to optimize
  */
-template <typename S>
-void powmod(basic_biginteger<S> &dst, const biginteger_data &num, uint64_t exp,
-            const biginteger_data &mod) noexcept {
-    biginteger_detail::__powmod_impl(&dst, &num, exp, &mod);
+template <typename S, typename D0, typename D1, typename D2,
+          WJR_REQUIRES(is_biginteger_data_v<D0> &&is_biginteger_data_v<D1>
+                           &&is_biginteger_data_v<D2>)>
+void powmod(basic_biginteger<S> &dst, const D0 &num, const D1 &exp,
+            const D2 &mod) noexcept {
+    biginteger_detail::__powmod_impl(&dst, __get_biginteger_data(num),
+                                     __get_biginteger_data(exp),
+                                     __get_biginteger_data(mod));
+}
+
+/**
+ * @todo Need to optimize
+ */
+template <typename S, typename D0, typename D1,
+          WJR_REQUIRES(is_biginteger_data_v<D0> &&is_biginteger_data_v<D1>)>
+void powmod(basic_biginteger<S> &dst, const D0 &num, uint64_t exp,
+            const D1 &mod) noexcept {
+    biginteger_detail::__powmod_impl(&dst, __get_biginteger_data(num), exp,
+                                     __get_biginteger_data(mod));
 }
 
 template <typename Storage>
@@ -1047,6 +1068,8 @@ public:
     using reverse_iterator = typename vector_type::reverse_iterator;
     using const_reverse_iterator = typename vector_type::const_reverse_iterator;
     using allocator_type = typename vector_type::allocator_type;
+
+    using data_type = typename storage_type::data_type;
 
     static_assert(std::is_same_v<value_type, uint64_t>, "value_type must be uint64_t");
     static_assert(std::is_same_v<pointer, uint64_t *>, "pointer must be uint64_t *");
@@ -1099,15 +1122,9 @@ public:
         from_string(sp, base);
     }
 
-    template <typename OthterStorage>
-    explicit basic_biginteger(const basic_biginteger<OthterStorage> &other,
-                              const allocator_type &al = allocator_type())
-        : m_vec(other.begin(), other.end(), al) {
-        set_ssize(other.get_ssize());
-    }
-
-    explicit basic_biginteger(const biginteger_data &data,
-                              const allocator_type &al = allocator_type())
+    template <typename D, WJR_REQUIRES(!std::is_same_v<D, basic_biginteger> &&
+                                       is_biginteger_data_v<D>)>
+    explicit basic_biginteger(const D &data, const allocator_type &al = allocator_type())
         : m_vec(data.data(), data.data() + data.size(), al) {
         set_ssize(data.get_ssize());
     }
@@ -1141,15 +1158,10 @@ public:
 
     basic_biginteger &operator=(span<const char> sp) { return from_string(sp); }
 
-    template <typename OthterStorage>
-    basic_biginteger &operator=(const basic_biginteger<OthterStorage> &other) {
-        m_vec.assign(other.begin(), other.end());
-        set_ssize(other.get_ssize());
-        return *this;
-    }
-
-    basic_biginteger &operator=(const biginteger_data &data) {
-        if (WJR_UNLIKELY(std::addressof(__get_ref()) == std::addressof(data))) {
+    template <typename D, WJR_REQUIRES(!std::is_same_v<D, basic_biginteger> &&
+                                       is_biginteger_data_v<D>)>
+    basic_biginteger &operator=(const D &data) {
+        if (WJR_UNLIKELY(__get_data() == std::addressof(data))) {
             return *this;
         }
 
@@ -1223,7 +1235,8 @@ public:
         return *this;
     }
 
-    basic_biginteger &operator+=(const biginteger_data &rhs) {
+    template <typename D, WJR_REQUIRES(is_biginteger_data_v<D>)>
+    basic_biginteger &operator+=(const D &rhs) {
         add(*this, *this, rhs);
         return *this;
     }
@@ -1234,7 +1247,8 @@ public:
         return *this;
     }
 
-    basic_biginteger &operator-=(const biginteger_data &rhs) {
+    template <typename D, WJR_REQUIRES(is_biginteger_data_v<D>)>
+    basic_biginteger &operator-=(const D &rhs) {
         sub(*this, *this, rhs);
         return *this;
     }
@@ -1245,7 +1259,8 @@ public:
         return *this;
     }
 
-    basic_biginteger &operator*=(const biginteger_data &rhs) {
+    template <typename D, WJR_REQUIRES(is_biginteger_data_v<D>)>
+    basic_biginteger &operator*=(const D &rhs) {
         mul(*this, *this, rhs);
         return *this;
     }
@@ -1318,12 +1333,9 @@ public:
         return m_vec.get_storage();
     }
 
-    WJR_PURE const biginteger_data *__get_data() const noexcept {
+    WJR_PURE const data_type *__get_data() const noexcept {
         return get_storage().__get_data();
     }
-
-    WJR_PURE const biginteger_data &__get_ref() const noexcept { return *__get_data(); }
-    WJR_PURE operator const biginteger_data &() const noexcept { return __get_ref(); }
 
 private:
     void __check_high_bit() const {
@@ -1361,23 +1373,33 @@ WJR_PURE bool __equal_pointer(const basic_biginteger<S0> *,
 }
 
 /// @private
-template <typename S>
-WJR_PURE bool __equal_pointer(const basic_biginteger<S> *lhs,
-                              const biginteger_data *rhs) noexcept {
-    return lhs->__get_data() == rhs;
+template <typename S, typename D>
+WJR_PURE bool __equal_pointer(const basic_biginteger<S> *lhs, const D *rhs) noexcept {
+    if constexpr (std::is_same_v<typename S::data_type, D>) {
+        return lhs->__get_data() == rhs;
+    } else {
+        return false;
+    }
 }
 
 /// @private
-template <typename S>
-WJR_PURE bool __equal_pointer(const biginteger_data *lhs,
-                              const basic_biginteger<S> *rhs) noexcept {
-    return lhs == rhs->__get_data();
+template <typename D, typename S>
+WJR_PURE bool __equal_pointer(const D *lhs, const basic_biginteger<S> *rhs) noexcept {
+    if constexpr (std::is_same_v<typename S::data_type, D>) {
+        return lhs == rhs->__get_data();
+    } else {
+        return false;
+    }
 }
 
 /// @private
-WJR_PURE inline bool __equal_pointer(const biginteger_data *lhs,
-                                     const biginteger_data *rhs) noexcept {
-    return lhs == rhs;
+template <typename D0, typename D1>
+WJR_PURE bool __equal_pointer(const D0 *lhs, const D1 *rhs) noexcept {
+    if constexpr (std::is_same_v<D0, D1>) {
+        return lhs == rhs;
+    } else {
+        return false;
+    }
 }
 
 template <typename S>
@@ -1587,8 +1609,8 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
     return {__first, std::errc::invalid_argument};
 }
 
-inline int32_t __compare_impl(const biginteger_data *lhs,
-                              const biginteger_data *rhs) noexcept {
+template <typename D0, typename D1>
+int32_t __compare_impl(const D0 *lhs, const D1 *rhs) noexcept {
     const auto lssize = lhs->get_ssize();
     const auto rssize = rhs->get_ssize();
 
@@ -1600,7 +1622,8 @@ inline int32_t __compare_impl(const biginteger_data *lhs,
     return lssize < 0 ? -ans : ans;
 }
 
-inline int32_t __compare_ui_impl(const biginteger_data *lhs, uint64_t rhs) noexcept {
+template <typename D>
+int32_t __compare_ui_impl(const D *lhs, uint64_t rhs) noexcept {
     const auto lssize = lhs->get_ssize();
 
     if (lssize == 0) {
@@ -1615,7 +1638,8 @@ inline int32_t __compare_ui_impl(const biginteger_data *lhs, uint64_t rhs) noexc
     return lssize;
 }
 
-inline int32_t __compare_si_impl(const biginteger_data *lhs, int64_t rhs) noexcept {
+template <typename D>
+int32_t __compare_si_impl(const D *lhs, int64_t rhs) noexcept {
     const auto lssize = lhs->get_ssize();
     const int32_t rssize = rhs == 0 ? 0 : __fasts_conditional_negate<int32_t>(rhs < 0, 1);
 
@@ -1641,9 +1665,8 @@ inline int32_t __compare_si_impl(const biginteger_data *lhs, int64_t rhs) noexce
     return -lssize;
 }
 
-template <bool xsign, typename S>
-void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                   uint64_t rhs) noexcept {
+template <bool xsign, typename S, typename D>
+void __addsub_impl(basic_biginteger<S> *dst, const D *lhs, uint64_t rhs) noexcept {
     const int32_t lssize = lhs->get_ssize();
     if (lssize == 0) {
         dst->reserve(1);
@@ -1687,9 +1710,8 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     dst->set_ssize(dssize);
 }
 
-template <typename S>
-void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs,
-                   const biginteger_data *rhs) noexcept {
+template <typename S, typename D>
+void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs, const D *rhs) noexcept {
     const auto rssize = rhs->get_ssize();
     if (rssize == 0) {
         dst->reserve(1);
@@ -1733,9 +1755,8 @@ void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs,
     dst->set_ssize(dssize);
 }
 
-template <bool xsign, typename S>
-void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                   const biginteger_data *rhs) noexcept {
+template <bool xsign, typename S, typename D0, typename D1>
+void __addsub_impl(basic_biginteger<S> *dst, const D0 *lhs, const D1 *rhs) noexcept {
     auto lssize = lhs->get_ssize();
     int32_t rssize = __fasts_conditional_negate<int32_t>(xsign, rhs->get_ssize());
     uint32_t lusize = __fasts_abs(lssize);
@@ -1777,9 +1798,8 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     dst->set_ssize(dssize);
 }
 
-template <typename S>
-void __mul_ui_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                   uint64_t rhs) noexcept {
+template <typename S, typename D>
+void __mul_ui_impl(basic_biginteger<S> *dst, const D *lhs, uint64_t rhs) noexcept {
     const auto lssize = lhs->get_ssize();
     const uint32_t lusize = __fasts_abs(lssize);
 
@@ -1802,9 +1822,8 @@ void __mul_ui_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     dst->set_ssize(__fasts_conditional_negate<int32_t>(lssize < 0, dusize));
 }
 
-template <typename S>
-void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                const biginteger_data *rhs) noexcept {
+template <typename S, typename D0, typename D1>
+void __mul_impl(basic_biginteger<S> *dst, const D0 *lhs, const D1 *rhs) noexcept {
     int32_t lssize = lhs->get_ssize();
     int32_t rssize = rhs->get_ssize();
     uint32_t lusize = __fasts_abs(lssize);
@@ -1881,8 +1900,8 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     dst->set_ssize(dssize);
 }
 
-template <typename S>
-void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept {
+template <typename S, typename D>
+void __sqr_impl(basic_biginteger<S> *dst, const D *src) noexcept {
     int32_t sssize = src->get_ssize();
     uint32_t susize = __fasts_abs(sssize);
 
@@ -1942,8 +1961,8 @@ void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept {
     dst->set_ssize(dssize);
 }
 
-template <typename S>
-void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, uint64_t rhs,
+template <typename S, typename D>
+void __addsubmul_impl(basic_biginteger<S> *dst, const D *lhs, uint64_t rhs,
                       int32_t xmask) noexcept {
     const int32_t lssize = lhs->get_ssize();
 
@@ -2047,9 +2066,9 @@ void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, uint
     dst->set_ssize(__fasts_conditional_negate<int32_t>(dssize < 0, new_dusize));
 }
 
-template <typename S>
-void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                      const biginteger_data *rhs, int32_t xmask) noexcept {
+template <typename S, typename D0, typename D1>
+void __addsubmul_impl(basic_biginteger<S> *dst, const D0 *lhs, const D1 *rhs,
+                      int32_t xmask) noexcept {
     int32_t lssize = lhs->get_ssize();
     int32_t rssize = rhs->get_ssize();
 
@@ -2132,9 +2151,8 @@ void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     dst->set_ssize(__fasts_conditional_negate<int32_t>(dssize < 0, dusize));
 }
 
-template <typename S>
-void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                     uint32_t shift) noexcept {
+template <typename S, typename D>
+void __mul_2exp_impl(basic_biginteger<S> *dst, const D *lhs, uint32_t shift) noexcept {
     int32_t lssize = lhs->get_ssize();
 
     if (lssize == 0) {
@@ -2160,9 +2178,9 @@ void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     dst->set_ssize(__fasts_conditional_negate<int32_t>(lssize < 0, dusize));
 }
 
-template <typename S0, typename S1>
-void __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
-                    const biginteger_data *num, const biginteger_data *div) noexcept {
+template <typename S0, typename S1, typename D0, typename D1>
+void __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem, const D0 *num,
+                    const D1 *div) noexcept {
     WJR_ASSERT_ASSUME(!__equal_pointer(quot, rem), "quot should not be the same as rem");
 
     const auto nssize = num->get_ssize();
@@ -2219,9 +2237,8 @@ void __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
     rem->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, dusize));
 }
 
-template <typename S>
-void __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                   const biginteger_data *div) noexcept {
+template <typename S, typename D0, typename D1>
+void __tdiv_q_impl(basic_biginteger<S> *quot, const D0 *num, const D1 *div) noexcept {
     const auto nssize = num->get_ssize();
     const auto dssize = div->get_ssize();
     const auto nusize = __fasts_abs(nssize);
@@ -2267,9 +2284,8 @@ void __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
     quot->set_ssize(__fasts_conditional_negate<int32_t>((nssize ^ dssize) < 0, qssize));
 }
 
-template <typename S>
-void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                   const biginteger_data *div) noexcept {
+template <typename S, typename D0, typename D1>
+void __tdiv_r_impl(basic_biginteger<S> *rem, const D0 *num, const D1 *div) noexcept {
     const auto nssize = num->get_ssize();
     const auto dssize = div->get_ssize();
     const auto nusize = __fasts_abs(nssize);
@@ -2320,9 +2336,9 @@ void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
     rem->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, dusize));
 }
 
-template <typename S0, typename S1>
+template <typename S0, typename S1, typename D>
 uint64_t __tdiv_qr_ui_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
-                           const biginteger_data *num, uint64_t div) noexcept {
+                           const D *num, uint64_t div) noexcept {
     const auto nssize = num->get_ssize();
 
     WJR_ASSERT(div != 0, "division by zero");
@@ -2355,8 +2371,8 @@ uint64_t __tdiv_qr_ui_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem
     return remv;
 }
 
-template <typename S>
-uint64_t __tdiv_q_ui_impl(basic_biginteger<S> *quot, const biginteger_data *num,
+template <typename S, typename D>
+uint64_t __tdiv_q_ui_impl(basic_biginteger<S> *quot, const D *num,
                           uint64_t div) noexcept {
     const auto nssize = num->get_ssize();
 
@@ -2381,9 +2397,8 @@ uint64_t __tdiv_q_ui_impl(basic_biginteger<S> *quot, const biginteger_data *num,
     return remv;
 }
 
-template <typename S>
-uint64_t __tdiv_r_ui_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                          uint64_t div) noexcept {
+template <typename S, typename D>
+uint64_t __tdiv_r_ui_impl(basic_biginteger<S> *rem, const D *num, uint64_t div) noexcept {
     const auto nssize = num->get_ssize();
 
     WJR_ASSERT(div != 0, "division by zero");
@@ -2410,9 +2425,10 @@ uint64_t __tdiv_r_ui_impl(basic_biginteger<S> *rem, const biginteger_data *num,
     return remv;
 }
 
-template <typename S0, typename S1, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+template <typename S0, typename S1, typename D, typename T,
+          WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
 uint64_t __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
-                        const biginteger_data *num, T div) noexcept {
+                        const D *num, T div) noexcept {
     if constexpr (std::is_unsigned_v<T>) {
         return __tdiv_qr_ui_impl(quot, rem, num, div);
     } else {
@@ -2430,9 +2446,8 @@ uint64_t __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
     }
 }
 
-template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
-uint64_t __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                       T div) noexcept {
+template <typename S, typename D, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __tdiv_q_impl(basic_biginteger<S> *quot, const D *num, T div) noexcept {
     if constexpr (std::is_unsigned_v<T>) {
         return __tdiv_q_ui_impl(quot, num, div);
     } else {
@@ -2450,9 +2465,8 @@ uint64_t __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
     }
 }
 
-template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
-uint64_t __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                       uint64_t div) noexcept {
+template <typename S, typename D, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __tdiv_r_impl(basic_biginteger<S> *rem, const D *num, T div) noexcept {
     if constexpr (std::is_unsigned_v<T>) {
         return __tdiv_q_ui_impl(rem, num, div);
     } else {
@@ -2465,40 +2479,41 @@ uint64_t __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
     }
 }
 
-template <typename S0, typename S1>
-void __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
-                    const biginteger_data *num, const biginteger_data *div) noexcept {
+template <typename S0, typename S1, typename D0, typename D1>
+void __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem, const D0 *num,
+                    const D1 *div) noexcept {
 
     WJR_ASSERT_ASSUME(!__equal_pointer(quot, rem), "quot should not be the same as rem");
 
     unique_stack_allocator stkal(math_detail::stack_alloc);
 
-    biginteger_data tmp_div;
+    biginteger_data div_ref;
 
     const auto dssize = div->get_ssize();
+    div_ref.m_size = dssize;
 
     if (__equal_pointer(div, quot) || __equal_pointer(div, rem)) {
         const auto dusize = __fasts_abs(dssize);
-        const auto ptr = (uint64_t *)stkal.allocate(dusize * sizeof(uint64_t));
-        tmp_div = {ptr, dssize, 0};
-        std::copy_n(div->data(), dusize, ptr);
-
-        div = &tmp_div;
+        auto *const ptr =
+            static_cast<uint64_t *>(stkal.allocate(dusize * sizeof(uint64_t)));
+        div_ref.m_data = ptr;
+        std::memcpy(ptr, div->data(), dusize * sizeof(uint64_t));
+    } else {
+        div_ref.m_data = const_cast<uint64_t *>(div->data());
     }
 
     const auto xsize = num->get_ssize() ^ dssize;
 
-    __tdiv_qr_impl(quot, rem, num, div);
+    __tdiv_qr_impl(quot, rem, num, &div_ref);
 
     if (xsize < 0 && !rem->empty()) {
         __sub_impl(quot, quot->__get_data(), 1u);
-        __add_impl(rem, rem->__get_data(), div);
+        __add_impl(rem, rem->__get_data(), &div_ref);
     }
 }
 
-template <typename S>
-void __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                   const biginteger_data *div) noexcept {
+template <typename S, typename D0, typename D1>
+void __fdiv_q_impl(basic_biginteger<S> *quot, const D0 *num, const D1 *div) noexcept {
     unique_stack_allocator stkal(math_detail::stack_alloc);
     stack_biginteger rem(stkal);
 
@@ -2511,36 +2526,38 @@ void __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
     }
 }
 
-template <typename S>
-void __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                   const biginteger_data *div) noexcept {
+template <typename S, typename D0, typename D1>
+void __fdiv_r_impl(basic_biginteger<S> *rem, const D0 *num, const D1 *div) noexcept {
     unique_stack_allocator stkal(math_detail::stack_alloc);
 
-    biginteger_data tmp_div;
+    biginteger_data div_ref;
 
     const auto dssize = div->get_ssize();
+    div_ref.m_size = dssize;
 
     if (__equal_pointer(div, rem)) {
         const auto dusize = __fasts_abs(dssize);
-        const auto ptr = (uint64_t *)stkal.allocate(dusize * sizeof(uint64_t));
-        tmp_div = {ptr, dssize, 0};
-        std::copy_n(div->data(), dusize, ptr);
-
-        div = &tmp_div;
+        auto *const ptr =
+            static_cast<uint64_t *>(stkal.allocate(dusize * sizeof(uint64_t)));
+        div_ref.m_data = ptr;
+        std::memcpy(ptr, div->data(), dusize * sizeof(uint64_t));
+    } else {
+        div_ref.m_data = const_cast<uint64_t *>(div->data());
     }
 
     const auto xsize = num->get_ssize() ^ dssize;
 
-    __tdiv_r_impl(rem, num, div);
+    __tdiv_r_impl(rem, num, &div_ref);
 
     if (xsize < 0 && !rem->empty()) {
-        __add_impl(rem, rem->__get_data(), div);
+        __add_impl(rem, rem->__get_data(), &div_ref);
     }
 }
 
-template <typename S0, typename S1, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+template <typename S0, typename S1, typename D, typename T,
+          WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
 uint64_t __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
-                        const biginteger_data *num, T div) noexcept {
+                        const D *num, T div) noexcept {
     if constexpr (std::is_unsigned_v<T>) {
         const auto xssize = num->get_ssize();
 
@@ -2582,9 +2599,8 @@ uint64_t __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
     }
 }
 
-template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
-uint64_t __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                       T div) noexcept {
+template <typename S, typename D, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __fdiv_q_impl(basic_biginteger<S> *quot, const D *num, T div) noexcept {
     if constexpr (std::is_unsigned_v<T>) {
         const auto xssize = num->get_ssize();
 
@@ -2620,9 +2636,8 @@ uint64_t __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
     }
 }
 
-template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
-uint64_t __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                       uint64_t div) noexcept {
+template <typename S, typename D, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __fdiv_r_impl(basic_biginteger<S> *rem, const D *num, T div) noexcept {
     if constexpr (std::is_unsigned_v<T>) {
         const auto xssize = num->get_ssize();
 
@@ -2660,40 +2675,41 @@ uint64_t __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
     }
 }
 
-template <typename S0, typename S1>
-void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
-                    const biginteger_data *num, const biginteger_data *div) noexcept {
+template <typename S0, typename S1, typename D0, typename D1>
+void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem, const D0 *num,
+                    const D1 *div) noexcept {
 
     WJR_ASSERT_ASSUME(!__equal_pointer(quot, rem), "quot should not be the same as rem");
 
     unique_stack_allocator stkal(math_detail::stack_alloc);
 
-    biginteger_data tmp_div;
+    biginteger_data div_ref;
 
     const auto dssize = div->get_ssize();
+    div_ref.m_size = dssize;
 
     if (__equal_pointer(div, quot) || __equal_pointer(div, rem)) {
         const auto dusize = __fasts_abs(dssize);
-        const auto ptr = (uint64_t *)stkal.allocate(dusize * sizeof(uint64_t));
-        tmp_div = {ptr, dssize, 0};
-        std::copy_n(div->data(), dusize, ptr);
-
-        div = &tmp_div;
+        auto *const ptr =
+            static_cast<uint64_t *>(stkal.allocate(dusize * sizeof(uint64_t)));
+        div_ref.m_data = ptr;
+        std::memcpy(ptr, div->data(), dusize * sizeof(uint64_t));
+    } else {
+        div_ref.m_data = const_cast<uint64_t *>(div->data());
     }
 
     const auto xsize = num->get_ssize() ^ dssize;
 
-    __tdiv_qr_impl(quot, rem, num, div);
+    __tdiv_qr_impl(quot, rem, num, &div_ref);
 
     if (xsize >= 0 && !rem->empty()) {
         __add_impl(quot, quot->__get_data(), 1u);
-        __sub_impl(rem, rem->__get_data(), div);
+        __sub_impl(rem, rem->__get_data(), &div_ref);
     }
 }
 
-template <typename S>
-void __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                   const biginteger_data *div) noexcept {
+template <typename S, typename D0, typename D1>
+void __cdiv_q_impl(basic_biginteger<S> *quot, const D0 *num, const D1 *div) noexcept {
     unique_stack_allocator stkal(math_detail::stack_alloc);
     stack_biginteger rem(stkal);
 
@@ -2706,36 +2722,38 @@ void __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
     }
 }
 
-template <typename S>
-void __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                   const biginteger_data *div) noexcept {
+template <typename S, typename D0, typename D1>
+void __cdiv_r_impl(basic_biginteger<S> *rem, const D0 *num, const D1 *div) noexcept {
     unique_stack_allocator stkal(math_detail::stack_alloc);
 
-    biginteger_data tmp_div;
+    biginteger_data div_ref;
 
     const auto dssize = div->get_ssize();
+    div_ref.m_size = dssize;
 
     if (__equal_pointer(div, rem)) {
         const auto dusize = __fasts_abs(dssize);
-        const auto ptr = (uint64_t *)stkal.allocate(dusize * sizeof(uint64_t));
-        tmp_div = {ptr, dssize, 0};
-        std::copy_n(div->data(), dusize, ptr);
-
-        div = &tmp_div;
+        auto *const ptr =
+            static_cast<uint64_t *>(stkal.allocate(dusize * sizeof(uint64_t)));
+        div_ref.m_data = ptr;
+        std::memcpy(ptr, div->data(), dusize * sizeof(uint64_t));
+    } else {
+        div_ref.m_data = const_cast<uint64_t *>(div->data());
     }
 
     const auto xsize = num->get_ssize() ^ dssize;
 
-    __tdiv_r_impl(rem, num, div);
+    __tdiv_r_impl(rem, num, &div_ref);
 
     if (xsize >= 0 && !rem->empty()) {
-        __sub_impl(rem, rem->__get_data(), div);
+        __sub_impl(rem, rem->__get_data(), &div_ref);
     }
 }
 
-template <typename S0, typename S1, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+template <typename S0, typename S1, typename D, typename T,
+          WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
 uint64_t __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
-                        const biginteger_data *num, T div) noexcept {
+                        const D *num, T div) noexcept {
     if constexpr (std::is_unsigned_v<T>) {
         const auto xssize = num->get_ssize();
 
@@ -2777,9 +2795,8 @@ uint64_t __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
     }
 }
 
-template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
-uint64_t __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                       T div) noexcept {
+template <typename S, typename D, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __cdiv_q_impl(basic_biginteger<S> *quot, const D *num, T div) noexcept {
     if constexpr (std::is_unsigned_v<T>) {
         const auto xssize = num->get_ssize();
 
@@ -2815,9 +2832,8 @@ uint64_t __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
     }
 }
 
-template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
-uint64_t __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                       uint64_t div) noexcept {
+template <typename S, typename D, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __cdiv_r_impl(basic_biginteger<S> *rem, const D *num, T div) noexcept {
     if constexpr (std::is_unsigned_v<T>) {
         const auto xssize = num->get_ssize();
 
@@ -2855,8 +2871,8 @@ uint64_t __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
     }
 }
 
-template <typename S>
-void __tdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
+template <typename S, typename D>
+void __tdiv_q_2exp_impl(basic_biginteger<S> *quot, const D *num,
                         uint32_t shift) noexcept {
     int32_t nssize = num->get_ssize();
     uint32_t nusize = __fasts_abs(nssize);
@@ -2879,9 +2895,8 @@ void __tdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
     quot->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, qssize));
 }
 
-template <typename S>
-void __tdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                        uint32_t shift) noexcept {
+template <typename S, typename D>
+void __tdiv_r_2exp_impl(basic_biginteger<S> *rem, const D *num, uint32_t shift) noexcept {
     const int32_t nssize = num->get_ssize();
     uint32_t nusize = __fasts_abs(nssize);
     uint32_t offset = shift / 64;
@@ -2912,9 +2927,9 @@ void __tdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
     rem->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, rusize));
 }
 
-template <typename S>
-void __cfdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                         uint32_t shift, int32_t xdir) noexcept {
+template <typename S, typename D>
+void __cfdiv_q_2exp_impl(basic_biginteger<S> *quot, const D *num, uint32_t shift,
+                         int32_t xdir) noexcept {
     int32_t nssize = num->get_ssize();
     uint32_t nusize = __fasts_abs(nssize);
     uint32_t offset = shift / 64;
@@ -2965,9 +2980,9 @@ void __cfdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
     quot->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, qssize));
 }
 
-template <typename S>
-void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                         uint32_t shift, int32_t xdir) noexcept {
+template <typename S, typename D>
+void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const D *num, uint32_t shift,
+                         int32_t xdir) noexcept {
     int32_t nssize = num->get_ssize();
 
     if (nssize == 0) {
@@ -3103,10 +3118,9 @@ void __urandom_exact_bit_impl(basic_biginteger<S> *dst, uint32_t size,
     dst->set_ssize(dssize);
 }
 
-template <typename S, typename Engine,
+template <typename S, typename D, typename Engine,
           WJR_REQUIRES_I(biginteger_uniform_random_bit_generator_v<Engine>)>
-void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
-                    Engine &engine) noexcept {
+void __urandom_impl(basic_biginteger<S> *dst, const D *limit, Engine &engine) noexcept {
     std::optional<uninitialized<math_detail::unique_stack_alloc>> stkal;
     uint32_t size = limit->size();
 
@@ -3180,9 +3194,9 @@ void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
     }
 }
 
-template <typename S, typename Engine,
+template <typename S, typename D, typename Engine,
           WJR_REQUIRES_I(biginteger_uniform_random_bit_generator_v<Engine>)>
-void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
+void __urandom_exact_impl(basic_biginteger<S> *dst, const D *limit,
                           Engine &engine) noexcept {
     std::optional<uninitialized<math_detail::unique_stack_alloc>> stkal;
     uint32_t size = limit->size();
@@ -3253,7 +3267,8 @@ void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit
 }
 
 /// @private
-inline uint32_t __bit_width_impl(const biginteger_data *num) noexcept {
+template <typename D>
+uint32_t __bit_width_impl(const D *num) noexcept {
     const uint32_t size = num->size();
     if (WJR_UNLIKELY(size == 0)) {
         return 0;
@@ -3263,7 +3278,8 @@ inline uint32_t __bit_width_impl(const biginteger_data *num) noexcept {
 }
 
 /// @private
-inline uint32_t __ctz_impl(const biginteger_data *num) noexcept {
+template <typename D>
+uint32_t __ctz_impl(const D *num) noexcept {
     if (num->empty()) {
         return 0;
     }
@@ -3284,9 +3300,8 @@ inline uint32_t __ctz_impl(const biginteger_data *num) noexcept {
     return idx * 64 + ctz(ptr[idx]);
 }
 
-template <typename S>
-void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num,
-                uint32_t exp) noexcept {
+template <typename S, typename D>
+void __pow_impl(basic_biginteger<S> *dst, const D *num, uint32_t exp) noexcept {
     if (exp == 0) {
         *dst = 1u;
         return;
@@ -3329,9 +3344,9 @@ void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num,
 }
 
 /// @private
-template <typename S>
-void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num,
-                   __powmod_iterator *iter, const biginteger_data *mod) noexcept {
+template <typename S, typename D0, typename D1>
+void __powmod_impl(basic_biginteger<S> *dst, const D0 *num, __powmod_iterator *iter,
+                   const D1 *mod) noexcept {
     WJR_ASSERT(mod->size() != 0);
 
     const auto size = iter->size;
@@ -3384,29 +3399,22 @@ void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num,
     }
 }
 
-template <typename S>
-void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num,
-                   const biginteger_data *exp, const biginteger_data *mod) noexcept {
+template <typename S, typename D0, typename D1, typename D2>
+void __powmod_impl(basic_biginteger<S> *dst, const D0 *num, const D1 *exp,
+                   const D2 *mod) noexcept {
     __powmod_iterator iter(exp->data(), exp->size());
     __powmod_impl(dst, num, &iter, mod);
 }
 
-template <typename S>
-void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint64_t exp,
-                   const biginteger_data *mod) noexcept {
+template <typename S, typename D0, typename D1>
+void __powmod_impl(basic_biginteger<S> *dst, const D0 *num, uint64_t exp,
+                   const D1 *mod) noexcept {
     uint64_t tmp[] = {exp};
     __powmod_iterator iter(tmp, exp == 0 ? 0 : 1);
     __powmod_impl(dst, num, &iter, mod);
 }
 
 } // namespace biginteger_detail
-
-template <typename S>
-from_chars_result<const char *> from_chars(const char *first, const char *last,
-                                           basic_biginteger<S> &dst,
-                                           unsigned int base) noexcept {
-    return biginteger_detail::__from_chars_impl(first, last, &dst, base);
-}
 
 template <typename S>
 void negate(basic_biginteger<S> &dst) noexcept {
@@ -3426,9 +3434,9 @@ std::istream &operator>>(std::istream &is, basic_biginteger<S> &dst) noexcept {
     return is;
 }
 
-template <typename Traits>
+template <typename Traits, typename D>
 std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &os,
-                                             const biginteger_data &src) noexcept {
+                                             const D &src) noexcept {
     std::ios_base::iostate state = std::ios::goodbit;
 
     if (const std::ostream::sentry ok(os); ok) {
