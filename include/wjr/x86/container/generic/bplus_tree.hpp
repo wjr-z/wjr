@@ -36,10 +36,10 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
                 break;
             }
 
-            const auto x0 = read_memory<uint16_t>(first, endian::native);
-            const auto x1 = read_memory<uint16_t>(last - 2, endian::native);
-            write_memory<uint16_t>(dest, x0, endian::native);
-            write_memory<uint16_t>(dest + n - 2, x1, endian::native);
+            const auto x0 = read_memory<uint16_t>(first);
+            const auto x1 = read_memory<uint16_t>(last - 2);
+            write_memory<uint16_t>(dest, x0);
+            write_memory<uint16_t>(dest + n - 2, x1);
             return;
         } while (0);
     }
@@ -50,10 +50,10 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
                 break;
             }
 
-            const auto x0 = read_memory<uint32_t>(first, endian::native);
-            const auto x1 = read_memory<uint32_t>(last - 4, endian::native);
-            write_memory<uint32_t>(dest, x0, endian::native);
-            write_memory<uint32_t>(dest + n - 4, x1, endian::native);
+            const auto x0 = read_memory<uint32_t>(first);
+            const auto x1 = read_memory<uint32_t>(last - 4);
+            write_memory<uint32_t>(dest, x0);
+            write_memory<uint32_t>(dest + n - 4, x1);
             return;
         } while (0);
     }
@@ -66,10 +66,10 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
                 }
             }
 
-            const auto x0 = read_memory<uint64_t>(first, endian::native);
-            const auto x1 = read_memory<uint64_t>(last - 8, endian::native);
-            write_memory<uint64_t>(dest, x0, endian::native);
-            write_memory<uint64_t>(dest + n - 8, x1, endian::native);
+            const auto x0 = read_memory<uint64_t>(first);
+            const auto x1 = read_memory<uint64_t>(last - 8);
+            write_memory<uint64_t>(dest, x0);
+            write_memory<uint64_t>(dest + n - 8, x1);
             return;
         } while (0);
     }
@@ -179,10 +179,10 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
                 break;
             }
 
-            const auto x0 = read_memory<uint16_t>(first, endian::native);
-            const auto x1 = read_memory<uint16_t>(last - 2, endian::native);
-            write_memory<uint16_t>(dest - n, x0, endian::native);
-            write_memory<uint16_t>(dest - 2, x1, endian::native);
+            const auto x0 = read_memory<uint16_t>(first);
+            const auto x1 = read_memory<uint16_t>(last - 2);
+            write_memory<uint16_t>(dest - n, x0);
+            write_memory<uint16_t>(dest - 2, x1);
             return;
         } while (0);
     }
@@ -193,10 +193,10 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
                 break;
             }
 
-            const auto x0 = read_memory<uint32_t>(first, endian::native);
-            const auto x1 = read_memory<uint32_t>(last - 4, endian::native);
-            write_memory<uint32_t>(dest - n, x0, endian::native);
-            write_memory<uint32_t>(dest - 4, x1, endian::native);
+            const auto x0 = read_memory<uint32_t>(first);
+            const auto x1 = read_memory<uint32_t>(last - 4);
+            write_memory<uint32_t>(dest - n, x0);
+            write_memory<uint32_t>(dest - 4, x1);
             return;
         } while (0);
     }
@@ -209,10 +209,10 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
                 }
             }
 
-            const auto x0 = read_memory<uint64_t>(first, endian::native);
-            const auto x1 = read_memory<uint64_t>(last - 8, endian::native);
-            write_memory<uint64_t>(dest - n, x0, endian::native);
-            write_memory<uint64_t>(dest - 8, x1, endian::native);
+            const auto x0 = read_memory<uint64_t>(first);
+            const auto x1 = read_memory<uint64_t>(last - 8);
+            write_memory<uint64_t>(dest - n, x0);
+            write_memory<uint64_t>(dest - 8, x1);
             return;
         } while (0);
     }
