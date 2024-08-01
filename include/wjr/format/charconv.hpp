@@ -183,7 +183,7 @@ public:
     template <typename Converter>
     WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
                                                  Converter) noexcept {
-        const auto str = (char *)ptr;
+        auto *const str = static_cast<char *>(ptr);
         if constexpr (Base * Base <= 16) {
             constexpr auto &table = __char_converter_table<Converter, Base, 4>;
             std::memcpy(str, table.data() + val * 4 + 2, 2);
@@ -219,7 +219,7 @@ public:
     template <typename Converter>
     WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
                                                  Converter) noexcept {
-        auto str = (char *)ptr;
+        auto *const str = static_cast<char *>(ptr);
         if constexpr (Base * Base <= 16) {
             constexpr auto &table = __char_converter_table<Converter, Base, 4>;
             std::memcpy(str, table.data() + val * 4, 4);
@@ -346,22 +346,14 @@ protected:
     }
 
 public:
-    WJR_PURE WJR_INTRINSIC_INLINE static uint32_t
-    __fast_conv(const void *ptr, char_converter_t conv) noexcept {
-#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_4_FAST)
-        return builtin_from_chars_unroll_4_fast<Base>(ptr, conv);
-#else
+    WJR_PURE WJR_INTRINSIC_INLINE static uint32_t __fast_conv(const void *ptr,
+                                                              char_converter_t) noexcept {
         return __fast_conv(read_memory<uint32_t>(ptr) - 0x30303030u);
-#endif
     }
 
     WJR_PURE WJR_INTRINSIC_INLINE static uint32_t
-    __fast_conv(const void *ptr, origin_converter_t conv) noexcept {
-#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_4_FAST)
-        return builtin_from_chars_unroll_4_fast<Base>(ptr, conv);
-#else
+    __fast_conv(const void *ptr, origin_converter_t) noexcept {
         return __fast_conv(read_memory<uint32_t>(ptr));
-#endif
     }
 };
 
@@ -494,6 +486,10 @@ public:
 
 template <uint64_t Base>
 inline constexpr __from_chars_unroll_8_fn<Base> __from_chars_unroll_8{};
+
+WJR_INTRINSIC_CONSTEXPR uint32_t parse_eight_digits_unrolled(const char *src) noexcept {
+    return __from_chars_unroll_8_fast_fn_impl_base<10>::__fast_conv(src, char_converter);
+}
 
 template <uint64_t Base>
 class __from_chars_unroll_16_fn : public __from_chars_unroll_16_fast_fn_impl<Base> {
@@ -640,32 +636,6 @@ struct count_digits_fn<10> {
         WJR_ASSUME(1 <= ret && ret <= std::numeric_limits<T>::digits10 + 1);
         return ret;
     }
-};
-
-template <typename Iter>
-struct to_chars_result {
-    Iter ptr;
-    std::errc ec;
-
-    friend bool operator==(const to_chars_result &lhs,
-                           const to_chars_result &rhs) noexcept {
-        return lhs.ptr == rhs.ptr && lhs.ec == rhs.ec;
-    }
-
-    constexpr explicit operator bool() const noexcept { return ec == std::errc{}; }
-};
-
-template <typename Iter = const char *>
-struct from_chars_result {
-    Iter ptr;
-    std::errc ec;
-
-    friend bool operator==(const from_chars_result &lhs,
-                           const from_chars_result &rhs) noexcept {
-        return lhs.ptr == rhs.ptr && lhs.ec == rhs.ec;
-    }
-
-    constexpr explicit operator bool() const noexcept { return ec == std::errc{}; }
 };
 
 // Base :
@@ -1731,64 +1701,126 @@ public:
                                          Converter conv) const noexcept {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits10 + 1;
 
-        auto n = std::distance(first, last);
+        const auto n = std::distance(first, last);
         WJR_ASSUME(1 <= n && n <= nd);
 
         if constexpr (nd >= 8) {
             if (WJR_UNLIKELY(n >= 8)) {
-                if (WJR_UNLIKELY(n >= 16)) {
-                    val = __from_chars_unroll_16<10>(first, conv);
-                    first += 16;
-                    n -= 16;
-                } else {
-                    val = __from_chars_unroll_8<10>(first, conv);
-                    first += 8;
-                    n -= 8;
+
+                if constexpr (nd >= 16) {
+                    if (WJR_UNLIKELY(n >= 16)) {
+                        val = __from_chars_unroll_16<10>(first, conv);
+
+                        if (n >= 19) {
+                            val = val * 10 + conv.template from<10>(first[16]);
+                            val = val * 10 + conv.template from<10>(first[17]);
+                            val = val * 10 + conv.template from<10>(first[18]);
+
+                            if (n == 19) {
+                                return;
+                            }
+
+                            val = val * 10 + conv.template from<10>(first[19]);
+                            return;
+                        }
+
+                        if (n == 16) {
+                            return;
+                        }
+
+                        val = val * 10 + conv.template from<10>(first[16]);
+
+                        if (n == 17) {
+                            return;
+                        }
+
+                        val = val * 10 + conv.template from<10>(first[17]);
+                        return;
+                    }
                 }
 
-                if (WJR_UNLIKELY(n == 0)) {
+                val = __from_chars_unroll_8<10>(first, conv);
+
+                if (WJR_UNLIKELY(n >= 12)) {
+                    val = (val * 10000) + __from_chars_unroll_4<10>(first + 8, conv);
+
+                    if (n == 12) {
+                        return;
+                    }
+
+                    val = val * 10 + conv.template from<10>(first[12]);
+
+                    if (n == 13) {
+                        return;
+                    }
+
+                    val = val * 10 + conv.template from<10>(first[13]);
+
+                    if (n == 14) {
+                        return;
+                    }
+
+                    val = val * 10 + conv.template from<10>(first[14]);
                     return;
                 }
+
+                if (n == 8) {
+                    return;
+                }
+
+                val = val * 10 + conv.template from<10>(first[8]);
+
+                if (n == 9) {
+                    return;
+                }
+
+                val = val * 10 + conv.template from<10>(first[9]);
+
+                if (n == 10) {
+                    return;
+                }
+
+                val = val * 10 + conv.template from<10>(first[10]);
+                return;
             }
         }
 
-        switch (n) {
-        case 7: {
-            val = val * 10 + conv.template from<10>(*first++);
-            WJR_FALLTHROUGH;
+        if (WJR_UNLIKELY(n >= 4)) {
+            val = __from_chars_unroll_4<10>(first, conv);
+
+            if (n == 4) {
+                return;
+            }
+
+            val = val * 10 + conv.template from<10>(first[4]);
+
+            if (n == 5) {
+                return;
+            }
+
+            val = val * 10 + conv.template from<10>(first[5]);
+
+            if (n == 6) {
+                return;
+            }
+
+            val = val * 10 + conv.template from<10>(first[6]);
+            return;
         }
-        case 6: {
-            val = val * 10 + conv.template from<10>(*first++);
-            WJR_FALLTHROUGH;
+
+        val = conv.template from<10>(first[0]);
+
+        if (n == 1) {
+            return;
         }
-        case 5: {
-            val = val * 10 + conv.template from<10>(*first++);
-            WJR_FALLTHROUGH;
+
+        val = val * 10 + conv.template from<10>(first[1]);
+
+        if (n == 2) {
+            return;
         }
-        case 4: {
-            val = (val * 10000) + __from_chars_unroll_4<10>(first, conv);
-            break;
-        }
-        case 3: {
-            val = val * 10 + conv.template from<10>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 2: {
-            val = val * 10 + conv.template from<10>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 1: {
-            val = val * 10 + conv.template from<10>(*first++);
-            WJR_FALLTHROUGH;
-        }
-        case 0: {
-            break;
-        }
-        default: {
-            WJR_UNREACHABLE();
-            break;
-        }
-        }
+
+        val = val * 10 + conv.template from<10>(first[2]);
     }
 };
 
