@@ -157,7 +157,7 @@ WJR_INTRINSIC_CONSTEXPR20 U __subc_1_impl(uint64_t *dst, const uint64_t *src0, s
     dst[0] = subc_cc(src0[0], src1, c_in, overflow);
 
     if (overflow) {
-        size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, 0, in_place_max);
+        size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, 0, UINT64_MAX);
 
         if (WJR_UNLIKELY(idx == n)) {
             return static_cast<U>(1);
