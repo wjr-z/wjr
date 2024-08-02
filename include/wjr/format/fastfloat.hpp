@@ -25,9 +25,9 @@ namespace wjr::fastfloat {
  * Like the C++17 standard, the `fast_float::from_chars` functions take an optional last
  * argument of the type `fast_float::chars_format`. It is a bitset value: we check whether
  * `fmt & fast_float::chars_format::fixed` and `fmt &
- * fast_float::chars_format::scientific` are set to determine whether we a.low the fixed
+ * fast_float::chars_format::scientific` are set to determine whether we allow the fixed
  * point and scientific notation respectively. The default is
- * `fast_float::chars_format::general` which a.los both `fixed` and `scientific`.
+ * `fast_float::chars_format::general` which allows both `fixed` and `scientific`.
  */
 template <typename T>
 from_chars_result<> from_chars(const char *first, const char *last, T &value,
@@ -39,13 +39,6 @@ from_chars_result<> from_chars(const char *first, const char *last, T &value,
 template <typename T>
 from_chars_result<> from_chars_advanced(const char *first, const char *last, T &value,
                                         chars_format options) noexcept;
-
-// rust style `try!()` macro, or `?` operator
-#define FASTFLOAT_TRY(x)                                                                 \
-    {                                                                                    \
-        if (!(x))                                                                        \
-            return false;                                                                \
-    }
 
 // Compares two ASCII strings in a case insensitive manner.
 WJR_PURE WJR_INTRINSIC_CONSTEXPR bool
@@ -373,7 +366,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
     }
 
     const char *const start_digits = p;
-    uint64_t i = 0; // an unsigned int avoids signed over.los (which are bad)
+    uint64_t i = 0; // an unsigned int avoids signed overflows (which are bad)
 
     const char *end_of_integer_part;
     int64_t digit_count;
@@ -387,8 +380,6 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
 
         end_of_integer_part = p;
         digit_count = 0;
-        answer.integer = byte_span(start_digits, 0);
-        exponent = 0;
         goto POINT_HANDLER;
     }
 
@@ -396,7 +387,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
         // a multiplication by 10 is cheaper than an arbitrary integer
         // multiplication
         i = 10 * i +
-            uint64_t(*p - '0'); // might over.low, we will handle the over.low later
+            uint32_t(*p - '0'); // might overflow, we will handle the overflow later
 
         if (++p == pend) {
             end_of_integer_part = p;
@@ -412,7 +403,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
             //
             // We can deal with up to 19 digits.
             if (digit_count > 19) { // this is uncommon
-                                    // It is possible that the integer had an over.low.
+                                    // It is possible that the integer had an overflow.
                 // We have to handle the case where we have 0.0000somenumber.
                 // We need to be mindful of the case where we only have zeroes...
                 // E.g., 0.000000000...000.
@@ -424,7 +415,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
 
                 if (digit_count > 19) {
                     answer.too_many_digits = true;
-                    // Let us start again, this time, avoiding over.los.
+                    // Let us start again, this time, avoiding overflows.
                     // We don't need to check if is_integer, since we use the
                     // pre-tokenized spans from above.
                     i = 0;
@@ -468,19 +459,19 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
     POINT_HANDLER:
         ++p;
         const char *before = p;
-        // can occur at most twice without over.loing, but let it occur more, since
+        // can occur at most twice without overflowing, but let it occur more, since
         // for integers with many digits, digit parsing is the primary bottleneck.
         while ((std::distance(p, pend) >= 8) && is_made_of_eight_digits_fast(p)) {
             i = i * 100000000 +
                 parse_eight_digits_unrolled(
-                    p); // in rare cases, this will over.low, but that's ok
+                    p); // in rare cases, this will overflow, but that's ok
             p += 8;
         }
 
         while ((p != pend) && is_integer(*p)) {
             uint8_t digit = uint8_t(*p - '0');
             ++p;
-            i = i * 10 + digit; // in rare cases, this will over.low, but that's ok
+            i = i * 10 + digit; // in rare cases, this will overflow, but that's ok
         }
 
         exponent = before - p;
@@ -503,7 +494,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
         //
         // We can deal with up to 19 digits.
         if (digit_count > 19) { // this is uncommon
-            // It is possible that the integer had an over.low.
+            // It is possible that the integer had an overflow.
             // We have to handle the case where we have 0.0000somenumber.
             // We need to be mindful of the case where we only have zeroes...
             // E.g., 0.000000000...000.
@@ -515,7 +506,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
 
             if (digit_count > 19) {
                 answer.too_many_digits = true;
-                // Let us start again, this time, avoiding over.los.
+                // Let us start again, this time, avoiding overflows.
                 // We don't need to check if is_integer, since we use the
                 // pre-tokenized spans from above.
                 i = 0;
@@ -559,7 +550,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
             neg_exp = true;
             ++p;
         } else if ((p != pend) &&
-                   ('+' == *p)) { // '+' on exponent is a.loed by C++17 20.19.3.(7.1)
+                   ('+' == *p)) { // '+' on exponent is allowed by C++17 20.19.3.(7.1)
             ++p;
         }
         if ((p == pend) || !is_integer(*p)) {
@@ -599,7 +590,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
     //
     // We can deal with up to 19 digits.
     if (digit_count > 19) { // this is uncommon
-        // It is possible that the integer had an over.low.
+        // It is possible that the integer had an overflow.
         // We have to handle the case where we have 0.0000somenumber.
         // We need to be mindful of the case where we only have zeroes...
         // E.g., 0.000000000...000.
@@ -613,7 +604,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
 
         if (digit_count > 19) {
             answer.too_many_digits = true;
-            // Let us start again, this time, avoiding over.los.
+            // Let us start again, this time, avoiding overflows.
             // We don't need to check if is_integer, since we use the
             // pre-tokenized spans from above.
             i = 0;
@@ -1337,8 +1328,8 @@ const uint64_t powers_template<unused>::power_of_five_128[number_of_entries] = {
 using powers = powers_template<>;
 
 // This will compute or rather approximate w * 5**q and return a pair of 64-bit words
-// approximating the result, with the .high" part corresponding to the most significant
-// bits and the.low part corresponding to the least significant bits.
+// approximating the result, with the high" part corresponding to the most significant
+// bits and the low part corresponding to the least significant bits.
 //
 template <int bit_precision>
 WJR_INTRINSIC_INLINE uint128_t compute_product_approximation(int64_t q, uint64_t w) {
@@ -1353,7 +1344,7 @@ WJR_INTRINSIC_INLINE uint128_t compute_product_approximation(int64_t q, uint64_t
         (bit_precision < 64) ? (uint64_t(0xFFFFFFFFFFFFFFFF) >> bit_precision)
                              : uint64_t(0xFFFFFFFFFFFFFFFF);
     if ((firstproduct.high & precision_mask) ==
-        precision_mask) { // could further guard with  .loer + w <.loer)
+        precision_mask) { // could further guard with (lower + w < lower)
         // regarding the second product, we only need secondproduct.high, but our
         // expectation is that the compiler will optimize this extra work away if needed.
         const uint128_t secondproduct =
@@ -1454,13 +1445,13 @@ WJR_INTRINSIC_INLINE adjusted_mantissa compute_float(int64_t q, uint64_t w) noex
         //
         const bool inside_safe_exponent =
             (q >= -27) && (q <= 55); // always good because 5**q <2**128 when q>=0,
-        // and otherwise, for q<0, we have 5**-q<2**64 and the 128-bit reciprocal a.los
+        // and otherwise, for q<0, we have 5**-q<2**64 and the 128-bit reciprocal allows
         // for exact computation.
         if (!inside_safe_exponent) {
             return compute_error_scaled<binary>(q, product.high, lz);
         }
     }
-    // The "compute_product_approximation" function can be slightly .loer than a
+    // The "compute_product_approximation" function can be slightly slower than a
     // branchless approach: uint128_t product = compute_product(q, w); but in practice, we
     // can win big with the compute_product_approximation if its additional branch is
     // easily predicted. Which is best is data specific.
@@ -1473,7 +1464,7 @@ WJR_INTRINSIC_INLINE adjusted_mantissa compute_float(int64_t q, uint64_t w) noex
         int32_t(detail::power(int32_t(q)) + upperbit - lz - binary::minimum_exponent());
     if (answer.power2 <= 0) { // we have a subnormal?
         // Here have that answer.power2 <= 0 so -answer.power2 >= 0
-        if (-answer.power2 + 1 >= 64) { // if we have more than 64 bits b.low the minimum
+        if (-answer.power2 + 1 >= 64) { // if we have more than 64 bits below the minimum
                                         // exponent, you have a zero for sure.
             answer.power2 = 0;
             answer.mantissa = 0;
@@ -1556,7 +1547,7 @@ constexpr static uint64_t powers_of_ten_uint64[] = {1UL,
 // calculate the exponent, in scientific notation, of the number.
 // this algorithm is not even close to optimized, but it has no practical
 // effect on performance: in order to have a faster algorithm, we'd need
-// to .low down performance for faster algorithms, and this is still fast.
+// to slow down performance for faster algorithms, and this is still fast.
 WJR_INTRINSIC_INLINE int32_t scientific_exponent(parsed_number_string &num) noexcept {
     const int32_t exponent = int32_t(num.exponent) + count_digits<10>(num.mantissa) - 1;
     return exponent;
@@ -1837,7 +1828,7 @@ WJR_INTRINSIC_INLINE uint64_t uint64_hi64(uint64_t r0, uint64_t r1,
     }
 }
 
-// get the.high 64 bits from the vector, and if bits were truncated.
+// get the high 64 bits from the vector, and if bits were truncated.
 // this is to get the significant digits for the float.
 WJR_INTRINSIC_INLINE uint64_t hi64(biginteger &big, bool &truncated) noexcept {
     const auto n = big.size();
@@ -2012,8 +2003,8 @@ inline adjusted_mantissa negative_digit_comp(biginteger &bigmant, adjusted_manti
 // (the float rounded-down) and `b+u`, the next positive float. this
 // algorithm is always correct, and uses one of two approaches. when
 // the exponent is positive relative to the significant digits (such as
-// 1234), we create a big-integer representation, get the.high 64-bits,
-// determine if any.loer bits are truncated, and use that to direct
+// 1234), we create a big-integer representation, get the high 64-bits,
+// determine if any lower bits are truncated, and use that to direct
 // rounding. in case of a negative exponent relative to the significant
 // digits (such as 1.2345), we create a theoretical representation of
 // `b` as a big-integer type, scaled to the same binary exponent as
@@ -2030,7 +2021,7 @@ inline adjusted_mantissa digit_comp(parsed_number_string &num,
     size_t digits = 0;
     biginteger bigmant;
     parse_mantissa(bigmant, num, max_digits, digits);
-    // can't under.low, since digits is at most max_digits.
+    // can't underflow, since digits is at most max_digits.
     int32_t exponent = sci_exp + 1 - int32_t(digits);
     if (exponent >= 0) {
         return positive_digit_comp<T>(bigmant, exponent);
@@ -2138,7 +2129,7 @@ WJR_INTRINSIC_INLINE bool rounds_to_nearest() noexcept {
 #pragma warning(push)
 //  todo: is there a VS warning?
 //  see
-//  https://stackover.low.com/questions/46079446/is-there-a-warning-for-floating-point-equality-checking-in-visual-studio-2013
+//  https://stackoverflow.com/questions/46079446/is-there-a-warning-for-floating-point-equality-checking-in-visual-studio-2013
 #elif defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfloat-equal"
@@ -2238,7 +2229,7 @@ WJR_INTRINSIC_INLINE from_chars_result<> from_chars_advanced(parsed_number_strin
     }
 
     to_float(pns.negative, am, value);
-    // Test for over/under.low.
+    // Test for over/underflow.
     if ((pns.mantissa != 0 && am.mantissa == 0 && am.power2 == 0) ||
         am.power2 == binary_format<T>::infinite_power()) {
         answer.ec = std::errc::result_out_of_range;

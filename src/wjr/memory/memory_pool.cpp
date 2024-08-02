@@ -1,9 +1,11 @@
+#include <array>
+
 #include <wjr/assert.hpp>
 #include <wjr/memory/memory_pool.hpp>
 
 namespace wjr {
 
-char *__default_alloc_template__::object::chunk_alloc(uint8_t idx,
+char *__default_alloc_template__::object::chunk_alloc(unsigned int idx,
                                                       unsigned int &nobjs) noexcept {
     const size_t size = __get_size(idx);
     const size_t total_bytes = size * nobjs;
@@ -26,9 +28,9 @@ char *__default_alloc_template__::object::chunk_alloc(uint8_t idx,
     if (bytes_left != 0) {
         WJR_ASSERT(!(bytes_left & 7));
 
-        uint8_t __idx = __get_index(bytes_left);
-        for (;; --__idx) {
-            const auto __size = __get_size(__idx);
+        unsigned int __idx = __get_index(bytes_left);
+        unsigned int __size = __get_size(__idx);
+        for (;; --__idx, __size >>= 1) {
             if (bytes_left >= __size) {
                 obj *volatile *my_free_list = free_list + __idx;
                 reinterpret_cast<obj *>(start_free)->free_list_link = *my_free_list;
@@ -54,18 +56,21 @@ char *__default_alloc_template__::object::chunk_alloc(uint8_t idx,
     return (chunk_alloc(idx, nobjs));
 }
 
-void *__default_alloc_template__::object::refill(uint8_t idx) noexcept {
-    unsigned int nobjs = idx < 4 ? 32 : idx < 8 ? 16 : 4;
-    char *chunk = chunk_alloc(idx, nobjs);
+static constexpr std::array<uint8_t, 14> __nobjs_table = {
+    32, 32, 32, 32, 16, 16, 16, 16, 8, 8, 4, 4, 2, 2,
+};
+
+void *__default_alloc_template__::object::refill(unsigned int idx) noexcept {
+    auto nobjs = static_cast<unsigned int>(__nobjs_table[idx]);
+    char *const chunk = chunk_alloc(idx, nobjs);
     obj *current_obj;
     obj *next_obj;
 
-    if (1 == nobjs) {
-        return (chunk);
+    if (nobjs == 1) {
+        return chunk;
     }
 
     obj *volatile *my_free_list = free_list + idx;
-
     const size_t n = __get_size(idx);
 
     // Build free list in chunk
@@ -79,7 +84,7 @@ void *__default_alloc_template__::object::refill(uint8_t idx) noexcept {
         current_obj->free_list_link = next_obj;
         current_obj = next_obj;
     }
-    
+
     current_obj->free_list_link = nullptr;
     return (result);
 }

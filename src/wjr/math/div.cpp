@@ -145,7 +145,7 @@ uint64_t div_qr_2_shift(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_
 uint64_t sb_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div,
                      size_t m, uint64_t dinv) noexcept {
     using divider = div3by2_divider<uint64_t>;
-    constexpr uint64_t mask = in_place_max;
+    constexpr uint64_t mask = UINT64_MAX;
 
     WJR_ASSERT_ASSUME(m > 2);
     WJR_ASSERT_ASSUME(n >= m);
@@ -301,7 +301,7 @@ uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div
             WJR_ASSERT(n1 < d1 || (n1 == d1 && n0 <= d0));
 
             if (WJR_UNLIKELY(n1 == d1) && n0 == d0) {
-                q = in_place_max;
+                q = UINT64_MAX;
                 (void)submul_1(src - m, div - m, m, q);
             } else {
                 q = wjr::div3by2_divider<uint64_t>::divide(d0, d1, dinv, src[-2], n0, n1);
