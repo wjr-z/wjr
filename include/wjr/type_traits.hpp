@@ -432,23 +432,22 @@ WJR_CONST constexpr bool cmp_greater_equal(T t, U u) noexcept {
 
 template <typename T, typename U>
 WJR_CONST constexpr bool in_range(U value) noexcept {
-    if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
-        if constexpr (std::is_signed_v<T>) {
-            return value >= std::numeric_limits<T>::min() &&
-                   value <= std::numeric_limits<T>::max();
-        } else {
-            return value <= std::numeric_limits<T>::max();
-        }
-    } else if constexpr (std::is_signed_v<T>) {
-        return value <= to_unsigned(std::numeric_limits<T>::max());
+    if constexpr (std::is_same_v<T, U>) {
+        return true;
     } else {
-        return value >= 0 && to_unsigned(value) <= std::numeric_limits<T>::max();
+        if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
+            if constexpr (std::is_signed_v<T>) {
+                return value >= std::numeric_limits<T>::min() &&
+                       value <= std::numeric_limits<T>::max();
+            } else {
+                return value <= std::numeric_limits<T>::max();
+            }
+        } else if constexpr (std::is_signed_v<T>) {
+            return value <= to_unsigned(std::numeric_limits<T>::max());
+        } else {
+            return value >= 0 && to_unsigned(value) <= std::numeric_limits<T>::max();
+        }
     }
-}
-
-template <typename T>
-WJR_CONST constexpr bool in_range(T) noexcept {
-    return true;
 }
 
 template <typename From, typename To>
