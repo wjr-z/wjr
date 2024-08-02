@@ -37,25 +37,13 @@ public:
 
     void read(span<const char> sp) noexcept {
         m_str = sp;
-        m_tokens.clear();
 
-        if (WJR_BUILTIN_CONSTANT_P_TRUE(sp.size() == 0)) {
-            return;
-        }
-
-        __read_impl();
-    }
-
-    void clear() noexcept { m_tokens.clear(); }
-    void shrink_to_fit() noexcept { m_tokens.shrink_to_fit(); }
-
-private:
-    void __read_impl() noexcept {
         lexer lex(m_str);
         const size_type n = m_str.size();
         size_type capacity = n <= 2048 ? n : std::max<size_type>(2048, n / 20);
         size_type buf_size = capacity;
         json::lexer::result_type result;
+        m_tokens.clear();
 
         do {
             m_tokens.reserve(capacity + 64);
@@ -66,6 +54,10 @@ private:
         } while (!result.done());
     }
 
+    void clear() noexcept { m_tokens.clear(); }
+    void shrink_to_fit() noexcept { m_tokens.shrink_to_fit(); }
+
+private:
     span<const char> m_str;
     Vector m_tokens;
 };
