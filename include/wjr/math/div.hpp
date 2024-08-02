@@ -498,7 +498,7 @@ WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, 
     }
 
     if constexpr (ss.mode == 2 || ss.mode == 3) {
-        constexpr uint64_t maxn = in_place_max;
+        constexpr uint64_t maxn = UINT64_MAX;
 
         if constexpr (ss.cl == 0) {
             (void)divexact_dbm1c(dst, src, n, maxn / ss.p0, 0);
