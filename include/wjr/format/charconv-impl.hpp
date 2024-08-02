@@ -122,11 +122,11 @@ struct from_chars_result {
 
 WJR_CONST WJR_INTRINSIC_INLINE bool
 is_made_of_eight_digits_fast(const char *src) noexcept {
-    const auto val = read_memory<uint32_t>(src);
+    const auto val = read_memory<uint64_t>(src);
     return (val & (val + 0x0606060606060606) & 0xF0F0F0F0F0F0F0F0) == 0x3030303030303030;
 }
 
-WJR_CONST WJR_INTRINSIC_CONSTEXPR uint32_t
+WJR_CONST WJR_INTRINSIC_INLINE uint32_t
 parse_eight_digits_unrolled(const char *src) noexcept;
 
 } // namespace wjr
