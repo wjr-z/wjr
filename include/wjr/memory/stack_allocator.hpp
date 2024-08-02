@@ -44,7 +44,7 @@ private:
     }
 
     WJR_NOINLINE WJR_CONSTEXPR20 void __small_reallocate(stack_top &top) noexcept {
-        if (WJR_UNLIKELY(top.idx == static_cast<uint16_t>(in_place_max))) {
+        if (WJR_UNLIKELY(top.idx == UINT16_MAX)) {
             top.idx = m_idx;
         }
 
@@ -102,7 +102,7 @@ private:
 
         m_cache.ptr = top.ptr;
 
-        if (WJR_UNLIKELY(top.idx != static_cast<uint16_t>(in_place_max))) {
+        if (WJR_UNLIKELY(top.idx != UINT16_MAX)) {
             const uint16_t idx = top.idx;
             m_cache.end = m_ptr[idx].end;
             m_idx = idx;
@@ -160,13 +160,13 @@ public:
 
     WJR_CONSTEXPR20 void set(stack_top &top) const noexcept {
         top.ptr = m_cache.ptr;
-        top.idx = in_place_max;
+        top.idx = UINT16_MAX;
         top.large = nullptr;
     }
 
 private:
     alloc_node m_cache = {nullptr, nullptr};
-    uint16_t m_idx = in_place_max;
+    uint16_t m_idx = UINT16_MAX;
     uint16_t m_size = 0;
     uint16_t m_capacity = 0;
     alloc_node *m_ptr = nullptr;
