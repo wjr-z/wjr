@@ -284,6 +284,11 @@ public:
             return;
         }
 
+        const size_type __size = size();
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(__size == 0)) {
+            return;
+        }
+
         destroy_n_using_allocator(data(), size(), al);
     }
 
@@ -1099,7 +1104,8 @@ public:
         return std::max(old_capacity + (((old_capacity + 6) >> 3) << 2), new_size);
     }
 
-    WJR_CONSTEXPR20 void reserve(size_type n) {
+private:
+    WJR_CONSTEXPR20 void __reserve_impl(size_type n) {
         if constexpr (is_reallocatable::value) {
             const size_type old_capacity = capacity();
             if (WJR_UNLIKELY(old_capacity < n)) {
@@ -1116,6 +1122,31 @@ public:
                 __take_storage(new_storage);
             }
         }
+    }
+
+    WJR_CONSTEXPR20 void __empty_reserve_impl(size_type n) {
+        if constexpr (is_reallocatable::value) {
+            const size_type old_capacity = capacity();
+            if (WJR_UNLIKELY(old_capacity < n)) {
+                const size_type new_capacity = get_growth_capacity(old_capacity, n);
+
+                storage_type new_storage;
+                uninitialized_construct(new_storage, 0, new_capacity);
+
+                __destroy_and_deallocate();
+                __take_storage(new_storage);
+            }
+        }
+    }
+
+public:
+    WJR_CONSTEXPR20 void reserve(size_type n) {
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(size() == 0)) {
+            __empty_reserve_impl(n);
+            return;
+        }
+
+        __reserve_impl(n);
     }
 
     WJR_CONSTEXPR20 reference operator[](size_type pos) noexcept {
@@ -1298,6 +1329,33 @@ public:
         take_storage(other);
         return *this;
     }
+
+private:
+    WJR_CONSTEXPR20 void __clear_if_reserved_impl(size_type n) {
+        if constexpr (is_reallocatable::value) {
+            const size_type old_capacity = capacity();
+            if (WJR_UNLIKELY(old_capacity < n)) {
+                const size_type new_capacity = get_growth_capacity(old_capacity, n);
+
+                storage_type new_storage;
+                uninitialized_construct(new_storage, 0, new_capacity);
+
+                __destroy_and_deallocate();
+                __take_storage(new_storage);
+
+                WJR_ASSUME(size() == 0);
+            }
+        }
+    }
+
+public:
+    /**
+     * @brief clear() if capacity() < new_capacity.
+     *
+     * @details Useful when old data unused. If reserved, this function won't move any old
+     * data to new pointer.
+     */
+    WJR_CONSTEXPR20 void clear_if_reserved(size_type n) { __clear_if_reserved_impl(n); }
 
     WJR_CONSTEXPR20 void resize(const size_type new_size, dctor_t) {
         __resize(new_size, dctor);
