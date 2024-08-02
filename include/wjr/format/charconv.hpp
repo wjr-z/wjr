@@ -487,7 +487,7 @@ public:
 template <uint64_t Base>
 inline constexpr __from_chars_unroll_8_fn<Base> __from_chars_unroll_8{};
 
-WJR_INTRINSIC_CONSTEXPR uint32_t parse_eight_digits_unrolled(const char *src) noexcept {
+WJR_INTRINSIC_INLINE uint32_t parse_eight_digits_unrolled(const char *src) noexcept {
     return __from_chars_unroll_8_fast_fn_impl_base<10>::__fast_conv(src, char_converter);
 }
 
@@ -516,7 +516,7 @@ inline constexpr __from_chars_unroll_16_fn<Base> __from_chars_unroll_16{};
 
 template <typename UnsignedValue>
 constexpr int fallback_count_digits10(UnsignedValue n) noexcept {
-    int count = 1;
+    int count = 0;
 
     if (WJR_UNLIKELY(n >= 1000)) {
         do {
@@ -530,11 +530,11 @@ constexpr int fallback_count_digits10(UnsignedValue n) noexcept {
     }
 
     if (n < 10) {
-        return count;
+        return count + 1;
     }
 
     if (n < 100) {
-        return count + 1;
+        return count + 2;
     }
 
     return count + 3;
