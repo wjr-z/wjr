@@ -1548,9 +1548,9 @@ constexpr static uint64_t powers_of_ten_uint64[] = {1UL,
 // this algorithm is not even close to optimized, but it has no practical
 // effect on performance: in order to have a faster algorithm, we'd need
 // to slow down performance for faster algorithms, and this is still fast.
-WJR_INTRINSIC_INLINE int32_t scientific_exponent(parsed_number_string &num) noexcept {
-    const int32_t exponent = int32_t(num.exponent) + count_digits<10>(num.mantissa) - 1;
-    return exponent;
+WJR_INTRINSIC_INLINE int32_t scientific_exponent(int64_t exponent,
+                                                 uint64_t mantissa) noexcept {
+    return int32_t(exponent) + count_digits<10>(mantissa) - 1;
 }
 
 // this converts a native floating-point number to an extended-precision float.
@@ -1845,8 +1845,11 @@ WJR_INTRINSIC_INLINE uint64_t hi64(biginteger &big, bool &truncated) noexcept {
 }
 
 // parse the significant digits into a big integer
-inline void parse_mantissa(biginteger &result, parsed_number_string &num,
-                           size_t max_digits, size_t &digits) noexcept {
+template <typename T>
+inline void parse_mantissa(biginteger &result, byte_span integer, byte_span fraction,
+                           size_t &digits) noexcept {
+    constexpr size_t max_digits = binary_format<T>::max_digits();
+
     // try to minimize the number of big integer and scalar multiplication.
     // therefore, try to parse 8 digits at a time, and multiply by the largest
     // scalar value (9 or 19 digits) for each step.
@@ -1856,8 +1859,8 @@ inline void parse_mantissa(biginteger &result, parsed_number_string &num,
     size_t step = 19;
 
     // process all integer digits.
-    const char *p = num.integer.data();
-    const char *pend = p + num.integer.size();
+    const char *p = integer.data();
+    const char *pend = p + integer.size();
     skip_zeros(p, pend);
     // process all digits, in increments of step per loop
     while (p != pend) {
@@ -1872,8 +1875,8 @@ inline void parse_mantissa(biginteger &result, parsed_number_string &num,
             // add the temporary value, then check if we've truncated any digits
             add_native(result, uint64_t(powers_of_ten_uint64[counter]), value);
             bool truncated = is_truncated(p, pend);
-            if (num.fraction.data() != nullptr) {
-                truncated |= is_truncated(num.fraction);
+            if (fraction.data() != nullptr) {
+                truncated |= is_truncated(fraction);
             }
             if (truncated) {
                 round_up_bigint(result, digits);
@@ -1887,9 +1890,9 @@ inline void parse_mantissa(biginteger &result, parsed_number_string &num,
     }
 
     // add our fraction digits, if they're available.
-    if (num.fraction.data() != nullptr) {
-        p = num.fraction.data();
-        pend = p + num.fraction.size();
+    if (fraction.data() != nullptr) {
+        p = fraction.data();
+        pend = p + fraction.size();
         if (digits == 0) {
             skip_zeros(p, pend);
         }
@@ -1995,39 +1998,6 @@ inline adjusted_mantissa negative_digit_comp(biginteger &bigmant, adjusted_manti
     });
 
     return answer;
-}
-
-// parse the significant digits as a big integer to unambiguously round the
-// the significant digits. here, we are trying to determine how to round
-// an extended float representation close to `b+h`, halfway between `b`
-// (the float rounded-down) and `b+u`, the next positive float. this
-// algorithm is always correct, and uses one of two approaches. when
-// the exponent is positive relative to the significant digits (such as
-// 1234), we create a big-integer representation, get the high 64-bits,
-// determine if any lower bits are truncated, and use that to direct
-// rounding. in case of a negative exponent relative to the significant
-// digits (such as 1.2345), we create a theoretical representation of
-// `b` as a big-integer type, scaled to the same binary exponent as
-// the actual digits. we then compare the big integer representations
-// of both, and use that to direct rounding.
-template <typename T>
-inline adjusted_mantissa digit_comp(parsed_number_string &num,
-                                    adjusted_mantissa am) noexcept {
-    // remove the invalid exponent bias
-    am.power2 -= invalid_am_bias;
-
-    int32_t sci_exp = scientific_exponent(num);
-    size_t max_digits = binary_format<T>::max_digits();
-    size_t digits = 0;
-    biginteger bigmant;
-    parse_mantissa(bigmant, num, max_digits, digits);
-    // can't underflow, since digits is at most max_digits.
-    int32_t exponent = sci_exp + 1 - int32_t(digits);
-    if (exponent >= 0) {
-        return positive_digit_comp<T>(bigmant, exponent);
-    } else {
-        return negative_digit_comp<T>(bigmant, am, exponent);
-    }
 }
 
 namespace detail {
@@ -2156,8 +2126,8 @@ from_chars_result<> from_chars(const char *first, const char *last, T &value,
 }
 
 template <typename T>
-WJR_INTRINSIC_INLINE from_chars_result<> from_chars_advanced(parsed_number_string &pns,
-                                                             T &value) noexcept {
+WJR_INTRINSIC_INLINE from_chars_result<>
+from_chars_advanced(const parsed_number_string &pns, T &value) noexcept {
     from_chars_result<> answer;
     answer.ec = std::errc(); // be optimistic
     answer.ptr = pns.lastmatch;
@@ -2225,7 +2195,18 @@ WJR_INTRINSIC_INLINE from_chars_result<> from_chars_advanced(parsed_number_strin
     // have an invalid power (am.power2 < 0), then we need to go the long way around
     // again. This is very uncommon.
     if (am.power2 < 0) {
-        am = digit_comp<T>(pns, am);
+        am.power2 -= invalid_am_bias;
+
+        const int32_t sci_exp = scientific_exponent(pns.exponent, pns.mantissa);
+        size_t digits = 0;
+        biginteger bigmant;
+        parse_mantissa<T>(bigmant, pns.integer, pns.fraction, digits);
+        int32_t exponent = sci_exp + 1 - int32_t(digits);
+        if (exponent >= 0) {
+            am = positive_digit_comp<T>(bigmant, exponent);
+        } else {
+            am = negative_digit_comp<T>(bigmant, am, exponent);
+        }
     }
 
     to_float(pns.negative, am, value);
