@@ -74,36 +74,36 @@ constexpr static float powers_of_ten_float[] = {1e0, 1e1, 1e2, 1e3, 1e4, 1e5,
 // used for max_mantissa_double and max_mantissa_float
 constexpr uint64_t constant_55555 = 5 * 5 * 5 * 5 * 5;
 // Largest integer value v so that (5**index * v) <= 1<<53.
-// 0x10000000000000 == 1 << 53
+// 0x20000000000000 == 1 << 53
 constexpr static uint64_t max_mantissa_double[] = {
-    0x10000000000000,
-    0x10000000000000 / 5,
-    0x10000000000000 / (5 * 5),
-    0x10000000000000 / (5 * 5 * 5),
-    0x10000000000000 / (5 * 5 * 5 * 5),
-    0x10000000000000 / (constant_55555),
-    0x10000000000000 / (constant_55555 * 5),
-    0x10000000000000 / (constant_55555 * 5 * 5),
-    0x10000000000000 / (constant_55555 * 5 * 5 * 5),
-    0x10000000000000 / (constant_55555 * 5 * 5 * 5 * 5),
-    0x10000000000000 / (constant_55555 * constant_55555),
-    0x10000000000000 / (constant_55555 * constant_55555 * 5),
-    0x10000000000000 / (constant_55555 * constant_55555 * 5 * 5),
-    0x10000000000000 / (constant_55555 * constant_55555 * 5 * 5 * 5),
-    0x10000000000000 / (constant_55555 * constant_55555 * constant_55555),
-    0x10000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5),
-    0x10000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5 * 5),
-    0x10000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5 * 5 * 5),
-    0x10000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5 * 5 * 5 * 5),
-    0x10000000000000 /
+    0x20000000000000,
+    0x20000000000000 / 5,
+    0x20000000000000 / (5 * 5),
+    0x20000000000000 / (5 * 5 * 5),
+    0x20000000000000 / (5 * 5 * 5 * 5),
+    0x20000000000000 / (constant_55555),
+    0x20000000000000 / (constant_55555 * 5),
+    0x20000000000000 / (constant_55555 * 5 * 5),
+    0x20000000000000 / (constant_55555 * 5 * 5 * 5),
+    0x20000000000000 / (constant_55555 * 5 * 5 * 5 * 5),
+    0x20000000000000 / (constant_55555 * constant_55555),
+    0x20000000000000 / (constant_55555 * constant_55555 * 5),
+    0x20000000000000 / (constant_55555 * constant_55555 * 5 * 5),
+    0x20000000000000 / (constant_55555 * constant_55555 * 5 * 5 * 5),
+    0x20000000000000 / (constant_55555 * constant_55555 * constant_55555),
+    0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5),
+    0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5 * 5),
+    0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5 * 5 * 5),
+    0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5 * 5 * 5 * 5),
+    0x20000000000000 /
         (constant_55555 * constant_55555 * constant_55555 * constant_55555),
-    0x10000000000000 /
+    0x20000000000000 /
         (constant_55555 * constant_55555 * constant_55555 * constant_55555 * 5),
-    0x10000000000000 /
+    0x20000000000000 /
         (constant_55555 * constant_55555 * constant_55555 * constant_55555 * 5 * 5),
-    0x10000000000000 /
+    0x20000000000000 /
         (constant_55555 * constant_55555 * constant_55555 * constant_55555 * 5 * 5 * 5),
-    0x10000000000000 / (constant_55555 * constant_55555 * constant_55555 *
+    0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 *
                         constant_55555 * 5 * 5 * 5 * 5)};
 // Largest integer value v so that (5**index * v) <= 1<<24.
 // 0x1000000 == 1<<24
@@ -123,8 +123,7 @@ constexpr static uint64_t max_mantissa_float[] = {
 
 template <typename T>
 struct binary_format {
-    using equiv_uint =
-        typename std::conditional<sizeof(T) == 4, uint32_t, uint64_t>::type;
+    using equiv_uint = uint_t<sizeof(T) * 8>;
 
     static inline constexpr int mantissa_explicit_bits();
     static inline constexpr int minimum_exponent();
@@ -334,8 +333,6 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_integer(char c) noexcept {
     return c >= '0' && c <= '9';
 }
 
-using byte_span = span<const char>;
-
 struct parsed_number_string {
     int64_t exponent{0};
     uint64_t mantissa{0};
@@ -344,8 +341,8 @@ struct parsed_number_string {
     bool valid{false};
     bool too_many_digits{false};
     // contains the range of the significant digits
-    byte_span integer{};  // non-nullable
-    byte_span fraction{}; // nullable
+    span<const char> integer{};  // non-nullable
+    span<const char> fraction{}; // nullable
 };
 
 // Assuming that you use no more than 19 digits, this will
@@ -392,7 +389,8 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
         if (++p == pend) {
             end_of_integer_part = p;
             digit_count = static_cast<int64_t>(p - start_digits);
-            answer.integer = byte_span(start_digits, static_cast<size_t>(digit_count));
+            answer.integer =
+                span<const char>(start_digits, static_cast<size_t>(digit_count));
 
             answer.lastmatch = p;
             answer.valid = true;
@@ -452,7 +450,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
 
     end_of_integer_part = p;
     digit_count = static_cast<int64_t>(p - start_digits);
-    answer.integer = byte_span(start_digits, static_cast<size_t>(digit_count));
+    answer.integer = span<const char>(start_digits, static_cast<size_t>(digit_count));
     exponent = 0;
 
     if (*p == '.') {
@@ -475,7 +473,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
         }
 
         exponent = before - p;
-        answer.fraction = byte_span(before, size_t(p - before));
+        answer.fraction = span<const char>(before, size_t(p - before));
         digit_count -= exponent;
 
         if (WJR_UNLIKELY(digit_count == 0)) {
@@ -1325,6 +1323,7 @@ const uint64_t powers_template<unused>::power_of_five_128[number_of_entries] = {
     0xe3d8f9e563a198e5, 0x58180fddd97723a6,
     0x8e679c2f5e44ff8f, 0x570f09eaa7ea7648,
 };
+
 using powers = powers_template<>;
 
 // This will compute or rather approximate w * 5**q and return a pair of 64-bit words
@@ -1520,8 +1519,6 @@ WJR_INTRINSIC_INLINE adjusted_mantissa compute_float(int64_t q, uint64_t w) noex
     return answer;
 }
 
-using limb_span = span<const uint64_t>;
-
 // 1e0 to 1e19
 constexpr static uint64_t powers_of_ten_uint64[] = {1UL,
                                                     10UL,
@@ -1704,7 +1701,7 @@ WJR_INTRINSIC_INLINE bool is_truncated(const char *first, const char *last) noex
     return false;
 }
 
-WJR_INTRINSIC_INLINE bool is_truncated(byte_span s) noexcept {
+WJR_INTRINSIC_INLINE bool is_truncated(span<const char> s) noexcept {
     return is_truncated(s.begin_unsafe(), s.end_unsafe());
 }
 
@@ -1846,8 +1843,8 @@ WJR_INTRINSIC_INLINE uint64_t hi64(biginteger &big, bool &truncated) noexcept {
 
 // parse the significant digits into a big integer
 template <typename T>
-inline void parse_mantissa(biginteger &result, byte_span integer, byte_span fraction,
-                           size_t &digits) noexcept {
+inline void parse_mantissa(biginteger &result, span<const char> integer,
+                           span<const char> fraction, size_t &digits) noexcept {
     constexpr size_t max_digits = binary_format<T>::max_digits();
 
     // try to minimize the number of big integer and scalar multiplication.
@@ -2232,7 +2229,7 @@ from_chars_result<> from_chars_advanced(const char *first, const char *last, T &
         return answer;
     }
 
-    parsed_number_string pns = parse_number_string(first, last, options);
+    const parsed_number_string pns = parse_number_string(first, last, options);
     if (!pns.valid) {
         return detail::parse_infnan(first, last, value);
     }

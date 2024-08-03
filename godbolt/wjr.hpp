@@ -12054,6 +12054,997 @@ constexpr OutputIt move_n_restrict(InputIt first, Size count, OutputIt d_first) 
 } // namespace wjr
 
 #endif // WJR_MEMORY_COPY_HPP__
+#ifndef WJR_MEMORY_MEMORY_POOL_HPP__
+#define WJR_MEMORY_MEMORY_POOL_HPP__
+
+#ifndef WJR_CONTAINER_INTRUSIVE_LIST_HPP__
+#define WJR_CONTAINER_INTRUSIVE_LIST_HPP__
+
+#ifndef WJR_CONTAINER_INTRUSIVE_DETAIL_HPP__
+#define WJR_CONTAINER_INTRUSIVE_DETAIL_HPP__
+
+// Already included
+
+namespace wjr {
+
+struct default_intrusive_tag {};
+
+template <typename Hook = void, typename Tag = void>
+struct intrusive_tag {
+    using hook_type = Hook;
+    static constexpr bool use_hook = !std::is_same_v<Hook, void>;
+};
+
+template <typename Tag>
+struct is_intrusive_tag : std::false_type {};
+
+template <typename Hook, typename Tag>
+struct is_intrusive_tag<intrusive_tag<Hook, Tag>> : std::true_type {};
+
+template <typename Tag>
+inline constexpr bool is_intrusive_tag_v = intrusive_tag<Tag>::value;
+
+template <typename Tag>
+using intrusive_hook_t = typename Tag::hook_type;
+
+template <typename Tag>
+inline constexpr bool intrusive_use_hook_v = Tag::use_hook;
+
+} // namespace wjr
+
+#endif // WJR_CONTAINER_INTRUSIVE_DETAIL_HPP__
+
+namespace wjr {
+
+template <typename Tag = intrusive_tag<>>
+struct list_node;
+
+template <typename T>
+constexpr void init(list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr void insert(list_node<T> *prev, list_node<T> *next,
+                      list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr void push_back(list_node<T> *head, list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr void push_front(list_node<T> *head, list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr void remove_uninit(list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr bool empty(const list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr list_node<T> *next(list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr const list_node<T> *next(const list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr list_node<T> *prev(list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr const list_node<T> *prev(const list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr void replace_uninit(list_node<T> *from, list_node<T> *to) noexcept;
+
+template <typename T>
+class list_node_const_iterator {
+    using node_type = list_node<T>;
+
+public:
+    using iterator_category = std::bidirectional_iterator_tag;
+    using value_type = node_type;
+    using reference = const node_type &;
+    using pointer = const node_type *;
+    using difference_type = std::ptrdiff_t;
+
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(list_node_const_iterator);
+
+    constexpr list_node_const_iterator(pointer node) noexcept
+        : m_node(const_cast<node_type *>(node)) {}
+
+    constexpr reference operator*() const noexcept { return *m_node; }
+    constexpr pointer operator->() const noexcept { return m_node; }
+
+    constexpr list_node_const_iterator &operator++() noexcept {
+        m_node = next(m_node);
+        return *this;
+    }
+
+    constexpr list_node_const_iterator operator++(int) noexcept {
+        list_node_const_iterator tmp(*this);
+        ++(*this);
+        return tmp;
+    }
+
+    constexpr list_node_const_iterator &operator--() noexcept {
+        m_node = prev(m_node);
+        return *this;
+    }
+
+    constexpr list_node_const_iterator operator--(int) noexcept {
+        list_node_const_iterator tmp(*this);
+        --(*this);
+        return tmp;
+    }
+
+    constexpr bool operator==(const list_node_const_iterator &other) const noexcept {
+        return m_node == other.m_node;
+    }
+
+    constexpr bool operator!=(const list_node_const_iterator &other) const noexcept {
+        return !(*this == other);
+    }
+
+private:
+    node_type *m_node{};
+};
+
+template <typename T>
+class list_node_iterator : public list_node_const_iterator<T> {
+    using Mybase = list_node_const_iterator<T>;
+    using node_type = list_node<T>;
+
+public:
+    using iterator_category = typename Mybase::iterator_category;
+    using value_type = typename Mybase::value_type;
+    using reference = node_type &;
+    using pointer = node_type *;
+    using difference_type = typename Mybase::difference_type;
+
+    using Mybase::Mybase;
+
+    constexpr reference operator*() const noexcept {
+        return const_cast<reference>(Mybase::operator*());
+    }
+
+    constexpr pointer operator->() const noexcept {
+        return const_cast<pointer>(Mybase::operator->());
+    }
+
+    constexpr list_node_iterator &operator++() noexcept {
+        Mybase::operator++();
+        return *this;
+    }
+
+    constexpr list_node_iterator operator++(int) noexcept {
+        list_node_iterator tmp(*this);
+        ++(*this);
+        return tmp;
+    }
+
+    constexpr list_node_iterator &operator--() noexcept {
+        Mybase::operator--();
+        return *this;
+    }
+
+    constexpr list_node_iterator operator--(int) noexcept {
+        list_node_iterator tmp(*this);
+        --(*this);
+        return tmp;
+    }
+};
+
+template <typename Tag>
+struct list_node {
+    using iterator = list_node_iterator<Tag>;
+    using const_iterator = list_node_const_iterator<Tag>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    list_node() = default;
+    list_node(const list_node &) = delete;
+    list_node(list_node &&) = delete;
+    list_node &operator=(const list_node &) = delete;
+    list_node &operator=(list_node &&) = delete;
+    ~list_node() = default;
+
+    constexpr iterator begin() noexcept { return iterator(wjr::next(this)); }
+    constexpr const_iterator begin() const noexcept {
+        return const_iterator(wjr::next(this));
+    }
+    constexpr const_iterator cbegin() const noexcept {
+        return const_iterator(wjr::next(this));
+    }
+
+    constexpr iterator end() noexcept { return iterator(this); }
+    constexpr const_iterator end() const noexcept { return const_iterator(this); }
+    constexpr const_iterator cend() const noexcept { return const_iterator(this); }
+
+    constexpr reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+    constexpr const_reverse_iterator rbegin() const noexcept {
+        return const_reverse_iterator(end());
+    }
+    constexpr const_reverse_iterator crbegin() const noexcept {
+        return const_reverse_iterator(end());
+    }
+
+    constexpr reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+    constexpr const_reverse_iterator rend() const noexcept {
+        return const_reverse_iterator(begin());
+    }
+    constexpr const_reverse_iterator crend() const noexcept {
+        return const_reverse_iterator(begin());
+    }
+
+    constexpr list_node *next() noexcept { return wjr::next(this); }
+    constexpr const list_node *next() const noexcept { return wjr::next(this); }
+
+    constexpr list_node *prev() noexcept { return wjr::prev(this); }
+    constexpr const list_node *prev() const noexcept { return wjr::prev(this); }
+
+    constexpr bool empty() const noexcept { return wjr::empty(this); }
+
+    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
+    constexpr intrusive_hook_t<U> *operator->() noexcept {
+        return static_cast<intrusive_hook_t<U> *>(this);
+    }
+
+    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
+    constexpr const intrusive_hook_t<U> *operator->() const noexcept {
+        return static_cast<const intrusive_hook_t<U> *>(this);
+    }
+
+    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
+    constexpr intrusive_hook_t<U> &operator*() noexcept {
+        return *operator->();
+    }
+
+    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
+    constexpr const intrusive_hook_t<U> &operator*() const noexcept {
+        return *operator->();
+    }
+
+    list_node *m_prev;
+    list_node *m_next;
+};
+
+template <typename T>
+constexpr void init(list_node<T> *node) noexcept {
+    node->m_prev = node;
+    node->m_next = node;
+}
+
+template <typename T>
+constexpr void insert(list_node<T> *prev, list_node<T> *next,
+                      list_node<T> *node) noexcept {
+    prev->m_next = node;
+    node->m_prev = prev;
+    next->m_prev = node;
+    node->m_next = next;
+}
+
+template <typename T>
+constexpr void push_back(list_node<T> *head, list_node<T> *node) noexcept {
+    insert(head->m_prev, head, node);
+}
+
+template <typename T>
+constexpr void push_front(list_node<T> *head, list_node<T> *node) noexcept {
+    insert(head, head->m_next, node);
+}
+
+template <typename T>
+constexpr void remove_uninit(list_node<T> *node) noexcept {
+    node->m_prev->m_next = node->m_next;
+    node->m_next->m_prev = node->m_prev;
+}
+
+template <typename T>
+constexpr bool empty(const list_node<T> *node) noexcept {
+    return node->m_next == node;
+}
+
+template <typename T>
+constexpr list_node<T> *next(list_node<T> *node) noexcept {
+    return node->m_next;
+}
+
+template <typename T>
+constexpr const list_node<T> *next(const list_node<T> *node) noexcept {
+    return node->m_next;
+}
+
+template <typename T>
+constexpr list_node<T> *prev(list_node<T> *node) noexcept {
+    return node->m_prev;
+}
+
+template <typename T>
+constexpr const list_node<T> *prev(const list_node<T> *node) noexcept {
+    return node->m_prev;
+}
+
+template <typename T>
+constexpr void replace_uninit(list_node<T> *from, list_node<T> *to) noexcept {
+    to->m_prev = from->m_prev;
+    to->m_next = from->m_next;
+    from->m_prev->m_next = to;
+    from->m_next->m_prev = to;
+}
+
+} // namespace wjr
+
+#endif // WJR_CONTAINER_INTRUSIVE_LIST_HPP__
+#ifndef WJR_MATH_BIT_HPP__
+#define WJR_MATH_BIT_HPP__
+
+#ifndef WJR_MATH_CLZ_HPP__
+#define WJR_MATH_CLZ_HPP__
+
+// Already included
+#ifndef WJR_MATH_POPCOUNT_HPP__
+#define WJR_MATH_POPCOUNT_HPP__
+
+// Already included
+
+namespace wjr {
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int fallback_popcount(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+    if constexpr (nd < 32) {
+        return fallback_popcount(static_cast<uint32_t>(x));
+    } else {
+        if constexpr (nd == 32) {
+            x -= (x >> 1) & 0x5555'5555;
+            x = (x & 0x3333'3333) + ((x >> 2) & 0x3333'3333);
+            x = (x + (x >> 4)) & 0x0f0f'0f0f;
+            return (x * 0x0101'0101) >> 24;
+        } else {
+            x -= (x >> 1) & 0x5555'5555'5555'5555;
+            x = (x & 0x3333'3333'3333'3333) + ((x >> 2) & 0x3333'3333'3333'3333);
+            x = (x + (x >> 4)) & 0x0f0f'0f0f'0f0f'0f0f;
+            return (x * 0x0101'0101'0101'0101) >> 56;
+        }
+    }
+}
+
+#if WJR_HAS_BUILTIN(POPCOUNT)
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+    if constexpr (nd < 32) {
+        return builtin_popcount(static_cast<uint32_t>(x));
+    } else {
+        if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
+            return __builtin_popcount(x);
+        } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
+            return __builtin_popcountl(x);
+        }
+        if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
+            return __builtin_popcountll(x);
+        } else {
+            static_assert(nd <= 64, "not support yet");
+        }
+    }
+}
+
+#endif // WJR_HAS_BUILTIN(POPCOUNT)
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount_impl(T x) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(is_zero_or_single_bit(x))) {
+        return x != 0;
+    }
+
+#if WJR_HAS_BUILTIN(POPCOUNT)
+    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
+        return fallback_popcount(x);
+    }
+
+    return builtin_popcount(x);
+#else
+    return fallback_popcount(x);
+#endif
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount(T x) noexcept {
+    const int ret = popcount_impl(x);
+    WJR_ASSUME(0 <= ret && ret <= std::numeric_limits<T>::digits);
+    return ret;
+}
+
+} // namespace wjr
+
+#endif // WJR_MATH_POPCOUNT_HPP__
+
+#if WJR_HAS_BUILTIN(__builtin_clz)
+#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF
+#elif defined(WJR_MSVC) && defined(WJR_X86)
+#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF_VAR(2)
+#endif
+
+#if WJR_HAS_BUILTIN(CLZ) == 2
+// Already included
+#endif
+
+namespace wjr {
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int constexpr_clz(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+    x |= (x >> 1);
+    x |= (x >> 2);
+    x |= (x >> 4);
+
+    if constexpr (nd >= 16) {
+        x |= (x >> 8);
+    }
+
+    if constexpr (nd >= 32) {
+        x |= (x >> 16);
+    }
+
+    if constexpr (nd >= 64) {
+        x |= (x >> 32);
+    }
+
+    return fallback_popcount(~x);
+}
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_clz(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
+    if constexpr (nd >= 32) {
+#endif
+        x |= (x >> 1);
+        x |= (x >> 2);
+        x |= (x >> 4);
+
+        if constexpr (nd >= 16) {
+            x |= (x >> 8);
+        }
+
+        if constexpr (nd >= 32) {
+            x |= (x >> 16);
+        }
+
+        if constexpr (nd >= 64) {
+            x |= (x >> 32);
+        }
+#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
+    }
+#endif
+
+#if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
+    return popcount<T>(~x);
+#else
+    if constexpr (nd < 32) {
+        return fallback_clz(static_cast<uint32_t>(x)) - (32 - nd);
+    } else {
+        ++x;
+
+        if constexpr (nd <= 32) {
+            return math_detail::de_bruijn32.getr(x);
+        } else if constexpr (nd <= 64) {
+            return math_detail::de_bruijn64.getr(x);
+        } else {
+            static_assert(nd <= 64, "not support yet");
+        }
+    }
+#endif
+}
+
+#if WJR_HAS_BUILTIN(CLZ)
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+    if constexpr (nd < 32) {
+        return builtin_clz(static_cast<uint32_t>(x)) - (32 - nd);
+    } else {
+#if WJR_HAS_BUILTIN(CLZ) == 1
+        if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
+            constexpr auto delta = std::numeric_limits<unsigned int>::digits - nd;
+            return __builtin_clz(static_cast<unsigned int>(x)) - delta;
+        } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
+            constexpr auto delta = std::numeric_limits<unsigned long>::digits - nd;
+            return __builtin_clzl(static_cast<unsigned long>(x)) - delta;
+        } else if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
+            constexpr auto delta = std::numeric_limits<unsigned long long>::digits - nd;
+            return __builtin_clzll(static_cast<unsigned long long>(x)) - delta;
+        } else {
+            static_assert(nd <= 64, "not supported yet");
+        }
+#else
+        if constexpr (nd == 32) {
+            unsigned long result;
+            (void)_BitScanReverse(&result, x);
+            return 31 - result;
+        } else {
+            unsigned long result;
+            (void)_BitScanReverse64(&result, x);
+            return 63 - result;
+        }
+#endif
+    }
+}
+
+#endif
+
+/**
+ * @brief Fast count leading zeros
+ *
+ * @tparam T Must be an unsigned integral type
+ */
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
+#if WJR_HAS_BUILTIN(CLZ)
+    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
+        return fallback_clz(x);
+    }
+
+    return builtin_clz(x);
+#else
+    return fallback_clz(x);
+#endif
+}
+
+} // namespace wjr
+
+#endif // WJR_MATH_CLZ_HPP__
+#ifndef WJR_MATH_CTZ_HPP__
+#define WJR_MATH_CTZ_HPP__
+
+// Already included
+// Already included
+
+#if WJR_HAS_BUILTIN(__builtin_ctz)
+#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF
+#elif defined(WJR_MSVC) && defined(WJR_X86)
+#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF_VAR(2)
+#endif
+
+#if WJR_HAS_BUILTIN(CTZ) == 2
+// Already included
+#endif
+
+namespace wjr {
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int constexpr_ctz(T x) noexcept {
+    return fallback_popcount<T>(lowbit(x) - 1);
+}
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_ctz(T x) noexcept {
+#if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
+    return popcount<T>(lowbit(x) - 1);
+#else
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+    if constexpr (nd < 32) {
+        return fallback_ctz(static_cast<uint32_t>(x));
+    } else {
+        x = lowbit(x);
+
+        if constexpr (nd <= 32) {
+            return math_detail::de_bruijn32.get(x);
+        } else if constexpr (nd <= 64) {
+            return math_detail::de_bruijn64.get(x);
+        } else {
+            static_assert(nd <= 64, "not support yet");
+        }
+    }
+#endif //
+}
+
+#if WJR_HAS_BUILTIN(CTZ)
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+    if constexpr (nd < 32) {
+        return builtin_ctz(static_cast<uint32_t>(x));
+    } else {
+#if WJR_HAS_BUILTIN(CTZ) == 1
+        if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
+            return __builtin_ctz(static_cast<unsigned int>(x));
+        } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
+            return __builtin_ctzl(static_cast<unsigned long>(x));
+        } else if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
+            return __builtin_ctzll(static_cast<unsigned long long>(x));
+        } else {
+            static_assert(nd <= 64, "not supported yet");
+        }
+#else
+        if constexpr (nd == 32) {
+            unsigned long result;
+            (void)_BitScanForward(&result, x);
+            return result;
+        } else {
+            unsigned long result;
+            (void)_BitScanForward64(&result, x);
+            return result;
+        }
+#endif
+    }
+}
+
+#endif
+
+/**
+ * @brief Fast count trailing zeros
+ *
+ * @details Very fast even on non-optimized platforms by using a De Bruijn sequence. \n
+ * Try __builtin_clz if available, otherwise fallback to a portable implementation. \n
+ * In fallback_clz, use popcount and lowbit if POPCOUNT and POPCNT are available, make
+ * sure popcount is fast. \n
+ * Then use De Bruijn sequence, just a bit slower than popcount + lowbit.
+ *
+ * @tparam T Must be an unsigned integral type
+ */
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int ctz(T x) noexcept {
+#if WJR_HAS_BUILTIN(CTZ)
+    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
+        return fallback_ctz(x);
+    }
+
+    return builtin_ctz(x);
+#else
+    return fallback_ctz(x);
+#endif
+}
+
+} // namespace wjr
+
+#endif // WJR_MATH_CTZ_HPP__
+// Already included
+
+namespace wjr {
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {
+    return (n != 0) && is_zero_or_single_bit(n);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
+    // If not use __builtin_clz and use popcount, then don't need to handle zero.
+#if WJR_HAS_BUILTIN(CLZ) || !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
+    if (WJR_UNLIKELY(x == 0)) {
+        return std::numeric_limits<T>::digits;
+    }
+#endif
+
+    return clz(x);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_zero(T x) noexcept {
+    // If not use __builtin_ctz and use popcount, then don't need to handle zero.
+#if WJR_HAS_BUILTIN(CTZ) || !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
+    if (WJR_UNLIKELY(x == 0)) {
+        return std::numeric_limits<T>::digits;
+    }
+#endif
+
+    return ctz(x);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_one(T x) noexcept {
+    return countl_zero(static_cast<T>(~x));
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_one(T x) noexcept {
+    return countr_zero(static_cast<T>(~x));
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int bit_width(T x) noexcept {
+    return std::numeric_limits<T>::digits - countl_zero(x);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_ceil(T x) noexcept {
+    if (x <= 1) {
+        return T(1);
+    }
+    if constexpr (std::is_same_v<T, decltype(+x)>) {
+        return T(1) << bit_width(T(x - 1));
+    } else {
+        constexpr int offset_for_ub =
+            std::numeric_limits<unsigned>::digits - std::numeric_limits<T>::digits;
+        return T(1 << (bit_width(T(x - 1)) + offset_for_ub) >> offset_for_ub);
+    }
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_floor(T x) noexcept {
+    if (x != 0) {
+        return T{1} << (bit_width(x) - 1);
+    }
+    return 0;
+}
+
+template <typename To, typename From,
+          WJR_REQUIRES(sizeof(To) == sizeof(From) && std::is_trivially_copyable_v<From> &&
+                       std::is_trivially_copyable_v<To>)>
+WJR_PURE WJR_INTRINSIC_INLINE To bit_cast(const From &src) noexcept {
+    static_assert(std::is_trivially_constructible_v<To>, "");
+    To dst;
+    std::memcpy(&dst, &src, sizeof(To));
+    return dst;
+}
+
+} // namespace wjr
+
+#endif // WJR_MATH_BIT_HPP__
+// Already included
+
+namespace wjr {
+
+struct automatic_free_pool {
+    struct chunk : list_node<intrusive_tag<chunk>> {};
+
+    automatic_free_pool() noexcept { init(&head); }
+    ~automatic_free_pool() noexcept {
+        for (auto iter = head.begin(); iter != head.end();) {
+            const auto now = iter++;
+            chunk *const node = &**now;
+            free(node);
+        }
+    }
+
+    WJR_MALLOC void *allocate(size_t n) noexcept {
+        auto *const ptr = static_cast<chunk *>(malloc(n + sizeof(chunk)));
+        push_back(&head, ptr);
+        return reinterpret_cast<char *>(ptr) + sizeof(chunk);
+    }
+
+    void deallocate(void *ptr) noexcept {
+        auto *const node =
+            reinterpret_cast<chunk *>(static_cast<char *>(ptr) - sizeof(chunk));
+        remove_uninit(node);
+        free(node);
+    }
+
+    static automatic_free_pool &get_instance() noexcept {
+        static thread_local automatic_free_pool instance;
+        return instance;
+    }
+
+    chunk head;
+};
+
+class __default_alloc_template__ {
+    union obj {
+        union obj *free_list_link;
+        char client_data[1];
+    };
+
+    WJR_CONST static constexpr size_t __round_up(size_t bytes) noexcept {
+        return (((bytes) + 2048 - 1) & ~(2048 - 1));
+    }
+
+    WJR_CONST static WJR_CONSTEXPR20 unsigned int
+    __get_index(unsigned int bytes) noexcept {
+        return static_cast<unsigned int>(
+            bit_width<uint16_t>(static_cast<uint16_t>((bytes - 1) >> 3)));
+    }
+
+    WJR_CONST static constexpr unsigned int __get_size(unsigned int idx) noexcept {
+        return static_cast<unsigned int>(1) << (idx + 3);
+    }
+
+    static automatic_free_pool &get_chunk() noexcept {
+        return automatic_free_pool::get_instance();
+    }
+
+    struct object {
+        WJR_MALLOC void *__small_allocate_impl(unsigned int idx) noexcept {
+            obj *volatile *const my_free_list = free_list + idx;
+            obj *const result = *my_free_list;
+            if (WJR_LIKELY(result != nullptr)) {
+                *my_free_list = result->free_list_link;
+                return result;
+            }
+
+            return refill(idx);
+        }
+
+        WJR_INTRINSIC_INLINE allocation_result<void *>
+        __small_allocate_at_least(unsigned int n) noexcept {
+            const unsigned int idx = __get_index(n);
+            const size_t size = __get_size(idx);
+            return {__small_allocate_impl(idx), size};
+        }
+
+        WJR_MALLOC void *__small_allocate(unsigned int n) noexcept {
+            const unsigned int idx = __get_index(n);
+            return __small_allocate_impl(idx);
+        }
+
+        WJR_INTRINSIC_INLINE void __small_deallocate(void *p, unsigned int n) noexcept {
+            auto *const q = static_cast<obj *>(p);
+            obj *volatile *const my_free_list = free_list + __get_index(n);
+            q->free_list_link = *my_free_list;
+            *my_free_list = q;
+        }
+
+        // n must be > 0
+        WJR_INTRINSIC_INLINE allocation_result<void *>
+        allocate_at_least(size_t n) noexcept {
+            if (WJR_LIKELY(n <= 16384)) {
+                return __small_allocate_at_least(static_cast<unsigned int>(n));
+            }
+
+            return {malloc(n), n};
+        }
+
+        // n must be > 0
+        WJR_MALLOC WJR_INTRINSIC_INLINE void *allocate(size_t n) noexcept {
+            if (WJR_LIKELY(n <= 16384)) {
+                return __small_allocate(static_cast<unsigned int>(n));
+            }
+
+            return malloc(n);
+        }
+
+        // p must not be 0
+        WJR_INTRINSIC_INLINE void deallocate(void *p, size_t n) noexcept {
+            if (WJR_LIKELY(n <= 16384)) {
+                return __small_deallocate(p, static_cast<unsigned int>(n));
+            }
+
+            free(p);
+        }
+
+        allocation_result<void *> chunk_allocate(size_t n) noexcept {
+            if (WJR_LIKELY(n <= 16384)) {
+                return __small_allocate_at_least(static_cast<unsigned int>(n));
+            }
+
+            return {get_chunk().allocate(n), n};
+        }
+
+        // p must not be 0
+        WJR_INTRINSIC_INLINE void chunk_deallocate(void *p, size_t n) noexcept {
+            if (WJR_LIKELY(n <= 16384)) {
+                return __small_deallocate(p, static_cast<unsigned int>(n));
+            }
+
+            get_chunk().deallocate(p);
+        }
+
+    private:
+        // Allocates a chunk for nobjs of size "size".  nobjs may be reduced
+        // if it is inconvenient to allocate the requested number.
+        WJR_MALLOC char *chunk_alloc(unsigned int idx, unsigned int &nobjs) noexcept;
+
+        // Returns an object of size n, and optionally adds to size n free list.
+        WJR_MALLOC void *refill(unsigned int idx) noexcept;
+
+        obj *volatile free_list[12] = {nullptr};
+        char *start_free = nullptr;
+        char *end_free = nullptr;
+        size_t heap_size = 0;
+    };
+
+public:
+    static object &get_instance() noexcept {
+        static thread_local object instance;
+        return instance;
+    }
+
+    // n must be > 0
+    static allocation_result<void *> allocate_at_least(size_t n) noexcept {
+        return get_instance().allocate_at_least(n);
+    }
+
+    WJR_MALLOC static void *allocate(size_t n) noexcept {
+        return get_instance().allocate(n);
+    }
+
+    // p must not be 0
+    static void deallocate(void *p, size_t n) noexcept {
+        get_instance().deallocate(p, n);
+    }
+
+    // n must be > 0
+    static allocation_result<void *> chunk_allocate_at_least(size_t n) noexcept {
+        return get_instance().chunk_allocate(n);
+    }
+
+    // p must not be 0
+    static void chunk_deallocate(void *p, size_t n) noexcept {
+        get_instance().chunk_deallocate(p, n);
+    }
+};
+
+template <typename Ty>
+class memory_pool {
+private:
+    using allocator_type = __default_alloc_template__;
+
+public:
+    using value_type = Ty;
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
+    using propagate_on_container_move_assignment = std::true_type;
+    using is_always_equal = std::true_type;
+    using is_trivially_allocator = std::true_type;
+
+    template <typename Other>
+    struct rebind {
+        using other = memory_pool<Other>;
+    };
+
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(memory_pool);
+
+    template <typename Other>
+    constexpr memory_pool(const memory_pool<Other> &) noexcept {}
+
+    WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
+    allocate_at_least(size_type n) const noexcept {
+        const auto ret = allocator_type::allocate_at_least(n * sizeof(Ty));
+        return {static_cast<Ty *>(ret.ptr), ret.count / sizeof(Ty)};
+    }
+
+    WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
+    chunk_allocate_at_least(size_type n) const noexcept {
+        const auto ret = allocator_type::chunk_allocate_at_least(n * sizeof(Ty));
+        return {static_cast<Ty *>(ret.ptr), ret.count / sizeof(Ty)};
+    }
+
+    WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *allocate(size_type n) const noexcept {
+        return static_cast<Ty *>(allocator_type::allocate(n * sizeof(Ty)));
+    }
+
+    WJR_CONSTEXPR20 void deallocate(Ty *ptr, size_type n) const noexcept {
+        return allocator_type::deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
+    }
+
+    /**
+     * @details Allocate memory, don't need to deallocate it until the thread exits.    \n
+     * Automatically deallocate memory when the thread exits.                          \n
+     * Used in thread_local memory pool that only needs to allocate memory once and    \n
+     * deallocate it when the thread exits.                                            \n
+     *
+     */
+    WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *
+    chunk_allocate(size_type n) const noexcept {
+        return chunk_allocate_at_least(n).ptr;
+    }
+
+    WJR_CONSTEXPR20 void chunk_deallocate(Ty *ptr, size_type n) const noexcept {
+        return allocator_type::chunk_deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
+    }
+
+    constexpr size_t max_size() const noexcept {
+        return static_cast<size_t>(-1) / sizeof(Ty);
+    }
+};
+
+template <typename T, typename U>
+constexpr bool operator==(const memory_pool<T> &, const memory_pool<U> &) noexcept {
+    return true;
+}
+
+template <typename T, typename U>
+constexpr bool operator!=(const memory_pool<T> &, const memory_pool<U> &) noexcept {
+    return false;
+}
+
+} // namespace wjr
+
+#endif // WJR_MEMORY_MEMORY_POOL_HPP__
 #ifndef WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
 #define WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
 
@@ -12947,7 +13938,7 @@ public:
         other.m_storage = {
             result.ptr,
             result.ptr + size,
-            result.ptr + capacity,
+            result.ptr + result.count,
         };
     }
 
@@ -13216,7 +14207,7 @@ public:
         other.m_storage = {
             result.ptr,
             result.ptr + size,
-            result.ptr + capacity,
+            result.ptr + result.count,
         };
     }
 
@@ -13331,9 +14322,8 @@ public:
 
         destroy(al);
         if (!__is_sso()) {
-            WJR_ASSERT_ASSUME_L2(capacity() != 0);
-
-            al.deallocate(data(), capacity());
+            WJR_ASSERT_ASSUME_L2(m_storage.m_capacity != 0);
+            al.deallocate(data(), m_storage.m_capacity);
             m_storage.m_data = m_storage.m_storage;
         }
     }
@@ -13844,7 +14834,11 @@ public:
 
     WJR_CONST WJR_CONSTEXPR20 static size_type
     get_growth_capacity(size_type old_capacity, size_type new_size) noexcept {
-        return std::max(old_capacity + (((old_capacity + 6) >> 3) << 2), new_size);
+        if constexpr (sizeof(value_type) <= 16) {
+            return std::max(old_capacity + (old_capacity / 2) + 2, new_size);
+        } else {
+            return std::max(old_capacity + (old_capacity / 2), new_size);
+        }
     }
 
 private:
@@ -14891,14 +15885,14 @@ private:
     compressed_pair<_Alty, storage_type> m_pair;
 };
 
-template <typename T, typename Alloc = std::allocator<T>>
+template <typename T, typename Alloc = memory_pool<T>>
 using vector = basic_vector<default_vector_storage<T, Alloc>>;
 
 /**
  * @brief A vector with elements stored on the stack.
  *
  */
-template <typename T, size_t Capacity, typename Alloc = std::allocator<T>>
+template <typename T, size_t Capacity, typename Alloc = memory_pool<T>>
 using static_vector = basic_vector<static_vector_storage<T, Capacity, Alloc>>;
 
 /**
@@ -14908,14 +15902,14 @@ using static_vector = basic_vector<static_vector_storage<T, Capacity, Alloc>>;
  * After construction, it cannot be expanded and can only be modified through move
  * assignment. For example, vector that using stack allocator.
  */
-template <typename T, typename Alloc = std::allocator<T>>
+template <typename T, typename Alloc = memory_pool<T>>
 using fixed_vector = basic_vector<fixed_vector_storage<T, Alloc>>;
 
-template <typename T, size_t Capacity, typename Alloc = std::allocator<T>>
+template <typename T, size_t Capacity, typename Alloc = memory_pool<T>>
 using sso_vector = basic_vector<sso_vector_storage<T, Capacity, Alloc>>;
 
 template <typename Iter, typename T = iterator_value_t<Iter>,
-          typename Alloc = std::allocator<T>, WJR_REQUIRES(is_iterator_v<Iter>)>
+          typename Alloc = memory_pool<T>, WJR_REQUIRES(is_iterator_v<Iter>)>
 basic_vector(Iter, Iter, Alloc = Alloc())
     -> basic_vector<default_vector_storage<T, Alloc>>;
 
@@ -16941,420 +17935,7 @@ parse_eight_digits_unrolled(const char *src) noexcept;
 } // namespace wjr
 
 #endif // WJR_FORMAT_CHARCONV_IMPL_HPP__
-#ifndef WJR_MATH_BIT_HPP__
-#define WJR_MATH_BIT_HPP__
-
-#ifndef WJR_MATH_CLZ_HPP__
-#define WJR_MATH_CLZ_HPP__
-
 // Already included
-#ifndef WJR_MATH_POPCOUNT_HPP__
-#define WJR_MATH_POPCOUNT_HPP__
-
-// Already included
-
-namespace wjr {
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR int fallback_popcount(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-    if constexpr (nd < 32) {
-        return fallback_popcount(static_cast<uint32_t>(x));
-    } else {
-        if constexpr (nd == 32) {
-            x -= (x >> 1) & 0x5555'5555;
-            x = (x & 0x3333'3333) + ((x >> 2) & 0x3333'3333);
-            x = (x + (x >> 4)) & 0x0f0f'0f0f;
-            return (x * 0x0101'0101) >> 24;
-        } else {
-            x -= (x >> 1) & 0x5555'5555'5555'5555;
-            x = (x & 0x3333'3333'3333'3333) + ((x >> 2) & 0x3333'3333'3333'3333);
-            x = (x + (x >> 4)) & 0x0f0f'0f0f'0f0f'0f0f;
-            return (x * 0x0101'0101'0101'0101) >> 56;
-        }
-    }
-}
-
-#if WJR_HAS_BUILTIN(POPCOUNT)
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-    if constexpr (nd < 32) {
-        return builtin_popcount(static_cast<uint32_t>(x));
-    } else {
-        if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
-            return __builtin_popcount(x);
-        } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
-            return __builtin_popcountl(x);
-        }
-        if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
-            return __builtin_popcountll(x);
-        } else {
-            static_assert(nd <= 64, "not support yet");
-        }
-    }
-}
-
-#endif // WJR_HAS_BUILTIN(POPCOUNT)
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount_impl(T x) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(is_zero_or_single_bit(x))) {
-        return x != 0;
-    }
-
-#if WJR_HAS_BUILTIN(POPCOUNT)
-    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
-        return fallback_popcount(x);
-    }
-
-    return builtin_popcount(x);
-#else
-    return fallback_popcount(x);
-#endif
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount(T x) noexcept {
-    const int ret = popcount_impl(x);
-    WJR_ASSUME(0 <= ret && ret <= std::numeric_limits<T>::digits);
-    return ret;
-}
-
-} // namespace wjr
-
-#endif // WJR_MATH_POPCOUNT_HPP__
-
-#if WJR_HAS_BUILTIN(__builtin_clz)
-#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF
-#elif defined(WJR_MSVC) && defined(WJR_X86)
-#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF_VAR(2)
-#endif
-
-#if WJR_HAS_BUILTIN(CLZ) == 2
-// Already included
-#endif
-
-namespace wjr {
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR int constexpr_clz(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-    x |= (x >> 1);
-    x |= (x >> 2);
-    x |= (x >> 4);
-
-    if constexpr (nd >= 16) {
-        x |= (x >> 8);
-    }
-
-    if constexpr (nd >= 32) {
-        x |= (x >> 16);
-    }
-
-    if constexpr (nd >= 64) {
-        x |= (x >> 32);
-    }
-
-    return fallback_popcount(~x);
-}
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_clz(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
-    if constexpr (nd >= 32) {
-#endif
-        x |= (x >> 1);
-        x |= (x >> 2);
-        x |= (x >> 4);
-
-        if constexpr (nd >= 16) {
-            x |= (x >> 8);
-        }
-
-        if constexpr (nd >= 32) {
-            x |= (x >> 16);
-        }
-
-        if constexpr (nd >= 64) {
-            x |= (x >> 32);
-        }
-#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
-    }
-#endif
-
-#if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
-    return popcount<T>(~x);
-#else
-    if constexpr (nd < 32) {
-        return fallback_clz(static_cast<uint32_t>(x)) - (32 - nd);
-    } else {
-        ++x;
-
-        if constexpr (nd <= 32) {
-            return math_detail::de_bruijn32.getr(x);
-        } else if constexpr (nd <= 64) {
-            return math_detail::de_bruijn64.getr(x);
-        } else {
-            static_assert(nd <= 64, "not support yet");
-        }
-    }
-#endif
-}
-
-#if WJR_HAS_BUILTIN(CLZ)
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-    if constexpr (nd < 32) {
-        return builtin_clz(static_cast<uint32_t>(x)) - (32 - nd);
-    } else {
-#if WJR_HAS_BUILTIN(CLZ) == 1
-        if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
-            constexpr auto delta = std::numeric_limits<unsigned int>::digits - nd;
-            return __builtin_clz(static_cast<unsigned int>(x)) - delta;
-        } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
-            constexpr auto delta = std::numeric_limits<unsigned long>::digits - nd;
-            return __builtin_clzl(static_cast<unsigned long>(x)) - delta;
-        } else if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
-            constexpr auto delta = std::numeric_limits<unsigned long long>::digits - nd;
-            return __builtin_clzll(static_cast<unsigned long long>(x)) - delta;
-        } else {
-            static_assert(nd <= 64, "not supported yet");
-        }
-#else
-        if constexpr (nd == 32) {
-            unsigned long result;
-            (void)_BitScanReverse(&result, x);
-            return 31 - result;
-        } else {
-            unsigned long result;
-            (void)_BitScanReverse64(&result, x);
-            return 63 - result;
-        }
-#endif
-    }
-}
-
-#endif
-
-/**
- * @brief Fast count leading zeros
- *
- * @tparam T Must be an unsigned integral type
- */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
-#if WJR_HAS_BUILTIN(CLZ)
-    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
-        return fallback_clz(x);
-    }
-
-    return builtin_clz(x);
-#else
-    return fallback_clz(x);
-#endif
-}
-
-} // namespace wjr
-
-#endif // WJR_MATH_CLZ_HPP__
-#ifndef WJR_MATH_CTZ_HPP__
-#define WJR_MATH_CTZ_HPP__
-
-// Already included
-// Already included
-
-#if WJR_HAS_BUILTIN(__builtin_ctz)
-#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF
-#elif defined(WJR_MSVC) && defined(WJR_X86)
-#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF_VAR(2)
-#endif
-
-#if WJR_HAS_BUILTIN(CTZ) == 2
-// Already included
-#endif
-
-namespace wjr {
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR int constexpr_ctz(T x) noexcept {
-    return fallback_popcount<T>(lowbit(x) - 1);
-}
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_ctz(T x) noexcept {
-#if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
-    return popcount<T>(lowbit(x) - 1);
-#else
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-    if constexpr (nd < 32) {
-        return fallback_ctz(static_cast<uint32_t>(x));
-    } else {
-        x = lowbit(x);
-
-        if constexpr (nd <= 32) {
-            return math_detail::de_bruijn32.get(x);
-        } else if constexpr (nd <= 64) {
-            return math_detail::de_bruijn64.get(x);
-        } else {
-            static_assert(nd <= 64, "not support yet");
-        }
-    }
-#endif //
-}
-
-#if WJR_HAS_BUILTIN(CTZ)
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-    if constexpr (nd < 32) {
-        return builtin_ctz(static_cast<uint32_t>(x));
-    } else {
-#if WJR_HAS_BUILTIN(CTZ) == 1
-        if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
-            return __builtin_ctz(static_cast<unsigned int>(x));
-        } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
-            return __builtin_ctzl(static_cast<unsigned long>(x));
-        } else if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
-            return __builtin_ctzll(static_cast<unsigned long long>(x));
-        } else {
-            static_assert(nd <= 64, "not supported yet");
-        }
-#else
-        if constexpr (nd == 32) {
-            unsigned long result;
-            (void)_BitScanForward(&result, x);
-            return result;
-        } else {
-            unsigned long result;
-            (void)_BitScanForward64(&result, x);
-            return result;
-        }
-#endif
-    }
-}
-
-#endif
-
-/**
- * @brief Fast count trailing zeros
- *
- * @details Very fast even on non-optimized platforms by using a De Bruijn sequence. \n
- * Try __builtin_clz if available, otherwise fallback to a portable implementation. \n
- * In fallback_clz, use popcount and lowbit if POPCOUNT and POPCNT are available, make
- * sure popcount is fast. \n
- * Then use De Bruijn sequence, just a bit slower than popcount + lowbit.
- *
- * @tparam T Must be an unsigned integral type
- */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int ctz(T x) noexcept {
-#if WJR_HAS_BUILTIN(CTZ)
-    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
-        return fallback_ctz(x);
-    }
-
-    return builtin_ctz(x);
-#else
-    return fallback_ctz(x);
-#endif
-}
-
-} // namespace wjr
-
-#endif // WJR_MATH_CTZ_HPP__
-// Already included
-
-namespace wjr {
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {
-    return (n != 0) && is_zero_or_single_bit(n);
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
-    // If not use __builtin_clz and use popcount, then don't need to handle zero.
-#if WJR_HAS_BUILTIN(CLZ) || !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
-    if (WJR_UNLIKELY(x == 0)) {
-        return std::numeric_limits<T>::digits;
-    }
-#endif
-
-    return clz(x);
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_zero(T x) noexcept {
-    // If not use __builtin_ctz and use popcount, then don't need to handle zero.
-#if WJR_HAS_BUILTIN(CTZ) || !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
-    if (WJR_UNLIKELY(x == 0)) {
-        return std::numeric_limits<T>::digits;
-    }
-#endif
-
-    return ctz(x);
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_one(T x) noexcept {
-    return countl_zero(static_cast<T>(~x));
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_one(T x) noexcept {
-    return countr_zero(static_cast<T>(~x));
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int bit_width(T x) noexcept {
-    return std::numeric_limits<T>::digits - countl_zero(x);
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_ceil(T x) noexcept {
-    if (x <= 1) {
-        return T(1);
-    }
-    if constexpr (std::is_same_v<T, decltype(+x)>) {
-        return T(1) << bit_width(T(x - 1));
-    } else {
-        constexpr int offset_for_ub =
-            std::numeric_limits<unsigned>::digits - std::numeric_limits<T>::digits;
-        return T(1 << (bit_width(T(x - 1)) + offset_for_ub) >> offset_for_ub);
-    }
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_floor(T x) noexcept {
-    if (x != 0) {
-        return T{1} << (bit_width(x) - 1);
-    }
-    return 0;
-}
-
-template <typename To, typename From,
-          WJR_REQUIRES(sizeof(To) == sizeof(From) && std::is_trivially_copyable_v<From> &&
-                       std::is_trivially_copyable_v<To>)>
-WJR_PURE WJR_INTRINSIC_INLINE To bit_cast(const From &src) noexcept {
-    static_assert(std::is_trivially_constructible_v<To>, "");
-    To dst;
-    std::memcpy(&dst, &src, sizeof(To));
-    return dst;
-}
-
-} // namespace wjr
-
-#endif // WJR_MATH_BIT_HPP__
 #ifndef WJR_MATH_MUL_HPP__
 #define WJR_MATH_MUL_HPP__
 
@@ -28665,8 +29246,8 @@ extern const std::array<const precompute_chars_convert_16n_t *, 37>
     precompute_chars_convert_16n_ptr;
 
 extern precompute_chars_convert_t *
-precompute_chars_convert(precompute_chars_convert_t *pre, size_t n, unsigned int base,
-                         uint64_t *table_mem) noexcept;
+precompute_chars_convert(precompute_chars_convert_t *pre_table, size_t n,
+                         unsigned int base, uint64_t *mem_table) noexcept;
 
 } // namespace wjr
 
@@ -28679,585 +29260,7 @@ precompute_chars_convert(precompute_chars_convert_t *pre, size_t n, unsigned int
 
 #include <algorithm>
 
-#ifndef WJR_MEMORY_MEMORY_POOL_HPP__
-#define WJR_MEMORY_MEMORY_POOL_HPP__
-
-#ifndef WJR_CONTAINER_INTRUSIVE_LIST_HPP__
-#define WJR_CONTAINER_INTRUSIVE_LIST_HPP__
-
-#ifndef WJR_CONTAINER_INTRUSIVE_DETAIL_HPP__
-#define WJR_CONTAINER_INTRUSIVE_DETAIL_HPP__
-
 // Already included
-
-namespace wjr {
-
-struct default_intrusive_tag {};
-
-template <typename Hook = void, typename Tag = void>
-struct intrusive_tag {
-    using hook_type = Hook;
-    static constexpr bool use_hook = !std::is_same_v<Hook, void>;
-};
-
-template <typename Tag>
-struct is_intrusive_tag : std::false_type {};
-
-template <typename Hook, typename Tag>
-struct is_intrusive_tag<intrusive_tag<Hook, Tag>> : std::true_type {};
-
-template <typename Tag>
-inline constexpr bool is_intrusive_tag_v = intrusive_tag<Tag>::value;
-
-template <typename Tag>
-using intrusive_hook_t = typename Tag::hook_type;
-
-template <typename Tag>
-inline constexpr bool intrusive_use_hook_v = Tag::use_hook;
-
-} // namespace wjr
-
-#endif // WJR_CONTAINER_INTRUSIVE_DETAIL_HPP__
-
-namespace wjr {
-
-template <typename Tag = intrusive_tag<>>
-struct list_node;
-
-template <typename T>
-constexpr void init(list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr void insert(list_node<T> *prev, list_node<T> *next,
-                      list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr void push_back(list_node<T> *head, list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr void push_front(list_node<T> *head, list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr void remove_uninit(list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr bool empty(const list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr list_node<T> *next(list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr const list_node<T> *next(const list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr list_node<T> *prev(list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr const list_node<T> *prev(const list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr void replace_uninit(list_node<T> *from, list_node<T> *to) noexcept;
-
-template <typename T>
-class list_node_const_iterator {
-    using node_type = list_node<T>;
-
-public:
-    using iterator_category = std::bidirectional_iterator_tag;
-    using value_type = node_type;
-    using reference = const node_type &;
-    using pointer = const node_type *;
-    using difference_type = std::ptrdiff_t;
-
-    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(list_node_const_iterator);
-
-    constexpr list_node_const_iterator(pointer node) noexcept
-        : m_node(const_cast<node_type *>(node)) {}
-
-    constexpr reference operator*() const noexcept { return *m_node; }
-    constexpr pointer operator->() const noexcept { return m_node; }
-
-    constexpr list_node_const_iterator &operator++() noexcept {
-        m_node = next(m_node);
-        return *this;
-    }
-
-    constexpr list_node_const_iterator operator++(int) noexcept {
-        list_node_const_iterator tmp(*this);
-        ++(*this);
-        return tmp;
-    }
-
-    constexpr list_node_const_iterator &operator--() noexcept {
-        m_node = prev(m_node);
-        return *this;
-    }
-
-    constexpr list_node_const_iterator operator--(int) noexcept {
-        list_node_const_iterator tmp(*this);
-        --(*this);
-        return tmp;
-    }
-
-    constexpr bool operator==(const list_node_const_iterator &other) const noexcept {
-        return m_node == other.m_node;
-    }
-
-    constexpr bool operator!=(const list_node_const_iterator &other) const noexcept {
-        return !(*this == other);
-    }
-
-private:
-    node_type *m_node{};
-};
-
-template <typename T>
-class list_node_iterator : public list_node_const_iterator<T> {
-    using Mybase = list_node_const_iterator<T>;
-    using node_type = list_node<T>;
-
-public:
-    using iterator_category = typename Mybase::iterator_category;
-    using value_type = typename Mybase::value_type;
-    using reference = node_type &;
-    using pointer = node_type *;
-    using difference_type = typename Mybase::difference_type;
-
-    using Mybase::Mybase;
-
-    constexpr reference operator*() const noexcept {
-        return const_cast<reference>(Mybase::operator*());
-    }
-
-    constexpr pointer operator->() const noexcept {
-        return const_cast<pointer>(Mybase::operator->());
-    }
-
-    constexpr list_node_iterator &operator++() noexcept {
-        Mybase::operator++();
-        return *this;
-    }
-
-    constexpr list_node_iterator operator++(int) noexcept {
-        list_node_iterator tmp(*this);
-        ++(*this);
-        return tmp;
-    }
-
-    constexpr list_node_iterator &operator--() noexcept {
-        Mybase::operator--();
-        return *this;
-    }
-
-    constexpr list_node_iterator operator--(int) noexcept {
-        list_node_iterator tmp(*this);
-        --(*this);
-        return tmp;
-    }
-};
-
-template <typename Tag>
-struct list_node {
-    using iterator = list_node_iterator<Tag>;
-    using const_iterator = list_node_const_iterator<Tag>;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-
-    list_node() = default;
-    list_node(const list_node &) = delete;
-    list_node(list_node &&) = delete;
-    list_node &operator=(const list_node &) = delete;
-    list_node &operator=(list_node &&) = delete;
-    ~list_node() = default;
-
-    constexpr iterator begin() noexcept { return iterator(wjr::next(this)); }
-    constexpr const_iterator begin() const noexcept {
-        return const_iterator(wjr::next(this));
-    }
-    constexpr const_iterator cbegin() const noexcept {
-        return const_iterator(wjr::next(this));
-    }
-
-    constexpr iterator end() noexcept { return iterator(this); }
-    constexpr const_iterator end() const noexcept { return const_iterator(this); }
-    constexpr const_iterator cend() const noexcept { return const_iterator(this); }
-
-    constexpr reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
-    constexpr const_reverse_iterator rbegin() const noexcept {
-        return const_reverse_iterator(end());
-    }
-    constexpr const_reverse_iterator crbegin() const noexcept {
-        return const_reverse_iterator(end());
-    }
-
-    constexpr reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
-    constexpr const_reverse_iterator rend() const noexcept {
-        return const_reverse_iterator(begin());
-    }
-    constexpr const_reverse_iterator crend() const noexcept {
-        return const_reverse_iterator(begin());
-    }
-
-    constexpr list_node *next() noexcept { return wjr::next(this); }
-    constexpr const list_node *next() const noexcept { return wjr::next(this); }
-
-    constexpr list_node *prev() noexcept { return wjr::prev(this); }
-    constexpr const list_node *prev() const noexcept { return wjr::prev(this); }
-
-    constexpr bool empty() const noexcept { return wjr::empty(this); }
-
-    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
-    constexpr intrusive_hook_t<U> *operator->() noexcept {
-        return static_cast<intrusive_hook_t<U> *>(this);
-    }
-
-    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
-    constexpr const intrusive_hook_t<U> *operator->() const noexcept {
-        return static_cast<const intrusive_hook_t<U> *>(this);
-    }
-
-    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
-    constexpr intrusive_hook_t<U> &operator*() noexcept {
-        return *operator->();
-    }
-
-    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
-    constexpr const intrusive_hook_t<U> &operator*() const noexcept {
-        return *operator->();
-    }
-
-    list_node *m_prev;
-    list_node *m_next;
-};
-
-template <typename T>
-constexpr void init(list_node<T> *node) noexcept {
-    node->m_prev = node;
-    node->m_next = node;
-}
-
-template <typename T>
-constexpr void insert(list_node<T> *prev, list_node<T> *next,
-                      list_node<T> *node) noexcept {
-    prev->m_next = node;
-    node->m_prev = prev;
-    next->m_prev = node;
-    node->m_next = next;
-}
-
-template <typename T>
-constexpr void push_back(list_node<T> *head, list_node<T> *node) noexcept {
-    insert(head->m_prev, head, node);
-}
-
-template <typename T>
-constexpr void push_front(list_node<T> *head, list_node<T> *node) noexcept {
-    insert(head, head->m_next, node);
-}
-
-template <typename T>
-constexpr void remove_uninit(list_node<T> *node) noexcept {
-    node->m_prev->m_next = node->m_next;
-    node->m_next->m_prev = node->m_prev;
-}
-
-template <typename T>
-constexpr bool empty(const list_node<T> *node) noexcept {
-    return node->m_next == node;
-}
-
-template <typename T>
-constexpr list_node<T> *next(list_node<T> *node) noexcept {
-    return node->m_next;
-}
-
-template <typename T>
-constexpr const list_node<T> *next(const list_node<T> *node) noexcept {
-    return node->m_next;
-}
-
-template <typename T>
-constexpr list_node<T> *prev(list_node<T> *node) noexcept {
-    return node->m_prev;
-}
-
-template <typename T>
-constexpr const list_node<T> *prev(const list_node<T> *node) noexcept {
-    return node->m_prev;
-}
-
-template <typename T>
-constexpr void replace_uninit(list_node<T> *from, list_node<T> *to) noexcept {
-    to->m_prev = from->m_prev;
-    to->m_next = from->m_next;
-    from->m_prev->m_next = to;
-    from->m_next->m_prev = to;
-}
-
-} // namespace wjr
-
-#endif // WJR_CONTAINER_INTRUSIVE_LIST_HPP__
-// Already included
-
-namespace wjr {
-
-struct automatic_free_pool {
-    struct chunk : list_node<intrusive_tag<chunk>> {};
-
-    automatic_free_pool() noexcept { init(&head); }
-    ~automatic_free_pool() noexcept {
-        for (auto iter = head.begin(); iter != head.end();) {
-            const auto now = iter++;
-            chunk *const node = &**now;
-            free(node);
-        }
-    }
-
-    WJR_MALLOC void *allocate(size_t n) noexcept {
-        auto *const ptr = static_cast<chunk *>(malloc(n + sizeof(chunk)));
-        push_back(&head, ptr);
-        return reinterpret_cast<char *>(ptr) + sizeof(chunk);
-    }
-
-    void deallocate(void *ptr) noexcept {
-        auto *const node =
-            reinterpret_cast<chunk *>(static_cast<char *>(ptr) - sizeof(chunk));
-        remove_uninit(node);
-        free(node);
-    }
-
-    static automatic_free_pool &get_instance() noexcept {
-        static thread_local automatic_free_pool instance;
-        return instance;
-    }
-
-    chunk head;
-};
-
-class __default_alloc_template__ {
-    union obj {
-        union obj *free_list_link;
-        char client_data[1];
-    };
-
-    WJR_CONST static constexpr size_t __round_up(size_t bytes) noexcept {
-        return (((bytes) + 2048 - 1) & ~(2048 - 1));
-    }
-
-    WJR_CONST static WJR_CONSTEXPR20 unsigned int __get_index(unsigned int bytes) noexcept {
-        return static_cast<unsigned int>(
-            16 - clz<uint16_t>(static_cast<uint16_t>((bytes - 1) >> 3)));
-    }
-
-    WJR_CONST static constexpr unsigned int __get_size(unsigned int idx) noexcept {
-        return static_cast<unsigned int>(1) << (idx + 3);
-    }
-
-    static automatic_free_pool &get_chunk() noexcept {
-        return automatic_free_pool::get_instance();
-    }
-
-    struct object {
-        WJR_INTRINSIC_INLINE allocation_result<void *>
-        __small_allocate_at_least(unsigned int n) noexcept {
-            const unsigned int idx = __get_index(n);
-            const size_t size = __get_size(idx);
-            obj *volatile *const my_free_list = free_list + idx;
-            obj *const result = *my_free_list;
-            if (WJR_LIKELY(result != nullptr)) {
-                *my_free_list = result->free_list_link;
-                return {result, size};
-            }
-
-            return {refill(idx), size};
-        }
-
-        WJR_MALLOC void *__small_allocate(unsigned int n) noexcept {
-            const unsigned int idx = __get_index(n);
-            obj *volatile *const my_free_list = free_list + idx;
-            obj *const result = *my_free_list;
-            if (WJR_LIKELY(result != nullptr)) {
-                *my_free_list = result->free_list_link;
-                return result;
-            }
-
-            return refill(idx);
-        }
-
-        WJR_INTRINSIC_INLINE void __small_deallocate(void *p, unsigned int n) noexcept {
-            auto *const q = static_cast<obj *>(p);
-            obj *volatile *const my_free_list = free_list + __get_index(n);
-            q->free_list_link = *my_free_list;
-            *my_free_list = q;
-        }
-
-        // n must be > 0
-        WJR_INTRINSIC_INLINE allocation_result<void *>
-        allocate_at_least(size_t n) noexcept {
-            if (WJR_LIKELY(n <= 16384)) {
-                return __small_allocate_at_least(static_cast<unsigned int>(n));
-            }
-
-            return {malloc(n), n};
-        }
-
-        // n must be > 0
-        WJR_MALLOC WJR_INTRINSIC_INLINE void *allocate(size_t n) noexcept {
-            if (WJR_LIKELY(n <= 16384)) {
-                return __small_allocate(static_cast<unsigned int>(n));
-            }
-
-            return malloc(n);
-        }
-
-        // p must not be 0
-        WJR_INTRINSIC_INLINE void deallocate(void *p, size_t n) noexcept {
-            if (WJR_LIKELY(n <= 16384)) {
-                return __small_deallocate(p, static_cast<unsigned int>(n));
-            }
-
-            free(p);
-        }
-
-        allocation_result<void *> chunk_allocate(size_t n) noexcept {
-            if (WJR_LIKELY(n <= 16384)) {
-                return __small_allocate_at_least(static_cast<unsigned int>(n));
-            }
-
-            return {get_chunk().allocate(n), n};
-        }
-
-        // p must not be 0
-        WJR_INTRINSIC_INLINE void chunk_deallocate(void *p, size_t n) noexcept {
-            if (WJR_LIKELY(n <= 16384)) {
-                return __small_deallocate(p, static_cast<unsigned int>(n));
-            }
-
-            get_chunk().deallocate(p);
-        }
-
-    private:
-        // Allocates a chunk for nobjs of size "size".  nobjs may be reduced
-        // if it is inconvenient to allocate the requested number.
-        WJR_MALLOC char *chunk_alloc(unsigned int idx, unsigned int &nobjs) noexcept;
-
-        // Returns an object of size n, and optionally adds to size n free list.
-        WJR_MALLOC void *refill(unsigned int idx) noexcept;
-
-        obj *volatile free_list[12] = {nullptr};
-        char *start_free = nullptr;
-        char *end_free = nullptr;
-        size_t heap_size = 0;
-    };
-
-public:
-    static object &get_instance() noexcept {
-        static thread_local object instance;
-        return instance;
-    }
-
-    // n must be > 0
-    static allocation_result<void *> allocate_at_least(size_t n) noexcept {
-        return get_instance().allocate_at_least(n);
-    }
-
-    WJR_MALLOC static void *allocate(size_t n) noexcept {
-        return get_instance().allocate(n);
-    }
-
-    // p must not be 0
-    static void deallocate(void *p, size_t n) noexcept {
-        get_instance().deallocate(p, n);
-    }
-
-    // n must be > 0
-    static allocation_result<void *> chunk_allocate(size_t n) noexcept {
-        return get_instance().chunk_allocate(n);
-    }
-
-    // p must not be 0
-    static void chunk_deallocate(void *p, size_t n) noexcept {
-        get_instance().chunk_deallocate(p, n);
-    }
-};
-
-template <typename Ty>
-class memory_pool {
-private:
-    using allocator_type = __default_alloc_template__;
-
-public:
-    using value_type = Ty;
-    using size_type = size_t;
-    using difference_type = ptrdiff_t;
-    using propagate_on_container_move_assignment = std::true_type;
-    using is_always_equal = std::true_type;
-    using is_trivially_allocator = std::true_type;
-
-    template <typename Other>
-    struct rebind {
-        using other = memory_pool<Other>;
-    };
-
-    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(memory_pool);
-
-    template <typename Other>
-    constexpr memory_pool(const memory_pool<Other> &) noexcept {}
-
-    WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
-    allocate_at_least(size_type n) const noexcept {
-        const auto ret = allocator_type::allocate_at_least(n * sizeof(Ty));
-        return {static_cast<Ty *>(ret.ptr), ret.count};
-    }
-
-    WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
-    chunk_allocate_at_least(size_type n) const noexcept {
-        const auto ret = allocator_type::chunk_allocate(n * sizeof(Ty));
-        return {static_cast<Ty *>(ret.ptr), ret.count};
-    }
-
-    WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *allocate(size_type n) const noexcept {
-        return static_cast<Ty *>(allocator_type::allocate(n * sizeof(Ty)));
-    }
-
-    WJR_CONSTEXPR20 void deallocate(Ty *ptr, size_type n) const noexcept {
-        return allocator_type::deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
-    }
-
-    /**
-     * @details Allocate memory, don't need to deallocate it until the thread exits.    \n
-     * Automatically deallocate memory when the thread exits.                          \n
-     * Used in thread_local memory pool that only needs to allocate memory once and    \n
-     * deallocate it when the thread exits.                                            \n
-     *
-     */
-    WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *
-    chunk_allocate(size_type n) const noexcept {
-        return chunk_allocate_at_least(n).ptr;
-    }
-
-    WJR_CONSTEXPR20 void chunk_deallocate(Ty *ptr, size_type n) const noexcept {
-        return allocator_type::chunk_deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
-    }
-
-    constexpr size_t max_size() const noexcept {
-        return static_cast<size_t>(-1) / sizeof(Ty);
-    }
-};
-
-template <typename T, typename U>
-constexpr bool operator==(const memory_pool<T> &, const memory_pool<U> &) noexcept {
-    return true;
-}
-
-template <typename T, typename U>
-constexpr bool operator!=(const memory_pool<T> &, const memory_pool<U> &) noexcept {
-    return false;
-}
-
-} // namespace wjr
-
-#endif // WJR_MEMORY_MEMORY_POOL_HPP__
 // Already included
 
 namespace wjr {
@@ -31031,14 +31034,15 @@ public:
         }
     }
 
-    void uninitialized_construct(default_biginteger_vector_storage &other, size_type size,
-                                 size_type capacity, _Alty &al) {
-        if (capacity != 0) {
-            auto &storage = other.m_storage;
-            storage.m_data = al.allocate(capacity);
-            storage.m_size = __fasts_negate_with<int32_t>(m_storage.m_size, size);
-            storage.m_capacity = capacity;
-        }
+    void uninitialized_construct(
+        default_biginteger_vector_storage &other, size_type size, size_type capacity,
+        _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
+        const auto result = allocate_at_least(al, capacity);
+
+        auto &storage = other.m_storage;
+        storage.m_data = result.ptr;
+        storage.m_size = __fasts_negate_with<int32_t>(m_storage.m_size, size);
+        storage.m_capacity = result.count;
     }
 
     void take_storage(default_biginteger_vector_storage &other, _Alty &) noexcept {
@@ -36664,36 +36668,36 @@ constexpr static float powers_of_ten_float[] = {1e0, 1e1, 1e2, 1e3, 1e4, 1e5,
 // used for max_mantissa_double and max_mantissa_float
 constexpr uint64_t constant_55555 = 5 * 5 * 5 * 5 * 5;
 // Largest integer value v so that (5**index * v) <= 1<<53.
-// 0x10000000000000 == 1 << 53
+// 0x20000000000000 == 1 << 53
 constexpr static uint64_t max_mantissa_double[] = {
-    0x10000000000000,
-    0x10000000000000 / 5,
-    0x10000000000000 / (5 * 5),
-    0x10000000000000 / (5 * 5 * 5),
-    0x10000000000000 / (5 * 5 * 5 * 5),
-    0x10000000000000 / (constant_55555),
-    0x10000000000000 / (constant_55555 * 5),
-    0x10000000000000 / (constant_55555 * 5 * 5),
-    0x10000000000000 / (constant_55555 * 5 * 5 * 5),
-    0x10000000000000 / (constant_55555 * 5 * 5 * 5 * 5),
-    0x10000000000000 / (constant_55555 * constant_55555),
-    0x10000000000000 / (constant_55555 * constant_55555 * 5),
-    0x10000000000000 / (constant_55555 * constant_55555 * 5 * 5),
-    0x10000000000000 / (constant_55555 * constant_55555 * 5 * 5 * 5),
-    0x10000000000000 / (constant_55555 * constant_55555 * constant_55555),
-    0x10000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5),
-    0x10000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5 * 5),
-    0x10000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5 * 5 * 5),
-    0x10000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5 * 5 * 5 * 5),
-    0x10000000000000 /
+    0x20000000000000,
+    0x20000000000000 / 5,
+    0x20000000000000 / (5 * 5),
+    0x20000000000000 / (5 * 5 * 5),
+    0x20000000000000 / (5 * 5 * 5 * 5),
+    0x20000000000000 / (constant_55555),
+    0x20000000000000 / (constant_55555 * 5),
+    0x20000000000000 / (constant_55555 * 5 * 5),
+    0x20000000000000 / (constant_55555 * 5 * 5 * 5),
+    0x20000000000000 / (constant_55555 * 5 * 5 * 5 * 5),
+    0x20000000000000 / (constant_55555 * constant_55555),
+    0x20000000000000 / (constant_55555 * constant_55555 * 5),
+    0x20000000000000 / (constant_55555 * constant_55555 * 5 * 5),
+    0x20000000000000 / (constant_55555 * constant_55555 * 5 * 5 * 5),
+    0x20000000000000 / (constant_55555 * constant_55555 * constant_55555),
+    0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5),
+    0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5 * 5),
+    0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5 * 5 * 5),
+    0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5 * 5 * 5 * 5),
+    0x20000000000000 /
         (constant_55555 * constant_55555 * constant_55555 * constant_55555),
-    0x10000000000000 /
+    0x20000000000000 /
         (constant_55555 * constant_55555 * constant_55555 * constant_55555 * 5),
-    0x10000000000000 /
+    0x20000000000000 /
         (constant_55555 * constant_55555 * constant_55555 * constant_55555 * 5 * 5),
-    0x10000000000000 /
+    0x20000000000000 /
         (constant_55555 * constant_55555 * constant_55555 * constant_55555 * 5 * 5 * 5),
-    0x10000000000000 / (constant_55555 * constant_55555 * constant_55555 *
+    0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 *
                         constant_55555 * 5 * 5 * 5 * 5)};
 // Largest integer value v so that (5**index * v) <= 1<<24.
 // 0x1000000 == 1<<24
@@ -36713,8 +36717,7 @@ constexpr static uint64_t max_mantissa_float[] = {
 
 template <typename T>
 struct binary_format {
-    using equiv_uint =
-        typename std::conditional<sizeof(T) == 4, uint32_t, uint64_t>::type;
+    using equiv_uint = uint_t<sizeof(T) * 8>;
 
     static inline constexpr int mantissa_explicit_bits();
     static inline constexpr int minimum_exponent();
@@ -36924,8 +36927,6 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_integer(char c) noexcept {
     return c >= '0' && c <= '9';
 }
 
-using byte_span = span<const char>;
-
 struct parsed_number_string {
     int64_t exponent{0};
     uint64_t mantissa{0};
@@ -36934,8 +36935,8 @@ struct parsed_number_string {
     bool valid{false};
     bool too_many_digits{false};
     // contains the range of the significant digits
-    byte_span integer{};  // non-nullable
-    byte_span fraction{}; // nullable
+    span<const char> integer{};  // non-nullable
+    span<const char> fraction{}; // nullable
 };
 
 // Assuming that you use no more than 19 digits, this will
@@ -36982,7 +36983,8 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
         if (++p == pend) {
             end_of_integer_part = p;
             digit_count = static_cast<int64_t>(p - start_digits);
-            answer.integer = byte_span(start_digits, static_cast<size_t>(digit_count));
+            answer.integer =
+                span<const char>(start_digits, static_cast<size_t>(digit_count));
 
             answer.lastmatch = p;
             answer.valid = true;
@@ -37013,7 +37015,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
                     const char *int_end = p + answer.integer.size();
                     const uint64_t minimal_nineteen_digit_integer{1000000000000000000};
                     while ((i < minimal_nineteen_digit_integer) && (p != int_end)) {
-                        i = i * 10 + uint64_t(*p - '0');
+                        i = i * 10 + uint32_t(*p - '0');
                         ++p;
                     }
                     if (i >= minimal_nineteen_digit_integer) { // We have a big integers
@@ -37022,7 +37024,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
                         p = answer.fraction.data();
                         const char *frac_end = p + answer.fraction.size();
                         while ((i < minimal_nineteen_digit_integer) && (p != frac_end)) {
-                            i = i * 10 + uint64_t(*p - '0');
+                            i = i * 10 + uint32_t(*p - '0');
                             ++p;
                         }
                         exponent = answer.fraction.data() - p;
@@ -37042,7 +37044,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
 
     end_of_integer_part = p;
     digit_count = static_cast<int64_t>(p - start_digits);
-    answer.integer = byte_span(start_digits, static_cast<size_t>(digit_count));
+    answer.integer = span<const char>(start_digits, static_cast<size_t>(digit_count));
     exponent = 0;
 
     if (*p == '.') {
@@ -37059,13 +37061,13 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
         }
 
         while ((p != pend) && is_integer(*p)) {
-            uint8_t digit = uint8_t(*p - '0');
+            const auto digit = uint32_t(*p - '0');
             ++p;
             i = i * 10 + digit; // in rare cases, this will overflow, but that's ok
         }
 
         exponent = before - p;
-        answer.fraction = byte_span(before, size_t(p - before));
+        answer.fraction = span<const char>(before, size_t(p - before));
         digit_count -= exponent;
 
         if (WJR_UNLIKELY(digit_count == 0)) {
@@ -37104,7 +37106,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
                 const char *int_end = p + answer.integer.size();
                 const uint64_t minimal_nineteen_digit_integer{1000000000000000000};
                 while ((i < minimal_nineteen_digit_integer) && (p != int_end)) {
-                    i = i * 10 + uint64_t(*p - '0');
+                    i = i * 10 + uint32_t(*p - '0');
                     ++p;
                 }
                 if (i >= minimal_nineteen_digit_integer) { // We have a big integers
@@ -37113,7 +37115,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
                     p = answer.fraction.data();
                     const char *frac_end = p + answer.fraction.size();
                     while ((i < minimal_nineteen_digit_integer) && (p != frac_end)) {
-                        i = i * 10 + uint64_t(*p - '0');
+                        i = i * 10 + uint32_t(*p - '0');
                         ++p;
                     }
                     exponent = answer.fraction.data() - p;
@@ -37152,7 +37154,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
             p = location_of_e;
         } else {
             while ((p != pend) && is_integer(*p)) {
-                uint8_t digit = uint8_t(*p - '0');
+                const auto digit = uint32_t(*p - '0');
                 if (exp_number < 0x10000000) {
                     exp_number = 10 * exp_number + digit;
                 }
@@ -37915,6 +37917,7 @@ const uint64_t powers_template<unused>::power_of_five_128[number_of_entries] = {
     0xe3d8f9e563a198e5, 0x58180fddd97723a6,
     0x8e679c2f5e44ff8f, 0x570f09eaa7ea7648,
 };
+
 using powers = powers_template<>;
 
 // This will compute or rather approximate w * 5**q and return a pair of 64-bit words
@@ -38110,8 +38113,6 @@ WJR_INTRINSIC_INLINE adjusted_mantissa compute_float(int64_t q, uint64_t w) noex
     return answer;
 }
 
-using limb_span = span<const uint64_t>;
-
 // 1e0 to 1e19
 constexpr static uint64_t powers_of_ten_uint64[] = {1UL,
                                                     10UL,
@@ -38138,9 +38139,9 @@ constexpr static uint64_t powers_of_ten_uint64[] = {1UL,
 // this algorithm is not even close to optimized, but it has no practical
 // effect on performance: in order to have a faster algorithm, we'd need
 // to slow down performance for faster algorithms, and this is still fast.
-WJR_INTRINSIC_INLINE int32_t scientific_exponent(parsed_number_string &num) noexcept {
-    const int32_t exponent = int32_t(num.exponent) + count_digits<10>(num.mantissa) - 1;
-    return exponent;
+WJR_INTRINSIC_INLINE int32_t scientific_exponent(int64_t exponent,
+                                                 uint64_t mantissa) noexcept {
+    return int32_t(exponent) + count_digits<10>(mantissa) - 1;
 }
 
 // this converts a native floating-point number to an extended-precision float.
@@ -38294,7 +38295,7 @@ WJR_INTRINSIC_INLINE bool is_truncated(const char *first, const char *last) noex
     return false;
 }
 
-WJR_INTRINSIC_INLINE bool is_truncated(byte_span s) noexcept {
+WJR_INTRINSIC_INLINE bool is_truncated(span<const char> s) noexcept {
     return is_truncated(s.begin_unsafe(), s.end_unsafe());
 }
 
@@ -38435,8 +38436,11 @@ WJR_INTRINSIC_INLINE uint64_t hi64(biginteger &big, bool &truncated) noexcept {
 }
 
 // parse the significant digits into a big integer
-inline void parse_mantissa(biginteger &result, parsed_number_string &num,
-                           size_t max_digits, size_t &digits) noexcept {
+template <typename T>
+inline void parse_mantissa(biginteger &result, span<const char> integer,
+                           span<const char> fraction, size_t &digits) noexcept {
+    constexpr size_t max_digits = binary_format<T>::max_digits();
+
     // try to minimize the number of big integer and scalar multiplication.
     // therefore, try to parse 8 digits at a time, and multiply by the largest
     // scalar value (9 or 19 digits) for each step.
@@ -38446,8 +38450,8 @@ inline void parse_mantissa(biginteger &result, parsed_number_string &num,
     size_t step = 19;
 
     // process all integer digits.
-    const char *p = num.integer.data();
-    const char *pend = p + num.integer.size();
+    const char *p = integer.data();
+    const char *pend = p + integer.size();
     skip_zeros(p, pend);
     // process all digits, in increments of step per loop
     while (p != pend) {
@@ -38462,8 +38466,8 @@ inline void parse_mantissa(biginteger &result, parsed_number_string &num,
             // add the temporary value, then check if we've truncated any digits
             add_native(result, uint64_t(powers_of_ten_uint64[counter]), value);
             bool truncated = is_truncated(p, pend);
-            if (num.fraction.data() != nullptr) {
-                truncated |= is_truncated(num.fraction);
+            if (fraction.data() != nullptr) {
+                truncated |= is_truncated(fraction);
             }
             if (truncated) {
                 round_up_bigint(result, digits);
@@ -38477,9 +38481,9 @@ inline void parse_mantissa(biginteger &result, parsed_number_string &num,
     }
 
     // add our fraction digits, if they're available.
-    if (num.fraction.data() != nullptr) {
-        p = num.fraction.data();
-        pend = p + num.fraction.size();
+    if (fraction.data() != nullptr) {
+        p = fraction.data();
+        pend = p + fraction.size();
         if (digits == 0) {
             skip_zeros(p, pend);
         }
@@ -38585,39 +38589,6 @@ inline adjusted_mantissa negative_digit_comp(biginteger &bigmant, adjusted_manti
     });
 
     return answer;
-}
-
-// parse the significant digits as a big integer to unambiguously round the
-// the significant digits. here, we are trying to determine how to round
-// an extended float representation close to `b+h`, halfway between `b`
-// (the float rounded-down) and `b+u`, the next positive float. this
-// algorithm is always correct, and uses one of two approaches. when
-// the exponent is positive relative to the significant digits (such as
-// 1234), we create a big-integer representation, get the high 64-bits,
-// determine if any lower bits are truncated, and use that to direct
-// rounding. in case of a negative exponent relative to the significant
-// digits (such as 1.2345), we create a theoretical representation of
-// `b` as a big-integer type, scaled to the same binary exponent as
-// the actual digits. we then compare the big integer representations
-// of both, and use that to direct rounding.
-template <typename T>
-inline adjusted_mantissa digit_comp(parsed_number_string &num,
-                                    adjusted_mantissa am) noexcept {
-    // remove the invalid exponent bias
-    am.power2 -= invalid_am_bias;
-
-    int32_t sci_exp = scientific_exponent(num);
-    size_t max_digits = binary_format<T>::max_digits();
-    size_t digits = 0;
-    biginteger bigmant;
-    parse_mantissa(bigmant, num, max_digits, digits);
-    // can't underflow, since digits is at most max_digits.
-    int32_t exponent = sci_exp + 1 - int32_t(digits);
-    if (exponent >= 0) {
-        return positive_digit_comp<T>(bigmant, exponent);
-    } else {
-        return negative_digit_comp<T>(bigmant, am, exponent);
-    }
 }
 
 namespace detail {
@@ -38746,8 +38717,8 @@ from_chars_result<> from_chars(const char *first, const char *last, T &value,
 }
 
 template <typename T>
-WJR_INTRINSIC_INLINE from_chars_result<> from_chars_advanced(parsed_number_string &pns,
-                                                             T &value) noexcept {
+WJR_INTRINSIC_INLINE from_chars_result<>
+from_chars_advanced(const parsed_number_string &pns, T &value) noexcept {
     from_chars_result<> answer;
     answer.ec = std::errc(); // be optimistic
     answer.ptr = pns.lastmatch;
@@ -38815,7 +38786,18 @@ WJR_INTRINSIC_INLINE from_chars_result<> from_chars_advanced(parsed_number_strin
     // have an invalid power (am.power2 < 0), then we need to go the long way around
     // again. This is very uncommon.
     if (am.power2 < 0) {
-        am = digit_comp<T>(pns, am);
+        am.power2 -= invalid_am_bias;
+
+        const int32_t sci_exp = scientific_exponent(pns.exponent, pns.mantissa);
+        size_t digits = 0;
+        biginteger bigmant;
+        parse_mantissa<T>(bigmant, pns.integer, pns.fraction, digits);
+        int32_t exponent = sci_exp + 1 - int32_t(digits);
+        if (exponent >= 0) {
+            am = positive_digit_comp<T>(bigmant, exponent);
+        } else {
+            am = negative_digit_comp<T>(bigmant, am, exponent);
+        }
     }
 
     to_float(pns.negative, am, value);
@@ -38841,7 +38823,7 @@ from_chars_result<> from_chars_advanced(const char *first, const char *last, T &
         return answer;
     }
 
-    parsed_number_string pns = parse_number_string(first, last, options);
+    const parsed_number_string pns = parse_number_string(first, last, options);
     if (!pns.valid) {
         return detail::parse_infnan(first, last, value);
     }
