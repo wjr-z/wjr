@@ -423,7 +423,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
                     const char *int_end = p + answer.integer.size();
                     const uint64_t minimal_nineteen_digit_integer{1000000000000000000};
                     while ((i < minimal_nineteen_digit_integer) && (p != int_end)) {
-                        i = i * 10 + uint64_t(*p - '0');
+                        i = i * 10 + uint32_t(*p - '0');
                         ++p;
                     }
                     if (i >= minimal_nineteen_digit_integer) { // We have a big integers
@@ -432,7 +432,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
                         p = answer.fraction.data();
                         const char *frac_end = p + answer.fraction.size();
                         while ((i < minimal_nineteen_digit_integer) && (p != frac_end)) {
-                            i = i * 10 + uint64_t(*p - '0');
+                            i = i * 10 + uint32_t(*p - '0');
                             ++p;
                         }
                         exponent = answer.fraction.data() - p;
@@ -469,7 +469,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
         }
 
         while ((p != pend) && is_integer(*p)) {
-            uint8_t digit = uint8_t(*p - '0');
+            const auto digit = uint32_t(*p - '0');
             ++p;
             i = i * 10 + digit; // in rare cases, this will overflow, but that's ok
         }
@@ -514,7 +514,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
                 const char *int_end = p + answer.integer.size();
                 const uint64_t minimal_nineteen_digit_integer{1000000000000000000};
                 while ((i < minimal_nineteen_digit_integer) && (p != int_end)) {
-                    i = i * 10 + uint64_t(*p - '0');
+                    i = i * 10 + uint32_t(*p - '0');
                     ++p;
                 }
                 if (i >= minimal_nineteen_digit_integer) { // We have a big integers
@@ -523,7 +523,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
                     p = answer.fraction.data();
                     const char *frac_end = p + answer.fraction.size();
                     while ((i < minimal_nineteen_digit_integer) && (p != frac_end)) {
-                        i = i * 10 + uint64_t(*p - '0');
+                        i = i * 10 + uint32_t(*p - '0');
                         ++p;
                     }
                     exponent = answer.fraction.data() - p;
@@ -562,7 +562,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
             p = location_of_e;
         } else {
             while ((p != pend) && is_integer(*p)) {
-                uint8_t digit = uint8_t(*p - '0');
+                const auto digit = uint32_t(*p - '0');
                 if (exp_number < 0x10000000) {
                     exp_number = 10 * exp_number + digit;
                 }

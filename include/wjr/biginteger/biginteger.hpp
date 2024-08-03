@@ -154,14 +154,15 @@ public:
         }
     }
 
-    void uninitialized_construct(default_biginteger_vector_storage &other, size_type size,
-                                 size_type capacity, _Alty &al) {
-        if (capacity != 0) {
-            auto &storage = other.m_storage;
-            storage.m_data = al.allocate(capacity);
-            storage.m_size = __fasts_negate_with<int32_t>(m_storage.m_size, size);
-            storage.m_capacity = capacity;
-        }
+    void uninitialized_construct(
+        default_biginteger_vector_storage &other, size_type size, size_type capacity,
+        _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
+        const auto result = allocate_at_least(al, capacity);
+
+        auto &storage = other.m_storage;
+        storage.m_data = result.ptr;
+        storage.m_size = __fasts_negate_with<int32_t>(m_storage.m_size, size);
+        storage.m_capacity = result.count;
     }
 
     void take_storage(default_biginteger_vector_storage &other, _Alty &) noexcept {

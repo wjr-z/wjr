@@ -25,8 +25,8 @@ extern const std::array<const precompute_chars_convert_16n_t *, 37>
     precompute_chars_convert_16n_ptr;
 
 extern precompute_chars_convert_t *
-precompute_chars_convert(precompute_chars_convert_t *pre, size_t n, unsigned int base,
-                         uint64_t *table_mem) noexcept;
+precompute_chars_convert(precompute_chars_convert_t *pre_table, size_t n,
+                         unsigned int base, uint64_t *mem_table) noexcept;
 
 } // namespace wjr
 

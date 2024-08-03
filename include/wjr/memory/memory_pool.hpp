@@ -2,6 +2,7 @@
 #define WJR_MEMORY_MEMORY_POOL_HPP__
 
 #include <wjr/container/intrusive/list.hpp>
+#include <wjr/math/bit.hpp>
 #include <wjr/memory/detail.hpp>
 
 namespace wjr {
@@ -49,9 +50,10 @@ class __default_alloc_template__ {
         return (((bytes) + 2048 - 1) & ~(2048 - 1));
     }
 
-    WJR_CONST static WJR_CONSTEXPR20 unsigned int __get_index(unsigned int bytes) noexcept {
+    WJR_CONST static WJR_CONSTEXPR20 unsigned int
+    __get_index(unsigned int bytes) noexcept {
         return static_cast<unsigned int>(
-            16 - clz<uint16_t>(static_cast<uint16_t>((bytes - 1) >> 3)));
+            bit_width<uint16_t>(static_cast<uint16_t>((bytes - 1) >> 3)));
     }
 
     WJR_CONST static constexpr unsigned int __get_size(unsigned int idx) noexcept {
@@ -63,22 +65,7 @@ class __default_alloc_template__ {
     }
 
     struct object {
-        WJR_INTRINSIC_INLINE allocation_result<void *>
-        __small_allocate_at_least(unsigned int n) noexcept {
-            const unsigned int idx = __get_index(n);
-            const size_t size = __get_size(idx);
-            obj *volatile *const my_free_list = free_list + idx;
-            obj *const result = *my_free_list;
-            if (WJR_LIKELY(result != nullptr)) {
-                *my_free_list = result->free_list_link;
-                return {result, size};
-            }
-
-            return {refill(idx), size};
-        }
-
-        WJR_MALLOC void *__small_allocate(unsigned int n) noexcept {
-            const unsigned int idx = __get_index(n);
+        WJR_MALLOC void *__small_allocate_impl(unsigned int idx) noexcept {
             obj *volatile *const my_free_list = free_list + idx;
             obj *const result = *my_free_list;
             if (WJR_LIKELY(result != nullptr)) {
@@ -87,6 +74,18 @@ class __default_alloc_template__ {
             }
 
             return refill(idx);
+        }
+
+        WJR_INTRINSIC_INLINE allocation_result<void *>
+        __small_allocate_at_least(unsigned int n) noexcept {
+            const unsigned int idx = __get_index(n);
+            const size_t size = __get_size(idx);
+            return {__small_allocate_impl(idx), size};
+        }
+
+        WJR_MALLOC void *__small_allocate(unsigned int n) noexcept {
+            const unsigned int idx = __get_index(n);
+            return __small_allocate_impl(idx);
         }
 
         WJR_INTRINSIC_INLINE void __small_deallocate(void *p, unsigned int n) noexcept {
@@ -176,7 +175,7 @@ public:
     }
 
     // n must be > 0
-    static allocation_result<void *> chunk_allocate(size_t n) noexcept {
+    static allocation_result<void *> chunk_allocate_at_least(size_t n) noexcept {
         return get_instance().chunk_allocate(n);
     }
 
@@ -212,13 +211,13 @@ public:
     WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
     allocate_at_least(size_type n) const noexcept {
         const auto ret = allocator_type::allocate_at_least(n * sizeof(Ty));
-        return {static_cast<Ty *>(ret.ptr), ret.count};
+        return {static_cast<Ty *>(ret.ptr), ret.count / sizeof(Ty)};
     }
 
     WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
     chunk_allocate_at_least(size_type n) const noexcept {
-        const auto ret = allocator_type::chunk_allocate(n * sizeof(Ty));
-        return {static_cast<Ty *>(ret.ptr), ret.count};
+        const auto ret = allocator_type::chunk_allocate_at_least(n * sizeof(Ty));
+        return {static_cast<Ty *>(ret.ptr), ret.count / sizeof(Ty)};
     }
 
     WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *allocate(size_type n) const noexcept {

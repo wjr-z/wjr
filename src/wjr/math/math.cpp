@@ -316,53 +316,53 @@ const std::array<const precompute_chars_convert_16n_t *, 37>
                                         &precompute_chars_convert_16n[28],
                                         &precompute_chars_convert_16n[29]};
 
-precompute_chars_convert_t *precompute_chars_convert(precompute_chars_convert_t *pre,
-                                                     size_t n, unsigned int base,
-                                                     uint64_t *table_mem) noexcept {
+precompute_chars_convert_t *
+precompute_chars_convert(precompute_chars_convert_t *pre_table, size_t n,
+                         unsigned int base, uint64_t *mem_table) noexcept {
     const precompute_chars_convert_16n_t *p16n = precompute_chars_convert_16n_ptr[base];
     const uint64_t big_base = p16n->big_base;
     const size_t digits_in_one_base = p16n->digits_in_one_base;
 
     const auto set = [base](precompute_chars_convert_t *pre, const uint64_t *ptr,
-                            size_t n, size_t shift, size_t digits_in_base) {
-        *pre = {ptr, n, shift, digits_in_base, base};
+                            size_t _n, size_t shift, size_t digits_in_base) {
+        *pre = {ptr, _n, shift, digits_in_base, base};
     };
 
     size_t digits = p16n->n;
     size_t shift = 16 - digits;
     size_t digits_in_base = p16n->digits_in_sixteen_base;
 
-    set(pre, nullptr, 0, 0, 0);
-    ++pre;
-    set(pre, p16n->arr, digits, shift, digits_in_base);
+    set(pre_table, nullptr, 0, 0, 0);
+    ++pre_table;
+    set(pre_table, p16n->arr, digits, shift, digits_in_base);
 
     while (n * 2 > (digits + shift) * 5) {
-        sqr(table_mem, pre->ptr, digits);
+        sqr(mem_table, pre_table->ptr, digits);
         digits <<= 1;
         shift <<= 1;
         digits_in_base <<= 1;
 
-        auto is_zero = static_cast<int>(table_mem[0] == 0);
-        table_mem += is_zero;
+        auto is_zero = static_cast<int>(mem_table[0] == 0);
+        mem_table += is_zero;
         digits -= is_zero;
         shift += is_zero;
 
-        if (WJR_UNLIKELY(table_mem[digits - 1] == 0)) {
-            table_mem[digits - 1] = mul_1(table_mem, table_mem, digits - 1, big_base);
+        if (WJR_UNLIKELY(mem_table[digits - 1] == 0)) {
+            mem_table[digits - 1] = mul_1(mem_table, mem_table, digits - 1, big_base);
             digits_in_base += digits_in_one_base;
 
-            is_zero = table_mem[0] == 0;
-            table_mem += is_zero;
+            is_zero = mem_table[0] == 0;
+            mem_table += is_zero;
             digits -= is_zero;
             shift += is_zero;
         }
 
-        ++pre;
-        set(pre, table_mem, digits, shift, digits_in_base);
-        table_mem += digits;
+        ++pre_table;
+        set(pre_table, mem_table, digits, shift, digits_in_base);
+        mem_table += digits;
     }
 
-    return pre;
+    return pre_table;
 }
 
 template uint8_t *basecase_to_chars_10<char_converter_t>(uint8_t *, uint64_t *, size_t,

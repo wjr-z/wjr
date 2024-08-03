@@ -20,7 +20,7 @@ char *__default_alloc_template__::object::chunk_alloc(unsigned int idx,
     if (bytes_left >= size) {
         nobjs = bytes_left >> (idx + 3);
         auto *const result = start_free;
-        start_free += size * nobjs;
+        start_free += nobjs << (idx + 3);
         return result;
     }
 
@@ -56,8 +56,8 @@ char *__default_alloc_template__::object::chunk_alloc(unsigned int idx,
     return (chunk_alloc(idx, nobjs));
 }
 
-static constexpr std::array<uint8_t, 14> __nobjs_table = {
-    32, 32, 32, 32, 16, 16, 16, 16, 8, 8, 4, 4, 2, 2,
+static constexpr std::array<uint8_t, 12> __nobjs_table = {
+    32, 32, 32, 32, 16, 16, 16, 16, 8, 8, 4, 4
 };
 
 void *__default_alloc_template__::object::refill(unsigned int idx) noexcept {

@@ -9,8 +9,7 @@
 using namespace wjr;
 
 namespace wjr {
-template class basic_biginteger<
-    default_biginteger_vector_storage<std::allocator<uint64_t>>>;
+template class basic_biginteger<default_biginteger_vector_storage<memory_pool<uint64_t>>>;
 }
 
 #if defined(WJR_USE_GMP)
@@ -178,10 +177,8 @@ TEST(biginteger, construct) {
 
     {
         biginteger a;
-        a.reserve(1024);
-        a.set_ssize(1024);
-
-        a[1023] = 1;
+        a = 1;
+        a <<= 1023 * 64;
 
         biginteger b(a);
 

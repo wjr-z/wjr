@@ -51,6 +51,7 @@
 #include <wjr/iterator/contiguous_iterator_adpater.hpp>
 #include <wjr/math/detail.hpp>
 #include <wjr/memory/copy.hpp>
+#include <wjr/memory/memory_pool.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
 
 namespace wjr {
@@ -204,7 +205,7 @@ public:
         other.m_storage = {
             result.ptr,
             result.ptr + size,
-            result.ptr + capacity,
+            result.ptr + result.count,
         };
     }
 
@@ -473,7 +474,7 @@ public:
         other.m_storage = {
             result.ptr,
             result.ptr + size,
-            result.ptr + capacity,
+            result.ptr + result.count,
         };
     }
 
@@ -588,9 +589,8 @@ public:
 
         destroy(al);
         if (!__is_sso()) {
-            WJR_ASSERT_ASSUME_L2(capacity() != 0);
-
-            al.deallocate(data(), capacity());
+            WJR_ASSERT_ASSUME_L2(m_storage.m_capacity != 0);
+            al.deallocate(data(), m_storage.m_capacity);
             m_storage.m_data = m_storage.m_storage;
         }
     }
@@ -1101,7 +1101,11 @@ public:
 
     WJR_CONST WJR_CONSTEXPR20 static size_type
     get_growth_capacity(size_type old_capacity, size_type new_size) noexcept {
-        return std::max(old_capacity + (((old_capacity + 6) >> 3) << 2), new_size);
+        if constexpr (sizeof(value_type) <= 16) {
+            return std::max(old_capacity + (old_capacity / 2) + 2, new_size);
+        } else {
+            return std::max(old_capacity + (old_capacity / 2), new_size);
+        }
     }
 
 private:
@@ -2148,14 +2152,14 @@ private:
     compressed_pair<_Alty, storage_type> m_pair;
 };
 
-template <typename T, typename Alloc = std::allocator<T>>
+template <typename T, typename Alloc = memory_pool<T>>
 using vector = basic_vector<default_vector_storage<T, Alloc>>;
 
 /**
  * @brief A vector with elements stored on the stack.
  *
  */
-template <typename T, size_t Capacity, typename Alloc = std::allocator<T>>
+template <typename T, size_t Capacity, typename Alloc = memory_pool<T>>
 using static_vector = basic_vector<static_vector_storage<T, Capacity, Alloc>>;
 
 /**
@@ -2165,14 +2169,14 @@ using static_vector = basic_vector<static_vector_storage<T, Capacity, Alloc>>;
  * After construction, it cannot be expanded and can only be modified through move
  * assignment. For example, vector that using stack allocator.
  */
-template <typename T, typename Alloc = std::allocator<T>>
+template <typename T, typename Alloc = memory_pool<T>>
 using fixed_vector = basic_vector<fixed_vector_storage<T, Alloc>>;
 
-template <typename T, size_t Capacity, typename Alloc = std::allocator<T>>
+template <typename T, size_t Capacity, typename Alloc = memory_pool<T>>
 using sso_vector = basic_vector<sso_vector_storage<T, Capacity, Alloc>>;
 
 template <typename Iter, typename T = iterator_value_t<Iter>,
-          typename Alloc = std::allocator<T>, WJR_REQUIRES(is_iterator_v<Iter>)>
+          typename Alloc = memory_pool<T>, WJR_REQUIRES(is_iterator_v<Iter>)>
 basic_vector(Iter, Iter, Alloc = Alloc())
     -> basic_vector<default_vector_storage<T, Alloc>>;
 
