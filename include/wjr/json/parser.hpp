@@ -67,11 +67,11 @@ struct parser_visitor {
         const char *const ptr = rd.data();
         WJR_EXPECTED_TRY(read(token, error_code::EMPTY));
 
-        if (const uint8_t ch = ptr[token]; WJR_LIKELY(ch == '{')) {
+        if (uint8_t ch = ptr[token]; WJR_LIKELY(ch == '{')) {
             WJR_EXPECTED_TRY(par.visit_start_object(token));
             WJR_EXPECTED_TRY(read(token));
 
-            if (const uint8_t ch = ptr[token]; WJR_UNLIKELY(ch != '"')) {
+            if (ch = ptr[token]; WJR_UNLIKELY(ch != '"')) {
                 if (WJR_UNLIKELY(ch != '}')) {
                     return unexpected(error_code::TAPE_ERROR);
                 }

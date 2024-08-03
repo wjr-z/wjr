@@ -571,8 +571,8 @@ inline int builtin_count_digits10_u64(uint64_t n) noexcept {
         15, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 19, 20};
     const auto t = bsr2log10[clz(n | 1) ^ 63];
     static constexpr const uint64_t zero_or_powers_of_10[] = {
-        0, 0, WJR_POWERS_OF_10(1U), WJR_POWERS_OF_10(1000000000ULL),
-        10000000000000000000ULL};
+        0, 0, WJR_POWERS_OF_10(1U), WJR_POWERS_OF_10(1000000000ull),
+        10000000000000000000ull};
     return t - (n < zero_or_powers_of_10[t]);
 #undef WJR_POWERS_OF_10
 }

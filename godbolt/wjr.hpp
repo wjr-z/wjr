@@ -14834,11 +14834,12 @@ public:
 
     WJR_CONST WJR_CONSTEXPR20 static size_type
     get_growth_capacity(size_type old_capacity, size_type new_size) noexcept {
-        if constexpr (sizeof(value_type) <= 16) {
-            return std::max(old_capacity + (old_capacity / 2) + 2, new_size);
-        } else {
-            return std::max(old_capacity + (old_capacity / 2), new_size);
-        }
+        constexpr size_type __small_growth = sizeof(value_type) <= 16   ? 2
+                                             : sizeof(value_type) <= 64 ? 1
+                                                                        : 0;
+
+        return std::max<size_type>(old_capacity + (old_capacity / 2) + __small_growth,
+                                   new_size);
     }
 
 private:
@@ -17923,13 +17924,14 @@ struct from_chars_result {
     constexpr explicit operator bool() const noexcept { return ec == std::errc{}; }
 };
 
-WJR_CONST WJR_INTRINSIC_INLINE bool
+WJR_PURE WJR_INTRINSIC_INLINE bool
 is_made_of_eight_digits_fast(const char *src) noexcept {
     const auto val = read_memory<uint64_t>(src);
-    return (val & (val + 0x0606060606060606) & 0xF0F0F0F0F0F0F0F0) == 0x3030303030303030;
+    return ((val & 0xF0F0F0F0F0F0F0F0) & (val + 0x0606060606060606)) ==
+           0x3030303030303030;
 }
 
-WJR_CONST WJR_INTRINSIC_INLINE uint32_t
+WJR_PURE WJR_INTRINSIC_INLINE uint32_t
 parse_eight_digits_unrolled(const char *src) noexcept;
 
 } // namespace wjr
@@ -25219,8 +25221,8 @@ inline int builtin_count_digits10_u64(uint64_t n) noexcept {
         15, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 19, 20};
     const auto t = bsr2log10[clz(n | 1) ^ 63];
     static constexpr const uint64_t zero_or_powers_of_10[] = {
-        0, 0, WJR_POWERS_OF_10(1U), WJR_POWERS_OF_10(1000000000ULL),
-        10000000000000000000ULL};
+        0, 0, WJR_POWERS_OF_10(1U), WJR_POWERS_OF_10(1000000000ull),
+        10000000000000000000ull};
     return t - (n < zero_or_powers_of_10[t]);
 #undef WJR_POWERS_OF_10
 }
@@ -36700,7 +36702,7 @@ constexpr static uint64_t max_mantissa_double[] = {
     0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 *
                         constant_55555 * 5 * 5 * 5 * 5)};
 // Largest integer value v so that (5**index * v) <= 1<<24.
-// 0x1000000 == 1<<24
+// 0x1000000 == 1 << 24
 constexpr static uint64_t max_mantissa_float[] = {
     0x1000000,
     0x1000000 / 5,
@@ -36962,93 +36964,46 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
     const char *end_of_integer_part;
     int64_t digit_count;
     int64_t exponent;
-    int64_t exp_number;                  // explicit exponential part
+    int64_t exp_number; // explicit exponential part
 
-    if (WJR_UNLIKELY(!is_integer(*p))) { // This situation rarely occurs
-        if (WJR_UNLIKELY(*p != '.')) {
-            return answer;
-        }
-
-        end_of_integer_part = p;
-        digit_count = 0;
-        goto POINT_HANDLER;
-    }
+    constexpr auto __try_match = [](uint8_t &ch) {
+        ch -= '0';
+        return ch < 10;
+    };
 
     do {
-        // a multiplication by 10 is cheaper than an arbitrary integer
-        // multiplication
-        i = 10 * i +
-            uint32_t(*p - '0'); // might overflow, we will handle the overflow later
+        uint8_t ch = *p;
+        if (!__try_match(ch)) { // This situation rarely occurs
+            break;
+        }
 
-        if (++p == pend) {
-            end_of_integer_part = p;
-            digit_count = static_cast<int64_t>(p - start_digits);
-            answer.integer =
-                span<const char>(start_digits, static_cast<size_t>(digit_count));
+        do {
+            // a multiplication by 10 is cheaper than an arbitrary integer
+            // multiplication
+            i = 10 * i + ch; // might overflow, we will handle the overflow later
 
-            answer.lastmatch = p;
-            answer.valid = true;
-
-            // If we frequently had to deal with long strings of digits,
-            // we could extend our code by using a 128-bit integer instead
-            // of a 64-bit integer. However, this is uncommon.
-            //
-            // We can deal with up to 19 digits.
-            if (digit_count > 19) { // this is uncommon
-                                    // It is possible that the integer had an overflow.
-                // We have to handle the case where we have 0.0000somenumber.
-                // We need to be mindful of the case where we only have zeroes...
-                // E.g., 0.000000000...000.
-                const char *start = start_digits;
-                while ((start != pend) && *start == '0') {
-                    --digit_count;
-                    start++;
-                }
-
-                if (digit_count > 19) {
-                    answer.too_many_digits = true;
-                    // Let us start again, this time, avoiding overflows.
-                    // We don't need to check if is_integer, since we use the
-                    // pre-tokenized spans from above.
-                    i = 0;
-                    p = answer.integer.data();
-                    const char *int_end = p + answer.integer.size();
-                    const uint64_t minimal_nineteen_digit_integer{1000000000000000000};
-                    while ((i < minimal_nineteen_digit_integer) && (p != int_end)) {
-                        i = i * 10 + uint32_t(*p - '0');
-                        ++p;
-                    }
-                    if (i >= minimal_nineteen_digit_integer) { // We have a big integers
-                        exponent = end_of_integer_part - p;
-                    } else { // We have a value with a fractional component.
-                        p = answer.fraction.data();
-                        const char *frac_end = p + answer.fraction.size();
-                        while ((i < minimal_nineteen_digit_integer) && (p != frac_end)) {
-                            i = i * 10 + uint32_t(*p - '0');
-                            ++p;
-                        }
-                        exponent = answer.fraction.data() - p;
-                    }
-
-                    answer.exponent = exponent;
-                    answer.mantissa = i;
-                    return answer;
-                }
+            if (++p == pend) {
+                goto INTEGER_AT_END;
             }
 
-            answer.exponent = 0;
-            answer.mantissa = i;
-            return answer;
+            ch = *p;
+        } while (WJR_LIKELY(__try_match(ch)));
+    } while (0);
+
+    do {
+        end_of_integer_part = p;
+        digit_count = static_cast<int64_t>(p - start_digits);
+        answer.integer = span<const char>(start_digits, static_cast<size_t>(digit_count));
+
+        if (*p != '.') {
+            exponent = 0;
+            if (*p == 'e' || *p == 'E') {
+                break;
+            }
+
+            goto INTEGER;
         }
-    } while (is_integer(*p));
 
-    end_of_integer_part = p;
-    digit_count = static_cast<int64_t>(p - start_digits);
-    answer.integer = span<const char>(start_digits, static_cast<size_t>(digit_count));
-    exponent = 0;
-
-    if (*p == '.') {
-    POINT_HANDLER:
         ++p;
         const char *before = p;
         // can occur at most twice without overflowing, but let it occur more, since
@@ -37073,63 +37028,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
         if (WJR_UNLIKELY(digit_count == 0)) {
             return answer;
         }
-
-    } else if (*p == 'e' || *p == 'E') {
-        // do nothing, just fallback
-    } else {
-        answer.lastmatch = p;
-        answer.valid = true;
-
-        // If we frequently had to deal with long strings of digits,
-        // we could extend our code by using a 128-bit integer instead
-        // of a 64-bit integer. However, this is uncommon.
-        //
-        // We can deal with up to 19 digits.
-        if (digit_count > 19) { // this is uncommon
-            // It is possible that the integer had an overflow.
-            // We have to handle the case where we have 0.0000somenumber.
-            // We need to be mindful of the case where we only have zeroes...
-            // E.g., 0.000000000...000.
-            const char *start = start_digits;
-            while ((start != pend) && *start == '0') {
-                --digit_count;
-                start++;
-            }
-
-            if (digit_count > 19) {
-                answer.too_many_digits = true;
-                // Let us start again, this time, avoiding overflows.
-                // We don't need to check if is_integer, since we use the
-                // pre-tokenized spans from above.
-                i = 0;
-                p = answer.integer.data();
-                const char *int_end = p + answer.integer.size();
-                const uint64_t minimal_nineteen_digit_integer{1000000000000000000};
-                while ((i < minimal_nineteen_digit_integer) && (p != int_end)) {
-                    i = i * 10 + uint32_t(*p - '0');
-                    ++p;
-                }
-                if (i >= minimal_nineteen_digit_integer) { // We have a big integers
-                    exponent = end_of_integer_part - p;
-                } else { // We have a value with a fractional component.
-                    p = answer.fraction.data();
-                    const char *frac_end = p + answer.fraction.size();
-                    while ((i < minimal_nineteen_digit_integer) && (p != frac_end)) {
-                        i = i * 10 + uint32_t(*p - '0');
-                        ++p;
-                    }
-                    exponent = answer.fraction.data() - p;
-                }
-                answer.exponent = exponent;
-                answer.mantissa = i;
-                return answer;
-            }
-        }
-
-        answer.exponent = 0;
-        answer.mantissa = i;
-        return answer;
-    }
+    } while (0);
 
     exp_number = 0;
 
@@ -37202,7 +37101,7 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
             i = 0;
             p = answer.integer.data();
             const char *int_end = p + answer.integer.size();
-            const uint64_t minimal_nineteen_digit_integer{1000000000000000000};
+            constexpr uint64_t minimal_nineteen_digit_integer = 1000000000000000000ull;
             while ((i < minimal_nineteen_digit_integer) && (p != int_end)) {
                 i = i * 10 + uint64_t(*p - '0');
                 ++p;
@@ -37225,6 +37124,54 @@ parse_number_string(const char *p, const char *pend, chars_format options) noexc
     answer.exponent = exponent;
     answer.mantissa = i;
     return answer;
+
+INTEGER_AT_END : {
+    end_of_integer_part = p;
+    digit_count = static_cast<int64_t>(p - start_digits);
+    answer.integer = span<const char>(start_digits, static_cast<size_t>(digit_count));
+
+INTEGER:
+    answer.lastmatch = p;
+    answer.valid = true;
+
+    // If we frequently had to deal with long strings of digits,
+    // we could extend our code by using a 128-bit integer instead
+    // of a 64-bit integer. However, this is uncommon.
+    //
+    // We can deal with up to 19 digits.
+    if (digit_count > 19) { // this is uncommon
+        // It is possible that the integer had an overflow.
+        // We have to handle the case where we have 0.0000somenumber.
+        // We need to be mindful of the case where we only have zeroes...
+        // E.g., 0.000000000...000.
+        const char *start = start_digits;
+        while ((start != pend) && *start == '0') {
+            --digit_count;
+            start++;
+        }
+
+        if (digit_count > 19) {
+            answer.too_many_digits = true;
+            p = start;
+
+            i = __from_chars_unroll_16<10>(reinterpret_cast<const uint8_t *>(p),
+                                           char_converter);
+            p += 16;
+            i = i * 10 + char_converter.template from<10>(*p++);
+            i = i * 10 + char_converter.template from<10>(*p++);
+            i = i * 10 + char_converter.template from<10>(*p++);
+
+            exponent = end_of_integer_part - p;
+            answer.exponent = exponent;
+            answer.mantissa = i;
+            return answer;
+        }
+    }
+
+    answer.exponent = 0;
+    answer.mantissa = i;
+    return answer;
+}
 }
 
 /**
@@ -38591,6 +38538,20 @@ inline adjusted_mantissa negative_digit_comp(biginteger &bigmant, adjusted_manti
     return answer;
 }
 
+template <typename T>
+inline adjusted_mantissa digit_comp(adjusted_mantissa am, span<const char> integer,
+                                    span<const char> fraction, int32_t sci_exp) {
+    size_t digits = 0;
+    biginteger bigmant;
+    parse_mantissa<T>(bigmant, integer, fraction, digits);
+    int32_t exponent = sci_exp + 1 - int32_t(digits);
+    if (exponent >= 0) {
+        return positive_digit_comp<T>(bigmant, exponent);
+    } else {
+        return negative_digit_comp<T>(bigmant, am, exponent);
+    }
+}
+
 namespace detail {
 /**
  * Special case +inf, -inf, nan, infinity, -infinity.
@@ -38789,15 +38750,7 @@ from_chars_advanced(const parsed_number_string &pns, T &value) noexcept {
         am.power2 -= invalid_am_bias;
 
         const int32_t sci_exp = scientific_exponent(pns.exponent, pns.mantissa);
-        size_t digits = 0;
-        biginteger bigmant;
-        parse_mantissa<T>(bigmant, pns.integer, pns.fraction, digits);
-        int32_t exponent = sci_exp + 1 - int32_t(digits);
-        if (exponent >= 0) {
-            am = positive_digit_comp<T>(bigmant, exponent);
-        } else {
-            am = negative_digit_comp<T>(bigmant, am, exponent);
-        }
+        am = digit_comp<T>(am, pns.integer, pns.fraction, sci_exp);
     }
 
     to_float(pns.negative, am, value);
@@ -38811,8 +38764,9 @@ from_chars_advanced(const parsed_number_string &pns, T &value) noexcept {
 }
 
 template <typename T>
-from_chars_result<> from_chars_advanced(const char *first, const char *last, T &value,
-                                        chars_format options) noexcept {
+WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const char *last,
+                                                     T &value,
+                                                     chars_format options) noexcept {
     static_assert(std::is_same<T, double>::value || std::is_same<T, float>::value,
                   "only float and double are supported");
 

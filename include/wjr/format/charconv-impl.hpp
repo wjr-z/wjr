@@ -120,13 +120,14 @@ struct from_chars_result {
     constexpr explicit operator bool() const noexcept { return ec == std::errc{}; }
 };
 
-WJR_CONST WJR_INTRINSIC_INLINE bool
+WJR_PURE WJR_INTRINSIC_INLINE bool
 is_made_of_eight_digits_fast(const char *src) noexcept {
     const auto val = read_memory<uint64_t>(src);
-    return (val & (val + 0x0606060606060606) & 0xF0F0F0F0F0F0F0F0) == 0x3030303030303030;
+    return ((val & 0xF0F0F0F0F0F0F0F0) & (val + 0x0606060606060606)) ==
+           0x3030303030303030;
 }
 
-WJR_CONST WJR_INTRINSIC_INLINE uint32_t
+WJR_PURE WJR_INTRINSIC_INLINE uint32_t
 parse_eight_digits_unrolled(const char *src) noexcept;
 
 } // namespace wjr
