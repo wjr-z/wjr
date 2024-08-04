@@ -1,6 +1,7 @@
 #ifndef WJR_X86_SIMD_SIMD_HPP__
 #define WJR_X86_SIMD_SIMD_HPP__
 
+#include <wjr/simd/detail.hpp>
 #include <wjr/x86/simd/simd_cast.hpp>
 
 #include <cstring>
