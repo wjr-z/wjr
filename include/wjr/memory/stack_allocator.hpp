@@ -84,7 +84,7 @@ private:
         WJR_ASSERT(top.ptr != nullptr);
     }
 
-    WJR_COLD WJR_CONSTEXPR20 void __small_redeallocate() noexcept {
+    WJR_NOINLINE WJR_CONSTEXPR20 void __small_redeallocate() noexcept {
         const uint16_t new_size = m_idx + bufsize - 1;
         memory_pool<char> pool;
 

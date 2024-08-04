@@ -17,7 +17,7 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(COMPLEMENT_N)
 
 template <typename T>
-WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
+void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
     constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 
     using simd = std::conditional_t<is_avx, avx, sse>;

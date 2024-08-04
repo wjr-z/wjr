@@ -244,9 +244,6 @@ TEST(math, addc_1) {
 
                         auto &out = *p;
 
-                        auto idx =
-                            find_not_n(in.data() + 1, (uint64_t)in_place_max, n - 1);
-
                         uint64_t c_out = addc_1(out.data(), in.data(), n, add, cf);
 
                         if (l == n && k) {

@@ -8,8 +8,7 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(FIND_N)
 
 template <typename T>
-WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src0, const T *src1,
-                                              size_t n) noexcept {
+WJR_PURE size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) noexcept {
 #define WJR_REGISTER_FIND_N_AVX(index)                                                   \
     do {                                                                                 \
         auto x = avx::loadu(src0 + (index));                                             \
@@ -179,7 +178,7 @@ WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src0, const T *src1,
 }
 
 template <typename T>
-WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src, T val, size_t n) noexcept {
+WJR_PURE size_t large_builtin_find_n(const T *src, T val, size_t n) noexcept {
 #define WJR_REGISTER_FIND_N_AVX(index)                                                   \
     do {                                                                                 \
         auto x = avx::loadu(src + (index));                                              \
@@ -390,8 +389,8 @@ WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) no
 #if WJR_HAS_BUILTIN(REVERSE_FIND_N)
 
 template <typename T>
-WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src0, const T *src1,
-                                                      size_t n) noexcept {
+WJR_PURE size_t large_builtin_reverse_find_n(const T *src0, const T *src1,
+                                             size_t n) noexcept {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
         auto x = avx::loadu(src0 - 4 + (index));                                         \
@@ -563,8 +562,7 @@ WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src0, const T *src1,
 }
 
 template <typename T>
-WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src, T val,
-                                                      size_t n) noexcept {
+WJR_PURE size_t large_builtin_reverse_find_n(const T *src, T val, size_t n) noexcept {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
         auto x = avx::loadu(src - 4 + (index));                                          \

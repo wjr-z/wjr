@@ -23,8 +23,7 @@ namespace wjr {
  *
  */
 template <typename T>
-WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1,
-                                              size_t n) noexcept {
+WJR_PURE int large_builtin_compare_n(const T *src0, const T *src1, size_t n) noexcept {
 #define WJR_REGISTER_COMPARE_NOT_N_2(index)                                              \
     do {                                                                                 \
         const auto x = sse::loadu(src0 + (index));                                       \
@@ -162,9 +161,9 @@ WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1,
 #undef WJR_REGISTER_COMPARE_NOT_N_2
 }
 
-extern template WJR_PURE WJR_COLD int
-large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
-                                  size_t n) noexcept;
+extern template WJR_PURE int large_builtin_compare_n<uint64_t>(const uint64_t *src0,
+                                                               const uint64_t *src1,
+                                                               size_t n) noexcept;
 
 #endif
 
@@ -177,8 +176,8 @@ large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
  *
  */
 template <typename T>
-WJR_PURE WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1,
-                                                      size_t n) noexcept {
+WJR_PURE int large_builtin_reverse_compare_n(const T *src0, const T *src1,
+                                             size_t n) noexcept {
 #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_2(index)                                      \
     do {                                                                                 \
         const auto x = sse::loadu(src0 + (index));                                       \
@@ -318,7 +317,7 @@ WJR_PURE WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *sr
 #undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_2
 }
 
-extern template WJR_PURE WJR_COLD int
+extern template WJR_PURE int
 large_builtin_reverse_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
                                           size_t n) noexcept;
 

@@ -333,251 +333,6 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_integer(char c) noexcept {
     return c >= '0' && c <= '9';
 }
 
-struct parsed_number_string {
-    int64_t exponent{0};
-    uint64_t mantissa{0};
-    const char *lastmatch{nullptr};
-    bool negative{false};
-    bool valid{false};
-    bool too_many_digits{false};
-    // contains the range of the significant digits
-    span<const char> integer{};  // non-nullable
-    span<const char> fraction{}; // nullable
-};
-
-// Assuming that you use no more than 19 digits, this will
-// parse an ASCII string.
-WJR_PURE WJR_INTRINSIC_INLINE parsed_number_string
-parse_number_string(const char *p, const char *pend, chars_format options) noexcept {
-    const auto fmt = to_underlying(options);
-
-    parsed_number_string answer;
-    answer.valid = false;
-    answer.too_many_digits = false;
-    answer.negative = (*p == '-');
-
-    if (*p == '-') { // C++17 20.19.3.(7.1) explicitly forbids '+' sign here
-        if (++p == pend) {
-            return answer;
-        }
-    }
-
-    const char *const start_digits = p;
-    uint64_t i = 0; // an unsigned int avoids signed overflows (which are bad)
-
-    const char *end_of_integer_part;
-    int64_t digit_count;
-    int64_t exponent;
-    int64_t exp_number; // explicit exponential part
-
-    constexpr auto __try_match = [](uint8_t &ch) {
-        ch -= '0';
-        return ch < 10;
-    };
-
-    do {
-        uint8_t ch = *p;
-        if (!__try_match(ch)) { // This situation rarely occurs
-            break;
-        }
-
-        do {
-            // a multiplication by 10 is cheaper than an arbitrary integer
-            // multiplication
-            i = 10 * i + ch; // might overflow, we will handle the overflow later
-
-            if (++p == pend) {
-                goto INTEGER_AT_END;
-            }
-
-            ch = *p;
-        } while (WJR_LIKELY(__try_match(ch)));
-    } while (0);
-
-    do {
-        end_of_integer_part = p;
-        digit_count = static_cast<int64_t>(p - start_digits);
-        answer.integer = span<const char>(start_digits, static_cast<size_t>(digit_count));
-
-        if (*p != '.') {
-            exponent = 0;
-            if (*p == 'e' || *p == 'E') {
-                break;
-            }
-
-            goto INTEGER;
-        }
-
-        ++p;
-        const char *before = p;
-        // can occur at most twice without overflowing, but let it occur more, since
-        // for integers with many digits, digit parsing is the primary bottleneck.
-        while ((std::distance(p, pend) >= 8) && is_made_of_eight_digits_fast(p)) {
-            i = i * 100000000 +
-                parse_eight_digits_unrolled(
-                    p); // in rare cases, this will overflow, but that's ok
-            p += 8;
-        }
-
-        while ((p != pend) && is_integer(*p)) {
-            const auto digit = uint32_t(*p - '0');
-            ++p;
-            i = i * 10 + digit; // in rare cases, this will overflow, but that's ok
-        }
-
-        exponent = before - p;
-        answer.fraction = span<const char>(before, size_t(p - before));
-        digit_count -= exponent;
-
-        if (WJR_UNLIKELY(digit_count == 0)) {
-            return answer;
-        }
-    } while (0);
-
-    exp_number = 0;
-
-    if (bool(fmt & to_underlying(chars_format::scientific)) && (p != pend) &&
-        (('e' == *p) || ('E' == *p))) {
-        const char *location_of_e = p;
-        ++p;
-        bool neg_exp = false;
-        if ((p != pend) && ('-' == *p)) {
-            neg_exp = true;
-            ++p;
-        } else if ((p != pend) &&
-                   ('+' == *p)) { // '+' on exponent is allowed by C++17 20.19.3.(7.1)
-            ++p;
-        }
-        if ((p == pend) || !is_integer(*p)) {
-            if (!bool(fmt & to_underlying(chars_format::fixed))) {
-                // We are in error.
-                return answer;
-            }
-            // Otherwise, we will be ignoring the 'e'.
-            p = location_of_e;
-        } else {
-            while ((p != pend) && is_integer(*p)) {
-                const auto digit = uint32_t(*p - '0');
-                if (exp_number < 0x10000000) {
-                    exp_number = 10 * exp_number + digit;
-                }
-                ++p;
-            }
-            if (neg_exp) {
-                exp_number = -exp_number;
-            }
-            exponent += exp_number;
-        }
-    } else {
-        // If it scientific and not fixed, we have to bail out.
-        if (bool(fmt & to_underlying(chars_format::scientific)) &&
-            !bool(fmt & to_underlying(chars_format::fixed))) {
-            return answer;
-        }
-    }
-
-    answer.lastmatch = p;
-    answer.valid = true;
-
-    // If we frequently had to deal with long strings of digits,
-    // we could extend our code by using a 128-bit integer instead
-    // of a 64-bit integer. However, this is uncommon.
-    //
-    // We can deal with up to 19 digits.
-    if (digit_count > 19) { // this is uncommon
-        // It is possible that the integer had an overflow.
-        // We have to handle the case where we have 0.0000somenumber.
-        // We need to be mindful of the case where we only have zeroes...
-        // E.g., 0.000000000...000.
-        const char *start = start_digits;
-        while ((start != pend) && (*start == '0' || *start == '.')) {
-            if (*start == '0') {
-                digit_count--;
-            }
-            start++;
-        }
-
-        if (digit_count > 19) {
-            answer.too_many_digits = true;
-            // Let us start again, this time, avoiding overflows.
-            // We don't need to check if is_integer, since we use the
-            // pre-tokenized spans from above.
-            i = 0;
-            p = answer.integer.data();
-            const char *int_end = p + answer.integer.size();
-            constexpr uint64_t minimal_nineteen_digit_integer = 1000000000000000000ull;
-            while ((i < minimal_nineteen_digit_integer) && (p != int_end)) {
-                i = i * 10 + uint64_t(*p - '0');
-                ++p;
-            }
-            if (i >= minimal_nineteen_digit_integer) { // We have a big integers
-                exponent = end_of_integer_part - p + exp_number;
-            } else { // We have a value with a fractional component.
-                p = answer.fraction.data();
-                const char *frac_end = p + answer.fraction.size();
-                while ((i < minimal_nineteen_digit_integer) && (p != frac_end)) {
-                    i = i * 10 + uint64_t(*p - '0');
-                    ++p;
-                }
-                exponent = answer.fraction.data() - p + exp_number;
-            }
-            // We have now corrected both exponent and i, to a truncated value
-        }
-    }
-
-    answer.exponent = exponent;
-    answer.mantissa = i;
-    return answer;
-
-INTEGER_AT_END : {
-    end_of_integer_part = p;
-    digit_count = static_cast<int64_t>(p - start_digits);
-    answer.integer = span<const char>(start_digits, static_cast<size_t>(digit_count));
-
-INTEGER:
-    answer.lastmatch = p;
-    answer.valid = true;
-
-    // If we frequently had to deal with long strings of digits,
-    // we could extend our code by using a 128-bit integer instead
-    // of a 64-bit integer. However, this is uncommon.
-    //
-    // We can deal with up to 19 digits.
-    if (digit_count > 19) { // this is uncommon
-        // It is possible that the integer had an overflow.
-        // We have to handle the case where we have 0.0000somenumber.
-        // We need to be mindful of the case where we only have zeroes...
-        // E.g., 0.000000000...000.
-        const char *start = start_digits;
-        while ((start != pend) && *start == '0') {
-            --digit_count;
-            start++;
-        }
-
-        if (digit_count > 19) {
-            answer.too_many_digits = true;
-            p = start;
-
-            i = __from_chars_unroll_16<10>(reinterpret_cast<const uint8_t *>(p),
-                                           char_converter);
-            p += 16;
-            i = i * 10 + char_converter.template from<10>(*p++);
-            i = i * 10 + char_converter.template from<10>(*p++);
-            i = i * 10 + char_converter.template from<10>(*p++);
-
-            exponent = end_of_integer_part - p;
-            answer.exponent = exponent;
-            answer.mantissa = i;
-            return answer;
-        }
-    }
-
-    answer.exponent = 0;
-    answer.mantissa = i;
-    return answer;
-}
-}
-
 /**
  * When mapping numbers from decimal to binary,
  * we go from w * 10^q to m * 2^p but we have
@@ -1353,7 +1108,8 @@ WJR_INTRINSIC_INLINE adjusted_mantissa compute_error(int64_t q, uint64_t w) noex
 // return an adjusted_mantissa with a negative power of 2: the caller should recompute
 // in such cases.
 template <typename binary>
-WJR_INTRINSIC_INLINE adjusted_mantissa compute_float(int64_t q, uint64_t w) noexcept {
+WJR_CONST WJR_INTRINSIC_INLINE adjusted_mantissa compute_float(int64_t q,
+                                                               uint64_t w) noexcept {
     adjusted_mantissa answer;
     if ((w == 0) || (q < binary::smallest_power_of_ten())) {
         answer.power2 = 0;
@@ -2075,97 +1831,14 @@ WJR_INTRINSIC_INLINE bool rounds_to_nearest() noexcept {
 
 } // namespace detail
 
-template <typename T>
-from_chars_result<> from_chars(const char *first, const char *last, T &value,
-                               chars_format fmt /*= chars_format::general*/) noexcept {
-    return from_chars_advanced(first, last, value, fmt);
-}
-
-template <typename T>
-WJR_INTRINSIC_INLINE from_chars_result<>
-from_chars_advanced(const parsed_number_string &pns, T &value) noexcept {
-    from_chars_result<> answer;
-    answer.ec = std::errc(); // be optimistic
-    answer.ptr = pns.lastmatch;
-    // The implementation of the Clinger's fast path is convoluted because
-    // we want round-to-nearest in all cases, irrespective of the rounding mode
-    // selected on the thread.
-    // We proceed optimistically, assuming that detail::rounds_to_nearest() returns
-    // true.
-    if (binary_format<T>::min_exponent_fast_path() <= pns.exponent &&
-        pns.exponent <= binary_format<T>::max_exponent_fast_path() &&
-        !pns.too_many_digits) {
-        // Unfortunately, the conventional Clinger's fast path is only possible
-        // when the system rounds to the nearest float.
-        //
-        // We expect the next branch to almost always be selected.
-        // We could check it first (before the previous branch), but
-        // there might be performance advantages at having the check
-        // be last.
-        if (detail::rounds_to_nearest()) {
-            // We have that fegetround() == FE_TONEAREST.
-            // Next is Clinger's fast path.
-            if (pns.mantissa <= binary_format<T>::max_mantissa_fast_path()) {
-                value = T(pns.mantissa);
-                if (pns.exponent < 0) {
-                    value = value / binary_format<T>::exact_power_of_ten(-pns.exponent);
-                } else {
-                    value = value * binary_format<T>::exact_power_of_ten(pns.exponent);
-                }
-                if (pns.negative) {
-                    value = -value;
-                }
-                return answer;
-            }
-        } else {
-            // We do not have that fegetround() == FE_TONEAREST.
-            // Next is a modified Clinger's fast path, inspired by Jakub Jelínek's
-            // proposal
-            if (pns.exponent >= 0 &&
-                pns.mantissa <= binary_format<T>::max_mantissa_fast_path(pns.exponent)) {
-#if defined(__clang__)
-                // ClangCL may map 0 to -0.0 when fegetround() == FE_DOWNWARD
-                if (pns.mantissa == 0) {
-                    value = pns.negative ? T(-0.) : T(0.);
-                    return answer;
-                }
-#endif
-                value =
-                    T(pns.mantissa) * binary_format<T>::exact_power_of_ten(pns.exponent);
-                if (pns.negative) {
-                    value = -value;
-                }
-                return answer;
-            }
-        }
-    }
-
-    adjusted_mantissa am = compute_float<binary_format<T>>(pns.exponent, pns.mantissa);
-    if (pns.too_many_digits && am.power2 >= 0) {
-        if (am != compute_float<binary_format<T>>(pns.exponent, pns.mantissa + 1)) {
-            am = compute_error<binary_format<T>>(pns.exponent, pns.mantissa);
-        }
-    }
-
-    // If we called compute_float<binary_format<T>>(pns.exponent, pns.mantissa) and we
-    // have an invalid power (am.power2 < 0), then we need to go the long way around
-    // again. This is very uncommon.
-    if (am.power2 < 0) {
-        am.power2 -= invalid_am_bias;
-
-        const int32_t sci_exp = scientific_exponent(pns.exponent, pns.mantissa);
-        am = digit_comp<T>(am, pns.integer, pns.fraction, sci_exp);
-    }
-
-    to_float(pns.negative, am, value);
-    // Test for over/underflow.
-    if ((pns.mantissa != 0 && am.mantissa == 0 && am.power2 == 0) ||
-        am.power2 == binary_format<T>::infinite_power()) {
-        answer.ec = std::errc::result_out_of_range;
-    }
-
-    return answer;
-}
+struct parsed_number_string {
+    int64_t exponent{0};
+    uint64_t mantissa{0};
+    bool negative{false};
+    // contains the range of the significant digits
+    span<const char> integer{};  // non-nullable
+    span<const char> fraction{}; // nullable
+};
 
 template <typename T>
 WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const char *last,
@@ -2181,12 +1854,410 @@ WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const ch
         return answer;
     }
 
-    const parsed_number_string pns = parse_number_string(first, last, options);
-    if (!pns.valid) {
-        return detail::parse_infnan(first, last, value);
+    const char *p = first;
+    const auto fmt = to_underlying(options);
+
+    parsed_number_string pns;
+    pns.negative = (*p == '-');
+
+    if (*p == '-') { // C++17 20.19.3.(7.1) explicitly forbids '+' sign here
+        if (++p == last) {
+            answer.ec = std::errc{};
+            answer.ptr = first;
+            return answer;
+        }
     }
 
-    return from_chars_advanced(pns, value);
+    const char *const start_digits = p;
+    uint64_t i = 0; // an unsigned int avoids signed overflows (which are bad)
+
+    const char *end_of_integer_part;
+    int64_t digit_count;
+    int64_t exponent;
+    int64_t exp_number; // explicit exponential part
+
+    constexpr auto __try_match = [](uint8_t &ch) {
+        ch -= '0';
+        return ch < 10;
+    };
+
+    do {
+        uint8_t ch = *p;
+        if (!__try_match(ch)) { // This situation rarely occurs
+            break;
+        }
+
+        do {
+            // a multiplication by 10 is cheaper than an arbitrary integer
+            // multiplication
+            i = 10 * i + ch; // might overflow, we will handle the overflow later
+
+            if (++p == last) {
+                goto INTEGER_AT_END;
+            }
+
+            ch = *p;
+        } while (WJR_LIKELY(__try_match(ch)));
+    } while (0);
+
+    do {
+        end_of_integer_part = p;
+        digit_count = static_cast<int64_t>(p - start_digits);
+        pns.integer = span<const char>(start_digits, static_cast<size_t>(digit_count));
+
+        if (*p != '.') {
+            exponent = 0;
+            if (*p == 'e' || *p == 'E') {
+                break;
+            }
+
+            goto INTEGER;
+        }
+
+        ++p;
+        const char *before = p;
+        // can occur at most twice without overflowing, but let it occur more, since
+        // for integers with many digits, digit parsing is the primary bottleneck.
+        while ((std::distance(p, last) >= 8) && is_made_of_eight_digits_fast(p)) {
+            i = i * 100000000 +
+                parse_eight_digits_unrolled(
+                    p); // in rare cases, this will overflow, but that's ok
+            p += 8;
+        }
+
+        while ((p != last) && is_integer(*p)) {
+            const auto digit = uint32_t(*p - '0');
+            ++p;
+            i = i * 10 + digit; // in rare cases, this will overflow, but that's ok
+        }
+
+        exponent = before - p;
+        pns.fraction = span<const char>(before, size_t(p - before));
+        digit_count -= exponent;
+
+        if (WJR_UNLIKELY(digit_count == 0)) {
+            return detail::parse_infnan(first, last, value);
+        }
+    } while (0);
+
+    exp_number = 0;
+
+    if (bool(fmt & to_underlying(chars_format::scientific)) && (p != last) &&
+        (('e' == *p) || ('E' == *p))) {
+        const char *location_of_e = p;
+        ++p;
+        bool neg_exp = false;
+        if ((p != last) && ('-' == *p)) {
+            neg_exp = true;
+            ++p;
+        } else if ((p != last) &&
+                   ('+' == *p)) { // '+' on exponent is allowed by C++17 20.19.3.(7.1)
+            ++p;
+        }
+        if ((p == last) || !is_integer(*p)) {
+            if (!bool(fmt & to_underlying(chars_format::fixed))) {
+                // We are in error.
+                return detail::parse_infnan(first, last, value);
+            }
+            // Otherwise, we will be ignoring the 'e'.
+            p = location_of_e;
+        } else {
+            while ((p != last) && is_integer(*p)) {
+                const auto digit = uint32_t(*p - '0');
+                if (exp_number < 0x10000000) {
+                    exp_number = 10 * exp_number + digit;
+                }
+                ++p;
+            }
+            if (neg_exp) {
+                exp_number = -exp_number;
+            }
+            exponent += exp_number;
+        }
+    } else {
+        // If it scientific and not fixed, we have to bail out.
+        if (bool(fmt & to_underlying(chars_format::scientific)) &&
+            !bool(fmt & to_underlying(chars_format::fixed))) {
+            return detail::parse_infnan(first, last, value);
+        }
+    }
+
+    do {
+        answer.ec = std::errc(); // be optimistic
+        answer.ptr = p;
+        bool too_many_digits = false;
+
+        // If we frequently had to deal with long strings of digits,
+        // we could extend our code by using a 128-bit integer instead
+        // of a 64-bit integer. However, this is uncommon.
+        //
+        // We can deal with up to 19 digits.
+        if (digit_count > 19) { // this is uncommon
+            // It is possible that the integer had an overflow.
+            // We have to handle the case where we have 0.0000somenumber.
+            // We need to be mindful of the case where we only have zeroes...
+            // E.g., 0.000000000...000.
+            const char *start = start_digits;
+            while ((start != last) && (*start == '0' || *start == '.')) {
+                if (*start == '0') {
+                    digit_count--;
+                }
+                start++;
+            }
+
+            if (digit_count > 19) {
+                too_many_digits = true;
+                // Let us start again, this time, avoiding overflows.
+                // We don't need to check if is_integer, since we use the
+                // pre-tokenized spans from above.
+                i = 0;
+                p = pns.integer.data();
+                const char *int_end = p + pns.integer.size();
+                constexpr uint64_t minimal_nineteen_digit_integer =
+                    1000000000000000000ull;
+                while ((i < minimal_nineteen_digit_integer) && (p != int_end)) {
+                    i = i * 10 + uint64_t(*p - '0');
+                    ++p;
+                }
+                if (i >= minimal_nineteen_digit_integer) { // We have a big integers
+                    exponent = end_of_integer_part - p + exp_number;
+                } else { // We have a value with a fractional component.
+                    p = pns.fraction.data();
+                    const char *frac_end = p + pns.fraction.size();
+                    while ((i < minimal_nineteen_digit_integer) && (p != frac_end)) {
+                        i = i * 10 + uint64_t(*p - '0');
+                        ++p;
+                    }
+                    exponent = pns.fraction.data() - p + exp_number;
+                }
+                // We have now corrected both exponent and i, to a truncated value
+            }
+        }
+
+        pns.exponent = exponent;
+        pns.mantissa = i;
+
+        // The implementation of the Clinger's fast path is convoluted because
+        // we want round-to-nearest in all cases, irrespective of the rounding mode
+        // selected on the thread.
+        // We proceed optimistically, assuming that detail::rounds_to_nearest() returns
+        // true.
+        if (binary_format<T>::min_exponent_fast_path() <= pns.exponent &&
+            pns.exponent <= binary_format<T>::max_exponent_fast_path() &&
+            !too_many_digits) {
+            // Unfortunately, the conventional Clinger's fast path is only possible
+            // when the system rounds to the nearest float.
+            //
+            // We expect the next branch to almost always be selected.
+            // We could check it first (before the previous branch), but
+            // there might be performance advantages at having the check
+            // be last.
+            if (detail::rounds_to_nearest()) {
+                // We have that fegetround() == FE_TONEAREST.
+                // Next is Clinger's fast path.
+                if (pns.mantissa <= binary_format<T>::max_mantissa_fast_path()) {
+                    value = T(pns.mantissa);
+                    if (pns.exponent < 0) {
+                        value =
+                            value / binary_format<T>::exact_power_of_ten(-pns.exponent);
+                    } else {
+                        value =
+                            value * binary_format<T>::exact_power_of_ten(pns.exponent);
+                    }
+                    if (pns.negative) {
+                        value = -value;
+                    }
+                    return answer;
+                }
+            } else {
+                // We do not have that fegetround() == FE_TONEAREST.
+                // Next is a modified Clinger's fast path, inspired by Jakub Jelínek's
+                // proposal
+                if (pns.exponent >= 0 &&
+                    pns.mantissa <=
+                        binary_format<T>::max_mantissa_fast_path(pns.exponent)) {
+#if defined(__clang__)
+                    // ClangCL may map 0 to -0.0 when fegetround() == FE_DOWNWARD
+                    if (pns.mantissa == 0) {
+                        value = pns.negative ? T(-0.) : T(0.);
+                        return answer;
+                    }
+#endif
+                    value = T(pns.mantissa) *
+                            binary_format<T>::exact_power_of_ten(pns.exponent);
+                    if (pns.negative) {
+                        value = -value;
+                    }
+                    return answer;
+                }
+            }
+        }
+
+        adjusted_mantissa am =
+            compute_float<binary_format<T>>(pns.exponent, pns.mantissa);
+        if (too_many_digits && am.power2 >= 0) {
+            if (am != compute_float<binary_format<T>>(pns.exponent, pns.mantissa + 1)) {
+                am = compute_error<binary_format<T>>(pns.exponent, pns.mantissa);
+            }
+        }
+
+        // If we called compute_float<binary_format<T>>(pns.exponent, pns.mantissa) and we
+        // have an invalid power (am.power2 < 0), then we need to go the long way around
+        // again. This is very uncommon.
+        if (am.power2 < 0) {
+            am.power2 -= invalid_am_bias;
+
+            const int32_t sci_exp = scientific_exponent(pns.exponent, pns.mantissa);
+            am = digit_comp<T>(am, pns.integer, pns.fraction, sci_exp);
+        }
+
+        to_float(pns.negative, am, value);
+        // Test for over/underflow.
+        if ((pns.mantissa != 0 && am.mantissa == 0 && am.power2 == 0) ||
+            am.power2 == binary_format<T>::infinite_power()) {
+            answer.ec = std::errc::result_out_of_range;
+        }
+
+        return answer;
+    } while (0);
+
+INTEGER_AT_END:
+    end_of_integer_part = p;
+    digit_count = static_cast<int64_t>(p - start_digits);
+    pns.integer = span<const char>(start_digits, static_cast<size_t>(digit_count));
+
+INTEGER:
+    answer.ec = std::errc(); // be optimistic
+    answer.ptr = p;
+
+    // If we frequently had to deal with long strings of digits,
+    // we could extend our code by using a 128-bit integer instead
+    // of a 64-bit integer. However, this is uncommon.
+    //
+    // We can deal with up to 19 digits.
+    if (digit_count > 19) { // this is uncommon
+        // It is possible that the integer had an overflow.
+        // We have to handle the case where we have 0.0000somenumber.
+        // We need to be mindful of the case where we only have zeroes...
+        // E.g., 0.000000000...000.
+        const char *start = start_digits;
+        while ((start != last) && *start == '0') {
+            --digit_count;
+            start++;
+        }
+
+        if (digit_count > 19) {
+            p = start;
+
+            i = __from_chars_unroll_16<10>(reinterpret_cast<const uint8_t *>(p),
+                                           char_converter);
+            p += 16;
+            i = i * 10 + char_converter.template from<10>(*p++);
+            i = i * 10 + char_converter.template from<10>(*p++);
+            i = i * 10 + char_converter.template from<10>(*p++);
+
+            exponent = end_of_integer_part - p;
+            pns.exponent = exponent;
+            pns.mantissa = i;
+
+            WJR_ASSUME(exponent >= 0);
+
+            adjusted_mantissa am =
+                compute_float<binary_format<T>>(pns.exponent, pns.mantissa);
+            if (am.power2 >= 0) {
+                if (am !=
+                    compute_float<binary_format<T>>(pns.exponent, pns.mantissa + 1)) {
+                    am = compute_error<binary_format<T>>(pns.exponent, pns.mantissa);
+                }
+            }
+
+            // If we called compute_float<binary_format<T>>(pns.exponent, pns.mantissa)
+            // and we have an invalid power (am.power2 < 0), then we need to go the long
+            // way around again. This is very uncommon.
+            if (am.power2 < 0) {
+                am.power2 -= invalid_am_bias;
+
+                const int32_t sci_exp = scientific_exponent(pns.exponent, pns.mantissa);
+                am = digit_comp<T>(am, pns.integer, pns.fraction, sci_exp);
+            }
+
+            to_float(pns.negative, am, value);
+            // Test for over/underflow.
+            if ((pns.mantissa != 0 && am.mantissa == 0 && am.power2 == 0) ||
+                am.power2 == binary_format<T>::infinite_power()) {
+                answer.ec = std::errc::result_out_of_range;
+            }
+
+            return answer;
+        }
+    }
+
+    pns.exponent = 0;
+    pns.mantissa = i;
+
+    // Unfortunately, the conventional Clinger's fast path is only possible
+    // when the system rounds to the nearest float.
+    //
+    // We expect the next branch to almost always be selected.
+    // We could check it first (before the previous branch), but
+    // there might be performance advantages at having the check
+    // be last.
+    if (detail::rounds_to_nearest()) {
+        // We have that fegetround() == FE_TONEAREST.
+        // Next is Clinger's fast path.
+        if (pns.mantissa <= binary_format<T>::max_mantissa_fast_path()) {
+            value = T(pns.mantissa);
+            if (pns.negative) {
+                value = -value;
+            }
+            return answer;
+        }
+    } else {
+        // We do not have that fegetround() == FE_TONEAREST.
+        // Next is a modified Clinger's fast path, inspired by Jakub Jelínek's
+        // proposal
+        if (pns.mantissa <= binary_format<T>::max_mantissa_fast_path(0)) {
+#if defined(__clang__)
+            // ClangCL may map 0 to -0.0 when fegetround() == FE_DOWNWARD
+            if (pns.mantissa == 0) {
+                value = pns.negative ? T(-0.) : T(0.);
+                return answer;
+            }
+#endif
+            value = T(pns.mantissa);
+            if (pns.negative) {
+                value = -value;
+            }
+            return answer;
+        }
+    }
+
+    adjusted_mantissa am = compute_float<binary_format<T>>(0, pns.mantissa);
+
+    // If we called compute_float<binary_format<T>>(pns.exponent, pns.mantissa) and we
+    // have an invalid power (am.power2 < 0), then we need to go the long way around
+    // again. This is very uncommon.
+    if (am.power2 < 0) {
+        am.power2 -= invalid_am_bias;
+
+        const int32_t sci_exp = scientific_exponent(0, pns.mantissa);
+        am = digit_comp<T>(am, pns.integer, pns.fraction, sci_exp);
+    }
+
+    to_float(pns.negative, am, value);
+    // Test for over/underflow.
+    if ((pns.mantissa != 0 && am.mantissa == 0 && am.power2 == 0) ||
+        am.power2 == binary_format<T>::infinite_power()) {
+        answer.ec = std::errc::result_out_of_range;
+    }
+
+    return answer;
+}
+
+template <typename T>
+from_chars_result<> from_chars(const char *first, const char *last, T &value,
+                               chars_format fmt /*= chars_format::general*/) noexcept {
+    return from_chars_advanced(first, last, value, fmt);
 }
 
 } // namespace wjr::fastfloat
