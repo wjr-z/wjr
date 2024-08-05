@@ -1,7 +1,9 @@
 #ifndef WJR_X86_SIMD_SIMD_CAST_HPP__
 #define WJR_X86_SIMD_SIMD_CAST_HPP__
 
-#include <wjr/simd/simd_cast.hpp>
+#include <cstdint>
+
+#include <wjr/simd/detail.hpp>
 #include <wjr/x86/simd/intrin.hpp>
 
 namespace wjr {

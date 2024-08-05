@@ -59,7 +59,7 @@ WJR_PURE size_t large_builtin_find_not_n(const T *src0, const T *src1,
 
 #define WJR_REGISTER_FIND_NOT_N_RET(index) index
 
-    WJR_REGISTER_NORMAL_SIMD_FUNCTION(
+    WJR_REGISTER_X86_NORMAL_SIMD_FUNCTION(
         n, WJR_REGISTER_FIND_NOT_N_2, WJR_REGISTER_FIND_NOT_N_4, WJR_HAS_SIMD(AVX2),
         WJR_REGISTER_FIND_NOT_N_ADVNCE, const auto __src0 = src0,
         WJR_REGISTER_FIND_NOT_N_RET);
@@ -181,7 +181,7 @@ WJR_PURE size_t large_builtin_find_not_n(const T *src, T val, size_t n) noexcept
     const auto y4 = broadcast<__m128i_t, __m256i_t>(y2);
 #endif
 
-    WJR_REGISTER_NORMAL_SIMD_FUNCTION(
+    WJR_REGISTER_X86_NORMAL_SIMD_FUNCTION(
         n, WJR_REGISTER_FIND_NOT_N_2, WJR_REGISTER_FIND_NOT_N_4, WJR_HAS_SIMD(AVX2),
         WJR_REGISTER_FIND_NOT_N_ADVANCE, const auto __src = src,
         WJR_REGISTER_FIND_NOT_N_RET);
@@ -307,7 +307,7 @@ WJR_PURE size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1,
 
 #define WJR_REGISTER_REVERSE_FIND_NOT_N_RET(index) 0
 
-    WJR_REGISTER_NORMAL_REVERSE_SIMD_FUNCTION(
+    WJR_REGISTER_X86_NORMAL_REVERSE_SIMD_FUNCTION(
         n, WJR_REGISTER_REVERSE_FIND_NOT_N_2, WJR_REGISTER_REVERSE_FIND_NOT_N_4,
         WJR_HAS_SIMD(AVX2), WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE, ,
         WJR_REGISTER_REVERSE_FIND_NOT_N_RET);
@@ -430,7 +430,7 @@ WJR_PURE size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) 
     const auto y4 = broadcast<__m128i_t, __m256i_t>(y2);
 #endif
 
-    WJR_REGISTER_NORMAL_REVERSE_SIMD_FUNCTION(
+    WJR_REGISTER_X86_NORMAL_REVERSE_SIMD_FUNCTION(
         n, WJR_REGISTER_REVERSE_FIND_NOT_N_2, WJR_REGISTER_REVERSE_FIND_NOT_N_4,
         WJR_HAS_SIMD(AVX2), WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE, ,
         WJR_REGISTER_REVERSE_FIND_NOT_N_RET);
