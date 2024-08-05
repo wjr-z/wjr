@@ -6,6 +6,28 @@
 
 namespace wjr::fastfloat {
 
+template <typename T, typename Op>
+WJR_NOINLINE from_chars_result<> __from_chars_impl(const char *first, const char *last,
+                                                   T &value, Op options) noexcept;
+
+extern template from_chars_result<>
+__from_chars_impl<float, integral_constant<chars_format, chars_format::general>>(
+    const char *first, const char *last, float &value,
+    integral_constant<chars_format, chars_format::general> options) noexcept;
+
+extern template from_chars_result<>
+__from_chars_impl<double, integral_constant<chars_format, chars_format::general>>(
+    const char *first, const char *last, double &value,
+    integral_constant<chars_format, chars_format::general> options) noexcept;
+
+extern template from_chars_result<>
+__from_chars_impl<float, chars_format>(const char *first, const char *last, float &value,
+                                       chars_format fmt) noexcept;
+
+extern template from_chars_result<>
+__from_chars_impl<double, chars_format>(const char *first, const char *last,
+                                        double &value, chars_format fmt) noexcept;
+
 /**
  * This function parses the character sequence [first,last) for a number. It parses
  * floating-point numbers expecting a locale-indepent format equivalent to what is used by
@@ -29,16 +51,32 @@ namespace wjr::fastfloat {
  * point and scientific notation respectively. The default is
  * `fast_float::chars_format::general` which allows both `fixed` and `scientific`.
  */
-template <typename T>
-from_chars_result<> from_chars(const char *first, const char *last, T &value,
-                               chars_format fmt = chars_format::general) noexcept;
+template <chars_format Fmt = chars_format::general>
+from_chars_result<> from_chars(const char *first, const char *last, float &value,
+                               integral_constant<chars_format, Fmt> fmt = {}) noexcept {
+    return __from_chars_impl(first, last, value, fmt);
+}
 
-/**
- * Like from_chars, but accepts an `options` argument to govern number parsing.
- */
-template <typename T>
-from_chars_result<> from_chars_advanced(const char *first, const char *last, T &value,
-                                        chars_format options) noexcept;
+template <chars_format Fmt = chars_format::general>
+from_chars_result<> from_chars(const char *first, const char *last, double &value,
+                               integral_constant<chars_format, Fmt> fmt = {}) noexcept {
+    return __from_chars_impl(first, last, value, fmt);
+}
+
+template <typename T, WJR_REQUIRES(is_any_of_v<T, float, double>)>
+from_chars_result<> from_chars(const char *first, const char *last, T &value,
+                               chars_format fmt) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P(fmt)) {
+        if (fmt == chars_format::general) {
+            return from_chars(first, last, value);
+        } else if (fmt == chars_format::json) {
+            return from_chars(first, last, value,
+                              integral_constant<chars_format, chars_format::json>{});
+        }
+    }
+
+    return __from_chars_impl(first, last, value, fmt);
+}
 
 // Compares two ASCII strings in a case insensitive manner.
 WJR_PURE WJR_INTRINSIC_CONSTEXPR bool
@@ -1220,6 +1258,89 @@ WJR_CONST WJR_INTRINSIC_INLINE adjusted_mantissa compute_float(int64_t q,
     return answer;
 }
 
+/// @brief special case of compute_float when q = 0.
+template <typename binary>
+WJR_CONST WJR_INTRINSIC_INLINE adjusted_mantissa compute_integer(uint64_t w) noexcept {
+    adjusted_mantissa answer;
+    // We want the most significant bit of i to be 1. Shift if needed.
+    const int lz = clz(w);
+    w <<= lz;
+
+    // The required precision is binary::mantissa_explicit_bits() + 3 because
+    // 1. We need the implicit bit
+    // 2. We need an extra bit for rounding purposes
+    // 3. We might lose a bit due to the "upperbit" routine (result too small, requiring a
+    // shift)
+
+    const uint128_t product =
+        compute_product_approximation<binary::mantissa_explicit_bits() + 3>(0, w);
+    // The "compute_product_approximation" function can be slightly slower than a
+    // branchless approach: uint128_t product = compute_product(q, w); but in practice, we
+    // can win big with the compute_product_approximation if its additional branch is
+    // easily predicted. Which is best is data specific.
+    const int upperbit = int(product.high >> 63);
+
+    answer.mantissa =
+        product.high >> (upperbit + 64 - binary::mantissa_explicit_bits() - 3);
+
+    answer.power2 = int32_t(63 + upperbit - lz - binary::minimum_exponent());
+    if (answer.power2 <= 0) { // we have a subnormal?
+        // Here have that answer.power2 <= 0 so -answer.power2 >= 0
+        if (-answer.power2 + 1 >= 64) { // if we have more than 64 bits below the minimum
+                                        // exponent, you have a zero for sure.
+            answer.power2 = 0;
+            answer.mantissa = 0;
+            // result should be zero
+            return answer;
+        }
+        // next line is safe because -answer.power2 + 1 < 64
+        answer.mantissa >>= -answer.power2 + 1;
+        // Thankfully, we can't have both "round-to-even" and subnormals because
+        // "round-to-even" only occurs for powers close to 0.
+        answer.mantissa += (answer.mantissa & 1); // round up
+        answer.mantissa >>= 1;
+        // There is a weird scenario where we don't have a subnormal but just.
+        // Suppose we start with 2.2250738585072013e-308, we end up
+        // with 0x3fffffffffffff x 2^-1023-53 which is technically subnormal
+        // whereas 0x40000000000000 x 2^-1023-53  is normal. Now, we need to round
+        // up 0x3fffffffffffff x 2^-1023-53  and once we do, we are no longer
+        // subnormal, but we can only know this after rounding.
+        // So we only declare a subnormal if we are smaller than the threshold.
+        answer.power2 =
+            (answer.mantissa < (uint64_t(1) << binary::mantissa_explicit_bits())) ? 0 : 1;
+        return answer;
+    }
+
+    // usually, we round *up*, but if we fall right in between and and we have an
+    // even basis, we need to round down
+    // We are only concerned with the cases where 5**q fits in single 64-bit word.
+    if (product.low <= 1 &&
+        (answer.mantissa & 3) == 1) { // we may fall between two floats!
+        // To be in-between two floats we need that in doing
+        //   answer.mantissa = product.high >> (upperbit + 64 -
+        //   binary::mantissa_explicit_bits() - 3);
+        // ... we dropped out only zeroes. But if this happened, then we can go back!!!
+        if ((answer.mantissa << (upperbit + 64 - binary::mantissa_explicit_bits() - 3)) ==
+            product.high) {
+            answer.mantissa &= ~uint64_t(1); // flip it so that we do not round up
+        }
+    }
+
+    answer.mantissa += (answer.mantissa & 1); // round up
+    answer.mantissa >>= 1;
+    if (answer.mantissa >= (uint64_t(2) << binary::mantissa_explicit_bits())) {
+        answer.mantissa = (uint64_t(1) << binary::mantissa_explicit_bits());
+        answer.power2++; // undo previous addition
+    }
+
+    answer.mantissa &= ~(uint64_t(1) << binary::mantissa_explicit_bits());
+    if (answer.power2 >= binary::infinite_power()) { // infinity
+        answer.power2 = binary::infinite_power();
+        answer.mantissa = 0;
+    }
+    return answer;
+}
+
 // 1e0 to 1e19
 constexpr static uint64_t powers_of_ten_uint64[] = {1UL,
                                                     10UL,
@@ -1658,7 +1779,8 @@ inline adjusted_mantissa negative_digit_comp(biginteger &bigmant, adjusted_manti
 
     // get the value of `b`, rounded down, and get a biginteger representation of b+h
     adjusted_mantissa am_b = am;
-    // gcc7 buf: use a lambda to remove the noexcept qualifier bug with -Wnoexcept-type.
+    // gcc7 buf: use a lambda to remove the noexcept qualifier bug with
+    // -Wnoexcept-type.
     round<T>(am_b, [](adjusted_mantissa &a, int32_t shift) { round_down(a, shift); });
     T b;
     to_float(false, am_b, b);
@@ -1734,8 +1856,8 @@ from_chars_result<> parse_infnan(const char *first, const char *last, T &value) 
             answer.ptr = (first += 3);
             value = minusSign ? -std::numeric_limits<T>::quiet_NaN()
                               : std::numeric_limits<T>::quiet_NaN();
-            // Check for possible nan(n-char-seq-opt), C++17 20.19.3.7, C11 7.20.1.3.3. At
-            // least MSVC produces nan(ind) and nan(snan).
+            // Check for possible nan(n-char-seq-opt), C++17 20.19.3.7,
+            // C11 7.20.1.3.3. At least MSVC produces nan(ind) and nan(snan).
             if (first != last && *first == '(') {
                 for (const char *ptr = first + 1; ptr != last; ++ptr) {
                     if (*ptr == ')') {
@@ -1840,14 +1962,12 @@ struct parsed_number_string {
     span<const char> fraction{}; // nullable
 };
 
-template <typename T>
-WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const char *last,
-                                                     T &value,
-                                                     chars_format options) noexcept {
-    static_assert(std::is_same<T, double>::value || std::is_same<T, float>::value,
-                  "only float and double are supported");
-
+template <typename T, typename Op>
+from_chars_result<> __from_chars_impl(const char *first, const char *last, T &value,
+                                      Op options) noexcept {
+    constexpr bool is_constant_options = !std::is_same_v<Op, chars_format>;
     from_chars_result<> answer;
+
     if (WJR_UNLIKELY(first == last)) {
         answer.ec = std::errc::invalid_argument;
         answer.ptr = first;
@@ -1855,7 +1975,11 @@ WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const ch
     }
 
     const char *p = first;
-    const auto fmt = to_underlying(options);
+    const auto fmt = to_underlying(static_cast<chars_format>(options));
+
+    if constexpr (!is_constant_options) {
+        WJR_ASSERT(!(fmt & to_underlying(chars_format::__json_format)));
+    }
 
     parsed_number_string pns;
     pns.negative = (*p == '-');
@@ -1884,6 +2008,14 @@ WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const ch
     do {
         uint8_t ch = *p;
         if (!__try_match(ch)) { // This situation rarely occurs
+            if constexpr (is_constant_options) {
+                if (fmt & to_underlying(chars_format::__json_format)) {
+                    answer.ec = std::errc{};
+                    answer.ptr = first;
+                    return answer;
+                }
+            }
+
             break;
         }
 
@@ -2040,8 +2172,8 @@ WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const ch
         // The implementation of the Clinger's fast path is convoluted because
         // we want round-to-nearest in all cases, irrespective of the rounding mode
         // selected on the thread.
-        // We proceed optimistically, assuming that detail::rounds_to_nearest() returns
-        // true.
+        // We proceed optimistically, assuming that detail::rounds_to_nearest()
+        // returns true.
         if (binary_format<T>::min_exponent_fast_path() <= pns.exponent &&
             pns.exponent <= binary_format<T>::max_exponent_fast_path() &&
             !too_many_digits) {
@@ -2101,9 +2233,9 @@ WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const ch
             }
         }
 
-        // If we called compute_float<binary_format<T>>(pns.exponent, pns.mantissa) and we
-        // have an invalid power (am.power2 < 0), then we need to go the long way around
-        // again. This is very uncommon.
+        // If we called compute_float<binary_format<T>>(pns.exponent, pns.mantissa)
+        // and we have an invalid power (am.power2 < 0), then we need to go the long
+        // way around again. This is very uncommon.
         if (am.power2 < 0) {
             am.power2 -= invalid_am_bias;
 
@@ -2171,9 +2303,9 @@ INTEGER:
                 }
             }
 
-            // If we called compute_float<binary_format<T>>(pns.exponent, pns.mantissa)
-            // and we have an invalid power (am.power2 < 0), then we need to go the long
-            // way around again. This is very uncommon.
+            // If we called compute_float<binary_format<T>>(pns.exponent,
+            // pns.mantissa) and we have an invalid power (am.power2 < 0), then we
+            // need to go the long way around again. This is very uncommon.
             if (am.power2 < 0) {
                 am.power2 -= invalid_am_bias;
 
@@ -2195,54 +2327,25 @@ INTEGER:
     pns.exponent = 0;
     pns.mantissa = i;
 
-    // Unfortunately, the conventional Clinger's fast path is only possible
-    // when the system rounds to the nearest float.
-    //
-    // We expect the next branch to almost always be selected.
-    // We could check it first (before the previous branch), but
-    // there might be performance advantages at having the check
-    // be last.
-    if (detail::rounds_to_nearest()) {
-        // We have that fegetround() == FE_TONEAREST.
-        // Next is Clinger's fast path.
-        if (pns.mantissa <= binary_format<T>::max_mantissa_fast_path()) {
-            value = T(pns.mantissa);
-            if (pns.negative) {
-                value = -value;
-            }
-            return answer;
-        }
-    } else {
-        // We do not have that fegetround() == FE_TONEAREST.
-        // Next is a modified Clinger's fast path, inspired by Jakub Jelínek's
-        // proposal
-        if (pns.mantissa <= binary_format<T>::max_mantissa_fast_path(0)) {
+    if (pns.mantissa <= binary_format<T>::max_mantissa_fast_path()) {
 #if defined(__clang__)
-            // ClangCL may map 0 to -0.0 when fegetround() == FE_DOWNWARD
-            if (pns.mantissa == 0) {
-                value = pns.negative ? T(-0.) : T(0.);
-                return answer;
-            }
-#endif
-            value = T(pns.mantissa);
-            if (pns.negative) {
-                value = -value;
-            }
+        // ClangCL may map 0 to -0.0 when fegetround() == FE_DOWNWARD
+        if (pns.mantissa == 0) {
+            value = pns.negative ? T(-0.) : T(0.);
             return answer;
         }
+#endif
+
+        value = T(pns.mantissa);
+        if (pns.negative) {
+            value = -value;
+        }
+        
+        return answer;
     }
 
-    adjusted_mantissa am = compute_float<binary_format<T>>(0, pns.mantissa);
-
-    // If we called compute_float<binary_format<T>>(pns.exponent, pns.mantissa) and we
-    // have an invalid power (am.power2 < 0), then we need to go the long way around
-    // again. This is very uncommon.
-    if (am.power2 < 0) {
-        am.power2 -= invalid_am_bias;
-
-        const int32_t sci_exp = scientific_exponent(0, pns.mantissa);
-        am = digit_comp<T>(am, pns.integer, pns.fraction, sci_exp);
-    }
+    adjusted_mantissa am = compute_integer<binary_format<T>>(pns.mantissa);
+    WJR_ASSERT_ASSUME(am.power2 >= 0);
 
     to_float(pns.negative, am, value);
     // Test for over/underflow.
@@ -2252,12 +2355,6 @@ INTEGER:
     }
 
     return answer;
-}
-
-template <typename T>
-from_chars_result<> from_chars(const char *first, const char *last, T &value,
-                               chars_format fmt /*= chars_format::general*/) noexcept {
-    return from_chars_advanced(first, last, value, fmt);
 }
 
 } // namespace wjr::fastfloat

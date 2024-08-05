@@ -540,45 +540,55 @@ constexpr int fallback_count_digits10(UnsignedValue n) noexcept {
     return count + 3;
 }
 
-inline int builtin_count_digits10_u32(uint32_t n) noexcept {
-#define WJR_INC(T) (((sizeof(#T) - 1ull) << 32) - T)
-    static constexpr uint64_t table[] = {
-        WJR_INC(0),          WJR_INC(0),          WJR_INC(0),          // 8
-        WJR_INC(10),         WJR_INC(10),         WJR_INC(10),         // 64
-        WJR_INC(100),        WJR_INC(100),        WJR_INC(100),        // 512
-        WJR_INC(1000),       WJR_INC(1000),       WJR_INC(1000),       // 4096
-        WJR_INC(10000),      WJR_INC(10000),      WJR_INC(10000),      // 32k
-        WJR_INC(100000),     WJR_INC(100000),     WJR_INC(100000),     // 256k
-        WJR_INC(1000000),    WJR_INC(1000000),    WJR_INC(1000000),    // 2048k
-        WJR_INC(10000000),   WJR_INC(10000000),   WJR_INC(10000000),   // 16M
-        WJR_INC(100000000),  WJR_INC(100000000),  WJR_INC(100000000),  // 128M
-        WJR_INC(1000000000), WJR_INC(1000000000), WJR_INC(1000000000), // 1024M
-        WJR_INC(1000000000), WJR_INC(1000000000)                       // 4B
-    };
-    const auto inc = table[clz(n | 1) ^ 31];
-    return static_cast<int>((n + inc) >> 32);
-#undef WJR_INC
-}
+namespace charconv_detail {
 
-inline int builtin_count_digits10_u64(uint64_t n) noexcept {
+#define WJR_INC(T) (((sizeof(#T) - 1ull) << 32) - T)
+
+static constexpr uint64_t __count_digits10_u32_table[] = {
+    WJR_INC(0),          WJR_INC(0),          WJR_INC(0),          // 8
+    WJR_INC(10),         WJR_INC(10),         WJR_INC(10),         // 64
+    WJR_INC(100),        WJR_INC(100),        WJR_INC(100),        // 512
+    WJR_INC(1000),       WJR_INC(1000),       WJR_INC(1000),       // 4096
+    WJR_INC(10000),      WJR_INC(10000),      WJR_INC(10000),      // 32k
+    WJR_INC(100000),     WJR_INC(100000),     WJR_INC(100000),     // 256k
+    WJR_INC(1000000),    WJR_INC(1000000),    WJR_INC(1000000),    // 2048k
+    WJR_INC(10000000),   WJR_INC(10000000),   WJR_INC(10000000),   // 16M
+    WJR_INC(100000000),  WJR_INC(100000000),  WJR_INC(100000000),  // 128M
+    WJR_INC(1000000000), WJR_INC(1000000000), WJR_INC(1000000000), // 1024M
+    WJR_INC(1000000000), WJR_INC(1000000000)                       // 4B
+};
+
+#undef WJR_INC
+
 #define WJR_POWERS_OF_10(factor)                                                         \
     factor * 10, (factor)*100, (factor)*1000, (factor)*10000, (factor)*100000,           \
         (factor)*1000000, (factor)*10000000, (factor)*100000000, (factor)*1000000000
-    static constexpr uint8_t bsr2log10[] = {
-        1,  1,  1,  2,  2,  2,  3,  3,  3,  4,  4,  4,  4,  5,  5,  5,
-        6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9,  10, 10, 10,
-        10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14, 15, 15,
-        15, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 19, 20};
-    const auto t = bsr2log10[clz(n | 1) ^ 63];
-    static constexpr const uint64_t zero_or_powers_of_10[] = {
-        0, 0, WJR_POWERS_OF_10(1U), WJR_POWERS_OF_10(1000000000ull),
-        10000000000000000000ull};
-    return t - (n < zero_or_powers_of_10[t]);
+
+static constexpr uint8_t __count_digits10_u64_bsr2log10[] = {
+    1,  1,  1,  2,  2,  2,  3,  3,  3,  4,  4,  4,  4,  5,  5,  5,
+    6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9,  10, 10, 10,
+    10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14, 15, 15,
+    15, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 19, 20};
+
+static constexpr const uint64_t __count_digits10_u64_zero_or_powers_of_10[] = {
+    0, 0, WJR_POWERS_OF_10(1U), WJR_POWERS_OF_10(1000000000ull), 10000000000000000000ull};
+
 #undef WJR_POWERS_OF_10
+
+} // namespace charconv_detail
+
+WJR_INTRINSIC_CONSTEXPR20 int builtin_count_digits10_u32(uint32_t n) noexcept {
+    const auto inc = charconv_detail::__count_digits10_u32_table[clz(n | 1) ^ 31];
+    return static_cast<int>((n + inc) >> 32);
+}
+
+WJR_INTRINSIC_CONSTEXPR20 int builtin_count_digits10_u64(uint64_t n) noexcept {
+    const auto t = charconv_detail::__count_digits10_u64_bsr2log10[clz(n | 1) ^ 63];
+    return t - (n < charconv_detail::__count_digits10_u64_zero_or_powers_of_10[t]);
 }
 
 template <typename T>
-WJR_CONSTEXPR20 int count_digits10_impl(T n) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 int count_digits10_impl(T n) noexcept {
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(n)) {
         return fallback_count_digits10(n);
     }

@@ -91,7 +91,10 @@ enum class chars_format : uint8_t {
     scientific = 0x01,
     fixed = 0x02,
     hex = 0x04,
-    general = fixed | scientific
+    general = fixed | scientific,
+    // only used in integeral_constant
+    __json_format = 0x08,
+    json = general | __json_format,
 };
 
 template <typename Iter>
