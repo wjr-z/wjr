@@ -18,7 +18,7 @@ namespace biginteger_detail {
  *
  */
 inline uint32_t normalize(const uint64_t *ptr, uint32_t n) noexcept {
-    return reverse_find_not_n(ptr, 0, n);
+    return static_cast<uint32_t>(reverse_find_not_n(ptr, 0, n));
 }
 
 } // namespace biginteger_detail
@@ -38,7 +38,7 @@ public:
         : m_size(&size) {}
 
     constexpr default_biginteger_size_reference &operator=(uint32_t size) noexcept {
-        *m_size = __fasts_negate_with<int32_t>(*m_size, size);
+        *m_size = __fasts_negate_with<int32_t>(*m_size, to_signed(size));
         return *this;
     }
 
@@ -1327,7 +1327,7 @@ public:
     void set_ssize(T new_size) noexcept {
         if constexpr (std::is_unsigned_v<T>) {
             const auto u32size = static_cast<uint32_t>(new_size);
-            WJR_ASSUME(u32size == new_size);
+            WJR_ASSERT_ASSUME(u32size == new_size);
             get_storage().set_ssize(__fasts_from_unsigned(u32size));
         } else {
             get_storage().set_ssize(new_size);
@@ -3271,7 +3271,7 @@ inline uint32_t __ctz_impl(const biginteger_data *num) noexcept {
 
     const auto *const ptr = num->data();
     const uint32_t size = num->size();
-    const uint32_t idx = find_not_n(ptr, 0, size);
+    const uint32_t idx = static_cast<uint32_t>(find_not_n(ptr, 0, size));
     WJR_ASSERT(idx != size);
     return idx * 64 + ctz(ptr[idx]);
 }

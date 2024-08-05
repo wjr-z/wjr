@@ -13,6 +13,13 @@ struct default_writer {
 
     WJR_INTRINSIC_CONSTEXPR T &get_float() noexcept { return value; }
 
+    default_writer() = delete;
+    default_writer(const default_writer &) = default;
+    default_writer(default_writer &&) = default;
+    default_writer &operator=(const default_writer &) = default;
+    default_writer &operator=(default_writer &&) = delete;
+    ~default_writer() = default;
+
     T &value;
 };
 

@@ -23,7 +23,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR int constexpr_ctz(T x) noexcept {
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_ctz(T x) noexcept {
-#if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
+#if WJR_HAS_BUILTIN(POPCOUNT)
     return popcount<T>(lowbit(x) - 1);
 #else
     constexpr auto nd = std::numeric_limits<T>::digits;

@@ -543,7 +543,7 @@ WJR_INTRINSIC_CONSTEXPR20 void divexact_1(uint64_t *dst, const uint64_t *src, si
     WJR_ASSERT_ASSUME(div != 0);
 
     if (WJR_UNLIKELY(is_zero_or_single_bit(div))) {
-        unsigned int c = ctz(div);
+        const unsigned int c = ctz(div);
         (void)rshift_n(dst, src, n, c);
         return;
     }

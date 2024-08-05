@@ -143,10 +143,10 @@ inline constexpr std::array<uint32_t, 886> digit_to_val32 = {
 
 WJR_PURE WJR_INTRINSIC_CONSTEXPR uint32_t
 hex_to_u32_unchecked(const uint8_t *src) noexcept {
-    const uint32_t v1 = digit_to_val32[630 + src[0]];
-    const uint32_t v2 = digit_to_val32[420 + src[1]];
-    const uint32_t v3 = digit_to_val32[210 + src[2]];
-    const uint32_t v4 = digit_to_val32[0 + src[3]];
+    const uint32_t v1 = digit_to_val32[630u + src[0]];
+    const uint32_t v2 = digit_to_val32[420u + src[1]];
+    const uint32_t v3 = digit_to_val32[210u + src[2]];
+    const uint32_t v4 = digit_to_val32[0u + src[3]];
     return v1 | v2 | v3 | v4;
 }
 

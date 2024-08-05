@@ -14,8 +14,8 @@ WJR_PURE WJR_INTRINSIC_INLINE result<void> check_number(const char *first,
     return {};
 }
 
-WJR_PURE WJR_INTRINSIC_INLINE basic_value parse_number(const char *first,
-                                                       const char *last) noexcept {
+WJR_PURE WJR_INTRINSIC_INLINE basic_value parse_number(
+    WJR_MAYBE_UNUSED const char *first, WJR_MAYBE_UNUSED const char *last) noexcept {
     return basic_value(null_v);
 }
 

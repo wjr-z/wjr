@@ -5,40 +5,6 @@
 
 namespace wjr {
 
-#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
-
-namespace math_detail {
-
-template <typename T, T seed>
-class de_bruijn {
-public:
-    constexpr static uint8_t digits = std::numeric_limits<T>::digits;
-    constexpr static uint8_t mv = digits == 32 ? 27 : 58;
-    constexpr de_bruijn() noexcept : lookup(), lookupr() { initialize(); }
-
-    constexpr int get(T idx) const noexcept { return lookup[(idx * seed) >> mv]; }
-    constexpr int getr(T idx) const noexcept { return lookupr[(idx * seed) >> mv]; }
-
-private:
-    constexpr void initialize() noexcept {
-        for (uint8_t i = 0; i < digits; ++i) {
-            const auto idx = (seed << i) >> mv;
-            lookup[idx] = i;
-            lookupr[idx] = i == 0 ? 0 : digits - i;
-        }
-    }
-
-    uint8_t lookup[digits];
-    uint8_t lookupr[digits];
-};
-
-inline constexpr de_bruijn<uint32_t, 0x077C'B531> de_bruijn32 = {};
-inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
-
-} // namespace math_detail
-
-#endif
-
 /**
  * @brief
  *

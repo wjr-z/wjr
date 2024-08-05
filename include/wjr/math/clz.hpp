@@ -43,7 +43,7 @@ template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_clz(T x) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
+#if !WJR_HAS_BUILTIN(POPCOUNT)
     if constexpr (nd >= 32) {
 #endif
         x |= (x >> 1);
@@ -61,11 +61,11 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_clz(T x) noexcept {
         if constexpr (nd >= 64) {
             x |= (x >> 32);
         }
-#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
+#if !WJR_HAS_BUILTIN(POPCOUNT)
     }
 #endif
 
-#if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
+#if WJR_HAS_BUILTIN(POPCOUNT)
     return popcount<T>(~x);
 #else
     if constexpr (nd < 32) {

@@ -89,9 +89,17 @@ public:
         return basic_divide(divisor, value, lo, hi);
     }
 
-    WJR_CONST WJR_CONSTEXPR20 static T reciprocal(T d) noexcept;
+    WJR_CONST WJR_CONSTEXPR20 static T reciprocal(T d) noexcept {
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(d == 1ull << 63)) {
+            return in_place_max;
+        }
+
+        return __reciprocal_impl(d);
+    }
 
 private:
+    WJR_CONST WJR_CONSTEXPR20 static T __reciprocal_impl(T d) noexcept;
+
     WJR_INTRINSIC_CONSTEXPR static void fallback_div2by1_adjust(T rax, T div, T &r8,
                                                                 T &rdx) noexcept {
         const T r9 = r8 + div;
@@ -164,7 +172,7 @@ protected:
 };
 
 template <typename T>
-WJR_CONST WJR_CONSTEXPR20 T div2by1_divider_noshift<T>::reciprocal(T d) noexcept {
+WJR_CONST WJR_CONSTEXPR20 T div2by1_divider_noshift<T>::__reciprocal_impl(T d) noexcept {
     WJR_ASSERT_ASSUME_L2(__has_high_bit(d));
 
     uint64_t d40 = 0, d63 = 0;
@@ -246,18 +254,12 @@ private:
             m_shift = clz(m_divisor);
             m_divisor <<= m_shift;
 
-            WJR_ASSUME(m_shift != 0);
+            WJR_ASSUME(m_shift != 0u);
         } else {
-            WJR_ASSUME(m_shift == 0);
+            WJR_ASSUME(m_shift == 0u);
         }
 
         WJR_ASSUME(__has_high_bit(m_divisor));
-
-        if (WJR_UNLIKELY(m_divisor == 1ull << 63)) {
-            m_value = -1;
-            return;
-        }
-
         m_value = Mybase::reciprocal(m_divisor);
     }
 

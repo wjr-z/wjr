@@ -201,8 +201,8 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t mul_1(uint64_t *dst, const uint64_t *src, siz
             return 0;
         }
 
-        unsigned int k = ctz(ml);
-        return lshift_n(dst, src, n, k);
+        const unsigned int c = ctz(ml);
+        return lshift_n(dst, src, n, c);
     }
 
 #if WJR_HAS_BUILTIN(ASM_MUL_1)
@@ -260,7 +260,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t addmul_1(uint64_t *dst, const uint64_t *src, 
             return 0;
         }
 
-        unsigned int c = ctz(ml);
+        const unsigned int c = ctz(ml);
         return addlsh_n(dst, dst, src, n, c);
     }
 

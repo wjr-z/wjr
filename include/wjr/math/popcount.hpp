@@ -3,7 +3,55 @@
 
 #include <wjr/math/detail.hpp>
 
+#if WJR_HAS_SIMD(POPCNT)
+
+#if WJR_HAS_BUILTIN(__builtin_popcount)
+#define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF
+#elif defined(WJR_COMPILER_MSVC)
+#define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF_VAR(2)
+#endif
+
+#if WJR_HAS_BUILTIN(POPCOUNT) == 2
+#include <wjr/x86/simd/intrin.hpp>
+#endif
+
+#endif
+
 namespace wjr {
+
+#if !WJR_HAS_BUILTIN(POPCOUNT)
+
+namespace math_detail {
+
+template <typename T, T seed>
+class de_bruijn {
+public:
+    constexpr static uint8_t digits = std::numeric_limits<T>::digits;
+    constexpr static uint8_t mv = digits == 32 ? 27 : 58;
+    constexpr de_bruijn() noexcept : lookup(), lookupr() { initialize(); }
+
+    constexpr int get(T idx) const noexcept { return lookup[(idx * seed) >> mv]; }
+    constexpr int getr(T idx) const noexcept { return lookupr[(idx * seed) >> mv]; }
+
+private:
+    constexpr void initialize() noexcept {
+        for (uint8_t i = 0; i < digits; ++i) {
+            const auto idx = (seed << i) >> mv;
+            lookup[idx] = i;
+            lookupr[idx] = i == 0 ? 0u : digits - i;
+        }
+    }
+
+    uint8_t lookup[digits];
+    uint8_t lookupr[digits];
+};
+
+inline constexpr de_bruijn<uint32_t, 0x077C'B531> de_bruijn32 = {};
+inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
+
+} // namespace math_detail
+
+#endif
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR int fallback_popcount(T x) noexcept {
@@ -30,6 +78,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR int fallback_popcount(T x) noexcept {
 template <typename T>
 WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
+#if WJR_HAS_BUILTIN(POPCOUNT) == 1
     if constexpr (nd < 32) {
         return builtin_popcount(static_cast<uint32_t>(x));
     } else {
@@ -37,16 +86,29 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) noexcept {
             return __builtin_popcount(x);
         } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
             return __builtin_popcountl(x);
-        }
-        if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
+        } else if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
             return __builtin_popcountll(x);
         } else {
             static_assert(nd <= 64, "not support yet");
         }
     }
-}
+#else
+    if constexpr (nd < 32) {
+        return builtin_popcount(static_cast<uint32_t>(x));
+    } else {
+        if constexpr (nd <= 32) {
+            return __popcnt(x);
+        } else if constexpr (nd <= 64) {
+            return __popcnt64(x);
+        } else {
+            static_assert(nd <= 64, "not support yet");
+        }
+    }
 
 #endif // WJR_HAS_BUILTIN(POPCOUNT)
+}
+
+#endif
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount_impl(T x) noexcept {

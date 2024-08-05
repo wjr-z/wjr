@@ -505,7 +505,7 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s_pos(uint64_t *dst, const uint64_t *
     }
 
     (void)subc_s(dst, src0, m + idx, src1, m);
-    uint64_t ret = __fasts_from_unsigned(m + idx);
+    ssize_t ret = __fasts_from_unsigned(m + idx);
     WJR_ASSUME(ret >= 2);
     ret -= dst[m + idx - 1] == 0;
     WJR_ASSUME(ret >= 1);

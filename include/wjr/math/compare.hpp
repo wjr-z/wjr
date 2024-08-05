@@ -97,7 +97,7 @@ WJR_INTRINSIC_CONSTEXPR20 bool __fallback_less_128(uint64_t lo0, uint64_t hi0,
     uint8_t f = lo0 < lo1;
     (void)subc_cc(hi0, hi1, f, f);
     WJR_ASSUME(f <= 1);
-    return f;
+    return f != 0;
 }
 
 #if WJR_HAS_BUILTIN(__BUILTIN_LESS_128)

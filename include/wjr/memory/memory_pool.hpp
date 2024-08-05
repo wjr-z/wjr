@@ -8,7 +8,14 @@
 namespace wjr {
 
 struct automatic_free_pool {
-    struct chunk : list_node<intrusive_tag<chunk>> {};
+    struct chunk : list_node<intrusive_tag<chunk>> {
+        chunk() = default;
+        chunk(const chunk &) = delete;
+        chunk(chunk &&) = default;
+        chunk &operator=(const chunk &) = delete;
+        chunk &operator=(chunk &&) = delete;
+        ~chunk() = default;
+    };
 
     automatic_free_pool() noexcept { init(&head); }
     ~automatic_free_pool() noexcept {
@@ -18,6 +25,11 @@ struct automatic_free_pool {
             free(node);
         }
     }
+
+    automatic_free_pool(const automatic_free_pool &) = delete;
+    automatic_free_pool(automatic_free_pool &&) = delete;
+    automatic_free_pool &operator=(const automatic_free_pool &) = delete;
+    automatic_free_pool &operator=(automatic_free_pool &&) = delete;
 
     WJR_MALLOC void *allocate(size_t n) noexcept {
         auto *const ptr = static_cast<chunk *>(malloc(n + sizeof(chunk)));

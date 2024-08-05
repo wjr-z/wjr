@@ -48,30 +48,30 @@ template <typename T>
 using result = expected<T, result_error>;
 
 enum class value_t : uint8_t {
+    number_unsigned,
+    number_signed,
+    number_float,
     null,
     boolean,
-    number_signed,
-    number_unsigned,
-    number_float,
     string,
     object,
     array,
 };
+
+using number_unsigned_t = integral_constant<value_t, value_t::number_unsigned>;
+inline constexpr number_unsigned_t number_unsigned_v = {};
+
+using number_signed_t = integral_constant<value_t, value_t::number_signed>;
+inline constexpr number_signed_t number_signed_v = {};
+
+using number_float_t = integral_constant<value_t, value_t::number_float>;
+inline constexpr number_float_t number_float_v = {};
 
 using null_t = integral_constant<value_t, value_t::null>;
 inline constexpr null_t null_v = {};
 
 using boolean_t = integral_constant<value_t, value_t::boolean>;
 inline constexpr boolean_t boolean_v = {};
-
-using number_signed_t = integral_constant<value_t, value_t::number_signed>;
-inline constexpr number_signed_t number_signed_v = {};
-
-using number_unsigned_t = integral_constant<value_t, value_t::number_unsigned>;
-inline constexpr number_unsigned_t number_unsigned_v = {};
-
-using number_float_t = integral_constant<value_t, value_t::number_float>;
-inline constexpr number_float_t number_float_v = {};
 
 using string_t = integral_constant<value_t, value_t::string>;
 inline constexpr string_t string_v = {};
@@ -81,8 +81,6 @@ inline constexpr object_t object_v = {};
 
 using array_t = integral_constant<value_t, value_t::array>;
 inline constexpr array_t array_v = {};
-
-namespace detail {
 
 struct basic_value {
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(basic_value);
@@ -100,18 +98,16 @@ struct basic_value {
     basic_value(array_t, void *ptr) noexcept : m_ptr(ptr), m_type(value_t::array) {}
 
     union {
+        uint64_t m_number_unsigned;
+        int64_t m_number_signed;
+        double m_number_float;
         std::nullptr_t m_null;
         bool m_boolean;
-        int64_t m_number_signed;
-        uint64_t m_number_unsigned;
-        double m_number_float;
         void *m_ptr;
     };
 
     value_t m_type;
 };
-
-} // namespace detail
 
 } // namespace wjr::json
 
