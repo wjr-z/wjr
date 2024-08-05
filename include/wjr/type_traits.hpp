@@ -484,11 +484,8 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T fast_cast(U value) noexcept {
     return static_cast<T>(value);
 }
 
-#define __WJR_REGISTER_TYPENAMES_EXPAND(x) __WJR_REGISTER_TYPENAMES_EXPAND_I x
-#define __WJR_REGISTER_TYPENAMES_EXPAND_I(...) __VA_ARGS__
-
 #define __WJR_REGISTER_TYPENAMES(...)                                                    \
-    __WJR_REGISTER_TYPENAMES_EXPAND(                                                     \
+    WJR_PP_QUEUE_EXPAND(                                                                 \
         WJR_PP_QUEUE_TRANSFORM((__VA_ARGS__), __WJR_REGISTER_TYPENAMES_CALLER))
 #define __WJR_REGISTER_TYPENAMES_CALLER(x) typename x
 
@@ -768,6 +765,18 @@ template <typename Enum>
 WJR_CONST constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept {
     return static_cast<std::underlying_type_t<Enum>>(e);
 }
+
+#define __WJR_INDEXS_RANGE_I(START, END)                                                 \
+    WJR_PP_QUEUE_POP_FRONT_N((WJR_PP_IOTA(END)), START)
+
+#define WJR__INDEXS_RANGE(START, END)                                                    \
+    WJR_PP_QUEUE_EXPAND(__WJR_INDEXS_RANGE_I(START, END))
+
+#define __WJR_CASES_RANGE_CALLBACK(x) case (x):
+
+#define WJR_CASES_RANGE(START, END)                                                      \
+    WJR_PP_QUEUE_PUT(WJR_PP_QUEUE_TRANSFORM(__WJR_INDEXS_RANGE_I(START, END),            \
+                                            __WJR_CASES_RANGE_CALLBACK))
 
 } // namespace wjr
 
