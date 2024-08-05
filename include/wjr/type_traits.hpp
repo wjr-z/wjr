@@ -450,10 +450,16 @@ WJR_CONST constexpr bool in_range(U value) noexcept {
     }
 }
 
+template <typename From, typename To, typename Enable = void>
+struct __is_value_preserving_impl : std::false_type {};
+
 template <typename From, typename To>
-struct is_value_preserving
+struct __is_value_preserving_impl<From, To, std::enable_if_t<std::is_integral_v<From>>>
     : std::bool_constant<in_range<To>(std::numeric_limits<From>::min()) &&
                          in_range<To>(std::numeric_limits<From>::max())> {};
+
+template <typename From, typename To>
+struct is_value_preserving : __is_value_preserving_impl<From, To> {};
 
 template <typename From>
 struct is_value_preserving<From, From> : std::true_type {};
