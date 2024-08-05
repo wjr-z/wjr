@@ -2921,10 +2921,16 @@ WJR_CONST constexpr bool in_range(U value) noexcept {
     }
 }
 
+template <typename From, typename To, typename Enable = void>
+struct __is_value_preserving_impl : std::false_type {};
+
 template <typename From, typename To>
-struct is_value_preserving
+struct __is_value_preserving_impl<From, To, std::enable_if_t<std::is_integral_v<From>>>
     : std::bool_constant<in_range<To>(std::numeric_limits<From>::min()) &&
                          in_range<To>(std::numeric_limits<From>::max())> {};
+
+template <typename From, typename To>
+struct is_value_preserving : __is_value_preserving_impl<From, To> {};
 
 template <typename From>
 struct is_value_preserving<From, From> : std::true_type {};
@@ -3567,8 +3573,19 @@ WJR_NODISCARD auto allocate_at_least(Allocator &alloc, SizeType count) {
 #ifndef WJR_X86_SIMD_SIMD_HPP__
 #define WJR_X86_SIMD_SIMD_HPP__
 
+#ifndef WJR_X86_SIMD_AVX_HPP__
+#define WJR_X86_SIMD_AVX_HPP__
+
+#ifndef WJR_X86_SIMD_SSE_HPP__
+#define WJR_X86_SIMD_SSE_HPP__
+
 #ifndef WJR_X86_SIMD_SIMD_CAST_HPP__
 #define WJR_X86_SIMD_SIMD_CAST_HPP__
+
+#include <cstdint>
+
+#ifndef WJR_SIMD_DETAIL_HPP__
+#define WJR_SIMD_DETAIL_HPP__
 
 #ifndef WJR_SIMD_SIMD_CAST_HPP__
 #define WJR_SIMD_SIMD_CAST_HPP__
@@ -3584,6 +3601,368 @@ inline constexpr simd_cast_fn<From, To> simd_cast;
 } // namespace wjr
 
 #endif // WJR_SIMD_SIMD_CAST_HPP__
+#ifndef WJR_SIMD_SIMD_MASK_HPP__
+#define WJR_SIMD_SIMD_MASK_HPP__
+
+#ifndef WJR_ASSERT_HPP__
+#define WJR_ASSERT_HPP__
+
+/**
+ * @file assert.hpp
+ * @author wjr
+ * @brief Assertion utilities
+ *
+ * @details WJR_DEBUG_LEVEL : 0 ~ 3 \n
+ * 0 : Release \n
+ * 1 : Beta \n
+ * 2 : Runtime detect \n
+ * 3 : Maximize runtime detect, for debug \n
+ * If WJR_DEBUG_LEVEL is not defined, \n
+ * If NDEBUG is defined, WJR_DEBUG_LEVEL is set to 0 by default. \n
+ * Otherwise, WJR_DEBUG_LEVEL is set to 1 by default. \n
+ * WJR_ASSERT_L(level, expr) : Specify the level of assertion, \n
+ * if the WJR_DEBUG_LEVEL is greater than or equal to the level, \n
+ * the assertion is executed. \n
+ * WJR_ASSERT(expr) : Equivalent to WJR_ASSERT_L(1, expr) \n
+ * WJR_ASSERT_0(expr) : Always execute the assertion \n
+ *
+ * @version 0.1
+ * @date 2024-06-01
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
+#include <iostream>
+
+// Already included
+
+#ifndef WJR_DEBUG_LEVEL
+#if defined(NDEBUG)
+#define WJR_DEBUG_LEVEL 0
+#else
+#define WJR_DEBUG_LEVEL 1
+#endif
+#endif
+
+#if WJR_DEBUG_LEVEL < 0 || WJR_DEBUG_LEVEL > 3
+#error "WJR_DEBUG_LEVEL must be 0 ~ 3"
+#endif
+
+namespace wjr {
+
+#define WJR_DEBUG_IF(level, expr0, expr1)                                                \
+    WJR_PP_BOOL_IF(WJR_PP_GT(WJR_DEBUG_LEVEL, level), expr0, expr1)
+
+WJR_NORETURN extern void __assert_failed(const char *expr, const char *file,
+                                         const char *func, int line) noexcept;
+
+// LCOV_EXCL_START
+
+/// @private
+template <typename... Args>
+WJR_NOINLINE void __assert_handler(const char *expr, const char *file, const char *func,
+                                   int line, Args &&...args) noexcept {
+    std::cerr << "Additional information: ";
+    (void)(std::cerr << ... << std::forward<Args>(args));
+    std::cerr << '\n';
+    __assert_failed(expr, file, func, line);
+}
+
+/// @private
+inline void __assert_handler(const char *expr, const char *file, const char *func,
+                             int line) noexcept {
+    __assert_failed(expr, file, func, line);
+}
+
+// LCOV_EXCL_STOP
+
+#define WJR_ASSERT_CHECK_I(expr, ...)                                                    \
+    do {                                                                                 \
+        if (WJR_UNLIKELY(!(expr))) {                                                     \
+            ::wjr::__assert_handler(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE,     \
+                                    ##__VA_ARGS__);                                      \
+        }                                                                                \
+    } while (0)
+
+// do nothing
+#define WJR_ASSERT_UNCHECK_I(expr, ...)                                                  \
+    do {                                                                                 \
+    } while (0)
+
+// level = [0, 2]
+// The higher the level, the less likely it is to be detected
+// Runtime detect  : 1
+// Maximize detect : 2
+#define WJR_ASSERT_L(level, ...)                                                         \
+    WJR_DEBUG_IF(level, WJR_ASSERT_CHECK_I, WJR_ASSERT_UNCHECK_I)                        \
+    (__VA_ARGS__)
+
+// level of assert is zero at default.
+#define WJR_ASSERT_L0(...) WJR_ASSERT_CHECK_I(__VA_ARGS__)
+#define WJR_ASSERT_L1(...) WJR_ASSERT_L(1, __VA_ARGS__)
+#define WJR_ASSERT_L2(...) WJR_ASSERT_L(2, __VA_ARGS__)
+#define WJR_ASSERT_L3(...) WJR_ASSERT_L(3, __VA_ARGS__)
+#define WJR_ASSERT(...) WJR_ASSERT_L1(__VA_ARGS__)
+
+#define WJR_ASSERT_ASSUME_L(level, ...)                                                  \
+    WJR_ASSERT_L(level, __VA_ARGS__);                                                    \
+    __WJR_ASSERT_ASSUME_L_ASSUME(__VA_ARGS__)
+#define __WJR_ASSERT_ASSUME_L_ASSUME(expr, ...) WJR_ASSUME(expr)
+
+#define WJR_ASSERT_ASSUME_L0(...) WJR_ASSERT_ASSUME_L(0, __VA_ARGS__)
+#define WJR_ASSERT_ASSUME_L1(...) WJR_ASSERT_ASSUME_L(1, __VA_ARGS__)
+#define WJR_ASSERT_ASSUME_L2(...) WJR_ASSERT_ASSUME_L(2, __VA_ARGS__)
+#define WJR_ASSERT_ASSUME_L3(...) WJR_ASSERT_ASSUME_L(3, __VA_ARGS__)
+#define WJR_ASSERT_ASSUME(...) WJR_ASSERT_ASSUME_L1(__VA_ARGS__)
+
+} // namespace wjr
+
+#endif // WJR_ASSERT_HPP__
+#ifndef WJR_MATH_CLZ_HPP__
+#define WJR_MATH_CLZ_HPP__
+
+// Already included
+#ifndef WJR_MATH_POPCOUNT_HPP__
+#define WJR_MATH_POPCOUNT_HPP__
+
+#ifndef WJR_MATH_DETAIL_HPP__
+#define WJR_MATH_DETAIL_HPP__
+
+// Already included
+
+namespace wjr {
+
+#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
+
+namespace math_detail {
+
+template <typename T, T seed>
+class de_bruijn {
+public:
+    constexpr static uint8_t digits = std::numeric_limits<T>::digits;
+    constexpr static uint8_t mv = digits == 32 ? 27 : 58;
+    constexpr de_bruijn() noexcept : lookup(), lookupr() { initialize(); }
+
+    constexpr int get(T idx) const noexcept { return lookup[(idx * seed) >> mv]; }
+    constexpr int getr(T idx) const noexcept { return lookupr[(idx * seed) >> mv]; }
+
+private:
+    constexpr void initialize() noexcept {
+        for (uint8_t i = 0; i < digits; ++i) {
+            const auto idx = (seed << i) >> mv;
+            lookup[idx] = i;
+            lookupr[idx] = i == 0 ? 0 : digits - i;
+        }
+    }
+
+    uint8_t lookup[digits];
+    uint8_t lookupr[digits];
+};
+
+inline constexpr de_bruijn<uint32_t, 0x077C'B531> de_bruijn32 = {};
+inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
+
+} // namespace math_detail
+
+#endif
+
+/**
+ * @brief
+ *
+ * @note `n & -n` is the lowest bit of n.
+ */
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr T lowbit(T n) noexcept {
+    return n & -n;
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr T clear_lowbit(T n) noexcept {
+    return n & (n - 1);
+}
+
+// preview :
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr bool is_zero_or_single_bit(T n) noexcept {
+    return (n & (n - 1)) == 0;
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr bool __has_high_bit(T n) noexcept {
+    return n >> (std::numeric_limits<T>::digits - 1);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr T __ceil_div(T n, type_identity_t<T> div) noexcept {
+    return (n + div - 1) / div;
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr T __align_down(T n, type_identity_t<T> alignment) noexcept {
+    WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
+    return n & (-alignment);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr T __align_down_offset(T n, type_identity_t<T> alignment) noexcept {
+    WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
+    return n & (alignment - 1);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr T __align_up(T n, type_identity_t<T> alignment) noexcept {
+    WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
+    return (n + alignment - 1) & (-alignment);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr T __align_up_offset(T n, type_identity_t<T> alignment) noexcept {
+    WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
+    return (-n) & (alignment - 1);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr std::make_signed_t<T> __fasts_from_unsigned(T x) noexcept {
+    const std::make_signed_t<T> ret = x;
+    WJR_ASSERT_ASSUME_L2(ret >= 0, "overflow");
+    return ret;
+}
+
+template <typename T, typename U = std::make_unsigned_t<T>,
+          WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
+WJR_CONST constexpr U __fasts_abs(T x) noexcept {
+    return static_cast<U>(x < 0 ? -x : x);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
+WJR_CONST constexpr T __fasts_negate(T x) noexcept {
+    return -x;
+}
+
+template <typename T, typename U = std::make_unsigned_t<T>,
+          WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
+WJR_CONST constexpr T __fasts_conditional_negate(bool condition, T x) noexcept {
+    return condition ? -x : x;
+}
+
+template <typename T, typename U = std::make_unsigned_t<T>,
+          WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
+WJR_CONST constexpr T __fasts_negate_with(T condition, T x) noexcept {
+    return __fasts_conditional_negate(condition < 0, x);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
+WJR_CONST constexpr T __fasts_increment(T x) noexcept {
+    WJR_ASSERT_L2(x != std::numeric_limits<T>::min() &&
+                      x != std::numeric_limits<T>::max(),
+                  "overflow");
+
+    return x < 0 ? x - 1 : x + 1;
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
+WJR_CONST constexpr T __fasts_decrement(T x) noexcept {
+    WJR_ASSERT_L2(x != 0 && x + 1 != T(0), "overflow");
+
+    return x < 0 ? x + 1 : x - 1;
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
+WJR_CONST constexpr T __fasts_add(T x, std::make_unsigned_t<T> y) noexcept {
+    return x < 0 ? x - y : x + y;
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
+WJR_CONST constexpr T __fasts_sub(T x, std::make_unsigned_t<T> y) noexcept {
+    return x < 0 ? x + y : x - y;
+}
+
+} // namespace wjr
+
+#endif // WJR_MATH_DETAIL_HPP__
+
+namespace wjr {
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int fallback_popcount(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+    if constexpr (nd < 32) {
+        return fallback_popcount(static_cast<uint32_t>(x));
+    } else {
+        if constexpr (nd == 32) {
+            x -= (x >> 1) & 0x5555'5555;
+            x = (x & 0x3333'3333) + ((x >> 2) & 0x3333'3333);
+            x = (x + (x >> 4)) & 0x0f0f'0f0f;
+            return (x * 0x0101'0101) >> 24;
+        } else {
+            x -= (x >> 1) & 0x5555'5555'5555'5555;
+            x = (x & 0x3333'3333'3333'3333) + ((x >> 2) & 0x3333'3333'3333'3333);
+            x = (x + (x >> 4)) & 0x0f0f'0f0f'0f0f'0f0f;
+            return (x * 0x0101'0101'0101'0101) >> 56;
+        }
+    }
+}
+
+#if WJR_HAS_BUILTIN(POPCOUNT)
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+    if constexpr (nd < 32) {
+        return builtin_popcount(static_cast<uint32_t>(x));
+    } else {
+        if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
+            return __builtin_popcount(x);
+        } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
+            return __builtin_popcountl(x);
+        }
+        if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
+            return __builtin_popcountll(x);
+        } else {
+            static_assert(nd <= 64, "not support yet");
+        }
+    }
+}
+
+#endif // WJR_HAS_BUILTIN(POPCOUNT)
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount_impl(T x) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(is_zero_or_single_bit(x))) {
+        return x != 0;
+    }
+
+#if WJR_HAS_BUILTIN(POPCOUNT)
+    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
+        return fallback_popcount(x);
+    }
+
+    return builtin_popcount(x);
+#else
+    return fallback_popcount(x);
+#endif
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount(T x) noexcept {
+    const int ret = popcount_impl(x);
+    WJR_ASSUME(0 <= ret && ret <= std::numeric_limits<T>::digits);
+    return ret;
+}
+
+} // namespace wjr
+
+#endif // WJR_MATH_POPCOUNT_HPP__
+
+#if WJR_HAS_BUILTIN(__builtin_clz)
+#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF
+#elif defined(WJR_MSVC) && defined(WJR_X86)
+#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF_VAR(2)
+#endif
+
+#if WJR_HAS_BUILTIN(CLZ) == 2
 #ifndef WJR_X86_SIMD_INTRIN_HPP__
 #define WJR_X86_SIMD_INTRIN_HPP__
 
@@ -3598,6 +3977,320 @@ inline constexpr simd_cast_fn<From, To> simd_cast;
 #endif
 
 #endif // WJR_X86_SIMD_INTRIN_HPP__
+#endif
+
+namespace wjr {
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int constexpr_clz(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+    x |= (x >> 1);
+    x |= (x >> 2);
+    x |= (x >> 4);
+
+    if constexpr (nd >= 16) {
+        x |= (x >> 8);
+    }
+
+    if constexpr (nd >= 32) {
+        x |= (x >> 16);
+    }
+
+    if constexpr (nd >= 64) {
+        x |= (x >> 32);
+    }
+
+    return fallback_popcount(~x);
+}
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_clz(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
+    if constexpr (nd >= 32) {
+#endif
+        x |= (x >> 1);
+        x |= (x >> 2);
+        x |= (x >> 4);
+
+        if constexpr (nd >= 16) {
+            x |= (x >> 8);
+        }
+
+        if constexpr (nd >= 32) {
+            x |= (x >> 16);
+        }
+
+        if constexpr (nd >= 64) {
+            x |= (x >> 32);
+        }
+#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
+    }
+#endif
+
+#if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
+    return popcount<T>(~x);
+#else
+    if constexpr (nd < 32) {
+        return fallback_clz(static_cast<uint32_t>(x)) - (32 - nd);
+    } else {
+        ++x;
+
+        if constexpr (nd <= 32) {
+            return math_detail::de_bruijn32.getr(x);
+        } else if constexpr (nd <= 64) {
+            return math_detail::de_bruijn64.getr(x);
+        } else {
+            static_assert(nd <= 64, "not support yet");
+        }
+    }
+#endif
+}
+
+#if WJR_HAS_BUILTIN(CLZ)
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+    if constexpr (nd < 32) {
+        return builtin_clz(static_cast<uint32_t>(x)) - (32 - nd);
+    } else {
+#if WJR_HAS_BUILTIN(CLZ) == 1
+        if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
+            constexpr auto delta = std::numeric_limits<unsigned int>::digits - nd;
+            return __builtin_clz(static_cast<unsigned int>(x)) - delta;
+        } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
+            constexpr auto delta = std::numeric_limits<unsigned long>::digits - nd;
+            return __builtin_clzl(static_cast<unsigned long>(x)) - delta;
+        } else if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
+            constexpr auto delta = std::numeric_limits<unsigned long long>::digits - nd;
+            return __builtin_clzll(static_cast<unsigned long long>(x)) - delta;
+        } else {
+            static_assert(nd <= 64, "not supported yet");
+        }
+#else
+        if constexpr (nd == 32) {
+            unsigned long result;
+            (void)_BitScanReverse(&result, x);
+            return 31 - result;
+        } else {
+            unsigned long result;
+            (void)_BitScanReverse64(&result, x);
+            return 63 - result;
+        }
+#endif
+    }
+}
+
+#endif
+
+/**
+ * @brief Fast count leading zeros
+ *
+ * @tparam T Must be an unsigned integral type
+ */
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
+#if WJR_HAS_BUILTIN(CLZ)
+    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
+        return fallback_clz(x);
+    }
+
+    return builtin_clz(x);
+#else
+    return fallback_clz(x);
+#endif
+}
+
+} // namespace wjr
+
+#endif // WJR_MATH_CLZ_HPP__
+#ifndef WJR_MATH_CTZ_HPP__
+#define WJR_MATH_CTZ_HPP__
+
+// Already included
+// Already included
+
+#if WJR_HAS_BUILTIN(__builtin_ctz)
+#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF
+#elif defined(WJR_MSVC) && defined(WJR_X86)
+#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF_VAR(2)
+#endif
+
+#if WJR_HAS_BUILTIN(CTZ) == 2
+// Already included
+#endif
+
+namespace wjr {
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int constexpr_ctz(T x) noexcept {
+    return fallback_popcount<T>(lowbit(x) - 1);
+}
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_ctz(T x) noexcept {
+#if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
+    return popcount<T>(lowbit(x) - 1);
+#else
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+    if constexpr (nd < 32) {
+        return fallback_ctz(static_cast<uint32_t>(x));
+    } else {
+        x = lowbit(x);
+
+        if constexpr (nd <= 32) {
+            return math_detail::de_bruijn32.get(x);
+        } else if constexpr (nd <= 64) {
+            return math_detail::de_bruijn64.get(x);
+        } else {
+            static_assert(nd <= 64, "not support yet");
+        }
+    }
+#endif //
+}
+
+#if WJR_HAS_BUILTIN(CTZ)
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+    if constexpr (nd < 32) {
+        return builtin_ctz(static_cast<uint32_t>(x));
+    } else {
+#if WJR_HAS_BUILTIN(CTZ) == 1
+        if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
+            return __builtin_ctz(static_cast<unsigned int>(x));
+        } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
+            return __builtin_ctzl(static_cast<unsigned long>(x));
+        } else if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
+            return __builtin_ctzll(static_cast<unsigned long long>(x));
+        } else {
+            static_assert(nd <= 64, "not supported yet");
+        }
+#else
+        if constexpr (nd == 32) {
+            unsigned long result;
+            (void)_BitScanForward(&result, x);
+            return result;
+        } else {
+            unsigned long result;
+            (void)_BitScanForward64(&result, x);
+            return result;
+        }
+#endif
+    }
+}
+
+#endif
+
+/**
+ * @brief Fast count trailing zeros
+ *
+ * @details Very fast even on non-optimized platforms by using a De Bruijn sequence. \n
+ * Try __builtin_clz if available, otherwise fallback to a portable implementation. \n
+ * In fallback_clz, use popcount and lowbit if POPCOUNT and POPCNT are available, make
+ * sure popcount is fast. \n
+ * Then use De Bruijn sequence, just a bit slower than popcount + lowbit.
+ *
+ * @tparam T Must be an unsigned integral type
+ */
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int ctz(T x) noexcept {
+#if WJR_HAS_BUILTIN(CTZ)
+    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
+        return fallback_ctz(x);
+    }
+
+    return builtin_ctz(x);
+#else
+    return fallback_ctz(x);
+#endif
+}
+
+} // namespace wjr
+
+#endif // WJR_MATH_CTZ_HPP__
+// Already included
+
+namespace wjr::simd_detail {
+
+template <typename T, size_t Size, size_t BitWidth>
+class basic_simd_mask {
+    using mask_type = uint_t<BitWidth>;
+    constexpr static size_t __mask_bits = BitWidth / Size;
+    constexpr static mask_type __half_mask =
+        static_cast<uint_t<BitWidth / 2>>(in_place_max);
+    constexpr static mask_type __full_mask = in_place_max;
+
+public:
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(basic_simd_mask);
+
+    constexpr basic_simd_mask(mask_type mask) noexcept : m_mask(mask) {}
+
+    WJR_PURE WJR_CONSTEXPR20 int clz() const noexcept {
+        WJR_ASSERT_ASSUME(m_mask != 0);
+
+        if constexpr (Size == 2) {
+            constexpr auto high_mask = __half_mask << (BitWidth / 2);
+
+            return (m_mask & high_mask) ? 0 : 1;
+        } else {
+            return ::wjr::clz(m_mask) / __mask_bits;
+        }
+    }
+
+    WJR_PURE WJR_CONSTEXPR20 int ctz() const noexcept {
+        WJR_ASSERT_ASSUME(m_mask != 0);
+
+        if constexpr (Size == 2) {
+            constexpr auto low_mask = __half_mask;
+
+            return (m_mask & low_mask) ? 0 : 1;
+        } else {
+            return ::wjr::ctz(m_mask) / __mask_bits;
+        }
+    }
+
+    WJR_PURE constexpr bool all() const noexcept { return m_mask == __full_mask; }
+
+private:
+    mask_type m_mask;
+};
+
+} // namespace wjr::simd_detail
+
+#endif // WJR_SIMD_SIMD_MASK_HPP__
+
+namespace wjr {
+
+namespace simd_abi {
+
+template <size_t N>
+struct fixed_size {};
+
+} // namespace simd_abi
+
+struct element_aligned_t {};
+inline constexpr element_aligned_t element_aligned{};
+
+struct vector_aligned_t {};
+inline constexpr vector_aligned_t vector_aligned{};
+
+template <typename T, typename Abi>
+class simd;
+
+template <typename T, size_t N>
+using fixed_size_simd = simd<T, simd_abi::fixed_size<N>>;
+
+} // namespace wjr
+
+#endif // WJR_SIMD_DETAIL_HPP__
+// Already included
 
 namespace wjr {
 
@@ -4680,630 +5373,6 @@ struct sse {
 #endif // SSE4_1
 };
 
-struct avx {
-    using mask_type = uint32_t;
-
-#if WJR_HAS_SIMD(AVX)
-
-    using float_type = __m256;
-    using float_tag_type = __m256_t;
-    using int_type = __m256i;
-    using int_tag_type = __m256i_t;
-    using double_type = __m256d;
-    using double_tag_type = __m256d_t;
-
-#endif // AVX
-
-    constexpr static size_t width();
-    constexpr static mask_type mask();
-
-#if WJR_HAS_SIMD(AVX)
-
-    WJR_INTRINSIC_INLINE static __m256i concat(__m128i a, __m128i b);
-
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static int extract_epi32(__m256i v);
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static int64_t extract_epi64(__m256i v);
-
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static int extract(__m256i v, int32_t);
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static int64_t extract(__m256i v, int64_t);
-
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static __m128i extract_si128(__m256i v);
-
-    WJR_INTRINSIC_INLINE static __m128i getlow(__m256i a);
-
-    WJR_INTRINSIC_INLINE static __m128i gethigh(__m256i a);
-
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static __m256i insert_epi8(__m256i v, int8_t i);
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static __m256i insert_epi16(__m256i v, int16_t i);
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static __m256i insert_epi32(__m256i v, int32_t i);
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static __m256i insert_epi64(__m256i v, int64_t i);
-
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static __m256i insert_si128(__m256i a, __m128i b);
-
-    WJR_INTRINSIC_INLINE static __m256i load(const void *p);
-    WJR_INTRINSIC_INLINE static __m256i loadu(const void *p);
-
-    WJR_INTRINSIC_INLINE static __m256i ones();
-
-    WJR_INTRINSIC_INLINE static __m256i loadu_si16(const void *ptr);
-    WJR_INTRINSIC_INLINE static __m256i loadu_si32(const void *ptr);
-    WJR_INTRINSIC_INLINE static __m256i loadu_si48(const void *ptr);
-    WJR_INTRINSIC_INLINE static __m256i loadu_si64(const void *ptr);
-    WJR_INTRINSIC_INLINE static __m256i loadu_si80(const void *ptr);
-    WJR_INTRINSIC_INLINE static __m256i loadu_si96(const void *ptr);
-    WJR_INTRINSIC_INLINE static __m256i loadu_si112(const void *ptr);
-    WJR_INTRINSIC_INLINE static __m256i loadu_si128(const void *ptr);
-    WJR_INTRINSIC_INLINE static __m256i loadu_si144(const void *ptr);
-    WJR_INTRINSIC_INLINE static __m256i loadu_si160(const void *ptr);
-    WJR_INTRINSIC_INLINE static __m256i loadu_si176(const void *ptr);
-    WJR_INTRINSIC_INLINE static __m256i loadu_si192(const void *ptr);
-    WJR_INTRINSIC_INLINE static __m256i loadu_si208(const void *ptr);
-    WJR_INTRINSIC_INLINE static __m256i loadu_si224(const void *ptr);
-    WJR_INTRINSIC_INLINE static __m256i loadu_si240(const void *ptr);
-    WJR_INTRINSIC_INLINE static __m256i loadu_si256(const void *ptr);
-
-    WJR_INTRINSIC_INLINE static __m256i loadu_si16x(const void *ptr, int n);
-
-    WJR_INTRINSIC_INLINE static __m256i
-    set_epi8(char e31, char e30, char e29, char e28, char e27, char e26, char e25,
-             char e24, char e23, char e22, char e21, char e20, char e19, char e18,
-             char e17, char e16, char e15, char e14, char e13, char e12, char e11,
-             char e10, char e9, char e8, char e7, char e6, char e5, char e4, char e3,
-             char e2, char e1, char e0);
-
-    WJR_INTRINSIC_INLINE static __m256i set_epi16(short e15, short e14, short e13,
-                                                  short e12, short e11, short e10,
-                                                  short e9, short e8, short e7, short e6,
-                                                  short e5, short e4, short e3, short e2,
-                                                  short e1, short e0);
-
-    WJR_INTRINSIC_INLINE static __m256i set_epi32(int e7, int e6, int e5, int e4, int e3,
-                                                  int e2, int e1, int e0);
-
-    WJR_INTRINSIC_INLINE static __m256i set_epi64x(long long e3, long long e2,
-                                                   long long e1, long long e0);
-
-    WJR_INTRINSIC_INLINE static __m256i
-    setr_epi8(char e31, char e30, char e29, char e28, char e27, char e26, char e25,
-              char e24, char e23, char e22, char e21, char e20, char e19, char e18,
-              char e17, char e16, char e15, char e14, char e13, char e12, char e11,
-              char e10, char e9, char e8, char e7, char e6, char e5, char e4, char e3,
-              char e2, char e1, char e0);
-
-    WJR_INTRINSIC_INLINE static __m256i setr_epi16(short e15, short e14, short e13,
-                                                   short e12, short e11, short e10,
-                                                   short e9, short e8, short e7, short e6,
-                                                   short e5, short e4, short e3, short e2,
-                                                   short e1, short e0);
-
-    WJR_INTRINSIC_INLINE static __m256i setr_epi32(int e7, int e6, int e5, int e4, int e3,
-                                                   int e2, int e1, int e0);
-
-    WJR_INTRINSIC_INLINE static __m256i setr_epi64x(long long e3, long long e2,
-                                                    long long e1, long long e0);
-
-    WJR_INTRINSIC_INLINE static __m256i set1_epi8(int8_t a);
-    WJR_INTRINSIC_INLINE static __m256i set1_epi16(int16_t a);
-    WJR_INTRINSIC_INLINE static __m256i set1_epi32(int32_t a);
-    WJR_INTRINSIC_INLINE static __m256i set1_epi64(int64_t a);
-
-    WJR_INTRINSIC_INLINE static __m256i set1(int8_t a, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i set1(int16_t a, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i set1(int32_t a, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i set1(int64_t a, int64_t);
-    WJR_INTRINSIC_INLINE static __m256i set1(uint8_t a, uint8_t);
-    WJR_INTRINSIC_INLINE static __m256i set1(uint16_t a, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i set1(uint32_t a, uint32_t);
-    WJR_INTRINSIC_INLINE static __m256i set1(uint64_t a, uint64_t);
-
-    WJR_INTRINSIC_INLINE static __m256i setmin_epi8();
-    WJR_INTRINSIC_INLINE static __m256i setmin_epi16();
-    WJR_INTRINSIC_INLINE static __m256i setmin_epi32();
-    WJR_INTRINSIC_INLINE static __m256i setmin_epi64();
-
-    WJR_INTRINSIC_INLINE static __m256i setmin(int8_t);
-    WJR_INTRINSIC_INLINE static __m256i setmin(int16_t);
-    WJR_INTRINSIC_INLINE static __m256i setmin(int32_t);
-    WJR_INTRINSIC_INLINE static __m256i setmin(int64_t);
-
-    WJR_INTRINSIC_INLINE static __m256i setmax_epi8();
-    WJR_INTRINSIC_INLINE static __m256i setmax_epi16();
-    WJR_INTRINSIC_INLINE static __m256i setmax_epi32();
-    WJR_INTRINSIC_INLINE static __m256i setmax_epi64();
-
-    WJR_INTRINSIC_INLINE static __m256i setmax(int8_t);
-    WJR_INTRINSIC_INLINE static __m256i setmax(int16_t);
-    WJR_INTRINSIC_INLINE static __m256i setmax(int32_t);
-    WJR_INTRINSIC_INLINE static __m256i setmax(int64_t);
-
-    WJR_INTRINSIC_INLINE static void stream(__m256i *p, __m256i a);
-
-    WJR_INTRINSIC_INLINE static void store(void *p, __m256i a);
-    WJR_INTRINSIC_INLINE static void storeu(void *p, __m256i a);
-
-    WJR_INTRINSIC_INLINE static int test_all_zeros(__m256i a);
-
-    WJR_INTRINSIC_INLINE static int testc(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static int testnzc(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static int testz(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i zeros();
-
-#endif // AVX
-
-#if WJR_HAS_SIMD(AVX2)
-
-    WJR_INTRINSIC_INLINE static __m256i And(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i AndNot(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i Or(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i Xor(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i Not(__m256i v);
-
-    WJR_INTRINSIC_INLINE static __m256i abs_epi8(__m256i v);
-    WJR_INTRINSIC_INLINE static __m256i abs_epi16(__m256i v);
-    WJR_INTRINSIC_INLINE static __m256i abs_epi32(__m256i v);
-
-    WJR_INTRINSIC_INLINE static __m256i abs(__m256i v, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i abs(__m256i v, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i abs(__m256i v, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i abs(__m256i v, int64_t);
-
-    WJR_INTRINSIC_INLINE static __m256i add_epi8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i add_epi16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i add_epi32(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i add_epi64(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i add(__m256i a, __m256i b, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i add(__m256i a, __m256i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i add(__m256i a, __m256i b, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i add(__m256i a, __m256i b, int64_t);
-    WJR_INTRINSIC_INLINE static __m256i add(__m256i a, __m256i b, uint8_t);
-    WJR_INTRINSIC_INLINE static __m256i add(__m256i a, __m256i b, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i add(__m256i a, __m256i b, uint32_t);
-    WJR_INTRINSIC_INLINE static __m256i add(__m256i a, __m256i b, uint64_t);
-
-    WJR_INTRINSIC_INLINE static uint8_t add_epu8(__m256i v);
-    WJR_INTRINSIC_INLINE static uint16_t add_epu16(__m256i v);
-    WJR_INTRINSIC_INLINE static uint32_t add_epu32(__m256i v);
-    WJR_INTRINSIC_INLINE static uint64_t add_epu64(__m256i v);
-
-    WJR_INTRINSIC_INLINE static int8_t add_epi8(__m256i v);
-    WJR_INTRINSIC_INLINE static int16_t add_epi16(__m256i v);
-    WJR_INTRINSIC_INLINE static int32_t add_epi32(__m256i v);
-    WJR_INTRINSIC_INLINE static int64_t add_epi64(__m256i v);
-
-    WJR_INTRINSIC_INLINE static int8_t add(__m256i v, int8_t);
-    WJR_INTRINSIC_INLINE static int16_t add(__m256i v, int16_t);
-    WJR_INTRINSIC_INLINE static int32_t add(__m256i v, int32_t);
-    WJR_INTRINSIC_INLINE static int64_t add(__m256i v, int64_t);
-    WJR_INTRINSIC_INLINE static uint8_t add(__m256i v, uint8_t);
-    WJR_INTRINSIC_INLINE static uint16_t add(__m256i v, uint16_t);
-    WJR_INTRINSIC_INLINE static uint32_t add(__m256i v, uint32_t);
-    WJR_INTRINSIC_INLINE static uint64_t add(__m256i v, uint64_t);
-
-    WJR_INTRINSIC_INLINE static __m256i adds_epi8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i adds_epi16(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i adds_epu8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i adds_epu16(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i adds(__m256i a, __m256i b, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i adds(__m256i a, __m256i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i adds(__m256i a, __m256i b, uint8_t);
-    WJR_INTRINSIC_INLINE static __m256i adds(__m256i a, __m256i b, uint16_t);
-
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i alignr_epi16(__m256i a, __m256i b, int c);
-    WJR_INTRINSIC_INLINE static __m256i alignr_epi32(__m256i a, __m256i b, int c);
-    WJR_INTRINSIC_INLINE static __m256i alignr_epi64(__m256i a, __m256i b, int c);
-
-    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, int64_t);
-    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, uint32_t);
-    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, uint64_t);
-
-    WJR_INTRINSIC_INLINE static __m256i avg_epu8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i avg_epu16(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i avg(__m256i a, __m256i b, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i avg(__m256i a, __m256i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i avg(__m256i a, __m256i b, uint8_t);
-    WJR_INTRINSIC_INLINE static __m256i avg(__m256i a, __m256i b, uint16_t);
-
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static __m256i blend_epi16(__m256i a, __m256i b);
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static __m256i blend_epi32(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i blendv_epi8(__m256i a, __m256i b, __m256i mask);
-
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static __m256i bslli_epi128(__m256i a);
-
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static __m256i bsrli_epi128(__m256i a);
-
-    WJR_INTRINSIC_INLINE static __m256i cmpeq_epi8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmpeq_epi16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmpeq_epi32(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmpeq_epi64(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i cmpeq(__m256i a, __m256i b, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpeq(__m256i a, __m256i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpeq(__m256i a, __m256i b, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpeq(__m256i a, __m256i b, int64_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpeq(__m256i a, __m256i b, uint8_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpeq(__m256i a, __m256i b, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpeq(__m256i a, __m256i b, uint32_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpeq(__m256i a, __m256i b, uint64_t);
-
-    WJR_INTRINSIC_INLINE static __m256i cmpge_epi8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmpge_epi16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmpge_epi32(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i cmpge_epu8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmpge_epu16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmpge_epu32(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i cmpge(__m256i a, __m256i b, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpge(__m256i a, __m256i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpge(__m256i a, __m256i b, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpge(__m256i a, __m256i b, uint8_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpge(__m256i a, __m256i b, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpge(__m256i a, __m256i b, uint32_t);
-
-    WJR_INTRINSIC_INLINE static __m256i cmpgt_epi8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmpgt_epi16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmpgt_epi32(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmpgt_epi64(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i cmpgt_epu8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmpgt_epu16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmpgt_epu32(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmpgt_epu64(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i cmpgt(__m256i a, __m256i b, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpgt(__m256i a, __m256i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpgt(__m256i a, __m256i b, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpgt(__m256i a, __m256i b, int64_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpgt(__m256i a, __m256i b, uint8_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpgt(__m256i a, __m256i b, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpgt(__m256i a, __m256i b, uint32_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpgt(__m256i a, __m256i b, uint64_t);
-
-    WJR_INTRINSIC_INLINE static __m256i cmple_epi8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmple_epi16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmple_epi32(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i cmple_epu8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmple_epu16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmple_epu32(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i cmple(__m256i a, __m256i b, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i cmple(__m256i a, __m256i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i cmple(__m256i a, __m256i b, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i cmple(__m256i a, __m256i b, uint8_t);
-    WJR_INTRINSIC_INLINE static __m256i cmple(__m256i a, __m256i b, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i cmple(__m256i a, __m256i b, uint32_t);
-
-    WJR_INTRINSIC_INLINE static __m256i cmplt_epi8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmplt_epi16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmplt_epi32(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i cmplt_epu8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmplt_epu16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmplt_epu32(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i cmplt(__m256i a, __m256i b, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i cmplt(__m256i a, __m256i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i cmplt(__m256i a, __m256i b, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i cmplt(__m256i a, __m256i b, uint8_t);
-    WJR_INTRINSIC_INLINE static __m256i cmplt(__m256i a, __m256i b, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i cmplt(__m256i a, __m256i b, uint32_t);
-
-    WJR_INTRINSIC_INLINE static __m256i cmpne_epi8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmpne_epi16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i cmpne_epi32(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i cmpne(__m256i a, __m256i b, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpne(__m256i a, __m256i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpne(__m256i a, __m256i b, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpne(__m256i a, __m256i b, uint8_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpne(__m256i a, __m256i b, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i cmpne(__m256i a, __m256i b, uint32_t);
-
-    template <typename T>
-    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::equal_to<>, T);
-    template <typename T>
-    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::not_equal_to<>, T);
-    template <typename T>
-    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::greater<>, T);
-    template <typename T>
-    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::greater_equal<>,
-                                            T);
-    template <typename T>
-    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::less<>, T);
-    template <typename T>
-    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::less_equal<>, T);
-
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static int extract_epi8(__m256i v);
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static int extract_epi16(__m256i v);
-
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static int extract(__m256i v, int8_t);
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static int extract(__m256i v, int16_t);
-
-    WJR_INTRINSIC_INLINE static __m256i hadd_epi16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i hadd_epi32(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i hadd(__m256i a, __m256i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i hadd(__m256i a, __m256i b, int32_t);
-
-    WJR_INTRINSIC_INLINE static __m256i hadds_epi16(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i hsub_epi16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i hsub_epi32(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i hsub(__m256i a, __m256i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i hsub(__m256i a, __m256i b, int32_t);
-
-    WJR_INTRINSIC_INLINE static __m256i hsubs_epi16(__m256i a, __m256i b);
-
-    template <typename T,
-              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                       uint16_t, uint32_t, uint64_t>)>
-    WJR_INTRINSIC_INLINE static __m256i logical_and(__m256i a, __m256i b, T);
-
-    template <typename T,
-              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                       uint16_t, uint32_t, uint64_t>)>
-    WJR_INTRINSIC_INLINE static __m256i logical_not(__m256i v, T);
-
-    template <typename T,
-              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                       uint16_t, uint32_t, uint64_t>)>
-    WJR_INTRINSIC_INLINE static __m256i logical_or(__m256i a, __m256i b, T);
-
-    WJR_INTRINSIC_INLINE static __m256i madd_epi16(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i max_epi8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i max_epi16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i max_epi32(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i max_epu8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i max_epu16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i max_epu32(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i max(__m256i a, __m256i b, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i max(__m256i a, __m256i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i max(__m256i a, __m256i b, uint8_t);
-    WJR_INTRINSIC_INLINE static __m256i max(__m256i a, __m256i b, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i max(__m256i a, __m256i b, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i max(__m256i a, __m256i b, uint32_t);
-
-    WJR_INTRINSIC_INLINE static int8_t max_epi8(__m256i a);
-    WJR_INTRINSIC_INLINE static int16_t max_epi16(__m256i a);
-    WJR_INTRINSIC_INLINE static int32_t max_epi32(__m256i a);
-    WJR_INTRINSIC_INLINE static uint8_t max_epu8(__m256i a);
-    WJR_INTRINSIC_INLINE static uint16_t max_epu16(__m256i a);
-    WJR_INTRINSIC_INLINE static uint32_t max_epu32(__m256i a);
-
-    WJR_INTRINSIC_INLINE static int8_t max(__m256i a, int8_t);
-    WJR_INTRINSIC_INLINE static int16_t max(__m256i a, int16_t);
-    WJR_INTRINSIC_INLINE static int32_t max(__m256i a, int32_t);
-
-    WJR_INTRINSIC_INLINE static uint8_t max(__m256i a, uint8_t);
-    WJR_INTRINSIC_INLINE static uint16_t max(__m256i a, uint16_t);
-    WJR_INTRINSIC_INLINE static uint32_t max(__m256i a, uint32_t);
-
-    WJR_INTRINSIC_INLINE static __m256i min_epi8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i min_epi16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i min_epi32(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i min_epu8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i min_epu16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i min_epu32(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i min(__m256i a, __m256i b, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i min(__m256i a, __m256i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i min(__m256i a, __m256i b, uint8_t);
-    WJR_INTRINSIC_INLINE static __m256i min(__m256i a, __m256i b, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i min(__m256i a, __m256i b, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i min(__m256i a, __m256i b, uint32_t);
-
-    WJR_INTRINSIC_INLINE static int8_t min_epi8(__m256i a);
-    WJR_INTRINSIC_INLINE static int16_t min_epi16(__m256i a);
-    WJR_INTRINSIC_INLINE static int32_t min_epi32(__m256i a);
-
-    WJR_INTRINSIC_INLINE static uint8_t min_epu8(__m256i a);
-    WJR_INTRINSIC_INLINE static uint16_t min_epu16(__m256i a);
-    WJR_INTRINSIC_INLINE static uint32_t min_epu32(__m256i a);
-
-    WJR_INTRINSIC_INLINE static int8_t min(__m256i a, int8_t);
-    WJR_INTRINSIC_INLINE static int16_t min(__m256i a, int16_t);
-    WJR_INTRINSIC_INLINE static int32_t min(__m256i a, int32_t);
-    WJR_INTRINSIC_INLINE static uint8_t min(__m256i a, uint8_t);
-    WJR_INTRINSIC_INLINE static uint16_t min(__m256i a, uint16_t);
-    WJR_INTRINSIC_INLINE static uint32_t min(__m256i a, uint32_t);
-
-    WJR_INTRINSIC_INLINE static mask_type movemask_epi8(__m256i a);
-
-    WJR_INTRINSIC_INLINE static __m256i mul_epi32(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i mul_epu32(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i mulhi_epi16(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i mulhi_epu16(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i mullo_epi16(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i packs_epi16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i packs_epi32(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i packus_epi16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i packus_epi32(__m256i a, __m256i b);
-
-    template <int imm>
-    WJR_INTRINSIC_INLINE static __m256i shl(__m256i a);
-
-    template <int imm>
-    WJR_INTRINSIC_INLINE static __m256i shr(__m256i a);
-
-    WJR_INTRINSIC_INLINE static __m256i shuffle_epi8(__m256i a, __m256i b);
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static __m256i shuffle_epi32(__m256i a);
-
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static __m256i shufflehi_epi16(__m256i a);
-
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static __m256i shufflelo_epi16(__m256i a);
-
-    WJR_INTRINSIC_INLINE static __m256i sll_epi16(__m256i a, __m128i b);
-    WJR_INTRINSIC_INLINE static __m256i sll_epi32(__m256i a, __m128i b);
-    WJR_INTRINSIC_INLINE static __m256i sll_epi64(__m256i a, __m128i b);
-
-    WJR_INTRINSIC_INLINE static __m256i sll(__m256i a, __m128i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i sll(__m256i a, __m128i b, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i sll(__m256i a, __m128i b, int64_t);
-    WJR_INTRINSIC_INLINE static __m256i sll(__m256i a, __m128i b, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i sll(__m256i a, __m128i b, uint32_t);
-    WJR_INTRINSIC_INLINE static __m256i sll(__m256i a, __m128i b, uint64_t);
-
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static __m256i slli(__m256i a);
-    WJR_INTRINSIC_INLINE static __m256i slli_epi16(__m256i a, int imm8);
-    WJR_INTRINSIC_INLINE static __m256i slli_epi32(__m256i a, int imm8);
-    WJR_INTRINSIC_INLINE static __m256i slli_epi64(__m256i a, int imm8);
-
-    WJR_INTRINSIC_INLINE static __m256i slli(__m256i a, int imm8, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i slli(__m256i a, int imm8, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i slli(__m256i a, int imm8, int64_t);
-    WJR_INTRINSIC_INLINE static __m256i slli(__m256i a, int imm8, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i slli(__m256i a, int imm8, uint32_t);
-    WJR_INTRINSIC_INLINE static __m256i slli(__m256i a, int imm8, uint64_t);
-
-    WJR_INTRINSIC_INLINE static __m256i sra_epi16(__m256i a, __m128i b);
-    WJR_INTRINSIC_INLINE static __m256i sra_epi32(__m256i a, __m128i b);
-
-    WJR_INTRINSIC_INLINE static __m256i sra(__m256i a, __m128i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i sra(__m256i a, __m128i b, int32_t);
-
-    WJR_INTRINSIC_INLINE static __m256i srai_epi16(__m256i a, int imm8);
-    WJR_INTRINSIC_INLINE static __m256i srai_epi32(__m256i a, int imm8);
-
-    WJR_INTRINSIC_INLINE static __m256i srai(__m256i a, int imm8, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i srai(__m256i a, int imm8, int32_t);
-
-    WJR_INTRINSIC_INLINE static __m256i stream_load(const void *p);
-
-    WJR_INTRINSIC_INLINE static __m256i srl_epi16(__m256i a, __m128i b);
-    WJR_INTRINSIC_INLINE static __m256i srl_epi32(__m256i a, __m128i b);
-    WJR_INTRINSIC_INLINE static __m256i srl_epi64(__m256i a, __m128i b);
-
-    WJR_INTRINSIC_INLINE static __m256i srl(__m256i a, __m128i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i srl(__m256i a, __m128i b, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i srl(__m256i a, __m128i b, int64_t);
-    WJR_INTRINSIC_INLINE static __m256i srl(__m256i a, __m128i b, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i srl(__m256i a, __m128i b, uint32_t);
-    WJR_INTRINSIC_INLINE static __m256i srl(__m256i a, __m128i b, uint64_t);
-
-    template <int imm8>
-    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a);
-    WJR_INTRINSIC_INLINE static __m256i srli_epi8(__m256i a, int imm8);
-    WJR_INTRINSIC_INLINE static __m256i srli_epi16(__m256i a, int imm8);
-    WJR_INTRINSIC_INLINE static __m256i srli_epi32(__m256i a, int imm8);
-    WJR_INTRINSIC_INLINE static __m256i srli_epi64(__m256i a, int imm8);
-
-    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, int64_t);
-    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, uint8_t);
-    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, uint32_t);
-    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, uint64_t);
-
-    WJR_INTRINSIC_INLINE static __m256i sub_epi8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i sub_epi16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i sub_epi32(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i sub_epi64(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i sub(__m256i a, __m256i b, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i sub(__m256i a, __m256i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i sub(__m256i a, __m256i b, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i sub(__m256i a, __m256i b, int64_t);
-    WJR_INTRINSIC_INLINE static __m256i sub(__m256i a, __m256i b, uint8_t);
-    WJR_INTRINSIC_INLINE static __m256i sub(__m256i a, __m256i b, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i sub(__m256i a, __m256i b, uint32_t);
-    WJR_INTRINSIC_INLINE static __m256i sub(__m256i a, __m256i b, uint64_t);
-
-    WJR_INTRINSIC_INLINE static __m256i subs_epi8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i subs_epi16(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i subs_epu8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i subs_epu16(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i subs(__m256i a, __m256i b, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i subs(__m256i a, __m256i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i subs(__m256i a, __m256i b, uint8_t);
-    WJR_INTRINSIC_INLINE static __m256i subs(__m256i a, __m256i b, uint16_t);
-
-    WJR_INTRINSIC_INLINE static int test_all_ones(__m256i a);
-
-    WJR_INTRINSIC_INLINE static __m256i unpackhi_epi8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i unpackhi_epi16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i unpackhi_epi32(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i unpackhi_epi64(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i unpackhi(__m256i a, __m256i b, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i unpackhi(__m256i a, __m256i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i unpackhi(__m256i a, __m256i b, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i unpackhi(__m256i a, __m256i b, int64_t);
-    WJR_INTRINSIC_INLINE static __m256i unpackhi(__m256i a, __m256i b, uint8_t);
-    WJR_INTRINSIC_INLINE static __m256i unpackhi(__m256i a, __m256i b, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i unpackhi(__m256i a, __m256i b, uint32_t);
-    WJR_INTRINSIC_INLINE static __m256i unpackhi(__m256i a, __m256i b, uint64_t);
-
-    WJR_INTRINSIC_INLINE static __m256i unpacklo_epi8(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i unpacklo_epi16(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i unpacklo_epi32(__m256i a, __m256i b);
-    WJR_INTRINSIC_INLINE static __m256i unpacklo_epi64(__m256i a, __m256i b);
-
-    WJR_INTRINSIC_INLINE static __m256i unpacklo(__m256i a, __m256i b, int8_t);
-    WJR_INTRINSIC_INLINE static __m256i unpacklo(__m256i a, __m256i b, int16_t);
-    WJR_INTRINSIC_INLINE static __m256i unpacklo(__m256i a, __m256i b, int32_t);
-    WJR_INTRINSIC_INLINE static __m256i unpacklo(__m256i a, __m256i b, int64_t);
-    WJR_INTRINSIC_INLINE static __m256i unpacklo(__m256i a, __m256i b, uint8_t);
-    WJR_INTRINSIC_INLINE static __m256i unpacklo(__m256i a, __m256i b, uint16_t);
-    WJR_INTRINSIC_INLINE static __m256i unpacklo(__m256i a, __m256i b, uint32_t);
-
-#endif // AVX2
-};
-
 namespace sse_detail {
 #if WJR_HAS_SIMD(SSE2)
 
@@ -5315,18 +5384,6 @@ const static __m128i srli_epi8_mask[8] = {
 
 #endif
 } // namespace sse_detail
-
-namespace avx_detail {
-#if WJR_HAS_SIMD(AVX2)
-
-const static __m256i srli_epi8_mask[8] = {
-    avx::set1_epi16(0xFFFF), avx::set1_epi16(0x7F7F), avx::set1_epi16(0x3F3F),
-    avx::set1_epi16(0x1F1F), avx::set1_epi16(0xF0F),  avx::set1_epi16(0x707),
-    avx::set1_epi16(0x303),  avx::set1_epi16(0x101),
-};
-
-#endif
-} // namespace avx_detail
 
 #if WJR_HAS_SIMD(SSE2)
 
@@ -5364,54 +5421,6 @@ struct broadcast_fn<__m128i_t, __m128i_t> {
 };
 
 #endif // SSE2
-
-#if WJR_HAS_SIMD(AVX)
-
-template <>
-struct broadcast_fn<uint8_t, __m256i_t> {
-    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint8_t v) const {
-        return _mm256_set1_epi8(v);
-    }
-};
-
-template <>
-struct broadcast_fn<uint16_t, __m256i_t> {
-    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint16_t v) const {
-        return _mm256_set1_epi16(v);
-    }
-};
-
-template <>
-struct broadcast_fn<uint32_t, __m256i_t> {
-    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint32_t v) const {
-        return _mm256_set1_epi32(v);
-    }
-};
-
-template <>
-struct broadcast_fn<uint64_t, __m256i_t> {
-    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint64_t v) const {
-        return _mm256_set1_epi64x(v);
-    }
-};
-
-template <>
-struct broadcast_fn<__m256i_t, __m256i_t> {
-    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(__m256i v) const { return v; }
-};
-
-template <>
-struct broadcast_fn<__m128i_t, __m256i_t> {
-    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(__m128i v) const {
-#if WJR_HAS_SIMD(AVX2)
-        return _mm256_broadcastsi128_si256(v);
-#else
-        return _mm256_insertf128_si256(_mm256_castsi128_si256(v), v, 1);
-#endif
-    }
-};
-
-#endif // AVX
 
 /*------------------------sse------------------------*/
 
@@ -6684,6 +6693,696 @@ int sse::testz(__m128i a, __m128i b) { return _mm_testz_si128(a, b); }
 
 #endif
 
+} // namespace wjr
+
+#endif // WJR_X86_SIMD_SSE_HPP__
+
+namespace wjr {
+
+struct avx {
+    using mask_type = uint32_t;
+
+#if WJR_HAS_SIMD(AVX)
+
+    using float_type = __m256;
+    using float_tag_type = __m256_t;
+    using int_type = __m256i;
+    using int_tag_type = __m256i_t;
+    using double_type = __m256d;
+    using double_tag_type = __m256d_t;
+
+#endif // AVX
+
+    constexpr static size_t width();
+    constexpr static mask_type mask();
+
+#if WJR_HAS_SIMD(AVX)
+
+    WJR_INTRINSIC_INLINE static __m256i concat(__m128i a, __m128i b);
+
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static int extract_epi32(__m256i v);
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static int64_t extract_epi64(__m256i v);
+
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static int extract(__m256i v, int32_t);
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static int64_t extract(__m256i v, int64_t);
+
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static __m128i extract_si128(__m256i v);
+
+    WJR_INTRINSIC_INLINE static __m128i getlow(__m256i a);
+
+    WJR_INTRINSIC_INLINE static __m128i gethigh(__m256i a);
+
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static __m256i insert_epi8(__m256i v, int8_t i);
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static __m256i insert_epi16(__m256i v, int16_t i);
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static __m256i insert_epi32(__m256i v, int32_t i);
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static __m256i insert_epi64(__m256i v, int64_t i);
+
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static __m256i insert_si128(__m256i a, __m128i b);
+
+    WJR_INTRINSIC_INLINE static __m256i load(const void *p);
+    WJR_INTRINSIC_INLINE static __m256i loadu(const void *p);
+
+    WJR_INTRINSIC_INLINE static __m256i ones();
+
+    WJR_INTRINSIC_INLINE static __m256i loadu_si16(const void *ptr);
+    WJR_INTRINSIC_INLINE static __m256i loadu_si32(const void *ptr);
+    WJR_INTRINSIC_INLINE static __m256i loadu_si48(const void *ptr);
+    WJR_INTRINSIC_INLINE static __m256i loadu_si64(const void *ptr);
+    WJR_INTRINSIC_INLINE static __m256i loadu_si80(const void *ptr);
+    WJR_INTRINSIC_INLINE static __m256i loadu_si96(const void *ptr);
+    WJR_INTRINSIC_INLINE static __m256i loadu_si112(const void *ptr);
+    WJR_INTRINSIC_INLINE static __m256i loadu_si128(const void *ptr);
+    WJR_INTRINSIC_INLINE static __m256i loadu_si144(const void *ptr);
+    WJR_INTRINSIC_INLINE static __m256i loadu_si160(const void *ptr);
+    WJR_INTRINSIC_INLINE static __m256i loadu_si176(const void *ptr);
+    WJR_INTRINSIC_INLINE static __m256i loadu_si192(const void *ptr);
+    WJR_INTRINSIC_INLINE static __m256i loadu_si208(const void *ptr);
+    WJR_INTRINSIC_INLINE static __m256i loadu_si224(const void *ptr);
+    WJR_INTRINSIC_INLINE static __m256i loadu_si240(const void *ptr);
+    WJR_INTRINSIC_INLINE static __m256i loadu_si256(const void *ptr);
+
+    WJR_INTRINSIC_INLINE static __m256i loadu_si16x(const void *ptr, int n);
+
+    WJR_INTRINSIC_INLINE static __m256i
+    set_epi8(char e31, char e30, char e29, char e28, char e27, char e26, char e25,
+             char e24, char e23, char e22, char e21, char e20, char e19, char e18,
+             char e17, char e16, char e15, char e14, char e13, char e12, char e11,
+             char e10, char e9, char e8, char e7, char e6, char e5, char e4, char e3,
+             char e2, char e1, char e0);
+
+    WJR_INTRINSIC_INLINE static __m256i set_epi16(short e15, short e14, short e13,
+                                                  short e12, short e11, short e10,
+                                                  short e9, short e8, short e7, short e6,
+                                                  short e5, short e4, short e3, short e2,
+                                                  short e1, short e0);
+
+    WJR_INTRINSIC_INLINE static __m256i set_epi32(int e7, int e6, int e5, int e4, int e3,
+                                                  int e2, int e1, int e0);
+
+    WJR_INTRINSIC_INLINE static __m256i set_epi64x(long long e3, long long e2,
+                                                   long long e1, long long e0);
+
+    WJR_INTRINSIC_INLINE static __m256i
+    setr_epi8(char e31, char e30, char e29, char e28, char e27, char e26, char e25,
+              char e24, char e23, char e22, char e21, char e20, char e19, char e18,
+              char e17, char e16, char e15, char e14, char e13, char e12, char e11,
+              char e10, char e9, char e8, char e7, char e6, char e5, char e4, char e3,
+              char e2, char e1, char e0);
+
+    WJR_INTRINSIC_INLINE static __m256i setr_epi16(short e15, short e14, short e13,
+                                                   short e12, short e11, short e10,
+                                                   short e9, short e8, short e7, short e6,
+                                                   short e5, short e4, short e3, short e2,
+                                                   short e1, short e0);
+
+    WJR_INTRINSIC_INLINE static __m256i setr_epi32(int e7, int e6, int e5, int e4, int e3,
+                                                   int e2, int e1, int e0);
+
+    WJR_INTRINSIC_INLINE static __m256i setr_epi64x(long long e3, long long e2,
+                                                    long long e1, long long e0);
+
+    WJR_INTRINSIC_INLINE static __m256i set1_epi8(int8_t a);
+    WJR_INTRINSIC_INLINE static __m256i set1_epi16(int16_t a);
+    WJR_INTRINSIC_INLINE static __m256i set1_epi32(int32_t a);
+    WJR_INTRINSIC_INLINE static __m256i set1_epi64(int64_t a);
+
+    WJR_INTRINSIC_INLINE static __m256i set1(int8_t a, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i set1(int16_t a, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i set1(int32_t a, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i set1(int64_t a, int64_t);
+    WJR_INTRINSIC_INLINE static __m256i set1(uint8_t a, uint8_t);
+    WJR_INTRINSIC_INLINE static __m256i set1(uint16_t a, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i set1(uint32_t a, uint32_t);
+    WJR_INTRINSIC_INLINE static __m256i set1(uint64_t a, uint64_t);
+
+    WJR_INTRINSIC_INLINE static __m256i setmin_epi8();
+    WJR_INTRINSIC_INLINE static __m256i setmin_epi16();
+    WJR_INTRINSIC_INLINE static __m256i setmin_epi32();
+    WJR_INTRINSIC_INLINE static __m256i setmin_epi64();
+
+    WJR_INTRINSIC_INLINE static __m256i setmin(int8_t);
+    WJR_INTRINSIC_INLINE static __m256i setmin(int16_t);
+    WJR_INTRINSIC_INLINE static __m256i setmin(int32_t);
+    WJR_INTRINSIC_INLINE static __m256i setmin(int64_t);
+
+    WJR_INTRINSIC_INLINE static __m256i setmax_epi8();
+    WJR_INTRINSIC_INLINE static __m256i setmax_epi16();
+    WJR_INTRINSIC_INLINE static __m256i setmax_epi32();
+    WJR_INTRINSIC_INLINE static __m256i setmax_epi64();
+
+    WJR_INTRINSIC_INLINE static __m256i setmax(int8_t);
+    WJR_INTRINSIC_INLINE static __m256i setmax(int16_t);
+    WJR_INTRINSIC_INLINE static __m256i setmax(int32_t);
+    WJR_INTRINSIC_INLINE static __m256i setmax(int64_t);
+
+    WJR_INTRINSIC_INLINE static void stream(__m256i *p, __m256i a);
+
+    WJR_INTRINSIC_INLINE static void store(void *p, __m256i a);
+    WJR_INTRINSIC_INLINE static void storeu(void *p, __m256i a);
+
+    WJR_INTRINSIC_INLINE static int test_all_zeros(__m256i a);
+
+    WJR_INTRINSIC_INLINE static int testc(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static int testnzc(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static int testz(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i zeros();
+
+#endif // AVX
+
+#if WJR_HAS_SIMD(AVX2)
+
+    WJR_INTRINSIC_INLINE static __m256i And(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i AndNot(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i Or(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i Xor(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i Not(__m256i v);
+
+    WJR_INTRINSIC_INLINE static __m256i abs_epi8(__m256i v);
+    WJR_INTRINSIC_INLINE static __m256i abs_epi16(__m256i v);
+    WJR_INTRINSIC_INLINE static __m256i abs_epi32(__m256i v);
+
+    WJR_INTRINSIC_INLINE static __m256i abs(__m256i v, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i abs(__m256i v, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i abs(__m256i v, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i abs(__m256i v, int64_t);
+
+    WJR_INTRINSIC_INLINE static __m256i add_epi8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i add_epi16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i add_epi32(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i add_epi64(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i add(__m256i a, __m256i b, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i add(__m256i a, __m256i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i add(__m256i a, __m256i b, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i add(__m256i a, __m256i b, int64_t);
+    WJR_INTRINSIC_INLINE static __m256i add(__m256i a, __m256i b, uint8_t);
+    WJR_INTRINSIC_INLINE static __m256i add(__m256i a, __m256i b, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i add(__m256i a, __m256i b, uint32_t);
+    WJR_INTRINSIC_INLINE static __m256i add(__m256i a, __m256i b, uint64_t);
+
+    WJR_INTRINSIC_INLINE static uint8_t add_epu8(__m256i v);
+    WJR_INTRINSIC_INLINE static uint16_t add_epu16(__m256i v);
+    WJR_INTRINSIC_INLINE static uint32_t add_epu32(__m256i v);
+    WJR_INTRINSIC_INLINE static uint64_t add_epu64(__m256i v);
+
+    WJR_INTRINSIC_INLINE static int8_t add_epi8(__m256i v);
+    WJR_INTRINSIC_INLINE static int16_t add_epi16(__m256i v);
+    WJR_INTRINSIC_INLINE static int32_t add_epi32(__m256i v);
+    WJR_INTRINSIC_INLINE static int64_t add_epi64(__m256i v);
+
+    WJR_INTRINSIC_INLINE static int8_t add(__m256i v, int8_t);
+    WJR_INTRINSIC_INLINE static int16_t add(__m256i v, int16_t);
+    WJR_INTRINSIC_INLINE static int32_t add(__m256i v, int32_t);
+    WJR_INTRINSIC_INLINE static int64_t add(__m256i v, int64_t);
+    WJR_INTRINSIC_INLINE static uint8_t add(__m256i v, uint8_t);
+    WJR_INTRINSIC_INLINE static uint16_t add(__m256i v, uint16_t);
+    WJR_INTRINSIC_INLINE static uint32_t add(__m256i v, uint32_t);
+    WJR_INTRINSIC_INLINE static uint64_t add(__m256i v, uint64_t);
+
+    WJR_INTRINSIC_INLINE static __m256i adds_epi8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i adds_epi16(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i adds_epu8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i adds_epu16(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i adds(__m256i a, __m256i b, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i adds(__m256i a, __m256i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i adds(__m256i a, __m256i b, uint8_t);
+    WJR_INTRINSIC_INLINE static __m256i adds(__m256i a, __m256i b, uint16_t);
+
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i alignr_epi16(__m256i a, __m256i b, int c);
+    WJR_INTRINSIC_INLINE static __m256i alignr_epi32(__m256i a, __m256i b, int c);
+    WJR_INTRINSIC_INLINE static __m256i alignr_epi64(__m256i a, __m256i b, int c);
+
+    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, int64_t);
+    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, uint32_t);
+    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, uint64_t);
+
+    WJR_INTRINSIC_INLINE static __m256i avg_epu8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i avg_epu16(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i avg(__m256i a, __m256i b, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i avg(__m256i a, __m256i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i avg(__m256i a, __m256i b, uint8_t);
+    WJR_INTRINSIC_INLINE static __m256i avg(__m256i a, __m256i b, uint16_t);
+
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static __m256i blend_epi16(__m256i a, __m256i b);
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static __m256i blend_epi32(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i blendv_epi8(__m256i a, __m256i b, __m256i mask);
+
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static __m256i bslli_epi128(__m256i a);
+
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static __m256i bsrli_epi128(__m256i a);
+
+    WJR_INTRINSIC_INLINE static __m256i cmpeq_epi8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmpeq_epi16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmpeq_epi32(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmpeq_epi64(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i cmpeq(__m256i a, __m256i b, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpeq(__m256i a, __m256i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpeq(__m256i a, __m256i b, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpeq(__m256i a, __m256i b, int64_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpeq(__m256i a, __m256i b, uint8_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpeq(__m256i a, __m256i b, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpeq(__m256i a, __m256i b, uint32_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpeq(__m256i a, __m256i b, uint64_t);
+
+    WJR_INTRINSIC_INLINE static __m256i cmpge_epi8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmpge_epi16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmpge_epi32(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i cmpge_epu8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmpge_epu16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmpge_epu32(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i cmpge(__m256i a, __m256i b, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpge(__m256i a, __m256i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpge(__m256i a, __m256i b, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpge(__m256i a, __m256i b, uint8_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpge(__m256i a, __m256i b, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpge(__m256i a, __m256i b, uint32_t);
+
+    WJR_INTRINSIC_INLINE static __m256i cmpgt_epi8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmpgt_epi16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmpgt_epi32(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmpgt_epi64(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i cmpgt_epu8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmpgt_epu16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmpgt_epu32(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmpgt_epu64(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i cmpgt(__m256i a, __m256i b, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpgt(__m256i a, __m256i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpgt(__m256i a, __m256i b, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpgt(__m256i a, __m256i b, int64_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpgt(__m256i a, __m256i b, uint8_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpgt(__m256i a, __m256i b, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpgt(__m256i a, __m256i b, uint32_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpgt(__m256i a, __m256i b, uint64_t);
+
+    WJR_INTRINSIC_INLINE static __m256i cmple_epi8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmple_epi16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmple_epi32(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i cmple_epu8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmple_epu16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmple_epu32(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i cmple(__m256i a, __m256i b, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i cmple(__m256i a, __m256i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i cmple(__m256i a, __m256i b, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i cmple(__m256i a, __m256i b, uint8_t);
+    WJR_INTRINSIC_INLINE static __m256i cmple(__m256i a, __m256i b, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i cmple(__m256i a, __m256i b, uint32_t);
+
+    WJR_INTRINSIC_INLINE static __m256i cmplt_epi8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmplt_epi16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmplt_epi32(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i cmplt_epu8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmplt_epu16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmplt_epu32(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i cmplt(__m256i a, __m256i b, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i cmplt(__m256i a, __m256i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i cmplt(__m256i a, __m256i b, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i cmplt(__m256i a, __m256i b, uint8_t);
+    WJR_INTRINSIC_INLINE static __m256i cmplt(__m256i a, __m256i b, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i cmplt(__m256i a, __m256i b, uint32_t);
+
+    WJR_INTRINSIC_INLINE static __m256i cmpne_epi8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmpne_epi16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i cmpne_epi32(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i cmpne(__m256i a, __m256i b, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpne(__m256i a, __m256i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpne(__m256i a, __m256i b, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpne(__m256i a, __m256i b, uint8_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpne(__m256i a, __m256i b, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i cmpne(__m256i a, __m256i b, uint32_t);
+
+    template <typename T>
+    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::equal_to<>, T);
+    template <typename T>
+    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::not_equal_to<>, T);
+    template <typename T>
+    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::greater<>, T);
+    template <typename T>
+    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::greater_equal<>,
+                                            T);
+    template <typename T>
+    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::less<>, T);
+    template <typename T>
+    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::less_equal<>, T);
+
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static int extract_epi8(__m256i v);
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static int extract_epi16(__m256i v);
+
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static int extract(__m256i v, int8_t);
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static int extract(__m256i v, int16_t);
+
+    WJR_INTRINSIC_INLINE static __m256i hadd_epi16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i hadd_epi32(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i hadd(__m256i a, __m256i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i hadd(__m256i a, __m256i b, int32_t);
+
+    WJR_INTRINSIC_INLINE static __m256i hadds_epi16(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i hsub_epi16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i hsub_epi32(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i hsub(__m256i a, __m256i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i hsub(__m256i a, __m256i b, int32_t);
+
+    WJR_INTRINSIC_INLINE static __m256i hsubs_epi16(__m256i a, __m256i b);
+
+    template <typename T,
+              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                       uint16_t, uint32_t, uint64_t>)>
+    WJR_INTRINSIC_INLINE static __m256i logical_and(__m256i a, __m256i b, T);
+
+    template <typename T,
+              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                       uint16_t, uint32_t, uint64_t>)>
+    WJR_INTRINSIC_INLINE static __m256i logical_not(__m256i v, T);
+
+    template <typename T,
+              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                       uint16_t, uint32_t, uint64_t>)>
+    WJR_INTRINSIC_INLINE static __m256i logical_or(__m256i a, __m256i b, T);
+
+    WJR_INTRINSIC_INLINE static __m256i madd_epi16(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i max_epi8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i max_epi16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i max_epi32(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i max_epu8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i max_epu16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i max_epu32(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i max(__m256i a, __m256i b, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i max(__m256i a, __m256i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i max(__m256i a, __m256i b, uint8_t);
+    WJR_INTRINSIC_INLINE static __m256i max(__m256i a, __m256i b, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i max(__m256i a, __m256i b, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i max(__m256i a, __m256i b, uint32_t);
+
+    WJR_INTRINSIC_INLINE static int8_t max_epi8(__m256i a);
+    WJR_INTRINSIC_INLINE static int16_t max_epi16(__m256i a);
+    WJR_INTRINSIC_INLINE static int32_t max_epi32(__m256i a);
+    WJR_INTRINSIC_INLINE static uint8_t max_epu8(__m256i a);
+    WJR_INTRINSIC_INLINE static uint16_t max_epu16(__m256i a);
+    WJR_INTRINSIC_INLINE static uint32_t max_epu32(__m256i a);
+
+    WJR_INTRINSIC_INLINE static int8_t max(__m256i a, int8_t);
+    WJR_INTRINSIC_INLINE static int16_t max(__m256i a, int16_t);
+    WJR_INTRINSIC_INLINE static int32_t max(__m256i a, int32_t);
+
+    WJR_INTRINSIC_INLINE static uint8_t max(__m256i a, uint8_t);
+    WJR_INTRINSIC_INLINE static uint16_t max(__m256i a, uint16_t);
+    WJR_INTRINSIC_INLINE static uint32_t max(__m256i a, uint32_t);
+
+    WJR_INTRINSIC_INLINE static __m256i min_epi8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i min_epi16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i min_epi32(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i min_epu8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i min_epu16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i min_epu32(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i min(__m256i a, __m256i b, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i min(__m256i a, __m256i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i min(__m256i a, __m256i b, uint8_t);
+    WJR_INTRINSIC_INLINE static __m256i min(__m256i a, __m256i b, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i min(__m256i a, __m256i b, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i min(__m256i a, __m256i b, uint32_t);
+
+    WJR_INTRINSIC_INLINE static int8_t min_epi8(__m256i a);
+    WJR_INTRINSIC_INLINE static int16_t min_epi16(__m256i a);
+    WJR_INTRINSIC_INLINE static int32_t min_epi32(__m256i a);
+
+    WJR_INTRINSIC_INLINE static uint8_t min_epu8(__m256i a);
+    WJR_INTRINSIC_INLINE static uint16_t min_epu16(__m256i a);
+    WJR_INTRINSIC_INLINE static uint32_t min_epu32(__m256i a);
+
+    WJR_INTRINSIC_INLINE static int8_t min(__m256i a, int8_t);
+    WJR_INTRINSIC_INLINE static int16_t min(__m256i a, int16_t);
+    WJR_INTRINSIC_INLINE static int32_t min(__m256i a, int32_t);
+    WJR_INTRINSIC_INLINE static uint8_t min(__m256i a, uint8_t);
+    WJR_INTRINSIC_INLINE static uint16_t min(__m256i a, uint16_t);
+    WJR_INTRINSIC_INLINE static uint32_t min(__m256i a, uint32_t);
+
+    WJR_INTRINSIC_INLINE static mask_type movemask_epi8(__m256i a);
+
+    WJR_INTRINSIC_INLINE static __m256i mul_epi32(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i mul_epu32(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i mulhi_epi16(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i mulhi_epu16(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i mullo_epi16(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i packs_epi16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i packs_epi32(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i packus_epi16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i packus_epi32(__m256i a, __m256i b);
+
+    template <int imm>
+    WJR_INTRINSIC_INLINE static __m256i shl(__m256i a);
+
+    template <int imm>
+    WJR_INTRINSIC_INLINE static __m256i shr(__m256i a);
+
+    WJR_INTRINSIC_INLINE static __m256i shuffle_epi8(__m256i a, __m256i b);
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static __m256i shuffle_epi32(__m256i a);
+
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static __m256i shufflehi_epi16(__m256i a);
+
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static __m256i shufflelo_epi16(__m256i a);
+
+    WJR_INTRINSIC_INLINE static __m256i sll_epi16(__m256i a, __m128i b);
+    WJR_INTRINSIC_INLINE static __m256i sll_epi32(__m256i a, __m128i b);
+    WJR_INTRINSIC_INLINE static __m256i sll_epi64(__m256i a, __m128i b);
+
+    WJR_INTRINSIC_INLINE static __m256i sll(__m256i a, __m128i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i sll(__m256i a, __m128i b, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i sll(__m256i a, __m128i b, int64_t);
+    WJR_INTRINSIC_INLINE static __m256i sll(__m256i a, __m128i b, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i sll(__m256i a, __m128i b, uint32_t);
+    WJR_INTRINSIC_INLINE static __m256i sll(__m256i a, __m128i b, uint64_t);
+
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static __m256i slli(__m256i a);
+    WJR_INTRINSIC_INLINE static __m256i slli_epi16(__m256i a, int imm8);
+    WJR_INTRINSIC_INLINE static __m256i slli_epi32(__m256i a, int imm8);
+    WJR_INTRINSIC_INLINE static __m256i slli_epi64(__m256i a, int imm8);
+
+    WJR_INTRINSIC_INLINE static __m256i slli(__m256i a, int imm8, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i slli(__m256i a, int imm8, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i slli(__m256i a, int imm8, int64_t);
+    WJR_INTRINSIC_INLINE static __m256i slli(__m256i a, int imm8, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i slli(__m256i a, int imm8, uint32_t);
+    WJR_INTRINSIC_INLINE static __m256i slli(__m256i a, int imm8, uint64_t);
+
+    WJR_INTRINSIC_INLINE static __m256i sra_epi16(__m256i a, __m128i b);
+    WJR_INTRINSIC_INLINE static __m256i sra_epi32(__m256i a, __m128i b);
+
+    WJR_INTRINSIC_INLINE static __m256i sra(__m256i a, __m128i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i sra(__m256i a, __m128i b, int32_t);
+
+    WJR_INTRINSIC_INLINE static __m256i srai_epi16(__m256i a, int imm8);
+    WJR_INTRINSIC_INLINE static __m256i srai_epi32(__m256i a, int imm8);
+
+    WJR_INTRINSIC_INLINE static __m256i srai(__m256i a, int imm8, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i srai(__m256i a, int imm8, int32_t);
+
+    WJR_INTRINSIC_INLINE static __m256i stream_load(const void *p);
+
+    WJR_INTRINSIC_INLINE static __m256i srl_epi16(__m256i a, __m128i b);
+    WJR_INTRINSIC_INLINE static __m256i srl_epi32(__m256i a, __m128i b);
+    WJR_INTRINSIC_INLINE static __m256i srl_epi64(__m256i a, __m128i b);
+
+    WJR_INTRINSIC_INLINE static __m256i srl(__m256i a, __m128i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i srl(__m256i a, __m128i b, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i srl(__m256i a, __m128i b, int64_t);
+    WJR_INTRINSIC_INLINE static __m256i srl(__m256i a, __m128i b, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i srl(__m256i a, __m128i b, uint32_t);
+    WJR_INTRINSIC_INLINE static __m256i srl(__m256i a, __m128i b, uint64_t);
+
+    template <int imm8>
+    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a);
+    WJR_INTRINSIC_INLINE static __m256i srli_epi8(__m256i a, int imm8);
+    WJR_INTRINSIC_INLINE static __m256i srli_epi16(__m256i a, int imm8);
+    WJR_INTRINSIC_INLINE static __m256i srli_epi32(__m256i a, int imm8);
+    WJR_INTRINSIC_INLINE static __m256i srli_epi64(__m256i a, int imm8);
+
+    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, int64_t);
+    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, uint8_t);
+    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, uint32_t);
+    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, uint64_t);
+
+    WJR_INTRINSIC_INLINE static __m256i sub_epi8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i sub_epi16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i sub_epi32(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i sub_epi64(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i sub(__m256i a, __m256i b, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i sub(__m256i a, __m256i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i sub(__m256i a, __m256i b, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i sub(__m256i a, __m256i b, int64_t);
+    WJR_INTRINSIC_INLINE static __m256i sub(__m256i a, __m256i b, uint8_t);
+    WJR_INTRINSIC_INLINE static __m256i sub(__m256i a, __m256i b, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i sub(__m256i a, __m256i b, uint32_t);
+    WJR_INTRINSIC_INLINE static __m256i sub(__m256i a, __m256i b, uint64_t);
+
+    WJR_INTRINSIC_INLINE static __m256i subs_epi8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i subs_epi16(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i subs_epu8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i subs_epu16(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i subs(__m256i a, __m256i b, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i subs(__m256i a, __m256i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i subs(__m256i a, __m256i b, uint8_t);
+    WJR_INTRINSIC_INLINE static __m256i subs(__m256i a, __m256i b, uint16_t);
+
+    WJR_INTRINSIC_INLINE static int test_all_ones(__m256i a);
+
+    WJR_INTRINSIC_INLINE static __m256i unpackhi_epi8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i unpackhi_epi16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i unpackhi_epi32(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i unpackhi_epi64(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i unpackhi(__m256i a, __m256i b, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i unpackhi(__m256i a, __m256i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i unpackhi(__m256i a, __m256i b, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i unpackhi(__m256i a, __m256i b, int64_t);
+    WJR_INTRINSIC_INLINE static __m256i unpackhi(__m256i a, __m256i b, uint8_t);
+    WJR_INTRINSIC_INLINE static __m256i unpackhi(__m256i a, __m256i b, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i unpackhi(__m256i a, __m256i b, uint32_t);
+    WJR_INTRINSIC_INLINE static __m256i unpackhi(__m256i a, __m256i b, uint64_t);
+
+    WJR_INTRINSIC_INLINE static __m256i unpacklo_epi8(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i unpacklo_epi16(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i unpacklo_epi32(__m256i a, __m256i b);
+    WJR_INTRINSIC_INLINE static __m256i unpacklo_epi64(__m256i a, __m256i b);
+
+    WJR_INTRINSIC_INLINE static __m256i unpacklo(__m256i a, __m256i b, int8_t);
+    WJR_INTRINSIC_INLINE static __m256i unpacklo(__m256i a, __m256i b, int16_t);
+    WJR_INTRINSIC_INLINE static __m256i unpacklo(__m256i a, __m256i b, int32_t);
+    WJR_INTRINSIC_INLINE static __m256i unpacklo(__m256i a, __m256i b, int64_t);
+    WJR_INTRINSIC_INLINE static __m256i unpacklo(__m256i a, __m256i b, uint8_t);
+    WJR_INTRINSIC_INLINE static __m256i unpacklo(__m256i a, __m256i b, uint16_t);
+    WJR_INTRINSIC_INLINE static __m256i unpacklo(__m256i a, __m256i b, uint32_t);
+
+#endif // AVX2
+};
+
+namespace avx_detail {
+#if WJR_HAS_SIMD(AVX2)
+
+const static __m256i srli_epi8_mask[8] = {
+    avx::set1_epi16(0xFFFF), avx::set1_epi16(0x7F7F), avx::set1_epi16(0x3F3F),
+    avx::set1_epi16(0x1F1F), avx::set1_epi16(0xF0F),  avx::set1_epi16(0x707),
+    avx::set1_epi16(0x303),  avx::set1_epi16(0x101),
+};
+
+#endif
+} // namespace avx_detail
+
+#if WJR_HAS_SIMD(AVX)
+
+template <>
+struct broadcast_fn<uint8_t, __m256i_t> {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint8_t v) const {
+        return _mm256_set1_epi8(v);
+    }
+};
+
+template <>
+struct broadcast_fn<uint16_t, __m256i_t> {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint16_t v) const {
+        return _mm256_set1_epi16(v);
+    }
+};
+
+template <>
+struct broadcast_fn<uint32_t, __m256i_t> {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint32_t v) const {
+        return _mm256_set1_epi32(v);
+    }
+};
+
+template <>
+struct broadcast_fn<uint64_t, __m256i_t> {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint64_t v) const {
+        return _mm256_set1_epi64x(v);
+    }
+};
+
+template <>
+struct broadcast_fn<__m256i_t, __m256i_t> {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(__m256i v) const { return v; }
+};
+
+template <>
+struct broadcast_fn<__m128i_t, __m256i_t> {
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(__m128i v) const {
+#if WJR_HAS_SIMD(AVX2)
+        return _mm256_broadcastsi128_si256(v);
+#else
+        return _mm256_insertf128_si256(_mm256_castsi128_si256(v), v, 1);
+#endif
+    }
+};
+
+#endif // AVX
+
 /*------------------------avx------------------------*/
 
 constexpr size_t avx::width() { return 256; }
@@ -7647,8 +8346,14 @@ __m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) { return unpacklo_epi32(a,
 
 #endif
 
-#define WJR_REGISTER_NORMAL_SIMD_FUNCTION(N, UNROLL2, UNROLL4, IS_UNROLL_8, ADVANCE,     \
-                                          INIT, RET)                                     \
+} // namespace wjr
+
+#endif // WJR_X86_SIMD_AVX_HPP__
+
+namespace wjr {
+
+#define WJR_REGISTER_X86_NORMAL_SIMD_FUNCTION(N, UNROLL2, UNROLL4, IS_UNROLL_8, ADVANCE, \
+                                              INIT, RET)                                 \
     if (WJR_UNLIKELY(N <= 16)) {                                                         \
         if (WJR_UNLIKELY(N <= 4)) {                                                      \
             UNROLL2(N - 2);                                                              \
@@ -7698,8 +8403,8 @@ __m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) { return unpacklo_epi32(a,
     WJR_PP_BOOL_IF(IS_UNROLL_8,                                                          \
         }, )
 
-#define WJR_REGISTER_NORMAL_REVERSE_SIMD_FUNCTION(N, UNROLL2, UNROLL4, IS_UNROLL_8,      \
-                                                  ADVANCE, INIT, RET)                    \
+#define WJR_REGISTER_X86_NORMAL_REVERSE_SIMD_FUNCTION(N, UNROLL2, UNROLL4, IS_UNROLL_8,  \
+                                                      ADVANCE, INIT, RET)                \
     if (WJR_UNLIKELY(N <= 16)) {                                                         \
         if (WJR_UNLIKELY(N <= 4)) {                                                      \
             UNROLL2(0);                                                                  \
@@ -7748,6 +8453,151 @@ __m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) { return unpacklo_epi32(a,
             ADVANCE(N);                                                                  \
     WJR_PP_BOOL_IF(IS_UNROLL_8,                                                          \
         }, )
+
+template <typename T, size_t N, typename Simd>
+class __x86_simd_base {
+    static constexpr size_t BitWidth = Simd::width();
+    using int_type = typename Simd::int_type;
+    using Mybase = fixed_size_simd<T, N>;
+
+public:
+    using mask_type = simd_detail::basic_simd_mask<T, N, BitWidth / 8>;
+
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(__x86_simd_base);
+
+    template <typename U, WJR_REQUIRES(is_value_preserving_or_int_v<U, T>)>
+    __x86_simd_base(U value) noexcept : m_data(Simd::set1(value, U())) {}
+
+    template <typename Flags = element_aligned_t>
+    __x86_simd_base(const T *mem, Flags flags = {}) noexcept {
+        copy_from(mem, flags);
+    }
+
+    void copy_from(const T *mem, element_aligned_t = {}) noexcept {
+        m_data = Simd::loadu(mem);
+    }
+
+    void copy_from(const T *mem, vector_aligned_t) noexcept { m_data = Simd::load(mem); }
+
+    void copy_to(T *mem, element_aligned_t = {}) noexcept { Simd::storeu(mem, m_data); }
+
+    void copy_to(T *mem, vector_aligned_t) noexcept { Simd::store(mem, m_data); }
+
+    Mybase &operator&=(const Mybase &other) noexcept {
+        m_data = Simd::And(m_data, other.m_data);
+        return static_cast<Mybase &>(*this);
+    }
+
+    friend Mybase operator&(const Mybase &lhs, const Mybase &rhs) noexcept {
+        Mybase ret(lhs);
+        ret &= rhs;
+        return ret;
+    }
+
+    Mybase &operator|=(const Mybase &other) noexcept {
+        m_data = Simd::Or(m_data, other.m_data);
+        return static_cast<Mybase &>(*this);
+    }
+
+    friend Mybase operator|(const Mybase &lhs, const Mybase &rhs) noexcept {
+        Mybase ret(lhs);
+        ret |= rhs;
+        return ret;
+    }
+
+    Mybase &operator^=(const Mybase &other) noexcept {
+        m_data = Simd::Xor(m_data, other.m_data);
+        return static_cast<Mybase &>(*this);
+    }
+
+    friend Mybase operator^(const Mybase &lhs, const Mybase &rhs) noexcept {
+        Mybase ret(lhs);
+        ret ^= rhs;
+        return ret;
+    }
+
+    friend constexpr mask_type operator==(const Mybase &lhs, const Mybase &rhs) noexcept {
+        return Simd::movemask_epi8(Simd::cmpeq(lhs.m_data, rhs.m_data, T()));
+    }
+
+private:
+    int_type m_data;
+};
+
+#if WJR_HAS_SIMD(SSE2)
+#define WJR_HAS_SIMD_NATIVE_128BIT WJR_HAS_DEF
+
+template <>
+class simd<uint8_t, simd_abi::fixed_size<16>> : public __x86_simd_base<uint8_t, 16, sse> {
+    using Mybase = __x86_simd_base<uint8_t, 16, sse>;
+
+public:
+    using Mybase::Mybase;
+};
+
+template <>
+class simd<uint16_t, simd_abi::fixed_size<8>> : public __x86_simd_base<uint16_t, 8, sse> {
+    using Mybase = __x86_simd_base<uint16_t, 8, sse>;
+
+public:
+    using Mybase::Mybase;
+};
+
+template <>
+class simd<uint32_t, simd_abi::fixed_size<4>> : public __x86_simd_base<uint32_t, 4, sse> {
+    using Mybase = __x86_simd_base<uint32_t, 4, sse>;
+
+public:
+    using Mybase::Mybase;
+};
+
+template <>
+class simd<uint64_t, simd_abi::fixed_size<2>> : public __x86_simd_base<uint64_t, 2, sse> {
+    using Mybase = __x86_simd_base<uint64_t, 2, sse>;
+
+public:
+    using Mybase::Mybase;
+};
+
+#endif
+
+#if WJR_HAS_SIMD(AVX2)
+#define WJR_HAS_SIMD_NATIVE_256BIT WJR_HAS_DEF
+
+template <>
+class simd<uint8_t, simd_abi::fixed_size<32>> : public __x86_simd_base<uint8_t, 32, avx> {
+    using Mybase = __x86_simd_base<uint8_t, 32, avx>;
+
+public:
+    using Mybase::Mybase;
+};
+
+template <>
+class simd<uint16_t, simd_abi::fixed_size<16>>
+    : public __x86_simd_base<uint16_t, 16, avx> {
+    using Mybase = __x86_simd_base<uint16_t, 16, avx>;
+
+public:
+    using Mybase::Mybase;
+};
+
+template <>
+class simd<uint32_t, simd_abi::fixed_size<8>> : public __x86_simd_base<uint32_t, 8, avx> {
+    using Mybase = __x86_simd_base<uint32_t, 8, avx>;
+
+public:
+    using Mybase::Mybase;
+};
+
+template <>
+class simd<uint64_t, simd_abi::fixed_size<4>> : public __x86_simd_base<uint64_t, 4, avx> {
+    using Mybase = __x86_simd_base<uint64_t, 4, avx>;
+
+public:
+    using Mybase::Mybase;
+};
+
+#endif
 
 } // namespace wjr
 
@@ -7921,121 +8771,7 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 
 #include <array>
 
-#ifndef WJR_ASSERT_HPP__
-#define WJR_ASSERT_HPP__
-
-/**
- * @file assert.hpp
- * @author wjr
- * @brief Assertion utilities
- *
- * @details WJR_DEBUG_LEVEL : 0 ~ 3 \n
- * 0 : Release \n
- * 1 : Beta \n
- * 2 : Runtime detect \n
- * 3 : Maximize runtime detect, for debug \n
- * If WJR_DEBUG_LEVEL is not defined, \n
- * If NDEBUG is defined, WJR_DEBUG_LEVEL is set to 0 by default. \n
- * Otherwise, WJR_DEBUG_LEVEL is set to 1 by default. \n
- * WJR_ASSERT_L(level, expr) : Specify the level of assertion, \n
- * if the WJR_DEBUG_LEVEL is greater than or equal to the level, \n
- * the assertion is executed. \n
- * WJR_ASSERT(expr) : Equivalent to WJR_ASSERT_L(1, expr) \n
- * WJR_ASSERT_0(expr) : Always execute the assertion \n
- *
- * @version 0.1
- * @date 2024-06-01
- *
- * @copyright Copyright (c) 2024
- *
- */
-
-#include <iostream>
-
 // Already included
-
-#ifndef WJR_DEBUG_LEVEL
-#if defined(NDEBUG)
-#define WJR_DEBUG_LEVEL 0
-#else
-#define WJR_DEBUG_LEVEL 1
-#endif
-#endif
-
-#if WJR_DEBUG_LEVEL < 0 || WJR_DEBUG_LEVEL > 3
-#error "WJR_DEBUG_LEVEL must be 0 ~ 3"
-#endif
-
-namespace wjr {
-
-#define WJR_DEBUG_IF(level, expr0, expr1)                                                \
-    WJR_PP_BOOL_IF(WJR_PP_GT(WJR_DEBUG_LEVEL, level), expr0, expr1)
-
-WJR_NORETURN extern void __assert_failed(const char *expr, const char *file,
-                                         const char *func, int line) noexcept;
-
-// LCOV_EXCL_START
-
-/// @private
-template <typename... Args>
-WJR_NOINLINE void __assert_handler(const char *expr, const char *file, const char *func,
-                                   int line, Args &&...args) noexcept {
-    std::cerr << "Additional information: ";
-    (void)(std::cerr << ... << std::forward<Args>(args));
-    std::cerr << '\n';
-    __assert_failed(expr, file, func, line);
-}
-
-/// @private
-inline void __assert_handler(const char *expr, const char *file, const char *func,
-                             int line) noexcept {
-    __assert_failed(expr, file, func, line);
-}
-
-// LCOV_EXCL_STOP
-
-#define WJR_ASSERT_CHECK_I(expr, ...)                                                    \
-    do {                                                                                 \
-        if (WJR_UNLIKELY(!(expr))) {                                                     \
-            ::wjr::__assert_handler(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE,     \
-                                    ##__VA_ARGS__);                                      \
-        }                                                                                \
-    } while (0)
-
-// do nothing
-#define WJR_ASSERT_UNCHECK_I(expr, ...)                                                  \
-    do {                                                                                 \
-    } while (0)
-
-// level = [0, 2]
-// The higher the level, the less likely it is to be detected
-// Runtime detect  : 1
-// Maximize detect : 2
-#define WJR_ASSERT_L(level, ...)                                                         \
-    WJR_DEBUG_IF(level, WJR_ASSERT_CHECK_I, WJR_ASSERT_UNCHECK_I)                        \
-    (__VA_ARGS__)
-
-// level of assert is zero at default.
-#define WJR_ASSERT_L0(...) WJR_ASSERT_CHECK_I(__VA_ARGS__)
-#define WJR_ASSERT_L1(...) WJR_ASSERT_L(1, __VA_ARGS__)
-#define WJR_ASSERT_L2(...) WJR_ASSERT_L(2, __VA_ARGS__)
-#define WJR_ASSERT_L3(...) WJR_ASSERT_L(3, __VA_ARGS__)
-#define WJR_ASSERT(...) WJR_ASSERT_L1(__VA_ARGS__)
-
-#define WJR_ASSERT_ASSUME_L(level, ...)                                                  \
-    WJR_ASSERT_L(level, __VA_ARGS__);                                                    \
-    __WJR_ASSERT_ASSUME_L_ASSUME(__VA_ARGS__)
-#define __WJR_ASSERT_ASSUME_L_ASSUME(expr, ...) WJR_ASSUME(expr)
-
-#define WJR_ASSERT_ASSUME_L0(...) WJR_ASSERT_ASSUME_L(0, __VA_ARGS__)
-#define WJR_ASSERT_ASSUME_L1(...) WJR_ASSERT_ASSUME_L(1, __VA_ARGS__)
-#define WJR_ASSERT_ASSUME_L2(...) WJR_ASSERT_ASSUME_L(2, __VA_ARGS__)
-#define WJR_ASSERT_ASSUME_L3(...) WJR_ASSERT_ASSUME_L(3, __VA_ARGS__)
-#define WJR_ASSERT_ASSUME(...) WJR_ASSERT_ASSUME_L1(__VA_ARGS__)
-
-} // namespace wjr
-
-#endif // WJR_ASSERT_HPP__
 #ifndef WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP__
 #define WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP__
 
@@ -11344,162 +12080,7 @@ struct pointer_traits<wjr::contiguous_iterator_adapter<Container, Traits>> {
 } // namespace std
 
 #endif // WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP__
-#ifndef WJR_MATH_DETAIL_HPP__
-#define WJR_MATH_DETAIL_HPP__
-
 // Already included
-
-namespace wjr {
-
-#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
-
-namespace math_detail {
-
-template <typename T, T seed>
-class de_bruijn {
-public:
-    constexpr static uint8_t digits = std::numeric_limits<T>::digits;
-    constexpr static uint8_t mv = digits == 32 ? 27 : 58;
-    constexpr de_bruijn() noexcept : lookup(), lookupr() { initialize(); }
-
-    constexpr int get(T idx) const noexcept { return lookup[(idx * seed) >> mv]; }
-    constexpr int getr(T idx) const noexcept { return lookupr[(idx * seed) >> mv]; }
-
-private:
-    constexpr void initialize() noexcept {
-        for (uint8_t i = 0; i < digits; ++i) {
-            const auto idx = (seed << i) >> mv;
-            lookup[idx] = i;
-            lookupr[idx] = i == 0 ? 0 : digits - i;
-        }
-    }
-
-    uint8_t lookup[digits];
-    uint8_t lookupr[digits];
-};
-
-inline constexpr de_bruijn<uint32_t, 0x077C'B531> de_bruijn32 = {};
-inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
-
-} // namespace math_detail
-
-#endif
-
-/**
- * @brief
- *
- * @note `n & -n` is the lowest bit of n.
- */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST constexpr T lowbit(T n) noexcept {
-    return n & -n;
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST constexpr T clear_lowbit(T n) noexcept {
-    return n & (n - 1);
-}
-
-// preview :
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST constexpr bool is_zero_or_single_bit(T n) noexcept {
-    return (n & (n - 1)) == 0;
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST constexpr bool __has_high_bit(T n) noexcept {
-    return n >> (std::numeric_limits<T>::digits - 1);
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST constexpr T __ceil_div(T n, type_identity_t<T> div) noexcept {
-    return (n + div - 1) / div;
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST constexpr T __align_down(T n, type_identity_t<T> alignment) noexcept {
-    WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
-    return n & (-alignment);
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST constexpr T __align_down_offset(T n, type_identity_t<T> alignment) noexcept {
-    WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
-    return n & (alignment - 1);
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST constexpr T __align_up(T n, type_identity_t<T> alignment) noexcept {
-    WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
-    return (n + alignment - 1) & (-alignment);
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST constexpr T __align_up_offset(T n, type_identity_t<T> alignment) noexcept {
-    WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
-    return (-n) & (alignment - 1);
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST constexpr std::make_signed_t<T> __fasts_from_unsigned(T x) noexcept {
-    const std::make_signed_t<T> ret = x;
-    WJR_ASSERT_ASSUME_L2(ret >= 0, "overflow");
-    return ret;
-}
-
-template <typename T, typename U = std::make_unsigned_t<T>,
-          WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr U __fasts_abs(T x) noexcept {
-    return static_cast<U>(x < 0 ? -x : x);
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_negate(T x) noexcept {
-    return -x;
-}
-
-template <typename T, typename U = std::make_unsigned_t<T>,
-          WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_conditional_negate(bool condition, T x) noexcept {
-    return condition ? -x : x;
-}
-
-template <typename T, typename U = std::make_unsigned_t<T>,
-          WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_negate_with(T condition, T x) noexcept {
-    return __fasts_conditional_negate(condition < 0, x);
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_increment(T x) noexcept {
-    WJR_ASSERT_L2(x != std::numeric_limits<T>::min() &&
-                      x != std::numeric_limits<T>::max(),
-                  "overflow");
-
-    return x < 0 ? x - 1 : x + 1;
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_decrement(T x) noexcept {
-    WJR_ASSERT_L2(x != 0 && x + 1 != T(0), "overflow");
-
-    return x < 0 ? x + 1 : x - 1;
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_add(T x, std::make_unsigned_t<T> y) noexcept {
-    return x < 0 ? x - y : x + y;
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_sub(T x, std::make_unsigned_t<T> y) noexcept {
-    return x < 0 ? x + y : x - y;
-}
-
-} // namespace wjr
-
-#endif // WJR_MATH_DETAIL_HPP__
 #ifndef WJR_MEMORY_COPY_HPP__
 #define WJR_MEMORY_COPY_HPP__
 
@@ -12375,334 +12956,8 @@ constexpr void replace_uninit(list_node<T> *from, list_node<T> *to) noexcept {
 #ifndef WJR_MATH_BIT_HPP__
 #define WJR_MATH_BIT_HPP__
 
-#ifndef WJR_MATH_CLZ_HPP__
-#define WJR_MATH_CLZ_HPP__
-
-// Already included
-#ifndef WJR_MATH_POPCOUNT_HPP__
-#define WJR_MATH_POPCOUNT_HPP__
-
-// Already included
-
-namespace wjr {
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR int fallback_popcount(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-    if constexpr (nd < 32) {
-        return fallback_popcount(static_cast<uint32_t>(x));
-    } else {
-        if constexpr (nd == 32) {
-            x -= (x >> 1) & 0x5555'5555;
-            x = (x & 0x3333'3333) + ((x >> 2) & 0x3333'3333);
-            x = (x + (x >> 4)) & 0x0f0f'0f0f;
-            return (x * 0x0101'0101) >> 24;
-        } else {
-            x -= (x >> 1) & 0x5555'5555'5555'5555;
-            x = (x & 0x3333'3333'3333'3333) + ((x >> 2) & 0x3333'3333'3333'3333);
-            x = (x + (x >> 4)) & 0x0f0f'0f0f'0f0f'0f0f;
-            return (x * 0x0101'0101'0101'0101) >> 56;
-        }
-    }
-}
-
-#if WJR_HAS_BUILTIN(POPCOUNT)
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-    if constexpr (nd < 32) {
-        return builtin_popcount(static_cast<uint32_t>(x));
-    } else {
-        if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
-            return __builtin_popcount(x);
-        } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
-            return __builtin_popcountl(x);
-        }
-        if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
-            return __builtin_popcountll(x);
-        } else {
-            static_assert(nd <= 64, "not support yet");
-        }
-    }
-}
-
-#endif // WJR_HAS_BUILTIN(POPCOUNT)
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount_impl(T x) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(is_zero_or_single_bit(x))) {
-        return x != 0;
-    }
-
-#if WJR_HAS_BUILTIN(POPCOUNT)
-    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
-        return fallback_popcount(x);
-    }
-
-    return builtin_popcount(x);
-#else
-    return fallback_popcount(x);
-#endif
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount(T x) noexcept {
-    const int ret = popcount_impl(x);
-    WJR_ASSUME(0 <= ret && ret <= std::numeric_limits<T>::digits);
-    return ret;
-}
-
-} // namespace wjr
-
-#endif // WJR_MATH_POPCOUNT_HPP__
-
-#if WJR_HAS_BUILTIN(__builtin_clz)
-#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF
-#elif defined(WJR_MSVC) && defined(WJR_X86)
-#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF_VAR(2)
-#endif
-
-#if WJR_HAS_BUILTIN(CLZ) == 2
-// Already included
-#endif
-
-namespace wjr {
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR int constexpr_clz(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-    x |= (x >> 1);
-    x |= (x >> 2);
-    x |= (x >> 4);
-
-    if constexpr (nd >= 16) {
-        x |= (x >> 8);
-    }
-
-    if constexpr (nd >= 32) {
-        x |= (x >> 16);
-    }
-
-    if constexpr (nd >= 64) {
-        x |= (x >> 32);
-    }
-
-    return fallback_popcount(~x);
-}
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_clz(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
-    if constexpr (nd >= 32) {
-#endif
-        x |= (x >> 1);
-        x |= (x >> 2);
-        x |= (x >> 4);
-
-        if constexpr (nd >= 16) {
-            x |= (x >> 8);
-        }
-
-        if constexpr (nd >= 32) {
-            x |= (x >> 16);
-        }
-
-        if constexpr (nd >= 64) {
-            x |= (x >> 32);
-        }
-#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
-    }
-#endif
-
-#if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
-    return popcount<T>(~x);
-#else
-    if constexpr (nd < 32) {
-        return fallback_clz(static_cast<uint32_t>(x)) - (32 - nd);
-    } else {
-        ++x;
-
-        if constexpr (nd <= 32) {
-            return math_detail::de_bruijn32.getr(x);
-        } else if constexpr (nd <= 64) {
-            return math_detail::de_bruijn64.getr(x);
-        } else {
-            static_assert(nd <= 64, "not support yet");
-        }
-    }
-#endif
-}
-
-#if WJR_HAS_BUILTIN(CLZ)
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-    if constexpr (nd < 32) {
-        return builtin_clz(static_cast<uint32_t>(x)) - (32 - nd);
-    } else {
-#if WJR_HAS_BUILTIN(CLZ) == 1
-        if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
-            constexpr auto delta = std::numeric_limits<unsigned int>::digits - nd;
-            return __builtin_clz(static_cast<unsigned int>(x)) - delta;
-        } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
-            constexpr auto delta = std::numeric_limits<unsigned long>::digits - nd;
-            return __builtin_clzl(static_cast<unsigned long>(x)) - delta;
-        } else if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
-            constexpr auto delta = std::numeric_limits<unsigned long long>::digits - nd;
-            return __builtin_clzll(static_cast<unsigned long long>(x)) - delta;
-        } else {
-            static_assert(nd <= 64, "not supported yet");
-        }
-#else
-        if constexpr (nd == 32) {
-            unsigned long result;
-            (void)_BitScanReverse(&result, x);
-            return 31 - result;
-        } else {
-            unsigned long result;
-            (void)_BitScanReverse64(&result, x);
-            return 63 - result;
-        }
-#endif
-    }
-}
-
-#endif
-
-/**
- * @brief Fast count leading zeros
- *
- * @tparam T Must be an unsigned integral type
- */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
-#if WJR_HAS_BUILTIN(CLZ)
-    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
-        return fallback_clz(x);
-    }
-
-    return builtin_clz(x);
-#else
-    return fallback_clz(x);
-#endif
-}
-
-} // namespace wjr
-
-#endif // WJR_MATH_CLZ_HPP__
-#ifndef WJR_MATH_CTZ_HPP__
-#define WJR_MATH_CTZ_HPP__
-
 // Already included
 // Already included
-
-#if WJR_HAS_BUILTIN(__builtin_ctz)
-#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF
-#elif defined(WJR_MSVC) && defined(WJR_X86)
-#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF_VAR(2)
-#endif
-
-#if WJR_HAS_BUILTIN(CTZ) == 2
-// Already included
-#endif
-
-namespace wjr {
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR int constexpr_ctz(T x) noexcept {
-    return fallback_popcount<T>(lowbit(x) - 1);
-}
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_ctz(T x) noexcept {
-#if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
-    return popcount<T>(lowbit(x) - 1);
-#else
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-    if constexpr (nd < 32) {
-        return fallback_ctz(static_cast<uint32_t>(x));
-    } else {
-        x = lowbit(x);
-
-        if constexpr (nd <= 32) {
-            return math_detail::de_bruijn32.get(x);
-        } else if constexpr (nd <= 64) {
-            return math_detail::de_bruijn64.get(x);
-        } else {
-            static_assert(nd <= 64, "not support yet");
-        }
-    }
-#endif //
-}
-
-#if WJR_HAS_BUILTIN(CTZ)
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-    if constexpr (nd < 32) {
-        return builtin_ctz(static_cast<uint32_t>(x));
-    } else {
-#if WJR_HAS_BUILTIN(CTZ) == 1
-        if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
-            return __builtin_ctz(static_cast<unsigned int>(x));
-        } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
-            return __builtin_ctzl(static_cast<unsigned long>(x));
-        } else if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
-            return __builtin_ctzll(static_cast<unsigned long long>(x));
-        } else {
-            static_assert(nd <= 64, "not supported yet");
-        }
-#else
-        if constexpr (nd == 32) {
-            unsigned long result;
-            (void)_BitScanForward(&result, x);
-            return result;
-        } else {
-            unsigned long result;
-            (void)_BitScanForward64(&result, x);
-            return result;
-        }
-#endif
-    }
-}
-
-#endif
-
-/**
- * @brief Fast count trailing zeros
- *
- * @details Very fast even on non-optimized platforms by using a De Bruijn sequence. \n
- * Try __builtin_clz if available, otherwise fallback to a portable implementation. \n
- * In fallback_clz, use popcount and lowbit if POPCOUNT and POPCNT are available, make
- * sure popcount is fast. \n
- * Then use De Bruijn sequence, just a bit slower than popcount + lowbit.
- *
- * @tparam T Must be an unsigned integral type
- */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int ctz(T x) noexcept {
-#if WJR_HAS_BUILTIN(CTZ)
-    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
-        return fallback_ctz(x);
-    }
-
-    return builtin_ctz(x);
-#else
-    return fallback_ctz(x);
-#endif
-}
-
-} // namespace wjr
-
-#endif // WJR_MATH_CTZ_HPP__
 // Already included
 
 namespace wjr {
@@ -17895,7 +18150,10 @@ enum class chars_format : uint8_t {
     scientific = 0x01,
     fixed = 0x02,
     hex = 0x04,
-    general = fixed | scientific
+    general = fixed | scientific,
+    // only used in integeral_constant
+    __json_format = 0x08,
+    json = general | __json_format,
 };
 
 template <typename Iter>
@@ -18080,7 +18338,7 @@ WJR_PURE size_t large_builtin_find_not_n(const T *src0, const T *src1,
 
 #define WJR_REGISTER_FIND_NOT_N_RET(index) index
 
-    WJR_REGISTER_NORMAL_SIMD_FUNCTION(
+    WJR_REGISTER_X86_NORMAL_SIMD_FUNCTION(
         n, WJR_REGISTER_FIND_NOT_N_2, WJR_REGISTER_FIND_NOT_N_4, WJR_HAS_SIMD(AVX2),
         WJR_REGISTER_FIND_NOT_N_ADVNCE, const auto __src0 = src0,
         WJR_REGISTER_FIND_NOT_N_RET);
@@ -18202,7 +18460,7 @@ WJR_PURE size_t large_builtin_find_not_n(const T *src, T val, size_t n) noexcept
     const auto y4 = broadcast<__m128i_t, __m256i_t>(y2);
 #endif
 
-    WJR_REGISTER_NORMAL_SIMD_FUNCTION(
+    WJR_REGISTER_X86_NORMAL_SIMD_FUNCTION(
         n, WJR_REGISTER_FIND_NOT_N_2, WJR_REGISTER_FIND_NOT_N_4, WJR_HAS_SIMD(AVX2),
         WJR_REGISTER_FIND_NOT_N_ADVANCE, const auto __src = src,
         WJR_REGISTER_FIND_NOT_N_RET);
@@ -18328,7 +18586,7 @@ WJR_PURE size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1,
 
 #define WJR_REGISTER_REVERSE_FIND_NOT_N_RET(index) 0
 
-    WJR_REGISTER_NORMAL_REVERSE_SIMD_FUNCTION(
+    WJR_REGISTER_X86_NORMAL_REVERSE_SIMD_FUNCTION(
         n, WJR_REGISTER_REVERSE_FIND_NOT_N_2, WJR_REGISTER_REVERSE_FIND_NOT_N_4,
         WJR_HAS_SIMD(AVX2), WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE, ,
         WJR_REGISTER_REVERSE_FIND_NOT_N_RET);
@@ -18451,7 +18709,7 @@ WJR_PURE size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) 
     const auto y4 = broadcast<__m128i_t, __m256i_t>(y2);
 #endif
 
-    WJR_REGISTER_NORMAL_REVERSE_SIMD_FUNCTION(
+    WJR_REGISTER_X86_NORMAL_REVERSE_SIMD_FUNCTION(
         n, WJR_REGISTER_REVERSE_FIND_NOT_N_2, WJR_REGISTER_REVERSE_FIND_NOT_N_4,
         WJR_HAS_SIMD(AVX2), WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE, ,
         WJR_REGISTER_REVERSE_FIND_NOT_N_RET);
@@ -25188,45 +25446,55 @@ constexpr int fallback_count_digits10(UnsignedValue n) noexcept {
     return count + 3;
 }
 
-inline int builtin_count_digits10_u32(uint32_t n) noexcept {
-#define WJR_INC(T) (((sizeof(#T) - 1ull) << 32) - T)
-    static constexpr uint64_t table[] = {
-        WJR_INC(0),          WJR_INC(0),          WJR_INC(0),          // 8
-        WJR_INC(10),         WJR_INC(10),         WJR_INC(10),         // 64
-        WJR_INC(100),        WJR_INC(100),        WJR_INC(100),        // 512
-        WJR_INC(1000),       WJR_INC(1000),       WJR_INC(1000),       // 4096
-        WJR_INC(10000),      WJR_INC(10000),      WJR_INC(10000),      // 32k
-        WJR_INC(100000),     WJR_INC(100000),     WJR_INC(100000),     // 256k
-        WJR_INC(1000000),    WJR_INC(1000000),    WJR_INC(1000000),    // 2048k
-        WJR_INC(10000000),   WJR_INC(10000000),   WJR_INC(10000000),   // 16M
-        WJR_INC(100000000),  WJR_INC(100000000),  WJR_INC(100000000),  // 128M
-        WJR_INC(1000000000), WJR_INC(1000000000), WJR_INC(1000000000), // 1024M
-        WJR_INC(1000000000), WJR_INC(1000000000)                       // 4B
-    };
-    const auto inc = table[clz(n | 1) ^ 31];
-    return static_cast<int>((n + inc) >> 32);
-#undef WJR_INC
-}
+namespace charconv_detail {
 
-inline int builtin_count_digits10_u64(uint64_t n) noexcept {
+#define WJR_INC(T) (((sizeof(#T) - 1ull) << 32) - T)
+
+static constexpr uint64_t __count_digits10_u32_table[] = {
+    WJR_INC(0),          WJR_INC(0),          WJR_INC(0),          // 8
+    WJR_INC(10),         WJR_INC(10),         WJR_INC(10),         // 64
+    WJR_INC(100),        WJR_INC(100),        WJR_INC(100),        // 512
+    WJR_INC(1000),       WJR_INC(1000),       WJR_INC(1000),       // 4096
+    WJR_INC(10000),      WJR_INC(10000),      WJR_INC(10000),      // 32k
+    WJR_INC(100000),     WJR_INC(100000),     WJR_INC(100000),     // 256k
+    WJR_INC(1000000),    WJR_INC(1000000),    WJR_INC(1000000),    // 2048k
+    WJR_INC(10000000),   WJR_INC(10000000),   WJR_INC(10000000),   // 16M
+    WJR_INC(100000000),  WJR_INC(100000000),  WJR_INC(100000000),  // 128M
+    WJR_INC(1000000000), WJR_INC(1000000000), WJR_INC(1000000000), // 1024M
+    WJR_INC(1000000000), WJR_INC(1000000000)                       // 4B
+};
+
+#undef WJR_INC
+
 #define WJR_POWERS_OF_10(factor)                                                         \
     factor * 10, (factor)*100, (factor)*1000, (factor)*10000, (factor)*100000,           \
         (factor)*1000000, (factor)*10000000, (factor)*100000000, (factor)*1000000000
-    static constexpr uint8_t bsr2log10[] = {
-        1,  1,  1,  2,  2,  2,  3,  3,  3,  4,  4,  4,  4,  5,  5,  5,
-        6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9,  10, 10, 10,
-        10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14, 15, 15,
-        15, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 19, 20};
-    const auto t = bsr2log10[clz(n | 1) ^ 63];
-    static constexpr const uint64_t zero_or_powers_of_10[] = {
-        0, 0, WJR_POWERS_OF_10(1U), WJR_POWERS_OF_10(1000000000ull),
-        10000000000000000000ull};
-    return t - (n < zero_or_powers_of_10[t]);
+
+static constexpr uint8_t __count_digits10_u64_bsr2log10[] = {
+    1,  1,  1,  2,  2,  2,  3,  3,  3,  4,  4,  4,  4,  5,  5,  5,
+    6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9,  10, 10, 10,
+    10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14, 15, 15,
+    15, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 19, 20};
+
+static constexpr const uint64_t __count_digits10_u64_zero_or_powers_of_10[] = {
+    0, 0, WJR_POWERS_OF_10(1U), WJR_POWERS_OF_10(1000000000ull), 10000000000000000000ull};
+
 #undef WJR_POWERS_OF_10
+
+} // namespace charconv_detail
+
+WJR_INTRINSIC_CONSTEXPR20 int builtin_count_digits10_u32(uint32_t n) noexcept {
+    const auto inc = charconv_detail::__count_digits10_u32_table[clz(n | 1) ^ 31];
+    return static_cast<int>((n + inc) >> 32);
+}
+
+WJR_INTRINSIC_CONSTEXPR20 int builtin_count_digits10_u64(uint64_t n) noexcept {
+    const auto t = charconv_detail::__count_digits10_u64_bsr2log10[clz(n | 1) ^ 63];
+    return t - (n < charconv_detail::__count_digits10_u64_zero_or_powers_of_10[t]);
 }
 
 template <typename T>
-WJR_CONSTEXPR20 int count_digits10_impl(T n) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 int count_digits10_impl(T n) noexcept {
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(n)) {
         return fallback_count_digits10(n);
     }
@@ -27163,7 +27431,7 @@ WJR_PURE int large_builtin_compare_n(const T *src0, const T *src1, size_t n) noe
 
     WJR_ASSUME(n > 2);
 
-    WJR_REGISTER_NORMAL_SIMD_FUNCTION(
+    WJR_REGISTER_X86_NORMAL_SIMD_FUNCTION(
         n, WJR_REGISTER_COMPARE_NOT_N_2, WJR_REGISTER_COMPARE_NOT_N_4, WJR_HAS_SIMD(AVX2),
         WJR_REGISTER_COMPARE_NOT_N_ADVANCE, , WJR_REGISTER_COMPARE_NOT_N_RET);
 
@@ -27318,7 +27586,7 @@ WJR_PURE int large_builtin_reverse_compare_n(const T *src0, const T *src1,
 
     WJR_ASSUME(n > 2);
 
-    WJR_REGISTER_NORMAL_REVERSE_SIMD_FUNCTION(
+    WJR_REGISTER_X86_NORMAL_REVERSE_SIMD_FUNCTION(
         n, WJR_REGISTER_REVERSE_COMPARE_NOT_N_2, WJR_REGISTER_REVERSE_COMPARE_NOT_N_4,
         WJR_HAS_SIMD(AVX2), WJR_REGISTER_REVERSE_COMPARE_NOT_N_ADVANCE, ,
         WJR_REGISTER_REVERSE_COMPARE_NOT_N_RET);
@@ -36599,6 +36867,44 @@ private:
 
 namespace wjr::fastfloat {
 
+template <typename T>
+struct default_writer {
+    using float_type = T;
+    using support_integral = std::false_type;
+
+    WJR_INTRINSIC_CONSTEXPR T &get_float() noexcept { return value; }
+
+    T &value;
+};
+
+template <typename Writer, typename Op>
+WJR_NOINLINE from_chars_result<> __from_chars_impl(const char *first, const char *last,
+                                                   Writer wr, Op options) noexcept;
+
+extern template from_chars_result<>
+__from_chars_impl<default_writer<float>,
+                  integral_constant<chars_format, chars_format::general>>(
+    const char *first, const char *last, default_writer<float> wr,
+    integral_constant<chars_format, chars_format::general> options) noexcept;
+
+extern template from_chars_result<>
+__from_chars_impl<default_writer<double>,
+                  integral_constant<chars_format, chars_format::general>>(
+    const char *first, const char *last, default_writer<double> wr,
+    integral_constant<chars_format, chars_format::general> options) noexcept;
+
+extern template from_chars_result<>
+__from_chars_impl<default_writer<float>, chars_format>(const char *first,
+                                                       const char *last,
+                                                       default_writer<float> wr,
+                                                       chars_format fmt) noexcept;
+
+extern template from_chars_result<>
+__from_chars_impl<default_writer<double>, chars_format>(const char *first,
+                                                        const char *last,
+                                                        default_writer<double> wr,
+                                                        chars_format fmt) noexcept;
+
 /**
  * This function parses the character sequence [first,last) for a number. It parses
  * floating-point numbers expecting a locale-indepent format equivalent to what is used by
@@ -36622,16 +36928,30 @@ namespace wjr::fastfloat {
  * point and scientific notation respectively. The default is
  * `fast_float::chars_format::general` which allows both `fixed` and `scientific`.
  */
-template <typename T>
-from_chars_result<> from_chars(const char *first, const char *last, T &value,
-                               chars_format fmt = chars_format::general) noexcept;
+template <chars_format Fmt = chars_format::general>
+from_chars_result<> from_chars(const char *first, const char *last, float &value,
+                               integral_constant<chars_format, Fmt> fmt = {}) noexcept {
+    return __from_chars_impl(first, last, default_writer<float>{value}, fmt);
+}
 
-/**
- * Like from_chars, but accepts an `options` argument to govern number parsing.
- */
-template <typename T>
-from_chars_result<> from_chars_advanced(const char *first, const char *last, T &value,
-                                        chars_format options) noexcept;
+template <chars_format Fmt = chars_format::general>
+from_chars_result<> from_chars(const char *first, const char *last, double &value,
+                               integral_constant<chars_format, Fmt> fmt = {}) noexcept {
+    return __from_chars_impl(first, last, default_writer<double>{value}, fmt);
+}
+
+template <typename T, WJR_REQUIRES(is_any_of_v<T, float, double>)>
+from_chars_result<> from_chars(const char *first, const char *last, T &value,
+                               chars_format fmt) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P(fmt)) {
+        if (fmt == chars_format::general) {
+            return from_chars(first, last, value);
+        }
+    }
+
+    WJR_ASSERT(!(to_underlying(fmt) & to_underlying(chars_format::__json_format)));
+    return __from_chars_impl(first, last, default_writer<T>{value}, fmt);
+}
 
 // Compares two ASCII strings in a case insensitive manner.
 WJR_PURE WJR_INTRINSIC_CONSTEXPR bool
@@ -37813,6 +38133,89 @@ WJR_CONST WJR_INTRINSIC_INLINE adjusted_mantissa compute_float(int64_t q,
     return answer;
 }
 
+/// @brief special case of compute_float when q = 0.
+template <typename binary>
+WJR_CONST WJR_INTRINSIC_INLINE adjusted_mantissa compute_integer(uint64_t w) noexcept {
+    adjusted_mantissa answer;
+    // We want the most significant bit of i to be 1. Shift if needed.
+    const int lz = clz(w);
+    w <<= lz;
+
+    // The required precision is binary::mantissa_explicit_bits() + 3 because
+    // 1. We need the implicit bit
+    // 2. We need an extra bit for rounding purposes
+    // 3. We might lose a bit due to the "upperbit" routine (result too small, requiring a
+    // shift)
+
+    const uint128_t product =
+        compute_product_approximation<binary::mantissa_explicit_bits() + 3>(0, w);
+    // The "compute_product_approximation" function can be slightly slower than a
+    // branchless approach: uint128_t product = compute_product(q, w); but in practice, we
+    // can win big with the compute_product_approximation if its additional branch is
+    // easily predicted. Which is best is data specific.
+    const int upperbit = int(product.high >> 63);
+
+    answer.mantissa =
+        product.high >> (upperbit + 64 - binary::mantissa_explicit_bits() - 3);
+
+    answer.power2 = int32_t(63 + upperbit - lz - binary::minimum_exponent());
+    if (answer.power2 <= 0) { // we have a subnormal?
+        // Here have that answer.power2 <= 0 so -answer.power2 >= 0
+        if (-answer.power2 + 1 >= 64) { // if we have more than 64 bits below the minimum
+                                        // exponent, you have a zero for sure.
+            answer.power2 = 0;
+            answer.mantissa = 0;
+            // result should be zero
+            return answer;
+        }
+        // next line is safe because -answer.power2 + 1 < 64
+        answer.mantissa >>= -answer.power2 + 1;
+        // Thankfully, we can't have both "round-to-even" and subnormals because
+        // "round-to-even" only occurs for powers close to 0.
+        answer.mantissa += (answer.mantissa & 1); // round up
+        answer.mantissa >>= 1;
+        // There is a weird scenario where we don't have a subnormal but just.
+        // Suppose we start with 2.2250738585072013e-308, we end up
+        // with 0x3fffffffffffff x 2^-1023-53 which is technically subnormal
+        // whereas 0x40000000000000 x 2^-1023-53  is normal. Now, we need to round
+        // up 0x3fffffffffffff x 2^-1023-53  and once we do, we are no longer
+        // subnormal, but we can only know this after rounding.
+        // So we only declare a subnormal if we are smaller than the threshold.
+        answer.power2 =
+            (answer.mantissa < (uint64_t(1) << binary::mantissa_explicit_bits())) ? 0 : 1;
+        return answer;
+    }
+
+    // usually, we round *up*, but if we fall right in between and and we have an
+    // even basis, we need to round down
+    // We are only concerned with the cases where 5**q fits in single 64-bit word.
+    if (product.low <= 1 &&
+        (answer.mantissa & 3) == 1) { // we may fall between two floats!
+        // To be in-between two floats we need that in doing
+        //   answer.mantissa = product.high >> (upperbit + 64 -
+        //   binary::mantissa_explicit_bits() - 3);
+        // ... we dropped out only zeroes. But if this happened, then we can go back!!!
+        if ((answer.mantissa << (upperbit + 64 - binary::mantissa_explicit_bits() - 3)) ==
+            product.high) {
+            answer.mantissa &= ~uint64_t(1); // flip it so that we do not round up
+        }
+    }
+
+    answer.mantissa += (answer.mantissa & 1); // round up
+    answer.mantissa >>= 1;
+    if (answer.mantissa >= (uint64_t(2) << binary::mantissa_explicit_bits())) {
+        answer.mantissa = (uint64_t(1) << binary::mantissa_explicit_bits());
+        answer.power2++; // undo previous addition
+    }
+
+    answer.mantissa &= ~(uint64_t(1) << binary::mantissa_explicit_bits());
+    if (answer.power2 >= binary::infinite_power()) { // infinity
+        answer.power2 = binary::infinite_power();
+        answer.mantissa = 0;
+    }
+    return answer;
+}
+
 // 1e0 to 1e19
 constexpr static uint64_t powers_of_ten_uint64[] = {1UL,
                                                     10UL,
@@ -38251,7 +38654,8 @@ inline adjusted_mantissa negative_digit_comp(biginteger &bigmant, adjusted_manti
 
     // get the value of `b`, rounded down, and get a biginteger representation of b+h
     adjusted_mantissa am_b = am;
-    // gcc7 buf: use a lambda to remove the noexcept qualifier bug with -Wnoexcept-type.
+    // gcc7 buf: use a lambda to remove the noexcept qualifier bug with
+    // -Wnoexcept-type.
     round<T>(am_b, [](adjusted_mantissa &a, int32_t shift) { round_down(a, shift); });
     T b;
     to_float(false, am_b, b);
@@ -38327,8 +38731,8 @@ from_chars_result<> parse_infnan(const char *first, const char *last, T &value) 
             answer.ptr = (first += 3);
             value = minusSign ? -std::numeric_limits<T>::quiet_NaN()
                               : std::numeric_limits<T>::quiet_NaN();
-            // Check for possible nan(n-char-seq-opt), C++17 20.19.3.7, C11 7.20.1.3.3. At
-            // least MSVC produces nan(ind) and nan(snan).
+            // Check for possible nan(n-char-seq-opt), C++17 20.19.3.7,
+            // C11 7.20.1.3.3. At least MSVC produces nan(ind) and nan(snan).
             if (first != last && *first == '(') {
                 for (const char *ptr = first + 1; ptr != last; ++ptr) {
                     if (*ptr == ')') {
@@ -38426,21 +38830,23 @@ WJR_INTRINSIC_INLINE bool rounds_to_nearest() noexcept {
 
 struct parsed_number_string {
     int64_t exponent{0};
-    uint64_t mantissa{0};
     bool negative{false};
     // contains the range of the significant digits
     span<const char> integer{};  // non-nullable
     span<const char> fraction{}; // nullable
 };
 
-template <typename T>
-WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const char *last,
-                                                     T &value,
-                                                     chars_format options) noexcept {
-    static_assert(std::is_same<T, double>::value || std::is_same<T, float>::value,
-                  "only float and double are supported");
+template <typename Writer, typename Op>
+from_chars_result<> __from_chars_impl(const char *first, const char *last, Writer wr,
+                                      Op options) noexcept {
+    static_assert(!std::is_reference_v<Writer>, "");
+
+    using T = typename Writer::float_type;
+    constexpr bool is_support_integral = Writer::support_integral::value;
+    constexpr bool is_constant_options = !std::is_same_v<Op, chars_format>;
 
     from_chars_result<> answer;
+
     if (WJR_UNLIKELY(first == last)) {
         answer.ec = std::errc::invalid_argument;
         answer.ptr = first;
@@ -38448,7 +38854,7 @@ WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const ch
     }
 
     const char *p = first;
-    const auto fmt = to_underlying(options);
+    const auto fmt = to_underlying(static_cast<chars_format>(options));
 
     parsed_number_string pns;
     pns.negative = (*p == '-');
@@ -38462,7 +38868,7 @@ WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const ch
     }
 
     const char *const start_digits = p;
-    uint64_t i = 0; // an unsigned int avoids signed overflows (which are bad)
+    uint64_t uval = 0; // an unsigned int avoids signed overflows (which are bad)
 
     const char *end_of_integer_part;
     int64_t digit_count;
@@ -38477,13 +38883,21 @@ WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const ch
     do {
         uint8_t ch = *p;
         if (!__try_match(ch)) { // This situation rarely occurs
+            if constexpr (is_constant_options) {
+                if (fmt & to_underlying(chars_format::__json_format)) {
+                    answer.ec = std::errc{};
+                    answer.ptr = first;
+                    return answer;
+                }
+            }
+
             break;
         }
 
         do {
             // a multiplication by 10 is cheaper than an arbitrary integer
             // multiplication
-            i = 10 * i + ch; // might overflow, we will handle the overflow later
+            uval = 10 * uval + ch; // might overflow, we will handle the overflow later
 
             if (++p == last) {
                 goto INTEGER_AT_END;
@@ -38497,6 +38911,15 @@ WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const ch
         end_of_integer_part = p;
         digit_count = static_cast<int64_t>(p - start_digits);
         pns.integer = span<const char>(start_digits, static_cast<size_t>(digit_count));
+
+        if constexpr (is_constant_options) {
+            if (fmt & to_underlying(chars_format::__json_format)) {
+                // at least 1 digit in integer part, without leading zeros
+                if (digit_count == 0 || (start_digits[0] == '0' && digit_count > 1)) {
+                    return answer;
+                }
+            }
+        }
 
         if (*p != '.') {
             exponent = 0;
@@ -38512,24 +38935,37 @@ WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const ch
         // can occur at most twice without overflowing, but let it occur more, since
         // for integers with many digits, digit parsing is the primary bottleneck.
         while ((std::distance(p, last) >= 8) && is_made_of_eight_digits_fast(p)) {
-            i = i * 100000000 +
-                parse_eight_digits_unrolled(
-                    p); // in rare cases, this will overflow, but that's ok
+            uval = uval * 100000000 +
+                   parse_eight_digits_unrolled(
+                       p); // in rare cases, this will overflow, but that's ok
             p += 8;
         }
 
         while ((p != last) && is_integer(*p)) {
             const auto digit = uint32_t(*p - '0');
             ++p;
-            i = i * 10 + digit; // in rare cases, this will overflow, but that's ok
+            uval = uval * 10 + digit; // in rare cases, this will overflow, but that's ok
         }
 
         exponent = before - p;
         pns.fraction = span<const char>(before, size_t(p - before));
         digit_count -= exponent;
 
-        if (WJR_UNLIKELY(digit_count == 0)) {
-            return detail::parse_infnan(first, last, value);
+        auto &float_v = wr.get_float();
+        if constexpr (is_constant_options) {
+            if (fmt & to_underlying(chars_format::__json_format)) {
+                if (WJR_UNLIKELY(exponent == 0)) {
+                    return detail::parse_infnan(first, last, float_v);
+                }
+            } else {
+                if (WJR_UNLIKELY(digit_count == 0)) {
+                    return detail::parse_infnan(first, last, float_v);
+                }
+            }
+        } else {
+            if (WJR_UNLIKELY(digit_count == 0)) {
+                return detail::parse_infnan(first, last, float_v);
+            }
         }
     } while (0);
 
@@ -38550,7 +38986,7 @@ WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const ch
         if ((p == last) || !is_integer(*p)) {
             if (!bool(fmt & to_underlying(chars_format::fixed))) {
                 // We are in error.
-                return detail::parse_infnan(first, last, value);
+                return detail::parse_infnan(first, last, wr.get_float());
             }
             // Otherwise, we will be ignoring the 'e'.
             p = location_of_e;
@@ -38571,7 +39007,7 @@ WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const ch
         // If it scientific and not fixed, we have to bail out.
         if (bool(fmt & to_underlying(chars_format::scientific)) &&
             !bool(fmt & to_underlying(chars_format::fixed))) {
-            return detail::parse_infnan(first, last, value);
+            return detail::parse_infnan(first, last, wr.get_float());
         }
     }
 
@@ -38603,38 +39039,39 @@ WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const ch
                 // Let us start again, this time, avoiding overflows.
                 // We don't need to check if is_integer, since we use the
                 // pre-tokenized spans from above.
-                i = 0;
+                uval = 0;
                 p = pns.integer.data();
                 const char *int_end = p + pns.integer.size();
                 constexpr uint64_t minimal_nineteen_digit_integer =
                     1000000000000000000ull;
-                while ((i < minimal_nineteen_digit_integer) && (p != int_end)) {
-                    i = i * 10 + uint64_t(*p - '0');
+                while ((uval < minimal_nineteen_digit_integer) && (p != int_end)) {
+                    uval = uval * 10 + uint64_t(*p - '0');
                     ++p;
                 }
-                if (i >= minimal_nineteen_digit_integer) { // We have a big integers
+                if (uval >= minimal_nineteen_digit_integer) { // We have a big integers
                     exponent = end_of_integer_part - p + exp_number;
                 } else { // We have a value with a fractional component.
                     p = pns.fraction.data();
                     const char *frac_end = p + pns.fraction.size();
-                    while ((i < minimal_nineteen_digit_integer) && (p != frac_end)) {
-                        i = i * 10 + uint64_t(*p - '0');
+                    while ((uval < minimal_nineteen_digit_integer) && (p != frac_end)) {
+                        uval = uval * 10 + uint64_t(*p - '0');
                         ++p;
                     }
                     exponent = pns.fraction.data() - p + exp_number;
                 }
-                // We have now corrected both exponent and i, to a truncated value
+                // We have now corrected both exponent and uval, to a truncated value
             }
         }
 
         pns.exponent = exponent;
-        pns.mantissa = i;
+
+        T &float_v = wr.get_float();
 
         // The implementation of the Clinger's fast path is convoluted because
         // we want round-to-nearest in all cases, irrespective of the rounding mode
         // selected on the thread.
-        // We proceed optimistically, assuming that detail::rounds_to_nearest() returns
-        // true.
+        // We proceed optimistically, assuming that detail::rounds_to_nearest()
+        // returns true.
         if (binary_format<T>::min_exponent_fast_path() <= pns.exponent &&
             pns.exponent <= binary_format<T>::max_exponent_fast_path() &&
             !too_many_digits) {
@@ -38648,17 +39085,17 @@ WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const ch
             if (detail::rounds_to_nearest()) {
                 // We have that fegetround() == FE_TONEAREST.
                 // Next is Clinger's fast path.
-                if (pns.mantissa <= binary_format<T>::max_mantissa_fast_path()) {
-                    value = T(pns.mantissa);
+                if (uval <= binary_format<T>::max_mantissa_fast_path()) {
+                    float_v = T(uval);
                     if (pns.exponent < 0) {
-                        value =
-                            value / binary_format<T>::exact_power_of_ten(-pns.exponent);
+                        float_v =
+                            float_v / binary_format<T>::exact_power_of_ten(-pns.exponent);
                     } else {
-                        value =
-                            value * binary_format<T>::exact_power_of_ten(pns.exponent);
+                        float_v =
+                            float_v * binary_format<T>::exact_power_of_ten(pns.exponent);
                     }
                     if (pns.negative) {
-                        value = -value;
+                        float_v = -float_v;
                     }
                     return answer;
                 }
@@ -38667,46 +39104,44 @@ WJR_NOINLINE from_chars_result<> from_chars_advanced(const char *first, const ch
                 // Next is a modified Clinger's fast path, inspired by Jakub Jelínek's
                 // proposal
                 if (pns.exponent >= 0 &&
-                    pns.mantissa <=
-                        binary_format<T>::max_mantissa_fast_path(pns.exponent)) {
+                    uval <= binary_format<T>::max_mantissa_fast_path(pns.exponent)) {
 #if defined(__clang__)
                     // ClangCL may map 0 to -0.0 when fegetround() == FE_DOWNWARD
-                    if (pns.mantissa == 0) {
-                        value = pns.negative ? T(-0.) : T(0.);
+                    if (uval == 0) {
+                        float_v = pns.negative ? T(-0.) : T(0.);
                         return answer;
                     }
 #endif
-                    value = T(pns.mantissa) *
-                            binary_format<T>::exact_power_of_ten(pns.exponent);
+                    float_v =
+                        T(uval) * binary_format<T>::exact_power_of_ten(pns.exponent);
                     if (pns.negative) {
-                        value = -value;
+                        float_v = -float_v;
                     }
                     return answer;
                 }
             }
         }
 
-        adjusted_mantissa am =
-            compute_float<binary_format<T>>(pns.exponent, pns.mantissa);
+        adjusted_mantissa am = compute_float<binary_format<T>>(pns.exponent, uval);
         if (too_many_digits && am.power2 >= 0) {
-            if (am != compute_float<binary_format<T>>(pns.exponent, pns.mantissa + 1)) {
-                am = compute_error<binary_format<T>>(pns.exponent, pns.mantissa);
+            if (am != compute_float<binary_format<T>>(pns.exponent, uval + 1)) {
+                am = compute_error<binary_format<T>>(pns.exponent, uval);
             }
         }
 
-        // If we called compute_float<binary_format<T>>(pns.exponent, pns.mantissa) and we
-        // have an invalid power (am.power2 < 0), then we need to go the long way around
-        // again. This is very uncommon.
+        // If we called compute_float<binary_format<T>>(pns.exponent, uval)
+        // and we have an invalid power (am.power2 < 0), then we need to go the long
+        // way around again. This is very uncommon.
         if (am.power2 < 0) {
             am.power2 -= invalid_am_bias;
 
-            const int32_t sci_exp = scientific_exponent(pns.exponent, pns.mantissa);
+            const int32_t sci_exp = scientific_exponent(pns.exponent, uval);
             am = digit_comp<T>(am, pns.integer, pns.fraction, sci_exp);
         }
 
-        to_float(pns.negative, am, value);
+        to_float(pns.negative, am, float_v);
         // Test for over/underflow.
-        if ((pns.mantissa != 0 && am.mantissa == 0 && am.power2 == 0) ||
+        if ((uval != 0 && am.mantissa == 0 && am.power2 == 0) ||
             am.power2 == binary_format<T>::infinite_power()) {
             answer.ec = std::errc::result_out_of_range;
         }
@@ -38718,6 +39153,15 @@ INTEGER_AT_END:
     end_of_integer_part = p;
     digit_count = static_cast<int64_t>(p - start_digits);
     pns.integer = span<const char>(start_digits, static_cast<size_t>(digit_count));
+
+    if constexpr (is_constant_options) {
+        if (fmt & to_underlying(chars_format::__json_format)) {
+            // at least 1 digit in integer part, without leading zeros
+            if (digit_count == 0 || (start_digits[0] == '0' && digit_count > 1)) {
+                return answer;
+            }
+        }
+    }
 
 INTEGER:
     answer.ec = std::errc(); // be optimistic
@@ -38742,41 +39186,53 @@ INTEGER:
         if (digit_count > 19) {
             p = start;
 
-            i = __from_chars_unroll_16<10>(reinterpret_cast<const uint8_t *>(p),
-                                           char_converter);
+            uval = __from_chars_unroll_16<10>(reinterpret_cast<const uint8_t *>(p),
+                                              char_converter);
             p += 16;
-            i = i * 10 + char_converter.template from<10>(*p++);
-            i = i * 10 + char_converter.template from<10>(*p++);
-            i = i * 10 + char_converter.template from<10>(*p++);
+            uval = uval * 10 + char_converter.template from<10>(*p++);
+            uval = uval * 10 + char_converter.template from<10>(*p++);
+            uval = uval * 10 + char_converter.template from<10>(*p++);
 
             exponent = end_of_integer_part - p;
             pns.exponent = exponent;
-            pns.mantissa = i;
 
             WJR_ASSUME(exponent >= 0);
 
-            adjusted_mantissa am =
-                compute_float<binary_format<T>>(pns.exponent, pns.mantissa);
-            if (am.power2 >= 0) {
-                if (am !=
-                    compute_float<binary_format<T>>(pns.exponent, pns.mantissa + 1)) {
-                    am = compute_error<binary_format<T>>(pns.exponent, pns.mantissa);
+            if constexpr (is_support_integral) {
+                constexpr uint64_t max_quot = std::numeric_limits<uint64_t>::max() / 10;
+                constexpr uint32_t max_rem = std::numeric_limits<uint64_t>::max() % 10;
+
+                if (!pns.negative && digit_count == 20 &&
+                    (uval < max_quot ||
+                     (uval == max_quot && static_cast<uint32_t>(*p - '0') <= max_rem))) {
+                    uint64_t &u64_v = wr.get_u64();
+                    u64_v = uval;
+                    return answer;
                 }
             }
 
-            // If we called compute_float<binary_format<T>>(pns.exponent, pns.mantissa)
-            // and we have an invalid power (am.power2 < 0), then we need to go the long
-            // way around again. This is very uncommon.
+            T &float_v = wr.get_float();
+
+            adjusted_mantissa am = compute_float<binary_format<T>>(pns.exponent, uval);
+            if (am.power2 >= 0) {
+                if (am != compute_float<binary_format<T>>(pns.exponent, uval + 1)) {
+                    am = compute_error<binary_format<T>>(pns.exponent, uval);
+                }
+            }
+
+            // If we called compute_float<binary_format<T>>(pns.exponent,
+            // uval) and we have an invalid power (am.power2 < 0), then we
+            // need to go the long way around again. This is very uncommon.
             if (am.power2 < 0) {
                 am.power2 -= invalid_am_bias;
 
-                const int32_t sci_exp = scientific_exponent(pns.exponent, pns.mantissa);
+                const int32_t sci_exp = scientific_exponent(pns.exponent, uval);
                 am = digit_comp<T>(am, pns.integer, pns.fraction, sci_exp);
             }
 
-            to_float(pns.negative, am, value);
+            to_float(pns.negative, am, float_v);
             // Test for over/underflow.
-            if ((pns.mantissa != 0 && am.mantissa == 0 && am.power2 == 0) ||
+            if ((uval != 0 && am.mantissa == 0 && am.power2 == 0) ||
                 am.power2 == binary_format<T>::infinite_power()) {
                 answer.ec = std::errc::result_out_of_range;
             }
@@ -38786,71 +39242,49 @@ INTEGER:
     }
 
     pns.exponent = 0;
-    pns.mantissa = i;
 
-    // Unfortunately, the conventional Clinger's fast path is only possible
-    // when the system rounds to the nearest float.
-    //
-    // We expect the next branch to almost always be selected.
-    // We could check it first (before the previous branch), but
-    // there might be performance advantages at having the check
-    // be last.
-    if (detail::rounds_to_nearest()) {
-        // We have that fegetround() == FE_TONEAREST.
-        // Next is Clinger's fast path.
-        if (pns.mantissa <= binary_format<T>::max_mantissa_fast_path()) {
-            value = T(pns.mantissa);
-            if (pns.negative) {
-                value = -value;
-            }
+    if constexpr (is_support_integral) {
+        if (!pns.negative) {
+            uint64_t &u64_v = wr.get_u64();
+            u64_v = uval;
+            return answer;
+        } else if (uval <= static_cast<uint64_t>(-std::numeric_limits<int64_t>::min())) {
+            int64_t &i64_v = wr.get_i64();
+            i64_v = static_cast<int64_t>(-uval);
             return answer;
         }
-    } else {
-        // We do not have that fegetround() == FE_TONEAREST.
-        // Next is a modified Clinger's fast path, inspired by Jakub Jelínek's
-        // proposal
-        if (pns.mantissa <= binary_format<T>::max_mantissa_fast_path(0)) {
+    }
+
+    auto &float_v = wr.get_float();
+
+    if (WJR_LIKELY(uval <= binary_format<T>::max_mantissa_fast_path())) {
 #if defined(__clang__)
-            // ClangCL may map 0 to -0.0 when fegetround() == FE_DOWNWARD
-            if (pns.mantissa == 0) {
-                value = pns.negative ? T(-0.) : T(0.);
-                return answer;
-            }
-#endif
-            value = T(pns.mantissa);
-            if (pns.negative) {
-                value = -value;
-            }
+        // ClangCL may map 0 to -0.0 when fegetround() == FE_DOWNWARD
+        if (uval == 0) {
+            float_v = pns.negative ? T(-0.) : T(0.);
             return answer;
         }
+#endif
+
+        float_v = T(uval);
+        if (pns.negative) {
+            float_v = -float_v;
+        }
+
+        return answer;
     }
 
-    adjusted_mantissa am = compute_float<binary_format<T>>(0, pns.mantissa);
+    adjusted_mantissa am = compute_integer<binary_format<T>>(uval);
+    WJR_ASSERT_ASSUME(am.power2 >= 0);
 
-    // If we called compute_float<binary_format<T>>(pns.exponent, pns.mantissa) and we
-    // have an invalid power (am.power2 < 0), then we need to go the long way around
-    // again. This is very uncommon.
-    if (am.power2 < 0) {
-        am.power2 -= invalid_am_bias;
-
-        const int32_t sci_exp = scientific_exponent(0, pns.mantissa);
-        am = digit_comp<T>(am, pns.integer, pns.fraction, sci_exp);
-    }
-
-    to_float(pns.negative, am, value);
+    to_float(pns.negative, am, float_v);
     // Test for over/underflow.
-    if ((pns.mantissa != 0 && am.mantissa == 0 && am.power2 == 0) ||
+    if ((uval != 0 && am.mantissa == 0 && am.power2 == 0) ||
         am.power2 == binary_format<T>::infinite_power()) {
         answer.ec = std::errc::result_out_of_range;
     }
 
     return answer;
-}
-
-template <typename T>
-from_chars_result<> from_chars(const char *first, const char *last, T &value,
-                               chars_format fmt /*= chars_format::general*/) noexcept {
-    return from_chars_advanced(first, last, value, fmt);
 }
 
 } // namespace wjr::fastfloat

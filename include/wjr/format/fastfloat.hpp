@@ -6,27 +6,43 @@
 
 namespace wjr::fastfloat {
 
-template <typename T, typename Op>
+template <typename T>
+struct default_writer {
+    using float_type = T;
+    using support_integral = std::false_type;
+
+    WJR_INTRINSIC_CONSTEXPR T &get_float() noexcept { return value; }
+
+    T &value;
+};
+
+template <typename Writer, typename Op>
 WJR_NOINLINE from_chars_result<> __from_chars_impl(const char *first, const char *last,
-                                                   T &value, Op options) noexcept;
+                                                   Writer wr, Op options) noexcept;
 
 extern template from_chars_result<>
-__from_chars_impl<float, integral_constant<chars_format, chars_format::general>>(
-    const char *first, const char *last, float &value,
+__from_chars_impl<default_writer<float>,
+                  integral_constant<chars_format, chars_format::general>>(
+    const char *first, const char *last, default_writer<float> wr,
     integral_constant<chars_format, chars_format::general> options) noexcept;
 
 extern template from_chars_result<>
-__from_chars_impl<double, integral_constant<chars_format, chars_format::general>>(
-    const char *first, const char *last, double &value,
+__from_chars_impl<default_writer<double>,
+                  integral_constant<chars_format, chars_format::general>>(
+    const char *first, const char *last, default_writer<double> wr,
     integral_constant<chars_format, chars_format::general> options) noexcept;
 
 extern template from_chars_result<>
-__from_chars_impl<float, chars_format>(const char *first, const char *last, float &value,
-                                       chars_format fmt) noexcept;
+__from_chars_impl<default_writer<float>, chars_format>(const char *first,
+                                                       const char *last,
+                                                       default_writer<float> wr,
+                                                       chars_format fmt) noexcept;
 
 extern template from_chars_result<>
-__from_chars_impl<double, chars_format>(const char *first, const char *last,
-                                        double &value, chars_format fmt) noexcept;
+__from_chars_impl<default_writer<double>, chars_format>(const char *first,
+                                                        const char *last,
+                                                        default_writer<double> wr,
+                                                        chars_format fmt) noexcept;
 
 /**
  * This function parses the character sequence [first,last) for a number. It parses
@@ -54,13 +70,13 @@ __from_chars_impl<double, chars_format>(const char *first, const char *last,
 template <chars_format Fmt = chars_format::general>
 from_chars_result<> from_chars(const char *first, const char *last, float &value,
                                integral_constant<chars_format, Fmt> fmt = {}) noexcept {
-    return __from_chars_impl(first, last, value, fmt);
+    return __from_chars_impl(first, last, default_writer<float>{value}, fmt);
 }
 
 template <chars_format Fmt = chars_format::general>
 from_chars_result<> from_chars(const char *first, const char *last, double &value,
                                integral_constant<chars_format, Fmt> fmt = {}) noexcept {
-    return __from_chars_impl(first, last, value, fmt);
+    return __from_chars_impl(first, last, default_writer<double>{value}, fmt);
 }
 
 template <typename T, WJR_REQUIRES(is_any_of_v<T, float, double>)>
@@ -69,13 +85,11 @@ from_chars_result<> from_chars(const char *first, const char *last, T &value,
     if (WJR_BUILTIN_CONSTANT_P(fmt)) {
         if (fmt == chars_format::general) {
             return from_chars(first, last, value);
-        } else if (fmt == chars_format::json) {
-            return from_chars(first, last, value,
-                              integral_constant<chars_format, chars_format::json>{});
         }
     }
 
-    return __from_chars_impl(first, last, value, fmt);
+    WJR_ASSERT(!(to_underlying(fmt) & to_underlying(chars_format::__json_format)));
+    return __from_chars_impl(first, last, default_writer<T>{value}, fmt);
 }
 
 // Compares two ASCII strings in a case insensitive manner.
@@ -1955,17 +1969,21 @@ WJR_INTRINSIC_INLINE bool rounds_to_nearest() noexcept {
 
 struct parsed_number_string {
     int64_t exponent{0};
-    uint64_t mantissa{0};
     bool negative{false};
     // contains the range of the significant digits
     span<const char> integer{};  // non-nullable
     span<const char> fraction{}; // nullable
 };
 
-template <typename T, typename Op>
-from_chars_result<> __from_chars_impl(const char *first, const char *last, T &value,
+template <typename Writer, typename Op>
+from_chars_result<> __from_chars_impl(const char *first, const char *last, Writer wr,
                                       Op options) noexcept {
+    static_assert(!std::is_reference_v<Writer>, "");
+
+    using T = typename Writer::float_type;
+    constexpr bool is_support_integral = Writer::support_integral::value;
     constexpr bool is_constant_options = !std::is_same_v<Op, chars_format>;
+
     from_chars_result<> answer;
 
     if (WJR_UNLIKELY(first == last)) {
@@ -1976,10 +1994,6 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, T &va
 
     const char *p = first;
     const auto fmt = to_underlying(static_cast<chars_format>(options));
-
-    if constexpr (!is_constant_options) {
-        WJR_ASSERT(!(fmt & to_underlying(chars_format::__json_format)));
-    }
 
     parsed_number_string pns;
     pns.negative = (*p == '-');
@@ -1993,7 +2007,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, T &va
     }
 
     const char *const start_digits = p;
-    uint64_t i = 0; // an unsigned int avoids signed overflows (which are bad)
+    uint64_t uval = 0; // an unsigned int avoids signed overflows (which are bad)
 
     const char *end_of_integer_part;
     int64_t digit_count;
@@ -2022,7 +2036,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, T &va
         do {
             // a multiplication by 10 is cheaper than an arbitrary integer
             // multiplication
-            i = 10 * i + ch; // might overflow, we will handle the overflow later
+            uval = 10 * uval + ch; // might overflow, we will handle the overflow later
 
             if (++p == last) {
                 goto INTEGER_AT_END;
@@ -2036,6 +2050,15 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, T &va
         end_of_integer_part = p;
         digit_count = static_cast<int64_t>(p - start_digits);
         pns.integer = span<const char>(start_digits, static_cast<size_t>(digit_count));
+
+        if constexpr (is_constant_options) {
+            if (fmt & to_underlying(chars_format::__json_format)) {
+                // at least 1 digit in integer part, without leading zeros
+                if (digit_count == 0 || (start_digits[0] == '0' && digit_count > 1)) {
+                    return answer;
+                }
+            }
+        }
 
         if (*p != '.') {
             exponent = 0;
@@ -2051,24 +2074,37 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, T &va
         // can occur at most twice without overflowing, but let it occur more, since
         // for integers with many digits, digit parsing is the primary bottleneck.
         while ((std::distance(p, last) >= 8) && is_made_of_eight_digits_fast(p)) {
-            i = i * 100000000 +
-                parse_eight_digits_unrolled(
-                    p); // in rare cases, this will overflow, but that's ok
+            uval = uval * 100000000 +
+                   parse_eight_digits_unrolled(
+                       p); // in rare cases, this will overflow, but that's ok
             p += 8;
         }
 
         while ((p != last) && is_integer(*p)) {
             const auto digit = uint32_t(*p - '0');
             ++p;
-            i = i * 10 + digit; // in rare cases, this will overflow, but that's ok
+            uval = uval * 10 + digit; // in rare cases, this will overflow, but that's ok
         }
 
         exponent = before - p;
         pns.fraction = span<const char>(before, size_t(p - before));
         digit_count -= exponent;
 
-        if (WJR_UNLIKELY(digit_count == 0)) {
-            return detail::parse_infnan(first, last, value);
+        auto &float_v = wr.get_float();
+        if constexpr (is_constant_options) {
+            if (fmt & to_underlying(chars_format::__json_format)) {
+                if (WJR_UNLIKELY(exponent == 0)) {
+                    return detail::parse_infnan(first, last, float_v);
+                }
+            } else {
+                if (WJR_UNLIKELY(digit_count == 0)) {
+                    return detail::parse_infnan(first, last, float_v);
+                }
+            }
+        } else {
+            if (WJR_UNLIKELY(digit_count == 0)) {
+                return detail::parse_infnan(first, last, float_v);
+            }
         }
     } while (0);
 
@@ -2089,7 +2125,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, T &va
         if ((p == last) || !is_integer(*p)) {
             if (!bool(fmt & to_underlying(chars_format::fixed))) {
                 // We are in error.
-                return detail::parse_infnan(first, last, value);
+                return detail::parse_infnan(first, last, wr.get_float());
             }
             // Otherwise, we will be ignoring the 'e'.
             p = location_of_e;
@@ -2110,7 +2146,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, T &va
         // If it scientific and not fixed, we have to bail out.
         if (bool(fmt & to_underlying(chars_format::scientific)) &&
             !bool(fmt & to_underlying(chars_format::fixed))) {
-            return detail::parse_infnan(first, last, value);
+            return detail::parse_infnan(first, last, wr.get_float());
         }
     }
 
@@ -2142,32 +2178,33 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, T &va
                 // Let us start again, this time, avoiding overflows.
                 // We don't need to check if is_integer, since we use the
                 // pre-tokenized spans from above.
-                i = 0;
+                uval = 0;
                 p = pns.integer.data();
                 const char *int_end = p + pns.integer.size();
                 constexpr uint64_t minimal_nineteen_digit_integer =
                     1000000000000000000ull;
-                while ((i < minimal_nineteen_digit_integer) && (p != int_end)) {
-                    i = i * 10 + uint64_t(*p - '0');
+                while ((uval < minimal_nineteen_digit_integer) && (p != int_end)) {
+                    uval = uval * 10 + uint64_t(*p - '0');
                     ++p;
                 }
-                if (i >= minimal_nineteen_digit_integer) { // We have a big integers
+                if (uval >= minimal_nineteen_digit_integer) { // We have a big integers
                     exponent = end_of_integer_part - p + exp_number;
                 } else { // We have a value with a fractional component.
                     p = pns.fraction.data();
                     const char *frac_end = p + pns.fraction.size();
-                    while ((i < minimal_nineteen_digit_integer) && (p != frac_end)) {
-                        i = i * 10 + uint64_t(*p - '0');
+                    while ((uval < minimal_nineteen_digit_integer) && (p != frac_end)) {
+                        uval = uval * 10 + uint64_t(*p - '0');
                         ++p;
                     }
                     exponent = pns.fraction.data() - p + exp_number;
                 }
-                // We have now corrected both exponent and i, to a truncated value
+                // We have now corrected both exponent and uval, to a truncated value
             }
         }
 
         pns.exponent = exponent;
-        pns.mantissa = i;
+
+        T &float_v = wr.get_float();
 
         // The implementation of the Clinger's fast path is convoluted because
         // we want round-to-nearest in all cases, irrespective of the rounding mode
@@ -2187,17 +2224,17 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, T &va
             if (detail::rounds_to_nearest()) {
                 // We have that fegetround() == FE_TONEAREST.
                 // Next is Clinger's fast path.
-                if (pns.mantissa <= binary_format<T>::max_mantissa_fast_path()) {
-                    value = T(pns.mantissa);
+                if (uval <= binary_format<T>::max_mantissa_fast_path()) {
+                    float_v = T(uval);
                     if (pns.exponent < 0) {
-                        value =
-                            value / binary_format<T>::exact_power_of_ten(-pns.exponent);
+                        float_v =
+                            float_v / binary_format<T>::exact_power_of_ten(-pns.exponent);
                     } else {
-                        value =
-                            value * binary_format<T>::exact_power_of_ten(pns.exponent);
+                        float_v =
+                            float_v * binary_format<T>::exact_power_of_ten(pns.exponent);
                     }
                     if (pns.negative) {
-                        value = -value;
+                        float_v = -float_v;
                     }
                     return answer;
                 }
@@ -2206,46 +2243,44 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, T &va
                 // Next is a modified Clinger's fast path, inspired by Jakub Jelínek's
                 // proposal
                 if (pns.exponent >= 0 &&
-                    pns.mantissa <=
-                        binary_format<T>::max_mantissa_fast_path(pns.exponent)) {
+                    uval <= binary_format<T>::max_mantissa_fast_path(pns.exponent)) {
 #if defined(__clang__)
                     // ClangCL may map 0 to -0.0 when fegetround() == FE_DOWNWARD
-                    if (pns.mantissa == 0) {
-                        value = pns.negative ? T(-0.) : T(0.);
+                    if (uval == 0) {
+                        float_v = pns.negative ? T(-0.) : T(0.);
                         return answer;
                     }
 #endif
-                    value = T(pns.mantissa) *
-                            binary_format<T>::exact_power_of_ten(pns.exponent);
+                    float_v =
+                        T(uval) * binary_format<T>::exact_power_of_ten(pns.exponent);
                     if (pns.negative) {
-                        value = -value;
+                        float_v = -float_v;
                     }
                     return answer;
                 }
             }
         }
 
-        adjusted_mantissa am =
-            compute_float<binary_format<T>>(pns.exponent, pns.mantissa);
+        adjusted_mantissa am = compute_float<binary_format<T>>(pns.exponent, uval);
         if (too_many_digits && am.power2 >= 0) {
-            if (am != compute_float<binary_format<T>>(pns.exponent, pns.mantissa + 1)) {
-                am = compute_error<binary_format<T>>(pns.exponent, pns.mantissa);
+            if (am != compute_float<binary_format<T>>(pns.exponent, uval + 1)) {
+                am = compute_error<binary_format<T>>(pns.exponent, uval);
             }
         }
 
-        // If we called compute_float<binary_format<T>>(pns.exponent, pns.mantissa)
+        // If we called compute_float<binary_format<T>>(pns.exponent, uval)
         // and we have an invalid power (am.power2 < 0), then we need to go the long
         // way around again. This is very uncommon.
         if (am.power2 < 0) {
             am.power2 -= invalid_am_bias;
 
-            const int32_t sci_exp = scientific_exponent(pns.exponent, pns.mantissa);
+            const int32_t sci_exp = scientific_exponent(pns.exponent, uval);
             am = digit_comp<T>(am, pns.integer, pns.fraction, sci_exp);
         }
 
-        to_float(pns.negative, am, value);
+        to_float(pns.negative, am, float_v);
         // Test for over/underflow.
-        if ((pns.mantissa != 0 && am.mantissa == 0 && am.power2 == 0) ||
+        if ((uval != 0 && am.mantissa == 0 && am.power2 == 0) ||
             am.power2 == binary_format<T>::infinite_power()) {
             answer.ec = std::errc::result_out_of_range;
         }
@@ -2257,6 +2292,15 @@ INTEGER_AT_END:
     end_of_integer_part = p;
     digit_count = static_cast<int64_t>(p - start_digits);
     pns.integer = span<const char>(start_digits, static_cast<size_t>(digit_count));
+
+    if constexpr (is_constant_options) {
+        if (fmt & to_underlying(chars_format::__json_format)) {
+            // at least 1 digit in integer part, without leading zeros
+            if (digit_count == 0 || (start_digits[0] == '0' && digit_count > 1)) {
+                return answer;
+            }
+        }
+    }
 
 INTEGER:
     answer.ec = std::errc(); // be optimistic
@@ -2281,41 +2325,53 @@ INTEGER:
         if (digit_count > 19) {
             p = start;
 
-            i = __from_chars_unroll_16<10>(reinterpret_cast<const uint8_t *>(p),
-                                           char_converter);
+            uval = __from_chars_unroll_16<10>(reinterpret_cast<const uint8_t *>(p),
+                                              char_converter);
             p += 16;
-            i = i * 10 + char_converter.template from<10>(*p++);
-            i = i * 10 + char_converter.template from<10>(*p++);
-            i = i * 10 + char_converter.template from<10>(*p++);
+            uval = uval * 10 + char_converter.template from<10>(*p++);
+            uval = uval * 10 + char_converter.template from<10>(*p++);
+            uval = uval * 10 + char_converter.template from<10>(*p++);
 
             exponent = end_of_integer_part - p;
             pns.exponent = exponent;
-            pns.mantissa = i;
 
             WJR_ASSUME(exponent >= 0);
 
-            adjusted_mantissa am =
-                compute_float<binary_format<T>>(pns.exponent, pns.mantissa);
+            if constexpr (is_support_integral) {
+                constexpr uint64_t max_quot = std::numeric_limits<uint64_t>::max() / 10;
+                constexpr uint32_t max_rem = std::numeric_limits<uint64_t>::max() % 10;
+
+                if (!pns.negative && digit_count == 20 &&
+                    (uval < max_quot ||
+                     (uval == max_quot && static_cast<uint32_t>(*p - '0') <= max_rem))) {
+                    uint64_t &u64_v = wr.get_u64();
+                    u64_v = uval;
+                    return answer;
+                }
+            }
+
+            T &float_v = wr.get_float();
+
+            adjusted_mantissa am = compute_float<binary_format<T>>(pns.exponent, uval);
             if (am.power2 >= 0) {
-                if (am !=
-                    compute_float<binary_format<T>>(pns.exponent, pns.mantissa + 1)) {
-                    am = compute_error<binary_format<T>>(pns.exponent, pns.mantissa);
+                if (am != compute_float<binary_format<T>>(pns.exponent, uval + 1)) {
+                    am = compute_error<binary_format<T>>(pns.exponent, uval);
                 }
             }
 
             // If we called compute_float<binary_format<T>>(pns.exponent,
-            // pns.mantissa) and we have an invalid power (am.power2 < 0), then we
+            // uval) and we have an invalid power (am.power2 < 0), then we
             // need to go the long way around again. This is very uncommon.
             if (am.power2 < 0) {
                 am.power2 -= invalid_am_bias;
 
-                const int32_t sci_exp = scientific_exponent(pns.exponent, pns.mantissa);
+                const int32_t sci_exp = scientific_exponent(pns.exponent, uval);
                 am = digit_comp<T>(am, pns.integer, pns.fraction, sci_exp);
             }
 
-            to_float(pns.negative, am, value);
+            to_float(pns.negative, am, float_v);
             // Test for over/underflow.
-            if ((pns.mantissa != 0 && am.mantissa == 0 && am.power2 == 0) ||
+            if ((uval != 0 && am.mantissa == 0 && am.power2 == 0) ||
                 am.power2 == binary_format<T>::infinite_power()) {
                 answer.ec = std::errc::result_out_of_range;
             }
@@ -2325,31 +2381,44 @@ INTEGER:
     }
 
     pns.exponent = 0;
-    pns.mantissa = i;
 
-    if (pns.mantissa <= binary_format<T>::max_mantissa_fast_path()) {
+    if constexpr (is_support_integral) {
+        if (!pns.negative) {
+            uint64_t &u64_v = wr.get_u64();
+            u64_v = uval;
+            return answer;
+        } else if (uval <= static_cast<uint64_t>(-std::numeric_limits<int64_t>::min())) {
+            int64_t &i64_v = wr.get_i64();
+            i64_v = static_cast<int64_t>(-uval);
+            return answer;
+        }
+    }
+
+    auto &float_v = wr.get_float();
+
+    if (WJR_LIKELY(uval <= binary_format<T>::max_mantissa_fast_path())) {
 #if defined(__clang__)
         // ClangCL may map 0 to -0.0 when fegetround() == FE_DOWNWARD
-        if (pns.mantissa == 0) {
-            value = pns.negative ? T(-0.) : T(0.);
+        if (uval == 0) {
+            float_v = pns.negative ? T(-0.) : T(0.);
             return answer;
         }
 #endif
 
-        value = T(pns.mantissa);
+        float_v = T(uval);
         if (pns.negative) {
-            value = -value;
+            float_v = -float_v;
         }
-        
+
         return answer;
     }
 
-    adjusted_mantissa am = compute_integer<binary_format<T>>(pns.mantissa);
+    adjusted_mantissa am = compute_integer<binary_format<T>>(uval);
     WJR_ASSERT_ASSUME(am.power2 >= 0);
 
-    to_float(pns.negative, am, value);
+    to_float(pns.negative, am, float_v);
     // Test for over/underflow.
-    if ((pns.mantissa != 0 && am.mantissa == 0 && am.power2 == 0) ||
+    if ((uval != 0 && am.mantissa == 0 && am.power2 == 0) ||
         am.power2 == binary_format<T>::infinite_power()) {
         answer.ec = std::errc::result_out_of_range;
     }
