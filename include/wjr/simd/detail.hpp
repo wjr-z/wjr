@@ -1,6 +1,9 @@
 #ifndef WJR_SIMD_DETAIL_HPP__
 #define WJR_SIMD_DETAIL_HPP__
 
+#include <wjr/simd/simd_cast.hpp>
+#include <wjr/simd/simd_mask.hpp>
+
 namespace wjr {
 
 namespace simd_abi {
@@ -18,6 +21,9 @@ inline constexpr vector_aligned_t vector_aligned{};
 
 template <typename T, typename Abi>
 class simd;
+
+template <typename T, size_t N>
+using fixed_size_simd = simd<T, simd_abi::fixed_size<N>>;
 
 } // namespace wjr
 

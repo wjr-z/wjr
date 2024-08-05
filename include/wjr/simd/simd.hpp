@@ -17,6 +17,9 @@ class simd<T, simd_abi::fixed_size<N>> {
     static constexpr size_t BitWidth = sizeof(T) * 8 * N;
     using int_type = uint_t<BitWidth>;
 
+    static_assert(std::is_unsigned_v<T>, "");
+    static_assert(N >= 2, "");
+
 public:
     using mask_type = simd_detail::basic_simd_mask<T, N, BitWidth>;
 
@@ -31,22 +34,78 @@ public:
     }
 
     template <typename Flags = element_aligned_t>
-    void copy_from(const T *mem, Flags flags = {}) noexcept {
+    void copy_from(const T *mem, Flags = {}) noexcept {
         m_data = read_memory<int_type>(mem);
     }
 
     template <typename Flags = element_aligned_t>
-    void copy_to(T *mem, Flags flags = {}) noexcept {
+    void copy_to(T *mem, Flags = {}) noexcept {
         write_memory<int_type>(mem, m_data);
     }
 
-    friend constexpr mask_type operator==(const simd &lhs, const simd &rhs) noexcept {
-        return lhs.m_data ^ rhs.m_dat;
+    constexpr simd &operator&=(const simd &other) noexcept {
+        m_data &= other.m_data;
+        return *this;
     }
+
+    friend constexpr simd operator&(const simd &lhs, const simd &rhs) noexcept {
+        simd ret(lhs);
+        ret &= rhs;
+        return ret;
+    }
+
+    constexpr simd &operator|=(const simd &other) noexcept {
+        m_data |= other.m_data;
+        return *this;
+    }
+
+    friend constexpr simd operator|(const simd &lhs, const simd &rhs) noexcept {
+        simd ret(lhs);
+        ret |= rhs;
+        return ret;
+    }
+
+    constexpr simd &operator^=(const simd &other) noexcept {
+        m_data ^= other.m_data;
+        return *this;
+    }
+
+    friend constexpr simd operator^(const simd &lhs, const simd &rhs) noexcept {
+        simd ret(lhs);
+        ret ^= rhs;
+        return ret;
+    }
+
+    /// this is slow.
+    // friend constexpr mask_type operator==(const simd &lhs, const simd &rhs) noexcept {
+    //     return ~(lhs.m_data ^ rhs.m_data);
+    // }
 
 private:
     int_type m_data;
 };
+
+template <size_t N>
+struct is_native_simd_bit : std::false_type {};
+
+template <>
+struct is_native_simd_bit<8> : std::true_type {};
+template <>
+struct is_native_simd_bit<16> : std::true_type {};
+template <>
+struct is_native_simd_bit<32> : std::true_type {};
+template <>
+struct is_native_simd_bit<64> : std::true_type {};
+
+#if WJR_HAS_SIMD(NATIVE_128BIT)
+template <>
+struct is_native_simd_bit<128> : std::true_type {};
+#endif
+
+#if WJR_HAS_SIMD(NATIVE_256BIT)
+template <>
+struct is_native_simd_bit<256> : std::true_type {};
+#endif
 
 } // namespace wjr
 
