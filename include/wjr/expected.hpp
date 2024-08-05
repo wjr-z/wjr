@@ -21,7 +21,6 @@
 namespace wjr {
 
 struct unexpect_t {};
-
 inline constexpr unexpect_t unexpect = {};
 
 template <typename E, typename Tag>
@@ -1762,11 +1761,10 @@ using compressed_expected = expected<T, compressed_unexpected<E, init>>;
     } while (0)
 
 #define WJR_EXPECTED_INIT(NAME, ...)                                                     \
-    auto __wjr_exp_##NAME = (__VA_ARGS__);                                               \
-    if (WJR_UNLIKELY(!__wjr_exp_##NAME)) {                                               \
-        return ::wjr::unexpected(std::move(__wjr_exp_##NAME).error());                   \
-    }                                                                                    \
-    auto &NAME = *__wjr_exp_##NAME
+    auto NAME = (__VA_ARGS__);                                                           \
+    if (WJR_UNLIKELY(!NAME)) {                                                           \
+        return ::wjr::unexpected(std::move(NAME).error());                               \
+    }
 
 #define WJR_EXPECTED_SET(VAR, ...)                                                       \
     do {                                                                                 \
