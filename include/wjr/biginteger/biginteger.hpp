@@ -127,29 +127,14 @@ public:
 
     ~default_biginteger_vector_storage() = default;
 
-    void destroy(_Alty &al) noexcept {
+    void deallocate(_Alty &al) noexcept {
         if (WJR_BUILTIN_CONSTANT_P_TRUE(data() == nullptr)) {
-            return;
-        }
-
-        const size_type __size = size();
-
-        if (WJR_BUILTIN_CONSTANT_P_TRUE(__size == 0)) {
-            return;
-        }
-
-        destroy_n_using_allocator(data(), __size, al);
-    }
-
-    void destroy_and_deallocate(_Alty &al) noexcept {
-        if (WJR_BUILTIN_CONSTANT_P_TRUE(capacity() == 0)) {
             return;
         }
 
         if (data()) {
             WJR_ASSERT_ASSUME_L2(capacity() != 0);
 
-            destroy(al);
             al.deallocate(data(), capacity());
         }
     }
@@ -202,6 +187,11 @@ public:
 
 private:
     biginteger_data m_storage;
+};
+
+template <typename Alloc>
+struct get_relocate_mode<default_biginteger_vector_storage<Alloc>> {
+    static constexpr relocate_t value = relocate_t::trivial;
 };
 
 template <typename Storage>
@@ -1096,7 +1086,6 @@ void powmod(basic_biginteger<S> &dst, const biginteger_data &num, uint64_t exp,
 
 template <typename Storage>
 class basic_biginteger {
-
 public:
     using storage_type = Storage;
     using vector_type = basic_vector<storage_type>;
@@ -1400,6 +1389,12 @@ private:
     }
 
     vector_type m_vec;
+};
+
+template <typename S>
+struct get_relocate_mode<basic_biginteger<S>> {
+    static constexpr relocate_t value =
+        get_relocate_mode_v<typename basic_biginteger<S>::vector_type>;
 };
 
 template <typename Storage>

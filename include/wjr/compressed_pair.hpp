@@ -334,6 +334,16 @@ public:
 template <typename T, typename U>
 compressed_pair(T, U) -> compressed_pair<T, U>;
 
+template <typename T, typename U>
+struct get_relocate_mode<compressed_pair<T, U>> {
+    static constexpr relocate_t value = get_common_relocate_mode_v<T, U>;
+};
+
+template <typename T, typename U>
+struct get_relocate_mode<std::pair<T, U>> {
+    static constexpr relocate_t value = get_common_relocate_mode_v<T, U>;
+};
+
 template <typename T1, typename U1, typename T2, typename U2>
 WJR_CONST constexpr bool operator==(
     const compressed_pair<T1, U1> &lhs,

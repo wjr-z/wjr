@@ -243,12 +243,6 @@ struct add_restrict<T *> {
 template <typename T>
 using add_restrict_t = typename add_restrict<T>::type;
 
-template <typename Iter>
-WJR_INTRINSIC_CONSTEXPR20 add_restrict_t<Iter>
-make_restrict_iterator(Iter iter) noexcept(std::is_nothrow_constructible_v<Iter>) {
-    return iter;
-}
-
 /**
  * @brief Return if is constant evaluated.
  *
@@ -772,20 +766,42 @@ WJR_CONST constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept 
     return static_cast<std::underlying_type_t<Enum>>(e);
 }
 
-template <typename T, typename Enable = void>
-struct __is_trivially_relocatable_impl : std::false_type {};
+enum class relocate_t {
+    normal = 0,        /** sepreate move and destroy into two loops. */
+    maybe_trivial = 1, /** combine move and destroy in one loop. */
+    trivial = 2,       /** use single memcpy. */
+};
 
 template <typename T>
-struct __is_trivially_relocatable_impl<
-    T, std::enable_if_t<std::conjunction_v<std::is_trivially_move_constructible<T>,
-                                           std::is_trivially_destructible<T>>>>
-    : std::true_type {};
+struct get_relocate_mode {
+    static constexpr relocate_t value =
+        std::is_trivially_copyable_v<T> ? relocate_t::trivial : relocate_t::normal;
+};
 
 template <typename T>
-struct is_trivially_relocatable : __is_trivially_relocatable_impl<T> {};
+inline constexpr relocate_t get_relocate_mode_v = get_relocate_mode<T>::value;
 
-template <typename T>
-inline constexpr bool is_trivially_relocatable_v = is_trivially_relocatable<T>::value;
+template <relocate_t Mode, typename... Args>
+struct __get_common_relocate_mode_impl;
+
+template <relocate_t Mode>
+struct __get_common_relocate_mode_impl<Mode> {
+    static constexpr relocate_t value = Mode;
+};
+
+template <relocate_t Mode, typename T, typename... Args>
+struct __get_common_relocate_mode_impl<Mode, T, Args...> {
+    static constexpr relocate_t value = static_cast<relocate_t>(
+        std::min(to_underlying(Mode), to_underlying(get_relocate_mode_v<T>)));
+};
+
+template <typename... Args>
+struct get_common_relocate_mode
+    : __get_common_relocate_mode_impl<relocate_t::trivial, Args...> {};
+
+template <typename... Args>
+inline constexpr relocate_t get_common_relocate_mode_v =
+    get_common_relocate_mode<Args...>::value;
 
 #define __WJR_INDEXS_RANGE_I(START, END)                                                 \
     WJR_PP_QUEUE_POP_FRONT_N((WJR_PP_IOTA(END)), START)

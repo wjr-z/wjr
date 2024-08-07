@@ -301,6 +301,16 @@ template <typename... Args>
 tuple(std::tuple<Args...>) -> tuple<Args...>;
 
 template <typename... Args>
+struct get_relocate_mode<tuple<Args...>> {
+    static constexpr relocate_t value = get_common_relocate_mode_v<Args...>;
+};
+
+template <typename... Args>
+struct get_relocate_mode<std::tuple<Args...>> {
+    static constexpr relocate_t value = get_common_relocate_mode_v<Args...>;
+};
+
+template <typename... Args>
 constexpr tuple<unref_wrapper_t<Args>...> make_tuple(Args &&...args) noexcept(
     std::conjunction_v<
         std::is_nothrow_constructible<unref_wrapper_t<Args>, Args &&>...>) {

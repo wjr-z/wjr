@@ -56,10 +56,17 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
 
 /// @private
 template <typename InputIt, typename OutputIt>
+constexpr OutputIt __copy_restrict_aux(add_restrict_t<InputIt> first,
+                                       add_restrict_t<InputIt> last,
+                                       add_restrict_t<OutputIt> d_first) noexcept {
+    return wjr::copy(first, last, d_first);
+}
+
+/// @private
+template <typename InputIt, typename OutputIt>
 constexpr OutputIt __copy_restrict_impl(InputIt first, InputIt last,
                                         OutputIt d_first) noexcept {
-    return wjr::copy(make_restrict_iterator(first), make_restrict_iterator(last),
-                     make_restrict_iterator(d_first));
+    return __copy_restrict_aux<InputIt, OutputIt>(first, last, d_first);
 }
 
 /**
@@ -130,9 +137,15 @@ constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
 
 /// @private
 template <typename InputIt, typename Size, typename OutputIt>
+constexpr OutputIt __copy_n_restrict_aux(add_restrict_t<InputIt> first, Size count,
+                                         add_restrict_t<OutputIt> d_first) {
+    return wjr::copy_n(first, count, d_first);
+}
+
+/// @private
+template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt __copy_n_restrict_impl(InputIt first, Size count, OutputIt d_first) {
-    return wjr::copy_n(make_restrict_iterator(first), make_restrict_iterator(count),
-                       make_restrict_iterator(d_first));
+    return __copy_n_restrict_aux<InputIt, Size, OutputIt>(first, count, d_first);
 }
 
 /**
