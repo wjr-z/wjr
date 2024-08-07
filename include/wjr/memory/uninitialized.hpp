@@ -10,8 +10,8 @@
  *
  */
 
+#include <wjr/crtp/class_base.hpp>
 #include <wjr/crtp/trivially_allocator_base.hpp>
-#include <wjr/memory/aligned_storage.hpp>
 #include <wjr/memory/detail.hpp>
 
 namespace wjr {
@@ -671,116 +671,124 @@ OutputIt uninitialized_relocate_n_restrict_using_allocator(InputIt first, Size n
     }
 }
 
-#if WJR_DEBUG_LEVEL > 1
-#define WJR_HAS_DEBUG_UNINITIALIZED_CHECKER WJR_HAS_DEF
-#endif
+template <typename T, bool Constructor, bool Destructor>
+struct __uninitialized_base;
+
+template <typename T>
+struct __aligned_storage_t {
+    alignas(T) char buf[sizeof(T)];
+};
+
+#define WJR_REGISTER_UNION_BASE(CON, DES)                                                \
+    template <typename T>                                                                \
+    struct __uninitialized_base<T, CON, DES> {                                           \
+        __uninitialized_base(const __uninitialized_base &) = default;                    \
+        __uninitialized_base(__uninitialized_base &&) = default;                         \
+        __uninitialized_base &operator=(const __uninitialized_base &) = default;         \
+        __uninitialized_base &operator=(__uninitialized_base &&) = default;              \
+                                                                                         \
+        constexpr __uninitialized_base() WJR_PP_BOOL_IF(CON, = default, noexcept {});    \
+                                                                                         \
+        template <typename... Args>                                                      \
+        constexpr __uninitialized_base(Args &&...args) noexcept(                         \
+            std::is_nothrow_constructible_v<T, Args...>)                                 \
+            : m_value(std::forward<Args>(args)...) {}                                    \
+                                                                                         \
+        ~__uninitialized_base() WJR_PP_BOOL_IF(DES, = default, noexcept {});             \
+                                                                                         \
+        union {                                                                          \
+            T m_value;                                                                   \
+            __aligned_storage_t<T> m_storage;                                            \
+        };                                                                               \
+    }
+
+WJR_REGISTER_UNION_BASE(0, 0);
+WJR_REGISTER_UNION_BASE(0, 1);
+WJR_REGISTER_UNION_BASE(1, 0);
+WJR_REGISTER_UNION_BASE(1, 1);
+
+#undef WJR_REGISTER_UNION_BASE
+
+template <typename T>
+using __uninitialized_base_selector =
+    __uninitialized_base<T, std::is_trivially_default_constructible_v<T>,
+                         std::is_trivially_destructible_v<T>>;
+
+template <typename T>
+struct __uninitialized_control_base : __uninitialized_base_selector<T> {
+    using Mybase = __uninitialized_base_selector<T>;
+    using Mybase::Mybase;
+
+    WJR_CONSTEXPR20 std::enable_if_t<std::is_copy_constructible_v<T>>
+    __copy_construct(const __uninitialized_control_base &other) noexcept(
+        std::is_nothrow_copy_constructible_v<T>) {
+        wjr::construct_at(std::addressof(this->m_value), other.m_value);
+    }
+
+    WJR_CONSTEXPR20 std::enable_if_t<std::is_move_constructible_v<T>>
+    __move_construct(__uninitialized_control_base &&other) noexcept(
+        std::is_nothrow_move_constructible_v<T>) {
+        wjr::construct_at(std::addressof(this->m_value), std::move(other.m_value));
+    }
+};
+
+template <typename T>
+using __uninitialized_control_selector = control_special_members_base<
+    __uninitialized_control_base<T>,
+    std::is_trivially_copy_constructible_v<T> || !std::is_copy_constructible_v<T>,
+    std::is_trivially_move_constructible_v<T> || !std::is_move_constructible_v<T>, true,
+    true>;
+
+template <typename T>
+using __uninitialized_enabler =
+    enable_special_members_base<true, true, std::is_copy_constructible_v<T>,
+                                std::is_move_constructible_v<T>, false, false>;
 
 /**
  * @class uninitialized
  *
  * @details Uninitialized object. Make trivially constructible and destructible of
- * any type.+
- *
- * @details Trivially constructible and destructible uninitialized object. Copy/move
- * constructor and assignment operators are deleted if the type is not trivially
- * copy/move constructible/assignable.
+ * any type.
  *
  */
 template <typename T>
-class uninitialized : aligned_storage<T> {
-    using Mybase = aligned_storage<T>;
+class WJR_EMPTY_BASES uninitialized : __uninitialized_control_selector<T>,
+                                      __uninitialized_enabler<T> {
+    using Mybase = __uninitialized_control_selector<T>;
 
 public:
-    using Mybase::Mybase;
-
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(uninitialized);
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Mybase, Args...>)>
     constexpr uninitialized(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<Mybase, Args...>)
-        : Mybase(std::forward<Args>(args)...) {
-        checker_set(true);
-    }
+        : Mybase(std::forward<Args>(args)...) {}
 
     constexpr uninitialized(dctor_t) noexcept : Mybase() {}
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr T &
     emplace(Args &&...args) noexcept(std::is_nothrow_constructible_v<Mybase, Args...>) {
-        if constexpr (!std::is_trivially_destructible_v<T>) {
-            check(false);
-        }
-
-        wjr::construct_at(get_unsafe(), std::forward<Args>(args)...);
-        checker_set(true);
-        return get();
+        wjr::construct_at(get(), std::forward<Args>(args)...);
+        return this->m_value;
     }
 
     constexpr void reset() noexcept(std::is_nothrow_destructible_v<T>) {
-        if constexpr (!std::is_trivially_destructible_v<T>) {
-            check(true);
-        }
-
-        std::destroy_at(get_unsafe());
-        checker_set(false);
+        std::destroy_at(get());
     }
 
-    constexpr T &operator*() & noexcept {
-        check(true);
-        return Mybase::operator*();
-    }
-    constexpr const T &operator*() const & noexcept {
-        check(true);
-        return Mybase::operator*();
-    }
+    constexpr T &operator*() & noexcept { return this->m_value; }
+    constexpr const T &operator*() const & noexcept { return this->m_value; }
     constexpr T &&operator*() && noexcept { return static_cast<T &&>(this->operator*()); }
     constexpr const T &&operator*() const && noexcept {
         return static_cast<const T &&>(this->operator*());
     }
 
-    constexpr T *get_unsafe() noexcept { return Mybase::get(); }
-    constexpr const T *get_unsafe() const noexcept { return Mybase::get(); }
-
-    constexpr T *get() noexcept {
-        check(true);
-        return get_unsafe();
-    }
-
-    constexpr const T *get() const noexcept {
-        check(true);
-        return get_unsafe();
-    }
+    constexpr T *get() noexcept { return std::addressof(this->m_value); }
+    constexpr const T *get() const noexcept { return std::addressof(this->m_value); }
 
     constexpr T *operator->() noexcept { return get(); }
     constexpr const T *operator->() const noexcept { return get(); }
-
-private:
-#if WJR_HAS_DEBUG(UNINITIALIZED_CHECKER)
-    struct __checker {
-        constexpr void set(bool value) noexcept { m_initialized = value; }
-        constexpr void check(bool value) const noexcept {
-            WJR_ASSERT_L0(m_initialized == value, "Expected ",
-                          (value ? "initialized" : "uninitialized"),
-                          " value when using an uninitialized object.");
-        }
-
-        ~__checker() noexcept {
-            if constexpr (!std::is_trivially_destructible_v<T>) {
-                check(false);
-            }
-        }
-
-        bool m_initialized = false;
-    };
-
-    __checker m_checker;
-
-    constexpr void checker_set(bool value) noexcept { m_checker.set(value); }
-    constexpr void check(bool value) const noexcept { m_checker.check(value); }
-#else
-    constexpr static void checker_set(bool) noexcept {}
-    constexpr static void check(bool) noexcept {}
-#endif
 };
 
 /// @private
@@ -805,13 +813,7 @@ public:
 
 /// @private
 template <typename T>
-using lazy_initialized_base = __lazy_initialized_base<T,
-#if WJR_HAS_DEBUG(UNINITIALIZED_CHECKER)
-                                                      false
-#else
-                                                      std::is_trivially_destructible_v<T>
-#endif
-                                                      >;
+using lazy_initialized_base = __lazy_initialized_base<T, false>;
 
 template <typename T>
 class lazy_initialized : public lazy_initialized_base<T> {

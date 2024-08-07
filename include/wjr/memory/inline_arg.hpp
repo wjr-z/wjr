@@ -13,7 +13,7 @@
  *
  */
 
-#include <wjr/memory/aligned_storage.hpp>
+#include <wjr/memory/uninitialized.hpp>
 
 namespace wjr {
 
@@ -33,7 +33,7 @@ public:
     static constexpr bool is_inlined = true;
 
 private:
-    using storage_type = aligned_storage<value_type>;
+    using storage_type = uninitialized<value_type>;
 
 public:
     inline_arg() = delete;

@@ -34,7 +34,7 @@ public:
 
 private:
     Alloc &m_al;
-    aligned_storage<value_type> m_storage;
+    uninitialized<value_type> m_storage;
 };
 
 template <typename Alloc, typename... Args>

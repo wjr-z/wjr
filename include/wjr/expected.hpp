@@ -704,8 +704,6 @@ public:
     using error_type = typename Mybase::error_type;
     using unexpected_type = unexpected<error_type>;
 
-    using Mybase::Mybase;
-
     expected() = default;
     expected(const expected &) = default;
     expected(expected &&) = default;

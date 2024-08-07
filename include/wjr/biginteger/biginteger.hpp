@@ -3131,7 +3131,6 @@ template <typename S, typename Engine,
           WJR_REQUIRES_I(biginteger_uniform_random_bit_generator_v<Engine>)>
 void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
                     Engine &engine) noexcept {
-    std::optional<uninitialized<math_detail::unique_stack_alloc>> stkal;
     uint32_t size = limit->size();
 
     WJR_ASSERT(size != 0);
@@ -3151,9 +3150,10 @@ void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
     const auto dp = dst->data();
     const uint64_t *lp = limit->data();
 
+    math_detail::unique_stack_alloc stkal(math_detail::stack_alloc);
+
     if (__equal_pointer(dst, limit)) {
-        stkal.emplace(math_detail::stack_alloc);
-        const auto tp = (uint64_t *)(*stkal)->allocate(size * sizeof(uint64_t));
+        const auto tp = static_cast<uint64_t *>(stkal.allocate(size * sizeof(uint64_t)));
         std::copy_n(lp, size, tp);
         lp = tp;
     }
@@ -3198,10 +3198,6 @@ void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
 
     size = normalize(dp, size);
     dst->set_ssize(size);
-
-    if (stkal.has_value()) {
-        stkal->reset();
-    }
 }
 
 template <typename S, typename Engine,
