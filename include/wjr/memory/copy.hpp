@@ -9,14 +9,8 @@
 
 namespace wjr {
 
-/**
- * @fn copy
- *
- * @details Optimized for back_insert_iterator and insert_iterator.
- *
- */
 template <typename InputIt, typename OutputIt>
-constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
+constexpr OutputIt __copy_impl(InputIt first, InputIt last, OutputIt d_first) {
     using Out = remove_cvref_t<OutputIt>;
 
     if constexpr (is_back_insert_iterator_v<Out> || is_insert_iterator_v<Out>) {
@@ -48,19 +42,24 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
     }
 }
 
-/// @private
+/**
+ * @fn copy
+ *
+ * @details Optimized for back_insert_iterator and insert_iterator.
+ *
+ */
 template <typename InputIt, typename OutputIt>
-constexpr OutputIt __copy_restrict_impl_aux(add_restrict_t<InputIt> first,
-                                            add_restrict_t<InputIt> last,
-                                            add_restrict_t<OutputIt> d_first) {
-    return wjr::copy(first, last, d_first);
+constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
+    return __copy_impl(to_contiguous_address(first), to_contiguous_address(last),
+                       to_contiguous_address(d_first));
 }
 
 /// @private
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt __copy_restrict_impl(InputIt first, InputIt last,
                                         OutputIt d_first) noexcept {
-    return __copy_restrict_impl_aux<InputIt, OutputIt>(first, last, d_first);
+    return wjr::copy(make_restrict_iterator(first), make_restrict_iterator(last),
+                     make_restrict_iterator(d_first));
 }
 
 /**
@@ -83,14 +82,8 @@ constexpr OutputIt copy_restrict(InputIt first, InputIt last, OutputIt d_first) 
     }
 }
 
-/**
- * @fn wjr::copy_n
- *
- * @details Optimized for back_insert_iterator and insert_iterator.
- *
- */
 template <typename InputIt, typename Size, typename OutputIt>
-constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
+constexpr OutputIt __copy_n_impl(InputIt first, Size count, OutputIt d_first) {
     using Out = remove_cvref_t<OutputIt>;
 
     if constexpr (is_random_access_iterator_v<InputIt> &&
@@ -123,17 +116,23 @@ constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
     }
 }
 
-/// @private
+/**
+ * @fn wjr::copy_n
+ *
+ * @details Optimized for back_insert_iterator and insert_iterator.
+ *
+ */
 template <typename InputIt, typename Size, typename OutputIt>
-constexpr OutputIt __copy_n_restrict_impl_aux(add_restrict_t<InputIt> first, Size count,
-                                              add_restrict_t<OutputIt> d_first) {
-    return wjr::copy_n(first, count, d_first);
+constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
+    return __copy_n_impl(to_contiguous_address(first), count,
+                         to_contiguous_address(d_first));
 }
 
 /// @private
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt __copy_n_restrict_impl(InputIt first, Size count, OutputIt d_first) {
-    return __copy_n_restrict_impl_aux<InputIt, Size, OutputIt>(first, count, d_first);
+    return wjr::copy_n(make_restrict_iterator(first), make_restrict_iterator(count),
+                       make_restrict_iterator(d_first));
 }
 
 /**

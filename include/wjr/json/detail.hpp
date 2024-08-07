@@ -6,7 +6,7 @@
 
 namespace wjr::json {
 
-enum class error_code {
+enum class error_code : uint8_t {
     SUCCESS = 0,     ///< No error
     CAPACITY,        ///< This parser can't support a document that big
     MEMALLOC,        ///< Error allocating memory, most likely out of memory
@@ -39,7 +39,7 @@ enum class error_code {
     SCALAR_DOCUMENT_AS_VALUE,   ///< A scalar document is treated as a value.
     OUT_OF_BOUNDS,              ///< Attempted to access location outside of document.
     TRAILING_CONTENT,           ///< Unexpected trailing content in the JSON input
-    NUM_ERROR_CODES
+    NUM_ERROR_CODES,
 };
 
 using result_error = compressed_unexpected<error_code, error_code::SUCCESS>;
@@ -83,9 +83,14 @@ using array_t = integral_constant<value_t, value_t::array>;
 inline constexpr array_t array_v = {};
 
 struct basic_value {
-    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(basic_value);
+    basic_value() = default;
+    basic_value(const basic_value &) = default;
+    basic_value(basic_value &&) = default;
+    basic_value &operator=(const basic_value &) = default;
+    basic_value &operator=(basic_value &&) = default;
+    ~basic_value() = default;
 
-    basic_value(null_t) noexcept : m_null(nullptr), m_type(value_t::null) {}
+    basic_value(null_t) noexcept : m_type(value_t::null) {}
     basic_value(boolean_t, bool f) noexcept : m_boolean(f), m_type(value_t::boolean) {}
     basic_value(number_signed_t, int64_t value) noexcept
         : m_number_signed(value), m_type(value_t::number_signed) {}

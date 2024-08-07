@@ -11,14 +11,16 @@ struct default_writer {
     using float_type = T;
     using support_integral = std::false_type;
 
-    WJR_INTRINSIC_CONSTEXPR T &get_float() noexcept { return value; }
-
     default_writer() = delete;
     default_writer(const default_writer &) = default;
     default_writer(default_writer &&) = default;
-    default_writer &operator=(const default_writer &) = default;
+    default_writer &operator=(const default_writer &) = delete;
     default_writer &operator=(default_writer &&) = delete;
     ~default_writer() = default;
+
+    WJR_INTRINSIC_CONSTEXPR default_writer(T &_value) noexcept : value(_value) {}
+
+    WJR_INTRINSIC_CONSTEXPR T &get_float() noexcept { return value; }
 
     T &value;
 };
@@ -77,13 +79,13 @@ __from_chars_impl<default_writer<double>, chars_format>(const char *first,
 template <chars_format Fmt = chars_format::general>
 from_chars_result<> from_chars(const char *first, const char *last, float &value,
                                integral_constant<chars_format, Fmt> fmt = {}) noexcept {
-    return __from_chars_impl(first, last, default_writer<float>{value}, fmt);
+    return __from_chars_impl(first, last, default_writer<float>(value), fmt);
 }
 
 template <chars_format Fmt = chars_format::general>
 from_chars_result<> from_chars(const char *first, const char *last, double &value,
                                integral_constant<chars_format, Fmt> fmt = {}) noexcept {
-    return __from_chars_impl(first, last, default_writer<double>{value}, fmt);
+    return __from_chars_impl(first, last, default_writer<double>(value), fmt);
 }
 
 template <typename T, WJR_REQUIRES(is_any_of_v<T, float, double>)>
@@ -96,7 +98,7 @@ from_chars_result<> from_chars(const char *first, const char *last, T &value,
     }
 
     WJR_ASSERT(!(to_underlying(fmt) & to_underlying(chars_format::__json_format)));
-    return __from_chars_impl(first, last, default_writer<T>{value}, fmt);
+    return __from_chars_impl(first, last, default_writer<T>(value), fmt);
 }
 
 // Compares two ASCII strings in a case insensitive manner.

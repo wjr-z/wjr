@@ -114,6 +114,7 @@ private:
 template <typename E, E init>
 class compressed_unexpected {
     static_assert(std::is_trivial_v<E>, "Only support trivial type currently.");
+    static_assert(sizeof(E) <= 8, "Don't need to compress.");
 
 public:
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(compressed_unexpected);
@@ -148,17 +149,19 @@ template <typename NewType, typename OldType, typename... Args>
 WJR_CONSTEXPR20 void reinit_expected(NewType &new_val, OldType &old_val, Args &&...args) {
     if constexpr (std::is_nothrow_constructible_v<NewType, Args...>) {
         std::destroy_at(std::addressof(old_val));
-        construct_at(std::addressof(new_val), std::forward<Args>(args)...);
+        wjr::construct_at(std::addressof(new_val), std::forward<Args>(args)...);
     } else if constexpr (std::is_nothrow_move_constructible_v<NewType>) {
         NewType temp(std::forward<Args>(args)...);
         std::destroy_at(std::addressof(old_val));
-        construct_at(std::addressof(new_val), std::move(temp));
+        wjr::construct_at(std::addressof(new_val), std::move(temp));
     } else {
         OldType temp(std::move(old_val));
         std::destroy_at(std::addressof(old_val));
-        WJR_TRY { construct_at(std::addressof(new_val), std::forward<Args>(args)...); }
+        WJR_TRY {
+            wjr::construct_at(std::addressof(new_val), std::forward<Args>(args)...);
+        }
         WJR_CATCH(...) {
-            construct_at(std::addressof(old_val), std::move(temp));
+            wjr::construct_at(std::addressof(old_val), std::move(temp));
             WJR_XTHROW;
         }
     }
@@ -433,14 +436,14 @@ struct expected_operations_base : expected_storage_base<T, E> {
     constexpr void construct_value(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<T, Args...>) {
         this->set_valid();
-        construct_at(std::addressof(this->m_val), std::forward<Args>(args)...);
+        wjr::construct_at(std::addressof(this->m_val), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     constexpr void construct_error(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<error_type, Args...>) {
         this->set_invalid();
-        construct_at(std::addressof(this->m_err), std::forward<Args>(args)...);
+        wjr::construct_at(std::addressof(this->m_err), std::forward<Args>(args)...);
     }
 
     WJR_CONSTEXPR20 void __copy_construct(const expected_operations_base &other) {
@@ -510,7 +513,7 @@ struct expected_operations_base<void, E> : expected_storage_base<void, E> {
     constexpr void construct_error(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<error_type, Args...>) {
         this->set_invalid();
-        construct_at(std::addressof(this->m_err), std::forward<Args>(args)...);
+        wjr::construct_at(std::addressof(this->m_err), std::forward<Args>(args)...);
     }
 
     WJR_CONSTEXPR20 void __copy_construct(const expected_operations_base &other) {
@@ -529,7 +532,7 @@ struct expected_operations_base<void, E> : expected_storage_base<void, E> {
     WJR_CONSTEXPR20 void __copy_assign(const expected_operations_base &other) {
         if (this->has_value()) {
             if (!other.has_value()) {
-                construct_at(std::addressof(this->m_err), other.m_err);
+                wjr::construct_at(std::addressof(this->m_err), other.m_err);
                 this->set_invalid();
             }
         } else {
@@ -546,7 +549,7 @@ struct expected_operations_base<void, E> : expected_storage_base<void, E> {
         std::is_nothrow_move_assignable_v<error_type>) {
         if (this->has_value()) {
             if (!other.has_value()) {
-                construct_at(std::addressof(this->m_err), std::move(other.m_err));
+                wjr::construct_at(std::addressof(this->m_err), std::move(other.m_err));
                 this->set_invalid();
             }
         } else {
@@ -1195,7 +1198,7 @@ public:
             this->set_valid();
         }
 
-        construct_at(std::addressof(this->m_val), std::forward<Args>(args)...);
+        wjr::construct_at(std::addressof(this->m_val), std::forward<Args>(args)...);
         return this->m_val;
     }
 
@@ -1210,7 +1213,7 @@ public:
             this->set_valid();
         }
 
-        construct_at(std::addressof(this->m_val), il, std::forward<Args>(args)...);
+        wjr::construct_at(std::addressof(this->m_val), il, std::forward<Args>(args)...);
         return this->m_val;
     }
 
@@ -1223,24 +1226,24 @@ private:
             error_type temp(std::move(other.m_err));
             std::destroy_at(std::addressof(other.m_err));
             WJR_TRY {
-                construct_at(std::addressof(other.m_val), std::move(this->m_val));
+                wjr::construct_at(std::addressof(other.m_val), std::move(this->m_val));
                 std::destroy_at(std::addressof(this->m_val));
-                construct_at(std::addressof(this->m_err), std::move(temp));
+                wjr::construct_at(std::addressof(this->m_err), std::move(temp));
             }
             WJR_CATCH(...) {
-                construct_at(std::addressof(other.m_err), std::move(temp));
+                wjr::construct_at(std::addressof(other.m_err), std::move(temp));
                 WJR_XTHROW;
             }
         } else {
             T temp(std::move(this->m_val));
             std::destroy_at(std::addressof(this->m_val));
             WJR_TRY {
-                construct_at(std::addressof(this->m_err), std::move(other.m_err));
+                wjr::construct_at(std::addressof(this->m_err), std::move(other.m_err));
                 std::destroy_at(std::addressof(other.m_err));
-                construct_at(std::addressof(other.m_val), std::move(temp));
+                wjr::construct_at(std::addressof(other.m_val), std::move(temp));
             }
             WJR_CATCH(...) {
-                construct_at(std::addressof(this->m_val), std::move(temp));
+                wjr::construct_at(std::addressof(this->m_val), std::move(temp));
                 WJR_XTHROW;
             }
         }
@@ -1448,7 +1451,8 @@ public:
                                            std::is_assignable_v<error_type &, const G &>)>
     WJR_CONSTEXPR20 expected &operator=(const unexpected<G> &e) {
         if (has_value()) {
-            construct_at(std::addressof(this->m_err), std::forward<const G &>(e.error()));
+            wjr::construct_at(std::addressof(this->m_err),
+                              std::forward<const G &>(e.error()));
             this->set_invalid();
         } else {
             this->m_err = std::forward<const G &>(e.error());
@@ -1461,7 +1465,7 @@ public:
                                            &&std::is_assignable_v<error_type &, G>)>
     WJR_CONSTEXPR20 expected &operator=(unexpected<G> &&e) {
         if (has_value()) {
-            construct_at(std::addressof(this->m_err), std::forward<G>(e.error()));
+            wjr::construct_at(std::addressof(this->m_err), std::forward<G>(e.error()));
             this->set_invalid();
         } else {
             this->m_err = std::forward<G>(e.error());
@@ -1695,11 +1699,11 @@ private:
     __swap_impl(expected &other) noexcept(std::is_nothrow_move_constructible_v<error_type>
                                               &&std::is_nothrow_swappable_v<error_type>) {
         if constexpr (std::is_nothrow_move_constructible_v<error_type>) {
-            construct_at(std::addressof(this->m_err), std::move(other.m_err));
+            wjr::construct_at(std::addressof(this->m_err), std::move(other.m_err));
             std::destroy_at(std::addressof(other.m_err));
         } else {
             WJR_TRY {
-                construct_at(std::addressof(this->m_err), std::move(other.m_err));
+                wjr::construct_at(std::addressof(this->m_err), std::move(other.m_err));
                 std::destroy_at(std::addressof(other.m_err));
             }
             WJR_CATCH(...) { WJR_XTHROW; }

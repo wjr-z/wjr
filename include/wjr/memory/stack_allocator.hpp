@@ -218,7 +218,7 @@ class unique_stack_allocator {
     friend class weak_stack_allocator;
 
 public:
-    unique_stack_allocator(const StackAllocator &al) noexcept
+    WJR_INTRINSIC_INLINE unique_stack_allocator(const StackAllocator &al) noexcept
         : m_instance(&(al.get_instance())) {
         m_instance->set(m_top);
     }
@@ -230,13 +230,14 @@ public:
 
     ~unique_stack_allocator() noexcept { m_instance->deallocate(m_top); }
 
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *
+    WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *
     allocate(size_t n, size_t threshold = __default_threshold) noexcept {
         return m_instance->allocate(n, m_top, threshold);
     }
 
 private:
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n) noexcept {
+    WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *
+    __small_allocate(size_t n) noexcept {
         return m_instance->__small_allocate(n, m_top);
     }
 

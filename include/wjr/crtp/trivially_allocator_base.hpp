@@ -7,13 +7,14 @@ namespace wjr {
 
 WJR_REGISTER_HAS_TYPE(is_trivially_allocator,
                       std::declval<typename Alloc::is_trivially_allocator>(), Alloc);
-WJR_REGISTER_HAS_TYPE(
-    is_trivially_allocator_constructible,
-    std::declval<typename Alloc::is_trivially_allocator_constructible>(), Alloc);
 
-WJR_REGISTER_HAS_TYPE(is_trivially_allocator_destructible,
-                      std::declval<typename Alloc::is_trivially_allocator_destructible>(),
-                      Alloc);
+WJR_REGISTER_HAS_TYPE(is_non_trivially_allocator_construct,
+                      std::declval<Alloc>().construct(std::declval<Obj *>(),
+                                                      std::declval<Args>()...),
+                      Alloc, Obj);
+
+WJR_REGISTER_HAS_TYPE(is_non_trivially_allocator_destroy,
+                      std::declval<Alloc>().destroy(std::declval<Obj *>()), Alloc, Obj);
 
 /// @private
 template <typename Alloc, typename = void>
@@ -44,49 +45,42 @@ template <typename Alloc>
 inline constexpr bool is_trivially_allocator_v = is_trivially_allocator<Alloc>::value;
 
 /// @private
-template <typename Alloc, typename = void>
-struct __is_trivially_allocator_constructible_impl : std::false_type {};
+template <typename Enable, typename Alloc, typename Obj, typename... Args>
+struct __is_trivially_allocator_construct_impl : std::false_type {};
 
 /// @private
-template <typename Alloc>
-struct __is_trivially_allocator_constructible_impl<
-    Alloc, std::enable_if_t<has_is_trivially_allocator_constructible_v<Alloc>>>
-    : Alloc::is_trivially_allocator_constructible {};
+template <typename Alloc, typename Obj, typename... Args>
+struct __is_trivially_allocator_construct_impl<
+    std::enable_if_t<!has_is_non_trivially_allocator_construct_v<Alloc, Obj, Args...>>,
+    Alloc, Obj, Args...> : std::true_type {};
 
-template <typename Alloc>
-struct is_trivially_allocator_constructible
-    : std::disjunction<__is_trivially_allocator_constructible_impl<Alloc>,
+template <typename Alloc, typename Obj, typename... Args>
+struct is_trivially_allocator_construct
+    : std::disjunction<__is_trivially_allocator_construct_impl<void, Alloc, Obj, Args...>,
                        is_trivially_allocator<Alloc>> {};
 
-template <typename Alloc>
-inline constexpr bool is_trivially_allocator_constructible_v =
-    is_trivially_allocator_constructible<Alloc>::value;
+template <typename Alloc, typename Obj, typename... Args>
+inline constexpr bool is_trivially_allocator_construct_v =
+    is_trivially_allocator_construct<Alloc, Obj, Args...>::value;
 
 /// @private
-template <typename Alloc, typename = void>
-struct __is_trivially_allocator_destructible_impl : std::false_type {};
+template <typename Alloc, typename Obj, typename = void>
+struct __is_trivially_allocator_destroy_impl : std::false_type {};
 
 /// @private
-template <typename Alloc>
-struct __is_trivially_allocator_destructible_impl<
-    Alloc, std::enable_if_t<has_is_trivially_allocator_destructible_v<Alloc>>>
-    : Alloc::is_trivially_allocator_destructible {};
+template <typename Alloc, typename Obj>
+struct __is_trivially_allocator_destroy_impl<
+    Alloc, Obj, std::enable_if_t<!has_is_non_trivially_allocator_destroy_v<Alloc, Obj>>>
+    : std::true_type {};
 
-template <typename Alloc>
-struct is_trivially_allocator_destructible
-    : std::disjunction<__is_trivially_allocator_destructible_impl<Alloc>,
+template <typename Alloc, typename Obj>
+struct is_trivially_allocator_destroy
+    : std::disjunction<__is_trivially_allocator_destroy_impl<Alloc, Obj>,
                        is_trivially_allocator<Alloc>> {};
 
-template <typename Alloc>
-inline constexpr bool is_trivially_allocator_destructible_v =
-    is_trivially_allocator_destructible<Alloc>::value;
-
-template <typename Alloc>
-struct trivially_allocator_traits {
-    using is_trivially = is_trivially_allocator<Alloc>;
-    using is_trivially_constructible = is_trivially_allocator_constructible<Alloc>;
-    using is_trivially_destructible = is_trivially_allocator_destructible<Alloc>;
-};
+template <typename Alloc, typename Obj>
+inline constexpr bool is_trivially_allocator_destroy_v =
+    is_trivially_allocator_destroy<Alloc, Obj>::value;
 
 } // namespace wjr
 

@@ -135,8 +135,10 @@ private:
 public:
     static constexpr int value =
         __is_fast_convert_value_v<typename container_type::value_type> &&
-                is_trivially_allocator_constructible_v<
-                    typename container_type::allocator_type>
+                is_trivially_allocator_construct_v<
+                    typename container_type::allocator_type,
+                    typename container_type::value_type,
+                    charconv_detail::fast_buffer_t<Iter>>
             ? __fast_container_inserter_test<container_type>::value
             : 0;
 };
@@ -688,7 +690,7 @@ public:
             WJR_FALLTHROUGH;
         }
         case 2: {
-            __to_chars_unroll_2<2>(ptr - 2, x, conv);
+            __to_chars_unroll_2<2>(ptr - 2, static_cast<uint32_t>(x), conv);
             ptr -= 2;
             break;
         }
@@ -848,7 +850,7 @@ public:
             return ptr;
         }
 
-        __to_chars_unroll_2<10>(ptr - 2, val, conv);
+        __to_chars_unroll_2<10>(ptr - 2, static_cast<uint32_t>(val), conv);
         ptr -= 2;
         return ptr;
     }

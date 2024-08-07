@@ -473,9 +473,6 @@ uint8_t *__fast_biginteger_large_to_chars_impl(uint8_t *first, const uint64_t *u
     return __biginteger_basecase_to_chars(first, up, n, base, conv);
 }
 
-extern template uint8_t *__fast_biginteger_large_to_chars_impl<char_converter_t>(
-    uint8_t *, const uint64_t *, size_t, unsigned int, char_converter_t) noexcept;
-
 template <typename Iter, typename Converter>
 Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, size_t n,
                                                unsigned int base,

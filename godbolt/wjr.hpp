@@ -1248,10 +1248,6 @@
 #define WJR_HAS_BUILTIN___builtin_expect_with_probability WJR_HAS_DEF
 #endif
 
-#if WJR_HAS_BUILTIN(__builtin_popcount)
-#define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF
-#endif
-
 // WJR_HAS_FEATURE
 
 #if WJR_HAS_GCC(7, 1, 0) || WJR_HAS_CLANG(5, 0, 0)
@@ -2955,11 +2951,8 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T fast_cast(U value) noexcept {
     return static_cast<T>(value);
 }
 
-#define __WJR_REGISTER_TYPENAMES_EXPAND(x) __WJR_REGISTER_TYPENAMES_EXPAND_I x
-#define __WJR_REGISTER_TYPENAMES_EXPAND_I(...) __VA_ARGS__
-
 #define __WJR_REGISTER_TYPENAMES(...)                                                    \
-    __WJR_REGISTER_TYPENAMES_EXPAND(                                                     \
+    WJR_PP_QUEUE_EXPAND(                                                                 \
         WJR_PP_QUEUE_TRANSFORM((__VA_ARGS__), __WJR_REGISTER_TYPENAMES_CALLER))
 #define __WJR_REGISTER_TYPENAMES_CALLER(x) typename x
 
@@ -3239,6 +3232,18 @@ template <typename Enum>
 WJR_CONST constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept {
     return static_cast<std::underlying_type_t<Enum>>(e);
 }
+
+#define __WJR_INDEXS_RANGE_I(START, END)                                                 \
+    WJR_PP_QUEUE_POP_FRONT_N((WJR_PP_IOTA(END)), START)
+
+#define WJR__INDEXS_RANGE(START, END)                                                    \
+    WJR_PP_QUEUE_EXPAND(__WJR_INDEXS_RANGE_I(START, END))
+
+#define __WJR_CASES_RANGE_CALLBACK(x) case (x):
+
+#define WJR_CASES_RANGE(START, END)                                                      \
+    WJR_PP_QUEUE_PUT(WJR_PP_QUEUE_TRANSFORM(__WJR_INDEXS_RANGE_I(START, END),            \
+                                            __WJR_CASES_RANGE_CALLBACK))
 
 } // namespace wjr
 
@@ -3733,40 +3738,6 @@ inline void __assert_handler(const char *expr, const char *file, const char *fun
 
 namespace wjr {
 
-#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
-
-namespace math_detail {
-
-template <typename T, T seed>
-class de_bruijn {
-public:
-    constexpr static uint8_t digits = std::numeric_limits<T>::digits;
-    constexpr static uint8_t mv = digits == 32 ? 27 : 58;
-    constexpr de_bruijn() noexcept : lookup(), lookupr() { initialize(); }
-
-    constexpr int get(T idx) const noexcept { return lookup[(idx * seed) >> mv]; }
-    constexpr int getr(T idx) const noexcept { return lookupr[(idx * seed) >> mv]; }
-
-private:
-    constexpr void initialize() noexcept {
-        for (uint8_t i = 0; i < digits; ++i) {
-            const auto idx = (seed << i) >> mv;
-            lookup[idx] = i;
-            lookupr[idx] = i == 0 ? 0 : digits - i;
-        }
-    }
-
-    uint8_t lookup[digits];
-    uint8_t lookupr[digits];
-};
-
-inline constexpr de_bruijn<uint32_t, 0x077C'B531> de_bruijn32 = {};
-inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
-
-} // namespace math_detail
-
-#endif
-
 /**
  * @brief
  *
@@ -3883,7 +3854,68 @@ WJR_CONST constexpr T __fasts_sub(T x, std::make_unsigned_t<T> y) noexcept {
 
 #endif // WJR_MATH_DETAIL_HPP__
 
+#if WJR_HAS_SIMD(POPCNT)
+
+#if WJR_HAS_BUILTIN(__builtin_popcount)
+#define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF
+#elif defined(WJR_COMPILER_MSVC)
+#define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF_VAR(2)
+#endif
+
+#if WJR_HAS_BUILTIN(POPCOUNT) == 2
+#ifndef WJR_X86_SIMD_INTRIN_HPP__
+#define WJR_X86_SIMD_INTRIN_HPP__
+
+// Already included
+
+#if defined(_MSC_VER)
+/* Microsoft C/C++-compatible compiler */
+#include <intrin.h>
+#elif defined(__GNUC__)
+/* GCC-compatible compiler, targeting x86/x86-64 */
+#include <x86intrin.h>
+#endif
+
+#endif // WJR_X86_SIMD_INTRIN_HPP__
+#endif
+
+#endif
+
 namespace wjr {
+
+#if !WJR_HAS_BUILTIN(POPCOUNT)
+
+namespace math_detail {
+
+template <typename T, T seed>
+class de_bruijn {
+public:
+    constexpr static uint8_t digits = std::numeric_limits<T>::digits;
+    constexpr static uint8_t mv = digits == 32 ? 27 : 58;
+    constexpr de_bruijn() noexcept : lookup(), lookupr() { initialize(); }
+
+    constexpr int get(T idx) const noexcept { return lookup[(idx * seed) >> mv]; }
+    constexpr int getr(T idx) const noexcept { return lookupr[(idx * seed) >> mv]; }
+
+private:
+    constexpr void initialize() noexcept {
+        for (uint8_t i = 0; i < digits; ++i) {
+            const auto idx = (seed << i) >> mv;
+            lookup[idx] = i;
+            lookupr[idx] = i == 0 ? 0u : digits - i;
+        }
+    }
+
+    uint8_t lookup[digits];
+    uint8_t lookupr[digits];
+};
+
+inline constexpr de_bruijn<uint32_t, 0x077C'B531> de_bruijn32 = {};
+inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
+
+} // namespace math_detail
+
+#endif
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR int fallback_popcount(T x) noexcept {
@@ -3910,6 +3942,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR int fallback_popcount(T x) noexcept {
 template <typename T>
 WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
+#if WJR_HAS_BUILTIN(POPCOUNT) == 1
     if constexpr (nd < 32) {
         return builtin_popcount(static_cast<uint32_t>(x));
     } else {
@@ -3917,16 +3950,29 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) noexcept {
             return __builtin_popcount(x);
         } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
             return __builtin_popcountl(x);
-        }
-        if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
+        } else if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
             return __builtin_popcountll(x);
         } else {
             static_assert(nd <= 64, "not support yet");
         }
     }
-}
+#else
+    if constexpr (nd < 32) {
+        return builtin_popcount(static_cast<uint32_t>(x));
+    } else {
+        if constexpr (nd <= 32) {
+            return static_cast<int>(__popcnt(x));
+        } else if constexpr (nd <= 64) {
+            return static_cast<int>(__popcnt64(x));
+        } else {
+            static_assert(nd <= 64, "not support yet");
+        }
+    }
 
 #endif // WJR_HAS_BUILTIN(POPCOUNT)
+}
+
+#endif
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount_impl(T x) noexcept {
@@ -3963,20 +4009,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount(T x) noexcept {
 #endif
 
 #if WJR_HAS_BUILTIN(CLZ) == 2
-#ifndef WJR_X86_SIMD_INTRIN_HPP__
-#define WJR_X86_SIMD_INTRIN_HPP__
-
 // Already included
-
-#if defined(_MSC_VER)
-/* Microsoft C/C++-compatible compiler */
-#include <intrin.h>
-#elif defined(__GNUC__)
-/* GCC-compatible compiler, targeting x86/x86-64 */
-#include <x86intrin.h>
-#endif
-
-#endif // WJR_X86_SIMD_INTRIN_HPP__
 #endif
 
 namespace wjr {
@@ -4008,7 +4041,7 @@ template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_clz(T x) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
+#if !WJR_HAS_BUILTIN(POPCOUNT)
     if constexpr (nd >= 32) {
 #endif
         x |= (x >> 1);
@@ -4026,11 +4059,11 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_clz(T x) noexcept {
         if constexpr (nd >= 64) {
             x |= (x >> 32);
         }
-#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
+#if !WJR_HAS_BUILTIN(POPCOUNT)
     }
 #endif
 
-#if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
+#if WJR_HAS_BUILTIN(POPCOUNT)
     return popcount<T>(~x);
 #else
     if constexpr (nd < 32) {
@@ -4132,7 +4165,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR int constexpr_ctz(T x) noexcept {
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_ctz(T x) noexcept {
-#if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
+#if WJR_HAS_BUILTIN(POPCOUNT)
     return popcount<T>(lowbit(x) - 1);
 #else
     constexpr auto nd = std::numeric_limits<T>::digits;
@@ -4380,14 +4413,14 @@ struct simd_cast_fn<uint8_t, __m128i_t> {
 template <>
 struct simd_cast_fn<__m128i_t, int8_t> {
     WJR_CONST WJR_INTRINSIC_INLINE int8_t operator()(__m128i v) const {
-        return _mm_cvtsi128_si32(v);
+        return static_cast<int8_t>(_mm_cvtsi128_si32(v));
     }
 };
 
 template <>
 struct simd_cast_fn<__m128i_t, uint8_t> {
     WJR_CONST WJR_INTRINSIC_INLINE uint8_t operator()(__m128i v) const {
-        return _mm_cvtsi128_si32(v);
+        return static_cast<uint8_t>(_mm_cvtsi128_si32(v));
     }
 };
 
@@ -4408,14 +4441,14 @@ struct simd_cast_fn<uint16_t, __m128i_t> {
 template <>
 struct simd_cast_fn<__m128i_t, int16_t> {
     WJR_CONST WJR_INTRINSIC_INLINE int16_t operator()(__m128i v) const {
-        return _mm_cvtsi128_si32(v);
+        return static_cast<int16_t>(_mm_cvtsi128_si32(v));
     }
 };
 
 template <>
 struct simd_cast_fn<__m128i_t, uint16_t> {
     WJR_CONST WJR_INTRINSIC_INLINE uint16_t operator()(__m128i v) const {
-        return _mm_cvtsi128_si32(v);
+        return static_cast<uint16_t>(_mm_cvtsi128_si32(v));
     }
 };
 
@@ -4443,7 +4476,7 @@ struct simd_cast_fn<__m128i_t, int32_t> {
 template <>
 struct simd_cast_fn<__m128i_t, uint32_t> {
     WJR_CONST WJR_INTRINSIC_INLINE uint32_t operator()(__m128i v) const {
-        return _mm_cvtsi128_si32(v);
+        return static_cast<uint32_t>(_mm_cvtsi128_si32(v));
     }
 };
 
@@ -4457,7 +4490,7 @@ struct simd_cast_fn<int64_t, __m128i_t> {
 template <>
 struct simd_cast_fn<uint64_t, __m128i_t> {
     WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(uint64_t v) const {
-        return _mm_cvtsi64_si128(v);
+        return _mm_cvtsi64_si128(static_cast<int64_t>(v));
     }
 };
 
@@ -4471,7 +4504,7 @@ struct simd_cast_fn<__m128i_t, int64_t> {
 template <>
 struct simd_cast_fn<__m128i_t, uint64_t> {
     WJR_CONST WJR_INTRINSIC_INLINE uint64_t operator()(__m128i v) const {
-        return _mm_cvtsi128_si64(v);
+        return static_cast<uint64_t>(_mm_cvtsi128_si64(v));
     }
 };
 
@@ -4550,63 +4583,63 @@ struct simd_cast_fn<__m256i_t, __m128i_t> {
 template <>
 struct simd_cast_fn<int8_t, __m256i_t> {
     WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(int8_t v) const {
-        return simd_cast<__m128i_t, __m256i_t>(simd_cast<uint32_t, __m128i_t>(v));
+        return simd_cast<__m128i_t, __m256i_t>(simd_cast<int8_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<uint8_t, __m256i_t> {
     WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint8_t v) const {
-        return simd_cast<__m128i_t, __m256i_t>(simd_cast<uint32_t, __m128i_t>(v));
+        return simd_cast<__m128i_t, __m256i_t>(simd_cast<uint8_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<__m256i_t, int8_t> {
     WJR_CONST WJR_INTRINSIC_INLINE int8_t operator()(__m256i v) const {
-        return simd_cast<__m128i_t, uint32_t>(simd_cast<__m256i_t, __m128i_t>(v));
+        return simd_cast<__m128i_t, int8_t>(simd_cast<__m256i_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<__m256i_t, uint8_t> {
     WJR_CONST WJR_INTRINSIC_INLINE uint8_t operator()(__m256i v) const {
-        return simd_cast<__m128i_t, uint32_t>(simd_cast<__m256i_t, __m128i_t>(v));
+        return simd_cast<__m128i_t, uint8_t>(simd_cast<__m256i_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<int16_t, __m256i_t> {
     WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(int16_t v) const {
-        return simd_cast<__m128i_t, __m256i_t>(simd_cast<uint32_t, __m128i_t>(v));
+        return simd_cast<__m128i_t, __m256i_t>(simd_cast<int16_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<uint16_t, __m256i_t> {
     WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint16_t v) const {
-        return simd_cast<__m128i_t, __m256i_t>(simd_cast<uint32_t, __m128i_t>(v));
+        return simd_cast<__m128i_t, __m256i_t>(simd_cast<uint16_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<__m256i_t, int16_t> {
     WJR_CONST WJR_INTRINSIC_INLINE int16_t operator()(__m256i v) const {
-        return simd_cast<__m128i_t, uint32_t>(simd_cast<__m256i_t, __m128i_t>(v));
+        return simd_cast<__m128i_t, int16_t>(simd_cast<__m256i_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<__m256i_t, uint16_t> {
     WJR_CONST WJR_INTRINSIC_INLINE uint16_t operator()(__m256i v) const {
-        return simd_cast<__m128i_t, uint32_t>(simd_cast<__m256i_t, __m128i_t>(v));
+        return simd_cast<__m128i_t, uint16_t>(simd_cast<__m256i_t, __m128i_t>(v));
     }
 };
 
 template <>
 struct simd_cast_fn<int32_t, __m256i_t> {
     WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(int32_t v) const {
-        return simd_cast<__m128i_t, __m256i_t>(simd_cast<uint32_t, __m128i_t>(v));
+        return simd_cast<__m128i_t, __m256i_t>(simd_cast<int32_t, __m128i_t>(v));
     }
 };
 
@@ -4620,7 +4653,7 @@ struct simd_cast_fn<uint32_t, __m256i_t> {
 template <>
 struct simd_cast_fn<__m256i_t, int32_t> {
     WJR_CONST WJR_INTRINSIC_INLINE int32_t operator()(__m256i v) const {
-        return simd_cast<__m128i_t, uint32_t>(simd_cast<__m256i_t, __m128i_t>(v));
+        return simd_cast<__m128i_t, int32_t>(simd_cast<__m256i_t, __m128i_t>(v));
     }
 };
 
@@ -4634,7 +4667,7 @@ struct simd_cast_fn<__m256i_t, uint32_t> {
 template <>
 struct simd_cast_fn<int64_t, __m256i_t> {
     WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(int64_t v) const {
-        return simd_cast<__m128i_t, __m256i_t>(simd_cast<uint64_t, __m128i_t>(v));
+        return simd_cast<__m128i_t, __m256i_t>(simd_cast<int64_t, __m128i_t>(v));
     }
 };
 
@@ -4648,7 +4681,7 @@ struct simd_cast_fn<uint64_t, __m256i_t> {
 template <>
 struct simd_cast_fn<__m256i_t, int64_t> {
     WJR_CONST WJR_INTRINSIC_INLINE int64_t operator()(__m256i v) const {
-        return simd_cast<__m128i_t, uint64_t>(simd_cast<__m256i_t, __m128i_t>(v));
+        return simd_cast<__m128i_t, int64_t>(simd_cast<__m256i_t, __m128i_t>(v));
     }
 };
 
@@ -12970,7 +13003,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
     // If not use __builtin_clz and use popcount, then don't need to handle zero.
-#if WJR_HAS_BUILTIN(CLZ) || !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
+#if WJR_HAS_BUILTIN(CLZ) || !WJR_HAS_BUILTIN(POPCOUNT) 
     if (WJR_UNLIKELY(x == 0)) {
         return std::numeric_limits<T>::digits;
     }
@@ -12982,7 +13015,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_zero(T x) noexcept {
     // If not use __builtin_ctz and use popcount, then don't need to handle zero.
-#if WJR_HAS_BUILTIN(CTZ) || !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
+#if WJR_HAS_BUILTIN(CTZ) || !WJR_HAS_BUILTIN(POPCOUNT) 
     if (WJR_UNLIKELY(x == 0)) {
         return std::numeric_limits<T>::digits;
     }
@@ -13046,7 +13079,14 @@ WJR_PURE WJR_INTRINSIC_INLINE To bit_cast(const From &src) noexcept {
 namespace wjr {
 
 struct automatic_free_pool {
-    struct chunk : list_node<intrusive_tag<chunk>> {};
+    struct chunk : list_node<intrusive_tag<chunk>> {
+        chunk() = default;
+        chunk(const chunk &) = delete;
+        chunk(chunk &&) = default;
+        chunk &operator=(const chunk &) = delete;
+        chunk &operator=(chunk &&) = delete;
+        ~chunk() = default;
+    };
 
     automatic_free_pool() noexcept { init(&head); }
     ~automatic_free_pool() noexcept {
@@ -13056,6 +13096,11 @@ struct automatic_free_pool {
             free(node);
         }
     }
+
+    automatic_free_pool(const automatic_free_pool &) = delete;
+    automatic_free_pool(automatic_free_pool &&) = delete;
+    automatic_free_pool &operator=(const automatic_free_pool &) = delete;
+    automatic_free_pool &operator=(automatic_free_pool &&) = delete;
 
     WJR_MALLOC void *allocate(size_t n) noexcept {
         auto *const ptr = static_cast<chunk *>(malloc(n + sizeof(chunk)));
@@ -16282,7 +16327,6 @@ struct container_traits<basic_vector<Storage>>
 namespace wjr {
 
 struct unexpect_t {};
-
 inline constexpr unexpect_t unexpect = {};
 
 template <typename E, typename Tag>
@@ -16376,6 +16420,7 @@ private:
 template <typename E, E init>
 class compressed_unexpected {
     static_assert(std::is_trivial_v<E>, "Only support trivial type currently.");
+    static_assert(sizeof(E) <= 8, "Don't need to compress.");
 
 public:
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(compressed_unexpected);
@@ -18023,11 +18068,10 @@ using compressed_expected = expected<T, compressed_unexpected<E, init>>;
     } while (0)
 
 #define WJR_EXPECTED_INIT(NAME, ...)                                                     \
-    auto __wjr_exp_##NAME = (__VA_ARGS__);                                               \
-    if (WJR_UNLIKELY(!__wjr_exp_##NAME)) {                                               \
-        return ::wjr::unexpected(std::move(__wjr_exp_##NAME).error());                   \
-    }                                                                                    \
-    auto &NAME = *__wjr_exp_##NAME
+    auto NAME = (__VA_ARGS__);                                                           \
+    if (WJR_UNLIKELY(!NAME)) {                                                           \
+        return ::wjr::unexpected(std::move(NAME).error());                               \
+    }
 
 #define WJR_EXPECTED_SET(VAR, ...)                                                       \
     do {                                                                                 \
@@ -20995,7 +21039,7 @@ template <typename U>
 WJR_INTRINSIC_CONSTEXPR20 U __addc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
                                           uint64_t src1, U c_in) noexcept {
     uint8_t overflow = 0;
-    dst[0] = addc_cc(src0[0], src1, c_in, overflow);
+    dst[0] = addc_cc(src0[0], src1, static_cast<uint8_t>(c_in), overflow);
 
     if (overflow) {
         const size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, UINT64_MAX, 0);
@@ -21039,7 +21083,7 @@ WJR_INTRINSIC_CONSTEXPR20 U addc_1(uint64_t *dst, const uint64_t *src0, size_t n
 
     if (WJR_BUILTIN_CONSTANT_P_TRUE(n == 1)) {
         uint8_t overflow = 0;
-        dst[0] = addc_cc(src0[0], src1, c_in, overflow);
+        dst[0] = addc_cc(src0[0], src1, static_cast<uint8_t>(c_in), overflow);
         return static_cast<U>(overflow);
     }
 
@@ -22509,7 +22553,7 @@ template <typename U>
 WJR_INTRINSIC_CONSTEXPR20 U __subc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
                                           uint64_t src1, U c_in) noexcept {
     uint8_t overflow = 0;
-    dst[0] = subc_cc(src0[0], src1, c_in, overflow);
+    dst[0] = subc_cc(src0[0], src1, static_cast<uint8_t>(c_in), overflow);
 
     if (overflow) {
         size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, 0, UINT64_MAX);
@@ -22545,7 +22589,7 @@ WJR_INTRINSIC_CONSTEXPR20 U subc_1(uint64_t *dst, const uint64_t *src0, size_t n
 
     if (WJR_BUILTIN_CONSTANT_P_TRUE(n == 1)) {
         uint8_t overflow = 0;
-        dst[0] = subc_cc(src0[0], src1, c_in, overflow);
+        dst[0] = subc_cc(src0[0], src1, static_cast<uint8_t>(c_in), overflow);
         return static_cast<U>(overflow);
     }
 
@@ -22860,7 +22904,7 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s_pos(uint64_t *dst, const uint64_t *
     }
 
     (void)subc_s(dst, src0, m + idx, src1, m);
-    uint64_t ret = __fasts_from_unsigned(m + idx);
+    ssize_t ret = __fasts_from_unsigned(m + idx);
     WJR_ASSUME(ret >= 2);
     ret -= dst[m + idx - 1] == 0;
     WJR_ASSUME(ret >= 1);
@@ -24126,8 +24170,8 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t mul_1(uint64_t *dst, const uint64_t *src, siz
             return 0;
         }
 
-        unsigned int k = ctz(ml);
-        return lshift_n(dst, src, n, k);
+        const unsigned int c = ctz(ml);
+        return lshift_n(dst, src, n, c);
     }
 
 #if WJR_HAS_BUILTIN(ASM_MUL_1)
@@ -24185,7 +24229,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t addmul_1(uint64_t *dst, const uint64_t *src, 
             return 0;
         }
 
-        unsigned int c = ctz(ml);
+        const unsigned int c = ctz(ml);
         return addlsh_n(dst, dst, src, n, c);
     }
 
@@ -25594,7 +25638,7 @@ public:
             WJR_FALLTHROUGH;
         }
         case 2: {
-            __to_chars_unroll_2<2>(ptr - 2, x, conv);
+            __to_chars_unroll_2<2>(ptr - 2, static_cast<uint32_t>(x), conv);
             ptr -= 2;
             break;
         }
@@ -25754,7 +25798,7 @@ public:
             return ptr;
         }
 
-        __to_chars_unroll_2<10>(ptr - 2, val, conv);
+        __to_chars_unroll_2<10>(ptr - 2, static_cast<uint32_t>(val), conv);
         ptr -= 2;
         return ptr;
     }
@@ -27907,7 +27951,7 @@ WJR_INTRINSIC_CONSTEXPR20 bool __fallback_less_128(uint64_t lo0, uint64_t hi0,
     uint8_t f = lo0 < lo1;
     (void)subc_cc(hi0, hi1, f, f);
     WJR_ASSUME(f <= 1);
-    return f;
+    return f != 0;
 }
 
 #if WJR_HAS_BUILTIN(__BUILTIN_LESS_128)
@@ -28112,9 +28156,17 @@ public:
         return basic_divide(divisor, value, lo, hi);
     }
 
-    WJR_CONST WJR_CONSTEXPR20 static T reciprocal(T d) noexcept;
+    WJR_CONST WJR_CONSTEXPR20 static T reciprocal(T d) noexcept {
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(d == 1ull << 63)) {
+            return in_place_max;
+        }
+
+        return __reciprocal_impl(d);
+    }
 
 private:
+    WJR_CONST WJR_CONSTEXPR20 static T __reciprocal_impl(T d) noexcept;
+
     WJR_INTRINSIC_CONSTEXPR static void fallback_div2by1_adjust(T rax, T div, T &r8,
                                                                 T &rdx) noexcept {
         const T r9 = r8 + div;
@@ -28187,7 +28239,7 @@ protected:
 };
 
 template <typename T>
-WJR_CONST WJR_CONSTEXPR20 T div2by1_divider_noshift<T>::reciprocal(T d) noexcept {
+WJR_CONST WJR_CONSTEXPR20 T div2by1_divider_noshift<T>::__reciprocal_impl(T d) noexcept {
     WJR_ASSERT_ASSUME_L2(__has_high_bit(d));
 
     uint64_t d40 = 0, d63 = 0;
@@ -28269,18 +28321,12 @@ private:
             m_shift = clz(m_divisor);
             m_divisor <<= m_shift;
 
-            WJR_ASSUME(m_shift != 0);
+            WJR_ASSUME(m_shift != 0u);
         } else {
-            WJR_ASSUME(m_shift == 0);
+            WJR_ASSUME(m_shift == 0u);
         }
 
         WJR_ASSUME(__has_high_bit(m_divisor));
-
-        if (WJR_UNLIKELY(m_divisor == 1ull << 63)) {
-            m_value = -1;
-            return;
-        }
-
         m_value = Mybase::reciprocal(m_divisor);
     }
 
@@ -29340,7 +29386,7 @@ WJR_INTRINSIC_CONSTEXPR20 void divexact_1(uint64_t *dst, const uint64_t *src, si
     WJR_ASSERT_ASSUME(div != 0);
 
     if (WJR_UNLIKELY(is_zero_or_single_bit(div))) {
-        unsigned int c = ctz(div);
+        const unsigned int c = ctz(div);
         (void)rshift_n(dst, src, n, c);
         return;
     }
@@ -29742,7 +29788,7 @@ class unique_stack_allocator {
     friend class weak_stack_allocator;
 
 public:
-    unique_stack_allocator(const StackAllocator &al) noexcept
+    WJR_INTRINSIC_INLINE unique_stack_allocator(const StackAllocator &al) noexcept
         : m_instance(&(al.get_instance())) {
         m_instance->set(m_top);
     }
@@ -29754,13 +29800,14 @@ public:
 
     ~unique_stack_allocator() noexcept { m_instance->deallocate(m_top); }
 
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *
+    WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *
     allocate(size_t n, size_t threshold = __default_threshold) noexcept {
         return m_instance->allocate(n, m_top, threshold);
     }
 
 private:
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n) noexcept {
+    WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *
+    __small_allocate(size_t n) noexcept {
         return m_instance->__small_allocate(n, m_top);
     }
 
@@ -30313,9 +30360,6 @@ uint8_t *__fast_biginteger_large_to_chars_impl(uint8_t *first, const uint64_t *u
 
     return __biginteger_basecase_to_chars(first, up, n, base, conv);
 }
-
-extern template uint8_t *__fast_biginteger_large_to_chars_impl<char_converter_t>(
-    uint8_t *, const uint64_t *, size_t, unsigned int, char_converter_t) noexcept;
 
 template <typename Iter, typename Converter>
 Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, size_t n,
@@ -31165,7 +31209,7 @@ namespace biginteger_detail {
  *
  */
 inline uint32_t normalize(const uint64_t *ptr, uint32_t n) noexcept {
-    return reverse_find_not_n(ptr, 0, n);
+    return static_cast<uint32_t>(reverse_find_not_n(ptr, 0, n));
 }
 
 } // namespace biginteger_detail
@@ -31185,7 +31229,7 @@ public:
         : m_size(&size) {}
 
     constexpr default_biginteger_size_reference &operator=(uint32_t size) noexcept {
-        *m_size = __fasts_negate_with<int32_t>(*m_size, size);
+        *m_size = __fasts_negate_with<int32_t>(*m_size, to_signed(size));
         return *this;
     }
 
@@ -31309,7 +31353,7 @@ public:
         auto &storage = other.m_storage;
         storage.m_data = result.ptr;
         storage.m_size = __fasts_negate_with<int32_t>(m_storage.m_size, size);
-        storage.m_capacity = result.count;
+        storage.m_capacity = static_cast<size_type>(result.count);
     }
 
     void take_storage(default_biginteger_vector_storage &other, _Alty &) noexcept {
@@ -31353,6 +31397,16 @@ private:
 
 template <typename Storage>
 class basic_biginteger;
+
+template <typename Alloc>
+using default_biginteger = basic_biginteger<default_biginteger_vector_storage<Alloc>>;
+
+using biginteger = default_biginteger<memory_pool<uint64_t>>;
+
+using stack_biginteger = default_biginteger<math_detail::weak_stack_alloc<uint64_t>>;
+
+using default_biginteger_storage =
+    default_biginteger_vector_storage<memory_pool<uint64_t>>;
 
 WJR_PURE WJR_INTRINSIC_CONSTEXPR biginteger_data
 make_biginteger_data(span<const uint64_t> sp) noexcept {
@@ -31405,6 +31459,11 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
                                                   basic_biginteger<S> *dst,
                                                   unsigned int base) noexcept;
 
+extern template from_chars_result<const char *>
+__from_chars_impl<default_biginteger_storage>(
+    const char *first, const char *last,
+    basic_biginteger<default_biginteger_storage> *dst, unsigned int base) noexcept;
+
 /// @private
 WJR_PURE inline int32_t __compare_impl(const biginteger_data *lhs,
                                        const biginteger_data *rhs) noexcept;
@@ -31450,6 +31509,14 @@ void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs,
 template <bool xsign, typename S>
 void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                    const biginteger_data *rhs) noexcept;
+
+extern template void __addsub_impl<false, default_biginteger_storage>(
+    basic_biginteger<default_biginteger_storage> *dst, const biginteger_data *lhs,
+    const biginteger_data *rhs) noexcept;
+
+extern template void __addsub_impl<true, default_biginteger_storage>(
+    basic_biginteger<default_biginteger_storage> *dst, const biginteger_data *lhs,
+    const biginteger_data *rhs) noexcept;
 
 /// @private
 template <typename S>
@@ -31524,6 +31591,11 @@ template <typename S>
 void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                 const biginteger_data *rhs) noexcept;
 
+extern template void
+__mul_impl<default_biginteger_storage>(basic_biginteger<default_biginteger_storage> *dst,
+                                       const biginteger_data *lhs,
+                                       const biginteger_data *rhs) noexcept;
+
 /// @private
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) noexcept {
@@ -31546,6 +31618,10 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) noe
 /// @private
 template <typename S>
 void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept;
+
+extern template void
+__sqr_impl<default_biginteger_storage>(basic_biginteger<default_biginteger_storage> *dst,
+                                       const biginteger_data *src) noexcept;
 
 /// @private
 template <typename S>
@@ -31592,6 +31668,10 @@ void __submul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) 
 template <typename S>
 void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                       const biginteger_data *rhs, int32_t xmask) noexcept;
+
+extern template void __addsubmul_impl<default_biginteger_storage>(
+    basic_biginteger<default_biginteger_storage> *dst, const biginteger_data *lhs,
+    const biginteger_data *rhs, int32_t xmask) noexcept;
 
 /// @private
 template <typename S>
@@ -32474,7 +32554,7 @@ public:
     void set_ssize(T new_size) noexcept {
         if constexpr (std::is_unsigned_v<T>) {
             const auto u32size = static_cast<uint32_t>(new_size);
-            WJR_ASSUME(u32size == new_size);
+            WJR_ASSERT_ASSUME(u32size == new_size);
             get_storage().set_ssize(__fasts_from_unsigned(u32size));
         } else {
             get_storage().set_ssize(new_size);
@@ -32512,12 +32592,6 @@ private:
 
     vector_type m_vec;
 };
-
-template <typename Alloc>
-using default_biginteger = basic_biginteger<default_biginteger_vector_storage<Alloc>>;
-
-using biginteger = default_biginteger<memory_pool<uint64_t>>;
-using stack_biginteger = default_biginteger<math_detail::weak_stack_alloc<uint64_t>>;
 
 template <typename Storage>
 void swap(basic_biginteger<Storage> &lhs, basic_biginteger<Storage> &rhs) noexcept {
@@ -32814,7 +32888,7 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     int32_t dssize;
 
     if (compare{}(lssize, 0)) {
-        const auto cf = addc_1(dp, lp, lusize, rhs);
+        const uint32_t cf = addc_1(dp, lp, lusize, rhs, 0u);
         dssize = __fasts_conditional_negate<int32_t>(xsign, lusize + cf);
         if (cf) {
             dp[lusize] = 1;
@@ -34418,7 +34492,7 @@ inline uint32_t __ctz_impl(const biginteger_data *num) noexcept {
 
     const auto *const ptr = num->data();
     const uint32_t size = num->size();
-    const uint32_t idx = find_not_n(ptr, 0, size);
+    const uint32_t idx = static_cast<uint32_t>(find_not_n(ptr, 0, size));
     WJR_ASSERT(idx != size);
     return idx * 64 + ctz(ptr[idx]);
 }
@@ -36832,7 +36906,7 @@ public:
         m_str = sp;
 
         lexer lex(m_str);
-        const size_type n = m_str.size();
+        const size_type n = static_cast<size_type>(m_str.size());
         size_type capacity = n <= 2048 ? n : std::max<size_type>(2048, n / 20);
         size_type buf_size = capacity;
         json::lexer::result_type result;
@@ -36871,6 +36945,15 @@ template <typename T>
 struct default_writer {
     using float_type = T;
     using support_integral = std::false_type;
+
+    default_writer() = delete;
+    default_writer(const default_writer &) = default;
+    default_writer(default_writer &&) = default;
+    default_writer &operator=(const default_writer &) = delete;
+    default_writer &operator=(default_writer &&) = delete;
+    ~default_writer() = default;
+
+    WJR_INTRINSIC_CONSTEXPR default_writer(T &_value) noexcept : value(_value) {}
 
     WJR_INTRINSIC_CONSTEXPR T &get_float() noexcept { return value; }
 
@@ -36931,13 +37014,13 @@ __from_chars_impl<default_writer<double>, chars_format>(const char *first,
 template <chars_format Fmt = chars_format::general>
 from_chars_result<> from_chars(const char *first, const char *last, float &value,
                                integral_constant<chars_format, Fmt> fmt = {}) noexcept {
-    return __from_chars_impl(first, last, default_writer<float>{value}, fmt);
+    return __from_chars_impl(first, last, default_writer<float>(value), fmt);
 }
 
 template <chars_format Fmt = chars_format::general>
 from_chars_result<> from_chars(const char *first, const char *last, double &value,
                                integral_constant<chars_format, Fmt> fmt = {}) noexcept {
-    return __from_chars_impl(first, last, default_writer<double>{value}, fmt);
+    return __from_chars_impl(first, last, default_writer<double>(value), fmt);
 }
 
 template <typename T, WJR_REQUIRES(is_any_of_v<T, float, double>)>
@@ -36950,7 +37033,7 @@ from_chars_result<> from_chars(const char *first, const char *last, T &value,
     }
 
     WJR_ASSERT(!(to_underlying(fmt) & to_underlying(chars_format::__json_format)));
-    return __from_chars_impl(first, last, default_writer<T>{value}, fmt);
+    return __from_chars_impl(first, last, default_writer<T>(value), fmt);
 }
 
 // Compares two ASCII strings in a case insensitive manner.

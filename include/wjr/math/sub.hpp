@@ -154,7 +154,7 @@ template <typename U>
 WJR_INTRINSIC_CONSTEXPR20 U __subc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
                                           uint64_t src1, U c_in) noexcept {
     uint8_t overflow = 0;
-    dst[0] = subc_cc(src0[0], src1, c_in, overflow);
+    dst[0] = subc_cc(src0[0], src1, static_cast<uint8_t>(c_in), overflow);
 
     if (overflow) {
         size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, 0, UINT64_MAX);
@@ -190,7 +190,7 @@ WJR_INTRINSIC_CONSTEXPR20 U subc_1(uint64_t *dst, const uint64_t *src0, size_t n
 
     if (WJR_BUILTIN_CONSTANT_P_TRUE(n == 1)) {
         uint8_t overflow = 0;
-        dst[0] = subc_cc(src0[0], src1, c_in, overflow);
+        dst[0] = subc_cc(src0[0], src1, static_cast<uint8_t>(c_in), overflow);
         return static_cast<U>(overflow);
     }
 

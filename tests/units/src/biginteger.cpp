@@ -362,7 +362,7 @@ TEST(biginteger, addsub) {
                     random(a, n);
                     copy(a1, a);
 
-                    for (int i = 0; i < 2; ++i) {
+                    for (int j = 0; j < 2; ++j) {
                         add(c, a, x);
                         mpz_add_ui(c1, a1, x);
 

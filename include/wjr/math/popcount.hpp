@@ -97,9 +97,9 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) noexcept {
         return builtin_popcount(static_cast<uint32_t>(x));
     } else {
         if constexpr (nd <= 32) {
-            return __popcnt(x);
+            return static_cast<int>(__popcnt(x));
         } else if constexpr (nd <= 64) {
-            return __popcnt64(x);
+            return static_cast<int>(__popcnt64(x));
         } else {
             static_assert(nd <= 64, "not support yet");
         }

@@ -162,7 +162,7 @@ public:
         auto &storage = other.m_storage;
         storage.m_data = result.ptr;
         storage.m_size = __fasts_negate_with<int32_t>(m_storage.m_size, size);
-        storage.m_capacity = result.count;
+        storage.m_capacity = static_cast<size_type>(result.count);
     }
 
     void take_storage(default_biginteger_vector_storage &other, _Alty &) noexcept {
@@ -206,6 +206,16 @@ private:
 
 template <typename Storage>
 class basic_biginteger;
+
+template <typename Alloc>
+using default_biginteger = basic_biginteger<default_biginteger_vector_storage<Alloc>>;
+
+using biginteger = default_biginteger<memory_pool<uint64_t>>;
+
+using stack_biginteger = default_biginteger<math_detail::weak_stack_alloc<uint64_t>>;
+
+using default_biginteger_storage =
+    default_biginteger_vector_storage<memory_pool<uint64_t>>;
 
 WJR_PURE WJR_INTRINSIC_CONSTEXPR biginteger_data
 make_biginteger_data(span<const uint64_t> sp) noexcept {
@@ -258,6 +268,11 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
                                                   basic_biginteger<S> *dst,
                                                   unsigned int base) noexcept;
 
+extern template from_chars_result<const char *>
+__from_chars_impl<default_biginteger_storage>(
+    const char *first, const char *last,
+    basic_biginteger<default_biginteger_storage> *dst, unsigned int base) noexcept;
+
 /// @private
 WJR_PURE inline int32_t __compare_impl(const biginteger_data *lhs,
                                        const biginteger_data *rhs) noexcept;
@@ -303,6 +318,14 @@ void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs,
 template <bool xsign, typename S>
 void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                    const biginteger_data *rhs) noexcept;
+
+extern template void __addsub_impl<false, default_biginteger_storage>(
+    basic_biginteger<default_biginteger_storage> *dst, const biginteger_data *lhs,
+    const biginteger_data *rhs) noexcept;
+
+extern template void __addsub_impl<true, default_biginteger_storage>(
+    basic_biginteger<default_biginteger_storage> *dst, const biginteger_data *lhs,
+    const biginteger_data *rhs) noexcept;
 
 /// @private
 template <typename S>
@@ -377,6 +400,11 @@ template <typename S>
 void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                 const biginteger_data *rhs) noexcept;
 
+extern template void
+__mul_impl<default_biginteger_storage>(basic_biginteger<default_biginteger_storage> *dst,
+                                       const biginteger_data *lhs,
+                                       const biginteger_data *rhs) noexcept;
+
 /// @private
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) noexcept {
@@ -399,6 +427,10 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) noe
 /// @private
 template <typename S>
 void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept;
+
+extern template void
+__sqr_impl<default_biginteger_storage>(basic_biginteger<default_biginteger_storage> *dst,
+                                       const biginteger_data *src) noexcept;
 
 /// @private
 template <typename S>
@@ -445,6 +477,10 @@ void __submul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) 
 template <typename S>
 void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                       const biginteger_data *rhs, int32_t xmask) noexcept;
+
+extern template void __addsubmul_impl<default_biginteger_storage>(
+    basic_biginteger<default_biginteger_storage> *dst, const biginteger_data *lhs,
+    const biginteger_data *rhs, int32_t xmask) noexcept;
 
 /// @private
 template <typename S>
@@ -1366,12 +1402,6 @@ private:
     vector_type m_vec;
 };
 
-template <typename Alloc>
-using default_biginteger = basic_biginteger<default_biginteger_vector_storage<Alloc>>;
-
-using biginteger = default_biginteger<memory_pool<uint64_t>>;
-using stack_biginteger = default_biginteger<math_detail::weak_stack_alloc<uint64_t>>;
-
 template <typename Storage>
 void swap(basic_biginteger<Storage> &lhs, basic_biginteger<Storage> &rhs) noexcept {
     lhs.swap(rhs);
@@ -1667,7 +1697,7 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     int32_t dssize;
 
     if (compare{}(lssize, 0)) {
-        const auto cf = addc_1(dp, lp, lusize, rhs);
+        const uint32_t cf = addc_1(dp, lp, lusize, rhs, 0u);
         dssize = __fasts_conditional_negate<int32_t>(xsign, lusize + cf);
         if (cf) {
             dp[lusize] = 1;

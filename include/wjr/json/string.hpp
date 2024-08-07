@@ -38,54 +38,6 @@ inline constexpr std::array<uint8_t, 256> escape_table = {
 
 namespace detail {
 
-WJR_PURE WJR_INTRINSIC_INLINE result<const char *>
-check_unicode_codepoint(const char *first, const char *last) noexcept {
-    if (const auto ret =
-            utf8::check_unicode_codepoint(reinterpret_cast<const uint8_t *>(first),
-                                          reinterpret_cast<const uint8_t *>(last));
-        WJR_UNLIKELY(!ret)) {
-        return unexpected(error_code::UTF8_ERROR);
-    } else {
-        return reinterpret_cast<const char *>(*ret);
-    }
-}
-
-WJR_PURE WJR_INTRINSIC_INLINE result<void>
-generic_check_string(const char *first, const char *last) noexcept {
-    if (WJR_UNLIKELY(first == last)) {
-        return {};
-    }
-
-    do {
-        uint8_t ch = *first++;
-
-        if (WJR_UNLIKELY(ch == '\\')) {
-            WJR_ASSERT(first != last);
-            ch = *first++;
-
-            if (ch == 'u') {
-                WJR_EXPECTED_SET(first, check_unicode_codepoint(first, last));
-            } else {
-                const uint8_t code = string_detail::escape_table[ch];
-
-                if (WJR_UNLIKELY(code == 0)) {
-                    return unexpected(error_code::STRING_ERROR);
-                }
-            }
-        }
-    } while (first != last);
-
-    return {};
-}
-
-#if WJR_HAS_BUILTIN(JSON_CHECK_STRING)
-extern WJR_PURE result<void> check_string(const char *first, const char *last) noexcept;
-#else
-WJR_PURE inline result<void> check_string(const char *first, const char *last) noexcept {
-    return generic_check_string(first, last);
-}
-#endif
-
 /// @todo complete this function
 WJR_INTRINSIC_INLINE result<const char *>
 parse_unicode_codepoint(char *&dst, const char *first, const char *last) noexcept {

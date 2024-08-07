@@ -243,6 +243,12 @@ struct add_restrict<T *> {
 template <typename T>
 using add_restrict_t = typename add_restrict<T>::type;
 
+template <typename Iter>
+WJR_INTRINSIC_CONSTEXPR20 add_restrict_t<Iter>
+make_restrict_iterator(Iter iter) noexcept(std::is_nothrow_constructible_v<Iter>) {
+    return iter;
+}
+
 /**
  * @brief Return if is constant evaluated.
  *
@@ -765,6 +771,21 @@ template <typename Enum>
 WJR_CONST constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept {
     return static_cast<std::underlying_type_t<Enum>>(e);
 }
+
+template <typename T, typename Enable = void>
+struct __is_trivially_relocatable_impl : std::false_type {};
+
+template <typename T>
+struct __is_trivially_relocatable_impl<
+    T, std::enable_if_t<std::conjunction_v<std::is_trivially_move_constructible<T>,
+                                           std::is_trivially_destructible<T>>>>
+    : std::true_type {};
+
+template <typename T>
+struct is_trivially_relocatable : __is_trivially_relocatable_impl<T> {};
+
+template <typename T>
+inline constexpr bool is_trivially_relocatable_v = is_trivially_relocatable<T>::value;
 
 #define __WJR_INDEXS_RANGE_I(START, END)                                                 \
     WJR_PP_QUEUE_POP_FRONT_N((WJR_PP_IOTA(END)), START)
