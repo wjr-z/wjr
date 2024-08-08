@@ -10,6 +10,7 @@
 #include <wjr/math/bit.hpp>
 #include <wjr/math/mul.hpp>
 #include <wjr/memory/copy.hpp>
+#include <wjr/string.hpp>
 
 #if defined(WJR_X86)
 #include <wjr/x86/format/charconv.hpp>

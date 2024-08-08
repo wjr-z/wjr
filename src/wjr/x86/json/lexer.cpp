@@ -46,9 +46,7 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
     simd_int stk[u8_loop];
 
     do {
-        const size_t diff = last - first;
-
-        if (WJR_LIKELY(diff > 64)) {
+        if (const size_t diff = last - first; WJR_LIKELY(diff > 64)) {
             for (size_t i = 0; i < u8_loop; ++i) {
                 stk[i] = simd::loadu(first + i * u8_width);
             }

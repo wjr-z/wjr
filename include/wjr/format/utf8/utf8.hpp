@@ -191,7 +191,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool check_codepoint(uint32_t code_point) noex
 /**
  * @brief Check if starts with `\u'
  */
-WJR_INTRINSIC_CONSTEXPR20 compressed_expected<void, bool, true>
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 compressed_expected<void, bool, true>
 check_unicode_escape(const uint8_t *first) noexcept {
     constexpr uint16_t escape =
         (static_cast<uint8_t>('\\') << 8) | static_cast<uint8_t>('u');
@@ -202,7 +202,7 @@ check_unicode_escape(const uint8_t *first) noexcept {
     return unexpected(false);
 }
 
-WJR_INTRINSIC_INLINE compressed_expected<const uint8_t *, bool, true>
+WJR_PURE WJR_INTRINSIC_INLINE compressed_expected<const uint8_t *, bool, true>
 check_unicode_codepoint(const uint8_t *first) noexcept {
     uint32_t code_point = detail::hex_to_u32_unchecked(first);
     first += 4;
@@ -232,7 +232,7 @@ check_unicode_codepoint(const uint8_t *first) noexcept {
     return first;
 }
 
-WJR_INTRINSIC_INLINE compressed_expected<const uint8_t *, bool, true>
+WJR_PURE WJR_INTRINSIC_INLINE compressed_expected<const uint8_t *, bool, true>
 check_unicode_codepoint(const uint8_t *first, const uint8_t *last) noexcept {
     if (WJR_UNLIKELY(last - first < 4)) {
         return unexpected(false);

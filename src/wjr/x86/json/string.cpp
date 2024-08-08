@@ -116,6 +116,10 @@ result<char *> parse_string(char *dst, const char *first, const char *last) noex
                     }
 
                     last_pos = __first - first;
+                    // two backslash
+                    if (last_pos - pos != 6) {
+                        B &= B - 1;
+                    }
                 } else {
                     const uint8_t code = escape_table[ch];
 
@@ -259,6 +263,10 @@ SMALL:
             }
 
             last_pos = __first - first;
+            // two backslash
+            if (last_pos - pos != 6) {
+                B &= B - 1;
+            }
         } else {
             const uint8_t code = escape_table[ch];
 

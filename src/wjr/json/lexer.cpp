@@ -7,7 +7,7 @@ namespace wjr::json {
 
 namespace lexer_detail {
 
-const static std::array<uint8_t, 256> code_table = {
+constexpr static std::array<uint8_t, 256> code_table = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 3, 4, 1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
@@ -18,129 +18,126 @@ const static std::array<uint8_t, 256> code_table = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
-template <typename Lexer>
-uint32_t read(Lexer lexer) noexcept {
-    auto &storage = lexer.storage;
+}
 
-    auto first = storage.first;
-    const auto last = storage.last;
-
+typename lexer::result_type lexer::read(uint32_t *token_buf,
+                                        size_type token_buf_size) noexcept {
     if (WJR_UNLIKELY(first == last)) {
         return 0;
     }
 
     using namespace lexer_detail;
 
-    constexpr bool read_once = lexer.read_once;
-    constexpr uint32_t token_buf_mask = static_cast<uint32_t>(1) << 31;
-    auto token_buf = lexer.token_buf;
-
-    uint64_t prev_is_escape;
-    uint64_t prev_in_string;
-    uint64_t prev_is_ws;
-    uint32_t idx;
-
-    if constexpr (read_once) {
-        prev_is_escape = prev_in_string = 0;
-        prev_is_ws = ~0ull;
-        idx = 0;
-    } else {
-        prev_is_escape = storage.prev_is_escape;
-        prev_in_string = storage.prev_in_string;
-        prev_is_ws = storage.prev_is_ws;
-        idx = storage.idx;
-    }
-
     WJR_ASSERT_ASSUME_L2(first < last);
 
     uint32_t count = 0;
     char stk[64];
 
-    bool loop;
-
     do {
         const char *ptr;
-        const size_t diff = last - first;
 
-        if (WJR_LIKELY(diff > 64)) {
+        if (const size_t diff = last - first; WJR_LIKELY(diff > 64)) {
             ptr = first;
             first += 64;
         } else {
             if (diff == 64) {
                 ptr = first;
             } else {
+                char ch;
+                switch (last[-1]) {
+                case ' ':
+                case '\n':
+                case '\r':
+                case '\t':
+                case '[':
+                case ']':
+                case '{':
+                case '}': {
+                    ch = ' ';
+                    break;
+                }
+                default: {
+                    ch = '\0';
+                    break;
+                }
+                }
+
                 std::memcpy(stk, first, diff);
-                std::memset(stk + diff, 0, 64 - diff);
+                std::memset(stk + diff, ch, 64 - diff);
                 ptr = stk;
             }
 
             first = last;
-            if constexpr (!read_once) {
-                count |= token_buf_mask;
-            }
+            count |= result_type::mask;
         }
 
-        uint64_t MASK[5] = {0, 0, 0, 0, 0};
-        auto &[B, Q, S, W, UNUSED] = MASK;
+        uint64_t MASK[4][5] = {{0}};
 
-        for (int i = 0; i < 8; i += 8) {
-            MASK[code_table[static_cast<uint8_t>(ptr[i])]] |= 1ull << i;
-            MASK[code_table[static_cast<uint8_t>(ptr[i + 1])]] |= 1ull << (i + 1);
-            MASK[code_table[static_cast<uint8_t>(ptr[i + 2])]] |= 1ull << (i + 2);
-            MASK[code_table[static_cast<uint8_t>(ptr[i + 3])]] |= 1ull << (i + 3);
-            MASK[code_table[static_cast<uint8_t>(ptr[i + 4])]] |= 1ull << (i + 4);
-            MASK[code_table[static_cast<uint8_t>(ptr[i + 5])]] |= 1ull << (i + 5);
-            MASK[code_table[static_cast<uint8_t>(ptr[i + 6])]] |= 1ull << (i + 6);
-            MASK[code_table[static_cast<uint8_t>(ptr[i + 7])]] |= 1ull << (i + 7);
+        for (int i = 0; i < 64; i += 4) {
+            MASK[0][code_table[static_cast<uint8_t>(ptr[i])]] |= 1ull << i;
+            MASK[1][code_table[static_cast<uint8_t>(ptr[i + 1])]] |= 1ull << (i + 1);
+            MASK[2][code_table[static_cast<uint8_t>(ptr[i + 2])]] |= 1ull << (i + 2);
+            MASK[3][code_table[static_cast<uint8_t>(ptr[i + 3])]] |= 1ull << (i + 3);
         }
 
-        {
-            if (!B) {
-                B = prev_is_escape;
-                Q &= ~B;
-                prev_is_escape = 0;
-            } else {
-                const uint64_t codeB = calc_backslash(B & ~prev_is_escape);
-                const auto escape = (codeB & B) >> 63;
-                B = codeB ^ (B | prev_is_escape);
-                Q &= ~B;
-                prev_is_escape = escape;
-            }
+        uint64_t B = MASK[0][0] | MASK[1][0] | MASK[2][0] | MASK[3][0];
+        uint64_t Q = MASK[0][1] | MASK[1][1] | MASK[2][1] | MASK[3][1];
+        uint64_t S = MASK[0][2] | MASK[1][2] | MASK[2][2] | MASK[3][2];
+        uint64_t W = MASK[0][3] | MASK[1][3] | MASK[2][3] | MASK[3][3];
+
+        if (WJR_LIKELY(!B)) {
+            B = prev_is_escape;
+            prev_is_escape = 0;
+        } else {
+            const uint64_t codeB = calc_backslash(B & ~prev_is_escape);
+            const auto escape = (codeB & B) >> 63;
+            B = codeB ^ (B | prev_is_escape);
+            prev_is_escape = escape;
         }
 
+        Q &= ~B;
         const uint64_t R = prefix_xor(Q) ^ prev_in_string;
-        S &= ~R;
         prev_in_string = static_cast<uint64_t>(static_cast<int64_t>(R) >> 63);
 
-        S |= Q;
         const auto WS = S | W;
-        const auto P = shld(WS, prev_is_ws, 1);
+        const auto WT = shld(WS, prev_is_ws, 1);
         prev_is_ws = WS;
 
-        S |= (P ^ W) & ~R;
-        S &= ~(Q & ~R);
+        S |= (WT & ~W);
+        S &= ~R;
+        S |= Q;
 
         if (S) {
             const auto num = popcount(S);
 
             do {
-                for (int i = 0; i < 4; ++i) {
-                    token_buf[i] = idx + ctz(S);
-                    S &= S - 1;
-                }
+                token_buf[0] = idx + ctz(S);
+                S &= S - 1;
+                token_buf[1] = idx + ctz(S);
+                S &= S - 1;
+                token_buf[2] = idx + ctz(S);
+                S &= S - 1;
+                token_buf[3] = idx + ctz(S);
 
                 if (WJR_UNLIKELY(num <= 4)) {
                     break;
                 }
 
-                for (int i = 4; i < 8; ++i) {
-                    token_buf[i] = idx + ctz(S);
-                    S &= S - 1;
-                }
+                S &= S - 1;
+
+                token_buf[4] = idx + ctz(S);
+                S &= S - 1;
+                token_buf[5] = idx + ctz(S);
+                S &= S - 1;
+                token_buf[6] = idx + ctz(S);
+                S &= S - 1;
+                token_buf[7] = idx + ctz(S);
 
                 if (WJR_LIKELY(num <= 8)) {
                     break;
                 }
+
+                S &= S - 1;
 
                 for (int i = 8; i < 12; ++i) {
                     token_buf[i] = idx + ctz(S);
@@ -171,40 +168,10 @@ uint32_t read(Lexer lexer) noexcept {
         }
 
         idx += 64;
+    } while (WJR_LIKELY(count <= token_buf_size));
 
-        if constexpr (!read_once) {
-            loop = count <= lexer.token_buf_size;
-        } else {
-            loop = first != last;
-        }
-
-    } while (WJR_LIKELY(loop));
-
-    if constexpr (!read_once) {
-        storage.first = first;
-        storage.prev_is_escape = prev_is_escape;
-        storage.prev_in_string = prev_in_string;
-        storage.prev_is_ws = prev_is_ws;
-        storage.idx = idx;
-    }
-
-    if constexpr (!read_once) {
-        return count & (token_buf_mask - 1);
-    } else {
-        return count;
-    }
+    return count;
 }
-
-uint32_t read(dynamic_lexer_storage &storage, uint32_t *token_buf) noexcept {
-    return read(__dynamic_lexer_struct{storage, token_buf});
-}
-
-uint32_t read(forward_lexer_storage &storage, uint32_t *token_buf,
-              uint32_t token_buf_size) noexcept {
-    return read(__forward_lexer_struct{storage, token_buf, token_buf_size});
-}
-
-} // namespace lexer_detail
 
 #endif
 

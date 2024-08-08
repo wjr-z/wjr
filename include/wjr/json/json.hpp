@@ -10,6 +10,8 @@ namespace wjr::json {
 template <typename Traits>
 class basic_json;
 
+namespace detail {
+
 template <template <typename Char, typename Traits, typename Alloc> typename String,
           template <typename Key, typename Ty, typename Pr, typename Alloc>
           typename Object,
@@ -20,28 +22,23 @@ private:
 
 public:
     using string_type = String<char, std::char_traits<char>, memory_pool<char>>;
-    using object_type =
-        Object<string_type, uninitialized<json_type>, std::less<string_type>,
-               memory_pool<std::pair<const string_type, uninitialized<json_type>>>>;
-    using array_type =
-        Array<uninitialized<json_type>, memory_pool<uninitialized<json_type>>>;
+    using object_type = Object<string_type, json_type, std::less<string_type>,
+                               memory_pool<std::pair<const string_type, json_type>>>;
+    using array_type = Array<json_type, memory_pool<json_type>>;
 };
 
 using default_json_traits = basic_json_traits<std::basic_string, std::map, vector>;
 using __default_json_string = typename default_json_traits::string_type;
-
-using json = basic_json<default_json_traits>;
-
-namespace detail {
 
 template <typename Json>
 class basic_json_parser;
 
 } // namespace detail
 
+using json = basic_json<detail::default_json_traits>;
+
 template <typename Traits>
 class basic_json {
-
     friend class detail::basic_json_parser<basic_json>;
 
 public:
@@ -56,6 +53,12 @@ public:
     using object_type = typename traits_type::object_type;
     using array_type = typename traits_type::array_type;
 
+private:
+    using __tp_list =
+        tp_list<null_type, boolean_type, number_unsigned_type, number_signed_type,
+                number_float_type, string_type, object_type, array_type>;
+
+public:
     basic_json() = default;
     basic_json(const basic_json &other) = delete;
 
@@ -96,39 +99,59 @@ public:
     basic_json(array_t, array_type *ptr) noexcept : m_value(array_t(), ptr) {}
 
     basic_json(basic_value value) noexcept : m_value(value) {}
+    basic_json(dctor_t) noexcept : basic_json() {}
 
     WJR_PURE value_t type() const noexcept { return m_value.m_type; }
 
     static result<basic_json> parse(const reader &rd) noexcept;
 
 private:
-    struct __stack_node {
-        __stack_node() = delete;
+    void __destroy_impl() {
+        switch (type()) {
+        case value_t::null:
+        case value_t::boolean:
+        case value_t::number_unsigned:
+        case value_t::number_signed:
+        case value_t::number_float: {
+            break;
+        }
+        case value_t::string: {
+            auto &str = __get_string();
+            std::destroy_at(std::addressof(str));
+            memory_pool<string_type> al;
+            al.deallocate(std::addressof(str), 1);
+            break;
+        }
+        case value_t::object: {
+            auto &obj = __get_object();
+            std::destroy_at(std::addressof(obj));
+            memory_pool<object_type> al;
+            al.deallocate(std::addressof(obj), 1);
+            break;
+        }
+        case value_t::array: {
+            auto &arr = __get_array();
+            std::destroy_at(std::addressof(arr));
+            memory_pool<array_type> al;
+            al.deallocate(std::addressof(arr), 1);
+            break;
+        }
+        default: {
+            WJR_UNREACHABLE();
+            break;
+        }
+        }
+    }
 
-        __stack_node(object_t, basic_json *p,
-                     typename object_type::iterator iter) noexcept
-            : ptr(p), object_iter(iter) {}
+    void __destroy() {
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(type() == value_t::null)) {
+            return;
+        }
 
-        __stack_node(array_t, basic_json *p, typename array_type::iterator iter) noexcept
-            : ptr(p), array_iter(iter) {}
+        __destroy_impl();
+    }
 
-        __stack_node(const __stack_node &) = delete;
-        __stack_node(__stack_node &&) = delete;
-
-        ~__stack_node() noexcept {}
-
-        basic_json *ptr;
-        union {
-            typename object_type::iterator object_iter;
-            typename array_type::iterator array_iter;
-        };
-    };
-
-    static void __destroy(basic_json *current);
-
-    WJR_CONSTEXPR20 void __destroy() { __destroy(this); }
-
-    WJR_CONSTEXPR20 void __destroy_and_deallocate() { __destroy(); }
+    void __destroy_and_deallocate() { __destroy(); }
 
     WJR_PURE boolean_type &__get_boolean() noexcept { return m_value.m_boolean; }
     WJR_PURE const boolean_type &__get_boolean() const noexcept {
@@ -180,275 +203,6 @@ private:
     basic_value m_value;
 };
 
-template <typename Traits>
-void basic_json<Traits>::__destroy(basic_json *current) {
-    switch (current->type()) {
-    case value_t::null:
-    case value_t::boolean:
-    case value_t::number_unsigned:
-    case value_t::number_signed:
-    case value_t::number_float: {
-        return;
-    }
-    case value_t::string: {
-        memory_pool<string_type> al;
-        auto &str = current->__get_string();
-        std::destroy_at(std::addressof(str));
-        al.deallocate(std::addressof(str), 1);
-        break;
-    }
-    default: {
-        break;
-    }
-    }
-
-    lazy_initialized<__stack_node> parent;
-    lazy_initialized<static_vector<__stack_node, 256>> stk;
-
-    switch (current->type()) {
-    case value_t::object: {
-        auto &obj = current->__get_object();
-        const auto iter = obj.begin();
-
-        if (WJR_UNLIKELY(iter == obj.end())) {
-            memory_pool<object_type> al;
-            std::destroy_at(std::addressof(obj));
-            al.deallocate(std::addressof(obj), 1);
-            return;
-        }
-
-        parent.emplace(object_t(), current, iter);
-        current = iter->second.get();
-        stk.emplace();
-        goto OBJECT_ELEMENT;
-    }
-    case value_t::array: {
-        auto &arr = current->__get_array();
-        const auto iter = arr.begin();
-
-        if (WJR_UNLIKELY(iter == arr.end())) {
-            memory_pool<array_type> al;
-            std::destroy_at(std::addressof(arr));
-            al.deallocate(std::addressof(arr), 1);
-            return;
-        }
-
-        parent.emplace(array_t(), current, iter);
-        current = std::addressof(**iter);
-        stk.emplace();
-        goto ARRAY_ELEMENT;
-    }
-    default: {
-        WJR_UNREACHABLE();
-        break;
-    }
-    }
-
-OBJECT_ELEMENT : {
-    switch (current->type()) {
-    case value_t::null:
-    case value_t::boolean:
-    case value_t::number_unsigned:
-    case value_t::number_signed:
-    case value_t::number_float: {
-        break;
-    }
-    case value_t::string: {
-        memory_pool<string_type> al;
-        auto &str = current->__get_string();
-        std::destroy_at(std::addressof(str));
-        al.deallocate(std::addressof(str), 1);
-        break;
-    }
-    case value_t::object: {
-        auto &obj = current->__get_object();
-        const auto iter = obj.begin();
-
-        if (WJR_UNLIKELY(iter == obj.end())) {
-            memory_pool<object_type> al;
-            std::destroy_at(std::addressof(obj));
-            al.deallocate(std::addressof(obj), 1);
-            break;
-        }
-
-        stk->emplace_back(object_t(), parent->ptr, parent->object_iter);
-        parent->ptr = current;
-        parent->object_iter = iter;
-        current = std::addressof(*iter->second);
-        goto OBJECT_ELEMENT;
-    }
-    case value_t::array: {
-        auto &arr = current->__get_array();
-        const auto iter = arr.begin();
-
-        if (WJR_UNLIKELY(iter == arr.end())) {
-            memory_pool<array_type> al;
-            std::destroy_at(std::addressof(arr));
-            al.deallocate(std::addressof(arr), 1);
-            break;
-        }
-
-        stk->emplace_back(object_t(), parent->ptr, parent->object_iter);
-        parent->ptr = current;
-        parent->array_iter = iter;
-        current = std::addressof(**iter);
-        goto ARRAY_ELEMENT;
-    }
-    }
-
-    do {
-        current = parent->ptr;
-        const auto iter = ++parent->object_iter;
-        if (iter != current->__get_object().end()) {
-            current = std::addressof(*iter->second);
-            goto OBJECT_ELEMENT;
-        }
-
-        memory_pool<object_type> al;
-        std::destroy_at(std::addressof(current->__get_object()));
-        al.deallocate(std::addressof(current->__get_object()), 1);
-    } while (0);
-
-    do {
-        if (stk->empty()) {
-            return;
-        }
-
-        auto &node = stk->back();
-        stk->pop_back();
-
-        current = node.ptr;
-        if (current->type() == value_t::object) {
-            const auto iter = ++node.object_iter;
-            if (iter != current->__get_object().end()) {
-                parent->ptr = current;
-                parent->object_iter = node.object_iter;
-                current = std::addressof(*iter->second);
-                goto OBJECT_ELEMENT;
-            }
-
-            memory_pool<object_type> al;
-            std::destroy_at(std::addressof(current->__get_object()));
-            al.deallocate(std::addressof(current->__get_object()), 1);
-        } else {
-            const auto iter = ++node.array_iter;
-            if (iter != current->__get_array().end()) {
-                parent->ptr = current;
-                parent->array_iter = node.array_iter;
-                current = std::addressof(**iter);
-                goto ARRAY_ELEMENT;
-            }
-
-            memory_pool<array_type> al;
-            std::destroy_at(std::addressof(current->__get_array()));
-            al.deallocate(std::addressof(current->__get_array()), 1);
-        }
-    } while (true);
-}
-
-ARRAY_ELEMENT : {
-    switch (current->type()) {
-    case value_t::null:
-    case value_t::boolean:
-    case value_t::number_unsigned:
-    case value_t::number_signed:
-    case value_t::number_float: {
-        break;
-    }
-    case value_t::string: {
-        memory_pool<string_type> al;
-        auto &str = current->__get_string();
-        std::destroy_at(std::addressof(str));
-        al.deallocate(std::addressof(str), 1);
-        break;
-    }
-    case value_t::object: {
-        auto &obj = current->__get_object();
-        const auto iter = obj.begin();
-
-        if (WJR_UNLIKELY(iter == obj.end())) {
-            memory_pool<object_type> al;
-            std::destroy_at(std::addressof(obj));
-            al.deallocate(std::addressof(obj), 1);
-            break;
-        }
-
-        stk->emplace_back(array_t(), parent->ptr, parent->array_iter);
-        parent->ptr = current;
-        parent->object_iter = iter;
-        current = std::addressof(*iter->second);
-        goto OBJECT_ELEMENT;
-    }
-    case value_t::array: {
-        auto &arr = current->__get_array();
-        const auto iter = arr.begin();
-
-        if (WJR_UNLIKELY(iter == arr.end())) {
-            memory_pool<array_type> al;
-            std::destroy_at(std::addressof(arr));
-            al.deallocate(std::addressof(arr), 1);
-            break;
-        }
-
-        stk->emplace_back(array_t(), parent->ptr, parent->array_iter);
-        parent->ptr = current;
-        parent->array_iter = iter;
-        current = std::addressof(**iter);
-        goto ARRAY_ELEMENT;
-    }
-    }
-
-    do {
-        current = parent->ptr;
-        const auto iter = ++parent->array_iter;
-        if (iter != current->__get_array().end()) {
-            current = std::addressof(**iter);
-            goto ARRAY_ELEMENT;
-        }
-
-        memory_pool<array_type> al;
-        std::destroy_at(std::addressof(current->__get_array()));
-        al.deallocate(std::addressof(current->__get_array()), 1);
-    } while (0);
-
-    do {
-        if (stk->empty()) {
-            return;
-        }
-
-        auto &node = stk->back();
-        stk->pop_back();
-
-        current = node.ptr;
-        if (current->type() == value_t::object) {
-            const auto iter = ++node.object_iter;
-            if (iter != current->__get_object().end()) {
-                parent->ptr = current;
-                parent->object_iter = node.object_iter;
-                current = std::addressof(*iter->second);
-                goto OBJECT_ELEMENT;
-            }
-
-            memory_pool<object_type> al;
-            std::destroy_at(std::addressof(current->__get_object()));
-            al.deallocate(std::addressof(current->__get_object()), 1);
-        } else {
-            const auto iter = ++node.array_iter;
-            if (iter != current->__get_array().end()) {
-                parent->ptr = current;
-                parent->array_iter = node.array_iter;
-                current = std::addressof(**iter);
-                goto ARRAY_ELEMENT;
-            }
-
-            memory_pool<array_type> al;
-            std::destroy_at(std::addressof(current->__get_array()));
-            al.deallocate(std::addressof(current->__get_array()), 1);
-        }
-    } while (true);
-}
-}
-
 namespace detail {
 
 template <typename Json>
@@ -471,13 +225,11 @@ public:
 
 protected:
     WJR_INTRINSIC_INLINE result<void> visit_root_null(const char *first) const noexcept {
-        wjr::construct_at(current, null_t());
         return detail::check_null(first);
     }
 
     WJR_INTRINSIC_INLINE result<void>
     visit_object_null(const char *first) const noexcept {
-        wjr::construct_at(element, null_t());
         return detail::check_null(first);
     }
 
@@ -487,13 +239,13 @@ protected:
     }
 
     WJR_INTRINSIC_INLINE result<void> visit_root_true(const char *first) const noexcept {
-        wjr::construct_at(current, null_t());
+        current->m_value.set(boolean_t(), true);
         return detail::check_true(first);
     }
 
     WJR_INTRINSIC_INLINE result<void>
     visit_object_true(const char *first) const noexcept {
-        wjr::construct_at(element, boolean_t(), true);
+        element->m_value.set(boolean_t(), true);
         return detail::check_true(first);
     }
 
@@ -503,13 +255,12 @@ protected:
     }
 
     WJR_INTRINSIC_INLINE result<void> visit_root_false(const char *first) const noexcept {
-        wjr::construct_at(current, boolean_t(), false);
         return detail::check_false(first);
     }
 
     WJR_INTRINSIC_INLINE result<void>
     visit_object_false(const char *first) const noexcept {
-        wjr::construct_at(element, boolean_t(), false);
+        element->m_value.set(boolean_t(), false);
         return detail::check_false(first);
     }
 
@@ -522,14 +273,14 @@ protected:
     WJR_INTRINSIC_INLINE result<void> visit_root_number(const char *first,
                                                         const char *last) const noexcept {
         WJR_EXPECTED_INIT(ret, detail::parse_number(first, last));
-        wjr::construct_at(current, *ret);
+        current->m_value = *ret;
         return {};
     }
 
     WJR_INTRINSIC_INLINE result<void>
     visit_object_number(const char *first, const char *last) const noexcept {
         WJR_EXPECTED_INIT(ret, detail::parse_number(first, last));
-        wjr::construct_at(element, *ret);
+        element->m_value = *ret;
         return {};
     }
 
@@ -553,7 +304,7 @@ protected:
             return unexpected(std::move(ret).error());
         }
         str->resize(*ret - str->data());
-        wjr::construct_at(current, string_t(), str);
+        current->m_value.set(string_t(), str);
         return {};
     }
 
@@ -570,7 +321,7 @@ protected:
             return unexpected(std::move(ret).error());
         }
         str->resize(*ret - str->data());
-        wjr::construct_at(element, string_t(), str);
+        element->m_value.set(string_t(), str);
         return {};
     }
 
@@ -599,9 +350,10 @@ protected:
         str.resize(*ret - str.data());
         const auto iter = current->__get_object().emplace(std::move(str), dctor);
         WJR_ASSUME(str.size() == 0);
-        element = iter.first->second.get();
+        element = std::addressof(iter.first->second);
         if (WJR_UNLIKELY(!iter.second)) {
-            (iter.first)->second.reset();
+            std::destroy_at(element);
+            wjr::construct_at(element, dctor);
             return {};
         }
 
@@ -612,7 +364,7 @@ protected:
         memory_pool<object_type> al;
         object_type *const obj = al.allocate(1);
         wjr::construct_at(obj);
-        wjr::construct_at(current, object_t(), obj);
+        current->m_value.set(object_t(), obj);
         return {};
     }
 
@@ -620,7 +372,7 @@ protected:
         memory_pool<object_type> al;
         object_type *const obj = al.allocate(1);
         wjr::construct_at(obj);
-        wjr::construct_at(element, object_t(), obj);
+        element->m_value.set(object_t(), obj);
         stk.emplace_back(current);
         current = element;
         return {};
@@ -631,7 +383,7 @@ protected:
         object_type *const obj = al.allocate(1);
         wjr::construct_at(obj);
         stk.emplace_back(current);
-        current = current->__get_array().emplace_back(object_t(), obj).get();
+        current = std::addressof(current->__get_array().emplace_back(object_t(), obj));
         return {};
     }
 
@@ -639,7 +391,7 @@ protected:
         memory_pool<array_type> al;
         array_type *const arr = al.allocate(1);
         wjr::construct_at(arr);
-        wjr::construct_at(current, array_t(), arr);
+        current->m_value.set(array_t(), arr);
         return {};
     }
 
@@ -647,7 +399,7 @@ protected:
         memory_pool<array_type> al;
         array_type *const arr = al.allocate(1);
         wjr::construct_at(arr);
-        wjr::construct_at(element, array_t(), arr);
+        element->m_value.set(array_t(), arr);
         stk.emplace_back(current);
         current = element;
         return {};
@@ -658,7 +410,7 @@ protected:
         array_type *const arr = al.allocate(1);
         wjr::construct_at(arr);
         stk.emplace_back(current);
-        current = current->__get_array().emplace_back(array_t(), arr).get();
+        current = std::addressof(current->__get_array().emplace_back(array_t(), arr));
         return {};
     }
 
@@ -716,9 +468,6 @@ template <typename Traits>
 struct get_relocate_mode<json::basic_json<Traits>> {
     static constexpr relocate_t value = relocate_t::trivial;
 };
-
-WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(default_json_string,
-                                         json::__default_json_string);
 
 } // namespace wjr
 

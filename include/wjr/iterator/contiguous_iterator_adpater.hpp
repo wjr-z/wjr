@@ -10,6 +10,8 @@ template <typename Container, typename Traits>
 class contiguous_const_iterator_adapter {
     using __pointer = typename Traits::pointer;
 
+    friend struct std::pointer_traits<contiguous_const_iterator_adapter>;
+
 public:
 #if defined(WJR_CXX_20)
     using iterator_concept = std::contiguous_iterator_tag;
@@ -196,7 +198,6 @@ private:
                       "Can't compare iterators from different containers.");
     }
 
-public:
     /// @private
     WJR_PURE WJR_CONSTEXPR20 pointer __begin() const noexcept {
         return m_container->data();
@@ -217,9 +218,8 @@ public:
     constexpr static void
     __check_same_container(const contiguous_const_iterator_adapter &) noexcept {}
 
-public:
 #endif
-
+protected:
     __pointer m_ptr;
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
     const Container *m_container;
@@ -231,6 +231,8 @@ class contiguous_iterator_adapter
     : public contiguous_const_iterator_adapter<Container, Traits> {
     using Mybase = contiguous_const_iterator_adapter<Container, Traits>;
     using __pointer = typename Traits::pointer;
+
+    friend struct std::pointer_traits<contiguous_iterator_adapter>;
 
 public:
 #if defined(WJR_CXX_20)

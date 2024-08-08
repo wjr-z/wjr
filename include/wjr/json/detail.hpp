@@ -94,6 +94,42 @@ struct basic_value {
     basic_value(object_t, void *ptr) noexcept : m_ptr(ptr), m_type(value_t::object) {}
     basic_value(array_t, void *ptr) noexcept : m_ptr(ptr), m_type(value_t::array) {}
 
+    void set(null_t) noexcept { m_type = value_t::null; }
+    void set(boolean_t, bool f) noexcept {
+        m_boolean = f;
+        m_type = value_t::boolean;
+    }
+
+    void set(number_unsigned_t, uint64_t value) noexcept {
+        m_number_unsigned = value;
+        m_type = value_t::number_unsigned;
+    }
+
+    void set(number_signed_t, int64_t value) noexcept {
+        m_number_signed = value;
+        m_type = value_t::number_signed;
+    }
+
+    void set(number_float_t, double value) noexcept {
+        m_number_float = value;
+        m_type = value_t::number_float;
+    }
+
+    void set(string_t, void *ptr) noexcept {
+        m_ptr = ptr;
+        m_type = value_t::string;
+    }
+
+    void set(object_t, void *ptr) noexcept {
+        m_ptr = ptr;
+        m_type = value_t::object;
+    }
+
+    void set(array_t, void *ptr) noexcept {
+        m_ptr = ptr;
+        m_type = value_t::array;
+    }
+
     union {
         bool m_boolean;
         uint64_t m_number_unsigned;

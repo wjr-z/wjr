@@ -4,7 +4,6 @@
 #include <wjr/x86/simd/simd.hpp>
 
 #if WJR_HAS_SIMD(SSE2)
-#define WJR_HAS_BUILTIN_JSON_CHECK_STRING WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_JSON_PARSE_STRING WJR_HAS_DEF
 #endif
 

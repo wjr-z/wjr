@@ -3433,7 +3433,7 @@ void absolute(basic_biginteger<S> &dst) noexcept {
 
 template <typename S>
 std::istream &operator>>(std::istream &is, basic_biginteger<S> &dst) noexcept {
-    std::string str;
+    default_string str;
     is >> str;
     from_chars(str.data(), str.data() + str.size(), dst, 0);
     return is;
