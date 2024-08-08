@@ -48,39 +48,31 @@ template <typename T>
 using result = expected<T, result_error>;
 
 enum class value_t : uint8_t {
+    null,
+    boolean,
     number_unsigned,
     number_signed,
     number_float,
-    null,
-    boolean,
     string,
     object,
     array,
 };
 
 using number_unsigned_t = integral_constant<value_t, value_t::number_unsigned>;
-inline constexpr number_unsigned_t number_unsigned_v = {};
 
 using number_signed_t = integral_constant<value_t, value_t::number_signed>;
-inline constexpr number_signed_t number_signed_v = {};
 
 using number_float_t = integral_constant<value_t, value_t::number_float>;
-inline constexpr number_float_t number_float_v = {};
 
 using null_t = integral_constant<value_t, value_t::null>;
-inline constexpr null_t null_v = {};
 
 using boolean_t = integral_constant<value_t, value_t::boolean>;
-inline constexpr boolean_t boolean_v = {};
 
 using string_t = integral_constant<value_t, value_t::string>;
-inline constexpr string_t string_v = {};
 
 using object_t = integral_constant<value_t, value_t::object>;
-inline constexpr object_t object_v = {};
 
 using array_t = integral_constant<value_t, value_t::array>;
-inline constexpr array_t array_v = {};
 
 struct basic_value {
     basic_value() = default;
@@ -92,10 +84,10 @@ struct basic_value {
 
     basic_value(null_t) noexcept : m_type(value_t::null) {}
     basic_value(boolean_t, bool f) noexcept : m_boolean(f), m_type(value_t::boolean) {}
-    basic_value(number_signed_t, int64_t value) noexcept
-        : m_number_signed(value), m_type(value_t::number_signed) {}
     basic_value(number_unsigned_t, uint64_t value) noexcept
         : m_number_unsigned(value), m_type(value_t::number_signed) {}
+    basic_value(number_signed_t, int64_t value) noexcept
+        : m_number_signed(value), m_type(value_t::number_signed) {}
     basic_value(number_float_t, double value) noexcept
         : m_number_float(value), m_type(value_t::number_float) {}
     basic_value(string_t, void *ptr) noexcept : m_ptr(ptr), m_type(value_t::string) {}
@@ -103,15 +95,14 @@ struct basic_value {
     basic_value(array_t, void *ptr) noexcept : m_ptr(ptr), m_type(value_t::array) {}
 
     union {
+        bool m_boolean;
         uint64_t m_number_unsigned;
         int64_t m_number_signed;
         double m_number_float;
-        std::nullptr_t m_null;
-        bool m_boolean;
         void *m_ptr;
     };
 
-    value_t m_type;
+    value_t m_type = value_t::null;
 };
 
 } // namespace wjr::json

@@ -694,6 +694,8 @@ struct __aligned_storage_t {
             std::is_nothrow_constructible_v<T, Args...>)                                 \
             : m_value(std::forward<Args>(args)...) {}                                    \
                                                                                          \
+        constexpr __uninitialized_base(enable_default_constructor_t) noexcept {}         \
+                                                                                         \
         ~__uninitialized_base() WJR_PP_BOOL_IF(DES, = default, noexcept {});             \
                                                                                          \
         union {                                                                          \
@@ -719,14 +721,15 @@ struct __uninitialized_control_base : __uninitialized_base_selector<T> {
     using Mybase = __uninitialized_base_selector<T>;
     using Mybase::Mybase;
 
-    WJR_CONSTEXPR20 std::enable_if_t<std::is_copy_constructible_v<T>>
+    template <typename U = T, WJR_REQUIRES(std::is_copy_constructible_v<U>)>
+    WJR_CONSTEXPR20 void
     __copy_construct(const __uninitialized_control_base &other) noexcept(
         std::is_nothrow_copy_constructible_v<T>) {
         wjr::construct_at(std::addressof(this->m_value), other.m_value);
     }
 
-    WJR_CONSTEXPR20 std::enable_if_t<std::is_move_constructible_v<T>>
-    __move_construct(__uninitialized_control_base &&other) noexcept(
+    template <typename U = T, WJR_REQUIRES(std::is_move_constructible_v<U>)>
+    WJR_CONSTEXPR20 void __move_construct(__uninitialized_control_base &&other) noexcept(
         std::is_nothrow_move_constructible_v<T>) {
         wjr::construct_at(std::addressof(this->m_value), std::move(other.m_value));
     }

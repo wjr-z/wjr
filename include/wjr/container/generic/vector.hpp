@@ -501,10 +501,10 @@ private:
         typename std::allocator_traits<allocator_type>::template rebind_alloc<value_type>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
-    using storage_fn_type = container_fn<_Alty>;
     using __get_size_t = decltype(std::declval<storage_type>().size());
     using IteratorTraits = basic_vector_traits<storage_type>;
 
+    using storage_fn_type = container_fn<_Alty>;
     friend class container_fn<_Alty>;
 
     template <typename T>

@@ -19,17 +19,17 @@ struct number_writer {
     WJR_INTRINSIC_CONSTEXPR number_writer(basic_value &_value) noexcept : value(_value) {}
 
     WJR_INTRINSIC_CONSTEXPR uint64_t &get_u64() noexcept {
-        value.m_type = number_unsigned_v;
+        value.m_type = value_t::number_unsigned;
         return value.m_number_unsigned;
     }
 
     WJR_INTRINSIC_CONSTEXPR int64_t &get_i64() noexcept {
-        value.m_type = number_signed_v;
+        value.m_type = value_t::number_signed;
         return value.m_number_signed;
     }
 
     WJR_INTRINSIC_CONSTEXPR double &get_float() noexcept {
-        value.m_type = number_float_v;
+        value.m_type = value_t::number_float;
         return value.m_number_float;
     }
 
