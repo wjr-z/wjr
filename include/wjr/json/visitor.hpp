@@ -48,8 +48,8 @@ WJR_NOINLINE static result<void> parse(Parser &&par, const reader &rd) noexcept 
 
     // token reader
     auto read = [&rd]() {
-        auto __begin = rd.token_begin();
-        auto __end = rd.token_end();
+        auto __begin = rd.begin();
+        auto __end = rd.end();
         return [__begin,
                 __end](uint32_t &token,
                        error_code err = error_code::TAPE_ERROR) mutable -> result<void> {

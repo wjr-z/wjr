@@ -63,7 +63,7 @@ public:
     ~inline_key() = default;
 
     constexpr inline_key(reference value) noexcept(
-        std::is_nothrow_constructible_v<aligned_storage<T>, reference>)
+        std::is_nothrow_constructible_v<uninitialized<T>, reference>)
         : m_storage(value) {}
 
     constexpr reference operator*() const noexcept { return *m_storage; }
@@ -72,7 +72,7 @@ public:
 
 private:
     // no need to check
-    aligned_storage<T> m_storage;
+    uninitialized<T> m_storage;
 };
 
 template <typename T>
@@ -102,7 +102,7 @@ private:
 };
 
 template <typename T>
-struct is_possible_inline_key : std::is_trivially_copyable<aligned_storage<T>> {};
+struct is_possible_inline_key : std::is_trivially_copyable<uninitialized<T>> {};
 
 template <typename T>
 inline constexpr bool is_possible_inline_key_v = is_possible_inline_key<T>::value;
@@ -630,7 +630,7 @@ private:
         const const_iterator iter = __search<true>(key);
         const auto pos = iter.get_pos();
         const bool inserted =
-            pos == 0 || key_comp()(*iter.get_leaf()->m_values[pos - 1], key);
+            pos == 0 || key_comp()(iter.get_leaf()->__get_key(pos - 1), key);
         return {iter, inserted};
     }
 

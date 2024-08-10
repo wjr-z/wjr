@@ -58,28 +58,9 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
                     stk[i] = simd::loadu(first + i * u8_width);
                 }
             } else {
-                char ch;
-                switch (last[-1]) {
-                case ' ':
-                case '\n':
-                case '\r':
-                case '\t':
-                case '[':
-                case ']':
-                case '{':
-                case '}': {
-                    ch = ' ';
-                    break;
-                }
-                default: {
-                    ch = '\0';
-                    break;
-                }
-                }
-
                 char buf[64];
                 std::memcpy(buf, first, diff);
-                std::memset(buf + diff, ch, 64 - diff);
+                std::memset(buf + diff, 0, 64 - diff);
 
                 for (size_t i = 0; i < u8_loop; ++i) {
                     stk[i] = simd::loadu(buf + i * u8_width);

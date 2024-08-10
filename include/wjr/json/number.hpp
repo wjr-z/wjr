@@ -73,6 +73,15 @@ parse_number(const char *first, const char *last) noexcept {
         return unexpected(error_code::NUMBER_ERROR);
     }
 }
+
+/**
+ * @todo This can be optimize.
+ */
+WJR_PURE WJR_INTRINSIC_INLINE result<void> check_number(const char *first,
+                                                        const char *last) noexcept {
+    return parse_number(first, last).transform([](auto &&) {});
+}
+
 } // namespace detail
 
 } // namespace wjr::json

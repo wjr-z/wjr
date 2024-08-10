@@ -59,19 +59,12 @@ enum class value_t : uint8_t {
 };
 
 using number_unsigned_t = integral_constant<value_t, value_t::number_unsigned>;
-
 using number_signed_t = integral_constant<value_t, value_t::number_signed>;
-
 using number_float_t = integral_constant<value_t, value_t::number_float>;
-
 using null_t = integral_constant<value_t, value_t::null>;
-
 using boolean_t = integral_constant<value_t, value_t::boolean>;
-
 using string_t = integral_constant<value_t, value_t::string>;
-
 using object_t = integral_constant<value_t, value_t::object>;
-
 using array_t = integral_constant<value_t, value_t::array>;
 
 struct basic_value {

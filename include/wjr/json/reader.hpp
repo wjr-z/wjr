@@ -23,11 +23,9 @@ public:
 
     reader(span<const char> sp) noexcept { read(sp); }
 
-    WJR_CONSTEXPR20 const_iterator token_begin() const noexcept {
-        return m_tokens.begin();
-    }
+    WJR_CONSTEXPR20 const_iterator begin() const noexcept { return m_tokens.begin(); }
 
-    WJR_CONSTEXPR20 const_iterator token_end() const noexcept { return m_tokens.end(); }
+    WJR_CONSTEXPR20 const_iterator end() const noexcept { return m_tokens.end(); }
 
     WJR_CONSTEXPR20 const_pointer data() const noexcept { return m_str.data(); }
 
