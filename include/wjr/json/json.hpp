@@ -93,9 +93,7 @@ public:
     const error_code &&error() const && { return std::move(m_err); }
     error_code &&error() && { return std::move(m_err); }
 
-    WJR_NODISCARD virtual const char *what() const noexcept override {
-        return "Bad json access";
-    }
+    WJR_NODISCARD virtual const char *what() const override { return "Bad json access"; }
 
 private:
     error_code m_err;
@@ -179,7 +177,7 @@ struct json_serializer_auto_completion : private Mybase {
                      (has_Mybase_assign_from_json_v<Mybase, value_type, const Json &> ||
                       std::is_assignable_v<value_type, const Json &>))>
     constexpr static void assign(Json &&j, value_type &val) {
-        assign<const Json>(j, val);
+        assign(j, val);
     }
 
     template <typename Json,
@@ -190,7 +188,7 @@ struct json_serializer_auto_completion : private Mybase {
                   (has_Mybase_construct_from_json_v<Mybase, value_type, const Json &> ||
                    std::is_constructible_v<value_type, const Json &>))>
     constexpr static value_type construct(Json &&j) {
-        return construct<const Json>(j);
+        return construct(j);
     }
 };
 
@@ -208,6 +206,71 @@ WJR_REGISTER_HAS_TYPE(assign_from_json,
                       T, Json);
 WJR_REGISTER_HAS_TYPE(construct_from_json,
                       json_serializer<T>::construct(std::declval<Json>()), T, Json);
+
+struct in_place_json_serializer_t {};
+inline constexpr in_place_json_serializer_t in_place_json_serializer{};
+
+#define __WJR_REGISTER_JSON_SERIALIZER_COPY_CONSTRUCTOR_CALLER(var)                      \
+    var(__wjr_obj.at(#var))
+#define __WJR_REGISTER_JSON_SERIALIZER_MOVE_CONSTRUCTOR_CALLER(var)                      \
+    var(std::move(__wjr_obj.at(#var)))
+
+#define WJR_REGISTER_JSON_SERIALIZER_COPY_CONSTRUCTOR(Type, ...)                         \
+    template <typename Object>                                                           \
+    explicit Type(const Object &__wjr_obj, ::wjr::json::in_place_json_serializer_t)      \
+        : WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                    \
+              (__VA_ARGS__), __WJR_REGISTER_JSON_SERIALIZER_COPY_CONSTRUCTOR_CALLER)) {} \
+    template <typename Json>                                                             \
+    explicit Type(const Json &__wjr_json)                                                \
+        : Type(__wjr_json.template get<::wjr::json::object_t>(),                         \
+               ::wjr::json::in_place_json_serializer) {}
+
+#define WJR_REGISTER_JSON_SERIALIZER_MOVE_CONSTRUCTOR(Type, ...)                         \
+    template <typename Object>                                                           \
+    explicit Type(Object &&__wjr_obj, ::wjr::json::in_place_json_serializer_t)           \
+        : WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                    \
+              (__VA_ARGS__), __WJR_REGISTER_JSON_SERIALIZER_MOVE_CONSTRUCTOR_CALLER)) {} \
+    template <typename Json>                                                             \
+    explicit Type(Json &&__wjr_json)                                                     \
+        : Type(std::move(__wjr_json.template get<::wjr::json::object_t>()),              \
+               ::wjr::json::in_place_json_serializer) {}
+
+#define __WJR_REGISTER_JSON_SERIALIZER_COPY_ASSIGN_CALLER(var)                           \
+    __wjr_obj.at(#var).get_to(var)
+#define __WJR_REGISTER_JSON_SERIALIZER_MOVE_ASSIGN_CALLER(var)                           \
+    std::move(__wjr_obj.at(#var)).get_to(var)
+
+#define WJR_REGISTER_JSON_SERIALIZER_COPY_ASSIGNMENT(Type, ...)                          \
+    template <typename Object>                                                           \
+    Type &__assign(const Object &__wjr_obj, ::wjr::json::in_place_json_serializer_t) {   \
+        WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                      \
+            (__VA_ARGS__), __WJR_REGISTER_JSON_SERIALIZER_COPY_ASSIGN_CALLER));          \
+        return *this;                                                                    \
+    }                                                                                    \
+    template <typename Json>                                                             \
+    Type &operator=(const Json &__wjr_json) {                                            \
+        return __assign(__wjr_json.template get<::wjr::json::object_t>(),                \
+                        ::wjr::json::in_place_json_serializer);                          \
+    }
+
+#define WJR_REGISTER_JSON_SERIALIZER_MOVE_ASSIGNMENT(Type, ...)                          \
+    template <typename Object>                                                           \
+    Type &__assign(Object &&__wjr_obj, ::wjr::json::in_place_json_serializer_t) {        \
+        WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                      \
+            (__VA_ARGS__), __WJR_REGISTER_JSON_SERIALIZER_MOVE_ASSIGN_CALLER));          \
+        return *this;                                                                    \
+    }                                                                                    \
+    template <typename Json>                                                             \
+    Type &operator=(Json &&__wjr_json) {                                                 \
+        return __assign(std::move(__wjr_json.template get<::wjr::json::object_t>()),     \
+                        ::wjr::json::in_place_json_serializer);                          \
+    }
+
+#define WJR_REGISTER_JSON_SERIALIZER_DEFAULT(Type, ...)                                  \
+    WJR_REGISTER_JSON_SERIALIZER_COPY_CONSTRUCTOR(Type, __VA_ARGS__)                     \
+    WJR_REGISTER_JSON_SERIALIZER_MOVE_CONSTRUCTOR(Type, __VA_ARGS__)                     \
+    WJR_REGISTER_JSON_SERIALIZER_COPY_ASSIGNMENT(Type, __VA_ARGS__)                      \
+    WJR_REGISTER_JSON_SERIALIZER_MOVE_ASSIGNMENT(Type, __VA_ARGS__)
 
 /**
  * @details At present, it's a simple but flexible implementation solution. This is not as
@@ -406,8 +469,18 @@ public:
     }
 
     template <typename T, WJR_REQUIRES(has_construct_from_json_v<T, const basic_json &>)>
+    explicit operator T() & {
+        return static_cast<T>(std::as_const(*this));
+    }
+
+    template <typename T, WJR_REQUIRES(has_construct_from_json_v<T, const basic_json &>)>
     explicit operator T() const & {
         return json_serializer<T>::construct(*this);
+    }
+
+    template <typename T, WJR_REQUIRES(has_construct_from_json_v<T, basic_json &&>)>
+    explicit operator T() const && {
+        return static_cast<T>(std::as_const(std::move(*this)));
     }
 
     template <typename T, WJR_REQUIRES(has_construct_from_json_v<T, basic_json &&>)>
@@ -416,13 +489,23 @@ public:
     }
 
     template <typename T, WJR_REQUIRES(has_assign_from_json_v<T, const basic_json &>)>
+    void get_to(T &val) & {
+        std::as_const(*this).get_to(val);
+    }
+
+    template <typename T, WJR_REQUIRES(has_assign_from_json_v<T, const basic_json &>)>
     void get_to(T &val) const & {
-        return json_serializer<T>::assign(*this, val);
+        json_serializer<T>::assign(*this, val);
+    }
+
+    template <typename T, WJR_REQUIRES(has_assign_from_json_v<T, basic_json &&>)>
+    void get_to(T &val) const && {
+        std::as_const(std::move(*this)).get_to(val);
     }
 
     template <typename T, WJR_REQUIRES(has_assign_from_json_v<T, basic_json &&>)>
     void get_to(T &val) && {
-        return json_serializer<T>::assign(std::move(*this), val);
+        json_serializer<T>::assign(std::move(*this), val);
     }
 
 private:
