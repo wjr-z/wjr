@@ -84,7 +84,7 @@ WJR_REGISTER_JSON_GET_IMPL(array);
 
 #undef WJR_REGISTER_JSON_GET_IMPL
 
-class bad_json_access : std::exception {
+class bad_json_access : public std::exception {
 public:
     explicit bad_json_access(error_code e) : m_err(std::move(e)) {}
 
@@ -101,27 +101,113 @@ private:
     error_code m_err;
 };
 
-template <typename Mybase>
-struct json_serializer_base {
-    using value_type = typename Mybase::type;
+WJR_REGISTER_HAS_TYPE(Mybase_assign_from_json,
+                      Mybase::assign(std::declval<Json>(), std::declval<T &>()), Mybase,
+                      T, Json);
+WJR_REGISTER_HAS_TYPE(Mybase_construct_from_json, Mybase::construct(std::declval<Json>()),
+                      Mybase, T, Json);
 
-    template <typename Json>
-    constexpr static value_type construct(const Json &j) {
-        value_type obj;
-        Mybase::assign(obj, j);
-        return obj;
+template <typename Mybase>
+struct json_serializer_auto_completion : private Mybase {
+    using value_type = typename Mybase::value_type;
+
+    /// Use functions of Mybase.
+
+    template <typename Json, WJR_REQUIRES(has_Mybase_assign_from_json_v<
+                                          Mybase, value_type, const Json &>)>
+    constexpr static void assign(const Json &j, value_type &val) {
+        Mybase::template assign(j, val);
     }
 
-    template <typename Json>
-    constexpr static value_type constrcut(Json &&j) {
-        value_type obj;
-        Mybase::assign(obj, std::move(j));
-        return obj;
+    template <typename Json,
+              WJR_REQUIRES(!std::is_lvalue_reference_v<Json> &&
+                           has_Mybase_assign_from_json_v<Mybase, value_type, Json &&>)>
+    constexpr static void assign(Json &&j, value_type &val) {
+        Mybase::template assign(std::move(j), val);
+    }
+
+    template <typename Json, WJR_REQUIRES(has_Mybase_construct_from_json_v<
+                                          Mybase, value_type, const Json &>)>
+    constexpr static value_type construct(const Json &j) {
+        return Mybase::template construct(j);
+    }
+
+    template <typename Json,
+              WJR_REQUIRES(!std::is_lvalue_reference_v<Json> &&
+                           has_Mybase_construct_from_json_v<Mybase, value_type, Json &&>)>
+    constexpr static value_type construct(Json &&j) {
+        return Mybase::template construct(std::move(j));
+    }
+
+    /// Use member functions of value_type
+
+    template <typename Json, WJR_REQUIRES(!has_Mybase_assign_from_json_v<
+                                              Mybase, value_type, const Json &> &&
+                                          std::is_assignable_v<value_type, const Json &>)>
+    constexpr static void assign(const Json &j, value_type &val) {
+        val = j;
+    }
+
+    template <typename Json, WJR_REQUIRES(!has_Mybase_assign_from_json_v<
+                                              Mybase, value_type, const Json &> &&
+                                          std::is_assignable_v<value_type, Json &&>)>
+    constexpr static void assign(Json &&j, value_type &val) {
+        val = std::move(j);
+    }
+
+    template <typename Json,
+              WJR_REQUIRES(
+                  !has_Mybase_construct_from_json_v<Mybase, value_type, const Json &> &&
+                  std::is_constructible_v<value_type, const Json &>)>
+    constexpr static value_type construct(const Json &j) {
+        return value_type(j);
+    }
+
+    template <typename Json, WJR_REQUIRES(!std::is_lvalue_reference_v<Json> &&
+                                          !has_Mybase_construct_from_json_v<
+                                              Mybase, value_type, const Json &> &&
+                                          std::is_constructible_v<value_type, Json &&>)>
+    constexpr static value_type construct(Json &&j) {
+        return value_type(std::move(j));
+    }
+
+    template <
+        typename Json,
+        WJR_REQUIRES(!std::is_lvalue_reference_v<Json> &&
+                     !has_Mybase_assign_from_json_v<Mybase, value_type, Json &&> &&
+                     !std::is_assignable_v<value_type, value_type &&> &&
+                     (has_Mybase_assign_from_json_v<Mybase, value_type, const Json &> ||
+                      std::is_assignable_v<value_type, const Json &>))>
+    constexpr static void assign(Json &&j, value_type &val) {
+        assign<const Json>(j, val);
+    }
+
+    template <typename Json,
+              WJR_REQUIRES(
+                  !std::is_lvalue_reference_v<Json> &&
+                  !has_Mybase_construct_from_json_v<Mybase, value_type, Json &&> &&
+                  !std::is_constructible_v<value_type, value_type &&> &&
+                  (has_Mybase_construct_from_json_v<Mybase, value_type, const Json &> ||
+                   std::is_constructible_v<value_type, const Json &>))>
+    constexpr static value_type construct(Json &&j) {
+        return construct<const Json>(j);
     }
 };
 
+template <typename T, typename Enable = void>
+struct json_serializer_impl {
+    using value_type = char;
+};
+
 template <typename T>
-struct json_serializer {};
+struct json_serializer : json_serializer_auto_completion<json_serializer_impl<T>> {};
+
+WJR_REGISTER_HAS_TYPE(assign_from_json,
+                      json_serializer<T>::assign(std::declval<Json>(),
+                                                 std::declval<T &>()),
+                      T, Json);
+WJR_REGISTER_HAS_TYPE(construct_from_json,
+                      json_serializer<T>::construct(std::declval<Json>()), T, Json);
 
 /**
  * @details At present, it's a simple but flexible implementation solution. This is not as
@@ -319,6 +405,26 @@ public:
         return get<object_t>()[std::move(key)];
     }
 
+    template <typename T, WJR_REQUIRES(has_construct_from_json_v<T, const basic_json &>)>
+    explicit operator T() const & {
+        return json_serializer<T>::construct(*this);
+    }
+
+    template <typename T, WJR_REQUIRES(has_construct_from_json_v<T, basic_json &&>)>
+    explicit operator T() && {
+        return json_serializer<T>::construct(std::move(*this));
+    }
+
+    template <typename T, WJR_REQUIRES(has_assign_from_json_v<T, const basic_json &>)>
+    void get_to(T &val) const & {
+        return json_serializer<T>::assign(*this, val);
+    }
+
+    template <typename T, WJR_REQUIRES(has_assign_from_json_v<T, basic_json &&>)>
+    void get_to(T &val) && {
+        return json_serializer<T>::assign(std::move(*this), val);
+    }
+
 private:
     void __destroy_impl() {
         switch (type()) {
@@ -415,18 +521,83 @@ private:
     basic_value m_value;
 };
 
-template <typename Char, typename Traits, typename Allocator>
-struct json_serializer<std::basic_string<Char, Traits, Allocator>> {
-    using value_type = std::basic_string<Char, Traits, Allocator>;
+template <>
+struct json_serializer_impl<std::nullptr_t, void> {
+    using value_type = std::nullptr_t;
 
     template <typename Json>
-    constexpr static void assign(value_type &str, const Json &j) {
-        str = j.template get<string_t>();
+    constexpr static void assign(const Json &j, value_type &val) {
+        if (WJR_UNLIKELY(!j.is_null())) {
+            WJR_THROW(bad_json_access(error_code::TAPE_ERROR));
+        }
+
+        val = nullptr;
+    }
+};
+
+template <>
+struct json_serializer_impl<bool, void> {
+
+    using value_type = bool;
+
+    template <typename Json>
+    constexpr static void assign(const Json &j, value_type &val) {
+        val = j.template get<bool>();
+    }
+};
+
+template <typename arithmetic>
+struct __json_serializer_arithmetic {
+    using value_type = arithmetic;
+
+    template <typename Json>
+    constexpr static void assign(const Json &j, value_type &val) {
+        switch (j.type()) {
+        case value_t::number_unsigned: {
+            val = static_cast<arithmetic>(j.template get_unsafe<number_unsigned_t>());
+            break;
+        }
+        case value_t::number_signed: {
+            val = static_cast<arithmetic>(j.template get_unsafe<number_signed_t>());
+            break;
+        }
+        case value_t::number_float: {
+            val = static_cast<arithmetic>(j.template get_unsafe<number_float_t>());
+            break;
+        }
+        default: {
+            WJR_THROW(bad_expected_access(error_code::TAPE_ERROR));
+            WJR_UNREACHABLE();
+            break;
+        }
+        }
     }
 
     template <typename Json>
-    constexpr static void assign(value_type &str, Json &&j) {
-        str = std::move(j.template get<string_t>());
+    constexpr static value_type construct(const Json &j) {
+        value_type val;
+        assign(j, val);
+        return val;
+    }
+};
+
+template <typename arithmetic>
+struct json_serializer_impl<arithmetic,
+                            std::enable_if_t<std::is_arithmetic_v<arithmetic>>>
+    : __json_serializer_arithmetic<arithmetic> {};
+
+template <typename Char, typename Traits, typename Alloc>
+struct json_serializer_impl<std::basic_string<Char, Traits, Alloc>, void> {
+    using value_type = std::basic_string<Char, Traits, Alloc>;
+
+    template <typename Json>
+    constexpr static void assign(value_type &val, const Json &j) {
+        val = j.template get<string_t>();
+    }
+
+    template <typename Json>
+    constexpr static void assign(value_type &val, Json &&j) {
+        val = std::move(j.template get<string_t>());
     }
 
     template <typename Json>
@@ -435,9 +606,168 @@ struct json_serializer<std::basic_string<Char, Traits, Allocator>> {
     }
 
     template <typename Json>
-    constexpr static value_type constrcut(Json &&j) {
+    constexpr static value_type construct(Json &&j) {
         return value_type(std::move(j.template get<string_t>()));
     }
+};
+
+template <typename T>
+struct __json_serializer_array {
+    using value_type = T;
+
+    template <typename Json,
+              WJR_REQUIRES(std::is_same_v<typename Json::array_type, value_type>)>
+    constexpr static void assign(value_type &val, const Json &j) {
+        val = j.template get<array_t>();
+    }
+
+    template <typename Json,
+              WJR_REQUIRES(!std::is_same_v<typename Json::array_type, value_type>)>
+    constexpr static void assign(value_type &val, const Json &j) {
+        auto &arr = j.template get<array_t>();
+        val.assign(arr.begin(), arr.end());
+    }
+
+    template <typename Json,
+              WJR_REQUIRES(std::is_same_v<typename Json::array_type, value_type>)>
+    constexpr static void assign(value_type &val, Json &&j) {
+        val = std::move(j.template get<array_t>());
+    }
+
+    template <typename Json,
+              WJR_REQUIRES(!std::is_same_v<typename Json::array_type, value_type>)>
+    constexpr static void assign(value_type &val, Json &&j) {
+        auto &arr = j.template get<array_t>();
+        val.assign(std::make_move_iterator(arr.begin()),
+                   std::make_move_iterator(arr.end()));
+    }
+
+    template <typename Json,
+              WJR_REQUIRES(std::is_same_v<typename Json::array_type, value_type>)>
+    constexpr static value_type construct(const Json &j) {
+        return j.template get<array_t>();
+    }
+
+    template <typename Json,
+              WJR_REQUIRES(!std::is_same_v<typename Json::array_type, value_type>)>
+    constexpr static value_type construct(const Json &j) {
+        auto &arr = j.template get<array_t>();
+        return value_type(arr.begin(), arr.end());
+    }
+
+    template <typename Json,
+              WJR_REQUIRES(std::is_same_v<typename Json::array_type, value_type>)>
+    constexpr static value_type construct(Json &&j) {
+        return std::move(j.template get<array_t>());
+    }
+
+    template <typename Json,
+              WJR_REQUIRES(!std::is_same_v<typename Json::array_type, value_type>)>
+    constexpr static value_type construct(Json &&j) {
+        auto &arr = j.template get<array_t>();
+        return value_type(std::make_move_iterator(arr.begin()),
+                          std::make_move_iterator(arr.end()));
+    }
+};
+
+template <typename T, typename Alloc>
+struct json_serializer_impl<std::vector<T, Alloc>, void>
+    : __json_serializer_array<std::vector<T, Alloc>> {
+    using value_type = std::vector<T, Alloc>;
+};
+
+template <typename Traits>
+struct json_serializer_impl<basic_vector<Traits>, void>
+    : __json_serializer_array<basic_vector<Traits>> {
+    using value_type = basic_vector<Traits>;
+};
+
+template <typename T>
+struct __json_serializer_object {
+    using value_type = T;
+
+    template <typename Json,
+              WJR_REQUIRES(std::is_same_v<typename Json::array_type, value_type>)>
+    constexpr static void assign(value_type &val, const Json &j) {
+        val = j.template get<object_t>();
+    }
+
+    template <typename Json,
+              WJR_REQUIRES(!std::is_same_v<typename Json::array_type, value_type>)>
+    constexpr static void assign(value_type &val, const Json &j) {
+        auto &obj = j.template get<object_t>();
+        val.clear();
+        for (auto &elem : obj) {
+            val.emplace(elem);
+        }
+    }
+
+    template <typename Json,
+              WJR_REQUIRES(std::is_same_v<typename Json::array_type, value_type>)>
+    constexpr static void assign(value_type &val, Json &&j) {
+        val = std::move(j.template get<object_t>());
+    }
+
+    template <typename Json,
+              WJR_REQUIRES(!std::is_same_v<typename Json::array_type, value_type>)>
+    constexpr static void assign(value_type &val, Json &&j) {
+        auto &obj = j.template get<object_t>();
+        val.clear();
+        for (auto &elem : obj) {
+            val.emplace(std::move(elem));
+        }
+    }
+
+    template <typename Json,
+              WJR_REQUIRES(std::is_same_v<typename Json::array_type, value_type>)>
+    constexpr static value_type construct(const Json &j) {
+        return j.template get<object_t>();
+    }
+
+    template <typename Json,
+              WJR_REQUIRES(!std::is_same_v<typename Json::array_type, value_type>)>
+    constexpr static value_type construct(const Json &j) {
+        auto &obj = j.template get<object_t>();
+        return value_type(obj.begin(), obj.end());
+    }
+
+    template <typename Json,
+              WJR_REQUIRES(std::is_same_v<typename Json::array_type, value_type>)>
+    constexpr static value_type construct(Json &&j) {
+        return std::move(j.template get<object_t>());
+    }
+
+    template <typename Json,
+              WJR_REQUIRES(!std::is_same_v<typename Json::array_type, value_type>)>
+    constexpr static value_type construct(Json &&j) {
+        auto &obj = j.template get<object_t>();
+        return value_type(std::make_move_iterator(obj.begin()),
+                          std::make_move_iterator(obj.end()));
+    }
+};
+
+template <typename Key, typename Value, typename Pr, typename Alloc>
+struct json_serializer_impl<std::map<Key, Value, Pr, Alloc>, void>
+    : __json_serializer_object<std::map<Key, Value, Pr, Alloc>> {
+    using value_type = std::map<Key, Value, Pr, Alloc>;
+};
+
+template <typename Key, typename Value, typename Pr, typename Alloc>
+struct json_serializer_impl<std::multimap<Key, Value, Pr, Alloc>, void>
+    : __json_serializer_object<std::multimap<Key, Value, Pr, Alloc>> {
+    using value_type = std::multimap<Key, Value, Pr, Alloc>;
+};
+
+template <typename Key, typename Value, typename Hash, typename Eq, typename Alloc>
+struct json_serializer_impl<std::unordered_map<Key, Value, Hash, Eq, Alloc>, void>
+    : __json_serializer_array<std::unordered_map<Key, Value, Hash, Eq, Alloc>> {
+    using value_type = std::unordered_map<Key, Value, Hash, Eq, Alloc>;
+};
+
+template <typename Key, typename Value, typename Hash, typename Eq, typename Alloc>
+struct json_serializer_impl<std::unordered_multimap<Key, Value, Hash, Eq, Alloc>, void>
+    : __json_serializer_array<std::unordered_multimap<Key, Value, Hash, Eq, Alloc>> {
+    using value_type = std::unordered_multimap<Key, Value, Hash, Eq, Alloc>;
 };
 
 namespace detail {
@@ -684,7 +1014,7 @@ protected:
     }
 
 private:
-    static_vector<json_type *, 256> stk;
+    inplace_vector<json_type *, 256> stk;
     json_type *current;
     json_type *element;
 };

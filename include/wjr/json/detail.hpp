@@ -58,15 +58,29 @@ enum class value_t : uint8_t {
     array,
 };
 
-using number_unsigned_t = integral_constant<value_t, value_t::number_unsigned>;
-using number_signed_t = integral_constant<value_t, value_t::number_signed>;
-using number_float_t = integral_constant<value_t, value_t::number_float>;
+/// @brief used for identify null type (std::nullptr_t)
 using null_t = integral_constant<value_t, value_t::null>;
+/// @brief used for identify boolean type (bool)
 using boolean_t = integral_constant<value_t, value_t::boolean>;
+/// @brief used for identify unsigned integral type (uint64_t)
+using number_unsigned_t = integral_constant<value_t, value_t::number_unsigned>;
+/// @brief used for identify signed integral type (int64_t)
+using number_signed_t = integral_constant<value_t, value_t::number_signed>;
+/// @brief used for identify floating point type (double)
+using number_float_t = integral_constant<value_t, value_t::number_float>;
+/// @brief used for identify string type (According to the parameters of basic_json)
 using string_t = integral_constant<value_t, value_t::string>;
+/// @brief used for identify object type (According to the parameters of basic_json)
 using object_t = integral_constant<value_t, value_t::object>;
+/// @brief used for identify array type (According to the parameters of basic_json)
 using array_t = integral_constant<value_t, value_t::array>;
 
+/**
+ * @brief Generic classes that require self-management to avoid code bloating caused by
+ * templates. For example, when returning a number, it is not related to string, object,
+ * or array type.
+ *
+ */
 struct basic_value {
     basic_value() = default;
     basic_value(const basic_value &) = default;
