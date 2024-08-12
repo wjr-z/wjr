@@ -226,7 +226,7 @@ struct get_relocate_mode<default_vector_storage<T, Alloc>> {
 };
 
 template <typename T, size_t Capacity, typename Alloc>
-class static_vector_storage {
+class inplace_vector_storage {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
@@ -255,27 +255,27 @@ private:
     using data_type = Data;
 
 public:
-    static_vector_storage() = default;
+    inplace_vector_storage() = default;
 
-    static_vector_storage(const static_vector_storage &) = delete;
-    static_vector_storage(static_vector_storage &&) = delete;
-    static_vector_storage &operator=(const static_vector_storage &) = delete;
-    static_vector_storage &operator=(static_vector_storage &&) = delete;
+    inplace_vector_storage(const inplace_vector_storage &) = delete;
+    inplace_vector_storage(inplace_vector_storage &&) = delete;
+    inplace_vector_storage &operator=(const inplace_vector_storage &) = delete;
+    inplace_vector_storage &operator=(inplace_vector_storage &&) = delete;
 
-    ~static_vector_storage() = default;
+    ~inplace_vector_storage() = default;
 
     WJR_CONSTEXPR20 void deallocate(_Alty &al) noexcept { /* do nothing */
     }
 
     WJR_CONSTEXPR20 static void
-    uninitialized_construct(static_vector_storage &other, size_type size,
+    uninitialized_construct(inplace_vector_storage &other, size_type size,
                             WJR_MAYBE_UNUSED size_type capacity, _Alty &) noexcept {
         WJR_ASSERT_ASSUME(capacity <= Capacity,
                           "capacity must be less than or equal to Capacity");
         other.m_storage.m_size = size;
     }
 
-    WJR_CONSTEXPR20 void take_storage(static_vector_storage &other, _Alty &al) {
+    WJR_CONSTEXPR20 void take_storage(inplace_vector_storage &other, _Alty &al) {
         auto &other_storage = other.m_storage;
         const auto lhs = data();
         const auto rhs = other.data();
@@ -294,7 +294,7 @@ public:
         other_storage.m_size = 0;
     }
 
-    WJR_CONSTEXPR20 void swap_storage(static_vector_storage &other, _Alty &al) {
+    WJR_CONSTEXPR20 void swap_storage(inplace_vector_storage &other, _Alty &al) {
         auto &other_storage = other.m_storage;
         auto lhs = data();
         auto lsize = size();
@@ -364,7 +364,7 @@ private:
 };
 
 template <typename T, size_t Capacity, typename Alloc>
-struct get_relocate_mode<static_vector_storage<T, Capacity, Alloc>> {
+struct get_relocate_mode<inplace_vector_storage<T, Capacity, Alloc>> {
     static constexpr relocate_t value = relocate_t::trivial;
 };
 
@@ -1898,7 +1898,7 @@ using vector = basic_vector<default_vector_storage<T, Alloc>>;
  *
  */
 template <typename T, size_t Capacity, typename Alloc = memory_pool<T>>
-using static_vector = basic_vector<static_vector_storage<T, Capacity, Alloc>>;
+using inplace_vector = basic_vector<inplace_vector_storage<T, Capacity, Alloc>>;
 
 /**
  * @brief A vector with fixed capacity by construction.
