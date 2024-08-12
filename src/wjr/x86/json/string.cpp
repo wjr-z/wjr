@@ -245,7 +245,7 @@ SMALL:
 
     do {
         const int pos = ctz(B);
-        copy_small(dst, first + last_pos, pos - last_pos);
+        dst = copy_small(dst, first + last_pos, pos - last_pos);
 
         if (WJR_UNLIKELY(pos == n - 1)) {
             return unexpected(error_code::STRING_ERROR);
