@@ -29,7 +29,7 @@ constexpr OutputIt constexpr_merge(InputIt1 first1, InputIt1 last1, InputIt2 fir
 
 template <typename Iter, typename Pred>
 constexpr Iter constexpr_inplace_merge(Iter first, Iter mid, Iter last, Pred pred) {
-    return std::inplace_merge(first1, last1, first2, last2, dst, pred);
+    return std::inplace_merge(first, mid, last, pred);
 }
 
 template <typename Iter, typename Pred>

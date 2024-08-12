@@ -37,6 +37,18 @@ public:
     using value_type = json_type;
     using reference = value_type &;
     using const_reference = const value_type &;
+
+    using size_type = uint32_t;
+
+    static_assert(has_compare_is_transparent_v<std::less<>>, "");
+
+    template <typename Key>
+    struct is_other_key
+        : std::conjunction<
+              std::negation<std::is_convertible<Key, size_type>>,
+              std::negation<std::is_same<string_type, remove_cvref_t<Key>>>,
+              has_compare<typename object_type::key_compare, string_type, Key>,
+              has_compare<typename object_type::key_compare, Key, string_type>> {};
 };
 
 using default_json_traits = basic_json_traits<std::basic_string, std::map, vector>;
@@ -57,8 +69,8 @@ struct __json_get_impl;
     struct __json_get_impl<T##_t> {                                                      \
         template <typename Json>                                                         \
         WJR_PURE WJR_INTRINSIC_CONSTEXPR static auto get(Json &&j) noexcept              \
-            -> decltype(std::declval<Json &&>().get_##T##_unsafe()) {                    \
-            return std::forward<Json>(j).get_##T##_unsafe();                             \
+            -> decltype(std::declval<Json &&>().__get_##T()) {                           \
+            return std::forward<Json>(j).__get_##T();                                    \
         }                                                                                \
     }
 
@@ -89,17 +101,47 @@ private:
     error_code m_err;
 };
 
+template <typename Mybase>
+struct json_serializer_base {
+    using value_type = typename Mybase::type;
+
+    template <typename Json>
+    constexpr static value_type construct(const Json &j) {
+        value_type obj;
+        Mybase::assign(obj, j);
+        return obj;
+    }
+
+    template <typename Json>
+    constexpr static value_type constrcut(Json &&j) {
+        value_type obj;
+        Mybase::assign(obj, std::move(j));
+        return obj;
+    }
+};
+
+template <typename T>
+struct json_serializer {};
+
 /**
  * @details At present, it's a simple but flexible implementation solution. This is not as
  * good as a only iteration in terms of performance. \n
- * Performance (on my local x64 machine) : \n
+ * Performance (use std::map and wjr::vector as container on my local x64 machine) : \n
  * twitter.json : 700~720 MB/s \n
  * canada.json : 660~680 MB/s
+ * @todo 1. For most strings, only need to check first character to compare.
+ * 2. Maybe use hash like std::unordered_map, but for long strings, compare even faster
+ * than hash.
+ * 3. Use B plus tree ?
+ * 4. In place construct without using low performance basic_json.
  *
  */
 template <typename Traits>
 class basic_json {
     friend class detail::basic_json_parser<basic_json>;
+
+    template <typename U>
+    friend struct __json_get_impl;
 
 public:
     using traits_type = Traits;
@@ -117,7 +159,7 @@ public:
     using reference = typename traits_type::reference;
     using const_reference = typename traits_type::const_reference;
 
-    using size_type = uint32_t;
+    using size_type = typename traits_type::size_type;
 
     basic_json() = default;
     basic_json(const basic_json &other) noexcept {
@@ -229,10 +271,53 @@ public:
 
     WJR_CONST static size_type max_depth_size() noexcept { return 256; }
 
-    reference at(size_type idx) noexcept { return get<array_t>().at(idx); }
-    const_reference at(size_type idx) const noexcept { return get<array_t>().at(idx); }
-
     static result<basic_json> parse(const reader &rd) noexcept;
+
+    reference at(size_type idx) { return get<array_t>().at(idx); }
+    const_reference at(size_type idx) const { return get<array_t>().at(idx); }
+
+    reference at(const typename object_type::key_type &key) {
+        return get<object_t>().at(key);
+    }
+
+    const_reference at(const typename object_type::key_type &key) const {
+        return get<object_t>().at(key);
+    }
+
+    template <typename Key, WJR_REQUIRES(traits_type::template is_other_key<Key>::value)>
+    reference at(const Key &key) {
+        auto &obj = get<object_t>();
+        const auto iter = obj.find(key);
+
+        if (iter == obj.end()) {
+            WJR_THROW(std::out_of_range("basic_json::at"));
+        }
+
+        return iter->second;
+    }
+
+    template <typename Key, WJR_REQUIRES(traits_type::template is_other_key<Key>::value)>
+    const_reference at(const Key &key) const {
+        const auto &obj = get<object_t>();
+        const auto iter = obj.find(key);
+
+        if (iter == obj.end()) {
+            WJR_THROW(std::out_of_range("basic_json::at"));
+        }
+
+        return iter->second;
+    }
+
+    reference operator[](size_type idx) { return get<array_t>()[idx]; }
+    const_reference operator[](size_type idx) const { return get<array_t>()[idx]; }
+
+    reference operator[](const typename object_type::key_type &key) {
+        return get<object_t>()[key];
+    }
+
+    reference operator[](typename object_type::key_type &&key) {
+        return get<object_t>()[std::move(key)];
+    }
 
 private:
     void __destroy_impl() {
@@ -328,6 +413,31 @@ private:
     }
 
     basic_value m_value;
+};
+
+template <typename Char, typename Traits, typename Allocator>
+struct json_serializer<std::basic_string<Char, Traits, Allocator>> {
+    using value_type = std::basic_string<Char, Traits, Allocator>;
+
+    template <typename Json>
+    constexpr static void assign(value_type &str, const Json &j) {
+        str = j.template get<string_t>();
+    }
+
+    template <typename Json>
+    constexpr static void assign(value_type &str, Json &&j) {
+        str = std::move(j.template get<string_t>());
+    }
+
+    template <typename Json>
+    constexpr static value_type construct(const Json &j) {
+        return value_type(j.template get<string_t>());
+    }
+
+    template <typename Json>
+    constexpr static value_type constrcut(Json &&j) {
+        return value_type(std::move(j.template get<string_t>()));
+    }
 };
 
 namespace detail {

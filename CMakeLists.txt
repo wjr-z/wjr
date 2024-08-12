@@ -103,7 +103,7 @@ if(MSVC)
       list(APPEND WJR_CXX_FLAGS /D_HAS_EXCEPTIONS:0)
    endif()
 
-   list(APPEND WJR_CXX_FLAGS /Wall /Zc:preprocessor /Zc:lambda /EHsc /wd5246 /wd4514 /wd4127)
+   list(APPEND WJR_CXX_FLAGS /W3 /Zc:preprocessor /Zc:lambda /EHsc)
 
    list(APPEND WJR_CXX_FLAGS_DEBUG /DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_DEBUG})
    list(APPEND WJR_CXX_FLAGS_RELEASE /DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_RELEASE})
