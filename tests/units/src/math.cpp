@@ -17,17 +17,15 @@ TEST(math, popcount_ctz_clz) {
 
 #define WJR_TEST_POPCOUNT_I(type, x, ans)                                                \
     WJR_ASSERT(fallback_popcount<type>(x) == ans)                                        \
-    WJR_PP_BOOL_IF(                                                                      \
-        WJR_HAS_BUILTIN(POPCOUNT), ;                                                     \
-        do { WJR_ASSERT((builtin_popcount<type>(x) == ans)); } while (0), );
+    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(POPCOUNT), ;                                       \
+                      WJR_ASSERT((builtin_popcount<type>(x) == ans)), )
 #define WJR_TEST_CTZ_I(type, x, ans)                                                     \
     type n = x;                                                                          \
     auto ctz_ans = popcount<type>((type)(lowbit(n) - 1));                                \
     WJR_ASSERT((x == 0 ? std::numeric_limits<type>::digits : fallback_ctz<type>(x)) ==   \
                ctz_ans)                                                                  \
-    WJR_PP_BOOL_IF_NE(                                                                   \
-        WJR_HAS_BUILTIN(CTZ), ;                                                          \
-        do { WJR_ASSERT((countr_zero<type>(x) == ctz_ans)); } while (0), );
+    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(CTZ), ;                                            \
+                      WJR_ASSERT((countr_zero<type>(x) == ctz_ans)), )
 #define WJR_TEST_CLZ_I(type, x, ans)                                                     \
     auto clz_ans = []() -> int {                                                         \
         type n = x;                                                                      \
@@ -52,14 +50,19 @@ TEST(math, popcount_ctz_clz) {
     }();                                                                                 \
     WJR_ASSERT((x == 0 ? std::numeric_limits<type>::digits : fallback_clz<type>(x)) ==   \
                clz_ans)                                                                  \
-    WJR_PP_BOOL_IF_NE(                                                                   \
-        WJR_HAS_BUILTIN(CTZ), ;                                                          \
-        do { WJR_ASSERT((countl_zero<type>(x) == clz_ans)); } while (0), );
+    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(CTZ), ;                                            \
+                      WJR_ASSERT((countl_zero<type>(x) == clz_ans)), )
 
 #define WJR_TEST_PTZ_I_CALLER(args)                                                      \
     do {                                                                                 \
-        WJR_TEST_POPCOUNT_I args WJR_TEST_CTZ_I args WJR_TEST_CLZ_I args                 \
-    } while (0);
+        WJR_TEST_POPCOUNT_I args;                                                        \
+    } while (0);                                                                         \
+    do {                                                                                 \
+        WJR_TEST_CTZ_I args;                                                             \
+    } while (0);                                                                         \
+    do {                                                                                 \
+        WJR_TEST_CLZ_I args;                                                             \
+    } while (0)
 
     WJR_TEST_PTZ_I_CALLER((uint8_t, 0x00, 0));
     WJR_TEST_PTZ_I_CALLER((uint8_t, 0x01, 1));
@@ -225,7 +228,7 @@ TEST(math, addc_1) {
                 x = 1;
             }
 
-            for (auto p : {&in, &tmp}) {
+            for (auto arr : {&in, &tmp}) {
                 for (uint64_t cf : {0, 1}) {
                     for (size_t k : {0, 1, 2, -1}) {
                         copy = in;
@@ -242,7 +245,7 @@ TEST(math, addc_1) {
                             in[p] = -1;
                         }
 
-                        auto &out = *p;
+                        auto &out = *arr;
 
                         uint64_t c_out = addc_1(out.data(), in.data(), n, add, cf);
 
@@ -452,7 +455,7 @@ TEST(math, subc_1) {
                 x = 4;
             }
 
-            for (auto p : {&in, &tmp}) {
+            for (auto arr : {&in, &tmp}) {
                 for (uint64_t cf : {0, 1}) {
                     for (size_t k : {0, 1, 2, -1}) {
                         copy = in;
@@ -469,7 +472,7 @@ TEST(math, subc_1) {
                             in[p] = 0;
                         }
 
-                        auto &out = *p;
+                        auto &out = *arr;
 
                         uint64_t c_out = subc_1(out.data(), in.data(), n, sub, cf);
 
@@ -973,7 +976,7 @@ TEST(math, compare_n) {
             WJR_ASSERT(f < 0);
 
             if (n != m + 1) {
-                for (int j = m + 1; j < n; ++j) {
+                for (size_t j = m + 1; j < n; ++j) {
                     a[j] = mt_rand();
                 }
                 f = compare_n(a.data(), b.data(), n);
@@ -990,7 +993,7 @@ TEST(math, compare_n) {
             WJR_ASSERT(f > 0);
 
             if (n != m + 1) {
-                for (int j = m + 1; j < n; ++j) {
+                for (size_t j = m + 1; j < n; ++j) {
                     a[j] = mt_rand();
                 }
                 f = compare_n(a.data(), b.data(), n);
@@ -1027,7 +1030,7 @@ TEST(math, reverse_compare_n) {
             WJR_ASSERT(f < 0);
 
             if (n != m + 1) {
-                for (int j = 0; j < n - m - 1; ++j) {
+                for (size_t j = 0; j < n - m - 1; ++j) {
                     a[j] = mt_rand();
                 }
                 f = reverse_compare_n(a.data(), b.data(), n);
@@ -1044,7 +1047,7 @@ TEST(math, reverse_compare_n) {
             WJR_ASSERT(f > 0);
 
             if (n != m + 1) {
-                for (int j = 0; j < n - m - 1; ++j) {
+                for (size_t j = 0; j < n - m - 1; ++j) {
                     a[j] = mt_rand();
                 }
                 f = reverse_compare_n(a.data(), b.data(), n);

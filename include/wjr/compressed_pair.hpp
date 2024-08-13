@@ -266,7 +266,7 @@ public:
     template <typename Myself = compressed_pair, typename _T = T,
               WJR_REQUIRES(std::conjunction_v<is_swappable<_T>, is_swappable<U>>)>
     constexpr void swap(type_identity_t<compressed_pair &> other) noexcept(
-        std::conjunction_v<is_nothrow_swappable<T>, is_nothrow_swappable<U>>) {
+        std::conjunction_v<std::is_nothrow_swappable<T>, std::is_nothrow_swappable<U>>) {
         std::swap(first(), other.first());
         std::swap(second(), other.second());
     }

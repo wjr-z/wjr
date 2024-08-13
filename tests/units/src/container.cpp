@@ -16,13 +16,13 @@ const static std::string __string2 = std::string("abc");
 
 using namespace wjr;
 
-static_assert(sizeof(sso_vector<char, 16>) <= 32, "");
-
 static_assert(is_contiguous_iterator_v<typename vector<int>::iterator>, "");
 static_assert(is_contiguous_iterator_v<typename vector<int>::const_iterator>, "");
 
 static_assert(is_contiguous_iterator_v<typename vector<std::string>::iterator>, "");
 static_assert(is_contiguous_iterator_v<typename vector<std::string>::const_iterator>, "");
+
+static_assert(is_trivially_allocator_v<memory_pool<int>>, "");
 
 template <typename Iter, typename Func>
 void for_each_n(Iter first, size_t n, Func fn) {
@@ -734,8 +734,8 @@ TEST(vector, swap) {
 
     for (int n = 0; n < 16; ++n)
         for (int m = 0; m < 16; ++m) {
-            static_vector<int, 16> v1(n, 1);
-            static_vector<int, 16> v2(m, 2);
+            inplace_vector<int, 16> v1(n, 1);
+            inplace_vector<int, 16> v2(m, 2);
             v1.swap(v2);
             EXPECT_EQ(v1.size(), m);
             EXPECT_EQ(v2.size(), n);
@@ -745,30 +745,8 @@ TEST(vector, swap) {
 
     for (int n = 0; n < 32; ++n)
         for (int m = 0; m < 32; ++m) {
-            static_vector<int, 32> v1(n, 1);
-            static_vector<int, 32> v2(m, 2);
-            v1.swap(v2);
-            EXPECT_EQ(v1.size(), m);
-            EXPECT_EQ(v2.size(), n);
-            for_each_n(v1.begin(), m, [](auto &x) { EXPECT_EQ(x, 2); });
-            for_each_n(v2.begin(), n, [](auto &x) { EXPECT_EQ(x, 1); });
-        }
-
-    for (int n = 0; n < 32; ++n)
-        for (int m = 0; m < 32; ++m) {
-            sso_vector<int, 16> v1(n, 1);
-            sso_vector<int, 16> v2(m, 2);
-            v1.swap(v2);
-            EXPECT_EQ(v1.size(), m);
-            EXPECT_EQ(v2.size(), n);
-            for_each_n(v1.begin(), m, [&](auto &x) { EXPECT_EQ(x, 2); });
-            for_each_n(v2.begin(), n, [](auto &x) { EXPECT_EQ(x, 1); });
-        }
-
-    for (int n = 0; n < 48; ++n)
-        for (int m = 0; m < 48; ++m) {
-            sso_vector<int, 32> v1(n, 1);
-            sso_vector<int, 32> v2(m, 2);
+            inplace_vector<int, 32> v1(n, 1);
+            inplace_vector<int, 32> v2(m, 2);
             v1.swap(v2);
             EXPECT_EQ(v1.size(), m);
             EXPECT_EQ(v2.size(), n);

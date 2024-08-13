@@ -279,28 +279,6 @@ struct is_swappable
 template <typename T>
 inline constexpr bool is_swappable_v = is_swappable<T>::value;
 
-template <typename T, typename U>
-struct __is_nothrow_swappable_with
-    : std::bool_constant<noexcept(std::swap(std::declval<T &>(), std::declval<U &>())) &&
-                         noexcept(std::swap(std::declval<U &>(), std::declval<T &>()))> {
-};
-
-template <typename T, typename U>
-struct is_nothrow_swappable_with
-    : std::conjunction<is_swappable_with<T, U>, __is_nothrow_swappable_with<T, U>> {};
-
-template <typename T, typename U>
-inline constexpr bool is_nothrow_swappable_with_v =
-    is_nothrow_swappable_with<T, U>::value;
-
-template <typename T>
-struct is_nothrow_swappable : is_nothrow_swappable_with<std::add_lvalue_reference_t<T>,
-                                                        std::add_lvalue_reference_t<T>> {
-};
-
-template <typename T>
-inline constexpr bool is_nothrow_swappable_v = is_nothrow_swappable<T>::value;
-
 /// @private
 template <typename T>
 struct __unref_wrapper_helper {

@@ -48,14 +48,14 @@ template <typename T>
 using result = expected<T, result_error>;
 
 enum class value_t : uint8_t {
-    null,
-    boolean,
-    number_unsigned,
-    number_signed,
-    number_float,
-    string,
-    object,
-    array,
+    null = 0,
+    boolean = 1,
+    number_unsigned = 2,
+    number_signed = 3,
+    number_float = 4,
+    string = 5,
+    object = 6,
+    array = 7,
 };
 
 /// @brief used for identify null type (std::nullptr_t)
