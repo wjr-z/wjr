@@ -72,6 +72,8 @@ private:
     uint32_t idx = 0;
 };
 
+extern char *minify(char *dst, const char *first, const char *last) noexcept;
+
 } // namespace wjr::json
 
 #endif // WJR_JSON_LEXER_IMPL_HPP__

@@ -1165,7 +1165,7 @@ private:
             auto val_first = val.begin();
 
             if (n > val.size()) {
-                auto val_last = val.end();
+                const auto val_last = val.end();
                 for (; val_first != val_last; ++first, ++val_first) {
                     first->get_to(*val_first);
                 }
