@@ -547,7 +547,7 @@ namespace charconv_detail {
 
 #define WJR_INC(T) (((sizeof(#T) - 1ull) << 32) - T)
 
-static constexpr uint64_t __count_digits10_u32_table[] = {
+inline constexpr uint64_t __count_digits10_u32_table[] = {
     WJR_INC(0),          WJR_INC(0),          WJR_INC(0),          // 8
     WJR_INC(10),         WJR_INC(10),         WJR_INC(10),         // 64
     WJR_INC(100),        WJR_INC(100),        WJR_INC(100),        // 512
@@ -567,13 +567,13 @@ static constexpr uint64_t __count_digits10_u32_table[] = {
     factor * 10, (factor)*100, (factor)*1000, (factor)*10000, (factor)*100000,           \
         (factor)*1000000, (factor)*10000000, (factor)*100000000, (factor)*1000000000
 
-static constexpr uint8_t __count_digits10_u64_bsr2log10[] = {
+inline constexpr uint8_t __count_digits10_u64_bsr2log10[] = {
     1,  1,  1,  2,  2,  2,  3,  3,  3,  4,  4,  4,  4,  5,  5,  5,
     6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9,  10, 10, 10,
     10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14, 15, 15,
     15, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 19, 20};
 
-static constexpr const uint64_t __count_digits10_u64_zero_or_powers_of_10[] = {
+inline constexpr uint64_t __count_digits10_u64_zero_or_powers_of_10[] = {
     0, 0, WJR_POWERS_OF_10(1U), WJR_POWERS_OF_10(1000000000ull), 10000000000000000000ull};
 
 #undef WJR_POWERS_OF_10

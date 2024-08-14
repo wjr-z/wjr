@@ -111,7 +111,7 @@ const static __m128i lo8_lookup =
 const static __m128i hi8_lookup =
     sse::set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8);
 
-void compress(char *dst, __m128i x, uint16_t mask) noexcept {
+WJR_INTRINSIC_INLINE void compress(char *dst, __m128i x, uint16_t mask) noexcept {
     const uint8_t mask0 = uint8_t(mask);
     const uint8_t mask1 = uint8_t(mask >> 8);
 
@@ -135,7 +135,7 @@ const static __m256i hi8_lookup =
     avx::set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0,
                   4, 0, 4, 0, 2, 17, 0, 8);
 
-void compress(char *dst, __m256i x, uint32_t mask) noexcept {
+WJR_INTRINSIC_INLINE void compress(char *dst, __m256i x, uint32_t mask) noexcept {
     const uint8_t mask0 = uint8_t(mask);
     const uint8_t mask1 = uint8_t(mask >> 8);
     const uint8_t mask2 = uint8_t(mask >> 16);
@@ -147,6 +147,7 @@ void compress(char *dst, __m256i x, uint32_t mask) noexcept {
         avx::add_epi8(shufmask, avx::set_epi64x(0x18181818'18181818, 0x10101010'10101010,
                                                 0x08080808'08080808, 0));
     const __m256i pruned = avx::shuffle_epi8(x, shufmask);
+
     const int pop0 = popcount_mul_2[mask0];
     const int pop2 = popcount_mul_2[mask2];
 
@@ -155,7 +156,7 @@ void compress(char *dst, __m256i x, uint32_t mask) noexcept {
     const __m256i almostthere = avx::shuffle_epi8(pruned, compactmask);
 
     sse::storeu(dst, avx::getlow(almostthere));
-    sse::storeu(dst + 16 - popcount<uint16_t>(mask & 0xFFFF), avx::getlow(almostthere));
+    sse::storeu(dst + 16 - popcount<uint16_t>(mask & 0xFFFF), avx::gethigh(almostthere));
 }
 
 #endif
@@ -361,6 +362,7 @@ char *minify(char *dst, const char *first, const char *last) noexcept {
     uint64_t prev_in_string = 0;
     uint64_t prev_is_escape = 0;
     simd_int stk[u8_loop];
+    char buf[64];
 
     do {
         if (const size_t diff = last - first; WJR_LIKELY(diff > 64)) {
@@ -375,7 +377,6 @@ char *minify(char *dst, const char *first, const char *last) noexcept {
                     stk[i] = simd::loadu(first + i * u8_width);
                 }
             } else {
-                char buf[64];
                 std::memset(buf, ' ', 64);
                 std::memcpy(buf, first, diff);
 
@@ -434,13 +435,25 @@ char *minify(char *dst, const char *first, const char *last) noexcept {
         prev_in_string = static_cast<uint64_t>(static_cast<int64_t>(R) >> 63);
         W &= ~(R | Q);
 
+        if (WJR_UNLIKELY(first == last)) {
+            auto buf_end = buf;
+            for (unsigned i = 0; i < u8_loop; ++i) {
+                const typename simd::mask_type mask =
+                    (W >> (i * u8_width)) & simd::mask();
+                compress(buf_end, stk[i], mask);
+                buf_end += u8_width - popcount(mask);
+            }
+
+            std::memcpy(dst, buf, buf_end - buf);
+            break;
+        }
+
         for (unsigned i = 0; i < u8_loop; ++i) {
             const typename simd::mask_type mask = (W >> (i * u8_width)) & simd::mask();
             compress(dst, stk[i], mask);
             dst += u8_width - popcount(mask);
         }
-
-    } while (WJR_LIKELY(first != last));
+    } while (true);
 
     return dst;
 }

@@ -18,7 +18,7 @@ struct __span_static_storage {
 
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(__span_static_storage);
 
-    __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) noexcept : ptr(p) {
+    constexpr __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) noexcept : ptr(p) {
         WJR_ASSERT_L2(s == size);
     }
 
@@ -34,7 +34,7 @@ struct __span_dynamic_storage {
 
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(__span_dynamic_storage);
 
-    __span_dynamic_storage(T *p, size_t s) noexcept : ptr(p), size(s) {}
+    constexpr __span_dynamic_storage(T *p, size_t s) noexcept : ptr(p), size(s) {}
 
     T *ptr = nullptr;
     size_t size = 0;
@@ -328,7 +328,7 @@ public:
     }
 
     WJR_PURE constexpr pointer data() const noexcept { return storage.ptr; }
-    
+
     WJR_PURE constexpr size_type size() const noexcept { return storage.size; }
 
     WJR_PURE constexpr size_type size_bytes() const noexcept {
