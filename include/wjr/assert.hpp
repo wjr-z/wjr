@@ -77,12 +77,12 @@ inline void __assert_handler(const char *expr, const char *file, const char *fun
             ::wjr::__assert_handler(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE,     \
                                     ##__VA_ARGS__);                                      \
         }                                                                                \
-    } while (0)
+    } while (false)
 
 // do nothing
 #define WJR_ASSERT_UNCHECK_I(expr, ...)                                                  \
     do {                                                                                 \
-    } while (0)
+    } while (false)
 
 // level = [0, 2]
 // The higher the level, the less likely it is to be detected

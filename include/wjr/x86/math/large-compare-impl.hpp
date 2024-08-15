@@ -37,7 +37,7 @@ WJR_PURE int large_builtin_compare_n(const T *src0, const T *src1, size_t n) noe
             }                                                                            \
             return src0[index] < src1[index] ? -1 : 1;                                   \
         }                                                                                \
-    } while (0)
+    } while (false)
 
 #if WJR_HAS_SIMD(AVX2)
 #define WJR_REGISTER_COMPARE_NOT_N_4(index)                                              \
@@ -51,7 +51,7 @@ WJR_PURE int large_builtin_compare_n(const T *src0, const T *src1, size_t n) noe
             const auto offset = ctz(mask) / 8;                                           \
             return src0[(index) + offset] < src1[(index) + offset] ? -1 : 1;             \
         }                                                                                \
-    } while (0)
+    } while (false)
 #else
 #define WJR_REGISTER_COMPARE_NOT_N_4(index)                                              \
     WJR_REGISTER_COMPARE_NOT_N_2(index);                                                 \
@@ -191,7 +191,7 @@ WJR_PURE int large_builtin_reverse_compare_n(const T *src0, const T *src1,
             }                                                                            \
             return src0[(index) + 1] < src1[(index) + 1] ? -1 : 1;                       \
         }                                                                                \
-    } while (0)
+    } while (false)
 
 #if WJR_HAS_SIMD(AVX2)
 #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_4(index)                                      \
@@ -205,7 +205,7 @@ WJR_PURE int large_builtin_reverse_compare_n(const T *src0, const T *src1,
             const auto offset = clz(mask) / 8;                                           \
             return src0[(index) + 3 - offset] < src1[(index) + 3 - offset] ? -1 : 1;     \
         }                                                                                \
-    } while (0)
+    } while (false)
 #else
 #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_4(index)                                      \
     WJR_REGISTER_REVERSE_COMPARE_NOT_N_2((index) + 2);                                   \

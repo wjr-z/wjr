@@ -71,6 +71,19 @@ public:
         return lhs += rhs;
     }
 
+    constexpr uint128_t &operator+=(uint64_t lo_) noexcept {
+        __fallback_add_128(low, high, low, high, lo_, 0);
+        return *this;
+    }
+
+    friend WJR_CONST constexpr uint128_t operator+(uint128_t lhs, uint64_t rhs) noexcept {
+        return lhs += rhs;
+    }
+
+    friend WJR_CONST constexpr uint128_t operator+(uint64_t lhs, uint128_t rhs) noexcept {
+        return rhs += lhs;
+    }
+
     WJR_CONSTEXPR20 uint128_t &operator-=(uint128_t other) noexcept {
         __sub_128(low, high, low, high, other.low, other.high);
         return *this;
@@ -78,6 +91,15 @@ public:
 
     friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator-(uint128_t lhs,
                                                          uint128_t rhs) noexcept {
+        return lhs -= rhs;
+    }
+
+    constexpr uint128_t &operator-=(uint64_t lo_) noexcept {
+        __fallback_sub_128(low, high, low, high, lo_, 0);
+        return *this;
+    }
+
+    friend WJR_CONST constexpr uint128_t operator-(uint128_t lhs, uint64_t rhs) noexcept {
         return lhs -= rhs;
     }
 

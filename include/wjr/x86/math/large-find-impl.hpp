@@ -33,7 +33,7 @@ WJR_PURE size_t large_builtin_find_not_n(const T *src0, const T *src1,
         if (WJR_UNLIKELY(mask != 0)) {                                                   \
             return (index) + (mask == 0xFF00);                                           \
         }                                                                                \
-    } while (0)
+    } while (false)
 
 #if WJR_HAS_SIMD(AVX2)
 #define WJR_REGISTER_FIND_NOT_N_4(index)                                                 \
@@ -46,7 +46,7 @@ WJR_PURE size_t large_builtin_find_not_n(const T *src0, const T *src1,
         if (WJR_UNLIKELY(mask != 0)) {                                                   \
             return (index) + ctz(mask) / 8;                                              \
         }                                                                                \
-    } while (0)
+    } while (false)
 #else
 #define WJR_REGISTER_FIND_NOT_N_4(index)                                                 \
     WJR_REGISTER_FIND_NOT_N_2(index);                                                    \
@@ -154,7 +154,7 @@ WJR_PURE size_t large_builtin_find_not_n(const T *src, T val, size_t n) noexcept
         if (WJR_UNLIKELY(mask != 0)) {                                                   \
             return (index) + (mask == 0xFF00);                                           \
         }                                                                                \
-    } while (0)
+    } while (false)
 
 #if WJR_HAS_SIMD(AVX2)
 #define WJR_REGISTER_FIND_NOT_N_4(index)                                                 \
@@ -165,7 +165,7 @@ WJR_PURE size_t large_builtin_find_not_n(const T *src, T val, size_t n) noexcept
         if (WJR_UNLIKELY(mask != 0)) {                                                   \
             return (index) + ctz(mask) / 8;                                              \
         }                                                                                \
-    } while (0)
+    } while (false)
 #else
 #define WJR_REGISTER_FIND_NOT_N_4(index)                                                 \
     WJR_REGISTER_FIND_NOT_N_2(index);                                                    \
@@ -281,7 +281,7 @@ WJR_PURE size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1,
         if (WJR_UNLIKELY(mask != 0)) {                                                   \
             return (index) + 2 - (mask == 0x00FF);                                       \
         }                                                                                \
-    } while (0)
+    } while (false)
 
 #if WJR_HAS_SIMD(AVX2)
 #define WJR_REGISTER_REVERSE_FIND_NOT_N_4(index)                                         \
@@ -294,7 +294,7 @@ WJR_PURE size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1,
         if (WJR_UNLIKELY(mask != 0)) {                                                   \
             return (index) + 4 - clz(mask) / 8;                                          \
         }                                                                                \
-    } while (0)
+    } while (false)
 #else
 #define WJR_REGISTER_REVERSE_FIND_NOT_N_4(index)                                         \
     WJR_REGISTER_REVERSE_FIND_NOT_N_2((index) + 2);                                      \
@@ -402,7 +402,7 @@ WJR_PURE size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) 
         if (WJR_UNLIKELY(mask != 0)) {                                                   \
             return (index) + 2 - (mask == 0x00FF);                                       \
         }                                                                                \
-    } while (0)
+    } while (false)
 
 #if WJR_HAS_SIMD(AVX2)
 #define WJR_REGISTER_REVERSE_FIND_NOT_N_4(index)                                         \
@@ -414,7 +414,7 @@ WJR_PURE size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) 
         if (WJR_UNLIKELY(mask != 0)) {                                                   \
             return (index) + 4 - clz(mask) / 8;                                          \
         }                                                                                \
-    } while (0)
+    } while (false)
 #else
 #define WJR_REGISTER_REVERSE_FIND_NOT_N_4(index)                                         \
     WJR_REGISTER_REVERSE_FIND_NOT_N_2((index) + 2);                                      \

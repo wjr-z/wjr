@@ -41,7 +41,7 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
             write_memory<uint16_t>(dest, x0);
             write_memory<uint16_t>(dest + n - 2, x1);
             return;
-        } while (0);
+        } while (false);
     }
 
     if constexpr (size <= 2) {
@@ -55,7 +55,7 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
             write_memory<uint32_t>(dest, x0);
             write_memory<uint32_t>(dest + n - 4, x1);
             return;
-        } while (0);
+        } while (false);
     }
 
     if constexpr (size <= 4) {
@@ -71,7 +71,7 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
             write_memory<uint64_t>(dest, x0);
             write_memory<uint64_t>(dest + n - 8, x1);
             return;
-        } while (0);
+        } while (false);
     }
 
     if constexpr (size >= 2) {
@@ -87,7 +87,7 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
             sse::storeu(dest, x0);
             sse::storeu(dest + n - 16, x1);
             return;
-        } while (0);
+        } while (false);
     }
 
     if constexpr (size >= 4) {
@@ -114,7 +114,7 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
             sse::storeu((dest + n - 16), x3);
 #endif
             return;
-        } while (0);
+        } while (false);
     }
 
     if constexpr (size == 8) {
@@ -184,7 +184,7 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
             write_memory<uint16_t>(dest - n, x0);
             write_memory<uint16_t>(dest - 2, x1);
             return;
-        } while (0);
+        } while (false);
     }
 
     if constexpr (size <= 2) {
@@ -198,7 +198,7 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
             write_memory<uint32_t>(dest - n, x0);
             write_memory<uint32_t>(dest - 4, x1);
             return;
-        } while (0);
+        } while (false);
     }
 
     if constexpr (size <= 4) {
@@ -214,7 +214,7 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
             write_memory<uint64_t>(dest - n, x0);
             write_memory<uint64_t>(dest - 8, x1);
             return;
-        } while (0);
+        } while (false);
     }
 
     if constexpr (size >= 2) {
@@ -230,7 +230,7 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
             sse::storeu((dest - n), x0);
             sse::storeu((dest - 16), x1);
             return;
-        } while (0);
+        } while (false);
     }
 
     if constexpr (size >= 4) {
@@ -257,7 +257,7 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
             sse::storeu((dest - 16), x3);
 #endif
             return;
-        } while (0);
+        } while (false);
     }
 
     if constexpr (size == 8) {

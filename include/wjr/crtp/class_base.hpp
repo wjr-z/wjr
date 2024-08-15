@@ -239,7 +239,7 @@ struct control_copy_ctor_base : Mybase {
     using Mybase ::Mybase;
     control_copy_ctor_base() = default;
     constexpr control_copy_ctor_base(const control_copy_ctor_base &other) noexcept(
-        noexcept(Mybase::__copy_construct(static_cast<const Mybase &>(other))))
+        noexcept(std::declval<Mybase>().__copy_construct(std::declval<const Mybase &>())))
         : Mybase(enable_default_constructor) {
         Mybase::__copy_construct(static_cast<const Mybase &>(other));
     }
@@ -258,7 +258,7 @@ struct control_move_ctor_base : Mybase {
     control_move_ctor_base() = default;
     control_move_ctor_base(const control_move_ctor_base &) = default;
     constexpr control_move_ctor_base(control_move_ctor_base &&other) noexcept(
-        noexcept(Mybase::__move_construct(static_cast<Mybase &&>(other))))
+        noexcept(std::declval<Mybase>().__move_construct(std::declval<Mybase &&>())))
         : Mybase(enable_default_constructor) {
         Mybase::__move_construct(static_cast<Mybase &&>(other));
     }
@@ -278,7 +278,7 @@ struct control_copy_assign_base : Mybase {
     control_copy_assign_base(control_copy_assign_base &&) = default;
     constexpr control_copy_assign_base &
     operator=(const control_copy_assign_base &other) noexcept(
-        noexcept(Mybase::__copy_assign(static_cast<const Mybase &>(other)))) {
+        noexcept(std::declval<Mybase>().__copy_assign(std::declval<const Mybase &>()))) {
         Mybase::__copy_assign(static_cast<const Mybase &>(other));
         return *this;
     }
@@ -298,7 +298,7 @@ struct control_move_assign_base : Mybase {
     control_move_assign_base &operator=(const control_move_assign_base &) = default;
     constexpr control_move_assign_base &
     operator=(control_move_assign_base &&other) noexcept(
-        noexcept(Mybase::__move_assign(static_cast<Mybase &&>(other)))) {
+        noexcept(std::declval<Mybase>().__move_assign(std::declval<Mybase &&>()))) {
         Mybase::__move_assign(static_cast<Mybase &&>(other));
         return *this;
     }

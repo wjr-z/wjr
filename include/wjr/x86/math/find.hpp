@@ -19,7 +19,7 @@ WJR_PURE size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) noe
         if (WJR_LIKELY(mask != 0)) {                                                     \
             return (index) + ctz(mask) / 8;                                              \
         }                                                                                \
-    } while (0)
+    } while (false)
 
     size_t rem = n & 7;
 
@@ -188,7 +188,7 @@ WJR_PURE size_t large_builtin_find_n(const T *src, T val, size_t n) noexcept {
         if (WJR_LIKELY(mask != 0)) {                                                     \
             return (index) + ctz(mask) / 8;                                              \
         }                                                                                \
-    } while (0)
+    } while (false)
 
 #if !WJR_HAS_SIMD(AVX2)
     auto y = sse::set1(val, T());
@@ -401,7 +401,7 @@ WJR_PURE size_t large_builtin_reverse_find_n(const T *src0, const T *src1,
         if (WJR_LIKELY(mask != 0)) {                                                     \
             return (index)-clz(mask) / 8;                                                \
         }                                                                                \
-    } while (0)
+    } while (false)
 
     const size_t rem = n & 7;
     n -= rem;
@@ -572,7 +572,7 @@ WJR_PURE size_t large_builtin_reverse_find_n(const T *src, T val, size_t n) noex
         if (WJR_LIKELY(mask != 0)) {                                                     \
             return (index)-clz(mask) / 8;                                                \
         }                                                                                \
-    } while (0)
+    } while (false)
 
 #if !WJR_HAS_SIMD(AVX2)
     auto y = sse::set1(val, T());

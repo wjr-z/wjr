@@ -239,7 +239,7 @@ SMALL:
             std::memcpy(dst + m, first + m, 8);
             return dst + n;
         }
-    } while (0);
+    } while (false);
 
     int last_pos = 0;
 
@@ -473,7 +473,7 @@ SMALL:
         if (WJR_LIKELY(B == 0)) {
             return {};
         }
-    } while (0);
+    } while (false);
 
     do {
         const int pos = ctz(B);

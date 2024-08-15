@@ -938,7 +938,7 @@ private:
             }
 
             leaf = static_cast<leaf_node_type *>(node);
-        } while (0);
+        } while (false);
 
         unsigned int pos = iter.get_pos();
         unsigned int cur_size = -leaf->m_size;
@@ -1047,7 +1047,7 @@ private:
         NOT_LEFTMOST_AT_INNER:
             pos = __search<Upper, floor_half, node_size, 1>(current->as_inner(), cur_size,
                                                             key, comp);
-        } while (0);
+        } while (false);
 
         current = current->as_inner()->m_sons[pos];
         cur_size = current->m_size;
@@ -1123,7 +1123,7 @@ private:
                 return B;                                                                \
             }                                                                            \
         }                                                                                \
-    } while (0)
+    } while (false)
 #define WJR_REGISTER_BLPUS_SEARCH_4(A, B, C, D, E)                                       \
     do {                                                                                 \
         if constexpr (E > Max) {                                                         \
@@ -1158,7 +1158,7 @@ private:
                 return D;                                                                \
             }                                                                            \
         }                                                                                \
-    } while (0)
+    } while (false)
 
             WJR_REGISTER_BLPUS_SEARCH_2(1, 2, 3);
             WJR_REGISTER_BLPUS_SEARCH_2(3, 4, 5);
@@ -1242,7 +1242,7 @@ private:
                     return tmp->m_size;
                 }
             }
-        } while (0);
+        } while (false);
 
         do {
             if (pos != 0) {
@@ -1263,7 +1263,7 @@ private:
             }
 
             lhs = nullptr;
-        } while (0);
+        } while (false);
 
         return size;
     }
@@ -1438,7 +1438,7 @@ private:
                 }
 
                 return;
-            } while (0);
+            } while (false);
 
             lhs->m_size = merge_size;
             _Alty_traits::deallocate(__get_allocator(), (uint8_t *)rhs,
@@ -1617,7 +1617,7 @@ private:
             current->as_inner()->m_keys[tmp_pos - 1] = rhs->__get_key(0);
 
             return iterator(leaf, pos);
-        } while (0);
+        } while (false);
 
         lhs->m_size = -(merge_size - 1);
         remove_uninit(rhs);

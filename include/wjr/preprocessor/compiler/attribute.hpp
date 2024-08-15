@@ -65,6 +65,12 @@
 #define WJR_FORCEINLINE
 #endif
 
+#if defined(_MSV_VER)
+#define WJR_SAFEBUFFERS __declspec(safebuffers)
+#else
+#define WJR_SAFEBUFFERS
+#endif
+
 #if WJR_HAS_FEATURE(FORCEINLINE_LAMBDA)
 #define WJR_FORCEINLINE_LAMBDA WJR_FORCEINLINE
 #else
@@ -135,7 +141,7 @@
         if (!(expr)) {                                                                   \
             WJR_UNREACHABLE();                                                           \
         }                                                                                \
-    } while (0)
+    } while (false)
 
 #if WJR_HAS_BUILTIN(__builtin_assume)
 #define WJR_ASSUME(expr) __builtin_assume(expr)
@@ -186,6 +192,14 @@
 #undef WJR_HAS_FEATURE_IS_CONSTANT_EVALUATED
 #endif
 
+/**
+ * @details For Clang version 14.0.0-, __builtin_constant_p have some performance issue.
+ * \n
+ * 1. Cannot propagate __builtin_constant_p beyond function \n
+ * 2. Maybe prevent function be inlined. For low version clang, it will inline all path
+ * even if only one path will be executed, then the function that calls it will not be
+ * inlined.
+ */
 #if WJR_HAS_BUILTIN(__builtin_constant_p)
 #define WJR_BUILTIN_CONSTANT_P(expr) __builtin_constant_p(expr)
 #else
@@ -211,7 +225,7 @@
         if (!(WJR_IS_CONSTANT_EVALUATED())) {                                            \
             WJR_COMPILER_BARRIER();                                                      \
         }                                                                                \
-    } while (0)
+    } while (false)
 
 #if defined(WJR_FORCEINLINE)
 #define WJR_INTRINSIC_INLINE inline WJR_FORCEINLINE

@@ -988,7 +988,7 @@ struct __json_serializer_arithmetic {
     }
 
     template <typename Json>
-    constexpr static value_type construct(const Json &j) {
+    static value_type construct(const Json &j) {
         value_type val;
         assign(j, val);
         return val;

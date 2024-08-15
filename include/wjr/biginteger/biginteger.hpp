@@ -1605,7 +1605,7 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
         dssize = __fasts_conditional_negate<int32_t>(sign, dssize);
         dst->set_ssize(dssize);
         return {first, std::errc{}};
-    } while (0);
+    } while (false);
 
     dst->clear();
     return {__first, std::errc::invalid_argument};
@@ -2065,7 +2065,7 @@ void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, uint
             }
 
             new_dusize = normalize(dp, new_dusize);
-        } while (0);
+        } while (false);
     }
 
     dst->set_ssize(__fasts_conditional_negate<int32_t>(dssize < 0, new_dusize));
@@ -3040,7 +3040,7 @@ void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 
             rem->set_ssize(0);
             return;
-        } while (0);
+        } while (false);
 
         rem->reserve(offset + 1);
         rp = rem->data();
@@ -3082,7 +3082,7 @@ void __urandom_bit_impl(basic_biginteger<S> *dst, uint32_t size,
         for (uint64_t i = 0; i < dusize; ++i) {
             dp[i] = engine();
         }
-    } while (0);
+    } while (false);
 
     if (size != 0) {
         dp[dusize] = engine() >> (64 - size);
@@ -3112,7 +3112,7 @@ void __urandom_exact_bit_impl(basic_biginteger<S> *dst, uint32_t size,
         for (uint64_t i = 0; i < dusize; ++i) {
             dp[i] = engine();
         }
-    } while (0);
+    } while (false);
 
     do {
         uint64_t high = (uint64_t)(1) << size;
@@ -3122,7 +3122,7 @@ void __urandom_exact_bit_impl(basic_biginteger<S> *dst, uint32_t size,
         }
 
         dp[dusize] = high;
-    } while (0);
+    } while (false);
 
     dst->set_ssize(dssize);
 }

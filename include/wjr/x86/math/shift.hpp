@@ -70,7 +70,7 @@ WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, __m128i c) noexcept {
         sse::storeu(dst - 2 - (index), r);                                               \
                                                                                          \
         x0 = x1;                                                                         \
-    } while (0)
+    } while (false)
 
 template <bool is_constant, typename T>
 void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n,
@@ -196,7 +196,7 @@ WJR_INTRINSIC_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned
         sse::storeu(dst + (index), r);                                                   \
                                                                                          \
         x0 = x1;                                                                         \
-    } while (0)
+    } while (false)
 
 template <bool is_constant, typename T>
 void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n,

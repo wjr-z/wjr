@@ -1760,7 +1760,7 @@ using compressed_expected = expected<T, compressed_unexpected<E, init>>;
         if (auto exp = (__VA_ARGS__); WJR_UNLIKELY(!exp)) {                              \
             return ::wjr::unexpected(std::move(exp).error());                            \
         }                                                                                \
-    } while (0)
+    } while (false)
 
 #define WJR_EXPECTED_INIT(NAME, ...)                                                     \
     auto NAME = (__VA_ARGS__);                                                           \
@@ -1775,7 +1775,7 @@ using compressed_expected = expected<T, compressed_unexpected<E, init>>;
         } else {                                                                         \
             VAR = *std::move(exp);                                                       \
         }                                                                                \
-    } while (0)
+    } while (false)
 
 } // namespace wjr
 

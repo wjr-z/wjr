@@ -47,7 +47,7 @@ void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
         if (offset == 3) {
             dst[2] = ~src[2];
         }
-    } while (0);
+    } while (false);
 
     dst += offset;
     src += offset;

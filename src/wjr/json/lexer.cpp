@@ -153,7 +153,7 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
                     token_buf[i] = idx + ctz(S);
                     S &= S - 1;
                 }
-            } while (0);
+            } while (false);
 
             token_buf += num;
             count += num;

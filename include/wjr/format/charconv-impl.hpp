@@ -43,13 +43,12 @@ public:
     template <uint64_t Base = 0>
     WJR_CONST static constexpr uint8_t to(uint8_t x) noexcept {
         if constexpr (Base == 0) {
-            WJR_ASSERT_L3(x < 36);
+            WJR_ASSERT_ASSUME_L3(x < 36);
         } else {
-            WJR_ASSERT_L3(x < Base);
+            WJR_ASSERT_ASSUME_L3(x < Base);
         }
 
         if constexpr (Base == 0 || Base > 10) {
-
             if (WJR_BUILTIN_CONSTANT_P_TRUE(x < 10)) {
                 return x + '0';
             }

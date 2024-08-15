@@ -1685,8 +1685,8 @@ WJR_INTRINSIC_INLINE uint64_t hi64(biginteger &big, bool &truncated) noexcept {
 
 // parse the significant digits into a big integer
 template <typename T>
-inline void parse_mantissa(biginteger &result, span<const char> integer,
-                           span<const char> fraction, size_t &digits) noexcept {
+void parse_mantissa(biginteger &result, span<const char> integer,
+                    span<const char> fraction, size_t &digits) noexcept {
     constexpr size_t max_digits = binary_format<T>::max_digits();
 
     // try to minimize the number of big integer and scalar multiplication.
@@ -1841,8 +1841,8 @@ inline adjusted_mantissa negative_digit_comp(biginteger &bigmant, adjusted_manti
 }
 
 template <typename T>
-inline adjusted_mantissa digit_comp(adjusted_mantissa am, span<const char> integer,
-                                    span<const char> fraction, int32_t sci_exp) {
+adjusted_mantissa digit_comp(adjusted_mantissa am, span<const char> integer,
+                             span<const char> fraction, int32_t sci_exp) {
     size_t digits = 0;
     biginteger bigmant;
     parse_mantissa<T>(bigmant, integer, fraction, digits);
@@ -2050,7 +2050,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
 
             ch = *p;
         } while (WJR_LIKELY(__try_match(ch)));
-    } while (0);
+    } while (false);
 
     do {
         end_of_integer_part = p;
@@ -2112,7 +2112,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
                 return detail::parse_infnan(first, last, float_v);
             }
         }
-    } while (0);
+    } while (false);
 
     exp_number = 0;
 
@@ -2292,7 +2292,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
         }
 
         return answer;
-    } while (0);
+    } while (false);
 
 INTEGER_AT_END:
     end_of_integer_part = p;
@@ -2321,7 +2321,7 @@ INTEGER:
         // It is possible that the integer had an overflow.
         // We have to handle the case where we have 0.0000somenumber.
         // We need to be mindful of the case where we only have zeroes...
-        // E.g., 0.000000000...000.
+        // E.g., 0000000000...000.
         const char *start = start_digits;
         while ((start != last) && *start == '0') {
             --digit_count;
