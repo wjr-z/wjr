@@ -9,7 +9,7 @@ template <typename T>
 WJR_CONST constexpr T fallback_rotl(T x, unsigned int s) noexcept {
     constexpr auto bit_width = static_cast<unsigned int>(std::numeric_limits<T>::digits);
     s &= (bit_width - 1);
-    return (x << s) | (x >> (bit_width - s));
+    return (x << s) | (x >> (bit_width - s) & (bit_width - 1));
 }
 
 template <typename T>
@@ -21,7 +21,7 @@ template <typename T>
 WJR_CONST constexpr T fallback_rotr(T x, unsigned int s) noexcept {
     constexpr auto bit_width = static_cast<unsigned int>(std::numeric_limits<T>::digits);
     s &= (bit_width - 1);
-    return (x >> s) | (x << (bit_width - s));
+    return (x >> s) | (x << (bit_width - s) & (bit_width - 1));
 }
 
 template <typename T>

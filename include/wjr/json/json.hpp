@@ -3,6 +3,7 @@
 
 #include <map>
 
+#include <wjr/json/formatter.hpp>
 #include <wjr/json/visitor.hpp>
 #include <wjr/variant.hpp>
 
@@ -308,6 +309,9 @@ void __json_destroy(T *ptr) noexcept(std::is_nothrow_destructible_v<T> && noexce
     al.deallocate(ptr, 1);
 }
 
+template <typename Formatter, typename Json>
+void format(Formatter fmt, const Json &j);
+
 /**
  * @details At present, it's a simple but flexible implementation solution. This is not as
  * good as a only iteration in terms of performance. \n
@@ -603,6 +607,17 @@ public:
     WJR_CONST static size_type max_depth_size() noexcept { return 256; }
 
     static result<basic_json> parse(const reader &rd) noexcept;
+
+    template <typename Formatter>
+    void format(Formatter fmt) const {
+        format(fmt, *this);
+    }
+
+    std::string to_string() const {
+        std::string str;
+        format(minify_formatter(std::back_inserter(str)));
+        return str;
+    }
 
     reference at(size_type idx) { return get<array_t>().at(idx); }
     const_reference at(size_type idx) const { return get<array_t>().at(idx); }
@@ -1697,6 +1712,83 @@ template <typename Traits>
 result<basic_json<Traits>> basic_json<Traits>::parse(const reader &rd) noexcept {
     detail::basic_json_parser<basic_json<Traits>> par;
     return par.parse(rd);
+}
+
+template <typename Formatter, typename Json>
+void format(Formatter fmt, const Json &j) {
+    switch (j.type()) {
+    case value_t::null: {
+        fmt.format_null();
+        break;
+    }
+    case value_t::boolean: {
+        if (j.template get_unsafe<boolean_t>()) {
+            fmt.format_true();
+        } else {
+            fmt.format_false();
+        }
+        break;
+    }
+    case value_t::number_unsigned: {
+        fmt.format_number_unsigned(j.template get_unsafe<number_unsigned_t>());
+        break;
+    }
+    case value_t::number_signed: {
+        fmt.format_number_signed(j.template get_unsafe<number_signed_t>());
+        break;
+    }
+    case value_t::number_float: {
+        fmt.format_number_float(j.template get_unsafe<number_float_t>());
+        break;
+    }
+    case value_t::string: {
+        fmt.format_string(j.template get_unsafe<string_t>());
+        break;
+    }
+    case value_t::object: {
+        fmt.format_start_object();
+        const auto &obj = j.template get_unsafe<object_t>();
+        auto begin = obj.begin();
+        const auto end = obj.end();
+
+        if (begin != end) {
+            fmt.format_key(begin->first);
+            format(fmt, begin->second);
+            if (++begin != end) {
+                do {
+                    fmt.format_comma();
+                    fmt.format_key(begin->first);
+                    format(fmt, begin->second);
+                } while (++begin != end);
+            }
+        }
+
+        fmt.format_end_object();
+        break;
+    }
+    case value_t::array: {
+        fmt.format_start_array();
+        const auto &arr = j.template get_unsafe<array_t>();
+        auto begin = arr.begin();
+        const auto end = arr.end();
+
+        if (begin != end) {
+            format(fmt, *begin);
+            if (++begin != end) {
+                do {
+                    fmt.format_comma();
+                    format(fmt, *begin);
+                } while (++begin != end);
+            }
+        }
+        fmt.format_end_array();
+        break;
+    }
+    default: {
+        WJR_UNREACHABLE();
+        break;
+    }
+    }
 }
 
 } // namespace wjr::json
