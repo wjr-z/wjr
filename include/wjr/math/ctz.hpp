@@ -93,7 +93,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) noexcept {
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int ctz(T x) noexcept {
 #if WJR_HAS_BUILTIN(CTZ)
-    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
+    if (is_constant_evaluated()) {
         return fallback_ctz(x);
     }
 

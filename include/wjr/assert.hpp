@@ -55,8 +55,8 @@ WJR_NORETURN extern void __assert_failed(const char *expr, const char *file,
 
 /// @private
 template <typename... Args>
-WJR_NOINLINE void __assert_handler(const char *expr, const char *file, const char *func,
-                                   int line, Args &&...args) noexcept {
+void __assert_handler(const char *expr, const char *file, const char *func, int line,
+                      Args &&...args) noexcept {
     std::cerr << "Additional information: ";
     (void)(std::cerr << ... << std::forward<Args>(args));
     std::cerr << '\n';

@@ -86,7 +86,13 @@ template <typename CharT, typename Traits, typename Alloc>
 WJR_INTRINSIC_INLINE void
 __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
                        typename std::basic_string<CharT, Traits, Alloc>::size_type sz) {
-    str.reserve(sz);
+#if !defined(WJR_CXX_20)
+    if (sz > str.capacity()) {
+#endif
+        str.reserve(sz);
+#if !defined(WJR_CXX_20)
+    }
+#endif
     string_set_length_hacker(str, sz);
     WJR_ASSERT_L2(str.size() == sz);
     str[sz] = '\0';

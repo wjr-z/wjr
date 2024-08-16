@@ -518,7 +518,7 @@ template <uint64_t Base>
 inline constexpr __from_chars_unroll_16_fn<Base> __from_chars_unroll_16{};
 
 template <typename UnsignedValue>
-constexpr int fallback_count_digits10(UnsignedValue n) noexcept {
+WJR_INTRINSIC_CONSTEXPR int fallback_count_digits10(UnsignedValue n) noexcept {
     int count = 0;
 
     if (WJR_UNLIKELY(n >= 1000)) {
@@ -1298,7 +1298,7 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
         } else {                                                                         \
             append(cont, n + sign, dctor);                                               \
         }                                                                                \
-        const auto __end = wjr::to_address(cont.data() + cont.size());                   \
+        auto *const __end = cont.data() + cont.size();                                   \
         auto __ptr = (charconv_detail::fast_buffer_t<Iter> *)                            \
             __unsigned_to_chars_backward_unchecked<BASE>(                                \
                 (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \

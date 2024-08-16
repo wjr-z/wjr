@@ -93,6 +93,19 @@ WJR_INTRINSIC_INLINE void try_uninitialized_resize(Container &cont, Size sz) {
     }
 }
 
+template <typename Container, typename Size,
+          WJR_REQUIRES(has_container_append_v<Container, Size> ||
+                       has_container_resize_v<Container, Size>)>
+WJR_INTRINSIC_INLINE void try_uninitialized_append(Container &cont, Size sz) {
+    if constexpr (has_container_append_v<Container, Size, dctor_t>) {
+        append(cont, sz, dctor);
+    } else if constexpr (has_container_append_v<Container, Size>) {
+        append(cont, sz);
+    } else {
+        try_uninitialized_resize(cont, cont.size() + sz);
+    }
+}
+
 /// @private
 template <typename T, typename = void>
 struct __container_traits_base_iterator_helper {

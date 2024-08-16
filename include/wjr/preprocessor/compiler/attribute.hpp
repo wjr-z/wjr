@@ -71,6 +71,14 @@
 #define WJR_SAFEBUFFERS
 #endif
 
+#if WJR_HAS_ATTRIBUTE(flatten)
+#define WJR_FLATTEN __attribute__((flatten))
+#elif WJR_HAS_MSVC(17, 00)
+#define WJR_FLATTEN [[msvc::flatten]]
+#else
+#define WJR_FLATTEN
+#endif
+
 #if WJR_HAS_FEATURE(FORCEINLINE_LAMBDA)
 #define WJR_FORCEINLINE_LAMBDA WJR_FORCEINLINE
 #else

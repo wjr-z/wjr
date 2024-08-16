@@ -64,7 +64,7 @@ WJR_CONST constexpr T __align_up_offset(T n, type_identity_t<T> alignment) noexc
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST constexpr std::make_signed_t<T> __fasts_from_unsigned(T x) noexcept {
     const std::make_signed_t<T> ret = x;
-    WJR_ASSERT_ASSUME_L2(ret >= 0, "overflow");
+    WJR_ASSERT_ASSUME_L2(ret >= 0);
     return ret;
 }
 
@@ -94,15 +94,14 @@ WJR_CONST constexpr T __fasts_negate_with(T condition, T x) noexcept {
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
 WJR_CONST constexpr T __fasts_increment(T x) noexcept {
     WJR_ASSERT_L2(x != std::numeric_limits<T>::min() &&
-                      x != std::numeric_limits<T>::max(),
-                  "overflow");
+                      x != std::numeric_limits<T>::max());
 
     return x < 0 ? x - 1 : x + 1;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
 WJR_CONST constexpr T __fasts_decrement(T x) noexcept {
-    WJR_ASSERT_L2(x != 0 && x + 1 != T(0), "overflow");
+    WJR_ASSERT_L2(x != 0 && x + 1 != T(0));
 
     return x < 0 ? x + 1 : x - 1;
 }

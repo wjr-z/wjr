@@ -17,7 +17,8 @@ namespace biginteger_detail {
  * @brief Remove leading zeros.
  *
  */
-inline uint32_t normalize(const uint64_t *ptr, uint32_t n) noexcept {
+WJR_PURE inline WJR_CONSTEXPR20 uint32_t normalize(const uint64_t *ptr,
+                                                   uint32_t n) noexcept {
     return static_cast<uint32_t>(reverse_find_not_n(ptr, 0, n));
 }
 

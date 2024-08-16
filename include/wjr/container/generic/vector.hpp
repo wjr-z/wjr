@@ -802,12 +802,7 @@ public:
 
     WJR_CONST WJR_CONSTEXPR20 static size_type
     get_growth_capacity(size_type old_capacity, size_type new_size) noexcept {
-        constexpr size_type __small_growth = sizeof(value_type) <= 16   ? 2
-                                             : sizeof(value_type) <= 64 ? 1
-                                                                        : 0;
-
-        return std::max<size_type>(old_capacity + (old_capacity / 2) + __small_growth,
-                                   new_size);
+        return std::max<size_type>(old_capacity * 2, new_size);
     }
 
 private:
