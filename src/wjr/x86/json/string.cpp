@@ -5,24 +5,23 @@ namespace wjr::json {
 
 #if WJR_HAS_BUILTIN(JSON_PARSE_STRING)
 
-WJR_INTRINSIC_INLINE char *copy_small(char *dst, const char *src,
+WJR_INTRINSIC_INLINE char *small_copy(char *dst, const char *src,
                                       unsigned int n) noexcept {
-    if (WJR_UNLIKELY(n == 0)) {
-        return dst;
-    }
-
-#if WJR_HAS_SIMD(AVX2)
-    if (n >= 16) {
-        std::memcpy(dst, src, 16);
-        std::memcpy(dst + n - 16, src + n - 16, 16);
-        return dst + n;
-    }
-#endif
-
     if (n >= 8) {
+#if WJR_HAS_SIMD(AVX2)
+        if (n >= 16) {
+            std::memcpy(dst, src, 16);
+            std::memcpy(dst + n - 16, src + n - 16, 16);
+            return dst + n;
+        }
+#endif
         std::memcpy(dst, src, 8);
         std::memcpy(dst + n - 8, src + n - 8, 8);
         return dst + n;
+    }
+
+    if (WJR_UNLIKELY(n == 0)) {
+        return dst;
     }
 
     if (n >= 4) {
@@ -64,7 +63,7 @@ result<char *> parse_string(char *dst, const char *first, const char *last) noex
 
             do {
                 const int pos = ctz(B);
-                dst = copy_small(dst, first + last_pos, pos - last_pos);
+                dst = small_copy(dst, first + last_pos, pos - last_pos);
 
                 // last backslash, special handling
                 if (WJR_UNLIKELY(pos == u8_width - 1)) {
@@ -140,6 +139,7 @@ result<char *> parse_string(char *dst, const char *first, const char *last) noex
                 B &= B - 1;
             } while (B);
 
+            dst = small_copy(dst, first + last_pos, u8_width - last_pos);
             first += u8_width;
 
             if (first + u8_width <= last) {
@@ -245,7 +245,7 @@ SMALL:
 
     do {
         const int pos = ctz(B);
-        dst = copy_small(dst, first + last_pos, pos - last_pos);
+        dst = small_copy(dst, first + last_pos, pos - last_pos);
 
         if (WJR_UNLIKELY(pos == n - 1)) {
             return unexpected(error_code::STRING_ERROR);
@@ -287,6 +287,7 @@ SMALL:
         B &= B - 1;
     } while (B);
 
+    dst = small_copy(dst, first + last_pos, n - last_pos);
     return dst;
 }
 

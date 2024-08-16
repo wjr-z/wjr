@@ -99,8 +99,6 @@ template <typename Container, typename Size,
 WJR_INTRINSIC_INLINE void try_uninitialized_append(Container &cont, Size sz) {
     if constexpr (has_container_append_v<Container, Size, dctor_t>) {
         append(cont, sz, dctor);
-    } else if constexpr (has_container_append_v<Container, Size>) {
-        append(cont, sz);
     } else {
         try_uninitialized_resize(cont, cont.size() + sz);
     }

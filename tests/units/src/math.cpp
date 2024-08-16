@@ -56,13 +56,13 @@ TEST(math, popcount_ctz_clz) {
 #define WJR_TEST_PTZ_I_CALLER(args)                                                      \
     do {                                                                                 \
         WJR_TEST_POPCOUNT_I args;                                                        \
-    } while (0);                                                                         \
+    } while (false);                                                                         \
     do {                                                                                 \
         WJR_TEST_CTZ_I args;                                                             \
-    } while (0);                                                                         \
+    } while (false);                                                                         \
     do {                                                                                 \
         WJR_TEST_CLZ_I args;                                                             \
-    } while (0)
+    } while (false)
 
     WJR_TEST_PTZ_I_CALLER((uint8_t, 0x00, 0));
     WJR_TEST_PTZ_I_CALLER((uint8_t, 0x01, 1));
@@ -171,7 +171,7 @@ TEST(math, addc) {
         WJR_HAS_BUILTIN(ADDC),                                                           \
         do {                                                                             \
             WJR_ASSERT((builtin_addc<type, type>(x, y, ci, co) == ans && co == ans_co)); \
-        } while (0),                                                                     \
+        } while (false),                                                                     \
         {});                                                                             \
     WJR_PP_BOOL_IF_NE(                                                                   \
         WJR_HAS_BUILTIN(ASM_ADDC), do {                                                  \
@@ -181,7 +181,7 @@ TEST(math, addc) {
                     WJR_HAS_BUILTIN(ASM_ADDC_CC),                                        \
                     (asm_addc_cc(x, y, ci, co2) == ans && co2 == ans_co), true));        \
             }                                                                            \
-        } while (0), )
+        } while (false), )
 
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_ASM_VOLATILE_TEST_ADDC_F() asm volatile("" : "+r"(c), "+r"(e)::"memory")
@@ -204,7 +204,7 @@ TEST(math, addc) {
         type e = 3;                                                                      \
         WJR_ASM_VOLATILE_TEST_ADDC_F();                                                  \
         WJR_TEST_ADDC(type, e, c, c, 5, 0);                                              \
-    } while (0);
+    } while (false);
 
     WJR_PP_TRANSFORM_PUT((unsigned char, unsigned int, unsigned long, unsigned long long),
                          WJR_TEST_ADDC_F);
@@ -359,7 +359,7 @@ TEST(math, sub) {
     WJR_PP_BOOL_IF(                                                                      \
         WJR_HAS_BUILTIN(SUBC), ; do {                                                    \
             WJR_ASSERT((builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co)); \
-        } while (0), )                                                                   \
+        } while (false), )                                                                   \
     WJR_PP_BOOL_IF_NE(                                                                   \
         WJR_HAS_BUILTIN(ASM_SUBC), ; do {                                                \
             if constexpr (std::is_same_v<type, uint64_t>) {                              \
@@ -368,7 +368,7 @@ TEST(math, sub) {
                     WJR_HAS_BUILTIN(ASM_SUBC_CC),                                        \
                     (asm_subc_cc(x, y, ci, co2) == ans && co2 == ans_co), true));        \
             }                                                                            \
-        } while (0), )
+        } while (false), )
 
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_ASM_VOLATILE_TEST_SUBC_F() asm volatile("" : "+r"(c), "+r"(e)::"memory")
@@ -392,7 +392,7 @@ TEST(math, sub) {
         type e = 3;                                                                      \
         WJR_ASM_VOLATILE_TEST_SUBC_F();                                                  \
         WJR_TEST_SUBC(type, e, c, c, 1, 0);                                              \
-    } while (0);
+    } while (false);
 
     WJR_PP_TRANSFORM_PUT((unsigned char, unsigned int, unsigned long, unsigned long long),
                          WJR_TEST_SUBC_F);
@@ -1698,7 +1698,7 @@ TEST(math, to_chars) {
             } else {
                 WJR_ASSERT(ret1.ptr == c + k);
             }
-        } while (0);
+        } while (false);
 
         // test random access iterator of __fallback_to_chars
         do {
@@ -1712,7 +1712,7 @@ TEST(math, to_chars) {
             } else {
                 WJR_ASSERT(ret1.ptr == vec.data() + k);
             }
-        } while (0);
+        } while (false);
 
         // test forward iterator of __fallback_to_chars
         do {
@@ -1726,7 +1726,7 @@ TEST(math, to_chars) {
             } else {
                 WJR_ASSERT(std::distance(lst.begin(), ret1.ptr) == k);
             }
-        } while (0);
+        } while (false);
 
         // test non-validate
         if (k == 64) {
@@ -1736,7 +1736,7 @@ TEST(math, to_chars) {
 
                 WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
                            std::string_view(ret1, c + 64 - ret1));
-            } while (0);
+            } while (false);
 
             // test __fast_to_chars_unchecked
             do {
@@ -1744,7 +1744,7 @@ TEST(math, to_chars) {
 
                 WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
                            std::string_view(c, ret1 - c));
-            } while (0);
+            } while (false);
 
             // test random access iterator of __fallback_to_chars_unchecked
             do {
@@ -1754,7 +1754,7 @@ TEST(math, to_chars) {
 
                 WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
                            std::string_view((char *)vec.data(), vec.size()));
-            } while (0);
+            } while (false);
 
             // test forward iterator of __fallback_to_chars_unchecked
             do {
@@ -1766,7 +1766,7 @@ TEST(math, to_chars) {
                            std::string(lst.begin(), lst.end()));
 
                 lst.resize(64);
-            } while (0);
+            } while (false);
         }
     };
 
@@ -1819,7 +1819,7 @@ TEST(math, from_chars) {
                 WJR_ASSERT(x == 1);
                 WJR_ASSERT(y == 3);
             }
-        } while (0);
+        } while (false);
     };
 
     for (int t = 0; t < T; ++t) {

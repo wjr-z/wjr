@@ -27,6 +27,14 @@ TEST(json, json) {
     }
 }
 
+struct test_struct0 {
+    WJR_REGISTER_JSON_SERIALIZER_DEFAULT(test_struct0, name, version, age)
+
+    std::string name;
+    std::string version;
+    int age;
+};
+
 TEST(json, constructor) {
     WJR_TRY {
         do {
@@ -34,7 +42,7 @@ TEST(json, constructor) {
             WJR_ASSERT(j.is_null());
             std::nullptr_t a(j);
             WJR_ASSERT(a == nullptr);
-        } while (0);
+        } while (false);
 
         do {
             json::json a(true);
@@ -48,7 +56,7 @@ TEST(json, constructor) {
 
             WJR_ASSERT(c == true);
             WJR_ASSERT(d == false);
-        } while (0);
+        } while (false);
 
         do {
             json::json a(0u);
@@ -62,7 +70,7 @@ TEST(json, constructor) {
 
             WJR_ASSERT(c == 0);
             WJR_ASSERT(d == -3);
-        } while (0);
+        } while (false);
 
         do {
             json::json a(std::string_view("name"));
@@ -80,7 +88,7 @@ TEST(json, constructor) {
             WJR_ASSERT(c == "name");
             WJR_ASSERT(d == "version");
             WJR_ASSERT(e == "version");
-        } while (0);
+        } while (false);
 
         do {
             std::map<std::string, std::string> a = {
@@ -94,7 +102,7 @@ TEST(json, constructor) {
                 WJR_ASSERT((std::string_view)(value) == iter->second);
                 ++iter;
             }
-        } while (0);
+        } while (false);
 
         do {
             std::vector<int> a = {1, 2, 3, 0, 7, 3, 4, 6};
@@ -113,7 +121,17 @@ TEST(json, constructor) {
                 WJR_ASSERT((int)(elem) == *iter);
                 ++iter;
             }
-        } while (0);
+        } while (false);
+
+        do {
+            std::string str = R"({"name" : "wjr", "version" : "1.0.0", "age" : 22})";
+            json::reader rd(str);
+
+            test_struct0 it(json::json::parse(rd).value());
+            WJR_ASSERT(it.name == "wjr");
+            WJR_ASSERT(it.version == "1.0.0");
+            WJR_ASSERT(it.age == 22);
+        } while (false);
     }
     WJR_CATCH(...) { WJR_ASSERT_L0(false); }
 }

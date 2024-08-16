@@ -309,8 +309,15 @@ void __json_destroy(T *ptr) noexcept(std::is_nothrow_destructible_v<T> && noexce
     al.deallocate(ptr, 1);
 }
 
+namespace detail {
 template <typename Formatter, typename Json>
-void format(Formatter fmt, const Json &j);
+void format_impl(Formatter fmt, const Json &j, unsigned int depth);
+}
+
+template <typename Formatter, typename Json>
+void format(Formatter fmt, const Json &j) {
+    detail::format_impl(fmt, j, 0);
+}
 
 /**
  * @details At present, it's a simple but flexible implementation solution. This is not as
@@ -608,14 +615,21 @@ public:
 
     static result<basic_json> parse(const reader &rd) noexcept;
 
-    template <typename Formatter>
-    void format(Formatter fmt) const {
-        format(fmt, *this);
+    template <typename Container>
+    void dump_impl(Container &cont, unsigned indents = -1) const {
+        if (indents == -1u) {
+            format(minify_formatter(std::back_inserter(cont)), *this);
+        } else {
+            format(pretty_formatter(std::back_inserter(cont), indents), *this);
+        }
     }
 
+    /**
+     * @brief Use minify formatter as default.
+     */
     std::string to_string() const {
         std::string str;
-        format(minify_formatter(std::back_inserter(str)));
+        dump_impl(str);
         return str;
     }
 
@@ -1714,8 +1728,10 @@ result<basic_json<Traits>> basic_json<Traits>::parse(const reader &rd) noexcept 
     return par.parse(rd);
 }
 
+namespace detail {
+
 template <typename Formatter, typename Json>
-void format(Formatter fmt, const Json &j) {
+void format_impl(Formatter fmt, const Json &j, unsigned depth) {
     switch (j.type()) {
     case value_t::null: {
         fmt.format_null();
@@ -1752,15 +1768,23 @@ void format(Formatter fmt, const Json &j) {
         const auto end = obj.end();
 
         if (begin != end) {
-            fmt.format_key(begin->first);
-            format(fmt, begin->second);
-            if (++begin != end) {
-                do {
-                    fmt.format_comma();
-                    fmt.format_key(begin->first);
-                    format(fmt, begin->second);
-                } while (++begin != end);
-            }
+            goto LOOP0_HEAD;
+
+            do {
+                fmt.format_comma();
+
+            LOOP0_HEAD:
+
+                fmt.format_newline();
+                fmt.format_indents(depth + 1);
+
+                fmt.format_key(begin->first);
+                fmt.format_space();
+                format_impl(fmt, begin->second, depth + 1);
+            } while (++begin != end);
+
+            fmt.format_newline();
+            fmt.format_indents(depth);
         }
 
         fmt.format_end_object();
@@ -1773,14 +1797,23 @@ void format(Formatter fmt, const Json &j) {
         const auto end = arr.end();
 
         if (begin != end) {
-            format(fmt, *begin);
-            if (++begin != end) {
-                do {
-                    fmt.format_comma();
-                    format(fmt, *begin);
-                } while (++begin != end);
-            }
+            goto LOOP1_HEAD;
+
+            do {
+                fmt.format_comma();
+
+            LOOP1_HEAD:
+
+                fmt.format_newline();
+                fmt.format_indents(depth + 1);
+
+                format_impl(fmt, *begin, depth + 1);
+            } while (++begin != end);
+
+            fmt.format_newline();
+            fmt.format_indents(depth);
         }
+
         fmt.format_end_array();
         break;
     }
@@ -1789,6 +1822,32 @@ void format(Formatter fmt, const Json &j) {
         break;
     }
     }
+}
+
+} // namespace detail
+
+template <typename Traits, typename JsonTraits>
+std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &os,
+                                             const basic_json<JsonTraits> &j) {
+    std::ios_base::iostate state = std::ios::goodbit;
+
+    if (const std::ostream::sentry ok(os); ok) {
+        unique_stack_allocator stkal(math_detail::stack_alloc);
+
+        vector<char, math_detail::weak_stack_alloc<char>> buffer(stkal);
+        buffer.clear_if_reserved(256);
+
+        const std::ios_base::fmtflags flags = os.flags();
+        const std::streamsize indents = os.width();
+
+        j.dump_impl(buffer, indents);
+        __ostream_write_unchecked(os, buffer.data(), buffer.size());
+
+        os.width(0);
+    }
+
+    os.setstate(state);
+    return os;
 }
 
 } // namespace wjr::json

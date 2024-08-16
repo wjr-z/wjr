@@ -14,7 +14,7 @@ TEST(memory, stack_allocator) {
     do {
         math_detail::stack_alloc_object obj;
         (void)(obj);
-    } while (0);
+    } while (false);
 
     do {
         math_detail::stack_alloc_object obj = {};
@@ -24,7 +24,7 @@ TEST(memory, stack_allocator) {
             (void)stkal.allocate(16);
         }
 
-    } while (0);
+    } while (false);
 
     do {
         math_detail::stack_alloc_object obj = {};
@@ -34,7 +34,7 @@ TEST(memory, stack_allocator) {
         unique_stack_allocator stkal2(obj);
         (void)stkal.allocate(16);
 
-    } while (0);
+    } while (false);
 }
 
 TEST(memory, uninitialized) {
@@ -52,7 +52,7 @@ TEST(memory, uninitialized) {
                       "trivially move assignable error");
         static_assert(std::is_trivially_destructible_v<type>,
                       "trivially destructible error");
-    } while (0);
+    } while (false);
 
     do {
         using type = uninitialized<std::string>;
@@ -67,5 +67,5 @@ TEST(memory, uninitialized) {
         static_assert(!std::is_move_assignable_v<type>,
                       "trivially move assignable error");
         static_assert(std::is_destructible_v<type>, "trivially destructible error");
-    } while (0);
+    } while (false);
 }
