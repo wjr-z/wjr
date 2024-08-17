@@ -1,5 +1,5 @@
-#ifndef WJR_X86_MATH_COMPARE_HPP__
-#define WJR_X86_MATH_COMPARE_HPP__
+#ifndef WJR_ARCH_X86_MATH_COMPARE_HPP__
+#define WJR_ARCH_X86_MATH_COMPARE_HPP__
 
 #include <wjr/arch/x86/math/large-compare-impl.hpp>
 
@@ -89,8 +89,8 @@ WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
 
 // __uint128_t has certain bugs in GCC 13.2, resulting in low performance
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
-#define WJR_HAS_BUILTIN___ASM_LESS_128 WJR_HAS_DEF
-#define WJR_HAS_BUILTIN___ASM_LESS_EQUAL_128 WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN___ASM_LESS_128 WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN___ASM_LESS_EQUAL_128 WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_BUILTIN(__ASM_LESS_128)
@@ -125,4 +125,4 @@ __asm_less_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1) noe
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_COMPARE_HPP__
+#endif // WJR_ARCH_X86_MATH_COMPARE_HPP__

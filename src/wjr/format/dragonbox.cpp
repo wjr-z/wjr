@@ -19,7 +19,7 @@
 #include <wjr/format/dragonbox.hpp>
 
 #ifndef JKJ_STATIC_DATA_SECTION
-#define JKJ_STATIC_DATA_SECTION
+    #define JKJ_STATIC_DATA_SECTION
 #endif
 
 namespace wjr {

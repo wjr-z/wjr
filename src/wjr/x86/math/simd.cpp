@@ -1,6 +1,6 @@
-#include <wjr/math/shift.hpp>
 #include <wjr/arch/x86/math/large-compare-impl.hpp>
 #include <wjr/arch/x86/math/large-find-impl.hpp>
+#include <wjr/math/shift.hpp>
 
 namespace wjr {
 

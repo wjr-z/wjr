@@ -4,7 +4,7 @@
 // testing ...
 
 #include <wjr/preprocessor/arithmatic.hpp>
-#include <wjr/preprocessor/compiler.hpp>
+#include <wjr/preprocessor/config.hpp>
 #include <wjr/preprocessor/detail.hpp>
 #include <wjr/preprocessor/logical.hpp>
 
@@ -27,19 +27,19 @@
 
 #define WJR_PRAGMA_I(expr) _Pragma(#expr)
 #if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_MSVC)
-#define WJR_PRAGMA(expr) WJR_PRAGMA_I(expr)
+    #define WJR_PRAGMA(expr) WJR_PRAGMA_I(expr)
 #else
-#define WJR_PRAGMA(expr)
+    #define WJR_PRAGMA(expr)
 #endif
 
 #if WJR_HAS_FEATURE(PRAGMA_UNROLL)
-#if defined(WJR_COMPILER_GCC)
-#define WJR_UNROLL(loop) WJR_PRAGMA(GCC unroll(loop))
+    #if defined(WJR_COMPILER_GCC)
+        #define WJR_UNROLL(loop) WJR_PRAGMA(GCC unroll(loop))
+    #else
+        #define WJR_UNROLL(loop) WJR_PRAGMA(unroll(loop))
+    #endif
 #else
-#define WJR_UNROLL(loop) WJR_PRAGMA(unroll(loop))
-#endif
-#else
-#define WJR_UNROLL(loop)
+    #define WJR_UNROLL(loop)
 #endif
 
 #define WJR_IS_OVERLAP_P(p, pn, q, qn) ((p) + (pn) > (q) && (q) + (qn) > (p))
@@ -55,17 +55,17 @@
 #define WJR_ASM_NOPIC_JMPL(LABEL) ".quad " #LABEL
 
 #if WJR_HAS_FEATURE(INLINE_ASM_CCCOND)
-#define WJR_ASM_CCSET(c) "/* set condition codes */\n\t"
-#define WJR_ASM_CCOUT(c) "=@cc" #c
+    #define WJR_ASM_CCSET(c) "/* set condition codes */\n\t"
+    #define WJR_ASM_CCOUT(c) "=@cc" #c
 #else
-#define WJR_ASM_CCSET(c) "set" #c " %[_cc_" #c "]\n\t"
-#define WJR_ASM_CCOUT(c) [_cc_##c] "=r"
+    #define WJR_ASM_CCSET(c) "set" #c " %[_cc_" #c "]\n\t"
+    #define WJR_ASM_CCOUT(c) [_cc_##c] "=r"
 #endif
 
 #if defined(WJR_DISABLE_EXCEPTIONS)
-#define WJR_EXCEPTIONS_IF(ENABLE, DISABLE) DISABLE
+    #define WJR_EXCEPTIONS_IF(ENABLE, DISABLE) DISABLE
 #else
-#define WJR_EXCEPTIONS_IF(ENABLE, DISABLE) ENABLE
+    #define WJR_EXCEPTIONS_IF(ENABLE, DISABLE) ENABLE
 #endif
 
 #define WJR_ENABLE_EXCEPTIONS_TRY_I try

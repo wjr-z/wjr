@@ -24,7 +24,7 @@
 // ODR-used static data declaration will be decorated with this macro. The users may
 // define this macro, before including the library headers, into whatever they want.
 #ifndef WJR_STATIC_DATA_SECTION
-#define WJR_STATIC_DATA_SECTION
+    #define WJR_STATIC_DATA_SECTION
 #endif
 
 namespace wjr {
@@ -59,6 +59,7 @@ struct ieee754_binary32 {
     static constexpr int decimal_significand_digits = 9;
     static constexpr int decimal_exponent_digits = 2;
 };
+
 struct ieee754_binary64 {
     static constexpr int total_bits = 64;
     static constexpr int significand_bits = 52;

@@ -1,36 +1,36 @@
-#ifndef WJR_X86_MATH_ADD_HPP__
-#define WJR_X86_MATH_ADD_HPP__
+#ifndef WJR_ARCH_X86_MATH_ADD_HPP__
+#define WJR_ARCH_X86_MATH_ADD_HPP__
 
 #include <wjr/type_traits.hpp>
 
 #ifndef WJR_X86
-#error "x86 required"
+    #error "x86 required"
 #endif
 
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
-#define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF
-#define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_DEF
-#define WJR_HAS_BUILTIN___ASM_ADD_128 WJR_HAS_DEF
-#define WJR_HAS_BUILTIN___ASM_ADDC_128 WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN___ASM_ADD_128 WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN___ASM_ADDC_128 WJR_HAS_DEF
 
-#if WJR_HAS_FEATURE(INLINE_ASM_CCCOND)
-#define WJR_HAS_BUILTIN_ASM_ADDC_CC WJR_HAS_DEF
-#define WJR_HAS_BUILTIN___ASM_ADDC_CC_128 WJR_HAS_DEF
-#endif
+    #if WJR_HAS_FEATURE(INLINE_ASM_CCCOND)
+        #define WJR_HAS_BUILTIN_ASM_ADDC_CC WJR_HAS_DEF
+        #define WJR_HAS_BUILTIN___ASM_ADDC_CC_128 WJR_HAS_DEF
+    #endif
 #else
 
-#if defined(WJR_MSVC)
-#define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF_VAR(2)
-#endif
+    #if defined(WJR_MSVC)
+        #define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF_VAR(2)
+    #endif
 
-#if defined(WJR_ENABLE_ASSEMBLY)
-#define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_DEF_VAR(3)
-#endif
+    #if defined(WJR_ENABLE_ASSEMBLY)
+        #define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_DEF_VAR(3)
+    #endif
 
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_ADDC) == 2
-#include <wjr/arch/x86/simd/intrin.hpp>
+    #include <wjr/arch/x86/simd/intrin.hpp>
 #endif
 
 namespace wjr {
@@ -55,7 +55,7 @@ namespace wjr {
 template <typename U>
 WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in,
                                        U &c_out) noexcept {
-#if WJR_HAS_BUILTIN(ASM_ADDC) == 1
+    #if WJR_HAS_BUILTIN(ASM_ADDC) == 1
     if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 1)) {
         if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
             asm("stc\n\t"
@@ -113,11 +113,11 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in,
     }
     c_out = c_in;
     return a;
-#else
+    #else
     uint64_t ret;
     c_out = fast_cast<U>(_addcarry_u64(fast_cast<unsigned char>(c_in), a, b, &ret));
     return ret;
-#endif
+    #endif
 }
 
 #endif
@@ -189,8 +189,8 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_ADDC_N)
-#define WJR_ADDSUB_I 1
-#include <wjr/arch/x86/math/gen_addsub.hpp>
+    #define WJR_ADDSUB_I 1
+    #include <wjr/arch/x86/math/gen_addsub.hpp>
 #endif
 
 #if WJR_HAS_BUILTIN(__ASM_ADD_128)
@@ -388,4 +388,4 @@ WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_128(uint64_t &al, uint64_t &ah, uint6
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_ADD_HPP__
+#endif // WJR_ARCH_X86_MATH_ADD_HPP__

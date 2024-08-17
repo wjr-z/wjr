@@ -1,5 +1,5 @@
-#ifndef WJR_X86_SIMD_SIMD_HPP__
-#define WJR_X86_SIMD_SIMD_HPP__
+#ifndef WJR_ARCH_X86_SIMD_SIMD_HPP__
+#define WJR_ARCH_X86_SIMD_SIMD_HPP__
 
 #include <wjr/arch/x86/simd/avx.hpp>
 
@@ -178,7 +178,7 @@ private:
 };
 
 #if WJR_HAS_SIMD(SSE2)
-#define WJR_HAS_SIMD_NATIVE_128BIT WJR_HAS_DEF
+    #define WJR_HAS_SIMD_NATIVE_128BIT WJR_HAS_DEF
 
 template <>
 class simd<uint8_t, simd_abi::fixed_size<16>> : public __x86_simd_base<uint8_t, 16, sse> {
@@ -215,7 +215,7 @@ public:
 #endif
 
 #if WJR_HAS_SIMD(AVX2)
-#define WJR_HAS_SIMD_NATIVE_256BIT WJR_HAS_DEF
+    #define WJR_HAS_SIMD_NATIVE_256BIT WJR_HAS_DEF
 
 template <>
 class simd<uint8_t, simd_abi::fixed_size<32>> : public __x86_simd_base<uint8_t, 32, avx> {
@@ -254,4 +254,4 @@ public:
 
 } // namespace wjr
 
-#endif // WJR_X86_SIMD_SIMD_HPP__
+#endif // WJR_ARCH_X86_SIMD_SIMD_HPP__

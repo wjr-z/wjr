@@ -1,5 +1,5 @@
-#ifndef WJR_X86_SIMD_AVX_HPP__
-#define WJR_X86_SIMD_AVX_HPP__
+#ifndef WJR_ARCH_X86_SIMD_AVX_HPP__
+#define WJR_ARCH_X86_SIMD_AVX_HPP__
 
 #include <wjr/arch/x86/simd/sse.hpp>
 
@@ -679,11 +679,11 @@ struct broadcast_fn<__m256i_t, __m256i_t> {
 template <>
 struct broadcast_fn<__m128i_t, __m256i_t> {
     WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(__m128i v) const {
-#if WJR_HAS_SIMD(AVX2)
+    #if WJR_HAS_SIMD(AVX2)
         return _mm256_broadcastsi128_si256(v);
-#else
+    #else
         return _mm256_insertf128_si256(_mm256_castsi128_si256(v), v, 1);
-#endif
+    #endif
     }
 };
 
@@ -723,11 +723,11 @@ int64_t avx::extract(__m256i v, int64_t) {
 
 template <int imm8>
 __m128i avx::extract_si128(__m256i v) {
-#if WJR_HAS_SIMD(AV2)
+    #if WJR_HAS_SIMD(AV2)
     return _mm256_extracti128_si256(v, imm8);
-#else
+    #else
     return _mm256_extractf128_si256(v, imm8);
-#endif
+    #endif
 }
 
 __m128i avx::getlow(__m256i a) { return simd_cast<__m256i_t, __m128i_t>(a); }
@@ -756,11 +756,11 @@ __m256i avx::insert_epi64(__m256i v, int64_t i) {
 
 template <int imm8>
 __m256i avx::insert_si128(__m256i a, __m128i b) {
-#if WJR_HAS_SIMD(AVX2)
+    #if WJR_HAS_SIMD(AVX2)
     return _mm256_inserti128_si256(a, b, imm8);
-#else
+    #else
     return _mm256_insertf128_si256(a, b, imm8);
-#endif
+    #endif
 }
 
 __m256i avx::load(const void *p) {
@@ -1654,4 +1654,4 @@ __m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) { return unpacklo_epi32(a,
 
 } // namespace wjr
 
-#endif // WJR_X86_SIMD_AVX_HPP__
+#endif // WJR_ARCH_X86_SIMD_AVX_HPP__

@@ -3,17 +3,17 @@
 // 1 : ADD
 
 #ifndef WJR_ADDSUB_I
-#error "abort"
+    #error "abort"
 #endif
 
 #if WJR_ADDSUB_I == 1
-#define WJR_addsub add
-#define WJR_adcsbb adc
-#define __WJR_TEST_ASSEMBLY ASM_ADDLSH_N
+    #define WJR_addsub add
+    #define WJR_adcsbb adc
+    #define __WJR_TEST_ASSEMBLY ASM_ADDLSH_N
 #else
-#define WJR_addsub rsb
-#define WJR_adcsbb sbb
-#define __WJR_TEST_ASSEMBLY ASM_RSBLSH_N
+    #define WJR_addsub rsb
+    #define WJR_adcsbb sbb
+    #define __WJR_TEST_ASSEMBLY ASM_RSBLSH_N
 #endif
 
 #if WJR_HAS_BUILTIN(__WJR_TEST_ASSEMBLY) == 1

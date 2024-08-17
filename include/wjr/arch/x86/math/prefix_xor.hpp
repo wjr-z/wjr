@@ -1,13 +1,13 @@
-#ifndef WJR_X86_MATH_PREFIX_XOR_HPP__
-#define WJR_X86_MATH_PREFIX_XOR_HPP__
+#ifndef WJR_ARCH_X86_MATH_PREFIX_XOR_HPP__
+#define WJR_ARCH_X86_MATH_PREFIX_XOR_HPP__
 
-#include <wjr/preprocessor.hpp>
 #include <wjr/arch/x86/simd/simd.hpp>
+#include <wjr/preprocessor.hpp>
 
 namespace wjr {
 
 #if WJR_HAS_SIMD(PCLMUL)
-#define WJR_HAS_BUILTIN_PREFIX_XOR WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_PREFIX_XOR WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_BUILTIN(PREFIX_XOR)
@@ -33,4 +33,4 @@ T builtin_prefix_xor(T x) noexcept {
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_PREFIX_XOR_HPP__
+#endif // WJR_ARCH_X86_MATH_PREFIX_XOR_HPP__

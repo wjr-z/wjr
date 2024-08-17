@@ -7,7 +7,7 @@
 #include <wjr/math/sub-impl.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/arch/x86/math/sub.hpp>
+    #include <wjr/arch/x86/math/sub.hpp>
 #endif
 
 namespace wjr {
@@ -24,7 +24,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_subc(T a, T b, U c_in, U &c_out) noexcept {
 }
 
 #if WJR_HAS_BUILTIN(__builtin_subc)
-#define WJR_HAS_BUILTIN_SUBC WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_SUBC WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_BUILTIN(SUBC)
@@ -33,13 +33,13 @@ template <typename T, typename U>
 WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-#define WJR_REGISTER_BUILTIN_SUBC(suffix, type)                                          \
-    if constexpr (nd <= std::numeric_limits<type>::digits) {                             \
-        type __c_out;                                                                    \
-        T ret = __builtin_subc##suffix(a, b, static_cast<type>(c_in), &__c_out);         \
-        c_out = static_cast<U>(__c_out);                                                 \
-        return ret;                                                                      \
-    } else
+    #define WJR_REGISTER_BUILTIN_SUBC(suffix, type)                                      \
+        if constexpr (nd <= std::numeric_limits<type>::digits) {                         \
+            type __c_out;                                                                \
+            T ret = __builtin_subc##suffix(a, b, static_cast<type>(c_in), &__c_out);     \
+            c_out = static_cast<U>(__c_out);                                             \
+            return ret;                                                                  \
+        } else
 
     WJR_REGISTER_BUILTIN_SUBC(b, unsigned char)
     WJR_REGISTER_BUILTIN_SUBC(s, unsigned short)
@@ -49,7 +49,7 @@ WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) noexcept {
         static_assert(nd <= 64, "not supported yet");
     }
 
-#undef WJR_REGISTER_BUILTIN_SUBC
+    #undef WJR_REGISTER_BUILTIN_SUBC
 }
 
 #endif // WJR_HAS_BUILTIN(SUBC)
@@ -126,7 +126,7 @@ WJR_INTRINSIC_CONSTEXPR20 T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noex
 }
 
 #if WJR_HAS_BUILTIN(__builtin_sub_overflow)
-#define WJR_HAS_BUILTIN_SUB_OVERFLOW WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_SUB_OVERFLOW WJR_HAS_DEF
 #endif
 
 template <typename T>
@@ -547,7 +547,7 @@ WJR_INTRINSIC_CONSTEXPR void __fallback_sub_128(uint64_t &al, uint64_t &ah, uint
 }
 
 #if WJR_HAS_FEATURE(FAST_INT128_ADDSUB)
-#define WJR_HAS_BUILTIN___BUILTIN_SUB_128 WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN___BUILTIN_SUB_128 WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_BUILTIN(__BUILTIN_SUBC_128)

@@ -94,7 +94,7 @@ WJR_CONST constexpr T __fasts_negate_with(T condition, T x) noexcept {
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
 WJR_CONST constexpr T __fasts_increment(T x) noexcept {
     WJR_ASSERT_L2(x != std::numeric_limits<T>::min() &&
-                      x != std::numeric_limits<T>::max());
+                  x != std::numeric_limits<T>::max());
 
     return x < 0 ? x - 1 : x + 1;
 }

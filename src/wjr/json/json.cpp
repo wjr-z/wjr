@@ -82,8 +82,8 @@ protected:
         return check_string(first, last);
     }
 
-    WJR_INTRINSIC_INLINE result<void> visit_object_key_string(const char *first,
-                                                              const char *last) noexcept {
+    WJR_INTRINSIC_INLINE result<void>
+    visit_object_key_string(const char *first, const char *last) const noexcept {
         return check_string(first, last);
     }
 
@@ -91,11 +91,11 @@ protected:
         return {};
     }
 
-    WJR_INTRINSIC_INLINE result<void> visit_object_start_object(uint32_t) noexcept {
+    WJR_INTRINSIC_INLINE result<void> visit_object_start_object(uint32_t) const noexcept {
         return {};
     }
 
-    WJR_INTRINSIC_INLINE result<void> visit_array_start_object(uint32_t) noexcept {
+    WJR_INTRINSIC_INLINE result<void> visit_array_start_object(uint32_t) const noexcept {
         return {};
     }
 
@@ -103,19 +103,20 @@ protected:
         return {};
     }
 
-    WJR_INTRINSIC_INLINE result<void> visit_object_start_array(uint32_t) noexcept {
+    WJR_INTRINSIC_INLINE result<void> visit_object_start_array(uint32_t) const noexcept {
         return {};
     }
 
-    WJR_INTRINSIC_INLINE result<void> visit_array_start_array(uint32_t) noexcept {
+    WJR_INTRINSIC_INLINE result<void> visit_array_start_array(uint32_t) const noexcept {
         return {};
     }
 
-    WJR_INTRINSIC_INLINE result<void> visit_end_object_to_object(uint32_t) noexcept {
+    WJR_INTRINSIC_INLINE result<void>
+    visit_end_object_to_object(uint32_t) const noexcept {
         return {};
     }
 
-    WJR_INTRINSIC_INLINE result<void> visit_end_object_to_array(uint32_t) noexcept {
+    WJR_INTRINSIC_INLINE result<void> visit_end_object_to_array(uint32_t) const noexcept {
         return {};
     }
 
@@ -123,11 +124,11 @@ protected:
         return {};
     }
 
-    WJR_INTRINSIC_INLINE result<void> visit_end_array_to_object(uint32_t) noexcept {
+    WJR_INTRINSIC_INLINE result<void> visit_end_array_to_object(uint32_t) const noexcept {
         return {};
     }
 
-    WJR_INTRINSIC_INLINE result<void> visit_end_array_to_array(uint32_t) noexcept {
+    WJR_INTRINSIC_INLINE result<void> visit_end_array_to_array(uint32_t) const noexcept {
         return {};
     }
 

@@ -4,7 +4,7 @@
 #include <wjr/json/lexer-impl.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/arch/x86/json/lexer.hpp>
+    #include <wjr/arch/x86/json/lexer.hpp>
 #endif
 
 #endif // WJR_JSON_LEXER_HPP__

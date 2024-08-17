@@ -472,13 +472,13 @@ uint64_t __wjr_asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_ADDLSH_N) == 1
-#define WJR_ADDSUB_I 1
-#include "gen_addrsblsh_n.hpp"
+    #define WJR_ADDSUB_I 1
+    #include "gen_addrsblsh_n.hpp"
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_RSBLSH_N) == 1
-#define WJR_ADDSUB_I 0
-#include "gen_addrsblsh_n.hpp"
+    #define WJR_ADDSUB_I 0
+    #include "gen_addrsblsh_n.hpp"
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S) == 1

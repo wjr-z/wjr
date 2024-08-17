@@ -1,5 +1,5 @@
-#ifndef WJR_X86_CONTAINER_GENERIC_BPLUS_TREE_HPP__
-#define WJR_X86_CONTAINER_GENERIC_BPLUS_TREE_HPP__
+#ifndef WJR_ARCH_X86_CONTAINER_GENERIC_BPLUS_TREE_HPP__
+#define WJR_ARCH_X86_CONTAINER_GENERIC_BPLUS_TREE_HPP__
 
 #include <algorithm>
 
@@ -8,7 +8,7 @@
 namespace wjr {
 
 #if WJR_HAS_SIMD(SSE2)
-#define WJR_HAS_BUILTIN_BPLUS_TREE_COPY WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_BPLUS_TREE_COPY WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
@@ -98,12 +98,12 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
                 }
             }
 
-#if WJR_HAS_SIMD(AVX2)
+    #if WJR_HAS_SIMD(AVX2)
             const auto x0 = avx::loadu(first);
             const auto x1 = avx::loadu(last - 32);
             avx::storeu(dest, x0);
             avx::storeu(dest + n - 32, x1);
-#else
+    #else
             const auto x0 = sse::loadu(first);
             const auto x1 = sse::loadu(first + 16);
             const auto x2 = sse::loadu(last - 32);
@@ -112,13 +112,13 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
             sse::storeu((dest + 16), x1);
             sse::storeu((dest + n - 32), x2);
             sse::storeu((dest + n - 16), x3);
-#endif
+    #endif
             return;
         } while (false);
     }
 
     if constexpr (size == 8) {
-#if WJR_HAS_SIMD(AVX2)
+    #if WJR_HAS_SIMD(AVX2)
         const auto x0 = avx::loadu(first);
         const auto x1 = avx::loadu(first + 32);
         const auto x2 = avx::loadu(last - 64);
@@ -127,7 +127,7 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
         avx::storeu((dest + 32), x1);
         avx::storeu((dest + n - 64), x2);
         avx::storeu((dest + n - 32), x3);
-#else
+    #else
         const auto x0 = sse::loadu(first);
         const auto x1 = sse::loadu(first + 16);
         const auto x2 = sse::loadu(first + 32);
@@ -144,7 +144,7 @@ WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
         sse::storeu((dest + n - 48), x5);
         sse::storeu((dest + n - 32), x6);
         sse::storeu((dest + n - 16), x7);
-#endif
+    #endif
     }
 }
 
@@ -241,12 +241,12 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
                 }
             }
 
-#if WJR_HAS_SIMD(AVX2)
+    #if WJR_HAS_SIMD(AVX2)
             const auto x0 = avx::loadu(first);
             const auto x1 = avx::loadu(last - 32);
             avx::storeu((dest - n), x0);
             avx::storeu((dest - 32), x1);
-#else
+    #else
             const auto x0 = sse::loadu(first);
             const auto x1 = sse::loadu(first + 16);
             const auto x2 = sse::loadu(last - 32);
@@ -255,13 +255,13 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
             sse::storeu((dest - n + 16), x1);
             sse::storeu((dest - 32), x2);
             sse::storeu((dest - 16), x3);
-#endif
+    #endif
             return;
         } while (false);
     }
 
     if constexpr (size == 8) {
-#if WJR_HAS_SIMD(AVX2)
+    #if WJR_HAS_SIMD(AVX2)
         const auto x0 = avx::loadu(first);
         const auto x1 = avx::loadu(first + 32);
         const auto x2 = avx::loadu(last - 64);
@@ -270,7 +270,7 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
         avx::storeu((dest - n + 32), x1);
         avx::storeu((dest - 64), x2);
         avx::storeu((dest - 32), x3);
-#else
+    #else
         const auto x0 = sse::loadu(first);
         const auto x1 = sse::loadu(first + 16);
         const auto x2 = sse::loadu(first + 32);
@@ -287,7 +287,7 @@ __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *las
         sse::storeu((dest - 48), x5);
         sse::storeu((dest - 32), x6);
         sse::storeu((dest - 16), x7);
-#endif
+    #endif
     }
 }
 
@@ -304,4 +304,4 @@ WJR_INTRINSIC_INLINE void builtin_bplus_tree_copy_backward(const Other *first,
 
 } // namespace wjr
 
-#endif // WJR_X86_CONTAINER_GENERIC_BPLUS_TREE_HPP__
+#endif // WJR_ARCH_X86_CONTAINER_GENERIC_BPLUS_TREE_HPP__

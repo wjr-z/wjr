@@ -14,15 +14,15 @@
 #include <wjr/memory/safe_pointer.hpp>
 
 #if defined(WJR_MSVC) && defined(WJR_X86)
-#define WJR_HAS_BUILTIN_MSVC_MULH64 WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_MSVC_MULH64 WJR_HAS_DEF
 #endif
 
 #if defined(WJR_X86)
-#include <wjr/arch/x86/math/mul.hpp>
+    #include <wjr/arch/x86/math/mul.hpp>
 #endif
 
 #if WJR_HAS_BUILTIN(MSVC_MULH64)
-#include <wjr/arch/x86/simd/intrin.hpp>
+    #include <wjr/arch/x86/simd/intrin.hpp>
 #endif
 
 namespace wjr {
@@ -85,20 +85,20 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t __mul_u64(uint64_t a, uint64_t b,
 
 #if WJR_HAS_BUILTIN(UMUL128)
     if (is_constant_evaluated()
-#if WJR_HAS_BUILTIN(ASM_UMUL128)
+    #if WJR_HAS_BUILTIN(ASM_UMUL128)
         || (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))
-#endif
+    #endif
     ) {
         return fallback_mul64(a, b, hi);
     }
 
-#if WJR_HAS_BUILTIN(ASM_UMUL128)
+    #if WJR_HAS_BUILTIN(ASM_UMUL128)
     // mov b to rax, then mul a
     // instead of mov a to rax, mov b to register, then mul
     if (WJR_BUILTIN_CONSTANT_P(b)) {
         return builtin_umul128(b, a, hi);
     }
-#endif
+    #endif
     return builtin_umul128(a, b, hi);
 #else
     return fallback_mul64(a, b, hi);
@@ -138,7 +138,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T mullo(T a, T b) noexcept {
 }
 
 #if WJR_HAS_BUILTIN(__builtin_mul_overflow)
-#define WJR_HAS_BUILTIN_MUL_OVERFLOW WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_MUL_OVERFLOW WJR_HAS_DEF
 #endif
 
 template <typename T>

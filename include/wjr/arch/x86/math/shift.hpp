@@ -1,10 +1,10 @@
-#ifndef WJR_X86_MATH_SHIFT_HPP__
-#define WJR_X86_MATH_SHIFT_HPP__
+#ifndef WJR_ARCH_X86_MATH_SHIFT_HPP__
+#define WJR_ARCH_X86_MATH_SHIFT_HPP__
 
 #include <wjr/arch/x86/simd/simd.hpp>
 
 #ifndef WJR_X86
-#error "x86 required"
+    #error "x86 required"
 #endif
 
 namespace wjr {
@@ -16,8 +16,8 @@ template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 T shrd(T lo, T hi, unsigned int c) noexcept;
 
 #if WJR_HAS_SIMD(SSE2)
-#define WJR_HAS_BUILTIN_LSHIFT_N WJR_HAS_DEF
-#define WJR_HAS_BUILTIN_RSHIFT_N WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_LSHIFT_N WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_RSHIFT_N WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_BUILTIN(LSHIFT_N) || WJR_HAS_BUILTIN(RSHIFT_N)
@@ -56,21 +56,22 @@ WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, __m128i c) noexcept {
 
 #if WJR_HAS_BUILTIN(LSHIFT_N)
 
-#define WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED(index)                                      \
-    do {                                                                                 \
-        __m128i x1 = sse::loadu(src - 3 - (index));                                      \
-        x0 = simd_cast<__m128_t, __m128i_t>(sse::template shuffle_ps<78>(                \
-            simd_cast<__m128i_t, __m128_t>(x1), simd_cast<__m128i_t, __m128_t>(x0)));    \
+    #define WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED(index)                                  \
+        do {                                                                             \
+            __m128i x1 = sse::loadu(src - 3 - (index));                                  \
+            x0 = simd_cast<__m128_t, __m128i_t>(                                         \
+                sse::template shuffle_ps<78>(simd_cast<__m128i_t, __m128_t>(x1),         \
+                                             simd_cast<__m128i_t, __m128_t>(x0)));       \
                                                                                          \
-        __m128i r0 = __mm_sll_epi64(x0, y);                                              \
-        __m128i r1 = __mm_srl_epi64(x1, z);                                              \
+            __m128i r0 = __mm_sll_epi64(x0, y);                                          \
+            __m128i r1 = __mm_srl_epi64(x1, z);                                          \
                                                                                          \
-        __m128i r = sse::Or(r0, r1);                                                     \
+            __m128i r = sse::Or(r0, r1);                                                 \
                                                                                          \
-        sse::storeu(dst - 2 - (index), r);                                               \
+            sse::storeu(dst - 2 - (index), r);                                           \
                                                                                          \
-        x0 = x1;                                                                         \
-    } while (false)
+            x0 = x1;                                                                     \
+        } while (false)
 
 template <bool is_constant, typename T>
 void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n,
@@ -167,7 +168,7 @@ WJR_INTRINSIC_INLINE void builtin_lshift_n_impl(T *dst, const T *src, size_t n,
     return large_builtin_lshift_n_impl<false>(dst, src, n, c);
 }
 
-#undef WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED
+    #undef WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED
 
 template <typename T>
 WJR_INTRINSIC_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned int c,
@@ -182,21 +183,22 @@ WJR_INTRINSIC_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned
 
 #if WJR_HAS_BUILTIN(RSHIFT_N)
 
-#define WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED(index)                                      \
-    do {                                                                                 \
-        __m128i x1 = sse::loadu(src + 1 + (index));                                      \
-        x0 = simd_cast<__m128_t, __m128i_t>(sse::template shuffle_ps<78>(                \
-            simd_cast<__m128i_t, __m128_t>(x0), simd_cast<__m128i_t, __m128_t>(x1)));    \
+    #define WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED(index)                                  \
+        do {                                                                             \
+            __m128i x1 = sse::loadu(src + 1 + (index));                                  \
+            x0 = simd_cast<__m128_t, __m128i_t>(                                         \
+                sse::template shuffle_ps<78>(simd_cast<__m128i_t, __m128_t>(x0),         \
+                                             simd_cast<__m128i_t, __m128_t>(x1)));       \
                                                                                          \
-        __m128i r0 = __mm_srl_epi64(x0, y);                                              \
-        __m128i r1 = __mm_sll_epi64(x1, z);                                              \
+            __m128i r0 = __mm_srl_epi64(x0, y);                                          \
+            __m128i r1 = __mm_sll_epi64(x1, z);                                          \
                                                                                          \
-        __m128i r = sse::Or(r0, r1);                                                     \
+            __m128i r = sse::Or(r0, r1);                                                 \
                                                                                          \
-        sse::storeu(dst + (index), r);                                                   \
+            sse::storeu(dst + (index), r);                                               \
                                                                                          \
-        x0 = x1;                                                                         \
-    } while (false)
+            x0 = x1;                                                                     \
+        } while (false)
 
 template <bool is_constant, typename T>
 void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n,
@@ -293,7 +295,7 @@ WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n,
     return large_builtin_rshift_n_impl<false>(dst, src, n, c);
 }
 
-#undef WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED
+    #undef WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED
 
 template <typename T>
 WJR_INTRINSIC_INLINE T builtin_rshift_n(T *dst, const T *src, size_t n, unsigned int c,
@@ -308,4 +310,4 @@ WJR_INTRINSIC_INLINE T builtin_rshift_n(T *dst, const T *src, size_t n, unsigned
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_SHIFT_HPP__
+#endif // WJR_ARCH_X86_MATH_SHIFT_HPP__

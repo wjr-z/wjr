@@ -103,7 +103,7 @@ const static std::array<uint8_t, 272> pshufb_combine_table = {
     0xff, 0xff, 0xff, 0xff,
 };
 
-#if !WJR_HAS_SIMD(AVX2)
+    #if !WJR_HAS_SIMD(AVX2)
 const static __m128i lh8_mask = sse::set1_epi8(0x0f);
 
 const static __m128i lo8_lookup =
@@ -126,7 +126,7 @@ WJR_INTRINSIC_INLINE void compress(char *dst, __m128i x, uint16_t mask) noexcept
     sse::storeu(dst, almostthere);
 }
 
-#else
+    #else
 const static __m256i lh8_mask = avx::set1_epi8(0x0f);
 const static __m256i lo8_lookup =
     avx::set_epi8(0, 0, 12, 1, 4, 10, 8, 0, 0, 0, 0, 0, 0, 0, 0, 16, 0, 0, 12, 1, 4, 10,
@@ -159,7 +159,7 @@ WJR_INTRINSIC_INLINE void compress(char *dst, __m256i x, uint32_t mask) noexcept
     sse::storeu(dst + 16 - popcount<uint16_t>(mask & 0xFFFF), avx::gethigh(almostthere));
 }
 
-#endif
+    #endif
 
 } // namespace lexer_detail
 
@@ -239,18 +239,19 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
             // colon : 2
             // brackets : 4
             // whitespace : 8, 16
+            // others : 0
 
-            const uint32_t stu = simd::movemask_epi8(
-                simd::cmpeq_epi8(simd::And(result, simd::set1_epi8(7)), simd::zeros()));
-            const uint32_t wsp = simd::movemask_epi8(
-                simd::cmpeq_epi8(simd::And(result, simd::set1_epi8(24)), simd::zeros()));
+            const uint32_t stu =
+                simd::movemask_epi8(simd::cmpgt_epi8(result, simd::zeros()));
+            const uint32_t wsp =
+                simd::movemask_epi8(simd::cmpgt_epi8(result, simd::set1_epi8(7)));
 
             S |= (uint64_t)(stu) << (i * u8_width);
             W |= (uint64_t)(wsp) << (i * u8_width);
         }
 
-        S = ~S;
-        W = ~W;
+        const auto WS = S;
+        S ^= W;
 
         if (WJR_LIKELY(!B)) {
             B = prev_is_escape;
@@ -266,11 +267,10 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
         const uint64_t R = prefix_xor(Q) ^ prev_in_string;
         prev_in_string = static_cast<uint64_t>(static_cast<int64_t>(R) >> 63);
 
-        const auto WS = S | W;
         const auto WT = shld(WS, prev_is_ws, 1);
         prev_is_ws = WS;
 
-        S |= (WT & ~W);
+        S |= WT & ~W;
         S &= ~R;
         S |= Q;
 
@@ -278,13 +278,16 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
             const auto num = popcount(S);
 
             do {
-                token_buf[0] = idx + ctz(S);
+                const auto __idx = idx;
+                WJR_ASSUME(!(__idx & 0x3F));
+
+                token_buf[0] = __idx + ctz(S);
                 S &= S - 1;
-                token_buf[1] = idx + ctz(S);
+                token_buf[1] = __idx + ctz(S);
                 S &= S - 1;
-                token_buf[2] = idx + ctz(S);
+                token_buf[2] = __idx + ctz(S);
                 S &= S - 1;
-                token_buf[3] = idx + ctz(S);
+                token_buf[3] = __idx + ctz(S);
 
                 if (WJR_UNLIKELY(num <= 4)) {
                     break;
@@ -292,13 +295,13 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
 
                 S &= S - 1;
 
-                token_buf[4] = idx + ctz(S);
+                token_buf[4] = __idx + ctz(S);
                 S &= S - 1;
-                token_buf[5] = idx + ctz(S);
+                token_buf[5] = __idx + ctz(S);
                 S &= S - 1;
-                token_buf[6] = idx + ctz(S);
+                token_buf[6] = __idx + ctz(S);
                 S &= S - 1;
-                token_buf[7] = idx + ctz(S);
+                token_buf[7] = __idx + ctz(S);
 
                 if (WJR_LIKELY(num <= 8)) {
                     break;
@@ -307,7 +310,7 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
                 S &= S - 1;
 
                 for (int i = 8; i < 12; ++i) {
-                    token_buf[i] = idx + ctz(S);
+                    token_buf[i] = __idx + ctz(S);
                     S &= S - 1;
                 }
 
@@ -316,7 +319,7 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
                 }
 
                 for (int i = 12; i < 16; ++i) {
-                    token_buf[i] = idx + ctz(S);
+                    token_buf[i] = __idx + ctz(S);
                     S &= S - 1;
                 }
 
@@ -325,7 +328,7 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
                 }
 
                 for (int i = 16; i < num; ++i) {
-                    token_buf[i] = idx + ctz(S);
+                    token_buf[i] = __idx + ctz(S);
                     S &= S - 1;
                 }
             } while (false);
@@ -411,6 +414,7 @@ char *minify(char *dst, const char *first, const char *last) noexcept {
 
             const auto result = simd::And(shuf_lo8, shuf_hi8);
             // whitespace : 8, 16
+            // others : 0, 1, 2, 4
 
             const uint32_t wsp = simd::movemask_epi8(
                 simd::cmpeq_epi8(simd::And(result, simd::set1_epi8(24)), simd::zeros()));

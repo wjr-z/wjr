@@ -4,13 +4,13 @@
  * @brief only preview
  * @version 0.1
  * @date 2024-07-14
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 
-#ifndef WJR_NETWORK_TIMER_HPP__
-#define WJR_NETWORK_TIMER_HPP__
+#ifndef WJR_CONCURRENCY_TIMER_HPP__
+#define WJR_CONCURRENCY_TIMER_HPP__
 
 /**
  * @file timing_wheels.hpp
@@ -178,4 +178,4 @@ protected:
 
 } // namespace wjr
 
-#endif // WJR_NETWORK_TIMER_HPP__
+#endif // WJR_CONCURRENCY_TIMER_HPP__

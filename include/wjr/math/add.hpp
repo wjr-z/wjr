@@ -6,7 +6,7 @@
 #include <wjr/math/replace.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/arch/x86/math/add.hpp>
+    #include <wjr/arch/x86/math/add.hpp>
 #endif
 
 namespace wjr {
@@ -23,7 +23,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_addc(T a, T b, U c_in, U &c_out) noexcept {
 }
 
 #if WJR_HAS_BUILTIN(__builtin_addc)
-#define WJR_HAS_BUILTIN_ADDC WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_ADDC WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_BUILTIN(ADDC)
@@ -32,13 +32,14 @@ template <typename T, typename U>
 WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-#define WJR_REGISTER_BUILTIN_ADDC(suffix, type)                                          \
-    if constexpr (nd <= std::numeric_limits<type>::digits) {                             \
-        type __c_out;                                                                    \
-        const T ret = __builtin_addc##suffix(a, b, static_cast<type>(c_in), &__c_out);   \
-        c_out = static_cast<U>(__c_out);                                                 \
-        return ret;                                                                      \
-    } else
+    #define WJR_REGISTER_BUILTIN_ADDC(suffix, type)                                      \
+        if constexpr (nd <= std::numeric_limits<type>::digits) {                         \
+            type __c_out;                                                                \
+            const T ret =                                                                \
+                __builtin_addc##suffix(a, b, static_cast<type>(c_in), &__c_out);         \
+            c_out = static_cast<U>(__c_out);                                             \
+            return ret;                                                                  \
+        } else
 
     WJR_REGISTER_BUILTIN_ADDC(b, unsigned char)
     WJR_REGISTER_BUILTIN_ADDC(s, unsigned short)
@@ -48,7 +49,7 @@ WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) noexcept {
         static_assert(nd <= 64, "not supported yet");
     }
 
-#undef WJR_REGISTER_BUILTIN_ADDC
+    #undef WJR_REGISTER_BUILTIN_ADDC
 }
 
 #endif // WJR_HAS_BUILTIN(ADDC)
@@ -144,7 +145,7 @@ WJR_INTRINSIC_CONSTEXPR20 T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noex
 }
 
 #if WJR_HAS_BUILTIN(__builtin_add_overflow)
-#define WJR_HAS_BUILTIN_ADD_OVERFLOW WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_ADD_OVERFLOW WJR_HAS_DEF
 #endif
 
 template <typename T>
@@ -354,7 +355,7 @@ WJR_INTRINSIC_CONSTEXPR void __fallback_add_128(uint64_t &al, uint64_t &ah, uint
 }
 
 #if WJR_HAS_FEATURE(FAST_INT128_ADDSUB)
-#define WJR_HAS_BUILTIN___BUILTIN_ADD_128 WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN___BUILTIN_ADD_128 WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_BUILTIN(__BUILTIN_ADD_128)

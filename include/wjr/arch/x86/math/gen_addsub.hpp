@@ -5,17 +5,17 @@
 #include <wjr/assert.hpp>
 
 #ifndef WJR_ADDSUB_I
-#error "abort"
+    #error "abort"
 #endif
 
 #if WJR_ADDSUB_I == 1
-#define WJR_addcsubc addc
-#define WJR_adcsbb adc
-#define __WJR_TEST_ASSEMBLY ASM_ADDC_N
+    #define WJR_addcsubc addc
+    #define WJR_adcsbb adc
+    #define __WJR_TEST_ASSEMBLY ASM_ADDC_N
 #else
-#define WJR_addcsubc subc
-#define WJR_adcsbb sbb
-#define __WJR_TEST_ASSEMBLY ASM_SUBC_N
+    #define WJR_addcsubc subc
+    #define WJR_adcsbb sbb
+    #define __WJR_TEST_ASSEMBLY ASM_SUBC_N
 #endif
 
 #if WJR_HAS_BUILTIN(__WJR_TEST_ASSEMBLY) == 1

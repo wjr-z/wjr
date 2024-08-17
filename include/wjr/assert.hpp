@@ -32,15 +32,15 @@
 #include <wjr/preprocessor.hpp>
 
 #ifndef WJR_DEBUG_LEVEL
-#if defined(NDEBUG)
-#define WJR_DEBUG_LEVEL 0
-#else
-#define WJR_DEBUG_LEVEL 1
-#endif
+    #if defined(NDEBUG)
+        #define WJR_DEBUG_LEVEL 0
+    #else
+        #define WJR_DEBUG_LEVEL 1
+    #endif
 #endif
 
 #if WJR_DEBUG_LEVEL < 0 || WJR_DEBUG_LEVEL > 3
-#error "WJR_DEBUG_LEVEL must be 0 ~ 3"
+    #error "WJR_DEBUG_LEVEL must be 0 ~ 3"
 #endif
 
 namespace wjr {

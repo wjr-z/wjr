@@ -5,15 +5,15 @@
 
 #if WJR_HAS_SIMD(POPCNT)
 
-#if WJR_HAS_BUILTIN(__builtin_popcount)
-#define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF
-#elif defined(WJR_MSVC)
-#define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF_VAR(2)
-#endif
+    #if WJR_HAS_BUILTIN(__builtin_popcount)
+        #define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF
+    #elif defined(WJR_MSVC)
+        #define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF_VAR(2)
+    #endif
 
-#if WJR_HAS_BUILTIN(POPCOUNT) == 2
-#include <wjr/arch/x86/simd/intrin.hpp>
-#endif
+    #if WJR_HAS_BUILTIN(POPCOUNT) == 2
+        #include <wjr/arch/x86/simd/intrin.hpp>
+    #endif
 
 #endif
 
@@ -78,7 +78,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR int fallback_popcount(T x) noexcept {
 template <typename T>
 WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
-#if WJR_HAS_BUILTIN(POPCOUNT) == 1
+    #if WJR_HAS_BUILTIN(POPCOUNT) == 1
     if constexpr (nd < 32) {
         return builtin_popcount(static_cast<uint32_t>(x));
     } else {
@@ -92,7 +92,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) noexcept {
             static_assert(nd <= 64, "not support yet");
         }
     }
-#else
+    #else
     if constexpr (nd < 32) {
         return builtin_popcount(static_cast<uint32_t>(x));
     } else {
@@ -105,7 +105,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) noexcept {
         }
     }
 
-#endif // WJR_HAS_BUILTIN(POPCOUNT)
+    #endif // WJR_HAS_BUILTIN(POPCOUNT)
 }
 
 #endif

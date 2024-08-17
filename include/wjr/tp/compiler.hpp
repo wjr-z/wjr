@@ -3,7 +3,6 @@
 
 #include <wjr/tp/list.hpp>
 
-namespace wjr {
-} // namespace wjr
+namespace wjr {} // namespace wjr
 
-#endif // WJR_TP_COMPILER_HPP__
+#endif           // WJR_TP_COMPILER_HPP__

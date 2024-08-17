@@ -7,7 +7,7 @@
 #include <wjr/json/detail.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/arch/x86/json/string.hpp>
+    #include <wjr/arch/x86/json/string.hpp>
 #endif
 
 namespace wjr::json {

@@ -7,7 +7,7 @@
 #include <wjr/simd/simd_mask.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/arch/x86/simd/simd.hpp>
+    #include <wjr/arch/x86/simd/simd.hpp>
 #endif
 
 namespace wjr {

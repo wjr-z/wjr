@@ -18,11 +18,11 @@
 #include <wjr/assert.hpp>
 
 #if WJR_DEBUG_LEVEL > 2
-#define WJR_HAS_DEBUG_NONSENDABLE_CHECKER WJR_HAS_DEF
+    #define WJR_HAS_DEBUG_NONSENDABLE_CHECKER WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_DEBUG(NONSENDABLE_CHECKER)
-#include <thread>
+    #include <thread>
 #endif
 
 namespace wjr {

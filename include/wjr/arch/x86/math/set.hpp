@@ -1,18 +1,18 @@
-#ifndef WJR_X86_MATH_SET_HPP__
-#define WJR_X86_MATH_SET_HPP__
+#ifndef WJR_ARCH_X86_MATH_SET_HPP__
+#define WJR_ARCH_X86_MATH_SET_HPP__
 
 #include <cstring>
 
 #include <wjr/arch/x86/simd/simd.hpp>
 
 #ifndef WJR_X86
-#error "x86 required"
+    #error "x86 required"
 #endif
 
 namespace wjr {
 
 #if WJR_HAS_SIMD(SSE2)
-#define WJR_HAS_BUILTIN_SET_N WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_SET_N WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_BUILTIN(SET_N)
@@ -173,14 +173,14 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
         return;
     }
 
-#if WJR_HAS_SIMD(AVX2)
+    #if WJR_HAS_SIMD(AVX2)
     if constexpr (is_avx) {
         auto z = broadcast<__m128i_t, __m256i_t>(y);
         avx::storeu(dst, z);
         avx::storeu(dst + n - type_width, z);
         return;
     }
-#endif
+    #endif
 
     WJR_UNREACHABLE();
 }
@@ -189,4 +189,4 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_SET_HPP__
+#endif // WJR_ARCH_X86_MATH_SET_HPP__

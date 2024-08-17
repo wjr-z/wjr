@@ -1,5 +1,5 @@
-#ifndef WJR_X86_SIMD_SSE_HPP__
-#define WJR_X86_SIMD_SSE_HPP__
+#ifndef WJR_ARCH_X86_SIMD_SSE_HPP__
+#define WJR_ARCH_X86_SIMD_SSE_HPP__
 
 #include <wjr/arch/x86/simd/simd_cast.hpp>
 
@@ -852,9 +852,9 @@ __m128i sse::adds(__m128i a, __m128i b, uint16_t) { return adds_epu16(a, b); }
 template <int imm8>
 __m128i sse::alignr(__m128i a, __m128i b) {
     constexpr int s = imm8 & 0x1F;
-#if WJR_HAS_SIMD(SSSE3)
+    #if WJR_HAS_SIMD(SSSE3)
     return _mm_alignr_epi8(a, b, s);
-#else
+    #else
     if constexpr (s == 0) {
         return b;
     }
@@ -865,7 +865,7 @@ __m128i sse::alignr(__m128i a, __m128i b) {
         return Or(slli<16 - s>(a), srli<s>(b));
     }
     return srli<s - 16>(a);
-#endif // SSSE3
+    #endif // SSSE3
 }
 
 __m128i sse::alignr_epi16(__m128i a, __m128i b, int c) {
@@ -913,13 +913,13 @@ __m128i sse::avg(__m128i a, __m128i b, uint16_t) { return avg_epu16(a, b); }
 
 // notice that mask must be 0 or 255(every byte)
 __m128i sse::blendv_epi8(__m128i a, __m128i b, __m128i mask) {
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return _mm_blendv_epi8(a, b, mask);
-#elif defined(WJR_COMPILER_GCC)
+    #elif defined(WJR_COMPILER_GCC)
     return ((~mask) & a) | (mask & b);
-#else
+    #else
     return Or(AndNot(mask, a), And(mask, b));
-#endif
+    #endif
 }
 
 __m128i sse::blendv_epi16(__m128i a, __m128i b, __m128i mask) {
@@ -976,59 +976,59 @@ __m128i sse::cmpeq(__m128i a, __m128i b, uint16_t) { return cmpeq_epi16(a, b); }
 __m128i sse::cmpeq(__m128i a, __m128i b, uint32_t) { return cmpeq_epi32(a, b); }
 
 __m128i sse::cmpge_epi8(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(XOP)
+    #if WJR_HAS_SIMD(XOP)
     return _mm_comge_epi8(a, b);
-#elif WJR_HAS_SIMD(SSE4_1)
+    #elif WJR_HAS_SIMD(SSE4_1)
     return cmpeq(min(a, b, int8_t()), b, uint8_t());
-#else
+    #else
     return Not(cmpgt(b, a, int8_t()));
-#endif
+    #endif
 }
 
 __m128i sse::cmpge_epi16(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(XOP)
+    #if WJR_HAS_SIMD(XOP)
     return _mm_comge_epi16(a, b);
-#else
+    #else
     return cmpeq(min(a, b, int16_t()), b, uint16_t());
-#endif
+    #endif
 }
 
 __m128i sse::cmpge_epi32(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(XOP)
+    #if WJR_HAS_SIMD(XOP)
     return _mm_comge_epi32(a, b);
-#elif WJR_HAS_SIMD(SSE4_1)
+    #elif WJR_HAS_SIMD(SSE4_1)
     return cmpeq(min(a, b, int32_t()), b, uint32_t());
-#else
+    #else
     return Not(cmpgt(b, a, int32_t()));
-#endif
+    #endif
 }
 
 __m128i sse::cmpge_epu8(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(XOP)
+    #if WJR_HAS_SIMD(XOP)
     return _mm_comge_epu8(a, b);
-#else
+    #else
     return cmpeq(min(a, b, uint8_t()), b, uint8_t());
-#endif
+    #endif
 }
 
 __m128i sse::cmpge_epu16(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(XOP)
+    #if WJR_HAS_SIMD(XOP)
     return _mm_comge_epu16(a, b);
-#elif WJR_HAS_SIMD(SSE4_1)
+    #elif WJR_HAS_SIMD(SSE4_1)
     return cmpeq(min(a, b, uint16_t()), b, uint16_t());
-#else
+    #else
     return logical_not(subs(b, a, uint16_t()), uint16_t());
-#endif
+    #endif
 }
 
 __m128i sse::cmpge_epu32(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(XOP)
+    #if WJR_HAS_SIMD(XOP)
     return _mm_comge_epu32(a, b);
-#elif WJR_HAS_SIMD(SSE4_1)
+    #elif WJR_HAS_SIMD(SSE4_1)
     return cmpeq(min(a, b, uint32_t()), b, uint32_t());
-#else
+    #else
     return Not(cmpgt(b, a, uint32_t()));
-#endif
+    #endif
 }
 
 __m128i sse::cmpge(__m128i a, __m128i b, int8_t) { return cmpge_epi8(a, b); }
@@ -1043,27 +1043,27 @@ __m128i sse::cmpgt_epi16(__m128i a, __m128i b) { return _mm_cmpgt_epi16(a, b); }
 __m128i sse::cmpgt_epi32(__m128i a, __m128i b) { return _mm_cmpgt_epi32(a, b); }
 
 __m128i sse::cmpgt_epu8(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(XOP)
+    #if WJR_HAS_SIMD(XOP)
     return _mm_comgt_epu8(a, b);
-#else
+    #else
     return cmpgt_epi8(Xor(a, setmin_epi8()), Xor(b, setmin_epi8()));
-#endif
+    #endif
 }
 
 __m128i sse::cmpgt_epu16(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(XOP)
+    #if WJR_HAS_SIMD(XOP)
     return _mm_comgt_epu16(a, b);
-#else
+    #else
     return cmpgt_epi16(Xor(a, setmin_epi16()), Xor(b, setmin_epi16()));
-#endif
+    #endif
 }
 
 __m128i sse::cmpgt_epu32(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(XOP)
+    #if WJR_HAS_SIMD(XOP)
     return _mm_comgt_epu32(a, b);
-#else
+    #else
     return cmpgt_epi32(Xor(a, setmin_epi32()), Xor(b, setmin_epi32()));
-#endif
+    #endif
 }
 
 __m128i sse::cmpgt(__m128i a, __m128i b, int8_t) { return cmpgt_epi8(a, b); }
@@ -1104,27 +1104,27 @@ __m128i sse::cmplt(__m128i a, __m128i b, uint16_t) { return cmplt_epu16(a, b); }
 __m128i sse::cmplt(__m128i a, __m128i b, uint32_t) { return cmplt_epu32(a, b); }
 
 __m128i sse::cmpne_epi8(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(XOP)
+    #if WJR_HAS_SIMD(XOP)
     return _mm_comneq_epi8(a, b);
-#else
+    #else
     return Not(cmpeq_epi8(a, b));
-#endif
+    #endif
 }
 
 __m128i sse::cmpne_epi16(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(XOP)
+    #if WJR_HAS_SIMD(XOP)
     return _mm_comneq_epi16(a, b);
-#else
+    #else
     return Not(cmpeq_epi16(a, b));
-#endif
+    #endif
 }
 
 __m128i sse::cmpne_epi32(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(XOP)
+    #if WJR_HAS_SIMD(XOP)
     return _mm_comneq_epi32(a, b);
-#else
+    #else
     return Not(cmpeq_epi32(a, b));
-#endif
+    #endif
 }
 
 __m128i sse::cmpne(__m128i a, __m128i b, int8_t) { return cmpne_epi8(a, b); }
@@ -1169,15 +1169,15 @@ __m128i sse::concat(uint64_t lo, uint64_t hi) { return set_epi64x(hi, lo); }
 template <int imm8>
 int sse::extract_epi8(__m128i a) {
     static_assert(imm8 >= 0 && imm8 < 16, "imm8 must be in range [0, 15]");
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return _mm_extract_epi8(a, imm8);
-#else
+    #else
     if constexpr (imm8 & 1) {
         return extract_epi16<(imm8 >> 1)>(a) >> 8;
     } else {
         return extract_epi16<(imm8 >> 1)>(a) & 0xff;
     }
-#endif
+    #endif
 }
 
 template <int imm8>
@@ -1189,9 +1189,9 @@ int sse::extract_epi16(__m128i a) {
 template <int imm8>
 int sse::extract_epi32(__m128i a) {
     static_assert(imm8 >= 0 && imm8 < 4, "imm8 must be in range [0, 3]");
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return _mm_extract_epi32(a, imm8);
-#else
+    #else
     if constexpr (imm8 == 0) {
         return simd_cast<__m128i_t, uint32_t>(a);
     } else if constexpr (imm8 == 1) {
@@ -1201,21 +1201,21 @@ int sse::extract_epi32(__m128i a) {
     } else {
         return simd_cast<__m128i_t, uint32_t>(shuffle_epi32<_MM_SHUFFLE(3, 3, 3, 3)>(a));
     }
-#endif
+    #endif
 }
 
 template <int imm8>
 int64_t sse::extract_epi64(__m128i a) {
     static_assert(imm8 >= 0 && imm8 < 2, "imm8 must be in range [0, 1]");
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return _mm_extract_epi64(a, imm8);
-#else
+    #else
     if constexpr (imm8 == 0) {
         return simd_cast<__m128i_t, uint64_t>(a);
     } else {
         return simd_cast<__m128i_t, uint64_t>(shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
     }
-#endif
+    #endif
 }
 
 template <int imm8>
@@ -1322,39 +1322,39 @@ void sse::maskmoveu(__m128i a, __m128i mask, char *mem_addr) {
 }
 
 __m128i sse::max_epi8(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return _mm_max_epi8(a, b);
-#else
+    #else
     return blendv_epi8(b, a, cmpgt_epi8(a, b));
-#endif
+    #endif
 }
 
 __m128i sse::max_epi16(__m128i a, __m128i b) { return _mm_max_epi16(a, b); }
 
 __m128i sse::max_epi32(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return _mm_max_epi32(a, b);
-#else
+    #else
     return blendv_epi8(b, a, cmpgt_epi32(a, b));
-#endif
+    #endif
 }
 
 __m128i sse::max_epu8(__m128i a, __m128i b) { return _mm_max_epu8(a, b); }
 
 __m128i sse::max_epu16(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return _mm_max_epu16(a, b);
-#else
+    #else
     return add(subs_epu16(b, a), a, uint16_t());
-#endif
+    #endif
 }
 
 __m128i sse::max_epu32(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return _mm_max_epu32(a, b);
-#else
+    #else
     return blendv_epi8(b, a, cmpgt_epu32(a, b));
-#endif
+    #endif
 }
 
 __m128i sse::max(__m128i a, __m128i b, int8_t) { return max_epi8(a, b); }
@@ -1367,14 +1367,14 @@ __m128i sse::max(__m128i a, __m128i b, uint32_t) { return max_epu32(a, b); }
 int8_t sse::max_epi8(__m128i a) { return 0x7fu ^ min_epu8(Xor(a, set1_epi8(0x7fu))); }
 
 int16_t sse::max_epi16(__m128i a) {
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return 0x7fffu ^ min_epu16(Xor(a, set1_epi16(0x7fffu)));
-#else
+    #else
     a = max_epi16(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
     a = max_epi16(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 3, 2)>(a));
     a = max_epi16(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 1, 0)>(a));
     return simd_cast<__m128i_t, int16_t>(a);
-#endif
+    #endif
 }
 
 int32_t sse::max_epi32(__m128i a) {
@@ -1384,26 +1384,26 @@ int32_t sse::max_epi32(__m128i a) {
 }
 
 uint8_t sse::max_epu8(__m128i a) {
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return 0xffu ^ min_epu8(Xor(a, ones()));
-#else
+    #else
     a = max_epu8(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
     a = max_epu8(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 3, 2)>(a));
     a = max_epu8(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 1, 0)>(a));
     auto X = simd_cast<__m128i_t, uint32_t>(a);
     return std::max((uint8_t)X, (uint8_t)(X >> 8));
-#endif
+    #endif
 }
 
 uint16_t sse::max_epu16(__m128i a) {
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return 0xffffu ^ min_epu16(Xor(a, ones()));
-#else
+    #else
     a = max_epu16(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
     a = max_epu16(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 3, 2)>(a));
     a = max_epu16(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 1, 0)>(a));
     return simd_cast<__m128i_t, uint16_t>(a);
-#endif
+    #endif
 }
 
 uint32_t sse::max_epu32(__m128i a) {
@@ -1422,39 +1422,39 @@ uint32_t sse::max(__m128i a, uint32_t) { return max_epu32(a); }
 void sse::mfence() { _mm_mfence(); }
 
 __m128i sse::min_epi8(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return _mm_min_epi8(a, b);
-#else
+    #else
     return blendv_epi8(a, b, cmpgt_epi8(a, b));
-#endif
+    #endif
 }
 
 __m128i sse::min_epi16(__m128i a, __m128i b) { return _mm_min_epi16(a, b); }
 
 __m128i sse::min_epi32(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return _mm_min_epi32(a, b);
-#else
+    #else
     return blendv_epi8(a, b, cmpgt_epi32(a, b));
-#endif
+    #endif
 }
 
 __m128i sse::min_epu8(__m128i a, __m128i b) { return _mm_min_epu8(a, b); }
 
 __m128i sse::min_epu16(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return _mm_min_epu16(a, b);
-#else
+    #else
     return blendv_epi8(a, b, cmpgt_epu16(a, b));
-#endif
+    #endif
 }
 
 __m128i sse::min_epu32(__m128i a, __m128i b) {
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return _mm_min_epu32(a, b);
-#else
+    #else
     return blendv_epi8(a, b, cmpgt_epu32(a, b));
-#endif
+    #endif
 }
 
 __m128i sse::min(__m128i a, __m128i b, int8_t) { return min_epi8(a, b); }
@@ -1467,14 +1467,14 @@ __m128i sse::min(__m128i a, __m128i b, uint32_t) { return min_epu32(a, b); }
 int8_t sse::min_epi8(__m128i a) { return 0x80u ^ min_epu8(Xor(a, setmin_epi8())); }
 
 int16_t sse::min_epi16(__m128i a) {
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return 0x8000u ^ min_epu16(Xor(a, setmin_epi16()));
-#else
+    #else
     a = min_epi16(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
     a = min_epi16(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 3, 2)>(a));
     a = min_epi16(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 1, 0)>(a));
     return simd_cast<__m128i_t, int16_t>(a);
-#endif
+    #endif
 }
 
 int32_t sse::min_epi32(__m128i a) {
@@ -1484,28 +1484,28 @@ int32_t sse::min_epi32(__m128i a) {
 }
 
 uint8_t sse::min_epu8(__m128i a) {
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     a = min_epu8(a, srli_epi16(a, 8));
     a = _mm_minpos_epu16(a);
     return simd_cast<__m128i_t, uint8_t>(a);
-#else
+    #else
     a = min_epu8(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
     a = min_epu8(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 3, 2)>(a));
     a = min_epu8(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 1, 0)>(a));
     auto X = simd_cast<__m128i_t, uint32_t>(a);
     return std::min((uint8_t)X, (uint8_t)(X >> 8));
-#endif
+    #endif
 }
 
 uint16_t sse::min_epu16(__m128i a) {
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return simd_cast<__m128i_t, uint16_t>(_mm_minpos_epu16(a));
-#else
+    #else
     a = min_epu16(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
     a = min_epu16(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 3, 2)>(a));
     a = min_epu16(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 1, 0)>(a));
     return simd_cast<__m128i_t, uint16_t>(a);
-#endif
+    #endif
 }
 
 uint32_t sse::min_epu32(__m128i a) {
@@ -1550,27 +1550,27 @@ __m128i sse::mulhi_epu16(__m128i a, __m128i b) { return _mm_mulhi_epu16(a, b); }
 __m128i sse::mullo_epi16(__m128i a, __m128i b) { return _mm_mullo_epi16(a, b); }
 
 __m128i sse::negate_epi8(__m128i a) {
-#if WJR_HAS_SIMD(SSSE3)
+    #if WJR_HAS_SIMD(SSSE3)
     return sign_epi8(a, ones());
-#else
+    #else
     return sub_epi8(zeros(), a);
-#endif
+    #endif
 }
 
 __m128i sse::negate_epi16(__m128i a) {
-#if WJR_HAS_SIMD(SSSE3)
+    #if WJR_HAS_SIMD(SSSE3)
     return sign_epi16(a, ones());
-#else
+    #else
     return sub_epi16(zeros(), a);
-#endif
+    #endif
 }
 
 __m128i sse::negate_epi32(__m128i a) {
-#if WJR_HAS_SIMD(SSSE3)
+    #if WJR_HAS_SIMD(SSSE3)
     return sign_epi32(a, ones());
-#else
+    #else
     return sub_epi32(zeros(), a);
-#endif
+    #endif
 }
 
 __m128i sse::negate_epi64(__m128i a) { return sub_epi64(zeros(), a); }
@@ -1602,11 +1602,11 @@ __m128i sse::loadu_si80(const void *ptr) {
 }
 
 __m128i sse::loadu_si96(const void *ptr) {
-#if WJR_HAS_SIMD(SSE4_1)
+    #if WJR_HAS_SIMD(SSE4_1)
     return insert_epi32<2>(loadu_si64(ptr), reinterpret_cast<const uint32_t *>(ptr)[2]);
-#else
+    #else
     return insert_epi16<5>(loadu_si80(ptr), reinterpret_cast<const uint16_t *>(ptr)[5]);
-#endif
+    #endif
 }
 
 __m128i sse::loadu_si112(const void *ptr) {
@@ -2033,4 +2033,4 @@ int sse::testz(__m128i a, __m128i b) { return _mm_testz_si128(a, b); }
 
 } // namespace wjr
 
-#endif // WJR_X86_SIMD_SSE_HPP__
+#endif // WJR_ARCH_X86_SIMD_SSE_HPP__

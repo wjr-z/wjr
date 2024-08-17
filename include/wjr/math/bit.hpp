@@ -75,7 +75,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_floor(T x) noexcept {
 }
 
 #if WJR_HAS_BUILTIN(__builtin_bit_cast) || WJR_HAS_MSVC(19, 27)
-#define WJR_HAS_BUILTIN_BIT_CAST WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_BIT_CAST WJR_HAS_DEF
 #endif
 
 template <typename To, typename From,
@@ -132,12 +132,14 @@ WJR_INTRINSIC_INLINE To bitwise_cast_impl(From const &from, std::false_type) noe
 
 } // namespace bit_detail
 
-template <typename To, typename From>
+template <
+    typename To, typename From,
+    WJR_REQUIRES(std::is_trivially_copyable_v<From> &&std::is_trivially_copyable_v<To>)>
 WJR_INTRINSIC_INLINE To bitwise_cast(From const &from) noexcept {
     return bit_detail::bitwise_cast_impl<To>(
-        from, std::bool_constant<(
-                  sizeof(From) == sizeof(To) &&
-                  atomics::detail::has_unique_object_representations<From>::value)>());
+        from,
+        std::bool_constant<(sizeof(From) == sizeof(To) &&
+                            std::has_unique_object_representations<From>::value)>());
 }
 
 } // namespace wjr

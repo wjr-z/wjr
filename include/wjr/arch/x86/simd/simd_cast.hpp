@@ -1,10 +1,10 @@
-#ifndef WJR_X86_SIMD_SIMD_CAST_HPP__
-#define WJR_X86_SIMD_SIMD_CAST_HPP__
+#ifndef WJR_ARCH_X86_SIMD_SIMD_CAST_HPP__
+#define WJR_ARCH_X86_SIMD_SIMD_CAST_HPP__
 
 #include <cstdint>
 
-#include <wjr/simd/detail.hpp>
 #include <wjr/arch/x86/simd/intrin.hpp>
+#include <wjr/simd/detail.hpp>
 
 namespace wjr {
 
@@ -377,4 +377,4 @@ struct simd_cast_fn<__m256i_t, uint64_t> {
 
 } // namespace wjr
 
-#endif // WJR_X86_SIMD_SIMD_CAST_HPP__
+#endif // WJR_ARCH_X86_SIMD_SIMD_CAST_HPP__

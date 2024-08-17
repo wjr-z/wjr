@@ -5,7 +5,7 @@
 #include <wjr/type_traits.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/arch/x86/math/compare.hpp>
+    #include <wjr/arch/x86/math/compare.hpp>
 #endif
 
 namespace wjr {
@@ -88,8 +88,8 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR20 int reverse_compare_n(const T *src0, const T 
 }
 
 #if WJR_HAS_FEATURE(FAST_INT128_COMPARE)
-#define WJR_HAS_BUILTIN___BUILTIN_LESS_128 WJR_HAS_DEF
-#define WJR_HAS_BUILTIN___BUILTIN_LESS_EQUAL_128 WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN___BUILTIN_LESS_128 WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN___BUILTIN_LESS_EQUAL_128 WJR_HAS_DEF
 #endif
 
 WJR_INTRINSIC_CONSTEXPR20 bool __fallback_less_128(uint64_t lo0, uint64_t hi0,

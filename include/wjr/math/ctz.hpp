@@ -5,13 +5,13 @@
 #include <wjr/math/popcount.hpp>
 
 #if WJR_HAS_BUILTIN(__builtin_ctz)
-#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF
 #elif defined(WJR_MSVC) && defined(WJR_X86)
-#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF_VAR(2)
+    #define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF_VAR(2)
 #endif
 
 #if WJR_HAS_BUILTIN(CTZ) == 2
-#include <wjr/arch/x86/simd/intrin.hpp>
+    #include <wjr/arch/x86/simd/intrin.hpp>
 #endif
 
 namespace wjr {
@@ -53,7 +53,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) noexcept {
     if constexpr (nd < 32) {
         return builtin_ctz(static_cast<uint32_t>(x));
     } else {
-#if WJR_HAS_BUILTIN(CTZ) == 1
+    #if WJR_HAS_BUILTIN(CTZ) == 1
         if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
             return __builtin_ctz(static_cast<unsigned int>(x));
         } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
@@ -63,7 +63,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) noexcept {
         } else {
             static_assert(nd <= 64, "not supported yet");
         }
-#else
+    #else
         if constexpr (nd == 32) {
             unsigned long result;
             (void)_BitScanForward(&result, x);
@@ -73,7 +73,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) noexcept {
             (void)_BitScanForward64(&result, x);
             return result;
         }
-#endif
+    #endif
     }
 }
 

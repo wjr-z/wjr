@@ -27,8 +27,7 @@ public:
         : Mybase(enable_default_constructor), m_value() {}
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
-    constexpr capture_leaf(Args &&...args) noexcept(
-        std::is_constructible_v<T, Args...>)
+    constexpr capture_leaf(Args &&...args) noexcept(std::is_constructible_v<T, Args...>)
         : Mybase(enable_default_constructor), m_value(std::forward<Args>(args)...) {}
 
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>

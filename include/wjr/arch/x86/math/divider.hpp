@@ -1,16 +1,16 @@
-#ifndef WJR_X86_MATH_DIVIDER_HPP__
-#define WJR_X86_MATH_DIVIDER_HPP__
+#ifndef WJR_ARCH_X86_MATH_DIVIDER_HPP__
+#define WJR_ARCH_X86_MATH_DIVIDER_HPP__
 
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
 
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
-#define WJR_HAS_BUILTIN_ASM_DIV2BY1_ADJUST WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_ASM_DIV2BY1_ADJUST WJR_HAS_DEF
 
-#if defined(WJR_COMPILER_CLANG) && !WJR_HAS_CLANG(13, 0, 0)
-#define WJR_HAS_BUILTIN_ASM_DIV2BY1_ADJUST_BRANCH WJR_HAS_DEF
-#endif
+    #if defined(WJR_COMPILER_CLANG) && !WJR_HAS_CLANG(13, 0, 0)
+        #define WJR_HAS_BUILTIN_ASM_DIV2BY1_ADJUST_BRANCH WJR_HAS_DEF
+    #endif
 
 #endif
 
@@ -41,4 +41,4 @@ WJR_INTRINSIC_INLINE void asm_div2by1_adjust_branch(T div, T &lo) noexcept {
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_DIVIDER_HPP__
+#endif // WJR_ARCH_X86_MATH_DIVIDER_HPP__

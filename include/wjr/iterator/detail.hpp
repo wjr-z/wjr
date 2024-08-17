@@ -123,7 +123,7 @@ using iterator_contiguous_pointer_t =
     std::add_pointer_t<iterator_contiguous_value_t<Iter>>;
 
 #if WJR_DEBUG_LEVEL > 1
-#define WJR_HAS_DEBUG_CONTIGUOUS_ITERATOR_CHECK WJR_HAS_DEF
+    #define WJR_HAS_DEBUG_CONTIGUOUS_ITERATOR_CHECK WJR_HAS_DEF
 #endif
 
 } // namespace wjr

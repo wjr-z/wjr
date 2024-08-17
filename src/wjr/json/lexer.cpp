@@ -103,6 +103,8 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
             const auto num = popcount(S);
 
             do {
+                WJR_ASSUME(!(idx & 0x3F));
+
                 token_buf[0] = idx + ctz(S);
                 S &= S - 1;
                 token_buf[1] = idx + ctz(S);

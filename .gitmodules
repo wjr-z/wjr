@@ -1,0 +1,3 @@
+[submodule "third-party/atomic"]
+	path = third-party/atomic
+	url = https://github.com/boostorg/atomic.git

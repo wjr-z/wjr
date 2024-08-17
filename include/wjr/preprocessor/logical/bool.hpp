@@ -2,7 +2,6 @@
 #define WJR_PREPROCESSOR_LOGICAL_BOOL_HPP__
 
 #define WJR_PP_BOOL(x) WJR_PP_BOOL_I(x)
-
 #define WJR_PP_BOOL_I(x) WJR_PP_BOOL_##x
 
 #define WJR_PP_BOOL_0 0

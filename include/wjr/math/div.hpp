@@ -4,7 +4,7 @@
 #include <wjr/math/uint128_t.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/arch/x86/math/div.hpp>
+    #include <wjr/arch/x86/math/div.hpp>
 #endif
 
 namespace wjr {

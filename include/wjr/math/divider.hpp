@@ -7,7 +7,7 @@
 #include <wjr/math/mul.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/arch/x86/math/divider.hpp>
+    #include <wjr/arch/x86/math/divider.hpp>
 #endif
 
 namespace wjr {

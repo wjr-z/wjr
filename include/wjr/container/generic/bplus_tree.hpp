@@ -10,7 +10,7 @@
  * less than or equal to 16. \n
  * After improvement, the number of queries for the i-th query is
  * [1, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10], the average number of queries
- * is 6.56 times. In fact, the probability of querying smaller nodes is slightly greater
+ * is 6.56 times. In fact, the probability of querying smaller nodes is sliFghtly greater
  * than that of larger nodes, so the actual number of queries will be less. If the
  * comparison operation of key_type is more complex, it is not recommended to use B+ tree,
  * because the number of queries of B+ tree will be more, thus offsetting the advantages
@@ -30,7 +30,7 @@
 #include <wjr/memory/uninitialized.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/arch/x86/container/generic/bplus_tree.hpp>
+    #include <wjr/arch/x86/container/generic/bplus_tree.hpp>
 #endif
 
 namespace wjr {

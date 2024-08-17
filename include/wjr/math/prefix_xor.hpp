@@ -4,7 +4,7 @@
 #include <wjr/type_traits.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/arch/x86/math/prefix_xor.hpp>
+    #include <wjr/arch/x86/math/prefix_xor.hpp>
 #endif
 
 namespace wjr {

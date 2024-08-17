@@ -1,21 +1,21 @@
-#ifndef WJR_X86_FORMAT_CHARCONV_HPP__
-#define WJR_X86_FORMAT_CHARCONV_HPP__
+#ifndef WJR_ARCH_X86_FORMAT_CHARCONV_HPP__
+#define WJR_ARCH_X86_FORMAT_CHARCONV_HPP__
 
-#include <wjr/format/charconv-impl.hpp>
 #include <wjr/arch/x86/simd/simd.hpp>
+#include <wjr/format/charconv-impl.hpp>
 
 #ifndef WJR_X86
-#error "x86 required"
+    #error "x86 required"
 #endif
 
 namespace wjr {
 
 #if WJR_HAS_SIMD(SSE4_1)
-#define WJR_HAS_BUILTIN_TO_CHARS_UNROLL_8_FAST WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_TO_CHARS_UNROLL_8_FAST WJR_HAS_DEF
 
-#define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_4_FAST WJR_HAS_DEF
-#define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_8_FAST WJR_HAS_DEF
-#define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_16_FAST WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_4_FAST WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_8_FAST WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_16_FAST WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
@@ -194,4 +194,4 @@ uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, origin_converter_t) 
 
 } // namespace wjr
 
-#endif // WJR_X86_FORMAT_CHARCONV_HPP__
+#endif // WJR_ARCH_X86_FORMAT_CHARCONV_HPP__

@@ -1,17 +1,17 @@
-#ifndef WJR_X86_MATH_NOT_HPP__
-#define WJR_X86_MATH_NOT_HPP__
+#ifndef WJR_ARCH_X86_MATH_NOT_HPP__
+#define WJR_ARCH_X86_MATH_NOT_HPP__
 
-#include <wjr/math/detail.hpp>
 #include <wjr/arch/x86/simd/simd.hpp>
+#include <wjr/math/detail.hpp>
 
 #ifndef WJR_X86
-#error "x86 required"
+    #error "x86 required"
 #endif
 
 namespace wjr {
 
 #if WJR_HAS_SIMD(SSE2)
-#define WJR_HAS_BUILTIN_COMPLEMENT_N WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_COMPLEMENT_N WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_BUILTIN(COMPLEMENT_N)
@@ -221,4 +221,4 @@ WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) noexcept
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_NOT_HPP__
+#endif // WJR_ARCH_X86_MATH_NOT_HPP__
