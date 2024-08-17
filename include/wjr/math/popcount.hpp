@@ -7,12 +7,12 @@
 
 #if WJR_HAS_BUILTIN(__builtin_popcount)
 #define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF
-#elif defined(WJR_COMPILER_MSVC)
+#elif defined(WJR_MSVC)
 #define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF_VAR(2)
 #endif
 
 #if WJR_HAS_BUILTIN(POPCOUNT) == 2
-#include <wjr/x86/simd/intrin.hpp>
+#include <wjr/arch/x86/simd/intrin.hpp>
 #endif
 
 #endif

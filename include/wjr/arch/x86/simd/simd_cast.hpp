@@ -4,7 +4,7 @@
 #include <cstdint>
 
 #include <wjr/simd/detail.hpp>
-#include <wjr/x86/simd/intrin.hpp>
+#include <wjr/arch/x86/simd/intrin.hpp>
 
 namespace wjr {
 

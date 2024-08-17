@@ -267,6 +267,12 @@
 #define WJR_NONNULL(...)
 #endif
 
+#if WJR_HAS_ATTRIBUTE(__may_alias__)
+#define WJR_MAY_ALIAS __attribute__((__may_alias__))
+#else
+#define WJR_MAY_ALIAS
+#endif
+
 #define WJR_INLINE inline
 #define WJR_CONSTEXPR constexpr
 

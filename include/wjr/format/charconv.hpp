@@ -13,7 +13,7 @@
 #include <wjr/string.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/x86/format/charconv.hpp>
+#include <wjr/arch/x86/format/charconv.hpp>
 #endif
 
 namespace wjr {

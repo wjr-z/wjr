@@ -20,6 +20,15 @@ WJR_INTRINSIC_INLINE result<void> check(const reader &rd) noexcept {
 template <typename Traits>
 class basic_json;
 
+template <typename T>
+struct is_json : std::false_type {};
+
+template <typename Traits>
+struct is_json<basic_json<Traits>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_json_v = is_json<T>::value;
+
 namespace detail {
 
 template <template <typename Char, typename Traits, typename Alloc> typename String,
@@ -237,8 +246,9 @@ WJR_REGISTER_HAS_TYPE(construct_to_json,
                   ::wjr::json::__in_place_json_serializer_object_t)                      \
         : WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                    \
               (__VA_ARGS__), __WJR_REGISTER_JSON_SERIALIZER_COPY_CONSTRUCTOR_CALLER)) {} \
-    template <typename Json>                                                             \
-    explicit Type(const Json &__wjr_json, ::wjr::json::in_place_json_serializer_t)       \
+    template <typename Traits>                                                           \
+    explicit Type(const ::wjr::json::basic_json<Traits> &__wjr_json,                     \
+                  ::wjr::json::in_place_json_serializer_t)                               \
         : Type(__wjr_json.template get<::wjr::json::object_t>(),                         \
                ::wjr::json::__in_place_json_serializer_object) {}
 
@@ -247,8 +257,9 @@ WJR_REGISTER_HAS_TYPE(construct_to_json,
     explicit Type(Object &&__wjr_obj, ::wjr::json::__in_place_json_serializer_object_t)  \
         : WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                    \
               (__VA_ARGS__), __WJR_REGISTER_JSON_SERIALIZER_MOVE_CONSTRUCTOR_CALLER)) {} \
-    template <typename Json, WJR_REQUIRES(!std::is_lvalue_reference_v<Json>)>            \
-    explicit Type(Json &&__wjr_json, ::wjr::json::in_place_json_serializer_t)            \
+    template <typename Traits>                                                           \
+    explicit Type(::wjr::json::basic_json<Traits> &&__wjr_json,                          \
+                  ::wjr::json::in_place_json_serializer_t)                               \
         : Type(std::move(__wjr_json.template get<::wjr::json::object_t>()),              \
                ::wjr::json::__in_place_json_serializer_object) {}
 
@@ -265,8 +276,8 @@ WJR_REGISTER_HAS_TYPE(construct_to_json,
             (__VA_ARGS__), __WJR_REGISTER_JSON_SERIALIZER_COPY_ASSIGN_CALLER));          \
         return *this;                                                                    \
     }                                                                                    \
-    template <typename Json>                                                             \
-    Type &operator=(const Json &__wjr_json) {                                            \
+    template <typename Traits>                                                           \
+    Type &operator=(const ::wjr::json::basic_json<Traits> &__wjr_json) {                 \
         return __assign(__wjr_json.template get<::wjr::json::object_t>(),                \
                         ::wjr::json::in_place_json_serializer);                          \
     }
@@ -279,8 +290,8 @@ WJR_REGISTER_HAS_TYPE(construct_to_json,
             (__VA_ARGS__), __WJR_REGISTER_JSON_SERIALIZER_MOVE_ASSIGN_CALLER));          \
         return *this;                                                                    \
     }                                                                                    \
-    template <typename Json>                                                             \
-    Type &operator=(Json &&__wjr_json) {                                                 \
+    template <typename Traits>                                                           \
+    Type &operator=(::wjr::json::basic_json<Traits> &&__wjr_json) {                      \
         return __assign(std::move(__wjr_json.template get<::wjr::json::object_t>()),     \
                         ::wjr::json::in_place_json_serializer);                          \
     }
@@ -310,12 +321,12 @@ void __json_destroy(T *ptr) noexcept(std::is_nothrow_destructible_v<T> && noexce
 }
 
 namespace detail {
-template <typename Formatter, typename Json>
-void format_impl(Formatter fmt, const Json &j, unsigned int depth);
+template <typename Formatter, typename Traits>
+void format_impl(Formatter fmt, const basic_json<Traits> &j, unsigned int depth) noexcept;
 }
 
-template <typename Formatter, typename Json>
-void format(Formatter fmt, const Json &j) {
+template <typename Formatter, typename Traits>
+void format(Formatter fmt, const basic_json<Traits> &j) noexcept {
     detail::format_impl(fmt, j, 0);
 }
 
@@ -616,7 +627,7 @@ public:
     static result<basic_json> parse(const reader &rd) noexcept;
 
     template <typename Container>
-    void dump_impl(Container &cont, unsigned indents = -1) const {
+    void dump_impl(Container &cont, unsigned indents = -1) const noexcept {
         if (indents == -1u) {
             format(minify_formatter(std::back_inserter(cont)), *this);
         } else {
@@ -624,14 +635,16 @@ public:
         }
     }
 
+    WJR_PURE std::string dump(unsigned indents = -1) const noexcept {
+        std::string str;
+        dump_impl(str, indents);
+        return str;
+    }
+
     /**
      * @brief Use minify formatter as default.
      */
-    std::string to_string() const {
-        std::string str;
-        dump_impl(str);
-        return str;
-    }
+    WJR_PURE std::string to_string() const noexcept { return dump(); }
 
     reference at(size_type idx) { return get<array_t>().at(idx); }
     const_reference at(size_type idx) const { return get<array_t>().at(idx); }
@@ -935,7 +948,7 @@ struct json_serializer_impl<std::nullptr_t, void> {
     }
 
     template <typename Json>
-    static value_type construct(const Json &j) {
+    WJR_PURE static value_type construct(const Json &j) {
         value_type val;
         assign(j, val);
         return val;
@@ -967,7 +980,7 @@ struct json_serializer_impl<bool, void> {
     }
 
     template <typename Json>
-    static value_type construct(const Json &j) {
+    WJR_PURE static value_type construct(const Json &j) {
         value_type val;
         assign(j, val);
         return val;
@@ -1017,7 +1030,7 @@ struct __json_serializer_arithmetic {
     }
 
     template <typename Json>
-    static value_type construct(const Json &j) {
+    WJR_PURE static value_type construct(const Json &j) {
         value_type val;
         assign(j, val);
         return val;
@@ -1089,7 +1102,7 @@ struct json_serializer_impl<std::string_view, void> {
     }
 
     template <typename Json>
-    constexpr static Json construct(const value_type &val) {
+    WJR_PURE constexpr static Json construct(const value_type &val) {
         return Json(string_t(), __json_create<typename Json::string_type>(val));
     }
 };
@@ -1730,8 +1743,8 @@ result<basic_json<Traits>> basic_json<Traits>::parse(const reader &rd) noexcept 
 
 namespace detail {
 
-template <typename Formatter, typename Json>
-void format_impl(Formatter fmt, const Json &j, unsigned depth) {
+template <typename Formatter, typename Traits>
+void format_impl(Formatter fmt, const basic_json<Traits> &j, unsigned depth) noexcept {
     switch (j.type()) {
     case value_t::null: {
         fmt.format_null();
@@ -1837,7 +1850,6 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
         vector<char, math_detail::weak_stack_alloc<char>> buffer(stkal);
         buffer.clear_if_reserved(256);
 
-        const std::ios_base::fmtflags flags = os.flags();
         const std::streamsize indents = os.width();
 
         j.dump_impl(buffer, indents);
@@ -1848,6 +1860,44 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
 
     os.setstate(state);
     return os;
+}
+
+template <typename Traits>
+bool operator==(const basic_json<Traits> &lhs, const basic_json<Traits> &rhs) {
+    switch (lhs.type()) {
+    case value_t::null: {
+        return rhs.is_null();
+    }
+    case value_t::boolean: {
+        return rhs.is_boolean();
+    }
+    case value_t::number_unsigned:
+    case value_t::number_signed:
+    case value_t::number_float: {
+        return rhs.is_number() && (static_cast<double>(lhs) == static_cast<double>(rhs));
+    }
+    case value_t::string: {
+        return rhs.is_string() &&
+               lhs.template get_unsafe<string_t>() == rhs.template get_unsafe<string_t>();
+    }
+    case value_t::object: {
+        return rhs.is_object() &&
+               lhs.template get_unsafe<object_t>() == rhs.template get_unsafe<object_t>();
+    }
+    case value_t::array: {
+        return rhs.is_array() &&
+               lhs.template get_unsafe<array_t>() == rhs.template get_unsafe<array_t>();
+    }
+    default: {
+        WJR_UNREACHABLE();
+        return false;
+    }
+    }
+}
+
+template <typename Traits>
+bool operator!=(const basic_json<Traits> &lhs, const basic_json<Traits> &rhs) {
+    return !(lhs == rhs);
 }
 
 } // namespace wjr::json

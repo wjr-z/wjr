@@ -3,7 +3,7 @@
 
 #include <algorithm>
 
-#include <wjr/x86/simd/simd.hpp>
+#include <wjr/arch/x86/simd/simd.hpp>
 
 namespace wjr {
 

@@ -1,7 +1,7 @@
 #ifndef WJR_X86_MATH_FIND_HPP__
 #define WJR_X86_MATH_FIND_HPP__
 
-#include <wjr/x86/math/large-find-impl.hpp>
+#include <wjr/arch/x86/math/large-find-impl.hpp>
 
 namespace wjr {
 

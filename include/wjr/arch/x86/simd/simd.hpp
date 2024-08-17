@@ -1,7 +1,7 @@
 #ifndef WJR_X86_SIMD_SIMD_HPP__
 #define WJR_X86_SIMD_SIMD_HPP__
 
-#include <wjr/x86/simd/avx.hpp>
+#include <wjr/arch/x86/simd/avx.hpp>
 
 namespace wjr {
 

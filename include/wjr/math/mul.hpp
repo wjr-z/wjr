@@ -18,11 +18,11 @@
 #endif
 
 #if defined(WJR_X86)
-#include <wjr/x86/math/mul.hpp>
+#include <wjr/arch/x86/math/mul.hpp>
 #endif
 
 #if WJR_HAS_BUILTIN(MSVC_MULH64)
-#include <wjr/x86/simd/intrin.hpp>
+#include <wjr/arch/x86/simd/intrin.hpp>
 #endif
 
 namespace wjr {

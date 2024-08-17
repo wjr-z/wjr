@@ -2,7 +2,7 @@
 #define WJR_X86_MATH_NOT_HPP__
 
 #include <wjr/math/detail.hpp>
-#include <wjr/x86/simd/simd.hpp>
+#include <wjr/arch/x86/simd/simd.hpp>
 
 #ifndef WJR_X86
 #error "x86 required"

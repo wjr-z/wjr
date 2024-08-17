@@ -7,11 +7,10 @@
 #include <wjr/json/detail.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/x86/json/string.hpp>
+#include <wjr/arch/x86/json/string.hpp>
 #endif
 
 namespace wjr::json {
-
 namespace string_detail {
 
 inline constexpr std::array<uint8_t, 256> escape_table = {

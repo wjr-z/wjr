@@ -30,7 +30,7 @@
 #include <wjr/memory/uninitialized.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/x86/container/generic/bplus_tree.hpp>
+#include <wjr/arch/x86/container/generic/bplus_tree.hpp>
 #endif
 
 namespace wjr {

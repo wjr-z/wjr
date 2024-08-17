@@ -2,7 +2,7 @@
 #define WJR_X86_MATH_PREFIX_XOR_HPP__
 
 #include <wjr/preprocessor.hpp>
-#include <wjr/x86/simd/simd.hpp>
+#include <wjr/arch/x86/simd/simd.hpp>
 
 namespace wjr {
 

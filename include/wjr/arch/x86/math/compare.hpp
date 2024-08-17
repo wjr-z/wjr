@@ -1,7 +1,7 @@
 #ifndef WJR_X86_MATH_COMPARE_HPP__
 #define WJR_X86_MATH_COMPARE_HPP__
 
-#include <wjr/x86/math/large-compare-impl.hpp>
+#include <wjr/arch/x86/math/large-compare-impl.hpp>
 
 namespace wjr {
 

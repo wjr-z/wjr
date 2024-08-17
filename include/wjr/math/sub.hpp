@@ -7,7 +7,7 @@
 #include <wjr/math/sub-impl.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/x86/math/sub.hpp>
+#include <wjr/arch/x86/math/sub.hpp>
 #endif
 
 namespace wjr {

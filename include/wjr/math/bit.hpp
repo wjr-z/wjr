@@ -16,7 +16,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
     // If not use __builtin_clz and use popcount, then don't need to handle zero.
-#if WJR_HAS_BUILTIN(CLZ) || !WJR_HAS_BUILTIN(POPCOUNT) 
+#if WJR_HAS_BUILTIN(CLZ) || !WJR_HAS_BUILTIN(POPCOUNT)
     if (WJR_UNLIKELY(x == 0)) {
         return std::numeric_limits<T>::digits;
     }
@@ -28,7 +28,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_zero(T x) noexcept {
     // If not use __builtin_ctz and use popcount, then don't need to handle zero.
-#if WJR_HAS_BUILTIN(CTZ) || !WJR_HAS_BUILTIN(POPCOUNT) 
+#if WJR_HAS_BUILTIN(CTZ) || !WJR_HAS_BUILTIN(POPCOUNT)
     if (WJR_UNLIKELY(x == 0)) {
         return std::numeric_limits<T>::digits;
     }
@@ -74,14 +74,70 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_floor(T x) noexcept {
     return 0;
 }
 
+#if WJR_HAS_BUILTIN(__builtin_bit_cast) || WJR_HAS_MSVC(19, 27)
+#define WJR_HAS_BUILTIN_BIT_CAST WJR_HAS_DEF
+#endif
+
 template <typename To, typename From,
           WJR_REQUIRES(sizeof(To) == sizeof(From) && std::is_trivially_copyable_v<From> &&
                        std::is_trivially_copyable_v<To>)>
 WJR_PURE WJR_INTRINSIC_INLINE To bit_cast(const From &src) noexcept {
     static_assert(std::is_trivially_constructible_v<To>, "");
+#if WJR_HAS_BUILTIN(BIT_CAST)
+    return __builtin_bit_cast(To, src);
+#else
     To dst;
-    std::memcpy(&dst, &src, sizeof(To));
+    std::memcpy(std::addressof(dst), std::addressof(src), sizeof(To));
     return dst;
+#endif
+}
+
+namespace bit_detail {
+
+template <size_t ValueSize, typename To>
+WJR_INTRINSIC_INLINE void clear_tail_padding_bits(To &to, std::true_type) noexcept {
+    std::memset(reinterpret_cast<unsigned char *>(std::addressof(to)) + ValueSize, 0,
+                sizeof(To) - ValueSize);
+}
+
+template <size_t ValueSize, typename To>
+WJR_INTRINSIC_INLINE void clear_tail_padding_bits(To &, std::false_type) noexcept {}
+
+template <size_t ValueSize, typename To>
+WJR_INTRINSIC_INLINE void clear_tail_padding_bits(To &to) noexcept {
+    clear_tail_padding_bits<ValueSize>(to,
+                                       std::bool_constant<(ValueSize < sizeof(To))>());
+}
+
+template <typename To, typename From>
+WJR_INTRINSIC_INLINE To bitwise_cast_memcpy(From const &from) noexcept {
+    constexpr auto copy_size = sizeof(From) < sizeof(To) ? sizeof(From) : sizeof(To);
+    To dst;
+    std::memcpy(std::addressof(dst), std::addressof(from), copy_size);
+    clear_tail_padding_bits<sizeof(From)>(dst);
+    return dst;
+}
+
+template <typename To, typename From>
+WJR_INTRINSIC_INLINE To bitwise_cast_impl(From const &from, std::true_type) noexcept {
+    // This implementation is only called when the From type has no padding and From and
+    // To have the same size
+    return bit_cast<To>(from);
+}
+
+template <typename To, typename From>
+WJR_INTRINSIC_INLINE To bitwise_cast_impl(From const &from, std::false_type) noexcept {
+    return bitwise_cast_memcpy<To>(from);
+}
+
+} // namespace bit_detail
+
+template <typename To, typename From>
+WJR_INTRINSIC_INLINE To bitwise_cast(From const &from) noexcept {
+    return bit_detail::bitwise_cast_impl<To>(
+        from, std::bool_constant<(
+                  sizeof(From) == sizeof(To) &&
+                  atomics::detail::has_unique_object_representations<From>::value)>());
 }
 
 } // namespace wjr

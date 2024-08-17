@@ -11,7 +11,7 @@
 #endif
 
 #if WJR_HAS_BUILTIN(CLZ) == 2
-#include <wjr/x86/simd/intrin.hpp>
+#include <wjr/arch/x86/simd/intrin.hpp>
 #endif
 
 namespace wjr {

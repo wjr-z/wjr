@@ -4,7 +4,7 @@
 #include <wjr/type_traits.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/x86/math/not.hpp>
+#include <wjr/arch/x86/math/not.hpp>
 #endif
 
 namespace wjr {

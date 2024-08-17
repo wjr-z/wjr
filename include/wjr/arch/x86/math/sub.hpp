@@ -30,7 +30,7 @@
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_SUBC) == 2
-#include <wjr/x86/simd/intrin.hpp>
+#include <wjr/arch/x86/simd/intrin.hpp>
 #endif
 
 namespace wjr {
@@ -128,7 +128,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc_cc(uint64_t a, uint64_t b, uint8_t c_in,
 
 #if WJR_HAS_BUILTIN(ASM_SUBC_N)
 #define WJR_ADDSUB_I 0
-#include <wjr/x86/math/gen_addsub.hpp>
+#include <wjr/arch/x86/math/gen_addsub.hpp>
 #endif
 
 #if WJR_HAS_BUILTIN(__ASM_SUB_128)

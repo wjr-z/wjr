@@ -2,10 +2,10 @@
 #define WJR_X86_MATH_MUL_HPP__
 
 #include <wjr/assert.hpp>
-#include <wjr/x86/math/mul-impl.hpp>
+#include <wjr/arch/x86/math/mul-impl.hpp>
 
 #if WJR_HAS_BUILTIN(MSVC_UMUL128)
-#include <wjr/x86/simd/intrin.hpp>
+#include <wjr/arch/x86/simd/intrin.hpp>
 #endif
 
 namespace wjr {
@@ -83,12 +83,12 @@ WJR_INTRINSIC_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, s
 
 #if WJR_HAS_BUILTIN(ASM_ADDLSH_N)
 #define WJR_ADDSUB_I 1
-#include <wjr/x86/math/gen_addrsblsh_n.hpp>
+#include <wjr/arch/x86/math/gen_addrsblsh_n.hpp>
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_RSBLSH_N)
 #define WJR_ADDSUB_I 0
-#include <wjr/x86/math/gen_addrsblsh_n.hpp>
+#include <wjr/arch/x86/math/gen_addrsblsh_n.hpp>
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)

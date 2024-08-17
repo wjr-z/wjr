@@ -1,7 +1,7 @@
 #ifndef WJR_X86_FORMAT_UTF8_HPP__
 #define WJR_X86_FORMAT_UTF8_HPP__
 
-#include <wjr/x86/simd/simd.hpp>
+#include <wjr/arch/x86/simd/simd.hpp>
 
 namespace wjr::utf8 {} // namespace wjr::utf8
 

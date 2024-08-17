@@ -6,7 +6,7 @@
 #include <wjr/math/replace.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/x86/math/add.hpp>
+#include <wjr/arch/x86/math/add.hpp>
 #endif
 
 namespace wjr {
