@@ -22,14 +22,14 @@ namespace wjr {
 
 namespace to_chars_detail {
 
-const static __m128i mul10p4 = simd_cast<uint32_t, __m128i_t>(3518437209);
-const static __m128i mul10p4x = simd_cast<uint32_t, __m128i_t>(10000);
-const static __m128i mul10p2 = sse::set1_epi16(5243);
-const static __m128i mul10p2x = sse::set1_epi16(100);
-const static __m128i mul10p1 = sse::set1_epi16((short)52429u);
-const static __m128i mul10p1x = sse::set1_epi16(10);
+inline const __m128i mul10p4 = simd_cast<uint32_t, __m128i_t>(3518437209);
+inline const __m128i mul10p4x = simd_cast<uint32_t, __m128i_t>(10000);
+inline const __m128i mul10p2 = sse::set1_epi16(5243);
+inline const __m128i mul10p2x = sse::set1_epi16(100);
+inline const __m128i mul10p1 = sse::set1_epi16((short)52429u);
+inline const __m128i mul10p1x = sse::set1_epi16(10);
 
-const static __m128i shuf =
+inline const __m128i shuf =
     sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
 
 } // namespace to_chars_detail
@@ -106,22 +106,22 @@ inline constexpr uint64_t __base8 = __base4<Base> * __base4<Base>;
 
 /// @private
 template <uint64_t Base>
-const static __m128i mulp1x = sse::setr_epi8(Base, 1, Base, 1, Base, 1, Base, 1, Base, 1,
+inline const __m128i mulp1x = sse::setr_epi8(Base, 1, Base, 1, Base, 1, Base, 1, Base, 1,
                                              Base, 1, Base, 1, Base, 1);
 
 /// @private
 template <uint64_t Base>
-const static __m128i mulp2x = sse::setr_epi16(__base2<Base>, 1, __base2<Base>, 1,
+inline const __m128i mulp2x = sse::setr_epi16(__base2<Base>, 1, __base2<Base>, 1,
                                               __base2<Base>, 1, __base2<Base>, 1);
 
 /// @private
 template <uint64_t Base>
-const static __m128i mulp4x = sse::setr_epi16(__base4<Base>, 1, __base4<Base>, 1,
+inline const __m128i mulp4x = sse::setr_epi16(__base4<Base>, 1, __base4<Base>, 1,
                                               __base4<Base>, 1, __base4<Base>, 1);
 
 /// @private
 template <uint64_t Base>
-const static __m128i baseu8 =
+inline const __m128i baseu8 =
     sse::setr_epi8(Base, Base, Base, Base, Base, Base, Base, 0xff, 0xff, 0xff, 0xff, 0xff,
                    0xff, 0xff, 0xff, 0xff);
 
