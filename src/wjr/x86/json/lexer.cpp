@@ -167,6 +167,7 @@ WJR_INTRINSIC_INLINE void compress(char *dst, __m256i x, uint32_t mask) noexcept
 
 #if WJR_HAS_BUILTIN(JSON_LEXER_READER_READ_BUF)
 
+/// @todo Unroll two times maybe faster on some platforms.
 typename lexer::result_type lexer::read(uint32_t *token_buf,
                                         size_type token_buf_size) noexcept {
     if (WJR_UNLIKELY(first == last)) {
@@ -416,13 +417,11 @@ char *minify(char *dst, const char *first, const char *last) noexcept {
             // whitespace : 8, 16
             // others : 0, 1, 2, 4
 
-            const uint32_t wsp = simd::movemask_epi8(
-                simd::cmpeq_epi8(simd::And(result, simd::set1_epi8(24)), simd::zeros()));
+            const uint32_t wsp =
+                simd::movemask_epi8(simd::cmpgt_epi8(result, simd::set1_epi8(7)));
 
             W |= (uint64_t)(wsp) << (i * u8_width);
         }
-
-        W = ~W;
 
         if (WJR_LIKELY(!B)) {
             B = prev_is_escape;
@@ -439,6 +438,7 @@ char *minify(char *dst, const char *first, const char *last) noexcept {
         prev_in_string = static_cast<uint64_t>(static_cast<int64_t>(R) >> 63);
         W &= ~(R | Q);
 
+        // this is last block
         if (WJR_UNLIKELY(first == last)) {
             auto buf_end = buf;
             for (unsigned i = 0; i < u8_loop; ++i) {

@@ -2079,18 +2079,36 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
         const char *before = p;
         // can occur at most twice without overflowing, but let it occur more, since
         // for integers with many digits, digit parsing is the primary bottleneck.
-        while ((std::distance(p, last) >= 8) && is_made_of_eight_digits_fast(p)) {
-            uval = uval * 100000000 +
-                   parse_eight_digits_unrolled(
-                       p); // in rare cases, this will overflow, but that's ok
-            p += 8;
+        if (last - p >= 8) {
+            if (is_made_of_eight_digits_fast(p)) {
+                do {
+                    uval = uval * 100000000 + parse_eight_digits_unrolled(p);
+                    p += 8;
+
+                    if (last - p < 8) {
+                        while ((p != last) && is_integer(*p)) {
+                            uval = uval * 10 + uint32_t(*p - '0');
+                            ++p;
+                        }
+
+                        goto POINT_DONE;
+                    }
+
+                } while (is_made_of_eight_digits_fast(p));
+            }
+
+            while (is_integer(*p)) {
+                uval = uval * 10 + uint32_t(*p - '0');
+                ++p;
+            }
+        } else {
+            while ((p != last) && is_integer(*p)) {
+                uval = uval * 10 + uint32_t(*p - '0');
+                ++p;
+            }
         }
 
-        while ((p != last) && is_integer(*p)) {
-            const auto digit = uint32_t(*p - '0');
-            ++p;
-            uval = uval * 10 + digit; // in rare cases, this will overflow, but that's ok
-        }
+    POINT_DONE:
 
         exponent = before - p;
         pns.fraction = span<const char>(before, size_t(p - before));
