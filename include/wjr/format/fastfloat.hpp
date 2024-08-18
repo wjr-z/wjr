@@ -91,7 +91,7 @@ from_chars_result<> from_chars(const char *first, const char *last, double &valu
 template <typename T, WJR_REQUIRES(is_any_of_v<T, float, double>)>
 from_chars_result<> from_chars(const char *first, const char *last, T &value,
                                chars_format fmt) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(fmt)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(fmt)) {
         if (fmt == chars_format::general) {
             return from_chars(first, last, value);
         }
@@ -1990,12 +1990,8 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
     constexpr bool is_support_integral = Writer::support_integral::value;
     constexpr bool is_constant_options = !std::is_same_v<Op, chars_format>;
 
-    from_chars_result<> answer;
-
     if (WJR_UNLIKELY(first == last)) {
-        answer.ec = std::errc::invalid_argument;
-        answer.ptr = first;
-        return answer;
+        return {first, std::errc::invalid_argument};
     }
 
     const char *p = first;
@@ -2006,9 +2002,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
 
     if (*p == '-') { // C++17 20.19.3.(7.1) explicitly forbids '+' sign here
         if (++p == last) {
-            answer.ec = std::errc{};
-            answer.ptr = first;
-            return answer;
+            return {first, std::errc::invalid_argument};
         }
     }
 
@@ -2029,10 +2023,9 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
         uint8_t ch = *p;
         if (!__try_match(ch)) { // This situation rarely occurs
             if constexpr (is_constant_options) {
+                // digit_count is zero, this is an error in json.
                 if (fmt & to_underlying(chars_format::__json_format)) {
-                    answer.ec = std::errc{};
-                    answer.ptr = first;
-                    return answer;
+                    return {first, std::errc::invalid_argument};
                 }
             }
 
@@ -2061,7 +2054,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
             if (fmt & to_underlying(chars_format::__json_format)) {
                 // at least 1 digit in integer part, without leading zeros
                 if (digit_count == 0 || (start_digits[0] == '0' && digit_count > 1)) {
-                    return answer;
+                    return {first, std::errc::invalid_argument};
                 }
             }
         }
@@ -2175,8 +2168,9 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
     }
 
     do {
-        answer.ec = std::errc(); // be optimistic
+        from_chars_result<> answer;
         answer.ptr = p;
+        answer.ec = std::errc(); // be optimistic
         bool too_many_digits = false;
 
         // If we frequently had to deal with long strings of digits,
@@ -2321,14 +2315,15 @@ INTEGER_AT_END:
         if (fmt & to_underlying(chars_format::__json_format)) {
             // at least 1 digit in integer part, without leading zeros
             if (digit_count == 0 || (start_digits[0] == '0' && digit_count > 1)) {
-                return answer;
+                return {first, std::errc::invalid_argument};
             }
         }
     }
 
 INTEGER:
-    answer.ec = std::errc(); // be optimistic
+    from_chars_result<> answer;
     answer.ptr = p;
+    answer.ec = std::errc(); // be optimistic
 
     // If we frequently had to deal with long strings of digits,
     // we could extend our code by using a 128-bit integer instead

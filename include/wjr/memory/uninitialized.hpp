@@ -718,7 +718,10 @@ using __uninitialized_base_selector =
 
 template <typename T>
 struct __uninitialized_control_base : __uninitialized_base_selector<T> {
+private:
     using Mybase = __uninitialized_base_selector<T>;
+
+public:
     using Mybase::Mybase;
 
     template <typename U = T, WJR_REQUIRES(std::is_copy_constructible_v<U>)>

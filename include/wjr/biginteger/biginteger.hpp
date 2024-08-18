@@ -129,7 +129,8 @@ public:
     ~default_biginteger_vector_storage() = default;
 
     void deallocate(_Alty &al) noexcept {
-        if (WJR_BUILTIN_CONSTANT_P_TRUE(data() == nullptr)) {
+        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(data() ==
+                                                                       nullptr)) {
             return;
         }
 
@@ -264,6 +265,13 @@ __from_chars_impl<default_biginteger_storage>(
     const char *first, const char *last,
     basic_biginteger<default_biginteger_storage> *dst, unsigned int base) noexcept;
 
+/// @brief No need to check if it is valid characters.
+template <typename S>
+from_chars_result<const char *>
+__from_chars_characters_unchecked_impl(const char *first, const char *last,
+                                       basic_biginteger<S> *dst,
+                                       unsigned int base) noexcept;
+
 /// @private
 WJR_PURE inline int32_t __compare_impl(const biginteger_data *lhs,
                                        const biginteger_data *rhs) noexcept;
@@ -279,7 +287,7 @@ WJR_PURE inline int32_t __compare_si_impl(const biginteger_data *lhs,
 /// @private
 template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE int32_t __compare_impl(const biginteger_data *lhs, T rhs) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(rhs == 0)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(rhs == 0)) {
         const int32_t ssize = lhs->get_ssize();
         return ssize == 0 ? 0 : ssize < 0 ? -1 : 1;
     }
@@ -287,7 +295,7 @@ WJR_PURE int32_t __compare_impl(const biginteger_data *lhs, T rhs) noexcept {
     if constexpr (std::is_unsigned_v<T>) {
         return __compare_ui_impl(lhs, rhs);
     } else {
-        if (WJR_BUILTIN_CONSTANT_P_TRUE(rhs >= 0)) {
+        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(rhs >= 0)) {
             return __compare_ui_impl(lhs, to_unsigned(rhs));
         }
 
@@ -740,8 +748,9 @@ Iter to_chars_unchecked(Iter ptr, const biginteger_data &src,
     return biginteger_to_chars(ptr, src.data(), src.size(), base);
 }
 
-template <typename S>
-std::istream &operator>>(std::istream &is, basic_biginteger<S> &dst) noexcept;
+template <typename Traits, typename S>
+std::basic_istream<char, Traits> &operator>>(std::basic_istream<char, Traits> &is,
+                                             basic_biginteger<S> &dst) noexcept;
 
 template <typename Traits>
 std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &os,
@@ -834,7 +843,8 @@ void sqr(basic_biginteger<S> &dst, const biginteger_data &src) noexcept {
 template <typename S>
 void mul(basic_biginteger<S> &dst, const biginteger_data &lhs,
          const biginteger_data &rhs) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(std::addressof(lhs) == std::addressof(rhs))) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(std::addressof(lhs) ==
+                                                                   std::addressof(rhs))) {
         sqr(dst, lhs);
         return;
     }
@@ -1244,6 +1254,9 @@ public:
     WJR_PURE size_type capacity() const noexcept { return m_vec.capacity(); }
     WJR_PURE bool zero() const noexcept { return empty(); }
 
+    WJR_PURE size_type bit_width() const noexcept { return wjr::bit_width(*this); }
+    WJR_PURE size_type ctz() const noexcept { return wjr::ctz(*this); }
+
     void reserve(size_type new_capacity) noexcept { m_vec.reserve(new_capacity); }
     void clear_if_reserved(size_type new_capacity) noexcept {
         m_vec.clear_if_reserved(new_capacity);
@@ -1506,7 +1519,7 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
             if (++first != last) {
                 if (last - first >= 8) {
                     do {
-                        if (!check_eight_digits<branch::free>(first, base)) {
+                        if (!check_eight_digits(first, base)) {
                             break;
                         }
 
@@ -1566,6 +1579,187 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
                 ch = *first;
             } while (__try_match(ch));
         }
+
+        const uint32_t str_size = static_cast<uint32_t>(first - __first);
+        uint32_t capacity;
+
+        switch (base) {
+        case 2: {
+            capacity = __ceil_div(str_size, 64);
+            break;
+        }
+        case 8: {
+            capacity = __ceil_div(str_size * 3, 64);
+            break;
+        }
+        case 16: {
+            capacity = __ceil_div(str_size, 16);
+            break;
+        }
+        case 4:
+        case 32: {
+            const int bits = base == 4 ? 2 : 5;
+            capacity = __ceil_div(str_size * bits, 64);
+            break;
+        }
+        case 10: {
+            // capacity = (str_size * log2(10) + 63) / 64;
+            capacity = __ceil_div(str_size * 10 / 3, 64);
+            break;
+        }
+        default: {
+            WJR_UNREACHABLE();
+            break;
+        }
+        }
+
+        dst->clear_if_reserved(capacity);
+        auto *const ptr = dst->data();
+        int32_t dssize = biginteger_from_chars(__first, first, ptr, base) - ptr;
+        dssize = __fasts_conditional_negate<int32_t>(sign, dssize);
+        dst->set_ssize(dssize);
+        return {first, std::errc{}};
+    } while (false);
+
+    dst->clear();
+    return {__first, std::errc::invalid_argument};
+}
+
+template <typename S>
+from_chars_result<const char *>
+__from_chars_characters_unchecked_impl(const char *first, const char *last,
+                                       basic_biginteger<S> *dst,
+                                       unsigned int base) noexcept {
+    const auto *__first = first;
+
+    do {
+        if (WJR_UNLIKELY(first == last)) {
+            break;
+        }
+
+        uint8_t ch;
+        ch = *first;
+
+        WJR_ASSERT(!charconv_detail::isspace(ch));
+
+        int sign = 0;
+        if (ch == '-') {
+            sign = 1;
+            if (++first == last) {
+                break;
+            }
+
+            ch = *first;
+        }
+
+        WJR_ASSERT(base != 0);
+
+#if WJR_DEBUG_LEVE >= 3
+
+        if (base <= 10) {
+            const auto __try_match = [base](uint8_t &ch) {
+                ch -= '0';
+                return ch < base;
+            };
+
+            if (WJR_UNLIKELY(!__try_match(ch))) {
+                break;
+            }
+
+            if (WJR_UNLIKELY(ch == 0)) {
+                goto LOOP_HEAD_0;
+
+                do {
+                    ch = *first;
+                    if (ch != '0') {
+                        goto LOOP_END_0;
+                    }
+
+                LOOP_HEAD_0:
+                    ++first;
+                } while (first != last);
+
+                dst->set_ssize(0);
+                return {first, std::errc{}};
+            LOOP_END_0:
+
+                if (!__try_match(ch)) {
+                    dst->set_ssize(0);
+                    return {first, std::errc{}};
+                }
+            }
+
+            __first = first;
+
+            if (++first != last) {
+                if (last - first >= 8) {
+                    do {
+                        if (!check_eight_digits(first, base)) {
+                            break;
+                        }
+
+                        first += 8;
+                    } while (last - first >= 8);
+                }
+
+                ch = *first;
+                if (__try_match(ch)) {
+                    do {
+                        ++first;
+                        ch = *first;
+                    } while (__try_match(ch));
+                }
+            }
+        } else {
+            const auto __try_match = [base](uint8_t &ch) {
+                ch = char_converter.from(ch);
+                return ch < base;
+            };
+
+            if (WJR_UNLIKELY(!__try_match(ch))) {
+                break;
+            }
+
+            if (WJR_UNLIKELY(ch == 0)) {
+                goto LOOP_HEAD_1;
+
+                do {
+                    ch = *first;
+                    if (ch != '0') {
+                        goto LOOP_END_1;
+                    }
+
+                LOOP_HEAD_1:
+                    ++first;
+                } while (first != last);
+
+                dst->clear();
+                return {first, std::errc{}};
+            LOOP_END_1:
+
+                if (!__try_match(ch)) {
+                    dst->clear();
+                    return {first, std::errc{}};
+                }
+            }
+
+            __first = first;
+
+            do {
+                ++first;
+                if (first == last) {
+                    break;
+                }
+
+                ch = *first;
+            } while (__try_match(ch));
+        }
+
+        WJR_ASSERT(first == last);
+#else
+        __first = first;
+        first = last;
+#endif
 
         const size_t str_size = first - __first;
         size_t capacity;
@@ -1939,9 +2133,8 @@ void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept {
     auto *dp = dst->data();
     auto *sp = const_cast<pointer>(src->data());
 
-    std::optional<uninitialized<basic_biginteger<S>>> tmp;
-
     unique_stack_allocator stkal(math_detail::stack_alloc);
+    std::optional<uninitialized<basic_biginteger<S>>> tmp;
 
     if (dst->capacity() < dusize) {
         tmp.emplace(dst->get_growth_capacity(dst->capacity(), dusize), in_place_reserve,
@@ -3423,6 +3616,14 @@ from_chars_result<const char *> from_chars(const char *first, const char *last,
 }
 
 template <typename S>
+from_chars_result<const char *>
+from_chars_characters_unchecked(const char *first, const char *last,
+                                basic_biginteger<S> &dst, unsigned int base) noexcept {
+    return biginteger_detail::__from_chars_characters_unchecked_impl(first, last, &dst,
+                                                                     base);
+}
+
+template <typename S>
 void negate(basic_biginteger<S> &dst) noexcept {
     dst.negate();
 }
@@ -3432,9 +3633,11 @@ void absolute(basic_biginteger<S> &dst) noexcept {
     dst.absolute();
 }
 
-template <typename S>
-std::istream &operator>>(std::istream &is, basic_biginteger<S> &dst) noexcept {
-    default_string str;
+/// @todo Need to check when read string. But that's so slow!
+template <typename Traits, typename S>
+std::basic_istream<char, Traits> &operator>>(std::basic_istream<char, Traits> &is,
+                                             basic_biginteger<S> &dst) noexcept {
+    std::basic_string<char, Traits, memory_pool<char>> str;
     is >> str;
     from_chars(str.data(), str.data() + str.size(), dst, 0);
     return is;
@@ -3443,13 +3646,12 @@ std::istream &operator>>(std::istream &is, basic_biginteger<S> &dst) noexcept {
 template <typename Traits>
 std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &os,
                                              const biginteger_data &src) noexcept {
-    std::ios_base::iostate state = std::ios::goodbit;
-
     if (const std::ostream::sentry ok(os); ok) {
         unique_stack_allocator stkal(math_detail::stack_alloc);
 
-        vector<char, math_detail::weak_stack_alloc<char>> buffer(stkal);
-        buffer.clear_if_reserved(128);
+        std::basic_string<char, Tarits, math_detail::weak_stack_alloc<char>> buffer(
+            stkal);
+        buffer.reserve(128);
 
         const std::ios_base::fmtflags flags = os.flags();
 
@@ -3474,13 +3676,54 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
         }
 
         (void)to_chars_unchecked(std::back_inserter(buffer), src, base);
-
-        if (!buffer.empty()) {
-            __ostream_insert_unchecked(os, buffer.data(), buffer.size());
-        }
+        // seems won't be empty
+        WJR_ASSERT(!buffer.empty());
+        __ostream_insert_unchecked(os, buffer.data(), buffer.size());
+    } else {
+        os.setstate(std::ios::badbit);
     }
 
-    os.setstate(state);
+    return os;
+}
+
+/// @brief Optimization for ostream
+inline std::ostream &operator<<(std::ostream &os, const biginteger_data &src) noexcept {
+    if (const std::ostream::sentry ok(os); ok) {
+        unique_stack_allocator stkal(math_detail::stack_alloc);
+
+        vector<char, math_detail::weak_stack_alloc<char>> buffer(stkal);
+        buffer.clear_if_reserved(128);
+
+        const std::ios_base::fmtflags flags = os.flags();
+
+        if ((flags & std::ios::showpos) && !src.is_negate()) {
+            buffer.push_back('+');
+        }
+
+        int base = 10;
+
+        if (const auto basefield = flags & std::ios::basefield; basefield != 0) {
+            if (basefield == std::ios::oct) {
+                base = 8;
+                if (flags & std::ios::showbase) {
+                    buffer.append('0');
+                }
+            } else if (basefield == std::ios::hex) {
+                base = 16;
+                if (flags & std::ios::showbase) {
+                    buffer.append({'0', 'x'});
+                }
+            }
+        }
+
+        (void)to_chars_unchecked(std::back_inserter(buffer), src, base);
+        // seems won't be empty
+        WJR_ASSERT(!buffer.empty());
+        __ostream_insert_unchecked(os, buffer.data(), buffer.size());
+    } else {
+        os.setstate(std::ios::badbit);
+    }
+
     return os;
 }
 

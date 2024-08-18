@@ -193,7 +193,7 @@ WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t 
         return;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == 2)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(n == 2)) {
         const auto [ax, dx] = div128by64to128(rem, src[0], src[1], div);
         dst[0] = ax;
         dst[1] = dx;
@@ -234,7 +234,7 @@ WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t 
         return;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == 2)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(n == 2)) {
         const auto [ax, dx] = div128by64to128(rem, src[0], src[1], div);
         dst[0] = ax;
         dst[1] = dx;
@@ -293,7 +293,7 @@ WJR_INTRINSIC_INLINE void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t 
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
-    if (WJR_BUILTIN_CONSTANT_P(m)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(m)) {
         switch (m) {
         case 0: {
             WJR_UNREACHABLE();
@@ -644,7 +644,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t mod_1(const uint64_t *src, size_t n,
         return src[0] & ((1ull << c) - 1);
     }
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == 2)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(n == 2)) {
         uint64_t rem;
         (void)div128by64to128(rem, src[0], src[1], div);
         return rem;
@@ -677,7 +677,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t mod_1(const uint64_t *src, size_t n,
         return tmp % div;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == 2)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(n == 2)) {
         uint64_t rem;
         (void)div128by64to128(rem, src[0], src[1], div);
         return rem;

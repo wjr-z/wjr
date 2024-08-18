@@ -25,7 +25,7 @@ WJR_INTRINSIC_CONSTEXPR int fallback_compare_n(const T *src0, const T *src1,
 template <typename T>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR20 int compare_n(const T *src0, const T *src1,
                                                  size_t n) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
         return 0;
     }
 
@@ -65,7 +65,7 @@ WJR_INTRINSIC_CONSTEXPR int fallback_reverse_compare_n(const T *src0, const T *s
 template <typename T>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR20 int reverse_compare_n(const T *src0, const T *src1,
                                                          size_t n) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
         return 0;
     }
 

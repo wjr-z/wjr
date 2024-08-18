@@ -13,11 +13,12 @@ namespace formatter_detail {
 
 template <typename Container>
 WJR_INTRINSIC_INLINE void append_string(Container &cont, const char *str, size_t length) {
-    if constexpr (has_container_append_v<Container, const char *, const char *>) {
+    if constexpr (has_container_append_v<Container, const char *, size_t>) {
+        cont.append(str, length);
+    } else if constexpr (has_container_append_v<Container, const char *, const char *>) {
         cont.append(str, str + length);
     } else {
-        try_uninitialized_append(cont, length);
-        std::memcpy(cont.data() + cont.size() - length, str, length);
+        cont.insert(cont.end(), str, str + length);
     }
 }
 
@@ -26,8 +27,7 @@ WJR_INTRINSIC_INLINE void append_indents(Container &cont, size_t length) {
     if constexpr (has_container_append_v<Container, size_t, char>) {
         cont.append(length, ' ');
     } else {
-        try_uninitialized_append(cont, length);
-        std::memset(cont.data() + cont.size() - length, ' ', length);
+        cont.insert(cont.end(), length, ' ');
     }
 }
 
@@ -204,7 +204,6 @@ SLOW_PATH : {
     goto SMALL_SLOW_PATH_NO_COPY;
 
 SMALL_SLOW_PATH:
-
     std::memcpy(ptr, first, pos);
     try_uninitialized_resize(cont, (ptr + pos) - cont.data());
 SMALL_SLOW_PATH_NO_COPY:

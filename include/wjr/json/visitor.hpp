@@ -42,7 +42,7 @@ template <typename Parser>
 WJR_NOINLINE static result<void> parse(Parser &&par, const reader &rd) noexcept {
     constexpr unsigned int max_depth = 256;
 
-    bitset<max_depth> stk;
+    bitset<max_depth> stk(dctor);
     unsigned int depth = 0;
     uint8_t type;
 

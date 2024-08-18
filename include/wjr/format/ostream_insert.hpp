@@ -6,8 +6,8 @@
 namespace wjr {
 
 /// @private
-template <typename CharT, typename Tratis>
-void __ostream_write_unchecked(std::basic_ostream<CharT, Tratis> &os, const CharT *str,
+template <typename CharT, typename Traits>
+void __ostream_write_unchecked(std::basic_ostream<CharT, Traits> &os, const CharT *str,
                                std::streamsize n) noexcept {
     const auto __put = os.rdbuf()->sputn(str, n);
     if (__put != n) {
@@ -16,13 +16,13 @@ void __ostream_write_unchecked(std::basic_ostream<CharT, Tratis> &os, const Char
 }
 
 /// @private
-template <typename CharT, typename Tratis>
-void __ostream_fill_unchecked(std::basic_ostream<CharT, Tratis> &os,
+template <typename CharT, typename Traits>
+void __ostream_fill_unchecked(std::basic_ostream<CharT, Traits> &os,
                               std::streamsize n) noexcept {
     const auto ch = os.fill();
     while (n--) {
         const auto __put = os.rdbuf()->sputc(ch);
-        if (Tratis::eq_int_type(__put, Tratis::eof())) {
+        if (Traits::eq_int_type(__put, Traits::eof())) {
             os.setstate(std::ios_base::badbit);
             break;
         }
@@ -30,8 +30,8 @@ void __ostream_fill_unchecked(std::basic_ostream<CharT, Tratis> &os,
 }
 
 /// @private
-template <typename CharT, typename Tratis>
-void __ostream_insert_unchecked(std::basic_ostream<CharT, Tratis> &os, const CharT *str,
+template <typename CharT, typename Traits>
+void __ostream_insert_unchecked(std::basic_ostream<CharT, Traits> &os, const CharT *str,
                                 std::streamsize n) noexcept {
     const std::streamsize __w = os.width();
     if (__w > n) {
@@ -59,8 +59,8 @@ void __ostream_insert_unchecked(std::basic_ostream<CharT, Tratis> &os, const Cha
  * @brief Fast output a string to the output stream.
  *
  */
-template <typename CharT, typename Tratis>
-std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tratis> &os,
+template <typename CharT, typename Traits>
+std::basic_ostream<CharT, Traits> &__ostream_insert(std::basic_ostream<CharT, Traits> &os,
                                                     const CharT *str,
                                                     std::streamsize n) noexcept {
     const std::ostream::sentry ok(os);

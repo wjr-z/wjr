@@ -103,12 +103,12 @@ public:
         return *this;
     }
 
-    constexpr default_vector_size_reference &operator+=(uint32_t size) noexcept {
+    constexpr default_vector_size_reference &operator+=(size_type size) noexcept {
         m_pos += size;
         return *this;
     }
 
-    constexpr default_vector_size_reference &operator-=(uint32_t size) noexcept {
+    constexpr default_vector_size_reference &operator-=(size_type size) noexcept {
         m_pos -= size;
         return *this;
     }
@@ -167,7 +167,8 @@ public:
 
     WJR_CONSTEXPR20 void deallocate(_Alty &al) noexcept(noexcept(
         _Alty_traits::deallocate(al, this->m_storage.m_data, this->capacity()))) {
-        if (WJR_BUILTIN_CONSTANT_P_TRUE(data() == nullptr)) {
+        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(data() ==
+                                                                       nullptr)) {
             return;
         }
 
@@ -405,7 +406,8 @@ public:
 
     WJR_CONSTEXPR20 void deallocate(_Alty &al) noexcept(
         noexcept(_Alty_traits::deallcoate(this->m_storage.m_data, this->capacity()))) {
-        if (WJR_BUILTIN_CONSTANT_P_TRUE(data() == nullptr)) {
+        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(data() ==
+                                                                       nullptr)) {
             return;
         }
 
@@ -843,7 +845,7 @@ private:
 
 public:
     WJR_CONSTEXPR20 void reserve(size_type n) {
-        if (WJR_BUILTIN_CONSTANT_P_TRUE(size() == 0)) {
+        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(size() == 0)) {
             __empty_reserve_impl(n);
             return;
         }
@@ -1178,7 +1180,7 @@ private:
 
     WJR_CONSTEXPR20 void
     __destroy() noexcept(std::is_nothrow_destructible_v<value_type>) {
-        if (WJR_BUILTIN_CONSTANT_P_TRUE(size() == 0)) {
+        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(size() == 0)) {
             return;
         }
 
@@ -1187,8 +1189,9 @@ private:
 
     WJR_CONSTEXPR20 void
     __destroy_and_deallocate() noexcept(__storage_noexcept_destroy_and_deallocate) {
-        if (WJR_BUILTIN_CONSTANT_P_TRUE(capacity() == 0) ||
-            WJR_BUILTIN_CONSTANT_P_TRUE(data() == nullptr)) {
+        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(capacity() == 0) ||
+                                           WJR_BUILTIN_CONSTANT_P_TRUE(data() ==
+                                                                       nullptr)) {
             return;
         }
 

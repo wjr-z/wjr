@@ -3,7 +3,8 @@
 
 #include <cstring>
 
-#include <wjr/math/detail.hpp>
+#include <wjr/math/bit.hpp>
+#include <wjr/math/shift.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
@@ -384,9 +385,139 @@ public:
         return ret;
     }
 
+    WJR_CONST constexpr size_t count() const noexcept {
+        size_t cnt = 0;
+        for (size_t i = 0; i < bytes_size; ++i) {
+            cnt += popcount(m_data[i]);
+        }
+
+        return cnt;
+    }
+
+    constexpr bitset &operator<<=(size_t offset) noexcept {
+        bit_type low = m_data[0];
+        m_data[0] <<= offset;
+
+        if constexpr (bytes_size & 1) {
+            if constexpr (bytes_size == 1) {
+                if constexpr (!full) {
+                    m_data[0] &= mask;
+                }
+            } else {
+                if constexpr (full) {
+                    for (size_t i = 1; i != bytes_size; i += 2) {
+                        bit_type now = m_data[i];
+                        m_data[i] = shld(now, low, offset);
+                        low = m_data[i + 1];
+                        m_data[i + 1] = shld(low, now, offset);
+                    }
+                } else {
+                    for (size_t i = 1; i < bytes_size - 2; i += 2) {
+                        bit_type now = m_data[i];
+                        m_data[i] = shld(now, low, offset);
+                        low = m_data[i + 1];
+                        m_data[i + 1] = shld(low, now, offset);
+                    }
+
+                    bit_type now = m_data[bytes_size - 2];
+                    m_data[bytes_size - 2] = shld(now, low, offset);
+                    low = m_data[bytes_size - 1];
+                    m_data[bytes_size - 1] = shld(low, now, offset) & mask;
+                }
+            }
+        } else {
+            for (size_t i = 1; i != bytes_size - 1; i += 2) {
+                bit_type now = m_data[i];
+                m_data[i] = shld(now, low, offset);
+                low = m_data[i + 1];
+                m_data[i + 1] = shld(low, now, offset);
+            }
+
+            m_data[bytes_size - 1] = shld(m_data[bytes_size - 1], low, offset) & mask;
+        }
+
+        return *this;
+    }
+
+    constexpr bitset &operator>>=(size_t offset) noexcept {
+        bit_type high = m_data[bytes_size - 1];
+        m_data[bytes_size - 1] >>= offset;
+
+        if constexpr (bytes_size & 1) {
+            if constexpr (bytes_size != 1) {
+                if constexpr (full) {
+                    for (size_t i = bytes_size - 1; i != 0; i -= 2) {
+                        bit_type now = m_data[i - 1];
+                        m_data[i - 1] = shrd(now, high, offset);
+                        high = m_data[i - 2];
+                        m_data[i - 2] = shrd(high, now, offset);
+                    }
+                } else {
+                    for (size_t i = bytes_size - 1; i != 2; i -= 2) {
+                        bit_type now = m_data[i - 1];
+                        m_data[i - 1] = shrd(now, high, offset);
+                        high = m_data[i - 2];
+                        m_data[i - 2] = shrd(high, now, offset);
+                    }
+
+                    bit_type now = m_data[1];
+                    m_data[1] = shrd(now, high, offset);
+                    high = m_data[0];
+                    m_data[0] = shrd(high, now, offset);
+                }
+            }
+        } else {
+            for (size_t i = bytes_size - 1; i != 1; i -= 2) {
+                bit_type now = m_data[i - 1];
+                m_data[i - 1] = shrd(now, high, offset);
+                high = m_data[i - 2];
+                m_data[i - 2] = shrd(high, now, offset);
+            }
+
+            m_data[0] = shrd(m_data[0], high, offset);
+        }
+
+        return *this;
+    }
+
+    friend constexpr bitset operator<<(const bitset &bs, size_t offset) noexcept {
+        bitset ret(bs);
+        ret <<= offset;
+        return ret;
+    }
+
+    friend constexpr bitset operator>>(const bitset &bs, size_t offset) noexcept {
+        bitset ret(bs);
+        ret >>= offset;
+        return ret;
+    }
+
+    template <typename Char = char, typename Traits = std::char_traits<Char>,
+              typename Alloc = std::allocator<Char>>
+    WJR_CONSTEXPR20 std::basic_string<Char, Traits, Alloc>
+    to_string(const Char elem0 = static_cast<Char>('0'),
+              const Char elem1 = static_cast<Char>('1')) const {
+        std::basic_string<Char, Traits, Alloc> str;
+        str.reserve(N);
+
+        for (auto pos = N; pos > 0;) {
+            str.push_back(test(--pos) ? elem1 : elem0);
+        }
+
+        return str;
+    }
+
 private:
     bit_type m_data[bytes_size];
 };
+
+template <typename Char, typename Traits, size_t N>
+std::basic_ostream<Char, Traits> &operator<<(std::basic_ostream<Char, Traits> &os,
+                                             const bitset<N> &bs) {
+    const auto &fac = std::use_facet<std::ctype<Char>>(os.getloc());
+    os << bs.to_string(fac.widen('0'), fac.widen('1'));
+    return os;
+}
 
 } // namespace wjr
 

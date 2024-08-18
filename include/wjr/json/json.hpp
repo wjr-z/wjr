@@ -628,6 +628,8 @@ public:
 
     template <typename Container>
     void dump_impl(Container &cont, unsigned indents = -1) const noexcept {
+        static_assert(std::is_same_v<typename Container::value_type, char>, "");
+
         if (indents == -1u) {
             format(minify_formatter(std::back_inserter(cont)), *this);
         } else {
@@ -635,8 +637,11 @@ public:
         }
     }
 
-    WJR_PURE std::string dump(unsigned indents = -1) const noexcept {
-        std::string str;
+    template <typename _Traits = std::char_traits<char>,
+              typename Alloc = std::allocator<char>>
+    WJR_PURE std::basic_string<char, _Traits, Alloc>
+    dump(unsigned indents = -1) const noexcept {
+        std::basic_string<char, _Traits, Alloc> str;
         dump_impl(str, indents);
         return str;
     }
@@ -644,7 +649,11 @@ public:
     /**
      * @brief Use minify formatter as default.
      */
-    WJR_PURE std::string to_string() const noexcept { return dump(); }
+    template <typename _Traits = std::char_traits<char>,
+              typename Alloc = std::allocator<char>>
+    WJR_PURE std::basic_string<char, _Traits, Alloc> to_string() const noexcept {
+        return dump<_Traits, Alloc>();
+    }
 
     reference at(size_type idx) { return get<array_t>().at(idx); }
     const_reference at(size_type idx) const { return get<array_t>().at(idx); }
@@ -836,7 +845,7 @@ public:
 
 private:
     void __destroy() noexcept {
-        if (WJR_BUILTIN_CONSTANT_P(type())) {
+        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(type())) {
             switch (type()) {
             case value_t::null:
             case value_t::boolean:
@@ -1842,8 +1851,27 @@ void format_impl(Formatter fmt, const basic_json<Traits> &j, unsigned depth) noe
 template <typename Traits, typename JsonTraits>
 std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &os,
                                              const basic_json<JsonTraits> &j) {
-    std::ios_base::iostate state = std::ios::goodbit;
+    if (const std::ostream::sentry ok(os); ok) {
+        unique_stack_allocator stkal(math_detail::stack_alloc);
 
+        std::basic_string<char, Traits, math_detail::weak_stack_alloc<char>> buffer(
+            stkal);
+        buffer.reserve(256);
+
+        const std::streamsize indents = os.width();
+
+        j.dump_impl(buffer, indents);
+        __ostream_write_unchecked(os, buffer.data(), buffer.size());
+        os.width(0);
+    } else {
+        os.setstate(std::ios::badbit);
+    }
+
+    return os;
+}
+
+template <typename JsonTraits>
+std::ostream &operator<<(std::ostream &os, const basic_json<JsonTraits> &j) {
     if (const std::ostream::sentry ok(os); ok) {
         unique_stack_allocator stkal(math_detail::stack_alloc);
 
@@ -1854,11 +1882,11 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
 
         j.dump_impl(buffer, indents);
         __ostream_write_unchecked(os, buffer.data(), buffer.size());
-
         os.width(0);
+    } else {
+        os.setstate(std::ios::badbit);
     }
 
-    os.setstate(state);
     return os;
 }
 

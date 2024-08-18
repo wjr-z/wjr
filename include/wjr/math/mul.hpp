@@ -57,7 +57,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_mul64(uint64_t a, uint64_t b,
 
 WJR_INTRINSIC_CONSTEXPR20 uint64_t __mul_u64(uint64_t a, uint64_t b,
                                              uint64_t &hi) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(a)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(a)) {
         if (a == 0) {
             hi = 0;
             return 0;
@@ -70,7 +70,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t __mul_u64(uint64_t a, uint64_t b,
         }
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(b)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(b)) {
         if (b == 0) {
             hi = 0;
             return 0;
@@ -95,7 +95,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t __mul_u64(uint64_t a, uint64_t b,
     #if WJR_HAS_BUILTIN(ASM_UMUL128)
     // mov b to rax, then mul a
     // instead of mov a to rax, mov b to register, then mul
-    if (WJR_BUILTIN_CONSTANT_P(b)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(b)) {
         return builtin_umul128(b, a, hi);
     }
     #endif
@@ -187,7 +187,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t mul_1(uint64_t *dst, const uint64_t *src, siz
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(ml == 1)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(ml == 1)) {
         if (src != dst) {
             std::copy(src, src + n, dst);
         }
@@ -195,7 +195,8 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t mul_1(uint64_t *dst, const uint64_t *src, siz
         return 0;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(is_zero_or_single_bit(ml))) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(
+                                           is_zero_or_single_bit(ml))) {
         if (ml == 0) {
             set_n(dst, 0, n);
             return 0;
@@ -251,11 +252,12 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t addmul_1(uint64_t *dst, const uint64_t *src, 
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(ml == 1)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(ml == 1)) {
         return addc_n(dst, dst, src, n);
     }
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(is_zero_or_single_bit(ml))) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(
+                                           is_zero_or_single_bit(ml))) {
         if (ml == 0) {
             return 0;
         }
@@ -300,11 +302,11 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t submul_1(uint64_t *dst, const uint64_t *src, 
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(ml == 0)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(ml == 0)) {
         return 0;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(ml == 1)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(ml == 1)) {
         return subc_n(dst, dst, src, n);
     }
 
@@ -605,7 +607,7 @@ extern void __noinline_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *sr
 
 WJR_INTRINSIC_INLINE void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                 size_t n, const uint64_t *src1, size_t m) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == m)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(n == m)) {
         return mul_n(dst, src0, src1, n);
     }
 
@@ -686,7 +688,7 @@ void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *s
 
 WJR_INTRINSIC_INLINE void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                 const uint64_t *src1, size_t n) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
         return sqr(dst, src0, n);
     }
 

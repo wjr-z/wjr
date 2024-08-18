@@ -947,7 +947,7 @@ Iter to_chars_backward_unchecked(Iter first, Value val,
 template <typename Iter, typename Value, typename Converter>
 Iter to_chars_backward_unchecked_dynamic(Iter first, Value val, unsigned int base,
                                          Converter conv) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(base)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
             return to_chars_backward_unchecked(first, val, 2_u, conv);
@@ -1388,7 +1388,7 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val,
 template <typename Iter, typename Value, typename Converter>
 to_chars_result<Iter> to_chars_dynamic(Iter ptr, Iter last, Value val, unsigned int base,
                                        Converter conv) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(base)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
             return to_chars(ptr, last, val, 2_u, conv);
@@ -1449,7 +1449,7 @@ Iter to_chars_unchecked(Iter ptr, Value val,
 template <typename Iter, typename Value, typename Converter>
 Iter to_chars_unchecked_dynamic(Iter ptr, Value val, unsigned int base,
                                 Converter conv) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(base)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
             return to_chars_unchecked(ptr, val, 2_u, conv);
@@ -1906,7 +1906,7 @@ void from_chars_unchecked(Iter first, Iter last, Value &val,
 template <typename Iter, typename Value, typename IBase, typename Converter>
 void from_chars_unchecked_dynamic(Iter first, Iter last, Value &val, unsigned int base,
                                   Converter conv) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(base)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
             __from_chars_unchecked_impl(first, last, val, 2_u, conv);
@@ -2198,7 +2198,7 @@ template <typename Value, typename Converter,
 from_chars_result<const char *> from_chars_dynamic(const char *first, const char *last,
                                                    Value &val, unsigned int base,
                                                    Converter conv) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(base)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
             return __from_chars_impl(first, last, val, 2_u, conv);
@@ -2232,130 +2232,58 @@ struct __check_digits_helper {
     static constexpr uint64_t hi_expe64 = broadcast<uint8_t, uint64_t>(hi_expe8);
 };
 
-template <branch type = branch::free>
-struct check_eight_digits_fn {
-private:
-    template <typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE bool operator()(const char *ptr, unsigned int base,
-                                                  Converter conv) const noexcept {
-        WJR_ASSERT_L2(base <= 16);
+template <unsigned int IBase = 10, typename Converter = char_converter_t,
+          WJR_REQUIRES(IBase <= 16)>
+WJR_PURE WJR_INTRINSIC_INLINE bool
+check_eight_digits(const char *ptr, integral_constant<unsigned int, IBase> = {},
+                   Converter = {}) noexcept {
+    constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
+    constexpr uint64_t added = broadcast<uint8_t, uint64_t>(16 - IBase);
+    constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
 
-        if (WJR_BUILTIN_CONSTANT_P(base)) {
-            switch (base) {
-            case 2: {
-                return this->operator()(ptr, 2_u, conv);
-            }
-            case 8: {
-                return this->operator()(ptr, 8_u, conv);
-            }
-            case 10: {
-                return this->operator()(ptr, 10_u, conv);
-            }
-            case 16: {
-                return this->operator()(ptr, 16_u, conv);
-            }
-            default: {
-                break;
-            }
-            }
+    const uint64_t memory = read_memory<uint64_t>(ptr);
+
+    return ((memory & mask) & (memory + added)) == hi_expe64;
+}
+
+template <typename IBase, typename Converter = char_converter_t,
+          WJR_REQUIRES(is_nonbool_integral_v<IBase>)>
+WJR_PURE WJR_INTRINSIC_INLINE bool check_eight_digits(const char *ptr, IBase base,
+                                                      Converter conv = {}) noexcept {
+    WJR_ASSERT_L2(base <= 16);
+
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            return check_eight_digits(ptr, 2_u, conv);
         }
-
-        constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
-        constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
-
-        const uint64_t added = broadcast<uint8_t, uint64_t>(16 - base);
-        const uint64_t memory = read_memory<uint64_t>(ptr);
-
-        return (memory & (memory + added) & mask) == hi_expe64;
-    }
-
-public:
-    template <unsigned int IBase = 10, typename Converter = char_converter_t,
-              WJR_REQUIRES(IBase <= 16)>
-    WJR_PURE WJR_INTRINSIC_INLINE bool
-    operator()(const char *ptr, integral_constant<unsigned int, IBase> = {},
-               Converter = {}) const noexcept {
-        constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
-        constexpr uint64_t added = broadcast<uint8_t, uint64_t>(16 - IBase);
-        constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
-
-        const uint64_t memory = read_memory<uint64_t>(ptr);
-
-        return (memory & (memory + added) & mask) == hi_expe64;
-    }
-
-    template <typename IBase, typename Converter = char_converter_t,
-              WJR_REQUIRES(is_nonbool_integral_v<IBase>)>
-    WJR_PURE WJR_INTRINSIC_INLINE bool operator()(const char *ptr, IBase base,
-                                                  Converter conv = {}) const noexcept {
-
-        return this->operator()(ptr, base, conv);
-    }
-};
-
-template <>
-struct check_eight_digits_fn<branch::full> {
-private:
-    template <typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE bool operator()(const char *ptr, unsigned int base,
-                                                  Converter conv) const noexcept {
-        WJR_ASSERT_L2(base <= 16);
-
-        if (WJR_BUILTIN_CONSTANT_P(base)) {
-            switch (base) {
-            case 2: {
-                return this->operator()(ptr, 2_u, conv);
-            }
-            case 8: {
-                return this->operator()(ptr, 8_u, conv);
-            }
-            case 10: {
-                return this->operator()(ptr, 10_u, conv);
-            }
-            case 16: {
-                return this->operator()(ptr, 16_u, conv);
-            }
-            default: {
-                break;
-            }
-            }
+        case 8: {
+            return check_eight_digits(ptr, 8_u, conv);
         }
-
-        constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
-        constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
-
-        const uint64_t added = broadcast<uint8_t, uint64_t>(16 - base);
-        const uint64_t memory = read_memory<uint64_t>(ptr);
-
-        return (memory & mask) == hi_expe64 && ((memory + added) & mask) == hi_expe64;
+        case 10: {
+            return check_eight_digits(ptr, 10_u, conv);
+        }
+        case 16: {
+            return check_eight_digits(ptr, 16_u, conv);
+        }
+        default: {
+            break;
+        }
+        }
     }
 
-public:
-    template <unsigned int IBase = 10, typename Converter = char_converter_t,
-              WJR_REQUIRES(IBase <= 16)>
-    WJR_PURE WJR_INTRINSIC_INLINE bool
-    operator()(const char *ptr, integral_constant<unsigned int, IBase> = {},
-               Converter = {}) const noexcept {
-        constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
-        constexpr uint64_t added = broadcast<uint8_t, uint64_t>(16 - IBase);
-        constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
+    constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
+    constexpr uint64_t hi_expe64 = __check_digits_helper<Converter>::hi_expe64;
 
-        const uint64_t memory = read_memory<uint64_t>(ptr);
+    const uint64_t added = broadcast<uint8_t, uint64_t>(16 - base);
+    const uint64_t memory = read_memory<uint64_t>(ptr);
 
-        return (memory & mask) == hi_expe64 && ((memory + added) & mask) == hi_expe64;
-    }
+    return ((memory & mask) & (memory + added)) == hi_expe64;
+}
 
-    template <typename IBase, typename Converter = char_converter_t,
-              WJR_REQUIRES(is_nonbool_integral_v<IBase>)>
-    WJR_PURE WJR_INTRINSIC_INLINE bool operator()(const char *ptr, IBase base,
-                                                  Converter conv = {}) const noexcept {
-
-        return this->operator()(ptr, base, conv);
-    }
-};
-
-template <branch type>
-inline constexpr check_eight_digits_fn<type> check_eight_digits{};
+WJR_INTRINSIC_INLINE bool is_made_of_eight_digits_fast(const char *src) noexcept {
+    return check_eight_digits(src);
+}
 
 } // namespace wjr
 

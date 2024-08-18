@@ -49,7 +49,7 @@ public:
         }
 
         if constexpr (Base == 0 || Base > 10) {
-            if (WJR_BUILTIN_CONSTANT_P_TRUE(x < 10)) {
+            if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(x < 10)) {
                 return x + '0';
             }
 
@@ -122,12 +122,7 @@ struct from_chars_result {
     constexpr explicit operator bool() const noexcept { return ec == std::errc{}; }
 };
 
-WJR_PURE WJR_INTRINSIC_INLINE bool
-is_made_of_eight_digits_fast(const char *src) noexcept {
-    const auto val = read_memory<uint64_t>(src);
-    return ((val & 0xF0F0F0F0F0F0F0F0) & (val + 0x0606060606060606)) ==
-           0x3030303030303030;
-}
+WJR_PURE WJR_INTRINSIC_INLINE bool is_made_of_eight_digits_fast(const char *src) noexcept;
 
 WJR_PURE WJR_INTRINSIC_INLINE uint32_t
 parse_eight_digits_unrolled(const char *src) noexcept;

@@ -82,7 +82,7 @@ public:
                                                             T &hi) noexcept {
         WJR_ASSERT_ASSUME_L3(__has_high_bit(divisor));
 
-        if (WJR_BUILTIN_CONSTANT_P_TRUE(lo == 0)) {
+        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(lo == 0)) {
             return divide_lo0(divisor, value, lo, hi);
         }
 
@@ -90,7 +90,7 @@ public:
     }
 
     WJR_CONST WJR_CONSTEXPR20 static T reciprocal(T d) noexcept {
-        if (WJR_BUILTIN_CONSTANT_P_TRUE(d == 1ull << 63)) {
+        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(d == 1ull << 63)) {
             return in_place_max;
         }
 
@@ -213,7 +213,6 @@ WJR_CONST WJR_CONSTEXPR20 T div2by1_divider_noshift<T>::__reciprocal_impl(T d) n
 
 template <typename T>
 class div2by1_divider : public div2by1_divider_noshift<T> {
-private:
     using Mybase = div2by1_divider_noshift<T>;
     // disable member divide function of Mybase
     using Mybase::divide;
@@ -366,6 +365,7 @@ WJR_CONST WJR_CONSTEXPR20 T div3by2_divider_noshift<T>::reciprocal(T d0, T d1) n
 template <typename T>
 class div3by2_divider : public div3by2_divider_noshift<T> {
     using Mybase = div3by2_divider_noshift<T>;
+    // disable member divide function of Mybase
     using Mybase::divide;
     using Mybase::m_divisor0;
     using Mybase::m_divisor1;

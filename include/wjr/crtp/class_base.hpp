@@ -234,9 +234,14 @@ using enable_trivially_special_members_of_args_base = enable_special_members_bas
 template <size_t I, typename T>
 struct enable_base_identity_t {};
 
-template <typename Mybase>
-struct control_copy_ctor_base : Mybase {
-    using Mybase ::Mybase;
+template <typename _Mybase>
+struct control_copy_ctor_base : _Mybase {
+private:
+    using Mybase = _Mybase;
+
+public:
+    using Mybase::Mybase;
+
     control_copy_ctor_base() = default;
     constexpr control_copy_ctor_base(const control_copy_ctor_base &other) noexcept(
         noexcept(std::declval<Mybase>().__copy_construct(std::declval<const Mybase &>())))
@@ -252,9 +257,14 @@ protected:
         : Mybase(enable_default_constructor) {}
 };
 
-template <typename Mybase>
-struct control_move_ctor_base : Mybase {
-    using Mybase ::Mybase;
+template <typename _Mybase>
+struct control_move_ctor_base : _Mybase {
+private:
+    using Mybase = _Mybase;
+
+public:
+    using Mybase::Mybase;
+
     control_move_ctor_base() = default;
     control_move_ctor_base(const control_move_ctor_base &) = default;
     constexpr control_move_ctor_base(control_move_ctor_base &&other) noexcept(
@@ -270,9 +280,14 @@ protected:
         : Mybase(enable_default_constructor) {}
 };
 
-template <typename Mybase>
-struct control_copy_assign_base : Mybase {
-    using Mybase ::Mybase;
+template <typename _Mybase>
+struct control_copy_assign_base : _Mybase {
+private:
+    using Mybase = _Mybase;
+
+public:
+    using Mybase::Mybase;
+
     control_copy_assign_base() = default;
     control_copy_assign_base(const control_copy_assign_base &) = default;
     control_copy_assign_base(control_copy_assign_base &&) = default;
@@ -289,9 +304,14 @@ protected:
         : Mybase(enable_default_constructor) {}
 };
 
-template <typename Mybase>
-struct control_move_assign_base : Mybase {
-    using Mybase ::Mybase;
+template <typename _Mybase>
+struct control_move_assign_base : _Mybase {
+private:
+    using Mybase = _Mybase;
+
+public:
+    using Mybase::Mybase;
+
     control_move_assign_base() = default;
     control_move_assign_base(const control_move_assign_base &) = default;
     control_move_assign_base(control_move_assign_base &&) = default;

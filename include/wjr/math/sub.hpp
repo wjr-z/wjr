@@ -188,7 +188,7 @@ WJR_INTRINSIC_CONSTEXPR20 U subc_1(uint64_t *dst, const uint64_t *src0, size_t n
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == 1)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(n == 1)) {
         uint8_t overflow = 0;
         dst[0] = subc_cc(src0[0], src1, static_cast<uint8_t>(c_in), overflow);
         return static_cast<U>(overflow);
@@ -411,7 +411,7 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s1(uint64_t *dst, const uint64_t *src
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == m)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(n == m)) {
         return abs_subc_n(dst, src0, src1, m);
     }
 
@@ -442,11 +442,11 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s(uint64_t *dst, const uint64_t *src0
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == m)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(n == m)) {
         return abs_subc_n(dst, src0, src1, m);
     }
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n - m <= 1)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(n - m <= 1)) {
         return abs_subc_s1(dst, src0, n, src1, m);
     }
 
@@ -466,11 +466,11 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s_pos(uint64_t *dst, const uint64_t *
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == m)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(n == m)) {
         return abs_subc_n_pos(dst, src0, src1, m);
     }
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n - m <= 1)) {
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(n - m <= 1)) {
         do {
             if (n == m) {
                 break;

@@ -210,14 +210,12 @@
  */
 #if WJR_HAS_BUILTIN(__builtin_constant_p)
     #define WJR_BUILTIN_CONSTANT_P(expr) __builtin_constant_p(expr)
+    #define WJR_BUILTIN_CONSTANT_P_TRUE(expr) (WJR_BUILTIN_CONSTANT_P(expr) && (expr))
+    #define WJR_BUILTIN_CONSTANT_CONSTEXPR
 #else
     #define WJR_BUILTIN_CONSTANT_P(expr) false
-#endif
-
-#if WJR_HAS_BUILTIN(__builtin_constant_p)
-    #define WJR_BUILTIN_CONSTANT_P_TRUE(expr) (WJR_BUILTIN_CONSTANT_P(expr) && (expr))
-#else
     #define WJR_BUILTIN_CONSTANT_P_TRUE(expr) false
+    #define WJR_BUILTIN_CONSTANT_CONSTEXPR constexpr
 #endif
 
 #if WJR_HAS_BUILTIN(__builtin_clear_padding)
