@@ -11,7 +11,6 @@ namespace wjr {
     #if defined(WJR_COMPILER_CLANG) && !WJR_HAS_CLANG(13, 0, 0)
         #define WJR_HAS_BUILTIN_ASM_DIV2BY1_ADJUST_BRANCH WJR_HAS_DEF
     #endif
-
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_DIV2BY1_ADJUST)

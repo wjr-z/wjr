@@ -225,5 +225,4 @@ WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n
 #undef __WJR_TEST_ASSEMBLY
 #undef WJR_adcsbb
 #undef WJR_addcsubc
-
 #undef WJR_ADDSUB_I

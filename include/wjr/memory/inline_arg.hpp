@@ -32,10 +32,6 @@ public:
 
     static constexpr bool is_inlined = true;
 
-private:
-    using storage_type = uninitialized<value_type>;
-
-public:
     inline_arg() = delete;
     inline_arg(const inline_arg &) = delete;
     inline_arg(inline_arg &&) = delete;
@@ -44,7 +40,7 @@ public:
     ~inline_arg() = default;
 
     constexpr inline_arg(reference value) noexcept(
-        std::is_nothrow_constructible_v<storage_type, reference>)
+        std::is_nothrow_constructible_v<uninitialized<value_type>, reference>)
         : m_storage(value) {}
 
     constexpr reference get() const noexcept { return m_storage.get(); }
@@ -52,7 +48,7 @@ public:
     constexpr pointer operator->() const noexcept { return m_storage.operator->(); }
 
 private:
-    storage_type m_storage;
+    uninitialized<value_type> m_storage;
 };
 
 template <typename T>

@@ -206,7 +206,7 @@ class bitset {
 
 public:
     constexpr bitset() noexcept : m_data() {}
-    constexpr bitset(dctor_t) noexcept {}
+    constexpr explicit bitset(dctor_t) noexcept {}
 
     bitset(const bitset &) = default;
     bitset(bitset &&) = default;
@@ -394,7 +394,14 @@ public:
         return cnt;
     }
 
+    /**
+     * @todo Use lshfit_n to optimize.
+     */
     constexpr bitset &operator<<=(size_t offset) noexcept {
+        if (WJR_UNLIKELY(offset == 0)) {
+            return *this;
+        }
+
         bit_type low = m_data[0];
         m_data[0] <<= offset;
 
@@ -439,7 +446,14 @@ public:
         return *this;
     }
 
+    /**
+     * @todo Use rshfit_n to optimize.
+     */
     constexpr bitset &operator>>=(size_t offset) noexcept {
+        if (WJR_UNLIKELY(offset == 0)) {
+            return *this;
+        }
+
         bit_type high = m_data[bytes_size - 1];
         m_data[bytes_size - 1] >>= offset;
 

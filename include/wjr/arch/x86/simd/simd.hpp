@@ -114,8 +114,6 @@ class __x86_simd_base {
     using Mybase = fixed_size_simd<T, N>;
 
 public:
-    using mask_type = simd_detail::basic_simd_mask<T, N, BitWidth / 8>;
-
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(__x86_simd_base);
 
     template <typename U, WJR_REQUIRES(is_value_preserving_or_int_v<U, T>)>
@@ -167,10 +165,6 @@ public:
         Mybase ret(lhs);
         ret ^= rhs;
         return ret;
-    }
-
-    friend constexpr mask_type operator==(const Mybase &lhs, const Mybase &rhs) noexcept {
-        return Simd::movemask_epi8(Simd::cmpeq(lhs.m_data, rhs.m_data, T()));
     }
 
 private:

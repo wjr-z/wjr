@@ -3,9 +3,7 @@
 
 #include <wjr/type_traits.hpp>
 
-#ifndef WJR_X86
-    #error "x86 required"
-#endif
+
 
 namespace wjr {
 
@@ -26,37 +24,30 @@ namespace wjr {
 #endif
 
 #if defined(__BMI2__)
-
     #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
         #define WJR_HAS_BUILTIN_ASM_MUL_1 WJR_HAS_DEF
     #elif defined(WJR_ENABLE_ASSEMBLY)
         #define WJR_HAS_BUILTIN_ASM_MUL_1 WJR_HAS_DEF_VAR(3)
     #endif
-
 #endif
 
 #if defined(__BMI2__) && defined(__ADX__)
-
     #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
         #define WJR_HAS_BUILTIN_ASM_ADDMUL_1 WJR_HAS_DEF
     #elif defined(WJR_ENABLE_ASSEMBLY)
         #define WJR_HAS_BUILTIN_ASM_ADDMUL_1 WJR_HAS_DEF_VAR(3)
     #endif
-
 #endif
 
 #if defined(__BMI2__) && defined(__ADX__)
-
     #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
         #define WJR_HAS_BUILTIN_ASM_SUBMUL_1 WJR_HAS_DEF
     #elif defined(WJR_ENABLE_ASSEMBLY)
         #define WJR_HAS_BUILTIN_ASM_SUBMUL_1 WJR_HAS_DEF_VAR(3)
     #endif
-
 #endif
 
 #if defined(__BMI2__)
-
     #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
         #define WJR_HAS_BUILTIN_ASM_ADDLSH_N WJR_HAS_DEF
         #define WJR_HAS_BUILTIN_ASM_RSBLSH_N WJR_HAS_DEF
@@ -64,11 +55,9 @@ namespace wjr {
         #define WJR_HAS_BUILTIN_ASM_ADDLSH_N WJR_HAS_DEF_VAR(3)
         #define WJR_HAS_BUILTIN_ASM_RSBLSH_N WJR_HAS_DEF_VAR(3)
     #endif
-
 #endif
 
 #if defined(__BMI2__) && defined(__ADX__)
-
     #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
         #define WJR_HAS_BUILTIN_ASM_BASECASE_MUL_S WJR_HAS_DEF
         #define WJR_HAS_BUILTIN_ASM_BASECASE_SQR WJR_HAS_DEF
@@ -76,7 +65,6 @@ namespace wjr {
         #define WJR_HAS_BUILTIN_ASM_BASECASE_MUL_S WJR_HAS_DEF_VAR(3)
         #define WJR_HAS_BUILTIN_ASM_BASECASE_SQR WJR_HAS_DEF_VAR(3)
     #endif
-
 #endif
 
 } // namespace wjr

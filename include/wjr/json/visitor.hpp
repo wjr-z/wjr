@@ -39,7 +39,7 @@ WJR_PURE WJR_INTRINSIC_INLINE result<void> check_false(const char *first) noexce
 namespace visitor_detail {
 
 template <typename Parser>
-WJR_NOINLINE static result<void> parse(Parser &&par, const reader &rd) noexcept {
+WJR_NOINLINE result<void> parse(Parser &&par, const reader &rd) noexcept {
     constexpr unsigned int max_depth = 256;
 
     bitset<max_depth> stk(dctor);

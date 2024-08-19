@@ -4,10 +4,6 @@
 #include <wjr/arch/x86/simd/simd.hpp>
 #include <wjr/format/charconv-impl.hpp>
 
-#ifndef WJR_X86
-    #error "x86 required"
-#endif
-
 namespace wjr {
 
 #if WJR_HAS_SIMD(SSE4_1)
@@ -39,7 +35,6 @@ inline const __m128i shuf =
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
 
 inline uint64_t builtin_to_chars_unroll_8_fast_10(uint32_t in) noexcept {
-
     __m128i x = simd_cast<uint32_t, __m128i_t>(in);
     __m128i q, r;
 
@@ -66,11 +61,8 @@ inline uint64_t builtin_to_chars_unroll_8_fast_10(uint32_t in) noexcept {
 
 template <uint64_t Base>
 uint64_t builtin_to_chars_unroll_8_fast(uint32_t in) noexcept {
-    if constexpr (Base == 10) {
-        return builtin_to_chars_unroll_8_fast_10(in);
-    } else {
-        static_assert(Base == 10, "");
-    }
+    static_assert(Base == 10, "");
+    return builtin_to_chars_unroll_8_fast_10(in);
 }
 
 template <uint64_t Base>

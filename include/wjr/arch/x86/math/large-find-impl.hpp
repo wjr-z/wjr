@@ -5,10 +5,6 @@
 #include <wjr/math/clz.hpp>
 #include <wjr/math/ctz.hpp>
 
-#ifndef WJR_X86
-    #error "x86 required"
-#endif
-
 namespace wjr {
 
 #if WJR_HAS_SIMD(SSE4_1)

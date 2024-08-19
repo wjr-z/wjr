@@ -4,10 +4,6 @@
 #include <wjr/arch/x86/simd/simd.hpp>
 #include <wjr/math/detail.hpp>
 
-#ifndef WJR_X86
-    #error "x86 required"
-#endif
-
 namespace wjr {
 
 #if WJR_HAS_SIMD(SSE2)

@@ -3,20 +3,14 @@
 
 #include <wjr/type_traits.hpp>
 
-#ifndef WJR_X86
-    #error "x86 required"
-#endif
-
 namespace wjr {
 
 #if defined(__BMI2__)
-
     #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
         #define WJR_HAS_BUILTIN_ASM_DIVEXACT_DBM1C WJR_HAS_DEF
     #elif defined(WJR_ENABLE_ASSEMBLY)
         #define WJR_HAS_BUILTIN_ASM_DIVEXACT_DBM1C WJR_HAS_DEF_VAR(3)
     #endif
-
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_DIVEXACT_DBM1C)

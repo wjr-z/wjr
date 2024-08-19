@@ -1,6 +1,7 @@
 #ifndef WJR_FORMAT_FASTFLOAT_HPP__
 #define WJR_FORMAT_FASTFLOAT_HPP__
 
+#include <wjr/algorithm.hpp>
 #include <wjr/biginteger.hpp>
 #include <wjr/format/charconv.hpp>
 
@@ -99,16 +100,6 @@ from_chars_result<> from_chars(const char *first, const char *last, T &value,
 
     WJR_ASSERT(!(to_underlying(fmt) & to_underlying(chars_format::__json_format)));
     return __from_chars_impl(first, last, default_writer<T>(value), fmt);
-}
-
-// Compares two ASCII strings in a case insensitive manner.
-WJR_PURE WJR_INTRINSIC_CONSTEXPR bool
-fastfloat_strncasecmp(const char *input1, const char *input2, size_t length) {
-    char running_diff{0};
-    for (size_t i = 0; i < length; i++) {
-        running_diff |= (input1[i] ^ input2[i]);
-    }
-    return (running_diff == 0) || (running_diff == 32);
 }
 
 struct adjusted_mantissa {
@@ -1508,7 +1499,7 @@ WJR_INTRINSIC_INLINE void round_down(adjusted_mantissa &am, int32_t shift) noexc
 WJR_INTRINSIC_INLINE void skip_zeros(const char *&first, const char *last) noexcept {
     uint64_t val;
     while (std::distance(first, last) >= 8) {
-        val = read_memory<uint64_t>(first, endian::native);
+        val = read_memory<uint64_t>(first);
         if (val != 0x3030303030303030) {
             break;
         }
@@ -1528,7 +1519,7 @@ WJR_INTRINSIC_INLINE bool is_truncated(const char *first, const char *last) noex
     // do 8-bit optimizations, can just compare to 8 literal 0s.
     uint64_t val;
     while (std::distance(first, last) >= 8) {
-        val = read_memory<uint64_t>(first, endian::native);
+        val = read_memory<uint64_t>(first);
         if (val != 0x3030303030303030) {
             return true;
         }
@@ -1872,7 +1863,7 @@ from_chars_result<> parse_infnan(const char *first, const char *last, T &value) 
         ++first;
     }
     if (last - first >= 3) {
-        if (fastfloat_strncasecmp(first, "nan", 3)) {
+        if (constant_length_strncasecmp(first, "nan", 3_u)) {
             answer.ptr = (first += 3);
             value = minusSign ? -std::numeric_limits<T>::quiet_NaN()
                               : std::numeric_limits<T>::quiet_NaN();
@@ -1891,8 +1882,9 @@ from_chars_result<> parse_infnan(const char *first, const char *last, T &value) 
             }
             return answer;
         }
-        if (fastfloat_strncasecmp(first, "inf", 3)) {
-            if ((last - first >= 8) && fastfloat_strncasecmp(first + 3, "inity", 5)) {
+        if (constant_length_strncasecmp(first, "inf", 3_u)) {
+            if ((last - first >= 8) &&
+                constant_length_strncasecmp(first, "infinity", 8_u)) {
                 answer.ptr = first + 8;
             } else {
                 answer.ptr = first + 3;
@@ -2014,14 +2006,9 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
     int64_t exponent;
     int64_t exp_number; // explicit exponential part
 
-    constexpr auto __try_match = [](uint8_t &ch) {
-        ch -= '0';
-        return ch < 10;
-    };
-
     do {
-        uint8_t ch = *p;
-        if (!__try_match(ch)) { // This situation rarely occurs
+        uint32_t ch = *p - '0';
+        if (ch >= 10) { // This situation rarely occurs
             if constexpr (is_constant_options) {
                 // digit_count is zero, this is an error in json.
                 if (fmt & to_underlying(chars_format::__json_format)) {
@@ -2041,8 +2028,8 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
                 goto INTEGER_AT_END;
             }
 
-            ch = *p;
-        } while (WJR_LIKELY(__try_match(ch)));
+            ch = *p - '0';
+        } while (WJR_LIKELY(ch < 10));
     } while (false);
 
     do {
@@ -2399,39 +2386,47 @@ INTEGER:
         }
     }
 
-    pns.exponent = 0;
-
     if constexpr (is_support_integral) {
+        constexpr auto fast_int64_maxn =
+            static_cast<uint64_t>(0) -
+            static_cast<uint64_t>(std::numeric_limits<int64_t>::min());
+
         if (!pns.negative) {
             uint64_t &u64_v = wr.get_u64();
             u64_v = uval;
             return answer;
-        } else if (uval <= static_cast<uint64_t>(-std::numeric_limits<int64_t>::min())) {
+        } else if (uval <= fast_int64_maxn) {
             int64_t &i64_v = wr.get_i64();
             i64_v = static_cast<int64_t>(-uval);
             return answer;
         }
+
+        static_assert(fast_int64_maxn >= binary_format<T>::max_mantissa_fast_path(), "");
     }
 
     auto &float_v = wr.get_float();
 
-    if (WJR_LIKELY(uval <= binary_format<T>::max_mantissa_fast_path())) {
+    if constexpr (!is_support_integral) {
+        if (WJR_LIKELY(uval <= binary_format<T>::max_mantissa_fast_path())) {
 #if defined(__clang__)
-        // ClangCL may map 0 to -0.0 when fegetround() == FE_DOWNWARD
-        if (uval == 0) {
-            float_v = pns.negative ? T(-0.) : T(0.);
-            return answer;
-        }
+            // ClangCL may map 0 to -0.0 when fegetround() == FE_DOWNWARD
+            if (uval == 0) {
+                float_v = pns.negative ? T(-0.) : T(0.);
+                return answer;
+            }
 #endif
 
-        float_v = T(uval);
-        if (pns.negative) {
-            float_v = -float_v;
-        }
+            float_v = T(uval);
+            if (pns.negative) {
+                float_v = -float_v;
+            }
 
-        return answer;
+            return answer;
+        }
     }
 
+    // Can be optimized when is_support_integral is true.
+    // In that case, 2^63 <= uval < 2^64.
     adjusted_mantissa am = compute_integer<binary_format<T>>(uval);
     WJR_ASSERT_ASSUME(am.power2 >= 0);
 

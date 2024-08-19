@@ -2242,7 +2242,7 @@ void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, uint
             } else {
                 cf += negate_n(dp, dp, dusize) - 1;
 
-                const auto cf2 = cf == (uint64_t)in_place_max;
+                const auto cf2 = cf == UINT64_MAX;
                 cf += cf2;
 
                 const auto cf3 = mul_1(dp + dusize, lp + dusize, lusize - dusize, rhs);
@@ -3156,7 +3156,7 @@ void __cfdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
     const auto qp = quot->data();
     const auto np = num->data();
 
-    uint64_t xmask = (nssize ^ xdir) < 0 ? 0 : (uint64_t)in_place_max;
+    uint64_t xmask = (nssize ^ xdir) < 0 ? 0 : UINT64_MAX;
     uint64_t round = 0;
 
     if (xmask) {
@@ -3243,7 +3243,7 @@ void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
         const auto size = std::min<uint32_t>(nusize, offset + 1);
         (void)negate_n(rp, np, size);
         for (uint32_t i = size; i <= offset; ++i) {
-            rp[i] = static_cast<uint64_t>(in_place_max);
+            rp[i] = UINT64_MAX;
         }
 
         nssize = -nssize;

@@ -1,6 +1,7 @@
 #ifndef WJR_MEMORY_DETAIL_HPP__
 #define WJR_MEMORY_DETAIL_HPP__
 
+#include <array>
 #include <cstring>
 
 #include <wjr/iterator/detail.hpp>
@@ -79,7 +80,7 @@ enum class endian {
 inline constexpr bool is_little_endian = endian::native == endian::little;
 inline constexpr bool is_big_endian = !is_little_endian;
 
-static_assert(is_little_endian, "Big endian has not been tested.");
+static_assert(is_little_endian, "Don't support big endian.");
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T fallback_byteswap(T x) noexcept {
@@ -128,11 +129,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T builtin_byteswap(T x) noexcept {
 #endif
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x, endian to = endian::little) noexcept {
-    if (to == endian::native) {
-        return x;
-    }
-
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x) noexcept {
 #if WJR_HAS_BUILTIN(BYTESWAP)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
         return fallback_byteswap(x);
@@ -145,26 +142,15 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x, endian to = endian::little) 
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr,
-                                            endian to = endian::little) noexcept {
+WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr) noexcept {
     T x;
-    std::memcpy(&x, ptr, sizeof(T));
-
-    if (to != endian::native) {
-        x = byteswap(x);
-    }
-
+    std::memcpy(std::addressof(x), ptr, sizeof(T));
     return x;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x,
-                                       endian to = endian::little) noexcept {
-    if (to != endian::native) {
-        x = byteswap(x);
-    }
-
-    std::memcpy(ptr, &x, sizeof(T));
+WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x) noexcept {
+    std::memcpy(ptr, std::addressof(x), sizeof(T));
 }
 
 template <class Pointer, class SizeType = std::size_t>

@@ -8,34 +8,34 @@ if(NOT(CMAKE_SIZEOF_VOID_P EQUAL 8))
 endif()
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
-   set(WJR_X86 TRUE)
-else()
-   set(WJR_X86 FALSE)
+   set(WJR_ARCH x86)
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE Release)
 endif()
 
-if (WJR_DEBUG_LEVEL AND (NOT WJR_DEBUG_LEVEL_DEBUG))
-   set(WJR_DEBUG_LEVEL_DEBUG ${WJR_DEBUG_LEVEL})
-endif()
-
-if (WJR_DEBUG_LEVEL AND (NOT WJR_DEBUG_LEVEL_RELEASE))
-   set(WJR_DEBUG_LEVEL_RELEASE ${WJR_DEBUG_LEVEL})
-endif()
-
-if (NOT WJR_DEBUG_LEVEL_DEBUG)
-   set(WJR_DEBUG_LEVEL_DEBUG 3)
-endif()
-
-if (NOT WJR_DEBUG_LEVEL_RELEASE)
-   set(WJR_DEBUG_LEVEL_RELEASE 0)
-endif()
-
 option(WJR_ENABLE_ASSEMBLY "Link with assembly by using NASM" OFF)
 option(WJR_ENABLE_INLINE_ASM "Enable inline assembly in GCC/Clang" ON)
 option(WJR_DISABLE_EXCEPTIONS "Disable exceptions" OFF)
+
+if (DEFINED WJR_DEBUG_LEVEL AND (NOT DEFINED WJR_DEBUG_LEVEL_DEBUG))
+   set(WJR_DEBUG_LEVEL_DEBUG ${WJR_DEBUG_LEVEL})
+endif()
+
+if (DEFINED WJR_DEBUG_LEVEL AND (NOT DEFINED WJR_DEBUG_LEVEL_RELEASE))
+   set(WJR_DEBUG_LEVEL_RELEASE ${WJR_DEBUG_LEVEL})
+endif()
+
+if (NOT DEFINED WJR_DEBUG_LEVEL_DEBUG)
+   set(WJR_DEBUG_LEVEL_DEBUG 3)
+endif()
+
+if (NOT DEFINED WJR_DEBUG_LEVEL_RELEASE)
+   set(WJR_DEBUG_LEVEL_RELEASE 0)
+endif()
+
+message(${WJR_DEBUG_LEVEL_RELEASE})
 
 set(WJR_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 set(WJR_LIB_DIR ${PROJECT_SOURCE_DIR}/src)
@@ -52,8 +52,8 @@ WJR_ADD_SRCS(WJR_SRCS json)
 WJR_ADD_SRCS(WJR_SRCS math)
 WJR_ADD_SRCS(WJR_SRCS memory)
 
-if(WJR_X86)
-   WJR_ADD_SRCS(WJR_SRCS x86)
+if(WJR_ARCH)
+   WJR_ADD_SRCS(WJR_SRCS arch/${WJR_ARCH})
 endif()
 
 set(WJR_LIBS "")
@@ -64,19 +64,19 @@ if(WJR_ENABLE_ASSEMBLY)
    enable_language(ASM_NASM)
    set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -x assembler-with-cpp")
 
-   if(WJR_X86)
+   if(WJR_ARCH)
       list(APPEND WJR_SRCS
-         ${WJR_LIB_DIR}/wjr/x86/math/basecase_mul_s.asm
-         ${WJR_LIB_DIR}/wjr/x86/math/basecase_sqr.asm
-         ${WJR_LIB_DIR}/wjr/x86/math/divexact_dbm1c.asm
-         ${WJR_LIB_DIR}/wjr/x86/math/mul_1.asm
-         ${WJR_LIB_DIR}/wjr/x86/math/addmul_1.asm
-         ${WJR_LIB_DIR}/wjr/x86/math/submul_1.asm
+         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/math/basecase_mul_s.asm
+         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/math/basecase_sqr.asm
+         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/math/divexact_dbm1c.asm
+         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/math/mul_1.asm
+         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/math/addmul_1.asm
+         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/math/submul_1.asm
       )
 
       set(WJR_ADDSUB
-         ${WJR_LIB_DIR}/wjr/x86/math/addsub_n.asm
-         ${WJR_LIB_DIR}/wjr/x86/math/addrsblsh_n.asm
+         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/math/addsub_n.asm
+         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/math/addrsblsh_n.asm
       )
 
       add_library(wjr_add_n OBJECT ${WJR_ADDSUB})
@@ -88,7 +88,7 @@ if(WJR_ENABLE_ASSEMBLY)
       list(APPEND WJR_LIBS wjr_add_n wjr_sub_n)
       list(APPEND WJR_COMPILE_DEFINITIONS WJR_ENABLE_ASSEMBLY)
 
-      message("enable x86 assembly")
+      message("enable ${WJR_ARCH} assembly")
    endif()
 endif()
 

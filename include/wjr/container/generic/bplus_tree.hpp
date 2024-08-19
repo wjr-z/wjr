@@ -123,6 +123,7 @@ WJR_INTRINSIC_INLINE static void copy(Other *first, Other *last, Other *dest) no
 template <size_t Min, size_t Max, typename Other>
 WJR_INTRINSIC_INLINE static void copy_backward(Other *first, Other *last,
                                                Other *dest) noexcept {
+    WJR_ASSERT_ASSUME_L2(last - first >= Min && last - first <= Max);
 #if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
     if constexpr (Max <= 16 && std::is_trivially_copyable_v<Other>) {
         builtin_bplus_tree_copy_backward<Min, Max>(first, last, dest);

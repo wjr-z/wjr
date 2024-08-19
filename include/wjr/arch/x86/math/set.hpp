@@ -5,10 +5,6 @@
 
 #include <wjr/arch/x86/simd/simd.hpp>
 
-#ifndef WJR_X86
-    #error "x86 required"
-#endif
-
 namespace wjr {
 
 #if WJR_HAS_SIMD(SSE2)
@@ -17,12 +13,11 @@ namespace wjr {
 
 #if WJR_HAS_BUILTIN(SET_N)
 
-template <typename T>
-void large_builtin_set_n(T *dst, T val, size_t n) noexcept {
+template <typename simd, typename T>
+void large_builtin_set_n(T *dst, typename simd::int_type y, size_t n) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
     constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 
-    using simd = std::conditional_t<is_avx, avx, sse>;
     using simd_int = typename simd::int_type;
     constexpr auto simd_width = simd::width();
     constexpr auto type_width = simd_width / nd;
@@ -30,8 +25,6 @@ void large_builtin_set_n(T *dst, T val, size_t n) noexcept {
     constexpr auto mask = u8_width * 4;
 
     WJR_ASSUME(n > type_width * 4);
-
-    auto y = simd::set1(val, T());
 
     simd::storeu(dst, y);
     simd::storeu(dst + n - type_width, y);
@@ -55,20 +48,23 @@ void large_builtin_set_n(T *dst, T val, size_t n) noexcept {
 
     const uintptr_t mo = reinterpret_cast<uintptr_t>(dst) % sizeof(T);
 
-    if (WJR_UNLIKELY(mo != 0)) {
-        T stk[2] = {val, val};
-        std::memcpy(&val, reinterpret_cast<uint8_t *>(stk) + mo, sizeof(T));
-        y = simd::set1(val, T());
+    if (mo != 0) {
+        y = simd::Or(
+            simd::srl(y, simd_cast<uint8_t, __m128i_t>(mo * 8), T()),
+            simd::sll(
+                y, simd_cast<uint8_t, __m128i_t>(std::numeric_limits<T>::digits - mo * 8),
+                T()));
     }
 
     do {
-        simd::store((simd_int *)(ps), y);
-        simd::store((simd_int *)(ps + u8_width * 1), y);
-        simd::store((simd_int *)(ps + u8_width * 2), y);
-        simd::store((simd_int *)(ps + u8_width * 3), y);
+        simd::store(reinterpret_cast<simd_int *>(ps), y);
+        simd::store(reinterpret_cast<simd_int *>(ps + u8_width), y);
+        simd::store(reinterpret_cast<simd_int *>(ps + u8_width * 2), y);
+        simd::store(reinterpret_cast<simd_int *>(ps + u8_width * 3), y);
 
         ps += u8_width * 4;
     } while (WJR_LIKELY(ps != pe));
+
     return;
 }
 
@@ -97,11 +93,11 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
     }
 
     if (WJR_UNLIKELY(n > type_width * 2)) {
-        if (WJR_UNLIKELY(n > type_width * 4)) {
-            return large_builtin_set_n(dst, val, n);
-        }
+        const auto y = simd::set1(val, T());
 
-        auto y = simd::set1(val, T());
+        if (WJR_UNLIKELY(n > type_width * 4)) {
+            return large_builtin_set_n<simd>(dst, y, n);
+        }
 
         simd::storeu(dst, y);
         simd::storeu(dst + type_width, y);
@@ -110,8 +106,8 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
         return;
     }
 
-    const auto x = broadcast<T, uint64_t>(val);
-    const auto y = broadcast<uint64_t, __m128i_t>(x);
+    const auto y = sse::set1(val, T());
+    const auto x = simd_cast<typename sse::int_tag_type, uint64_t>(y);
 
     if (WJR_UNLIKELY(n <= sse_loop * 2)) {
         if (WJR_UNLIKELY(n >= sse_loop)) {

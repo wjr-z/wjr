@@ -421,7 +421,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
 #endif
 }
 
-template <uint64_t maxn = in_place_max>
+template <uint64_t maxn = UINT64_MAX>
 WJR_INTRINSIC_CONSTEXPR20 uint64_t try_addmul_1(uint64_t *dst, const uint64_t *src,
                                                 size_t n, uint64_t ml) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -659,7 +659,7 @@ WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *sr
     }
 }
 
-template <__mul_mode mode, uint64_t m0 = in_place_max, uint64_t m1 = in_place_max>
+template <__mul_mode mode, uint64_t m0 = UINT64_MAX, uint64_t m1 = UINT64_MAX>
 void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
              size_t n, safe_pointer<uint64_t> stk, uint64_t &c_out, uint64_t cf0,
              uint64_t cf1) noexcept {
@@ -727,7 +727,7 @@ void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
     }
 }
 
-template <__mul_mode mode, uint64_t m = in_place_max>
+template <__mul_mode mode, uint64_t m = UINT64_MAX>
 void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
            safe_pointer<uint64_t> stk, uint64_t &c_out, uint64_t cf) noexcept {
     WJR_ASSERT_ASSUME(cf <= m);

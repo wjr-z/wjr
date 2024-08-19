@@ -2,7 +2,7 @@
 #define WJR_SIMD_DETAIL_HPP__
 
 #include <wjr/simd/simd_cast.hpp>
-#include <wjr/simd/simd_mask.hpp>
+#include <wjr/type_traits.hpp>
 
 namespace wjr {
 

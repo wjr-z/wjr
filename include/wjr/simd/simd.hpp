@@ -4,7 +4,6 @@
 #include <wjr/math/broadcast.hpp>
 #include <wjr/memory/detail.hpp>
 #include <wjr/simd/detail.hpp>
-#include <wjr/simd/simd_mask.hpp>
 
 #if defined(WJR_X86)
     #include <wjr/arch/x86/simd/simd.hpp>
@@ -21,8 +20,6 @@ class simd<T, simd_abi::fixed_size<N>> {
     static_assert(N >= 2, "");
 
 public:
-    using mask_type = simd_detail::basic_simd_mask<T, N, BitWidth>;
-
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(simd);
 
     template <typename U, WJR_REQUIRES(is_value_preserving_or_int_v<U, T>)>
@@ -75,11 +72,6 @@ public:
         ret ^= rhs;
         return ret;
     }
-
-    /// this is slow.
-    // friend constexpr mask_type operator==(const simd &lhs, const simd &rhs) noexcept {
-    //     return ~(lhs.m_data ^ rhs.m_data);
-    // }
 
 private:
     int_type m_data;

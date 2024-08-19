@@ -5,10 +5,6 @@
 
 #include <wjr/expected.hpp>
 
-#if defined(WJR_X86)
-    #include <wjr/arch/x86/format/utf8/utf8.hpp>
-#endif
-
 namespace wjr::utf8 {
 
 namespace detail {

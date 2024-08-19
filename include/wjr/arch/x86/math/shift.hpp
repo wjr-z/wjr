@@ -3,10 +3,6 @@
 
 #include <wjr/arch/x86/simd/simd.hpp>
 
-#ifndef WJR_X86
-    #error "x86 required"
-#endif
-
 namespace wjr {
 
 template <typename T>
@@ -60,8 +56,9 @@ WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, __m128i c) noexcept {
         do {                                                                             \
             __m128i x1 = sse::loadu(src - 3 - (index));                                  \
             x0 = simd_cast<__m128_t, __m128i_t>(                                         \
-                sse::template shuffle_ps<78>(simd_cast<__m128i_t, __m128_t>(x1),         \
-                                             simd_cast<__m128i_t, __m128_t>(x0)));       \
+                sse::template shuffle_ps<_MM_SHUFFLE(1, 0, 3, 2)>(                       \
+                    simd_cast<__m128i_t, __m128_t>(x1),                                  \
+                    simd_cast<__m128i_t, __m128_t>(x0)));                                \
                                                                                          \
             __m128i r0 = __mm_sll_epi64(x0, y);                                          \
             __m128i r1 = __mm_srl_epi64(x1, z);                                          \

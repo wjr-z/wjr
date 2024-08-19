@@ -3,10 +3,6 @@
 
 #include <wjr/type_traits.hpp>
 
-#ifndef WJR_X86
-    #error "x86 required"
-#endif
-
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
     #define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF
     #define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_DEF
@@ -18,7 +14,6 @@
         #define WJR_HAS_BUILTIN___ASM_ADDC_CC_128 WJR_HAS_DEF
     #endif
 #else
-
     #if defined(WJR_MSVC)
         #define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF_VAR(2)
     #endif
@@ -26,7 +21,6 @@
     #if defined(WJR_ENABLE_ASSEMBLY)
         #define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_DEF_VAR(3)
     #endif
-
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_ADDC) == 2

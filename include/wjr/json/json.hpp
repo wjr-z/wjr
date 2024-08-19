@@ -9,14 +9,6 @@
 
 namespace wjr::json {
 
-namespace detail {
-extern result<void> __check_impl(const reader &rd) noexcept;
-}
-
-WJR_INTRINSIC_INLINE result<void> check(const reader &rd) noexcept {
-    return detail::__check_impl(rd);
-}
-
 template <typename Traits>
 class basic_json;
 
@@ -68,7 +60,11 @@ using __default_json_string = typename default_json_traits::string_type;
 template <typename Json>
 class basic_json_parser;
 
+class check_parser;
+
 } // namespace detail
+
+WJR_INTRINSIC_INLINE result<void> check(const reader &rd) noexcept;
 
 using json = basic_json<detail::default_json_traits>;
 
@@ -576,7 +572,7 @@ public:
      */
     ~basic_json() noexcept { __destroy(); }
 
-    basic_json(null_t) noexcept : m_value(null_t()) {}
+    explicit basic_json(null_t) noexcept : m_value(null_t()) {}
     basic_json(boolean_t, bool f) noexcept : m_value(boolean_t(), f) {}
     basic_json(number_signed_t, int64_t value) noexcept
         : m_value(number_unsigned_t(), value) {}
@@ -589,8 +585,8 @@ public:
     basic_json(object_t, object_type *ptr) noexcept : m_value(object_t(), ptr) {}
     basic_json(array_t, array_type *ptr) noexcept : m_value(array_t(), ptr) {}
 
-    basic_json(basic_value value) noexcept : m_value(value) {}
-    basic_json(dctor_t) noexcept : basic_json() {}
+    explicit basic_json(basic_value value) noexcept : m_value(value) {}
+    explicit basic_json(dctor_t) noexcept : basic_json() {}
 
     WJR_PURE value_t type() const noexcept { return m_value.m_type; }
 
@@ -1742,12 +1738,161 @@ private:
     json_type *element;
 };
 
+class check_parser {
+    template <typename Parser>
+    friend result<void> visitor_detail::parse(Parser &&par, const reader &rd) noexcept;
+
+public:
+    WJR_INTRINSIC_INLINE static result<void> parse(const reader &rd) noexcept {
+        return visitor_detail::parse(check_parser(), rd);
+    }
+
+protected:
+    WJR_INTRINSIC_INLINE result<void> visit_root_null(const char *first) const noexcept {
+        return check_null(first);
+    }
+
+    WJR_INTRINSIC_INLINE result<void>
+    visit_object_null(const char *first) const noexcept {
+        return check_null(first);
+    }
+
+    WJR_INTRINSIC_INLINE result<void> visit_array_null(const char *first) const noexcept {
+        return check_null(first);
+    }
+
+    WJR_INTRINSIC_INLINE result<void> visit_root_true(const char *first) const noexcept {
+        return check_true(first);
+    }
+
+    WJR_INTRINSIC_INLINE result<void>
+    visit_object_true(const char *first) const noexcept {
+        return check_true(first);
+    }
+
+    WJR_INTRINSIC_INLINE result<void> visit_array_true(const char *first) const noexcept {
+        return check_true(first);
+    }
+
+    WJR_INTRINSIC_INLINE result<void> visit_root_false(const char *first) const noexcept {
+        return check_false(first);
+    }
+
+    WJR_INTRINSIC_INLINE result<void>
+    visit_object_false(const char *first) const noexcept {
+        return check_false(first);
+    }
+
+    WJR_INTRINSIC_INLINE result<void>
+    visit_array_false(const char *first) const noexcept {
+        return check_false(first);
+    }
+
+    WJR_INTRINSIC_INLINE result<void> visit_root_number(const char *first,
+                                                        const char *last) const noexcept {
+        return check_number(first, last);
+    }
+
+    WJR_INTRINSIC_INLINE result<void>
+    visit_object_number(const char *first, const char *last) const noexcept {
+        return check_number(first, last);
+    }
+
+    WJR_INTRINSIC_INLINE result<void>
+    visit_array_number(const char *first, const char *last) const noexcept {
+        return check_number(first, last);
+    }
+
+    WJR_INTRINSIC_INLINE result<void> visit_root_string(const char *first,
+                                                        const char *last) const noexcept {
+        return check_string(first, last);
+    }
+
+    WJR_INTRINSIC_INLINE result<void>
+    visit_object_string(const char *first, const char *last) const noexcept {
+        return check_string(first, last);
+    }
+
+    WJR_INTRINSIC_INLINE result<void>
+    visit_array_string(const char *first, const char *last) const noexcept {
+        return check_string(first, last);
+    }
+
+    WJR_INTRINSIC_INLINE result<void>
+    visit_object_key_string(const char *first, const char *last) const noexcept {
+        return check_string(first, last);
+    }
+
+    WJR_INTRINSIC_INLINE result<void> visit_root_start_object(uint32_t) const noexcept {
+        return {};
+    }
+
+    WJR_INTRINSIC_INLINE result<void> visit_object_start_object(uint32_t) const noexcept {
+        return {};
+    }
+
+    WJR_INTRINSIC_INLINE result<void> visit_array_start_object(uint32_t) const noexcept {
+        return {};
+    }
+
+    WJR_INTRINSIC_INLINE result<void> visit_root_start_array(uint32_t) const noexcept {
+        return {};
+    }
+
+    WJR_INTRINSIC_INLINE result<void> visit_object_start_array(uint32_t) const noexcept {
+        return {};
+    }
+
+    WJR_INTRINSIC_INLINE result<void> visit_array_start_array(uint32_t) const noexcept {
+        return {};
+    }
+
+    WJR_INTRINSIC_INLINE result<void>
+    visit_end_object_to_object(uint32_t) const noexcept {
+        return {};
+    }
+
+    WJR_INTRINSIC_INLINE result<void> visit_end_object_to_array(uint32_t) const noexcept {
+        return {};
+    }
+
+    WJR_INTRINSIC_INLINE result<void> visit_end_object_to_root(uint32_t) const noexcept {
+        return {};
+    }
+
+    WJR_INTRINSIC_INLINE result<void> visit_end_array_to_object(uint32_t) const noexcept {
+        return {};
+    }
+
+    WJR_INTRINSIC_INLINE result<void> visit_end_array_to_array(uint32_t) const noexcept {
+        return {};
+    }
+
+    WJR_INTRINSIC_INLINE result<void> visit_end_array_to_root(uint32_t) const noexcept {
+        return {};
+    }
+};
+
 } // namespace detail
+
+namespace visitor_detail {
+
+extern template result<void>
+parse<detail::basic_json_parser<json> &>(detail::basic_json_parser<json> &par,
+                                         const reader &rd) noexcept;
+
+extern template result<void> parse<detail::check_parser>(detail::check_parser &&par,
+                                                         const reader &rd) noexcept;
+} // namespace visitor_detail
 
 template <typename Traits>
 result<basic_json<Traits>> basic_json<Traits>::parse(const reader &rd) noexcept {
     detail::basic_json_parser<basic_json<Traits>> par;
     return par.parse(rd);
+}
+
+inline result<void> check(const reader &rd) noexcept {
+    return detail::check_parser::parse(rd);
 }
 
 namespace detail {
