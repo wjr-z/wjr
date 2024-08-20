@@ -880,12 +880,15 @@ __m128i sse::alignr(__m128i a, __m128i b) noexcept {
     #if WJR_HAS_SIMD(SSSE3)
     return _mm_alignr_epi8(a, b, s);
     #else
-    if constexpr (s == 0)
-        noexcept { return b; }
-    if constexpr (s == 16)
-        noexcept { return a; }
-    if constexpr (s < 16)
-        noexcept { return Or(slli<16 - s>(a), srli<s>(b)); }
+    if constexpr (s == 0) {
+        return b;
+    }
+    if constexpr (s == 16) {
+        return a;
+    }
+    if constexpr (s < 16) {
+        return Or(slli<16 - s>(a), srli<s>(b));
+    }
     return srli<s - 16>(a);
     #endif // SSSE3
 }
@@ -1194,9 +1197,9 @@ int sse::extract_epi8(__m128i a) noexcept {
     #if WJR_HAS_SIMD(SSE4_1)
     return _mm_extract_epi8(a, imm8);
     #else
-    if constexpr (imm8 & 1)
-        noexcept { return extract_epi16<(imm8 >> 1)>(a) >> 8; }
-    else {
+    if constexpr (imm8 & 1) {
+        return extract_epi16<(imm8 >> 1)>(a) >> 8;
+    } else {
         return extract_epi16<(imm8 >> 1)>(a) & 0xff;
     }
     #endif
@@ -1214,18 +1217,13 @@ int sse::extract_epi32(__m128i a) noexcept {
     #if WJR_HAS_SIMD(SSE4_1)
     return _mm_extract_epi32(a, imm8);
     #else
-    if constexpr (imm8 == 0)
-        noexcept { return simd_cast<__m128i_t, uint32_t>(a); }
-    else if constexpr (imm8 == 1)
-        noexcept {
-            return static_cast<uint32_t>(simd_cast<__m128i_t, uint64_t>(a) >> 32);
-        }
-    else if constexpr (imm8 == 2)
-        noexcept {
-            return simd_cast<__m128i_t, uint32_t>(
-                shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
-        }
-    else {
+    if constexpr (imm8 == 0) {
+        return simd_cast<__m128i_t, uint32_t>(a);
+    } else if constexpr (imm8 == 1) {
+        return static_cast<uint32_t>(simd_cast<__m128i_t, uint64_t>(a) >> 32);
+    } else if constexpr (imm8 == 2) {
+        return simd_cast<__m128i_t, uint32_t>(shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
+    } else {
         return simd_cast<__m128i_t, uint32_t>(shuffle_epi32<_MM_SHUFFLE(3, 3, 3, 3)>(a));
     }
     #endif
@@ -1237,9 +1235,9 @@ int64_t sse::extract_epi64(__m128i a) noexcept {
     #if WJR_HAS_SIMD(SSE4_1)
     return _mm_extract_epi64(a, imm8);
     #else
-    if constexpr (imm8 == 0)
-        noexcept { return simd_cast<__m128i_t, uint64_t>(a); }
-    else {
+    if constexpr (imm8 == 0) {
+        return simd_cast<__m128i_t, uint64_t>(a);
+    } else {
         return simd_cast<__m128i_t, uint64_t>(shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
     }
     #endif
@@ -1753,13 +1751,11 @@ __m128i sse::setmax(uint32_t) noexcept { return set1_epi32(0xFFFFFFFF); }
 
 template <int imm>
 __m128i sse::shl(__m128i a) noexcept {
-    if constexpr (imm >= 64)
-        noexcept {
-            a = slli<8>(a);
-            a = slli_epi64(a, imm - 64);
-            return a;
-        }
-    else {
+    if constexpr (imm >= 64) {
+        a = slli<8>(a);
+        a = slli_epi64(a, imm - 64);
+        return a;
+    } else {
         auto b = slli_epi64(a, imm);
         auto c = slli<8>(a);
         c = srli_epi64(c, 64 - imm);
@@ -1769,13 +1765,11 @@ __m128i sse::shl(__m128i a) noexcept {
 
 template <int imm>
 __m128i sse::shr(__m128i a) noexcept {
-    if constexpr (imm >= 64)
-        noexcept {
-            a = srli<8>(a);
-            a = srli_epi64(a, imm - 64);
-            return a;
-        }
-    else {
+    if constexpr (imm >= 64) {
+        a = srli<8>(a);
+        a = srli_epi64(a, imm - 64);
+        return a;
+    } else {
         auto b = srli_epi64(a, imm);
         auto c = srli<8>(a);
         c = slli_epi64(c, 64 - imm);

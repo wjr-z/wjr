@@ -1505,31 +1505,25 @@ __m256i avx::packus_epi32(__m256i a, __m256i b) noexcept {
 
 template <int imm>
 __m256i avx::shl(__m256i a) noexcept {
-    if constexpr (imm >= 64 * 3)
-        noexcept {
-            a = slli<8 * 3>(a);
-            a = slli_epi64(a, imm - 64 * 3);
-            return a;
-        }
-    else if constexpr (imm >= 64 * 2)
-        noexcept {
-            a = slli<8 * 2>(a);
-            constexpr auto I = imm - 64 * 2;
-            auto b = slli_epi64(a, I);
-            auto c = slli<8>(a);
-            c = srli_epi64(c, 64 - I);
-            return Or(b, c);
-        }
-    else if constexpr (imm >= 64)
-        noexcept {
-            a = slli<8>(a);
-            constexpr auto I = imm - 64;
-            auto b = slli_epi64(a, I);
-            auto c = slli<8>(a);
-            c = srli_epi64(c, 64 - I);
-            return Or(b, c);
-        }
-    else {
+    if constexpr (imm >= 64 * 3) {
+        a = slli<8 * 3>(a);
+        a = slli_epi64(a, imm - 64 * 3);
+        return a;
+    } else if constexpr (imm >= 64 * 2) {
+        a = slli<8 * 2>(a);
+        constexpr auto I = imm - 64 * 2;
+        auto b = slli_epi64(a, I);
+        auto c = slli<8>(a);
+        c = srli_epi64(c, 64 - I);
+        return Or(b, c);
+    } else if constexpr (imm >= 64) {
+        a = slli<8>(a);
+        constexpr auto I = imm - 64;
+        auto b = slli_epi64(a, I);
+        auto c = slli<8>(a);
+        c = srli_epi64(c, 64 - I);
+        return Or(b, c);
+    } else {
         auto b = slli_epi64(a, imm);
         auto c = slli<8>(a);
         c = srli_epi64(c, 64 - imm);
@@ -1539,31 +1533,25 @@ __m256i avx::shl(__m256i a) noexcept {
 
 template <int imm>
 __m256i avx::shr(__m256i a) noexcept {
-    if constexpr (imm >= 64 * 3)
-        noexcept {
-            a = srli<8 * 3>(a);
-            a = srli_epi64(a, imm - 64 * 3);
-            return a;
-        }
-    else if constexpr (imm >= 64 * 2)
-        noexcept {
-            a = srli<8 * 2>(a);
-            constexpr auto I = imm - 64 * 2;
-            auto b = srli_epi64(a, I);
-            auto c = srli<8>(a);
-            c = slli_epi64(c, 64 - I);
-            return Or(b, c);
-        }
-    else if constexpr (imm >= 64)
-        noexcept {
-            a = srli<8>(a);
-            constexpr auto I = imm - 64;
-            auto b = srli_epi64(a, I);
-            auto c = srli<8>(a);
-            c = slli_epi64(c, 64 - I);
-            return Or(b, c);
-        }
-    else {
+    if constexpr (imm >= 64 * 3) {
+        a = srli<8 * 3>(a);
+        a = srli_epi64(a, imm - 64 * 3);
+        return a;
+    } else if constexpr (imm >= 64 * 2) {
+        a = srli<8 * 2>(a);
+        constexpr auto I = imm - 64 * 2;
+        auto b = srli_epi64(a, I);
+        auto c = srli<8>(a);
+        c = slli_epi64(c, 64 - I);
+        return Or(b, c);
+    } else if constexpr (imm >= 64) {
+        a = srli<8>(a);
+        constexpr auto I = imm - 64;
+        auto b = srli_epi64(a, I);
+        auto c = srli<8>(a);
+        c = slli_epi64(c, 64 - I);
+        return Or(b, c);
+    } else {
         auto b = srli_epi64(a, imm);
         auto c = srli<8>(a);
         c = slli_epi64(c, 64 - imm);

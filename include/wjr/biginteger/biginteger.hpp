@@ -3648,8 +3648,8 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
                                              const biginteger_data &src) noexcept {
     if (const std::ostream::sentry ok(os); ok) {
         unique_stack_allocator stkal(math_detail::stack_alloc);
-
-        std::basic_string<char, Tarits, math_detail::weak_stack_alloc<char>> buffer(
+        
+        std::basic_string<char, Traits, math_detail::weak_stack_alloc<char>> buffer(
             stkal);
         buffer.reserve(128);
 

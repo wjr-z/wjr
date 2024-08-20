@@ -80,11 +80,7 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
     constexpr auto sse_width = sse::width();
     constexpr auto sse_loop = sse_width / nd;
 
-    if (WJR_UNLIKELY(n == 0)) {
-        return;
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P(n) && n <= 4) {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n <= 4)) {
         for (size_t i = 0; i < n; ++i) {
             dst[i] = val;
         }
@@ -92,93 +88,106 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
         return;
     }
 
-    if (WJR_UNLIKELY(n > type_width * 2)) {
-        const auto y = simd::set1(val, T());
+    if (WJR_UNLIKELY(n == 0)) {
+        return;
+    }
 
-        if (WJR_UNLIKELY(n > type_width * 4)) {
-            return large_builtin_set_n<simd>(dst, y, n);
+    if (WJR_LIKELY(n >= type_width)) {
+        const auto y = simd::set1(val, T());
+        if (WJR_UNLIKELY(n > type_width * 2)) {
+            if (WJR_UNLIKELY(n > type_width * 4)) {
+                return large_builtin_set_n<simd>(dst, y, n);
+            }
+
+            simd::storeu(dst, y);
+            simd::storeu(dst + type_width, y);
+            simd::storeu(dst + n - type_width, y);
+            simd::storeu(dst + n - type_width * 2, y);
+            return;
         }
 
         simd::storeu(dst, y);
-        simd::storeu(dst + type_width, y);
         simd::storeu(dst + n - type_width, y);
-        simd::storeu(dst + n - type_width * 2, y);
         return;
     }
 
     const auto y = sse::set1(val, T());
     const auto x = simd_cast<typename sse::int_tag_type, uint64_t>(y);
 
-    if (WJR_UNLIKELY(n <= sse_loop * 2)) {
+    if constexpr (is_avx) {
         if (WJR_UNLIKELY(n >= sse_loop)) {
             sse::storeu(dst, y);
             sse::storeu(dst + n - sse_loop, y);
             return;
         }
+    }
 
-        if constexpr (sse_loop == 2) {
+    if constexpr (sse_loop == 2) {
+        std::memcpy(dst, &x, 8);
+        return;
+    } else {
+        if (WJR_UNLIKELY(n >= sse_loop / 2)) {
             std::memcpy(dst, &x, 8);
+            std::memcpy(dst + n - sse_loop / 2, &x, 8);
+            return;
+        }
+    }
+
+    if (WJR_UNLIKELY(n >= sse_loop)) {
+        sse::storeu(dst, y);
+        sse::storeu(dst + n - sse_loop, y);
+        return;
+    }
+
+    if constexpr (sse_loop == 2) {
+        std::memcpy(dst, &x, 8);
+        return;
+    } else {
+        if (WJR_UNLIKELY(n >= sse_loop / 2)) {
+            std::memcpy(dst, &x, 8);
+            std::memcpy(dst + n - sse_loop / 2, &x, 8);
+            return;
+        }
+    }
+
+    if constexpr (sse_loop >= 4) {
+        if constexpr (sse_loop == 4) {
+            std::memcpy(dst, &x, 4);
             return;
         } else {
-            if (WJR_UNLIKELY(n >= sse_loop / 2)) {
-                std::memcpy(dst, &x, 8);
-                std::memcpy(dst + n - sse_loop / 2, &x, 8);
-                return;
-            }
-        }
-
-        if constexpr (sse_loop >= 4) {
-            if constexpr (sse_loop == 4) {
+            if (WJR_UNLIKELY(n >= sse_loop / 4)) {
                 std::memcpy(dst, &x, 4);
+                std::memcpy(dst + n - sse_loop / 4, &x, 4);
                 return;
-            } else {
-                if (WJR_UNLIKELY(n >= sse_loop / 4)) {
-                    std::memcpy(dst, &x, 4);
-                    std::memcpy(dst + n - sse_loop / 4, &x, 4);
-                    return;
-                }
             }
         }
+    }
 
-        if constexpr (sse_loop >= 8) {
-            if constexpr (sse_loop == 8) {
+    if constexpr (sse_loop >= 8) {
+        if constexpr (sse_loop == 8) {
+            std::memcpy(dst, &x, 2);
+            return;
+        } else {
+            if (WJR_UNLIKELY(n >= sse_loop / 8)) {
                 std::memcpy(dst, &x, 2);
+                std::memcpy(dst + n - sse_loop / 8, &x, 2);
                 return;
-            } else {
-                if (WJR_UNLIKELY(n >= sse_loop / 8)) {
-                    std::memcpy(dst, &x, 2);
-                    std::memcpy(dst + n - sse_loop / 8, &x, 2);
-                    return;
-                }
             }
         }
+    }
 
-        if constexpr (sse_loop >= 16) {
-            if constexpr (sse_loop == 16) {
-                std::memcpy(dst, &x, 1);
+    if constexpr (sse_loop >= 16) {
+        if constexpr (sse_loop == 16) {
+            std::memcpy(dst, &x, 1);
+            return;
+        } else {
+            if (WJR_UNLIKELY(n >= sse_loop / 16)) {
+                std::memcpy(dst, &x, 16);
+                std::memcpy(dst + n - sse_loop / 16, &x, 16);
                 return;
-            } else {
-                if (WJR_UNLIKELY(n >= sse_loop / 16)) {
-                    std::memcpy(dst, &x, 16);
-                    std::memcpy(dst + n - sse_loop / 16, &x, 16);
-                    return;
-                }
             }
         }
-
-        return;
     }
-
-    #if WJR_HAS_SIMD(AVX2)
-    if constexpr (is_avx) {
-        auto z = broadcast<__m128i_t, __m256i_t>(y);
-        avx::storeu(dst, z);
-        avx::storeu(dst + n - type_width, z);
-        return;
-    }
-    #endif
-
-    WJR_UNREACHABLE();
 }
 
 #endif
