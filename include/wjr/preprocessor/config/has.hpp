@@ -3,6 +3,7 @@
 
 #include <wjr/preprocessor/config/arch.hpp>
 #include <wjr/preprocessor/config/compiler.hpp>
+#include <wjr/preprocessor/config/sizeof.hpp>
 #include <wjr/preprocessor/detail/basic.hpp>
 #include <wjr/preprocessor/logical/basic.hpp>
 
@@ -122,9 +123,13 @@
 
 #if defined(__SIZEOF_INT128__)
     #define WJR_HAS_FEATURE_INT128 WJR_HAS_DEF
-    #if !(defined(__clang__) && defined(LIBDIVIDE_VC))
+    #if !(defined(__clang__) && defined(_MSC_VER))
         #define WJR_HAS_FEATURE_INT128_DIV WJR_HAS_DEF
     #endif
+#endif
+
+#if defined(_GLIBCXX_USE_FLOAT128)
+    #define WJR_HAS_FEATURE_FLOAT128 WJR_HAS_DEF
 #endif
 
 // There are some issues with the optimization of int128 in both lower and higher versions
@@ -217,6 +222,14 @@
 
 #if defined(__PCLMUL__)
     #define WJR_HAS_SIMD_PCLMUL WJR_HAS_DEF
+#endif
+
+#if defined(WJR_X86)
+    #define WJR_ARCH x86
+#endif
+
+#if defined(WJR_ARCH)
+    #define WJR_ARCH_INCLUDE_PATH(SUFFIX) <wjr/arch/WJR_ARCH/SUFFIX>
 #endif
 
 #endif // WJR_PREPROCESSOR_CONFIG_HAS_HPP__

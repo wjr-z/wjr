@@ -14,7 +14,7 @@
         #define WJR_HAS_BUILTIN___ASM_ADDC_CC_128 WJR_HAS_DEF
     #endif
 #else
-    #if defined(WJR_MSVC)
+    #if defined(_MSC_VER)
         #define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF_VAR(2)
     #endif
 

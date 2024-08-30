@@ -13,7 +13,7 @@ namespace wjr {
     #define WJR_HAS_BUILTIN_ASM_UMUL128 WJR_HAS_DEF
 #elif WJR_HAS_FEATURE(INT128)
     #define WJR_HAS_BUILTIN_INT128_UMUL128 WJR_HAS_DEF
-#elif defined(WJR_MSVC)
+#elif defined(_MSC_VER)
     #define WJR_HAS_BUILTIN_MSVC_UMUL128 WJR_HAS_DEF
 #else
     #undef WJR_HAS_BUILTIN_UMUL128

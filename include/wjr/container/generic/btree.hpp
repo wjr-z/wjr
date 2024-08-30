@@ -739,7 +739,6 @@ class basic_btree {
     static constexpr size_t floor_half = node_size / 2;
     static constexpr size_t ceil_half = node_size - floor_half;
     static constexpr size_t max_moved_elements = (ceil_half + 1) / 2;
-    static constexpr bool Multi = Traits::Multi;
 
     using node_type = typename Traits::node_type;
     using inner_node_type = typename Traits::inner_node_type;

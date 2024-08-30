@@ -227,21 +227,6 @@
     #define WJR_BUILTIN_CLEAR_PADDING(x) __builtin_zero_non_value_bits(x)
 #endif
 
-#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
-    #define WJR_COMPILER_BARRIER() asm volatile("" ::: "memory")
-    #define WJR_COMPILER_EMPTY_ASM() asm("")
-#else
-    #define WJR_COMPILER_BARRIER()
-    #define WJR_COMPILER_EMPTY_ASM()
-#endif
-
-#define WJR_CONSTEXPR_COMPILER_BARRIER()                                                 \
-    do {                                                                                 \
-        if (!(WJR_IS_CONSTANT_EVALUATED())) {                                            \
-            WJR_COMPILER_BARRIER();                                                      \
-        }                                                                                \
-    } while (false)
-
 #if defined(WJR_FORCEINLINE)
     #define WJR_INTRINSIC_INLINE inline WJR_FORCEINLINE
 #else

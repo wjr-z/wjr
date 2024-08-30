@@ -56,7 +56,7 @@ WJR_INTRINSIC_INLINE uint64_t div1by1_div_half<uint64_t>(uint64_t hi, uint64_t l
 
 template <branch type, typename T>
 WJR_CONST WJR_INTRINSIC_INLINE div1by1_uint_t<T> div1by1_internal_uint_gen(T d) noexcept {
-    WJR_ASSERT(d != 0, "div1by1_divider must be != 0");
+    WJR_ASSERT(d != 0, "Can't divide by zero.");
 
     constexpr auto nd = std::numeric_limits<T>::digits;
 
@@ -120,7 +120,7 @@ WJR_CONST WJR_INTRINSIC_INLINE div1by1_uint_t<T> div1by1_uint_gen(T d) noexcept 
     if constexpr (type == branch::full) {
         return div1by1_internal_uint_gen<type>(d);
     } else {
-        WJR_ASSERT(d != 1, "div1by1_divider must be != 1");
+        WJR_ASSERT(d != 1, "The divisor cannot be 1");
         const auto ret = div1by1_internal_uint_gen<type>(d);
         return div1by1_uint_t<T>{
             tmp.magic, static_cast<uint8_t>(tmp.more & div1by1_shift_mask<T>::value)};

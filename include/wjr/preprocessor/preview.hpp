@@ -3,6 +3,8 @@
 
 // testing ...
 
+#include <cstdlib>
+
 #include <wjr/preprocessor/arithmatic.hpp>
 #include <wjr/preprocessor/config.hpp>
 #include <wjr/preprocessor/detail.hpp>
@@ -75,8 +77,8 @@
 
 #define WJR_DISABLE_EXCEPTIONS_TRY_I if constexpr (true)
 #define WJR_DISABLE_EXCEPTIONS_CATCH_I(...) if constexpr (false)
-#define WJR_DISABLE_EXCEPTIONS_THROW_I(X)
-#define WJR_DISABLE_EXCEPTIONS_XTHROW_I
+#define WJR_DISABLE_EXCEPTIONS_THROW_I(X) std::exit(EXIT_FAILURE)
+#define WJR_DISABLE_EXCEPTIONS_XTHROW_I std::exit(EXIT_FAILURE)
 
 #define WJR_TRY                                                                          \
     WJR_EXCEPTIONS_IF(WJR_ENABLE_EXCEPTIONS_TRY_I, WJR_DISABLE_EXCEPTIONS_TRY_I)
@@ -98,5 +100,26 @@
     CLASS &operator=(const CLASS &) = default;                                           \
     CLASS &operator=(CLASS &&) = default;                                                \
     ~CLASS() = default
+
+#if defined(WJR_WINDOWS)
+    #if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG)
+        #define WJR_HAS_DECLSPEC
+        #define WJR_SYMBOL_EXPORT __attribute__((__dllexport__))
+        #define WJR_SYMBOL_IMPORT __attribute__((__dllimport__))
+    #elif defined(WJR_COMPILER_MSVC)
+    #else
+        #error "Not support"
+    #endif
+#else
+    #if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG)
+        #define WJR_SYMBOL_EXPORT __attribute__((__visibility__("default")))
+        #define WJR_SYMBOL_IMPORT
+    #elif defined(WJR_COMPILER_MSVC)
+        #error "Not support"
+    #else
+        #define WJR_SYMBOL_EXPORT
+        #define WJR_SYMBOL_IMPORT
+    #endif
+#endif
 
 #endif // ! WJR_PREPROCESSOR_PREVIEW_HPP__

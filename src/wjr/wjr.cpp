@@ -13,7 +13,7 @@ void __assert_failed(const char *expr, const char *file, const char *func,
     }
 
     fprintf(stderr, "%s: Assertion `%s' failed.\n", func, expr);
-    std::abort();
+    std::exit(EXIT_FAILURE);
 }
 
 } // namespace wjr

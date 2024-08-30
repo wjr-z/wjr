@@ -7,7 +7,7 @@
 
     #if WJR_HAS_BUILTIN(__builtin_popcount)
         #define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF
-    #elif defined(WJR_MSVC)
+    #elif defined(_MSC_VER)
         #define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF_VAR(2)
     #endif
 

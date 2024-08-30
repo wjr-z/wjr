@@ -541,17 +541,6 @@ private:
     static_assert(is_contiguous_iterator_v<iterator>, "");
     static_assert(is_contiguous_iterator_v<const_iterator>, "");
 
-    static constexpr bool __storage_noexcept_deallocate =
-        noexcept(std::declval<storage_type>().deallocate(std::declval<_Alty &>()));
-    static constexpr bool __storage_noexcept_destroy_and_deallocate =
-        std::is_nothrow_destructible_v<value_type> && __storage_noexcept_deallocate;
-    static constexpr bool __storage_noexcept_take_storage =
-        noexcept(std::declval<storage_type>().take_storage(std::declval<storage_type &>(),
-                                                           std::declval<_Alty &>()));
-    static constexpr bool __storage_noexcept_swap_storage =
-        noexcept(std::declval<storage_type>().swap_storage(std::declval<storage_type &>(),
-                                                           std::declval<_Alty &>()));
-
 public:
     basic_vector() = default;
 
@@ -590,8 +579,9 @@ private:
     template <typename _Alloc>
     WJR_CONSTEXPR20
     basic_vector(basic_vector &&other, _Alloc &&al, in_place_empty_t) noexcept(
-        std::is_nothrow_constructible_v<storage_type, _Alloc &&>
-            &&__storage_noexcept_take_storage)
+        std::is_nothrow_constructible_v<storage_type, _Alloc &&> && noexcept(
+            std::declval<storage_type>().take_storage(std::declval<storage_type &>(),
+                                                      std::declval<_Alty &>())))
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al),
                  wjr::forward_as_tuple()) {
         __take_storage(std::move(other));
@@ -1166,7 +1156,8 @@ public:
     }
 
 private:
-    WJR_CONSTEXPR20 void __deallocate() noexcept(__storage_noexcept_deallocate) {
+    WJR_CONSTEXPR20 void __deallocate() noexcept(
+        noexcept(std::declval<storage_type>().deallocate(std::declval<_Alty &>()))) {
         get_storage().deallocate(__get_allocator());
     }
 
@@ -1187,8 +1178,9 @@ private:
         destroy_using_allocator(begin_unsafe(), end_unsafe(), __get_allocator());
     }
 
-    WJR_CONSTEXPR20 void
-    __destroy_and_deallocate() noexcept(__storage_noexcept_destroy_and_deallocate) {
+    WJR_CONSTEXPR20 void __destroy_and_deallocate() noexcept(
+        std::is_nothrow_destructible_v<value_type> && noexcept(
+            std::declval<storage_type>().deallocate(std::declval<_Alty &>()))) {
         if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(capacity() == 0) ||
                                            WJR_BUILTIN_CONSTANT_P_TRUE(data() ==
                                                                        nullptr)) {
@@ -1213,8 +1205,9 @@ private:
                std::make_move_iterator(other.end_unsafe()));
     }
 
-    WJR_CONSTEXPR20 void
-    __swap_storage(basic_vector &other) noexcept(__storage_noexcept_swap_storage) {
+    WJR_CONSTEXPR20 void __swap_storage(basic_vector &other) noexcept(
+        noexcept(std::declval<storage_type>().swap_storage(std::declval<storage_type &>(),
+                                                           std::declval<_Alty &>()))) {
         get_storage().swap_storage(other.get_storage(), __get_allocator());
     }
 
@@ -1224,8 +1217,9 @@ private:
         return get_storage().size();
     }
 
-    WJR_CONSTEXPR20 void
-    __take_storage(storage_type &other) noexcept(__storage_noexcept_take_storage) {
+    WJR_CONSTEXPR20 void __take_storage(storage_type &other) noexcept(
+        noexcept(std::declval<storage_type>().take_storage(std::declval<storage_type &>(),
+                                                           std::declval<_Alty &>()))) {
         take_storage(other);
     }
 

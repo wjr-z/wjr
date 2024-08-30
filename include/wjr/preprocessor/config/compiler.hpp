@@ -7,11 +7,9 @@
     #define WJR_COMPILER_GCC
 #elif defined(_MSC_VER)
     #define WJR_COMPILER_MSVC
+#else
+    #error "Not support"
 #endif
-
-#if defined(_MSC_VER)
-    #define WJR_MSVC
-#endif // _MSC_VER
 
 #if defined(__GNUC__)
     #define WJR_HAS_GCC(major, minor, patchlevel)                                        \
@@ -23,6 +21,10 @@
 #endif // __GNUC__
 
 #if defined(__clang__)
+    #if defined(__apple_build_version__)
+        #error "Not support"
+    #endif
+
     #define WJR_HAS_CLANG(major, minor, patchlevel)                                      \
         ((__clang_major__ > (major)) ||                                                  \
          (__clang_major__ == (major) && __clang_minor__ > (minor)) ||                    \
@@ -87,10 +89,7 @@
     #define WJR_FILE ""
 #endif
 
-// reference: boost BOOST_CURRENT_FUNCTION
-#if defined(WJR_DISABLE_CURRENT_FUNCTION)
-    #define WJR_CURRENT_FUNCTION "(unknown)"
-#elif defined(__GNUC__) || (defined(__MWERKS__) && (__MWERKS__ >= 0x3000)) ||            \
+#if defined(__GNUC__) || (defined(__MWERKS__) && (__MWERKS__ >= 0x3000)) ||              \
     (defined(__ICC) && (__ICC >= 600)) || defined(__ghs__)
     #define WJR_CURRENT_FUNCTION __PRETTY_FUNCTION__
 #elif defined(__DMC__) && (__DMC__ >= 0x810)

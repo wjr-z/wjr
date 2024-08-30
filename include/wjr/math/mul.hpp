@@ -13,7 +13,7 @@
 #include <wjr/math/sub.hpp>
 #include <wjr/memory/safe_pointer.hpp>
 
-#if defined(WJR_MSVC) && defined(WJR_X86)
+#if defined(_MSC_VER) && defined(WJR_X86)
     #define WJR_HAS_BUILTIN_MSVC_MULH64 WJR_HAS_DEF
 #endif
 
@@ -549,7 +549,7 @@ using toom_interpolation_high_p_struct = std::array<uint64_t, P - 2>;
 */
 
 /*
- l = ceIl(n/2)
+ l = ceil(n/2)
  stk usage : l * 2
 */
 extern void toom22_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
@@ -575,7 +575,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom22_s_itch(size_t m) noexcept {
 }
 
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 size_t toom22_n_itch(size_t n) noexcept {
-    return n * 2 + bit_width(n);
+    return n * 2 + 64;
 }
 
 WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom33_s_itch(size_t m) noexcept {

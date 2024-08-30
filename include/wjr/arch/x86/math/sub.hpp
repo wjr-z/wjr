@@ -15,7 +15,7 @@
     #endif
 #else
 
-    #if defined(WJR_MSVC)
+    #if defined(_MSC_VER)
         #define WJR_HAS_BUILTIN_ASM_SUBC WJR_HAS_DEF_VAR(2)
     #endif
 
