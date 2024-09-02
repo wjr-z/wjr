@@ -5,6 +5,7 @@
 
 #include <wjr/math/bit.hpp>
 #include <wjr/math/shift.hpp>
+#include <wjr/math/bitwise.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
@@ -337,26 +338,17 @@ public:
     constexpr static size_t size() noexcept { return N; }
 
     constexpr bitset &operator&=(const bitset &other) noexcept {
-        for (size_t i = 0; i < bytes_size; ++i) {
-            m_data[i] &= other.m_data[i];
-        }
-
+        and_n(m_data, m_data, other.m_data, bytes_size);
         return *this;
     }
 
     constexpr bitset &operator|=(const bitset &other) noexcept {
-        for (size_t i = 0; i < bytes_size; ++i) {
-            m_data[i] |= other.m_data[i];
-        }
-
+        or_n(m_data, m_data, other.m_data, bytes_size);
         return *this;
     }
 
     constexpr bitset &operator^=(const bitset &other) noexcept {
-        for (size_t i = 0; i < bytes_size; ++i) {
-            m_data[i] ^= other.m_data[i];
-        }
-
+        xor_n(m_data, m_data, other.m_data, bytes_size);
         return *this;
     }
 

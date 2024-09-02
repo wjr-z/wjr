@@ -20,12 +20,19 @@ WJR_CONST constexpr T clear_lowbit(T n) noexcept {
     return n & (n - 1);
 }
 
-// preview :
+template <typename T, typename U,
+          WJR_REQUIRES(std::is_integral_v<T> &&std::is_integral_v<U>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T fast_cast(U value) noexcept {
+    WJR_ASSUME(in_range<T>(value));
+    return static_cast<T>(value);
+}
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST constexpr bool is_zero_or_single_bit(T n) noexcept {
     return (n & (n - 1)) == 0;
 }
+
+// preview :
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST constexpr bool __has_high_bit(T n) noexcept {
@@ -88,7 +95,7 @@ WJR_CONST constexpr T __fasts_conditional_negate(bool condition, T x) noexcept {
 template <typename T, typename U = std::make_unsigned_t<T>,
           WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
 WJR_CONST constexpr T __fasts_negate_with(T condition, T x) noexcept {
-    return __fasts_conditional_negate(condition < 0, x);
+    return condition < 0 ? -x : x;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>

@@ -1554,6 +1554,8 @@ WJR_INTRINSIC_INLINE void parse_one_digit(const char *&p, uint64_t &value,
     count++;
 }
 
+inline constexpr size_t max_limbs = 4000 / 64;
+
 WJR_INTRINSIC_INLINE void add_native(biginteger &big, uint64_t power,
                                      uint64_t value) noexcept {
     big *= power;
@@ -1568,7 +1570,6 @@ WJR_INTRINSIC_INLINE void round_up_bigint(biginteger &big, size_t &count) noexce
 }
 
 WJR_INTRINSIC_INLINE void pow5(biginteger &big, uint32_t exp) noexcept {
-    constexpr uint32_t large_step = 135;
     static constexpr uint64_t small_power_of_5[] = {
         1UL,
         5UL,
@@ -1604,8 +1605,8 @@ WJR_INTRINSIC_INLINE void pow5(biginteger &big, uint32_t exp) noexcept {
         1414648277510068013UL, 9180637584431281687UL, 4539964771860779200UL,
         10482974169319127550UL, 198276706040285095UL};
 
-    constexpr auto large = make_biginteger_data(
-        span<const uint64_t>(large_power_of_5, std::size(large_power_of_5)));
+    constexpr uint32_t large_step = 135;
+    constexpr auto large = make_biginteger_data(span(large_power_of_5));
 
     while (exp >= large_step) {
         big *= large;
@@ -1698,9 +1699,11 @@ void parse_mantissa(biginteger &result, span<const char> integer,
                (max_digits - digits >= 8)) {
             parse_eight_digits(p, value, counter, digits);
         }
+
         while (counter < step && p != pend && digits < max_digits) {
             parse_one_digit(p, value, counter, digits);
         }
+
         if (digits == max_digits) {
             // add the temporary value, then check if we've truncated any digits
             add_native(result, uint64_t(powers_of_ten_uint64[counter]), value);
@@ -1708,9 +1711,11 @@ void parse_mantissa(biginteger &result, span<const char> integer,
             if (fraction.data() != nullptr) {
                 truncated |= is_truncated(fraction);
             }
+
             if (truncated) {
                 round_up_bigint(result, digits);
             }
+
             return;
         } else {
             add_native(result, uint64_t(powers_of_ten_uint64[counter]), value);
@@ -1732,16 +1737,19 @@ void parse_mantissa(biginteger &result, span<const char> integer,
                    (max_digits - digits >= 8)) {
                 parse_eight_digits(p, value, counter, digits);
             }
+
             while (counter < step && p != pend && digits < max_digits) {
                 parse_one_digit(p, value, counter, digits);
             }
+
             if (digits == max_digits) {
                 // add the temporary value, then check if we've truncated any digits
                 add_native(result, uint64_t(powers_of_ten_uint64[counter]), value);
-                bool truncated = is_truncated(p, pend);
-                if (truncated) {
+
+                if (bool truncated = is_truncated(p, pend); truncated) {
                     round_up_bigint(result, digits);
                 }
+
                 return;
             } else {
                 add_native(result, uint64_t(powers_of_ten_uint64[counter]), value);
@@ -1796,7 +1804,8 @@ adjusted_mantissa negative_digit_comp(biginteger &bigmant, adjusted_mantissa am,
     T b;
     to_float(false, am_b, b);
     adjusted_mantissa theor = to_extended_halfway(b);
-    biginteger theor_digits(theor.mantissa);
+    biginteger theor_digits(max_limbs, in_place_reserve);
+    theor_digits = theor.mantissa;
     int32_t theor_exp = theor.power2;
 
     // scale real digits and theor digits to be same power.
@@ -1835,7 +1844,7 @@ template <typename T>
 adjusted_mantissa digit_comp(adjusted_mantissa am, span<const char> integer,
                              span<const char> fraction, int32_t sci_exp) {
     size_t digits = 0;
-    biginteger bigmant;
+    biginteger bigmant(max_limbs, in_place_reserve);
     parse_mantissa<T>(bigmant, integer, fraction, digits);
     int32_t exponent = sci_exp + 1 - int32_t(digits);
     if (exponent >= 0) {

@@ -455,13 +455,6 @@ template <typename From, typename To>
 inline constexpr bool is_value_preserving_or_int_v =
     is_value_preserving_or_int<From, To>::value;
 
-template <typename T, typename U,
-          WJR_REQUIRES(std::is_integral_v<T> &&std::is_integral_v<U>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T fast_cast(U value) noexcept {
-    WJR_ASSUME(in_range<T>(value));
-    return static_cast<T>(value);
-}
-
 #define __WJR_REGISTER_TYPENAMES(...)                                                    \
     WJR_PP_QUEUE_EXPAND(                                                                 \
         WJR_PP_QUEUE_TRANSFORM((__VA_ARGS__), __WJR_REGISTER_TYPENAMES_CALLER))

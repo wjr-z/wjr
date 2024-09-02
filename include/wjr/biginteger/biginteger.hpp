@@ -185,7 +185,9 @@ public:
         m_storage.m_size = size;
     }
 
-    WJR_PURE const biginteger_data *__get_data() const noexcept { return &m_storage; }
+    WJR_PURE const biginteger_data *__get_data() const noexcept {
+        return std::addressof(m_storage);
+    }
 
 private:
     biginteger_data m_storage;
@@ -2353,15 +2355,15 @@ void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 template <typename S>
 void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                      uint32_t shift) noexcept {
-    int32_t lssize = lhs->get_ssize();
+    const int32_t lssize = lhs->get_ssize();
 
     if (lssize == 0) {
         dst->set_ssize(0);
         return;
     }
 
-    uint32_t lusize = __fasts_abs(lssize);
-    uint32_t offset = shift / 64;
+    const uint32_t lusize = __fasts_abs(lssize);
+    const uint32_t offset = shift / 64;
     shift %= 64;
     uint32_t dusize = lusize + offset;
 
@@ -3648,7 +3650,7 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
                                              const biginteger_data &src) noexcept {
     if (const std::ostream::sentry ok(os); ok) {
         unique_stack_allocator stkal(math_detail::stack_alloc);
-        
+
         std::basic_string<char, Traits, math_detail::weak_stack_alloc<char>> buffer(
             stkal);
         buffer.reserve(128);
