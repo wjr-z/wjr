@@ -5,10 +5,9 @@
  * @file btree.hpp
  * @brief B+ tree implementation.
  *
- * @details The multiset/multimap/set/map adapter has not been implemented yet. The
- * node_size should be set to 16 by default, and optimization has been made for size
- * less than or equal to 16. \n
- * Only use when key is trivial. Otherwise, this maybe won't faster than std::map.
+ * @details The multiset/multimap/set/map adapter has not been implemented yet.
+ * Only use when key is trivial. Otherwise, this maybe won't faster than std::map.  \n
+ * Deletion is slower than std::map.
  *
  * @todo
  *
@@ -35,7 +34,7 @@ struct btree_inner_node;
 template <typename Traits>
 struct btree_list_base;
 
-template <typename Traits, bool inline_key_types>
+template <typename Traits>
 struct btree_leaf_node;
 
 namespace btree_detail {
@@ -197,8 +196,8 @@ struct __btree_inline_traits<Key, void> {
     }
 };
 
-template <typename Key, typename Value, bool Multi, size_t Size = 16,
-          typename Compare = std::less<>>
+template <typename Key, typename Value, bool Multi, typename Compare = std::less<>,
+          bool TrivialSearch = true>
 struct btree_traits : __btree_inline_traits<Key, Value> {
 private:
     using Mybase = __btree_inline_traits<Key, Value>;
@@ -217,9 +216,10 @@ public:
     using value_type = typename Mybase::value_type;
     using key_compare = Compare;
 
-    static constexpr size_t node_size = Size;
     static constexpr bool is_inline_key = Mybase::is_inline_key;
     static constexpr bool is_inline_value = Mybase::is_inline_value;
+    static constexpr bool is_map = Mybase::is_map;
+    static constexpr bool is_trivial_search = TrivialSearch;
 
     using inline_key_type = std::conditional_t<is_inline_key, key_type, key_type *>;
     using inline_value_type =
@@ -231,8 +231,7 @@ public:
     using node_type = btree_node<btree_traits>;
     using inner_node_type = btree_inner_node<btree_traits>;
     using list_base_type = btree_list_base<btree_traits>;
-    using leaf_node_type =
-        btree_leaf_node<btree_traits, is_inline_key && !is_inline_value>;
+    using leaf_node_type = btree_leaf_node<btree_traits>;
     static constexpr bool multi = Multi;
 
     WJR_INTRINSIC_INLINE static inline_key_type __to_key(const key_type &key) noexcept {
@@ -304,7 +303,6 @@ private:
 public:
     using key_type = typename Traits::key_type;
     using value_type = typename Traits::value_type;
-    constexpr static size_t node_size = Traits::node_size;
     using inline_key_type = typename Traits::inline_key_type;
     using inner_node_type = typename Traits::inner_node_type;
     using leaf_node_type = typename Traits::leaf_node_type;
@@ -339,20 +337,19 @@ template <typename Traits>
 struct btree_inner_node : btree_node<Traits> {
     using key_type = typename Traits::key_type;
     using value_type = typename Traits::value_type;
-    constexpr static size_t node_size = Traits::node_size;
     using inline_key_type = typename Traits::inline_key_type;
 
-    alignas(16) inline_key_type m_keys[node_size];
-    alignas(16) btree_node<Traits> *m_sons[node_size + 1];
+    alignas(16) inline_key_type m_keys[16];
+    alignas(16) btree_node<Traits> *m_sons[16 + 1];
 };
 
 template <typename Traits>
-struct btree_list_base : btree_node<Traits>, list_node<> {
+struct btree_list_base : btree_node<Traits>, intrusive::list_node<void> {
 private:
     using Mybase = btree_node<Traits>;
 
 public:
-    using list_node_type = list_node<>;
+    using list_node_type = intrusive::list_node<void>;
 
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(btree_list_base);
 
@@ -363,56 +360,13 @@ public:
     constexpr const list_node_type *__get_list() const noexcept { return this; }
 };
 
-template <typename Traits, bool inline_key_types>
+template <typename Traits>
 struct btree_leaf_node : btree_list_base<Traits> {
     using key_type = typename Traits::key_type;
     using value_type = typename Traits::value_type;
-    constexpr static size_t node_size = Traits::node_size;
-    using inline_key_type = typename Traits::inline_key_type;
-    using list_node_type = list_node<>;
-
-    const key_type &__get_key(unsigned int pos) const noexcept {
-        return Traits::__get_key(m_keys[pos]);
-    }
-
-    template <size_t Min, size_t Max>
-    WJR_INTRINSIC_INLINE void __copy(unsigned int start, unsigned int end,
-                                     unsigned int dst_start,
-                                     btree_leaf_node *dst) const noexcept {
-        Traits::template copy<Min, Max>(m_keys + start, m_keys + end,
-                                        dst->m_keys + dst_start);
-        Traits::template copy<Min, Max>(m_values + start, m_values + end,
-                                        dst->m_values + dst_start);
-    }
-
-    template <size_t Min, size_t Max>
-    WJR_INTRINSIC_INLINE void __copy_backward(unsigned int start, unsigned int end,
-                                              unsigned int dst_end,
-                                              btree_leaf_node *dst) const noexcept {
-        Traits::template copy_backward<Min, Max>(m_keys + start, m_keys + end,
-                                                 dst->m_keys + dst_end);
-        Traits::template copy_backward<Min, Max>(m_values + start, m_values + end,
-                                                 dst->m_values + dst_end);
-    }
-
-    WJR_INTRINSIC_INLINE void __assign(unsigned int idx,
-                                       value_type *const value) noexcept {
-        m_keys[idx] = Traits::get_key(*value);
-        m_values[idx] = value;
-    }
-
-    alignas(16) inline_key_type m_keys[node_size];
-    alignas(16) value_type *m_values[node_size];
-};
-
-template <typename Traits>
-struct btree_leaf_node<Traits, false> : btree_list_base<Traits> {
-    using key_type = typename Traits::key_type;
-    using value_type = typename Traits::value_type;
-    constexpr static size_t node_size = Traits::node_size;
     constexpr static bool is_inline_value = Traits::is_inline_value;
     using inline_value_type = typename Traits::inline_value_type;
-    using list_node_type = list_node<>;
+    using list_node_type = intrusive::list_node<void>;
 
     const key_type &__get_key(unsigned int pos) const noexcept {
         return Traits::get_key(Traits::__get_value(m_values[pos]));
@@ -439,7 +393,7 @@ struct btree_leaf_node<Traits, false> : btree_list_base<Traits> {
         btree_detail::btree_assign(m_values[idx], value);
     }
 
-    alignas(16) inline_value_type m_values[node_size];
+    alignas(16) inline_value_type m_values[16];
 };
 
 template <typename Traits>
@@ -479,7 +433,7 @@ class btree_const_iterator {
     template <typename Other>
     friend class basic_btree;
 
-    using list_node_type = list_node<>;
+    using list_node_type = intrusive::list_node<void>;
 
 public:
     using iterator_category = std::bidirectional_iterator_tag;
@@ -524,7 +478,7 @@ public:
         if (m_pos != 0) {
             --m_pos;
         } else {
-            m_node = prev(m_node);
+            m_node = m_node->prev();
             m_pos = __get_usize() - 1;
         }
 
@@ -560,9 +514,9 @@ protected:
         return static_cast<unsigned int>(-get_base()->size());
     }
 
-    btree_const_iterator &__adjust_next() noexcept {
+    WJR_INTRINSIC_INLINE btree_const_iterator &__adjust_next() noexcept {
         if (WJR_UNLIKELY(m_pos == __get_usize())) {
-            m_node = next(m_node);
+            m_node = m_node->next();
             m_pos = 0;
         }
 
@@ -582,7 +536,7 @@ class btree_iterator : public btree_const_iterator<Traits> {
     template <typename Other>
     friend class basic_btree;
 
-    using list_node_type = list_node<>;
+    using list_node_type = intrusive::list_node<void>;
 
 public:
     using Mybase::Mybase;
@@ -642,93 +596,14 @@ public:
     }
 
 protected:
-    btree_iterator &__adjust_next() noexcept {
+    WJR_INTRINSIC_INLINE btree_iterator &__adjust_next() noexcept {
         Mybase::__adjust_next();
         return *this;
     }
 };
 
 template <size_t N, typename Enable = void>
-struct basic_btree_searcher_impl {
-    template <size_t Min, typename node_type, typename Compare>
-    WJR_PURE WJR_INTRINSIC_INLINE static unsigned int
-    search(const node_type *current, unsigned int size, Compare &&comp) noexcept {
-        static_assert(Min != 0, "");
-
-        unsigned int pos = 0;
-
-        do {
-            if (comp(current, pos)) {
-                break;
-            }
-        } while (++pos != size);
-        return pos;
-    }
-};
-
-#define WJR_REGISTER_BLPUS_SEARCH_2(A, B, C)                                             \
-    do {                                                                                 \
-        if constexpr (A == node_size) {                                                  \
-            return A;                                                                    \
-        } else if constexpr (B == node_size) {                                           \
-            if (size == A || comp(current, A)) {                                         \
-                return A;                                                                \
-            }                                                                            \
-            return B;                                                                    \
-        } else if constexpr (C <= node_size) {                                           \
-            if constexpr (Min < C) {                                                     \
-                if (size < C) {                                                          \
-                    if constexpr (Min <= A) {                                            \
-                        if (size == A || comp(current, A)) {                             \
-                            return A;                                                    \
-                        }                                                                \
-                    } else {                                                             \
-                        if (comp(current, A)) {                                          \
-                            return A;                                                    \
-                        }                                                                \
-                    }                                                                    \
-                    return B;                                                            \
-                }                                                                        \
-            }                                                                            \
-            if (comp(current, B)) {                                                      \
-                if (comp(current, A)) {                                                  \
-                    return A;                                                            \
-                }                                                                        \
-                return B;                                                                \
-            }                                                                            \
-        }                                                                                \
-    } while (false)
-
-template <size_t N>
-struct basic_btree_searcher_impl<N, std::enable_if_t<(N < 16)>> {
-    static constexpr size_t node_size = N;
-
-    template <size_t Min, typename node_type, typename Compare>
-    WJR_PURE WJR_INTRINSIC_INLINE static unsigned int
-    search(const node_type *current, unsigned int size, Compare &&comp) noexcept {
-        static_assert(Min != 0, "");
-
-        WJR_ASSERT_ASSUME(size >= Min);
-        WJR_ASSERT_ASSUME(size <= node_size);
-
-        WJR_REGISTER_BLPUS_SEARCH_2(0, 1, 2);
-        WJR_REGISTER_BLPUS_SEARCH_2(2, 3, 4);
-        WJR_REGISTER_BLPUS_SEARCH_2(4, 5, 6);
-        WJR_REGISTER_BLPUS_SEARCH_2(6, 7, 8);
-        WJR_REGISTER_BLPUS_SEARCH_2(8, 9, 10);
-        WJR_REGISTER_BLPUS_SEARCH_2(10, 11, 12);
-        WJR_REGISTER_BLPUS_SEARCH_2(12, 13, 14);
-        WJR_REGISTER_BLPUS_SEARCH_2(14, 15, 16);
-
-        if constexpr (node_size == 16) {
-            return 16;
-        }
-
-        WJR_UNREACHABLE();
-    }
-};
-
-#undef WJR_REGISTER_BLPUS_SEARCH_2
+struct basic_btree_searcher_impl;
 
 #define WJR_REGISTER_BLPUS_SEARCH_2(A, B, C)                                             \
     do {                                                                                 \
@@ -760,7 +635,7 @@ struct basic_btree_searcher_impl<16, void> {
 
     template <size_t Min, typename node_type, typename Compare>
     WJR_PURE WJR_INTRINSIC_INLINE static unsigned int
-    search(const node_type *current, unsigned int size, Compare &&comp) noexcept {
+    trivial_search(const node_type *current, unsigned int size, Compare &&comp) noexcept {
         static_assert(Min != 0, "");
         static_assert(Min == 1 || Min == 8, "");
 
@@ -778,6 +653,325 @@ struct basic_btree_searcher_impl<16, void> {
 
         return 16;
     }
+
+    template <size_t Min, typename node_type, typename Compare>
+    WJR_PURE WJR_INTRINSIC_INLINE static unsigned int
+    non_trivial_search(const node_type *current, unsigned int size,
+                       Compare &&comp) noexcept {
+        static_assert(Min != 0, "");
+        static_assert(Min == 1 || Min == 8, "");
+
+        WJR_ASSERT_ASSUME(size >= Min);
+        WJR_ASSERT_ASSUME(size <= node_size);
+
+        if constexpr (Min == 1) {
+            if (size <= 4) {
+                if (size == 1 || comp(current, 1)) {
+                    if (comp(current, 0)) {
+                        return 0;
+                    }
+
+                    return 1;
+                }
+
+                if (size == 2 || comp(current, 2)) {
+                    return 2;
+                }
+
+                if (size == 3 || comp(current, 3)) {
+                    return 3;
+                }
+
+                return 4;
+            }
+
+            if (size <= 8) {
+                if (comp(current, 3)) {
+                    if (comp(current, 1)) {
+                        if (comp(current, 0)) {
+                            return 0;
+                        }
+
+                        return 1;
+                    }
+
+                    if (comp(current, 2)) {
+                        return 2;
+                    }
+
+                    return 3;
+                }
+
+                if (size == 5 || comp(current, 5)) {
+                    if (comp(current, 4)) {
+                        return 4;
+                    }
+
+                    return 5;
+                }
+
+                if (size == 6 || comp(current, 6)) {
+                    return 6;
+                }
+
+                if (size == 7 || comp(current, 7)) {
+                    return 7;
+                }
+
+                return 8;
+            }
+
+            if (size <= 12) {
+                if (comp(current, 5)) {
+                    if (comp(current, 2)) {
+                        if (comp(current, 0)) {
+                            return 0;
+                        }
+
+                        if (comp(current, 1)) {
+                            return 1;
+                        }
+
+                        return 2;
+                    }
+
+                    if (comp(current, 3)) {
+                        return 3;
+                    }
+
+                    if (comp(current, 4)) {
+                        return 4;
+                    }
+
+                    return 5;
+                }
+
+                if (comp(current, 8)) {
+                    if (comp(current, 6)) {
+                        return 6;
+                    }
+
+                    if (comp(current, 7)) {
+                        return 7;
+                    }
+
+                    return 8;
+                }
+
+                if (size == 9) {
+                    return 9;
+                }
+
+                if (size == 10 || comp(current, 10)) {
+                    if (comp(current, 9)) {
+                        return 9;
+                    }
+
+                    return 10;
+                }
+
+                if (size == 11 || comp(current, 11)) {
+                    return 11;
+                }
+
+                return 12;
+            }
+
+            if (comp(current, 7)) {
+                if (comp(current, 3)) {
+                    if (comp(current, 1)) {
+                        if (comp(current, 0)) {
+                            return 0;
+                        }
+
+                        return 1;
+                    }
+
+                    if (comp(current, 2)) {
+                        return 2;
+                    }
+                }
+
+                if (comp(current, 5)) {
+                    if (comp(current, 4)) {
+                        return 4;
+                    }
+
+                    return 5;
+                }
+
+                if (comp(current, 6)) {
+                    return 6;
+                }
+
+                return 7;
+            }
+
+            if (comp(current, 11)) {
+                if (comp(current, 9)) {
+                    if (comp(current, 8)) {
+                        return 8;
+                    }
+
+                    return 9;
+                }
+
+                if (comp(current, 10)) {
+                    return 10;
+                }
+
+                return 11;
+            }
+
+            if (size == 13 || comp(current, 13)) {
+                if (comp(current, 12)) {
+                    return 12;
+                }
+
+                return 13;
+            }
+
+            if (size == 14 || comp(current, 14)) {
+                return 14;
+            }
+
+            if (size == 15 || comp(current, 15)) {
+                return 15;
+            }
+
+            return 16;
+        } else {
+            if (size <= 12) {
+                if (comp(current, 5)) {
+                    if (comp(current, 2)) {
+                        if (comp(current, 0)) {
+                            return 0;
+                        }
+
+                        if (comp(current, 1)) {
+                            return 1;
+                        }
+
+                        return 2;
+                    }
+
+                    if (comp(current, 3)) {
+                        return 3;
+                    }
+
+                    if (comp(current, 4)) {
+                        return 4;
+                    }
+
+                    return 5;
+                }
+
+                if (size == 8 || comp(current, 8)) {
+                    if (comp(current, 6)) {
+                        return 6;
+                    }
+
+                    if (comp(current, 7)) {
+                        return 7;
+                    }
+
+                    return 8;
+                }
+
+                if (size == 9) {
+                    return 9;
+                }
+
+                if (size == 10 || comp(current, 10)) {
+                    if (comp(current, 9)) {
+                        return 9;
+                    }
+
+                    return 10;
+                }
+
+                if (size == 11 || comp(current, 11)) {
+                    return 11;
+                }
+
+                return 12;
+            }
+
+            if (comp(current, 7)) {
+                if (comp(current, 3)) {
+                    if (comp(current, 1)) {
+                        if (comp(current, 0)) {
+                            return 0;
+                        }
+
+                        return 1;
+                    }
+
+                    if (comp(current, 2)) {
+                        return 2;
+                    }
+                }
+
+                if (comp(current, 5)) {
+                    if (comp(current, 4)) {
+                        return 4;
+                    }
+
+                    return 5;
+                }
+
+                if (comp(current, 6)) {
+                    return 6;
+                }
+
+                return 7;
+            }
+
+            if (comp(current, 11)) {
+                if (comp(current, 9)) {
+                    if (comp(current, 8)) {
+                        return 8;
+                    }
+
+                    return 9;
+                }
+
+                if (comp(current, 10)) {
+                    return 10;
+                }
+
+                return 11;
+            }
+
+            if (size == 13 || comp(current, 13)) {
+                if (comp(current, 12)) {
+                    return 12;
+                }
+
+                return 13;
+            }
+
+            if (size == 14 || comp(current, 14)) {
+                return 14;
+            }
+
+            if (size == 15 || comp(current, 15)) {
+                return 15;
+            }
+
+            return 16;
+        }
+    }
+
+    template <size_t Min, bool TrivialSearch, typename node_type, typename Compare>
+    WJR_PURE WJR_INTRINSIC_INLINE static unsigned int
+    search(const node_type *current, unsigned int size, Compare &&comp) noexcept {
+        if constexpr (TrivialSearch) {
+            return trivial_search<Min>(current, size, std::forward<Compare>(comp));
+        } else {
+            return non_trivial_search<Min>(current, size, std::forward<Compare>(comp));
+        }
+    }
 };
 
 #undef WJR_REGISTER_BLPUS_SEARCH_2
@@ -790,7 +984,7 @@ class basic_btree {
 
     friend class container_fn<_Alty>;
 
-    static constexpr size_t node_size = Traits::node_size;
+    static constexpr size_t node_size = 16;
     static constexpr bool is_inline_key = Traits::is_inline_key;
     static constexpr bool is_inline_value = Traits::is_inline_value;
     using inline_key_type = typename Traits::inline_key_type;
@@ -798,12 +992,14 @@ class basic_btree {
     static constexpr size_t floor_half = node_size / 2;
     static constexpr size_t ceil_half = node_size - floor_half;
     static constexpr size_t max_moved_elements = (ceil_half + 1) / 2;
+    static constexpr bool multi = Traits::multi;
+    static constexpr bool is_trivial_search = Traits::is_trivial_search;
 
     using node_type = typename Traits::node_type;
     using inner_node_type = typename Traits::inner_node_type;
     using leaf_node_type = typename Traits::leaf_node_type;
     using list_base_type = typename Traits::list_base_type;
-    using list_node_type = list_node<>;
+    using list_node_type = intrusive::list_node<void>;
 
 public:
     using key_type = typename Traits::key_type;
@@ -845,6 +1041,18 @@ public:
         __move_tree(std::move(other));
     }
 
+    template <typename Iter>
+    basic_btree(Iter first, Iter last, const key_compare &comp = key_compare()) noexcept
+        : basic_btree(comp) {
+        for (; first != last; ++first) {
+            emplace(*first);
+        }
+    }
+
+    basic_btree(std::initializer_list<value_type> il,
+                const key_compare &comp = key_compare()) noexcept
+        : basic_btree(il.begin(), il.end(), comp) {}
+
     basic_btree &operator=(const basic_btree &other) noexcept {
         if (WJR_UNLIKELY(this == std::addressof(other))) {
             return *this;
@@ -859,6 +1067,14 @@ public:
         noexcept(storage_fn_type::move_assign(*this, std::move(other)))) {
         WJR_ASSERT(this != std::addressof(other));
         storage_fn_type::move_assign(*this, std::move(other));
+        return *this;
+    }
+
+    basic_btree &operator=(std::initializer_list<value_type> il) noexcept {
+        clear();
+        for (auto &item : il) {
+            emplace(item);
+        }
         return *this;
     }
 
@@ -904,7 +1120,7 @@ public:
     }
 
 protected:
-    static inner_node_type *__create_inner_node() noexcept {
+    WJR_INTRINSIC_INLINE static inner_node_type *__create_inner_node() noexcept {
         _Alty al;
         auto *const node = reinterpret_cast<inner_node_type *>(
             _Alty_traits::allocate(al, sizeof(inner_node_type)));
@@ -912,7 +1128,7 @@ protected:
         return node;
     }
 
-    static leaf_node_type *__create_leaf_node() noexcept {
+    WJR_INTRINSIC_INLINE static leaf_node_type *__create_leaf_node() noexcept {
         _Alty al;
         auto *const node = reinterpret_cast<leaf_node_type *>(
             _Alty_traits::allocate(al, sizeof(leaf_node_type)));
@@ -921,7 +1137,7 @@ protected:
     }
 
     template <typename... Args>
-    static inline_value_type __create_node(Args &&...args) noexcept {
+    WJR_INTRINSIC_INLINE static inline_value_type __create_node(Args &&...args) noexcept {
         if constexpr (is_inline_value) {
             value_type value(std::forward<Args>(args)...);
             inline_value_type ret(value);
@@ -936,21 +1152,21 @@ protected:
         }
     }
 
-    static void __drop_inner_node(inner_node_type *node) noexcept {
+    WJR_INTRINSIC_INLINE static void __drop_inner_node(inner_node_type *node) noexcept {
         _Alty al;
         destroy_at_using_allocator(node, al);
         _Alty_traits::deallocate(al, reinterpret_cast<uint8_t *>(node),
                                  sizeof(inner_node_type));
     }
 
-    static void __drop_leaf_node(leaf_node_type *node) noexcept {
+    WJR_INTRINSIC_INLINE static void __drop_leaf_node(leaf_node_type *node) noexcept {
         _Alty al;
         destroy_at_using_allocator(node, al);
         _Alty_traits::deallocate(al, reinterpret_cast<uint8_t *>(node),
                                  sizeof(leaf_node_type));
     }
 
-    static void __drop_node(inline_value_type node) noexcept {
+    WJR_INTRINSIC_INLINE static void __drop_node(inline_value_type node) noexcept {
         if constexpr (!is_inline_value) {
             _Alty al;
             destroy_at_using_allocator(std::addressof(node), al);
@@ -959,11 +1175,12 @@ protected:
         }
     }
 
-    const_iterator __get_insert_multi_pos(const key_type &key) const noexcept {
+    WJR_INTRINSIC_INLINE const_iterator
+    __get_insert_multi_pos(const key_type &key) const noexcept {
         return __search<true, false>(key);
     }
 
-    std::pair<const_iterator, bool>
+    WJR_INTRINSIC_INLINE std::pair<const_iterator, bool>
     __get_insert_unique_pos(const key_type &key) const noexcept {
         const const_iterator iter = __get_insert_multi_pos(key);
         const auto pos = iter.pos();
@@ -973,7 +1190,6 @@ protected:
         return {iter, inserted};
     }
 
-public:
     template <typename... Args>
     iterator __emplace_multi(Args &&...args) noexcept {
         ++__get_size();
@@ -998,20 +1214,35 @@ public:
         return {iterator(iter).__adjust_next(), false};
     }
 
-    const_iterator __insert_multi(const value_type &val) noexcept {
+    iterator __insert_multi(const value_type &val) noexcept {
         return __emplace_multi(val);
     }
 
-    const_iterator __insert_multi(value_type &&val) noexcept {
+    iterator __insert_multi(value_type &&val) noexcept {
         return __emplace_multi(std::move(val));
     }
 
-    std::pair<const_iterator, bool> __insert_unique(const value_type &val) noexcept {
+    std::pair<iterator, bool> __insert_unique(const value_type &val) noexcept {
         return __emplace_unique(val);
     }
 
-    std::pair<const_iterator, bool> __insert_unique(value_type &&val) noexcept {
+    std::pair<iterator, bool> __insert_unique(value_type &&val) noexcept {
         return __emplace_unique(std::move(val));
+    }
+
+    template <typename Key, typename... Args>
+    std::pair<iterator, bool> __try_emplace_unique(Key &&key, Args &&...args) {
+        const auto [iter, inserted] = __get_insert_unique_pos(key);
+
+        if (WJR_LIKELY(inserted)) {
+            ++__get_size();
+            const auto xval = __create_node(
+                std::piecewise_construct, std::forward_as_tuple(std::forward<Key>(key)),
+                std::forward_as_tuple(std::forward<Args>(args)...));
+            return {__insert_iter(iter, xval), true};
+        }
+
+        return {iterator(iter).__adjust_next(), false};
     }
 
 public:
@@ -1044,15 +1275,15 @@ public:
 private:
     void __move_tree(basic_btree &&other) noexcept {
         node_type *&root = other.__get_root();
-        if (root == nullptr) {
+        if (WJR_UNLIKELY(root == nullptr)) {
             init(&__get_sentry());
             return;
         }
 
         __get_root() = std::exchange(root, nullptr);
+        __get_size() = std::exchange(other.__get_size(), 0);
         replace_uninit(&other.__get_sentry(), &__get_sentry());
         init(&other.__get_sentry());
-        __get_size() = std::exchange(other.__get_size(), 0);
     }
 
     std::pair<inline_key_type, node_type *>
@@ -1074,7 +1305,7 @@ private:
                 }
             }
 
-            wjr::push_back(&__get_sentry(), this_leaf);
+            intrusive::push_back(&__get_sentry(), this_leaf);
             return std::make_pair(this_leaf->__get_key(0), this_leaf);
         }
 
@@ -1109,8 +1340,8 @@ private:
 
         auto [key, root] = __rec_copy_tree(current);
         __get_root() = root;
-        root->m_parent = nullptr;
         __get_size() = other.__get_size();
+        root->m_parent = nullptr;
     }
 
     // member function for container_fn (START)
@@ -1156,7 +1387,7 @@ private:
                 __drop_node(leaf->m_values[i]);
             }
 
-            list_node_type *next = wjr::next(leaf);
+            list_node_type *next = leaf->next();
             __drop_leaf_node(leaf);
 
             // if `current' is the last child of parent
@@ -1324,7 +1555,7 @@ private:
             leaf->size() = -1;
             leaf->m_parent = nullptr;
             leaf->__assign(0, xval);
-            wjr::push_front(&__get_sentry(), leaf);
+            intrusive::push_front(&__get_sentry(), leaf);
             return iterator(leaf, 0);
         }
 
@@ -1335,7 +1566,6 @@ private:
         // non-full leaf
         if (WJR_LIKELY(cur_size != node_size)) {
             WJR_ASSERT_ASSUME(pos <= cur_size);
-
             leaf->template __copy_backward<0, node_size - 1>(pos, cur_size, cur_size + 1,
                                                              leaf);
 
@@ -1345,7 +1575,7 @@ private:
         }
 
         auto *const inst = __create_leaf_node();
-        wjr::push_front(leaf, inst);
+        intrusive::push_front(leaf, inst);
 
         leaf->size() = -(int)(floor_half + 1);
         inst->size() = -(int)(node_size - floor_half);
@@ -1418,7 +1648,7 @@ private:
 
         if constexpr (Adjust) {
             if (WJR_UNLIKELY(pos == cur_usize)) {
-                return const_iterator(next(current->as_leaf()->__get_list()), 0);
+                return const_iterator(current->as_leaf()->__get_list()->next(), 0);
             }
         }
 
@@ -1430,7 +1660,8 @@ private:
     __search(const node_type *current, unsigned int size, Compare &&comp) noexcept {
         static_assert(Min != 0, "");
 
-        return basic_btree_searcher_impl<node_size>::template search<Min>(
+        return basic_btree_searcher_impl<node_size>::template search<Min,
+                                                                     is_trivial_search>(
             current, size, std::forward<Compare>(comp));
     }
 
@@ -1766,11 +1997,14 @@ private:
                     tmp_pos = current->pos();
                     current = parent;
                     parent = current->m_parent;
-                } while (tmp_pos == 0 && parent != nullptr);
 
-                if (tmp_pos != 0) {
-                    current->as_inner()->m_keys[tmp_pos - 1] = leaf->__get_key(0);
-                }
+                    if (tmp_pos != 0) {
+                        current->as_inner()->m_keys[tmp_pos - 1] =
+                            Traits::__to_key(leaf->__get_key(0));
+                        break;
+                    }
+
+                } while (parent != nullptr);
             }
 
             return iterator(leaf, pos);
@@ -1852,7 +2086,8 @@ private:
                     } while (tmp_pos == 0 && tmp_parent != nullptr);
 
                     if (tmp_pos != 0) {
-                        current->as_inner()->m_keys[tmp_pos - 1] = leaf->__get_key(0);
+                        current->as_inner()->m_keys[tmp_pos - 1] =
+                            Traits::__to_key(leaf->__get_key(0));
                     }
                 }
 
@@ -1881,7 +2116,8 @@ private:
             current = parent;
             parent = current->m_parent;
 
-            current->as_inner()->m_keys[tmp_pos - 1] = rhs->__get_key(0);
+            current->as_inner()->m_keys[tmp_pos - 1] =
+                Traits::__to_key(rhs->__get_key(0));
 
             return iterator(leaf, pos);
         } while (false);

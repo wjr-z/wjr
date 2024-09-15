@@ -53,7 +53,7 @@ char *__default_alloc_template__::object::chunk_alloc(unsigned int idx,
 
     heap_size += bytes_to_get;
     end_free = start_free + bytes_to_get;
-    return (chunk_alloc(idx, nobjs));
+    return chunk_alloc(idx, nobjs);
 }
 
 static constexpr std::array<uint8_t, 12> __nobjs_table = {32, 32, 32, 32, 16, 16,

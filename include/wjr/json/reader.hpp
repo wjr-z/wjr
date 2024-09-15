@@ -40,7 +40,7 @@ public:
         const size_type n = static_cast<size_type>(m_str.size());
         size_type capacity = n <= 2048 ? n : std::max<size_type>(2048, n / 20);
         size_type buf_size = capacity;
-        json::lexer::result_type result;
+        typename lexer::result_type result;
         m_tokens.clear();
 
         do {

@@ -8,7 +8,7 @@
 namespace wjr {
 
 struct automatic_free_pool {
-    struct chunk : list_node<intrusive_tag<chunk>> {
+    struct chunk : intrusive::list_node<chunk> {
         chunk() = default;
         chunk(const chunk &) = delete;
         chunk(chunk &&) = default;
@@ -16,6 +16,8 @@ struct automatic_free_pool {
         chunk &operator=(chunk &&) = delete;
         ~chunk() = default;
     };
+
+    static_assert(sizeof(chunk) == sizeof(intrusive::list_node<chunk>));
 
     automatic_free_pool() noexcept { init(&head); }
     ~automatic_free_pool() noexcept {
@@ -135,12 +137,12 @@ class __default_alloc_template__ {
             free(p);
         }
 
-        allocation_result<void *> chunk_allocate(size_t n) noexcept {
+        WJR_MALLOC void *chunk_allocate(size_t n) noexcept {
             if (WJR_LIKELY(n <= 16384)) {
-                return __small_allocate_at_least(static_cast<unsigned int>(n));
+                return __small_allocate(static_cast<unsigned int>(n));
             }
 
-            return {get_chunk().allocate(n), n};
+            return get_chunk().allocate(n);
         }
 
         // p must not be 0
@@ -187,7 +189,7 @@ public:
     }
 
     // n must be > 0
-    static allocation_result<void *> chunk_allocate_at_least(size_t n) noexcept {
+    WJR_MALLOC static void *chunk_allocate(size_t n) noexcept {
         return get_instance().chunk_allocate(n);
     }
 
@@ -226,12 +228,6 @@ public:
         return {static_cast<Ty *>(ret.ptr), ret.count / sizeof(Ty)};
     }
 
-    WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
-    chunk_allocate_at_least(size_type n) const noexcept {
-        const auto ret = allocator_type::chunk_allocate_at_least(n * sizeof(Ty));
-        return {static_cast<Ty *>(ret.ptr), ret.count / sizeof(Ty)};
-    }
-
     WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *allocate(size_type n) const noexcept {
         return static_cast<Ty *>(allocator_type::allocate(n * sizeof(Ty)));
     }
@@ -249,7 +245,7 @@ public:
      */
     WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *
     chunk_allocate(size_type n) const noexcept {
-        return chunk_allocate_at_least(n).ptr;
+        return static_cast<Ty *>(allocator_type::chunk_allocate(n * sizeof(Ty)));
     }
 
     WJR_CONSTEXPR20 void chunk_deallocate(Ty *ptr, size_type n) const noexcept {

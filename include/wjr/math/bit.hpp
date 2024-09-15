@@ -57,6 +57,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_ceil(T x) noexcept {
     if (x <= 1) {
         return T(1);
     }
+    
     if constexpr (std::is_same_v<T, decltype(+x)>) {
         return T(1) << bit_width(T(x - 1));
     } else {
@@ -71,6 +72,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_floor(T x) noexcept {
     if (x != 0) {
         return T{1} << (bit_width(x) - 1);
     }
+
     return 0;
 }
 

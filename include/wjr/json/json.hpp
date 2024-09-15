@@ -1651,11 +1651,10 @@ protected:
         try_uninitialized_resize(str, last - first);
         WJR_EXPECTED_INIT(ret, parse_string(str.data(), first, last));
         str.resize(*ret - str.data());
-        const auto iter = current->__get_object().emplace(std::move(str), dctor);
+        const auto iter = current->__get_object().try_emplace(std::move(str), dctor);
         element = std::addressof(iter.first->second);
         if (WJR_UNLIKELY(!iter.second)) {
-            std::destroy_at(element);
-            wjr::construct_at(element, dctor);
+            element->reset();
             return {};
         }
 
