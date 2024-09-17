@@ -124,14 +124,8 @@ struct __unref_wrapper_helper<default_vector_size_reference<pointer, size_type>>
     using type = uint32_t &;
 };
 
-/**
- * @brief Default vector storage
- *
- * @details Use one pointer ans two size_type currently.
- *
- */
-template <typename T, typename Alloc>
-class default_vector_storage {
+template <typename T, typename Alloc, typename Mybase, typename IsReallocatable>
+class __default_vector_storage {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
@@ -143,9 +137,9 @@ public:
     using size_type = typename storage_traits_type::size_type;
     using difference_type = typename storage_traits_type::difference_type;
     using allocator_type = typename storage_traits_type::allocator_type;
-    using is_reallocatable = std::true_type;
+    using is_reallocatable = IsReallocatable;
 
-private:
+protected:
     struct Data {
         pointer m_data = nullptr;
         pointer m_end = nullptr;
@@ -156,14 +150,14 @@ private:
     using size_ref = default_vector_size_reference<pointer, size_type>;
 
 public:
-    default_vector_storage() = default;
+    __default_vector_storage() = default;
 
-    default_vector_storage(const default_vector_storage &) = delete;
-    default_vector_storage(default_vector_storage &&) = delete;
-    default_vector_storage &operator=(const default_vector_storage &) = delete;
-    default_vector_storage &operator=(default_vector_storage &&) = delete;
+    __default_vector_storage(const __default_vector_storage &) = delete;
+    __default_vector_storage(__default_vector_storage &&) = delete;
+    __default_vector_storage &operator=(const __default_vector_storage &) = delete;
+    __default_vector_storage &operator=(__default_vector_storage &&) = delete;
 
-    ~default_vector_storage() = default;
+    ~__default_vector_storage() = default;
 
     WJR_CONSTEXPR20 void deallocate(_Alty &al) noexcept(noexcept(
         _Alty_traits::deallocate(al, this->m_storage.m_data, this->capacity()))) {
@@ -179,7 +173,7 @@ public:
     }
 
     WJR_CONSTEXPR20 static void uninitialized_construct(
-        default_vector_storage &other, size_type size, size_type capacity,
+        Mybase &other, size_type size, size_type capacity,
         _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
         const auto result = allocate_at_least(al, capacity);
 
@@ -190,13 +184,13 @@ public:
         };
     }
 
-    WJR_CONSTEXPR20 void take_storage(default_vector_storage &other, _Alty &) noexcept {
+    WJR_CONSTEXPR20 void take_storage(Mybase &other, _Alty &) noexcept {
         auto &other_storage = other.m_storage;
         m_storage = std::move(other_storage);
         other_storage = {};
     }
 
-    WJR_CONSTEXPR20 void swap_storage(default_vector_storage &other, _Alty &) noexcept {
+    WJR_CONSTEXPR20 void swap_storage(Mybase &other, _Alty &) noexcept {
         std::swap(m_storage, other.m_storage);
     }
 
@@ -217,12 +211,33 @@ public:
         return m_storage.m_data;
     }
 
-private:
+protected:
     data_type m_storage;
 };
 
+/**
+ * @brief Default vector storage
+ *
+ * @details Use one pointer ans two size_type currently.
+ *
+ */
+template <typename T, typename Alloc>
+class default_vector_storage
+    : public __default_vector_storage<T, Alloc, default_vector_storage<T, Alloc>,
+                                      std::true_type> {};
+
 template <typename T, typename Alloc>
 struct get_relocate_mode<default_vector_storage<T, Alloc>> {
+    static constexpr relocate_t value = relocate_t::trivial;
+};
+
+template <typename T, typename Alloc>
+class fixed_vector_storage
+    : public __default_vector_storage<T, Alloc, default_vector_storage<T, Alloc>,
+                                      std::false_type> {};
+
+template <typename T, typename Alloc>
+struct get_relocate_mode<fixed_vector_storage<T, Alloc>> {
     static constexpr relocate_t value = relocate_t::trivial;
 };
 
@@ -366,101 +381,6 @@ private:
 
 template <typename T, size_t Capacity, typename Alloc>
 struct get_relocate_mode<inplace_vector_storage<T, Capacity, Alloc>> {
-    static constexpr relocate_t value = relocate_t::trivial;
-};
-
-template <typename T, typename Alloc>
-class fixed_vector_storage {
-    using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
-    using _Alty_traits = std::allocator_traits<_Alty>;
-
-public:
-    using storage_traits_type = vector_storage_traits<T, Alloc>;
-    using value_type = typename storage_traits_type::value_type;
-    using pointer = typename storage_traits_type::pointer;
-    using const_pointer = typename storage_traits_type::const_pointer;
-    using size_type = typename storage_traits_type::size_type;
-    using difference_type = typename storage_traits_type::difference_type;
-    using allocator_type = typename storage_traits_type::allocator_type;
-    using is_reallocatable = std::false_type;
-
-private:
-    struct Data {
-        pointer m_data = nullptr;
-        pointer m_end = nullptr;
-        pointer m_buffer = nullptr;
-    };
-
-    using data_type = Data;
-    using size_ref = default_vector_size_reference<pointer, size_type>;
-
-public:
-    fixed_vector_storage() = default;
-
-    fixed_vector_storage(const fixed_vector_storage &) = delete;
-    fixed_vector_storage(fixed_vector_storage &&) = delete;
-    fixed_vector_storage &operator=(const fixed_vector_storage &) = delete;
-    fixed_vector_storage &operator=(fixed_vector_storage &&) = delete;
-
-    ~fixed_vector_storage() = default;
-
-    WJR_CONSTEXPR20 void deallocate(_Alty &al) noexcept(
-        noexcept(_Alty_traits::deallcoate(this->m_storage.m_data, this->capacity()))) {
-        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(data() ==
-                                                                       nullptr)) {
-            return;
-        }
-
-        if (m_storage.m_data != nullptr) {
-            _Alty_traits::deallcoate(m_storage.m_data, capacity());
-        }
-    }
-
-    WJR_CONSTEXPR20 static void uninitialized_construct(
-        fixed_vector_storage &other, size_type size, size_type capacity,
-        _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
-        const auto result = allocate_at_least(al, capacity);
-
-        other.m_storage = {
-            result.ptr,
-            result.ptr + size,
-            result.ptr + result.count,
-        };
-    }
-
-    WJR_CONSTEXPR20 void take_storage(fixed_vector_storage &other, _Alty &) noexcept {
-        auto &other_storage = other.m_storage;
-        m_storage = std::move(other_storage);
-        other_storage = {};
-    }
-
-    WJR_CONSTEXPR20 void swap_storage(fixed_vector_storage &other, _Alty &) noexcept {
-        std::swap(m_storage, other.m_storage);
-    }
-
-    WJR_PURE WJR_CONSTEXPR20 size_ref size() noexcept {
-        return size_ref(m_storage.m_data, m_storage.m_end);
-    }
-
-    WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept {
-        return m_storage.m_end - m_storage.m_data;
-    }
-
-    WJR_PURE WJR_CONSTEXPR20 size_type capacity() const noexcept {
-        return m_storage.m_buffer - m_storage.m_data;
-    }
-
-    WJR_PURE WJR_CONSTEXPR20 pointer data() noexcept { return m_storage.m_data; }
-    WJR_PURE WJR_CONSTEXPR20 const_pointer data() const noexcept {
-        return m_storage.m_data;
-    }
-
-private:
-    data_type m_storage;
-};
-
-template <typename T, typename Alloc>
-struct get_relocate_mode<fixed_vector_storage<T, Alloc>> {
     static constexpr relocate_t value = relocate_t::trivial;
 };
 
@@ -812,9 +732,10 @@ private:
                 uninitialized_relocate_n_restrict_using_allocator(data(), old_size,
                                                                   new_storage.data(), al);
                 __deallocate();
-
                 __take_storage(new_storage);
             }
+        } else {
+            WJR_ASSERT_ASSUME(n <= capacity());
         }
     }
 
@@ -830,6 +751,8 @@ private:
                 __destroy_and_deallocate();
                 __take_storage(new_storage);
             }
+        } else {
+            WJR_ASSERT_ASSUME(n <= capacity());
         }
     }
 
@@ -1043,6 +966,8 @@ private:
 
                 WJR_ASSUME(size() == 0);
             }
+        } else {
+            WJR_ASSERT_ASSUME(n <= capacity());
         }
     }
 

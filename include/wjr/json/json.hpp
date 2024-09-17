@@ -118,8 +118,8 @@ WJR_REGISTER_HAS_TYPE(Mybase_assign_to_json,
                       Mybase::assign(std::declval<T>(), std::declval<Json &>()), Mybase,
                       Json, T);
 WJR_REGISTER_HAS_TYPE(Mybase_construct_to_json,
-                      Mybase::template construct<Json>(std::declval<T>()), Mybase, Json,
-                      T);
+                      Mybase::template construct<Json>(std::declval<Args>()...), Mybase,
+                      Json);
 
 struct in_place_json_serializer_t {};
 inline constexpr in_place_json_serializer_t in_place_json_serializer{};
@@ -192,9 +192,11 @@ struct json_serializer_auto_completion : private Mybase {
 
     template <typename Json, typename U = value_type,
               WJR_REQUIRES(!has_Mybase_construct_to_json_v<Mybase, Json, U &&> &&
-                           has_Mybase_construct_to_json_v<value_type, Json, U &&>)>
+                           has_Mybase_construct_to_json_v<value_type, Json, U &&,
+                                                          in_place_json_serializer_t>)>
     constexpr static Json construct(U &&val) {
-        return value_type::template construct<Json>(std::forward<U>(val));
+        return value_type::template construct<Json>(std::forward<U>(val),
+                                                    in_place_json_serializer);
     }
 };
 
@@ -231,72 +233,166 @@ WJR_REGISTER_HAS_TYPE(construct_to_json,
                       json_serializer<T>::template construct<Json>(std::declval<T>()),
                       Json, T);
 
-#define __WJR_REGISTER_JSON_SERIALIZER_COPY_CONSTRUCTOR_CALLER(var)                      \
+// from_json
+
+#define __WJR_REGISTER_FROM_JSON_SERIALIZER_COPY_CONSTRUCTOR_CALLER(var)                 \
     var(__wjr_obj.at(#var))
-#define __WJR_REGISTER_JSON_SERIALIZER_MOVE_CONSTRUCTOR_CALLER(var)                      \
+#define __WJR_REGISTER_FROM_JSON_SERIALIZER_MOVE_CONSTRUCTOR_CALLER(var)                 \
     var(std::move(__wjr_obj.at(#var)))
 
-#define WJR_REGISTER_JSON_SERIALIZER_COPY_CONSTRUCTOR(Type, ...)                         \
+#define WJR_REGISTER_FROM_JSON_SERIALIZER_COPY_CONSTRUCTOR(Type, ...)                    \
     template <typename Object>                                                           \
     explicit Type(const Object &__wjr_obj,                                               \
                   ::wjr::json::__in_place_json_serializer_object_t)                      \
         : WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                    \
-              (__VA_ARGS__), __WJR_REGISTER_JSON_SERIALIZER_COPY_CONSTRUCTOR_CALLER)) {} \
+              (__VA_ARGS__),                                                             \
+              __WJR_REGISTER_FROM_JSON_SERIALIZER_COPY_CONSTRUCTOR_CALLER)) {}           \
     template <typename Traits>                                                           \
     explicit Type(const ::wjr::json::basic_json<Traits> &__wjr_json,                     \
                   ::wjr::json::in_place_json_serializer_t)                               \
         : Type(__wjr_json.template get<::wjr::json::object_t>(),                         \
                ::wjr::json::__in_place_json_serializer_object) {}
 
-#define WJR_REGISTER_JSON_SERIALIZER_MOVE_CONSTRUCTOR(Type, ...)                         \
+#define WJR_REGISTER_FROM_JSON_SERIALIZER_MOVE_CONSTRUCTOR(Type, ...)                    \
     template <typename Object>                                                           \
     explicit Type(Object &&__wjr_obj, ::wjr::json::__in_place_json_serializer_object_t)  \
         : WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                    \
-              (__VA_ARGS__), __WJR_REGISTER_JSON_SERIALIZER_MOVE_CONSTRUCTOR_CALLER)) {} \
+              (__VA_ARGS__),                                                             \
+              __WJR_REGISTER_FROM_JSON_SERIALIZER_MOVE_CONSTRUCTOR_CALLER)) {}           \
     template <typename Traits>                                                           \
     explicit Type(::wjr::json::basic_json<Traits> &&__wjr_json,                          \
                   ::wjr::json::in_place_json_serializer_t)                               \
         : Type(std::move(__wjr_json.template get<::wjr::json::object_t>()),              \
                ::wjr::json::__in_place_json_serializer_object) {}
 
-#define __WJR_REGISTER_JSON_SERIALIZER_COPY_ASSIGN_CALLER(var)                           \
+#define __WJR_REGISTER_FROM_JSON_SERIALIZER_COPY_ASSIGN_CALLER(var)                      \
     __wjr_obj.at(#var).get_to(var)
-#define __WJR_REGISTER_JSON_SERIALIZER_MOVE_ASSIGN_CALLER(var)                           \
+#define __WJR_REGISTER_FROM_JSON_SERIALIZER_MOVE_ASSIGN_CALLER(var)                      \
     std::move(__wjr_obj.at(#var)).get_to(var)
 
-#define WJR_REGISTER_JSON_SERIALIZER_COPY_ASSIGNMENT(Type, ...)                          \
+#define WJR_REGISTER_FROM_JSON_SERIALIZER_COPY_ASSIGNMENT(Type, ...)                     \
     template <typename Object>                                                           \
-    Type &__assign(const Object &__wjr_obj,                                              \
-                   ::wjr::json::__in_place_json_serializer_object_t) {                   \
+    void __assign(const Object &__wjr_obj,                                               \
+                  ::wjr::json::__in_place_json_serializer_object_t) {                    \
         WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                      \
-            (__VA_ARGS__), __WJR_REGISTER_JSON_SERIALIZER_COPY_ASSIGN_CALLER));          \
-        return *this;                                                                    \
+            (__VA_ARGS__), __WJR_REGISTER_FROM_JSON_SERIALIZER_COPY_ASSIGN_CALLER));     \
+    }                                                                                    \
+    template <typename Traits>                                                           \
+    static void assign(const ::wjr::json::basic_json<Traits> &__wjr_json,                \
+                       Type &__wjr_tp) {                                                 \
+        __wjr_tp.__assign(__wjr_json.template get<::wjr::json::object_t>(),              \
+                          ::wjr::json::__in_place_json_serializer_object);               \
     }                                                                                    \
     template <typename Traits>                                                           \
     Type &operator=(const ::wjr::json::basic_json<Traits> &__wjr_json) {                 \
-        return __assign(__wjr_json.template get<::wjr::json::object_t>(),                \
-                        ::wjr::json::in_place_json_serializer);                          \
+        Type::assign(__wjr_json, *this);                                                 \
+        return *this;                                                                    \
     }
 
-#define WJR_REGISTER_JSON_SERIALIZER_MOVE_ASSIGNMENT(Type, ...)                          \
+#define WJR_REGISTER_FROM_JSON_SERIALIZER_MOVE_ASSIGNMENT(Type, ...)                     \
     template <typename Object>                                                           \
-    Type &__assign(Object &&__wjr_obj,                                                   \
-                   ::wjr::json::__in_place_json_serializer_object_t) {                   \
+    void __assign(Object &&__wjr_obj,                                                    \
+                  ::wjr::json::__in_place_json_serializer_object_t) {                    \
         WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                      \
-            (__VA_ARGS__), __WJR_REGISTER_JSON_SERIALIZER_MOVE_ASSIGN_CALLER));          \
-        return *this;                                                                    \
+            (__VA_ARGS__), __WJR_REGISTER_FROM_JSON_SERIALIZER_MOVE_ASSIGN_CALLER));     \
+    }                                                                                    \
+    template <typename Traits>                                                           \
+    static void assign(::wjr::json::basic_json<Traits> &&__wjr_json, Type &__wjr_tp) {   \
+        __wjr_tp.__assign(std::move(__wjr_json.template get<::wjr::json::object_t>()),   \
+                          ::wjr::json::__in_place_json_serializer_object);               \
     }                                                                                    \
     template <typename Traits>                                                           \
     Type &operator=(::wjr::json::basic_json<Traits> &&__wjr_json) {                      \
-        return __assign(std::move(__wjr_json.template get<::wjr::json::object_t>()),     \
-                        ::wjr::json::in_place_json_serializer);                          \
+        Type::assign(std::move(__wjr_json), *this);                                      \
+        return *this;                                                                    \
     }
 
-#define WJR_REGISTER_JSON_SERIALIZER_DEFAULT(Type, ...)                                  \
-    WJR_REGISTER_JSON_SERIALIZER_COPY_CONSTRUCTOR(Type, __VA_ARGS__)                     \
-    WJR_REGISTER_JSON_SERIALIZER_MOVE_CONSTRUCTOR(Type, __VA_ARGS__)                     \
-    WJR_REGISTER_JSON_SERIALIZER_COPY_ASSIGNMENT(Type, __VA_ARGS__)                      \
-    WJR_REGISTER_JSON_SERIALIZER_MOVE_ASSIGNMENT(Type, __VA_ARGS__)
+#define WJR_REGISTER_FROM_JSON_SERIALIZER_DEFAULT(Type, ...)                             \
+    WJR_REGISTER_FROM_JSON_SERIALIZER_COPY_CONSTRUCTOR(Type, __VA_ARGS__)                \
+    WJR_REGISTER_FROM_JSON_SERIALIZER_MOVE_CONSTRUCTOR(Type, __VA_ARGS__)                \
+    WJR_REGISTER_FROM_JSON_SERIALIZER_COPY_ASSIGNMENT(Type, __VA_ARGS__)                 \
+    WJR_REGISTER_FROM_JSON_SERIALIZER_MOVE_ASSIGNMENT(Type, __VA_ARGS__)
+
+// to_json
+
+#define __WJR_REGISTER_TO_JSON_SERIALIZER_COPY_CONSTRUCTOR_CALLER(var)                   \
+    ({#var, Json(__wjr_tp.var)})
+#define __WJR_REGISTER_TO_JSON_SERIALIZER_MOVE_CONSTRUCTOR_CALLER(var)                   \
+    ({#var, Json(std::move(__wjr_tp.var))})
+
+#define WJR_REGISTER_TO_JSON_SERIALIZER_COPY_CONSTRUCTOR(Type, ...)                      \
+    template <typename Json>                                                             \
+    static Json construct(const Type &__wjr_tp,                                          \
+                          ::wjr::json::in_place_json_serializer_t) {                     \
+        using namespace wjr::json;                                                       \
+        using object_type = typename Json::object_type;                                  \
+        using value_type = typename object_type::value_type;                             \
+        return Json(                                                                     \
+            object_t(),                                                                  \
+            __json_create<object_type>(std::initializer_list<value_type>{                \
+                WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_UNWRAP(WJR_PP_QUEUE_TRANSFORM(          \
+                    (__VA_ARGS__),                                                       \
+                    __WJR_REGISTER_TO_JSON_SERIALIZER_COPY_CONSTRUCTOR_CALLER)))}));     \
+    }
+
+#define WJR_REGISTER_TO_JSON_SERIALIZER_MOVE_CONSTRUCTOR(Type, ...)                      \
+    template <typename Json>                                                             \
+    static Json construct(Type &&__wjr_tp, ::wjr::json::in_place_json_serializer_t) {    \
+        using namespace wjr::json;                                                       \
+        using object_type = typename Json::object_type;                                  \
+        using value_type = typename object_type::value_type;                             \
+        return Json(                                                                     \
+            object_t(),                                                                  \
+            __json_create<object_type>(std::initializer_list<value_type>{                \
+                WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_UNWRAP(WJR_PP_QUEUE_TRANSFORM(          \
+                    (__VA_ARGS__),                                                       \
+                    __WJR_REGISTER_TO_JSON_SERIALIZER_MOVE_CONSTRUCTOR_CALLER)))}));     \
+    }
+
+#define WJR_REGISTER_TO_JSON_SERIALIZER_COPY_ASSIGNMENT(Type, ...)                       \
+    template <typename Traits>                                                           \
+    static void assign(const Type &__wjr_tp,                                             \
+                       ::wjr::json::basic_json<Traits> &__wjr_json) {                    \
+        using namespace wjr::json;                                                       \
+        using Json = basic_json<Traits>;                                                 \
+        using object_type = typename Json::object_type;                                  \
+        using value_type = typename object_type::value_type;                             \
+        auto il = std::initializer_list<value_type>{                                     \
+            WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_UNWRAP(WJR_PP_QUEUE_TRANSFORM(              \
+                (__VA_ARGS__),                                                           \
+                __WJR_REGISTER_TO_JSON_SERIALIZER_COPY_CONSTRUCTOR_CALLER)))};           \
+        if (__wjr_json.type() != value_t::object) {                                      \
+            __wjr_json.reset();                                                          \
+            __wjr_json.set(object_t(), __json_create<object_type>(il));                  \
+        } else {                                                                         \
+            __wjr_json.template get_unsafe<object_t> = il;                               \
+        }                                                                                \
+    }
+
+#define WJR_REGISTER_TO_JSON_SERIALIZER_MOVE_ASSIGNMENT(Type, ...)                       \
+    template <typename Traits>                                                           \
+    static void assign(Type &&__wjr_tp, ::wjr::json::basic_json<Traits> &__wjr_json) {   \
+        using namespace wjr::json;                                                       \
+        using Json = basic_json<Traits>;                                                 \
+        using object_type = typename Json::object_type;                                  \
+        using value_type = typename object_type::value_type;                             \
+        auto il = std::initializer_list<value_type>{                                     \
+            WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_UNWRAP(WJR_PP_QUEUE_TRANSFORM(              \
+                (__VA_ARGS__),                                                           \
+                __WJR_REGISTER_TO_JSON_SERIALIZER_MOVE_CONSTRUCTOR_CALLER)))};           \
+        if (__wjr_json.type() != value_t::object) {                                      \
+            __wjr_json.reset();                                                          \
+            __wjr_json.set(object_t(), __json_create<object_type>(il));                  \
+        } else {                                                                         \
+            __wjr_json.template get_unsafe<object_t> = il;                               \
+        }                                                                                \
+    }
+
+#define WJR_REGISTER_TO_JSON_SERIALIZER_DEFAULT(Type, ...)                               \
+    WJR_REGISTER_TO_JSON_SERIALIZER_COPY_CONSTRUCTOR(Type, __VA_ARGS__)                  \
+    WJR_REGISTER_TO_JSON_SERIALIZER_MOVE_CONSTRUCTOR(Type, __VA_ARGS__)                  \
+    WJR_REGISTER_TO_JSON_SERIALIZER_COPY_ASSIGNMENT(Type, __VA_ARGS__)                   \
+    WJR_REGISTER_TO_JSON_SERIALIZER_MOVE_ASSIGNMENT(Type, __VA_ARGS__)
 
 template <typename T, typename... Args>
 T *__json_create(Args &&...args) noexcept(
@@ -601,7 +697,7 @@ public:
     }
 
     template <typename T>
-    WJR_PURE decltype(auto) get() {
+    decltype(auto) get() {
         if (WJR_UNLIKELY(type() != T::value)) {
             WJR_THROW(bad_json_access(error_code::INCORRECT_TYPE));
         }
@@ -610,7 +706,7 @@ public:
     }
 
     template <typename T>
-    WJR_PURE decltype(auto) get() const {
+    decltype(auto) get() const {
         if (WJR_UNLIKELY(type() != T::value)) {
             WJR_THROW(bad_json_access(error_code::INCORRECT_TYPE));
         }
@@ -1607,11 +1703,13 @@ protected:
                                                         const char *last) const noexcept {
         string_type *str = __json_create<string_type>();
         try_uninitialized_resize(*str, last - first);
+
         auto ret = parse_string(str->data(), first, last);
         if (WJR_UNLIKELY(!ret)) {
             __json_destroy(str);
             return unexpected(std::move(ret).error());
         }
+
         str->resize(*ret - str->data());
         current->m_value.set(string_t(), str);
         return {};
@@ -1621,11 +1719,13 @@ protected:
     visit_object_string(const char *first, const char *last) const noexcept {
         string_type *str = __json_create<string_type>();
         try_uninitialized_resize(*str, last - first);
+
         auto ret = parse_string(str->data(), first, last);
         if (WJR_UNLIKELY(!ret)) {
             __json_destroy(str);
             return unexpected(std::move(ret).error());
         }
+
         str->resize(*ret - str->data());
         element->m_value.set(string_t(), str);
         return {};
@@ -1635,11 +1735,13 @@ protected:
     visit_array_string(const char *first, const char *last) const noexcept {
         string_type *str = __json_create<string_type>();
         try_uninitialized_resize(*str, last - first);
+
         auto ret = parse_string(str->data(), first, last);
         if (WJR_UNLIKELY(!ret)) {
             __json_destroy(str);
             return unexpected(std::move(ret).error());
         }
+
         str->resize(*ret - str->data());
         current->__get_array().emplace_back(string_t(), str);
         return {};
@@ -1649,6 +1751,7 @@ protected:
                                                               const char *last) noexcept {
         string_type str;
         try_uninitialized_resize(str, last - first);
+
         WJR_EXPECTED_INIT(ret, parse_string(str.data(), first, last));
         str.resize(*ret - str.data());
         const auto iter = current->__get_object().try_emplace(std::move(str), dctor);

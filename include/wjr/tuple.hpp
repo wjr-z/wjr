@@ -450,6 +450,15 @@ constexpr bool operator>=(const tuple<TArgs...> &lhs,
     return !(lhs < rhs);
 }
 
+struct __ignore {
+    template <typename Ty>
+    constexpr const __ignore &operator=(const Ty &) const noexcept {
+        return *this;
+    }
+};
+
+inline constexpr __ignore ignore{};
+
 } // namespace wjr
 
 namespace std {

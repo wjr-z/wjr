@@ -12,11 +12,11 @@
 #define WJR_PP_QUEUE_POP_FRONT(queue) WJR_PP_QUEUE_POP_FRONT_I queue
 #define WJR_PP_QUEUE_POP_FRONT_I(x, ...) (__VA_ARGS__)
 
-#define WJR_PP_QUEUE_PUSH_FRONT(queue, x) WJR_PP_QUEUE_PUSH_FRONT_I(queue, x)
-#define WJR_PP_QUEUE_PUSH_FRONT_I(queue, x) (x, WJR_PP_QUEUE_EXPAND(queue))
+#define WJR_PP_QUEUE_PUSH_FRONT(queue, ...) WJR_PP_QUEUE_PUSH_FRONT_I(queue, __VA_ARGS__)
+#define WJR_PP_QUEUE_PUSH_FRONT_I(queue, ...) (__VA_ARGS__, WJR_PP_QUEUE_EXPAND(queue))
 
-#define WJR_PP_QUEUE_PUSH_BACK(queue, x) WJR_PP_QUEUE_PUSH_BACK_I(queue, x)
-#define WJR_PP_QUEUE_PUSH_BACK_I(queue, x) (WJR_PP_QUEUE_EXPAND(queue), x)
+#define WJR_PP_QUEUE_PUSH_BACK(queue, ...) WJR_PP_QUEUE_PUSH_BACK_I(queue, __VA_ARGS__)
+#define WJR_PP_QUEUE_PUSH_BACK_I(queue, ...) (WJR_PP_QUEUE_EXPAND(queue), __VA_ARGS__)
 
 #define WJR_PP_QUEUE_SIZE(queue) WJR_PP_QUEUE_SIZE_I(queue)
 #define WJR_PP_QUEUE_SIZE_I(queue) WJR_PP_ARGS_LEN queue

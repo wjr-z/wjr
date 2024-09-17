@@ -4,8 +4,8 @@
 #include <cstring>
 
 #include <wjr/math/bit.hpp>
-#include <wjr/math/shift.hpp>
 #include <wjr/math/bitwise.hpp>
+#include <wjr/math/shift.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
@@ -204,6 +204,7 @@ class bitset {
     using bit_type = std::conditional_t<N <= 32, uint32_t, uint64_t>;
     static constexpr bit_type mask = (static_cast<bit_type>(1) << (N % bits)) - 1;
     static constexpr bit_type maxn = static_cast<bit_type>(in_place_max);
+    static constexpr size_t rest_bits = N % bits;
 
 public:
     constexpr bitset() noexcept : m_data() {}
@@ -395,7 +396,6 @@ public:
     }
 
     constexpr bitset &reset() noexcept { std::fill_n(m_data, bytes_size, 0); }
-
     constexpr bitset &reset(size_t pos) noexcept { return set(pos, false); }
 
     constexpr bitset &flip() noexcept {

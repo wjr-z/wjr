@@ -96,7 +96,7 @@
     WJR_PP_QUEUE_TRANSFORM(queue, WJR_PP_QUEUE_UNWRAP_CALLER)
 
 #define WJR_PP_QUEUE_UNWRAP_CALLER(x) WJR_PP_QUEUE_UNWRAP_CALLER_I x
-#define WJR_PP_QUEUE_UNWRAP_CALLER_I(x) x
+#define WJR_PP_QUEUE_UNWRAP_CALLER_I(...) __VA_ARGS__
 
 // ((A), (B), (C)) -> A B C
 #define WJR_PP_QUEUE_UNWRAP_PUT(queue)                                                   \

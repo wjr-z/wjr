@@ -3584,7 +3584,7 @@ constexpr char *to_chars_naive(CarrierUInt significand, int exponent,
                                char *buffer) noexcept {
     // Print significand.
     {
-        auto ptr = print_integer_naive<FloatFormat::decimal_significand_digits>(
+        auto *const ptr = print_integer_naive<FloatFormat::decimal_significand_digits>(
             significand, buffer);
 
         // Insert decimal dot.

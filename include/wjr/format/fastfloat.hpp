@@ -327,7 +327,7 @@ inline constexpr int binary_format<double>::smallest_power_of_ten() {
 }
 template <>
 inline constexpr int binary_format<float>::smallest_power_of_ten() {
-    return -65;
+    return -64;
 }
 
 template <>
@@ -1083,7 +1083,7 @@ template <int bit_precision>
 WJR_INTRINSIC_INLINE uint128_t compute_product_approximation(int64_t q, uint64_t w) {
     const int index = 2 * int(q - powers::smallest_power_of_five);
     // For small values of q, e.g., q in [0,27], the answer is always exact because
-    // The line uint128_t firstproduct = full_multiplication(w, power_of_five_128[index]);
+    // The line uint128_t firstproduct = mul64x64to128(w, power_of_five_128[index]);
     // gives the exact answer.
     uint128_t firstproduct = mul64x64to128(w, powers::power_of_five_128[index]);
     static_assert((bit_precision >= 0) && (bit_precision <= 64),
@@ -1556,20 +1556,20 @@ WJR_INTRINSIC_INLINE void parse_one_digit(const char *&p, uint64_t &value,
 
 inline constexpr size_t max_limbs = 4000 / 64;
 
-WJR_INTRINSIC_INLINE void add_native(biginteger &big, uint64_t power,
+WJR_INTRINSIC_INLINE void add_native(fixed_biginteger &big, uint64_t power,
                                      uint64_t value) noexcept {
     big *= power;
     big += value;
 }
 
-WJR_INTRINSIC_INLINE void round_up_bigint(biginteger &big, size_t &count) noexcept {
+WJR_INTRINSIC_INLINE void round_up_bigint(fixed_biginteger &big, size_t &count) noexcept {
     // need to round-up the digits, but need to avoid rounding
     // ....9999 to ...10000, which could cause a false halfway point.
     add_native(big, 10, 1);
     count++;
 }
 
-WJR_INTRINSIC_INLINE void pow5(biginteger &big, uint32_t exp) noexcept {
+WJR_INTRINSIC_INLINE void pow5(fixed_biginteger &big, uint32_t exp) noexcept {
     static constexpr uint64_t small_power_of_5[] = {
         1UL,
         5UL,
@@ -1626,11 +1626,11 @@ WJR_INTRINSIC_INLINE void pow5(biginteger &big, uint32_t exp) noexcept {
     }
 }
 
-WJR_INTRINSIC_INLINE void pow2(biginteger &big, uint32_t exp) noexcept {
+WJR_INTRINSIC_INLINE void pow2(fixed_biginteger &big, uint32_t exp) noexcept {
     mul_2exp(big, big, exp);
 }
 
-WJR_INTRINSIC_INLINE void pow10(biginteger &big, uint32_t exp) noexcept {
+WJR_INTRINSIC_INLINE void pow10(fixed_biginteger &big, uint32_t exp) noexcept {
     pow5(big, exp);
     pow2(big, exp);
 }
@@ -1661,7 +1661,7 @@ WJR_INTRINSIC_INLINE uint64_t uint64_hi64(uint64_t r0, uint64_t r1,
 
 // get the high 64 bits from the vector, and if bits were truncated.
 // this is to get the significant digits for the float.
-WJR_INTRINSIC_INLINE uint64_t hi64(biginteger &big, bool &truncated) noexcept {
+WJR_INTRINSIC_INLINE uint64_t hi64(fixed_biginteger &big, bool &truncated) noexcept {
     const auto n = big.size();
     if (n == 0) {
         return empty_hi64(truncated);
@@ -1677,7 +1677,7 @@ WJR_INTRINSIC_INLINE uint64_t hi64(biginteger &big, bool &truncated) noexcept {
 
 // parse the significant digits into a big integer
 template <typename T>
-void parse_mantissa(biginteger &result, span<const char> integer,
+void parse_mantissa(fixed_biginteger &result, span<const char> integer,
                     span<const char> fraction, size_t &digits) noexcept {
     constexpr size_t max_digits = binary_format<T>::max_digits();
 
@@ -1765,7 +1765,7 @@ void parse_mantissa(biginteger &result, span<const char> integer,
 }
 
 template <typename T>
-inline adjusted_mantissa positive_digit_comp(biginteger &bigmant,
+inline adjusted_mantissa positive_digit_comp(fixed_biginteger &bigmant,
                                              int32_t exponent) noexcept {
     pow10(bigmant, static_cast<uint32_t>(exponent));
     adjusted_mantissa answer;
@@ -1791,12 +1791,12 @@ inline adjusted_mantissa positive_digit_comp(biginteger &bigmant,
 // we then need to scale by `2^(f- e)`, and then the two significant digits
 // are of the same magnitude.
 template <typename T>
-adjusted_mantissa negative_digit_comp(biginteger &bigmant, adjusted_mantissa am,
+adjusted_mantissa negative_digit_comp(fixed_biginteger &bigmant, adjusted_mantissa am,
                                       int32_t exponent) noexcept {
-    biginteger &real_digits = bigmant;
+    fixed_biginteger &real_digits = bigmant;
     int32_t real_exp = exponent;
 
-    // get the value of `b`, rounded down, and get a biginteger representation of b+h
+    // get the value of `b`, rounded down, and get a fixed_biginteger representation of b+h
     adjusted_mantissa am_b = am;
     // gcc7 buf: use a lambda to remove the noexcept qualifier bug with
     // -Wnoexcept-type.
@@ -1804,7 +1804,7 @@ adjusted_mantissa negative_digit_comp(biginteger &bigmant, adjusted_mantissa am,
     T b;
     to_float(false, am_b, b);
     adjusted_mantissa theor = to_extended_halfway(b);
-    biginteger theor_digits(max_limbs, in_place_reserve);
+    fixed_biginteger theor_digits(max_limbs, in_place_reserve);
     theor_digits = theor.mantissa;
     int32_t theor_exp = theor.power2;
 
@@ -1844,7 +1844,7 @@ template <typename T>
 adjusted_mantissa digit_comp(adjusted_mantissa am, span<const char> integer,
                              span<const char> fraction, int32_t sci_exp) {
     size_t digits = 0;
-    biginteger bigmant(max_limbs, in_place_reserve);
+    fixed_biginteger bigmant(max_limbs, in_place_reserve);
     parse_mantissa<T>(bigmant, integer, fraction, digits);
     int32_t exponent = sci_exp + 1 - int32_t(digits);
     if (exponent >= 0) {

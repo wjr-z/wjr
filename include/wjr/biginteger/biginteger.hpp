@@ -1,3 +1,16 @@
+/**
+ * @file biginteger.hpp
+ * @author wjr
+ * @brief
+ * @version 0.1
+ * @date 2024-09-16
+ * @todo Add more attributes to help the compiler optimize to zero overhead. Such as
+ * unsigned biginteger, fixed size biginteger.
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #ifndef WJR_BIGINTEGER_BIGINTEGER_HPP__
 #define WJR_BIGINTEGER_BIGINTEGER_HPP__
 
@@ -101,8 +114,8 @@ struct biginteger_data {
  * @brief The data structure for biginteger
  *
  */
-template <typename Alloc>
-class default_biginteger_vector_storage {
+template <typename Alloc, typename Mybase, typename IsReallocatable>
+class __default_biginteger_vector_storage {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<uint64_t>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
@@ -114,19 +127,20 @@ public:
     using difference_type = int32_t;
     using allocator_type = Alloc;
     using storage_traits_type = vector_storage_traits<uint64_t, Alloc>;
-    using is_reallocatable = std::true_type;
+    using is_reallocatable = IsReallocatable;
 
-    default_biginteger_vector_storage() = default;
+    __default_biginteger_vector_storage() = default;
 
-    default_biginteger_vector_storage(const default_biginteger_vector_storage &) = delete;
-    default_biginteger_vector_storage(default_biginteger_vector_storage &&) noexcept =
+    __default_biginteger_vector_storage(const __default_biginteger_vector_storage &) =
         delete;
-    default_biginteger_vector_storage &
-    operator=(const default_biginteger_vector_storage &) = delete;
-    default_biginteger_vector_storage &
-    operator=(default_biginteger_vector_storage &&) = delete;
+    __default_biginteger_vector_storage(__default_biginteger_vector_storage &&) noexcept =
+        delete;
+    __default_biginteger_vector_storage &
+    operator=(const __default_biginteger_vector_storage &) = delete;
+    __default_biginteger_vector_storage &
+    operator=(__default_biginteger_vector_storage &&) = delete;
 
-    ~default_biginteger_vector_storage() = default;
+    ~__default_biginteger_vector_storage() = default;
 
     void deallocate(_Alty &al) noexcept {
         if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(data() ==
@@ -134,15 +148,14 @@ public:
             return;
         }
 
-        if (data()) {
+        if (data() != nullptr) {
             WJR_ASSERT_ASSUME_L2(capacity() != 0);
-
             al.deallocate(data(), capacity());
         }
     }
 
     void uninitialized_construct(
-        default_biginteger_vector_storage &other, size_type size, size_type capacity,
+        Mybase &other, size_type size, size_type capacity,
         _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
         const auto result = allocate_at_least(al, capacity);
 
@@ -152,14 +165,14 @@ public:
         storage.m_capacity = static_cast<size_type>(result.count);
     }
 
-    void take_storage(default_biginteger_vector_storage &other, _Alty &) noexcept {
+    void take_storage(Mybase &other, _Alty &) noexcept {
         auto &other_storage = other.m_storage;
         m_storage = other_storage;
         other_storage.m_data = nullptr;
         other_storage.m_size = other_storage.m_capacity = 0;
     }
 
-    void swap_storage(default_biginteger_vector_storage &other, _Alty &) noexcept {
+    void swap_storage(Mybase &other, _Alty &) noexcept {
         std::swap(m_storage, other.m_storage);
     }
 
@@ -189,12 +202,32 @@ public:
         return std::addressof(m_storage);
     }
 
-private:
+protected:
     biginteger_data m_storage;
 };
 
+/**
+ * @struct default_biginteger_data
+ * @brief The data structure for biginteger
+ *
+ */
+template <typename Alloc>
+class default_biginteger_vector_storage
+    : public __default_biginteger_vector_storage<
+          Alloc, default_biginteger_vector_storage<Alloc>, std::true_type> {};
+
 template <typename Alloc>
 struct get_relocate_mode<default_biginteger_vector_storage<Alloc>> {
+    static constexpr relocate_t value = relocate_t::trivial;
+};
+
+template <typename Alloc>
+class fixed_biginteger_vector_storage
+    : public __default_biginteger_vector_storage<
+          Alloc, fixed_biginteger_vector_storage<Alloc>, std::false_type> {};
+
+template <typename Alloc>
+struct get_relocate_mode<fixed_biginteger_vector_storage<Alloc>> {
     static constexpr relocate_t value = relocate_t::trivial;
 };
 
@@ -207,6 +240,11 @@ using default_biginteger = basic_biginteger<default_biginteger_vector_storage<Al
 using biginteger = default_biginteger<memory_pool<uint64_t>>;
 
 using stack_biginteger = default_biginteger<math_detail::weak_stack_alloc<uint64_t>>;
+
+template <typename Alloc>
+using default_fixed_biginteger = basic_biginteger<fixed_biginteger_vector_storage<Alloc>>;
+
+using fixed_biginteger = default_fixed_biginteger<memory_pool<uint64_t>>;
 
 using default_biginteger_storage =
     default_biginteger_vector_storage<memory_pool<uint64_t>>;
@@ -1074,6 +1112,8 @@ inline uint32_t ctz(const biginteger_data &num) noexcept {
     return biginteger_detail::__ctz_impl(&num);
 }
 
+inline uint32_t countr_zero(const biginteger_data &num) noexcept { return ctz(num); }
+
 template <typename S>
 void pow(basic_biginteger<S> &dst, const biginteger_data &num, uint32_t exp) noexcept {
     biginteger_detail::__pow_impl(&dst, &num, exp);
@@ -1115,6 +1155,7 @@ public:
     using reverse_iterator = typename vector_type::reverse_iterator;
     using const_reverse_iterator = typename vector_type::const_reverse_iterator;
     using allocator_type = typename vector_type::allocator_type;
+    using is_reallocatable = typename storage_type::is_reallocatable;
 
     static_assert(std::is_same_v<value_type, uint64_t>, "value_type must be uint64_t");
     static_assert(std::is_same_v<pointer, uint64_t *>, "pointer must be uint64_t *");
@@ -1258,6 +1299,7 @@ public:
 
     WJR_PURE size_type bit_width() const noexcept { return wjr::bit_width(*this); }
     WJR_PURE size_type ctz() const noexcept { return wjr::ctz(*this); }
+    WJR_PURE size_type countr_zero() const noexcept { return ctz(); }
 
     void reserve(size_type new_capacity) noexcept { m_vec.reserve(new_capacity); }
     void clear_if_reserved(size_type new_capacity) noexcept {
@@ -1980,6 +2022,7 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
             std::copy_n(lp, lusize, dp);
             dst->set_ssize(lssize);
         }
+
         return;
     }
 
