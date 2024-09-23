@@ -3,8 +3,6 @@
 
 #include <wjr/type_traits.hpp>
 
-
-
 namespace wjr {
 
 #define WJR_HAS_BUILTIN_UMUL128 WJR_HAS_DEF

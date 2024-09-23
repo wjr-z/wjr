@@ -208,7 +208,7 @@ class bitset {
 
 public:
     constexpr bitset() noexcept : m_data() {}
-    constexpr explicit bitset(dctor_t) noexcept {}
+    constexpr explicit bitset(default_construct_t) noexcept {}
 
     bitset(const bitset &) = default;
     bitset(bitset &&) = default;

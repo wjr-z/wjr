@@ -8,7 +8,8 @@ namespace wjr {
 template <typename Key, typename Value, typename Pr, bool TrivialSearch>
 using __bmap_traits = btree_traits<Key, Value, false, Pr, TrivialSearch>;
 
-template <typename Key, typename Value, typename Pr = std::less<Key>, bool TrivialSearch = true>
+template <typename Key, typename Value, typename Pr = std::less<Key>,
+          bool TrivialSearch = true>
 class bmap : public basic_btree<__bmap_traits<Key, Value, Pr, TrivialSearch>> {
     using Traits = __bmap_traits<Key, Value, Pr, TrivialSearch>;
     using Mybase = basic_btree<Traits>;

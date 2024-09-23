@@ -316,9 +316,29 @@ WJR_REGISTER_HAS_TYPE(construct_to_json,
 // to_json
 
 #define __WJR_REGISTER_TO_JSON_SERIALIZER_COPY_CONSTRUCTOR_CALLER(var)                   \
-    ({#var, Json(__wjr_tp.var)})
+    __wjr_obj.emplace(#var, __wjr_tp.var)
 #define __WJR_REGISTER_TO_JSON_SERIALIZER_MOVE_CONSTRUCTOR_CALLER(var)                   \
-    ({#var, Json(std::move(__wjr_tp.var))})
+    __wjr_obj.emplace(#var, std::move(__wjr_tp.var))
+
+#define WJR_REGISTER_TO_JSON_SERIALIZER_COPY_BASE(Type, ...)                             \
+    template <typename Json>                                                             \
+    static void assign_object(const Type &__wjr_tp, Json &__wjr_json,                    \
+                              ::wjr::json::in_place_json_serializer_t) {                 \
+        using namespace wjr::json;                                                       \
+        auto &__wjr_obj = __wjr_json.template get_unsafe<object_t>();                    \
+        WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                      \
+            (__VA_ARGS__), __WJR_REGISTER_TO_JSON_SERIALIZER_COPY_CONSTRUCTOR_CALLER));  \
+    }
+
+#define WJR_REGISTER_TO_JSON_SERIALIZER_MOVE_BASE(Type, ...)                             \
+    template <typename Json>                                                             \
+    static void assign_object(Type &&__wjr_tp, Json &__wjr_json,                         \
+                              ::wjr::json::in_place_json_serializer_t) {                 \
+        using namespace wjr::json;                                                       \
+        auto &__wjr_obj = __wjr_json.template get_unsafe<object_t>();                    \
+        WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                      \
+            (__VA_ARGS__), __WJR_REGISTER_TO_JSON_SERIALIZER_MOVE_CONSTRUCTOR_CALLER));  \
+    }
 
 #define WJR_REGISTER_TO_JSON_SERIALIZER_COPY_CONSTRUCTOR(Type, ...)                      \
     template <typename Json>                                                             \
@@ -326,13 +346,9 @@ WJR_REGISTER_HAS_TYPE(construct_to_json,
                           ::wjr::json::in_place_json_serializer_t) {                     \
         using namespace wjr::json;                                                       \
         using object_type = typename Json::object_type;                                  \
-        using value_type = typename object_type::value_type;                             \
-        return Json(                                                                     \
-            object_t(),                                                                  \
-            __json_create<object_type>(std::initializer_list<value_type>{                \
-                WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_UNWRAP(WJR_PP_QUEUE_TRANSFORM(          \
-                    (__VA_ARGS__),                                                       \
-                    __WJR_REGISTER_TO_JSON_SERIALIZER_COPY_CONSTRUCTOR_CALLER)))}));     \
+        Json __wjr_json(object_t(), __json_create<object_type>());                       \
+        assign_object(__wjr_tp, __wjr_json, in_place_json_serializer);                   \
+        return __wjr_json;                                                               \
     }
 
 #define WJR_REGISTER_TO_JSON_SERIALIZER_MOVE_CONSTRUCTOR(Type, ...)                      \
@@ -340,13 +356,9 @@ WJR_REGISTER_HAS_TYPE(construct_to_json,
     static Json construct(Type &&__wjr_tp, ::wjr::json::in_place_json_serializer_t) {    \
         using namespace wjr::json;                                                       \
         using object_type = typename Json::object_type;                                  \
-        using value_type = typename object_type::value_type;                             \
-        return Json(                                                                     \
-            object_t(),                                                                  \
-            __json_create<object_type>(std::initializer_list<value_type>{                \
-                WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_UNWRAP(WJR_PP_QUEUE_TRANSFORM(          \
-                    (__VA_ARGS__),                                                       \
-                    __WJR_REGISTER_TO_JSON_SERIALIZER_MOVE_CONSTRUCTOR_CALLER)))}));     \
+        Json __wjr_json(object_t(), __json_create<object_type>());                       \
+        assign_object(std::move(__wjr_tp), __wjr_json, in_place_json_serializer);        \
+        return __wjr_json;                                                               \
     }
 
 #define WJR_REGISTER_TO_JSON_SERIALIZER_COPY_ASSIGNMENT(Type, ...)                       \
@@ -356,17 +368,11 @@ WJR_REGISTER_HAS_TYPE(construct_to_json,
         using namespace wjr::json;                                                       \
         using Json = basic_json<Traits>;                                                 \
         using object_type = typename Json::object_type;                                  \
-        using value_type = typename object_type::value_type;                             \
-        auto il = std::initializer_list<value_type>{                                     \
-            WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_UNWRAP(WJR_PP_QUEUE_TRANSFORM(              \
-                (__VA_ARGS__),                                                           \
-                __WJR_REGISTER_TO_JSON_SERIALIZER_COPY_CONSTRUCTOR_CALLER)))};           \
         if (__wjr_json.type() != value_t::object) {                                      \
             __wjr_json.reset();                                                          \
-            __wjr_json.set(object_t(), __json_create<object_type>(il));                  \
-        } else {                                                                         \
-            __wjr_json.template get_unsafe<object_t> = il;                               \
+            __wjr_json.set(object_t(), __json_create<object_type>());                    \
         }                                                                                \
+        assign_object(__wjr_tp, __wjr_json, in_place_json_serializer);                   \
     }
 
 #define WJR_REGISTER_TO_JSON_SERIALIZER_MOVE_ASSIGNMENT(Type, ...)                       \
@@ -375,20 +381,16 @@ WJR_REGISTER_HAS_TYPE(construct_to_json,
         using namespace wjr::json;                                                       \
         using Json = basic_json<Traits>;                                                 \
         using object_type = typename Json::object_type;                                  \
-        using value_type = typename object_type::value_type;                             \
-        auto il = std::initializer_list<value_type>{                                     \
-            WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_UNWRAP(WJR_PP_QUEUE_TRANSFORM(              \
-                (__VA_ARGS__),                                                           \
-                __WJR_REGISTER_TO_JSON_SERIALIZER_MOVE_CONSTRUCTOR_CALLER)))};           \
         if (__wjr_json.type() != value_t::object) {                                      \
             __wjr_json.reset();                                                          \
-            __wjr_json.set(object_t(), __json_create<object_type>(il));                  \
-        } else {                                                                         \
-            __wjr_json.template get_unsafe<object_t> = il;                               \
+            __wjr_json.set(object_t(), __json_create<object_type>());                    \
         }                                                                                \
+        assign_object(std::move(__wjr_tp), __wjr_json, in_place_json_serializer);        \
     }
 
 #define WJR_REGISTER_TO_JSON_SERIALIZER_DEFAULT(Type, ...)                               \
+    WJR_REGISTER_TO_JSON_SERIALIZER_COPY_BASE(Type, __VA_ARGS__)                         \
+    WJR_REGISTER_TO_JSON_SERIALIZER_MOVE_BASE(Type, __VA_ARGS__)                         \
     WJR_REGISTER_TO_JSON_SERIALIZER_COPY_CONSTRUCTOR(Type, __VA_ARGS__)                  \
     WJR_REGISTER_TO_JSON_SERIALIZER_MOVE_CONSTRUCTOR(Type, __VA_ARGS__)                  \
     WJR_REGISTER_TO_JSON_SERIALIZER_COPY_ASSIGNMENT(Type, __VA_ARGS__)                   \
@@ -682,7 +684,7 @@ public:
     basic_json(array_t, array_type *ptr) noexcept : m_value(array_t(), ptr) {}
 
     explicit basic_json(basic_value value) noexcept : m_value(value) {}
-    explicit basic_json(dctor_t) noexcept : basic_json() {}
+    explicit basic_json(default_construct_t) noexcept : basic_json() {}
 
     WJR_PURE value_t type() const noexcept { return m_value.m_type; }
 
@@ -1754,7 +1756,8 @@ protected:
 
         WJR_EXPECTED_INIT(ret, parse_string(str.data(), first, last));
         str.resize(*ret - str.data());
-        const auto iter = current->__get_object().try_emplace(std::move(str), dctor);
+        const auto iter =
+            current->__get_object().try_emplace(std::move(str), default_construct);
         element = std::addressof(iter.first->second);
         if (WJR_UNLIKELY(!iter.second)) {
             element->reset();

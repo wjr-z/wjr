@@ -16,19 +16,26 @@ const auto twitter_json = []() {
     return std::move(buffer).str();
 }();
 
-TEST(json, json) {
+TEST(json, parse) {
     {
         json::reader rd(twitter_json);
         WJR_ASSERT(json::check(rd).has_value());
         auto ret = json::json::parse(rd);
         WJR_ASSERT(ret.has_value());
         auto &j = *ret;
-        WJR_ASSERT(j.is_object());
+        auto str = j.to_string();
+        rd.read(str);
+        ret = json::json::parse(rd);
+        WJR_ASSERT(ret.has_value());
+        auto& j2 = *ret;
+        auto str2 = j2.to_string();
+        WJR_ASSERT(j == j2);
+        WJR_ASSERT(str == str2);
     }
 }
 
 struct test_struct0 {
-    WJR_REGISTER_JSON_SERIALIZER_DEFAULT(test_struct0, name, version, age)
+    WJR_REGISTER_FROM_JSON_SERIALIZER_DEFAULT(test_struct0, name, version, age)
 
     std::string name;
     std::string version;

@@ -1796,7 +1796,8 @@ adjusted_mantissa negative_digit_comp(fixed_biginteger &bigmant, adjusted_mantis
     fixed_biginteger &real_digits = bigmant;
     int32_t real_exp = exponent;
 
-    // get the value of `b`, rounded down, and get a fixed_biginteger representation of b+h
+    // get the value of `b`, rounded down, and get a fixed_biginteger representation of
+    // b+h
     adjusted_mantissa am_b = am;
     // gcc7 buf: use a lambda to remove the noexcept qualifier bug with
     // -Wnoexcept-type.

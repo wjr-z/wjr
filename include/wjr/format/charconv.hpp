@@ -113,10 +113,12 @@ public:
     static constexpr int value =
         traits_type::is_trivially_contiguous_v &&
                 has_container_resize_v<Container, size_t>
-            ? (has_container_resize_v<Container, size_t, dctor_t> ? 2 : 1)
+            ? (has_container_resize_v<Container, size_t, default_construct_t> ? 2 : 1)
             : 0;
 
-    static_assert(value != 2 || has_container_append_v<Container, size_t, dctor_t>, "");
+    static_assert(value != 2 ||
+                      has_container_append_v<Container, size_t, default_construct_t>,
+                  "");
 };
 
 template <typename Iter, typename = void>
@@ -1296,7 +1298,7 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
         if constexpr (__fast_container_inserter_v == 1) {                                \
             resize(cont, cont.size() + n + sign);                                        \
         } else {                                                                         \
-            append(cont, n + sign, dctor);                                               \
+            append(cont, n + sign, default_construct);                                   \
         }                                                                                \
         auto *const __end = cont.data() + cont.size();                                   \
         auto __ptr = (charconv_detail::fast_buffer_t<Iter> *)                            \

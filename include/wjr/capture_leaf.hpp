@@ -31,7 +31,7 @@ public:
         : Mybase(enable_default_constructor), m_value(std::forward<Args>(args)...) {}
 
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
-    constexpr explicit capture_leaf(dctor_t) noexcept(
+    constexpr explicit capture_leaf(default_construct_t) noexcept(
         std::is_nothrow_default_constructible_v<T>)
         : Mybase(enable_default_constructor) {}
 
@@ -67,7 +67,7 @@ public:
         : Mybase(std::forward<Args>(args)...) {}
 
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
-    constexpr explicit compressed_capture_leaf(dctor_t) noexcept(
+    constexpr explicit compressed_capture_leaf(default_construct_t) noexcept(
         std::is_nothrow_default_constructible_v<T>) {}
 
     constexpr T &get() noexcept { return *this; }

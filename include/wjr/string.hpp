@@ -111,8 +111,8 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
 template <typename Container>
 struct __uninitialized_resize_fn_impl : resize_fn_impl_base<Container> {
     using resize_fn_impl_base<Container>::resize;
-    WJR_INTRINSIC_INLINE static void resize(Container &cont,
-                                            typename Container::size_type sz, dctor_t) {
+    WJR_INTRINSIC_INLINE static void
+    resize(Container &cont, typename Container::size_type sz, default_construct_t) {
         __uninitialized_resize(cont, sz);
     }
 };
@@ -120,8 +120,8 @@ struct __uninitialized_resize_fn_impl : resize_fn_impl_base<Container> {
 template <typename Container>
 struct __uninitialized_append_fn_impl : append_fn_impl_base<Container> {
     using append_fn_impl_base<Container>::append;
-    WJR_INTRINSIC_INLINE static void append(Container &cont,
-                                            typename Container::size_type sz, dctor_t) {
+    WJR_INTRINSIC_INLINE static void
+    append(Container &cont, typename Container::size_type sz, default_construct_t) {
         __uninitialized_resize(cont, cont.size() + sz);
     }
 };

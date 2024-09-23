@@ -1124,7 +1124,7 @@ protected:
         _Alty al;
         auto *const node = reinterpret_cast<inner_node_type *>(
             _Alty_traits::allocate(al, sizeof(inner_node_type)));
-        uninitialized_construct_using_allocator(node, al, dctor);
+        uninitialized_construct_using_allocator(node, al, default_construct);
         return node;
     }
 
@@ -1132,7 +1132,7 @@ protected:
         _Alty al;
         auto *const node = reinterpret_cast<leaf_node_type *>(
             _Alty_traits::allocate(al, sizeof(leaf_node_type)));
-        uninitialized_construct_using_allocator(node, al, dctor);
+        uninitialized_construct_using_allocator(node, al, default_construct);
         return node;
     }
 

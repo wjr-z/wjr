@@ -1,8 +1,8 @@
 #ifndef WJR_CONTAINER_INTRUSIVE_LIST_HPP__
 #define WJR_CONTAINER_INTRUSIVE_LIST_HPP__
 
-#include <wjr/type_traits.hpp>
 #include <wjr/assert.hpp>
+#include <wjr/type_traits.hpp>
 
 namespace wjr::intrusive {
 

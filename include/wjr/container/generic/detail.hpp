@@ -86,8 +86,8 @@ WJR_REGISTER_HAS_TYPE(container_insert,
 template <typename Container, typename Size,
           WJR_REQUIRES(has_container_resize_v<Container, Size>)>
 WJR_INTRINSIC_INLINE void try_uninitialized_resize(Container &cont, Size sz) {
-    if constexpr (has_container_resize_v<Container, Size, dctor_t>) {
-        resize(cont, sz, dctor);
+    if constexpr (has_container_resize_v<Container, Size, default_construct_t>) {
+        resize(cont, sz, default_construct);
     } else {
         resize(cont, sz);
     }
@@ -97,8 +97,8 @@ template <typename Container, typename Size,
           WJR_REQUIRES(has_container_append_v<Container, Size> ||
                        has_container_resize_v<Container, Size>)>
 WJR_INTRINSIC_INLINE void try_uninitialized_append(Container &cont, Size sz) {
-    if constexpr (has_container_append_v<Container, Size, dctor_t>) {
-        append(cont, sz, dctor);
+    if constexpr (has_container_append_v<Container, Size, default_construct_t>) {
+        append(cont, sz, default_construct);
     } else {
         try_uninitialized_resize(cont, cont.size() + sz);
     }

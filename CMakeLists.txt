@@ -17,7 +17,7 @@ endif()
 
 option(WJR_ENABLE_ASSEMBLY "Link with assembly by using NASM" OFF)
 option(WJR_ENABLE_INLINE_ASM "Enable inline assembly in GCC/Clang" ON)
-option(WJR_DISABLE_EXCEPTIONS "Disable exceptions" OFF)
+option(WJR_DISABLE_EXCEPTIONS "Disable exceptions" ON)
 
 if (DEFINED WJR_DEBUG_LEVEL AND (NOT DEFINED WJR_DEBUG_LEVEL_DEBUG))
    set(WJR_DEBUG_LEVEL_DEBUG ${WJR_DEBUG_LEVEL})

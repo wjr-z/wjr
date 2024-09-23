@@ -28,8 +28,8 @@ TEST(compressed_pair, constructor) {
         cpi2 a;
         WJR_ASSERT(a.first() == 0);
         WJR_ASSERT(a.second() == 0);
-        cpi2 b(dctor, dctor);
-        cpi2 c(dctor, 3);
+        cpi2 b(default_construct, default_construct);
+        cpi2 c(default_construct, 3);
         (void)(b);
         WJR_ASSERT(c.second() == 3);
 

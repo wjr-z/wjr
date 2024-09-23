@@ -1,6 +1,19 @@
+/**
+ * @file memory_pool.hpp
+ * @author wjr
+ * @brief
+ * @version 0.1
+ * @date 2024-09-22
+ * @todo Multithread memory pool.
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #ifndef WJR_MEMORY_MEMORY_POOL_HPP__
 #define WJR_MEMORY_MEMORY_POOL_HPP__
 
+#include <wjr/container/intrusive/forward_list.hpp>
 #include <wjr/container/intrusive/list.hpp>
 #include <wjr/math/bit.hpp>
 #include <wjr/memory/detail.hpp>
@@ -8,14 +21,7 @@
 namespace wjr {
 
 struct automatic_free_pool {
-    struct chunk : intrusive::list_node<chunk> {
-        chunk() = default;
-        chunk(const chunk &) = delete;
-        chunk(chunk &&) = default;
-        chunk &operator=(const chunk &) = delete;
-        chunk &operator=(chunk &&) = delete;
-        ~chunk() = default;
-    };
+    using chunk = intrusive::list_node<void>;
 
     static_assert(sizeof(chunk) == sizeof(intrusive::list_node<chunk>));
 
@@ -23,7 +29,7 @@ struct automatic_free_pool {
     ~automatic_free_pool() noexcept {
         for (auto iter = head.begin(); iter != head.end();) {
             const auto now = iter++;
-            chunk *const node = &**now;
+            chunk *const node = &*now;
             free(node);
         }
     }

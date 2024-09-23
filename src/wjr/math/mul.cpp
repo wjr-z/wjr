@@ -2080,7 +2080,8 @@ struct toom_eval_opposite_exp_args_k3 {
     toom_eval_opposite_exp_args_k3(uint64_t *t0p, uint64_t *t1p, uint64_t *stk,
                                    const uint64_t *wp, size_t length, size_t rest,
                                    unsigned int exp) noexcept
-        : input(t0p, t1p, stk, wp, length, rest, exp), cf(dctor, dctor) {}
+        : input(t0p, t1p, stk, wp, length, rest, exp),
+          cf(default_construct, default_construct) {}
 
     void set_exp(unsigned int exp) noexcept { input[6_zu] = exp; }
 
@@ -2095,7 +2096,8 @@ struct toom_eval_opposite_exp_args {
     toom_eval_opposite_exp_args(uint64_t *t0p, uint64_t *t1p, uint64_t *stk,
                                 const uint64_t *wp, size_t length, size_t rest, size_t k,
                                 unsigned int exp) noexcept
-        : input(t0p, t1p, stk, wp, length, rest, k, exp), cf(dctor, dctor) {}
+        : input(t0p, t1p, stk, wp, length, rest, k, exp),
+          cf(default_construct, default_construct) {}
 
     void set_exp(unsigned int exp) noexcept { input[7_zu] = exp; }
 

@@ -9,59 +9,9 @@
 #include <utility>
 
 #include <wjr/preprocessor.hpp>
+#include <wjr/tag.hpp>
 
 namespace wjr {
-
-enum class branch {
-    free,
-    full,
-};
-
-struct in_place_empty_t {};
-
-inline constexpr in_place_empty_t in_place_empty = {};
-
-/**
- * @brief Tag of default constructor.
- *
- * @details Use dctor to indicate default constructor. \n
- * Used to avoid value initialization.  \n
- * For example : \n
- * @code
- * wjr::vector<int> vec(10, dctor); // default construct with 10 elements.
- * wjr::vector<int> vec2(10); // value construct with 10 elements.
- * wjr::vector<int> vec3(10, 0); // value construct with 10 elements.
- * wjr::vector<int> vec4(10, vctor); // value construct with 10 elements.
- * @endcode
- * elements of vec are not initialized. \n
- * elements of vec2, vec3, vec4 are initialized with 0.
- */
-struct dctor_t {};
-
-/**
- * @see dctor_t
- */
-inline constexpr dctor_t dctor = {};
-
-/**
- * @brief Tag of value constructor.
- *
- */
-struct vctor_t {};
-
-inline constexpr vctor_t vctor = {};
-
-struct in_place_reallocate_t {};
-
-inline constexpr in_place_reallocate_t in_place_reallocate = {};
-
-struct in_place_reserve_t {};
-
-inline constexpr in_place_reserve_t in_place_reserve = {};
-
-struct in_place_move_t {};
-
-inline constexpr in_place_move_t in_place_move = {};
 
 struct in_place_max_t {
     template <typename T>
@@ -80,12 +30,6 @@ struct in_place_min_t {
 };
 
 inline constexpr in_place_min_t in_place_min = {};
-
-struct self_init_t {};
-
-inline constexpr self_init_t self_init = {};
-
-inline constexpr std::size_t dynamic_extent = in_place_max;
 
 template <typename... Args>
 struct multi_conditional;

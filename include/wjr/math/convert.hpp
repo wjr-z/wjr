@@ -486,7 +486,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
         if constexpr (__fast_container_inserter_v == 1) {                                \
             resize(cont, __presize + SIZE);                                              \
         } else {                                                                         \
-            append(cont, SIZE, dctor);                                                   \
+            append(cont, SIZE, default_construct);                                       \
         }                                                                                \
         auto *const __ptr =                                                              \
             reinterpret_cast<uint8_t *>(wjr::to_address(cont.data())) + __presize;       \
@@ -495,7 +495,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
         if constexpr (__fast_container_inserter_v == 1) {                                \
             resize(cont, __presize + __size);                                            \
         } else {                                                                         \
-            resize(cont, __presize + __size, dctor);                                     \
+            resize(cont, __presize + __size, default_construct);                         \
         }                                                                                \
                                                                                          \
         return ptr;                                                                      \

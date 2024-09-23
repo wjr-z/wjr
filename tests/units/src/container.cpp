@@ -9,10 +9,10 @@
 #include <wjr/math.hpp>
 #include <wjr/vector.hpp>
 
-const static int __int = 5082;
-const static int __int2 = 123;
-const static std::string __string = std::string("wjr");
-const static std::string __string2 = std::string("abc");
+inline const int __int = 5082;
+inline const int __int2 = 123;
+inline const std::string __string = std::string("wjr");
+inline const std::string __string2 = std::string("abc");
 
 using namespace wjr;
 
@@ -568,14 +568,14 @@ TEST(vector, emplace_back) {
 
     {
         wvector<int> a;
-        a.emplace_back(dctor);
+        a.emplace_back(default_construct);
 
         WJR_ASSERT(a.size() == 1);
     }
 
     {
         wvector<std::string> a;
-        a.emplace_back(dctor);
+        a.emplace_back(default_construct);
 
         WJR_ASSERT(a.size() == 1);
         WJR_ASSERT(a[0].empty());
@@ -766,14 +766,14 @@ TEST(vector, ptr_unsafe) {
 
 TEST(vector, construct_dctor) {
     {
-        wvector<std::string> vec(16, dctor);
+        wvector<std::string> vec(16, default_construct);
         for_each_n(vec.begin(), 16, [](auto &x) { WJR_ASSERT(x.empty()); });
     }
 }
 
 TEST(vector, clear) {
     {
-        wvector<std::string> vec(16, dctor);
+        wvector<std::string> vec(16, default_construct);
         vec.clear();
 
         WJR_ASSERT(vec.empty());
@@ -782,7 +782,7 @@ TEST(vector, clear) {
 
 TEST(vector, front) {
     {
-        wvector<std::string> vec(16, dctor);
+        wvector<std::string> vec(16, default_construct);
 
         WJR_ASSERT(vec.front().empty());
         WJR_ASSERT(vec.front() == vec[0]);

@@ -23,6 +23,12 @@ constexpr void push_front(forward_list_node_base *head,
     insert_after(head, node);
 }
 
+constexpr void push_back(forward_list_node_base *tail,
+                         forward_list_node_base *node) noexcept {
+    WJR_ASSERT_ASSUME(tail->m_next == nullptr);
+    tail->m_next = node;
+}
+
 constexpr bool empty(const forward_list_node_base *node) noexcept {
     return node->m_next == nullptr;
 }

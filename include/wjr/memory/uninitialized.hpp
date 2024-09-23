@@ -25,7 +25,8 @@ construct_at(T *ptr,
 
 template <typename T>
 WJR_CONSTEXPR20 void
-construct_at(T *ptr, dctor_t) noexcept(std::is_nothrow_default_constructible_v<T>) {
+construct_at(T *ptr,
+             default_construct_t) noexcept(std::is_nothrow_default_constructible_v<T>) {
     ::new (static_cast<void *>(ptr)) T;
 }
 
@@ -43,9 +44,9 @@ WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &a
 
 template <typename Iter, typename Alloc>
 WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &alloc,
-                                                             dctor_t) {
+                                                             default_construct_t) {
     if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<Iter>>) {
-        wjr::construct_at(wjr::to_address(iter), dctor);
+        wjr::construct_at(wjr::to_address(iter), default_construct);
     } else {
         std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(iter));
     }
@@ -338,15 +339,15 @@ WJR_CONSTEXPR20 void uninitialized_value_construct_n_using_allocator(Iter first,
 /**
  * @brief Fill the range [first, last) with value using allocator.
  *
- * @tparam T The value type. Use `dctor_t` to default construct the
- * elements. Use `vctor_t` to value construct the elements.
+ * @tparam T The value type. Use `default_construct_t` to default construct the
+ * elements. Use `value_construct_t` to value construct the elements.
  */
 template <typename Iter, typename Alloc, typename T>
 WJR_CONSTEXPR20 void uninitialized_fill_using_allocator(Iter first, Iter last,
                                                         Alloc &alloc, const T &value) {
-    if constexpr (std::is_same_v<T, dctor_t>) {
+    if constexpr (std::is_same_v<T, default_construct_t>) {
         uninitialized_default_construct_using_allocator(first, last, alloc);
-    } else if constexpr (std::is_same_v<T, vctor_t>) {
+    } else if constexpr (std::is_same_v<T, value_construct_t>) {
         uninitialized_value_construct_using_allocator(first, last, alloc);
     } else {
         if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<Iter>,
@@ -365,15 +366,15 @@ WJR_CONSTEXPR20 void uninitialized_fill_using_allocator(Iter first, Iter last,
 /**
  * @brief Fill the range [first, first + n) with value using allocator.
  *
- * @tparam T The value type. Use `dctor_t` to default construct the
- * elements. Use `vctor_t` to value construct the elements.
+ * @tparam T The value type. Use `default_construct_t` to default construct the
+ * elements. Use `value_construct_t` to value construct the elements.
  */
 template <typename Iter, typename Size, typename Alloc, typename T>
 WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
                                                           Alloc &alloc, const T &value) {
-    if constexpr (std::is_same_v<T, dctor_t>) {
+    if constexpr (std::is_same_v<T, default_construct_t>) {
         uninitialized_default_construct_n_using_allocator(first, n, alloc);
-    } else if constexpr (std::is_same_v<T, vctor_t>) {
+    } else if constexpr (std::is_same_v<T, value_construct_t>) {
         uninitialized_value_construct_n_using_allocator(first, n, alloc);
     } else {
         if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<Iter>,
@@ -771,7 +772,7 @@ public:
         std::is_nothrow_constructible_v<Mybase, Args...>)
         : Mybase(std::forward<Args>(args)...) {}
 
-    constexpr uninitialized(dctor_t) noexcept : Mybase() {}
+    constexpr uninitialized(default_construct_t) noexcept : Mybase() {}
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr T &
