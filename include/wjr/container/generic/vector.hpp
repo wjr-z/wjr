@@ -280,7 +280,8 @@ public:
 
     ~inplace_vector_storage() = default;
 
-    WJR_CONSTEXPR20 void deallocate(_Alty &al) noexcept { /* do nothing */
+    WJR_CONSTEXPR20 void
+    deallocate(WJR_MAYBE_UNUSED _Alty &al) noexcept { /* do nothing */
     }
 
     WJR_CONSTEXPR20 static void
@@ -733,6 +734,7 @@ private:
 
                 uninitialized_relocate_n_restrict_using_allocator(data(), old_size,
                                                                   new_storage.data(), al);
+
                 __deallocate();
                 __take_storage(new_storage);
             }
@@ -750,7 +752,7 @@ private:
                 storage_type new_storage;
                 uninitialized_construct(new_storage, 0, new_capacity);
 
-                __destroy_and_deallocate();
+                __deallocate();
                 __take_storage(new_storage);
             }
         } else {
@@ -768,21 +770,21 @@ public:
         __reserve_impl(n);
     }
 
-    WJR_CONSTEXPR20 reference operator[](size_type pos) noexcept {
+    WJR_PURE WJR_CONSTEXPR20 reference operator[](size_type pos) noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_ASSERT_L0(pos < size(), "basic_vector::operator[]: out of range");
 #endif
         return data()[pos];
     }
 
-    WJR_CONSTEXPR20 const_reference operator[](size_type pos) const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 const_reference operator[](size_type pos) const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_ASSERT_L0(pos < size(), "basic_vector::operator[]: out of range");
 #endif
         return data()[pos];
     }
 
-    WJR_CONSTEXPR20 reference at(size_type pos) {
+    WJR_PURE WJR_CONSTEXPR20 reference at(size_type pos) {
         if (WJR_UNLIKELY(pos >= size())) {
             WJR_THROW(std::out_of_range("basic_vector::at"));
         }
@@ -790,7 +792,7 @@ public:
         return data()[pos];
     }
 
-    WJR_CONSTEXPR20 const_reference at(size_type pos) const {
+    WJR_PURE WJR_CONSTEXPR20 const_reference at(size_type pos) const {
         if (WJR_UNLIKELY(pos >= size())) {
             WJR_THROW(std::out_of_range("basic_vector::at"));
         }
@@ -798,28 +800,28 @@ public:
         return data()[pos];
     }
 
-    WJR_CONSTEXPR20 reference front() noexcept {
+    WJR_PURE WJR_CONSTEXPR20 reference front() noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_ASSERT_L0(size() > 0, "basic_vector::front: empty");
 #endif
         return *data();
     }
 
-    WJR_CONSTEXPR20 const_reference front() const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 const_reference front() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_ASSERT_L0(size() > 0, "basic_vector::front: empty");
 #endif
         return *data();
     }
 
-    WJR_CONSTEXPR20 reference back() noexcept {
+    WJR_PURE WJR_CONSTEXPR20 reference back() noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_ASSERT_L0(size() > 0, "basic_vector::back: empty");
 #endif
         return *(end_unsafe() - 1);
     }
 
-    WJR_CONSTEXPR20 const_reference back() const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 const_reference back() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_ASSERT_L0(size() > 0, "basic_vector::back: empty");
 #endif
@@ -1837,34 +1839,40 @@ void swap(basic_vector<Storage> &lhs, basic_vector<Storage> &rhs) noexcept {
 }
 
 template <typename Storage>
-bool operator==(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
+WJR_PURE bool operator==(const basic_vector<Storage> &lhs,
+                         const basic_vector<Storage> &rhs) {
     return std::equal(lhs.begin_unsafe(), lhs.end_unsafe(), rhs.begin_unsafe(),
                       rhs.end_unsafe());
 }
 
 template <typename Storage>
-bool operator!=(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
+WJR_PURE bool operator!=(const basic_vector<Storage> &lhs,
+                         const basic_vector<Storage> &rhs) {
     return !(lhs == rhs);
 }
 
 template <typename Storage>
-bool operator<(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
+WJR_PURE bool operator<(const basic_vector<Storage> &lhs,
+                        const basic_vector<Storage> &rhs) {
     return std::lexicographical_compare(lhs.begin_unsafe(), lhs.end_unsafe(),
                                         rhs.begin_unsafe(), rhs.end_unsafe());
 }
 
 template <typename Storage>
-bool operator>(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
+WJR_PURE bool operator>(const basic_vector<Storage> &lhs,
+                        const basic_vector<Storage> &rhs) {
     return rhs < lhs;
 }
 
 template <typename Storage>
-bool operator<=(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
+WJR_PURE bool operator<=(const basic_vector<Storage> &lhs,
+                         const basic_vector<Storage> &rhs) {
     return !(rhs < lhs);
 }
 
 template <typename Storage>
-bool operator>=(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
+WJR_PURE bool operator>=(const basic_vector<Storage> &lhs,
+                         const basic_vector<Storage> &rhs) {
     return !(lhs < rhs);
 }
 

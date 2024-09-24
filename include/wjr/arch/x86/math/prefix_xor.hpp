@@ -13,14 +13,14 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(PREFIX_XOR)
 
 template <typename T>
-T __builtin_prefix_xor(T x) noexcept {
+WJR_CONST T __builtin_prefix_xor(T x) noexcept {
     const __m128i __result =
         _mm_clmulepi64_si128((simd_cast<T, __m128i_t>(x)), sse::set1_epi8(0xFF), 0);
     return simd_cast<__m128i_t, T>(__result);
 }
 
 template <typename T>
-T builtin_prefix_xor(T x) noexcept {
+WJR_CONST T builtin_prefix_xor(T x) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
     if constexpr (nd < 32) {
         return static_cast<T>(__builtin_prefix_xor(static_cast<uint32_t>(x)));

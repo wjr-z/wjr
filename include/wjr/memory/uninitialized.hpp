@@ -440,7 +440,7 @@ T *uninitialized_relocate_at_using_allocator(T *src, T *dst, Alloc &alloc) noexc
         return relocate_at(src, dst);
     } else {
         wjr::uninitialized_construct_using_allocator(dst, alloc, std::move(*src));
-        std::destroy_at(src);
+        destroy_at_using_allocator(src, alloc);
     }
 
     return dst;
@@ -458,7 +458,7 @@ OutputIt uninitialized_relocate(InputIt first, InputIt last, OutputIt d_first) {
         const auto __first = wjr::to_address(first);
         const auto n = wjr::to_address(last) - __first;
         const auto __d_first = wjr::to_address(d_first);
-        std::memcpy(__d_first, __first, n * sizeof(InputValue));
+        maybe_null_memcpy(__d_first, __first, n * sizeof(InputValue));
         return std::next(d_first, n);
     } else if constexpr (std::is_same_v<InputValue, OutputValue> &&
                          get_relocate_mode_v<InputValue> == relocate_t::maybe_trivial) {
@@ -516,14 +516,14 @@ OutputIt uninitialized_relocate_using_allocator(InputIt first, InputIt last,
     } else if constexpr (std::is_same_v<InputValue, OutputValue> &&
                          get_relocate_mode_v<InputValue> == relocate_t::maybe_trivial) {
         for (; first != last; ++first, ++d_first) {
-            wjr::construct_at(wjr::to_address(d_first), std::move(*first));
-            std::destroy_at(wjr::to_address(first));
+            uninitialized_construct_using_allocator(d_first, alloc, std::move(*first));
+            destroy_at_using_allocator(first, alloc);
         }
 
         return d_first;
     } else {
-        d_first = uninitialized_move_using_allocator(first, last, d_first);
-        std::destroy(first, last);
+        d_first = uninitialized_move_using_allocator(first, last, d_first, alloc);
+        destroy_using_allocator(first, last, alloc);
         return d_first;
     }
 }
@@ -571,7 +571,7 @@ OutputIt uninitialized_relocate_n(InputIt first, Size n, OutputIt d_first) {
                   get_relocate_mode_v<InputValue> == relocate_t::trivial) {
         const auto __first = wjr::to_address(first);
         const auto __d_first = wjr::to_address(d_first);
-        std::memcpy(__d_first, __first, n * sizeof(InputValue));
+        maybe_null_memcpy(__d_first, __first, n * sizeof(InputValue));
         return std::next(d_first, n);
     } else if constexpr (std::is_same_v<InputValue, OutputValue> &&
                          get_relocate_mode_v<InputValue> == relocate_t::maybe_trivial) {
@@ -628,14 +628,14 @@ OutputIt uninitialized_relocate_n_using_allocator(InputIt first, Size n, OutputI
     } else if constexpr (std::is_same_v<InputValue, OutputValue> &&
                          get_relocate_mode_v<InputValue> == relocate_t::maybe_trivial) {
         for (; n > 0; ++first, ++d_first, --n) {
-            wjr::construct_at(wjr::to_address(d_first), std::move(*first));
-            std::destroy_at(wjr::to_address(first));
+            uninitialized_construct_using_allocator(d_first, alloc, std::move(*first));
+            destroy_at_using_allocator(first, alloc);
         }
 
         return d_first;
     } else {
-        d_first = uninitialized_move_n_using_allocator(first, n, d_first);
-        std::destroy_n(first, n);
+        d_first = uninitialized_move_n_using_allocator(first, n, d_first, alloc);
+        destroy_n_using_allocator(first, n, alloc);
         return d_first;
     }
 }

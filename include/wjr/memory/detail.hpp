@@ -141,6 +141,15 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x) noexcept {
 #endif
 }
 
+WJR_INTRINSIC_INLINE void *maybe_null_memcpy(void *dst, void const *src,
+                                             size_t size) noexcept {
+    if (WJR_UNLIKELY(size == 0)) {
+        return dst;
+    }
+
+    return std::memcpy(dst, src, size);
+}
+
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr) noexcept {
     T x;

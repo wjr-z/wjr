@@ -25,8 +25,8 @@ namespace wjr {
  * \endcode
  */
 template <typename T>
-WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1,
-                                           size_t n) noexcept {
+WJR_PURE WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1,
+                                                    size_t n) noexcept {
     if (WJR_UNLIKELY(n == 0)) {
         return 0;
     }
@@ -60,8 +60,8 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1,
  * @details @ref builtin_compare_n in reverse order.
  */
 template <typename T>
-WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
-                                                   size_t n) noexcept {
+WJR_PURE WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
+                                                            size_t n) noexcept {
     if (WJR_UNLIKELY(n == 0)) {
         return 0;
     }

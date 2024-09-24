@@ -34,7 +34,7 @@ inline const __m128i shuf =
 
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
 
-inline uint64_t builtin_to_chars_unroll_8_fast_10(uint32_t in) noexcept {
+WJR_CONST inline uint64_t builtin_to_chars_unroll_8_fast_10(uint32_t in) noexcept {
     __m128i x = simd_cast<uint32_t, __m128i_t>(in);
     __m128i q, r;
 
@@ -60,7 +60,7 @@ inline uint64_t builtin_to_chars_unroll_8_fast_10(uint32_t in) noexcept {
 }
 
 template <uint64_t Base>
-uint64_t builtin_to_chars_unroll_8_fast(uint32_t in) noexcept {
+WJR_CONST uint64_t builtin_to_chars_unroll_8_fast(uint32_t in) noexcept {
     static_assert(Base == 10, "");
     return builtin_to_chars_unroll_8_fast_10(in);
 }
@@ -127,7 +127,7 @@ static __m128i ascii = sse::set1_epi8(0x30);
 #if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
 
 template <uint64_t Base>
-uint32_t builtin_from_chars_unroll_8_fast(__m128i in) noexcept {
+WJR_CONST uint32_t builtin_from_chars_unroll_8_fast(__m128i in) noexcept {
     const __m128i t1 = _mm_maddubs_epi16(in, from_chars_detail::mulp1x<Base>);
     const __m128i t2 = _mm_madd_epi16(t1, from_chars_detail::mulp2x<Base>);
     const __m128i t3 = _mm_packus_epi32(t2, t2);
@@ -137,14 +137,16 @@ uint32_t builtin_from_chars_unroll_8_fast(__m128i in) noexcept {
 }
 
 template <uint64_t Base>
-uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, char_converter_t) noexcept {
+WJR_PURE uint32_t builtin_from_chars_unroll_8_fast(const void *ptr,
+                                                   char_converter_t) noexcept {
     static_assert(Base <= 10, "");
     const __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), from_chars_detail::ascii);
     return builtin_from_chars_unroll_8_fast<Base>(in);
 }
 
 template <uint64_t Base>
-uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, origin_converter_t) noexcept {
+WJR_PURE uint32_t builtin_from_chars_unroll_8_fast(const void *ptr,
+                                                   origin_converter_t) noexcept {
     static_assert(Base <= 10, "");
     const __m128i in = sse::loadu_si64(ptr);
     return builtin_from_chars_unroll_8_fast<Base>(in);
@@ -155,7 +157,7 @@ uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, origin_converter_t) n
 #if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
 
 template <uint64_t Base>
-uint64_t builtin_from_chars_unroll_16_fast(__m128i in) noexcept {
+WJR_CONST uint64_t builtin_from_chars_unroll_16_fast(__m128i in) noexcept {
     const __m128i t1 = _mm_maddubs_epi16(in, from_chars_detail::mulp1x<Base>);
     const __m128i t2 = _mm_madd_epi16(t1, from_chars_detail::mulp2x<Base>);
     const __m128i t3 = _mm_packus_epi32(t2, t2);
@@ -169,14 +171,16 @@ uint64_t builtin_from_chars_unroll_16_fast(__m128i in) noexcept {
 }
 
 template <uint64_t Base>
-uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, char_converter_t) noexcept {
+WJR_PURE uint64_t builtin_from_chars_unroll_16_fast(const void *ptr,
+                                                    char_converter_t) noexcept {
     static_assert(Base <= 10, "");
     const __m128i in = _mm_sub_epi8(sse::loadu(ptr), from_chars_detail::ascii);
     return builtin_from_chars_unroll_16_fast<Base>(in);
 }
 
 template <uint64_t Base>
-uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, origin_converter_t) noexcept {
+WJR_PURE uint64_t builtin_from_chars_unroll_16_fast(const void *ptr,
+                                                    origin_converter_t) noexcept {
     static_assert(Base <= 10, "");
     const __m128i in = sse::loadu(ptr);
     return builtin_from_chars_unroll_16_fast<Base>(in);

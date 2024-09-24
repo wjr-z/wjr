@@ -16,6 +16,7 @@
 
 #include <wjr/assert.hpp>
 #include <wjr/crtp/class_base.hpp>
+#include <wjr/memory/uninitialized.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {

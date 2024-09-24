@@ -708,7 +708,7 @@ public:
     }
 
     template <typename T>
-    decltype(auto) get() const {
+    WJR_PURE decltype(auto) get() const {
         if (WJR_UNLIKELY(type() != T::value)) {
             WJR_THROW(bad_json_access(error_code::INCORRECT_TYPE));
         }
@@ -2141,7 +2141,7 @@ std::ostream &operator<<(std::ostream &os, const basic_json<JsonTraits> &j) {
 }
 
 template <typename Traits>
-bool operator==(const basic_json<Traits> &lhs, const basic_json<Traits> &rhs) {
+WJR_PURE bool operator==(const basic_json<Traits> &lhs, const basic_json<Traits> &rhs) {
     switch (lhs.type()) {
     case value_t::null: {
         return rhs.is_null();
