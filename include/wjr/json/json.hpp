@@ -686,15 +686,15 @@ public:
     explicit basic_json(basic_value value) noexcept : m_value(value) {}
     explicit basic_json(default_construct_t) noexcept : basic_json() {}
 
-    WJR_PURE value_t type() const noexcept { return m_value.m_type; }
+    value_t type() const noexcept { return m_value.m_type; }
 
     template <typename T>
-    WJR_PURE decltype(auto) get_unsafe() noexcept {
+    decltype(auto) get_unsafe() noexcept {
         return __json_get_impl<T>::get(*this);
     }
 
     template <typename T>
-    WJR_PURE decltype(auto) get_unsafe() const noexcept {
+    decltype(auto) get_unsafe() const noexcept {
         return __json_get_impl<T>::get(*this);
     }
 
@@ -708,7 +708,7 @@ public:
     }
 
     template <typename T>
-    WJR_PURE decltype(auto) get() const {
+    decltype(auto) get() const {
         if (WJR_UNLIKELY(type() != T::value)) {
             WJR_THROW(bad_json_access(error_code::INCORRECT_TYPE));
         }
@@ -733,8 +733,7 @@ public:
 
     template <typename _Traits = std::char_traits<char>,
               typename Alloc = std::allocator<char>>
-    WJR_PURE std::basic_string<char, _Traits, Alloc>
-    dump(unsigned indents = -1) const noexcept {
+    std::basic_string<char, _Traits, Alloc> dump(unsigned indents = -1) const noexcept {
         std::basic_string<char, _Traits, Alloc> str;
         dump_impl(str, indents);
         return str;
@@ -745,7 +744,7 @@ public:
      */
     template <typename _Traits = std::char_traits<char>,
               typename Alloc = std::allocator<char>>
-    WJR_PURE std::basic_string<char, _Traits, Alloc> to_string() const noexcept {
+    std::basic_string<char, _Traits, Alloc> to_string() const noexcept {
         return dump<_Traits, Alloc>();
     }
 
@@ -908,17 +907,13 @@ public:
 
     void swap(basic_json &other) noexcept { std::swap(m_value, other.m_value); }
 
-    WJR_PURE bool is_null() const noexcept { return type() == value_t::null; }
-    WJR_PURE bool is_boolean() const noexcept { return type() == value_t::boolean; }
-    WJR_PURE bool is_number_unsigned() const noexcept {
+    bool is_null() const noexcept { return type() == value_t::null; }
+    bool is_boolean() const noexcept { return type() == value_t::boolean; }
+    bool is_number_unsigned() const noexcept {
         return type() == value_t::number_unsigned;
     }
-    WJR_PURE bool is_number_signed() const noexcept {
-        return type() == value_t::number_signed;
-    }
-    WJR_PURE bool is_number_float() const noexcept {
-        return type() == value_t::number_float;
-    }
+    bool is_number_signed() const noexcept { return type() == value_t::number_signed; }
+    bool is_number_float() const noexcept { return type() == value_t::number_float; }
 
     WJR_PURE bool is_number() const noexcept {
         switch (type()) {
@@ -933,9 +928,9 @@ public:
         }
     }
 
-    WJR_PURE bool is_string() const noexcept { return type() == value_t::string; }
-    WJR_PURE bool is_object() const noexcept { return type() == value_t::object; }
-    WJR_PURE bool is_array() const noexcept { return type() == value_t::array; }
+    bool is_string() const noexcept { return type() == value_t::string; }
+    bool is_object() const noexcept { return type() == value_t::object; }
+    bool is_array() const noexcept { return type() == value_t::array; }
 
 private:
     void __destroy() noexcept {
@@ -985,50 +980,44 @@ private:
         }
     }
 
-    WJR_PURE boolean_type &__get_boolean() noexcept { return m_value.m_boolean; }
-    WJR_PURE const boolean_type &__get_boolean() const noexcept {
-        return m_value.m_boolean;
-    }
+    boolean_type &__get_boolean() noexcept { return m_value.m_boolean; }
+    const boolean_type &__get_boolean() const noexcept { return m_value.m_boolean; }
 
-    WJR_PURE number_unsigned_type &__get_number_unsigned() noexcept {
+    number_unsigned_type &__get_number_unsigned() noexcept {
         return m_value.m_number_unsigned;
     }
-    WJR_PURE const number_unsigned_type &__get_number_unsigned() const noexcept {
+    const number_unsigned_type &__get_number_unsigned() const noexcept {
         return m_value.m_number_unsigned;
     }
 
-    WJR_PURE number_signed_type &__get_number_signed() noexcept {
-        return m_value.m_number_signed;
-    }
-    WJR_PURE const number_signed_type &__get_number_signed() const noexcept {
+    number_signed_type &__get_number_signed() noexcept { return m_value.m_number_signed; }
+    const number_signed_type &__get_number_signed() const noexcept {
         return m_value.m_number_signed;
     }
 
-    WJR_PURE number_float_type &__get_number_float() noexcept {
-        return m_value.m_number_float;
-    }
-    WJR_PURE const number_float_type &__get_number_float() const noexcept {
+    number_float_type &__get_number_float() noexcept { return m_value.m_number_float; }
+    const number_float_type &__get_number_float() const noexcept {
         return m_value.m_number_float;
     }
 
-    WJR_PURE string_type &__get_string() noexcept {
+    string_type &__get_string() noexcept {
         return *static_cast<string_type *>(m_value.m_ptr);
     }
-    WJR_PURE const string_type &__get_string() const noexcept {
+    const string_type &__get_string() const noexcept {
         return *static_cast<const string_type *>(m_value.m_ptr);
     }
 
-    WJR_PURE object_type &__get_object() noexcept {
+    object_type &__get_object() noexcept {
         return *static_cast<object_type *>(m_value.m_ptr);
     }
-    WJR_PURE const object_type &__get_object() const noexcept {
+    const object_type &__get_object() const noexcept {
         return *static_cast<const object_type *>(m_value.m_ptr);
     }
 
-    WJR_PURE array_type &__get_array() noexcept {
+    array_type &__get_array() noexcept {
         return *static_cast<array_type *>(m_value.m_ptr);
     }
-    WJR_PURE const array_type &__get_array() const noexcept {
+    const array_type &__get_array() const noexcept {
         return *static_cast<const array_type *>(m_value.m_ptr);
     }
 
@@ -1205,7 +1194,7 @@ struct json_serializer_impl<std::string_view, void> {
     }
 
     template <typename Json>
-    WJR_PURE constexpr static Json construct(const value_type &val) {
+    constexpr static Json construct(const value_type &val) {
         return Json(string_t(), __json_create<typename Json::string_type>(val));
     }
 };
@@ -2141,7 +2130,8 @@ std::ostream &operator<<(std::ostream &os, const basic_json<JsonTraits> &j) {
 }
 
 template <typename Traits>
-WJR_PURE bool operator==(const basic_json<Traits> &lhs, const basic_json<Traits> &rhs) {
+WJR_PURE bool operator==(const basic_json<Traits> &lhs,
+                         const basic_json<Traits> &rhs) noexcept {
     switch (lhs.type()) {
     case value_t::null: {
         return rhs.is_null();
@@ -2174,7 +2164,8 @@ WJR_PURE bool operator==(const basic_json<Traits> &lhs, const basic_json<Traits>
 }
 
 template <typename Traits>
-bool operator!=(const basic_json<Traits> &lhs, const basic_json<Traits> &rhs) {
+WJR_PURE bool operator!=(const basic_json<Traits> &lhs,
+                         const basic_json<Traits> &rhs) noexcept {
     return !(lhs == rhs);
 }
 

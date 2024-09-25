@@ -205,7 +205,7 @@ struct expected_storage_base {
 
     ~expected_storage_base() = default;
 
-    WJR_PURE constexpr bool has_value() const noexcept { return m_has_val; }
+    constexpr bool has_value() const noexcept { return m_has_val; }
     constexpr void set_valid() noexcept { m_has_val = true; }
     constexpr void set_invalid() noexcept { m_has_val = false; }
 
@@ -247,7 +247,7 @@ struct expected_storage_base<T, E, false> {
         }
     }
 
-    WJR_PURE constexpr bool has_value() const noexcept { return m_has_val; }
+    constexpr bool has_value() const noexcept { return m_has_val; }
     constexpr void set_valid() noexcept { m_has_val = true; }
     constexpr void set_invalid() noexcept { m_has_val = false; }
 
@@ -278,7 +278,7 @@ struct expected_storage_base<void, E, true> {
 
     ~expected_storage_base() = default;
 
-    WJR_PURE constexpr bool has_value() const noexcept { return m_has_val; }
+    constexpr bool has_value() const noexcept { return m_has_val; }
     constexpr void set_valid() noexcept { m_has_val = true; }
     constexpr void set_invalid() noexcept { m_has_val = false; }
 
@@ -312,7 +312,7 @@ struct expected_storage_base<void, E, false> {
         }
     }
 
-    WJR_PURE constexpr bool has_value() const noexcept { return m_has_val; }
+    constexpr bool has_value() const noexcept { return m_has_val; }
     constexpr void set_valid() noexcept { m_has_val = true; }
     constexpr void set_invalid() noexcept { m_has_val = false; }
 
@@ -346,7 +346,7 @@ struct expected_storage_base<T, compressed_unexpected<E, init>, true> {
 
     ~expected_storage_base() = default;
 
-    WJR_PURE constexpr bool has_value() const noexcept { return m_err == init; }
+    constexpr bool has_value() const noexcept { return m_err == init; }
     constexpr void set_valid() noexcept { m_err = init; }
     constexpr void set_invalid() noexcept {}
 
@@ -388,7 +388,7 @@ struct expected_storage_base<T, compressed_unexpected<E, init>, false> {
         }
     }
 
-    WJR_PURE constexpr bool has_value() const noexcept { return m_err == init; }
+    constexpr bool has_value() const noexcept { return m_err == init; }
     constexpr void set_valid() noexcept { m_err = init; }
     constexpr void set_invalid() noexcept {}
 
@@ -419,7 +419,7 @@ struct expected_storage_base<void, compressed_unexpected<E, init>, true> {
 
     ~expected_storage_base() = default;
 
-    WJR_PURE constexpr bool has_value() const noexcept { return m_err == init; }
+    constexpr bool has_value() const noexcept { return m_err == init; }
     constexpr void set_valid() noexcept { m_err = init; }
     constexpr void set_invalid() noexcept {}
 
@@ -926,7 +926,7 @@ public:
     }
 
     using Mybase::has_value;
-    WJR_PURE constexpr explicit operator bool() const noexcept { return has_value(); }
+    constexpr explicit operator bool() const noexcept { return has_value(); }
 
     constexpr T *operator->() noexcept { return std::addressof(this->m_val); }
     constexpr const T *operator->() const noexcept { return std::addressof(this->m_val); }
@@ -1474,7 +1474,7 @@ public:
     }
 
     using Mybase::has_value;
-    WJR_PURE constexpr explicit operator bool() const noexcept { return has_value(); }
+    constexpr explicit operator bool() const noexcept { return has_value(); }
 
     constexpr void operator*() const noexcept { WJR_ASSERT(has_value()); }
 

@@ -81,36 +81,35 @@ public:
         return tmp -= n;
     }
 
-    WJR_PURE constexpr difference_type
-    operator-(const bitset_const_iterator &rhs) const noexcept {
+    constexpr difference_type operator-(const bitset_const_iterator &rhs) const noexcept {
         return m_pos - rhs.m_pos;
     }
 
-    WJR_PURE constexpr reference operator[](difference_type n) const noexcept {
+    constexpr reference operator[](difference_type n) const noexcept {
         return *(*this + n);
     }
 
-    WJR_PURE constexpr bool operator==(const bitset_const_iterator &rhs) const noexcept {
+    constexpr bool operator==(const bitset_const_iterator &rhs) const noexcept {
         return m_pos == rhs.m_pos;
     }
 
-    WJR_PURE constexpr bool operator!=(const bitset_const_iterator &rhs) const noexcept {
+    constexpr bool operator!=(const bitset_const_iterator &rhs) const noexcept {
         return !(*this == rhs);
     }
 
-    WJR_PURE constexpr bool operator<(const bitset_const_iterator &rhs) const noexcept {
+    constexpr bool operator<(const bitset_const_iterator &rhs) const noexcept {
         return m_pos < rhs.m_pos;
     }
 
-    WJR_PURE constexpr bool operator>(const bitset_const_iterator &rhs) const noexcept {
+    constexpr bool operator>(const bitset_const_iterator &rhs) const noexcept {
         return rhs < *this;
     }
 
-    WJR_PURE constexpr bool operator<=(const bitset_const_iterator &rhs) const noexcept {
+    constexpr bool operator<=(const bitset_const_iterator &rhs) const noexcept {
         return !(rhs < *this);
     }
 
-    WJR_PURE constexpr bool operator>=(const bitset_const_iterator &rhs) const noexcept {
+    constexpr bool operator>=(const bitset_const_iterator &rhs) const noexcept {
         return !(*this < rhs);
     }
 
@@ -189,7 +188,7 @@ public:
         return tmp -= n;
     }
 
-    WJR_PURE constexpr reference operator[](difference_type n) const noexcept {
+    constexpr reference operator[](difference_type n) const noexcept {
         return *(*this + n);
     }
 };

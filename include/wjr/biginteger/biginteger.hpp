@@ -56,7 +56,7 @@ public:
         return *this;
     }
 
-    WJR_PURE constexpr operator uint32_t() const noexcept { return __fasts_abs(*m_size); }
+    constexpr operator uint32_t() const noexcept { return __fasts_abs(*m_size); }
 
     constexpr default_biginteger_size_reference &operator++() noexcept {
         *m_size = __fasts_increment(*m_size);
@@ -96,13 +96,13 @@ struct __unref_wrapper_helper<default_biginteger_size_reference> {
  *
  */
 struct biginteger_data {
-    WJR_PURE constexpr const uint64_t *data() const noexcept { return m_data; }
-    WJR_PURE constexpr uint32_t size() const noexcept { return __fasts_abs(m_size); }
+    constexpr const uint64_t *data() const noexcept { return m_data; }
+    constexpr uint32_t size() const noexcept { return __fasts_abs(m_size); }
 
-    WJR_PURE constexpr bool empty() const noexcept { return m_size == 0; }
-    WJR_PURE constexpr bool is_negate() const noexcept { return m_size < 0; }
+    constexpr bool empty() const noexcept { return m_size == 0; }
+    constexpr bool is_negate() const noexcept { return m_size < 0; }
 
-    WJR_PURE constexpr int32_t get_ssize() const noexcept { return m_size; }
+    constexpr int32_t get_ssize() const noexcept { return m_size; }
 
     uint64_t *m_data = nullptr;
     int32_t m_size = 0;
@@ -180,15 +180,15 @@ public:
         return default_biginteger_size_reference(m_storage.m_size);
     }
 
-    WJR_PURE size_type size() const noexcept { return __fasts_abs(m_storage.m_size); }
-    WJR_PURE size_type capacity() const noexcept { return m_storage.m_capacity; }
+    size_type size() const noexcept { return __fasts_abs(m_storage.m_size); }
+    size_type capacity() const noexcept { return m_storage.m_capacity; }
 
-    WJR_PURE pointer data() noexcept { return m_storage.m_data; }
-    WJR_PURE const_pointer data() const noexcept { return m_storage.m_data; }
+    pointer data() noexcept { return m_storage.m_data; }
+    const_pointer data() const noexcept { return m_storage.m_data; }
 
     // extension
 
-    WJR_PURE int32_t get_ssize() const noexcept { return m_storage.m_size; }
+    int32_t get_ssize() const noexcept { return m_storage.m_size; }
 
     template <typename T>
     void set_ssize(T size) = delete;
@@ -198,7 +198,7 @@ public:
         m_storage.m_size = size;
     }
 
-    WJR_PURE const biginteger_data *__get_data() const noexcept {
+    const biginteger_data *__get_data() const noexcept {
         return std::addressof(m_storage);
     }
 
@@ -249,7 +249,7 @@ using fixed_biginteger = default_fixed_biginteger<memory_pool<uint64_t>>;
 using default_biginteger_storage =
     default_biginteger_vector_storage<memory_pool<uint64_t>>;
 
-WJR_PURE WJR_INTRINSIC_CONSTEXPR biginteger_data
+WJR_INTRINSIC_CONSTEXPR biginteger_data
 make_biginteger_data(span<const uint64_t> sp) noexcept {
     return biginteger_data{const_cast<uint64_t *>(sp.data()),
                            static_cast<int32_t>(sp.size()), 0};
@@ -262,35 +262,35 @@ namespace biginteger_detail {
 
 /// @private
 template <typename S>
-WJR_PURE bool __equal_pointer(const basic_biginteger<S> *lhs,
-                              const basic_biginteger<S> *rhs) noexcept {
+bool __equal_pointer(const basic_biginteger<S> *lhs,
+                     const basic_biginteger<S> *rhs) noexcept {
     return lhs == rhs;
 }
 
 /// @private
 template <typename S0, typename S1>
-WJR_PURE bool __equal_pointer(const basic_biginteger<S0> *,
-                              const basic_biginteger<S1> *) noexcept {
+bool __equal_pointer(const basic_biginteger<S0> *,
+                     const basic_biginteger<S1> *) noexcept {
     return false;
 }
 
 /// @private
 template <typename S>
-WJR_PURE bool __equal_pointer(const basic_biginteger<S> *lhs,
-                              const biginteger_data *rhs) noexcept {
+bool __equal_pointer(const basic_biginteger<S> *lhs,
+                     const biginteger_data *rhs) noexcept {
     return lhs->__get_data() == rhs;
 }
 
 /// @private
 template <typename S>
-WJR_PURE bool __equal_pointer(const biginteger_data *lhs,
-                              const basic_biginteger<S> *rhs) noexcept {
+bool __equal_pointer(const biginteger_data *lhs,
+                     const basic_biginteger<S> *rhs) noexcept {
     return lhs == rhs->__get_data();
 }
 
 /// @private
-WJR_PURE inline bool __equal_pointer(const biginteger_data *lhs,
-                                     const biginteger_data *rhs) noexcept {
+inline bool __equal_pointer(const biginteger_data *lhs,
+                            const biginteger_data *rhs) noexcept {
     return lhs == rhs;
 }
 
@@ -1289,17 +1289,17 @@ public:
     allocator_type &get_allocator() noexcept { return m_vec.get_allocator(); }
     const allocator_type &get_allocator() const noexcept { return m_vec.get_allocator(); }
 
-    WJR_PURE pointer data() noexcept { return m_vec.data(); }
-    WJR_PURE const_pointer data() const noexcept { return m_vec.data(); }
+    pointer data() noexcept { return m_vec.data(); }
+    const_pointer data() const noexcept { return m_vec.data(); }
 
-    WJR_PURE bool empty() const noexcept { return m_vec.empty(); }
-    WJR_PURE size_type size() const noexcept { return m_vec.size(); }
-    WJR_PURE size_type capacity() const noexcept { return m_vec.capacity(); }
-    WJR_PURE bool zero() const noexcept { return empty(); }
+    bool empty() const noexcept { return m_vec.empty(); }
+    size_type size() const noexcept { return m_vec.size(); }
+    size_type capacity() const noexcept { return m_vec.capacity(); }
+    bool zero() const noexcept { return empty(); }
 
-    WJR_PURE size_type bit_width() const noexcept { return wjr::bit_width(*this); }
-    WJR_PURE size_type ctz() const noexcept { return wjr::ctz(*this); }
-    WJR_PURE size_type countr_zero() const noexcept { return ctz(); }
+    size_type bit_width() const noexcept { return wjr::bit_width(*this); }
+    size_type ctz() const noexcept { return wjr::ctz(*this); }
+    size_type countr_zero() const noexcept { return ctz(); }
 
     void reserve(size_type new_capacity) noexcept { m_vec.reserve(new_capacity); }
     void clear_if_reserved(size_type new_capacity) noexcept {
@@ -1319,7 +1319,7 @@ public:
 
     void negate() noexcept { conditional_negate(true); }
 
-    WJR_PURE bool is_negate() const noexcept { return get_ssize() < 0; }
+    bool is_negate() const noexcept { return get_ssize() < 0; }
 
     void absolute() noexcept { set_ssize(__fasts_abs(get_ssize())); }
 
@@ -1385,26 +1385,26 @@ public:
     reference back() { return m_vec.back(); }
     const_reference back() const { return m_vec.back(); }
 
-    WJR_PURE iterator begin() noexcept { return m_vec.begin(); }
-    WJR_PURE const_iterator begin() const noexcept { return m_vec.begin(); }
+    iterator begin() noexcept { return m_vec.begin(); }
+    const_iterator begin() const noexcept { return m_vec.begin(); }
 
-    WJR_PURE iterator end() noexcept { return m_vec.end(); }
-    WJR_PURE const_iterator end() const noexcept { return m_vec.end(); }
+    iterator end() noexcept { return m_vec.end(); }
+    const_iterator end() const noexcept { return m_vec.end(); }
 
-    WJR_PURE const_iterator cbegin() const noexcept { return m_vec.cbegin(); }
+    const_iterator cbegin() const noexcept { return m_vec.cbegin(); }
 
-    WJR_PURE const_iterator cend() const noexcept { return m_vec.cend(); }
+    const_iterator cend() const noexcept { return m_vec.cend(); }
 
-    WJR_PURE reverse_iterator rbegin() noexcept { return m_vec.rbegin(); }
-    WJR_PURE const_reverse_iterator rbegin() const noexcept { return m_vec.rbegin(); }
+    reverse_iterator rbegin() noexcept { return m_vec.rbegin(); }
+    const_reverse_iterator rbegin() const noexcept { return m_vec.rbegin(); }
 
-    WJR_PURE reverse_iterator rend() noexcept { return m_vec.rend(); }
-    WJR_PURE const_reverse_iterator rend() const noexcept { return m_vec.rend(); }
+    reverse_iterator rend() noexcept { return m_vec.rend(); }
+    const_reverse_iterator rend() const noexcept { return m_vec.rend(); }
 
-    WJR_PURE const_reverse_iterator crbegin() const noexcept { return m_vec.crbegin(); }
-    WJR_PURE const_reverse_iterator crend() const noexcept { return m_vec.crend(); }
+    const_reverse_iterator crbegin() const noexcept { return m_vec.crbegin(); }
+    const_reverse_iterator crend() const noexcept { return m_vec.crend(); }
 
-    WJR_PURE int32_t get_ssize() const { return get_storage().get_ssize(); }
+    int32_t get_ssize() const { return get_storage().get_ssize(); }
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> ||
                                        std::is_same_v<T, int32_t>)>
     void set_ssize(T new_size) noexcept {
@@ -1429,17 +1429,15 @@ public:
         m_vec.uninitialized_construct(other, siz, cap);
     }
 
-    WJR_PURE storage_type &get_storage() noexcept { return m_vec.get_storage(); }
-    WJR_PURE const storage_type &get_storage() const noexcept {
-        return m_vec.get_storage();
-    }
+    storage_type &get_storage() noexcept { return m_vec.get_storage(); }
+    const storage_type &get_storage() const noexcept { return m_vec.get_storage(); }
 
-    WJR_PURE const biginteger_data *__get_data() const noexcept {
+    const biginteger_data *__get_data() const noexcept {
         return get_storage().__get_data();
     }
 
-    WJR_PURE const biginteger_data &__get_ref() const noexcept { return *__get_data(); }
-    WJR_PURE operator const biginteger_data &() const noexcept { return __get_ref(); }
+    const biginteger_data &__get_ref() const noexcept { return *__get_data(); }
+    operator const biginteger_data &() const noexcept { return __get_ref(); }
 
 private:
     void __check_high_bit() const {

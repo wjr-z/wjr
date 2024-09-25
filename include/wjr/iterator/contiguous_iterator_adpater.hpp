@@ -31,7 +31,7 @@ public:
         __set_container(container);
     }
 
-    WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 pointer operator->() const noexcept {
+    WJR_NODISCARD WJR_CONSTEXPR20 pointer operator->() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_ASSERT_L0(m_container != nullptr,
                       "Can't dereference an value-initialized iterator.");
@@ -42,7 +42,7 @@ public:
         return const_cast<pointer>(m_ptr);
     }
 
-    WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 reference operator*() const noexcept {
+    WJR_NODISCARD WJR_CONSTEXPR20 reference operator*() const noexcept {
         return *operator->();
     }
 
@@ -120,8 +120,7 @@ public:
         return m_ptr - rhs.m_ptr;
     }
 
-    WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 reference
-    operator[](difference_type n) const noexcept {
+    WJR_NODISCARD WJR_CONSTEXPR20 reference operator[](difference_type n) const noexcept {
         return *(*this + n);
     }
 
@@ -246,11 +245,11 @@ public:
 
     using Mybase::Mybase;
 
-    WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 pointer operator->() const noexcept {
+    WJR_NODISCARD WJR_CONSTEXPR20 pointer operator->() const noexcept {
         return const_cast<pointer>(Mybase::operator->());
     }
 
-    WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 reference operator*() const noexcept {
+    WJR_NODISCARD WJR_CONSTEXPR20 reference operator*() const noexcept {
         return *operator->();
     }
 
@@ -305,8 +304,7 @@ public:
 
     using Mybase::operator-;
 
-    WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 reference
-    operator[](difference_type n) const noexcept {
+    WJR_NODISCARD WJR_CONSTEXPR20 reference operator[](difference_type n) const noexcept {
         return *(*this + n);
     }
 

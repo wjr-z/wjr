@@ -104,7 +104,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T fallback_byteswap(T x) noexcept {
 }
 
 #if WJR_HAS_BUILTIN(__builtin_bswap16)
-    #define WJR_HAS_BUILTIN_BYTESWAP WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_BYTESWAP WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_BUILTIN(BYTESWAP)
@@ -141,13 +141,13 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x) noexcept {
 #endif
 }
 
-WJR_INTRINSIC_INLINE void *maybe_null_memcpy(void *dst, void const *src,
-                                             size_t size) noexcept {
+WJR_INTRINSIC_INLINE void maybe_null_memcpy(void *dst, void const *src,
+                                            size_t size) noexcept {
     if (WJR_UNLIKELY(size == 0)) {
-        return dst;
+        return;
     }
 
-    return std::memcpy(dst, src, size);
+    std::memcpy(dst, src, size);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>

@@ -20,6 +20,8 @@
 
 namespace wjr {
 
+namespace memory {} // namespace memory
+
 struct automatic_free_pool {
     using chunk = intrusive::list_node<void>;
 

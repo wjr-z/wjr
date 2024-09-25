@@ -7,7 +7,8 @@ namespace wjr::json {
 
 namespace lexer_detail {
 
-inline const std::array<uint64_t, 256> thintable_epi8 = {
+namespace {
+const std::array<uint64_t, 256> thintable_epi8 = {
     0x0706050403020100, 0x0007060504030201, 0x0007060504030200, 0x0000070605040302,
     0x0007060504030100, 0x0000070605040301, 0x0000070605040300, 0x0000000706050403,
     0x0007060504020100, 0x0000070605040201, 0x0000070605040200, 0x0000000706050402,
@@ -74,7 +75,7 @@ inline const std::array<uint64_t, 256> thintable_epi8 = {
     0x0000000000000100, 0x0000000000000001, 0x0000000000000000, 0x0000000000000000,
 }; // static uint64_t thintable_epi8[256]
 
-inline const std::array<uint8_t, 256> popcount_mul_2 = {
+const std::array<uint8_t, 256> popcount_mul_2 = {
     0,  2,  2,  4,  2,  4,  4,  6,  2,  4,  4,  6,  4,  6,  6,  8,  2,  4,  4,  6,
     4,  6,  6,  8,  4,  6,  6,  8,  6,  8,  8,  10, 2,  4,  4,  6,  4,  6,  6,  8,
     4,  6,  6,  8,  6,  8,  8,  10, 4,  6,  6,  8,  6,  8,  8,  10, 6,  8,  8,  10,
@@ -89,7 +90,7 @@ inline const std::array<uint8_t, 256> popcount_mul_2 = {
     10, 12, 12, 14, 6,  8,  8,  10, 8,  10, 10, 12, 8,  10, 10, 12, 10, 12, 12, 14,
     8,  10, 10, 12, 10, 12, 12, 14, 10, 12, 12, 14, 12, 14, 14, 16};
 
-inline const std::array<uint8_t, 272> pshufb_combine_table = {
+const std::array<uint8_t, 272> pshufb_combine_table = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d,
     0x0e, 0x0f, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08, 0x09, 0x0a, 0x0b, 0x0c,
     0x0d, 0x0e, 0x0f, 0xff, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x08, 0x09, 0x0a, 0x0b,
@@ -103,13 +104,12 @@ inline const std::array<uint8_t, 272> pshufb_combine_table = {
     0xff, 0xff, 0xff, 0xff,
 };
 
-    #if !WJR_HAS_SIMD(AVX2)
-inline const __m128i lh8_mask = sse::set1_epi8(0x0f);
+#if !WJR_HAS_SIMD(AVX2)
+const __m128i lh8_mask = sse::set1_epi8(0x0f);
 
-inline const __m128i lo8_lookup =
+const __m128i lo8_lookup =
     sse::set_epi8(0, 0, 12, 1, 4, 10, 8, 0, 0, 0, 0, 0, 0, 0, 0, 16);
-inline const __m128i hi8_lookup =
-    sse::set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8);
+const __m128i hi8_lookup = sse::set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8);
 
 WJR_INTRINSIC_INLINE void compress(char *dst, __m128i x, uint16_t mask) noexcept {
     const uint8_t mask0 = uint8_t(mask);
@@ -126,14 +126,13 @@ WJR_INTRINSIC_INLINE void compress(char *dst, __m128i x, uint16_t mask) noexcept
     sse::storeu(dst, almostthere);
 }
 
-    #else
-inline const __m256i lh8_mask = avx::set1_epi8(0x0f);
-inline const __m256i lo8_lookup =
+#else
+const __m256i lh8_mask = avx::set1_epi8(0x0f);
+const __m256i lo8_lookup =
     avx::set_epi8(0, 0, 12, 1, 4, 10, 8, 0, 0, 0, 0, 0, 0, 0, 0, 16, 0, 0, 12, 1, 4, 10,
                   8, 0, 0, 0, 0, 0, 0, 0, 0, 16);
-inline const __m256i hi8_lookup =
-    avx::set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0,
-                  4, 0, 4, 0, 2, 17, 0, 8);
+const __m256i hi8_lookup = avx::set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8,
+                                         0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8);
 
 WJR_INTRINSIC_INLINE void compress(char *dst, __m256i x, uint32_t mask) noexcept {
     const uint8_t mask0 = uint8_t(mask);
@@ -159,8 +158,9 @@ WJR_INTRINSIC_INLINE void compress(char *dst, __m256i x, uint32_t mask) noexcept
     sse::storeu(dst + 16 - popcount<uint16_t>(mask & 0xFFFF), avx::gethigh(almostthere));
 }
 
-    #endif
+#endif
 
+} // namespace
 } // namespace lexer_detail
 
 #endif

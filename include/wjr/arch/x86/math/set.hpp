@@ -16,7 +16,6 @@ namespace wjr {
 template <typename simd, typename T>
 void large_builtin_set_n(T *dst, typename simd::int_type y, size_t n) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
-    constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 
     using simd_int = typename simd::int_type;
     constexpr auto simd_width = simd::width();

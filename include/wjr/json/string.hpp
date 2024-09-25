@@ -7,7 +7,7 @@
 #include <wjr/json/detail.hpp>
 
 #if defined(WJR_X86)
-    #include <wjr/arch/x86/json/string.hpp>
+#include <wjr/arch/x86/json/string.hpp>
 #endif
 
 namespace wjr::json {
@@ -105,8 +105,8 @@ check_unicode_codepoint(const char *first, const char *last) noexcept {
     }
 }
 
-WJR_INTRINSIC_INLINE result<void> generic_check_string(const char *first,
-                                                       const char *last) noexcept {
+WJR_PURE WJR_INTRINSIC_INLINE result<void>
+generic_check_string(const char *first, const char *last) noexcept {
     using namespace string_detail;
 
     if (WJR_UNLIKELY(first == last)) {
@@ -136,7 +136,7 @@ WJR_INTRINSIC_INLINE result<void> generic_check_string(const char *first,
 }
 
 #if WJR_HAS_BUILTIN(JSON_CHECK_STRING)
-extern result<void> check_string(const char *first, const char *last) noexcept;
+WJR_PURE extern result<void> check_string(const char *first, const char *last) noexcept;
 #else
 inline result<void> check_string(const char *first, const char *last) noexcept {
     return generic_check_string(first, last);

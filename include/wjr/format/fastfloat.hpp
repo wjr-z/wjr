@@ -105,12 +105,10 @@ from_chars_result<> from_chars(const char *first, const char *last, T &value,
 struct adjusted_mantissa {
     uint64_t mantissa{0};
     int32_t power2{0}; // a negative value indicates an invalid result
-    WJR_PURE WJR_INTRINSIC_CONSTEXPR bool
-    operator==(const adjusted_mantissa &o) const noexcept {
+    WJR_INTRINSIC_CONSTEXPR bool operator==(const adjusted_mantissa &o) const noexcept {
         return mantissa == o.mantissa && power2 == o.power2;
     }
-    WJR_PURE WJR_INTRINSIC_CONSTEXPR bool
-    operator!=(const adjusted_mantissa &o) const noexcept {
+    WJR_INTRINSIC_CONSTEXPR bool operator!=(const adjusted_mantissa &o) const noexcept {
         return mantissa != o.mantissa || power2 != o.power2;
     }
 };
@@ -1394,8 +1392,7 @@ WJR_INTRINSIC_INLINE adjusted_mantissa to_extended(T value) noexcept {
     adjusted_mantissa am;
     int32_t bias =
         binary_format<T>::mantissa_explicit_bits() - binary_format<T>::minimum_exponent();
-    equiv_uint bits;
-    std::memcpy(&bits, &value, sizeof(T));
+    auto bits = bit_cast<equiv_uint>(value);
     if ((bits & exponent_mask) == 0) {
         // denormal
         am.power2 = 1 - bias;
@@ -1952,24 +1949,24 @@ WJR_INTRINSIC_INLINE bool rounds_to_nearest() noexcept {
 // Note: This may fail to be accurate if fast-math has been
 // enabled, as rounding conventions may not apply.
 #ifdef WJR_COMPILER_MSVC
-    #pragma warning(push)
+#pragma warning(push)
 //  todo: is there a VS warning?
 //  see
 //  https://stackoverflow.com/questions/46079446/is-there-a-warning-for-floating-point-equality-checking-in-visual-studio-2013
 #elif defined(__clang__)
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wfloat-equal"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
 #elif defined(__GNUC__)
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wfloat-equal"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfloat-equal"
 #endif
     return (fmini + 1.0f == 1.0f - fmini);
 #ifdef WJR_COMPILER_MSVC
-    #pragma warning(pop)
+#pragma warning(pop)
 #elif defined(__clang__)
-    #pragma clang diagnostic pop
+#pragma clang diagnostic pop
 #elif defined(__GNUC__)
-    #pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 #endif
 }
 

@@ -231,21 +231,13 @@ public:
     span &operator=(span &&) = default;
     ~span() = default;
 
-    WJR_PURE WJR_CONSTEXPR20 pointer begin_unsafe() noexcept { return data(); }
-    WJR_PURE WJR_CONSTEXPR20 const_pointer begin_unsafe() const noexcept {
-        return data();
-    }
-    WJR_PURE WJR_CONSTEXPR20 const_pointer cbegin_unsafe() const noexcept {
-        return data();
-    }
+    WJR_CONSTEXPR20 pointer begin_unsafe() noexcept { return data(); }
+    WJR_CONSTEXPR20 const_pointer begin_unsafe() const noexcept { return data(); }
+    WJR_CONSTEXPR20 const_pointer cbegin_unsafe() const noexcept { return data(); }
 
-    WJR_PURE WJR_CONSTEXPR20 pointer end_unsafe() noexcept { return data() + size(); }
-    WJR_PURE WJR_CONSTEXPR20 const_pointer end_unsafe() const noexcept {
-        return data() + size();
-    }
-    WJR_PURE WJR_CONSTEXPR20 const_pointer cend_unsafe() const noexcept {
-        return end_unsafe();
-    }
+    WJR_CONSTEXPR20 pointer end_unsafe() noexcept { return data() + size(); }
+    WJR_CONSTEXPR20 const_pointer end_unsafe() const noexcept { return data() + size(); }
+    WJR_CONSTEXPR20 const_pointer cend_unsafe() const noexcept { return end_unsafe(); }
 
 private:
     WJR_PURE WJR_CONSTEXPR20 iterator __make_iterator(const_pointer ptr) const noexcept {
