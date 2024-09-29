@@ -127,8 +127,6 @@ WJR_CONST constexpr T parse() noexcept {
         return {};                                                                       \
     }
 
-namespace literals {
-
 WJR_REGISTER_INTEGRAL_LITERALS(u, unsigned int);
 WJR_REGISTER_INTEGRAL_LITERALS(ul, unsigned long);
 WJR_REGISTER_INTEGRAL_LITERALS(ull, unsigned long long);
@@ -149,10 +147,6 @@ WJR_REGISTER_INTEGRAL_LITERALS(zu, size_t);
 WJR_REGISTER_INTEGRAL_LITERALS(z, ssize_t);
 
 #undef WJR_REGISTER_INTEGRAL_LITERALS
-
-} // namespace literals
-
-using namespace literals;
 
 } // namespace wjr
 

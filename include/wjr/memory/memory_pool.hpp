@@ -13,9 +13,10 @@
 #ifndef WJR_MEMORY_MEMORY_POOL_HPP__
 #define WJR_MEMORY_MEMORY_POOL_HPP__
 
-#include <wjr/concurrency/lkf_forward_list.hpp>
+#include <wjr/container/forward_list.hpp>
 #include <wjr/container/list.hpp>
 #include <wjr/math/bit.hpp>
+#include <wjr/math/literals.hpp>
 #include <wjr/memory/detail.hpp>
 
 namespace wjr {
@@ -24,10 +25,14 @@ namespace memory {
 
 inline constexpr unsigned int bin_table_size = 14;
 inline constexpr unsigned int bin_threshold = 2048;
-static_assert(bin_threshold == 2048, "");
+
+inline constexpr unsigned int bin_page_size = 4_KB;
+static_assert(bin_threshold * 2 == bin_page_size, "");
 
 inline constexpr unsigned int bin_table[bin_table_size] = {
     8, 16, 32, 48, 64, 96, 128, 192, 256, 384, 512, 768, 1024, 2048};
+
+static_assert(bin_table[bin_table_size - 1] == bin_threshold, "");
 
 inline constexpr uint8_t bin_index_small_table[65] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
@@ -54,29 +59,6 @@ struct thread_cache_object {
     };
 
     static_assert(std::is_standard_layout_v<obj>, "");
-
-    struct obj_linker {
-        intrusive::forward_list_node link;
-        obj *head;
-        unsigned int size;
-    };
-
-    static_assert(std::is_standard_layout_v<obj_linker>, "");
-
-    static constexpr unsigned int obj_linker_index = get_bin_index(sizeof(obj_linker));
-
-    WJR_INTRINSIC_INLINE static obj *get_obj(intrusive::forward_list_node *node) {
-        return WJR_CONTAINER_OF(node, obj, link);
-    }
-
-    WJR_INTRINSIC_INLINE static intrusive::forward_list_node *get_obj_node(obj *ptr) {
-        return &ptr->link;
-    }
-
-    WJR_INTRINSIC_INLINE static obj_linker *
-    get_linker(intrusive::forward_list_node *node) {
-        return WJR_CONTAINER_OF(node, obj_linker, link);
-    }
 
     WJR_MALLOC WJR_INTRINSIC_INLINE void *allocate(size_t size) {
         if (WJR_LIKELY(size <= bin_threshold)) {
@@ -128,6 +110,8 @@ struct thread_cache_object {
     // This helps improve performance.
     bool need_guard = true;
     unsigned int slow_start_stamp = 0;
+    unsigned int heap_slow_start_stamp = 0;
+    unsigned int heap_slow_start_level = 0;
 
     char *start_free = nullptr;
     char *end_free = nullptr;

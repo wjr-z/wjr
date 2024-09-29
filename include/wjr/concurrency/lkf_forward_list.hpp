@@ -19,7 +19,7 @@ inline void push_front(lkf_forward_list_node *head, forward_list_node *node) noe
     auto old_node = head->next.load(std::memory_order_relaxed);
     do {
         node->next = old_node;
-    } while (!head->next.compare_exchange_weak(old_node, node, std::memory_order_acquire,
+    } while (!head->next.compare_exchange_weak(old_node, node, std::memory_order_release,
                                                std::memory_order_relaxed));
 }
 
