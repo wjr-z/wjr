@@ -254,8 +254,10 @@
 #endif
 
 #if WJR_HAS_ATTRIBUTE(nonnull)
-    #define WJR_NONNULL(...) __attribute__((__VA_ARGS__))
+    #define WJR_ALL_NONNULL __attribute__((nonnull))
+    #define WJR_NONNULL(...) __attribute__((nonnull(__VA_ARGS__)))
 #else
+    #define WJR_ALL_NONNULL
     #define WJR_NONNULL(...)
 #endif
 

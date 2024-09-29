@@ -1,7 +1,7 @@
 #ifndef WJR_JSON_VISITOR_HPP__
 #define WJR_JSON_VISITOR_HPP__
 
-#include <wjr/container/generic/bitset.hpp>
+#include <wjr/container/bitset.hpp>
 #include <wjr/json/number.hpp>
 #include <wjr/json/reader.hpp>
 #include <wjr/json/string.hpp>

@@ -3,7 +3,7 @@
 
 #include <algorithm>
 
-#include <wjr/container/generic/detail.hpp>
+#include <wjr/container/detail.hpp>
 #include <wjr/iterator/inserter.hpp>
 #include <wjr/memory/detail.hpp>
 

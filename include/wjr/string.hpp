@@ -1,7 +1,7 @@
 #ifndef WJR_STRING_HPP__
 #define WJR_STRING_HPP__
 
-#include <wjr/container/generic/detail.hpp>
+#include <wjr/container/detail.hpp>
 #include <wjr/memory/memory_pool.hpp>
 
 namespace wjr {

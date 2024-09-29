@@ -1,5 +1,5 @@
-#ifndef WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__
-#define WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__
+#ifndef WJR_CONTAINER_CONTAINER_VECTOR_HPP__
+#define WJR_CONTAINER_CONTAINER_VECTOR_HPP__
 
 /**
  * @file vector.hpp
@@ -46,7 +46,7 @@
  */
 
 #include <wjr/compressed_pair.hpp>
-#include <wjr/container/generic/container_fn.hpp>
+#include <wjr/container/container_fn.hpp>
 #include <wjr/iterator/contiguous_iterator_adpater.hpp>
 #include <wjr/math/detail.hpp>
 #include <wjr/memory/copy.hpp>
@@ -1858,4 +1858,4 @@ constexpr void swap(wjr::basic_vector<Storage> &lhs,
 
 } // namespace std
 
-#endif // WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__
+#endif // WJR_CONTAINER_CONTAINER_VECTOR_HPP__

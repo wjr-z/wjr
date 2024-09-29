@@ -1,5 +1,5 @@
-#ifndef WJR_CONTAINER_GENERIC_BTREE_HPP__
-#define WJR_CONTAINER_GENERIC_BTREE_HPP__
+#ifndef WJR_CONTAINER_BTREE_HPP__
+#define WJR_CONTAINER_BTREE_HPP__
 
 /**
  * @file btree.hpp
@@ -18,8 +18,8 @@
 
 #include <wjr/assert.hpp>
 #include <wjr/compressed_pair.hpp>
-#include <wjr/container/generic/container_fn.hpp>
-#include <wjr/container/intrusive/list.hpp>
+#include <wjr/container/container_fn.hpp>
+#include <wjr/container/list.hpp>
 #include <wjr/memory/memory_pool.hpp>
 #include <wjr/memory/uninitialized.hpp>
 
@@ -344,12 +344,12 @@ struct btree_inner_node : btree_node<Traits> {
 };
 
 template <typename Traits>
-struct btree_list_base : btree_node<Traits>, intrusive::list_node<void> {
+struct btree_list_base : btree_node<Traits>, intrusive::list_node {
 private:
     using Mybase = btree_node<Traits>;
 
 public:
-    using list_node_type = intrusive::list_node<void>;
+    using list_node_type = intrusive::list_node;
 
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(btree_list_base);
 
@@ -366,7 +366,7 @@ struct btree_leaf_node : btree_list_base<Traits> {
     using value_type = typename Traits::value_type;
     constexpr static bool is_inline_value = Traits::is_inline_value;
     using inline_value_type = typename Traits::inline_value_type;
-    using list_node_type = intrusive::list_node<void>;
+    using list_node_type = intrusive::list_node;
 
     const key_type &__get_key(unsigned int pos) const noexcept {
         return Traits::get_key(Traits::__get_value(m_values[pos]));
@@ -433,7 +433,7 @@ class btree_const_iterator {
     template <typename Other>
     friend class basic_btree;
 
-    using list_node_type = intrusive::list_node<void>;
+    using list_node_type = intrusive::list_node;
 
 public:
     using iterator_category = std::bidirectional_iterator_tag;
@@ -536,7 +536,7 @@ class btree_iterator : public btree_const_iterator<Traits> {
     template <typename Other>
     friend class basic_btree;
 
-    using list_node_type = intrusive::list_node<void>;
+    using list_node_type = intrusive::list_node;
 
 public:
     using Mybase::Mybase;
@@ -999,7 +999,7 @@ class basic_btree {
     using inner_node_type = typename Traits::inner_node_type;
     using leaf_node_type = typename Traits::leaf_node_type;
     using list_base_type = typename Traits::list_base_type;
-    using list_node_type = intrusive::list_node<void>;
+    using list_node_type = intrusive::list_node;
 
 public:
     using key_type = typename Traits::key_type;
@@ -1083,12 +1083,12 @@ public:
     constexpr key_compare &key_comp() noexcept { return m_pair.first(); }
     constexpr const key_compare &key_comp() const noexcept { return m_pair.first(); }
 
-    iterator begin() noexcept { return iterator(__get_sentry().next(), 0); }
+    iterator begin() noexcept { return iterator(next(&__get_sentry()), 0); }
     const_iterator begin() const noexcept {
-        return const_iterator(__get_sentry().next(), 0);
+        return const_iterator(next(&__get_sentry()), 0);
     }
     const_iterator cbegin() const noexcept {
-        return const_iterator(__get_sentry().next(), 0);
+        return const_iterator(next(&__get_sentry()), 0);
     }
 
     iterator end() noexcept { return iterator(&__get_sentry(), 0); }
@@ -1387,7 +1387,7 @@ private:
                 __drop_node(leaf->m_values[i]);
             }
 
-            list_node_type *next = leaf->next();
+            list_node_type *next = intrusive::next(leaf);
             __drop_leaf_node(leaf);
 
             // if `current' is the last child of parent
@@ -2159,4 +2159,4 @@ private:
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_GENERIC_BTREE_HPP__
+#endif // WJR_CONTAINER_BTREE_HPP__

@@ -104,7 +104,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T fallback_byteswap(T x) noexcept {
 }
 
 #if WJR_HAS_BUILTIN(__builtin_bswap16)
-#define WJR_HAS_BUILTIN_BYTESWAP WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_BYTESWAP WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_BUILTIN(BYTESWAP)

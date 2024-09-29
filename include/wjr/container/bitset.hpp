@@ -1,5 +1,5 @@
-#ifndef WJR_CONTAINER_GENERIC_BITSET_HPP__
-#define WJR_CONTAINER_GENERIC_BITSET_HPP__
+#ifndef WJR_CONTAINER_BITSET_HPP__
+#define WJR_CONTAINER_BITSET_HPP__
 
 #include <cstring>
 
@@ -582,4 +582,4 @@ std::basic_ostream<Char, Traits> &operator<<(std::basic_ostream<Char, Traits> &o
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_GENERIC_BITSET_HPP__
+#endif // WJR_CONTAINER_BITSET_HPP__

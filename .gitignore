@@ -24,6 +24,7 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 build
+msvc_build
 .vscode
 *.sln
 *.vcxproj

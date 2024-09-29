@@ -8,13 +8,13 @@ namespace {
 WJR_INTRINSIC_INLINE char *small_copy(char *dst, const char *src,
                                       unsigned int n) noexcept {
     if (n >= 8) {
-#if WJR_HAS_SIMD(AVX2)
+    #if WJR_HAS_SIMD(AVX2)
         if (n >= 16) {
             std::memcpy(dst, src, 16);
             std::memcpy(dst + n - 16, src + n - 16, 16);
             return dst + n;
         }
-#endif
+    #endif
         std::memcpy(dst, src, 8);
         std::memcpy(dst + n - 8, src + n - 8, 8);
         return dst + n;
@@ -165,7 +165,7 @@ SMALL:
     simd_mask_type B;
 
     do {
-#if WJR_HAS_SIMD(AVX2)
+    #if WJR_HAS_SIMD(AVX2)
         if (WJR_UNLIKELY(n > 16)) {
             const auto m = n - 16;
             const auto x0 = sse::loadu(first);
@@ -181,7 +181,7 @@ SMALL:
 
             break;
         }
-#endif
+    #endif
 
         if (WJR_UNLIKELY(n <= 8)) {
             if (WJR_UNLIKELY(n <= 4)) {
@@ -409,7 +409,7 @@ SMALL:
     simd_mask_type B;
 
     do {
-#if WJR_HAS_SIMD(AVX2)
+    #if WJR_HAS_SIMD(AVX2)
         if (WJR_UNLIKELY(n > 16)) {
             const auto m = n - 16;
             const auto x0 = sse::loadu(first);
@@ -423,7 +423,7 @@ SMALL:
 
             break;
         }
-#endif
+    #endif
 
         if (WJR_UNLIKELY(n <= 8)) {
             if (WJR_UNLIKELY(n <= 4)) {

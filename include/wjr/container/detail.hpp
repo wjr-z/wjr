@@ -1,5 +1,5 @@
-#ifndef WJR_CONTAINER_GENERIC_DETAIL_HPP__
-#define WJR_CONTAINER_GENERIC_DETAIL_HPP__
+#ifndef WJR_CONTAINER_DETAIL_HPP__
+#define WJR_CONTAINER_DETAIL_HPP__
 
 #include <string>
 
@@ -163,4 +163,4 @@ struct get_relocate_mode<std::basic_string<Char, Traits, Alloc>> {
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_GENERIC_DETAIL_HPP__
+#endif // WJR_CONTAINER_DETAIL_HPP__

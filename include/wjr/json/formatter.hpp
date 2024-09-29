@@ -1,7 +1,7 @@
 #ifndef WJR_FORMATTER_HPP__
 #define WJR_FORMATTER_HPP__
 
-#include <wjr/container/generic/bitset.hpp>
+#include <wjr/container/bitset.hpp>
 #include <wjr/format/charconv.hpp>
 #include <wjr/format/dragonbox.hpp>
 #include <wjr/json/detail.hpp>

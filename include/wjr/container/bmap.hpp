@@ -1,7 +1,7 @@
 #ifndef WJR_CONTIANER_GENERIC_BMAP_HPP__
 #define WJR_CONTIANER_GENERIC_BMAP_HPP__
 
-#include <wjr/container/generic/btree.hpp>
+#include <wjr/container/btree.hpp>
 
 namespace wjr {
 

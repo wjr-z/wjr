@@ -645,6 +645,7 @@ struct avx {
 };
 
 namespace avx_detail {
+namespace {
 #if WJR_HAS_SIMD(AVX2)
 
 inline const __m256i srli_epi8_mask[8] = {
@@ -654,6 +655,7 @@ inline const __m256i srli_epi8_mask[8] = {
 };
 
 #endif
+} // namespace
 } // namespace avx_detail
 
 #if WJR_HAS_SIMD(AVX)

@@ -2,8 +2,520 @@
 
 #include <wjr/assert.hpp>
 #include <wjr/memory/memory_pool.hpp>
+#include <wjr/memory/uninitialized.hpp>
 
 namespace wjr {
+
+using namespace intrusive;
+
+namespace memory {
+
+namespace {
+
+/**
+ * @todo Add level to bin slow start.
+ *
+ */
+inline constexpr unsigned int bin_slow_start_table[bin_table_size] = {
+    128, 128, 128, 128, 64, 64, 64, 64, 8, 8, 8, 4, 4, 2};
+
+inline constexpr uint8_t bin_table_appro_shift[bin_table_size] = {3, 4, 5, 6, 6,  7,  7,
+                                                                  8, 8, 9, 9, 10, 10, 11};
+
+inline constexpr unsigned int max_bin_cached_table[bin_table_size] = {
+    4096, 4096, 4096, 4096, 2048, 2048, 2048, 2048, 1024, 1024, 1024, 512, 512, 256};
+
+inline constexpr unsigned int max_bin_cached_threshold_table[bin_table_size] = {
+    128, 128, 128, 128, 64, 64, 64, 64, 32, 32, 32, 16, 16, 8};
+
+using object = thread_cache_object;
+using obj_linker = typename object::obj_linker;
+using obj = typename object::obj;
+using obj_linker = typename object::obj_linker;
+
+WJR_MALLOC WJR_INTRINSIC_INLINE void *__forceinline_allocate_impl(object &object,
+                                                                  unsigned int idx);
+
+WJR_INTRINSIC_INLINE void __forceinline_reuse_heap(object &object, char *mem,
+                                                   unsigned int bytes_left) noexcept;
+
+WJR_INTRINSIC_INLINE void __forceinline_deallocate_impl(object &object, void *mem,
+                                                        unsigned int idx) noexcept
+    WJR_NONNULL(2);
+
+class global_memory_pool {
+public:
+    global_memory_pool() noexcept {
+        for (auto &head : bin_head) {
+            init(&head);
+        }
+
+        for (auto &head : recycle_bin_head) {
+            init(&head);
+        }
+
+        init(&linker_head);
+        init(&heap_head);
+    }
+
+    WJR_INTRINSIC_INLINE obj_linker *raw_linker_allocate() noexcept {
+        return object::get_linker(pop_front(&linker_head));
+    }
+
+    WJR_INTRINSIC_INLINE obj_linker *linker_allocate(object *obj) {
+        if (obj_linker *linker = raw_linker_allocate(); linker != nullptr) {
+            return linker;
+        }
+
+        return static_cast<obj_linker *>(
+            __forceinline_allocate_impl(*obj, object::obj_linker_index));
+    }
+
+    WJR_INTRINSIC_INLINE void linker_deallocate(obj_linker *linker) noexcept {
+        push_front(&linker_head, &linker->link);
+    }
+
+    WJR_INTRINSIC_INLINE WJR_MALLOC obj_linker *bin_allocate(unsigned int idx) noexcept {
+        return object::get_linker(pop_front(bin_head + idx));
+    }
+
+    WJR_INTRINSIC_INLINE void bin_deallocate(obj_linker *linker,
+                                             unsigned int idx) noexcept {
+        push_front(bin_head + idx, &linker->link);
+    }
+
+    WJR_INTRINSIC_INLINE WJR_MALLOC obj_linker *
+    recycle_bin_alloate(unsigned int idx) noexcept {
+        return object::get_linker(pop_front(recycle_bin_head + idx));
+    }
+
+    WJR_INTRINSIC_INLINE void recycle_bin_dealloate(obj_linker *linker,
+                                                    unsigned int idx) noexcept {
+        push_front(recycle_bin_head + idx, &linker->link);
+    }
+
+    WJR_INTRINSIC_INLINE void recycle_bin(obj_linker *linker, unsigned int idx) noexcept {
+        if (WJR_LIKELY(linker->size < max_bin_cached_threshold_table[idx])) {
+            push_front(recycle_bin_head + idx, &linker->link);
+            return;
+        }
+
+        bin_deallocate(linker, idx);
+    }
+
+    WJR_INTRINSIC_INLINE void recycle_heap(obj_linker *linker) noexcept {
+        push_front(&heap_head, &linker->link);
+    }
+
+private:
+    // size >= max_bin_cached_threshold_table[idx]
+    lkf_forward_list_node bin_head[bin_table_size];
+
+    // size < max_bin_cached_threshold_table[idx]
+    lkf_forward_list_node recycle_bin_head[bin_table_size];
+
+    lkf_forward_list_node linker_head;
+
+    //  Not used currently.
+    lkf_forward_list_node heap_head;
+};
+
+global_memory_pool global_memory_pool_object;
+
+class thread_cache_recycler {
+public:
+    thread_cache_recycler(object *obj_) noexcept : m_obj(obj_) {}
+
+    WJR_NOINLINE ~thread_cache_recycler() noexcept;
+
+    /**
+     * @brief Use guard when thread_cache_object changes from an empty state to a non
+     * empty state.
+     *
+     */
+    static void guard(object *obj_) noexcept {
+        thread_local thread_cache_recycler recycler(obj_);
+    }
+
+private:
+    object *m_obj;
+};
+
+thread_cache_recycler::~thread_cache_recycler() noexcept {
+    static constexpr auto linker_index = object::obj_linker_index;
+    static constexpr auto linker_size = bin_table[linker_index];
+    static constexpr auto alloc_linker_size = bin_table_size * 2 + 1;
+    static_assert(alloc_linker_size < max_bin_cached_table[bin_table_size - 1], "");
+
+    obj_linker *heap_linker;
+    unsigned int heap_cnt;
+
+    // No enough heap memory for max memory usage of linker.
+    if (auto heap_size = static_cast<size_t>(m_obj->end_free - m_obj->start_free);
+        heap_size < linker_size * alloc_linker_size) {
+        // don't need to initialize heap_linker
+        heap_cnt = 0;
+        if (heap_size) {
+            __forceinline_reuse_heap(*m_obj, m_obj->start_free, heap_size);
+        }
+    } else {
+        // Avoid to use global memory or new memory.
+        heap_linker = reinterpret_cast<obj_linker *>(m_obj->start_free);
+
+        m_obj->start_free += linker_size * alloc_linker_size;
+        heap_size -= linker_size * alloc_linker_size;
+
+        // Rest heap is small, don't recycle it to global heap, only reuse it.
+        if (heap_size < bin_threshold * 2) {
+            heap_cnt = alloc_linker_size;
+            __forceinline_reuse_heap(*m_obj, m_obj->start_free, heap_size);
+        } else {
+            // Get one linker for global heap list.
+            heap_cnt = alloc_linker_size - 1;
+            obj_linker *linker = heap_linker++;
+            linker->head = reinterpret_cast<obj *>(m_obj->start_free);
+            // don't need to initialize linker->size
+            global_memory_pool_object.recycle_heap(linker);
+        }
+    }
+
+    unsigned int cnt = 0;
+
+    // May be optimized to use SIMD
+    for (unsigned int idx = 0; idx < bin_table_size; ++idx) {
+        cnt += m_obj->free_list_size[idx] != 0;
+    }
+
+    // May be optimized to use SIMD
+    for (unsigned int idx = 0; idx < bin_table_size; ++idx) {
+        cnt += m_obj->cached_free_list_size[idx] != 0;
+    }
+
+    // Use linker from heap.
+    if (heap_cnt) {
+        WJR_ASSERT(heap_linker != nullptr);
+
+        for (unsigned int idx = 0; idx < bin_table_size; ++idx) {
+            if (m_obj->free_list_size[idx] != 0) {
+                obj_linker *linker = heap_linker++;
+                linker->head = m_obj->free_list[idx];
+                linker->size = m_obj->free_list_size[idx];
+
+                global_memory_pool_object.recycle_bin(linker, idx);
+            }
+
+            if (m_obj->cached_free_list_size[idx] != 0) {
+                obj_linker *linker = heap_linker++;
+                linker->head = m_obj->cached_free_list[idx];
+                linker->size = m_obj->cached_free_list_size[idx];
+
+                global_memory_pool_object.recycle_bin(linker, idx);
+            }
+        }
+
+        // Recycle excess linker to global.
+        while (heap_cnt) {
+            global_memory_pool_object.linker_deallocate(heap_linker++);
+            --heap_cnt;
+        }
+
+        return;
+    }
+
+    obj_linker *linker_head[linker_size];
+    unsigned int head_idx = 0;
+
+    // Try to get linker from free_list[linker_index], reserve a size of 4 for
+    // free_list[linker_index]
+    if (unsigned int obj_linker_size = m_obj->free_list_size[linker_index];
+        obj_linker_size > 4) {
+        auto total = std::min<unsigned int>(obj_linker_size - 4, cnt);
+        unsigned int iter = total;
+
+        obj *current_obj = m_obj->free_list[linker_index];
+        do {
+            linker_head[--iter] = reinterpret_cast<obj_linker *>(current_obj);
+            current_obj = object::get_obj(current_obj->link.next);
+        } while (iter);
+
+        // Modify
+        m_obj->free_list[linker_index] = current_obj;
+        m_obj->free_list_size[linker_index] -= total;
+
+        head_idx = total;
+    }
+
+    // Try to get linker from global.
+    while (head_idx != cnt) {
+        // This is very unlikely. Maybe can be optimmized.
+        if (auto linker = global_memory_pool_object.raw_linker_allocate();
+            linker == nullptr) {
+            auto *ptr = new obj_linker[cnt - head_idx];
+            while (head_idx != cnt) {
+                linker_head[head_idx++] = ptr++;
+            }
+            break;
+        } else {
+            linker_head[head_idx++] = linker;
+        }
+    }
+
+    head_idx = 0;
+    for (unsigned int idx = 0; idx < bin_table_size; ++idx) {
+        if (m_obj->free_list_size[idx] != 0) {
+            obj_linker *linker = linker_head[head_idx++];
+            linker->head = m_obj->free_list[idx];
+            linker->size = m_obj->free_list_size[idx];
+
+            global_memory_pool_object.recycle_bin(linker, idx);
+        }
+
+        if (m_obj->cached_free_list_size[idx] != 0) {
+            obj_linker *linker = linker_head[head_idx++];
+            linker->head = m_obj->cached_free_list[idx];
+            linker->size = m_obj->cached_free_list_size[idx];
+
+            global_memory_pool_object.recycle_bin(linker, idx);
+        }
+    }
+}
+
+inline void *__forceinline_allocate_impl(object &object, unsigned int idx) {
+    // If size is zero, then it will be overwrite later.
+    // Reducing dependencies can improve performance.
+    --object.free_list_size[idx];
+
+    // Fast path. Get from free_list if possible.
+    if (obj *const result = object.free_list[idx]; WJR_LIKELY(result != nullptr)) {
+        object.free_list[idx] = object::get_obj(result->link.next);
+        return result;
+    }
+
+    if (obj *const result = object.cached_free_list[idx]; WJR_LIKELY(result != nullptr)) {
+        // Exchange cached_free_list with free_list.
+
+        object.free_list[idx] = object::get_obj(result->link.next);
+        object.cached_free_list[idx] = nullptr;
+        object.free_list_size[idx] = object.cached_free_list_size[idx] - 1;
+        object.cached_free_list_size[idx] = 0;
+        return result;
+    }
+
+    return object.__refill(idx);
+}
+
+inline void __forceinline_reuse_heap(object &object, char *mem,
+                                     unsigned int bytes_left) noexcept {
+    for (unsigned int idx = bin_table_size - 1;; --idx) {
+        WJR_ASSERT(~idx);
+        const unsigned int __size = bin_table[idx];
+        if (bytes_left >= __size) {
+            __forceinline_deallocate_impl(object, mem, idx);
+
+            mem += __size;
+            bytes_left -= __size;
+
+            if (bytes_left == 0) {
+                break;
+            }
+        }
+    }
+}
+
+inline void __forceinline_deallocate_impl(object &object, void *mem,
+                                          unsigned int idx) noexcept {
+    auto *const mem_obj = static_cast<obj *>(mem);
+    const auto size = object.free_list_size[idx];
+
+    if (WJR_LIKELY(size != max_bin_cached_table[idx])) {
+        object.free_list_size[idx] = size + 1;
+        mem_obj->link.next = object::get_obj_node(object.free_list[idx]);
+        object.free_list[idx] = mem_obj;
+        return;
+    }
+
+    if (WJR_LIKELY(object.cached_free_list_size[idx] != size)) {
+        ++object.cached_free_list_size[idx];
+        mem_obj->link.next = object::get_obj_node(object.cached_free_list[idx]);
+        object.cached_free_list[idx] = mem_obj;
+        return;
+    }
+
+    object.__global_recycle(size, idx);
+}
+
+} // namespace
+
+void *thread_cache_object::__allocate_impl(unsigned int idx) {
+    return __forceinline_allocate_impl(*this, idx);
+}
+
+void thread_cache_object::__deallocate_impl(void *mem, unsigned int idx) noexcept {
+    // empty -> non empty, need to guard.
+    if (WJR_UNLIKELY(need_guard)) {
+        need_guard = false;
+        return __guard_deallocate(mem, idx);
+    }
+
+    __forceinline_deallocate_impl(*this, mem, idx);
+}
+
+void *thread_cache_object::__refill(unsigned int idx) {
+    // empty -> non empty, need to guard.
+    if (WJR_UNLIKELY(need_guard)) {
+        need_guard = false;
+        thread_cache_recycler::guard(this);
+    }
+
+    ++slow_start_stamp;
+
+    if (obj_linker *const linker = global_memory_pool_object.bin_allocate(idx);
+        linker != nullptr) {
+        WJR_ASSERT(linker->size >= max_bin_cached_threshold_table[idx]);
+
+        obj *const result = linker->head;
+        free_list[idx] = get_obj(result->link.next);
+        free_list_size[idx] = linker->size - 1;
+
+        global_memory_pool_object.linker_deallocate(linker);
+        return result;
+    }
+
+    auto nobjs = static_cast<unsigned int>(bin_slow_start_table[idx]);
+    const unsigned int bin_size = bin_table[idx];
+    void *chunk;
+
+    const size_t total_bytes = bin_size * nobjs;
+
+    do {
+        auto bytes_left = static_cast<size_t>(end_free - start_free);
+
+        if (bytes_left >= total_bytes) {
+            chunk = start_free;
+            start_free += total_bytes;
+            break;
+        }
+
+        if (bytes_left >= bin_size) {
+            nobjs = bytes_left >> bin_table_appro_shift[idx];
+            nobjs = nobjs == 0 ? 1 : nobjs;
+            chunk = start_free;
+            start_free += nobjs * bin_table[idx];
+            break;
+        }
+
+        // Try to make use of the left-over piece.
+        // This is very unlikely.
+        if (bytes_left != 0) {
+            WJR_ASSERT(!(bytes_left & 7));
+            __forceinline_reuse_heap(*this, start_free,
+                                     static_cast<unsigned int>(bytes_left));
+        }
+
+        const size_t bytes_to_get = std::min<size_t>(
+            __align_up(2 * total_bytes + (heap_size >> 5), 4096), 2 * 1024 * 1024);
+        heap_size += bytes_to_get;
+
+        // This maybe can be optimize by using global heap.
+        start_free = new char[bytes_to_get];
+        end_free = start_free + bytes_to_get;
+
+        bytes_left = static_cast<size_t>(end_free - start_free);
+
+        chunk = start_free;
+        start_free += total_bytes;
+    } while (0);
+
+    free_list_size[idx] = nobjs - 1;
+
+    if (nobjs == 1) {
+        return chunk;
+    }
+
+    char *current_obj;
+
+    // Build free list in chunk
+    auto *const result = static_cast<obj *>(chunk);
+
+    current_obj = static_cast<char *>(chunk) + bin_size;
+    free_list[idx] = reinterpret_cast<obj *>(current_obj);
+    nobjs -= 2;
+
+    if (WJR_LIKELY(nobjs >= 4)) {
+        auto mod4n = nobjs & 3;
+        if (mod4n) {
+            do {
+                auto *const next_obj = current_obj + bin_size;
+                reinterpret_cast<obj *>(current_obj)->link.next =
+                    get_obj_node(reinterpret_cast<obj *>(next_obj));
+                current_obj += bin_size;
+            } while (--mod4n);
+        }
+
+        nobjs = __align_down(nobjs, 4);
+
+        do {
+            auto *const obj0 = current_obj + bin_size;
+            auto *const obj1 = current_obj + bin_size * 2;
+            auto *const obj2 = current_obj + bin_size * 3;
+            auto *const obj3 = current_obj + bin_size * 4;
+
+            reinterpret_cast<obj *>(current_obj)->link.next =
+                get_obj_node(reinterpret_cast<obj *>(obj0));
+
+            reinterpret_cast<obj *>(obj0)->link.next =
+                get_obj_node(reinterpret_cast<obj *>(obj1));
+
+            reinterpret_cast<obj *>(obj1)->link.next =
+                get_obj_node(reinterpret_cast<obj *>(obj2));
+
+            reinterpret_cast<obj *>(obj2)->link.next =
+                get_obj_node(reinterpret_cast<obj *>(obj3));
+
+            current_obj = obj3;
+            nobjs -= 4;
+        } while (nobjs);
+    } else {
+        if (WJR_LIKELY(nobjs != 0)) {
+            do {
+                auto *const next_obj = current_obj + bin_size;
+                reinterpret_cast<obj *>(current_obj)->link.next =
+                    get_obj_node(reinterpret_cast<obj *>(next_obj));
+                current_obj = next_obj;
+            } while (--nobjs);
+        }
+    }
+
+    reinterpret_cast<obj *>(current_obj)->link.next = nullptr;
+    return result;
+}
+
+void thread_cache_object::__global_recycle(unsigned int cached_size,
+                                           unsigned int idx) noexcept {
+    obj *const head = cached_free_list[idx];
+    cached_free_list[idx] = nullptr;
+    cached_free_list_size[idx] = 0;
+
+    obj_linker *const linker = global_memory_pool_object.linker_allocate(this);
+    linker->head = head;
+    linker->size = cached_size;
+    global_memory_pool_object.bin_deallocate(linker, idx);
+}
+
+/**
+ * @brief All free lists and heap are empty,
+ *
+ */
+void thread_cache_object::__guard_deallocate(void *mem, unsigned int idx) noexcept {
+    thread_cache_recycler::guard(this);
+
+    auto *const mem_obj = static_cast<obj *>(mem);
+    free_list_size[idx] = 1;
+    mem_obj->link.next = nullptr;
+    free_list[idx] = mem_obj;
+}
+
+} // namespace memory
 
 char *__default_alloc_template__::object::chunk_alloc(unsigned int idx,
                                                       unsigned int &nobjs) noexcept {

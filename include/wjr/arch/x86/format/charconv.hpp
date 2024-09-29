@@ -17,7 +17,8 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
 
 namespace to_chars_detail {
-
+namespace {
+    
 inline const __m128i mul10p4 = simd_cast<uint32_t, __m128i_t>(3518437209);
 inline const __m128i mul10p4x = simd_cast<uint32_t, __m128i_t>(10000);
 inline const __m128i mul10p2 = sse::set1_epi16(5243);
@@ -28,6 +29,7 @@ inline const __m128i mul10p1x = sse::set1_epi16(10);
 inline const __m128i shuf =
     sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
 
+} // namespace
 } // namespace to_chars_detail
 
 #endif
@@ -83,6 +85,7 @@ void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, origin_converter_t) 
     WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
 
 namespace from_chars_detail {
+namespace {
 
 /// @private
 template <uint64_t Base>
@@ -118,8 +121,9 @@ inline const __m128i baseu8 =
                    0xff, 0xff, 0xff, 0xff);
 
 /// @private
-static __m128i ascii = sse::set1_epi8(0x30);
+inline const __m128i ascii = sse::set1_epi8(0x30);
 
+} // namespace
 } // namespace from_chars_detail
 
 #endif

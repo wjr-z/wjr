@@ -104,7 +104,7 @@ const std::array<uint8_t, 272> pshufb_combine_table = {
     0xff, 0xff, 0xff, 0xff,
 };
 
-#if !WJR_HAS_SIMD(AVX2)
+    #if !WJR_HAS_SIMD(AVX2)
 const __m128i lh8_mask = sse::set1_epi8(0x0f);
 
 const __m128i lo8_lookup =
@@ -126,7 +126,7 @@ WJR_INTRINSIC_INLINE void compress(char *dst, __m128i x, uint16_t mask) noexcept
     sse::storeu(dst, almostthere);
 }
 
-#else
+    #else
 const __m256i lh8_mask = avx::set1_epi8(0x0f);
 const __m256i lo8_lookup =
     avx::set_epi8(0, 0, 12, 1, 4, 10, 8, 0, 0, 0, 0, 0, 0, 0, 0, 16, 0, 0, 12, 1, 4, 10,
@@ -158,7 +158,7 @@ WJR_INTRINSIC_INLINE void compress(char *dst, __m256i x, uint32_t mask) noexcept
     sse::storeu(dst + 16 - popcount<uint16_t>(mask & 0xFFFF), avx::gethigh(almostthere));
 }
 
-#endif
+    #endif
 
 } // namespace
 } // namespace lexer_detail

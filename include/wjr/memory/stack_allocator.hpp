@@ -54,10 +54,10 @@ private:
             if (WJR_UNLIKELY(m_size == m_capacity)) {
                 const uint16_t new_capacity = m_idx + 2 * (bufsize - 1);
                 memory_pool<alloc_node> pool;
-                auto *const new_ptr = pool.chunk_allocate(new_capacity);
+                auto *const new_ptr = pool.allocate(new_capacity);
                 if (WJR_LIKELY(m_idx != 0)) {
                     std::copy_n(m_ptr, m_idx, new_ptr);
-                    pool.chunk_deallocate(m_ptr, m_capacity);
+                    pool.deallocate(m_ptr, m_capacity);
                 }
                 m_ptr = new_ptr;
                 m_capacity = new_capacity;

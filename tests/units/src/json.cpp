@@ -10,7 +10,7 @@ using namespace wjr;
 
 const auto current_path = std::filesystem::current_path();
 const auto twitter_json = []() {
-    std::ifstream input(current_path / "..\\src\\data\\success\\twitter.json");
+    std::ifstream input(current_path / "../src/data/success/twitter.json");
     std::stringstream buffer;
     buffer << input.rdbuf();
     return std::move(buffer).str();

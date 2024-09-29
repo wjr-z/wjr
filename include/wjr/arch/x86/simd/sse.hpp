@@ -735,6 +735,7 @@ struct sse {
 };
 
 namespace sse_detail {
+namespace {
 #if WJR_HAS_SIMD(SSE2)
 
 inline const __m128i srli_epi8_mask[8] = {
@@ -744,6 +745,7 @@ inline const __m128i srli_epi8_mask[8] = {
 };
 
 #endif
+} // namespace
 } // namespace sse_detail
 
 #if WJR_HAS_SIMD(SSE2)

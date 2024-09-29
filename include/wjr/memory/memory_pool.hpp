@@ -13,26 +13,157 @@
 #ifndef WJR_MEMORY_MEMORY_POOL_HPP__
 #define WJR_MEMORY_MEMORY_POOL_HPP__
 
-#include <wjr/container/intrusive/forward_list.hpp>
-#include <wjr/container/intrusive/list.hpp>
+#include <wjr/concurrency/lkf_forward_list.hpp>
+#include <wjr/container/list.hpp>
 #include <wjr/math/bit.hpp>
 #include <wjr/memory/detail.hpp>
 
 namespace wjr {
 
-namespace memory {} // namespace memory
+namespace memory {
+
+inline constexpr unsigned int bin_table_size = 14;
+inline constexpr unsigned int bin_threshold = 2048;
+static_assert(bin_threshold == 2048, "");
+
+inline constexpr unsigned int bin_table[bin_table_size] = {
+    8, 16, 32, 48, 64, 96, 128, 192, 256, 384, 512, 768, 1024, 2048};
+
+inline constexpr uint8_t bin_index_small_table[65] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+    3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
+
+inline constexpr uint8_t bin_index_large_table[62] = {
+    5,  6,  7,  7,  8,  8,  9,  9,  9,  9,  10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11,
+    11, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13,
+    13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13};
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR unsigned int get_bin_index(unsigned int size) {
+    if (size <= 64) {
+        return bin_index_small_table[size];
+    }
+
+    return bin_index_large_table[(size - 65) / 32];
+}
+
+struct thread_cache_object {
+    union obj {
+        intrusive::forward_list_node link;
+        char client_data[1];
+    };
+
+    static_assert(std::is_standard_layout_v<obj>, "");
+
+    struct obj_linker {
+        intrusive::forward_list_node link;
+        obj *head;
+        unsigned int size;
+    };
+
+    static_assert(std::is_standard_layout_v<obj_linker>, "");
+
+    static constexpr unsigned int obj_linker_index = get_bin_index(sizeof(obj_linker));
+
+    WJR_INTRINSIC_INLINE static obj *get_obj(intrusive::forward_list_node *node) {
+        return WJR_CONTAINER_OF(node, obj, link);
+    }
+
+    WJR_INTRINSIC_INLINE static intrusive::forward_list_node *get_obj_node(obj *ptr) {
+        return &ptr->link;
+    }
+
+    WJR_INTRINSIC_INLINE static obj_linker *
+    get_linker(intrusive::forward_list_node *node) {
+        return WJR_CONTAINER_OF(node, obj_linker, link);
+    }
+
+    WJR_MALLOC WJR_INTRINSIC_INLINE void *allocate(size_t size) {
+        if (WJR_LIKELY(size <= bin_threshold)) {
+            return __allocate_impl(get_bin_index(size));
+        }
+
+        return new char[size];
+    }
+
+    WJR_INTRINSIC_INLINE allocation_result<void *> allocate_at_least(size_t size) {
+        if (WJR_LIKELY(size <= bin_threshold)) {
+            const unsigned int idx = get_bin_index(size);
+            const size_t allocation_size = bin_table[idx];
+
+            return {__allocate_impl(get_bin_index(size)), allocation_size};
+        }
+
+        return {new char[size], size};
+    }
+
+    WJR_INTRINSIC_INLINE void deallocate(void *mem, size_t size) noexcept WJR_NONNULL(2) {
+        if (WJR_LIKELY(size <= bin_threshold)) {
+            return __deallocate_impl(mem, get_bin_index(size));
+        }
+
+        delete[] mem;
+    }
+
+    WJR_HOT WJR_MALLOC WJR_NOINLINE void *__allocate_impl(unsigned int idx);
+    WJR_HOT WJR_NOINLINE void __deallocate_impl(void *mem, unsigned int idx) noexcept
+        WJR_NONNULL(2);
+
+    WJR_MALLOC WJR_NOINLINE void *__refill(unsigned int idx);
+
+    WJR_NOINLINE void __global_recycle(unsigned int cached_size,
+                                       unsigned int idx) noexcept;
+    WJR_NOINLINE void __guard_deallocate(void *mem, unsigned int idx) noexcept
+        WJR_NONNULL(2);
+
+    obj *free_list[bin_table_size] = {nullptr};
+    unsigned int free_list_size[bin_table_size] = {0};
+
+    obj *cached_free_list[bin_table_size] = {nullptr};
+    unsigned int cached_free_list_size[bin_table_size] = {0};
+
+    unsigned int free_list_slow_start_stamp[bin_table_size] = {0};
+    unsigned int free_list_slow_start_level[bin_table_size] = {0};
+
+    // This helps improve performance.
+    bool need_guard = true;
+    unsigned int slow_start_stamp = 0;
+
+    char *start_free = nullptr;
+    char *end_free = nullptr;
+    size_t heap_size = 0;
+};
+
+class thread_cache_memory_pool {
+    static thread_cache_object &get_instance() noexcept {
+        static thread_local thread_cache_object instance;
+        return instance;
+    }
+
+public:
+    WJR_MALLOC static void *allocate(size_t n) { return get_instance().allocate(n); }
+
+    static allocation_result<void *> allocate_at_least(size_t n) {
+        return get_instance().allocate_at_least(n);
+    }
+
+    static void deallocate(void *p, size_t n) noexcept {
+        get_instance().deallocate(p, n);
+    }
+};
+
+} // namespace memory
 
 struct automatic_free_pool {
-    using chunk = intrusive::list_node<void>;
-
-    static_assert(sizeof(chunk) == sizeof(intrusive::list_node<chunk>));
+    using chunk = intrusive::list_node;
 
     automatic_free_pool() noexcept { init(&head); }
     ~automatic_free_pool() noexcept {
-        for (auto iter = head.begin(); iter != head.end();) {
-            const auto now = iter++;
-            chunk *const node = &*now;
+        chunk *node = head.next;
+        while (node != std::addressof(head)) {
+            auto *const nxt = node->next;
             free(node);
+            node = nxt;
         }
     }
 
@@ -232,16 +363,19 @@ public:
 
     WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
     allocate_at_least(size_type n) const noexcept {
-        const auto ret = allocator_type::allocate_at_least(n * sizeof(Ty));
+        const auto ret =
+            memory::thread_cache_memory_pool::allocate_at_least(n * sizeof(Ty));
         return {static_cast<Ty *>(ret.ptr), ret.count / sizeof(Ty)};
     }
 
     WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *allocate(size_type n) const noexcept {
-        return static_cast<Ty *>(allocator_type::allocate(n * sizeof(Ty)));
+        return static_cast<Ty *>(
+            memory::thread_cache_memory_pool::allocate(n * sizeof(Ty)));
     }
 
     WJR_CONSTEXPR20 void deallocate(Ty *ptr, size_type n) const noexcept {
-        return allocator_type::deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
+        return memory::thread_cache_memory_pool::deallocate(static_cast<void *>(ptr),
+                                                            sizeof(Ty) * n);
     }
 
     /**
