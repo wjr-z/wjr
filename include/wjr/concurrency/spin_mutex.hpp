@@ -9,6 +9,11 @@
 
 namespace wjr {
 
+/**
+ * @brief This may not be necessary as it does not prohibit system interrupts. When a
+ * thread switch occurs during a lock, it may cause other threads to spin inefficiently.
+ *
+ */
 class spin_mutex {
     static constexpr int fast_lock_threshold = 4;
     static constexpr int pause_per_lock_threshold = 8;
@@ -35,7 +40,7 @@ public:
                 int yield_cnt = yield_per_pause_threshold;
 
                 do {
-                    pause();
+                    pause_intrinsic();
 
                     int puase_cnt = pause_per_lock_threshold;
                     do {

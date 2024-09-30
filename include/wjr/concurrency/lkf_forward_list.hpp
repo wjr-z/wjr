@@ -12,19 +12,30 @@ struct lkf_forward_list_node {
 };
 
 inline void init(lkf_forward_list_node *head) noexcept {
-    head->next.store(nullptr, std::memory_order_relaxed);
+    head->next.store(nullptr, std::memory_order_release);
 }
 
-inline void push_front(lkf_forward_list_node *head, forward_list_node *node) noexcept {
-    auto old_node = head->next.load(std::memory_order_relaxed);
+WJR_INTRINSIC_INLINE void push_front(lkf_forward_list_node *head, forward_list_node *node,
+                                     forward_list_node *tail) noexcept {
+    auto *old_node = head->next.load(std::memory_order_relaxed);
     do {
-        node->next = old_node;
-    } while (!head->next.compare_exchange_weak(old_node, node, std::memory_order_release,
+        tail->next = old_node;
+    } while (!head->next.compare_exchange_weak(old_node, node, std::memory_order_acq_rel,
                                                std::memory_order_relaxed));
 }
 
-inline forward_list_node *pop_front(lkf_forward_list_node *head) noexcept {
-    auto node = head->next.load(std::memory_order_relaxed);
+WJR_INTRINSIC_INLINE void push_front(lkf_forward_list_node *head,
+                                     forward_list_node *node) noexcept {
+    push_front(head, node, node);
+}
+
+/**
+ * @brief If head node is destroyed during pop_front, then the behavior is
+ * undefined. Make sure the head node won't be destroyed or lock it, or use clear.
+ *
+ */
+WJR_INTRINSIC_INLINE forward_list_node *pop_front(lkf_forward_list_node *head) noexcept {
+    auto *node = head->next.load(std::memory_order_relaxed);
     forward_list_node *next_node;
 
     do {
@@ -33,10 +44,10 @@ inline forward_list_node *pop_front(lkf_forward_list_node *head) noexcept {
         }
 
         next_node = node->next;
-    } while (!head->next.compare_exchange_weak(node, next_node, std::memory_order_release,
+    } while (!head->next.compare_exchange_weak(node, next_node, std::memory_order_acq_rel,
                                                std::memory_order_relaxed));
 
-    WJR_ASSUME(node != nullptr);
+    WJR_ASSERT_ASSUME(node != nullptr);
     return node;
 }
 

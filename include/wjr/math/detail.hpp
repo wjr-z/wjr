@@ -32,6 +32,18 @@ WJR_CONST constexpr bool is_zero_or_single_bit(T n) noexcept {
     return (n & (n - 1)) == 0;
 }
 
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr T align_down(T n, type_identity_t<T> alignment) noexcept {
+    WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
+    return n & (-alignment);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr T align_up(T n, type_identity_t<T> alignment) noexcept {
+    WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
+    return (n + alignment - 1) & (-alignment);
+}
+
 // preview :
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
@@ -45,21 +57,9 @@ WJR_CONST constexpr T __ceil_div(T n, type_identity_t<T> div) noexcept {
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST constexpr T __align_down(T n, type_identity_t<T> alignment) noexcept {
-    WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
-    return n & (-alignment);
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST constexpr T __align_down_offset(T n, type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return n & (alignment - 1);
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST constexpr T __align_up(T n, type_identity_t<T> alignment) noexcept {
-    WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
-    return (n + alignment - 1) & (-alignment);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>

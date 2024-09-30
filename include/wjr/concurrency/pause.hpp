@@ -19,7 +19,10 @@ extern "C" void __yield(void);
     #endif
 #endif
 
-WJR_INTRINSIC_INLINE void pause() noexcept {
+/**
+ * @brief Unlike:: pause, this is cheap.
+ */
+WJR_INTRINSIC_INLINE void pause_intrinsic() noexcept {
 #if defined(_MSC_VER)
     #if defined(_M_AMD64) || defined(_M_IX86)
     _mm_pause();

@@ -144,6 +144,16 @@ WJR_INTRINSIC_INLINE To bitwise_cast(From const &from) noexcept {
                             std::has_unique_object_representations<From>::value)>());
 }
 
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T maintain_minimum(T num, type_identity_t<T> minimum) {
+    return num < minimum ? minimum : num;
+}
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T maintain_maximum(T num, type_identity_t<T> maximum) {
+    return num > maximum ? maximum : num;
+}
+
 } // namespace wjr
 
 #endif // WJR_MATH_BIT_HPP__
