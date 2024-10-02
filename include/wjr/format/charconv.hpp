@@ -117,8 +117,7 @@ public:
             : 0;
 
     static_assert(value != 2 ||
-                      has_container_append_v<Container, size_t, default_construct_t>,
-                  "");
+                  has_container_append_v<Container, size_t, default_construct_t>);
 };
 
 template <typename Iter, typename = void>

@@ -268,7 +268,7 @@ private:
 template <typename T>
 class div3by2_divider_noshift {
 public:
-    static_assert(std::is_same_v<T, uint64_t>, "");
+    static_assert(std::is_same_v<T, uint64_t>);
 
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(div3by2_divider_noshift);
 
@@ -372,7 +372,7 @@ class div3by2_divider : public div3by2_divider_noshift<T> {
     using Mybase::m_value;
 
 public:
-    static_assert(std::is_same_v<T, uint64_t>, "");
+    static_assert(std::is_same_v<T, uint64_t>);
 
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(div3by2_divider);
 

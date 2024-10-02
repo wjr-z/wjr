@@ -457,8 +457,8 @@ public:
 private:
     using STraits = storage_traits_type;
 
-    static_assert(is_contiguous_iterator_v<iterator>, "");
-    static_assert(is_contiguous_iterator_v<const_iterator>, "");
+    static_assert(is_contiguous_iterator_v<iterator>);
+    static_assert(is_contiguous_iterator_v<const_iterator>);
 
 public:
     basic_vector() = default;

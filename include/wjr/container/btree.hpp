@@ -225,8 +225,8 @@ public:
     using inline_value_type =
         std::conditional_t<is_inline_value, value_type, value_type *>;
 
-    static_assert(std::is_trivially_copyable_v<inline_key_type>, "");
-    static_assert(std::is_trivially_copyable_v<inline_value_type>, "");
+    static_assert(std::is_trivially_copyable_v<inline_key_type>);
+    static_assert(std::is_trivially_copyable_v<inline_value_type>);
 
     using node_type = btree_node<btree_traits>;
     using inner_node_type = btree_inner_node<btree_traits>;
@@ -636,8 +636,8 @@ struct basic_btree_searcher_impl<16, void> {
     template <size_t Min, typename node_type, typename Compare>
     WJR_PURE WJR_INTRINSIC_INLINE static unsigned int
     trivial_search(const node_type *current, unsigned int size, Compare &&comp) noexcept {
-        static_assert(Min != 0, "");
-        static_assert(Min == 1 || Min == 8, "");
+        static_assert(Min != 0);
+        static_assert(Min == 1 || Min == 8);
 
         WJR_ASSERT_ASSUME(size >= Min);
         WJR_ASSERT_ASSUME(size <= node_size);
@@ -658,8 +658,8 @@ struct basic_btree_searcher_impl<16, void> {
     WJR_PURE WJR_INTRINSIC_INLINE static unsigned int
     non_trivial_search(const node_type *current, unsigned int size,
                        Compare &&comp) noexcept {
-        static_assert(Min != 0, "");
-        static_assert(Min == 1 || Min == 8, "");
+        static_assert(Min != 0);
+        static_assert(Min == 1 || Min == 8);
 
         WJR_ASSERT_ASSUME(size >= Min);
         WJR_ASSERT_ASSUME(size <= node_size);
@@ -1658,7 +1658,7 @@ private:
     template <size_t Min, typename Compare>
     WJR_PURE WJR_INTRINSIC_INLINE static unsigned int
     __search(const node_type *current, unsigned int size, Compare &&comp) noexcept {
-        static_assert(Min != 0, "");
+        static_assert(Min != 0);
 
         return basic_btree_searcher_impl<node_size>::template search<Min,
                                                                      is_trivial_search>(

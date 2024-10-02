@@ -81,14 +81,14 @@ struct ieee754_binary_traits {
     // are assumed to be zeroed.
     static_assert(detail::value_bits<CarrierUInt>::value >= Format::total_bits,
                   "wjr::dragonbox: insufficient number of bits");
-    static_assert(std::is_unsigned<CarrierUInt>::value, "");
+    static_assert(std::is_unsigned<CarrierUInt>::value);
 
     // ExponentUInt needs to be large enough to hold (unsigned) exponent bits as well as
     // the (signed) actual exponent.
     // TODO: static overflow guard against intermediate computations.
     static_assert(detail::value_bits<ExponentInt>::value >= Format::exponent_bits + 1,
                   "wjr::dragonbox: insufficient number of bits");
-    static_assert(std::is_signed<ExponentInt>::value, "");
+    static_assert(std::is_signed<ExponentInt>::value);
 
     using format = Format;
     using carrier_uint = CarrierUInt;
@@ -371,7 +371,7 @@ constexpr uint64_t umul96_lower64(uint32_t x, uint64_t y) noexcept {
 
 template <int k, class Int>
 constexpr Int compute_power(Int a) noexcept {
-    static_assert(k >= 0, "");
+    static_assert(k >= 0);
     Int p = 1;
     for (int i = 0; i < k; ++i) {
         p *= a;
@@ -381,7 +381,7 @@ constexpr Int compute_power(Int a) noexcept {
 
 template <int a, class UInt>
 constexpr int count_factors(UInt n) noexcept {
-    static_assert(a > 1, "");
+    static_assert(a > 1);
     int c = 0;
     while (n % a == 0) {
         n /= a;
@@ -444,7 +444,7 @@ struct compute_impl<Info, min_exponent, max_exponent, current_tier, true> {
         WJR_ASSERT(min_exponent <= e && e <= max_exponent);
         // The sign is irrelevant for the mathematical validity of the formula, but
         // assuming positivity makes the overflow analysis simpler.
-        static_assert(info::multiply >= 0 && info::subtract >= 0, "");
+        static_assert(info::multiply >= 0 && info::subtract >= 0);
         return static_cast<ReturnType>((e * info::multiply - info::subtract) >>
                                        info::shift);
     }
@@ -671,7 +671,7 @@ struct divide_by_pow10_info<2, std::uint16_t> {
 template <int N, class UInt>
 constexpr bool check_divisibility_and_divide_by_pow10(UInt &n) noexcept {
     // Make sure the computation for max_n does not overflow.
-    static_assert(N + 1 <= log::floor_log10_pow2(int(value_bits<UInt>::value)), "");
+    static_assert(N + 1 <= log::floor_log10_pow2(int(value_bits<UInt>::value)));
     WJR_ASSERT(n <= compute_power<N + 1>(UInt(10)));
 
     using info = divide_by_pow10_info<N, UInt>;
@@ -691,7 +691,7 @@ constexpr bool check_divisibility_and_divide_by_pow10(UInt &n) noexcept {
 template <int N, class UInt>
 constexpr UInt small_division_by_pow10(UInt n) noexcept {
     // Make sure the computation for max_n does not overflow.
-    static_assert(N + 1 <= log::floor_log10_pow2(int(value_bits<UInt>::value)), "");
+    static_assert(N + 1 <= log::floor_log10_pow2(int(value_bits<UInt>::value)));
     WJR_ASSERT(n <= compute_power<N + 1>(UInt(10)));
 
     return UInt((n * divide_by_pow10_info<N, UInt>::magic_number) >>
@@ -702,7 +702,7 @@ constexpr UInt small_division_by_pow10(UInt n) noexcept {
 // Precondition: n <= n_max
 template <int N, class UInt, UInt n_max>
 WJR_INTRINSIC_CONSTEXPR20 UInt divide_by_pow10(UInt n) noexcept {
-    static_assert(N >= 0, "");
+    static_assert(N >= 0);
 
     // Specialize for 32-bit division by 10.
     // Without the bound on n_max (which compilers these days never leverage), the
@@ -1550,7 +1550,7 @@ struct compressed_cache_holder<ieee754_binary32, Dummy> {
     static WJR_CONSTEXPR20 cache_entry_type get_cache(DecimalExponentType k) noexcept {
         // Compute the base index.
         // Supposed to compute (k - min_k) / compression_ratio.
-        static_assert(max_k - min_k <= 89 && compression_ratio == 13, "");
+        static_assert(max_k - min_k <= 89 && compression_ratio == 13);
         static_assert(max_k - min_k <= std::numeric_limits<DecimalExponentType>::max(),
                       "");
         auto const cache_index = DecimalExponentType(
@@ -1624,7 +1624,7 @@ struct compressed_cache_holder<ieee754_binary64, Dummy> {
     static WJR_CONSTEXPR20 cache_entry_type get_cache(DecimalExponentType k) noexcept {
         // Compute the base index.
         // Supposed to compute (k - min_k) / compression_ratio.
-        static_assert(max_k - min_k <= 619 && compression_ratio == 27, "");
+        static_assert(max_k - min_k <= 619 && compression_ratio == 27);
         static_assert(max_k - min_k <= std::numeric_limits<DecimalExponentType>::max(),
                       "");
         auto const cache_index = DecimalExponentType(
@@ -2564,7 +2564,7 @@ struct impl : private FormatTraits::format {
 
     static constexpr int kappa =
         log::floor_log10_pow2(carrier_bits - significand_bits - 2) - 1;
-    static_assert(kappa >= 1, "");
+    static_assert(kappa >= 1);
     static_assert(carrier_bits >= significand_bits + 2 + log::floor_log2_pow10(kappa + 1),
                   "");
 
@@ -2633,8 +2633,8 @@ struct impl : private FormatTraits::format {
                         exponent_int exponent_bits) noexcept {
         using cache_holder_type =
             typename CachePolicy::template cache_holder_type<format>;
-        static_assert(
-            min_k >= cache_holder_type::min_k && max_k <= cache_holder_type::max_k, "");
+        static_assert(min_k >= cache_holder_type::min_k &&
+                      max_k <= cache_holder_type::max_k);
 
         using remainder_type_ = remainder_type<PreferredIntegerTypesPolicy>;
         using decimal_exponent_type_ = decimal_exponent_type<PreferredIntegerTypesPolicy>;
@@ -2931,8 +2931,8 @@ struct impl : private FormatTraits::format {
                                      exponent_int exponent_bits) noexcept {
         using cache_holder_type =
             typename CachePolicy::template cache_holder_type<format>;
-        static_assert(
-            min_k >= cache_holder_type::min_k && max_k <= cache_holder_type::max_k, "");
+        static_assert(min_k >= cache_holder_type::min_k &&
+                      max_k <= cache_holder_type::max_k);
 
         using remainder_type_ = remainder_type<PreferredIntegerTypesPolicy>;
         using decimal_exponent_type_ = decimal_exponent_type<PreferredIntegerTypesPolicy>;
@@ -3072,8 +3072,8 @@ struct impl : private FormatTraits::format {
                                       exponent_int exponent_bits) noexcept {
         using cache_holder_type =
             typename CachePolicy::template cache_holder_type<format>;
-        static_assert(
-            min_k >= cache_holder_type::min_k && max_k <= cache_holder_type::max_k, "");
+        static_assert(min_k >= cache_holder_type::min_k &&
+                      max_k <= cache_holder_type::max_k);
 
         using remainder_type_ = remainder_type<PreferredIntegerTypesPolicy>;
         using decimal_exponent_type_ = decimal_exponent_type<PreferredIntegerTypesPolicy>;

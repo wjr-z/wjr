@@ -191,7 +191,7 @@ constant_length_strncasecmp(const char *a, const char *b,
                constant_length_strncasecmp(a + 4, b + 4,
                                            integral_constant<unsigned int, RestLength>());
     } else {
-        static_assert(Length == 7, "");
+        static_assert(Length == 7);
         return constant_length_strncasecmp(a, b, 4_u) &
                constant_length_strncasecmp(a + 3, b + 3, 4_u);
     }

@@ -331,7 +331,7 @@ public:
 
     template <size_t Count>
     constexpr span<element_type, Count> first() const noexcept {
-        static_assert(Count <= Extent, "");
+        static_assert(Count <= Extent);
 
         return {begin(), Count};
     }
@@ -344,7 +344,7 @@ public:
 
     template <size_t Count>
     constexpr span<element_type, Count> last() const noexcept {
-        static_assert(Count <= Extent, "");
+        static_assert(Count <= Extent);
 
         return {end() - Count, Count};
     }
@@ -361,8 +361,8 @@ public:
                                                             : dynamic_extent>
     subspan() const noexcept {
         if constexpr (Extent != dynamic_extent) {
-            static_assert(Offset <= Extent, "");
-            static_assert(Count == dynamic_extent || Count <= Extent - Offset, "");
+            static_assert(Offset <= Extent);
+            static_assert(Count == dynamic_extent || Count <= Extent - Offset);
         } else {
             WJR_ASSERT_L2(Offset <= size());
             if constexpr (Count != dynamic_extent) {

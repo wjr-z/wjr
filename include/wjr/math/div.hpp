@@ -474,7 +474,7 @@ WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, 
                                             integral_constant<uint64_t, c>,
                                             uint64_t cf) noexcept {
     // cost : divexact_dbm1c * 2 + shift * 1 <= divexact_1
-    static_assert(c != 0, "");
+    static_assert(c != 0);
     constexpr auto ss = __divexact_init<c>();
 
     if constexpr (ss.mode == 0) {
@@ -488,7 +488,7 @@ WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, 
         constexpr auto value = divider_t::reciprocal(divisor);
         constexpr auto divider = divider_t(divisor, value, shift);
 
-        static_assert(!divider.is_zero_or_single_bit(), "");
+        static_assert(!divider.is_zero_or_single_bit());
 
         if constexpr (shift == 0) {
             fallback_divexact_1_noshift(dst, src, n, divider);

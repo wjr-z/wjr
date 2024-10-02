@@ -12,7 +12,7 @@ struct list_node {
     list_node *next;
 };
 
-static_assert(std::is_standard_layout_v<list_node>, "");
+static_assert(std::is_standard_layout_v<list_node>);
 
 constexpr void init(list_node *node) noexcept {
     node->prev = node;

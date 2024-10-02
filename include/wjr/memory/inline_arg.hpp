@@ -54,7 +54,7 @@ private:
 template <typename T>
 class inline_arg<T, false> {
 public:
-    static_assert(!std::is_const_v<T>, "");
+    static_assert(!std::is_const_v<T>);
 
     using value_type = T;
     using reference = std::add_const_t<T> &;

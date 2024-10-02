@@ -43,7 +43,7 @@ public:
 
     using size_type = uint32_t;
 
-    static_assert(has_compare_is_transparent_v<std::less<>>, "");
+    static_assert(has_compare_is_transparent_v<std::less<>>);
 
     template <typename Key>
     struct is_other_key
@@ -722,7 +722,7 @@ public:
 
     template <typename Container>
     void dump_impl(Container &cont, unsigned indents = -1) const noexcept {
-        static_assert(std::is_same_v<typename Container::value_type, char>, "");
+        static_assert(std::is_same_v<typename Container::value_type, char>);
 
         if (indents == -1u) {
             format(minify_formatter(std::back_inserter(cont)), *this);

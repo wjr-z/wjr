@@ -11,7 +11,7 @@ struct forward_list_node {
     forward_list_node *next;
 };
 
-static_assert(std::is_standard_layout_v<forward_list_node>, "");
+static_assert(std::is_standard_layout_v<forward_list_node>);
 
 constexpr void init(forward_list_node *node) noexcept { node->next = nullptr; }
 

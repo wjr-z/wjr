@@ -16,8 +16,8 @@ class simd<T, simd_abi::fixed_size<N>> {
     static constexpr size_t BitWidth = sizeof(T) * 8 * N;
     using int_type = uint_t<BitWidth>;
 
-    static_assert(std::is_unsigned_v<T>, "");
-    static_assert(N >= 2, "");
+    static_assert(std::is_unsigned_v<T>);
+    static_assert(N >= 2);
 
 public:
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(simd);

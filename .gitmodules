@@ -1,9 +1,6 @@
 [submodule "third-party/boost/atomic"]
 	path = third-party/boost/atomic
 	url = https://github.com/boostorg/atomic.git
-[submodule "third-party/boost/assert"]
-	path = third-party/boost/assert
-	url = https://github.com/boostorg/assert.git
 [submodule "third-party/boost/config"]
 	path = third-party/boost/config
 	url = https://github.com/boostorg/config.git
@@ -13,21 +10,9 @@
 [submodule "third-party/boost/type_traits"]
 	path = third-party/boost/type_traits
 	url = https://github.com/boostorg/type_traits.git
-[submodule "third-party/boost/align"]
-	path = third-party/boost/align
-	url = https://github.com/boostorg/align.git
 [submodule "third-party/boost/preprocessor"]
 	path = third-party/boost/preprocessor
 	url = https://github.com/boostorg/preprocessor.git
 [submodule "third-party/boost/winapi"]
 	path = third-party/boost/winapi
 	url = https://github.com/boostorg/winapi.git
-[submodule "third-party/boost/core"]
-	path = third-party/boost/core
-	url = https://github.com/boostorg/core.git
-[submodule "third-party/boost/static_assert"]
-	path = third-party/boost/static_assert
-	url = https://github.com/boostorg/static_assert.git
-[submodule "third-party/boost/throw_exception"]
-	path = third-party/boost/throw_exception
-	url = https://github.com/boostorg/throw_exception.git

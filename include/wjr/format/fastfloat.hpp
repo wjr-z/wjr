@@ -1983,7 +1983,7 @@ struct parsed_number_string {
 template <typename Writer, typename Op>
 from_chars_result<> __from_chars_impl(const char *first, const char *last, Writer wr,
                                       Op options) noexcept {
-    static_assert(!std::is_reference_v<Writer>, "");
+    static_assert(!std::is_reference_v<Writer>);
 
     using T = typename Writer::float_type;
     constexpr bool is_support_integral = Writer::support_integral::value;
@@ -2408,7 +2408,7 @@ INTEGER:
             return answer;
         }
 
-        static_assert(fast_int64_maxn >= binary_format<T>::max_mantissa_fast_path(), "");
+        static_assert(fast_int64_maxn >= binary_format<T>::max_mantissa_fast_path());
     }
 
     auto &float_v = wr.get_float();

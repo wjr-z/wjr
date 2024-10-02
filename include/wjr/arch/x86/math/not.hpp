@@ -182,7 +182,7 @@ WJR_INTRINSIC_INLINE void unaligned_large_builtin_not_n(T *dst, const T *src,
 
 template <typename T>
 WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) noexcept {
-    static_assert(sizeof(T) == 8, "");
+    static_assert(sizeof(T) == 8);
 
     if (WJR_UNLIKELY(n < 4)) {
         if (WJR_UNLIKELY(n == 0)) {

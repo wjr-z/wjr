@@ -7,41 +7,38 @@
 #include <wjr/preprocessor/detail/basic.hpp>
 #include <wjr/preprocessor/logical/basic.hpp>
 
-/**
- * @details
- * 0 : non-defined  \n
- * 1 : builtin  \n
- * 2 : assembly \n
- * 3 : C++ standard
- * 4~15 : reserved  \n
- * 16~63 : user-defined
- */
-
-// Use builtin function in compiler.
-#define WJR_BUILTIN_DEF 1
-// Use user-defined assembly or third-party.
-#define WJR_ASSEMBLY_DEF 2
-// Use C++ standard from newer standard. For example, maybe use bit_cast in C++20, but
-// use others in C++17.
-#define WJR_CXX_STANDARD_DEF 3
-
 #define WJR_HAS_DEF_VAR(var) WJR_PP_MAP_DEF(var)
 #define WJR_HAS_DEF WJR_HAS_DEF_VAR(1)
 
-#define WJR_HAS_FIND(MAP, KEY)                                                           \
-    WJR_HAS_FIND_I(WJR_PP_MAP_FIND(MAP, WJR_PP_CONCAT(NO_, KEY)),                        \
-                   WJR_PP_MAP_FIND(MAP, KEY))
-#define WJR_HAS_FIND_I(NO_VAL, VAL)                                                      \
-    WJR_PP_BOOL_IF(WJR_PP_IS_NULLPTR(NO_VAL), WJR_HAS_FIND_II(VAL), 0)
-#define WJR_HAS_FIND_II(VAL) WJR_PP_BOOL_IF(WJR_PP_IS_NULLPTR(VAL), 0, VAL)
+#define WJR_HAS_FIND(MAP, KEY) WJR_HAS_FIND_I(WJR_PP_MAP_FIND(MAP, KEY))
+#define WJR_HAS_FIND_I(VAL) WJR_PP_BOOL_IF(WJR_PP_IS_NULLPTR(VAL), 0, VAL)
 
 // Currently only has_builtin, has_attribute, has_feature are supported.
 #define WJR_HAS_BUILTIN_FIND(KEY) WJR_HAS_FIND(WJR_HAS_BUILTIN_, KEY)
+
 #define WJR_HAS_ATTRIBUTE_FIND(KEY) WJR_HAS_FIND(WJR_HAS_ATTRIBUTE_, KEY)
 #define WJR_HAS_FEATURE_FIND(KEY) WJR_HAS_FIND(WJR_HAS_FEATURE_, KEY)
 #define WJR_HAS_SIMD_FIND(KEY) WJR_HAS_FIND(WJR_HAS_SIMD_, KEY)
 #define WJR_HAS_DEBUG_FIND(KEY) WJR_HAS_FIND(WJR_HAS_DEBUG_, KEY)
 #define WJR_HAS_REGISTER_FIND(KEY) WJR_HAS_FIND(WJR_HAS_REGISTER_, KEY)
+
+#define WJR_HAS(KEY) WJR_HAS_FIND(WJR_HAS_, KEY)
+
+// Use builtin function in compiler.
+#define WJR_BUILTIN_DEF_VAR 1
+#define WJR_SIMD_DEF_VAR 2
+// Use assembly.
+#define WJR_ASSEMBLY_DEF_VAR 3
+// Use C++ standard from newer standard. For example, maybe use bit_cast in C++20, but
+// use others in C++17.
+#define WJR_CXX_STANDARD_DEF_VAR 4
+#define WJR_GENERIC_DEF_VAR 5
+
+#define WJR_HAS_BUILTIN_DEF WJR_PP_MAP_DEF(WJR_BUILTIN_DEF_VAR)
+#define WJR_HAS_SIMD_DEF WJR_PP_MAP_DEF(WJR_SIMD_DEF_VAR)
+#define WJR_HAS_ASSEMBLY_DEF WJR_PP_MAP_DEF(WJR_ASSEMBLY_DEF_VAR)
+#define WJR_HAS_CXX_STANDARD_DEF WJR_PP_MAP_DEF(WJR_CXX_STANDARD_DEF_VAR)
+#define WJR_HAS_GENERIC_DEF WJR_PP_MAP_DEF(WJR_GENERIC_DEF_VAR)
 
 #if (defined(WJR_COMPILER_GCC) && WJR_HAS_GCC(10, 1, 0)) ||                              \
     (defined(WJR_COMPILER_CLANG) && WJR_HAS_CLANG(10, 0, 0)) ||                          \
@@ -234,10 +231,6 @@
 
 #if defined(WJR_X86)
     #define WJR_ARCH x86
-#endif
-
-#if defined(WJR_ARCH)
-    #define WJR_ARCH_INCLUDE_PATH(SUFFIX) <wjr/arch/WJR_ARCH/SUFFIX>
 #endif
 
 #endif // WJR_PREPROCESSOR_CONFIG_HAS_HPP__

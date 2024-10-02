@@ -63,7 +63,7 @@ WJR_CONST inline uint64_t builtin_to_chars_unroll_8_fast_10(uint32_t in) noexcep
 
 template <uint64_t Base>
 WJR_CONST uint64_t builtin_to_chars_unroll_8_fast(uint32_t in) noexcept {
-    static_assert(Base == 10, "");
+    static_assert(Base == 10);
     return builtin_to_chars_unroll_8_fast_10(in);
 }
 
@@ -143,7 +143,7 @@ WJR_CONST uint32_t builtin_from_chars_unroll_8_fast(__m128i in) noexcept {
 template <uint64_t Base>
 WJR_PURE uint32_t builtin_from_chars_unroll_8_fast(const void *ptr,
                                                    char_converter_t) noexcept {
-    static_assert(Base <= 10, "");
+    static_assert(Base <= 10);
     const __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), from_chars_detail::ascii);
     return builtin_from_chars_unroll_8_fast<Base>(in);
 }
@@ -151,7 +151,7 @@ WJR_PURE uint32_t builtin_from_chars_unroll_8_fast(const void *ptr,
 template <uint64_t Base>
 WJR_PURE uint32_t builtin_from_chars_unroll_8_fast(const void *ptr,
                                                    origin_converter_t) noexcept {
-    static_assert(Base <= 10, "");
+    static_assert(Base <= 10);
     const __m128i in = sse::loadu_si64(ptr);
     return builtin_from_chars_unroll_8_fast<Base>(in);
 }
@@ -177,7 +177,7 @@ WJR_CONST uint64_t builtin_from_chars_unroll_16_fast(__m128i in) noexcept {
 template <uint64_t Base>
 WJR_PURE uint64_t builtin_from_chars_unroll_16_fast(const void *ptr,
                                                     char_converter_t) noexcept {
-    static_assert(Base <= 10, "");
+    static_assert(Base <= 10);
     const __m128i in = _mm_sub_epi8(sse::loadu(ptr), from_chars_detail::ascii);
     return builtin_from_chars_unroll_16_fast<Base>(in);
 }
@@ -185,7 +185,7 @@ WJR_PURE uint64_t builtin_from_chars_unroll_16_fast(const void *ptr,
 template <uint64_t Base>
 WJR_PURE uint64_t builtin_from_chars_unroll_16_fast(const void *ptr,
                                                     origin_converter_t) noexcept {
-    static_assert(Base <= 10, "");
+    static_assert(Base <= 10);
     const __m128i in = sse::loadu(ptr);
     return builtin_from_chars_unroll_16_fast<Base>(in);
 }
