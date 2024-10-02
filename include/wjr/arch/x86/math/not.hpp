@@ -3,6 +3,7 @@
 
 #include <wjr/arch/x86/simd/simd.hpp>
 #include <wjr/math/detail.hpp>
+#include <wjr/memory/align.hpp>
 
 namespace wjr {
 
@@ -22,7 +23,7 @@ void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
 
     const uintptr_t ptr = reinterpret_cast<uintptr_t>(dst);
     WJR_ASSUME(ptr % sizeof(T) == 0);
-    const size_t offset = __align_up_offset(ptr, 32) / sizeof(T);
+    const size_t offset = align_up_offset(ptr, 32) / sizeof(T);
 
     WJR_ASSUME(offset < 4);
 

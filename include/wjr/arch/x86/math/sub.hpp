@@ -14,7 +14,6 @@
         #define WJR_HAS_BUILTIN___ASM_SUBC_CC_128 WJR_HAS_DEF
     #endif
 #else
-
     #if defined(_MSC_VER)
         #define WJR_HAS_BUILTIN_ASM_SUBC WJR_HAS_DEF_VAR(2)
     #endif
@@ -22,7 +21,6 @@
     #if defined(WJR_ENABLE_ASSEMBLY)
         #define WJR_HAS_BUILTIN_ASM_SUBC_N WJR_HAS_DEF_VAR(3)
     #endif
-
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_SUBC) == 2

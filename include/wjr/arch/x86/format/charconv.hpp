@@ -18,7 +18,7 @@ namespace wjr {
 
 namespace to_chars_detail {
 namespace {
-    
+
 inline const __m128i mul10p4 = simd_cast<uint32_t, __m128i_t>(3518437209);
 inline const __m128i mul10p4x = simd_cast<uint32_t, __m128i_t>(10000);
 inline const __m128i mul10p2 = sse::set1_epi16(5243);

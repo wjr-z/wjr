@@ -15,13 +15,24 @@ static_assert(std::is_standard_layout_v<forward_list_node>, "");
 
 constexpr void init(forward_list_node *node) noexcept { node->next = nullptr; }
 
+constexpr void insert_after(forward_list_node *prev, forward_list_node *head,
+                            forward_list_node *tail) noexcept {
+    tail->next = prev->next;
+    prev->next = head;
+}
+
 constexpr void insert_after(forward_list_node *prev, forward_list_node *node) noexcept {
     node->next = prev->next;
     prev->next = node;
 }
 
-constexpr void push_front(forward_list_node *head, forward_list_node *node) noexcept {
-    insert_after(head, node);
+constexpr void push_front(forward_list_node *prev, forward_list_node *head,
+                          forward_list_node *tail) noexcept {
+    insert_after(prev, head, tail);
+}
+
+constexpr void push_front(forward_list_node *prev, forward_list_node *node) noexcept {
+    insert_after(prev, node);
 }
 
 constexpr void push_back(forward_list_node *tail, forward_list_node *node) noexcept {

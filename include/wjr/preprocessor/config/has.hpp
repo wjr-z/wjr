@@ -11,12 +11,20 @@
  * @details
  * 0 : non-defined  \n
  * 1 : builtin  \n
- * 2 : intrinsic    \n
- * 3 : assembly \n
+ * 2 : assembly \n
+ * 3 : C++ standard
  * 4~15 : reserved  \n
  * 16~63 : user-defined
- *
  */
+
+// Use builtin function in compiler.
+#define WJR_BUILTIN_DEF 1
+// Use user-defined assembly or third-party.
+#define WJR_ASSEMBLY_DEF 2
+// Use C++ standard from newer standard. For example, maybe use bit_cast in C++20, but
+// use others in C++17.
+#define WJR_CXX_STANDARD_DEF 3
+
 #define WJR_HAS_DEF_VAR(var) WJR_PP_MAP_DEF(var)
 #define WJR_HAS_DEF WJR_HAS_DEF_VAR(1)
 

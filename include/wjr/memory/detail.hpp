@@ -173,14 +173,13 @@ WJR_REGISTER_HAS_TYPE(
     std::declval<Allocator>().allocate_at_least(std::declval<SizeType>()), Allocator,
     SizeType);
 
-template <typename Allocator, typename SizeType,
-          typename Pointer = typename std::allocator_traits<Allocator>::pointer>
+template <typename Allocator, typename SizeType>
 WJR_NODISCARD auto allocate_at_least(Allocator &alloc, SizeType count) {
     if constexpr (has_allocate_at_least_v<Allocator, SizeType>) {
         return alloc.allocate_at_least(count);
     } else {
-        const auto ptr = std::allocator_traits<Allocator>::allocate(alloc, count);
-        return allocation_result<decltype(ptr), SizeType>{ptr, count};
+        auto *const ptr = std::allocator_traits<Allocator>::allocate(alloc, count);
+        return allocation_result<remove_cvref_t<decltype(ptr)>, SizeType>{ptr, count};
     }
 }
 

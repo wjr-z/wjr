@@ -1,27 +1,26 @@
 #ifndef WJR_CONCURRENCY_LKF_FORWARD_LIST_HPP__
 #define WJR_CONCURRENCY_LKF_FORWARD_LIST_HPP__
 
-#include <atomic>
-
+#include <wjr/concurrency/atomic.hpp>
 #include <wjr/container/forward_list.hpp>
 
 namespace wjr::intrusive {
 
 struct lkf_forward_list_node {
-    std::atomic<forward_list_node *> next;
+    atomic<forward_list_node *> next;
 };
 
 inline void init(lkf_forward_list_node *head) noexcept {
-    head->next.store(nullptr, std::memory_order_release);
+    head->next.store(nullptr, memory_order_release);
 }
 
 WJR_INTRINSIC_INLINE void push_front(lkf_forward_list_node *head, forward_list_node *node,
                                      forward_list_node *tail) noexcept {
-    auto *old_node = head->next.load(std::memory_order_relaxed);
+    auto *old_node = head->next.load(memory_order_relaxed);
     do {
         tail->next = old_node;
-    } while (!head->next.compare_exchange_weak(old_node, node, std::memory_order_acq_rel,
-                                               std::memory_order_relaxed));
+    } while (!head->next.compare_exchange_weak(old_node, node, memory_order_acq_rel,
+                                               memory_order_relaxed));
 }
 
 WJR_INTRINSIC_INLINE void push_front(lkf_forward_list_node *head,
@@ -30,12 +29,14 @@ WJR_INTRINSIC_INLINE void push_front(lkf_forward_list_node *head,
 }
 
 /**
- * @brief If head node is destroyed during pop_front, then the behavior is
+ * @brief If head node is destroyed during exchange_front, then the behavior is
  * undefined. Make sure the head node won't be destroyed or lock it, or use clear.
  *
  */
-WJR_INTRINSIC_INLINE forward_list_node *pop_front(lkf_forward_list_node *head) noexcept {
-    auto *node = head->next.load(std::memory_order_relaxed);
+template <typename Func>
+WJR_NODISCARD WJR_INTRINSIC_INLINE forward_list_node *
+exchange_front(lkf_forward_list_node *head, Func func) noexcept {
+    auto *node = head->next.load(memory_order_relaxed);
     forward_list_node *next_node;
 
     do {
@@ -43,16 +44,26 @@ WJR_INTRINSIC_INLINE forward_list_node *pop_front(lkf_forward_list_node *head) n
             return nullptr;
         }
 
-        next_node = node->next;
-    } while (!head->next.compare_exchange_weak(node, next_node, std::memory_order_acq_rel,
-                                               std::memory_order_relaxed));
+        next_node = func(node);
+    } while (!head->next.compare_exchange_weak(node, next_node, memory_order_acq_rel,
+                                               memory_order_relaxed));
 
     WJR_ASSERT_ASSUME(node != nullptr);
     return node;
 }
 
-inline forward_list_node *clear(lkf_forward_list_node *head) noexcept {
-    return head->next.exchange(nullptr, std::memory_order_acq_rel);
+/**
+ * @brief If head node is destroyed during pop_front, then the behavior is
+ * undefined. Make sure the head node won't be destroyed or lock it, or use clear.
+ *
+ */
+WJR_NODISCARD WJR_INTRINSIC_INLINE forward_list_node *
+pop_front(lkf_forward_list_node *head) noexcept {
+    return exchange_front(head, [](forward_list_node *node) { return node->next; });
+}
+
+WJR_NODISCARD inline forward_list_node *clear(lkf_forward_list_node *head) noexcept {
+    return head->next.exchange(nullptr, memory_order_acq_rel);
 }
 
 } // namespace wjr::intrusive

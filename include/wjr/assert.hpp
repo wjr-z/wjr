@@ -57,6 +57,7 @@ WJR_NORETURN extern void __assert_failed(const char *expr, const char *file,
 template <typename... Args>
 void __assert_handler(const char *expr, const char *file, const char *func, int line,
                       Args &&...args) noexcept {
+    std::cerr << "Message:";
     (void)(std::cerr << ... << std::forward<Args>(args));
     std::cerr << '\n';
     __assert_failed(expr, file, func, line);
@@ -79,9 +80,7 @@ inline void __assert_handler(const char *expr, const char *file, const char *fun
     } while (false)
 
 // do nothing
-#define WJR_ASSERT_UNCHECK_I(expr, ...)                                                  \
-    do {                                                                                 \
-    } while (false)
+#define WJR_ASSERT_UNCHECK_I(...) ((void)0)
 
 // level = [0, 2]
 // The higher the level, the less likely it is to be detected
