@@ -127,6 +127,8 @@ WJR_PURE WJR_INTRINSIC_INLINE bool is_made_of_eight_digits_fast(const char *src)
 WJR_PURE WJR_INTRINSIC_INLINE uint32_t
 parse_eight_digits_unrolled(const char *src) noexcept;
 
+WJR_PURE WJR_INTRINSIC_INLINE const char *skip_whitespace(const char *first, const char * last) noexcept;
+
 } // namespace wjr
 
 #endif // WJR_FORMAT_CHARCONV_IMPL_HPP__

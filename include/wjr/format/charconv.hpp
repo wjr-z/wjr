@@ -491,10 +491,6 @@ public:
 template <uint64_t Base>
 inline constexpr __from_chars_unroll_8_fn<Base> __from_chars_unroll_8{};
 
-WJR_INTRINSIC_INLINE uint32_t parse_eight_digits_unrolled(const char *src) noexcept {
-    return __from_chars_unroll_8_fast_fn_impl_base<10>::__fast_conv(src, char_converter);
-}
-
 template <uint64_t Base>
 class __from_chars_unroll_16_fn : public __from_chars_unroll_16_fast_fn_impl<Base> {
     using Mybase = __from_chars_unroll_16_fast_fn_impl<Base>;
@@ -2282,8 +2278,18 @@ WJR_PURE WJR_INTRINSIC_INLINE bool check_eight_digits(const char *ptr, IBase bas
     return ((memory & mask) & (memory + added)) == hi_expe64;
 }
 
-WJR_INTRINSIC_INLINE bool is_made_of_eight_digits_fast(const char *src) noexcept {
+inline bool is_made_of_eight_digits_fast(const char *src) noexcept {
     return check_eight_digits(src);
+}
+
+inline uint32_t parse_eight_digits_unrolled(const char *src) noexcept {
+    return __from_chars_unroll_8_fast_fn_impl_base<10>::__fast_conv(src, char_converter);
+}
+
+inline const char *skip_whitespace(const char *first, const char *last) noexcept {
+    while (first != last && charconv_detail::isspace(*first))
+        ++first;
+    return first;
 }
 
 } // namespace wjr

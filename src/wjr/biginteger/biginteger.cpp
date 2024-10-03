@@ -4,7 +4,8 @@ namespace wjr {
 
 namespace biginteger_detail {
 
-template from_chars_result<const char *> __from_chars_impl<default_biginteger_storage>(
+template from_chars_result<const char *>
+__from_chars_impl<true, default_biginteger_storage>(
     const char *first, const char *last,
     basic_biginteger<default_biginteger_storage> *dst, unsigned int base) noexcept;
 

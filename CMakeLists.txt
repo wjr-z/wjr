@@ -133,7 +133,7 @@ else()
    endif()
 endif()
 
-target_compile_features(wjr PUBLIC cxx_std_20)
+target_compile_features(wjr PUBLIC cxx_std_17)
 
 target_compile_options(wjr
    PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${WJR_CXX_FLAGS}$<SEMICOLON>>
@@ -149,14 +149,6 @@ target_compile_definitions(wjr
    PUBLIC $<$<COMPILE_LANGUAGE:CXX>: ${WJR_COMPILE_DEFINITIONS}$<SEMICOLON>>
 )
 
-if(WJR_DISABLE_EXCEPTIONS)
-   target_compile_definitions(wjr
-      PUBLIC $<$<COMPILE_LANGUAGE:CXX>: -DWJR_DISABLE_EXCEPTIONS >
-   )
-
-   add_compile_definitions(BOOST_NO_EXCEPTIONS)
-endif()
-
 add_subdirectory(third-party/boost/config)
 add_subdirectory(third-party/boost/predef)
 add_subdirectory(third-party/boost/type_traits)
@@ -165,6 +157,14 @@ if (WIN32)
    add_subdirectory(third-party/boost/winapi)
 endif()
 add_subdirectory(third-party/boost/atomic)
+
+if(WJR_DISABLE_EXCEPTIONS)
+   target_compile_definitions(wjr
+      PUBLIC $<$<COMPILE_LANGUAGE:CXX>: -DWJR_DISABLE_EXCEPTIONS >
+   )
+
+   target_compile_definitions(boost_atomic PUBLIC BOOST_NO_EXCEPTIONS)
+endif()
 
 target_link_libraries(wjr 
    PUBLIC

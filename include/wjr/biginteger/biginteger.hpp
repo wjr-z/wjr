@@ -295,22 +295,15 @@ inline bool __equal_pointer(const biginteger_data *lhs,
 }
 
 /// @private
-template <typename S>
+template <bool Checked, typename S>
 from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
                                                   basic_biginteger<S> *dst,
                                                   unsigned int base) noexcept;
 
 extern template from_chars_result<const char *>
-__from_chars_impl<default_biginteger_storage>(
+__from_chars_impl<true, default_biginteger_storage>(
     const char *first, const char *last,
     basic_biginteger<default_biginteger_storage> *dst, unsigned int base) noexcept;
-
-/// @brief No need to check if it is valid characters.
-template <typename S>
-from_chars_result<const char *>
-__from_chars_characters_unchecked_impl(const char *first, const char *last,
-                                       basic_biginteger<S> *dst,
-                                       unsigned int base) noexcept;
 
 /// @private
 WJR_PURE inline int32_t __compare_impl(const biginteger_data *lhs,
@@ -1460,7 +1453,7 @@ void swap(basic_biginteger<Storage> &lhs, basic_biginteger<Storage> &rhs) noexce
 
 namespace biginteger_detail {
 
-template <typename S>
+template <bool Checked, typename S>
 from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
                                                   basic_biginteger<S> *dst,
                                                   unsigned int base) noexcept {
@@ -1474,14 +1467,10 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
         uint8_t ch;
         ch = *first;
 
-        if (charconv_detail::isspace(ch)) {
-            do {
-                if (++first == last) {
-                    break;
-                }
-
-                ch = *first;
-            } while (charconv_detail::isspace(ch));
+        if constexpr (Checked) {
+            first = skip_whitespace(first, last);
+        } else {
+            WJR_ASSERT(!charconv_detail::isspace(ch));
         }
 
         int sign = 0;
@@ -1494,317 +1483,153 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
             ch = *first;
         }
 
-        if (base == 0) {
-            base = 10;
-            if (ch == '0') {
-                base = 8;
-                if (++first == last) {
-                    break;
-                }
-
-                ch = *first;
-                if (ch == 'x' || ch == 'X') {
-                    base = 16;
+        if constexpr (Checked) {
+            if (base == 0) {
+                base = 10;
+                if (ch == '0') {
+                    base = 8;
                     if (++first == last) {
                         break;
                     }
 
                     ch = *first;
-                } else {
-                    if (ch == 'b' || ch == 'B') {
-                        base = 2;
+                    if (ch == 'x' || ch == 'X') {
+                        base = 16;
                         if (++first == last) {
                             break;
                         }
 
                         ch = *first;
-                    }
-                }
-            }
-        }
+                    } else {
+                        if (ch == 'b' || ch == 'B') {
+                            base = 2;
+                            if (++first == last) {
+                                break;
+                            }
 
-        if (base <= 10) {
-            const auto __try_match = [base](uint8_t &ch) {
-                ch -= '0';
-                return ch < base;
-            };
-
-            if (WJR_UNLIKELY(!__try_match(ch))) {
-                break;
-            }
-
-            if (WJR_UNLIKELY(ch == 0)) {
-                goto LOOP_HEAD_0;
-
-                do {
-                    ch = *first;
-                    if (ch != '0') {
-                        goto LOOP_END_0;
-                    }
-
-                LOOP_HEAD_0:
-                    ++first;
-                } while (first != last);
-
-                dst->set_ssize(0);
-                return {first, std::errc{}};
-            LOOP_END_0:
-
-                if (!__try_match(ch)) {
-                    dst->set_ssize(0);
-                    return {first, std::errc{}};
-                }
-            }
-
-            __first = first;
-
-            if (++first != last) {
-                if (last - first >= 8) {
-                    do {
-                        if (!check_eight_digits(first, base)) {
-                            break;
+                            ch = *first;
                         }
-
-                        first += 8;
-                    } while (last - first >= 8);
-                }
-
-                ch = *first;
-                if (__try_match(ch)) {
-                    do {
-                        ++first;
-                        ch = *first;
-                    } while (__try_match(ch));
+                    }
                 }
             }
         } else {
-            const auto __try_match = [base](uint8_t &ch) {
-                ch = char_converter.from(ch);
-                return ch < base;
-            };
+            WJR_ASSERT(base != 0);
+        }
 
-            if (WJR_UNLIKELY(!__try_match(ch))) {
-                break;
-            }
+#if WJR_DEBUG_LEGVEL < 3
+        if constexpr (Checked) {
+#endif
+            if (base <= 10) {
+                const auto __try_match = [base](uint8_t &ch) {
+                    ch -= '0';
+                    return ch < base;
+                };
 
-            if (WJR_UNLIKELY(ch == 0)) {
-                goto LOOP_HEAD_1;
-
-                do {
-                    ch = *first;
-                    if (ch != '0') {
-                        goto LOOP_END_1;
-                    }
-
-                LOOP_HEAD_1:
-                    ++first;
-                } while (first != last);
-
-                dst->clear();
-                return {first, std::errc{}};
-            LOOP_END_1:
-
-                if (!__try_match(ch)) {
-                    dst->clear();
-                    return {first, std::errc{}};
-                }
-            }
-
-            __first = first;
-
-            do {
-                ++first;
-                if (first == last) {
+                if (WJR_UNLIKELY(!__try_match(ch))) {
                     break;
                 }
 
-                ch = *first;
-            } while (__try_match(ch));
+                if (WJR_UNLIKELY(ch == 0)) {
+                    goto LOOP_HEAD_0;
+
+                    do {
+                        ch = *first;
+                        if (ch != '0') {
+                            goto LOOP_END_0;
+                        }
+
+                    LOOP_HEAD_0:
+                        ++first;
+                    } while (first != last);
+
+                    dst->set_ssize(0);
+                    return {first, std::errc{}};
+                LOOP_END_0:
+
+                    if (!__try_match(ch)) {
+                        dst->set_ssize(0);
+                        return {first, std::errc{}};
+                    }
+                }
+
+                __first = first;
+
+                if (++first != last) {
+                    if (last - first >= 8) {
+                        do {
+                            if (!check_eight_digits(first, base)) {
+                                break;
+                            }
+
+                            first += 8;
+                        } while (last - first >= 8);
+                    }
+
+                    ch = *first;
+                    if (__try_match(ch)) {
+                        do {
+                            ++first;
+                            ch = *first;
+                        } while (__try_match(ch));
+                    }
+                }
+            } else {
+                const auto __try_match = [base](uint8_t &ch) {
+                    ch = char_converter.from(ch);
+                    return ch < base;
+                };
+
+                if (WJR_UNLIKELY(!__try_match(ch))) {
+                    break;
+                }
+
+                if (WJR_UNLIKELY(ch == 0)) {
+                    goto LOOP_HEAD_1;
+
+                    do {
+                        ch = *first;
+                        if (ch != '0') {
+                            goto LOOP_END_1;
+                        }
+
+                    LOOP_HEAD_1:
+                        ++first;
+                    } while (first != last);
+
+                    dst->clear();
+                    return {first, std::errc{}};
+                LOOP_END_1:
+
+                    if (!__try_match(ch)) {
+                        dst->clear();
+                        return {first, std::errc{}};
+                    }
+                }
+
+                __first = first;
+
+                do {
+                    ++first;
+                    if (first == last) {
+                        break;
+                    }
+
+                    ch = *first;
+                } while (__try_match(ch));
+            }
+#if WJR_DEBUG_LEGVEL < 3
+        } else {
+            __first = first;
+            first = last;
         }
+#else
+        if constexpr (Checked) {
+            WJR_ASSERT(first == last);
+        }
+#endif
 
         const uint32_t str_size = static_cast<uint32_t>(first - __first);
         uint32_t capacity;
-
-        switch (base) {
-        case 2: {
-            capacity = __ceil_div(str_size, 64);
-            break;
-        }
-        case 8: {
-            capacity = __ceil_div(str_size * 3, 64);
-            break;
-        }
-        case 16: {
-            capacity = __ceil_div(str_size, 16);
-            break;
-        }
-        case 4:
-        case 32: {
-            const int bits = base == 4 ? 2 : 5;
-            capacity = __ceil_div(str_size * bits, 64);
-            break;
-        }
-        case 10: {
-            // capacity = (str_size * log2(10) + 63) / 64;
-            capacity = __ceil_div(str_size * 10 / 3, 64);
-            break;
-        }
-        default: {
-            WJR_UNREACHABLE();
-            break;
-        }
-        }
-
-        dst->clear_if_reserved(capacity);
-        auto *const ptr = dst->data();
-        int32_t dssize = biginteger_from_chars(__first, first, ptr, base) - ptr;
-        dssize = __fasts_conditional_negate<int32_t>(sign, dssize);
-        dst->set_ssize(dssize);
-        return {first, std::errc{}};
-    } while (false);
-
-    dst->clear();
-    return {__first, std::errc::invalid_argument};
-}
-
-template <typename S>
-from_chars_result<const char *>
-__from_chars_characters_unchecked_impl(const char *first, const char *last,
-                                       basic_biginteger<S> *dst,
-                                       unsigned int base) noexcept {
-    const auto *__first = first;
-
-    do {
-        if (WJR_UNLIKELY(first == last)) {
-            break;
-        }
-
-        uint8_t ch;
-        ch = *first;
-
-        WJR_ASSERT(!charconv_detail::isspace(ch));
-
-        int sign = 0;
-        if (ch == '-') {
-            sign = 1;
-            if (++first == last) {
-                break;
-            }
-
-            ch = *first;
-        }
-
-        WJR_ASSERT(base != 0);
-
-#if WJR_DEBUG_LEVE >= 3
-
-        if (base <= 10) {
-            const auto __try_match = [base](uint8_t &ch) {
-                ch -= '0';
-                return ch < base;
-            };
-
-            if (WJR_UNLIKELY(!__try_match(ch))) {
-                break;
-            }
-
-            if (WJR_UNLIKELY(ch == 0)) {
-                goto LOOP_HEAD_0;
-
-                do {
-                    ch = *first;
-                    if (ch != '0') {
-                        goto LOOP_END_0;
-                    }
-
-                LOOP_HEAD_0:
-                    ++first;
-                } while (first != last);
-
-                dst->set_ssize(0);
-                return {first, std::errc{}};
-            LOOP_END_0:
-
-                if (!__try_match(ch)) {
-                    dst->set_ssize(0);
-                    return {first, std::errc{}};
-                }
-            }
-
-            __first = first;
-
-            if (++first != last) {
-                if (last - first >= 8) {
-                    do {
-                        if (!check_eight_digits(first, base)) {
-                            break;
-                        }
-
-                        first += 8;
-                    } while (last - first >= 8);
-                }
-
-                ch = *first;
-                if (__try_match(ch)) {
-                    do {
-                        ++first;
-                        ch = *first;
-                    } while (__try_match(ch));
-                }
-            }
-        } else {
-            const auto __try_match = [base](uint8_t &ch) {
-                ch = char_converter.from(ch);
-                return ch < base;
-            };
-
-            if (WJR_UNLIKELY(!__try_match(ch))) {
-                break;
-            }
-
-            if (WJR_UNLIKELY(ch == 0)) {
-                goto LOOP_HEAD_1;
-
-                do {
-                    ch = *first;
-                    if (ch != '0') {
-                        goto LOOP_END_1;
-                    }
-
-                LOOP_HEAD_1:
-                    ++first;
-                } while (first != last);
-
-                dst->clear();
-                return {first, std::errc{}};
-            LOOP_END_1:
-
-                if (!__try_match(ch)) {
-                    dst->clear();
-                    return {first, std::errc{}};
-                }
-            }
-
-            __first = first;
-
-            do {
-                ++first;
-                if (first == last) {
-                    break;
-                }
-
-                ch = *first;
-            } while (__try_match(ch));
-        }
-
-        WJR_ASSERT(first == last);
-#else
-        __first = first;
-        first = last;
-#endif
-
-        const size_t str_size = first - __first;
-        size_t capacity;
 
         switch (base) {
         case 2: {
@@ -3655,14 +3480,14 @@ template <typename S>
 from_chars_result<const char *> from_chars(const char *first, const char *last,
                                            basic_biginteger<S> &dst,
                                            unsigned int base) noexcept {
-    return biginteger_detail::__from_chars_impl(first, last, &dst, base);
+    return biginteger_detail::__from_chars_impl<true>(first, last, &dst, base);
 }
 
 template <typename S>
 from_chars_result<const char *>
 from_chars_characters_unchecked(const char *first, const char *last,
                                 basic_biginteger<S> &dst, unsigned int base) noexcept {
-    return biginteger_detail::__from_chars_characters_unchecked_impl(first, last, &dst,
+    return biginteger_detail::__from_chars_impl<false>(first, last, &dst,
                                                                      base);
 }
 
