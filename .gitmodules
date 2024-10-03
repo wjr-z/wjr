@@ -1,9 +1,6 @@
 [submodule "third-party/boost/atomic"]
 	path = third-party/boost/atomic
 	url = https://github.com/boostorg/atomic.git
-[submodule "third-party/boost/config"]
-	path = third-party/boost/config
-	url = https://github.com/boostorg/config.git
 [submodule "third-party/boost/predef"]
 	path = third-party/boost/predef
 	url = https://github.com/boostorg/predef.git
