@@ -66,8 +66,8 @@ private:
             ++m_size;
 
             const size_t capacity = Cache << ((3 * m_idx + 2) / 5);
-            memory_pool<char> pool;
-            auto *const buffer = pool.chunk_allocate(capacity);
+            __default_alloc_template__ pool;
+            auto *const buffer = static_cast<char *>(pool.chunk_allocate(capacity));
             const alloc_node node = {buffer, buffer + capacity};
             m_ptr[m_idx] = node;
 
@@ -86,7 +86,7 @@ private:
 
     WJR_NOINLINE WJR_CONSTEXPR20 void __small_redeallocate() noexcept {
         const uint16_t new_size = m_idx + bufsize - 1;
-        memory_pool<char> pool;
+        __default_alloc_template__ pool;
 
         for (uint16_t i = new_size; i < m_size; ++i) {
             pool.chunk_deallocate(m_ptr[i].ptr, m_ptr[i].end - m_ptr[i].ptr);

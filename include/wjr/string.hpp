@@ -139,13 +139,13 @@ struct __uninitialized_append_fn_impl : append_fn_impl_base<Container> {
 #endif
 
 namespace string_detail {
-using __default_std_string = std::string;
+// using __default_std_string = std::string;
 }
 
 using default_string = std::basic_string<char, std::char_traits<char>, memory_pool<char>>;
 
-WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(__default_std_string,
-                                         string_detail::__default_std_string);
+// WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(__default_std_string,
+//                                          string_detail::__default_std_string);
 WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(default_string, default_string);
 
 } // namespace wjr

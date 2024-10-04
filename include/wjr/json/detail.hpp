@@ -102,6 +102,8 @@ struct basic_value {
     basic_value(array_t, void *ptr) noexcept : m_ptr(ptr), m_type(value_t::array) {}
 
     void set(null_t) noexcept { m_type = value_t::null; }
+    void set(null_t, std::nullptr_t) noexcept { m_type = value_t::null; }
+
     void set(boolean_t, bool f) noexcept {
         m_boolean = f;
         m_type = value_t::boolean;

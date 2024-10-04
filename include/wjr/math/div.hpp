@@ -443,7 +443,7 @@ struct __divexact_get_struct {
 template <uint64_t c>
 constexpr __divexact_get_struct __divexact_init() noexcept {
     if constexpr (is_zero_or_single_bit(c)) {
-        return {0, constexpr_ctz(c), 0, 0};
+        return {0, constant::ctz(c), 0, 0};
     } else {
         constexpr auto p0 = __divexact_get<c>();
         if constexpr (p0 == 1) {
@@ -451,7 +451,7 @@ constexpr __divexact_get_struct __divexact_init() noexcept {
         } else {
             constexpr auto c0 = c / p0;
             if constexpr (is_zero_or_single_bit(c0)) {
-                return {2, constexpr_ctz(c), p0, 0};
+                return {2, constant::ctz(c), p0, 0};
             } else {
                 constexpr auto p1 = __divexact_get<c0>();
                 if constexpr (p1 == 1) {
@@ -459,7 +459,7 @@ constexpr __divexact_get_struct __divexact_init() noexcept {
                 } else {
                     constexpr auto c1 = c0 / p1;
                     if constexpr (is_zero_or_single_bit(c1)) {
-                        return {3, constexpr_ctz(c1), p0, p1};
+                        return {3, constant::ctz(c1), p0, p1};
                     } else {
                         return {1, 0, 0, 0};
                     }
@@ -482,7 +482,7 @@ WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, 
     }
 
     if constexpr (ss.mode == 1) {
-        constexpr auto shift = constexpr_ctz(c);
+        constexpr auto shift = constant::ctz(c);
         using divider_t = divexact1_divider<uint64_t>;
         constexpr auto divisor = c >> shift;
         constexpr auto value = divider_t::reciprocal(divisor);

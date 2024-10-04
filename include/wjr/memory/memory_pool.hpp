@@ -112,72 +112,11 @@ public:
     }
 };
 
+/// @todo My own allocator.
 template <typename Ty>
-class memory_pool : private std::allocator<Ty> {
-private:
-    using allocator_type = __default_alloc_template__;
-    using Mybase = std::allocator<Ty>;
+using memory_pool = std::allocator<Ty>;
 
-public:
-    using value_type = Ty;
-    using size_type = size_t;
-    using difference_type = ptrdiff_t;
-    using propagate_on_container_move_assignment = std::true_type;
-    using is_always_equal = std::true_type;
-    using is_trivially_allocator = std::true_type;
-
-    template <typename Other>
-    struct rebind {
-        using other = memory_pool<Other>;
-    };
-
-    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(memory_pool);
-
-    template <typename Other>
-    constexpr memory_pool(const memory_pool<Other> &) noexcept {}
-
-    WJR_NODISCARD WJR_CONSTEXPR20 auto allocate_at_least(size_type n) noexcept {
-        return wjr::allocate_at_least(static_cast<Mybase &>(*this), n);
-    }
-
-    WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *allocate(size_type n) noexcept {
-        return Mybase::allocate(n);
-    }
-
-    WJR_CONSTEXPR20 void deallocate(Ty *ptr, size_type n) noexcept {
-        Mybase::deallocate(ptr, n);
-    }
-
-    /**
-     * @details Allocate memory, don't need to deallocate it until the thread exits.    \n
-     * Automatically deallocate memory when the thread exits.                          \n
-     * Used in thread_local memory pool that only needs to allocate memory once and    \n
-     * deallocate it when the thread exits.                                            \n
-     *
-     */
-    WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *
-    chunk_allocate(size_type n) const noexcept {
-        return static_cast<Ty *>(allocator_type::chunk_allocate(n * sizeof(Ty)));
-    }
-
-    WJR_CONSTEXPR20 void chunk_deallocate(Ty *ptr, size_type n) const noexcept {
-        return allocator_type::chunk_deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
-    }
-
-    constexpr size_t max_size() const noexcept {
-        return static_cast<size_t>(-1) / sizeof(Ty);
-    }
-};
-
-template <typename T, typename U>
-constexpr bool operator==(const memory_pool<T> &, const memory_pool<U> &) noexcept {
-    return true;
-}
-
-template <typename T, typename U>
-constexpr bool operator!=(const memory_pool<T> &, const memory_pool<U> &) noexcept {
-    return false;
-}
+static_assert(std::is_empty_v<memory_pool<char>>);
 
 } // namespace wjr
 

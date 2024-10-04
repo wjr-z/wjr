@@ -16,8 +16,9 @@
 
 namespace wjr {
 
+namespace constant {
 template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR int constexpr_clz(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int clz(T x) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
     x |= (x >> 1);
@@ -38,6 +39,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR int constexpr_clz(T x) noexcept {
 
     return fallback_popcount(~x);
 }
+} // namespace constant
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_clz(T x) noexcept {

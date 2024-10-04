@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(wjr
-   LANGUAGES CXX
-)
+project(wjr LANGUAGES CXX)
 
 if(NOT(CMAKE_SIZEOF_VOID_P EQUAL 8))
    message(FATAL_ERROR "Not support non 64-bit currently, CMake will exit.")
@@ -17,6 +15,7 @@ endif()
 
 option(WJR_ENABLE_ASSEMBLY "Link with assembly by using NASM" OFF)
 option(WJR_DISABLE_EXCEPTIONS "Disable exceptions" ON)
+option(WJR_DISABLE_CXX_20 "Disable C++ 20 even if it's supported." ON)
 
 if (DEFINED WJR_DEBUG_LEVEL AND (NOT DEFINED WJR_DEBUG_LEVEL_DEBUG))
    set(WJR_DEBUG_LEVEL_DEBUG_TMP ${WJR_DEBUG_LEVEL})
@@ -92,7 +91,7 @@ if(WJR_ENABLE_ASSEMBLY)
       list(APPEND WJR_ASSEMBLY_LIBS wjr_asm wjr_add_n wjr_sub_n)
       list(APPEND WJR_COMPILE_DEFINITIONS WJR_ENABLE_ASSEMBLY)
 
-      message("enable ${WJR_ARCH} assembly")
+      message("Enable ${WJR_ARCH} assembly")
    endif()
 endif()
 
@@ -133,7 +132,18 @@ else()
    endif()
 endif()
 
-target_compile_features(wjr PUBLIC cxx_std_17)
+if (NOT WJR_DISABLE_CXX_20 AND "cxx_std_20" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+   message("Enable C++ 20.")
+   set (WJR_USE_CXX_20 ON)
+else()
+   set (WJR_USE_CXX_20 OFF)
+endif()
+
+if (WJR_USE_CXX_20)
+   target_compile_features(wjr PUBLIC cxx_std_20)
+else()
+   target_compile_features(wjr PUBLIC cxx_std_17)
+endif()
 
 target_compile_options(wjr
    PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${WJR_CXX_FLAGS}$<SEMICOLON>>
@@ -149,29 +159,37 @@ target_compile_definitions(wjr
    PUBLIC $<$<COMPILE_LANGUAGE:CXX>: ${WJR_COMPILE_DEFINITIONS}$<SEMICOLON>>
 )
 
-add_subdirectory(third-party/boost/config)
-add_subdirectory(third-party/boost/predef)
-add_subdirectory(third-party/boost/type_traits)
-add_subdirectory(third-party/boost/preprocessor)
-if (WIN32)
-   add_subdirectory(third-party/boost/winapi)
-endif()
-add_subdirectory(third-party/boost/atomic)
-
 if(WJR_DISABLE_EXCEPTIONS)
    target_compile_definitions(wjr
       PUBLIC $<$<COMPILE_LANGUAGE:CXX>: -DWJR_DISABLE_EXCEPTIONS >
    )
+endif()
 
-   target_compile_definitions(boost_atomic PUBLIC BOOST_NO_EXCEPTIONS)
+if (WJR_USE_CXX_20)
+   set(WJR_ATOMIC_LIBS)
+else()
+   add_subdirectory(third-party/boost/config)
+   add_subdirectory(third-party/boost/predef)
+   add_subdirectory(third-party/boost/type_traits)
+   add_subdirectory(third-party/boost/preprocessor)
+   if (WIN32)
+      add_subdirectory(third-party/boost/winapi)
+   endif()
+   add_subdirectory(third-party/boost/atomic)
+
+   if(WJR_DISABLE_EXCEPTIONS)
+      target_compile_definitions(boost_atomic PUBLIC BOOST_NO_EXCEPTIONS)
+   endif()
+   
+   set(WJR_ATOMIC_LIBS Boost::atomic)
 endif()
 
 target_link_libraries(wjr 
    PUBLIC
       ${WJR_LIBS}
       ${WJR_ASSEMBLY_LIBS}
-      Boost::atomic
+      ${WJR_ATOMIC_LIBS}
 )
 
-set(WJR_PCH PUBLIC ${WJR_INCLUDE_DIR}/wjr/biginteger.hpp)
+set(WJR_PCH PUBLIC ${WJR_INCLUDE_DIR}/wjr/assert.hpp ${WJR_INCLUDE_DIR}/wjr/biginteger.hpp)
 target_precompile_headers(wjr PUBLIC ${WJR_PCH})
