@@ -24,9 +24,7 @@ public:
     reader(span<const char> sp) noexcept { read(sp); }
 
     WJR_CONSTEXPR20 const_iterator begin() const noexcept { return m_tokens.begin(); }
-
     WJR_CONSTEXPR20 const_iterator end() const noexcept { return m_tokens.end(); }
-
     WJR_CONSTEXPR20 const_pointer data() const noexcept { return m_str.data(); }
 
     WJR_CONSTEXPR20 size_type size() const noexcept {
@@ -38,7 +36,7 @@ public:
 
         lexer lex(m_str);
         const size_type n = static_cast<size_type>(m_str.size());
-        size_type capacity = n <= 2048 ? n : std::max<size_type>(2048, n / 20);
+        size_type capacity = n <= 2048 ? n : (n <= 16 * 2048 ? 2048 : n / 16);
         size_type buf_size = capacity;
         typename lexer::result_type result;
         m_tokens.clear();

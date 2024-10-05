@@ -96,6 +96,7 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
     #if !defined(WJR_CXX_20)
     }
     #endif
+
     string_set_length_hacker(str, sz);
     WJR_ASSERT_L2(str.size() == sz);
     str[sz] = '\0';
@@ -126,26 +127,35 @@ struct __uninitialized_append_fn_impl : append_fn_impl_base<Container> {
     }
 };
 
-    #define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Name, Container)                    \
-        __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(Name, Container);               \
-        __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container);            \
-        __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_HACKER(Name, Container);              \
-        template <>                                                                      \
-        struct resize_fn_impl<Container> : __uninitialized_resize_fn_impl<Container> {}; \
-        template <>                                                                      \
-        struct append_fn_impl<Container> : __uninitialized_append_fn_impl<Container> {}
+    #if WJR_STRINF_RESIZE_AND_OVERWRITE >= 202110L
+template <typename Char, typename Traits, typename Alloc>
+struct resize_fn_impl<std::basic_string<Char, Traits, Alloc>>
+    : __uninitialized_resize_fn_impl<std::basic_string<Char, Traits, Alloc>> {};
+template <typename Char, typename Traits, typename Alloc>
+struct append_fn_impl<std::basic_string<Char, Traits, Alloc>>
+    : __uninitialized_append_fn_impl<std::basic_string<Char, Traits, Alloc>> {};
+
+        #define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Name, Container)
+    #else
+
+        #define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Name, Container)                \
+            __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(Name, Container);           \
+            __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container);        \
+            __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_HACKER(Name, Container);          \
+            template <>                                                                  \
+            struct resize_fn_impl<Container>                                             \
+                : __uninitialized_resize_fn_impl<Container> {};                          \
+            template <>                                                                  \
+            struct append_fn_impl<Container>                                             \
+                : __uninitialized_append_fn_impl<Container> {}
+
+    #endif
+
 #else
     #define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Name, Container)
 #endif
 
-namespace string_detail {
-// using __default_std_string = std::string;
-}
-
 using default_string = std::basic_string<char, std::char_traits<char>, memory_pool<char>>;
-
-// WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(__default_std_string,
-//                                          string_detail::__default_std_string);
 WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(default_string, default_string);
 
 } // namespace wjr

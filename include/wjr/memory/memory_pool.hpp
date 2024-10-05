@@ -90,7 +90,7 @@ class __default_alloc_template__ {
         }
 
         // p must not be 0
-        WJR_INTRINSIC_INLINE static void chunk_deallocate(void *p, size_t n) noexcept {
+        WJR_INTRINSIC_INLINE static void chunk_deallocate(void *p, size_t) noexcept {
             get_chunk().deallocate(p);
         }
     };

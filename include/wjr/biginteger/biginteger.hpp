@@ -181,7 +181,7 @@ public:
     }
 
     size_type size() const noexcept { return __fasts_abs(m_storage.m_size); }
-    size_type capacity() const noexcept { return m_storage.m_capacity; }
+    WJR_PURE size_type capacity() const noexcept { return m_storage.m_capacity; }
 
     pointer data() noexcept { return m_storage.m_data; }
     const_pointer data() const noexcept { return m_storage.m_data; }

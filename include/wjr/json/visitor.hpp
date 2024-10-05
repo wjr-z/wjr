@@ -10,6 +10,13 @@ namespace wjr::json {
 
 namespace detail {
 
+WJR_PURE WJR_INTRINSIC_INLINE bool
+is_invalid_token(const char *ptr, uint32_t start, uint32_t end, uint32_t size) noexcept {
+    const auto length = end - start;
+    return length < size ||
+           (length > size && !charconv_detail::isspace(ptr[start + size]));
+}
+
 WJR_PURE WJR_INTRINSIC_INLINE result<void> check_null(const char *first) noexcept {
     if (WJR_UNLIKELY(std::memcmp(first, "null", 4) != 0)) {
         return unexpected(error_code::N_ATOM_ERROR);
@@ -66,7 +73,7 @@ WJR_NOINLINE result<void> parse(Parser &&par, const reader &rd) noexcept {
     uint32_t next_token;
 
     const char *const ptr = rd.data();
-    WJR_EXPECTED_TRY(read(token, error_code::EMPTY));
+    WJR_EXPECTED_TRY(read(token, error_code::TAPE_ERROR));
 
     if (uint8_t ch = ptr[token]; WJR_LIKELY(ch == '{')) {
         WJR_EXPECTED_TRY(par.visit_root_start_object(token));
@@ -86,7 +93,7 @@ WJR_NOINLINE result<void> parse(Parser &&par, const reader &rd) noexcept {
         WJR_EXPECTED_TRY(par.visit_root_start_array(token));
         WJR_EXPECTED_TRY(read(token));
 
-        if (ptr[token] == ']') {
+        if (WJR_UNLIKELY(ptr[token] == ']')) {
             WJR_EXPECTED_TRY(par.visit_end_array_to_root(token));
             return {};
         }
@@ -119,7 +126,7 @@ WJR_NOINLINE result<void> parse(Parser &&par, const reader &rd) noexcept {
 
         switch (ch) {
         case 'n': {
-            if (WJR_UNLIKELY(size - token < 4)) {
+            if (WJR_UNLIKELY(detail::is_invalid_token(ptr, token, size, 4))) {
                 return unexpected(error_code::TAPE_ERROR);
             }
 
@@ -127,7 +134,7 @@ WJR_NOINLINE result<void> parse(Parser &&par, const reader &rd) noexcept {
             break;
         }
         case 't': {
-            if (WJR_UNLIKELY(size - token < 4)) {
+            if (WJR_UNLIKELY(detail::is_invalid_token(ptr, token, size, 4))) {
                 return unexpected(error_code::TAPE_ERROR);
             }
 
@@ -135,7 +142,7 @@ WJR_NOINLINE result<void> parse(Parser &&par, const reader &rd) noexcept {
             break;
         }
         case 'f': {
-            if (WJR_UNLIKELY(size - token < 5)) {
+            if (WJR_UNLIKELY(detail::is_invalid_token(ptr, token, size, 5))) {
                 return unexpected(error_code::TAPE_ERROR);
             }
 
@@ -209,7 +216,7 @@ OBJECT_ELEMENT : {
     case 'n': {
         WJR_EXPECTED_TRY(read(next_token));
 
-        if (WJR_UNLIKELY(next_token - token < 4)) {
+        if (WJR_UNLIKELY(detail::is_invalid_token(ptr, token, next_token, 4))) {
             return unexpected(error_code::TAPE_ERROR);
         }
 
@@ -219,7 +226,7 @@ OBJECT_ELEMENT : {
     case 't': {
         WJR_EXPECTED_TRY(read(next_token));
 
-        if (WJR_UNLIKELY(next_token - token < 4)) {
+        if (WJR_UNLIKELY(detail::is_invalid_token(ptr, token, next_token, 4))) {
             return unexpected(error_code::TAPE_ERROR);
         }
 
@@ -229,7 +236,7 @@ OBJECT_ELEMENT : {
     case 'f': {
         WJR_EXPECTED_TRY(read(next_token));
 
-        if (WJR_UNLIKELY(next_token - token < 5)) {
+        if (WJR_UNLIKELY(detail::is_invalid_token(ptr, token, next_token, 5))) {
             return unexpected(error_code::TAPE_ERROR);
         }
 
@@ -335,7 +342,7 @@ ARRAY_ELEMENT:
     case 'n': {
         WJR_EXPECTED_TRY(read(next_token));
 
-        if (WJR_UNLIKELY(next_token - token < 4)) {
+        if (WJR_UNLIKELY(detail::is_invalid_token(ptr, token, next_token, 4))) {
             return unexpected(error_code::TAPE_ERROR);
         }
 
@@ -345,7 +352,7 @@ ARRAY_ELEMENT:
     case 't': {
         WJR_EXPECTED_TRY(read(next_token));
 
-        if (WJR_UNLIKELY(next_token - token < 4)) {
+        if (WJR_UNLIKELY(detail::is_invalid_token(ptr, token, next_token, 4))) {
             return unexpected(error_code::TAPE_ERROR);
         }
 
@@ -355,7 +362,7 @@ ARRAY_ELEMENT:
     case 'f': {
         WJR_EXPECTED_TRY(read(next_token));
 
-        if (WJR_UNLIKELY(next_token - token < 5)) {
+        if (WJR_UNLIKELY(detail::is_invalid_token(ptr, token, next_token, 5))) {
             return unexpected(error_code::TAPE_ERROR);
         }
 

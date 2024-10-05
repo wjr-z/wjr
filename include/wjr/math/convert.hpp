@@ -362,10 +362,6 @@ uint8_t *basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n,
     WJR_UNREACHABLE();
 }
 
-extern template uint8_t *
-basecase_to_chars_10<char_converter_t>(uint8_t *, uint64_t *, size_t,
-                                       char_converter_t) noexcept;
-
 template <typename Converter>
 uint8_t *basecase_to_chars(uint8_t *first, size_t len, uint64_t *up, size_t n,
                            unsigned int base, Converter conv) noexcept {
@@ -446,6 +442,11 @@ uint8_t *__biginteger_basecase_to_chars(uint8_t *first, const uint64_t *up, size
     stk += n * 8 / 5 + 128;
     return dc_to_chars(first, 0, __up, n, first_pre, stk, conv);
 }
+
+extern template uint8_t *
+__biginteger_basecase_to_chars<char_converter_t>(uint8_t *first, const uint64_t *up,
+                                                 size_t n, unsigned int base,
+                                                 char_converter_t conv) noexcept;
 
 template <typename Converter>
 uint8_t *__fast_biginteger_large_to_chars_impl(uint8_t *first, const uint64_t *up,
@@ -871,6 +872,26 @@ size_t dc_from_chars(const uint8_t *first, size_t n, uint64_t *up,
 }
 
 template <typename Converter>
+uint64_t *__basecase_basecase_from_chars(const uint8_t *first, size_t n, uint64_t *up,
+                                         unsigned int base, Converter conv) noexcept {
+    if (WJR_LIKELY(n < dc_bignum_from_chars_precompute_threshold)) {
+        return up + basecase_from_chars(first, n, up, base, conv);
+    }
+
+    const auto per_digits = precompute_chars_convert_16n_ptr[base]->digits_in_one_base;
+
+    precompute_chars_convert_t pre[64 - 3];
+
+    unique_stack_allocator stkal(math_detail::stack_alloc);
+    const size_t un = n / per_digits + 1;
+    auto *stk =
+        static_cast<uint64_t *>(stkal.allocate((un * 16 / 5 + 192) * sizeof(uint64_t)));
+    auto *const first_pre = precompute_chars_convert(pre, un, base, stk);
+    stk += un * 8 / 5 + 128;
+    return up + dc_from_chars(first, n, up, first_pre, stk, conv);
+}
+
+template <typename Converter>
 uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last,
                                        uint64_t *up, unsigned int base,
                                        Converter conv) noexcept {
@@ -895,27 +916,13 @@ uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last
         }
     }
 
-    if (WJR_LIKELY(n < dc_bignum_from_chars_precompute_threshold)) {
-        return up + basecase_from_chars(first, n, up, base, conv);
-    }
-
-    const auto per_digits = precompute_chars_convert_16n_ptr[base]->digits_in_one_base;
-
-    precompute_chars_convert_t pre[64 - 3];
-
-    unique_stack_allocator stkal(math_detail::stack_alloc);
-    const size_t un = n / per_digits + 1;
-    auto *stk =
-        static_cast<uint64_t *>(stkal.allocate((un * 16 / 5 + 192) * sizeof(uint64_t)));
-    auto *const first_pre = precompute_chars_convert(pre, un, base, stk);
-    stk += un * 8 / 5 + 128;
-    return up + dc_from_chars(first, n, up, first_pre, stk, conv);
+    return __basecase_basecase_from_chars(first, n, up, base, conv);
 }
 
 extern template uint64_t *
-__biginteger_from_chars_impl<char_converter_t>(const uint8_t *, const uint8_t *,
-                                               uint64_t *, unsigned int,
-                                               char_converter_t) noexcept;
+__basecase_basecase_from_chars<char_converter_t>(const uint8_t *first, size_t n,
+                                                 uint64_t *up, unsigned int base,
+                                                 char_converter_t) noexcept;
 
 /**
  * @brief Convert a string to a biginteger by a given base.

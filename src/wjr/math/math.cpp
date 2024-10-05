@@ -365,12 +365,14 @@ precompute_chars_convert(precompute_chars_convert_t *pre_table, size_t n,
     return pre_table;
 }
 
-template uint8_t *basecase_to_chars_10<char_converter_t>(uint8_t *, uint64_t *, size_t,
-                                                         char_converter_t) noexcept;
+template uint8_t *
+__biginteger_basecase_to_chars<char_converter_t>(uint8_t *first, const uint64_t *up,
+                                                 size_t n, unsigned int base,
+                                                 char_converter_t conv) noexcept;
 
 template uint64_t *
-__biginteger_from_chars_impl<char_converter_t>(const uint8_t *, const uint8_t *,
-                                               uint64_t *, unsigned int,
-                                               char_converter_t) noexcept;
+__basecase_basecase_from_chars<char_converter_t>(const uint8_t *first, size_t n,
+                                                 uint64_t *up, unsigned int base,
+                                                 char_converter_t) noexcept;
 
 } // namespace wjr

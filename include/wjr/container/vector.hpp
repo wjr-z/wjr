@@ -202,7 +202,7 @@ public:
         return m_storage.m_end - m_storage.m_data;
     }
 
-    WJR_CONSTEXPR20 size_type capacity() const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 size_type capacity() const noexcept {
         return m_storage.m_buffer - m_storage.m_data;
     }
 
