@@ -23,7 +23,7 @@ construct_at(T *ptr,
     ::new (static_cast<void *>(ptr)) T(std::forward<Args>(args)...);
 }
 
-template <typename T>
+template <typename T, WJR_REQUIRES(!std::is_constructible_v<T, default_construct_t>)>
 WJR_CONSTEXPR20 void
 construct_at(T *ptr,
              default_construct_t) noexcept(std::is_nothrow_default_constructible_v<T>) {
