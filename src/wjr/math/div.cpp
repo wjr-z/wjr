@@ -304,7 +304,7 @@ uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div
                 q = UINT64_MAX;
                 (void)submul_1(src - m, div - m, m, q);
             } else {
-                q = wjr::div3by2_divider<uint64_t>::divide(d0, d1, dinv, src[-2], n0, n1);
+                q = div3by2_divider<uint64_t>::divide(d0, d1, dinv, src[-2], n0, n1);
 
                 if (m > 2) {
                     cy = submul_1(src - m, div - m, m - 2, q);

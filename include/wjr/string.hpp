@@ -156,6 +156,7 @@ struct append_fn_impl<std::basic_string<Char, Traits, Alloc>>
 #endif
 
 using default_string = std::basic_string<char, std::char_traits<char>, memory_pool<char>>;
+
 WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(default_string, default_string);
 
 } // namespace wjr

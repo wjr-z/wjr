@@ -4,9 +4,23 @@
 #include <fstream>
 #include <iostream>
 
-#include <wjr/json/json.hpp>
+#include <wjr/json/document.hpp>
 
 using namespace wjr;
+
+namespace wjr::json {
+static_assert(has_assign_from_document_v<document, const document &>);
+static_assert(has_assign_from_document_v<document, document &&>);
+
+static_assert(has_construct_from_document_v<document, const document &>);
+static_assert(has_construct_from_document_v<document, document &&>);
+
+static_assert(has_assign_to_document_v<document, const document &>);
+static_assert(has_assign_to_document_v<document, document &&>);
+
+static_assert(has_construct_to_document_v<document, const document &>);
+static_assert(has_construct_to_document_v<document, document &&>);
+} // namespace wjr::json
 
 const auto current_path = std::filesystem::current_path();
 const auto twitter_json = []() {
@@ -17,17 +31,19 @@ const auto twitter_json = []() {
 }();
 
 TEST(json, parse) {
+    using namespace json;
+
     {
-        json::reader rd(twitter_json);
-        WJR_ASSERT(json::check(rd).has_value());
-        auto ret = json::json::parse(rd);
+        reader rd(twitter_json);
+        WJR_ASSERT(check(rd).has_value());
+        auto ret = document::parse(rd);
         WJR_ASSERT(ret.has_value());
         auto &j = *ret;
         auto str = j.to_string();
         rd.read(str);
-        ret = json::json::parse(rd);
+        ret = document::parse(rd);
         WJR_ASSERT(ret.has_value());
-        auto& j2 = *ret;
+        auto &j2 = *ret;
         auto str2 = j2.to_string();
         WJR_ASSERT(j == j2);
         WJR_ASSERT(str == str2);
@@ -35,58 +51,71 @@ TEST(json, parse) {
 }
 
 struct test_struct0 {
-    WJR_REGISTER_FROM_JSON_SERIALIZER_DEFAULT(test_struct0, name, version, age)
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(test_struct0);
+
+    WJR_REGISTER_DOCUMENT_OBJECT_SERIALIZER(test_struct0, name, version, age)
+
+    bool operator==(const test_struct0 &other) const noexcept {
+        return age == other.age && name == other.name && version == other.version;
+    }
 
     std::string name;
     std::string version;
-    int age;
+    int age = 0;
 };
 
+template <typename T>
+void json_constructor_test(const T &expected) {
+    using namespace json;
+
+    do {
+        document doc(expected);
+        WJR_ASSERT((T)doc == expected);
+        doc = expected;
+        WJR_ASSERT((T)doc == expected);
+        T val(doc);
+        WJR_ASSERT(val == expected);
+        doc.get_to(val);
+        WJR_ASSERT(val == expected);
+    } while (0);
+
+    do {
+        T c0(expected);
+        T c1(expected);
+
+        document doc(std::move(c0));
+        WJR_ASSERT((T)doc == expected);
+        doc = std::move(c1);
+        WJR_ASSERT((T)doc == expected);
+        T val(std::move(doc));
+        WJR_ASSERT(val == expected);
+        document doc2(expected);
+        std::move(doc2).get_to(val);
+        WJR_ASSERT(val == expected);
+    } while (0);
+}
+
 TEST(json, constructor) {
+    using namespace json;
+
     WJR_TRY {
-        do {
-            json::json j(nullptr);
-            WJR_ASSERT(j.is_null());
-            std::nullptr_t a(j);
-            WJR_ASSERT(a == nullptr);
-        } while (false);
+        json_constructor_test(nullptr);
+        json_constructor_test(true);
+        json_constructor_test(false);
+        json_constructor_test(0u);
+        json_constructor_test(-3);
+        json_constructor_test(std::string("name"));
+        json_constructor_test(std::vector<int>{1, 2, 3, 4, 5});
+        json_constructor_test(test_struct0{});
 
         do {
-            json::json a(true);
-            json::json b(false);
-
-            WJR_ASSERT(a.template get<json::boolean_t>() == true);
-            WJR_ASSERT(b.template get<json::boolean_t>() == false);
-
-            bool c(a);
-            bool d(b);
-
-            WJR_ASSERT(c == true);
-            WJR_ASSERT(d == false);
-        } while (false);
-
-        do {
-            json::json a(0u);
-            json::json b(-3);
-
-            WJR_ASSERT((int)a == 0);
-            WJR_ASSERT((int)b == -3);
-
-            int c(a);
-            int d(b);
-
-            WJR_ASSERT(c == 0);
-            WJR_ASSERT(d == -3);
-        } while (false);
-
-        do {
-            json::json a(std::string_view("name"));
-            json::json b(std::string("version"));
+            document a(std::string_view("name"));
+            document b(std::string("version"));
 
             WJR_ASSERT((std::string_view)a == "name");
             WJR_ASSERT((std::string_view)b == "version");
 
-            static_assert(!std::is_constructible_v<std::string_view, json::json &&>, "");
+            static_assert(!std::is_constructible_v<std::string_view, document &&>, "");
 
             std::string_view c(a);
             std::string d(b);
@@ -101,10 +130,10 @@ TEST(json, constructor) {
             std::map<std::string, std::string> a = {
                 {"name", "wjr"}, {"version", "1.0.0"}, {"age", "22"}};
 
-            json::json b(a);
+            document b(a);
 
             auto iter = a.begin();
-            for (auto &[key, value] : b.template get<json::object_t>()) {
+            for (auto &[key, value] : b.template get<object_t>()) {
                 WJR_ASSERT((std::string_view)(key) == iter->first);
                 WJR_ASSERT((std::string_view)(value) == iter->second);
                 ++iter;
@@ -113,15 +142,15 @@ TEST(json, constructor) {
 
         do {
             std::vector<int> a = {1, 2, 3, 0, 7, 3, 4, 6};
-            json::json b(a);
+            document b(a);
 
             auto iter = a.begin();
-            for (auto &elem : b.template get<json::array_t>()) {
+            for (auto &elem : b.template get<array_t>()) {
                 WJR_ASSERT((int)(elem) == *iter);
                 ++iter;
             }
 
-            std::vector<json::json> c(b);
+            std::vector<document> c(b);
 
             iter = a.begin();
             for (auto &elem : c) {
@@ -132,9 +161,9 @@ TEST(json, constructor) {
 
         do {
             std::string str = R"({"name" : "wjr", "version" : "1.0.0", "age" : 22})";
-            json::reader rd(str);
+            reader rd(str);
 
-            test_struct0 it(json::json::parse(rd).value());
+            test_struct0 it(document::parse(rd).value());
             WJR_ASSERT(it.name == "wjr");
             WJR_ASSERT(it.version == "1.0.0");
             WJR_ASSERT(it.age == 22);

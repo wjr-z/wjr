@@ -505,7 +505,7 @@ void format(Formatter fmt, const basic_document<Traits> &doc) noexcept {
 /**
  * @details At present, it's a simple but flexible implementation solution. This is not as
  * good as a only iteration in terms of performance. \n
- * Performance (use std::map and wjr::vector as container on my local x64 machine) : \n
+ * Performance (use std::map and wjr::vector as container on my local x64 2.50 GHz machine) : \n
  * twitter.document : 700~720 MB/s \n
  * canada.document : 660~680 MB/s
  * @todo 1. For most strings, only need to check first character to compare.
@@ -1111,7 +1111,7 @@ public:
     basic_document(basic_document &&other, in_place_document_serializer_from_t) noexcept
         : basic_document(std::move(other)) {}
 
-    static void assign(const basic_document &other, basic_document &docm,
+    static void assign(const basic_document &other, basic_document &doc,
                        in_place_document_serializer_to_t) {
         doc = other;
     }

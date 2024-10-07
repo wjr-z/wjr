@@ -126,6 +126,7 @@ class tuple<This, Args...> {
 
     constexpr static size_t Size = sizeof...(Args) + 1;
 
+    // MSVC always has strange bugs...
     template <typename Other, typename... _Args>
 #if !WJR_HAS_MSVC(19, 37)
     using __is_all_convertible =

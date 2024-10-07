@@ -84,15 +84,13 @@ set(GMP_LIBS "D:\\msys\\home\\19663\\gmp-6.3.0\\.libs")
 
 link_directories(${GMP_LIBS})
 target_link_libraries(tests
+PRIVATE
    wjr
    ${GMP_LIBS}/libgmp.dll.a
    ${GMP_LIBS}/libgmpxx.dll.a
    gtest_main
 )
 
-target_precompile_headers(
-   tests
-   PUBLIC src/detail.hpp
-)
+target_precompile_headers(tests REUSE_FROM wjr)
 
 enable_testing()

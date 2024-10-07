@@ -5,58 +5,72 @@
 
 #include <wjr/assert.hpp>
 #include <wjr/concurrency/atomic.hpp>
+#include <wjr/concurrency/mutex-config.hpp>
 #include <wjr/concurrency/pause.hpp>
 
 namespace wjr {
 
 /**
- * @brief This may not be necessary as it does not prohibit system interrupts. When a
- * thread switch occurs during a lock, it may cause other threads to spin inefficiently.
+ * @class spin_mutex
+ * @brief Maybe useless because futex spin before syscall.
  *
  */
 class spin_mutex {
-    static constexpr unsigned int yield_threshold = 16;
+    static constexpr unsigned int yield_threshold = 8;
 
 public:
-    spin_mutex() = default;
+    /// @brief Just likey atomic_init, initialize can be relaxed and not atomic.
+    spin_mutex() noexcept : m_flag(0) {}
     spin_mutex(const spin_mutex &) = delete;
     spin_mutex &operator=(const spin_mutex &) = delete;
 
-    WJR_INTRINSIC_INLINE bool try_lock() {
-        return !m_flag.test_and_set(memory_order_acquire);
-    }
-
-    void lock() {
-        unsigned int pause_cnt = 0;
-        do {
-            if (WJR_LIKELY(try_lock())) {
-                return;
-            }
-
-            if (WJR_LIKELY(try_lock())) {
-                return;
-            }
-
-            ++pause_cnt;
-            if (WJR_UNLIKELY(!(pause_cnt & (yield_threshold - 1)))) {
-                std::this_thread::yield();
-            } else {
-                pause_intrinsic();
-            }
-        } while (true);
-    }
-
-    void unlock() { m_flag.clear(memory_order_release); }
-
 #if WJR_DEBUG_LEVEL > 2
-    ~spin_mutex() {
-        WJR_ASSERT_L0(try_lock());
-        unlock();
-    }
+    ~spin_mutex() { WJR_ASSERT_L0(!m_flag.load(memory_order_acquire)); }
 #endif
 
+    WJR_INTRINSIC_INLINE bool try_lock() noexcept {
+        int val;
+
+#if WJR_ATOMIC_PREFER_EXCHANGE_THAN_CAS
+        if (WJR_LIKELY(!m_flag.exchange(1, memory_order_acquire))) {
+            return true;
+        }
+#endif
+
+        do {
+            if (WJR_LIKELY(m_flag.compare_exchange_weak(val, 1, memory_order_acquire))) {
+                return true;
+            }
+        } while (m_flag.load(memory_order_relaxed) == 0);
+
+        return false;
+    }
+
+    WJR_NOINLINE void lock() noexcept {
+        int val;
+
+#if WJR_ATOMIC_PREFER_EXCHANGE_THAN_CAS
+        if (WJR_LIKELY(!m_flag.exchange(1, memory_order_acquire))) {
+            return;
+        }
+#else
+        if (WJR_LIKELY(m_flag.compare_exchange_weak(val, 1, memory_order_acquire))) {
+            return;
+        }
+#endif
+
+        do {
+            do {
+                pause_intrinsic();
+                val = m_flag.load(memory_order_relaxed);
+            } while (val != 0);
+        } while (!m_flag.compare_exchange_weak(val, 1, memory_order_acquire));
+    }
+
+    void unlock() noexcept { m_flag.store(0, memory_order_release); }
+
 private:
-    atomic_flag m_flag = ATOMIC_FLAG_INIT;
+    atomic<int> m_flag;
 };
 
 } // namespace wjr
