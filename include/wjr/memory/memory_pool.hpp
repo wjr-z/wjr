@@ -48,7 +48,7 @@ struct automatic_free_pool {
     void deallocate(void *ptr) noexcept {
         auto *const node =
             reinterpret_cast<chunk *>(static_cast<char *>(ptr) - sizeof(chunk));
-        remove_uninit(node);
+        remove(node);
         free(node);
     }
 

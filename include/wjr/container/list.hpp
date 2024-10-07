@@ -49,33 +49,20 @@ constexpr void push_front(list_node *head, list_node *node) noexcept {
 constexpr bool empty(const list_node *node) noexcept { return node->next == node; }
 
 constexpr list_node *next(list_node *node) noexcept { return node->next; }
-
 constexpr const list_node *next(const list_node *node) noexcept { return node->next; }
-
 constexpr list_node *prev(list_node *node) noexcept { return node->prev; }
-
 constexpr const list_node *prev(const list_node *node) noexcept { return node->prev; }
 
-constexpr void remove_uninit(list_node *node) noexcept {
+constexpr void remove(list_node *node) noexcept {
     node->prev->next = node->next;
     node->next->prev = node->prev;
 }
 
-constexpr void remove_init(list_node *node) noexcept {
-    remove_uninit(node);
-    init(node);
-}
-
-constexpr void replace_uninit(list_node *from, list_node *to) noexcept {
+constexpr void replace(list_node *from, list_node *to) noexcept {
     to->next = from->next;
     from->next->prev = to;
     to->prev = from->prev;
     from->prev->next = to;
-}
-
-constexpr void replace_init(list_node *from, list_node *to) noexcept {
-    replace_uninit(from, to);
-    init(from);
 }
 
 } // namespace wjr::intrusive

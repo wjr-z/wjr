@@ -7,12 +7,13 @@
 namespace wjr::intrusive {
 
 struct lkf_forward_list_node {
+    lkf_forward_list_node()  noexcept : next(nullptr) {}
+    lkf_forward_list_node(const lkf_forward_list_node &) = delete;
+    lkf_forward_list_node &operator=(const lkf_forward_list_node &) = delete;
+    ~lkf_forward_list_node() = default;
+
     atomic<forward_list_node *> next;
 };
-
-inline void init(lkf_forward_list_node *head) noexcept {
-    head->next.store(nullptr, memory_order_release);
-}
 
 WJR_INTRINSIC_INLINE void push_front(lkf_forward_list_node *head, forward_list_node *node,
                                      forward_list_node *tail) noexcept {
