@@ -9,7 +9,6 @@
 #define WJR_PP_QUEUE_CALL(args, ops)                                                     \
     WJR_PP_QUEUE_CALL_N_I(args, ops, WJR_PP_QUEUE_SIZE(args))
 #define WJR_PP_QUEUE_CALL_N(args, ops, N) WJR_PP_QUEUE_CALL_N_I(args, ops, WJR_PP_INC(N))
-
 #define WJR_PP_QUEUE_CALL_N_I(args, ops, N) WJR_PP_QUEUE_CALL_N_II(args, ops, N)
 #define WJR_PP_QUEUE_CALL_N_II(args, ops, N) WJR_PP_QUEUE_CALL_##N(args, ops)
 

@@ -45,9 +45,6 @@
 
 namespace wjr {
 
-#define WJR_DEBUG_IF(level, expr0, expr1)                                                \
-    WJR_PP_BOOL_IF(WJR_PP_GT(WJR_DEBUG_LEVEL, level), expr0, expr1)
-
 WJR_NORETURN extern void __assert_failed(const char *expr, const char *file,
                                          const char *func, int line) noexcept;
 
@@ -76,36 +73,55 @@ inline void __assert_handler(const char *expr, const char *file, const char *fun
         if (WJR_UNLIKELY(!(expr))) {                                                     \
             ::wjr::__assert_handler(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE,     \
                                     ##__VA_ARGS__);                                      \
+            WJR_UNREACHABLE();                                                           \
         }                                                                                \
     } while (false)
 
 // do nothing
 #define WJR_ASSERT_UNCHECK_I(...) ((void)0)
 
-// level = [0, 2]
-// The higher the level, the less likely it is to be detected
-// Runtime detect  : 1
-// Maximize detect : 2
-#define WJR_ASSERT_L(level, ...)                                                         \
-    WJR_DEBUG_IF(level, WJR_ASSERT_CHECK_I, WJR_ASSERT_UNCHECK_I)                        \
-    (__VA_ARGS__)
+#define WJR_ASSERT_ASSUME_CHECK_I(expr, ...)                                             \
+    do {                                                                                 \
+        if (WJR_UNLIKELY(!(expr))) {                                                     \
+            ::wjr::__assert_handler(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE,     \
+                                    ##__VA_ARGS__);                                      \
+            WJR_UNREACHABLE();                                                           \
+        }                                                                                \
+        WJR_ASSUME(expr);                                                                \
+    } while (false)
+
+// do nothing
+#define WJR_ASSERT_ASSUME_UNCHECK_I(expr, ...) (WJR_ASSUME(expr))
 
 // level of assert is zero at default.
 #define WJR_ASSERT_L0(...) WJR_ASSERT_CHECK_I(__VA_ARGS__)
-#define WJR_ASSERT_L1(...) WJR_ASSERT_L(1, __VA_ARGS__)
-#define WJR_ASSERT_L2(...) WJR_ASSERT_L(2, __VA_ARGS__)
-#define WJR_ASSERT_L3(...) WJR_ASSERT_L(3, __VA_ARGS__)
+#define WJR_ASSERT_ASSUME_L0(...) WJR_ASSERT_ASSUME_CHECK_I(0, __VA_ARGS__)
+
+#if WJR_DEBUG_LEVEL >= 1
+    #define WJR_ASSERT_L1(...) WJR_ASSERT_CHECK_I(__VA_ARGS__)
+    #define WJR_ASSERT_ASSUME_L1(...) WJR_ASSERT_ASSUME_CHECK_I(__VA_ARGS__)
+#else
+    #define WJR_ASSERT_L1(...) WJR_ASSERT_UNCHECK_I(__VA_ARGS__)
+    #define WJR_ASSERT_ASSUME_L1(...) WJR_ASSERT_ASSUME_UNCHECK_I(__VA_ARGS__)
+#endif
+
+#if WJR_DEBUG_LEVEL >= 2
+    #define WJR_ASSERT_L2(...) WJR_ASSERT_CHECK_I(__VA_ARGS__)
+    #define WJR_ASSERT_ASSUME_L2(...) WJR_ASSERT_ASSUME_CHECK_I(__VA_ARGS__)
+#else
+    #define WJR_ASSERT_L2(...) WJR_ASSERT_UNCHECK_I(__VA_ARGS__)
+    #define WJR_ASSERT_ASSUME_L2(...) WJR_ASSERT_ASSUME_UNCHECK_I(__VA_ARGS__)
+#endif
+
+#if WJR_DEBUG_LEVEL >= 3
+    #define WJR_ASSERT_L3(...) WJR_ASSERT_CHECK_I(__VA_ARGS__)
+    #define WJR_ASSERT_ASSUME_L3(...) WJR_ASSERT_ASSUME_CHECK_I(__VA_ARGS__)
+#else
+    #define WJR_ASSERT_L3(...) WJR_ASSERT_UNCHECK_I(__VA_ARGS__)
+    #define WJR_ASSERT_ASSUME_L3(...) WJR_ASSERT_ASSUME_UNCHECK_I(__VA_ARGS__)
+#endif
+
 #define WJR_ASSERT(...) WJR_ASSERT_L1(__VA_ARGS__)
-
-#define WJR_ASSERT_ASSUME_L(level, ...)                                                  \
-    WJR_ASSERT_L(level, __VA_ARGS__);                                                    \
-    __WJR_ASSERT_ASSUME_L_ASSUME(__VA_ARGS__)
-#define __WJR_ASSERT_ASSUME_L_ASSUME(expr, ...) WJR_ASSUME(expr)
-
-#define WJR_ASSERT_ASSUME_L0(...) WJR_ASSERT_ASSUME_L(0, __VA_ARGS__)
-#define WJR_ASSERT_ASSUME_L1(...) WJR_ASSERT_ASSUME_L(1, __VA_ARGS__)
-#define WJR_ASSERT_ASSUME_L2(...) WJR_ASSERT_ASSUME_L(2, __VA_ARGS__)
-#define WJR_ASSERT_ASSUME_L3(...) WJR_ASSERT_ASSUME_L(3, __VA_ARGS__)
 #define WJR_ASSERT_ASSUME(...) WJR_ASSERT_ASSUME_L1(__VA_ARGS__)
 
 } // namespace wjr

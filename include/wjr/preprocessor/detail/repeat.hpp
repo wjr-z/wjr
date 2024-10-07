@@ -6,22 +6,21 @@
 
 #define WJR_PP_REPEAT_0(x)
 #define WJR_PP_REPEAT_1(x) x
-#define WJR_PP_REPEAT_2(x) WJR_PP_REPEAT_1(x), WJR_PP_REPEAT_1(x)
-#define WJR_PP_REPEAT_3(x) WJR_PP_REPEAT_1(x), WJR_PP_REPEAT_2(x)
-#define WJR_PP_REPEAT_4(x) WJR_PP_REPEAT_2(x), WJR_PP_REPEAT_2(x)
-#define WJR_PP_REPEAT_5(x) WJR_PP_REPEAT_1(x), WJR_PP_REPEAT_4(x)
-#define WJR_PP_REPEAT_6(x) WJR_PP_REPEAT_2(x), WJR_PP_REPEAT_4(x)
-#define WJR_PP_REPEAT_7(x) WJR_PP_REPEAT_1(x), WJR_PP_REPEAT_2(x), WJR_PP_REPEAT_4(x)
-#define WJR_PP_REPEAT_8(x) WJR_PP_REPEAT_4(x), WJR_PP_REPEAT_4(x)
-#define WJR_PP_REPEAT_9(x) WJR_PP_REPEAT_1(x), WJR_PP_REPEAT_8(x)
-#define WJR_PP_REPEAT_10(x) WJR_PP_REPEAT_2(x), WJR_PP_REPEAT_8(x)
-#define WJR_PP_REPEAT_11(x) WJR_PP_REPEAT_1(x), WJR_PP_REPEAT_2(x), WJR_PP_REPEAT_8(x)
-#define WJR_PP_REPEAT_12(x) WJR_PP_REPEAT_4(x), WJR_PP_REPEAT_8(x)
-#define WJR_PP_REPEAT_13(x) WJR_PP_REPEAT_1(x), WJR_PP_REPEAT_4(x), WJR_PP_REPEAT_8(x)
-#define WJR_PP_REPEAT_14(x) WJR_PP_REPEAT_2(x), WJR_PP_REPEAT_4(x), WJR_PP_REPEAT_8(x)
-#define WJR_PP_REPEAT_15(x)                                                              \
-    WJR_PP_REPEAT_1(x), WJR_PP_REPEAT_2(x), WJR_PP_REPEAT_4(x), WJR_PP_REPEAT_8(x)
-#define WJR_PP_REPEAT_16(x) WJR_PP_REPEAT_8(x), WJR_PP_REPEAT_8(x)
+#define WJR_PP_REPEAT_2(x) x, x
+#define WJR_PP_REPEAT_3(x) x, x, x
+#define WJR_PP_REPEAT_4(x) x, x, x, x
+#define WJR_PP_REPEAT_5(x) x, x, x, x, x
+#define WJR_PP_REPEAT_6(x) x, x, x, x, x, x
+#define WJR_PP_REPEAT_7(x) x, x, x, x, x, x, x
+#define WJR_PP_REPEAT_8(x) x, x, x, x, x, x, x, x
+#define WJR_PP_REPEAT_9(x) x, WJR_PP_REPEAT_8(x)
+#define WJR_PP_REPEAT_10(x) x, x, WJR_PP_REPEAT_8(x)
+#define WJR_PP_REPEAT_11(x) x, x, x, WJR_PP_REPEAT_8(x)
+#define WJR_PP_REPEAT_12(x) x, x, x, x, WJR_PP_REPEAT_8(x)
+#define WJR_PP_REPEAT_13(x) x, x, x, x, x, WJR_PP_REPEAT_8(x)
+#define WJR_PP_REPEAT_14(x) x, x, x, x, x, x, WJR_PP_REPEAT_8(x)
+#define WJR_PP_REPEAT_15(x) x, x, x, x, x, x, x, WJR_PP_REPEAT_8(x)
+#define WJR_PP_REPEAT_16(x) x, x, x, x, x, x, x, x, WJR_PP_REPEAT_8(x)
 #define WJR_PP_REPEAT_17(x) WJR_PP_REPEAT_1(x), WJR_PP_REPEAT_16(x)
 #define WJR_PP_REPEAT_18(x) WJR_PP_REPEAT_2(x), WJR_PP_REPEAT_16(x)
 #define WJR_PP_REPEAT_19(x) WJR_PP_REPEAT_1(x), WJR_PP_REPEAT_2(x), WJR_PP_REPEAT_16(x)

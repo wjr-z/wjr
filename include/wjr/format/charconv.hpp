@@ -1012,33 +1012,58 @@ to_chars_result<uint8_t *> __fast_to_chars_impl(uint8_t *first, uint8_t *last, V
     const unsigned int base = ibase;
     const auto size = std::distance(first, last);
 
-#define WJR_TO_CHARS_VALIDATE_IMPL(BASE, DIGITS, CALL)                                   \
-    const int n = count_digits<BASE> DIGITS;                                             \
-    if (WJR_LIKELY(n <= size)) {                                                         \
-        first += n;                                                                      \
-        (void)__unsigned_to_chars_backward_unchecked<BASE>(                              \
-            first, WJR_PP_QUEUE_EXPAND(CALL), conv);                                     \
-        return {first, std::errc{}};                                                     \
-    }                                                                                    \
-    return { last, std::errc::value_too_large }
-
     switch (base) {
     case 2: {
-        WJR_TO_CHARS_VALIDATE_IMPL(2, (uVal), (n, uVal));
+        const int n = count_digits<2>(uVal);
+        if (WJR_LIKELY(n <= size)) {
+            first += n;
+            (void)__unsigned_to_chars_backward_unchecked<2>(first, n, uVal, conv);
+            return {first, std::errc{}};
+        }
+
+        break;
     }
     case 8: {
-        WJR_TO_CHARS_VALIDATE_IMPL(8, (uVal), (n, uVal));
+        const int n = count_digits<8>(uVal);
+        if (WJR_LIKELY(n <= size)) {
+            first += n;
+            (void)__unsigned_to_chars_backward_unchecked<8>(first, n, uVal, conv);
+            return {first, std::errc{}};
+        }
+
+        break;
     }
     case 16: {
-        WJR_TO_CHARS_VALIDATE_IMPL(16, (uVal), (n, uVal));
+        const int n = count_digits<16>(uVal);
+        if (WJR_LIKELY(n <= size)) {
+            first += n;
+            (void)__unsigned_to_chars_backward_unchecked<16>(first, n, uVal, conv);
+            return {first, std::errc{}};
+        }
+
+        break;
     }
     case 4:
     case 32: {
         const int bits = base == 4 ? 2 : 5;
-        WJR_TO_CHARS_VALIDATE_IMPL(1, (uVal, bits), (n, uVal, bits));
+        const int n = count_digits<1>(uVal, bits);
+        if (WJR_LIKELY(n <= size)) {
+            first += n;
+            (void)__unsigned_to_chars_backward_unchecked<1>(first, n, uVal, bits, conv);
+            return {first, std::errc{}};
+        }
+
+        break;
     }
     case 10: {
-        WJR_TO_CHARS_VALIDATE_IMPL(10, (uVal), (uVal));
+        const int n = count_digits<10>(uVal);
+        if (WJR_LIKELY(n <= size)) {
+            first += n;
+            (void)__unsigned_to_chars_backward_unchecked<10>(first, uVal, conv);
+            return {first, std::errc{}};
+        }
+
+        break;
     }
     default: {
         WJR_UNREACHABLE();
@@ -1046,7 +1071,7 @@ to_chars_result<uint8_t *> __fast_to_chars_impl(uint8_t *first, uint8_t *last, V
     }
     }
 
-#undef WJR_TO_CHARS_VALIDATE_IMPL
+    return {last, std::errc::value_too_large};
 }
 
 template <typename Iter, typename Value, typename IBase, typename Converter>

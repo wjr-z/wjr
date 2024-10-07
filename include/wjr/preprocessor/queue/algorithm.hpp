@@ -25,7 +25,12 @@
 
 // (1,2,3), f -> (f(1), f(2), f(3))
 #define WJR_PP_QUEUE_TRANSFORM(queue, op)                                                \
-    WJR_PP_QUEUE_TRANSFORMS(queue, WJR_PP_QUEUE_INIT_N(op, WJR_PP_QUEUE_SIZE(queue)))
+    WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_CALL_N_SAME(                  \
+        WJR_PP_QUEUE_PUSH_FRONT(queue, (op)), WJR_PP_QUEUE_TRANSFORM_CALLER,             \
+        WJR_PP_QUEUE_SIZE(queue))))
+
+#define WJR_PP_QUEUE_TRANSFORM_CALLER(x, y)                                              \
+    WJR_PP_QUEUE_PUSH_BACK(x, WJR_PP_QUEUE_FRONT(x)(y))
 
 // 0, (1, 2, 3), (f, g, h) -> h(g(f(0, 1), 2), 3)
 #define WJR_PP_QUEUE_ACCUMULATES(init, queue, ops)                                       \
@@ -49,18 +54,6 @@
     WJR_PP_QUEUE_ACCUMULATE(0, queue, WJR_PP_QUEUE_BACK_CALLER)
 
 #define WJR_PP_QUEUE_BACK_CALLER(x, y) y
-
-// (1, 2, 3, 4, 5), 2 -> (3, 4, 5)
-#define WJR_PP_QUEUE_POP_FRONT_N(queue, N)                                               \
-    WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_CALL_N(                       \
-        WJR_PP_QUEUE_PUSH_FRONT(WJR_PP_QUEUE_PUSH_FRONT(queue, holder), (0)),            \
-        (WJR_PP_REPEAT(WJR_PP_QUEUE_POP_FRONT_N_HEADER_CALLER, WJR_PP_INC(N)),           \
-         WJR_PP_REPEAT(WJR_PP_QUEUE_POP_FRONT_N_TAILER_CALLER,                           \
-                       WJR_PP_QUEUE_SIZE(queue))),                                       \
-        WJR_PP_INC(WJR_PP_QUEUE_SIZE(queue)))))
-
-#define WJR_PP_QUEUE_POP_FRONT_N_HEADER_CALLER(x, y) x
-#define WJR_PP_QUEUE_POP_FRONT_N_TAILER_CALLER(x, y) WJR_PP_QUEUE_PUSH_BACK(x, y)
 
 // (1, 2, 3, 4, 5), 2 -> (1, 2, 3)
 #define WJR_PP_QUEUE_POP_BACK_N(queue, N)                                                \
