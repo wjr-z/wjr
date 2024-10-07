@@ -4,9 +4,6 @@
 [submodule "third-party/boost/predef"]
 	path = third-party/boost/predef
 	url = https://github.com/boostorg/predef.git
-[submodule "third-party/boost/preprocessor"]
-	path = third-party/boost/preprocessor
-	url = https://github.com/boostorg/preprocessor.git
 [submodule "third-party/boost/winapi"]
 	path = third-party/boost/winapi
 	url = https://github.com/boostorg/winapi.git
