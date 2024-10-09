@@ -16,8 +16,7 @@ class tuple;
 namespace std {
 
 template <typename... Args>
-struct tuple_size<wjr::tuple<Args...>> : std::integral_constant<size_t, sizeof...(Args)> {
-};
+struct tuple_size<wjr::tuple<Args...>> : integral_constant<size_t, sizeof...(Args)> {};
 
 template <size_t I, typename... Args>
 struct tuple_element<I, wjr::tuple<Args...>> {
@@ -351,7 +350,7 @@ constexpr decltype(auto) apply(Func &&fn, Tuple &&tp) noexcept(noexcept(
 template <size_t I, typename Tuple>
 struct __tuple_cat_single_helper {
     static constexpr size_t Size = std::tuple_size_v<Tuple>;
-    using type0 = tp_repeat_t<tp_list<std::integral_constant<size_t, I>>, Size>;
+    using type0 = tp_repeat_t<tp_list<integral_constant<size_t, I>>, Size>;
     using type1 = tp_make_index_sequence<Size>;
 };
 

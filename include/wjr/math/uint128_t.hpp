@@ -202,7 +202,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint128_t mul64x64to128(uint64_t a, uint64_t b) noexce
 namespace std {
 
 template <>
-struct tuple_size<wjr::uint128_t> : std::integral_constant<size_t, 2> {};
+struct tuple_size<wjr::uint128_t> : integral_constant<size_t, 2> {};
 
 template <size_t I>
 struct tuple_element<I, wjr::uint128_t> {

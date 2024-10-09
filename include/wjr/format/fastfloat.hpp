@@ -78,14 +78,16 @@ __from_chars_impl<default_writer<double>, chars_format>(const char *first,
  * `fast_float::chars_format::general` which allows both `fixed` and `scientific`.
  */
 template <chars_format Fmt = chars_format::general>
-from_chars_result<> from_chars(const char *first, const char *last, float &value,
-                               integral_constant<chars_format, Fmt> fmt = {}) noexcept {
+from_chars_result<>
+from_chars(const char *first, const char *last, float &value,
+           integral_constant<chars_format, Fmt> fmt = {}) noexcept {
     return __from_chars_impl(first, last, default_writer<float>(value), fmt);
 }
 
 template <chars_format Fmt = chars_format::general>
-from_chars_result<> from_chars(const char *first, const char *last, double &value,
-                               integral_constant<chars_format, Fmt> fmt = {}) noexcept {
+from_chars_result<>
+from_chars(const char *first, const char *last, double &value,
+           integral_constant<chars_format, Fmt> fmt = {}) noexcept {
     return __from_chars_impl(first, last, default_writer<double>(value), fmt);
 }
 

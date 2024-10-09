@@ -31,6 +31,8 @@ struct in_place_min_t {
 
 inline constexpr in_place_min_t in_place_min = {};
 
+using std::integral_constant;
+
 template <typename... Args>
 struct multi_conditional;
 

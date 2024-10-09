@@ -1,5 +1,5 @@
-#ifndef WJR_CONTAINER_CONSTEXPR_MAP_HPP__
-#define WJR_CONTAINER_CONSTEXPR_MAP_HPP__
+#ifndef WJR_CONTAINER_CONSTANT_MAP_HPP__
+#define WJR_CONTAINER_CONSTANT_MAP_HPP__
 
 #include <array>
 #include <string_view>
@@ -25,4 +25,4 @@ private:
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_CONSTEXPR_MAP_HPP__
+#endif // WJR_CONTAINER_CONSTANT_MAP_HPP__

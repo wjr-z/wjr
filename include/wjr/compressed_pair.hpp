@@ -13,7 +13,7 @@ class compressed_pair;
 namespace std {
 
 template <typename T, typename U>
-struct tuple_size<wjr::compressed_pair<T, U>> : std::integral_constant<size_t, 2> {};
+struct tuple_size<wjr::compressed_pair<T, U>> : integral_constant<size_t, 2> {};
 
 template <size_t I, typename T, typename U>
 struct tuple_element<I, wjr::compressed_pair<T, U>> {

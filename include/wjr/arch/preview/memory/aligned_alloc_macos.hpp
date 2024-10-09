@@ -9,7 +9,7 @@ namespace wjr {
 
 WJR_MALLOC inline void *aligned_alloc(size_t size, size_t alignment) noexcept {
     WJR_ASSERT(has_single_bit(alignment));
-    
+
     if (size == 0) {
         return 0;
     }

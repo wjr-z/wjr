@@ -3487,8 +3487,7 @@ template <typename S>
 from_chars_result<const char *>
 from_chars_characters_unchecked(const char *first, const char *last,
                                 basic_biginteger<S> &dst, unsigned int base) noexcept {
-    return biginteger_detail::__from_chars_impl<false>(first, last, &dst,
-                                                                     base);
+    return biginteger_detail::__from_chars_impl<false>(first, last, &dst, base);
 }
 
 template <typename S>

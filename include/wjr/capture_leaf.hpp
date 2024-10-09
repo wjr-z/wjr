@@ -4,7 +4,7 @@
 #include <tuple>
 
 #include <wjr/crtp/class_base.hpp>
-#include <wjr/tp/list.hpp>
+#include <wjr/tp/algorithm.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {

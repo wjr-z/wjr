@@ -7,7 +7,7 @@
 namespace wjr::intrusive {
 
 struct lkf_forward_list_node {
-    lkf_forward_list_node()  noexcept : next(nullptr) {}
+    lkf_forward_list_node() noexcept : next(nullptr) {}
     lkf_forward_list_node(const lkf_forward_list_node &) = delete;
     lkf_forward_list_node &operator=(const lkf_forward_list_node &) = delete;
     ~lkf_forward_list_node() = default;

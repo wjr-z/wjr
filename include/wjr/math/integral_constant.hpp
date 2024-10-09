@@ -5,37 +5,6 @@
 
 namespace wjr {
 
-template <typename T, T val>
-struct integral_constant {
-    static constexpr T value = val;
-
-    using value_type = T;
-    using type = integral_constant;
-
-    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(integral_constant);
-
-    constexpr integral_constant(std::integral_constant<T, val>) noexcept {}
-
-    constexpr operator value_type() const noexcept { return value; }
-    WJR_NODISCARD constexpr value_type operator()() const noexcept { return value; }
-
-    WJR_NODISCARD constexpr operator std::integral_constant<T, val>() const noexcept {
-        return {};
-    }
-
-    template <typename U, U u>
-    constexpr auto operator+(integral_constant<U, u>) const noexcept {
-        constexpr auto result = value + u;
-        return integral_constant<decltype(result), result>{};
-    }
-
-    template <typename U, U u>
-    constexpr auto operator-(integral_constant<U, u>) const noexcept {
-        constexpr auto result = value - u;
-        return integral_constant<decltype(result), result>{};
-    }
-};
-
 namespace digits_literal_detail {
 
 template <uint64_t Base>
@@ -123,7 +92,8 @@ WJR_CONST constexpr T parse() noexcept {
 #define WJR_REGISTER_INTEGRAL_LITERALS(NAME, TYPE)                                       \
     template <char... Chars>                                                             \
     WJR_CONST WJR_INTRINSIC_CONSTEXPR auto operator"" _##NAME() noexcept                 \
-        -> integral_constant<TYPE, digits_literal_detail::parse<TYPE, Chars...>()> {     \
+        -> integral_constant<TYPE,                                                  \
+                                  digits_literal_detail::parse<TYPE, Chars...>()> {      \
         return {};                                                                       \
     }
 

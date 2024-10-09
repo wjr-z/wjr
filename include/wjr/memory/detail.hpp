@@ -14,6 +14,15 @@ WJR_REGISTER_HAS_TYPE(pointer_traits_to_address,
 
 WJR_REGISTER_HAS_TYPE(pointer_access, std::declval<const Ptr &>().operator->(), Ptr);
 
+#if defined(WJR_CXX_20)
+
+template <typename Ptr>
+constexpr auto to_address(const Ptr &p) noexcept {
+    return std::to_address(p);
+}
+
+#else
+
 template <typename T>
 constexpr T *to_address(T *p) noexcept {
     static_assert(!std::is_function_v<T>, "T cannot be a function.");
@@ -33,6 +42,7 @@ constexpr auto to_address(const Ptr &p) noexcept {
         return wjr::to_address(p.operator->());
     }
 }
+#endif
 
 /**
  * @return to_address(p.base()).

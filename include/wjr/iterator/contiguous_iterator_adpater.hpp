@@ -340,6 +340,7 @@ struct pointer_traits<wjr::contiguous_const_iterator_adapter<Container, Traits>>
                           "can't convert invalid vector iterator to pointer");
         }
 #endif
+
         return wjr::to_address(ptr.m_ptr);
     }
 };
@@ -361,6 +362,7 @@ struct pointer_traits<wjr::contiguous_iterator_adapter<Container, Traits>> {
                           "can't convert invalid vector iterator to pointer");
         }
 #endif
+
         return wjr::to_address(ptr.m_ptr);
     }
 };
