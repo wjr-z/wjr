@@ -157,14 +157,14 @@ template <template <typename...> typename C, typename... Args>
 struct tp_product;
 
 /// @private
-template <typename _Enable, template <typename...> typename C, typename... Args>
+template <typename Enable, template <typename...> typename C, typename... Args>
 struct __tp_product_helper {
     using type = tp_list<>;
 };
 
 /// @private
-template <typename _Enable, template <typename...> typename C, typename T>
-struct __tp_product_helper<_Enable, C, T> {
+template <typename Enable, template <typename...> typename C, typename T>
+struct __tp_product_helper<Enable, C, T> {
     using type = tp_list<tp_rename_t<T, C>>;
 };
 
@@ -183,8 +183,11 @@ struct tp_product {
     using type = typename __tp_product_helper<void, C, tp_list<>, Args...>::type;
 };
 
-/// @brief f(C, L<A1, A2>, L<B1, B2, B3>) -> \
-/// L<C<A1, B1>, C<A1, B2>, C<A1, B3>, C<A2, B1>, C<A2, B2>, C<A2, B3>>
+/**
+ * @brief f(C, L<A1, A2>, L<B1, B2, B3>) -> \
+ *  L<C<A1, B1>, C<A1, B2>, C<A1, B3>, C<A2, B1>, C<A2, B2>, C<A2, B3>>
+ * 
+ */
 template <template <typename...> typename C, typename... Args>
 using tp_product_t = typename tp_product<C, Args...>::type;
 
@@ -205,21 +208,21 @@ template <typename C>
 using tp_reverse_t = typename tp_reverse<C>::type;
 
 /// @private
-template <typename _Enable, size_t idx, typename C, template <typename...> typename P>
+template <typename Enable, size_t idx, typename C, template <typename...> typename P>
 struct __tp_find_if_helper;
 
 /// @private
-template <typename _Enable, size_t idx, template <typename...> typename C, typename T,
+template <typename Enable, size_t idx, template <typename...> typename C, typename T,
           typename... Args, template <typename...> typename P>
-struct __tp_find_if_helper<_Enable, idx, C<T, Args...>, P> {
+struct __tp_find_if_helper<Enable, idx, C<T, Args...>, P> {
     constexpr static size_t value =
         __tp_find_if_helper<void, idx + 1, C<Args...>, P>::value;
 };
 
 /// @private
-template <typename _Enable, size_t idx, template <typename...> typename C,
+template <typename Enable, size_t idx, template <typename...> typename C,
           template <typename...> typename P>
-struct __tp_find_if_helper<_Enable, idx, C<>, P> {
+struct __tp_find_if_helper<Enable, idx, C<>, P> {
     constexpr static size_t value = -1;
 };
 
@@ -250,62 +253,64 @@ template <typename C, typename V>
 inline constexpr size_t tp_find_v = tp_find<C, V>::value;
 
 template <typename C, template <typename...> typename P>
-struct tp_unique_if {
-    using type = tp_left_fold_f<C, tp_clear_t<C>,
-                                tp_bind<tp_conditional_t, tp_bind_front<P>, tp_arg<0>,
-                                        tp_bind_front<tp_push_back_t>>>;
+struct __tp_unique_helper;
+
+template <template <typename...> typename C, template <typename...> typename P,
+          typename T, typename U, typename... Args>
+struct __tp_unique_helper<C<T, U, Args...>, P> {
+    using Next = typename __tp_unique_helper<C<U, Args...>, P>::type;
+    using Now = std::conditional_t<P<T, U>::value, C<>, C<T>>;
+    using type = tp_concat_t<Now, Next>;
 };
 
-// using NOW_LIST = tp_prefix_t<C, I + 1>;
-// using PRE_LIST = tp_prefix_t<C, I>;
-// using PRE_UNIQUE_IF_LIST = tp_unique_if_t<PRE_LIST>;
-// then :
-// tp_unique_if_t<NOW_LIST, P>
-// = tp_conditonal_t<
-// P<PRE_UNIQUE_IF_LIST, tp_at_t<C, I>>,
-// PRE_UNIQUE_IF_LIST,
-// tp_push_back_t<PRE_UNIQUE_IF_LIST, tp_at_t<C, I>>>
-//
-// It is equivalent to calling P every time on the results
-// of the previous processing and the new value.
-// If P is false, the new value is added
+template <template <typename...> typename C, template <typename...> typename P,
+          typename T>
+struct __tp_unique_helper<C<T>, P> {
+    using type = C<T>;
+};
+
+template <template <typename...> typename C, template <typename...> typename P>
+struct __tp_unique_helper<C<>, P> {
+    using type = C<>;
+};
+
 template <typename C, template <typename...> typename P>
-using tp_unique_if_t = typename tp_unique_if<C, P>::type;
-
-template <typename C, typename P>
-using tp_unique_if_f = typename tp_unique_if<C, P::template fn>::type;
-
-template <typename C>
 struct tp_unique {
-    using type = tp_unique_if_t<C, tp_contains>;
+    using type = typename __tp_unique_helper<C, P>::type;
 };
+
+template <typename C, template <typename...> typename P = tp_equal_to>
+using tp_unique_t = typename tp_unique<C, P>::type;
+
+template <typename C, typename P = tp_make_fn<tp_equal_to>>
+using tp_unique_f = typename tp_unique<C, P::template fn>::type;
 
 /// @private
-template <typename _Enable, typename C, typename C1, typename C2,
+template <typename Enable, typename C, typename C1, typename C2,
           template <typename...> typename P>
 struct __tp_merge_helper;
 
 /// @private
-template <typename _Enable, template <typename...> typename C, typename... Args,
+template <typename Enable, template <typename...> typename C, typename... Args,
           template <typename...> typename C1, template <typename...> typename C2,
           typename... Args2, template <typename...> typename P>
-struct __tp_merge_helper<_Enable, C<Args...>, C1<>, C2<Args2...>, P> {
+struct __tp_merge_helper<Enable, C<Args...>, C1<>, C2<Args2...>, P> {
     using type = tp_list<Args..., Args2...>;
 };
 
 /// @private
-template <typename _Enable, template <typename...> typename C, typename... Args,
+template <typename Enable, template <typename...> typename C, typename... Args,
           template <typename...> typename C1, typename... Args1,
           template <typename...> typename C2, template <typename...> typename P>
-struct __tp_merge_helper<_Enable, C<Args...>, C1<Args1...>, C2<>, P> {
+struct __tp_merge_helper<Enable, C<Args...>, C1<Args1...>, C2<>, P> {
     using type = tp_list<Args..., Args1...>;
 };
 
 /// @private
-template <typename _Enable, template <typename...> typename C, typename... Args,
+template <typename Enable, template <typename...> typename C, typename... Args,
           template <typename...> typename C1, template <typename...> typename C2,
           template <typename...> typename P>
-struct __tp_merge_helper<_Enable, C<Args...>, C1<>, C2<>, P> {
+struct __tp_merge_helper<Enable, C<Args...>, C1<>, C2<>, P> {
     using type = tp_list<Args...>;
 };
 
@@ -424,7 +429,8 @@ struct __tp_lexicographical_compare__helper<C0<>, C1<>, P> {
 
 template <typename C0, typename C1, template <typename...> typename P>
 struct tp_lexicographical_compare {
-    using type = typename __tp_lexicographical_compare__helper<C0, C1, tp_make_fn<P>>::type;
+    using type =
+        typename __tp_lexicographical_compare__helper<C0, C1, tp_make_fn<P>>::type;
 };
 
 template <typename C0, typename C1, template <typename...> typename P = tp_less>
@@ -433,6 +439,114 @@ using tp_lexicographical_compare_t = typename tp_lexicographical_compare<C0, C1,
 template <typename C0, typename C1, typename P = tp_make_fn<tp_less>>
 using tp_lexicographical_compare_f =
     typename tp_lexicographical_compare<C0, C1, P::template fn>::type;
+
+template <typename T, typename U, typename P>
+struct __tp_max_element_transform {
+    using type = std::conditional_t<P::template fn<T, U>::value, U, T>;
+};
+
+template <typename T, typename U, typename P>
+using __tp_max_element_transform_t = typename __tp_max_element_transform<T, U, P>::type;
+
+template <typename C, template <typename...> typename P>
+struct tp_max_element {
+    using Front = tp_front_t<C>;
+    using Rest = tp_pop_front_t<C>;
+
+    using type =
+        tp_left_fold_f<Rest, Front,
+                       tp_bind_back<__tp_max_element_transform_t, tp_make_fn<P>>>;
+};
+
+template <typename C, template <typename...> typename P = tp_less>
+using tp_max_element_t = typename tp_max_element<C, P>::type;
+
+template <typename C, typename P = tp_make_fn<tp_less>>
+using tp_max_element_f = typename tp_max_element<C, P::template fn>::type;
+
+template <typename T, typename U, typename P>
+struct __tp_min_element_transform {
+    using type = std::conditional_t<P::template fn<T, U>::value, T, U>;
+};
+
+template <typename T, typename U, typename P>
+using __tp_min_element_transform_t = typename __tp_min_element_transform<T, U, P>::type;
+
+template <typename C, template <typename...> typename P>
+struct tp_min_element {
+    using Front = tp_front_t<C>;
+    using Rest = tp_pop_front_t<C>;
+
+    using type =
+        tp_left_fold_f<Rest, Front,
+                       tp_bind_back<__tp_min_element_transform_t, tp_make_fn<P>>>;
+};
+
+template <typename C, template <typename...> typename P = tp_less>
+using tp_min_element_t = typename tp_min_element<C, P>::type;
+
+template <typename C, typename P = tp_make_fn<tp_less>>
+using tp_min_element_f = typename tp_min_element<C, P::template fn>::type;
+
+template <typename Enable, typename C0, typename C1, template <typename...> typename P>
+struct __tp_exclude_helper;
+
+template <typename Enable, template <typename...> typename C0,
+          template <typename...> typename C1, template <typename...> typename P,
+          typename... Args1>
+struct __tp_exclude_helper<Enable, C0<>, C1<Args1...>, P> {
+    using type = C0<>;
+};
+
+template <typename Enable, template <typename...> typename C0,
+          template <typename...> typename C1, template <typename...> typename P,
+          typename... Args0>
+struct __tp_exclude_helper<Enable, C0<Args0...>, C1<>, P> {
+    using type = C0<Args0...>;
+};
+
+template <typename Enable, template <typename...> typename C0,
+          template <typename...> typename C1, template <typename...> typename P>
+struct __tp_exclude_helper<Enable, C0<>, C1<>, P> {
+    using type = C0<>;
+};
+
+template <template <typename...> typename C0, template <typename...> typename C1,
+          template <typename...> typename P, typename T, typename... Args0, typename U,
+          typename... Args1>
+struct __tp_exclude_helper<std::enable_if_t<P<T, U>::value>, C0<T, Args0...>,
+                           C1<U, Args1...>, P> {
+    using type = tp_push_front_t<
+        typename __tp_exclude_helper<void, C0<Args0...>, C1<U, Args1...>, P>::type, T>;
+};
+
+template <template <typename...> typename C0, template <typename...> typename C1,
+          template <typename...> typename P, typename T, typename... Args0, typename U,
+          typename... Args1>
+struct __tp_exclude_helper<std::enable_if_t<!P<T, U>::value && P<U, T>::value>,
+                           C0<T, Args0...>, C1<U, Args1...>, P> {
+    using type =
+        typename __tp_exclude_helper<void, C0<T, Args0...>, C1<Args1...>, P>::type;
+};
+
+template <template <typename...> typename C0, template <typename...> typename C1,
+          template <typename...> typename P, typename T, typename... Args0, typename U,
+          typename... Args1>
+struct __tp_exclude_helper<std::enable_if_t<!P<T, U>::value && !P<U, T>::value>,
+                           C0<T, Args0...>, C1<U, Args1...>, P> {
+    using type = typename __tp_exclude_helper<void, C0<Args0...>, C1<Args1...>, P>::type;
+};
+
+template <typename C0, typename C1, template <typename...> typename P>
+struct tp_exclude {
+    using type = typename __tp_exclude_helper<void, C0, C1, P>::type;
+};
+
+template <typename C0, typename C1, template <typename...> typename P = tp_less>
+using tp_exclude_t = typename tp_exclude<C0, C1, P>::type;
+
+template <typename C0, typename C1, typename P = tp_make_fn<tp_less>>
+using tp_exclude_f = typename tp_exclude<C0, C1, P::template fn>::type;
 
 } // namespace wjr
 

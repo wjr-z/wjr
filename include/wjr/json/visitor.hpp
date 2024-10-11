@@ -1,3 +1,18 @@
+/**
+ * @file visitor.hpp
+ * @author wjr
+ * @brief
+ * @todo \
+ * 1. Virtual visitor, this is faster than document.    \
+ * 2. Just like simdjson, parse struct by using iterator. In my test, \
+ * this is slightly slower than first one.
+ * @version 0.1
+ * @date 2024-10-09
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #ifndef WJR_JSON_VISITOR_HPP__
 #define WJR_JSON_VISITOR_HPP__
 

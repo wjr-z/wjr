@@ -91,7 +91,7 @@ inline void __assert_handler(const char *expr, const char *file, const char *fun
     } while (false)
 
 // do nothing
-#define WJR_ASSERT_ASSUME_UNCHECK_I(expr, ...) (WJR_ASSUME(expr))
+#define WJR_ASSERT_ASSUME_UNCHECK_I(expr, ...) WJR_ASSUME(expr)
 
 // level of assert is zero at default.
 #define WJR_ASSERT_L0(...) WJR_ASSERT_CHECK_I(__VA_ARGS__)

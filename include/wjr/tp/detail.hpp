@@ -465,26 +465,17 @@ struct tp_bind {
     using fn = F<typename __tp_bind_helper<void, Args, Args2...>::type...>;
 };
 
-template <typename F, typename... Args>
-using tp_bind_f = tp_bind<F::template fn, Args...>;
-
 template <template <typename...> typename F, typename... Args>
 struct tp_bind_front {
     template <typename... Args2>
     using fn = tp_defer_t<F, Args..., Args2...>;
 };
 
-template <typename F, typename... Args>
-using tp_bind_front_f = tp_bind_front<F::template fn, Args...>;
-
 template <template <typename...> typename F, typename... Args>
 struct tp_bind_back {
     template <typename... Args2>
     using fn = tp_defer_t<F, Args2..., Args...>;
 };
-
-template <typename F, typename... Args>
-using tp_bind_back_f = tp_bind_back<F::template fn, Args...>;
 
 template <template <typename...> typename C, typename... Args>
 struct tp_zip;
@@ -666,39 +657,52 @@ using tp_right_fold_t = typename tp_right_fold<C, E, F>::type;
 template <typename C, typename E, typename F>
 using tp_right_fold_f = typename tp_right_fold<C, E, F::template fn>::type;
 
-/// @private
-template <typename T, typename S>
-struct __tp_make_integer_sequence_helper;
+template <typename Type, Type Min, size_t Count>
+struct __tp_iota_helper;
 
-/// @private
-template <typename T, T... Idxs>
-struct __tp_make_integer_sequence_helper<T, std::integer_sequence<T, Idxs...>> {
-    using type = tp_list<integral_constant<T, Idxs>...>;
+template <typename Type, Type Min, size_t Count>
+struct __tp_iota_helper {
+    using type =
+        tp_push_front_t<typename __tp_iota_helper<Type, Min + 1, Count - 1>::type,
+                        integral_constant<Type, Min>>;
 };
 
-template <typename T, T N>
-using tp_make_integer_sequence =
-    typename __tp_make_integer_sequence_helper<T, std::make_integer_sequence<T, N>>::type;
+template <typename Type, Type Min>
+struct __tp_iota_helper<Type, Min, 0> {
+    using type = tp_list<>;
+};
+
+template <typename Type, Type Min, size_t Count>
+struct tp_iota {
+    using type = typename __tp_iota_helper<Type, Min, Count>::type;
+};
+
+template <typename Type, Type Min, size_t Count>
+using tp_iota_t = typename tp_iota<Type, Min, Count>::type;
+
+template <typename T>
+struct tp_integers_list;
+
+template <typename Type, Type... Vals>
+struct tp_integers_list<std::integer_sequence<Type, Vals...>> {
+    using type = tp_list<integral_constant<Type, Vals>...>;
+};
+
+template <typename Type, Type... Vals>
+using tp_integers_list_t =
+    typename tp_integers_list<std::integer_sequence<Type, Vals...>>::type;
+
+template <size_t... Vals>
+using tp_indexs_list_t = tp_integers_list_t<size_t, Vals...>;
+
+template <typename T, size_t N>
+using tp_make_integers_list_t = typename tp_integers_list<tp_iota_t<T, 0, N>>::type;
 
 template <size_t N>
-using tp_make_index_sequence = tp_make_integer_sequence<size_t, N>;
+using tp_make_indexs_list_t = tp_make_integers_list_t<size_t, N>;
 
 template <typename... Args>
-using tp_index_sequence_for = tp_make_index_sequence<sizeof...(Args)>;
-
-/// @private
-template <typename T, typename S>
-struct __tp_make_std_integer_sequence_helper;
-
-/// @private
-template <typename T, T... Idxs>
-struct __tp_make_std_integer_sequence_helper<T, tp_list<integral_constant<T, Idxs>...>> {
-    using type = std::integer_sequence<T, Idxs...>;
-};
-
-template <typename S>
-using tp_make_std_index_sequence =
-    typename __tp_make_std_integer_sequence_helper<size_t, S>::type;
+using tp_index_sequence_for = tp_make_indexs_list_t<sizeof...(Args)>;
 
 } // namespace wjr
 

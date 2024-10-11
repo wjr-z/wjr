@@ -351,7 +351,7 @@ template <size_t I, typename Tuple>
 struct __tuple_cat_single_helper {
     static constexpr size_t Size = std::tuple_size_v<Tuple>;
     using type0 = tp_repeat_t<tp_list<integral_constant<size_t, I>>, Size>;
-    using type1 = tp_make_index_sequence<Size>;
+    using type1 = tp_make_indexs_list_t<Size>;
 };
 
 /// @private
@@ -372,14 +372,14 @@ template <typename... Tuples>
 struct __tuple_cat_helper {
     using Sequence = std::index_sequence_for<Tuples...>;
     using Impl = __tuple_cat_helper_impl<Sequence, Tuples...>;
-    using type0 = tp_make_std_index_sequence<typename Impl::type0>;
-    using type1 = tp_make_std_index_sequence<typename Impl::type1>;
+    using type0 = typename Impl::type0;
+    using type1 = typename Impl::type1;
 };
 
 /// @private
 template <size_t... I0, size_t... I1, typename... Tuples>
-constexpr decltype(auto) __tuple_cat_impl(std::index_sequence<I0...>,
-                                          std::index_sequence<I1...>,
+constexpr decltype(auto) __tuple_cat_impl(tp_indexs_list_t<I0...>,
+                                          tp_indexs_list_t<I1...>,
                                           tuple<Tuples...> &&tuples) {
     return tuple(std::get<I1>(std::get<I0>(std::move(tuples)))...);
 }
