@@ -17,7 +17,7 @@
 
 #include <wjr/assert.hpp>
 
-#if WJR_DEBUG_LEVEL > 2
+#if WJR_DEBUG_LEVEL >= 3
     #define WJR_HAS_DEBUG_NONSENDABLE_CHECKER WJR_HAS_DEF
 #endif
 

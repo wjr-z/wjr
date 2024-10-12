@@ -22,7 +22,7 @@ public:
     spin_mutex(const spin_mutex &) = delete;
     spin_mutex &operator=(const spin_mutex &) = delete;
 
-#if WJR_DEBUG_LEVEL > 2
+#if WJR_DEBUG_LEVEL >= 3
     ~spin_mutex() { WJR_ASSERT_L0(!m_flag.load(memory_order_acquire)); }
 #endif
 

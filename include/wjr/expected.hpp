@@ -383,8 +383,6 @@ struct expected_storage_base<T, compressed_unexpected<E, init>, false> {
         std::is_nothrow_destructible_v<T> &&std::is_nothrow_destructible_v<E>) {
         if (this->has_value()) {
             std::destroy_at(std::addressof(this->m_val));
-        } else {
-            std::destroy_at(std::addressof(this->m_err));
         }
     }
 

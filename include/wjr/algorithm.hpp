@@ -132,6 +132,7 @@ constexpr void __sort_impl(Iter first, Iter last, Pred pred) {
 
 } // namespace algorithm_detail
 
+/// @todo
 template <typename Iter, typename Pred>
 constexpr void sort(Iter first, Iter last, Pred pred) {
     algorithm_detail::__sort_impl(first, last, pred);

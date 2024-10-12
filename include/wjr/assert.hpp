@@ -43,36 +43,67 @@
     #error "WJR_DEBUG_LEVEL must be 0 ~ 3"
 #endif
 
+#if WJR_DEBUG_LEVEL == 0
+    #undef WJR_LIGHT_ASSERT
+    #define WJR_LIGHT_ASSERT
+#endif
+
 namespace wjr {
 
-WJR_NORETURN extern void __assert_failed(const char *expr, const char *file,
-                                         const char *func, int line) noexcept;
+WJR_NORETURN WJR_COLD extern void __assert_failed(const char *expr, const char *file,
+                                                  const char *func, int line) noexcept;
+
+WJR_NORETURN WJR_COLD extern void __assert_light_failed(const char *expr) noexcept;
 
 // LCOV_EXCL_START
 
 /// @private
 template <typename... Args>
-void __assert_handler(const char *expr, const char *file, const char *func, int line,
-                      Args &&...args) noexcept {
-    std::cerr << "Message:";
+WJR_NORETURN void __assert_failed_handler(const char *expr, const char *file,
+                                          const char *func, int line,
+                                          Args &&...args) noexcept {
+    std::cerr << "Assert message:";
     (void)(std::cerr << ... << std::forward<Args>(args));
     std::cerr << '\n';
     __assert_failed(expr, file, func, line);
 }
 
 /// @private
-inline void __assert_handler(const char *expr, const char *file, const char *func,
-                             int line) noexcept {
+WJR_NORETURN inline void __assert_failed_handler(const char *expr, const char *file,
+                                                 const char *func, int line) noexcept {
     __assert_failed(expr, file, func, line);
 }
+
+/// @private
+template <typename... Args>
+WJR_NORETURN void __assert_light_failed_handler(const char *expr, const char *,
+                                                const char *, int,
+                                                Args &&...args) noexcept {
+    std::cerr << "Assert message:";
+    (void)(std::cerr << ... << std::forward<Args>(args));
+    std::cerr << '\n';
+    __assert_light_failed(expr);
+}
+
+/// @private
+WJR_NORETURN inline void __assert_light_failed_handler(const char *expr, const char *,
+                                                       const char *, int) noexcept {
+    __assert_light_failed(expr);
+}
+
+#if defined(WJR_LIGHT_ASSERT)
+    #define WJR_ASSERT_FAILED_HANDLER ::wjr::__assert_light_failed_handler
+#else
+    #define WJR_ASSERT_FAILED_HANDLER ::wjr::__assert_failed_handler
+#endif
 
 // LCOV_EXCL_STOP
 
 #define WJR_ASSERT_CHECK_I(expr, ...)                                                    \
     do {                                                                                 \
         if (WJR_UNLIKELY(!(expr))) {                                                     \
-            ::wjr::__assert_handler(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE,     \
-                                    ##__VA_ARGS__);                                      \
+            WJR_ASSERT_FAILED_HANDLER(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE,   \
+                                      ##__VA_ARGS__);                                    \
             WJR_UNREACHABLE();                                                           \
         }                                                                                \
     } while (false)
@@ -83,8 +114,8 @@ inline void __assert_handler(const char *expr, const char *file, const char *fun
 #define WJR_ASSERT_ASSUME_CHECK_I(expr, ...)                                             \
     do {                                                                                 \
         if (WJR_UNLIKELY(!(expr))) {                                                     \
-            ::wjr::__assert_handler(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE,     \
-                                    ##__VA_ARGS__);                                      \
+            WJR_ASSERT_FAILED_HANDLER(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE,   \
+                                      ##__VA_ARGS__);                                    \
             WJR_UNREACHABLE();                                                           \
         }                                                                                \
         WJR_ASSUME(expr);                                                                \

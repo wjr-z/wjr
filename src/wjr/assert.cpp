@@ -13,7 +13,12 @@ void __assert_failed(const char *expr, const char *file, const char *func,
     }
 
     fprintf(stderr, "%s: Assertion `%s' failed.\n", func, expr);
-    std::exit(EXIT_FAILURE);
+    std::terminate();
+}
+
+WJR_NORETURN extern void __assert_light_failed(const char *expr) noexcept {
+    fprintf(stderr, "Assertion `%s' failed.\n", expr);
+    std::terminate();
 }
 
 } // namespace wjr
