@@ -1,0 +1,6 @@
+#ifndef WJR_CONTAINER_RING_BUFFER_HPP__
+#define WJR_CONTAINER_RING_BUFFER_HPP__
+
+namespace wjr {}
+
+#endif // WJR_CONTAINER_RING_BUFFER_HPP__

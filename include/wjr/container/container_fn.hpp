@@ -8,10 +8,6 @@
 
 namespace wjr {
 
-template <typename T, typename D>
-struct get_relocate_mode<std::unique_ptr<T, D>> {
-    static constexpr relocate_t value = relocate_t::maybe_trivial;
-};
 
 /**
  * @class container_fn<Alloc>

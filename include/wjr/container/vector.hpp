@@ -231,7 +231,7 @@ struct get_relocate_mode<default_vector_storage<T, Alloc>> {
 
 template <typename T, typename Alloc>
 class fixed_vector_storage
-    : public __default_vector_storage<T, Alloc, default_vector_storage<T, Alloc>,
+    : public __default_vector_storage<T, Alloc, fixed_vector_storage<T, Alloc>,
                                       std::false_type> {};
 
 template <typename T, typename Alloc>
@@ -239,8 +239,9 @@ struct get_relocate_mode<fixed_vector_storage<T, Alloc>> {
     static constexpr relocate_t value = relocate_t::trivial;
 };
 
-template <typename T, size_t Capacity, typename Alloc>
+template <typename T, size_t Capacity>
 class inplace_vector_storage {
+    using Alloc = memory_pool<T>;
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
@@ -278,8 +279,7 @@ public:
 
     ~inplace_vector_storage() = default;
 
-    WJR_CONSTEXPR20 void
-    deallocate(WJR_MAYBE_UNUSED _Alty &al) noexcept { /* do nothing */
+    WJR_CONSTEXPR20 void deallocate(_Alty &) noexcept { /* do nothing */
     }
 
     WJR_CONSTEXPR20 static void
@@ -378,8 +378,8 @@ private:
     data_type m_storage;
 };
 
-template <typename T, size_t Capacity, typename Alloc>
-struct get_relocate_mode<inplace_vector_storage<T, Capacity, Alloc>> {
+template <typename T, size_t Capacity>
+struct get_relocate_mode<inplace_vector_storage<T, Capacity>> {
     static constexpr relocate_t value = relocate_t::trivial;
 };
 
@@ -1790,8 +1790,8 @@ using vector = basic_vector<default_vector_storage<T, Alloc>>;
  * @brief A vector with elements stored on the stack.
  *
  */
-template <typename T, size_t Capacity, typename Alloc = memory_pool<T>>
-using inplace_vector = basic_vector<inplace_vector_storage<T, Capacity, Alloc>>;
+template <typename T, size_t Capacity>
+using inplace_vector = basic_vector<inplace_vector_storage<T, Capacity>>;
 
 /**
  * @brief A vector with fixed capacity by construction.

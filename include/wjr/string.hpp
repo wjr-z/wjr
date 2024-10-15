@@ -159,6 +159,11 @@ using default_string = std::basic_string<char, std::char_traits<char>, memory_po
 
 WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(default_string, default_string);
 
+template <typename Char, typename Traits, typename Alloc>
+struct get_relocate_mode<std::basic_string<Char, Traits, Alloc>> {
+    static constexpr relocate_t value = relocate_t::maybe_trivial;
+};
+
 } // namespace wjr
 
 #endif // WJR_STRING_HPP__

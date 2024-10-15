@@ -703,6 +703,11 @@ struct get_relocate_mode {
 template <typename T>
 inline constexpr relocate_t get_relocate_mode_v = get_relocate_mode<T>::value;
 
+template <typename T, typename D>
+struct get_relocate_mode<std::unique_ptr<T, D>> {
+    static constexpr relocate_t value = relocate_t::maybe_trivial;
+};
+
 template <relocate_t Mode, typename... Args>
 struct __get_common_relocate_mode_impl;
 

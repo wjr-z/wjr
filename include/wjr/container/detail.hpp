@@ -156,11 +156,6 @@ public:
 template <typename Container>
 struct container_traits;
 
-template <typename Char, typename Traits, typename Alloc>
-struct get_relocate_mode<std::basic_string<Char, Traits, Alloc>> {
-    static constexpr relocate_t value = relocate_t::maybe_trivial;
-};
-
 } // namespace wjr
 
 #endif // WJR_CONTAINER_DETAIL_HPP__
