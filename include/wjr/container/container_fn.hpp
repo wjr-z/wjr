@@ -8,7 +8,6 @@
 
 namespace wjr {
 
-
 /**
  * @class container_fn<Alloc>
  * @brief The same characteristics and behavior of all allocator containers

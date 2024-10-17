@@ -4,7 +4,7 @@
 #include <array>
 #include <string_view>
 
-#include <wjr/type_traits.hpp>
+#include <wjr/algorithm.hpp>
 
 namespace wjr {
 
@@ -15,11 +15,16 @@ class string_map {
 public:
     using key_type = std::string_view;
 
-    constexpr string_map(const key_type (&keys)[KeySize]) noexcept : m_keys(keys) {}
+    constexpr string_map(const key_type (&keys)[KeySize]) noexcept : m_keys(keys) {
+        constant::sort(m_keys.begin(), m_keys.end());
+    }
 
 private:
     std::array<key_type, KeySize> m_keys;
 };
+
+template <size_t KeySize>
+string_map(const std::string_view (&keys)[KeySize]) -> string_map<KeySize>;
 
 } // namespace constant
 

@@ -8,17 +8,20 @@
 
 namespace wjr {
 
+template <typename T>
 class huffman_node {
 public:
     huffman_node() = default;
     huffman_node(const huffman_node &) = delete;
     huffman_node &operator=(const huffman_node &) = delete;
 
+    huffman_node *left() noexcept { return m_left; }
+    const huffman_node *left() const noexcept { return m_left; }
+    huffman_node *right() noexcept { return m_right; }
+    const huffman_node *right() const noexcept { return m_right; }
+
     void set_left(huffman_node *left) noexcept { m_left = left; }
     void set_right(huffman_node *right) noexcept { m_right = right; }
-    huffman_node *get_left() noexcept { return m_left; }
-    const huffman_node *get_left() const noexcept { return m_left; }
-    huffman_node *get_right() noexcept { return m_right; }
 
     bool is_leaf() const noexcept { return m_left == nullptr; }
     bool is_inner() const noexcept { return m_left != nullptr; }
@@ -29,14 +32,14 @@ private:
 };
 
 template <typename T>
-class huffman_leaf_node : public huffman_node {
+class huffman_leaf_node : public huffman_node<T> {
 public:
-    huffman_leaf_node() noexcept : huffman_node(), m_value() {}
+    huffman_leaf_node() noexcept : huffman_node<T>(), m_value() {}
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
     huffman_leaf_node(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<T, Args &&...>)
-        : m_value(std::forward<Args>(args)...) {}
+        : huffman_node<T>(), m_value(std::forward<Args>(args)...) {}
 
     huffman_leaf_node(const huffman_leaf_node &) = delete;
     huffman_leaf_node &operator=(const huffman_leaf_node &) = delete;
@@ -52,50 +55,162 @@ private:
 };
 
 template <typename T>
-constexpr huffman_leaf_node<T> *get_leaf(huffman_node *node) {
+constexpr huffman_leaf_node<T> *get_leaf(huffman_node<T> *node) {
     WJR_ASSERT(node->is_leaf());
     return static_cast<huffman_leaf_node<T> *>(node);
 }
 
 /// @todo Allocator.
-template <typename T, typename Alloc>
+template <typename T>
 class huffman_tree {
 public:
-    using vector_type = fixed_vector<T, Alloc>;
-    using size_type = typename vector_type::size_type;
+    using node_type = huffman_node<T>;
+
+    huffman_tree(size_t n) : m_buffer(new char[n]) {}
+
+    huffman_tree(const huffman_tree &) = delete;
+    huffman_tree(huffman_tree &&) = default;
+    huffman_tree &operator=(const huffman_tree &) = delete;
+    huffman_tree &operator=(huffman_tree &&) = default;
+
+    node_type *root() noexcept { return reinterpret_cast<node_type *>(m_buffer.get()); }
+    const node_type *root() const noexcept {
+        return reinterpret_cast<node_type *>(m_buffer.get());
+    }
 
 private:
-    fixed_vector<T, Alloc> m_vec;
+    std::unique_ptr<char[]> m_buffer;
 };
 
+namespace huffman {
+
+template <typename T>
+struct __trivial_pair {
+    size_t first;
+    T second;
+};
+
+/// @brief Iter doesn't necessarily need to be an iterator.
 template <typename Getter>
-struct huffman_encode_node {
-    using size_type = typename Getter::size_type;
+decltype(auto) build_tree(size_t n, Getter getter) noexcept {
     using value_type = typename Getter::value_type;
+    static_assert(std::is_trivial_v<value_type>);
+    using tree_type = huffman_tree<value_type>;
+    using pair_type = __trivial_pair<value_type>;
+    using inner_type = huffman_node<value_type>;
+    using leaf_type = huffman_leaf_node<value_type>;
 
-    value_type m_value;
-};
+    std::unique_ptr<char[]> buffer(
+        new char[sizeof(size_t) * (n - 1) + sizeof(pair_type) * n]);
 
-class huffman_encoder {
-public:
-    /// @brief Iter doesn't necessarily need to be an iterator.
-    template <typename Iter, typename Getter>
-    static decltype(auto) encode_tree(Iter first, Iter last, Getter getter) noexcept {
-        using size_type = typename Getter::size_type;
-        using value_type = typename Getter::value_type;
-        static constexpr size_type npos = std::numeric_limits<size_type>::max();
+    auto *size_first = reinterpret_cast<size_t *>(buffer.get()) + (n - 1);
+    auto *size_last = size_first;
+    auto *pair_first = reinterpret_cast<pair_type *>(size_first);
 
-        const auto n = last - first;
-        fixed_vector<compressed_pair<size_type, value_type>> tmp_vec(n, in_place_reserve);
-        for (; first != last; ++first) {
-            tmp_vec.emplace_back(getter.get_size(first), getter.get_value(first));
-        }
-
-        std::sort(tmp_vec.begin(), tmp_vec.end(), [](const auto &lhs, const auto &rhs) {
-            return lhs.first() < rhs.first();
-        });
+    for (size_t i = 0; i < n; ++i) {
+        pair_first[i].first = getter.get_size(i);
+        pair_first[i].second = getter.get_value(i);
     }
-};
+
+    std::sort(pair_first, pair_first + n,
+              [](const auto &lhs, const auto &rhs) { return lhs.first < rhs.first; });
+
+    huffman_tree<value_type> tree((n - 1) * sizeof(inner_type) + n * sizeof(leaf_type));
+    inner_type *const inner_end = tree.root();
+    auto *inner_first = inner_end + (n - 1);
+    auto *inner_last = inner_first;
+    auto *leaf_first = reinterpret_cast<leaf_type *>(inner_first);
+    auto *const leaf_last = leaf_first + n;
+
+    for (size_t i = 0; i < n; ++i) {
+        wjr::construct_at(leaf_first + i, pair_first[i].second);
+    }
+
+    if (n != 1) {
+        do {
+            size_t &total_size = size_last[-1];
+            inner_type &new_node = inner_last[-1];
+            do {
+                if (inner_first == inner_last) {
+                    total_size = pair_first[0].first + pair_first[1].first;
+                    new_node.set_left(leaf_first);
+                    new_node.set_left(leaf_first + 1);
+                    leaf_first += 2;
+                    pair_first += 2;
+                    break;
+                }
+
+                size_t pair_size = pair_first->first;
+                do {
+                    if (size_first[-1] < pair_size) {
+                        total_size = size_first[-1];
+                        --inner_first;
+                        --size_first;
+                        new_node.set_left(inner_first);
+
+                        if (inner_first != inner_last && size_first[-1] < pair_size) {
+                            total_size += size_first[-1];
+                            --inner_first;
+                            --size_first;
+                            new_node.set_right(inner_first);
+
+                            WJR_ASSUME(leaf_first != leaf_last);
+                            break;
+                        }
+
+                        total_size += pair_size;
+                        new_node.set_right(leaf_first);
+                        ++leaf_first;
+                        ++pair_first;
+                        break;
+                    }
+
+                    total_size = pair_size;
+                    new_node.set_left(leaf_first);
+                    ++leaf_first;
+                    ++pair_first;
+
+                    if (leaf_first == leaf_last ||
+                        (pair_size = pair_first->first, size_first[-1] < pair_size)) {
+                        total_size += size_first[-1];
+                        --inner_first;
+                        --size_first;
+                        new_node.set_right(inner_first);
+                        break;
+                    }
+
+                    total_size += pair_size;
+                    new_node.set_right(leaf_first);
+                    ++leaf_first;
+                    ++pair_first;
+                } while (0);
+            } while (0);
+
+            --inner_last;
+            --size_last;
+        } while (leaf_first != leaf_last);
+
+        if (inner_last != inner_end) {
+            do {
+                inner_type &new_node = inner_last[-1];
+                size_t &total_size = size_last[-1];
+
+                total_size = size_first[-1] + size_first[-2];
+                new_node.set_left(inner_first - 1);
+                new_node.set_right(inner_first - 2);
+                inner_first -= 2;
+                size_first -= 2;
+
+                --inner_last;
+                --size_last;
+            } while (inner_last != inner_end);
+        }
+    }
+
+    std::destroy_n(pair_first, n);
+    return tree;
+}
+} // namespace huffman
 
 } // namespace wjr
 

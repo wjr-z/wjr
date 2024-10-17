@@ -262,35 +262,35 @@ namespace biginteger_detail {
 
 /// @private
 template <typename S>
-bool __equal_pointer(const basic_biginteger<S> *lhs,
-                     const basic_biginteger<S> *rhs) noexcept {
+WJR_CONST bool __equal_pointer(const basic_biginteger<S> *lhs,
+                               const basic_biginteger<S> *rhs) noexcept {
     return lhs == rhs;
 }
 
 /// @private
 template <typename S0, typename S1>
-bool __equal_pointer(const basic_biginteger<S0> *,
-                     const basic_biginteger<S1> *) noexcept {
+WJR_CONST bool __equal_pointer(const basic_biginteger<S0> *,
+                               const basic_biginteger<S1> *) noexcept {
     return false;
 }
 
 /// @private
 template <typename S>
-bool __equal_pointer(const basic_biginteger<S> *lhs,
-                     const biginteger_data *rhs) noexcept {
+WJR_PURE bool __equal_pointer(const basic_biginteger<S> *lhs,
+                               const biginteger_data *rhs) noexcept {
     return lhs->__get_data() == rhs;
 }
 
 /// @private
 template <typename S>
-bool __equal_pointer(const biginteger_data *lhs,
-                     const basic_biginteger<S> *rhs) noexcept {
+WJR_PURE bool __equal_pointer(const biginteger_data *lhs,
+                               const basic_biginteger<S> *rhs) noexcept {
     return lhs == rhs->__get_data();
 }
 
 /// @private
-inline bool __equal_pointer(const biginteger_data *lhs,
-                            const biginteger_data *rhs) noexcept {
+WJR_CONST inline bool __equal_pointer(const biginteger_data *lhs,
+                                      const biginteger_data *rhs) noexcept {
     return lhs == rhs;
 }
 

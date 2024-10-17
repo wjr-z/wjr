@@ -3,10 +3,16 @@
 
 #include <array>
 #include <cstring>
+#include <memory>
 
 #include <wjr/iterator/detail.hpp>
 
 namespace wjr {
+
+template <typename T, typename D>
+struct get_relocate_mode<std::unique_ptr<T, D>> {
+    static constexpr relocate_t value = relocate_t::maybe_trivial;
+};
 
 WJR_REGISTER_HAS_TYPE(pointer_traits_to_address,
                       std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()),

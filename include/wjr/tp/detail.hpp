@@ -514,8 +514,10 @@ struct tp_zip<C, T, Args...> {
         C, std::make_index_sequence<tp_size_v<T>>>::template type<T, Args...>;
 };
 
-/// @brief f(C, L<A1, A2, ... An>, L<B1, B2, ..., Bn> ...) \
-/// -> L<C<A1, B1, ...>, C<A2, B2, ...>, ..., C<An, Bn, ...>>
+/**
+ * @brief f(C, L<A1, A2, ... An>, L<B1, B2, ..., Bn> ...) \
+ * -> L<C<A1, B1, ...>, C<A2, B2, ...>, ..., C<An, Bn, ...>>
+ */
 template <template <typename...> typename C, typename... Args>
 using tp_zip_t = typename tp_zip<C, Args...>::type;
 
