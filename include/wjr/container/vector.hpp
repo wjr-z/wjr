@@ -121,7 +121,7 @@ private:
 /// @private
 template <typename pointer, typename size_type>
 struct __unref_wrapper_helper<default_vector_size_reference<pointer, size_type>> {
-    using type = uint32_t &;
+    using type = size_type &;
 };
 
 template <typename T, typename Alloc, typename Mybase, typename IsReallocatable>
@@ -908,7 +908,7 @@ public:
                                  const allocator_type &al = allocator_type())
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al),
                  wjr::forward_as_tuple()) {
-        if (n != 0) {
+        if (WJR_LIKELY(n != 0)) {
             uninitialized_construct(0, n);
         }
     }
@@ -956,7 +956,14 @@ public:
      * @details Useful when old data unused. If reserved, this function won't move any old
      * data to new pointer.
      */
-    WJR_CONSTEXPR20 void clear_if_reserved(size_type n) { __clear_if_reserved_impl(n); }
+    WJR_CONSTEXPR20 void clear_if_reserved(size_type n) {
+        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(size() == 0)) {
+            __empty_reserve_impl(n);
+            return;
+        }
+
+        __clear_if_reserved_impl(n);
+    }
 
     WJR_CONSTEXPR20 void resize(const size_type new_size, default_construct_t) {
         __resize(new_size, default_construct);

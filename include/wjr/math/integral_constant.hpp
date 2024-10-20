@@ -92,8 +92,7 @@ WJR_CONST constexpr T parse() noexcept {
 #define WJR_REGISTER_INTEGRAL_LITERALS(NAME, TYPE)                                       \
     template <char... Chars>                                                             \
     WJR_CONST WJR_INTRINSIC_CONSTEXPR auto operator"" _##NAME() noexcept                 \
-        -> integral_constant<TYPE,                                                  \
-                                  digits_literal_detail::parse<TYPE, Chars...>()> {      \
+        -> integral_constant<TYPE, digits_literal_detail::parse<TYPE, Chars...>()> {     \
         return {};                                                                       \
     }
 

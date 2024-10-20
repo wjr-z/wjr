@@ -261,6 +261,12 @@
     #define WJR_NONNULL(...)
 #endif
 
+#if WJR_HAS_ATTRIBUTE(returns_nonnull)
+    #define WJR_RETURNS_NONNULL __attribute__((returns_nonnull))
+#else
+    #define WJR_RETURNS_NONNULL
+#endif
+
 #if WJR_HAS_ATTRIBUTE(__may_alias__)
     #define WJR_MAY_ALIAS __attribute__((__may_alias__))
 #else

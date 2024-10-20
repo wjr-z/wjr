@@ -186,7 +186,7 @@ struct tp_product {
 /**
  * @brief f(C, L<A1, A2>, L<B1, B2, B3>) -> \
  *  L<C<A1, B1>, C<A1, B2>, C<A1, B3>, C<A2, B1>, C<A2, B2>, C<A2, B3>>
- * 
+ *
  */
 template <template <typename...> typename C, typename... Args>
 using tp_product_t = typename tp_product<C, Args...>::type;

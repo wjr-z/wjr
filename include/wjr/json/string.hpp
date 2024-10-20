@@ -84,8 +84,8 @@ WJR_INTRINSIC_INLINE result<char *> generic_parse_string(char *dst, const char *
 }
 
 #if WJR_HAS_BUILTIN(JSON_PARSE_STRING)
-extern result<char *> parse_string(char *dst, const char *first,
-                                   const char *last) noexcept;
+extern WJR_ALL_NONNULL result<char *> parse_string(char *dst, const char *first,
+                                                   const char *last) noexcept;
 #else
 inline result<char *> parse_string(char *dst, const char *first,
                                    const char *last) noexcept {
@@ -136,7 +136,8 @@ generic_check_string(const char *first, const char *last) noexcept {
 }
 
 #if WJR_HAS_BUILTIN(JSON_CHECK_STRING)
-WJR_PURE extern result<void> check_string(const char *first, const char *last) noexcept;
+extern WJR_ALL_NONNULL WJR_PURE result<void> check_string(const char *first,
+                                                          const char *last) noexcept;
 #else
 inline result<void> check_string(const char *first, const char *last) noexcept {
     return generic_check_string(first, last);

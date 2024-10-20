@@ -5,7 +5,7 @@
 #include <wjr/preprocessor/config/compiler.hpp>
 #include <wjr/preprocessor/config/sizeof.hpp>
 #include <wjr/preprocessor/detail/basic.hpp>
-#include <wjr/preprocessor/logical/basic.hpp>
+#include <wjr/preprocessor/logical.hpp>
 
 #define WJR_HAS_DEF_VAR(var) WJR_PP_MAP_DEF(var)
 #define WJR_HAS_DEF WJR_HAS_DEF_VAR(1)

@@ -2211,8 +2211,7 @@ template <typename Value, unsigned int IBase = 10, typename Converter = char_con
           WJR_REQUIRES(charconv_detail::__is_valid_converter_v<Value, Converter>)>
 WJR_INTRINSIC_INLINE from_chars_result<const char *>
 from_chars(const char *first, const char *last, Value &val,
-           integral_constant<unsigned int, IBase> ic = {},
-           Converter conv = {}) noexcept {
+           integral_constant<unsigned int, IBase> ic = {}, Converter conv = {}) noexcept {
     return __from_chars_impl(first, last, val, ic, conv);
 }
 

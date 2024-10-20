@@ -239,12 +239,13 @@ using default_biginteger = basic_biginteger<default_biginteger_vector_storage<Al
 
 using biginteger = default_biginteger<memory_pool<uint64_t>>;
 
-using stack_biginteger = default_biginteger<math_detail::weak_stack_alloc<uint64_t>>;
+using stack_biginteger = default_biginteger<weak_stack_allocator<uint64_t>>;
 
 template <typename Alloc>
 using default_fixed_biginteger = basic_biginteger<fixed_biginteger_vector_storage<Alloc>>;
 
 using fixed_biginteger = default_fixed_biginteger<memory_pool<uint64_t>>;
+using fixed_stack_biginteger = default_fixed_biginteger<weak_stack_allocator<uint64_t>>;
 
 using default_biginteger_storage =
     default_biginteger_vector_storage<memory_pool<uint64_t>>;
@@ -277,14 +278,14 @@ WJR_CONST bool __equal_pointer(const basic_biginteger<S0> *,
 /// @private
 template <typename S>
 WJR_PURE bool __equal_pointer(const basic_biginteger<S> *lhs,
-                               const biginteger_data *rhs) noexcept {
+                              const biginteger_data *rhs) noexcept {
     return lhs->__get_data() == rhs;
 }
 
 /// @private
 template <typename S>
 WJR_PURE bool __equal_pointer(const biginteger_data *lhs,
-                               const basic_biginteger<S> *rhs) noexcept {
+                              const basic_biginteger<S> *rhs) noexcept {
     return lhs == rhs->__get_data();
 }
 
@@ -296,9 +297,9 @@ WJR_CONST inline bool __equal_pointer(const biginteger_data *lhs,
 
 /// @private
 template <bool Checked, typename S>
-from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
-                                                  basic_biginteger<S> *dst,
-                                                  unsigned int base) noexcept;
+WJR_ALL_NONNULL from_chars_result<const char *>
+__from_chars_impl(const char *first, const char *last, basic_biginteger<S> *dst,
+                  unsigned int base) noexcept;
 
 extern template from_chars_result<const char *>
 __from_chars_impl<true, default_biginteger_storage>(
@@ -348,8 +349,8 @@ void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs,
 
 /// @private
 template <bool xsign, typename S>
-void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                   const biginteger_data *rhs) noexcept;
+WJR_ALL_NONNULL void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
+                                   const biginteger_data *rhs) noexcept;
 
 extern template void __addsub_impl<false, default_biginteger_storage>(
     basic_biginteger<default_biginteger_storage> *dst, const biginteger_data *lhs,
@@ -429,8 +430,8 @@ void __mul_ui_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 
 /// @private
 template <typename S>
-void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                const biginteger_data *rhs) noexcept;
+WJR_ALL_NONNULL void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
+                                const biginteger_data *rhs) noexcept;
 
 extern template void
 __mul_impl<default_biginteger_storage>(basic_biginteger<default_biginteger_storage> *dst,
@@ -458,7 +459,8 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) noe
 
 /// @private
 template <typename S>
-void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept;
+WJR_ALL_NONNULL void __sqr_impl(basic_biginteger<S> *dst,
+                                const biginteger_data *src) noexcept;
 
 extern template void
 __sqr_impl<default_biginteger_storage>(basic_biginteger<default_biginteger_storage> *dst,
@@ -507,8 +509,9 @@ void __submul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) 
 
 /// @private
 template <typename S>
-void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                      const biginteger_data *rhs, int32_t xmask) noexcept;
+WJR_ALL_NONNULL void __addsubmul_impl(basic_biginteger<S> *dst,
+                                      const biginteger_data *lhs,
+                                      const biginteger_data *rhs, int32_t xmask) noexcept;
 
 extern template void __addsubmul_impl<default_biginteger_storage>(
     basic_biginteger<default_biginteger_storage> *dst, const biginteger_data *lhs,
@@ -1520,9 +1523,9 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
         if constexpr (Checked) {
 #endif
             if (base <= 10) {
-                const auto __try_match = [base](uint8_t &ch) {
-                    ch -= '0';
-                    return ch < base;
+                const auto __try_match = [base](uint8_t &__ch) {
+                    __ch -= '0';
+                    return __ch < base;
                 };
 
                 if (WJR_UNLIKELY(!__try_match(ch))) {
@@ -1574,9 +1577,9 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
                     }
                 }
             } else {
-                const auto __try_match = [base](uint8_t &ch) {
-                    ch = char_converter.from(ch);
-                    return ch < base;
+                const auto __try_match = [base](uint8_t &__ch) {
+                    __ch = char_converter.from(__ch);
+                    return __ch < base;
                 };
 
                 if (WJR_UNLIKELY(!__try_match(ch))) {
@@ -1931,7 +1934,7 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     auto *lp = const_cast<pointer>(lhs->data());
     auto *rp = const_cast<pointer>(rhs->data());
 
-    unique_stack_allocator stkal(math_detail::stack_alloc);
+    unique_stack_allocator stkal;
     std::optional<uninitialized<basic_biginteger<S>>> tmp;
 
     if (dst->capacity() < dusize) {
@@ -2001,7 +2004,7 @@ void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept {
     auto *dp = dst->data();
     auto *sp = const_cast<pointer>(src->data());
 
-    unique_stack_allocator stkal(math_detail::stack_alloc);
+    unique_stack_allocator stkal;
     std::optional<uninitialized<basic_biginteger<S>>> tmp;
 
     if (dst->capacity() < dusize) {
@@ -2176,7 +2179,7 @@ void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
         return;
     }
 
-    unique_stack_allocator stkal(math_detail::stack_alloc);
+    unique_stack_allocator stkal;
     auto *tp = static_cast<uint64_t *>(stkal.allocate(tusize * sizeof(uint64_t)));
 
     mul_s(tp, lhs->data(), lusize, rhs->data(), rusize);
@@ -2282,7 +2285,7 @@ void __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
     auto *np = const_cast<pointer>(num->data());
     auto *dp = const_cast<pointer>(div->data());
 
-    unique_stack_allocator stkal(math_detail::stack_alloc);
+    unique_stack_allocator stkal;
 
     if (dp == rp || dp == qp) {
         auto *tp = (pointer)stkal.allocate(dusize * sizeof(uint64_t));
@@ -2330,7 +2333,7 @@ void __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
     auto np = (pointer)num->data();
     auto dp = (pointer)div->data();
 
-    unique_stack_allocator stkal(math_detail::stack_alloc);
+    unique_stack_allocator stkal;
 
     if (dp == qp) {
         auto tp = (pointer)stkal.allocate(dusize * sizeof(uint64_t));
@@ -2383,7 +2386,7 @@ void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
     auto np = (pointer)num->data();
     auto dp = (pointer)div->data();
 
-    unique_stack_allocator stkal(math_detail::stack_alloc);
+    unique_stack_allocator stkal;
 
     if (dp == rp) {
         const auto tp = (pointer)stkal.allocate(dusize * sizeof(uint64_t));
@@ -2557,8 +2560,7 @@ void __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
 
     WJR_ASSERT_ASSUME(!__equal_pointer(quot, rem), "quot should not be the same as rem");
 
-    unique_stack_allocator stkal(math_detail::stack_alloc);
-
+    unique_stack_allocator stkal;
     biginteger_data tmp_div;
 
     const auto dssize = div->get_ssize();
@@ -2585,7 +2587,7 @@ void __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
 template <typename S>
 void __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
                    const biginteger_data *div) noexcept {
-    unique_stack_allocator stkal(math_detail::stack_alloc);
+    unique_stack_allocator stkal;
     stack_biginteger rem(stkal);
 
     const auto xsize = num->get_ssize() ^ div->get_ssize();
@@ -2600,8 +2602,7 @@ void __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
 template <typename S>
 void __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                    const biginteger_data *div) noexcept {
-    unique_stack_allocator stkal(math_detail::stack_alloc);
-
+    unique_stack_allocator stkal;
     biginteger_data tmp_div;
 
     const auto dssize = div->get_ssize();
@@ -2752,8 +2753,7 @@ void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
 
     WJR_ASSERT_ASSUME(!__equal_pointer(quot, rem), "quot should not be the same as rem");
 
-    unique_stack_allocator stkal(math_detail::stack_alloc);
-
+    unique_stack_allocator stkal;
     biginteger_data tmp_div;
 
     const auto dssize = div->get_ssize();
@@ -2780,7 +2780,7 @@ void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
 template <typename S>
 void __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
                    const biginteger_data *div) noexcept {
-    unique_stack_allocator stkal(math_detail::stack_alloc);
+    unique_stack_allocator stkal;
     stack_biginteger rem(stkal);
 
     const auto xsize = num->get_ssize() ^ div->get_ssize();
@@ -2795,8 +2795,7 @@ void __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
 template <typename S>
 void __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                    const biginteger_data *div) noexcept {
-    unique_stack_allocator stkal(math_detail::stack_alloc);
-
+    unique_stack_allocator stkal;
     biginteger_data tmp_div;
 
     const auto dssize = div->get_ssize();
@@ -3212,7 +3211,7 @@ void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
     const auto dp = dst->data();
     const uint64_t *lp = limit->data();
 
-    math_detail::unique_stack_alloc stkal(math_detail::stack_alloc);
+    unique_stack_allocator stkal;
 
     if (__equal_pointer(dst, limit)) {
         const auto tp = static_cast<uint64_t *>(stkal.allocate(size * sizeof(uint64_t)));
@@ -3266,7 +3265,6 @@ template <typename S, typename Engine,
           WJR_REQUIRES_I(biginteger_uniform_random_bit_generator_v<Engine>)>
 void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
                           Engine &engine) noexcept {
-    std::optional<uninitialized<math_detail::unique_stack_alloc>> stkal;
     uint32_t size = limit->size();
 
     if (WJR_UNLIKELY(size <= 1)) {
@@ -3289,9 +3287,10 @@ void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit
     const auto dp = dst->data();
     const uint64_t *lp = limit->data();
 
+    unique_stack_allocator stkal;
+
     if (__equal_pointer(dst, limit)) {
-        stkal.emplace(math_detail::stack_alloc);
-        const auto tp = (uint64_t *)(*stkal)->allocate(size * sizeof(uint64_t));
+        const auto tp = (uint64_t *)stkal.allocate(size * sizeof(uint64_t));
         std::copy_n(lp, size, tp);
         lp = tp;
     }
@@ -3328,10 +3327,6 @@ void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit
 
     size = normalize(dp, size);
     dst->set_ssize(size);
-
-    if (stkal.has_value()) {
-        stkal->reset();
-    }
 }
 
 /// @private
@@ -3514,8 +3509,7 @@ template <typename Traits>
 std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &os,
                                              const biginteger_data &src) noexcept {
     if (const std::ostream::sentry ok(os); ok) {
-        unique_stack_allocator stkal(math_detail::stack_alloc);
-
+        unique_stack_allocator stkal;
         std::basic_string<char, Traits, math_detail::weak_stack_alloc<char>> buffer(
             stkal);
         buffer.reserve(128);
@@ -3554,45 +3548,7 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
 }
 
 /// @brief Optimization for ostream
-inline std::ostream &operator<<(std::ostream &os, const biginteger_data &src) noexcept {
-    if (const std::ostream::sentry ok(os); ok) {
-        unique_stack_allocator stkal(math_detail::stack_alloc);
-
-        vector<char, math_detail::weak_stack_alloc<char>> buffer(stkal);
-        buffer.clear_if_reserved(128);
-
-        const std::ios_base::fmtflags flags = os.flags();
-
-        if ((flags & std::ios::showpos) && !src.is_negate()) {
-            buffer.push_back('+');
-        }
-
-        int base = 10;
-
-        if (const auto basefield = flags & std::ios::basefield; basefield != 0) {
-            if (basefield == std::ios::oct) {
-                base = 8;
-                if (flags & std::ios::showbase) {
-                    buffer.append('0');
-                }
-            } else if (basefield == std::ios::hex) {
-                base = 16;
-                if (flags & std::ios::showbase) {
-                    buffer.append({'0', 'x'});
-                }
-            }
-        }
-
-        (void)to_chars_unchecked(std::back_inserter(buffer), src, base);
-        // seems won't be empty
-        WJR_ASSERT(!buffer.empty());
-        __ostream_insert_unchecked(os, buffer.data(), buffer.size());
-    } else {
-        os.setstate(std::ios::badbit);
-    }
-
-    return os;
-}
+extern std::ostream &operator<<(std::ostream &os, const biginteger_data &src) noexcept;
 
 } // namespace wjr
 

@@ -20,9 +20,11 @@
 
 #if WJR_HAS_BUILTIN(__WJR_TEST_ASSEMBLY) == 1
 
-inline uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
-    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
-    uint64_t c_in) noexcept {
+WJR_ALL_NONNULL inline uint64_t
+WJR_PP_CONCAT(__wjr_asm_,
+              WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(uint64_t *dst, const uint64_t *src0,
+                                                    const uint64_t *src1, size_t n,
+                                                    uint64_t c_in) noexcept {
     size_t rcx = n / 8;
     uint64_t r8 = c_in, r9, r10 = n & 7, r11;
 
@@ -202,7 +204,7 @@ inline uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
 }
 
 #else
-extern "C" WJR_MS_ABI uint64_t WJR_PP_CONCAT(
+extern "C" WJR_ALL_NONNULL WJR_MS_ABI uint64_t WJR_PP_CONCAT(
     __wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(uint64_t *dst, const uint64_t *src0,
                                                       const uint64_t *src1, size_t n,
                                                       uint64_t c_in) noexcept;

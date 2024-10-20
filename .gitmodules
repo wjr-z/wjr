@@ -7,3 +7,6 @@
 [submodule "third-party/boost/winapi"]
 	path = third-party/boost/winapi
 	url = https://github.com/boostorg/winapi.git
+[submodule "third-party/libdivide"]
+	path = third-party/libdivide
+	url = https://github.com/ridiculousfish/libdivide.git

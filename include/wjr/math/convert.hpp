@@ -5,7 +5,7 @@
 
 #include <wjr/math/div.hpp>
 #include <wjr/math/precompute-chars-convert.hpp>
-#include <wjr/math/stack_allocator.hpp>
+#include <wjr/memory/stack_allocator.hpp>
 
 namespace wjr {
 
@@ -224,9 +224,11 @@ size_t __biginteger_to_chars_16_impl(uint8_t *first, const uint64_t *up, size_t 
 }
 
 template <typename Converter>
-size_t __biginteger_to_chars_power_of_two_impl(uint8_t *first, const uint64_t *up,
-                                               size_t n, unsigned int base,
-                                               Converter conv) noexcept {
+WJR_ALL_NONNULL size_t __biginteger_to_chars_power_of_two_impl(uint8_t *first,
+                                                               const uint64_t *up,
+                                                               size_t n,
+                                                               unsigned int base,
+                                                               Converter conv) noexcept {
     WJR_ASSERT_L2(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
@@ -296,9 +298,13 @@ DONE:
     return len;
 }
 
+extern template size_t __biginteger_to_chars_power_of_two_impl<char_converter_t>(
+    uint8_t *first, const uint64_t *up, size_t n, unsigned int base,
+    char_converter_t conv) noexcept;
+
 template <typename Converter>
-uint8_t *basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n,
-                              Converter conv) noexcept {
+WJR_ALL_NONNULL WJR_RETURNS_NONNULL uint8_t *
+basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n, Converter conv) noexcept {
     if (n > 4) {
         do {
             uint64_t q;
@@ -362,6 +368,10 @@ uint8_t *basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n,
     WJR_UNREACHABLE();
 }
 
+extern template WJR_ALL_NONNULL WJR_RETURNS_NONNULL uint8_t *
+basecase_to_chars_10<char_converter_t>(uint8_t *buf, uint64_t *up, size_t n,
+                                       char_converter_t conv) noexcept;
+
 template <typename Converter>
 uint8_t *basecase_to_chars(uint8_t *first, size_t len, uint64_t *up, size_t n,
                            unsigned int base, Converter conv) noexcept {
@@ -422,8 +432,9 @@ uint8_t *dc_to_chars(uint8_t *first, size_t len, uint64_t *up, size_t n,
 }
 
 template <typename Converter>
-uint8_t *__biginteger_basecase_to_chars(uint8_t *first, const uint64_t *up, size_t n,
-                                        unsigned int base, Converter conv) noexcept {
+WJR_ALL_NONNULL WJR_RETURNS_NONNULL uint8_t *
+__biginteger_basecase_to_chars(uint8_t *first, const uint64_t *up, size_t n,
+                               unsigned int base, Converter conv) noexcept {
     if (WJR_LIKELY(n < dc_bignum_to_chars_precompute_threshold)) {
         uint64_t upbuf[dc_bignum_to_chars_precompute_threshold];
         std::copy_n(up, n, upbuf);
@@ -432,7 +443,7 @@ uint8_t *__biginteger_basecase_to_chars(uint8_t *first, const uint64_t *up, size
 
     precompute_chars_convert_t pre[64 - 3];
 
-    unique_stack_allocator stkal(math_detail::stack_alloc);
+    unique_stack_allocator stkal;
     auto *stk =
         static_cast<uint64_t *>(stkal.allocate((n * 18 / 5 + 192) * sizeof(uint64_t)));
     auto *const __up = stk;
@@ -501,7 +512,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
                                                                                          \
         return ptr;                                                                      \
     } else {                                                                             \
-        unique_stack_allocator stkal(math_detail::stack_alloc);                          \
+        unique_stack_allocator stkal;                                                    \
         auto *const __ptr =                                                              \
             static_cast<uint8_t *>(stkal.allocate(SIZE * sizeof(uint64_t)));             \
         const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;           \
@@ -750,8 +761,8 @@ size_t __biginteger_from_chars_16_impl(const uint8_t *first, size_t n, uint64_t 
 }
 
 template <typename Converter>
-size_t basecase_from_chars_10(const uint8_t *first, size_t n, uint64_t *up,
-                              Converter conv) noexcept {
+WJR_ALL_NONNULL size_t basecase_from_chars_10(const uint8_t *first, size_t n,
+                                              uint64_t *up, Converter conv) noexcept {
     uint64_t x = 0;
 
     if (n <= 19) {
@@ -799,6 +810,9 @@ size_t basecase_from_chars_10(const uint8_t *first, size_t n, uint64_t *up,
 
     return m;
 }
+
+extern template WJR_ALL_NONNULL size_t basecase_from_chars_10<char_converter_t>(
+    const uint8_t *first, size_t n, uint64_t *up, char_converter_t conv) noexcept;
 
 template <typename Converter>
 size_t basecase_from_chars(const uint8_t *first, size_t n, uint64_t *up,
@@ -882,7 +896,7 @@ uint64_t *__basecase_basecase_from_chars(const uint8_t *first, size_t n, uint64_
 
     precompute_chars_convert_t pre[64 - 3];
 
-    unique_stack_allocator stkal(math_detail::stack_alloc);
+    unique_stack_allocator stkal;
     const size_t un = n / per_digits + 1;
     auto *stk =
         static_cast<uint64_t *>(stkal.allocate((un * 16 / 5 + 192) * sizeof(uint64_t)));
@@ -892,9 +906,9 @@ uint64_t *__basecase_basecase_from_chars(const uint8_t *first, size_t n, uint64_
 }
 
 template <typename Converter>
-uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last,
-                                       uint64_t *up, unsigned int base,
-                                       Converter conv) noexcept {
+WJR_ALL_NONNULL WJR_RETURNS_NONNULL uint64_t *
+__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last, uint64_t *up,
+                             unsigned int base, Converter conv) noexcept {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
 
     const size_t n = std::distance(first, last);

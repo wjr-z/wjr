@@ -551,21 +551,23 @@ using toom_interpolation_high_p_struct = std::array<uint64_t, P - 2>;
  l = ceil(n/2)
  stk usage : l * 2
 */
-extern void toom22_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+extern WJR_ALL_NONNULL void toom22_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                         size_t n, const uint64_t *src1, size_t m,
+                                         uint64_t *stk) noexcept;
 
-extern void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      uint64_t *stk) noexcept;
+extern WJR_ALL_NONNULL void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
+                                      size_t n, uint64_t *stk) noexcept;
 
 /*
  l = ceil(n/3)
  stk usage : l * 4
 */
-extern void toom33_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+extern WJR_ALL_NONNULL void toom33_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                         size_t n, const uint64_t *src1, size_t m,
+                                         uint64_t *stk) noexcept;
 
-extern void toom3_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      uint64_t *stk) noexcept;
+extern WJR_ALL_NONNULL void toom3_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
+                                      size_t n, uint64_t *stk) noexcept;
 
 WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom22_s_itch(size_t m) noexcept {
     return m * 4 + (m / 2) + 64;
@@ -599,8 +601,10 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool toom55_ok(size_t n, size_t m) noexcept {
     return 4 * n + 36 <= 5 * m;
 }
 
-extern void __noinline_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                  size_t n, const uint64_t *src1, size_t m) noexcept;
+extern WJR_ALL_NONNULL void __noinline_mul_s_impl(uint64_t *WJR_RESTRICT dst,
+                                                  const uint64_t *src0, size_t n,
+                                                  const uint64_t *src1,
+                                                  size_t m) noexcept;
 
 WJR_INTRINSIC_INLINE void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                 size_t n, const uint64_t *src1, size_t m) noexcept {
@@ -640,8 +644,10 @@ void __inline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
     return toom33_mul_s(dst, src0, n, src1, n, stk);
 }
 
-extern void __noinline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                  const uint64_t *src1, size_t n) noexcept;
+extern WJR_ALL_NONNULL void __noinline_mul_n_impl(uint64_t *WJR_RESTRICT dst,
+                                                  const uint64_t *src0,
+                                                  const uint64_t *src1,
+                                                  size_t n) noexcept;
 
 template <__mul_mode mode>
 WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
@@ -709,8 +715,8 @@ inline void __inline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, s
     return toom3_sqr(dst, src, n, stk);
 }
 
-extern void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
-                                size_t n) noexcept;
+extern WJR_ALL_NONNULL void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst,
+                                                const uint64_t *src, size_t n) noexcept;
 
 template <__mul_mode mode>
 void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,

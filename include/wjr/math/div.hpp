@@ -167,8 +167,9 @@ inline uint64_t div_qr_1_noshift(uint64_t *dst, uint64_t &rem, const uint64_t *s
     return qh;
 }
 
-extern uint64_t div_qr_1_shift(uint64_t *dst, uint64_t &rem, const uint64_t *src,
-                               size_t n, const div2by1_divider<uint64_t> &div) noexcept;
+extern WJR_ALL_NONNULL uint64_t
+div_qr_1_shift(uint64_t *dst, uint64_t &rem, const uint64_t *src, size_t n,
+               const div2by1_divider<uint64_t> &div) noexcept;
 
 WJR_INTRINSIC_INLINE uint64_t
 div_qr_1_impl(uint64_t *dst, uint64_t &rem, const uint64_t *src, size_t n,
@@ -244,12 +245,13 @@ WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t 
     dst[n - 1] = div_qr_1_impl(dst, rem, src, n, div2by1_divider<uint64_t>(div));
 }
 
-extern uint64_t div_qr_2_noshift(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                 size_t n,
-                                 const div3by2_divider_noshift<uint64_t> &div) noexcept;
+extern WJR_ALL_NONNULL uint64_t
+div_qr_2_noshift(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
+                 const div3by2_divider_noshift<uint64_t> &div) noexcept;
 
-extern uint64_t div_qr_2_shift(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                               size_t n, const div3by2_divider<uint64_t> &div) noexcept;
+extern WJR_ALL_NONNULL uint64_t
+div_qr_2_shift(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
+               const div3by2_divider<uint64_t> &div) noexcept;
 
 WJR_INTRINSIC_INLINE uint64_t
 div_qr_2_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
@@ -279,14 +281,17 @@ WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t 
 
 // reference : GMP
 // return qh;
-extern uint64_t sb_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div,
-                            size_t m, uint64_t dinv) noexcept;
+extern WJR_ALL_NONNULL uint64_t sb_div_qr_s(uint64_t *dst, uint64_t *src, size_t n,
+                                            const uint64_t *div, size_t m,
+                                            uint64_t dinv) noexcept;
 
-extern uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div,
-                            size_t m, uint64_t dinv) noexcept;
+extern WJR_ALL_NONNULL uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n,
+                                            const uint64_t *div, size_t m,
+                                            uint64_t dinv) noexcept;
 
-extern void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
-                            const uint64_t *div, size_t m) noexcept;
+extern WJR_ALL_NONNULL void __div_qr_s_impl(uint64_t *dst, uint64_t *rem,
+                                            const uint64_t *src, size_t n,
+                                            const uint64_t *div, size_t m) noexcept;
 
 WJR_INTRINSIC_INLINE void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t *src,
                                    size_t n, const uint64_t *div, size_t m) noexcept {

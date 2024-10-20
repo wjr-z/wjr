@@ -32,5 +32,11 @@ msvc_build
 .VScodeCounter
 **/simdjson.hpp*
 **/simdjson.cpp*
-codeforces
-json
+examples/demo/data/
+**/cmake
+CMakeSettings.json
+git.sh
+push.sh
+a.hpp
+b.hpp
+a.cpp

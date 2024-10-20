@@ -96,7 +96,6 @@ if(WJR_ENABLE_ASSEMBLY)
 endif()
 
 add_library(wjr STATIC ${WJR_SRCS})
-
 target_include_directories(wjr PUBLIC ${WJR_INCLUDE_DIR})
 
 set(WJR_CXX_FLAGS)
@@ -195,5 +194,9 @@ target_link_libraries(wjr
       ${WJR_ATOMIC_LIBS}
 )
 
-set(WJR_PCH PUBLIC ${WJR_INCLUDE_DIR}/wjr/type_traits.hpp ${WJR_INCLUDE_DIR}/wjr/assert.hpp)
+set(WJR_PCH PUBLIC 
+   ${WJR_INCLUDE_DIR}/wjr/type_traits.hpp
+   ${WJR_INCLUDE_DIR}/wjr/assert.hpp
+)
+
 target_precompile_headers(wjr PUBLIC ${WJR_PCH})

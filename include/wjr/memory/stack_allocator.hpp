@@ -3,17 +3,18 @@
 
 #include <algorithm>
 
+#include <wjr/math/literals.hpp>
 #include <wjr/memory/memory_pool.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
 
-template <typename StackAllocator>
+inline constexpr size_t stack_allocator_threshold = 16_KB;
+
 class unique_stack_allocator;
 
 template <size_t Cache>
 class stack_allocator_object {
-    template <typename StackAllocator>
     friend class unique_stack_allocator;
 
     constexpr static uint16_t bufsize = 5;
@@ -138,13 +139,22 @@ public:
     stack_allocator_object &operator=(stack_allocator_object &&) = delete;
     ~stack_allocator_object() = default;
 
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top,
-                                                            size_t threshold) noexcept {
-        if (WJR_UNLIKELY(n >= threshold)) {
-            return __large_allocate(n, top);
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n,
+                                                            stack_top &top) noexcept {
+        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
+            if (WJR_UNLIKELY(n >= stack_allocator_threshold)) {
+                return __large_allocate(n, top);
+            }
+
+            __small_reallocate(top);
         }
 
-        return __small_allocate(n, top);
+        WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
+        WJR_ASSERT_ASSUME_L2(top.ptr != nullptr);
+
+        auto *const ret = m_cache.ptr;
+        m_cache.ptr += n;
+        return ret;
     }
 
     WJR_CONSTEXPR20 void deallocate(const stack_top &top) noexcept {
@@ -175,15 +185,9 @@ private:
 /**
  * @brief A stack allocator for fast simulation of stack memory on the heap, singleton
  * mode.
- *
- * @tparam Cache The size of the first heap memory allocation
  */
-template <size_t Cache, size_t DefaultThreshold>
 struct singleton_stack_allocator_object {
-    using Instance = stack_allocator_object<Cache>;
-    constexpr static size_t __default_threshold = DefaultThreshold;
-
-    static_assert(DefaultThreshold < Cache, "DefaultThreshold must be less than Cache.");
+    using Instance = stack_allocator_object<40_KB>;
 
     static Instance &get_instance() noexcept {
         static thread_local Instance instance;
@@ -196,7 +200,7 @@ struct singleton_stack_allocator_object {
  * __small_allocate until container is destroyed.
  *
  */
-template <typename T, typename StackAllocator>
+template <typename T>
 class weak_stack_allocator;
 
 /**
@@ -207,19 +211,18 @@ class weak_stack_allocator;
  * unique_stack_allocator object must be destroyed in the current lifetime.
  *
  */
-template <typename StackAllocator>
 class unique_stack_allocator {
-    using Instance = typename StackAllocator::Instance;
+    using Object = singleton_stack_allocator_object;
+    using Instance = typename Object::Instance;
     using stack_top = typename Instance::stack_top;
 
-    constexpr static size_t __default_threshold = StackAllocator::__default_threshold;
-
-    template <typename T, typename S>
+    template <typename T>
     friend class weak_stack_allocator;
 
 public:
-    WJR_INTRINSIC_INLINE unique_stack_allocator(const StackAllocator &al) noexcept
-        : m_instance(&(al.get_instance())) {
+    WJR_INTRINSIC_INLINE
+    unique_stack_allocator() noexcept
+        : m_instance(std::addressof(Object::get_instance())) {
         m_instance->set(m_top);
     }
 
@@ -230,9 +233,8 @@ public:
 
     ~unique_stack_allocator() noexcept { m_instance->deallocate(m_top); }
 
-    WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *
-    allocate(size_t n, size_t threshold = __default_threshold) noexcept {
-        return m_instance->allocate(n, m_top, threshold);
+    WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *allocate(size_t n) noexcept {
+        return m_instance->allocate(n, m_top);
     }
 
 private:
@@ -245,9 +247,6 @@ private:
     stack_top m_top;
 };
 
-template <typename StackAllocator>
-unique_stack_allocator(const StackAllocator &) -> unique_stack_allocator<StackAllocator>;
-
 /**
  * @brief Point to unique_stack_allocator.
  *
@@ -256,14 +255,12 @@ unique_stack_allocator(const StackAllocator &) -> unique_stack_allocator<StackAl
  * unique_stack_allocator should be avoided from being reused in the current function.
  *
  */
-template <typename T, size_t Cache, size_t DefaultThreshold>
-class weak_stack_allocator<T, singleton_stack_allocator_object<Cache, DefaultThreshold>> {
-    using StackAllocator = singleton_stack_allocator_object<Cache, DefaultThreshold>;
-    using UniqueStackAllocator = unique_stack_allocator<StackAllocator>;
+template <typename T>
+class weak_stack_allocator {
+    using StackAllocator = singleton_stack_allocator_object;
+    using UniqueStackAllocator = unique_stack_allocator;
 
-    constexpr static size_t __default_threshold = StackAllocator::__default_threshold;
-
-    template <typename U, typename A>
+    template <typename U>
     friend class weak_stack_allocator;
 
 public:
@@ -275,20 +272,21 @@ public:
 
     template <typename Other>
     struct rebind {
-        using other = weak_stack_allocator<Other, StackAllocator>;
+        using other = weak_stack_allocator<Other>;
     };
 
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(weak_stack_allocator);
 
-    weak_stack_allocator(UniqueStackAllocator &alloc) noexcept : m_alloc(&alloc) {}
+    weak_stack_allocator(UniqueStackAllocator &alloc) noexcept
+        : m_alloc(std::addressof(alloc)) {}
 
     template <typename U>
-    weak_stack_allocator(const weak_stack_allocator<U, StackAllocator> &other) noexcept
+    weak_stack_allocator(const weak_stack_allocator<U> &other) noexcept
         : m_alloc(other.m_alloc) {}
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) noexcept {
         const size_t size = n * sizeof(T);
-        if (WJR_UNLIKELY(size >= __default_threshold)) {
+        if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
             return static_cast<T *>(malloc(size));
         }
 
@@ -298,7 +296,7 @@ public:
     WJR_CONSTEXPR20 void deallocate(WJR_MAYBE_UNUSED T *ptr,
                                     WJR_MAYBE_UNUSED size_type n) noexcept {
         const size_t size = n * sizeof(T);
-        if (WJR_UNLIKELY(size >= __default_threshold)) {
+        if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
             free(ptr);
         }
     }

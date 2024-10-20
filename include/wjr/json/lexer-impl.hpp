@@ -72,7 +72,8 @@ private:
     uint32_t idx = 0;
 };
 
-extern char *minify(char *dst, const char *first, const char *last) noexcept;
+extern WJR_ALL_NONNULL WJR_RETURNS_NONNULL char *minify(char *dst, const char *first,
+                                                        const char *last) noexcept;
 
 } // namespace wjr::json
 

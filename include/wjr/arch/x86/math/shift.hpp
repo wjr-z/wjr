@@ -71,8 +71,8 @@ WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, __m128i c) noexcept {
         } while (false)
 
 template <bool is_constant, typename T>
-void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n,
-                                 unsigned int c) noexcept {
+WJR_ALL_NONNULL void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n,
+                                                 unsigned int c) noexcept {
     const auto y = __mm_get_shift<is_constant>(c);
     const auto z = __mm_get_shift<is_constant>(64 - c);
 
@@ -127,8 +127,8 @@ extern template void large_builtin_lshift_n_impl<true, uint64_t>(uint64_t *dst,
                                                                  unsigned int c) noexcept;
 
 template <typename T>
-WJR_INTRINSIC_INLINE void builtin_lshift_n_impl(T *dst, const T *src, size_t n,
-                                                unsigned int c) noexcept {
+WJR_ALL_NONNULL WJR_INTRINSIC_INLINE void
+builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) noexcept {
     if (n < 4) {
         switch (n) {
         case 3: {
@@ -254,8 +254,8 @@ extern template void large_builtin_rshift_n_impl<true, uint64_t>(uint64_t *dst,
                                                                  unsigned int c) noexcept;
 
 template <typename T>
-WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n,
-                                                unsigned int c) noexcept {
+WJR_ALL_NONNULL WJR_INTRINSIC_INLINE void
+builtin_rshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) noexcept {
     if (n < 4) {
         dst += n - 3;
         src += n - 3;

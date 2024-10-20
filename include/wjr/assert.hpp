@@ -27,9 +27,10 @@
  *
  */
 
-#include <iostream>
+#include <iostream> // for operator<<, cerr, basic_ostream, ostream
+#include <utility>  // for forward
 
-#include <wjr/preprocessor.hpp>
+#include <wjr/preprocessor/config/attribute.hpp>
 
 #ifndef WJR_DEBUG_LEVEL
     #if defined(NDEBUG)

@@ -2404,10 +2404,8 @@ template <typename Traits, typename DocumentTraits>
 std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &os,
                                              const basic_document<DocumentTraits> &doc) {
     if (const std::ostream::sentry ok(os); ok) {
-        unique_stack_allocator stkal(math_detail::stack_alloc);
-
-        std::basic_string<char, Traits, math_detail::weak_stack_alloc<char>> buffer(
-            stkal);
+        unique_stack_allocator stkal;
+        std::basic_string<char, Traits, weak_stack_allocator<char>> buffer(stkal);
         buffer.reserve(256);
 
         const std::streamsize indents = os.width();
@@ -2425,9 +2423,8 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
 template <typename DocumentTraits>
 std::ostream &operator<<(std::ostream &os, const basic_document<DocumentTraits> &doc) {
     if (const std::ostream::sentry ok(os); ok) {
-        unique_stack_allocator stkal(math_detail::stack_alloc);
-
-        vector<char, math_detail::weak_stack_alloc<char>> buffer(stkal);
+        unique_stack_allocator stkal;
+        vector<char, weak_stack_allocator<char>> buffer(stkal);
         buffer.clear_if_reserved(256);
 
         const std::streamsize indents = os.width();

@@ -191,8 +191,8 @@ constant_length_strncasecmp(const char *a, const char *b,
     } else if constexpr (Length >= 5 && Length <= 6) {
         constexpr auto RestLength = Length - 4;
         return constant_length_strncasecmp(a, b, 4_u) &
-               constant_length_strncasecmp(
-                   a + 4, b + 4, integral_constant<unsigned int, RestLength>());
+               constant_length_strncasecmp(a + 4, b + 4,
+                                           integral_constant<unsigned int, RestLength>());
     } else {
         static_assert(Length == 7);
         return constant_length_strncasecmp(a, b, 4_u) &

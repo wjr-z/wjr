@@ -18,16 +18,17 @@
 
 #if WJR_HAS_BUILTIN(__WJR_TEST_ASSEMBLY) == 1
 
-extern uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
-    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
-    uint64_t cl) noexcept;
-
-#else
-
-extern "C" WJR_MS_ABI uint64_t WJR_PP_CONCAT(
+extern WJR_ALL_NONNULL uint64_t WJR_PP_CONCAT(
     __wjr_asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(uint64_t *dst, const uint64_t *src0,
                                                   const uint64_t *src1, size_t n,
                                                   uint64_t cl) noexcept;
+
+#else
+
+extern WJR_ALL_NONNULL
+    "C" WJR_MS_ABI uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
+        uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
+        uint64_t cl) noexcept;
 
 #endif
 

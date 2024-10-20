@@ -1,6 +1,6 @@
 #include <wjr/math/div.hpp>
 #include <wjr/math/mul.hpp>
-#include <wjr/math/stack_allocator.hpp>
+#include <wjr/memory/stack_allocator.hpp>
 #include <wjr/tuple.hpp>
 
 namespace wjr {
@@ -98,7 +98,7 @@ void __toom22_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
     uint64_t *stk = __mul_s_allocate(mal, toom22_s_itch(m));
 
     if (n >= 3 * m) {
-        unique_stack_allocator stkal(math_detail::stack_alloc);
+        unique_stack_allocator stkal;
         uint64_t *tmp = __mul_s_allocate(stkal, (4 * m));
 
         toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
@@ -156,7 +156,7 @@ void __noinline_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, siz
         return basecase_mul_s(dst, src0, n, src1, m);
     }
 
-    unique_stack_allocator stkal(math_detail::stack_alloc);
+    unique_stack_allocator stkal;
 
     if (m < toom33_mul_threshold) {
         uint64_t *stk = __mul_s_allocate(stkal, toom22_s_itch(m));
@@ -320,7 +320,7 @@ void __noinline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
         return basecase_mul_s(dst, src0, n, src1, n);
     }
 
-    unique_stack_allocator stkal(math_detail::stack_alloc);
+    unique_stack_allocator stkal;
 
     if (n < toom33_mul_threshold) {
         uint64_t *stk = __mul_s_allocate(stkal, toom22_n_itch(n));
@@ -350,7 +350,7 @@ void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
         return basecase_sqr(dst, src, n);
     }
 
-    unique_stack_allocator stkal(math_detail::stack_alloc);
+    unique_stack_allocator stkal;
 
     if (n < toom3_sqr_threshold) {
         uint64_t *stk = __mul_s_allocate(stkal, toom22_n_itch(n));
