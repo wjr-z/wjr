@@ -65,17 +65,15 @@ WJR_CONST constexpr parse_result<T> __parse_impl() noexcept {
     constexpr uint32_t mem = (c0 | (c1 << 8) | (c2 << 16) | (c3 << 24)) - 0x30303030;
     constexpr uint32_t val = __fast_conv_4<10>(mem);
     constexpr auto result = __parse_impl<T, Chars...>();
-    return {static_cast<T>(result.result * result.pow + val),
-            static_cast<T>(result.pow * 10000)};
+    return {static_cast<T>(result.result * result.pow + val), static_cast<T>(result.pow * 10000)};
 }
 
-template <typename T, char c0, char c1, char c2, char c3, char c4, char c5, char c6,
-          char c7, char... Chars>
+template <typename T, char c0, char c1, char c2, char c3, char c4, char c5, char c6, char c7,
+          char... Chars>
 WJR_CONST constexpr parse_result<T> __parse_impl() noexcept {
-    constexpr uint64_t mem =
-        (c0 | (c1 << 8) | (c2 << 16) | (c3 << 24) | ((uint64_t)c4 << 32) |
-         ((uint64_t)c5 << 40) | ((uint64_t)c6 << 48) | ((uint64_t)c7 << 56)) -
-        0x3030303030303030;
+    constexpr uint64_t mem = (c0 | (c1 << 8) | (c2 << 16) | (c3 << 24) | ((uint64_t)c4 << 32) |
+                              ((uint64_t)c5 << 40) | ((uint64_t)c6 << 48) | ((uint64_t)c7 << 56)) -
+                             0x3030303030303030;
     constexpr uint64_t val = __fast_conv_8<10>(mem);
     constexpr auto result = __parse_impl<T, Chars...>();
     return {static_cast<T>(result.result * result.pow + val),
@@ -89,11 +87,11 @@ WJR_CONST constexpr T parse() noexcept {
 
 } // namespace digits_literal_detail
 
-#define WJR_REGISTER_INTEGRAL_LITERALS(NAME, TYPE)                                       \
-    template <char... Chars>                                                             \
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR auto operator"" _##NAME() noexcept                 \
-        -> integral_constant<TYPE, digits_literal_detail::parse<TYPE, Chars...>()> {     \
-        return {};                                                                       \
+#define WJR_REGISTER_INTEGRAL_LITERALS(NAME, TYPE)                                                 \
+    template <char... Chars>                                                                       \
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR auto operator"" _##NAME() noexcept                           \
+        -> integral_constant<TYPE, digits_literal_detail::parse<TYPE, Chars...>()> {               \
+        return {};                                                                                 \
     }
 
 WJR_REGISTER_INTEGRAL_LITERALS(u, unsigned int);

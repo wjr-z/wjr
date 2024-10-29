@@ -76,39 +76,34 @@ const std::array<uint64_t, 256> thintable_epi8 = {
 }; // static uint64_t thintable_epi8[256]
 
 const std::array<uint8_t, 256> popcount_mul_2 = {
-    0,  2,  2,  4,  2,  4,  4,  6,  2,  4,  4,  6,  4,  6,  6,  8,  2,  4,  4,  6,
-    4,  6,  6,  8,  4,  6,  6,  8,  6,  8,  8,  10, 2,  4,  4,  6,  4,  6,  6,  8,
-    4,  6,  6,  8,  6,  8,  8,  10, 4,  6,  6,  8,  6,  8,  8,  10, 6,  8,  8,  10,
-    8,  10, 10, 12, 2,  4,  4,  6,  4,  6,  6,  8,  4,  6,  6,  8,  6,  8,  8,  10,
-    4,  6,  6,  8,  6,  8,  8,  10, 6,  8,  8,  10, 8,  10, 10, 12, 4,  6,  6,  8,
-    6,  8,  8,  10, 6,  8,  8,  10, 8,  10, 10, 12, 6,  8,  8,  10, 8,  10, 10, 12,
-    8,  10, 10, 12, 10, 12, 12, 14, 2,  4,  4,  6,  4,  6,  6,  8,  4,  6,  6,  8,
-    6,  8,  8,  10, 4,  6,  6,  8,  6,  8,  8,  10, 6,  8,  8,  10, 8,  10, 10, 12,
-    4,  6,  6,  8,  6,  8,  8,  10, 6,  8,  8,  10, 8,  10, 10, 12, 6,  8,  8,  10,
-    8,  10, 10, 12, 8,  10, 10, 12, 10, 12, 12, 14, 4,  6,  6,  8,  6,  8,  8,  10,
-    6,  8,  8,  10, 8,  10, 10, 12, 6,  8,  8,  10, 8,  10, 10, 12, 8,  10, 10, 12,
-    10, 12, 12, 14, 6,  8,  8,  10, 8,  10, 10, 12, 8,  10, 10, 12, 10, 12, 12, 14,
-    8,  10, 10, 12, 10, 12, 12, 14, 10, 12, 12, 14, 12, 14, 14, 16};
+    0, 2,  2,  4,  2,  4,  4,  6,  2,  4,  4,  6,  4,  6,  6,  8,  2, 4,  4,  6,  4,  6,  6,  8,
+    4, 6,  6,  8,  6,  8,  8,  10, 2,  4,  4,  6,  4,  6,  6,  8,  4, 6,  6,  8,  6,  8,  8,  10,
+    4, 6,  6,  8,  6,  8,  8,  10, 6,  8,  8,  10, 8,  10, 10, 12, 2, 4,  4,  6,  4,  6,  6,  8,
+    4, 6,  6,  8,  6,  8,  8,  10, 4,  6,  6,  8,  6,  8,  8,  10, 6, 8,  8,  10, 8,  10, 10, 12,
+    4, 6,  6,  8,  6,  8,  8,  10, 6,  8,  8,  10, 8,  10, 10, 12, 6, 8,  8,  10, 8,  10, 10, 12,
+    8, 10, 10, 12, 10, 12, 12, 14, 2,  4,  4,  6,  4,  6,  6,  8,  4, 6,  6,  8,  6,  8,  8,  10,
+    4, 6,  6,  8,  6,  8,  8,  10, 6,  8,  8,  10, 8,  10, 10, 12, 4, 6,  6,  8,  6,  8,  8,  10,
+    6, 8,  8,  10, 8,  10, 10, 12, 6,  8,  8,  10, 8,  10, 10, 12, 8, 10, 10, 12, 10, 12, 12, 14,
+    4, 6,  6,  8,  6,  8,  8,  10, 6,  8,  8,  10, 8,  10, 10, 12, 6, 8,  8,  10, 8,  10, 10, 12,
+    8, 10, 10, 12, 10, 12, 12, 14, 6,  8,  8,  10, 8,  10, 10, 12, 8, 10, 10, 12, 10, 12, 12, 14,
+    8, 10, 10, 12, 10, 12, 12, 14, 10, 12, 12, 14, 12, 14, 14, 16};
 
 const std::array<uint8_t, 272> pshufb_combine_table = {
-    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d,
-    0x0e, 0x0f, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08, 0x09, 0x0a, 0x0b, 0x0c,
-    0x0d, 0x0e, 0x0f, 0xff, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x08, 0x09, 0x0a, 0x0b,
-    0x0c, 0x0d, 0x0e, 0x0f, 0xff, 0xff, 0x00, 0x01, 0x02, 0x03, 0x04, 0x08, 0x09, 0x0a,
-    0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0xff, 0xff, 0xff, 0x00, 0x01, 0x02, 0x03, 0x08, 0x09,
-    0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0xff, 0xff, 0xff, 0xff, 0x00, 0x01, 0x02, 0x08,
-    0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x01,
-    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-    0x00, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0xff, 0xff, 0xff, 0xff, 0xff,
-    0xff, 0xff, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0xff, 0xff, 0xff, 0xff,
-    0xff, 0xff, 0xff, 0xff,
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0xff,
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0xff, 0xff,
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0xff, 0xff, 0xff,
+    0x00, 0x01, 0x02, 0x03, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x01, 0x02, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x01, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 };
 
     #if !WJR_HAS_SIMD(AVX2)
 const __m128i lh8_mask = sse::set1_epi8(0x0f);
 
-const __m128i lo8_lookup =
-    sse::set_epi8(0, 0, 12, 1, 4, 10, 8, 0, 0, 0, 0, 0, 0, 0, 0, 16);
+const __m128i lo8_lookup = sse::set_epi8(0, 0, 12, 1, 4, 10, 8, 0, 0, 0, 0, 0, 0, 0, 0, 16);
 const __m128i hi8_lookup = sse::set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8);
 
 WJR_INTRINSIC_INLINE void compress(char *dst, __m128i x, uint16_t mask) noexcept {
@@ -128,11 +123,10 @@ WJR_INTRINSIC_INLINE void compress(char *dst, __m128i x, uint16_t mask) noexcept
 
     #else
 const __m256i lh8_mask = avx::set1_epi8(0x0f);
-const __m256i lo8_lookup =
-    avx::set_epi8(0, 0, 12, 1, 4, 10, 8, 0, 0, 0, 0, 0, 0, 0, 0, 16, 0, 0, 12, 1, 4, 10,
-                  8, 0, 0, 0, 0, 0, 0, 0, 0, 16);
-const __m256i hi8_lookup = avx::set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8,
-                                         0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8);
+const __m256i lo8_lookup = avx::set_epi8(0, 0, 12, 1, 4, 10, 8, 0, 0, 0, 0, 0, 0, 0, 0, 16, 0, 0,
+                                         12, 1, 4, 10, 8, 0, 0, 0, 0, 0, 0, 0, 0, 16);
+const __m256i hi8_lookup = avx::set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8, 0, 0, 0,
+                                         0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8);
 
 WJR_INTRINSIC_INLINE void compress(char *dst, __m256i x, uint32_t mask) noexcept {
     const uint8_t mask0 = uint8_t(mask);
@@ -142,9 +136,8 @@ WJR_INTRINSIC_INLINE void compress(char *dst, __m256i x, uint32_t mask) noexcept
 
     __m256i shufmask = avx::set_epi64x(thintable_epi8[mask3], thintable_epi8[mask2],
                                        thintable_epi8[mask1], thintable_epi8[mask0]);
-    shufmask =
-        avx::add_epi8(shufmask, avx::set_epi64x(0x18181818'18181818, 0x10101010'10101010,
-                                                0x08080808'08080808, 0));
+    shufmask = avx::add_epi8(shufmask, avx::set_epi64x(0x18181818'18181818, 0x10101010'10101010,
+                                                       0x08080808'08080808, 0));
     const __m256i pruned = avx::shuffle_epi8(x, shufmask);
 
     const int pop0 = popcount_mul_2[mask0];
@@ -168,8 +161,7 @@ WJR_INTRINSIC_INLINE void compress(char *dst, __m256i x, uint32_t mask) noexcept
 #if WJR_HAS_BUILTIN(JSON_LEXER_READER_READ_BUF)
 
 /// @todo Unroll two times maybe faster on some platforms.
-typename lexer::result_type lexer::read(uint32_t *token_buf,
-                                        size_type token_buf_size) noexcept {
+typename lexer::result_type lexer::read(uint32_t *token_buf, size_type token_buf_size) noexcept {
     if (WJR_UNLIKELY(first == last)) {
         return result_type::mask;
     }
@@ -232,8 +224,8 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
 
         for (unsigned i = 0; i < u8_loop; ++i) {
             const auto shuf_lo8 = simd::shuffle_epi8(lo8_lookup, stk[i]);
-            const auto shuf_hi8 = simd::shuffle_epi8(
-                hi8_lookup, simd::And(simd::srli_epi16(stk[i], 4), lh8_mask));
+            const auto shuf_hi8 =
+                simd::shuffle_epi8(hi8_lookup, simd::And(simd::srli_epi16(stk[i], 4), lh8_mask));
 
             const auto result = simd::And(shuf_lo8, shuf_hi8);
             // comma : 1
@@ -242,10 +234,8 @@ typename lexer::result_type lexer::read(uint32_t *token_buf,
             // whitespace : 8, 16
             // others : 0
 
-            const uint32_t stu =
-                simd::movemask_epi8(simd::cmpgt_epi8(result, simd::zeros()));
-            const uint32_t wsp =
-                simd::movemask_epi8(simd::cmpgt_epi8(result, simd::set1_epi8(7)));
+            const uint32_t stu = simd::movemask_epi8(simd::cmpgt_epi8(result, simd::zeros()));
+            const uint32_t wsp = simd::movemask_epi8(simd::cmpgt_epi8(result, simd::set1_epi8(7)));
 
             S |= (uint64_t)(stu) << (i * u8_width);
             W |= (uint64_t)(wsp) << (i * u8_width);
@@ -410,15 +400,14 @@ char *minify(char *dst, const char *first, const char *last) noexcept {
 
         for (unsigned i = 0; i < u8_loop; ++i) {
             const auto shuf_lo8 = simd::shuffle_epi8(lo8_lookup, stk[i]);
-            const auto shuf_hi8 = simd::shuffle_epi8(
-                hi8_lookup, simd::And(simd::srli_epi16(stk[i], 4), lh8_mask));
+            const auto shuf_hi8 =
+                simd::shuffle_epi8(hi8_lookup, simd::And(simd::srli_epi16(stk[i], 4), lh8_mask));
 
             const auto result = simd::And(shuf_lo8, shuf_hi8);
             // whitespace : 8, 16
             // others : 0, 1, 2, 4
 
-            const uint32_t wsp =
-                simd::movemask_epi8(simd::cmpgt_epi8(result, simd::set1_epi8(7)));
+            const uint32_t wsp = simd::movemask_epi8(simd::cmpgt_epi8(result, simd::set1_epi8(7)));
 
             W |= (uint64_t)(wsp) << (i * u8_width);
         }
@@ -442,8 +431,7 @@ char *minify(char *dst, const char *first, const char *last) noexcept {
         if (WJR_UNLIKELY(first == last)) {
             auto buf_end = buf;
             for (unsigned i = 0; i < u8_loop; ++i) {
-                const typename simd::mask_type mask =
-                    (W >> (i * u8_width)) & simd::mask();
+                const typename simd::mask_type mask = (W >> (i * u8_width)) & simd::mask();
                 compress(buf_end, stk[i], mask);
                 buf_end += u8_width - popcount(mask);
             }

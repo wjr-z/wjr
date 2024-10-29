@@ -18,25 +18,20 @@
 
 #if WJR_HAS_BUILTIN(__WJR_TEST_ASSEMBLY) == 1
 
-extern WJR_ALL_NONNULL uint64_t WJR_PP_CONCAT(
-    __wjr_asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(uint64_t *dst, const uint64_t *src0,
-                                                  const uint64_t *src1, size_t n,
-                                                  uint64_t cl) noexcept;
+extern WJR_ALL_NONNULL uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
+    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, uint64_t cl) noexcept;
 
 #else
 
 extern WJR_ALL_NONNULL
     "C" WJR_MS_ABI uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
-        uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
-        uint64_t cl) noexcept;
+        uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, uint64_t cl) noexcept;
 
 #endif
 
 WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
-    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
-    uint64_t cl) noexcept {
-    return WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(dst, src0, src1, n,
-                                                                       cl);
+    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, uint64_t cl) noexcept {
+    return WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(dst, src0, src1, n, cl);
 }
 
 #undef __WJR_TEST_ASSEMBLY

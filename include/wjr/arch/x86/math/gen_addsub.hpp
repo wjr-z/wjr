@@ -20,11 +20,8 @@
 
 #if WJR_HAS_BUILTIN(__WJR_TEST_ASSEMBLY) == 1
 
-WJR_ALL_NONNULL inline uint64_t
-WJR_PP_CONCAT(__wjr_asm_,
-              WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(uint64_t *dst, const uint64_t *src0,
-                                                    const uint64_t *src1, size_t n,
-                                                    uint64_t c_in) noexcept {
+WJR_ALL_NONNULL inline uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
+    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, uint64_t c_in) noexcept {
     size_t rcx = n / 8;
     uint64_t r8 = c_in, r9, r10 = n & 7, r11;
 
@@ -204,15 +201,13 @@ WJR_PP_CONCAT(__wjr_asm_,
 }
 
 #else
-extern "C" WJR_ALL_NONNULL WJR_MS_ABI uint64_t WJR_PP_CONCAT(
-    __wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(uint64_t *dst, const uint64_t *src0,
-                                                      const uint64_t *src1, size_t n,
-                                                      uint64_t c_in) noexcept;
+extern "C" WJR_ALL_NONNULL WJR_MS_ABI uint64_t WJR_PP_CONCAT(__wjr_asm_,
+                                                             WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
+    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, uint64_t c_in) noexcept;
 #endif
 
 WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(
-    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
-    uint64_t c_in) noexcept {
+    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, uint64_t c_in) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(n)) {
         if (n == 1) {
             dst[0] = WJR_PP_CONCAT(asm_, WJR_addcsubc)(src0[0], src1[0], c_in, c_in);
@@ -220,8 +215,8 @@ WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n
         }
     }
 
-    return WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(dst, src0,
-                                                                           src1, n, c_in);
+    return WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(dst, src0, src1, n,
+                                                                           c_in);
 }
 
 #undef __WJR_TEST_ASSEMBLY

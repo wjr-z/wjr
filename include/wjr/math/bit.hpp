@@ -108,8 +108,7 @@ WJR_INTRINSIC_INLINE void clear_tail_padding_bits(To &, std::false_type) noexcep
 
 template <size_t ValueSize, typename To>
 WJR_INTRINSIC_INLINE void clear_tail_padding_bits(To &to) noexcept {
-    clear_tail_padding_bits<ValueSize>(to,
-                                       std::bool_constant<(ValueSize < sizeof(To))>());
+    clear_tail_padding_bits<ValueSize>(to, std::bool_constant<(ValueSize < sizeof(To))>());
 }
 
 template <typename To, typename From>
@@ -135,14 +134,12 @@ WJR_INTRINSIC_INLINE To bitwise_cast_impl(From const &from, std::false_type) noe
 
 } // namespace bit_detail
 
-template <
-    typename To, typename From,
-    WJR_REQUIRES(std::is_trivially_copyable_v<From> &&std::is_trivially_copyable_v<To>)>
+template <typename To, typename From,
+          WJR_REQUIRES(std::is_trivially_copyable_v<From> &&std::is_trivially_copyable_v<To>)>
 WJR_INTRINSIC_INLINE To bitwise_cast(From const &from) noexcept {
     return bit_detail::bitwise_cast_impl<To>(
-        from,
-        std::bool_constant<(sizeof(From) == sizeof(To) &&
-                            std::has_unique_object_representations<From>::value)>());
+        from, std::bool_constant<(sizeof(From) == sizeof(To) &&
+                                  std::has_unique_object_representations<From>::value)>());
 }
 
 template <typename T>

@@ -91,25 +91,16 @@ struct sse {
     template <int imm8>
     WJR_INTRINSIC_INLINE static __m128i alignr(__m128i a, __m128i b) noexcept;
 
-    WJR_INTRINSIC_INLINE static __m128i alignr_epi16(__m128i a, __m128i b,
-                                                     int c) noexcept;
-    WJR_INTRINSIC_INLINE static __m128i alignr_epi32(__m128i a, __m128i b,
-                                                     int c) noexcept;
-    WJR_INTRINSIC_INLINE static __m128i alignr_epi64(__m128i a, __m128i b,
-                                                     int c) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i alignr_epi16(__m128i a, __m128i b, int c) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i alignr_epi32(__m128i a, __m128i b, int c) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i alignr_epi64(__m128i a, __m128i b, int c) noexcept;
 
-    WJR_INTRINSIC_INLINE static __m128i alignr(__m128i a, __m128i b, int c,
-                                               int16_t) noexcept;
-    WJR_INTRINSIC_INLINE static __m128i alignr(__m128i a, __m128i b, int c,
-                                               int32_t) noexcept;
-    WJR_INTRINSIC_INLINE static __m128i alignr(__m128i a, __m128i b, int c,
-                                               int64_t) noexcept;
-    WJR_INTRINSIC_INLINE static __m128i alignr(__m128i a, __m128i b, int c,
-                                               uint16_t) noexcept;
-    WJR_INTRINSIC_INLINE static __m128i alignr(__m128i a, __m128i b, int c,
-                                               uint32_t) noexcept;
-    WJR_INTRINSIC_INLINE static __m128i alignr(__m128i a, __m128i b, int c,
-                                               uint64_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i alignr(__m128i a, __m128i b, int c, int16_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i alignr(__m128i a, __m128i b, int c, int32_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i alignr(__m128i a, __m128i b, int c, int64_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i alignr(__m128i a, __m128i b, int c, uint16_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i alignr(__m128i a, __m128i b, int c, uint32_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i alignr(__m128i a, __m128i b, int c, uint64_t) noexcept;
 
     WJR_INTRINSIC_INLINE static __m128i And(__m128i a, __m128i b) noexcept;
 
@@ -124,15 +115,11 @@ struct sse {
     WJR_INTRINSIC_INLINE static __m128i avg(__m128i a, __m128i b, uint16_t) noexcept;
 
     // notice that mask must be 0 or 255(every byte)
-    WJR_INTRINSIC_INLINE static __m128i blendv_epi8(__m128i a, __m128i b,
-                                                    __m128i mask) noexcept;
-    WJR_INTRINSIC_INLINE static __m128i blendv_epi16(__m128i a, __m128i b,
-                                                     __m128i mask) noexcept;
-    WJR_INTRINSIC_INLINE static __m128i blendv_epi32(__m128i a, __m128i b,
-                                                     __m128i mask) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i blendv_epi8(__m128i a, __m128i b, __m128i mask) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i blendv_epi16(__m128i a, __m128i b, __m128i mask) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i blendv_epi32(__m128i a, __m128i b, __m128i mask) noexcept;
 
-    WJR_INTRINSIC_INLINE static __m128i blendv(__m128i a, __m128i b, __m128i mask,
-                                               int8_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i blendv(__m128i a, __m128i b, __m128i mask, int8_t) noexcept;
     WJR_INTRINSIC_INLINE static __m128i blendv(__m128i a, __m128i b, __m128i mask,
                                                int16_t) noexcept;
     WJR_INTRINSIC_INLINE static __m128i blendv(__m128i a, __m128i b, __m128i mask,
@@ -233,23 +220,17 @@ struct sse {
     WJR_INTRINSIC_INLINE static __m128i cmpne(__m128i a, __m128i b, uint32_t) noexcept;
 
     template <typename T>
-    WJR_INTRINSIC_INLINE static __m128i cmp(__m128i a, __m128i b, std::equal_to<>,
-                                            T) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i cmp(__m128i a, __m128i b, std::equal_to<>, T) noexcept;
     template <typename T>
-    WJR_INTRINSIC_INLINE static __m128i cmp(__m128i a, __m128i b, std::not_equal_to<>,
-                                            T) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i cmp(__m128i a, __m128i b, std::not_equal_to<>, T) noexcept;
     template <typename T>
-    WJR_INTRINSIC_INLINE static __m128i cmp(__m128i a, __m128i b, std::greater<>,
-                                            T) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i cmp(__m128i a, __m128i b, std::greater<>, T) noexcept;
     template <typename T>
-    WJR_INTRINSIC_INLINE static __m128i cmp(__m128i a, __m128i b, std::greater_equal<>,
-                                            T) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i cmp(__m128i a, __m128i b, std::greater_equal<>, T) noexcept;
     template <typename T>
-    WJR_INTRINSIC_INLINE static __m128i cmp(__m128i a, __m128i b, std::less<>,
-                                            T) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i cmp(__m128i a, __m128i b, std::less<>, T) noexcept;
     template <typename T>
-    WJR_INTRINSIC_INLINE static __m128i cmp(__m128i a, __m128i b, std::less_equal<>,
-                                            T) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i cmp(__m128i a, __m128i b, std::less_equal<>, T) noexcept;
 
     WJR_INTRINSIC_INLINE static __m128i concat(uint64_t lo, uint64_t hi) noexcept;
 
@@ -299,25 +280,21 @@ struct sse {
     WJR_INTRINSIC_INLINE static __m128i loadu_si32(const void *ptr) noexcept;
     WJR_INTRINSIC_INLINE static __m128i loadu_si64(const void *ptr) noexcept;
 
-    template <typename T,
-              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                       uint16_t, uint32_t, uint64_t>)>
+    template <typename T, WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                                   uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m128i logical_and(__m128i a, __m128i b, T) noexcept;
 
-    template <typename T,
-              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                       uint16_t, uint32_t, uint64_t>)>
+    template <typename T, WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                                   uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m128i logical_not(__m128i v, T) noexcept;
 
-    template <typename T,
-              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                       uint16_t, uint32_t, uint64_t>)>
+    template <typename T, WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                                   uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m128i logical_or(__m128i a, __m128i b, T) noexcept;
 
     WJR_INTRINSIC_INLINE static __m128i madd_epi16(__m128i a, __m128i b) noexcept;
 
-    WJR_INTRINSIC_INLINE static void maskmoveu(__m128i a, __m128i mask,
-                                               char *mem_addr) noexcept;
+    WJR_INTRINSIC_INLINE static void maskmoveu(__m128i a, __m128i mask, char *mem_addr) noexcept;
 
     WJR_INTRINSIC_INLINE static __m128i max_epi8(__m128i a, __m128i b) noexcept;
     WJR_INTRINSIC_INLINE static __m128i max_epi16(__m128i a, __m128i b) noexcept;
@@ -439,30 +416,24 @@ struct sse {
     WJR_INTRINSIC_INLINE static __m128i zeros() noexcept;
     WJR_INTRINSIC_INLINE static __m128i ones() noexcept;
 
-    WJR_INTRINSIC_INLINE static __m128i set_epi8(char e15, char e14, char e13, char e12,
-                                                 char e11, char e10, char e9, char e8,
-                                                 char e7, char e6, char e5, char e4,
-                                                 char e3, char e2, char e1,
+    WJR_INTRINSIC_INLINE static __m128i set_epi8(char e15, char e14, char e13, char e12, char e11,
+                                                 char e10, char e9, char e8, char e7, char e6,
+                                                 char e5, char e4, char e3, char e2, char e1,
                                                  char e0) noexcept;
 
-    WJR_INTRINSIC_INLINE static __m128i set_epi16(short e7, short e6, short e5, short e4,
-                                                  short e3, short e2, short e1,
-                                                  short e0) noexcept;
-    WJR_INTRINSIC_INLINE static __m128i set_epi32(int e3, int e2, int e1,
-                                                  int e0) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i set_epi16(short e7, short e6, short e5, short e4, short e3,
+                                                  short e2, short e1, short e0) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i set_epi32(int e3, int e2, int e1, int e0) noexcept;
     WJR_INTRINSIC_INLINE static __m128i set_epi64x(long long e1, long long e0) noexcept;
 
-    WJR_INTRINSIC_INLINE static __m128i setr_epi8(char e15, char e14, char e13, char e12,
-                                                  char e11, char e10, char e9, char e8,
-                                                  char e7, char e6, char e5, char e4,
-                                                  char e3, char e2, char e1,
+    WJR_INTRINSIC_INLINE static __m128i setr_epi8(char e15, char e14, char e13, char e12, char e11,
+                                                  char e10, char e9, char e8, char e7, char e6,
+                                                  char e5, char e4, char e3, char e2, char e1,
                                                   char e0) noexcept;
 
-    WJR_INTRINSIC_INLINE static __m128i setr_epi16(short e7, short e6, short e5, short e4,
-                                                   short e3, short e2, short e1,
-                                                   short e0) noexcept;
-    WJR_INTRINSIC_INLINE static __m128i setr_epi32(int e3, int e2, int e1,
-                                                   int e0) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i setr_epi16(short e7, short e6, short e5, short e4, short e3,
+                                                   short e2, short e1, short e0) noexcept;
+    WJR_INTRINSIC_INLINE static __m128i setr_epi32(int e3, int e2, int e1, int e0) noexcept;
 
     WJR_INTRINSIC_INLINE static __m128i set1_epi8(int8_t val) noexcept;
     WJR_INTRINSIC_INLINE static __m128i set1_epi16(int16_t val) noexcept;
@@ -780,9 +751,7 @@ struct broadcast_fn<uint64_t, __m128i_t> {
 
 template <>
 struct broadcast_fn<__m128i_t, __m128i_t> {
-    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(__m128i v) const noexcept {
-        return v;
-    }
+    WJR_CONST WJR_INTRINSIC_INLINE __m128i operator()(__m128i v) const noexcept { return v; }
 };
 
 #endif // SSE2
@@ -907,15 +876,9 @@ __m128i sse::alignr_epi64(__m128i a, __m128i b, int c) noexcept {
     return Or(slli(a, 64 - c, uint64_t()), srli(b, c, uint64_t()));
 }
 
-__m128i sse::alignr(__m128i a, __m128i b, int c, int16_t) noexcept {
-    return alignr_epi16(a, b, c);
-}
-__m128i sse::alignr(__m128i a, __m128i b, int c, int32_t) noexcept {
-    return alignr_epi32(a, b, c);
-}
-__m128i sse::alignr(__m128i a, __m128i b, int c, int64_t) noexcept {
-    return alignr_epi64(a, b, c);
-}
+__m128i sse::alignr(__m128i a, __m128i b, int c, int16_t) noexcept { return alignr_epi16(a, b, c); }
+__m128i sse::alignr(__m128i a, __m128i b, int c, int32_t) noexcept { return alignr_epi32(a, b, c); }
+__m128i sse::alignr(__m128i a, __m128i b, int c, int64_t) noexcept { return alignr_epi64(a, b, c); }
 __m128i sse::alignr(__m128i a, __m128i b, int c, uint16_t) noexcept {
     return alignr_epi16(a, b, c);
 }
@@ -1323,21 +1286,21 @@ __m128i sse::loadu_si64(const void *ptr) noexcept {
     return simd_cast<uint64_t, __m128i_t>(read_memory<uint64_t>(ptr));
 }
 
-template <typename T, WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                 uint8_t, uint16_t, uint32_t, uint64_t>)>
+template <typename T, WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                                 uint16_t, uint32_t, uint64_t>)>
 __m128i sse::logical_and(__m128i a, __m128i b, T) noexcept {
     return Not(Or(logical_not(a, T()), logical_not(b, T())));
 }
 
-template <typename T, WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                 uint8_t, uint16_t, uint32_t, uint64_t>)>
+template <typename T, WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                                 uint16_t, uint32_t, uint64_t>)>
 __m128i sse::logical_not(__m128i v, T) noexcept {
     auto Zero = zeros();
     return cmpeq(v, Zero, T());
 }
 
-template <typename T, WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                 uint8_t, uint16_t, uint32_t, uint64_t>)>
+template <typename T, WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                                 uint16_t, uint32_t, uint64_t>)>
 __m128i sse::logical_or(__m128i a, __m128i b, T) noexcept {
     return Not(logical_not(Or(a, b), T()));
 }
@@ -1391,9 +1354,7 @@ __m128i sse::max(__m128i a, __m128i b, uint8_t) noexcept { return max_epu8(a, b)
 __m128i sse::max(__m128i a, __m128i b, uint16_t) noexcept { return max_epu16(a, b); }
 __m128i sse::max(__m128i a, __m128i b, uint32_t) noexcept { return max_epu32(a, b); }
 
-int8_t sse::max_epi8(__m128i a) noexcept {
-    return 0x7fu ^ min_epu8(Xor(a, set1_epi8(0x7fu)));
-}
+int8_t sse::max_epi8(__m128i a) noexcept { return 0x7fu ^ min_epu8(Xor(a, set1_epi8(0x7fu))); }
 
 int16_t sse::max_epi16(__m128i a) noexcept {
     #if WJR_HAS_SIMD(SSE4_1)
@@ -1493,9 +1454,7 @@ __m128i sse::min(__m128i a, __m128i b, uint8_t) noexcept { return min_epu8(a, b)
 __m128i sse::min(__m128i a, __m128i b, uint16_t) noexcept { return min_epu16(a, b); }
 __m128i sse::min(__m128i a, __m128i b, uint32_t) noexcept { return min_epu32(a, b); }
 
-int8_t sse::min_epi8(__m128i a) noexcept {
-    return 0x80u ^ min_epu8(Xor(a, setmin_epi8()));
-}
+int8_t sse::min_epi8(__m128i a) noexcept { return 0x80u ^ min_epu8(Xor(a, setmin_epi8())); }
 
 int16_t sse::min_epi16(__m128i a) noexcept {
     #if WJR_HAS_SIMD(SSE4_1)
@@ -1568,15 +1527,9 @@ sse::mask_type sse::movemask(__m128i v, int32_t) noexcept {
 sse::mask_type sse::movemask(__m128i v, int64_t) noexcept {
     return movemask_pd(simd_cast<__m128i_t, __m128d_t>(v));
 }
-sse::mask_type sse::movemask(__m128i v, uint8_t) noexcept {
-    return movemask(v, int8_t());
-}
-sse::mask_type sse::movemask(__m128i v, uint32_t) noexcept {
-    return movemask(v, int32_t());
-}
-sse::mask_type sse::movemask(__m128i v, uint64_t) noexcept {
-    return movemask(v, int64_t());
-}
+sse::mask_type sse::movemask(__m128i v, uint8_t) noexcept { return movemask(v, int8_t()); }
+sse::mask_type sse::movemask(__m128i v, uint32_t) noexcept { return movemask(v, int32_t()); }
+sse::mask_type sse::movemask(__m128i v, uint64_t) noexcept { return movemask(v, int64_t()); }
 
 __m128i sse::mul_epu32(__m128i a, __m128i b) noexcept { return _mm_mul_epu32(a, b); }
 
@@ -1628,9 +1581,7 @@ __m128i sse::Or(__m128i a, __m128i b) noexcept { return _mm_or_si128(a, b); }
 __m128i sse::packs_epi16(__m128i a, __m128i b) noexcept { return _mm_packs_epi16(a, b); }
 __m128i sse::packs_epi32(__m128i a, __m128i b) noexcept { return _mm_packs_epi32(a, b); }
 
-__m128i sse::packus_epi16(__m128i a, __m128i b) noexcept {
-    return _mm_packus_epi16(a, b);
-}
+__m128i sse::packus_epi16(__m128i a, __m128i b) noexcept { return _mm_packus_epi16(a, b); }
 
 __m128i sse::loadu_si48(const void *ptr) noexcept {
     return insert_epi16<2>(loadu_si32(ptr), reinterpret_cast<const uint16_t *>(ptr)[2]);
@@ -1682,33 +1633,29 @@ __m128i sse::sad_epu8(__m128i a, __m128i b) noexcept { return _mm_sad_epu8(a, b)
 __m128i sse::zeros() noexcept { return _mm_setzero_si128(); }
 __m128i sse::ones() noexcept { return _mm_set1_epi32(-1); }
 
-__m128i sse::set_epi8(char e15, char e14, char e13, char e12, char e11, char e10, char e9,
-                      char e8, char e7, char e6, char e5, char e4, char e3, char e2,
-                      char e1, char e0) noexcept {
-    return _mm_set_epi8(e15, e14, e13, e12, e11, e10, e9, e8, e7, e6, e5, e4, e3, e2, e1,
-                        e0);
+__m128i sse::set_epi8(char e15, char e14, char e13, char e12, char e11, char e10, char e9, char e8,
+                      char e7, char e6, char e5, char e4, char e3, char e2, char e1,
+                      char e0) noexcept {
+    return _mm_set_epi8(e15, e14, e13, e12, e11, e10, e9, e8, e7, e6, e5, e4, e3, e2, e1, e0);
 }
 
-__m128i sse::set_epi16(short e7, short e6, short e5, short e4, short e3, short e2,
-                       short e1, short e0) noexcept {
+__m128i sse::set_epi16(short e7, short e6, short e5, short e4, short e3, short e2, short e1,
+                       short e0) noexcept {
     return _mm_set_epi16(e7, e6, e5, e4, e3, e2, e1, e0);
 }
 __m128i sse::set_epi32(int e3, int e2, int e1, int e0) noexcept {
     return _mm_set_epi32(e3, e2, e1, e0);
 }
-__m128i sse::set_epi64x(long long e1, long long e0) noexcept {
-    return _mm_set_epi64x(e1, e0);
+__m128i sse::set_epi64x(long long e1, long long e0) noexcept { return _mm_set_epi64x(e1, e0); }
+
+__m128i sse::setr_epi8(char e15, char e14, char e13, char e12, char e11, char e10, char e9, char e8,
+                       char e7, char e6, char e5, char e4, char e3, char e2, char e1,
+                       char e0) noexcept {
+    return _mm_setr_epi8(e15, e14, e13, e12, e11, e10, e9, e8, e7, e6, e5, e4, e3, e2, e1, e0);
 }
 
-__m128i sse::setr_epi8(char e15, char e14, char e13, char e12, char e11, char e10,
-                       char e9, char e8, char e7, char e6, char e5, char e4, char e3,
-                       char e2, char e1, char e0) noexcept {
-    return _mm_setr_epi8(e15, e14, e13, e12, e11, e10, e9, e8, e7, e6, e5, e4, e3, e2, e1,
-                         e0);
-}
-
-__m128i sse::setr_epi16(short e7, short e6, short e5, short e4, short e3, short e2,
-                        short e1, short e0) noexcept {
+__m128i sse::setr_epi16(short e7, short e6, short e5, short e4, short e3, short e2, short e1,
+                        short e0) noexcept {
     return _mm_setr_epi16(e7, e6, e5, e4, e3, e2, e1, e0);
 }
 __m128i sse::setr_epi32(int e3, int e2, int e1, int e0) noexcept {
@@ -1916,78 +1863,32 @@ __m128i sse::subs(__m128i a, __m128i b, int16_t) noexcept { return subs_epi16(a,
 __m128i sse::subs(__m128i a, __m128i b, uint8_t) noexcept { return subs_epu8(a, b); }
 __m128i sse::subs(__m128i a, __m128i b, uint16_t) noexcept { return subs_epu16(a, b); }
 
-__m128i sse::unpackhi_epi8(__m128i a, __m128i b) noexcept {
-    return _mm_unpackhi_epi8(a, b);
-}
-__m128i sse::unpackhi_epi16(__m128i a, __m128i b) noexcept {
-    return _mm_unpackhi_epi16(a, b);
-}
-__m128i sse::unpackhi_epi32(__m128i a, __m128i b) noexcept {
-    return _mm_unpackhi_epi32(a, b);
-}
-__m128i sse::unpackhi_epi64(__m128i a, __m128i b) noexcept {
-    return _mm_unpackhi_epi64(a, b);
-}
+__m128i sse::unpackhi_epi8(__m128i a, __m128i b) noexcept { return _mm_unpackhi_epi8(a, b); }
+__m128i sse::unpackhi_epi16(__m128i a, __m128i b) noexcept { return _mm_unpackhi_epi16(a, b); }
+__m128i sse::unpackhi_epi32(__m128i a, __m128i b) noexcept { return _mm_unpackhi_epi32(a, b); }
+__m128i sse::unpackhi_epi64(__m128i a, __m128i b) noexcept { return _mm_unpackhi_epi64(a, b); }
 
-__m128i sse::unpackhi(__m128i a, __m128i b, int8_t) noexcept {
-    return unpackhi_epi8(a, b);
-}
-__m128i sse::unpackhi(__m128i a, __m128i b, int16_t) noexcept {
-    return unpackhi_epi16(a, b);
-}
-__m128i sse::unpackhi(__m128i a, __m128i b, int32_t) noexcept {
-    return unpackhi_epi32(a, b);
-}
-__m128i sse::unpackhi(__m128i a, __m128i b, int64_t) noexcept {
-    return unpackhi_epi64(a, b);
-}
-__m128i sse::unpackhi(__m128i a, __m128i b, uint8_t) noexcept {
-    return unpackhi_epi8(a, b);
-}
-__m128i sse::unpackhi(__m128i a, __m128i b, uint16_t) noexcept {
-    return unpackhi_epi16(a, b);
-}
-__m128i sse::unpackhi(__m128i a, __m128i b, uint32_t) noexcept {
-    return unpackhi_epi32(a, b);
-}
-__m128i sse::unpackhi(__m128i a, __m128i b, uint64_t) noexcept {
-    return unpackhi_epi64(a, b);
-}
+__m128i sse::unpackhi(__m128i a, __m128i b, int8_t) noexcept { return unpackhi_epi8(a, b); }
+__m128i sse::unpackhi(__m128i a, __m128i b, int16_t) noexcept { return unpackhi_epi16(a, b); }
+__m128i sse::unpackhi(__m128i a, __m128i b, int32_t) noexcept { return unpackhi_epi32(a, b); }
+__m128i sse::unpackhi(__m128i a, __m128i b, int64_t) noexcept { return unpackhi_epi64(a, b); }
+__m128i sse::unpackhi(__m128i a, __m128i b, uint8_t) noexcept { return unpackhi_epi8(a, b); }
+__m128i sse::unpackhi(__m128i a, __m128i b, uint16_t) noexcept { return unpackhi_epi16(a, b); }
+__m128i sse::unpackhi(__m128i a, __m128i b, uint32_t) noexcept { return unpackhi_epi32(a, b); }
+__m128i sse::unpackhi(__m128i a, __m128i b, uint64_t) noexcept { return unpackhi_epi64(a, b); }
 
-__m128i sse::unpacklo_epi8(__m128i a, __m128i b) noexcept {
-    return _mm_unpacklo_epi8(a, b);
-}
-__m128i sse::unpacklo_epi16(__m128i a, __m128i b) noexcept {
-    return _mm_unpacklo_epi16(a, b);
-}
-__m128i sse::unpacklo_epi32(__m128i a, __m128i b) noexcept {
-    return _mm_unpacklo_epi32(a, b);
-}
-__m128i sse::unpacklo_epi64(__m128i a, __m128i b) noexcept {
-    return _mm_unpacklo_epi64(a, b);
-}
+__m128i sse::unpacklo_epi8(__m128i a, __m128i b) noexcept { return _mm_unpacklo_epi8(a, b); }
+__m128i sse::unpacklo_epi16(__m128i a, __m128i b) noexcept { return _mm_unpacklo_epi16(a, b); }
+__m128i sse::unpacklo_epi32(__m128i a, __m128i b) noexcept { return _mm_unpacklo_epi32(a, b); }
+__m128i sse::unpacklo_epi64(__m128i a, __m128i b) noexcept { return _mm_unpacklo_epi64(a, b); }
 
-__m128i sse::unpacklo(__m128i a, __m128i b, int8_t) noexcept {
-    return unpacklo_epi8(a, b);
-}
-__m128i sse::unpacklo(__m128i a, __m128i b, int16_t) noexcept {
-    return unpacklo_epi16(a, b);
-}
-__m128i sse::unpacklo(__m128i a, __m128i b, int32_t) noexcept {
-    return unpacklo_epi32(a, b);
-}
-__m128i sse::unpacklo(__m128i a, __m128i b, int64_t) noexcept {
-    return unpacklo_epi64(a, b);
-}
-__m128i sse::unpacklo(__m128i a, __m128i b, uint8_t) noexcept {
-    return unpacklo_epi8(a, b);
-}
-__m128i sse::unpacklo(__m128i a, __m128i b, uint16_t) noexcept {
-    return unpacklo_epi16(a, b);
-}
-__m128i sse::unpacklo(__m128i a, __m128i b, uint32_t) noexcept {
-    return unpacklo_epi32(a, b);
-}
+__m128i sse::unpacklo(__m128i a, __m128i b, int8_t) noexcept { return unpacklo_epi8(a, b); }
+__m128i sse::unpacklo(__m128i a, __m128i b, int16_t) noexcept { return unpacklo_epi16(a, b); }
+__m128i sse::unpacklo(__m128i a, __m128i b, int32_t) noexcept { return unpacklo_epi32(a, b); }
+__m128i sse::unpacklo(__m128i a, __m128i b, int64_t) noexcept { return unpacklo_epi64(a, b); }
+__m128i sse::unpacklo(__m128i a, __m128i b, uint8_t) noexcept { return unpacklo_epi8(a, b); }
+__m128i sse::unpacklo(__m128i a, __m128i b, uint16_t) noexcept { return unpacklo_epi16(a, b); }
+__m128i sse::unpacklo(__m128i a, __m128i b, uint32_t) noexcept { return unpacklo_epi32(a, b); }
 
 __m128i sse::Xor(__m128i a, __m128i b) noexcept { return _mm_xor_si128(a, b); }
 
@@ -2012,9 +1913,7 @@ __m128i sse::abs(__m128i val, uint8_t) noexcept { return val; }
 __m128i sse::abs(__m128i val, uint16_t) noexcept { return val; }
 __m128i sse::abs(__m128i val, uint32_t) noexcept { return val; }
 
-__m128i sse::shuffle_epi8(__m128i v, __m128i imm8) noexcept {
-    return _mm_shuffle_epi8(v, imm8);
-}
+__m128i sse::shuffle_epi8(__m128i v, __m128i imm8) noexcept { return _mm_shuffle_epi8(v, imm8); }
 
 __m128i sse::sign_epi8(__m128i a, __m128i b) noexcept { return _mm_sign_epi8(a, b); }
 __m128i sse::sign_epi16(__m128i a, __m128i b) noexcept { return _mm_sign_epi16(a, b); }
@@ -2096,9 +1995,7 @@ __m128i sse::mul_epi32(__m128i a, __m128i b) noexcept { return _mm_mul_epi32(a, 
 
 __m128i sse::mullo_epi32(__m128i a, __m128i b) noexcept { return _mm_mullo_epi32(a, b); }
 
-__m128i sse::packus_epi32(__m128i a, __m128i b) noexcept {
-    return _mm_packus_epi32(a, b);
-}
+__m128i sse::packus_epi32(__m128i a, __m128i b) noexcept { return _mm_packus_epi32(a, b); }
 
 __m128i sse::stream_load(void *p) noexcept {
     return _mm_stream_load_si128(static_cast<__m128i *>(p));
@@ -2106,9 +2003,7 @@ __m128i sse::stream_load(void *p) noexcept {
 
 int sse::test_all_ones(__m128i a) noexcept { return _mm_test_all_ones(a); }
 
-int sse::test_all_zeros(__m128i a, __m128i b) noexcept {
-    return _mm_test_all_zeros(a, b);
-}
+int sse::test_all_zeros(__m128i a, __m128i b) noexcept { return _mm_test_all_zeros(a, b); }
 
 int sse::test_all_zeros(__m128i a) noexcept { return _mm_test_all_zeros(a, a); }
 

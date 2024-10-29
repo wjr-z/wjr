@@ -50,9 +50,8 @@ void large_builtin_set_n(T *dst, typename simd::int_type y, size_t n) noexcept {
     if (mo != 0) {
         y = simd::Or(
             simd::srl(y, simd_cast<uint8_t, __m128i_t>(mo * 8), T()),
-            simd::sll(
-                y, simd_cast<uint8_t, __m128i_t>(std::numeric_limits<T>::digits - mo * 8),
-                T()));
+            simd::sll(y, simd_cast<uint8_t, __m128i_t>(std::numeric_limits<T>::digits - mo * 8),
+                      T()));
     }
 
     do {

@@ -51,9 +51,7 @@ static constexpr char radix_100_head_table[200] JKJ_STATIC_DATA_SECTION = {
     '9', '.', '9', '.', '9', '.', '9', '.', '9', '.'  //
 };
 
-static void print_1_digit(int n, char *buffer) noexcept {
-    *buffer = char_converter.to(n);
-}
+static void print_1_digit(int n, char *buffer) noexcept { *buffer = char_converter.to(n); }
 
 static void print_2_digits(int n, char *buffer) noexcept {
     __to_chars_unroll_2<10>(reinterpret_cast<uint8_t *>(buffer), n, char_converter);
@@ -132,8 +130,7 @@ WJR_INTRINSIC_INLINE static void print_9_digits(std::uint32_t s32, int &exponent
             print_2_digits(int(prod >> 32), buffer + 2);
 
             // Remaining 4 digits are all zero?
-            if ((prod & UINT32_C(0xffffffff)) <=
-                std::uint32_t((std::uint64_t(1) << 32) / 10000)) {
+            if ((prod & UINT32_C(0xffffffff)) <= std::uint32_t((std::uint64_t(1) << 32) / 10000)) {
                 buffer += (3 + int(buffer[3] > '0'));
             } else {
                 // At least one of the remaining 4 digits are nonzero.
@@ -171,8 +168,7 @@ WJR_INTRINSIC_INLINE static void print_9_digits(std::uint32_t s32, int &exponent
         buffer[2] = radix_100_table[head_digits * 2 + 1];
 
         // Remaining 4 digits are all zero?
-        if ((prod & UINT32_C(0xffffffff)) <=
-            std::uint32_t((std::uint64_t(1) << 32) / 10000)) {
+        if ((prod & UINT32_C(0xffffffff)) <= std::uint32_t((std::uint64_t(1) << 32) / 10000)) {
             // The number of characters actually written is 1 or 3, similarly to the case
             // of 7 or 8 digits.
             buffer += (1 + (int(head_digits >= 10) & int(buffer[2] > '0')) * 2);
@@ -186,8 +182,7 @@ WJR_INTRINSIC_INLINE static void print_9_digits(std::uint32_t s32, int &exponent
             print_2_digits(int(prod >> 32), buffer + 2);
 
             // Remaining 2 digits are all zero?
-            if ((prod & UINT32_C(0xffffffff)) <=
-                std::uint32_t((std::uint64_t(1) << 32) / 100)) {
+            if ((prod & UINT32_C(0xffffffff)) <= std::uint32_t((std::uint64_t(1) << 32) / 100)) {
                 buffer += (3 + int(buffer[3] > '0'));
             } else {
                 // Obtain the last two digits.
@@ -213,8 +208,7 @@ WJR_INTRINSIC_INLINE static void print_9_digits(std::uint32_t s32, int &exponent
         buffer[2] = radix_100_table[head_digits * 2 + 1];
 
         // Remaining 2 digits are all zero?
-        if ((prod & UINT32_C(0xffffffff)) <=
-            std::uint32_t((std::uint64_t(1) << 32) / 100)) {
+        if ((prod & UINT32_C(0xffffffff)) <= std::uint32_t((std::uint64_t(1) << 32) / 100)) {
             // The number of characters actually written is 1 or 3, similarly to the case
             // of 7 or 8 digits.
             buffer += (1 + (int(head_digits >= 10) & int(buffer[2] > '0')) * 2);
@@ -273,8 +267,8 @@ char *to_chars<ieee754_binary32, std::uint32_t>(std::uint32_t s32, int exponent,
 }
 
 template <>
-char *to_chars<ieee754_binary64, std::uint64_t>(std::uint64_t const significand,
-                                                int exponent, char *buffer) noexcept {
+char *to_chars<ieee754_binary64, std::uint64_t>(std::uint64_t const significand, int exponent,
+                                                char *buffer) noexcept {
     // Print significand by decomposing it into a 9-digit block and a 8-digit block.
     std::uint32_t first_block, second_block;
     bool no_second_block;

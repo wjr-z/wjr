@@ -15,8 +15,7 @@ struct get_relocate_mode<std::unique_ptr<T, D>> {
 };
 
 WJR_REGISTER_HAS_TYPE(pointer_traits_to_address,
-                      std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()),
-                      Ptr);
+                      std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()), Ptr);
 
 WJR_REGISTER_HAS_TYPE(pointer_access, std::declval<const Ptr &>().operator->(), Ptr);
 
@@ -112,8 +111,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T fallback_byteswap(T x) noexcept {
     } else if constexpr (digits == 64) {
         return ((val >> 56) & 0xff) | ((val >> 40) & 0xff00) | ((val >> 24) & 0xff0000) |
                ((val >> 8) & 0xff000000) | ((val << 8) & 0xff00000000) |
-               ((val << 24) & 0xff0000000000) | ((val << 40) & 0xff000000000000) |
-               ((val << 56));
+               ((val << 24) & 0xff0000000000) | ((val << 40) & 0xff000000000000) | ((val << 56));
     } else {
         static_assert(digits <= 64, "Unsupported bit width");
     }
@@ -157,8 +155,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x) noexcept {
 #endif
 }
 
-WJR_INTRINSIC_INLINE void maybe_null_memcpy(void *dst, void const *src,
-                                            size_t size) noexcept {
+WJR_INTRINSIC_INLINE void maybe_null_memcpy(void *dst, void const *src, size_t size) noexcept {
     if (WJR_UNLIKELY(size == 0)) {
         return;
     }
@@ -184,10 +181,9 @@ struct allocation_result {
     SizeType count;
 };
 
-WJR_REGISTER_HAS_TYPE(
-    allocate_at_least,
-    std::declval<Allocator>().allocate_at_least(std::declval<SizeType>()), Allocator,
-    SizeType);
+WJR_REGISTER_HAS_TYPE(allocate_at_least,
+                      std::declval<Allocator>().allocate_at_least(std::declval<SizeType>()),
+                      Allocator, SizeType);
 
 template <typename Allocator, typename SizeType>
 WJR_NODISCARD auto allocate_at_least(Allocator &alloc, SizeType count) {

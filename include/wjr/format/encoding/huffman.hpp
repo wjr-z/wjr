@@ -37,8 +37,7 @@ public:
     huffman_leaf_node() noexcept : huffman_node<T>(), m_value() {}
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
-    huffman_leaf_node(Args &&...args) noexcept(
-        std::is_nothrow_constructible_v<T, Args &&...>)
+    huffman_leaf_node(Args &&...args) noexcept(std::is_nothrow_constructible_v<T, Args &&...>)
         : huffman_node<T>(), m_value(std::forward<Args>(args)...) {}
 
     huffman_leaf_node(const huffman_leaf_node &) = delete;
@@ -74,9 +73,7 @@ public:
     huffman_tree &operator=(huffman_tree &&) = default;
 
     node_type *root() noexcept { return reinterpret_cast<node_type *>(m_buffer.get()); }
-    const node_type *root() const noexcept {
-        return reinterpret_cast<node_type *>(m_buffer.get());
-    }
+    const node_type *root() const noexcept { return reinterpret_cast<node_type *>(m_buffer.get()); }
 
 private:
     std::unique_ptr<char[]> m_buffer;
@@ -100,8 +97,7 @@ decltype(auto) build_tree(size_t n, Getter getter) noexcept {
     using inner_type = huffman_node<value_type>;
     using leaf_type = huffman_leaf_node<value_type>;
 
-    std::unique_ptr<char[]> buffer(
-        new char[sizeof(size_t) * (n - 1) + sizeof(pair_type) * n]);
+    std::unique_ptr<char[]> buffer(new char[sizeof(size_t) * (n - 1) + sizeof(pair_type) * n]);
 
     auto *size_first = reinterpret_cast<size_t *>(buffer.get()) + (n - 1);
     auto *size_last = size_first;

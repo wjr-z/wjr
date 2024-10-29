@@ -27,8 +27,7 @@ template <typename T>
 struct is_front_insert_iterator : std::false_type {};
 
 template <typename Container>
-struct is_front_insert_iterator<std::front_insert_iterator<Container>> : std::true_type {
-};
+struct is_front_insert_iterator<std::front_insert_iterator<Container>> : std::true_type {};
 
 template <typename T>
 inline constexpr bool is_front_insert_iterator_v = is_front_insert_iterator<T>::value;
@@ -44,8 +43,7 @@ inline constexpr bool is_any_insert_iterator_v = is_any_insert_iterator<T>::valu
 /// @private
 template <typename Iter>
 struct __inserter_container_accessor : Iter {
-    __inserter_container_accessor(Iter it) noexcept(
-        std::is_nothrow_copy_constructible_v<Iter>)
+    __inserter_container_accessor(Iter it) noexcept(std::is_nothrow_copy_constructible_v<Iter>)
         : Iter(it) {}
     using Iter::container;
 };
@@ -57,8 +55,7 @@ __inserter_container_accessor(Iter) -> __inserter_container_accessor<Iter>;
 /// @private
 template <typename Iter>
 struct __inserter_iterator_accessor : Iter {
-    __inserter_iterator_accessor(Iter it) noexcept(
-        std::is_nothrow_copy_constructible_v<Iter>)
+    __inserter_iterator_accessor(Iter it) noexcept(std::is_nothrow_copy_constructible_v<Iter>)
         : Iter(it) {}
     using Iter::iter;
 };
@@ -88,8 +85,7 @@ Container &get_inserter_container(std::front_insert_iterator<Container> it) noex
 }
 
 template <typename Container>
-typename Container::iterator
-get_inserter_iterator(std::insert_iterator<Container> it) noexcept(
+typename Container::iterator get_inserter_iterator(std::insert_iterator<Container> it) noexcept(
     std::is_nothrow_copy_constructible_v<std::insert_iterator<Container>>) {
     __inserter_iterator_accessor tmp(it);
     return *(tmp.iter);

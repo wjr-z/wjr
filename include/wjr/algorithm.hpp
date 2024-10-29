@@ -148,9 +148,8 @@ constexpr void sort(Iter first, Iter last) {
 } // namespace constant
 
 template <typename CharT, typename Traits>
-WJR_PURE WJR_INTRINSIC_INLINE bool
-starts_with(std::basic_string_view<CharT, Traits> str,
-            std::basic_string_view<CharT, Traits> sv) noexcept {
+WJR_PURE WJR_INTRINSIC_INLINE bool starts_with(std::basic_string_view<CharT, Traits> str,
+                                               std::basic_string_view<CharT, Traits> sv) noexcept {
     const auto length = sv.size();
     if (str.size() < length) {
         return false;
@@ -160,9 +159,8 @@ starts_with(std::basic_string_view<CharT, Traits> str,
 }
 
 template <typename CharT, typename Traits>
-WJR_PURE WJR_INTRINSIC_INLINE bool
-ends_with(std::basic_string_view<CharT, Traits> str,
-          std::basic_string_view<CharT, Traits> sv) noexcept {
+WJR_PURE WJR_INTRINSIC_INLINE bool ends_with(std::basic_string_view<CharT, Traits> str,
+                                             std::basic_string_view<CharT, Traits> sv) noexcept {
     const auto n = str.size();
     const auto length = sv.size();
     if (n < length) {
@@ -174,8 +172,7 @@ ends_with(std::basic_string_view<CharT, Traits> str,
 
 template <unsigned int Length, WJR_REQUIRES(Length <= 8)>
 WJR_PURE WJR_INTRINSIC_INLINE bool
-constant_length_strncasecmp(const char *a, const char *b,
-                            integral_constant<unsigned int, Length>) {
+constant_length_strncasecmp(const char *a, const char *b, integral_constant<unsigned int, Length>) {
     if constexpr (Length == 1) {
         const char diff = (a[0] ^ b[0]) & 0xDF;
         return diff == 0;

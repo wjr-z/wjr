@@ -32,9 +32,8 @@ template <typename T, typename Enable>
 struct __is_as_variant_helper : std::false_type {};
 
 template <typename T>
-struct __is_as_variant_helper<
-    T, std::void_t<decltype(__is_as_variant_impl(std::declval<T>()))>> : std::true_type {
-};
+struct __is_as_variant_helper<T, std::void_t<decltype(__is_as_variant_impl(std::declval<T>()))>>
+    : std::true_type {};
 
 template <typename T>
 struct is_as_variant : __is_as_variant_helper<T, void> {};

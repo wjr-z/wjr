@@ -26,8 +26,7 @@ inline const __m128i mul10p2x = sse::set1_epi16(100);
 inline const __m128i mul10p1 = sse::set1_epi16((short)52429u);
 inline const __m128i mul10p1x = sse::set1_epi16(10);
 
-inline const __m128i shuf =
-    sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
+inline const __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
 
 } // namespace
 } // namespace to_chars_detail
@@ -36,8 +35,7 @@ inline const __m128i shuf =
 
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
 
-WJR_CONST WJR_INTRINSIC_INLINE uint64_t
-builtin_to_chars_unroll_8_fast_10(uint32_t in) noexcept {
+WJR_CONST WJR_INTRINSIC_INLINE uint64_t builtin_to_chars_unroll_8_fast_10(uint32_t in) noexcept {
     __m128i x = simd_cast<uint32_t, __m128i_t>(in);
     __m128i q, r;
 
@@ -63,8 +61,7 @@ builtin_to_chars_unroll_8_fast_10(uint32_t in) noexcept {
 }
 
 template <uint64_t Base>
-WJR_CONST WJR_INTRINSIC_INLINE uint64_t
-builtin_to_chars_unroll_8_fast(uint32_t in) noexcept {
+WJR_CONST WJR_INTRINSIC_INLINE uint64_t builtin_to_chars_unroll_8_fast(uint32_t in) noexcept {
     static_assert(Base == 10);
     return builtin_to_chars_unroll_8_fast_10(in);
 }
@@ -85,8 +82,7 @@ WJR_INTRINSIC_INLINE void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in,
 
 #endif
 
-#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST) ||                                         \
-    WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST) || WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
 
 namespace from_chars_detail {
 namespace {
@@ -105,24 +101,23 @@ inline constexpr uint64_t __base8 = __base4<Base> * __base4<Base>;
 
 /// @private
 template <uint64_t Base>
-inline const __m128i mulp1x = sse::setr_epi8(Base, 1, Base, 1, Base, 1, Base, 1, Base, 1,
-                                             Base, 1, Base, 1, Base, 1);
+inline const __m128i mulp1x =
+    sse::setr_epi8(Base, 1, Base, 1, Base, 1, Base, 1, Base, 1, Base, 1, Base, 1, Base, 1);
 
 /// @private
 template <uint64_t Base>
-inline const __m128i mulp2x = sse::setr_epi16(__base2<Base>, 1, __base2<Base>, 1,
-                                              __base2<Base>, 1, __base2<Base>, 1);
+inline const __m128i mulp2x =
+    sse::setr_epi16(__base2<Base>, 1, __base2<Base>, 1, __base2<Base>, 1, __base2<Base>, 1);
 
 /// @private
 template <uint64_t Base>
-inline const __m128i mulp4x = sse::setr_epi16(__base4<Base>, 1, __base4<Base>, 1,
-                                              __base4<Base>, 1, __base4<Base>, 1);
+inline const __m128i mulp4x =
+    sse::setr_epi16(__base4<Base>, 1, __base4<Base>, 1, __base4<Base>, 1, __base4<Base>, 1);
 
 /// @private
 template <uint64_t Base>
-inline const __m128i baseu8 =
-    sse::setr_epi8(Base, Base, Base, Base, Base, Base, Base, 0xff, 0xff, 0xff, 0xff, 0xff,
-                   0xff, 0xff, 0xff, 0xff);
+inline const __m128i baseu8 = sse::setr_epi8(Base, Base, Base, Base, Base, Base, Base, 0xff, 0xff,
+                                             0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
 
 /// @private
 inline const __m128i ascii = sse::set1_epi8(0x30);
@@ -135,8 +130,7 @@ inline const __m128i ascii = sse::set1_epi8(0x30);
 #if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
 
 template <uint64_t Base>
-WJR_CONST WJR_INTRINSIC_INLINE uint32_t
-builtin_from_chars_unroll_8_fast(__m128i in) noexcept {
+WJR_CONST WJR_INTRINSIC_INLINE uint32_t builtin_from_chars_unroll_8_fast(__m128i in) noexcept {
     const __m128i t1 = _mm_maddubs_epi16(in, from_chars_detail::mulp1x<Base>);
     const __m128i t2 = _mm_madd_epi16(t1, from_chars_detail::mulp2x<Base>);
     const __m128i t3 = _mm_packus_epi32(t2, t2);
@@ -146,8 +140,8 @@ builtin_from_chars_unroll_8_fast(__m128i in) noexcept {
 }
 
 template <uint64_t Base>
-WJR_PURE WJR_INTRINSIC_INLINE uint32_t
-builtin_from_chars_unroll_8_fast(const void *ptr, char_converter_t) noexcept {
+WJR_PURE WJR_INTRINSIC_INLINE uint32_t builtin_from_chars_unroll_8_fast(const void *ptr,
+                                                                        char_converter_t) noexcept {
     static_assert(Base <= 10);
     const __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), from_chars_detail::ascii);
     return builtin_from_chars_unroll_8_fast<Base>(in);
@@ -166,8 +160,7 @@ builtin_from_chars_unroll_8_fast(const void *ptr, origin_converter_t) noexcept {
 #if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
 
 template <uint64_t Base>
-WJR_CONST WJR_INTRINSIC_INLINE uint64_t
-builtin_from_chars_unroll_16_fast(__m128i in) noexcept {
+WJR_CONST WJR_INTRINSIC_INLINE uint64_t builtin_from_chars_unroll_16_fast(__m128i in) noexcept {
     const __m128i t1 = _mm_maddubs_epi16(in, from_chars_detail::mulp1x<Base>);
     const __m128i t2 = _mm_madd_epi16(t1, from_chars_detail::mulp2x<Base>);
     const __m128i t3 = _mm_packus_epi32(t2, t2);

@@ -51,9 +51,8 @@ div128by64to64_impl(uint64_t &rem, uint64_t lo, uint64_t hi,
  not optimize for divider that is power of 2,
  manually consider whether it needs to be optimized
 */
-WJR_INLINE_CONSTEXPR20 uint64_t
-div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
-               const div2by1_divider<uint64_t> &divider) noexcept {
+WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                               const div2by1_divider<uint64_t> &divider) noexcept {
     return div128by64to64_impl(rem, lo, hi, divider);
 }
 
@@ -82,9 +81,8 @@ div128by64to128_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
     return {q0, q1};
 }
 
-inline uint128_t
-div128by64to128_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
-                      const div2by1_divider<uint64_t> &divider) noexcept {
+inline uint128_t div128by64to128_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                       const div2by1_divider<uint64_t> &divider) noexcept {
     const auto shift = divider.get_shift();
     uint64_t u0, u1, u2;
     uint64_t q0, q1;
@@ -123,14 +121,12 @@ inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
  not optimize for divider that is power of 2,
  manually consider whether it needs to be optimized
 */
-inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
-                                 uint64_t div) noexcept {
+inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi, uint64_t div) noexcept {
     return div128by64to128_impl(rem, lo, hi, div2by1_divider<uint64_t>(div));
 }
 
 // reference : https://ieeexplore.ieee.org/document/5487506
-inline uint64_t div_qr_1_noshift(uint64_t *dst, uint64_t &rem, const uint64_t *src,
-                                 size_t n,
+inline uint64_t div_qr_1_noshift(uint64_t *dst, uint64_t &rem, const uint64_t *src, size_t n,
                                  const div2by1_divider_noshift<uint64_t> &div) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_DECR_P(dst, n - 1, src, n - 1));
@@ -167,13 +163,13 @@ inline uint64_t div_qr_1_noshift(uint64_t *dst, uint64_t &rem, const uint64_t *s
     return qh;
 }
 
-extern WJR_ALL_NONNULL uint64_t
-div_qr_1_shift(uint64_t *dst, uint64_t &rem, const uint64_t *src, size_t n,
-               const div2by1_divider<uint64_t> &div) noexcept;
+extern WJR_ALL_NONNULL uint64_t div_qr_1_shift(uint64_t *dst, uint64_t &rem, const uint64_t *src,
+                                               size_t n,
+                                               const div2by1_divider<uint64_t> &div) noexcept;
 
-WJR_INTRINSIC_INLINE uint64_t
-div_qr_1_impl(uint64_t *dst, uint64_t &rem, const uint64_t *src, size_t n,
-              const div2by1_divider<uint64_t> &div) noexcept {
+WJR_INTRINSIC_INLINE uint64_t div_qr_1_impl(uint64_t *dst, uint64_t &rem, const uint64_t *src,
+                                            size_t n,
+                                            const div2by1_divider<uint64_t> &div) noexcept {
     if (div.get_shift() == 0) {
         return div_qr_1_noshift(dst, rem, src, n, div);
     }
@@ -182,8 +178,7 @@ div_qr_1_impl(uint64_t *dst, uint64_t &rem, const uint64_t *src, size_t n,
 }
 
 // return high quotient limb
-WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
-                                   size_t n,
+WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src, size_t n,
                                    const div2by1_divider<uint64_t> &div) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
 
@@ -204,8 +199,8 @@ WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t 
     dst[n - 1] = div_qr_1_impl(dst, rem, src, n, div);
 }
 
-WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
-                                   size_t n, type_identity_t<uint64_t> div) noexcept {
+WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src, size_t n,
+                                   type_identity_t<uint64_t> div) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_ASSUME(div != 0);
 
@@ -249,13 +244,13 @@ extern WJR_ALL_NONNULL uint64_t
 div_qr_2_noshift(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
                  const div3by2_divider_noshift<uint64_t> &div) noexcept;
 
-extern WJR_ALL_NONNULL uint64_t
-div_qr_2_shift(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
-               const div3by2_divider<uint64_t> &div) noexcept;
+extern WJR_ALL_NONNULL uint64_t div_qr_2_shift(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                               size_t n,
+                                               const div3by2_divider<uint64_t> &div) noexcept;
 
-WJR_INTRINSIC_INLINE uint64_t
-div_qr_2_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
-              const div3by2_divider<uint64_t> &div) noexcept {
+WJR_INTRINSIC_INLINE uint64_t div_qr_2_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                            size_t n,
+                                            const div3by2_divider<uint64_t> &div) noexcept {
     if (div.get_shift() == 0) {
         return div_qr_2_noshift(dst, rem, src, n, div);
     }
@@ -263,38 +258,33 @@ div_qr_2_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
     return div_qr_2_shift(dst, rem, src, n, div);
 }
 
-WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                   size_t n,
+WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
                                    const div3by2_divider<uint64_t> &div) noexcept {
     WJR_ASSERT_ASSUME(n >= 2);
 
     dst[n - 2] = div_qr_2_impl(dst, rem, src, n, div);
 }
 
-WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                   size_t n, const uint64_t *div) noexcept {
+WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
+                                   const uint64_t *div) noexcept {
     WJR_ASSERT_ASSUME(n >= 2);
 
-    dst[n - 2] =
-        div_qr_2_impl(dst, rem, src, n, div3by2_divider<uint64_t>(div[0], div[1]));
+    dst[n - 2] = div_qr_2_impl(dst, rem, src, n, div3by2_divider<uint64_t>(div[0], div[1]));
 }
 
 // reference : GMP
 // return qh;
 extern WJR_ALL_NONNULL uint64_t sb_div_qr_s(uint64_t *dst, uint64_t *src, size_t n,
-                                            const uint64_t *div, size_t m,
-                                            uint64_t dinv) noexcept;
+                                            const uint64_t *div, size_t m, uint64_t dinv) noexcept;
 
 extern WJR_ALL_NONNULL uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n,
-                                            const uint64_t *div, size_t m,
-                                            uint64_t dinv) noexcept;
+                                            const uint64_t *div, size_t m, uint64_t dinv) noexcept;
 
-extern WJR_ALL_NONNULL void __div_qr_s_impl(uint64_t *dst, uint64_t *rem,
-                                            const uint64_t *src, size_t n,
-                                            const uint64_t *div, size_t m) noexcept;
+extern WJR_ALL_NONNULL void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                            size_t n, const uint64_t *div, size_t m) noexcept;
 
-WJR_INTRINSIC_INLINE void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                   size_t n, const uint64_t *div, size_t m) noexcept {
+WJR_INTRINSIC_INLINE void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
+                                   const uint64_t *div, size_t m) noexcept {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
@@ -319,9 +309,8 @@ WJR_INTRINSIC_INLINE void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t 
     return __div_qr_s_impl(dst, rem, src, n, div, m);
 }
 
-WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_divexact_dbm1c(uint64_t *dst,
-                                                           const uint64_t *src, size_t n,
-                                                           uint64_t bd,
+WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_divexact_dbm1c(uint64_t *dst, const uint64_t *src,
+                                                           size_t n, uint64_t bd,
                                                            uint64_t h) noexcept {
     uint64_t a = 0;
     uint64_t p0, p1, cf;
@@ -339,9 +328,8 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_divexact_dbm1c(uint64_t *dst,
     return h;
 }
 
-WJR_INTRINSIC_CONSTEXPR20 uint64_t divexact_dbm1c(uint64_t *dst, const uint64_t *src,
-                                                  size_t n, uint64_t bd,
-                                                  uint64_t h) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
+                                                  uint64_t bd, uint64_t h) noexcept {
 #if WJR_HAS_BUILTIN(ASM_DIVEXACT_DBM1C)
     if (is_constant_evaluated()) {
         return fallback_divexact_dbm1c(dst, src, n, bd, h);
@@ -384,10 +372,9 @@ void fallback_divexact_1_noshift(uint64_t *dst, const uint64_t *src, size_t n,
     return;
 }
 
-WJR_INLINE_CONSTEXPR20 void
-fallback_divexact_1_shift(uint64_t *dst, const uint64_t *src, size_t n,
-                          const divexact1_divider<uint64_t> &div,
-                          uint64_t hicf = 0) noexcept {
+WJR_INLINE_CONSTEXPR20 void fallback_divexact_1_shift(uint64_t *dst, const uint64_t *src, size_t n,
+                                                      const divexact1_divider<uint64_t> &div,
+                                                      uint64_t hicf = 0) noexcept {
     const uint64_t divisor = div.get_divisor();
     const uint64_t value = div.get_value();
     const auto shift = div.get_shift();
@@ -476,8 +463,7 @@ constexpr __divexact_get_struct __divexact_init() noexcept {
 
 template <uint64_t c>
 WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
-                                            integral_constant<uint64_t, c>,
-                                            uint64_t cf) noexcept {
+                                            integral_constant<uint64_t, c>, uint64_t cf) noexcept {
     // cost : divexact_dbm1c * 2 + shift * 1 <= divexact_1
     static_assert(c != 0);
     constexpr auto ss = __divexact_init<c>();
@@ -528,9 +514,8 @@ fallback_divexact_1(uint64_t *dst, const uint64_t *src, size_t n,
     return fallback_divexact_1_shift(dst, src, n, div);
 }
 
-WJR_INTRINSIC_CONSTEXPR20 void
-divexact_1(uint64_t *dst, const uint64_t *src, size_t n,
-           const divexact1_divider<uint64_t> &div) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 void divexact_1(uint64_t *dst, const uint64_t *src, size_t n,
+                                          const divexact1_divider<uint64_t> &div) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
 
     if (WJR_UNLIKELY(div.is_zero_or_single_bit())) {
@@ -556,9 +541,8 @@ WJR_INTRINSIC_CONSTEXPR20 void divexact_1(uint64_t *dst, const uint64_t *src, si
     return fallback_divexact_1(dst, src, n, divexact1_divider<uint64_t>(div));
 }
 
-WJR_PURE WJR_INLINE_CONSTEXPR20 uint64_t
-mod_1_noshift(const uint64_t *src, size_t n,
-              const div2by1_divider_noshift<uint64_t> &div) noexcept {
+WJR_PURE WJR_INLINE_CONSTEXPR20 uint64_t mod_1_noshift(
+    const uint64_t *src, size_t n, const div2by1_divider_noshift<uint64_t> &div) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
 
     const uint64_t divisor = div.get_divisor();
@@ -590,8 +574,8 @@ mod_1_noshift(const uint64_t *src, size_t n,
     return hi;
 }
 
-WJR_PURE WJR_INLINE_CONSTEXPR20 uint64_t mod_1_shift(
-    const uint64_t *src, size_t n, const div2by1_divider<uint64_t> &div) noexcept {
+WJR_PURE WJR_INLINE_CONSTEXPR20 uint64_t
+mod_1_shift(const uint64_t *src, size_t n, const div2by1_divider<uint64_t> &div) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(div.get_shift() != 0);
 

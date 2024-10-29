@@ -12,9 +12,9 @@
 #endif
 
 #if defined(__GNUC__)
-    #define WJR_HAS_GCC(major, minor, patchlevel)                                        \
-        ((__GNUC__ > (major)) || (__GNUC__ == (major) && __GNUC_MINOR__ > (minor)) ||    \
-         (__GNUC__ == (major) && __GNUC_MINOR__ == (minor) &&                            \
+    #define WJR_HAS_GCC(major, minor, patchlevel)                                                  \
+        ((__GNUC__ > (major)) || (__GNUC__ == (major) && __GNUC_MINOR__ > (minor)) ||              \
+         (__GNUC__ == (major) && __GNUC_MINOR__ == (minor) &&                                      \
           __GNUC_PATCHLEVEL__ >= (patchlevel)))
 #else
     #define WJR_HAS_GCC(major, minor, patchlevel) 0
@@ -25,10 +25,10 @@
         #error "Not support"
     #endif
 
-    #define WJR_HAS_CLANG(major, minor, patchlevel)                                      \
-        ((__clang_major__ > (major)) ||                                                  \
-         (__clang_major__ == (major) && __clang_minor__ > (minor)) ||                    \
-         (__clang_major__ == (major) && __clang_minor__ == (minor) &&                    \
+    #define WJR_HAS_CLANG(major, minor, patchlevel)                                                \
+        ((__clang_major__ > (major)) ||                                                            \
+         (__clang_major__ == (major) && __clang_minor__ > (minor)) ||                              \
+         (__clang_major__ == (major) && __clang_minor__ == (minor) &&                              \
           __clang_patchlevel__ >= (patchlevel)))
 #else
     #define WJR_HAS_CLANG(major, minor, patchlevel) 0
@@ -40,7 +40,7 @@
     #define WJR_HAS_MSVC(minor, level) 0
 #endif
 
-#if (defined(WJR_COMPILER_GCC) && !WJR_HAS_GCC(7, 1, 0)) ||                              \
+#if (defined(WJR_COMPILER_GCC) && !WJR_HAS_GCC(7, 1, 0)) ||                                        \
     (defined(WJR_COMPILER_CLANG) && !WJR_HAS_CLANG(5, 0, 0))
     #error "GCC 7.1.0 or Clang 5.0.0 or later is required"
 #endif
@@ -89,14 +89,14 @@
     #define WJR_FILE ""
 #endif
 
-#if defined(__GNUC__) || (defined(__MWERKS__) && (__MWERKS__ >= 0x3000)) ||              \
+#if defined(__GNUC__) || (defined(__MWERKS__) && (__MWERKS__ >= 0x3000)) ||                        \
     (defined(__ICC) && (__ICC >= 600)) || defined(__ghs__)
     #define WJR_CURRENT_FUNCTION __PRETTY_FUNCTION__
 #elif defined(__DMC__) && (__DMC__ >= 0x810)
     #define WJR_CURRENT_FUNCTION __PRETTY_FUNCTION__
 #elif defined(__FUNCSIG__)
     #define WJR_CURRENT_FUNCTION __FUNCSIG__
-#elif (defined(__INTEL_COMPILER) && (__INTEL_COMPILER >= 600)) ||                        \
+#elif (defined(__INTEL_COMPILER) && (__INTEL_COMPILER >= 600)) ||                                  \
     (defined(__IBMCPP__) && (__IBMCPP__ >= 500))
     #define WJR_CURRENT_FUNCTION __FUNCTION__
 #elif defined(__BORLANDC__) && (__BORLANDC__ >= 0x550)

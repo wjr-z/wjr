@@ -11,14 +11,12 @@ WJR_REGISTER_HAS_TYPE(__container_resize,
                       std::declval<std::add_lvalue_reference_t<Container>>().resize(
                           std::declval<Size>(), std::declval<Args>()...),
                       Container, Size);
-WJR_REGISTER_HAS_TYPE(__container_append,
-                      std::declval<Container>().append(std::declval<Args>()...),
+WJR_REGISTER_HAS_TYPE(__container_append, std::declval<Container>().append(std::declval<Args>()...),
                       Container);
 
 template <typename Container>
 struct resize_fn_impl_base {
-    template <typename... Args,
-              WJR_REQUIRES(has___container_resize_v<Container, Args...>)>
+    template <typename... Args, WJR_REQUIRES(has___container_resize_v<Container, Args...>)>
     WJR_INTRINSIC_INLINE static void
     resize(Container &cont,
            Args &&...args) noexcept(noexcept(cont.resize(std::forward<Args>(args)...))) {
@@ -31,8 +29,8 @@ struct resize_fn_impl : resize_fn_impl_base<Container> {};
 
 struct resize_fn {
     template <typename Container, typename... Args>
-    void operator()(Container &cont, Args &&...args) const noexcept(
-        noexcept(resize_fn_impl<Container>::resize(cont, std::forward<Args>(args)...))) {
+    void operator()(Container &cont, Args &&...args) const
+        noexcept(noexcept(resize_fn_impl<Container>::resize(cont, std::forward<Args>(args)...))) {
         resize_fn_impl<Container>::resize(cont, std::forward<Args>(args)...);
     }
 };
@@ -41,8 +39,7 @@ inline constexpr resize_fn resize{};
 
 template <typename Container>
 struct append_fn_impl_base {
-    template <typename... Args,
-              WJR_REQUIRES(has___container_append_v<Container, Args...>)>
+    template <typename... Args, WJR_REQUIRES(has___container_append_v<Container, Args...>)>
     WJR_INTRINSIC_INLINE static void
     append(Container &cont,
            Args &&...args) noexcept(noexcept(cont.append(std::forward<Args>(args)...))) {
@@ -55,8 +52,8 @@ struct append_fn_impl : append_fn_impl_base<Container> {};
 
 struct append_fn {
     template <typename Container, typename... Args>
-    void operator()(Container &cont, Args &&...args) const noexcept(
-        noexcept(append_fn_impl<Container>::append(cont, std::forward<Args>(args)...))) {
+    void operator()(Container &cont, Args &&...args) const
+        noexcept(noexcept(append_fn_impl<Container>::append(cont, std::forward<Args>(args)...))) {
         append_fn_impl<Container>::append(cont, std::forward<Args>(args)...);
     }
 };
@@ -69,22 +66,19 @@ WJR_REGISTER_HAS_TYPE(container_resize,
                                                         std::declval<Args>()...),
                       Container, Size);
 
-WJR_REGISTER_HAS_TYPE(container_reserve,
-                      std::declval<Container>().reserve(std::declval<Size>()), Container,
-                      Size);
+WJR_REGISTER_HAS_TYPE(container_reserve, std::declval<Container>().reserve(std::declval<Size>()),
+                      Container, Size);
 WJR_REGISTER_HAS_TYPE(container_append,
                       append_fn_impl<Container>::append(std::declval<Container &>(),
                                                         std::declval<Args>()...),
                       Container);
-WJR_REGISTER_HAS_TYPE(container_insert,
-                      (std::declval<Container>().insert(
-                           std::declval<Container>().cbegin(), std::declval<Args>()...),
-                       std::declval<Container>().insert(std::declval<Container>().cend(),
-                                                        std::declval<Args>()...)),
-                      Container);
+WJR_REGISTER_HAS_TYPE(
+    container_insert,
+    (std::declval<Container>().insert(std::declval<Container>().cbegin(), std::declval<Args>()...),
+     std::declval<Container>().insert(std::declval<Container>().cend(), std::declval<Args>()...)),
+    Container);
 
-template <typename Container, typename Size,
-          WJR_REQUIRES(has_container_resize_v<Container, Size>)>
+template <typename Container, typename Size, WJR_REQUIRES(has_container_resize_v<Container, Size>)>
 WJR_INTRINSIC_INLINE void try_uninitialized_resize(Container &cont, Size sz) {
     if constexpr (has_container_resize_v<Container, Size, default_construct_t>) {
         resize(cont, sz, default_construct);
@@ -132,10 +126,8 @@ struct __container_traits_base_size_type_helper<T, std::void_t<typename T::size_
 template <typename Container>
 struct __container_traits_base {
 private:
-    using iterator =
-        typename __container_traits_base_iterator_helper<Container>::iterator;
-    using size_type =
-        typename __container_traits_base_size_type_helper<Container>::size_type;
+    using iterator = typename __container_traits_base_iterator_helper<Container>::iterator;
+    using size_type = typename __container_traits_base_size_type_helper<Container>::size_type;
 
 public:
     constexpr static bool is_contiguous_v = is_contiguous_iterator_v<iterator>;

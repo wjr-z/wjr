@@ -95,8 +95,8 @@ WJR_PURE WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const
 
 #if WJR_HAS_BUILTIN(__ASM_LESS_128)
 
-WJR_CONST WJR_INTRINSIC_INLINE bool __asm_less_128(uint64_t lo0, uint64_t hi0,
-                                                   uint64_t lo1, uint64_t hi1) noexcept {
+WJR_CONST WJR_INTRINSIC_INLINE bool __asm_less_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
+                                                   uint64_t hi1) noexcept {
     bool ret;
     asm("cmp{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
         "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(b)
@@ -110,8 +110,8 @@ WJR_CONST WJR_INTRINSIC_INLINE bool __asm_less_128(uint64_t lo0, uint64_t hi0,
 
 #if WJR_HAS_BUILTIN(__ASM_LESS_EQUAL_128)
 
-WJR_CONST WJR_INTRINSIC_INLINE bool
-__asm_less_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1) noexcept {
+WJR_CONST WJR_INTRINSIC_INLINE bool __asm_less_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
+                                                         uint64_t hi1) noexcept {
     bool ret;
     asm("cmp{q %[lo0], %[lo1]| %[lo1], %[lo0]}\n\t"
         "sbb{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t" WJR_ASM_CCSET(ae)

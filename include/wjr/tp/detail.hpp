@@ -58,8 +58,8 @@ struct __tp_defer_helper {
 
 template <template <typename...> typename F, typename... Args>
 struct tp_defer {
-    using type = std::enable_if_t<tp_is_valid_v<F, Args...>,
-                                  typename __tp_defer_helper<F, Args...>::type>;
+    using type =
+        std::enable_if_t<tp_is_valid_v<F, Args...>, typename __tp_defer_helper<F, Args...>::type>;
 };
 
 /// @brief use std::enable_if_t to defer the instantiation of F<Args...>
@@ -213,8 +213,7 @@ struct __tp_cut_helper<std::enable_if_t<N != 0>, 0, N, T, Args...> {
 template <typename T, template <typename...> typename U>
 struct tp_rename;
 
-template <template <typename...> typename C, typename... Args,
-          template <typename...> typename U>
+template <template <typename...> typename C, typename... Args, template <typename...> typename U>
 struct tp_rename<C<Args...>, U> {
     using type = U<Args...>;
 };
@@ -228,8 +227,7 @@ struct tp_cut;
 
 template <template <typename...> typename C, typename... Args, size_t I, size_t N>
 struct tp_cut<C<Args...>, I, N> {
-    static_assert(N <= sizeof...(Args) && I <= (sizeof...(Args) - N),
-                  "tp_cut: invalid index");
+    static_assert(N <= sizeof...(Args) && I <= (sizeof...(Args) - N), "tp_cut: invalid index");
     using type = tp_rename_t<typename __tp_cut_helper<void, I, N, Args...>::type, C>;
 };
 
@@ -341,8 +339,8 @@ struct tp_concat<T> {
     using type = T;
 };
 
-template <template <typename...> typename C1, typename... Args1,
-          template <typename...> typename C2, typename... Args2>
+template <template <typename...> typename C1, typename... Args1, template <typename...> typename C2,
+          typename... Args2>
 struct tp_concat<C1<Args1...>, C2<Args2...>> {
     using type = C1<Args1..., Args2...>;
 };
@@ -500,8 +498,8 @@ struct tp_zip<C> {
 
 template <template <typename...> typename C, typename T>
 struct tp_zip<C, T> {
-    using type = typename __tp_zip_helper<
-        C, std::make_index_sequence<tp_size_v<T>>>::template type<T>;
+    using type =
+        typename __tp_zip_helper<C, std::make_index_sequence<tp_size_v<T>>>::template type<T>;
 };
 
 template <template <typename...> typename C, typename T, typename... Args>
@@ -510,8 +508,9 @@ struct tp_zip<C, T, Args...> {
     static_assert(((size == tp_size_v<Args>)&&...),
                   "tp_zip arguments must have same size, \
 		you can make all arguments have same size by tp_");
-    using type = typename __tp_zip_helper<
-        C, std::make_index_sequence<tp_size_v<T>>>::template type<T, Args...>;
+    using type =
+        typename __tp_zip_helper<C, std::make_index_sequence<tp_size_v<T>>>::template type<T,
+                                                                                           Args...>;
 };
 
 /**
@@ -534,8 +533,7 @@ struct __tp_max_size_helper<T> {
 /// @private
 template <typename T, typename... Args>
 struct __tp_max_size_helper<T, Args...> {
-    constexpr static size_t value =
-        std::max(tp_size_v<T>, __tp_max_size_helper<Args...>::value);
+    constexpr static size_t value = std::max(tp_size_v<T>, __tp_max_size_helper<Args...>::value);
 };
 
 template <typename T, typename... Args>
@@ -597,8 +595,8 @@ using tp_resize_t = typename tp_resize<C, N, V>::type;
 template <typename C, size_t I, typename... Args>
 struct tp_insert {
     static_assert(I <= tp_size_v<C>, "tp insert index out of range");
-    using type = tp_concat_t<tp_push_back_t<tp_prefix_t<C, I>, Args...>,
-                             tp_suffix_t<C, tp_size_v<C> - I>>;
+    using type =
+        tp_concat_t<tp_push_back_t<tp_prefix_t<C, I>, Args...>, tp_suffix_t<C, tp_size_v<C> - I>>;
 };
 
 template <typename C, size_t I, typename... Args>
@@ -606,8 +604,7 @@ using tp_insert_t = typename tp_insert<C, I, Args...>::type;
 
 template <typename C, size_t I, size_t N>
 struct tp_erase {
-    static_assert(N <= tp_size_v<C> && I <= tp_size_v<C> - N,
-                  "tp erase index out of range");
+    static_assert(N <= tp_size_v<C> && I <= tp_size_v<C> - N, "tp erase index out of range");
     using type = tp_concat_t<tp_prefix_t<C, I>, tp_suffix_t<C, tp_size_v<C> - I - N>>;
 };
 
@@ -617,8 +614,7 @@ using tp_erase_t = typename tp_erase<C, I, N>::type;
 template <typename C, typename E, template <typename...> typename F>
 struct tp_left_fold;
 
-template <template <typename...> typename C, typename E,
-          template <typename...> typename F>
+template <template <typename...> typename C, typename E, template <typename...> typename F>
 struct tp_left_fold<C<>, E, F> {
     using type = E;
 };
@@ -639,8 +635,7 @@ using tp_left_fold_f = typename tp_left_fold<C, E, F::template fn>::type;
 template <typename C, typename E, template <typename...> typename F>
 struct tp_right_fold;
 
-template <template <typename...> typename C, typename E,
-          template <typename...> typename F>
+template <template <typename...> typename C, typename E, template <typename...> typename F>
 struct tp_right_fold<C<>, E, F> {
     using type = E;
 };
@@ -664,9 +659,8 @@ struct __tp_iota_helper;
 
 template <typename Type, Type Min, size_t Count>
 struct __tp_iota_helper {
-    using type =
-        tp_push_front_t<typename __tp_iota_helper<Type, Min + 1, Count - 1>::type,
-                        integral_constant<Type, Min>>;
+    using type = tp_push_front_t<typename __tp_iota_helper<Type, Min + 1, Count - 1>::type,
+                                 integral_constant<Type, Min>>;
 };
 
 template <typename Type, Type Min>
@@ -691,8 +685,7 @@ struct tp_integers_list<std::integer_sequence<Type, Vals...>> {
 };
 
 template <typename Type, Type... Vals>
-using tp_integers_list_t =
-    typename tp_integers_list<std::integer_sequence<Type, Vals...>>::type;
+using tp_integers_list_t = typename tp_integers_list<std::integer_sequence<Type, Vals...>>::type;
 
 template <size_t... Vals>
 using tp_indexs_list_t = tp_integers_list_t<size_t, Vals...>;

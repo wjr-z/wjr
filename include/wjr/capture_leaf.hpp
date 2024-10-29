@@ -58,12 +58,10 @@ public:
     using value_type = T;
 
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
-    constexpr compressed_capture_leaf() noexcept(std::is_nothrow_constructible_v<T>)
-        : Mybase() {}
+    constexpr compressed_capture_leaf() noexcept(std::is_nothrow_constructible_v<T>) : Mybase() {}
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
-    constexpr compressed_capture_leaf(Args &&...args) noexcept(
-        std::is_constructible_v<T, Args...>)
+    constexpr compressed_capture_leaf(Args &&...args) noexcept(std::is_constructible_v<T, Args...>)
         : Mybase(std::forward<Args>(args)...) {}
 
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
@@ -83,8 +81,8 @@ public:
  *
  */
 template <typename T>
-struct is_compressed : std::conjunction<std::is_class<T>, std::is_empty<T>,
-                                        std::negation<std::is_final<T>>> {};
+struct is_compressed
+    : std::conjunction<std::is_class<T>, std::is_empty<T>, std::negation<std::is_final<T>>> {};
 
 /**
  * @brief Value of @ref is_compressed.
@@ -133,8 +131,8 @@ struct __is_tuple_test_impl : std::false_type {};
 template <template <typename...> typename Test, size_t... Idxs, typename LP, typename RP>
 struct __is_tuple_test_impl<Test, std::index_sequence<Idxs...>, LP, RP,
                             std::enable_if_t<__is_tuple_like_v<LP, RP>>>
-    : std::conjunction<Test<std::tuple_element_t<Idxs, LP>,
-                            decltype(std::get<Idxs>(std::declval<RP>()))>...> {};
+    : std::conjunction<
+          Test<std::tuple_element_t<Idxs, LP>, decltype(std::get<Idxs>(std::declval<RP>()))>...> {};
 
 /**
  * @brief Use template<...>typename Test to test all element of LP and RP.
@@ -147,8 +145,7 @@ struct __is_tuple_test_impl<Test, std::index_sequence<Idxs...>, LP, RP,
  */
 template <template <typename...> typename Test, typename LP, typename RP>
 struct __is_tuple_test
-    : __is_tuple_test_impl<Test, std::make_index_sequence<std::tuple_size_v<LP>>, LP,
-                           RP> {};
+    : __is_tuple_test_impl<Test, std::make_index_sequence<std::tuple_size_v<LP>>, LP, RP> {};
 
 /**
  * @brief Value of @ref __is_tuple_test.

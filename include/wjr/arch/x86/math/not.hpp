@@ -135,8 +135,7 @@ void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
 }
 
 template <typename T>
-WJR_INTRINSIC_INLINE void unaligned_large_builtin_not_n(T *dst, const T *src,
-                                                        size_t n) noexcept {
+WJR_INTRINSIC_INLINE void unaligned_large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
     size_t idx = 0;
     const auto y = sse::ones();
 

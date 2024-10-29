@@ -56,16 +56,14 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
 
 /// @private
 template <typename InputIt, typename OutputIt>
-constexpr OutputIt __copy_restrict_aux(add_restrict_t<InputIt> first,
-                                       add_restrict_t<InputIt> last,
+constexpr OutputIt __copy_restrict_aux(add_restrict_t<InputIt> first, add_restrict_t<InputIt> last,
                                        add_restrict_t<OutputIt> d_first) noexcept {
     return wjr::copy(first, last, d_first);
 }
 
 /// @private
 template <typename InputIt, typename OutputIt>
-constexpr OutputIt __copy_restrict_impl(InputIt first, InputIt last,
-                                        OutputIt d_first) noexcept {
+constexpr OutputIt __copy_restrict_impl(InputIt first, InputIt last, OutputIt d_first) noexcept {
     return __copy_restrict_aux<InputIt, OutputIt>(first, last, d_first);
 }
 
@@ -131,8 +129,7 @@ constexpr OutputIt __copy_n_impl(InputIt first, Size count, OutputIt d_first) {
  */
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
-    return __copy_n_impl(to_contiguous_address(first), count,
-                         to_contiguous_address(d_first));
+    return __copy_n_impl(to_contiguous_address(first), count, to_contiguous_address(d_first));
 }
 
 /// @private
@@ -168,14 +165,13 @@ constexpr OutputIt copy_n_restrict(InputIt first, Size count, OutputIt d_first) 
 
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt move(InputIt first, InputIt last, OutputIt d_first) {
-    return wjr::copy(std::make_move_iterator(first), std::make_move_iterator(last),
-                     d_first);
+    return wjr::copy(std::make_move_iterator(first), std::make_move_iterator(last), d_first);
 }
 
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt move_restrict(InputIt first, InputIt last, OutputIt d_first) {
-    return wjr::copy_restrict(std::make_move_iterator(first),
-                              std::make_move_iterator(last), d_first);
+    return wjr::copy_restrict(std::make_move_iterator(first), std::make_move_iterator(last),
+                              d_first);
 }
 
 template <typename InputIt, typename Size, typename OutputIt>

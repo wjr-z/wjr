@@ -41,8 +41,7 @@ struct broadcast_fn<uint64_t, uint64_t> {
 template <>
 struct broadcast_fn<uint8_t, uint16_t> {
     WJR_CONST constexpr uint16_t operator()(uint8_t x) const noexcept {
-        return static_cast<uint16_t>(static_cast<uint32_t>(x) |
-                                     (static_cast<uint16_t>(x) << 8));
+        return static_cast<uint16_t>(static_cast<uint32_t>(x) | (static_cast<uint16_t>(x) << 8));
     }
 };
 

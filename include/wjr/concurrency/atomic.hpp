@@ -80,7 +80,7 @@ using atomic_namespace::atomic_thread_fence;
 
 using atomic_namespace::atomic_ref;
 
-#define WJR_ATOMIC_FLAG_INIT                                                             \
+#define WJR_ATOMIC_FLAG_INIT                                                                       \
     {}
 
 } // namespace wjr

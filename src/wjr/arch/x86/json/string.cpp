@@ -5,8 +5,7 @@ namespace wjr::json {
 
 namespace {
 #if WJR_HAS_BUILTIN(JSON_PARSE_STRING)
-WJR_INTRINSIC_INLINE char *small_copy(char *dst, const char *src,
-                                      unsigned int n) noexcept {
+WJR_INTRINSIC_INLINE char *small_copy(char *dst, const char *src, unsigned int n) noexcept {
     if (n >= 8) {
     #if WJR_HAS_SIMD(AVX2)
         if (n >= 16) {
@@ -73,8 +72,8 @@ result<char *> parse_string(char *dst, const char *first, const char *last) noex
                     const uint8_t ch = first[u8_width];
 
                     if (WJR_UNLIKELY(ch == 'u')) {
-                        WJR_EXPECTED_SET(first, parse_unicode_codepoint(
-                                                    dst, first + u8_width + 1, last));
+                        WJR_EXPECTED_SET(first,
+                                         parse_unicode_codepoint(dst, first + u8_width + 1, last));
 
                         if (first + u8_width <= last) {
                             goto LOOP;
@@ -103,8 +102,7 @@ result<char *> parse_string(char *dst, const char *first, const char *last) noex
 
                 if (WJR_UNLIKELY(ch == 'u')) {
                     const char *__first;
-                    WJR_EXPECTED_SET(__first,
-                                     parse_unicode_codepoint(dst, first + pos + 2, last));
+                    WJR_EXPECTED_SET(__first, parse_unicode_codepoint(dst, first + pos + 2, last));
 
                     if (to_unsigned(__first - first) >= u8_width) {
                         first = __first;
@@ -256,8 +254,7 @@ SMALL:
 
         if (WJR_UNLIKELY(ch == 'u')) {
             const char *__first = first;
-            WJR_EXPECTED_SET(__first,
-                             parse_unicode_codepoint(dst, first + pos + 2, last));
+            WJR_EXPECTED_SET(__first, parse_unicode_codepoint(dst, first + pos + 2, last));
 
             if (__first == last) {
                 return dst;
@@ -326,8 +323,8 @@ result<void> check_string(const char *first, const char *last) noexcept {
                     const uint8_t ch = first[u8_width];
 
                     if (WJR_UNLIKELY(ch == 'u')) {
-                        WJR_EXPECTED_SET(
-                            first, check_unicode_codepoint(first + u8_width + 1, last));
+                        WJR_EXPECTED_SET(first,
+                                         check_unicode_codepoint(first + u8_width + 1, last));
 
                         if (first + u8_width <= last) {
                             goto LOOP;
@@ -355,8 +352,7 @@ result<void> check_string(const char *first, const char *last) noexcept {
 
                 if (WJR_UNLIKELY(ch == 'u')) {
                     const char *__first;
-                    WJR_EXPECTED_SET(__first,
-                                     check_unicode_codepoint(first + pos + 2, last));
+                    WJR_EXPECTED_SET(__first, check_unicode_codepoint(first + pos + 2, last));
 
                     if (to_unsigned(__first - first) >= u8_width) {
                         first = __first;

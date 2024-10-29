@@ -25,11 +25,10 @@ namespace wjr::json {
 
 namespace detail {
 
-WJR_PURE WJR_INTRINSIC_INLINE bool
-is_invalid_token(const char *ptr, uint32_t start, uint32_t end, uint32_t size) noexcept {
+WJR_PURE WJR_INTRINSIC_INLINE bool is_invalid_token(const char *ptr, uint32_t start, uint32_t end,
+                                                    uint32_t size) noexcept {
     const auto length = end - start;
-    return length < size ||
-           (length > size && !charconv_detail::isspace(ptr[start + size]));
+    return length < size || (length > size && !charconv_detail::isspace(ptr[start + size]));
 }
 
 WJR_PURE WJR_INTRINSIC_INLINE result<void> check_null(const char *first) noexcept {
@@ -72,9 +71,8 @@ WJR_NOINLINE result<void> parse(Parser &&par, const reader &rd) noexcept {
     auto read = [&rd]() {
         auto __begin = rd.begin();
         auto __end = rd.end();
-        return [__begin,
-                __end](uint32_t &token,
-                       error_code err = error_code::TAPE_ERROR) mutable -> result<void> {
+        return [__begin, __end](uint32_t &token,
+                                error_code err = error_code::TAPE_ERROR) mutable -> result<void> {
             if (WJR_LIKELY(__begin != __end)) {
                 token = *__begin++;
                 return {};

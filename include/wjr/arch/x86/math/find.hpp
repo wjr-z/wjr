@@ -9,16 +9,16 @@ namespace wjr {
 
 template <typename T>
 WJR_PURE size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) noexcept {
-    #define WJR_REGISTER_FIND_N_AVX(index)                                               \
-        do {                                                                             \
-            auto x = avx::loadu(src0 + (index));                                         \
-            auto y = avx::loadu(src1 + (index));                                         \
-            auto r = avx::cmpeq_epi64(x, y);                                             \
-                                                                                         \
-            avx::mask_type mask = avx::movemask_epi8(r);                                 \
-            if (WJR_LIKELY(mask != 0)) {                                                 \
-                return (index) + ctz(mask) / 8;                                          \
-            }                                                                            \
+    #define WJR_REGISTER_FIND_N_AVX(index)                                                         \
+        do {                                                                                       \
+            auto x = avx::loadu(src0 + (index));                                                   \
+            auto y = avx::loadu(src1 + (index));                                                   \
+            auto r = avx::cmpeq_epi64(x, y);                                                       \
+                                                                                                   \
+            avx::mask_type mask = avx::movemask_epi8(r);                                           \
+            if (WJR_LIKELY(mask != 0)) {                                                           \
+                return (index) + ctz(mask) / 8;                                                    \
+            }                                                                                      \
         } while (false)
 
     size_t rem = n & 7;
@@ -179,15 +179,15 @@ WJR_PURE WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src0, const T *src1
 
 template <typename T>
 WJR_PURE size_t large_builtin_find_n(const T *src, T val, size_t n) noexcept {
-    #define WJR_REGISTER_FIND_N_AVX(index)                                               \
-        do {                                                                             \
-            auto x = avx::loadu(src + (index));                                          \
-            auto r = avx::cmpeq_epi64(x, y);                                             \
-                                                                                         \
-            auto mask = avx::movemask_epi8(r);                                           \
-            if (WJR_LIKELY(mask != 0)) {                                                 \
-                return (index) + ctz(mask) / 8;                                          \
-            }                                                                            \
+    #define WJR_REGISTER_FIND_N_AVX(index)                                                         \
+        do {                                                                                       \
+            auto x = avx::loadu(src + (index));                                                    \
+            auto r = avx::cmpeq_epi64(x, y);                                                       \
+                                                                                                   \
+            auto mask = avx::movemask_epi8(r);                                                     \
+            if (WJR_LIKELY(mask != 0)) {                                                           \
+                return (index) + ctz(mask) / 8;                                                    \
+            }                                                                                      \
         } while (false)
 
     #if !WJR_HAS_SIMD(AVX2)
@@ -315,8 +315,7 @@ WJR_PURE size_t large_builtin_find_n(const T *src, T val, size_t n) noexcept {
 }
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src, T val,
-                                                    size_t n) noexcept {
+WJR_PURE WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src, T val, size_t n) noexcept {
     if (WJR_UNLIKELY(n == 0 || src[0] == val)) {
         return 0;
     }
@@ -367,8 +366,7 @@ WJR_PURE WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src0, const T *
 }
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val,
-                                                        size_t n) noexcept {
+WJR_PURE WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) noexcept {
     if (WJR_UNLIKELY(n == 0) || WJR_LIKELY(src[0] != val)) {
         return 0;
     }
@@ -391,18 +389,17 @@ WJR_PURE WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val,
 #if WJR_HAS_BUILTIN(REVERSE_FIND_N)
 
 template <typename T>
-WJR_PURE size_t large_builtin_reverse_find_n(const T *src0, const T *src1,
-                                             size_t n) noexcept {
-    #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                       \
-        do {                                                                             \
-            auto x = avx::loadu(src0 - 4 + (index));                                     \
-            auto y = avx::loadu(src1 - 4 + (index));                                     \
-            auto r = avx::cmpeq_epi64(x, y);                                             \
-                                                                                         \
-            avx::mask_type mask = avx::movemask_epi8(r);                                 \
-            if (WJR_LIKELY(mask != 0)) {                                                 \
-                return (index)-clz(mask) / 8;                                            \
-            }                                                                            \
+WJR_PURE size_t large_builtin_reverse_find_n(const T *src0, const T *src1, size_t n) noexcept {
+    #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                                 \
+        do {                                                                                       \
+            auto x = avx::loadu(src0 - 4 + (index));                                               \
+            auto y = avx::loadu(src1 - 4 + (index));                                               \
+            auto r = avx::cmpeq_epi64(x, y);                                                       \
+                                                                                                   \
+            avx::mask_type mask = avx::movemask_epi8(r);                                           \
+            if (WJR_LIKELY(mask != 0)) {                                                           \
+                return (index)-clz(mask) / 8;                                                      \
+            }                                                                                      \
         } while (false)
 
     const size_t rem = n & 7;
@@ -565,15 +562,15 @@ WJR_PURE WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src0, const
 
 template <typename T>
 WJR_PURE size_t large_builtin_reverse_find_n(const T *src, T val, size_t n) noexcept {
-    #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                       \
-        do {                                                                             \
-            auto x = avx::loadu(src - 4 + (index));                                      \
-            auto r = avx::cmpeq_epi64(x, y);                                             \
-                                                                                         \
-            avx::mask_type mask = avx::movemask_epi8(r);                                 \
-            if (WJR_LIKELY(mask != 0)) {                                                 \
-                return (index)-clz(mask) / 8;                                            \
-            }                                                                            \
+    #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                                 \
+        do {                                                                                       \
+            auto x = avx::loadu(src - 4 + (index));                                                \
+            auto r = avx::cmpeq_epi64(x, y);                                                       \
+                                                                                                   \
+            avx::mask_type mask = avx::movemask_epi8(r);                                           \
+            if (WJR_LIKELY(mask != 0)) {                                                           \
+                return (index)-clz(mask) / 8;                                                      \
+            }                                                                                      \
         } while (false)
 
     #if !WJR_HAS_SIMD(AVX2)

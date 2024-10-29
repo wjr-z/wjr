@@ -55,9 +55,7 @@ public:
         return this->__emplace_unique(std::forward<Args>(args)...);
     }
 
-    size_type count(const key_type &key) const noexcept {
-        return __count_unique(key) ? 1 : 0;
-    }
+    size_type count(const key_type &key) const noexcept { return __count_unique(key) ? 1 : 0; }
 };
 
 } // namespace wjr

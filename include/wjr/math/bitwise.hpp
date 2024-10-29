@@ -14,8 +14,7 @@ WJR_INTRINSIC_CONSTEXPR void fallback_xor_n(T *dst, const T *src0, const T *src1
 }
 
 template <typename T, std::enable_if_t<(is_nonbool_unsigned_integral_v<T>), int> = 0>
-WJR_INTRINSIC_CONSTEXPR void xor_n(T *dst, const T *src0, const T *src1,
-                                   size_t n) noexcept {
+WJR_INTRINSIC_CONSTEXPR void xor_n(T *dst, const T *src0, const T *src1, size_t n) noexcept {
     return fallback_xor_n(dst, src0, src1, n);
 }
 
@@ -28,8 +27,7 @@ WJR_INTRINSIC_CONSTEXPR void fallback_or_n(T *dst, const T *src0, const T *src1,
 }
 
 template <typename T, std::enable_if_t<(is_nonbool_unsigned_integral_v<T>), int> = 0>
-WJR_INTRINSIC_CONSTEXPR void or_n(T *dst, const T *src0, const T *src1,
-                                  size_t n) noexcept {
+WJR_INTRINSIC_CONSTEXPR void or_n(T *dst, const T *src0, const T *src1, size_t n) noexcept {
     return fallback_or_n(dst, src0, src1, n);
 }
 
@@ -42,8 +40,7 @@ WJR_INTRINSIC_CONSTEXPR void fallback_and_n(T *dst, const T *src0, const T *src1
 }
 
 template <typename T, std::enable_if_t<(is_nonbool_unsigned_integral_v<T>), int> = 0>
-WJR_INTRINSIC_CONSTEXPR void and_n(T *dst, const T *src0, const T *src1,
-                                   size_t n) noexcept {
+WJR_INTRINSIC_CONSTEXPR void and_n(T *dst, const T *src0, const T *src1, size_t n) noexcept {
     return fallback_and_n(dst, src0, src1, n);
 }
 

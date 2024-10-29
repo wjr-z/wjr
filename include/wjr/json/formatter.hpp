@@ -42,15 +42,14 @@ struct escape_sequence {
 // We would like to use 'bool' but some compilers take offense to bitwise operation
 // with bool types.
 inline constexpr char needs_escaping[] = {
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 template <typename Container>
 WJR_INTRINSIC_INLINE void format_string(Container &cont, std::string_view str) {
@@ -69,14 +68,10 @@ WJR_INTRINSIC_INLINE void format_string(Container &cont, std::string_view str) {
         //
         // It is not the case that replacing '|' with '||' would be neutral
         // performance-wise.
-        if (needs_escaping[uint8_t(first[pos])] |
-            needs_escaping[uint8_t(first[pos + 1])] |
-            needs_escaping[uint8_t(first[pos + 2])] |
-            needs_escaping[uint8_t(first[pos + 3])] |
-            needs_escaping[uint8_t(first[pos + 4])] |
-            needs_escaping[uint8_t(first[pos + 5])] |
-            needs_escaping[uint8_t(first[pos + 6])] |
-            needs_escaping[uint8_t(first[pos + 7])]) {
+        if (needs_escaping[uint8_t(first[pos])] | needs_escaping[uint8_t(first[pos + 1])] |
+            needs_escaping[uint8_t(first[pos + 2])] | needs_escaping[uint8_t(first[pos + 3])] |
+            needs_escaping[uint8_t(first[pos + 4])] | needs_escaping[uint8_t(first[pos + 5])] |
+            needs_escaping[uint8_t(first[pos + 6])] | needs_escaping[uint8_t(first[pos + 7])]) {
             goto SLOW_PATH;
         }
     }
@@ -118,14 +113,13 @@ SLOW_PATH : {
                 // Note that we expect most compilers to embed this code in the data
                 // section.
                 constexpr static escape_sequence escaped[32] = {
-                    {6, "\\u0000"}, {6, "\\u0001"}, {6, "\\u0002"}, {6, "\\u0003"},
-                    {6, "\\u0004"}, {6, "\\u0005"}, {6, "\\u0006"}, {6, "\\u0007"},
-                    {2, "\\b"},     {2, "\\t"},     {2, "\\n"},     {6, "\\u000b"},
-                    {2, "\\f"},     {2, "\\r"},     {6, "\\u000e"}, {6, "\\u000f"},
-                    {6, "\\u0010"}, {6, "\\u0011"}, {6, "\\u0012"}, {6, "\\u0013"},
-                    {6, "\\u0014"}, {6, "\\u0015"}, {6, "\\u0016"}, {6, "\\u0017"},
-                    {6, "\\u0018"}, {6, "\\u0019"}, {6, "\\u001a"}, {6, "\\u001b"},
-                    {6, "\\u001c"}, {6, "\\u001d"}, {6, "\\u001e"}, {6, "\\u001f"}};
+                    {6, "\\u0000"}, {6, "\\u0001"}, {6, "\\u0002"}, {6, "\\u0003"}, {6, "\\u0004"},
+                    {6, "\\u0005"}, {6, "\\u0006"}, {6, "\\u0007"}, {2, "\\b"},     {2, "\\t"},
+                    {2, "\\n"},     {6, "\\u000b"}, {2, "\\f"},     {2, "\\r"},     {6, "\\u000e"},
+                    {6, "\\u000f"}, {6, "\\u0010"}, {6, "\\u0011"}, {6, "\\u0012"}, {6, "\\u0013"},
+                    {6, "\\u0014"}, {6, "\\u0015"}, {6, "\\u0016"}, {6, "\\u0017"}, {6, "\\u0018"},
+                    {6, "\\u0019"}, {6, "\\u001a"}, {6, "\\u001b"}, {6, "\\u001c"}, {6, "\\u001d"},
+                    {6, "\\u001e"}, {6, "\\u001f"}};
                 const auto u = escaped[uint8_t(first[pos + i])];
                 if (u.length == 2) {
                     append_string(cont, u.string, 2);
@@ -144,14 +138,10 @@ SLOW_PATH : {
         size_t last_pos = pos;
 
         do {
-            if (needs_escaping[uint8_t(first[pos])] |
-                needs_escaping[uint8_t(first[pos + 1])] |
-                needs_escaping[uint8_t(first[pos + 2])] |
-                needs_escaping[uint8_t(first[pos + 3])] |
-                needs_escaping[uint8_t(first[pos + 4])] |
-                needs_escaping[uint8_t(first[pos + 5])] |
-                needs_escaping[uint8_t(first[pos + 6])] |
-                needs_escaping[uint8_t(first[pos + 7])]) {
+            if (needs_escaping[uint8_t(first[pos])] | needs_escaping[uint8_t(first[pos + 1])] |
+                needs_escaping[uint8_t(first[pos + 2])] | needs_escaping[uint8_t(first[pos + 3])] |
+                needs_escaping[uint8_t(first[pos + 4])] | needs_escaping[uint8_t(first[pos + 5])] |
+                needs_escaping[uint8_t(first[pos + 6])] | needs_escaping[uint8_t(first[pos + 7])]) {
                 append_string(cont, first + last_pos, pos - last_pos);
                 last_pos = pos + 8;
 
@@ -171,17 +161,14 @@ SLOW_PATH : {
                             // Note that we expect most compilers to embed this code in
                             // the data section.
                             constexpr static escape_sequence escaped[32] = {
-                                {6, "\\u0000"}, {6, "\\u0001"}, {6, "\\u0002"},
-                                {6, "\\u0003"}, {6, "\\u0004"}, {6, "\\u0005"},
-                                {6, "\\u0006"}, {6, "\\u0007"}, {2, "\\b"},
-                                {2, "\\t"},     {2, "\\n"},     {6, "\\u000b"},
-                                {2, "\\f"},     {2, "\\r"},     {6, "\\u000e"},
-                                {6, "\\u000f"}, {6, "\\u0010"}, {6, "\\u0011"},
-                                {6, "\\u0012"}, {6, "\\u0013"}, {6, "\\u0014"},
-                                {6, "\\u0015"}, {6, "\\u0016"}, {6, "\\u0017"},
-                                {6, "\\u0018"}, {6, "\\u0019"}, {6, "\\u001a"},
-                                {6, "\\u001b"}, {6, "\\u001c"}, {6, "\\u001d"},
-                                {6, "\\u001e"}, {6, "\\u001f"}};
+                                {6, "\\u0000"}, {6, "\\u0001"}, {6, "\\u0002"}, {6, "\\u0003"},
+                                {6, "\\u0004"}, {6, "\\u0005"}, {6, "\\u0006"}, {6, "\\u0007"},
+                                {2, "\\b"},     {2, "\\t"},     {2, "\\n"},     {6, "\\u000b"},
+                                {2, "\\f"},     {2, "\\r"},     {6, "\\u000e"}, {6, "\\u000f"},
+                                {6, "\\u0010"}, {6, "\\u0011"}, {6, "\\u0012"}, {6, "\\u0013"},
+                                {6, "\\u0014"}, {6, "\\u0015"}, {6, "\\u0016"}, {6, "\\u0017"},
+                                {6, "\\u0018"}, {6, "\\u0019"}, {6, "\\u001a"}, {6, "\\u001b"},
+                                {6, "\\u001c"}, {6, "\\u001d"}, {6, "\\u001e"}, {6, "\\u001f"}};
                             const auto u = escaped[uint8_t(first[pos + i])];
                             if (u.length == 2) {
                                 append_string(cont, u.string, 2);
@@ -227,14 +214,13 @@ SMALL_SLOW_PATH_NO_COPY:
                 // Note that we expect most compilers to embed this code in
                 // the data section.
                 constexpr static escape_sequence escaped[32] = {
-                    {6, "\\u0000"}, {6, "\\u0001"}, {6, "\\u0002"}, {6, "\\u0003"},
-                    {6, "\\u0004"}, {6, "\\u0005"}, {6, "\\u0006"}, {6, "\\u0007"},
-                    {2, "\\b"},     {2, "\\t"},     {2, "\\n"},     {6, "\\u000b"},
-                    {2, "\\f"},     {2, "\\r"},     {6, "\\u000e"}, {6, "\\u000f"},
-                    {6, "\\u0010"}, {6, "\\u0011"}, {6, "\\u0012"}, {6, "\\u0013"},
-                    {6, "\\u0014"}, {6, "\\u0015"}, {6, "\\u0016"}, {6, "\\u0017"},
-                    {6, "\\u0018"}, {6, "\\u0019"}, {6, "\\u001a"}, {6, "\\u001b"},
-                    {6, "\\u001c"}, {6, "\\u001d"}, {6, "\\u001e"}, {6, "\\u001f"}};
+                    {6, "\\u0000"}, {6, "\\u0001"}, {6, "\\u0002"}, {6, "\\u0003"}, {6, "\\u0004"},
+                    {6, "\\u0005"}, {6, "\\u0006"}, {6, "\\u0007"}, {2, "\\b"},     {2, "\\t"},
+                    {2, "\\n"},     {6, "\\u000b"}, {2, "\\f"},     {2, "\\r"},     {6, "\\u000e"},
+                    {6, "\\u000f"}, {6, "\\u0010"}, {6, "\\u0011"}, {6, "\\u0012"}, {6, "\\u0013"},
+                    {6, "\\u0014"}, {6, "\\u0015"}, {6, "\\u0016"}, {6, "\\u0017"}, {6, "\\u0018"},
+                    {6, "\\u0019"}, {6, "\\u001a"}, {6, "\\u001b"}, {6, "\\u001c"}, {6, "\\u001d"},
+                    {6, "\\u001e"}, {6, "\\u001f"}};
                 const auto u = escaped[uint8_t(first[pos])];
                 if (u.length == 2) {
                     append_string(cont, u.string, 2);
@@ -290,13 +276,9 @@ public:
     /// @brief Add a comma
     WJR_INTRINSIC_INLINE void format_comma() { __append_char(','); }
     /// @brief Prints a number
-    WJR_INTRINSIC_INLINE void format_number_unsigned(uint64_t x) {
-        to_chars_unchecked(m_iter, x);
-    }
+    WJR_INTRINSIC_INLINE void format_number_unsigned(uint64_t x) { to_chars_unchecked(m_iter, x); }
     /// @brief Prints a number
-    WJR_INTRINSIC_INLINE void format_number_signed(int64_t x) {
-        to_chars_unchecked(m_iter, x);
-    }
+    WJR_INTRINSIC_INLINE void format_number_signed(int64_t x) { to_chars_unchecked(m_iter, x); }
     /// @brief Prints a number
     WJR_INTRINSIC_INLINE void format_number_float(double x) {
         auto &cont = get_inserter_container(m_iter);
@@ -316,17 +298,13 @@ public:
         formatter_detail::format_string(get_inserter_container(m_iter), str);
     }
 
-    WJR_INTRINSIC_INLINE void format_newline() {
-        static_cast<Formatter &>(*this).print_newline();
-    }
+    WJR_INTRINSIC_INLINE void format_newline() { static_cast<Formatter &>(*this).print_newline(); }
 
     WJR_INTRINSIC_INLINE void format_indents(size_t depth) {
         static_cast<Formatter &>(*this).print_indents(depth);
     }
 
-    WJR_INTRINSIC_INLINE void format_space() {
-        static_cast<Formatter &>(*this).print_space();
-    }
+    WJR_INTRINSIC_INLINE void format_space() { static_cast<Formatter &>(*this).print_space(); }
 
 protected:
     Inserter m_iter;

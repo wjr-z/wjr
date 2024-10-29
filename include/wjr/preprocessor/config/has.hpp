@@ -40,13 +40,11 @@
 #define WJR_HAS_CXX_STANDARD_DEF WJR_PP_MAP_DEF(WJR_CXX_STANDARD_DEF_VAR)
 #define WJR_HAS_GENERIC_DEF WJR_PP_MAP_DEF(WJR_GENERIC_DEF_VAR)
 
-#if (defined(WJR_COMPILER_GCC) && WJR_HAS_GCC(10, 1, 0)) ||                              \
-    (defined(WJR_COMPILER_CLANG) && WJR_HAS_CLANG(10, 0, 0)) ||                          \
-    (!defined(WJR_COMPILER_GCC) && !defined(WJR_COMPILER_CLANG) &&                       \
-     defined(__has_builtin))
+#if (defined(WJR_COMPILER_GCC) && WJR_HAS_GCC(10, 1, 0)) ||                                        \
+    (defined(WJR_COMPILER_CLANG) && WJR_HAS_CLANG(10, 0, 0)) ||                                    \
+    (!defined(WJR_COMPILER_GCC) && !defined(WJR_COMPILER_CLANG) && defined(__has_builtin))
     #define WJR_HAS_BUILTIN(x) WJR_HAS_BUILTIN_I(x, WJR_HAS_BUILTIN_FIND(x))
-    #define WJR_HAS_BUILTIN_I(x, VAR)                                                    \
-        WJR_PP_BOOL_IF(WJR_PP_BOOL(VAR), VAR, __has_builtin(x))
+    #define WJR_HAS_BUILTIN_I(x, VAR) WJR_PP_BOOL_IF(WJR_PP_BOOL(VAR), VAR, __has_builtin(x))
 #else
     #define WJR_HAS_BUILTIN(x) WJR_HAS_BUILTIN_FIND(x)
 #endif
@@ -59,8 +57,7 @@
 
 #if defined(__has_attribute)
     #define WJR_HAS_ATTRIBUTE(x) WJR_HAS_ATTRIBUTE_I(x, WJR_HAS_ATTRIBUTE_FIND(x))
-    #define WJR_HAS_ATTRIBUTE_I(x, VAR)                                                  \
-        WJR_PP_BOOL_IF(WJR_PP_BOOL(VAR), VAR, __has_attribute(x))
+    #define WJR_HAS_ATTRIBUTE_I(x, VAR) WJR_PP_BOOL_IF(WJR_PP_BOOL(VAR), VAR, __has_attribute(x))
 #else
     #define WJR_HAS_ATTRIBUTE(x) WJR_HAS_ATTRIBUTE_FIND(x)
 #endif
@@ -139,8 +136,8 @@
 
 // There are some issues with the optimization of int128 in both lower and higher versions
 // (13.1/13.2) of GCC.
-#if WJR_HAS_FEATURE(INT128) &&                                                           \
-    (defined(WJR_COMPILER_CLANG) ||                                                      \
+#if WJR_HAS_FEATURE(INT128) &&                                                                     \
+    (defined(WJR_COMPILER_CLANG) ||                                                                \
      (defined(WJR_COMPILER_GCC) && WJR_HAS_GCC(8, 1, 0) && !WJR_HAS_GCC(13, 1, 0)))
     #define WJR_HAS_FEATURE_FAST_INT128_COMPARE WJR_HAS_DEF
 #endif
@@ -170,12 +167,12 @@
     #define WJR_HAS_SIMD_AVX512DQ WJR_HAS_DEF
 #endif
 
-#if defined(__AVX512F__) ||                                                              \
+#if defined(__AVX512F__) ||                                                                        \
     (WJR_HAS_SIMD(AVX512VL) && WJR_HAS_SIMD(AVX512BW) && WJR_HAS_SIMD(AVX512DQ))
     #define WJR_HAS_SIMD_AVX512F WJR_HAS_DEF
 #endif
 
-#if defined(__AVX512__) ||                                                               \
+#if defined(__AVX512__) ||                                                                         \
     (WJR_HAS_SIMD(AVX512F) && WJR_HAS_SIMD(AVX512BW) && WJR_HAS_SIMD(AVX512DQ))
     #define WJR_HAS_SIMD_AVX512 WJR_HAS_DEF
 #endif
@@ -204,7 +201,7 @@
     #define WJR_HAS_SIMD_SSE3 WJR_HAS_DEF
 #endif
 
-#if defined(__SSE2__) || WJR_HAS_SIMD(SSE3) || _M_IX86_FP >= 2 ||                        \
+#if defined(__SSE2__) || WJR_HAS_SIMD(SSE3) || _M_IX86_FP >= 2 ||                                  \
     (defined(_MSC_VER) && (defined(_M_AMD64) || defined(_M_X64)))
     #define WJR_HAS_SIMD_SSE2 WJR_HAS_DEF
 #endif

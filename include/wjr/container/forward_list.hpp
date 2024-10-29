@@ -39,9 +39,7 @@ constexpr void push_back(forward_list_node *tail, forward_list_node *node) noexc
     tail->next = node;
 }
 
-constexpr bool empty(const forward_list_node *node) noexcept {
-    return node->next == nullptr;
-}
+constexpr bool empty(const forward_list_node *node) noexcept { return node->next == nullptr; }
 
 constexpr forward_list_node *next(forward_list_node *node) noexcept { return node->next; }
 constexpr const forward_list_node *next(const forward_list_node *node) noexcept {

@@ -144,11 +144,11 @@
     #undef WJR_ENABLE_ASSEMBLY
 #endif
 
-#define WJR_ASSUME_MAY_NOT_PURE(expr)                                                    \
-    do {                                                                                 \
-        if (!(expr)) {                                                                   \
-            WJR_UNREACHABLE();                                                           \
-        }                                                                                \
+#define WJR_ASSUME_MAY_NOT_PURE(expr)                                                              \
+    do {                                                                                           \
+        if (!(expr)) {                                                                             \
+            WJR_UNREACHABLE();                                                                     \
+        }                                                                                          \
     } while (false)
 
 #if WJR_HAS_BUILTIN(__builtin_assume)
@@ -175,17 +175,15 @@
 #define WJR_HAS_FEATURE_IS_CONSTANT_EVALUATED WJR_HAS_DEF
 
 #if WJR_HAS_BUILTIN(__builtin_expect_with_probability)
-    #define WJR_EXPECT_WITH_PROBABILITY(exp, c, probability)                             \
+    #define WJR_EXPECT_WITH_PROBABILITY(exp, c, probability)                                       \
         __builtin_expect_with_probability(exp, c, probability)
 #else
     #define WJR_EXPECT_WITH_PROBABILITY(exp, c, probability) (expr)
 #endif
 
 #if WJR_HAS_BUILTIN(__builtin_expect_with_probability)
-    #define WJR_VERY_LIKELY(exp, probability)                                            \
-        WJR_EXPECT_WITH_PROBABILITY(exp, true, probability)
-    #define WJR_VERY_UNLIKELY(exp, probability)                                          \
-        WJR_EXPECT_WITH_PROBABILITY(exp, false, probability)
+    #define WJR_VERY_LIKELY(exp, probability) WJR_EXPECT_WITH_PROBABILITY(exp, true, probability)
+    #define WJR_VERY_UNLIKELY(exp, probability) WJR_EXPECT_WITH_PROBABILITY(exp, false, probability)
 #else
     #define WJR_VERY_LIKELY(exp, probability) WJR_LIKELY((exp))
     #define WJR_VERY_UNLIKELY(exp, probability) WJR_UNLIKELY((exp))
@@ -221,7 +219,7 @@
 #if WJR_HAS_BUILTIN(__builtin_clear_padding)
     #define WJR_HAS_BULTIN_CLEAR_PADDING WJR_HAS_DEF
     #define WJR_BUILTIN_CLEAR_PADDING(x) __builtin_clear_padding(x)
-#elif WJR_HAS_BUILTIN(__builtin_zero_non_value_bits) ||                                  \
+#elif WJR_HAS_BUILTIN(__builtin_zero_non_value_bits) ||                                            \
     (defined(WJR_COMPILER_MSVC) && WJR_HAS_MSVC(19, 27))
     #define WJR_HAS_BULTIN_CLEAR_PADDING WJR_HAS_DEF
     #define WJR_BUILTIN_CLEAR_PADDING(x) __builtin_zero_non_value_bits(x)

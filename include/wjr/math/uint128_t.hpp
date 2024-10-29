@@ -66,8 +66,7 @@ public:
         return *this;
     }
 
-    friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator+(uint128_t lhs,
-                                                         uint128_t rhs) noexcept {
+    friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator+(uint128_t lhs, uint128_t rhs) noexcept {
         return lhs += rhs;
     }
 
@@ -89,8 +88,7 @@ public:
         return *this;
     }
 
-    friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator-(uint128_t lhs,
-                                                         uint128_t rhs) noexcept {
+    friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator-(uint128_t lhs, uint128_t rhs) noexcept {
         return lhs -= rhs;
     }
 
@@ -112,8 +110,7 @@ public:
     }
 
 private:
-    static WJR_CONST WJR_CONSTEXPR20 uint128_t mul_u64(uint128_t lhs,
-                                                       uint64_t value) noexcept {
+    static WJR_CONST WJR_CONSTEXPR20 uint128_t mul_u64(uint128_t lhs, uint64_t value) noexcept {
         const auto [low, high] = lhs;
         uint128_t tmp;
         tmp.low = mul(low, value, tmp.high);
@@ -121,8 +118,7 @@ private:
         return tmp;
     }
 
-    static WJR_CONST WJR_CONSTEXPR20 uint128_t mul_i64(uint128_t lhs,
-                                                       int64_t value) noexcept {
+    static WJR_CONST WJR_CONSTEXPR20 uint128_t mul_i64(uint128_t lhs, int64_t value) noexcept {
         const auto [low, high] = lhs;
         const uint64_t uvalue = to_unsigned(value);
         uint128_t tmp;
@@ -142,8 +138,7 @@ public:
         return (*this) = mul_i64(*this, value);
     }
 
-    friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator*(uint128_t lhs,
-                                                         uint128_t rhs) noexcept {
+    friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator*(uint128_t lhs, uint128_t rhs) noexcept {
         return lhs *= rhs;
     }
 
@@ -157,33 +152,27 @@ public:
         return rhs *= lhs;
     }
 
-    friend WJR_CONST WJR_CONSTEXPR20 bool operator<(uint128_t lhs,
-                                                    uint128_t rhs) noexcept {
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator<(uint128_t lhs, uint128_t rhs) noexcept {
         return __less_128(lhs.low, lhs.high, rhs.low, rhs.high);
     }
 
-    friend WJR_CONST WJR_CONSTEXPR20 bool operator>(uint128_t lhs,
-                                                    uint128_t rhs) noexcept {
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator>(uint128_t lhs, uint128_t rhs) noexcept {
         return rhs < lhs;
     }
 
-    friend WJR_CONST WJR_CONSTEXPR20 bool operator<=(uint128_t lhs,
-                                                     uint128_t rhs) noexcept {
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator<=(uint128_t lhs, uint128_t rhs) noexcept {
         return __less_equal_128(lhs.low, lhs.high, rhs.low, rhs.high);
     }
 
-    friend WJR_CONST WJR_CONSTEXPR20 bool operator>=(uint128_t lhs,
-                                                     uint128_t rhs) noexcept {
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator>=(uint128_t lhs, uint128_t rhs) noexcept {
         return rhs <= lhs;
     }
 
-    friend WJR_CONST WJR_CONSTEXPR20 bool operator==(uint128_t lhs,
-                                                     uint128_t rhs) noexcept {
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator==(uint128_t lhs, uint128_t rhs) noexcept {
         return lhs.low == rhs.low && lhs.high == rhs.high;
     }
 
-    friend WJR_CONST WJR_CONSTEXPR20 bool operator!=(uint128_t lhs,
-                                                     uint128_t rhs) noexcept {
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator!=(uint128_t lhs, uint128_t rhs) noexcept {
         return !(lhs == rhs);
     }
 

@@ -49,21 +49,19 @@ namespace wjr::json {
 
 namespace number_detail {
 
-WJR_INTRINSIC_INLINE from_chars_result<>
-from_chars_json(const char *first, const char *last, basic_value &value) noexcept {
-    return fastfloat::__from_chars_impl(
-        first, last, number_writer(value),
-        integral_constant<chars_format, chars_format::json>());
+WJR_INTRINSIC_INLINE from_chars_result<> from_chars_json(const char *first, const char *last,
+                                                         basic_value &value) noexcept {
+    return fastfloat::__from_chars_impl(first, last, number_writer(value),
+                                        integral_constant<chars_format, chars_format::json>());
 }
 
 } // namespace number_detail
 
 namespace detail {
-WJR_PURE WJR_INTRINSIC_INLINE result<basic_value>
-parse_number(const char *first, const char *last) noexcept {
+WJR_PURE WJR_INTRINSIC_INLINE result<basic_value> parse_number(const char *first,
+                                                               const char *last) noexcept {
     basic_value value;
-    if (const auto ret = number_detail::from_chars_json(first, last, value);
-        WJR_LIKELY(ret)) {
+    if (const auto ret = number_detail::from_chars_json(first, last, value); WJR_LIKELY(ret)) {
         if (WJR_UNLIKELY(ret.ptr != last && !charconv_detail::isspace(*ret.ptr))) {
             return unexpected(error_code::TAPE_ERROR);
         }

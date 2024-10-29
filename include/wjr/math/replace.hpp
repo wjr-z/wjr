@@ -26,9 +26,9 @@ WJR_INTRINSIC_CONSTEXPR20 size_t replace_find_not(T *dst, const T *src, size_t n
 // find the last position(ret-1) that is not equal to number "from"
 // and replace [ret, n) to number "to"
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR20 size_t
-reverse_replace_find_not(T *dst, const T *src, size_t n, type_identity_t<T> from,
-                         type_identity_t<T> to) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 size_t reverse_replace_find_not(T *dst, const T *src, size_t n,
+                                                          type_identity_t<T> from,
+                                                          type_identity_t<T> to) noexcept {
     const size_t ret = reverse_find_not_n(src, from, n);
     if (WJR_UNLIKELY(ret != n) && WJR_LIKELY(dst != src || from != to)) {
         set_n(dst + ret, to, n - ret);

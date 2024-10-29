@@ -31,28 +31,20 @@ WJR_ALL_NONNULL WJR_NOINLINE from_chars_result<>
 __from_chars_impl(const char *first, const char *last, Writer wr, Op options) noexcept;
 
 extern template from_chars_result<>
-__from_chars_impl<default_writer<float>,
-                  integral_constant<chars_format, chars_format::general>>(
+__from_chars_impl<default_writer<float>, integral_constant<chars_format, chars_format::general>>(
     const char *first, const char *last, default_writer<float> wr,
     integral_constant<chars_format, chars_format::general> options) noexcept;
 
 extern template from_chars_result<>
-__from_chars_impl<default_writer<double>,
-                  integral_constant<chars_format, chars_format::general>>(
+__from_chars_impl<default_writer<double>, integral_constant<chars_format, chars_format::general>>(
     const char *first, const char *last, default_writer<double> wr,
     integral_constant<chars_format, chars_format::general> options) noexcept;
 
-extern template from_chars_result<>
-__from_chars_impl<default_writer<float>, chars_format>(const char *first,
-                                                       const char *last,
-                                                       default_writer<float> wr,
-                                                       chars_format fmt) noexcept;
+extern template from_chars_result<> __from_chars_impl<default_writer<float>, chars_format>(
+    const char *first, const char *last, default_writer<float> wr, chars_format fmt) noexcept;
 
-extern template from_chars_result<>
-__from_chars_impl<default_writer<double>, chars_format>(const char *first,
-                                                        const char *last,
-                                                        default_writer<double> wr,
-                                                        chars_format fmt) noexcept;
+extern template from_chars_result<> __from_chars_impl<default_writer<double>, chars_format>(
+    const char *first, const char *last, default_writer<double> wr, chars_format fmt) noexcept;
 
 /**
  * This function parses the character sequence [first,last) for a number. It parses
@@ -116,9 +108,9 @@ struct adjusted_mantissa {
 // Bias so we can get the real exponent with an invalid adjusted_mantissa.
 inline constexpr int32_t invalid_am_bias = -0x8000;
 
-inline constexpr double powers_of_ten_double[] = {
-    1e0,  1e1,  1e2,  1e3,  1e4,  1e5,  1e6,  1e7,  1e8,  1e9,  1e10, 1e11,
-    1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22};
+inline constexpr double powers_of_ten_double[] = {1e0,  1e1,  1e2,  1e3,  1e4,  1e5,  1e6,  1e7,
+                                                  1e8,  1e9,  1e10, 1e11, 1e12, 1e13, 1e14, 1e15,
+                                                  1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22};
 inline constexpr float powers_of_ten_float[] = {1e0, 1e1, 1e2, 1e3, 1e4, 1e5,
                                                 1e6, 1e7, 1e8, 1e9, 1e10};
 // used for max_mantissa_double and max_mantissa_float
@@ -145,31 +137,28 @@ inline constexpr uint64_t max_mantissa_double[] = {
     0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5 * 5),
     0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5 * 5 * 5),
     0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 * 5 * 5 * 5 * 5),
-    0x20000000000000 /
-        (constant_55555 * constant_55555 * constant_55555 * constant_55555),
-    0x20000000000000 /
-        (constant_55555 * constant_55555 * constant_55555 * constant_55555 * 5),
-    0x20000000000000 /
-        (constant_55555 * constant_55555 * constant_55555 * constant_55555 * 5 * 5),
+    0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 * constant_55555),
+    0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 * constant_55555 * 5),
+    0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 * constant_55555 * 5 * 5),
     0x20000000000000 /
         (constant_55555 * constant_55555 * constant_55555 * constant_55555 * 5 * 5 * 5),
-    0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 *
-                        constant_55555 * 5 * 5 * 5 * 5)};
+    0x20000000000000 /
+        (constant_55555 * constant_55555 * constant_55555 * constant_55555 * 5 * 5 * 5 * 5)};
 // Largest integer value v so that (5**index * v) <= 1<<24.
 // 0x1000000 == 1 << 24
-inline constexpr uint64_t max_mantissa_float[] = {
-    0x1000000,
-    0x1000000 / 5,
-    0x1000000 / (5 * 5),
-    0x1000000 / (5 * 5 * 5),
-    0x1000000 / (5 * 5 * 5 * 5),
-    0x1000000 / (constant_55555),
-    0x1000000 / (constant_55555 * 5),
-    0x1000000 / (constant_55555 * 5 * 5),
-    0x1000000 / (constant_55555 * 5 * 5 * 5),
-    0x1000000 / (constant_55555 * 5 * 5 * 5 * 5),
-    0x1000000 / (constant_55555 * constant_55555),
-    0x1000000 / (constant_55555 * constant_55555 * 5)};
+inline constexpr uint64_t max_mantissa_float[] = {0x1000000,
+                                                  0x1000000 / 5,
+                                                  0x1000000 / (5 * 5),
+                                                  0x1000000 / (5 * 5 * 5),
+                                                  0x1000000 / (5 * 5 * 5 * 5),
+                                                  0x1000000 / (constant_55555),
+                                                  0x1000000 / (constant_55555 * 5),
+                                                  0x1000000 / (constant_55555 * 5 * 5),
+                                                  0x1000000 / (constant_55555 * 5 * 5 * 5),
+                                                  0x1000000 / (constant_55555 * 5 * 5 * 5 * 5),
+                                                  0x1000000 / (constant_55555 * constant_55555),
+                                                  0x1000000 /
+                                                      (constant_55555 * constant_55555 * 5)};
 
 template <typename T>
 struct binary_format {
@@ -179,8 +168,7 @@ struct binary_format {
     static inline constexpr int minimum_exponent();
     static inline constexpr int infinite_power();
     static inline constexpr int sign_index();
-    static inline constexpr int
-    min_exponent_fast_path(); // used when fegetround() == FE_TONEAREST
+    static inline constexpr int min_exponent_fast_path(); // used when fegetround() == FE_TONEAREST
     static inline constexpr int max_exponent_fast_path();
     static inline constexpr int max_exponent_round_to_even();
     static inline constexpr int min_exponent_round_to_even();
@@ -342,8 +330,7 @@ inline constexpr binary_format<float>::equiv_uint binary_format<float>::exponent
     return 0x7F800000;
 }
 template <>
-inline constexpr binary_format<double>::equiv_uint
-binary_format<double>::exponent_mask() {
+inline constexpr binary_format<double>::equiv_uint binary_format<double>::exponent_mask() {
     return 0x7FF0000000000000;
 }
 
@@ -352,19 +339,16 @@ inline constexpr binary_format<float>::equiv_uint binary_format<float>::mantissa
     return 0x007FFFFF;
 }
 template <>
-inline constexpr binary_format<double>::equiv_uint
-binary_format<double>::mantissa_mask() {
+inline constexpr binary_format<double>::equiv_uint binary_format<double>::mantissa_mask() {
     return 0x000FFFFFFFFFFFFF;
 }
 
 template <>
-inline constexpr binary_format<float>::equiv_uint
-binary_format<float>::hidden_bit_mask() {
+inline constexpr binary_format<float>::equiv_uint binary_format<float>::hidden_bit_mask() {
     return 0x00800000;
 }
 template <>
-inline constexpr binary_format<double>::equiv_uint
-binary_format<double>::hidden_bit_mask() {
+inline constexpr binary_format<double>::equiv_uint binary_format<double>::hidden_bit_mask() {
     return 0x0010000000000000;
 }
 
@@ -379,9 +363,7 @@ WJR_INTRINSIC_INLINE void to_float(bool negative, adjusted_mantissa am, T &value
 
 // Next function can be micro-optimized, but compilers are entirely
 // able to optimize it well.
-WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_integer(char c) noexcept {
-    return c >= '0' && c <= '9';
-}
+WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_integer(char c) noexcept { return c >= '0' && c <= '9'; }
 
 /**
  * When mapping numbers from decimal to binary,
@@ -409,10 +391,8 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_integer(char c) noexcept {
  */
 template <class unused = void>
 struct powers_template {
-    constexpr static int smallest_power_of_five =
-        binary_format<double>::smallest_power_of_ten();
-    constexpr static int largest_power_of_five =
-        binary_format<double>::largest_power_of_ten();
+    constexpr static int smallest_power_of_five = binary_format<double>::smallest_power_of_ten();
+    constexpr static int largest_power_of_five = binary_format<double>::largest_power_of_ten();
     constexpr static int number_of_entries =
         2 * (largest_power_of_five - smallest_power_of_five + 1);
     // Powers of five from 5^-342 all the way to 5^308 rounded toward one.
@@ -1084,17 +1064,15 @@ WJR_INTRINSIC_INLINE uint128_t compute_product_approximation(int64_t q, uint64_t
     // The line uint128_t firstproduct = mul64x64to128(w, power_of_five_128[index]);
     // gives the exact answer.
     uint128_t firstproduct = mul64x64to128(w, powers::power_of_five_128[index]);
-    static_assert((bit_precision >= 0) && (bit_precision <= 64),
-                  " precision should  be in (0,64]");
-    constexpr uint64_t precision_mask =
-        (bit_precision < 64) ? (uint64_t(0xFFFFFFFFFFFFFFFF) >> bit_precision)
-                             : uint64_t(0xFFFFFFFFFFFFFFFF);
+    static_assert((bit_precision >= 0) && (bit_precision <= 64), " precision should  be in (0,64]");
+    constexpr uint64_t precision_mask = (bit_precision < 64)
+                                            ? (uint64_t(0xFFFFFFFFFFFFFFFF) >> bit_precision)
+                                            : uint64_t(0xFFFFFFFFFFFFFFFF);
     if ((firstproduct.high & precision_mask) ==
         precision_mask) { // could further guard with (lower + w < lower)
         // regarding the second product, we only need secondproduct.high, but our
         // expectation is that the compiler will optimize this extra work away if needed.
-        const uint128_t secondproduct =
-            mul64x64to128(w, powers::power_of_five_128[index + 1]);
+        const uint128_t secondproduct = mul64x64to128(w, powers::power_of_five_128[index + 1]);
         firstproduct.low += secondproduct.high;
         if (secondproduct.high > firstproduct.low) {
             firstproduct.high++;
@@ -1133,8 +1111,7 @@ WJR_INTRINSIC_INLINE adjusted_mantissa compute_error_scaled(int64_t q, uint64_t 
     adjusted_mantissa answer;
     answer.mantissa = w << hilz;
     const int bias = binary::mantissa_explicit_bits() - binary::minimum_exponent();
-    answer.power2 =
-        int32_t(detail::power(int32_t(q)) + bias - hilz - lz - 62 + invalid_am_bias);
+    answer.power2 = int32_t(detail::power(int32_t(q)) + bias - hilz - lz - 62 + invalid_am_bias);
     return answer;
 }
 
@@ -1155,8 +1132,7 @@ WJR_INTRINSIC_INLINE adjusted_mantissa compute_error(int64_t q, uint64_t w) noex
 // return an adjusted_mantissa with a negative power of 2: the caller should recompute
 // in such cases.
 template <typename binary>
-WJR_CONST WJR_INTRINSIC_INLINE adjusted_mantissa compute_float(int64_t q,
-                                                               uint64_t w) noexcept {
+WJR_CONST WJR_INTRINSIC_INLINE adjusted_mantissa compute_float(int64_t q, uint64_t w) noexcept {
     adjusted_mantissa answer;
     if ((w == 0) || (q < binary::smallest_power_of_ten())) {
         answer.power2 = 0;
@@ -1204,11 +1180,9 @@ WJR_CONST WJR_INTRINSIC_INLINE adjusted_mantissa compute_float(int64_t q,
     // easily predicted. Which is best is data specific.
     const int upperbit = int(product.high >> 63);
 
-    answer.mantissa =
-        product.high >> (upperbit + 64 - binary::mantissa_explicit_bits() - 3);
+    answer.mantissa = product.high >> (upperbit + 64 - binary::mantissa_explicit_bits() - 3);
 
-    answer.power2 =
-        int32_t(detail::power(int32_t(q)) + upperbit - lz - binary::minimum_exponent());
+    answer.power2 = int32_t(detail::power(int32_t(q)) + upperbit - lz - binary::minimum_exponent());
     if (answer.power2 <= 0) { // we have a subnormal?
         // Here have that answer.power2 <= 0 so -answer.power2 >= 0
         if (-answer.power2 + 1 >= 64) { // if we have more than 64 bits below the minimum
@@ -1289,8 +1263,7 @@ WJR_CONST WJR_INTRINSIC_INLINE adjusted_mantissa compute_integer(uint64_t w) noe
     // easily predicted. Which is best is data specific.
     const int upperbit = int(product.high >> 63);
 
-    answer.mantissa =
-        product.high >> (upperbit + 64 - binary::mantissa_explicit_bits() - 3);
+    answer.mantissa = product.high >> (upperbit + 64 - binary::mantissa_explicit_bits() - 3);
 
     answer.power2 = int32_t(63 + upperbit - lz - binary::minimum_exponent());
     if (answer.power2 <= 0) { // we have a subnormal?
@@ -1323,8 +1296,7 @@ WJR_CONST WJR_INTRINSIC_INLINE adjusted_mantissa compute_integer(uint64_t w) noe
     // usually, we round *up*, but if we fall right in between and and we have an
     // even basis, we need to round down
     // We are only concerned with the cases where 5**q fits in single 64-bit word.
-    if (product.low <= 1 &&
-        (answer.mantissa & 3) == 1) { // we may fall between two floats!
+    if (product.low <= 1 && (answer.mantissa & 3) == 1) { // we may fall between two floats!
         // To be in-between two floats we need that in doing
         //   answer.mantissa = product.high >> (upperbit + 64 -
         //   binary::mantissa_explicit_bits() - 3);
@@ -1376,8 +1348,7 @@ inline constexpr uint64_t powers_of_ten_uint64[] = {1UL,
 // this algorithm is not even close to optimized, but it has no practical
 // effect on performance: in order to have a faster algorithm, we'd need
 // to slow down performance for faster algorithms, and this is still fast.
-WJR_INTRINSIC_INLINE int32_t scientific_exponent(int64_t exponent,
-                                                 uint64_t mantissa) noexcept {
+WJR_INTRINSIC_INLINE int32_t scientific_exponent(int64_t exponent, uint64_t mantissa) noexcept {
     return int32_t(exponent) + count_digits<10>(mantissa) - 1;
 }
 
@@ -1399,8 +1370,7 @@ WJR_INTRINSIC_INLINE adjusted_mantissa to_extended(T value) noexcept {
         am.mantissa = bits & mantissa_mask;
     } else {
         // normal
-        am.power2 =
-            int32_t((bits & exponent_mask) >> binary_format<T>::mantissa_explicit_bits());
+        am.power2 = int32_t((bits & exponent_mask) >> binary_format<T>::mantissa_explicit_bits());
         am.power2 -= bias;
         am.mantissa = (bits & mantissa_mask) | hidden_bit_mask;
     }
@@ -1430,9 +1400,7 @@ WJR_INTRINSIC_INLINE void round(adjusted_mantissa &am, callback cb) noexcept {
         cb(am, std::min<int32_t>(shift, 64));
         // check for round-up: if rounding-nearest carried us to the hidden bit.
         am.power2 =
-            (am.mantissa < (uint64_t(1) << binary_format<T>::mantissa_explicit_bits()))
-                ? 0
-                : 1;
+            (am.mantissa < (uint64_t(1) << binary_format<T>::mantissa_explicit_bits())) ? 0 : 1;
         return;
     }
 
@@ -1535,16 +1503,16 @@ WJR_INTRINSIC_INLINE bool is_truncated(span<const char> s) noexcept {
     return is_truncated(s.begin_unsafe(), s.end_unsafe());
 }
 
-WJR_INTRINSIC_INLINE void parse_eight_digits(const char *&p, uint64_t &value,
-                                             size_t &counter, size_t &count) noexcept {
+WJR_INTRINSIC_INLINE void parse_eight_digits(const char *&p, uint64_t &value, size_t &counter,
+                                             size_t &count) noexcept {
     value = value * 100000000 + parse_eight_digits_unrolled(p);
     p += 8;
     counter += 8;
     count += 8;
 }
 
-WJR_INTRINSIC_INLINE void parse_one_digit(const char *&p, uint64_t &value,
-                                          size_t &counter, size_t &count) noexcept {
+WJR_INTRINSIC_INLINE void parse_one_digit(const char *&p, uint64_t &value, size_t &counter,
+                                          size_t &count) noexcept {
     value = value * 10 + uint64_t(*p - '0');
     p++;
     counter++;
@@ -1554,8 +1522,7 @@ WJR_INTRINSIC_INLINE void parse_one_digit(const char *&p, uint64_t &value,
 inline constexpr size_t max_limbs = 4000 / 64;
 using bigint = fixed_stack_biginteger;
 
-WJR_INTRINSIC_INLINE void add_native(bigint &big, uint64_t power,
-                                     uint64_t value) noexcept {
+WJR_INTRINSIC_INLINE void add_native(bigint &big, uint64_t power, uint64_t value) noexcept {
     big *= power;
     big += value;
 }
@@ -1599,9 +1566,9 @@ WJR_INTRINSIC_INLINE void pow5(bigint &big, uint32_t exp) noexcept {
         7450580596923828125UL,
     };
 
-    constexpr static uint64_t large_power_of_5[] = {
-        1414648277510068013UL, 9180637584431281687UL, 4539964771860779200UL,
-        10482974169319127550UL, 198276706040285095UL};
+    constexpr static uint64_t large_power_of_5[] = {1414648277510068013UL, 9180637584431281687UL,
+                                                    4539964771860779200UL, 10482974169319127550UL,
+                                                    198276706040285095UL};
 
     constexpr uint32_t large_step = 135;
     constexpr auto large = make_biginteger_data(span(large_power_of_5));
@@ -1624,9 +1591,7 @@ WJR_INTRINSIC_INLINE void pow5(bigint &big, uint32_t exp) noexcept {
     }
 }
 
-WJR_INTRINSIC_INLINE void pow2(bigint &big, uint32_t exp) noexcept {
-    mul_2exp(big, big, exp);
-}
+WJR_INTRINSIC_INLINE void pow2(bigint &big, uint32_t exp) noexcept { mul_2exp(big, big, exp); }
 
 WJR_INTRINSIC_INLINE void pow10(bigint &big, uint32_t exp) noexcept {
     pow5(big, exp);
@@ -1644,8 +1609,7 @@ WJR_INTRINSIC_INLINE uint64_t uint64_hi64(uint64_t r0, bool &truncated) noexcept
     return r0 << shl;
 }
 
-WJR_INTRINSIC_INLINE uint64_t uint64_hi64(uint64_t r0, uint64_t r1,
-                                          bool &truncated) noexcept {
+WJR_INTRINSIC_INLINE uint64_t uint64_hi64(uint64_t r0, uint64_t r1, bool &truncated) noexcept {
     int shl = clz(r0);
     if (shl == 0) {
         truncated = r1 != 0;
@@ -1768,8 +1732,7 @@ inline adjusted_mantissa positive_digit_comp(bigint &bigmant, int32_t exponent) 
     adjusted_mantissa answer;
     bool truncated;
     answer.mantissa = hi64(bigmant, truncated);
-    int bias =
-        binary_format<T>::mantissa_explicit_bits() - binary_format<T>::minimum_exponent();
+    int bias = binary_format<T>::mantissa_explicit_bits() - binary_format<T>::minimum_exponent();
     answer.power2 = bit_width(bigmant) - 64 + bias;
 
     round<T>(answer, [truncated](adjusted_mantissa &a, int32_t shift) {
@@ -1883,8 +1846,7 @@ from_chars_result<> parse_infnan(const char *first, const char *last, T &value) 
                     if (*ptr == ')') {
                         answer.ptr = ptr + 1; // valid nan(n-char-seq-opt)
                         break;
-                    } else if (!(('a' <= *ptr && *ptr <= 'z') ||
-                                 ('A' <= *ptr && *ptr <= 'Z') ||
+                    } else if (!(('a' <= *ptr && *ptr <= 'z') || ('A' <= *ptr && *ptr <= 'Z') ||
                                  ('0' <= *ptr && *ptr <= '9') || *ptr == '_'))
                         break; // forbidden char, not nan(n-char-seq-opt)
                 }
@@ -1892,8 +1854,7 @@ from_chars_result<> parse_infnan(const char *first, const char *last, T &value) 
             return answer;
         }
         if (constant_length_strncasecmp(first, "inf", 3_u)) {
-            if ((last - first >= 8) &&
-                constant_length_strncasecmp(first, "infinity", 8_u)) {
+            if ((last - first >= 8) && constant_length_strncasecmp(first, "infinity", 8_u)) {
                 answer.ptr = first + 8;
             } else {
                 answer.ptr = first + 3;
@@ -2195,8 +2156,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
                 uval = 0;
                 p = pns.integer.data();
                 const char *int_end = p + pns.integer.size();
-                constexpr uint64_t minimal_nineteen_digit_integer =
-                    1000000000000000000ull;
+                constexpr uint64_t minimal_nineteen_digit_integer = 1000000000000000000ull;
                 while ((uval < minimal_nineteen_digit_integer) && (p != int_end)) {
                     uval = uval * 10 + uint64_t(*p - '0');
                     ++p;
@@ -2226,8 +2186,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
         // We proceed optimistically, assuming that detail::rounds_to_nearest()
         // returns true.
         if (binary_format<T>::min_exponent_fast_path() <= pns.exponent &&
-            pns.exponent <= binary_format<T>::max_exponent_fast_path() &&
-            !too_many_digits) {
+            pns.exponent <= binary_format<T>::max_exponent_fast_path() && !too_many_digits) {
             // Unfortunately, the conventional Clinger's fast path is only possible
             // when the system rounds to the nearest float.
             //
@@ -2241,11 +2200,9 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
                 if (uval <= binary_format<T>::max_mantissa_fast_path()) {
                     float_v = T(uval);
                     if (pns.exponent < 0) {
-                        float_v =
-                            float_v / binary_format<T>::exact_power_of_ten(-pns.exponent);
+                        float_v = float_v / binary_format<T>::exact_power_of_ten(-pns.exponent);
                     } else {
-                        float_v =
-                            float_v * binary_format<T>::exact_power_of_ten(pns.exponent);
+                        float_v = float_v * binary_format<T>::exact_power_of_ten(pns.exponent);
                     }
                     if (pns.negative) {
                         float_v = -float_v;
@@ -2265,8 +2222,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
                         return answer;
                     }
 #endif
-                    float_v =
-                        T(uval) * binary_format<T>::exact_power_of_ten(pns.exponent);
+                    float_v = T(uval) * binary_format<T>::exact_power_of_ten(pns.exponent);
                     if (pns.negative) {
                         float_v = -float_v;
                     }
@@ -2340,8 +2296,7 @@ INTEGER:
         if (digit_count > 19) {
             p = start;
 
-            uval = __from_chars_unroll_16<10>(reinterpret_cast<const uint8_t *>(p),
-                                              char_converter);
+            uval = __from_chars_unroll_16<10>(reinterpret_cast<const uint8_t *>(p), char_converter);
             p += 16;
             uval = uval * 10 + char_converter.template from<10>(*p++);
             uval = uval * 10 + char_converter.template from<10>(*p++);
@@ -2397,8 +2352,7 @@ INTEGER:
 
     if constexpr (is_support_integral) {
         constexpr auto fast_int64_maxn =
-            static_cast<uint64_t>(0) -
-            static_cast<uint64_t>(std::numeric_limits<int64_t>::min());
+            static_cast<uint64_t>(0) - static_cast<uint64_t>(std::numeric_limits<int64_t>::min());
 
         if (!pns.negative) {
             uint64_t &u64_v = wr.get_u64();

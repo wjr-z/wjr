@@ -5,106 +5,106 @@
 
 namespace wjr {
 
-#define WJR_REGISTER_X86_NORMAL_SIMD_FUNCTION(N, UNROLL2, UNROLL4, IS_UNROLL_8, ADVANCE, \
-                                              INIT, RET)                                 \
-    if (WJR_UNLIKELY(N <= 16)) {                                                         \
-        if (WJR_UNLIKELY(N <= 4)) {                                                      \
-            UNROLL2(N - 2);                                                              \
-            return RET(N);                                                               \
-        }                                                                                \
-                                                                                         \
-        UNROLL2(2);                                                                      \
-                                                                                         \
-        if (WJR_LIKELY(N > 8)) {                                                         \
-            UNROLL4(4);                                                                  \
-                                                                                         \
-            if (N > 12) {                                                                \
-                UNROLL4(8);                                                              \
-            }                                                                            \
-        }                                                                                \
-                                                                                         \
-        UNROLL4(N - 4);                                                                  \
-        return RET(N);                                                                   \
-    }                                                                                    \
-                                                                                         \
-    N -= 3;                                                                              \
-    const size_t __rem = N & 7;                                                          \
-    N &= ~7;                                                                             \
-                                                                                         \
-    if (WJR_LIKELY(__rem >= 2)) {                                                        \
-        UNROLL4(2);                                                                      \
-        UNROLL4(__rem - 1);                                                              \
-    } else {                                                                             \
-        UNROLL2(__rem + 1);                                                              \
-    }                                                                                    \
-                                                                                         \
-    INIT;                                                                                \
-    WJR_PP_BOOL_IF(                                                                      \
-        IS_UNROLL_8,                                                                     \
-        if (N & 8) {                                                                     \
-            UNROLL4(__rem + 3);                                                          \
-            UNROLL4(__rem + 7);                                                          \
-                                                                                         \
-            if (WJR_UNLIKELY(N == 8)) {                                                  \
-                return RET(N + __rem + 3);                                               \
-            }                                                                            \
-                                                                                         \
-            ADVANCE(__rem + 11);                                                         \
-            N -= 8;                                                                      \
+#define WJR_REGISTER_X86_NORMAL_SIMD_FUNCTION(N, UNROLL2, UNROLL4, IS_UNROLL_8, ADVANCE, INIT,     \
+                                              RET)                                                 \
+    if (WJR_UNLIKELY(N <= 16)) {                                                                   \
+        if (WJR_UNLIKELY(N <= 4)) {                                                                \
+            UNROLL2(N - 2);                                                                        \
+            return RET(N);                                                                         \
+        }                                                                                          \
+                                                                                                   \
+        UNROLL2(2);                                                                                \
+                                                                                                   \
+        if (WJR_LIKELY(N > 8)) {                                                                   \
+            UNROLL4(4);                                                                            \
+                                                                                                   \
+            if (N > 12) {                                                                          \
+                UNROLL4(8);                                                                        \
+            }                                                                                      \
+        }                                                                                          \
+                                                                                                   \
+        UNROLL4(N - 4);                                                                            \
+        return RET(N);                                                                             \
+    }                                                                                              \
+                                                                                                   \
+    N -= 3;                                                                                        \
+    const size_t __rem = N & 7;                                                                    \
+    N &= ~7;                                                                                       \
+                                                                                                   \
+    if (WJR_LIKELY(__rem >= 2)) {                                                                  \
+        UNROLL4(2);                                                                                \
+        UNROLL4(__rem - 1);                                                                        \
+    } else {                                                                                       \
+        UNROLL2(__rem + 1);                                                                        \
+    }                                                                                              \
+                                                                                                   \
+    INIT;                                                                                          \
+    WJR_PP_BOOL_IF(                                                                                \
+        IS_UNROLL_8,                                                                               \
+        if (N & 8) {                                                                               \
+            UNROLL4(__rem + 3);                                                                    \
+            UNROLL4(__rem + 7);                                                                    \
+                                                                                                   \
+            if (WJR_UNLIKELY(N == 8)) {                                                            \
+                return RET(N + __rem + 3);                                                         \
+            }                                                                                      \
+                                                                                                   \
+            ADVANCE(__rem + 11);                                                                   \
+            N -= 8;                                                                                \
         } else {, ) \
-            ADVANCE(__rem + 3);                                                          \
-    WJR_PP_BOOL_IF(IS_UNROLL_8,                                                          \
+            ADVANCE(__rem + 3);                                                                    \
+    WJR_PP_BOOL_IF(IS_UNROLL_8,                                                                    \
         }, )
 
-#define WJR_REGISTER_X86_NORMAL_REVERSE_SIMD_FUNCTION(N, UNROLL2, UNROLL4, IS_UNROLL_8,  \
-                                                      ADVANCE, INIT, RET)                \
-    if (WJR_UNLIKELY(N <= 16)) {                                                         \
-        if (WJR_UNLIKELY(N <= 4)) {                                                      \
-            UNROLL2(0);                                                                  \
-            return RET(0);                                                               \
-        }                                                                                \
-                                                                                         \
-        UNROLL2(N - 4);                                                                  \
-                                                                                         \
-        if (WJR_LIKELY(N > 8)) {                                                         \
-            UNROLL4(N - 8);                                                              \
-                                                                                         \
-            if (N > 12) {                                                                \
-                UNROLL4(N - 12);                                                         \
-            }                                                                            \
-        }                                                                                \
-                                                                                         \
-        UNROLL4(0);                                                                      \
-        return RET(0);                                                                   \
-    }                                                                                    \
-                                                                                         \
-    N -= 3;                                                                              \
-    const size_t __rem = N & 7;                                                          \
-    N &= ~7;                                                                             \
-                                                                                         \
-    if (WJR_LIKELY(__rem >= 2)) {                                                        \
-        UNROLL4(N + __rem - 3);                                                          \
-        UNROLL4(N);                                                                      \
-    } else {                                                                             \
-        UNROLL2(N);                                                                      \
-    }                                                                                    \
-                                                                                         \
-    INIT;                                                                                \
-    WJR_PP_BOOL_IF(                                                                      \
-        IS_UNROLL_8,                                                                     \
-        if (N & 8) {                                                                     \
-            UNROLL4(N - 4);                                                              \
-            UNROLL4(N - 8);                                                              \
-                                                                                         \
-            if (WJR_UNLIKELY(N == 8)) {                                                  \
-                return RET(0);                                                           \
-            }                                                                            \
-                                                                                         \
-            ADVANCE(N - 8);                                                              \
-            N -= 8;                                                                      \
+#define WJR_REGISTER_X86_NORMAL_REVERSE_SIMD_FUNCTION(N, UNROLL2, UNROLL4, IS_UNROLL_8, ADVANCE,   \
+                                                      INIT, RET)                                   \
+    if (WJR_UNLIKELY(N <= 16)) {                                                                   \
+        if (WJR_UNLIKELY(N <= 4)) {                                                                \
+            UNROLL2(0);                                                                            \
+            return RET(0);                                                                         \
+        }                                                                                          \
+                                                                                                   \
+        UNROLL2(N - 4);                                                                            \
+                                                                                                   \
+        if (WJR_LIKELY(N > 8)) {                                                                   \
+            UNROLL4(N - 8);                                                                        \
+                                                                                                   \
+            if (N > 12) {                                                                          \
+                UNROLL4(N - 12);                                                                   \
+            }                                                                                      \
+        }                                                                                          \
+                                                                                                   \
+        UNROLL4(0);                                                                                \
+        return RET(0);                                                                             \
+    }                                                                                              \
+                                                                                                   \
+    N -= 3;                                                                                        \
+    const size_t __rem = N & 7;                                                                    \
+    N &= ~7;                                                                                       \
+                                                                                                   \
+    if (WJR_LIKELY(__rem >= 2)) {                                                                  \
+        UNROLL4(N + __rem - 3);                                                                    \
+        UNROLL4(N);                                                                                \
+    } else {                                                                                       \
+        UNROLL2(N);                                                                                \
+    }                                                                                              \
+                                                                                                   \
+    INIT;                                                                                          \
+    WJR_PP_BOOL_IF(                                                                                \
+        IS_UNROLL_8,                                                                               \
+        if (N & 8) {                                                                               \
+            UNROLL4(N - 4);                                                                        \
+            UNROLL4(N - 8);                                                                        \
+                                                                                                   \
+            if (WJR_UNLIKELY(N == 8)) {                                                            \
+                return RET(0);                                                                     \
+            }                                                                                      \
+                                                                                                   \
+            ADVANCE(N - 8);                                                                        \
+            N -= 8;                                                                                \
         } else {, ) \
-            ADVANCE(N);                                                                  \
-    WJR_PP_BOOL_IF(IS_UNROLL_8,                                                          \
+            ADVANCE(N);                                                                            \
+    WJR_PP_BOOL_IF(IS_UNROLL_8,                                                                    \
         }, )
 
 template <typename T, size_t N, typename Simd>
@@ -124,9 +124,7 @@ public:
         copy_from(mem, flags);
     }
 
-    void copy_from(const T *mem, element_aligned_t = {}) noexcept {
-        m_data = Simd::loadu(mem);
-    }
+    void copy_from(const T *mem, element_aligned_t = {}) noexcept { m_data = Simd::loadu(mem); }
 
     void copy_from(const T *mem, vector_aligned_t) noexcept { m_data = Simd::load(mem); }
 
@@ -220,8 +218,7 @@ public:
 };
 
 template <>
-class simd<uint16_t, simd_abi::fixed_size<16>>
-    : public __x86_simd_base<uint16_t, 16, avx> {
+class simd<uint16_t, simd_abi::fixed_size<16>> : public __x86_simd_base<uint16_t, 16, avx> {
     using Mybase = __x86_simd_base<uint16_t, 16, avx>;
 
 public:

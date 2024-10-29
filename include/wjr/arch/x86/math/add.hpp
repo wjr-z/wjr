@@ -47,8 +47,7 @@ namespace wjr {
  * @return a + b + c_in
  */
 template <typename U>
-WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in,
-                                       U &c_out) noexcept {
+WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out) noexcept {
     #if WJR_HAS_BUILTIN(ASM_ADDC) == 1
     if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 1)) {
         if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
@@ -193,9 +192,8 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
  * @brief Use inline assembly to add two 64-bit integers and return the result.
  *
  */
-WJR_INTRINSIC_INLINE void __asm_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                        uint64_t hi0, uint64_t lo1,
-                                        uint64_t hi1) noexcept {
+WJR_INTRINSIC_INLINE void __asm_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
+                                        uint64_t lo1, uint64_t hi1) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(hi0) && hi0 <= UINT32_MAX) {
         asm("add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
             "adc{q %[hi0], %[hi1]| %[hi1], %[hi0]}"
@@ -237,9 +235,9 @@ WJR_INTRINSIC_INLINE void __asm_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0
  * @details Optimzation for __asm_addc_cc_128 and __asm_addc_128 when the carry-in is 0.
  *
  */
-WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_zero_128(uint64_t &al, uint64_t &ah,
-                                                    uint64_t lo0, uint64_t hi0,
-                                                    uint64_t lo1, uint64_t hi1) noexcept {
+WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_zero_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                                    uint64_t hi0, uint64_t lo1,
+                                                    uint64_t hi1) noexcept {
     uint8_t c_out;
     if (WJR_BUILTIN_CONSTANT_P(hi0) && hi0 <= UINT32_MAX) {
         asm("add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
@@ -280,9 +278,8 @@ WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_zero_128(uint64_t &al, uint64_t &ah,
  * carry-out.
  *
  */
-WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                             uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                             uint64_t c_in) noexcept {
+WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
+                                             uint64_t lo1, uint64_t hi1, uint64_t c_in) noexcept {
     if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 0)) {
         return __asm_addc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
     }
@@ -347,8 +344,7 @@ WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_128(uint64_t &al, uint64_t &ah, uint6
         asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
             "adc{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
             "adc{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t" WJR_ASM_CCSET(c)
-            : [lo0] "+&r"(lo0), [hi1] "+r"(hi1), [c_in] "+&r"(c_in),
-              WJR_ASM_CCOUT(c)(c_out)
+            : [lo0] "+&r"(lo0), [hi1] "+r"(hi1), [c_in] "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
             : [lo1] "r"(lo1), [hi0] "i"(hi0)
             : "cc");
         al = lo0;
@@ -358,8 +354,7 @@ WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_128(uint64_t &al, uint64_t &ah, uint6
         asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
             "adc{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
             "adc{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
-            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in),
-              WJR_ASM_CCOUT(c)(c_out)
+            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
             : [lo1] "r"(lo1), [hi1] "i"(hi1)
             : "cc");
         al = lo0;

@@ -27,9 +27,7 @@ public:
     WJR_CONSTEXPR20 const_iterator end() const noexcept { return m_tokens.end(); }
     WJR_CONSTEXPR20 const_pointer data() const noexcept { return m_str.data(); }
 
-    WJR_CONSTEXPR20 size_type size() const noexcept {
-        return static_cast<size_type>(m_str.size());
-    }
+    WJR_CONSTEXPR20 size_type size() const noexcept { return static_cast<size_type>(m_str.size()); }
 
     void read(span<const char> sp) noexcept {
         m_str = sp;

@@ -46,8 +46,7 @@ struct automatic_free_pool {
     }
 
     void deallocate(void *ptr) noexcept {
-        auto *const node =
-            reinterpret_cast<chunk *>(static_cast<char *>(ptr) - sizeof(chunk));
+        auto *const node = reinterpret_cast<chunk *>(static_cast<char *>(ptr) - sizeof(chunk));
         remove(node);
         free(node);
     }
@@ -70,8 +69,7 @@ class __default_alloc_template__ {
         return (((bytes) + 2048 - 1) & ~(2048 - 1));
     }
 
-    WJR_CONST static WJR_CONSTEXPR20 unsigned int
-    __get_index(unsigned int bytes) noexcept {
+    WJR_CONST static WJR_CONSTEXPR20 unsigned int __get_index(unsigned int bytes) noexcept {
         return static_cast<unsigned int>(
             bit_width<uint16_t>(static_cast<uint16_t>((bytes - 1) >> 3)));
     }
@@ -80,9 +78,7 @@ class __default_alloc_template__ {
         return static_cast<unsigned int>(1) << (idx + 3);
     }
 
-    static automatic_free_pool &get_chunk() noexcept {
-        return automatic_free_pool::get_instance();
-    }
+    static automatic_free_pool &get_chunk() noexcept { return automatic_free_pool::get_instance(); }
 
     struct object {
         WJR_MALLOC static void *chunk_allocate(size_t n) noexcept {

@@ -60,9 +60,8 @@ WJR_NORETURN WJR_COLD extern void __assert_light_failed(const char *expr) noexce
 
 /// @private
 template <typename... Args>
-WJR_NORETURN void __assert_failed_handler(const char *expr, const char *file,
-                                          const char *func, int line,
-                                          Args &&...args) noexcept {
+WJR_NORETURN void __assert_failed_handler(const char *expr, const char *file, const char *func,
+                                          int line, Args &&...args) noexcept {
     std::cerr << "Assert message:";
     (void)(std::cerr << ... << std::forward<Args>(args));
     std::cerr << '\n';
@@ -77,8 +76,7 @@ WJR_NORETURN inline void __assert_failed_handler(const char *expr, const char *f
 
 /// @private
 template <typename... Args>
-WJR_NORETURN void __assert_light_failed_handler(const char *expr, const char *,
-                                                const char *, int,
+WJR_NORETURN void __assert_light_failed_handler(const char *expr, const char *, const char *, int,
                                                 Args &&...args) noexcept {
     std::cerr << "Assert message:";
     (void)(std::cerr << ... << std::forward<Args>(args));
@@ -87,8 +85,8 @@ WJR_NORETURN void __assert_light_failed_handler(const char *expr, const char *,
 }
 
 /// @private
-WJR_NORETURN inline void __assert_light_failed_handler(const char *expr, const char *,
-                                                       const char *, int) noexcept {
+WJR_NORETURN inline void __assert_light_failed_handler(const char *expr, const char *, const char *,
+                                                       int) noexcept {
     __assert_light_failed(expr);
 }
 
@@ -100,26 +98,26 @@ WJR_NORETURN inline void __assert_light_failed_handler(const char *expr, const c
 
 // LCOV_EXCL_STOP
 
-#define WJR_ASSERT_CHECK_I(expr, ...)                                                    \
-    do {                                                                                 \
-        if (WJR_UNLIKELY(!(expr))) {                                                     \
-            WJR_ASSERT_FAILED_HANDLER(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE,   \
-                                      ##__VA_ARGS__);                                    \
-            WJR_UNREACHABLE();                                                           \
-        }                                                                                \
+#define WJR_ASSERT_CHECK_I(expr, ...)                                                              \
+    do {                                                                                           \
+        if (WJR_UNLIKELY(!(expr))) {                                                               \
+            WJR_ASSERT_FAILED_HANDLER(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE,             \
+                                      ##__VA_ARGS__);                                              \
+            WJR_UNREACHABLE();                                                                     \
+        }                                                                                          \
     } while (false)
 
 // do nothing
 #define WJR_ASSERT_UNCHECK_I(...) ((void)0)
 
-#define WJR_ASSERT_ASSUME_CHECK_I(expr, ...)                                             \
-    do {                                                                                 \
-        if (WJR_UNLIKELY(!(expr))) {                                                     \
-            WJR_ASSERT_FAILED_HANDLER(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE,   \
-                                      ##__VA_ARGS__);                                    \
-            WJR_UNREACHABLE();                                                           \
-        }                                                                                \
-        WJR_ASSUME(expr);                                                                \
+#define WJR_ASSERT_ASSUME_CHECK_I(expr, ...)                                                       \
+    do {                                                                                           \
+        if (WJR_UNLIKELY(!(expr))) {                                                               \
+            WJR_ASSERT_FAILED_HANDLER(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE,             \
+                                      ##__VA_ARGS__);                                              \
+            WJR_UNREACHABLE();                                                                     \
+        }                                                                                          \
+        WJR_ASSUME(expr);                                                                          \
     } while (false)
 
 // do nothing

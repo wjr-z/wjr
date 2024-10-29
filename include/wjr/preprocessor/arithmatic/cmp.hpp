@@ -15,14 +15,14 @@
 #define WJR_PP_NE(x, y) WJR_PP_BOOL(WJR_PP_SUB(x, y))
 #define WJR_PP_EQ(x, y) WJR_PP_BOOL_NOT(WJR_PP_NE(x, y))
 
-#define WJR_PP_ADD_OVERFLOW(x, y)                                                        \
-    WJR_PP_ADD_OVERFLOW_I(WJR_PP_CONCAT(WJR_PP_ARITHMATIC_FROM_NUMBER(x),                \
-                                        WJR_PP_ARITHMATIC_FROM_NUMBER(y)))
+#define WJR_PP_ADD_OVERFLOW(x, y)                                                                  \
+    WJR_PP_ADD_OVERFLOW_I(                                                                         \
+        WJR_PP_CONCAT(WJR_PP_ARITHMATIC_FROM_NUMBER(x), WJR_PP_ARITHMATIC_FROM_NUMBER(y)))
 #define WJR_PP_ADD_OVERFLOW_I(x) WJR_PP_ADD_OVERFLOW_II(x)
 #define WJR_PP_ADD_OVERFLOW_II(x) __wjr_arithmatic_overflow_##x
 
-#define WJR_PP_SUB_OVERFLOW(x, y)                                                        \
-    WJR_PP_SUB_OVERFLOW_I(WJR_PP_CONCAT(WJR_PP_ARITHMATIC_FROM_NUMBER(x),                \
+#define WJR_PP_SUB_OVERFLOW(x, y)                                                                  \
+    WJR_PP_SUB_OVERFLOW_I(WJR_PP_CONCAT(WJR_PP_ARITHMATIC_FROM_NUMBER(x),                          \
                                         WJR_PP_ARITHMATIC_FROM_NUMBER(WJR_PP_NEG(y))))
 #define WJR_PP_SUB_OVERFLOW_I(x) WJR_PP_SUB_OVERFLOW_II(x)
 #define WJR_PP_SUB_OVERFLOW_II(x) __wjr_arithmatic_overflow_##x
@@ -82,26 +82,16 @@
 #define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
 #define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
 #define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
-#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
 #define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     1
 #define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \

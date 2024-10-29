@@ -25,10 +25,11 @@ struct unexpect_t {};
 inline constexpr unexpect_t unexpect = {};
 
 template <typename E, typename Tag>
-using unexpected_base = enable_special_members_base<
-    std::is_trivially_default_constructible_v<E>, std::is_destructible_v<E>,
-    std::is_copy_constructible_v<E>, std::is_move_constructible_v<E>,
-    std::is_copy_assignable_v<E>, std::is_move_assignable_v<E>, Tag>;
+using unexpected_base =
+    enable_special_members_base<std::is_trivially_default_constructible_v<E>,
+                                std::is_destructible_v<E>, std::is_copy_constructible_v<E>,
+                                std::is_move_constructible_v<E>, std::is_copy_assignable_v<E>,
+                                std::is_move_assignable_v<E>, Tag>;
 
 template <typename E>
 class unexpected : unexpected_base<E, unexpected<E>> {
@@ -43,8 +44,7 @@ public:
               WJR_REQUIRES(!std::is_same_v<remove_cvref_t<Err>, unexpected> &&
                            !std::is_same_v<remove_cvref_t<Err>, std::in_place_t> &&
                            std::is_constructible_v<E, Err &&>)>
-    constexpr explicit unexpected(Err &&e) noexcept(
-        std::is_nothrow_constructible_v<E, Err &&>)
+    constexpr explicit unexpected(Err &&e) noexcept(std::is_nothrow_constructible_v<E, Err &&>)
         : Mybase(enable_default_constructor), m_err(std::forward<Err>(e)) {}
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<E, Args...>)>
@@ -52,13 +52,11 @@ public:
         std::is_nothrow_constructible_v<E, Args...>)
         : Mybase(enable_default_constructor), m_err(std::forward<Args>(args)...) {}
 
-    template <
-        typename U, typename... Args,
-        WJR_REQUIRES(std::is_constructible_v<E, std::initializer_list<U> &, Args...>)>
+    template <typename U, typename... Args,
+              WJR_REQUIRES(std::is_constructible_v<E, std::initializer_list<U> &, Args...>)>
     constexpr explicit unexpected(
         std::in_place_t, std::initializer_list<U> il,
-        Args &&...args) noexcept(std::is_constructible_v<E, std::initializer_list<U> &,
-                                                         Args...>)
+        Args &&...args) noexcept(std::is_constructible_v<E, std::initializer_list<U> &, Args...>)
         : Mybase(enable_default_constructor), m_err(il, std::forward<Args>(args)...) {}
 
     constexpr E &error() & noexcept { return m_err; }
@@ -120,9 +118,7 @@ class compressed_unexpected {
 public:
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(compressed_unexpected);
 
-    constexpr compressed_unexpected(E err) noexcept : m_err(err) {
-        WJR_ASSERT(err != init);
-    }
+    constexpr compressed_unexpected(E err) noexcept : m_err(err) { WJR_ASSERT(err != init); }
 
     constexpr operator E() const noexcept { return m_err; }
 
@@ -158,9 +154,7 @@ WJR_CONSTEXPR20 void reinit_expected(NewType &new_val, OldType &old_val, Args &&
     } else {
         OldType temp(std::move(old_val));
         std::destroy_at(std::addressof(old_val));
-        WJR_TRY {
-            wjr::construct_at(std::addressof(new_val), std::forward<Args>(args)...);
-        }
+        WJR_TRY { wjr::construct_at(std::addressof(new_val), std::forward<Args>(args)...); }
         WJR_CATCH(...) {
             wjr::construct_at(std::addressof(old_val), std::move(temp));
             WJR_XTHROW;
@@ -432,15 +426,15 @@ struct expected_operations_base : expected_storage_base<T, E> {
     using error_type = __expected_error_type_t<E>;
 
     template <typename... Args>
-    constexpr void construct_value(Args &&...args) noexcept(
-        std::is_nothrow_constructible_v<T, Args...>) {
+    constexpr void
+    construct_value(Args &&...args) noexcept(std::is_nothrow_constructible_v<T, Args...>) {
         this->set_valid();
         wjr::construct_at(std::addressof(this->m_val), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
-    constexpr void construct_error(Args &&...args) noexcept(
-        std::is_nothrow_constructible_v<error_type, Args...>) {
+    constexpr void
+    construct_error(Args &&...args) noexcept(std::is_nothrow_constructible_v<error_type, Args...>) {
         this->set_invalid();
         wjr::construct_at(std::addressof(this->m_err), std::forward<Args>(args)...);
     }
@@ -509,8 +503,8 @@ struct expected_operations_base<void, E> : expected_storage_base<void, E> {
     using error_type = __expected_error_type_t<E>;
 
     template <typename... Args>
-    constexpr void construct_error(Args &&...args) noexcept(
-        std::is_nothrow_constructible_v<error_type, Args...>) {
+    constexpr void
+    construct_error(Args &&...args) noexcept(std::is_nothrow_constructible_v<error_type, Args...>) {
         this->set_invalid();
         wjr::construct_at(std::addressof(this->m_err), std::forward<Args>(args)...);
     }
@@ -572,14 +566,12 @@ struct __expected_storage_impl {
             std::is_trivially_copy_constructible_v<error_type>,
         std::is_trivially_move_constructible_v<T> &&
             std::is_trivially_move_constructible_v<error_type>,
-        std::is_trivially_copy_assignable_v<T> &&
-            std::is_trivially_copy_constructible_v<T> &&
+        std::is_trivially_copy_assignable_v<T> && std::is_trivially_copy_constructible_v<T> &&
             std::is_trivially_destructible_v<T> &&
             std::is_trivially_copy_assignable_v<error_type> &&
             std::is_trivially_copy_constructible_v<error_type> &&
             std::is_trivially_destructible_v<error_type>,
-        std::is_trivially_move_assignable_v<T> &&
-            std::is_trivially_move_constructible_v<T> &&
+        std::is_trivially_move_assignable_v<T> && std::is_trivially_move_constructible_v<T> &&
             std::is_trivially_destructible_v<T> &&
             std::is_trivially_move_assignable_v<error_type> &&
             std::is_trivially_move_constructible_v<error_type> &&
@@ -590,16 +582,16 @@ template <typename E>
 struct __expected_storage_impl<void, E> {
     using error_type = __expected_error_type_t<E>;
 
-    using type = control_special_members_base<
-        expected_operations_base<void, E>,
-        std::is_trivially_copy_constructible_v<error_type>,
-        std::is_trivially_move_constructible_v<error_type>,
-        std::is_trivially_copy_assignable_v<error_type> &&
-            std::is_trivially_copy_constructible_v<error_type> &&
-            std::is_trivially_destructible_v<error_type>,
-        std::is_trivially_move_assignable_v<error_type> &&
-            std::is_trivially_move_constructible_v<error_type> &&
-            std::is_trivially_destructible_v<error_type>>;
+    using type =
+        control_special_members_base<expected_operations_base<void, E>,
+                                     std::is_trivially_copy_constructible_v<error_type>,
+                                     std::is_trivially_move_constructible_v<error_type>,
+                                     std::is_trivially_copy_assignable_v<error_type> &&
+                                         std::is_trivially_copy_constructible_v<error_type> &&
+                                         std::is_trivially_destructible_v<error_type>,
+                                     std::is_trivially_move_assignable_v<error_type> &&
+                                         std::is_trivially_move_constructible_v<error_type> &&
+                                         std::is_trivially_destructible_v<error_type>>;
 };
 
 template <typename T, typename E>
@@ -613,12 +605,10 @@ struct __enable_expeted_storage_impl {
         std::is_move_constructible_v<T> && std::is_move_constructible_v<E>,
         std::is_copy_assignable_v<T> && std::is_copy_constructible_v<T> &&
             std::is_copy_assignable_v<E> && std::is_copy_constructible_v<E> &&
-            (std::is_nothrow_move_constructible_v<T> ||
-             std::is_nothrow_move_constructible_v<E>),
+            (std::is_nothrow_move_constructible_v<T> || std::is_nothrow_move_constructible_v<E>),
         std::is_move_assignable_v<T> && std::is_move_constructible_v<T> &&
             std::is_move_assignable_v<E> && std::is_move_constructible_v<E> &&
-            (std::is_nothrow_move_constructible_v<T> ||
-             std::is_nothrow_move_constructible_v<E>)>;
+            (std::is_nothrow_move_constructible_v<T> || std::is_nothrow_move_constructible_v<E>)>;
 };
 
 template <typename E>
@@ -635,33 +625,32 @@ using enable_expected_storage = typename __enable_expeted_storage_impl<T, E>::ty
 template <typename T, typename E, typename U, typename G>
 struct expected_construct_with
     : std::conjunction<
-          std::disjunction<std::is_same<std::remove_cv_t<T>, bool>,
-                           std::negation<std::disjunction<
-                               std::is_constructible<T, expected<U, G> &>,
-                               std::is_constructible<T, expected<U, G>>,
-                               std::is_constructible<T, const expected<U, G> &>,
-                               std::is_constructible<T, const expected<U, G>>,
-                               std::is_convertible<expected<U, G> &, T>,
-                               std::is_convertible<expected<U, G>, T>,
-                               std::is_convertible<const expected<U, G> &, T>,
-                               std::is_convertible<const expected<U, G>, T>>>>,
-          std::negation<std::disjunction<
-              std::is_constructible<unexpected<E>, expected<U, G> &>,
-              std::is_constructible<unexpected<E>, expected<U, G>>,
-              std::is_constructible<unexpected<E>, const expected<U, G> &>,
-              std::is_constructible<unexpected<E>, const expected<U, G>>>>> {};
+          std::disjunction<
+              std::is_same<std::remove_cv_t<T>, bool>,
+              std::negation<std::disjunction<std::is_constructible<T, expected<U, G> &>,
+                                             std::is_constructible<T, expected<U, G>>,
+                                             std::is_constructible<T, const expected<U, G> &>,
+                                             std::is_constructible<T, const expected<U, G>>,
+                                             std::is_convertible<expected<U, G> &, T>,
+                                             std::is_convertible<expected<U, G>, T>,
+                                             std::is_convertible<const expected<U, G> &, T>,
+                                             std::is_convertible<const expected<U, G>, T>>>>,
+          std::negation<
+              std::disjunction<std::is_constructible<unexpected<E>, expected<U, G> &>,
+                               std::is_constructible<unexpected<E>, expected<U, G>>,
+                               std::is_constructible<unexpected<E>, const expected<U, G> &>,
+                               std::is_constructible<unexpected<E>, const expected<U, G>>>>> {};
 
 template <typename E, typename G>
 struct expected_construct_with<void, E, void, G>
-    : std::negation<std::disjunction<
-          std::is_constructible<unexpected<E>, expected<void, G> &>,
-          std::is_constructible<unexpected<E>, expected<void, G>>,
-          std::is_constructible<unexpected<E>, const expected<void, G> &>,
-          std::is_constructible<unexpected<E>, const expected<void, G>>>> {};
+    : std::negation<
+          std::disjunction<std::is_constructible<unexpected<E>, expected<void, G> &>,
+                           std::is_constructible<unexpected<E>, expected<void, G>>,
+                           std::is_constructible<unexpected<E>, const expected<void, G> &>,
+                           std::is_constructible<unexpected<E>, const expected<void, G>>>> {};
 
 template <typename T, typename E, typename U, typename G>
-inline constexpr bool expected_construct_with_v =
-    expected_construct_with<T, E, U, G>::value;
+inline constexpr bool expected_construct_with_v = expected_construct_with<T, E, U, G>::value;
 
 template <typename T>
 struct is_not_unexpected : std::true_type {};
@@ -684,8 +673,7 @@ struct expected_construct_with_arg
                                         is_not_expected<remove_cvref_t<U>>>> {};
 
 template <typename T, typename E, typename U>
-inline constexpr bool expected_construct_with_arg_v =
-    expected_construct_with_arg<T, E, U>::value;
+inline constexpr bool expected_construct_with_arg_v = expected_construct_with_arg<T, E, U>::value;
 
 } // namespace expected_detail
 
@@ -714,21 +702,18 @@ public:
     constexpr explicit expected(std::in_place_t, Args &&...args)
         : Mybase(std::in_place, std::forward<Args>(args)...) {}
 
-    template <
-        typename U, typename... Args,
-        WJR_REQUIRES(std::is_constructible_v<T, std::initializer_list<U> &, Args...>)>
-    constexpr explicit expected(std::in_place_t, std::initializer_list<U> il,
-                                Args &&...args)
+    template <typename U, typename... Args,
+              WJR_REQUIRES(std::is_constructible_v<T, std::initializer_list<U> &, Args...>)>
+    constexpr explicit expected(std::in_place_t, std::initializer_list<U> il, Args &&...args)
         : Mybase(std::in_place, il, std::forward<Args>(args)...) {}
 
-    template <typename... Args,
-              WJR_REQUIRES(std::is_constructible_v<error_type, Args...>)>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<error_type, Args...>)>
     constexpr explicit expected(unexpect_t, Args &&...args)
         : Mybase(unexpect, std::forward<Args>(args)...) {}
 
-    template <typename U, typename... Args,
-              WJR_REQUIRES(std::is_constructible_v<error_type, std::initializer_list<U> &,
-                                                   Args...>)>
+    template <
+        typename U, typename... Args,
+        WJR_REQUIRES(std::is_constructible_v<error_type, std::initializer_list<U> &, Args...>)>
     constexpr explicit expected(unexpect_t, std::initializer_list<U> il, Args &&...args)
         : Mybase(unexpect, il, std::forward<Args>(args)...) {}
 
@@ -742,8 +727,8 @@ public:
     constexpr explicit(!std::is_convertible_v<G, error_type>) expected(unexpected<G> &&e)
         : Mybase(unexpect, std::forward<G>(e.error())) {}
 #else
-    template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, const G &> &&
-                                           std::is_convertible_v<const G &, error_type>)>
+    template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, const G &>
+                                           &&std::is_convertible_v<const G &, error_type>)>
     constexpr expected(const unexpected<G> &e)
         : Mybase(unexpect, std::forward<const G &>(e.error())) {}
 
@@ -754,20 +739,17 @@ public:
 
     template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, G>
                                            &&std::is_convertible_v<G, error_type>)>
-    constexpr expected(unexpected<G> &&e)
-        : Mybase(unexpect, std::forward<G>(e.error())) {}
+    constexpr expected(unexpected<G> &&e) : Mybase(unexpect, std::forward<G>(e.error())) {}
     template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, G> &&
                                        !std::is_convertible_v<G, error_type>)>
-    constexpr explicit expected(unexpected<G> &&e)
-        : Mybase(unexpect, std::forward<G>(e.error())) {}
+    constexpr explicit expected(unexpected<G> &&e) : Mybase(unexpect, std::forward<G>(e.error())) {}
 #endif
 
 #if defined(__cpp_conditional_explicit)
     template <typename U, typename G,
-              WJR_REQUIRES(
-                  std::is_constructible_v<T, const U &> &&std::is_constructible_v<
-                      error_type, const G &>
-                      &&expected_detail::expected_construct_with_v<T, error_type, U, G>)>
+              WJR_REQUIRES(std::is_constructible_v<T, const U &>
+                               &&std::is_constructible_v<error_type, const G &> &&
+                                   expected_detail::expected_construct_with_v<T, error_type, U, G>)>
     constexpr explicit(!(std::is_convertible_v<const U &, T> &&
                          std::is_convertible_v<const G &, error_type>))
         expected(const expected<U, G> &other)
@@ -780,11 +762,9 @@ public:
     }
 
     template <typename U, typename G,
-              WJR_REQUIRES(
-                  std::is_constructible_v<T, U> &&std::is_constructible_v<error_type, G>
-                      &&expected_detail::expected_construct_with_v<T, error_type, U, G>)>
-    constexpr explicit(!(std::is_convertible_v<U, T> &&
-                         std::is_convertible_v<G, error_type>))
+              WJR_REQUIRES(std::is_constructible_v<T, U> &&std::is_constructible_v<error_type, G>
+                               &&expected_detail::expected_construct_with_v<T, error_type, U, G>)>
+    constexpr explicit(!(std::is_convertible_v<U, T> && std::is_convertible_v<G, error_type>))
         expected(expected<U, G> &&other)
         : Mybase(enable_default_constructor) {
         if (other.has_value()) {
@@ -794,13 +774,12 @@ public:
         }
     }
 #else
-    template <typename U, typename G,
-              WJR_REQUIRES(
-                  std::is_constructible_v<T, const U &> &&std::is_constructible_v<
-                      error_type, const G &>
-                      &&expected_detail::expected_construct_with_v<T, error_type, U, G> &&
-                  (std::is_convertible_v<const U &, T> &&
-                   std::is_convertible_v<const G &, error_type>))>
+    template <
+        typename U, typename G,
+        WJR_REQUIRES(
+            std::is_constructible_v<T, const U &> &&std::is_constructible_v<error_type, const G &>
+                &&expected_detail::expected_construct_with_v<T, error_type, U, G> &&
+            (std::is_convertible_v<const U &, T> && std::is_convertible_v<const G &, error_type>))>
     constexpr expected(const expected<U, G> &other) : Mybase(enable_default_constructor) {
         if (other.has_value()) {
             this->construct_value(std::forward<const U &>(other.m_val));
@@ -809,15 +788,13 @@ public:
         }
     }
 
-    template <typename U, typename G,
-              WJR_REQUIRES(
-                  std::is_constructible_v<T, const U &> &&std::is_constructible_v<
-                      error_type, const G &>
-                      &&expected_detail::expected_construct_with_v<T, error_type, U, G> &&
-                  !(std::is_convertible_v<const U &, T> &&
-                    std::is_convertible_v<const G &, error_type>))>
-    constexpr explicit expected(const expected<U, G> &other)
-        : Mybase(enable_default_constructor) {
+    template <
+        typename U, typename G,
+        WJR_REQUIRES(
+            std::is_constructible_v<T, const U &> &&std::is_constructible_v<error_type, const G &>
+                &&expected_detail::expected_construct_with_v<T, error_type, U, G> &&
+            !(std::is_convertible_v<const U &, T> && std::is_convertible_v<const G &, error_type>))>
+    constexpr explicit expected(const expected<U, G> &other) : Mybase(enable_default_constructor) {
         if (other.has_value()) {
             this->construct_value(std::forward<const U &>(other.m_val));
         } else {
@@ -826,10 +803,9 @@ public:
     }
 
     template <typename U, typename G,
-              WJR_REQUIRES(
-                  std::is_constructible_v<T, U> &&std::is_constructible_v<error_type, G>
-                      &&expected_detail::expected_construct_with_v<T, error_type, U, G> &&
-                  (std::is_convertible_v<U, T> && std::is_convertible_v<G, error_type>))>
+              WJR_REQUIRES(std::is_constructible_v<T, U> &&std::is_constructible_v<error_type, G>
+                               &&expected_detail::expected_construct_with_v<T, error_type, U, G> &&
+                           (std::is_convertible_v<U, T> && std::is_convertible_v<G, error_type>))>
     constexpr expected(expected<U, G> &&other) : Mybase(enable_default_constructor) {
         if (other.has_value()) {
             this->construct_value(std::forward<U>(other.m_val));
@@ -839,12 +815,10 @@ public:
     }
 
     template <typename U, typename G,
-              WJR_REQUIRES(
-                  std::is_constructible_v<T, U> &&std::is_constructible_v<error_type, G>
-                      &&expected_detail::expected_construct_with_v<T, error_type, U, G> &&
-                  !(std::is_convertible_v<U, T> && std::is_convertible_v<G, error_type>))>
-    constexpr explicit expected(expected<U, G> &&other)
-        : Mybase(enable_default_constructor) {
+              WJR_REQUIRES(std::is_constructible_v<T, U> &&std::is_constructible_v<error_type, G>
+                               &&expected_detail::expected_construct_with_v<T, error_type, U, G> &&
+                           !(std::is_convertible_v<U, T> && std::is_convertible_v<G, error_type>))>
+    constexpr explicit expected(expected<U, G> &&other) : Mybase(enable_default_constructor) {
         if (other.has_value()) {
             this->construct_value(std::forward<U>(other.m_val));
         } else {
@@ -854,28 +828,26 @@ public:
 #endif
 
 #if defined(__cpp_conditional_explicit)
-    template <typename U = T, WJR_REQUIRES(expected_detail::expected_construct_with_arg_v<
-                                           T, error_type, U>)>
+    template <typename U = T,
+              WJR_REQUIRES(expected_detail::expected_construct_with_arg_v<T, error_type, U>)>
     constexpr explicit(!std::is_convertible_v<U, T>) expected(U &&v)
         : Mybase(std::in_place, std::forward<U>(v)) {}
 #else
-    template <typename U = T,
-              WJR_REQUIRES(expected_detail::expected_construct_with_arg_v<
-                           T, error_type, U> &&std::is_convertible_v<U, T>)>
+    template <typename U = T, WJR_REQUIRES(expected_detail::expected_construct_with_arg_v<
+                                           T, error_type, U> &&std::is_convertible_v<U, T>)>
     constexpr expected(U &&v) : Mybase(std::in_place, std::forward<U>(v)) {}
 
-    template <typename U = T, WJR_REQUIRES(expected_detail::expected_construct_with_arg_v<
-                                               T, error_type, U> &&
-                                           !std::is_convertible_v<U, T>)>
+    template <typename U = T,
+              WJR_REQUIRES(expected_detail::expected_construct_with_arg_v<T, error_type, U> &&
+                           !std::is_convertible_v<U, T>)>
     constexpr explicit expected(U &&v) : Mybase(std::in_place, std::forward<U>(v)) {}
 #endif
 
-    template <typename G,
-              WJR_REQUIRES(std::is_constructible_v<error_type, const G &>
-                               &&std::is_assignable_v<error_type &, const G &> &&
-                           (std::is_nothrow_constructible_v<error_type, const G &> ||
-                            std::is_nothrow_move_constructible_v<T> ||
-                            std::is_nothrow_move_constructible_v<error_type>))>
+    template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, const G &>
+                                           &&std::is_assignable_v<error_type &, const G &> &&
+                                       (std::is_nothrow_constructible_v<error_type, const G &> ||
+                                        std::is_nothrow_move_constructible_v<T> ||
+                                        std::is_nothrow_move_constructible_v<error_type>))>
     WJR_CONSTEXPR20 expected &operator=(const unexpected<G> &e) {
         if (has_value()) {
             reinit_expected(this->m_err, this->m_val, std::forward<const G &>(e.error()));
@@ -887,12 +859,11 @@ public:
         return *this;
     }
 
-    template <typename G,
-              WJR_REQUIRES(std::is_constructible_v<error_type, G>
-                               &&std::is_assignable_v<error_type &, G> &&
-                           (std::is_nothrow_constructible_v<error_type, G> ||
-                            std::is_nothrow_move_constructible_v<T> ||
-                            std::is_nothrow_move_constructible_v<error_type>))>
+    template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, G>
+                                           &&std::is_assignable_v<error_type &, G> &&
+                                       (std::is_nothrow_constructible_v<error_type, G> ||
+                                        std::is_nothrow_move_constructible_v<T> ||
+                                        std::is_nothrow_move_constructible_v<error_type>))>
     WJR_CONSTEXPR20 expected &operator=(unexpected<G> &&e) {
         if (has_value()) {
             reinit_expected(this->m_err, this->m_val, std::forward<G>(e.error()));
@@ -907,8 +878,7 @@ public:
     template <typename U,
               WJR_REQUIRES(!std::is_same_v<remove_cvref_t<U>, expected> &&
                            expected_detail::is_not_unexpected<remove_cvref_t<U>>::value &&
-                           std::is_constructible_v<T, U> &&
-                           std::is_assignable_v<T &, U> &&
+                           std::is_constructible_v<T, U> && std::is_assignable_v<T &, U> &&
                            (std::is_nothrow_constructible_v<T, U> ||
                             std::is_nothrow_move_constructible_v<T> ||
                             std::is_nothrow_move_constructible_v<error_type>))>
@@ -948,8 +918,7 @@ public:
 
     constexpr T &value() & {
         if (WJR_UNLIKELY(!has_value())) {
-            WJR_THROW(
-                bad_expected_access<std::decay_t<error_type>>(std::as_const(error())));
+            WJR_THROW(bad_expected_access<std::decay_t<error_type>>(std::as_const(error())));
         }
 
         return this->m_val;
@@ -957,8 +926,7 @@ public:
 
     constexpr const T &value() const & {
         if (WJR_UNLIKELY(!has_value())) {
-            WJR_THROW(
-                bad_expected_access<std::decay_t<error_type>>(std::as_const(error())));
+            WJR_THROW(bad_expected_access<std::decay_t<error_type>>(std::as_const(error())));
         }
 
         return this->m_val;
@@ -1004,8 +972,7 @@ public:
 
     template <typename U>
     constexpr T value_or(U &&default_value) && {
-        return has_value() ? std::move(**this)
-                           : static_cast<T>(std::forward<U>(default_value));
+        return has_value() ? std::move(**this) : static_cast<T>(std::forward<U>(default_value));
     }
 
     template <typename G = error_type>
@@ -1149,8 +1116,7 @@ public:
     template <typename Func, typename G = __expected_result<Func, error_type &>>
     constexpr expected<T, G> transform_error(Func &&func) & {
         if (!has_value()) {
-            return expected<T, G>(unexpect,
-                                  std::invoke(std::forward<Func>(func), error()));
+            return expected<T, G>(unexpect, std::invoke(std::forward<Func>(func), error()));
         }
 
         return expected<T, G>(std::in_place, this->m_val);
@@ -1159,8 +1125,7 @@ public:
     template <typename Func, typename G = __expected_result<Func, const error_type &>>
     constexpr expected<T, G> transform_error(Func &&func) const & {
         if (!has_value()) {
-            return expected<T, G>(unexpect,
-                                  std::invoke(std::forward<Func>(func), error()));
+            return expected<T, G>(unexpect, std::invoke(std::forward<Func>(func), error()));
         }
 
         return expected<T, G>(std::in_place, this->m_val);
@@ -1169,8 +1134,8 @@ public:
     template <typename Func, typename G = __expected_result<Func, error_type &&>>
     constexpr expected<T, G> transform_error(Func &&func) && {
         if (!has_value()) {
-            return expected<T, G>(
-                unexpect, std::invoke(std::forward<Func>(func), std::move(error())));
+            return expected<T, G>(unexpect,
+                                  std::invoke(std::forward<Func>(func), std::move(error())));
         }
 
         return expected<T, G>(std::in_place, std::move(this->m_val));
@@ -1179,8 +1144,8 @@ public:
     template <typename Func, typename G = __expected_result<Func, const error_type &&>>
     constexpr expected<T, G> transform_error(Func &&func) const && {
         if (!has_value()) {
-            return expected<T, G>(
-                unexpect, std::invoke(std::forward<Func>(func), std::move(error())));
+            return expected<T, G>(unexpect,
+                                  std::invoke(std::forward<Func>(func), std::move(error())));
         }
 
         return expected<T, G>(std::in_place, std::move(this->m_val));
@@ -1199,9 +1164,8 @@ public:
         return this->m_val;
     }
 
-    template <
-        typename U, typename... Args,
-        WJR_REQUIRES(std::is_constructible_v<T, std::initializer_list<U> &, Args...>)>
+    template <typename U, typename... Args,
+              WJR_REQUIRES(std::is_constructible_v<T, std::initializer_list<U> &, Args...>)>
     constexpr T &emplace(std::initializer_list<U> il, Args &&...args) noexcept {
         if (has_value()) {
             std::destroy_at(std::addressof(this->m_val));
@@ -1247,12 +1211,11 @@ private:
     }
 
 public:
-    template <typename _T = T,
-              WJR_REQUIRES(std::is_swappable_v<_T> &&std::is_swappable_v<error_type>
-                               &&std::is_move_constructible_v<_T>
-                                   &&std::is_move_constructible_v<error_type> &&
-                           (std::is_nothrow_move_constructible_v<_T> ||
-                            std::is_nothrow_move_constructible_v<error_type>))>
+    template <typename _T = T, WJR_REQUIRES(std::is_swappable_v<_T> &&std::is_swappable_v<
+                                                error_type> &&std::is_move_constructible_v<_T>
+                                                &&std::is_move_constructible_v<error_type> &&
+                                            (std::is_nothrow_move_constructible_v<_T> ||
+                                             std::is_nothrow_move_constructible_v<error_type>))>
     WJR_CONSTEXPR20 void swap(expected &other) noexcept(
         std::is_nothrow_move_constructible_v<T> &&std::is_nothrow_swappable_v<T>
             &&std::is_nothrow_move_constructible_v<error_type>
@@ -1296,18 +1259,16 @@ public:
         return rhs == lhs;
     }
 
-    template <
-        typename U,
-        WJR_REQUIRES(expected_detail::is_not_expected<remove_cvref_t<U>>::value
-                         &&expected_detail::is_not_unexpected<remove_cvref_t<U>>::value)>
+    template <typename U,
+              WJR_REQUIRES(expected_detail::is_not_expected<remove_cvref_t<U>>::value
+                               &&expected_detail::is_not_unexpected<remove_cvref_t<U>>::value)>
     friend constexpr bool operator==(const expected &lhs, const U &rhs) {
         return lhs.has_value() && *lhs == rhs;
     }
 
-    template <
-        typename U,
-        WJR_REQUIRES(expected_detail::is_not_expected<remove_cvref_t<U>>::value
-                         &&expected_detail::is_not_unexpected<remove_cvref_t<U>>::value)>
+    template <typename U,
+              WJR_REQUIRES(expected_detail::is_not_expected<remove_cvref_t<U>>::value
+                               &&expected_detail::is_not_unexpected<remove_cvref_t<U>>::value)>
     friend constexpr bool operator==(const U &lhs, const expected &rhs) {
         return rhs == lhs;
     }
@@ -1335,14 +1296,13 @@ public:
 
     constexpr explicit expected(std::in_place_t) : Mybase(std::in_place) {}
 
-    template <typename... Args,
-              WJR_REQUIRES(std::is_constructible_v<error_type, Args...>)>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<error_type, Args...>)>
     constexpr explicit expected(unexpect_t, Args &&...args)
         : Mybase(unexpect, std::forward<Args>(args)...) {}
 
-    template <typename U, typename... Args,
-              WJR_REQUIRES(std::is_constructible_v<error_type, std::initializer_list<U> &,
-                                                   Args...>)>
+    template <
+        typename U, typename... Args,
+        WJR_REQUIRES(std::is_constructible_v<error_type, std::initializer_list<U> &, Args...>)>
     constexpr explicit expected(unexpect_t, std::initializer_list<U> il, Args &&...args)
         : Mybase(unexpect, il, std::forward<Args>(args)...) {}
 
@@ -1356,8 +1316,8 @@ public:
     constexpr explicit(!std::is_convertible_v<G, error_type>) expected(unexpected<G> &&e)
         : Mybase(unexpect, std::forward<G>(e.error())) {}
 #else
-    template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, const G &> &&
-                                           std::is_convertible_v<const G &, error_type>)>
+    template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, const G &>
+                                           &&std::is_convertible_v<const G &, error_type>)>
     constexpr expected(const unexpected<G> &e)
         : Mybase(unexpect, std::forward<const G &>(e.error())) {}
 
@@ -1368,18 +1328,16 @@ public:
 
     template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, G>
                                            &&std::is_convertible_v<G, error_type>)>
-    constexpr expected(unexpected<G> &&e)
-        : Mybase(unexpect, std::forward<G>(e.error())) {}
+    constexpr expected(unexpected<G> &&e) : Mybase(unexpect, std::forward<G>(e.error())) {}
     template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, G> &&
                                        !std::is_convertible_v<G, error_type>)>
-    constexpr explicit expected(unexpected<G> &&e)
-        : Mybase(unexpect, std::forward<G>(e.error())) {}
+    constexpr explicit expected(unexpected<G> &&e) : Mybase(unexpect, std::forward<G>(e.error())) {}
 #endif
 
 #if defined(__cpp_conditional_explicit)
-    template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, const G &>
-                                           &&expected_detail::expected_construct_with_v<
-                                               void, error_type, void, G>)>
+    template <typename G,
+              WJR_REQUIRES(std::is_constructible_v<error_type, const G &> &&expected_detail::
+                               expected_construct_with_v<void, error_type, void, G>)>
     constexpr explicit(!std::is_convertible_v<const G &, error_type>)
         expected(const expected<void, G> &other)
         : Mybase(enable_default_constructor) {
@@ -1388,11 +1346,9 @@ public:
         }
     }
 
-    template <typename G,
-              WJR_REQUIRES(std::is_constructible_v<error_type, G> &&expected_detail::
-                               expected_construct_with_v<void, error_type, void, G>)>
-    constexpr explicit(!std::is_convertible_v<G, error_type>)
-        expected(expected<void, G> &&other)
+    template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, G> &&expected_detail::
+                                           expected_construct_with_v<void, error_type, void, G>)>
+    constexpr explicit(!std::is_convertible_v<G, error_type>) expected(expected<void, G> &&other)
         : Mybase(enable_default_constructor) {
         if (!other.has_value()) {
             this->construct_error(std::forward<G>(other.m_err));
@@ -1400,21 +1356,19 @@ public:
     }
 #else
     template <typename G,
-              WJR_REQUIRES(std::is_constructible_v<error_type, const G &>
-                               &&expected_detail::expected_construct_with_v<
-                                   void, error_type, void, G>
+              WJR_REQUIRES(std::is_constructible_v<error_type, const G &> &&
+                               expected_detail::expected_construct_with_v<void, error_type, void, G>
                                    &&std::is_convertible_v<const G &, error_type>)>
-    constexpr expected(const expected<void, G> &other)
-        : Mybase(enable_default_constructor) {
+    constexpr expected(const expected<void, G> &other) : Mybase(enable_default_constructor) {
         if (!other.has_value()) {
             this->construct_error(std::forward<const G &>(other.m_err));
         }
     }
 
-    template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, const G &>
-                                           &&expected_detail::expected_construct_with_v<
-                                               void, error_type, void, G> &&
-                                       !std::is_convertible_v<const G &, error_type>)>
+    template <typename G,
+              WJR_REQUIRES(std::is_constructible_v<error_type, const G &> &&expected_detail::
+                               expected_construct_with_v<void, error_type, void, G> &&
+                           !std::is_convertible_v<const G &, error_type>)>
     constexpr explicit expected(const expected<void, G> &other)
         : Mybase(enable_default_constructor) {
         if (!other.has_value()) {
@@ -1423,8 +1377,8 @@ public:
     }
 
     template <typename G,
-              WJR_REQUIRES(std::is_constructible_v<error_type, G> &&expected_detail::
-                               expected_construct_with_v<void, error_type, void, G>
+              WJR_REQUIRES(std::is_constructible_v<error_type, G> &&
+                               expected_detail::expected_construct_with_v<void, error_type, void, G>
                                    &&std::is_convertible_v<G, error_type>)>
     constexpr expected(expected<void, G> &&other) : Mybase(enable_default_constructor) {
         if (!other.has_value()) {
@@ -1432,24 +1386,21 @@ public:
         }
     }
 
-    template <typename G,
-              WJR_REQUIRES(std::is_constructible_v<error_type, G> &&expected_detail::
-                               expected_construct_with_v<void, error_type, void, G> &&
-                           !std::is_convertible_v<G, error_type>)>
-    constexpr explicit expected(expected<void, G> &&other)
-        : Mybase(enable_default_constructor) {
+    template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, G> &&expected_detail::
+                                           expected_construct_with_v<void, error_type, void, G> &&
+                                       !std::is_convertible_v<G, error_type>)>
+    constexpr explicit expected(expected<void, G> &&other) : Mybase(enable_default_constructor) {
         if (!other.has_value()) {
             this->construct_error(std::forward<G>(other.m_err));
         }
     }
 #endif
 
-    template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, const G &> &&
-                                           std::is_assignable_v<error_type &, const G &>)>
+    template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, const G &>
+                                           &&std::is_assignable_v<error_type &, const G &>)>
     WJR_CONSTEXPR20 expected &operator=(const unexpected<G> &e) {
         if (has_value()) {
-            wjr::construct_at(std::addressof(this->m_err),
-                              std::forward<const G &>(e.error()));
+            wjr::construct_at(std::addressof(this->m_err), std::forward<const G &>(e.error()));
             this->set_invalid();
         } else {
             this->m_err = std::forward<const G &>(e.error());
@@ -1478,8 +1429,7 @@ public:
 
     constexpr void value() const & {
         if (WJR_UNLIKELY(!has_value())) {
-            WJR_THROW(
-                bad_expected_access<std::decay_t<error_type>>(std::as_const(error())));
+            WJR_THROW(bad_expected_access<std::decay_t<error_type>>(std::as_const(error())));
         }
     }
 
@@ -1647,8 +1597,7 @@ public:
     template <typename Func, typename G = __expected_result<Func, error_type &>>
     constexpr expected<void, G> transform_error(Func &&func) & {
         if (!has_value()) {
-            return expected<void, G>(unexpect,
-                                     std::invoke(std::forward<Func>(func), error()));
+            return expected<void, G>(unexpect, std::invoke(std::forward<Func>(func), error()));
         }
 
         return expected<void, G>(std::in_place);
@@ -1657,8 +1606,7 @@ public:
     template <typename Func, typename G = __expected_result<Func, const error_type &>>
     constexpr expected<void, G> transform_error(Func &&func) const & {
         if (!has_value()) {
-            return expected<void, G>(unexpect,
-                                     std::invoke(std::forward<Func>(func), error()));
+            return expected<void, G>(unexpect, std::invoke(std::forward<Func>(func), error()));
         }
 
         return expected<void, G>(std::in_place);
@@ -1667,8 +1615,8 @@ public:
     template <typename Func, typename G = __expected_result<Func, error_type &&>>
     constexpr expected<void, G> transform_error(Func &&func) && {
         if (!has_value()) {
-            return expected<void, G>(
-                unexpect, std::invoke(std::forward<Func>(func), std::move(error())));
+            return expected<void, G>(unexpect,
+                                     std::invoke(std::forward<Func>(func), std::move(error())));
         }
 
         return expected<void, G>(std::in_place);
@@ -1677,8 +1625,8 @@ public:
     template <typename Func, typename G = __expected_result<Func, const error_type &&>>
     constexpr expected<void, G> transform_error(Func &&func) const && {
         if (!has_value()) {
-            return expected<void, G>(
-                unexpect, std::invoke(std::forward<Func>(func), std::move(error())));
+            return expected<void, G>(unexpect,
+                                     std::invoke(std::forward<Func>(func), std::move(error())));
         }
 
         return expected<void, G>(std::in_place);
@@ -1754,26 +1702,26 @@ public:
 template <typename T, typename E, E init>
 using compressed_expected = expected<T, compressed_unexpected<E, init>>;
 
-#define WJR_EXPECTED_TRY(...)                                                            \
-    do {                                                                                 \
-        if (auto exp = (__VA_ARGS__); WJR_UNLIKELY(!exp)) {                              \
-            return ::wjr::unexpected(std::move(exp).error());                            \
-        }                                                                                \
+#define WJR_EXPECTED_TRY(...)                                                                      \
+    do {                                                                                           \
+        if (auto exp = (__VA_ARGS__); WJR_UNLIKELY(!exp)) {                                        \
+            return ::wjr::unexpected(std::move(exp).error());                                      \
+        }                                                                                          \
     } while (false)
 
-#define WJR_EXPECTED_INIT(NAME, ...)                                                     \
-    auto NAME = (__VA_ARGS__);                                                           \
-    if (WJR_UNLIKELY(!NAME)) {                                                           \
-        return ::wjr::unexpected(std::move(NAME).error());                               \
+#define WJR_EXPECTED_INIT(NAME, ...)                                                               \
+    auto NAME = (__VA_ARGS__);                                                                     \
+    if (WJR_UNLIKELY(!NAME)) {                                                                     \
+        return ::wjr::unexpected(std::move(NAME).error());                                         \
     }
 
-#define WJR_EXPECTED_SET(VAR, ...)                                                       \
-    do {                                                                                 \
-        if (auto exp = (__VA_ARGS__); WJR_UNLIKELY(!exp)) {                              \
-            return ::wjr::unexpected(std::move(exp).error());                            \
-        } else {                                                                         \
-            VAR = *std::move(exp);                                                       \
-        }                                                                                \
+#define WJR_EXPECTED_SET(VAR, ...)                                                                 \
+    do {                                                                                           \
+        if (auto exp = (__VA_ARGS__); WJR_UNLIKELY(!exp)) {                                        \
+            return ::wjr::unexpected(std::move(exp).error());                                      \
+        } else {                                                                                   \
+            VAR = *std::move(exp);                                                                 \
+        }                                                                                          \
     } while (false)
 
 } // namespace wjr

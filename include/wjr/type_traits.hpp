@@ -140,8 +140,7 @@ template <typename T>
 inline constexpr bool is_nonbool_integral_v = is_nonbool_integral<T>::value;
 
 template <typename T>
-struct is_unsigned_integral : std::conjunction<std::is_integral<T>, std::is_unsigned<T>> {
-};
+struct is_unsigned_integral : std::conjunction<std::is_integral<T>, std::is_unsigned<T>> {};
 
 template <typename T>
 inline constexpr bool is_unsigned_integral_v = is_unsigned_integral<T>::value;
@@ -157,8 +156,7 @@ struct is_nonbool_unsigned_integral
     : std::conjunction<is_unsigned_integral<T>, std::negation<std::is_same<T, bool>>> {};
 
 template <typename T>
-inline constexpr bool is_nonbool_unsigned_integral_v =
-    is_nonbool_unsigned_integral<T>::value;
+inline constexpr bool is_nonbool_unsigned_integral_v = is_nonbool_unsigned_integral<T>::value;
 
 template <typename T>
 struct is_nonbool_signed_integral
@@ -211,16 +209,15 @@ struct __is_swappable_with<
     : std::true_type {};
 
 template <typename T, typename U>
-struct is_swappable_with
-    : std::conjunction<__is_swappable_with<T, U>, __is_swappable_with<U, T>> {};
+struct is_swappable_with : std::conjunction<__is_swappable_with<T, U>, __is_swappable_with<U, T>> {
+};
 
 template <typename T, typename U>
 inline constexpr bool is_swappable_with_v = is_swappable_with<T, U>::value;
 
 template <typename T>
 struct is_swappable
-    : is_swappable_with<std::add_lvalue_reference_t<T>, std::add_lvalue_reference_t<T>> {
-};
+    : is_swappable_with<std::add_lvalue_reference_t<T>, std::add_lvalue_reference_t<T>> {};
 
 template <typename T>
 inline constexpr bool is_swappable_v = is_swappable<T>::value;
@@ -252,8 +249,7 @@ template <typename T>
 void __test_default_convertible(const T &);
 
 template <typename T>
-struct __is_default_convertible<T,
-                                std::void_t<decltype(__test_default_convertible<T>({}))>>
+struct __is_default_convertible<T, std::void_t<decltype(__test_default_convertible<T>({}))>>
     : std::true_type {};
 
 template <typename T>
@@ -277,9 +273,8 @@ inline constexpr size_t get_place_index_v = get_place_index<T>::value;
 
 template <typename Derived, typename Base>
 struct is_derived_from
-    : std::conjunction<
-          std::is_base_of<Base, Derived>,
-          std::is_convertible<const volatile Derived *, const volatile Base *>> {};
+    : std::conjunction<std::is_base_of<Base, Derived>,
+                       std::is_convertible<const volatile Derived *, const volatile Base *>> {};
 
 template <typename Derived, typename Base>
 inline constexpr bool is_derived_from_v = is_derived_from<Derived, Base>::Value;
@@ -290,13 +285,13 @@ struct __is_convertible_to_helper : std::false_type {};
 
 /// @private
 template <typename From, typename To>
-struct __is_convertible_to_helper<
-    From, To, std::void_t<decltype(static_cast<To>(std::declval<From>()))>>
+struct __is_convertible_to_helper<From, To,
+                                  std::void_t<decltype(static_cast<To>(std::declval<From>()))>>
     : std::true_type {};
 
 template <typename From, typename To>
-struct is_convertible_to : std::conjunction<std::is_convertible<From, To>,
-                                            __is_convertible_to_helper<From, To, void>> {
+struct is_convertible_to
+    : std::conjunction<std::is_convertible<From, To>, __is_convertible_to_helper<From, To, void>> {
 };
 
 template <typename From, typename To>
@@ -393,68 +388,64 @@ inline constexpr bool is_value_preserving_v = is_value_preserving<From, To>::val
 
 template <typename From, typename To>
 struct is_value_preserving_or_int
-    : std::disjunction<
-          std::is_same<From, int>, is_value_preserving<From, To>,
-          std::conjunction<std::is_unsigned<To>, std::is_same<From, unsigned int>>> {};
+    : std::disjunction<std::is_same<From, int>, is_value_preserving<From, To>,
+                       std::conjunction<std::is_unsigned<To>, std::is_same<From, unsigned int>>> {};
 
 template <typename From, typename To>
-inline constexpr bool is_value_preserving_or_int_v =
-    is_value_preserving_or_int<From, To>::value;
+inline constexpr bool is_value_preserving_or_int_v = is_value_preserving_or_int<From, To>::value;
 
-#define __WJR_REGISTER_TYPENAMES(...)                                                    \
+#define __WJR_REGISTER_TYPENAMES(...)                                                              \
     WJR_PP_QUEUE_TRANSFORM((__VA_ARGS__), __WJR_REGISTER_TYPENAMES_CALLER)
 #define __WJR_REGISTER_TYPENAMES_CALLER(x) typename x
 
-#define WJR_REGISTER_HAS_TYPE_0(NAME, HAS_EXPR)                                          \
-    template <typename Enable, typename... Args>                                         \
-    struct __has_##NAME : std::false_type {};                                            \
-    template <typename... Args>                                                          \
-    struct __has_##NAME<std::void_t<decltype(HAS_EXPR)>, Args...> : std::true_type {};   \
-    template <typename... Args>                                                          \
-    struct has_##NAME : __has_##NAME<void, Args...> {};                                  \
-    template <typename... Args>                                                          \
+#define WJR_REGISTER_HAS_TYPE_0(NAME, HAS_EXPR)                                                    \
+    template <typename Enable, typename... Args>                                                   \
+    struct __has_##NAME : std::false_type {};                                                      \
+    template <typename... Args>                                                                    \
+    struct __has_##NAME<std::void_t<decltype(HAS_EXPR)>, Args...> : std::true_type {};             \
+    template <typename... Args>                                                                    \
+    struct has_##NAME : __has_##NAME<void, Args...> {};                                            \
+    template <typename... Args>                                                                    \
     constexpr bool has_##NAME##_v = has_##NAME<Args...>::value
 
-#define WJR_REGISTER_HAS_TYPE_MORE(NAME, HAS_EXPR, ...)                                  \
-    WJR_REGISTER_HAS_TYPE_MORE_I(NAME, HAS_EXPR, __WJR_REGISTER_TYPENAMES(__VA_ARGS__),  \
-                                 __VA_ARGS__)
-#define WJR_REGISTER_HAS_TYPE_MORE_I(NAME, HAS_EXPR, TYPES, ...)                         \
-    template <typename Enable, WJR_PP_QUEUE_EXPAND(TYPES), typename... Args>             \
-    struct __has_##NAME : std::false_type {};                                            \
-    template <WJR_PP_QUEUE_EXPAND(TYPES), typename... Args>                              \
-    struct __has_##NAME<std::void_t<decltype(HAS_EXPR)>, __VA_ARGS__, Args...>           \
-        : std::true_type {};                                                             \
-    template <WJR_PP_QUEUE_EXPAND(TYPES), typename... Args>                              \
-    struct has_##NAME : __has_##NAME<void, __VA_ARGS__, Args...> {};                     \
-    template <WJR_PP_QUEUE_EXPAND(TYPES), typename... Args>                              \
+#define WJR_REGISTER_HAS_TYPE_MORE(NAME, HAS_EXPR, ...)                                            \
+    WJR_REGISTER_HAS_TYPE_MORE_I(NAME, HAS_EXPR, __WJR_REGISTER_TYPENAMES(__VA_ARGS__), __VA_ARGS__)
+#define WJR_REGISTER_HAS_TYPE_MORE_I(NAME, HAS_EXPR, TYPES, ...)                                   \
+    template <typename Enable, WJR_PP_QUEUE_EXPAND(TYPES), typename... Args>                       \
+    struct __has_##NAME : std::false_type {};                                                      \
+    template <WJR_PP_QUEUE_EXPAND(TYPES), typename... Args>                                        \
+    struct __has_##NAME<std::void_t<decltype(HAS_EXPR)>, __VA_ARGS__, Args...> : std::true_type {  \
+    };                                                                                             \
+    template <WJR_PP_QUEUE_EXPAND(TYPES), typename... Args>                                        \
+    struct has_##NAME : __has_##NAME<void, __VA_ARGS__, Args...> {};                               \
+    template <WJR_PP_QUEUE_EXPAND(TYPES), typename... Args>                                        \
     constexpr bool has_##NAME##_v = has_##NAME<__VA_ARGS__, Args...>::value
 
-#define WJR_REGISTER_HAS_TYPE(NAME, ...)                                                 \
+#define WJR_REGISTER_HAS_TYPE(NAME, ...)                                                           \
     WJR_REGISTER_HAS_TYPE_N(WJR_PP_ARGS_LEN(__VA_ARGS__), NAME, __VA_ARGS__)
-#define WJR_REGISTER_HAS_TYPE_N(N, ...)                                                  \
-    WJR_PP_BOOL_IF(WJR_PP_EQ(N, 1), WJR_REGISTER_HAS_TYPE_0, WJR_REGISTER_HAS_TYPE_MORE) \
+#define WJR_REGISTER_HAS_TYPE_N(N, ...)                                                            \
+    WJR_PP_BOOL_IF(WJR_PP_EQ(N, 1), WJR_REGISTER_HAS_TYPE_0, WJR_REGISTER_HAS_TYPE_MORE)           \
     (__VA_ARGS__)
 
 // used for SFINAE
 constexpr static void allow_true_type(std::true_type) noexcept {}
 constexpr static void allow_false_type(std::false_type) noexcept {}
 
-WJR_REGISTER_HAS_TYPE(compare, std::declval<Comp>()(std::declval<T>(), std::declval<U>()),
+WJR_REGISTER_HAS_TYPE(compare, std::declval<Comp>()(std::declval<T>(), std::declval<U>()), Comp, T,
+                      U);
+WJR_REGISTER_HAS_TYPE(noexcept_compare,
+                      allow_true_type(std::declval<std::bool_constant<noexcept(std::declval<Comp>()(
+                                          std::declval<T>(), std::declval<U>()))>>()),
                       Comp, T, U);
-WJR_REGISTER_HAS_TYPE(
-    noexcept_compare,
-    allow_true_type(std::declval<std::bool_constant<noexcept(
-                        std::declval<Comp>()(std::declval<T>(), std::declval<U>()))>>()),
-    Comp, T, U);
 
-#define WJR_REGISTER_HAS_COMPARE(NAME, STD)                                              \
-    template <typename T, typename U>                                                    \
-    struct has_##NAME : has_compare<STD, T, U> {};                                       \
-    template <typename T, typename U>                                                    \
-    inline constexpr bool has_##NAME##_v = has_##NAME<T, U>::value;                      \
-    template <typename T, typename U>                                                    \
-    struct has_noexcept_##NAME : has_noexcept_compare<STD, T, U> {};                     \
-    template <typename T, typename U>                                                    \
+#define WJR_REGISTER_HAS_COMPARE(NAME, STD)                                                        \
+    template <typename T, typename U>                                                              \
+    struct has_##NAME : has_compare<STD, T, U> {};                                                 \
+    template <typename T, typename U>                                                              \
+    inline constexpr bool has_##NAME##_v = has_##NAME<T, U>::value;                                \
+    template <typename T, typename U>                                                              \
+    struct has_noexcept_##NAME : has_noexcept_compare<STD, T, U> {};                               \
+    template <typename T, typename U>                                                              \
     inline constexpr bool has_noexcept_##NAME##_v = has_noexcept_##NAME<T, U>::value;
 
 WJR_REGISTER_HAS_COMPARE(equal_to, std::equal_to<>);
@@ -466,11 +457,10 @@ WJR_REGISTER_HAS_COMPARE(greater_equal, std::greater_equal<>);
 
 #undef WJR_REGISTER_HAS_COMPARE
 
-WJR_REGISTER_HAS_TYPE(invocable,
-                      std::invoke(std::declval<Func>(), std::declval<Args>()...), Func);
+WJR_REGISTER_HAS_TYPE(invocable, std::invoke(std::declval<Func>(), std::declval<Args>()...), Func);
 
-WJR_REGISTER_HAS_TYPE(compare_is_transparent,
-                      std::declval<typename Compare::is_transparent>(), Compare);
+WJR_REGISTER_HAS_TYPE(compare_is_transparent, std::declval<typename Compare::is_transparent>(),
+                      Compare);
 
 template <typename T>
 struct is_bounded_array : std::false_type {};
@@ -527,8 +517,7 @@ template <typename From, typename To>
 using __copy_cv = typename __match_cv_qualifiers<From, To>::__type;
 
 template <typename Xp, typename Yp>
-using __cond_res =
-    decltype(false ? std::declval<Xp (&)()>()() : std::declval<Yp (&)()>()());
+using __cond_res = decltype(false ? std::declval<Xp (&)()>()() : std::declval<Yp (&)()>()());
 
 template <typename _Ap, typename _Bp, typename = void>
 struct __common_ref_impl {};
@@ -544,8 +533,7 @@ using __condres_cvref = __cond_res<__copy_cv<_Xp, _Yp> &, __copy_cv<_Yp, _Xp> &>
 // If A and B are both lvalue reference types, ...
 template <typename _Xp, typename _Yp>
 struct __common_ref_impl<_Xp &, _Yp &, std::void_t<__condres_cvref<_Xp, _Yp>>>
-    : std::enable_if<std::is_reference_v<__condres_cvref<_Xp, _Yp>>,
-                     __condres_cvref<_Xp, _Yp>> {};
+    : std::enable_if<std::is_reference_v<__condres_cvref<_Xp, _Yp>>, __condres_cvref<_Xp, _Yp>> {};
 
 // let C be remove_reference_t<COMMON-REF(X&, Y&)>&&
 template <typename _Xp, typename _Yp>
@@ -553,10 +541,10 @@ using __common_ref_C = std::remove_reference_t<__common_ref<_Xp &, _Yp &>> &&;
 
 // If A and B are both rvalue reference types, ...
 template <typename _Xp, typename _Yp>
-struct __common_ref_impl<_Xp &&, _Yp &&,
-                         std::enable_if_t<std::conjunction_v<
-                             std::is_convertible<_Xp &&, __common_ref_C<_Xp, _Yp>>,
-                             std::is_convertible<_Yp &&, __common_ref_C<_Xp, _Yp>>>>> {
+struct __common_ref_impl<
+    _Xp &&, _Yp &&,
+    std::enable_if_t<std::conjunction_v<std::is_convertible<_Xp &&, __common_ref_C<_Xp, _Yp>>,
+                                        std::is_convertible<_Yp &&, __common_ref_C<_Xp, _Yp>>>>> {
     using type = __common_ref_C<_Xp, _Yp>;
 };
 
@@ -567,8 +555,7 @@ using __common_ref_D = __common_ref<const _Xp &, _Yp &>;
 // If A is an rvalue reference and B is an lvalue reference, ...
 template <typename _Xp, typename _Yp>
 struct __common_ref_impl<
-    _Xp &&, _Yp &,
-    std::enable_if_t<std::is_convertible_v<_Xp &&, __common_ref_D<_Xp, _Yp>>>> {
+    _Xp &&, _Yp &, std::enable_if_t<std::is_convertible_v<_Xp &&, __common_ref_D<_Xp, _Yp>>>> {
     using type = __common_ref_D<_Xp, _Yp>;
 };
 
@@ -604,10 +591,9 @@ struct __xref<Tp &&> {
 };
 
 template <typename Tp1, typename Tp2>
-using __basic_common_ref =
-    typename basic_common_reference<remove_cvref_t<Tp1>, remove_cvref_t<Tp2>,
-                                    __xref<Tp1>::template __type,
-                                    __xref<Tp2>::template __type>::type;
+using __basic_common_ref = typename basic_common_reference<remove_cvref_t<Tp1>, remove_cvref_t<Tp2>,
+                                                           __xref<Tp1>::template __type,
+                                                           __xref<Tp2>::template __type>::type;
 
 template <typename... Tp>
 struct common_reference;
@@ -639,20 +625,17 @@ struct __common_reference_impl<Tp1 &, Tp2 &, 1, std::void_t<__common_ref<Tp1 &, 
 };
 
 template <typename Tp1, typename Tp2>
-struct __common_reference_impl<Tp1 &&, Tp2 &&, 1,
-                               std::void_t<__common_ref<Tp1 &&, Tp2 &&>>> {
+struct __common_reference_impl<Tp1 &&, Tp2 &&, 1, std::void_t<__common_ref<Tp1 &&, Tp2 &&>>> {
     using type = __common_ref<Tp1 &&, Tp2 &&>;
 };
 
 template <typename Tp1, typename Tp2>
-struct __common_reference_impl<Tp1 &, Tp2 &&, 1,
-                               std::void_t<__common_ref<Tp1 &, Tp2 &&>>> {
+struct __common_reference_impl<Tp1 &, Tp2 &&, 1, std::void_t<__common_ref<Tp1 &, Tp2 &&>>> {
     using type = __common_ref<Tp1 &, Tp2 &&>;
 };
 
 template <typename Tp1, typename Tp2>
-struct __common_reference_impl<Tp1 &&, Tp2 &, 1,
-                               std::void_t<__common_ref<Tp1 &&, Tp2 &>>> {
+struct __common_reference_impl<Tp1 &&, Tp2 &, 1, std::void_t<__common_ref<Tp1 &&, Tp2 &>>> {
     using type = __common_ref<Tp1 &&, Tp2 &>;
 };
 
@@ -718,24 +701,20 @@ struct __get_common_relocate_mode_impl<Mode, T, Args...> {
 };
 
 template <typename... Args>
-struct get_common_relocate_mode
-    : __get_common_relocate_mode_impl<relocate_t::trivial, Args...> {};
+struct get_common_relocate_mode : __get_common_relocate_mode_impl<relocate_t::trivial, Args...> {};
 
 template <typename... Args>
-inline constexpr relocate_t get_common_relocate_mode_v =
-    get_common_relocate_mode<Args...>::value;
+inline constexpr relocate_t get_common_relocate_mode_v = get_common_relocate_mode<Args...>::value;
 
-#define __WJR_INDEXS_RANGE_I(START, END)                                                 \
-    WJR_PP_QUEUE_POP_FRONT_N((WJR_PP_IOTA(END)), START)
+#define __WJR_INDEXS_RANGE_I(START, END) WJR_PP_QUEUE_POP_FRONT_N((WJR_PP_IOTA(END)), START)
 
-#define WJR__INDEXS_RANGE(START, END)                                                    \
-    WJR_PP_QUEUE_EXPAND(__WJR_INDEXS_RANGE_I(START, END))
+#define WJR__INDEXS_RANGE(START, END) WJR_PP_QUEUE_EXPAND(__WJR_INDEXS_RANGE_I(START, END))
 
 #define __WJR_CASES_RANGE_CALLBACK(x) case (x):
 
-#define WJR_CASES_RANGE(START, END)                                                      \
-    WJR_PP_QUEUE_PUT(WJR_PP_QUEUE_TRANSFORM(__WJR_INDEXS_RANGE_I(START, END),            \
-                                            __WJR_CASES_RANGE_CALLBACK))
+#define WJR_CASES_RANGE(START, END)                                                                \
+    WJR_PP_QUEUE_PUT(                                                                              \
+        WJR_PP_QUEUE_TRANSFORM(__WJR_INDEXS_RANGE_I(START, END), __WJR_CASES_RANGE_CALLBACK))
 
 namespace detail {
 template <typename>
@@ -757,12 +736,10 @@ struct return_type_helper<void, Types...> : std::common_type<Types...> {
 };
 
 template <typename D, typename... Types>
-using return_type =
-    std::array<typename return_type_helper<D, Types...>::type, sizeof...(Types)>;
+using return_type = std::array<typename return_type_helper<D, Types...>::type, sizeof...(Types)>;
 
 template <typename T, std::size_t N, std::size_t... I>
-constexpr std::array<std::remove_cv_t<T>, N> to_array_impl(T (&a)[N],
-                                                           std::index_sequence<I...>) {
+constexpr std::array<std::remove_cv_t<T>, N> to_array_impl(T (&a)[N], std::index_sequence<I...>) {
     return {{a[I]...}};
 }
 } // namespace detail

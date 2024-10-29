@@ -19,11 +19,10 @@
     #define __WJR_TEST_ASSEMBLY ASM_RSBLSH_N
 #endif
 
-uint64_t WJR_PP_CONCAT(__wjr_asm_,
-                       WJR_PP_CONCAT(WJR_addsub, lsh_n))(uint64_t *dst,
-                                                         const uint64_t *src0,
-                                                         const uint64_t *src1, size_t n,
-                                                         uint64_t cl) noexcept {
+uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(uint64_t *dst,
+                                                                     const uint64_t *src0,
+                                                                     const uint64_t *src1, size_t n,
+                                                                     uint64_t cl) noexcept {
     size_t rcx = n / 8;
     uint64_t tcl = 64 - cl;
     uint64_t r8, r9 = n, r10, r11;

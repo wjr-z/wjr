@@ -18,9 +18,8 @@ namespace wjr {
     #if WJR_HAS_BUILTIN(ASM_DIVEXACT_DBM1C) == 1
 
 // TODO : optimize pipeline
-WJR_ALL_NONNULL inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src,
-                                                   size_t n, uint64_t bd,
-                                                   uint64_t h) noexcept {
+WJR_ALL_NONNULL inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
+                                                   uint64_t bd, uint64_t h) noexcept {
     uint64_t r8 = h, r9 = n, r10, r11 = static_cast<uint32_t>(n);
 
     src += r9;
@@ -74,12 +73,13 @@ WJR_ALL_NONNULL inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t
 
     #else
 
-extern "C" WJR_ALL_NONNULL WJR_MS_ABI uint64_t __wjr_asm_divexact_dbm1c(
-    uint64_t *dst, const uint64_t *src, size_t n, uint64_t bd, uint64_t h) noexcept;
+extern "C" WJR_ALL_NONNULL WJR_MS_ABI uint64_t __wjr_asm_divexact_dbm1c(uint64_t *dst,
+                                                                        const uint64_t *src,
+                                                                        size_t n, uint64_t bd,
+                                                                        uint64_t h) noexcept;
 
-WJR_INTRINSIC_INLINE uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src,
-                                                 size_t n, uint64_t bd,
-                                                 uint64_t h) WJR_NONNULL noexcept {
+WJR_INTRINSIC_INLINE uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
+                                                 uint64_t bd, uint64_t h) WJR_NONNULL noexcept {
     return __wjr_asm_divexact_dbm1c(dst, src, n, bd, h);
 }
 

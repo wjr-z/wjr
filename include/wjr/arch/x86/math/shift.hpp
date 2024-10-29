@@ -52,22 +52,20 @@ WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, __m128i c) noexcept {
 
 #if WJR_HAS_BUILTIN(LSHIFT_N)
 
-    #define WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED(index)                                  \
-        do {                                                                             \
-            __m128i x1 = sse::loadu(src - 3 - (index));                                  \
-            x0 = simd_cast<__m128_t, __m128i_t>(                                         \
-                sse::template shuffle_ps<_MM_SHUFFLE(1, 0, 3, 2)>(                       \
-                    simd_cast<__m128i_t, __m128_t>(x1),                                  \
-                    simd_cast<__m128i_t, __m128_t>(x0)));                                \
-                                                                                         \
-            __m128i r0 = __mm_sll_epi64(x0, y);                                          \
-            __m128i r1 = __mm_srl_epi64(x1, z);                                          \
-                                                                                         \
-            __m128i r = sse::Or(r0, r1);                                                 \
-                                                                                         \
-            sse::storeu(dst - 2 - (index), r);                                           \
-                                                                                         \
-            x0 = x1;                                                                     \
+    #define WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED(index)                                            \
+        do {                                                                                       \
+            __m128i x1 = sse::loadu(src - 3 - (index));                                            \
+            x0 = simd_cast<__m128_t, __m128i_t>(sse::template shuffle_ps<_MM_SHUFFLE(1, 0, 3, 2)>( \
+                simd_cast<__m128i_t, __m128_t>(x1), simd_cast<__m128i_t, __m128_t>(x0)));          \
+                                                                                                   \
+            __m128i r0 = __mm_sll_epi64(x0, y);                                                    \
+            __m128i r1 = __mm_srl_epi64(x1, z);                                                    \
+                                                                                                   \
+            __m128i r = sse::Or(r0, r1);                                                           \
+                                                                                                   \
+            sse::storeu(dst - 2 - (index), r);                                                     \
+                                                                                                   \
+            x0 = x1;                                                                               \
         } while (false)
 
 template <bool is_constant, typename T>
@@ -117,18 +115,16 @@ WJR_ALL_NONNULL void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n,
     } while (WJR_LIKELY(idx != 0));
 }
 
-extern template void
-large_builtin_lshift_n_impl<false, uint64_t>(uint64_t *dst, const uint64_t *src, size_t n,
-                                             unsigned int c) noexcept;
+extern template void large_builtin_lshift_n_impl<false, uint64_t>(uint64_t *dst,
+                                                                  const uint64_t *src, size_t n,
+                                                                  unsigned int c) noexcept;
 
-extern template void large_builtin_lshift_n_impl<true, uint64_t>(uint64_t *dst,
-                                                                 const uint64_t *src,
-                                                                 size_t n,
-                                                                 unsigned int c) noexcept;
+extern template void large_builtin_lshift_n_impl<true, uint64_t>(uint64_t *dst, const uint64_t *src,
+                                                                 size_t n, unsigned int c) noexcept;
 
 template <typename T>
-WJR_ALL_NONNULL WJR_INTRINSIC_INLINE void
-builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) noexcept {
+WJR_ALL_NONNULL WJR_INTRINSIC_INLINE void builtin_lshift_n_impl(T *dst, const T *src, size_t n,
+                                                                unsigned int c) noexcept {
     if (n < 4) {
         switch (n) {
         case 3: {
@@ -180,26 +176,24 @@ WJR_INTRINSIC_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned
 
 #if WJR_HAS_BUILTIN(RSHIFT_N)
 
-    #define WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED(index)                                  \
-        do {                                                                             \
-            __m128i x1 = sse::loadu(src + 1 + (index));                                  \
-            x0 = simd_cast<__m128_t, __m128i_t>(                                         \
-                sse::template shuffle_ps<78>(simd_cast<__m128i_t, __m128_t>(x0),         \
-                                             simd_cast<__m128i_t, __m128_t>(x1)));       \
-                                                                                         \
-            __m128i r0 = __mm_srl_epi64(x0, y);                                          \
-            __m128i r1 = __mm_sll_epi64(x1, z);                                          \
-                                                                                         \
-            __m128i r = sse::Or(r0, r1);                                                 \
-                                                                                         \
-            sse::storeu(dst + (index), r);                                               \
-                                                                                         \
-            x0 = x1;                                                                     \
+    #define WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED(index)                                            \
+        do {                                                                                       \
+            __m128i x1 = sse::loadu(src + 1 + (index));                                            \
+            x0 = simd_cast<__m128_t, __m128i_t>(sse::template shuffle_ps<78>(                      \
+                simd_cast<__m128i_t, __m128_t>(x0), simd_cast<__m128i_t, __m128_t>(x1)));          \
+                                                                                                   \
+            __m128i r0 = __mm_srl_epi64(x0, y);                                                    \
+            __m128i r1 = __mm_sll_epi64(x1, z);                                                    \
+                                                                                                   \
+            __m128i r = sse::Or(r0, r1);                                                           \
+                                                                                                   \
+            sse::storeu(dst + (index), r);                                                         \
+                                                                                                   \
+            x0 = x1;                                                                               \
         } while (false)
 
 template <bool is_constant, typename T>
-void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n,
-                                 unsigned int c) noexcept {
+void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) noexcept {
     const auto y = __mm_get_shift<is_constant>(c);
     const auto z = __mm_get_shift<is_constant>(64 - c);
 
@@ -244,18 +238,16 @@ void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n,
     } while (WJR_LIKELY(idx != 0));
 }
 
-extern template void
-large_builtin_rshift_n_impl<false, uint64_t>(uint64_t *dst, const uint64_t *src, size_t n,
-                                             unsigned int c) noexcept;
+extern template void large_builtin_rshift_n_impl<false, uint64_t>(uint64_t *dst,
+                                                                  const uint64_t *src, size_t n,
+                                                                  unsigned int c) noexcept;
 
-extern template void large_builtin_rshift_n_impl<true, uint64_t>(uint64_t *dst,
-                                                                 const uint64_t *src,
-                                                                 size_t n,
-                                                                 unsigned int c) noexcept;
+extern template void large_builtin_rshift_n_impl<true, uint64_t>(uint64_t *dst, const uint64_t *src,
+                                                                 size_t n, unsigned int c) noexcept;
 
 template <typename T>
-WJR_ALL_NONNULL WJR_INTRINSIC_INLINE void
-builtin_rshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) noexcept {
+WJR_ALL_NONNULL WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n,
+                                                                unsigned int c) noexcept {
     if (n < 4) {
         dst += n - 3;
         src += n - 3;

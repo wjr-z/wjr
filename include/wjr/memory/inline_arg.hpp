@@ -81,8 +81,8 @@ private:
 
 template <typename T>
 struct __is_possible_inline_arg_impl
-    : std::conjunction<std::is_trivially_copy_constructible<T>,
-                       std::is_trivially_destructible<T>> {};
+    : std::conjunction<std::is_trivially_copy_constructible<T>, std::is_trivially_destructible<T>> {
+};
 
 template <typename T>
 struct is_possible_inline_arg : __is_possible_inline_arg_impl<aligned_storage<T>> {};

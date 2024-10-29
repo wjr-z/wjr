@@ -37,8 +37,7 @@ public:
 
 private:
     WJR_CONSTEXPR20 void *__large_allocate(size_t n, stack_top &top) noexcept {
-        auto *const buffer =
-            static_cast<large_stack_top *>(malloc(sizeof(large_stack_top) + n));
+        auto *const buffer = static_cast<large_stack_top *>(malloc(sizeof(large_stack_top) + n));
         buffer->prev = top.large;
         top.large = buffer;
         return buffer + 1;
@@ -139,8 +138,7 @@ public:
     stack_allocator_object &operator=(stack_allocator_object &&) = delete;
     ~stack_allocator_object() = default;
 
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n,
-                                                            stack_top &top) noexcept {
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top) noexcept {
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
             if (WJR_UNLIKELY(n >= stack_allocator_threshold)) {
                 return __large_allocate(n, top);
@@ -221,8 +219,7 @@ class unique_stack_allocator {
 
 public:
     WJR_INTRINSIC_INLINE
-    unique_stack_allocator() noexcept
-        : m_instance(std::addressof(Object::get_instance())) {
+    unique_stack_allocator() noexcept : m_instance(std::addressof(Object::get_instance())) {
         m_instance->set(m_top);
     }
 
@@ -238,8 +235,7 @@ public:
     }
 
 private:
-    WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *
-    __small_allocate(size_t n) noexcept {
+    WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *__small_allocate(size_t n) noexcept {
         return m_instance->__small_allocate(n, m_top);
     }
 
@@ -277,12 +273,10 @@ public:
 
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(weak_stack_allocator);
 
-    weak_stack_allocator(UniqueStackAllocator &alloc) noexcept
-        : m_alloc(std::addressof(alloc)) {}
+    weak_stack_allocator(UniqueStackAllocator &alloc) noexcept : m_alloc(std::addressof(alloc)) {}
 
     template <typename U>
-    weak_stack_allocator(const weak_stack_allocator<U> &other) noexcept
-        : m_alloc(other.m_alloc) {}
+    weak_stack_allocator(const weak_stack_allocator<U> &other) noexcept : m_alloc(other.m_alloc) {}
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) noexcept {
         const size_t size = n * sizeof(T);

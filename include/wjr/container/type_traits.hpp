@@ -18,8 +18,7 @@ struct container_traits<std::array<T, N>> : __container_traits_base<std::array<T
 };
 
 template <typename T, typename Alloc>
-struct container_traits<std::vector<T, Alloc>>
-    : __container_traits_base<std::vector<T, Alloc>> {
+struct container_traits<std::vector<T, Alloc>> : __container_traits_base<std::vector<T, Alloc>> {
     constexpr static bool is_contiguous_v = true;
     constexpr static bool is_trivially_contiguous_v = true;
 };
@@ -33,8 +32,7 @@ struct container_traits<std::basic_string<CharT, Traits, Alloc>>
 };
 
 template <typename Storage>
-struct container_traits<basic_vector<Storage>>
-    : __container_traits_base<basic_vector<Storage>> {
+struct container_traits<basic_vector<Storage>> : __container_traits_base<basic_vector<Storage>> {
     constexpr static bool is_contiguous_v = true;
     constexpr static bool is_trivially_contiguous_v =
         basic_vector<Storage>::is_trivially_contiguous::value;

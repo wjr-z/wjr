@@ -21,8 +21,7 @@ constexpr void init(list_node *node) noexcept {
 
 WJR_INTRINSIC_CONSTEXPR bool __insert_check(list_node *prev, list_node *next,
                                             list_node *node) noexcept {
-    if (WJR_LIKELY(next->prev == prev && prev->next == next && node != prev &&
-                   node != next)) {
+    if (WJR_LIKELY(next->prev == prev && prev->next == next && node != prev && node != next)) {
         return true;
     }
 

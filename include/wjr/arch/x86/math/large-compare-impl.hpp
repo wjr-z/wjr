@@ -21,42 +21,42 @@ namespace wjr {
 template <typename T>
 WJR_ALL_NONNULL WJR_PURE int large_builtin_compare_n(const T *src0, const T *src1,
                                                      size_t n) noexcept {
-    #define WJR_REGISTER_COMPARE_NOT_N_2(index)                                          \
-        do {                                                                             \
-            const auto x = sse::loadu(src0 + (index));                                   \
-            const auto y = sse::loadu(src1 + (index));                                   \
-            const auto r = sse::cmpeq_epi64(x, y);                                       \
-                                                                                         \
-            const sse::mask_type mask = ~sse::movemask_epi8(r);                          \
-            if (WJR_UNLIKELY(mask != 0)) {                                               \
-                if (mask == 0xFF00) {                                                    \
-                    return src0[(index) + 1] < src1[(index) + 1] ? -1 : 1;               \
-                }                                                                        \
-                return src0[index] < src1[index] ? -1 : 1;                               \
-            }                                                                            \
+    #define WJR_REGISTER_COMPARE_NOT_N_2(index)                                                    \
+        do {                                                                                       \
+            const auto x = sse::loadu(src0 + (index));                                             \
+            const auto y = sse::loadu(src1 + (index));                                             \
+            const auto r = sse::cmpeq_epi64(x, y);                                                 \
+                                                                                                   \
+            const sse::mask_type mask = ~sse::movemask_epi8(r);                                    \
+            if (WJR_UNLIKELY(mask != 0)) {                                                         \
+                if (mask == 0xFF00) {                                                              \
+                    return src0[(index) + 1] < src1[(index) + 1] ? -1 : 1;                         \
+                }                                                                                  \
+                return src0[index] < src1[index] ? -1 : 1;                                         \
+            }                                                                                      \
         } while (false)
 
     #if WJR_HAS_SIMD(AVX2)
-        #define WJR_REGISTER_COMPARE_NOT_N_4(index)                                      \
-            do {                                                                         \
-                const auto x = avx::loadu(src0 + (index));                               \
-                const auto y = avx::loadu(src1 + (index));                               \
-                const auto r = avx::cmpeq_epi64(x, y);                                   \
-                                                                                         \
-                const avx::mask_type mask = ~avx::movemask_epi8(r);                      \
-                if (WJR_UNLIKELY(mask != 0)) {                                           \
-                    const auto offset = ctz(mask) / 8;                                   \
-                    return src0[(index) + offset] < src1[(index) + offset] ? -1 : 1;     \
-                }                                                                        \
+        #define WJR_REGISTER_COMPARE_NOT_N_4(index)                                                \
+            do {                                                                                   \
+                const auto x = avx::loadu(src0 + (index));                                         \
+                const auto y = avx::loadu(src1 + (index));                                         \
+                const auto r = avx::cmpeq_epi64(x, y);                                             \
+                                                                                                   \
+                const avx::mask_type mask = ~avx::movemask_epi8(r);                                \
+                if (WJR_UNLIKELY(mask != 0)) {                                                     \
+                    const auto offset = ctz(mask) / 8;                                             \
+                    return src0[(index) + offset] < src1[(index) + offset] ? -1 : 1;               \
+                }                                                                                  \
             } while (false)
     #else
-        #define WJR_REGISTER_COMPARE_NOT_N_4(index)                                      \
-            WJR_REGISTER_COMPARE_NOT_N_2(index);                                         \
+        #define WJR_REGISTER_COMPARE_NOT_N_4(index)                                                \
+            WJR_REGISTER_COMPARE_NOT_N_2(index);                                                   \
             WJR_REGISTER_COMPARE_NOT_N_2((index) + 2)
     #endif
 
-    #define WJR_REGISTER_COMPARE_NOT_N_ADVANCE(index)                                    \
-        src0 += index;                                                                   \
+    #define WJR_REGISTER_COMPARE_NOT_N_ADVANCE(index)                                              \
+        src0 += index;                                                                             \
         src1 += index
     #define WJR_REGISTER_COMPARE_NOT_N_RET(index) 0
 
@@ -158,8 +158,7 @@ WJR_ALL_NONNULL WJR_PURE int large_builtin_compare_n(const T *src0, const T *src
     #undef WJR_REGISTER_COMPARE_NOT_N_2
 }
 
-extern template int large_builtin_compare_n<uint64_t>(const uint64_t *src0,
-                                                      const uint64_t *src1,
+extern template int large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
                                                       size_t n) noexcept;
 
 #endif
@@ -175,43 +174,42 @@ extern template int large_builtin_compare_n<uint64_t>(const uint64_t *src0,
 template <typename T>
 WJR_ALL_NONNULL WJR_PURE int large_builtin_reverse_compare_n(const T *src0, const T *src1,
                                                              size_t n) noexcept {
-    #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_2(index)                                  \
-        do {                                                                             \
-            const auto x = sse::loadu(src0 + (index));                                   \
-            const auto y = sse::loadu(src1 + (index));                                   \
-            const auto r = sse::cmpeq_epi64(x, y);                                       \
-                                                                                         \
-            const sse::mask_type mask = ~sse::movemask_epi8(r);                          \
-            if (WJR_UNLIKELY(mask != 0)) {                                               \
-                if (mask == 0x00FF) {                                                    \
-                    return src0[index] < src1[index] ? -1 : 1;                           \
-                }                                                                        \
-                return src0[(index) + 1] < src1[(index) + 1] ? -1 : 1;                   \
-            }                                                                            \
+    #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_2(index)                                            \
+        do {                                                                                       \
+            const auto x = sse::loadu(src0 + (index));                                             \
+            const auto y = sse::loadu(src1 + (index));                                             \
+            const auto r = sse::cmpeq_epi64(x, y);                                                 \
+                                                                                                   \
+            const sse::mask_type mask = ~sse::movemask_epi8(r);                                    \
+            if (WJR_UNLIKELY(mask != 0)) {                                                         \
+                if (mask == 0x00FF) {                                                              \
+                    return src0[index] < src1[index] ? -1 : 1;                                     \
+                }                                                                                  \
+                return src0[(index) + 1] < src1[(index) + 1] ? -1 : 1;                             \
+            }                                                                                      \
         } while (false)
 
     #if WJR_HAS_SIMD(AVX2)
-        #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_4(index)                              \
-            do {                                                                         \
-                const auto x = avx::loadu(src0 + (index));                               \
-                const auto y = avx::loadu(src1 + (index));                               \
-                const auto r = avx::cmpeq_epi64(x, y);                                   \
-                                                                                         \
-                const avx::mask_type mask = ~avx::movemask_epi8(r);                      \
-                if (WJR_UNLIKELY(mask != 0)) {                                           \
-                    const auto offset = clz(mask) / 8;                                   \
-                    return src0[(index) + 3 - offset] < src1[(index) + 3 - offset] ? -1  \
-                                                                                   : 1;  \
-                }                                                                        \
+        #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_4(index)                                        \
+            do {                                                                                   \
+                const auto x = avx::loadu(src0 + (index));                                         \
+                const auto y = avx::loadu(src1 + (index));                                         \
+                const auto r = avx::cmpeq_epi64(x, y);                                             \
+                                                                                                   \
+                const avx::mask_type mask = ~avx::movemask_epi8(r);                                \
+                if (WJR_UNLIKELY(mask != 0)) {                                                     \
+                    const auto offset = clz(mask) / 8;                                             \
+                    return src0[(index) + 3 - offset] < src1[(index) + 3 - offset] ? -1 : 1;       \
+                }                                                                                  \
             } while (false)
     #else
-        #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_4(index)                              \
-            WJR_REGISTER_REVERSE_COMPARE_NOT_N_2((index) + 2);                           \
+        #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_4(index)                                        \
+            WJR_REGISTER_REVERSE_COMPARE_NOT_N_2((index) + 2);                                     \
             WJR_REGISTER_REVERSE_COMPARE_NOT_N_2(index)
     #endif
 
-    #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_ADVANCE(index)                            \
-        src0 += index;                                                                   \
+    #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_ADVANCE(index)                                      \
+        src0 += index;                                                                             \
         src1 += index
 
     #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_RET(index) 0

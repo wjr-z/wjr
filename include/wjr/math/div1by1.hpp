@@ -32,8 +32,7 @@ template <typename T, branch type>
 WJR_CONST WJR_INTRINSIC_INLINE div1by1_uint_t<T> div1by1_uint_gen(T d) noexcept;
 
 template <typename T, branch type>
-WJR_CONST WJR_INTRINSIC_INLINE T div1by1_uint_do(T d,
-                                                 const div1by1_uint_t<T> &denom) noexcept;
+WJR_CONST WJR_INTRINSIC_INLINE T div1by1_uint_do(T d, const div1by1_uint_t<T> &denom) noexcept;
 
 template <typename T>
 WJR_INTRINSIC_INLINE T div1by1_div_half(T hi, T lo, T den, T &rem) noexcept {
@@ -46,8 +45,7 @@ WJR_INTRINSIC_INLINE T div1by1_div_half(T hi, T lo, T den, T &rem) noexcept {
 }
 
 template <>
-WJR_INTRINSIC_INLINE uint64_t div1by1_div_half<uint64_t>(uint64_t hi, uint64_t lo,
-                                                         uint64_t den,
+WJR_INTRINSIC_INLINE uint64_t div1by1_div_half<uint64_t>(uint64_t hi, uint64_t lo, uint64_t den,
                                                          uint64_t &rem) noexcept {
     return div128by64to64(rem, lo, hi, den);
 }
@@ -103,10 +101,10 @@ struct div1by1_shift_mask {
     static const uint8_t value = 0;
 };
 
-#define WJR_REGISTER_SHIFT_MASK(nd)                                                      \
-    template <>                                                                          \
-    struct div1by1_shift_mask<uint##nd##_t> {                                            \
-        static const uint8_t value = DIV1BY1_##nd##_SHIFT_MASK;                          \
+#define WJR_REGISTER_SHIFT_MASK(nd)                                                                \
+    template <>                                                                                    \
+    struct div1by1_shift_mask<uint##nd##_t> {                                                      \
+        static const uint8_t value = DIV1BY1_##nd##_SHIFT_MASK;                                    \
     }
 
 WJR_REGISTER_SHIFT_MASK(16);
@@ -122,8 +120,8 @@ WJR_CONST WJR_INTRINSIC_INLINE div1by1_uint_t<T> div1by1_uint_gen(T d) noexcept 
     } else {
         WJR_ASSERT(d != 1, "The divisor cannot be 1");
         const auto ret = div1by1_internal_uint_gen<type>(d);
-        return div1by1_uint_t<T>{
-            tmp.magic, static_cast<uint8_t>(tmp.more & div1by1_shift_mask<T>::value)};
+        return div1by1_uint_t<T>{tmp.magic,
+                                 static_cast<uint8_t>(tmp.more & div1by1_shift_mask<T>::value)};
     }
 }
 
@@ -154,8 +152,7 @@ div1by1_uint_branchfree_do_impl(T d, const div1by1_uint_t<T> &denom) noexcept {
 }
 
 template <typename T, branch type>
-WJR_CONST WJR_INTRINSIC_INLINE T
-div1by1_uint_do(T d, const div1by1_uint_t<T> &denom) noexcept {
+WJR_CONST WJR_INTRINSIC_INLINE T div1by1_uint_do(T d, const div1by1_uint_t<T> &denom) noexcept {
     if constexpr (type == branch::full) {
         return div1by1_uint_branchfull_do_impl(d, denom);
     } else {
@@ -171,9 +168,7 @@ private:
 public:
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(div1by1_divider);
 
-    WJR_INTRINSIC_INLINE div1by1_divider(T d) {
-        div = div1by1_uint_gen<T, branchfree>(d);
-    }
+    WJR_INTRINSIC_INLINE div1by1_divider(T d) { div = div1by1_uint_gen<T, branchfree>(d); }
 
     WJR_INTRINSIC_INLINE T divide(T n) const { return div1by1_uint_do(n, div); }
 

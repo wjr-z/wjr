@@ -22,8 +22,7 @@ struct __is_trivially_allocator_impl : std::false_type {};
 
 /// @private
 template <typename Alloc>
-struct __is_trivially_allocator_impl<
-    Alloc, std::enable_if_t<has_is_trivially_allocator_v<Alloc>>>
+struct __is_trivially_allocator_impl<Alloc, std::enable_if_t<has_is_trivially_allocator_v<Alloc>>>
     : Alloc::is_trivially_allocator {};
 
 /**
@@ -51,8 +50,8 @@ struct __is_trivially_allocator_construct_impl : std::false_type {};
 /// @private
 template <typename Alloc, typename Obj, typename... Args>
 struct __is_trivially_allocator_construct_impl<
-    std::enable_if_t<!has_is_non_trivially_allocator_construct_v<Alloc, Obj, Args...>>,
-    Alloc, Obj, Args...> : std::true_type {};
+    std::enable_if_t<!has_is_non_trivially_allocator_construct_v<Alloc, Obj, Args...>>, Alloc, Obj,
+    Args...> : std::true_type {};
 
 template <typename Alloc, typename Obj, typename... Args>
 struct is_trivially_allocator_construct

@@ -4,8 +4,7 @@ namespace wjr {
 
 #if WJR_HAS_BUILTIN(ASM_MUL_1) == 1
 
-uint64_t __wjr_asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                         uint64_t rdx) noexcept {
+uint64_t __wjr_asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t rdx) noexcept {
     size_t rcx = n / 8;
     uint64_t r8, r9, r10 = n, r11;
 
@@ -137,8 +136,8 @@ uint64_t __wjr_asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n,
         ".Ldone%=:\n\t"
         "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
 
-        : [dst] "+&r"(dst), [src] "+&r"(src), [rcx] "+&c"(rcx), [r8] "=&r"(r8),
-          [r9] "=&r"(r9), [r10] "+&r"(r10), [r11] "=&r"(r11)
+        : [dst] "+&r"(dst), [src] "+&r"(src), [rcx] "+&c"(rcx), [r8] "=&r"(r8), [r9] "=&r"(r9),
+          [r10] "+&r"(r10), [r11] "=&r"(r11)
         : "d"(rdx)
         : "cc", "memory");
 
@@ -149,8 +148,7 @@ uint64_t __wjr_asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n,
 
 #if WJR_HAS_BUILTIN(ASM_ADDMUL_1) == 1
 
-uint64_t __wjr_asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                            uint64_t rdx) noexcept {
+uint64_t __wjr_asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t rdx) noexcept {
     size_t rcx = n / 8;
     uint64_t r8, r9, r10 = n, r11;
 
@@ -292,8 +290,8 @@ uint64_t __wjr_asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
 
         ".Ldone%=:"
 
-        : [dst] "+&r"(dst), [src] "+&r"(src), [rcx] "+&c"(rcx), [r8] "=&r"(r8),
-          [r9] "=&r"(r9), [r10] "+&r"(r10), [r11] "=&r"(r11)
+        : [dst] "+&r"(dst), [src] "+&r"(src), [rcx] "+&c"(rcx), [r8] "=&r"(r8), [r9] "=&r"(r9),
+          [r10] "+&r"(r10), [r11] "=&r"(r11)
         : "d"(rdx)
         : "cc", "memory");
 
@@ -304,8 +302,7 @@ uint64_t __wjr_asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
 
 #if WJR_HAS_BUILTIN(ASM_SUBMUL_1) == 1
 
-uint64_t __wjr_asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                            uint64_t rdx) noexcept {
+uint64_t __wjr_asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t rdx) noexcept {
     size_t rcx = n / 8;
     uint64_t r8, r9, r10 = static_cast<uint32_t>(n), r11;
 
@@ -459,8 +456,8 @@ uint64_t __wjr_asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
 
         ".Ldone%=:"
 
-        : [dst] "+&r"(dst), [src] "+&r"(src), [rcx] "+&c"(rcx), [r8] "=&r"(r8),
-          [r9] "=&r"(r9), [r10] "+&r"(r10), [r11] "=&r"(r11)
+        : [dst] "+&r"(dst), [src] "+&r"(src), [rcx] "+&c"(rcx), [r8] "=&r"(r8), [r9] "=&r"(r9),
+          [r10] "+&r"(r10), [r11] "=&r"(r11)
         : "d"(rdx)
         : "cc", "memory");
 
@@ -516,8 +513,7 @@ void __wjr_asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t r
                 "mov{q %[r10], 8(%[dst])| [%[dst] + 8], %[r10]}\n\t"
                 "mov{q %[r11], 16(%[dst])| [%[dst] + 16], %[r11]}\n\t"
                 : [r10] "+&r"(r10), [r11] "+&r"(r11)
-                : [r8] "r"(r8), [r9] "r"(r9), [dst] "r"(dst), [src0] "r"(src0),
-                  [src1] "r"(src1)
+                : [r8] "r"(r8), [r9] "r"(r9), [dst] "r"(dst), [src0] "r"(src0), [src1] "r"(src1)
                 : "cc", "memory");
 
             return;
@@ -538,8 +534,8 @@ void __wjr_asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t r
             "mov{q %[r8], 8(%[dst])| [%[dst] + 8], %[r8]}\n\t"
             "mov{q %[rax], 16(%[dst])| [%[dst] + 16], %[rax]}\n\t"
             "mov{q %[rdx], 24(%[dst])| [%[dst] + 24], %[rdx]}\n\t"
-            : [r8] "+&r"(r8), [r9] "+&r"(r9), [r10] "+&r"(r10), [r11] "+&r"(r11),
-              [rdx] "=&d"(rdx), [rax] "=&r"(rax)
+            : [r8] "+&r"(r8), [r9] "+&r"(r9), [r10] "+&r"(r10), [r11] "+&r"(r11), [rdx] "=&d"(rdx),
+              [rax] "=&r"(rax)
             : [dst] "r"(dst), [src0] "r"(src0), [src1] "r"(src1)
             : "cc", "memory");
 
@@ -821,9 +817,9 @@ void __wjr_asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t r
 
         ".LDone%=:"
 
-        : [dst] "+r"(dst), [src0] "+r"(src0), [src1] "+r"(src1), [m] "+r"(m),
-          [rdx] "+d"(rdx), [rcx] "=c"(rcx), [r8] "=r"(r8), [r9] "=r"(r9), [r10] "=r"(r10),
-          [r11] "=r"(r11), [rax] "=r"(rax), [adj] "=r"(adj), [rbp] "=r"(rbp)
+        : [dst] "+r"(dst), [src0] "+r"(src0), [src1] "+r"(src1), [m] "+r"(m), [rdx] "+d"(rdx),
+          [rcx] "=c"(rcx), [r8] "=r"(r8), [r9] "=r"(r9), [r10] "=r"(r10), [r11] "=r"(r11),
+          [rax] "=r"(rax), [adj] "=r"(adj), [rbp] "=r"(rbp)
         :
         : "cc", "memory");
 }
@@ -833,8 +829,7 @@ void __wjr_asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t r
 #if WJR_HAS_BUILTIN(ASM_BASECASE_SQR) == 1
 
 // Local testing is slower than GMP by 2% to 3%
-void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
-                                 size_t rdx) noexcept {
+void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx) noexcept {
     uint64_t r8, r9, r10, r11;
     uint64_t rax, rcx;
 
@@ -867,8 +862,8 @@ void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
             "mov{q %[r9], 8(%[dst])| [%[dst] + 8], %[r9]}\n\t"
             "mov{q %[rax], 16(%[dst])| [%[dst] + 16], %[rax]}\n\t"
             "mov{q %[rdx], 24(%[dst])| [%[dst] + 24], %[rdx]}\n\t"
-            : [r8] "=&r"(r8), [r9] "=&r"(r9), [r10] "=&r"(r10), [r11] "=&r"(r11),
-              [rax] "=&r"(rax), [rdx] "+&d"(rdx), [rcx] "=&r"(rcx)
+            : [r8] "=&r"(r8), [r9] "=&r"(r9), [r10] "=&r"(r10), [r11] "=&r"(r11), [rax] "=&r"(rax),
+              [rdx] "+&d"(rdx), [rcx] "=&r"(rcx)
             : [dst] "r"(dst), [src] "r"(src)
             : "cc", "memory");
 
@@ -1854,9 +1849,9 @@ void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
         "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
         "mov{q %[r9], 8(%[dst])| [%[dst] + 8], %[r9]}"
 
-        : [dst] "+r"(dst), [src] "+r"(src), [rcx] "=c"(rcx), [rdx] "+d"(rdx),
-          [r8] "=r"(r8), [r9] "=r"(r9), [r10] "=r"(r10), [r11] "=r"(r11), [rax] "=r"(rax),
-          [rbp] "=r"(rbp), [adj] "=r"(adj)
+        : [dst] "+r"(dst), [src] "+r"(src), [rcx] "=c"(rcx), [rdx] "+d"(rdx), [r8] "=r"(r8),
+          [r9] "=r"(r9), [r10] "=r"(r10), [r11] "=r"(r11), [rax] "=r"(rax), [rbp] "=r"(rbp),
+          [adj] "=r"(adj)
         :
         : "cc", "memory");
 }

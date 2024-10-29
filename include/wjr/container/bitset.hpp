@@ -66,8 +66,8 @@ public:
         return tmp += n;
     }
 
-    friend constexpr bitset_const_iterator
-    operator+(difference_type n, const bitset_const_iterator &rhs) noexcept {
+    friend constexpr bitset_const_iterator operator+(difference_type n,
+                                                     const bitset_const_iterator &rhs) noexcept {
         return rhs + n;
     }
 
@@ -85,9 +85,7 @@ public:
         return m_pos - rhs.m_pos;
     }
 
-    constexpr reference operator[](difference_type n) const noexcept {
-        return *(*this + n);
-    }
+    constexpr reference operator[](difference_type n) const noexcept { return *(*this + n); }
 
     constexpr bool operator==(const bitset_const_iterator &rhs) const noexcept {
         return m_pos == rhs.m_pos;
@@ -188,9 +186,7 @@ public:
         return tmp -= n;
     }
 
-    constexpr reference operator[](difference_type n) const noexcept {
-        return *(*this + n);
-    }
+    constexpr reference operator[](difference_type n) const noexcept { return *(*this + n); }
 };
 
 template <size_t N>
@@ -233,8 +229,7 @@ public:
 
     template <typename Char, typename Traits>
     constexpr explicit bitset(std::basic_string_view<Char, Traits> str, size_t pos = 0,
-                              size_t n = size_t(-1), Char zero = Char('0'),
-                              Char one = Char('1')) {
+                              size_t n = size_t(-1), Char zero = Char('0'), Char one = Char('1')) {
         str = str.substr(pos, n);
         auto count = std::min<size_t>(N, str.size());
         WJR_ASSUME(count <= N);

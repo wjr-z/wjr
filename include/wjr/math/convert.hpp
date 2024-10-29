@@ -10,17 +10,14 @@
 namespace wjr {
 
 inline constexpr size_t dc_bignum_to_chars_threshold = WJR_DC_BIGNUM_TO_CHARS_THRESHOLD;
-inline constexpr size_t dc_bignum_to_chars_precompute_threshold =
-    WJR_DC_BIGNUM_TO_CHARS_THRESHOLD;
+inline constexpr size_t dc_bignum_to_chars_precompute_threshold = WJR_DC_BIGNUM_TO_CHARS_THRESHOLD;
 
-inline constexpr size_t dc_bignum_from_chars_threshold =
-    WJR_DC_BIGNUM_FROM_CHARS_THRESHOLD;
+inline constexpr size_t dc_bignum_from_chars_threshold = WJR_DC_BIGNUM_FROM_CHARS_THRESHOLD;
 inline constexpr size_t dc_bignum_from_chars_precompute_threshold =
     WJR_DC_BIGNUM_FROM_CHARS_PRECOMPUTE_THRESHOLD;
 
 inline constexpr auto div2by1_divider_noshift_of_big_base_10 =
-    div2by1_divider_noshift<uint64_t>(10'000'000'000'000'000'000ull,
-                                      15'581'492'618'384'294'730ull);
+    div2by1_divider_noshift<uint64_t>(10'000'000'000'000'000'000ull, 15'581'492'618'384'294'730ull);
 
 inline constexpr auto div3by2_divider_shift_of_big_base_10 = div3by2_divider<uint64_t>(
     1374799102801346560ull, 10842021724855044340ull, 12'938'764'603'223'852'203ull, 1);
@@ -224,10 +221,8 @@ size_t __biginteger_to_chars_16_impl(uint8_t *first, const uint64_t *up, size_t 
 }
 
 template <typename Converter>
-WJR_ALL_NONNULL size_t __biginteger_to_chars_power_of_two_impl(uint8_t *first,
-                                                               const uint64_t *up,
-                                                               size_t n,
-                                                               unsigned int base,
+WJR_ALL_NONNULL size_t __biginteger_to_chars_power_of_two_impl(uint8_t *first, const uint64_t *up,
+                                                               size_t n, unsigned int base,
                                                                Converter conv) noexcept {
     WJR_ASSERT_L2(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
@@ -298,9 +293,10 @@ DONE:
     return len;
 }
 
-extern template size_t __biginteger_to_chars_power_of_two_impl<char_converter_t>(
-    uint8_t *first, const uint64_t *up, size_t n, unsigned int base,
-    char_converter_t conv) noexcept;
+extern template size_t
+__biginteger_to_chars_power_of_two_impl<char_converter_t>(uint8_t *first, const uint64_t *up,
+                                                          size_t n, unsigned int base,
+                                                          char_converter_t conv) noexcept;
 
 template <typename Converter>
 WJR_ALL_NONNULL WJR_RETURNS_NONNULL uint8_t *
@@ -318,8 +314,7 @@ basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n, Converter conv) noexc
             }
 
             uint64_t lo, hi;
-            hi = div128by64to64_noshift(lo, rem[0], rem[1],
-                                        div2by1_divider_noshift_of_big_base_10);
+            hi = div128by64to64_noshift(lo, rem[0], rem[1], div2by1_divider_noshift_of_big_base_10);
 
             __to_chars_unroll_8<10>(buf - 8, lo % 1'0000'0000, conv);
             lo /= 1'0000'0000;
@@ -373,8 +368,8 @@ basecase_to_chars_10<char_converter_t>(uint8_t *buf, uint64_t *up, size_t n,
                                        char_converter_t conv) noexcept;
 
 template <typename Converter>
-uint8_t *basecase_to_chars(uint8_t *first, size_t len, uint64_t *up, size_t n,
-                           unsigned int base, Converter conv) noexcept {
+uint8_t *basecase_to_chars(uint8_t *first, size_t len, uint64_t *up, size_t n, unsigned int base,
+                           Converter conv) noexcept {
     constexpr size_t buf_len = dc_bignum_to_chars_precompute_threshold * 64 * 7 / 11;
     uint8_t buf[buf_len];
     uint8_t *const end = buf + buf_len;
@@ -395,8 +390,7 @@ uint8_t *basecase_to_chars(uint8_t *first, size_t len, uint64_t *up, size_t n,
 
 template <typename Converter>
 uint8_t *dc_to_chars(uint8_t *first, size_t len, uint64_t *up, size_t n,
-                     precompute_chars_convert_t *pre, uint64_t *stk,
-                     Converter conv) noexcept {
+                     precompute_chars_convert_t *pre, uint64_t *stk, Converter conv) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     if (n < dc_bignum_to_chars_threshold) {
         return basecase_to_chars(first, len, up, n, pre->base, conv);
@@ -433,8 +427,8 @@ uint8_t *dc_to_chars(uint8_t *first, size_t len, uint64_t *up, size_t n,
 
 template <typename Converter>
 WJR_ALL_NONNULL WJR_RETURNS_NONNULL uint8_t *
-__biginteger_basecase_to_chars(uint8_t *first, const uint64_t *up, size_t n,
-                               unsigned int base, Converter conv) noexcept {
+__biginteger_basecase_to_chars(uint8_t *first, const uint64_t *up, size_t n, unsigned int base,
+                               Converter conv) noexcept {
     if (WJR_LIKELY(n < dc_bignum_to_chars_precompute_threshold)) {
         uint64_t upbuf[dc_bignum_to_chars_precompute_threshold];
         std::copy_n(up, n, upbuf);
@@ -444,8 +438,7 @@ __biginteger_basecase_to_chars(uint8_t *first, const uint64_t *up, size_t n,
     precompute_chars_convert_t pre[64 - 3];
 
     unique_stack_allocator stkal;
-    auto *stk =
-        static_cast<uint64_t *>(stkal.allocate((n * 18 / 5 + 192) * sizeof(uint64_t)));
+    auto *stk = static_cast<uint64_t *>(stkal.allocate((n * 18 / 5 + 192) * sizeof(uint64_t)));
     auto *const __up = stk;
     std::copy_n(up, n, __up);
     stk += n;
@@ -455,14 +448,12 @@ __biginteger_basecase_to_chars(uint8_t *first, const uint64_t *up, size_t n,
 }
 
 extern template uint8_t *
-__biginteger_basecase_to_chars<char_converter_t>(uint8_t *first, const uint64_t *up,
-                                                 size_t n, unsigned int base,
-                                                 char_converter_t conv) noexcept;
+__biginteger_basecase_to_chars<char_converter_t>(uint8_t *first, const uint64_t *up, size_t n,
+                                                 unsigned int base, char_converter_t conv) noexcept;
 
 template <typename Converter>
-uint8_t *__fast_biginteger_large_to_chars_impl(uint8_t *first, const uint64_t *up,
-                                               size_t n, unsigned int base,
-                                               Converter conv) noexcept {
+uint8_t *__fast_biginteger_large_to_chars_impl(uint8_t *first, const uint64_t *up, size_t n,
+                                               unsigned int base, Converter conv) noexcept {
     switch (base) {
     case 2: {
         return first + __biginteger_to_chars_2_impl(first, up, n, conv);
@@ -487,61 +478,55 @@ uint8_t *__fast_biginteger_large_to_chars_impl(uint8_t *first, const uint64_t *u
 
 template <typename Iter, typename Converter>
 Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, size_t n,
-                                               unsigned int base,
-                                               Converter conv) noexcept {
-#define WJR_BIGINTEGER_TO_CHARS_IMPL(BASE, NAME, TAIL, SIZE, CALL)                       \
-    constexpr auto __fast_container_inserter_v =                                         \
-        charconv_detail::is_fast_container_inserter_v<Iter>;                             \
-    if constexpr (__fast_container_inserter_v != 0) {                                    \
-        auto &cont = get_inserter_container(ptr);                                        \
-        const auto __presize = cont.size();                                              \
-        if constexpr (__fast_container_inserter_v == 1) {                                \
-            resize(cont, __presize + SIZE);                                              \
-        } else {                                                                         \
-            append(cont, SIZE, default_construct);                                       \
-        }                                                                                \
-        auto *const __ptr =                                                              \
-            reinterpret_cast<uint8_t *>(wjr::to_address(cont.data())) + __presize;       \
-        const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;           \
-        WJR_ASSERT((size_t)__size <= SIZE);                                              \
-        if constexpr (__fast_container_inserter_v == 1) {                                \
-            resize(cont, __presize + __size);                                            \
-        } else {                                                                         \
-            resize(cont, __presize + __size, default_construct);                         \
-        }                                                                                \
-                                                                                         \
-        return ptr;                                                                      \
-    } else {                                                                             \
-        unique_stack_allocator stkal;                                                    \
-        auto *const __ptr =                                                              \
-            static_cast<uint8_t *>(stkal.allocate(SIZE * sizeof(uint64_t)));             \
-        const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;           \
-                                                                                         \
-        return wjr::copy_n((charconv_detail::fast_buffer_t<Iter> *)__ptr, __size, ptr);  \
+                                               unsigned int base, Converter conv) noexcept {
+#define WJR_BIGINTEGER_TO_CHARS_IMPL(BASE, NAME, TAIL, SIZE, CALL)                                 \
+    constexpr auto __fast_container_inserter_v =                                                   \
+        charconv_detail::is_fast_container_inserter_v<Iter>;                                       \
+    if constexpr (__fast_container_inserter_v != 0) {                                              \
+        auto &cont = get_inserter_container(ptr);                                                  \
+        const auto __presize = cont.size();                                                        \
+        if constexpr (__fast_container_inserter_v == 1) {                                          \
+            resize(cont, __presize + SIZE);                                                        \
+        } else {                                                                                   \
+            append(cont, SIZE, default_construct);                                                 \
+        }                                                                                          \
+        auto *const __ptr = reinterpret_cast<uint8_t *>(wjr::to_address(cont.data())) + __presize; \
+        const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;                     \
+        WJR_ASSERT((size_t)__size <= SIZE);                                                        \
+        if constexpr (__fast_container_inserter_v == 1) {                                          \
+            resize(cont, __presize + __size);                                                      \
+        } else {                                                                                   \
+            resize(cont, __presize + __size, default_construct);                                   \
+        }                                                                                          \
+                                                                                                   \
+        return ptr;                                                                                \
+    } else {                                                                                       \
+        unique_stack_allocator stkal;                                                              \
+        auto *const __ptr = static_cast<uint8_t *>(stkal.allocate(SIZE * sizeof(uint64_t)));       \
+        const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;                     \
+                                                                                                   \
+        return wjr::copy_n((charconv_detail::fast_buffer_t<Iter> *)__ptr, __size, ptr);            \
     }
 
     switch (base) {
     case 2: {
         const size_t capacity = 64 * n;
-        WJR_BIGINTEGER_TO_CHARS_IMPL(2, __biginteger_to_chars_2_impl, , capacity,
-                                     (up, n));
+        WJR_BIGINTEGER_TO_CHARS_IMPL(2, __biginteger_to_chars_2_impl, , capacity, (up, n));
     }
     case 8: {
         const size_t capacity = (64 * n + 2) / 3;
-        WJR_BIGINTEGER_TO_CHARS_IMPL(8, __biginteger_to_chars_8_impl, , capacity,
-                                     (up, n));
+        WJR_BIGINTEGER_TO_CHARS_IMPL(8, __biginteger_to_chars_8_impl, , capacity, (up, n));
     }
     case 16: {
         const size_t capacity = (64 * n + 3) / 4;
-        WJR_BIGINTEGER_TO_CHARS_IMPL(16, __biginteger_to_chars_16_impl, , capacity,
-                                     (up, n));
+        WJR_BIGINTEGER_TO_CHARS_IMPL(16, __biginteger_to_chars_16_impl, , capacity, (up, n));
     }
     case 4:
     case 32: {
         const int bits = base == 4 ? 2 : 5;
         const size_t capacity = (64 * n + bits - 1) / bits;
-        WJR_BIGINTEGER_TO_CHARS_IMPL(base, __biginteger_to_chars_power_of_two_impl, ,
-                                     capacity, (up, n, base));
+        WJR_BIGINTEGER_TO_CHARS_IMPL(base, __biginteger_to_chars_power_of_two_impl, , capacity,
+                                     (up, n, base));
     }
     default: {
         break;
@@ -556,16 +541,15 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
 }
 
 template <typename Iter, typename Converter>
-Iter __biginteger_to_chars_impl(Iter first, const uint64_t *up, size_t n,
-                                unsigned int base, Converter conv) noexcept {
+Iter __biginteger_to_chars_impl(Iter first, const uint64_t *up, size_t n, unsigned int base,
+                                Converter conv) noexcept {
     if (WJR_UNLIKELY(n == 1)) {
         return to_chars_unchecked(first, up[0], base, conv);
     }
 
     if constexpr (charconv_detail::__is_fast_convert_iterator_v<Iter>) {
         auto *const __first = reinterpret_cast<uint8_t *>(wjr::to_address(first));
-        const auto __result =
-            __fast_biginteger_large_to_chars_impl(__first, up, n, base, conv);
+        const auto __result = __fast_biginteger_large_to_chars_impl(__first, up, n, base, conv);
         return first + std::distance(__first, __result);
     } else {
         return __fallback_biginteger_large_to_chars_impl(first, up, n, base, conv);
@@ -761,8 +745,8 @@ size_t __biginteger_from_chars_16_impl(const uint8_t *first, size_t n, uint64_t 
 }
 
 template <typename Converter>
-WJR_ALL_NONNULL size_t basecase_from_chars_10(const uint8_t *first, size_t n,
-                                              uint64_t *up, Converter conv) noexcept {
+WJR_ALL_NONNULL size_t basecase_from_chars_10(const uint8_t *first, size_t n, uint64_t *up,
+                                              Converter conv) noexcept {
     uint64_t x = 0;
 
     if (n <= 19) {
@@ -815,8 +799,8 @@ extern template WJR_ALL_NONNULL size_t basecase_from_chars_10<char_converter_t>(
     const uint8_t *first, size_t n, uint64_t *up, char_converter_t conv) noexcept;
 
 template <typename Converter>
-size_t basecase_from_chars(const uint8_t *first, size_t n, uint64_t *up,
-                           unsigned int base, Converter conv) noexcept {
+size_t basecase_from_chars(const uint8_t *first, size_t n, uint64_t *up, unsigned int base,
+                           Converter conv) noexcept {
     if (base == 10) {
         return basecase_from_chars_10(first, n, up, conv);
     } else {
@@ -825,9 +809,8 @@ size_t basecase_from_chars(const uint8_t *first, size_t n, uint64_t *up,
 }
 
 template <typename Converter>
-size_t dc_from_chars(const uint8_t *first, size_t n, uint64_t *up,
-                     precompute_chars_convert_t *pre, uint64_t *stk,
-                     Converter conv) noexcept {
+size_t dc_from_chars(const uint8_t *first, size_t n, uint64_t *up, precompute_chars_convert_t *pre,
+                     uint64_t *stk, Converter conv) noexcept {
     const size_t lo = pre->digits_in_base;
     if (n <= lo) {
         if (n < dc_bignum_from_chars_threshold) {
@@ -898,8 +881,7 @@ uint64_t *__basecase_basecase_from_chars(const uint8_t *first, size_t n, uint64_
 
     unique_stack_allocator stkal;
     const size_t un = n / per_digits + 1;
-    auto *stk =
-        static_cast<uint64_t *>(stkal.allocate((un * 16 / 5 + 192) * sizeof(uint64_t)));
+    auto *stk = static_cast<uint64_t *>(stkal.allocate((un * 16 / 5 + 192) * sizeof(uint64_t)));
     auto *const first_pre = precompute_chars_convert(pre, un, base, stk);
     stk += un * 8 / 5 + 128;
     return up + dc_from_chars(first, n, up, first_pre, stk, conv);
@@ -934,9 +916,8 @@ __biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last, uint64_t
 }
 
 extern template uint64_t *
-__basecase_basecase_from_chars<char_converter_t>(const uint8_t *first, size_t n,
-                                                 uint64_t *up, unsigned int base,
-                                                 char_converter_t) noexcept;
+__basecase_basecase_from_chars<char_converter_t>(const uint8_t *first, size_t n, uint64_t *up,
+                                                 unsigned int base, char_converter_t) noexcept;
 
 /**
  * @brief Convert a string to a biginteger by a given base.
@@ -951,8 +932,8 @@ __basecase_basecase_from_chars<char_converter_t>(const uint8_t *first, size_t n,
  */
 template <typename Iter, typename Converter = char_converter_t,
           WJR_REQUIRES(charconv_detail::__is_fast_convert_iterator_v<Iter>)>
-uint64_t *biginteger_from_chars(Iter first, Iter last, uint64_t *up,
-                                unsigned int base = 10, Converter conv = {}) noexcept {
+uint64_t *biginteger_from_chars(Iter first, Iter last, uint64_t *up, unsigned int base = 10,
+                                Converter conv = {}) noexcept {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
 
     const auto *const __first = reinterpret_cast<const uint8_t *>(wjr::to_address(first));

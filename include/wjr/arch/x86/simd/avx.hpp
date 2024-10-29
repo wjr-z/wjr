@@ -80,42 +80,38 @@ struct avx {
     WJR_INTRINSIC_INLINE static __m256i loadu_si16x(const void *ptr, int n) noexcept;
 
     WJR_INTRINSIC_INLINE static __m256i
-    set_epi8(char e31, char e30, char e29, char e28, char e27, char e26, char e25,
-             char e24, char e23, char e22, char e21, char e20, char e19, char e18,
-             char e17, char e16, char e15, char e14, char e13, char e12, char e11,
-             char e10, char e9, char e8, char e7, char e6, char e5, char e4, char e3,
-             char e2, char e1, char e0) noexcept;
+    set_epi8(char e31, char e30, char e29, char e28, char e27, char e26, char e25, char e24,
+             char e23, char e22, char e21, char e20, char e19, char e18, char e17, char e16,
+             char e15, char e14, char e13, char e12, char e11, char e10, char e9, char e8, char e7,
+             char e6, char e5, char e4, char e3, char e2, char e1, char e0) noexcept;
 
-    WJR_INTRINSIC_INLINE static __m256i set_epi16(short e15, short e14, short e13,
-                                                  short e12, short e11, short e10,
-                                                  short e9, short e8, short e7, short e6,
-                                                  short e5, short e4, short e3, short e2,
-                                                  short e1, short e0) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i set_epi16(short e15, short e14, short e13, short e12,
+                                                  short e11, short e10, short e9, short e8,
+                                                  short e7, short e6, short e5, short e4, short e3,
+                                                  short e2, short e1, short e0) noexcept;
 
-    WJR_INTRINSIC_INLINE static __m256i set_epi32(int e7, int e6, int e5, int e4, int e3,
-                                                  int e2, int e1, int e0) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i set_epi32(int e7, int e6, int e5, int e4, int e3, int e2,
+                                                  int e1, int e0) noexcept;
 
-    WJR_INTRINSIC_INLINE static __m256i set_epi64x(long long e3, long long e2,
-                                                   long long e1, long long e0) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i set_epi64x(long long e3, long long e2, long long e1,
+                                                   long long e0) noexcept;
 
     WJR_INTRINSIC_INLINE static __m256i
-    setr_epi8(char e31, char e30, char e29, char e28, char e27, char e26, char e25,
-              char e24, char e23, char e22, char e21, char e20, char e19, char e18,
-              char e17, char e16, char e15, char e14, char e13, char e12, char e11,
-              char e10, char e9, char e8, char e7, char e6, char e5, char e4, char e3,
-              char e2, char e1, char e0) noexcept;
+    setr_epi8(char e31, char e30, char e29, char e28, char e27, char e26, char e25, char e24,
+              char e23, char e22, char e21, char e20, char e19, char e18, char e17, char e16,
+              char e15, char e14, char e13, char e12, char e11, char e10, char e9, char e8, char e7,
+              char e6, char e5, char e4, char e3, char e2, char e1, char e0) noexcept;
 
-    WJR_INTRINSIC_INLINE static __m256i setr_epi16(short e15, short e14, short e13,
-                                                   short e12, short e11, short e10,
-                                                   short e9, short e8, short e7, short e6,
-                                                   short e5, short e4, short e3, short e2,
-                                                   short e1, short e0) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i setr_epi16(short e15, short e14, short e13, short e12,
+                                                   short e11, short e10, short e9, short e8,
+                                                   short e7, short e6, short e5, short e4, short e3,
+                                                   short e2, short e1, short e0) noexcept;
 
-    WJR_INTRINSIC_INLINE static __m256i setr_epi32(int e7, int e6, int e5, int e4, int e3,
-                                                   int e2, int e1, int e0) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i setr_epi32(int e7, int e6, int e5, int e4, int e3, int e2,
+                                                   int e1, int e0) noexcept;
 
-    WJR_INTRINSIC_INLINE static __m256i setr_epi64x(long long e3, long long e2,
-                                                    long long e1, long long e0) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i setr_epi64x(long long e3, long long e2, long long e1,
+                                                    long long e0) noexcept;
 
     WJR_INTRINSIC_INLINE static __m256i set1_epi8(int8_t a) noexcept;
     WJR_INTRINSIC_INLINE static __m256i set1_epi16(int16_t a) noexcept;
@@ -236,25 +232,16 @@ struct avx {
     template <int imm8>
     WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b) noexcept;
 
-    WJR_INTRINSIC_INLINE static __m256i alignr_epi16(__m256i a, __m256i b,
-                                                     int c) noexcept;
-    WJR_INTRINSIC_INLINE static __m256i alignr_epi32(__m256i a, __m256i b,
-                                                     int c) noexcept;
-    WJR_INTRINSIC_INLINE static __m256i alignr_epi64(__m256i a, __m256i b,
-                                                     int c) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i alignr_epi16(__m256i a, __m256i b, int c) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i alignr_epi32(__m256i a, __m256i b, int c) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i alignr_epi64(__m256i a, __m256i b, int c) noexcept;
 
-    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c,
-                                               int16_t) noexcept;
-    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c,
-                                               int32_t) noexcept;
-    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c,
-                                               int64_t) noexcept;
-    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c,
-                                               uint16_t) noexcept;
-    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c,
-                                               uint32_t) noexcept;
-    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c,
-                                               uint64_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, int16_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, int32_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, int64_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, uint16_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, uint32_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, uint64_t) noexcept;
 
     WJR_INTRINSIC_INLINE static __m256i avg_epu8(__m256i a, __m256i b) noexcept;
     WJR_INTRINSIC_INLINE static __m256i avg_epu16(__m256i a, __m256i b) noexcept;
@@ -269,8 +256,7 @@ struct avx {
     template <int imm8>
     WJR_INTRINSIC_INLINE static __m256i blend_epi32(__m256i a, __m256i b) noexcept;
 
-    WJR_INTRINSIC_INLINE static __m256i blendv_epi8(__m256i a, __m256i b,
-                                                    __m256i mask) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i blendv_epi8(__m256i a, __m256i b, __m256i mask) noexcept;
 
     template <int imm8>
     WJR_INTRINSIC_INLINE static __m256i bslli_epi128(__m256i a) noexcept;
@@ -368,23 +354,17 @@ struct avx {
     WJR_INTRINSIC_INLINE static __m256i cmpne(__m256i a, __m256i b, uint32_t) noexcept;
 
     template <typename T>
-    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::equal_to<>,
-                                            T) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::equal_to<>, T) noexcept;
     template <typename T>
-    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::not_equal_to<>,
-                                            T) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::not_equal_to<>, T) noexcept;
     template <typename T>
-    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::greater<>,
-                                            T) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::greater<>, T) noexcept;
     template <typename T>
-    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::greater_equal<>,
-                                            T) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::greater_equal<>, T) noexcept;
     template <typename T>
-    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::less<>,
-                                            T) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::less<>, T) noexcept;
     template <typename T>
-    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::less_equal<>,
-                                            T) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i cmp(__m256i a, __m256i b, std::less_equal<>, T) noexcept;
 
     template <int imm8>
     WJR_INTRINSIC_INLINE static int extract_epi8(__m256i v) noexcept;
@@ -412,19 +392,16 @@ struct avx {
 
     WJR_INTRINSIC_INLINE static __m256i hsubs_epi16(__m256i a, __m256i b) noexcept;
 
-    template <typename T,
-              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                       uint16_t, uint32_t, uint64_t>)>
+    template <typename T, WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                                   uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m256i logical_and(__m256i a, __m256i b, T) noexcept;
 
-    template <typename T,
-              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                       uint16_t, uint32_t, uint64_t>)>
+    template <typename T, WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                                   uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m256i logical_not(__m256i v, T) noexcept;
 
-    template <typename T,
-              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                       uint16_t, uint32_t, uint64_t>)>
+    template <typename T, WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                                   uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m256i logical_or(__m256i a, __m256i b, T) noexcept;
 
     WJR_INTRINSIC_INLINE static __m256i madd_epi16(__m256i a, __m256i b) noexcept;
@@ -690,9 +667,7 @@ struct broadcast_fn<uint64_t, __m256i_t> {
 
 template <>
 struct broadcast_fn<__m256i_t, __m256i_t> {
-    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(__m256i v) const noexcept {
-        return v;
-    }
+    WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(__m256i v) const noexcept { return v; }
 };
 
 template <>
@@ -824,37 +799,30 @@ __m256i avx::loadu_si128(const void *ptr) noexcept {
 }
 
 __m256i avx::loadu_si144(const void *ptr) noexcept {
-    return concat(sse::loadu_si128(ptr),
-                  sse::loadu_si16(static_cast<const char *>(ptr) + 16));
+    return concat(sse::loadu_si128(ptr), sse::loadu_si16(static_cast<const char *>(ptr) + 16));
 }
 
 __m256i avx::loadu_si160(const void *ptr) noexcept {
-    return concat(sse::loadu_si128(ptr),
-                  sse::loadu_si32(static_cast<const char *>(ptr) + 16));
+    return concat(sse::loadu_si128(ptr), sse::loadu_si32(static_cast<const char *>(ptr) + 16));
 }
 
 __m256i avx::loadu_si176(const void *ptr) noexcept {
-    return concat(sse::loadu_si128(ptr),
-                  sse::loadu_si48(static_cast<const char *>(ptr) + 16));
+    return concat(sse::loadu_si128(ptr), sse::loadu_si48(static_cast<const char *>(ptr) + 16));
 }
 
 __m256i avx::loadu_si192(const void *ptr) noexcept {
-    return concat(sse::loadu_si128(ptr),
-                  sse::loadu_si64(static_cast<const char *>(ptr) + 16));
+    return concat(sse::loadu_si128(ptr), sse::loadu_si64(static_cast<const char *>(ptr) + 16));
 }
 
 __m256i avx::loadu_si208(const void *ptr) noexcept {
-    return concat(sse::loadu_si128(ptr),
-                  sse::loadu_si80(static_cast<const char *>(ptr) + 16));
+    return concat(sse::loadu_si128(ptr), sse::loadu_si80(static_cast<const char *>(ptr) + 16));
 }
 
 __m256i avx::loadu_si224(const void *ptr) noexcept {
-    return concat(sse::loadu_si128(ptr),
-                  sse::loadu_si96(static_cast<const char *>(ptr) + 16));
+    return concat(sse::loadu_si128(ptr), sse::loadu_si96(static_cast<const char *>(ptr) + 16));
 }
 __m256i avx::loadu_si240(const void *ptr) noexcept {
-    return concat(sse::loadu_si128(ptr),
-                  sse::loadu_si112(static_cast<const char *>(ptr) + 16));
+    return concat(sse::loadu_si128(ptr), sse::loadu_si112(static_cast<const char *>(ptr) + 16));
 }
 
 __m256i avx::loadu_si256(const void *ptr) noexcept {
@@ -900,26 +868,23 @@ __m256i avx::loadu_si16x(const void *ptr, int n) noexcept {
     }
 }
 
-__m256i avx::set_epi8(char e31, char e30, char e29, char e28, char e27, char e26,
-                      char e25, char e24, char e23, char e22, char e21, char e20,
-                      char e19, char e18, char e17, char e16, char e15, char e14,
-                      char e13, char e12, char e11, char e10, char e9, char e8, char e7,
-                      char e6, char e5, char e4, char e3, char e2, char e1,
-                      char e0) noexcept {
-    return _mm256_set_epi8(e31, e30, e29, e28, e27, e26, e25, e24, e23, e22, e21, e20,
-                           e19, e18, e17, e16, e15, e14, e13, e12, e11, e10, e9, e8, e7,
-                           e6, e5, e4, e3, e2, e1, e0);
+__m256i avx::set_epi8(char e31, char e30, char e29, char e28, char e27, char e26, char e25,
+                      char e24, char e23, char e22, char e21, char e20, char e19, char e18,
+                      char e17, char e16, char e15, char e14, char e13, char e12, char e11,
+                      char e10, char e9, char e8, char e7, char e6, char e5, char e4, char e3,
+                      char e2, char e1, char e0) noexcept {
+    return _mm256_set_epi8(e31, e30, e29, e28, e27, e26, e25, e24, e23, e22, e21, e20, e19, e18,
+                           e17, e16, e15, e14, e13, e12, e11, e10, e9, e8, e7, e6, e5, e4, e3, e2,
+                           e1, e0);
 }
 
-__m256i avx::set_epi16(short e15, short e14, short e13, short e12, short e11, short e10,
-                       short e9, short e8, short e7, short e6, short e5, short e4,
-                       short e3, short e2, short e1, short e0) noexcept {
-    return _mm256_set_epi16(e15, e14, e13, e12, e11, e10, e9, e8, e7, e6, e5, e4, e3, e2,
-                            e1, e0);
+__m256i avx::set_epi16(short e15, short e14, short e13, short e12, short e11, short e10, short e9,
+                       short e8, short e7, short e6, short e5, short e4, short e3, short e2,
+                       short e1, short e0) noexcept {
+    return _mm256_set_epi16(e15, e14, e13, e12, e11, e10, e9, e8, e7, e6, e5, e4, e3, e2, e1, e0);
 }
 
-__m256i avx::set_epi32(int e7, int e6, int e5, int e4, int e3, int e2, int e1,
-                       int e0) noexcept {
+__m256i avx::set_epi32(int e7, int e6, int e5, int e4, int e3, int e2, int e1, int e0) noexcept {
     return _mm256_set_epi32(e7, e6, e5, e4, e3, e2, e1, e0);
 }
 
@@ -927,31 +892,27 @@ __m256i avx::set_epi64x(long long e3, long long e2, long long e1, long long e0) 
     return _mm256_set_epi64x(e3, e2, e1, e0);
 }
 
-__m256i avx::setr_epi8(char e31, char e30, char e29, char e28, char e27, char e26,
-                       char e25, char e24, char e23, char e22, char e21, char e20,
-                       char e19, char e18, char e17, char e16, char e15, char e14,
-                       char e13, char e12, char e11, char e10, char e9, char e8, char e7,
-                       char e6, char e5, char e4, char e3, char e2, char e1,
-                       char e0) noexcept {
-    return _mm256_setr_epi8(e31, e30, e29, e28, e27, e26, e25, e24, e23, e22, e21, e20,
-                            e19, e18, e17, e16, e15, e14, e13, e12, e11, e10, e9, e8, e7,
-                            e6, e5, e4, e3, e2, e1, e0);
+__m256i avx::setr_epi8(char e31, char e30, char e29, char e28, char e27, char e26, char e25,
+                       char e24, char e23, char e22, char e21, char e20, char e19, char e18,
+                       char e17, char e16, char e15, char e14, char e13, char e12, char e11,
+                       char e10, char e9, char e8, char e7, char e6, char e5, char e4, char e3,
+                       char e2, char e1, char e0) noexcept {
+    return _mm256_setr_epi8(e31, e30, e29, e28, e27, e26, e25, e24, e23, e22, e21, e20, e19, e18,
+                            e17, e16, e15, e14, e13, e12, e11, e10, e9, e8, e7, e6, e5, e4, e3, e2,
+                            e1, e0);
 }
 
-__m256i avx::setr_epi16(short e15, short e14, short e13, short e12, short e11, short e10,
-                        short e9, short e8, short e7, short e6, short e5, short e4,
-                        short e3, short e2, short e1, short e0) noexcept {
-    return _mm256_setr_epi16(e15, e14, e13, e12, e11, e10, e9, e8, e7, e6, e5, e4, e3, e2,
-                             e1, e0);
+__m256i avx::setr_epi16(short e15, short e14, short e13, short e12, short e11, short e10, short e9,
+                        short e8, short e7, short e6, short e5, short e4, short e3, short e2,
+                        short e1, short e0) noexcept {
+    return _mm256_setr_epi16(e15, e14, e13, e12, e11, e10, e9, e8, e7, e6, e5, e4, e3, e2, e1, e0);
 }
 
-__m256i avx::setr_epi32(int e7, int e6, int e5, int e4, int e3, int e2, int e1,
-                        int e0) noexcept {
+__m256i avx::setr_epi32(int e7, int e6, int e5, int e4, int e3, int e2, int e1, int e0) noexcept {
     return _mm256_setr_epi32(e7, e6, e5, e4, e3, e2, e1, e0);
 }
 
-__m256i avx::setr_epi64x(long long e3, long long e2, long long e1,
-                         long long e0) noexcept {
+__m256i avx::setr_epi64x(long long e3, long long e2, long long e1, long long e0) noexcept {
     return _mm256_setr_epi64x(e3, e2, e1, e0);
 }
 
@@ -991,12 +952,8 @@ __m256i avx::setmax(int64_t) noexcept { return setmax_epi64(); }
 
 void avx::stream(__m256i *p, __m256i a) noexcept { _mm256_stream_si256(p, a); }
 
-void avx::store(void *p, __m256i a) noexcept {
-    _mm256_store_si256(static_cast<__m256i *>(p), a);
-}
-void avx::storeu(void *p, __m256i a) noexcept {
-    _mm256_storeu_si256(static_cast<__m256i *>(p), a);
-}
+void avx::store(void *p, __m256i a) noexcept { _mm256_store_si256(static_cast<__m256i *>(p), a); }
+void avx::storeu(void *p, __m256i a) noexcept { _mm256_storeu_si256(static_cast<__m256i *>(p), a); }
 
 int avx::test_all_zeros(__m256i a) noexcept { return testz(a, a); }
 
@@ -1103,17 +1060,11 @@ __m256i avx::alignr_epi64(__m256i a, __m256i b, int c) noexcept {
     return Or(slli_epi64(a, 64 - c), srli_epi64(b, c));
 }
 
-__m256i avx::alignr(__m256i a, __m256i b, int c, int16_t) noexcept {
-    return alignr_epi16(a, b, c);
-}
+__m256i avx::alignr(__m256i a, __m256i b, int c, int16_t) noexcept { return alignr_epi16(a, b, c); }
 
-__m256i avx::alignr(__m256i a, __m256i b, int c, int32_t) noexcept {
-    return alignr_epi32(a, b, c);
-}
+__m256i avx::alignr(__m256i a, __m256i b, int c, int32_t) noexcept { return alignr_epi32(a, b, c); }
 
-__m256i avx::alignr(__m256i a, __m256i b, int c, int64_t) noexcept {
-    return alignr_epi64(a, b, c);
-}
+__m256i avx::alignr(__m256i a, __m256i b, int c, int64_t) noexcept { return alignr_epi64(a, b, c); }
 
 __m256i avx::alignr(__m256i a, __m256i b, int c, uint16_t) noexcept {
     return alignr_epi16(a, b, c);
@@ -1160,15 +1111,9 @@ __m256i avx::bsrli_epi128(__m256i a) noexcept {
 }
 
 __m256i avx::cmpeq_epi8(__m256i a, __m256i b) noexcept { return _mm256_cmpeq_epi8(a, b); }
-__m256i avx::cmpeq_epi16(__m256i a, __m256i b) noexcept {
-    return _mm256_cmpeq_epi16(a, b);
-}
-__m256i avx::cmpeq_epi32(__m256i a, __m256i b) noexcept {
-    return _mm256_cmpeq_epi32(a, b);
-}
-__m256i avx::cmpeq_epi64(__m256i a, __m256i b) noexcept {
-    return _mm256_cmpeq_epi64(a, b);
-}
+__m256i avx::cmpeq_epi16(__m256i a, __m256i b) noexcept { return _mm256_cmpeq_epi16(a, b); }
+__m256i avx::cmpeq_epi32(__m256i a, __m256i b) noexcept { return _mm256_cmpeq_epi32(a, b); }
+__m256i avx::cmpeq_epi64(__m256i a, __m256i b) noexcept { return _mm256_cmpeq_epi64(a, b); }
 
 __m256i avx::cmpeq(__m256i a, __m256i b, int8_t) noexcept { return cmpeq_epi8(a, b); }
 __m256i avx::cmpeq(__m256i a, __m256i b, int16_t) noexcept { return cmpeq_epi16(a, b); }
@@ -1211,15 +1156,9 @@ __m256i avx::cmpge(__m256i a, __m256i b, uint16_t) noexcept { return cmpge_epu16
 __m256i avx::cmpge(__m256i a, __m256i b, uint32_t) noexcept { return cmpge_epu32(a, b); }
 
 __m256i avx::cmpgt_epi8(__m256i a, __m256i b) noexcept { return _mm256_cmpgt_epi8(a, b); }
-__m256i avx::cmpgt_epi16(__m256i a, __m256i b) noexcept {
-    return _mm256_cmpgt_epi16(a, b);
-}
-__m256i avx::cmpgt_epi32(__m256i a, __m256i b) noexcept {
-    return _mm256_cmpgt_epi32(a, b);
-}
-__m256i avx::cmpgt_epi64(__m256i a, __m256i b) noexcept {
-    return _mm256_cmpgt_epi64(a, b);
-}
+__m256i avx::cmpgt_epi16(__m256i a, __m256i b) noexcept { return _mm256_cmpgt_epi16(a, b); }
+__m256i avx::cmpgt_epi32(__m256i a, __m256i b) noexcept { return _mm256_cmpgt_epi32(a, b); }
+__m256i avx::cmpgt_epi64(__m256i a, __m256i b) noexcept { return _mm256_cmpgt_epi64(a, b); }
 
 __m256i avx::cmpgt_epu8(__m256i a, __m256i b) noexcept {
     return cmpgt_epi8(Xor(a, setmin_epi8()), Xor(b, setmin_epi8()));
@@ -1347,9 +1286,7 @@ __m256i avx::hadd_epi32(__m256i a, __m256i b) noexcept { return _mm256_hadd_epi3
 __m256i avx::hadd(__m256i a, __m256i b, int16_t) noexcept { return hadd_epi16(a, b); }
 __m256i avx::hadd(__m256i a, __m256i b, int32_t) noexcept { return hadd_epi32(a, b); }
 
-__m256i avx::hadds_epi16(__m256i a, __m256i b) noexcept {
-    return _mm256_hadds_epi16(a, b);
-}
+__m256i avx::hadds_epi16(__m256i a, __m256i b) noexcept { return _mm256_hadds_epi16(a, b); }
 
 __m256i avx::hsub_epi16(__m256i a, __m256i b) noexcept { return _mm256_hsub_epi16(a, b); }
 __m256i avx::hsub_epi32(__m256i a, __m256i b) noexcept { return _mm256_hsub_epi32(a, b); }
@@ -1357,25 +1294,23 @@ __m256i avx::hsub_epi32(__m256i a, __m256i b) noexcept { return _mm256_hsub_epi3
 __m256i avx::hsub(__m256i a, __m256i b, int16_t) noexcept { return hsub_epi16(a, b); }
 __m256i avx::hsub(__m256i a, __m256i b, int32_t) noexcept { return hsub_epi32(a, b); }
 
-__m256i avx::hsubs_epi16(__m256i a, __m256i b) noexcept {
-    return _mm256_hsubs_epi16(a, b);
-}
+__m256i avx::hsubs_epi16(__m256i a, __m256i b) noexcept { return _mm256_hsubs_epi16(a, b); }
 
-template <typename T, WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                 uint8_t, uint16_t, uint32_t, uint64_t>)>
+template <typename T, WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                                 uint16_t, uint32_t, uint64_t>)>
 __m256i avx::logical_and(__m256i a, __m256i b, T) noexcept {
     return Not(Or(logical_not(a, T()), logical_not(b, T())));
 }
 
-template <typename T, WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                 uint8_t, uint16_t, uint32_t, uint64_t>)>
+template <typename T, WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                                 uint16_t, uint32_t, uint64_t>)>
 __m256i avx::logical_not(__m256i v, T) noexcept {
     auto Zero = zeros();
     return cmpeq(v, Zero, T());
 }
 
-template <typename T, WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                 uint8_t, uint16_t, uint32_t, uint64_t>)>
+template <typename T, WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                                 uint16_t, uint32_t, uint64_t>)>
 __m256i avx::logical_or(__m256i a, __m256i b, T) noexcept {
     return Not(logical_not(Or(a, b), T()));
 }
@@ -1479,31 +1414,17 @@ avx::mask_type avx::movemask_epi8(__m256i a) noexcept { return _mm256_movemask_e
 __m256i avx::mul_epi32(__m256i a, __m256i b) noexcept { return _mm256_mul_epi32(a, b); }
 __m256i avx::mul_epu32(__m256i a, __m256i b) noexcept { return _mm256_mul_epu32(a, b); }
 
-__m256i avx::mulhi_epi16(__m256i a, __m256i b) noexcept {
-    return _mm256_mulhi_epi16(a, b);
-}
+__m256i avx::mulhi_epi16(__m256i a, __m256i b) noexcept { return _mm256_mulhi_epi16(a, b); }
 
-__m256i avx::mulhi_epu16(__m256i a, __m256i b) noexcept {
-    return _mm256_mulhi_epu16(a, b);
-}
+__m256i avx::mulhi_epu16(__m256i a, __m256i b) noexcept { return _mm256_mulhi_epu16(a, b); }
 
-__m256i avx::mullo_epi16(__m256i a, __m256i b) noexcept {
-    return _mm256_mullo_epi16(a, b);
-}
+__m256i avx::mullo_epi16(__m256i a, __m256i b) noexcept { return _mm256_mullo_epi16(a, b); }
 
-__m256i avx::packs_epi16(__m256i a, __m256i b) noexcept {
-    return _mm256_packs_epi16(a, b);
-}
-__m256i avx::packs_epi32(__m256i a, __m256i b) noexcept {
-    return _mm256_packs_epi32(a, b);
-}
+__m256i avx::packs_epi16(__m256i a, __m256i b) noexcept { return _mm256_packs_epi16(a, b); }
+__m256i avx::packs_epi32(__m256i a, __m256i b) noexcept { return _mm256_packs_epi32(a, b); }
 
-__m256i avx::packus_epi16(__m256i a, __m256i b) noexcept {
-    return _mm256_packus_epi16(a, b);
-}
-__m256i avx::packus_epi32(__m256i a, __m256i b) noexcept {
-    return _mm256_packus_epi32(a, b);
-}
+__m256i avx::packus_epi16(__m256i a, __m256i b) noexcept { return _mm256_packus_epi16(a, b); }
+__m256i avx::packus_epi32(__m256i a, __m256i b) noexcept { return _mm256_packus_epi32(a, b); }
 
 template <int imm>
 __m256i avx::shl(__m256i a) noexcept {
@@ -1561,9 +1482,7 @@ __m256i avx::shr(__m256i a) noexcept {
     }
 }
 
-__m256i avx::shuffle_epi8(__m256i a, __m256i b) noexcept {
-    return _mm256_shuffle_epi8(a, b);
-}
+__m256i avx::shuffle_epi8(__m256i a, __m256i b) noexcept { return _mm256_shuffle_epi8(a, b); }
 
 template <int imm8>
 __m256i avx::shuffle_epi32(__m256i a) noexcept {
@@ -1595,15 +1514,9 @@ template <int imm8>
 __m256i avx::slli(__m256i a) noexcept {
     return _mm256_slli_si256(a, imm8);
 }
-__m256i avx::slli_epi16(__m256i a, int imm8) noexcept {
-    return _mm256_slli_epi16(a, imm8);
-}
-__m256i avx::slli_epi32(__m256i a, int imm8) noexcept {
-    return _mm256_slli_epi32(a, imm8);
-}
-__m256i avx::slli_epi64(__m256i a, int imm8) noexcept {
-    return _mm256_slli_epi64(a, imm8);
-}
+__m256i avx::slli_epi16(__m256i a, int imm8) noexcept { return _mm256_slli_epi16(a, imm8); }
+__m256i avx::slli_epi32(__m256i a, int imm8) noexcept { return _mm256_slli_epi32(a, imm8); }
+__m256i avx::slli_epi64(__m256i a, int imm8) noexcept { return _mm256_slli_epi64(a, imm8); }
 
 __m256i avx::slli(__m256i a, int imm8, int16_t) noexcept { return slli_epi16(a, imm8); }
 __m256i avx::slli(__m256i a, int imm8, int32_t) noexcept { return slli_epi32(a, imm8); }
@@ -1618,12 +1531,8 @@ __m256i avx::sra_epi32(__m256i a, __m128i b) noexcept { return _mm256_sra_epi32(
 __m256i avx::sra(__m256i a, __m128i b, int16_t) noexcept { return sra_epi16(a, b); }
 __m256i avx::sra(__m256i a, __m128i b, int32_t) noexcept { return sra_epi32(a, b); }
 
-__m256i avx::srai_epi16(__m256i a, int imm8) noexcept {
-    return _mm256_srai_epi16(a, imm8);
-}
-__m256i avx::srai_epi32(__m256i a, int imm8) noexcept {
-    return _mm256_srai_epi32(a, imm8);
-}
+__m256i avx::srai_epi16(__m256i a, int imm8) noexcept { return _mm256_srai_epi16(a, imm8); }
+__m256i avx::srai_epi32(__m256i a, int imm8) noexcept { return _mm256_srai_epi32(a, imm8); }
 
 __m256i avx::srai(__m256i a, int imm8, int16_t) noexcept { return srai_epi16(a, imm8); }
 __m256i avx::srai(__m256i a, int imm8, int32_t) noexcept { return srai_epi32(a, imm8); }
@@ -1651,15 +1560,9 @@ __m256i avx::srli(__m256i a) noexcept {
 __m256i avx::srli_epi8(__m256i a, int imm8) noexcept {
     return And(srli_epi16(a, imm8), avx_detail::srli_epi8_mask[imm8]);
 }
-__m256i avx::srli_epi16(__m256i a, int imm8) noexcept {
-    return _mm256_srli_epi16(a, imm8);
-}
-__m256i avx::srli_epi32(__m256i a, int imm8) noexcept {
-    return _mm256_srli_epi32(a, imm8);
-}
-__m256i avx::srli_epi64(__m256i a, int imm8) noexcept {
-    return _mm256_srli_epi64(a, imm8);
-}
+__m256i avx::srli_epi16(__m256i a, int imm8) noexcept { return _mm256_srli_epi16(a, imm8); }
+__m256i avx::srli_epi32(__m256i a, int imm8) noexcept { return _mm256_srli_epi32(a, imm8); }
+__m256i avx::srli_epi64(__m256i a, int imm8) noexcept { return _mm256_srli_epi64(a, imm8); }
 
 __m256i avx::srli(__m256i a, int imm8, int8_t) noexcept { return srli_epi8(a, imm8); }
 __m256i avx::srli(__m256i a, int imm8, int16_t) noexcept { return srli_epi16(a, imm8); }
@@ -1697,78 +1600,32 @@ __m256i avx::subs(__m256i a, __m256i b, uint16_t) noexcept { return subs_epu16(a
 
 int avx::test_all_ones(__m256i a) noexcept { return testc(a, cmpeq_epi32(a, a)); }
 
-__m256i avx::unpackhi_epi8(__m256i a, __m256i b) noexcept {
-    return _mm256_unpackhi_epi8(a, b);
-}
-__m256i avx::unpackhi_epi16(__m256i a, __m256i b) noexcept {
-    return _mm256_unpackhi_epi16(a, b);
-}
-__m256i avx::unpackhi_epi32(__m256i a, __m256i b) noexcept {
-    return _mm256_unpackhi_epi32(a, b);
-}
-__m256i avx::unpackhi_epi64(__m256i a, __m256i b) noexcept {
-    return _mm256_unpackhi_epi64(a, b);
-}
+__m256i avx::unpackhi_epi8(__m256i a, __m256i b) noexcept { return _mm256_unpackhi_epi8(a, b); }
+__m256i avx::unpackhi_epi16(__m256i a, __m256i b) noexcept { return _mm256_unpackhi_epi16(a, b); }
+__m256i avx::unpackhi_epi32(__m256i a, __m256i b) noexcept { return _mm256_unpackhi_epi32(a, b); }
+__m256i avx::unpackhi_epi64(__m256i a, __m256i b) noexcept { return _mm256_unpackhi_epi64(a, b); }
 
-__m256i avx::unpackhi(__m256i a, __m256i b, int8_t) noexcept {
-    return unpackhi_epi8(a, b);
-}
-__m256i avx::unpackhi(__m256i a, __m256i b, int16_t) noexcept {
-    return unpackhi_epi16(a, b);
-}
-__m256i avx::unpackhi(__m256i a, __m256i b, int32_t) noexcept {
-    return unpackhi_epi32(a, b);
-}
-__m256i avx::unpackhi(__m256i a, __m256i b, int64_t) noexcept {
-    return unpackhi_epi64(a, b);
-}
-__m256i avx::unpackhi(__m256i a, __m256i b, uint8_t) noexcept {
-    return unpackhi_epi8(a, b);
-}
-__m256i avx::unpackhi(__m256i a, __m256i b, uint16_t) noexcept {
-    return unpackhi_epi16(a, b);
-}
-__m256i avx::unpackhi(__m256i a, __m256i b, uint32_t) noexcept {
-    return unpackhi_epi32(a, b);
-}
-__m256i avx::unpackhi(__m256i a, __m256i b, uint64_t) noexcept {
-    return unpackhi_epi64(a, b);
-}
+__m256i avx::unpackhi(__m256i a, __m256i b, int8_t) noexcept { return unpackhi_epi8(a, b); }
+__m256i avx::unpackhi(__m256i a, __m256i b, int16_t) noexcept { return unpackhi_epi16(a, b); }
+__m256i avx::unpackhi(__m256i a, __m256i b, int32_t) noexcept { return unpackhi_epi32(a, b); }
+__m256i avx::unpackhi(__m256i a, __m256i b, int64_t) noexcept { return unpackhi_epi64(a, b); }
+__m256i avx::unpackhi(__m256i a, __m256i b, uint8_t) noexcept { return unpackhi_epi8(a, b); }
+__m256i avx::unpackhi(__m256i a, __m256i b, uint16_t) noexcept { return unpackhi_epi16(a, b); }
+__m256i avx::unpackhi(__m256i a, __m256i b, uint32_t) noexcept { return unpackhi_epi32(a, b); }
+__m256i avx::unpackhi(__m256i a, __m256i b, uint64_t) noexcept { return unpackhi_epi64(a, b); }
 
-__m256i avx::unpacklo_epi8(__m256i a, __m256i b) noexcept {
-    return _mm256_unpacklo_epi8(a, b);
-}
-__m256i avx::unpacklo_epi16(__m256i a, __m256i b) noexcept {
-    return _mm256_unpacklo_epi16(a, b);
-}
-__m256i avx::unpacklo_epi32(__m256i a, __m256i b) noexcept {
-    return _mm256_unpacklo_epi32(a, b);
-}
-__m256i avx::unpacklo_epi64(__m256i a, __m256i b) noexcept {
-    return _mm256_unpacklo_epi64(a, b);
-}
+__m256i avx::unpacklo_epi8(__m256i a, __m256i b) noexcept { return _mm256_unpacklo_epi8(a, b); }
+__m256i avx::unpacklo_epi16(__m256i a, __m256i b) noexcept { return _mm256_unpacklo_epi16(a, b); }
+__m256i avx::unpacklo_epi32(__m256i a, __m256i b) noexcept { return _mm256_unpacklo_epi32(a, b); }
+__m256i avx::unpacklo_epi64(__m256i a, __m256i b) noexcept { return _mm256_unpacklo_epi64(a, b); }
 
-__m256i avx::unpacklo(__m256i a, __m256i b, int8_t) noexcept {
-    return unpacklo_epi8(a, b);
-}
-__m256i avx::unpacklo(__m256i a, __m256i b, int16_t) noexcept {
-    return unpacklo_epi16(a, b);
-}
-__m256i avx::unpacklo(__m256i a, __m256i b, int32_t) noexcept {
-    return unpacklo_epi32(a, b);
-}
-__m256i avx::unpacklo(__m256i a, __m256i b, int64_t) noexcept {
-    return unpacklo_epi64(a, b);
-}
-__m256i avx::unpacklo(__m256i a, __m256i b, uint8_t) noexcept {
-    return unpacklo_epi8(a, b);
-}
-__m256i avx::unpacklo(__m256i a, __m256i b, uint16_t) noexcept {
-    return unpacklo_epi16(a, b);
-}
-__m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) noexcept {
-    return unpacklo_epi32(a, b);
-}
+__m256i avx::unpacklo(__m256i a, __m256i b, int8_t) noexcept { return unpacklo_epi8(a, b); }
+__m256i avx::unpacklo(__m256i a, __m256i b, int16_t) noexcept { return unpacklo_epi16(a, b); }
+__m256i avx::unpacklo(__m256i a, __m256i b, int32_t) noexcept { return unpacklo_epi32(a, b); }
+__m256i avx::unpacklo(__m256i a, __m256i b, int64_t) noexcept { return unpacklo_epi64(a, b); }
+__m256i avx::unpacklo(__m256i a, __m256i b, uint8_t) noexcept { return unpacklo_epi8(a, b); }
+__m256i avx::unpacklo(__m256i a, __m256i b, uint16_t) noexcept { return unpacklo_epi16(a, b); }
+__m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) noexcept { return unpacklo_epi32(a, b); }
 
 #endif
 

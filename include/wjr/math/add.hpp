@@ -32,13 +32,12 @@ template <typename T, typename U>
 WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-    #define WJR_REGISTER_BUILTIN_ADDC(suffix, type)                                      \
-        if constexpr (nd <= std::numeric_limits<type>::digits) {                         \
-            type __c_out;                                                                \
-            const T ret =                                                                \
-                __builtin_addc##suffix(a, b, static_cast<type>(c_in), &__c_out);         \
-            c_out = static_cast<U>(__c_out);                                             \
-            return ret;                                                                  \
+    #define WJR_REGISTER_BUILTIN_ADDC(suffix, type)                                                \
+        if constexpr (nd <= std::numeric_limits<type>::digits) {                                   \
+            type __c_out;                                                                          \
+            const T ret = __builtin_addc##suffix(a, b, static_cast<type>(c_in), &__c_out);         \
+            c_out = static_cast<U>(__c_out);                                                       \
+            return ret;                                                                            \
         } else
 
     WJR_REGISTER_BUILTIN_ADDC(b, unsigned char)
@@ -74,27 +73,24 @@ WJR_INTRINSIC_CONSTEXPR20 T addc(T a, T b, type_identity_t<U> c_in, U &c_out) no
     return fallback_addc(a, b, c_in, c_out);
 #else
     constexpr auto is_constant_or_zero = [](auto x) -> int {
-        return WJR_BUILTIN_CONSTANT_P_TRUE(x == 0) ? 2
-               : WJR_BUILTIN_CONSTANT_P(x)         ? 1
-                                                   : 0;
+        return WJR_BUILTIN_CONSTANT_P_TRUE(x == 0) ? 2 : WJR_BUILTIN_CONSTANT_P(x) ? 1 : 0;
     };
 
     // The compiler should be able to optimize the judgment condition of if when enabling
     // optimization. If it doesn't work, then there should be a issue
     if (is_constant_evaluated() ||
         // constant value is zero or constant value number greater or equal than 2
-        (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >=
-         2)) {
+        (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >= 2)) {
         return fallback_addc(a, b, c_in, c_out);
     }
 
     if constexpr (sizeof(T) == 8) {
-        return WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(ASM_ADDC), asm_addc,
-                                 WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ADDC), builtin_addc,
-                                                fallback_addc))(a, b, c_in, c_out);
+        return WJR_PP_BOOL_IF_NE(
+            WJR_HAS_BUILTIN(ASM_ADDC), asm_addc,
+            WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ADDC), builtin_addc, fallback_addc))(a, b, c_in, c_out);
     } else {
-        return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ADDC), builtin_addc,
-                              fallback_addc)(a, b, c_in, c_out);
+        return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ADDC), builtin_addc, fallback_addc)(a, b, c_in,
+                                                                                  c_out);
     }
 #endif
 }
@@ -120,17 +116,14 @@ WJR_INTRINSIC_CONSTEXPR20 T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noex
 
 #if WJR_HAS_BUILTIN(ASM_ADDC_CC)
     constexpr auto is_constant_or_zero = [](auto x) -> int {
-        return WJR_BUILTIN_CONSTANT_P(x == 0) && x == 0 ? 2
-               : WJR_BUILTIN_CONSTANT_P(x)              ? 1
-                                                        : 0;
+        return WJR_BUILTIN_CONSTANT_P(x == 0) && x == 0 ? 2 : WJR_BUILTIN_CONSTANT_P(x) ? 1 : 0;
     };
 
     // The compiler should be able to optimize the judgment condition of if when enabling
     // optimization. If it doesn't work, then there should be a issue
     if (is_constant_evaluated() ||
         // constant value is zero or constant value number greater or equal than 2
-        (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >=
-         2)) {
+        (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >= 2)) {
         return fallback_addc(a, b, c_in, c_out);
     }
 
@@ -158,8 +151,7 @@ template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 bool add_overflow(type_identity_t<T> a, type_identity_t<T> b,
                                             T &ret) noexcept {
 #if WJR_HAS_BUILTIN(ADD_OVERFLOW)
-    if (is_constant_evaluated() ||
-        (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
+    if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
         return fallback_add_overflow(a, b, ret);
     }
 
@@ -209,8 +201,8 @@ WJR_INTRINSIC_CONSTEXPR20 U __addc_1_impl(uint64_t *dst, const uint64_t *src0, s
  * @return The carry-out flag.
  */
 template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR20 U addc_1(uint64_t *dst, const uint64_t *src0, size_t n,
-                                   uint64_t src1, U c_in) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 U addc_1(uint64_t *dst, const uint64_t *src0, size_t n, uint64_t src1,
+                                   U c_in) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
     WJR_ASSERT_ASSUME(c_in <= 1);
@@ -225,9 +217,8 @@ WJR_INTRINSIC_CONSTEXPR20 U addc_1(uint64_t *dst, const uint64_t *src0, size_t n
 }
 
 template <typename U>
-WJR_INTRINSIC_CONSTEXPR U fallback_addc_n(uint64_t *dst, const uint64_t *src0,
-                                          const uint64_t *src1, size_t n,
-                                          U c_in) noexcept {
+WJR_INTRINSIC_CONSTEXPR U fallback_addc_n(uint64_t *dst, const uint64_t *src0, const uint64_t *src1,
+                                          size_t n, U c_in) noexcept {
     size_t m = n / 4;
 
     for (size_t i = 0; i < m; ++i) {
@@ -284,8 +275,8 @@ WJR_INTRINSIC_CONSTEXPR U fallback_addc_n(uint64_t *dst, const uint64_t *src0,
  * @return The carry-out flag.
  */
 template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR20 U addc_n(uint64_t *dst, const uint64_t *src0,
-                                   const uint64_t *src1, size_t n, U c_in) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 U addc_n(uint64_t *dst, const uint64_t *src0, const uint64_t *src1,
+                                   size_t n, U c_in) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
@@ -347,8 +338,7 @@ WJR_INTRINSIC_CONSTEXPR20 U addc_sz(uint64_t *dst, const uint64_t *src0, size_t 
 }
 
 WJR_INTRINSIC_CONSTEXPR void __fallback_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                                uint64_t hi0, uint64_t lo1,
-                                                uint64_t hi1) noexcept {
+                                                uint64_t hi0, uint64_t lo1, uint64_t hi1) noexcept {
     const uint64_t __al = lo0 + lo1;
     ah = hi0 + hi1 + (__al < lo0);
     al = __al;
@@ -360,9 +350,8 @@ WJR_INTRINSIC_CONSTEXPR void __fallback_add_128(uint64_t &al, uint64_t &ah, uint
 
 #if WJR_HAS_BUILTIN(__BUILTIN_ADD_128)
 
-WJR_INTRINSIC_INLINE void __builtin_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                            uint64_t hi0, uint64_t lo1,
-                                            uint64_t hi1) noexcept {
+WJR_INTRINSIC_INLINE void __builtin_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
+                                            uint64_t lo1, uint64_t hi1) noexcept {
     const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
     const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
     x0 += x1;
@@ -374,9 +363,8 @@ WJR_INTRINSIC_INLINE void __builtin_add_128(uint64_t &al, uint64_t &ah, uint64_t
 #endif
 
 /// @brief <ah, al> = <hi0, lo0> + <hi1, lo1>
-WJR_INTRINSIC_CONSTEXPR20 void __add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                         uint64_t hi0, uint64_t lo1,
-                                         uint64_t hi1) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 void __add_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
+                                         uint64_t lo1, uint64_t hi1) noexcept {
 #if WJR_HAS_BUILTIN(__BUILTIN_ADD_128) || WJR_HAS_BUILTIN(__ASM_ADD_128)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P_TRUE(lo0 == 0) ||
         WJR_BUILTIN_CONSTANT_P_TRUE(lo1 == 0) || WJR_BUILTIN_CONSTANT_P(lo0 + lo1)) {
@@ -390,9 +378,8 @@ WJR_INTRINSIC_CONSTEXPR20 void __add_128(uint64_t &al, uint64_t &ah, uint64_t lo
 #endif
 }
 
-WJR_INTRINSIC_CONSTEXPR20 uint64_t __fallback_addc_128(uint64_t &al, uint64_t &ah,
-                                                       uint64_t lo0, uint64_t hi0,
-                                                       uint64_t lo1, uint64_t hi1,
+WJR_INTRINSIC_CONSTEXPR20 uint64_t __fallback_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                                       uint64_t hi0, uint64_t lo1, uint64_t hi1,
                                                        uint64_t c_in) noexcept {
     al = addc(lo0, lo1, c_in, c_in);
     ah = addc(hi0, hi1, c_in, c_in);

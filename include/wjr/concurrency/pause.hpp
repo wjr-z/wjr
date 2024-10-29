@@ -32,7 +32,7 @@ WJR_INTRINSIC_INLINE void pause_intrinsic() noexcept {
 #elif defined(__GNUC__)
     #if defined(__i386__) || defined(__x86_64__)
     asm volatile("pause\n\t" : : : "memory");
-    #elif (defined(__ARM_ARCH) && __ARM_ARCH >= 8) || defined(__ARM_ARCH_8A__) ||        \
+    #elif (defined(__ARM_ARCH) && __ARM_ARCH >= 8) || defined(__ARM_ARCH_8A__) ||                  \
         defined(__aarch64__)
     asm volatile("yield\n\t" : : : "memory");
     #elif defined(__riscv) && __riscv_xlen == 64

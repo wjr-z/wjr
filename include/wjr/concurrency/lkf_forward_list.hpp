@@ -35,8 +35,8 @@ WJR_INTRINSIC_INLINE void push_front(lkf_forward_list_node *head,
  *
  */
 template <typename Func>
-WJR_NODISCARD WJR_INTRINSIC_INLINE forward_list_node *
-exchange_front(lkf_forward_list_node *head, Func func) noexcept {
+WJR_NODISCARD WJR_INTRINSIC_INLINE forward_list_node *exchange_front(lkf_forward_list_node *head,
+                                                                     Func func) noexcept {
     auto *node = head->next.load(memory_order_relaxed);
     forward_list_node *next_node;
 

@@ -19,46 +19,45 @@ namespace wjr {
 template <typename T>
 WJR_ALL_NONNULL WJR_PURE size_t large_builtin_find_not_n(const T *src0, const T *src1,
                                                          size_t n) noexcept {
-    #define WJR_REGISTER_FIND_NOT_N_2(index)                                             \
-        do {                                                                             \
-            const auto x = sse::loadu(src0 + (index));                                   \
-            const auto y = sse::loadu(src1 + (index));                                   \
-            const auto r = sse::cmpeq_epi64(x, y);                                       \
-                                                                                         \
-            const sse::mask_type mask = ~sse::movemask_epi8(r);                          \
-            if (WJR_UNLIKELY(mask != 0)) {                                               \
-                return (index) + (mask == 0xFF00);                                       \
-            }                                                                            \
+    #define WJR_REGISTER_FIND_NOT_N_2(index)                                                       \
+        do {                                                                                       \
+            const auto x = sse::loadu(src0 + (index));                                             \
+            const auto y = sse::loadu(src1 + (index));                                             \
+            const auto r = sse::cmpeq_epi64(x, y);                                                 \
+                                                                                                   \
+            const sse::mask_type mask = ~sse::movemask_epi8(r);                                    \
+            if (WJR_UNLIKELY(mask != 0)) {                                                         \
+                return (index) + (mask == 0xFF00);                                                 \
+            }                                                                                      \
         } while (false)
 
     #if WJR_HAS_SIMD(AVX2)
-        #define WJR_REGISTER_FIND_NOT_N_4(index)                                         \
-            do {                                                                         \
-                const auto x = avx::loadu(src0 + (index));                               \
-                const auto y = avx::loadu(src1 + (index));                               \
-                const auto r = avx::cmpeq_epi64(x, y);                                   \
-                                                                                         \
-                const avx::mask_type mask = ~avx::movemask_epi8(r);                      \
-                if (WJR_UNLIKELY(mask != 0)) {                                           \
-                    return (index) + ctz(mask) / 8;                                      \
-                }                                                                        \
+        #define WJR_REGISTER_FIND_NOT_N_4(index)                                                   \
+            do {                                                                                   \
+                const auto x = avx::loadu(src0 + (index));                                         \
+                const auto y = avx::loadu(src1 + (index));                                         \
+                const auto r = avx::cmpeq_epi64(x, y);                                             \
+                                                                                                   \
+                const avx::mask_type mask = ~avx::movemask_epi8(r);                                \
+                if (WJR_UNLIKELY(mask != 0)) {                                                     \
+                    return (index) + ctz(mask) / 8;                                                \
+                }                                                                                  \
             } while (false)
     #else
-        #define WJR_REGISTER_FIND_NOT_N_4(index)                                         \
-            WJR_REGISTER_FIND_NOT_N_2(index);                                            \
+        #define WJR_REGISTER_FIND_NOT_N_4(index)                                                   \
+            WJR_REGISTER_FIND_NOT_N_2(index);                                                      \
             WJR_REGISTER_FIND_NOT_N_2((index) + 2)
     #endif
 
-    #define WJR_REGISTER_FIND_NOT_N_ADVNCE(index)                                        \
-        src0 += index;                                                                   \
+    #define WJR_REGISTER_FIND_NOT_N_ADVNCE(index)                                                  \
+        src0 += index;                                                                             \
         src1 += index
 
     #define WJR_REGISTER_FIND_NOT_N_RET(index) index
 
-    WJR_REGISTER_X86_NORMAL_SIMD_FUNCTION(
-        n, WJR_REGISTER_FIND_NOT_N_2, WJR_REGISTER_FIND_NOT_N_4, WJR_HAS_SIMD(AVX2),
-        WJR_REGISTER_FIND_NOT_N_ADVNCE, const auto __src0 = src0,
-        WJR_REGISTER_FIND_NOT_N_RET);
+    WJR_REGISTER_X86_NORMAL_SIMD_FUNCTION(n, WJR_REGISTER_FIND_NOT_N_2, WJR_REGISTER_FIND_NOT_N_4,
+                                          WJR_HAS_SIMD(AVX2), WJR_REGISTER_FIND_NOT_N_ADVNCE,
+                                          const auto __src0 = src0, WJR_REGISTER_FIND_NOT_N_RET);
 
     #if !WJR_HAS_SIMD(AVX2)
     do {
@@ -137,35 +136,33 @@ WJR_ALL_NONNULL WJR_PURE size_t large_builtin_find_not_n(const T *src0, const T 
 }
 
 extern template size_t large_builtin_find_not_n<uint64_t>(const uint64_t *src0,
-                                                          const uint64_t *src1,
-                                                          size_t n) noexcept;
+                                                          const uint64_t *src1, size_t n) noexcept;
 
 template <typename T>
-WJR_ALL_NONNULL WJR_PURE size_t large_builtin_find_not_n(const T *src, T val,
-                                                         size_t n) noexcept {
-    #define WJR_REGISTER_FIND_NOT_N_2(index)                                             \
-        do {                                                                             \
-            const auto r = sse::cmpeq_epi64(sse::loadu(src + (index)), y2);              \
-                                                                                         \
-            const sse::mask_type mask = ~sse::movemask_epi8(r);                          \
-            if (WJR_UNLIKELY(mask != 0)) {                                               \
-                return (index) + (mask == 0xFF00);                                       \
-            }                                                                            \
+WJR_ALL_NONNULL WJR_PURE size_t large_builtin_find_not_n(const T *src, T val, size_t n) noexcept {
+    #define WJR_REGISTER_FIND_NOT_N_2(index)                                                       \
+        do {                                                                                       \
+            const auto r = sse::cmpeq_epi64(sse::loadu(src + (index)), y2);                        \
+                                                                                                   \
+            const sse::mask_type mask = ~sse::movemask_epi8(r);                                    \
+            if (WJR_UNLIKELY(mask != 0)) {                                                         \
+                return (index) + (mask == 0xFF00);                                                 \
+            }                                                                                      \
         } while (false)
 
     #if WJR_HAS_SIMD(AVX2)
-        #define WJR_REGISTER_FIND_NOT_N_4(index)                                         \
-            do {                                                                         \
-                const auto r = avx::cmpeq_epi64(avx::loadu(src + (index)), y4);          \
-                                                                                         \
-                const avx::mask_type mask = ~avx::movemask_epi8(r);                      \
-                if (WJR_UNLIKELY(mask != 0)) {                                           \
-                    return (index) + ctz(mask) / 8;                                      \
-                }                                                                        \
+        #define WJR_REGISTER_FIND_NOT_N_4(index)                                                   \
+            do {                                                                                   \
+                const auto r = avx::cmpeq_epi64(avx::loadu(src + (index)), y4);                    \
+                                                                                                   \
+                const avx::mask_type mask = ~avx::movemask_epi8(r);                                \
+                if (WJR_UNLIKELY(mask != 0)) {                                                     \
+                    return (index) + ctz(mask) / 8;                                                \
+                }                                                                                  \
             } while (false)
     #else
-        #define WJR_REGISTER_FIND_NOT_N_4(index)                                         \
-            WJR_REGISTER_FIND_NOT_N_2(index);                                            \
+        #define WJR_REGISTER_FIND_NOT_N_4(index)                                                   \
+            WJR_REGISTER_FIND_NOT_N_2(index);                                                      \
             WJR_REGISTER_FIND_NOT_N_2((index) + 2)
     #endif
 
@@ -178,10 +175,9 @@ WJR_ALL_NONNULL WJR_PURE size_t large_builtin_find_not_n(const T *src, T val,
     const auto y4 = broadcast<__m128i_t, __m256i_t>(y2);
     #endif
 
-    WJR_REGISTER_X86_NORMAL_SIMD_FUNCTION(
-        n, WJR_REGISTER_FIND_NOT_N_2, WJR_REGISTER_FIND_NOT_N_4, WJR_HAS_SIMD(AVX2),
-        WJR_REGISTER_FIND_NOT_N_ADVANCE, const auto __src = src,
-        WJR_REGISTER_FIND_NOT_N_RET);
+    WJR_REGISTER_X86_NORMAL_SIMD_FUNCTION(n, WJR_REGISTER_FIND_NOT_N_2, WJR_REGISTER_FIND_NOT_N_4,
+                                          WJR_HAS_SIMD(AVX2), WJR_REGISTER_FIND_NOT_N_ADVANCE,
+                                          const auto __src = src, WJR_REGISTER_FIND_NOT_N_RET);
 
     #if !WJR_HAS_SIMD(AVX2)
     do {
@@ -257,57 +253,55 @@ WJR_ALL_NONNULL WJR_PURE size_t large_builtin_find_not_n(const T *src, T val,
     #undef WJR_REGISTER_FIND_NOT_N_2
 }
 
-extern template size_t
-large_builtin_find_not_n<uint64_t>(const uint64_t *src, uint64_t val, size_t n) noexcept;
+extern template size_t large_builtin_find_not_n<uint64_t>(const uint64_t *src, uint64_t val,
+                                                          size_t n) noexcept;
 
 #endif // WJR_HAS_BUILTIN(FIND_NOT_N)
 
 #if WJR_HAS_BUILTIN(REVERSE_FIND_NOT_N)
 
 template <typename T>
-WJR_ALL_NONNULL WJR_PURE size_t large_builtin_reverse_find_not_n(const T *src0,
-                                                                 const T *src1,
+WJR_ALL_NONNULL WJR_PURE size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1,
                                                                  size_t n) noexcept {
-    #define WJR_REGISTER_REVERSE_FIND_NOT_N_2(index)                                     \
-        do {                                                                             \
-            const auto x = sse::loadu(src0 + (index));                                   \
-            const auto y = sse::loadu(src1 + (index));                                   \
-            const auto r = sse::cmpeq_epi64(x, y);                                       \
-                                                                                         \
-            const sse::mask_type mask = ~sse::movemask_epi8(r);                          \
-            if (WJR_UNLIKELY(mask != 0)) {                                               \
-                return (index) + 2 - (mask == 0x00FF);                                   \
-            }                                                                            \
+    #define WJR_REGISTER_REVERSE_FIND_NOT_N_2(index)                                               \
+        do {                                                                                       \
+            const auto x = sse::loadu(src0 + (index));                                             \
+            const auto y = sse::loadu(src1 + (index));                                             \
+            const auto r = sse::cmpeq_epi64(x, y);                                                 \
+                                                                                                   \
+            const sse::mask_type mask = ~sse::movemask_epi8(r);                                    \
+            if (WJR_UNLIKELY(mask != 0)) {                                                         \
+                return (index) + 2 - (mask == 0x00FF);                                             \
+            }                                                                                      \
         } while (false)
 
     #if WJR_HAS_SIMD(AVX2)
-        #define WJR_REGISTER_REVERSE_FIND_NOT_N_4(index)                                 \
-            do {                                                                         \
-                const auto x = avx::loadu(src0 + (index));                               \
-                const auto y = avx::loadu(src1 + (index));                               \
-                const auto r = avx::cmpeq_epi64(x, y);                                   \
-                                                                                         \
-                const avx::mask_type mask = ~avx::movemask_epi8(r);                      \
-                if (WJR_UNLIKELY(mask != 0)) {                                           \
-                    return (index) + 4 - clz(mask) / 8;                                  \
-                }                                                                        \
+        #define WJR_REGISTER_REVERSE_FIND_NOT_N_4(index)                                           \
+            do {                                                                                   \
+                const auto x = avx::loadu(src0 + (index));                                         \
+                const auto y = avx::loadu(src1 + (index));                                         \
+                const auto r = avx::cmpeq_epi64(x, y);                                             \
+                                                                                                   \
+                const avx::mask_type mask = ~avx::movemask_epi8(r);                                \
+                if (WJR_UNLIKELY(mask != 0)) {                                                     \
+                    return (index) + 4 - clz(mask) / 8;                                            \
+                }                                                                                  \
             } while (false)
     #else
-        #define WJR_REGISTER_REVERSE_FIND_NOT_N_4(index)                                 \
-            WJR_REGISTER_REVERSE_FIND_NOT_N_2((index) + 2);                              \
+        #define WJR_REGISTER_REVERSE_FIND_NOT_N_4(index)                                           \
+            WJR_REGISTER_REVERSE_FIND_NOT_N_2((index) + 2);                                        \
             WJR_REGISTER_REVERSE_FIND_NOT_N_2(index);
     #endif
 
-    #define WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE(index)                               \
-        src0 += index;                                                                   \
+    #define WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE(index)                                         \
+        src0 += index;                                                                             \
         src1 += index
 
     #define WJR_REGISTER_REVERSE_FIND_NOT_N_RET(index) 0
 
     WJR_REGISTER_X86_NORMAL_REVERSE_SIMD_FUNCTION(
-        n, WJR_REGISTER_REVERSE_FIND_NOT_N_2, WJR_REGISTER_REVERSE_FIND_NOT_N_4,
-        WJR_HAS_SIMD(AVX2), WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE, ,
-        WJR_REGISTER_REVERSE_FIND_NOT_N_RET);
+        n, WJR_REGISTER_REVERSE_FIND_NOT_N_2, WJR_REGISTER_REVERSE_FIND_NOT_N_4, WJR_HAS_SIMD(AVX2),
+        WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE, , WJR_REGISTER_REVERSE_FIND_NOT_N_RET);
 
     #if !WJR_HAS_SIMD(AVX2)
     do {
@@ -392,31 +386,31 @@ extern template size_t large_builtin_reverse_find_not_n<uint64_t>(const uint64_t
 template <typename T>
 WJR_ALL_NONNULL WJR_PURE size_t large_builtin_reverse_find_not_n(const T *src, T val,
                                                                  size_t n) noexcept {
-    #define WJR_REGISTER_REVERSE_FIND_NOT_N_2(index)                                     \
-        do {                                                                             \
-            const auto x = sse::loadu(src + (index));                                    \
-            const auto r = sse::cmpeq_epi64(x, y2);                                      \
-                                                                                         \
-            const sse::mask_type mask = ~sse::movemask_epi8(r);                          \
-            if (WJR_UNLIKELY(mask != 0)) {                                               \
-                return (index) + 2 - (mask == 0x00FF);                                   \
-            }                                                                            \
+    #define WJR_REGISTER_REVERSE_FIND_NOT_N_2(index)                                               \
+        do {                                                                                       \
+            const auto x = sse::loadu(src + (index));                                              \
+            const auto r = sse::cmpeq_epi64(x, y2);                                                \
+                                                                                                   \
+            const sse::mask_type mask = ~sse::movemask_epi8(r);                                    \
+            if (WJR_UNLIKELY(mask != 0)) {                                                         \
+                return (index) + 2 - (mask == 0x00FF);                                             \
+            }                                                                                      \
         } while (false)
 
     #if WJR_HAS_SIMD(AVX2)
-        #define WJR_REGISTER_REVERSE_FIND_NOT_N_4(index)                                 \
-            do {                                                                         \
-                const auto x = avx::loadu(src + (index));                                \
-                const auto r = avx::cmpeq_epi64(x, y4);                                  \
-                                                                                         \
-                const avx::mask_type mask = ~avx::movemask_epi8(r);                      \
-                if (WJR_UNLIKELY(mask != 0)) {                                           \
-                    return (index) + 4 - clz(mask) / 8;                                  \
-                }                                                                        \
+        #define WJR_REGISTER_REVERSE_FIND_NOT_N_4(index)                                           \
+            do {                                                                                   \
+                const auto x = avx::loadu(src + (index));                                          \
+                const auto r = avx::cmpeq_epi64(x, y4);                                            \
+                                                                                                   \
+                const avx::mask_type mask = ~avx::movemask_epi8(r);                                \
+                if (WJR_UNLIKELY(mask != 0)) {                                                     \
+                    return (index) + 4 - clz(mask) / 8;                                            \
+                }                                                                                  \
             } while (false)
     #else
-        #define WJR_REGISTER_REVERSE_FIND_NOT_N_4(index)                                 \
-            WJR_REGISTER_REVERSE_FIND_NOT_N_2((index) + 2);                              \
+        #define WJR_REGISTER_REVERSE_FIND_NOT_N_4(index)                                           \
+            WJR_REGISTER_REVERSE_FIND_NOT_N_2((index) + 2);                                        \
             WJR_REGISTER_REVERSE_FIND_NOT_N_2(index)
     #endif
 
@@ -430,9 +424,8 @@ WJR_ALL_NONNULL WJR_PURE size_t large_builtin_reverse_find_not_n(const T *src, T
     #endif
 
     WJR_REGISTER_X86_NORMAL_REVERSE_SIMD_FUNCTION(
-        n, WJR_REGISTER_REVERSE_FIND_NOT_N_2, WJR_REGISTER_REVERSE_FIND_NOT_N_4,
-        WJR_HAS_SIMD(AVX2), WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE, ,
-        WJR_REGISTER_REVERSE_FIND_NOT_N_RET);
+        n, WJR_REGISTER_REVERSE_FIND_NOT_N_2, WJR_REGISTER_REVERSE_FIND_NOT_N_4, WJR_HAS_SIMD(AVX2),
+        WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE, , WJR_REGISTER_REVERSE_FIND_NOT_N_RET);
 
     #if !WJR_HAS_SIMD(AVX2)
     do {
@@ -508,8 +501,7 @@ WJR_ALL_NONNULL WJR_PURE size_t large_builtin_reverse_find_not_n(const T *src, T
     #undef WJR_REGISTER_REVERSE_FIND_NOT_N_2
 }
 
-extern template size_t large_builtin_reverse_find_not_n<uint64_t>(const uint64_t *src,
-                                                                  uint64_t val,
+extern template size_t large_builtin_reverse_find_not_n<uint64_t>(const uint64_t *src, uint64_t val,
                                                                   size_t n) noexcept;
 
 #endif // WJR_HAS_BUILTIN(REVERSE_FIND_NOT_N)
