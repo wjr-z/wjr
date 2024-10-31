@@ -116,7 +116,7 @@ WJR_INTRINSIC_CONSTEXPR20 T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noex
 
 #if WJR_HAS_BUILTIN(ASM_ADDC_CC)
     constexpr auto is_constant_or_zero = [](auto x) -> int {
-        return WJR_BUILTIN_CONSTANT_P(x == 0) && x == 0 ? 2 : WJR_BUILTIN_CONSTANT_P(x) ? 1 : 0;
+        return WJR_BUILTIN_CONSTANT_P_TRUE(x == 0) ? 2 : WJR_BUILTIN_CONSTANT_P(x) ? 1 : 0;
     };
 
     // The compiler should be able to optimize the judgment condition of if when enabling

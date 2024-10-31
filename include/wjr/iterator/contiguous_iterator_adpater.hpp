@@ -10,7 +10,8 @@ template <typename Container, typename Traits>
 class contiguous_const_iterator_adapter {
     using __pointer = typename Traits::pointer;
 
-    friend struct std::pointer_traits<contiguous_const_iterator_adapter>;
+    template <typename Ptr>
+    friend struct std::pointer_traits;
 
 public:
 #if defined(WJR_CXX_20)
@@ -217,7 +218,8 @@ class contiguous_iterator_adapter : public contiguous_const_iterator_adapter<Con
     using Mybase = contiguous_const_iterator_adapter<Container, Traits>;
     using __pointer = typename Traits::pointer;
 
-    friend struct std::pointer_traits<contiguous_iterator_adapter>;
+    template <typename Ptr>
+    friend struct std::pointer_traits;
 
 public:
 #if defined(WJR_CXX_20)

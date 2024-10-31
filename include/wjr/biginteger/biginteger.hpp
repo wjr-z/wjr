@@ -136,21 +136,16 @@ public:
 
     ~__default_biginteger_vector_storage() = default;
 
-    void deallocate(_Alty &al) noexcept {
-        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(data() == nullptr)) {
-            return;
-        }
-
-        if (data() != nullptr) {
-            WJR_ASSERT_ASSUME_L2(capacity() != 0);
-            al.deallocate(data(), capacity());
-        }
-    }
-
     void deallocate_nonnull(_Alty &al) noexcept {
         WJR_ASSERT_ASSUME_L2(data() != nullptr);
         WJR_ASSERT_ASSUME_L2(capacity() != 0);
         al.deallocate(data(), capacity());
+    }
+
+    void deallocate(_Alty &al) noexcept {
+        if (data() != nullptr) {
+            deallocate_nonnull(al);
+        }
     }
 
     void uninitialized_construct(Mybase &other, size_type size, size_type capacity,
@@ -1687,8 +1682,8 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, uint64_
         if (rhs == 0) {
             dst->set_ssize(0);
         } else {
-            dst->front() = rhs;
             dst->set_ssize(__fasts_conditional_negate<int32_t>(xsign, 1));
+            dst->front() = rhs;
         }
 
         return;
@@ -1731,8 +1726,8 @@ void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs, const biginteger_data
         if (lhs == 0) {
             dst->set_ssize(0);
         } else {
-            dst->front() = lhs;
             dst->set_ssize(1);
+            dst->front() = lhs;
         }
 
         return;
@@ -2377,8 +2372,8 @@ uint64_t __tdiv_qr_ui_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem
         rem->set_ssize(0);
     } else {
         rem->reserve(1);
-        rem->front() = remv;
         rem->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, 1));
+        rem->front() = remv;
     }
 
     const auto qusize = nusize - (qp[nusize - 1] == 0);
@@ -2435,8 +2430,8 @@ uint64_t __tdiv_r_ui_impl(basic_biginteger<S> *rem, const biginteger_data *num,
         rem->set_ssize(0);
     } else {
         rem->reserve(1);
-        rem->front() = remv;
         rem->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, 1));
+        rem->front() = remv;
     }
 
     return remv;
@@ -3446,7 +3441,7 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
                                              const biginteger_data &src) noexcept {
     if (const std::ostream::sentry ok(os); ok) {
         unique_stack_allocator stkal;
-        std::basic_string<char, Traits, math_detail::weak_stack_alloc<char>> buffer(stkal);
+        std::basic_string<char, Traits, weak_stack_allocator<char>> buffer(stkal);
         buffer.reserve(128);
 
         const std::ios_base::fmtflags flags = os.flags();
