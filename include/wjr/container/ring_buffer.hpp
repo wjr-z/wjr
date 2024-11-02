@@ -145,7 +145,6 @@ public:
     uninitialized_construct(Mybase &other, size_type head, size_type tail, size_type size,
                             size_type capacity,
                             _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
-        WJR_ASSERT_ASSUME_L2(has_single_bit(capacity));
         const auto ptr = _Alty_traits::allocate(al, capacity);
         other.m_storage = {ptr, ptr + head, ptr + tail, size, ptr + capacity};
     }
@@ -163,10 +162,11 @@ public:
     WJR_CONSTEXPR20 pointer &head() noexcept { return m_storage.m_head; }
     WJR_CONSTEXPR20 pointer &tail() noexcept { return m_storage.m_tail; }
     WJR_CONSTEXPR20 size_type &size() noexcept { return m_storage.m_size; }
+    WJR_PURE WJR_CONSTEXPR20 pointer buffer() noexcept { return m_storage.m_buf_end; }
 
-    WJR_PURE WJR_CONSTEXPR20 pointer head() const noexcept { return m_storage.m_head; }
-    WJR_PURE WJR_CONSTEXPR20 pointer tail() const noexcept { return m_storage.m_tail; }
-    WJR_PURE WJR_CONSTEXPR20 pointer buffer() const noexcept { return m_storage.m_buf_end; }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer head() const noexcept { return m_storage.m_head; }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer tail() const noexcept { return m_storage.m_tail; }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer buffer() const noexcept { return m_storage.m_buf_end; }
 
     WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept { return m_storage.m_size; }
 
@@ -533,18 +533,18 @@ public:
 
     template <typename... Args>
     WJR_CONSTEXPR20 void emplace_back(Args &&...args) {
-        const pointer __head = __get_head();
         pointer __tail = __get_tail();
+        const pointer __data = data();
         const pointer __buf_end = __get_buf_end();
         auto &al = __get_allocator();
 
-        if (__head == __tail && WJR_UNLIKELY(__head == nullptr || size() != 0)) {
-            __realloc_insert_at_end(std::forward<Args>(args)...);
-        } else {
+        if (WJR_LIKELY(__data + size() != __buf_end)) {
             wjr::uninitialized_construct_using_allocator(__tail, al, std::forward<Args>(args)...);
             ++__tail;
-            __get_tail() = __tail == __buf_end ? data() : __tail;
+            __get_tail() = __tail == __buf_end ? __data : __tail;
             ++__get_size();
+        } else {
+            __realloc_insert_at_end(std::forward<Args>(args)...);
         }
     }
 
@@ -790,7 +790,7 @@ private:
 
     WJR_PURE WJR_CONSTEXPR20 pointer &__get_head() noexcept { return get_storage().head(); }
     WJR_PURE WJR_CONSTEXPR20 pointer &__get_tail() noexcept { return get_storage().tail(); }
-    WJR_PURE WJR_CONSTEXPR20 pointer __get_buf_end() noexcept { return get_storage().tail(); }
+    WJR_PURE WJR_CONSTEXPR20 pointer __get_buf_end() noexcept { return get_storage().buffer(); }
     WJR_PURE WJR_CONSTEXPR20 size_type &__get_size() noexcept { return get_storage().size(); }
 
     WJR_PURE WJR_CONSTEXPR20 const_pointer __get_head() const noexcept {
@@ -800,7 +800,7 @@ private:
         return get_storage().tail();
     }
     WJR_PURE WJR_CONSTEXPR20 const_pointer __get_buf_end() const noexcept {
-        return get_storage().tail();
+        return get_storage().buffer();
     }
 
     WJR_CONSTEXPR20 void __take_storage(storage_type &other) noexcept(__is_nothrow_take_storage) {
