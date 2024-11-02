@@ -20,9 +20,10 @@
 
 #include <wjr/math.hpp>
 
-// Attribute for storing static data into a dedicated place, e.g. flash memory. Every
-// ODR-used static data declaration will be decorated with this macro. The users may
-// define this macro, before including the library headers, into whatever they want.
+// Attribute for storing static data into a dedicated place, e.g. flash memory.
+// Every ODR-used static data declaration will be decorated with this macro. The
+// users may define this macro, before including the library headers, into
+// whatever they want.
 #ifndef WJR_STATIC_DATA_SECTION
     #define WJR_STATIC_DATA_SECTION
 #endif
@@ -70,20 +71,21 @@ struct ieee754_binary64 {
     static constexpr int decimal_exponent_digits = 3;
 };
 
-// A floating-point format traits class defines ways to interpret a bit pattern of given
-// size as an encoding of floating-point number. This is an implementation of such a
-// traits class, supporting ways to interpret IEEE-754 binary floating-point numbers.
+// A floating-point format traits class defines ways to interpret a bit pattern
+// of given size as an encoding of floating-point number. This is an
+// implementation of such a traits class, supporting ways to interpret IEEE-754
+// binary floating-point numbers.
 template <class Format, class CarrierUInt, class ExponentInt = int>
 struct ieee754_binary_traits {
-    // CarrierUInt needs to have enough size to hold the entire contents of floating-point
-    // numbers. The actual bits are assumed to be aligned to the LSB, and every other bits
-    // are assumed to be zeroed.
+    // CarrierUInt needs to have enough size to hold the entire contents of
+    // floating-point numbers. The actual bits are assumed to be aligned to the
+    // LSB, and every other bits are assumed to be zeroed.
     static_assert(detail::value_bits<CarrierUInt>::value >= Format::total_bits,
                   "wjr::dragonbox: insufficient number of bits");
     static_assert(std::is_unsigned<CarrierUInt>::value);
 
-    // ExponentUInt needs to be large enough to hold (unsigned) exponent bits as well as
-    // the (signed) actual exponent.
+    // ExponentUInt needs to be large enough to hold (unsigned) exponent bits as
+    // well as the (signed) actual exponent.
     // TODO: static overflow guard against intermediate computations.
     static_assert(detail::value_bits<ExponentInt>::value >= Format::exponent_bits + 1,
                   "wjr::dragonbox: insufficient number of bits");
@@ -95,40 +97,43 @@ struct ieee754_binary_traits {
     using exponent_int = ExponentInt;
 
     // Extract exponent bits from a bit pattern.
-    // The result must be aligned to the LSB so that there is no additional zero paddings
-    // on the right. This function does not do bias adjustment.
+    // The result must be aligned to the LSB so that there is no additional zero
+    // paddings on the right. This function does not do bias adjustment.
     static constexpr exponent_int extract_exponent_bits(carrier_uint u) noexcept {
         return exponent_int((u >> format::significand_bits) &
                             ((exponent_int(1) << format::exponent_bits) - 1));
     }
 
     // Extract significand bits from a bit pattern.
-    // The result must be aligned to the LSB so that there is no additional zero paddings
-    // on the right. The result does not contain the implicit bit.
+    // The result must be aligned to the LSB so that there is no additional zero
+    // paddings on the right. The result does not contain the implicit bit.
     static constexpr carrier_uint extract_significand_bits(carrier_uint u) noexcept {
         return carrier_uint(u & ((carrier_uint(1) << format::significand_bits) - 1u));
     }
 
-    // Remove the exponent bits and extract significand bits together with the sign bit.
+    // Remove the exponent bits and extract significand bits together with the
+    // sign bit.
     static constexpr carrier_uint remove_exponent_bits(carrier_uint u) noexcept {
         return carrier_uint(
             u & ~(((carrier_uint(1) << format::exponent_bits) - 1u) << format::significand_bits));
     }
 
-    // Shift the obtained signed significand bits to the left by 1 to remove the sign bit.
+    // Shift the obtained signed significand bits to the left by 1 to remove the
+    // sign bit.
     static constexpr carrier_uint remove_sign_bit_and_shift(carrier_uint u) noexcept {
         return carrier_uint((carrier_uint(u) << 1) &
                             ((((carrier_uint(1) << (Format::total_bits - 1)) - 1u) << 1) | 1u));
     }
 
-    // Obtain the actual value of the binary exponent from the extracted exponent bits.
+    // Obtain the actual value of the binary exponent from the extracted
+    // exponent bits.
     static constexpr exponent_int binary_exponent(exponent_int exponent_bits) noexcept {
         return exponent_int(exponent_bits == 0 ? format::min_exponent
                                                : exponent_bits + format::exponent_bias);
     }
 
-    // Obtain the actual value of the binary significand from the extracted significand
-    // bits and exponent bits.
+    // Obtain the actual value of the binary significand from the extracted
+    // significand bits and exponent bits.
     static constexpr carrier_uint binary_significand(carrier_uint significand_bits,
                                                      exponent_int exponent_bits) noexcept {
         return carrier_uint(exponent_bits == 0 ? significand_bits
@@ -155,22 +160,23 @@ struct ieee754_binary_traits {
     static constexpr bool has_even_significand_bits(carrier_uint u) noexcept { return u % 2 == 0; }
 };
 
-// Convert between bit patterns stored in carrier_uint and instances of an actual
-// floating-point type. Depending on format and carrier_uint, this operation might not
-// be possible for some specific bit patterns. However, the contract is that u always
-// denotes a valid bit pattern, so the functions here are assumed to be noexcept.
-// Users might specialize this class to change the behavior for certain types.
-// The default provided by the library is to treat the given floating-point type Float as
-// either IEEE-754 binary32 or IEEE-754 binary64, depending on the bitwise size of Float.
+// Convert between bit patterns stored in carrier_uint and instances of an
+// actual floating-point type. Depending on format and carrier_uint, this
+// operation might not be possible for some specific bit patterns. However, the
+// contract is that u always denotes a valid bit pattern, so the functions here
+// are assumed to be noexcept. Users might specialize this class to change the
+// behavior for certain types. The default provided by the library is to treat
+// the given floating-point type Float as either IEEE-754 binary32 or IEEE-754
+// binary64, depending on the bitwise size of Float.
 template <class Float>
 struct default_float_bit_carrier_conversion_traits {
-    // Guards against types that have different internal representations than IEEE-754
-    // binary32/64. I don't know if there is a truly reliable way of detecting IEEE-754
-    // binary formats. I just did my best here. Note that in some cases
-    // numeric_limits<Float>::is_iec559 may report false even if the internal
-    // representation is IEEE-754 compatible. In such a case, the user can specialize this
-    // traits template and remove this static sanity check in order to make Dragonbox work
-    // for Float.
+    // Guards against types that have different internal representations than
+    // IEEE-754 binary32/64. I don't know if there is a truly reliable way of
+    // detecting IEEE-754 binary formats. I just did my best here. Note that in
+    // some cases numeric_limits<Float>::is_iec559 may report false even if the
+    // internal representation is IEEE-754 compatible. In such a case, the user
+    // can specialize this traits template and remove this static sanity check
+    // in order to make Dragonbox work for Float.
     static_assert(std::numeric_limits<Float>::is_iec559 && std::numeric_limits<Float>::radix == 2 &&
                       (detail::physical_bits<Float>::value == 32 ||
                        detail::physical_bits<Float>::value == 64),
@@ -184,21 +190,23 @@ struct default_float_bit_carrier_conversion_traits {
     using format = typename std::conditional<detail::physical_bits<Float>::value == 32,
                                              ieee754_binary32, ieee754_binary64>::type;
 
-    // Converts the floating-point type into the bit-carrier unsigned integer type.
+    // Converts the floating-point type into the bit-carrier unsigned integer
+    // type.
     static WJR_CONSTEXPR20 carrier_uint float_to_carrier(Float x) noexcept {
         return bit_cast<carrier_uint>(x);
     }
 
-    // Converts the bit-carrier unsigned integer type into the floating-point type.
+    // Converts the bit-carrier unsigned integer type into the floating-point
+    // type.
     static WJR_CONSTEXPR20 Float carrier_to_float(carrier_uint x) noexcept {
         return bit_cast<Float>(x);
     }
 };
 
 // Convenient wrappers for floating-point traits classes.
-// In order to reduce the argument passing overhead, these classes should be as simple as
-// possible (e.g., no inheritance, no private non-static data member, etc.; this is an
-// unfortunate fact about common ABI convention).
+// In order to reduce the argument passing overhead, these classes should be as
+// simple as possible (e.g., no inheritance, no private non-static data member,
+// etc.; this is an unfortunate fact about common ABI convention).
 
 template <class FormatTraits>
 struct signed_significand_bits {
@@ -211,7 +219,8 @@ struct signed_significand_bits {
     constexpr explicit signed_significand_bits(carrier_uint bit_pattern) noexcept
         : u{bit_pattern} {}
 
-    // Shift the obtained signed significand bits to the left by 1 to remove the sign bit.
+    // Shift the obtained signed significand bits to the left by 1 to remove the
+    // sign bit.
     constexpr carrier_uint remove_sign_bit_and_shift() const noexcept {
         return format_traits::remove_sign_bit_and_shift(u);
     }
@@ -238,25 +247,27 @@ struct float_bits {
     constexpr explicit float_bits(carrier_uint bit_pattern) noexcept : u{bit_pattern} {}
 
     // Extract exponent bits from a bit pattern.
-    // The result must be aligned to the LSB so that there is no additional zero paddings
-    // on the right. This function does not do bias adjustment.
+    // The result must be aligned to the LSB so that there is no additional zero
+    // paddings on the right. This function does not do bias adjustment.
     constexpr exponent_int extract_exponent_bits() const noexcept {
         return format_traits::extract_exponent_bits(u);
     }
 
     // Extract significand bits from a bit pattern.
-    // The result must be aligned to the LSB so that there is no additional zero paddings
-    // on the right. The result does not contain the implicit bit.
+    // The result must be aligned to the LSB so that there is no additional zero
+    // paddings on the right. The result does not contain the implicit bit.
     constexpr carrier_uint extract_significand_bits() const noexcept {
         return format_traits::extract_significand_bits(u);
     }
 
-    // Remove the exponent bits and extract significand bits together with the sign bit.
+    // Remove the exponent bits and extract significand bits together with the
+    // sign bit.
     constexpr signed_significand_bits<format_traits> remove_exponent_bits() const noexcept {
         return signed_significand_bits<format_traits>(format_traits::remove_exponent_bits(u));
     }
 
-    // Obtain the actual value of the binary exponent from the extracted exponent bits.
+    // Obtain the actual value of the binary exponent from the extracted
+    // exponent bits.
     static constexpr exponent_int binary_exponent(exponent_int exponent_bits) noexcept {
         return format_traits::binary_exponent(exponent_bits);
     }
@@ -264,8 +275,8 @@ struct float_bits {
         return binary_exponent(extract_exponent_bits());
     }
 
-    // Obtain the actual value of the binary exponent from the extracted significand bits
-    // and exponent bits.
+    // Obtain the actual value of the binary exponent from the extracted
+    // significand bits and exponent bits.
     static constexpr carrier_uint binary_significand(carrier_uint significand_bits,
                                                      exponent_int exponent_bits) noexcept {
         return format_traits::binary_significand(significand_bits, exponent_bits);
@@ -318,8 +329,8 @@ WJR_SAFEBUFFERS WJR_INTRINSIC_CONSTEXPR20 uint64_t umul128_upper64(uint64_t x,
     return mulhi(x, y);
 }
 
-// Get upper 128-bits of multiplication of a 64-bit unsigned integer and a 128-bit
-// unsigned integer.
+// Get upper 128-bits of multiplication of a 64-bit unsigned integer and a
+// 128-bit unsigned integer.
 WJR_SAFEBUFFERS WJR_INTRINSIC_CONSTEXPR20 uint128_t umul192_upper128(uint64_t x,
                                                                      uint128_t y) noexcept {
     auto r = umul128(x, y.high);
@@ -333,8 +344,8 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t umul96_upper64(uint32_t x, uint64_t y) noexce
     return umul128_upper64(uint64_t(x) << 32, y);
 }
 
-// Get lower 128-bits of multiplication of a 64-bit unsigned integer and a 128-bit
-// unsigned integer.
+// Get lower 128-bits of multiplication of a 64-bit unsigned integer and a
+// 128-bit unsigned integer.
 WJR_SAFEBUFFERS WJR_INTRINSIC_CONSTEXPR20 uint128_t umul192_lower128(uint64_t x,
                                                                      uint128_t y) noexcept {
     auto const high = x * y.high;
@@ -406,7 +417,8 @@ constexpr bool is_in_range(int) noexcept {
 template <template <size_t> class Info, std::int32_t min_exponent, std::int32_t max_exponent,
           size_t current_tier>
 constexpr bool is_in_range(...) noexcept {
-    // Supposed to be always false, but formally dependent on the template parameters.
+    // Supposed to be always false, but formally dependent on the template
+    // parameters.
     static_assert(min_exponent > max_exponent, "wjr::dragonbox: exponent range is too wide");
     return false;
 }
@@ -424,8 +436,8 @@ struct compute_impl<Info, min_exponent, max_exponent, current_tier, true> {
     template <class ReturnType, class Int>
     static constexpr ReturnType compute(Int e) noexcept {
         WJR_ASSERT(min_exponent <= e && e <= max_exponent);
-        // The sign is irrelevant for the mathematical validity of the formula, but
-        // assuming positivity makes the overflow analysis simpler.
+        // The sign is irrelevant for the mathematical validity of the formula,
+        // but assuming positivity makes the overflow analysis simpler.
         static_assert(info::multiply >= 0 && info::subtract >= 0);
         return static_cast<ReturnType>((e * info::multiply - info::subtract) >> info::shift);
     }
@@ -460,8 +472,8 @@ struct floor_log10_pow2_info<1> {
     static constexpr std::int_fast32_t multiply = 1233;
     static constexpr std::int_fast32_t subtract = 0;
     static constexpr size_t shift = 12;
-    // Formula itself holds on [-680,680]; [-425,425] is to ensure that the output is
-    // within [-127,127].
+    // Formula itself holds on [-680,680]; [-425,425] is to ensure that the
+    // output is within [-127,127].
     static constexpr std::int32_t min_exponent = -425;
     static constexpr std::int32_t max_exponent = 425;
 };
@@ -510,7 +522,8 @@ struct floor_log2_pow10_info<2> {
     static constexpr std::int_fast32_t multiply = INT32_C(1741647);
     static constexpr std::int_fast32_t subtract = 0;
     static constexpr size_t shift = 19;
-    // Formula itself holds on [-4003,4003]; [-1233,1233] is to ensure no overflow.
+    // Formula itself holds on [-4003,4003]; [-1233,1233] is to ensure no
+    // overflow.
     static constexpr std::int32_t min_exponent = -1233;
     static constexpr std::int32_t max_exponent = 1233;
 };
@@ -541,8 +554,8 @@ struct floor_log10_pow2_minus_log10_4_over_3_info<1> {
     static constexpr std::int_fast32_t multiply = 19728;
     static constexpr std::int_fast32_t subtract = 8241;
     static constexpr size_t shift = 16;
-    // Formula itself holds on [-849,315]; [-424,315] is to ensure that the output is
-    // within [-127,127].
+    // Formula itself holds on [-849,315]; [-424,315] is to ensure that the
+    // output is within [-127,127].
     static constexpr std::int32_t min_exponent = -424;
     static constexpr std::int32_t max_exponent = 315;
 };
@@ -683,30 +696,30 @@ WJR_INTRINSIC_CONSTEXPR20 UInt divide_by_pow10(UInt n) noexcept {
     static_assert(N >= 0);
 
     // Specialize for 32-bit division by 10.
-    // Without the bound on n_max (which compilers these days never leverage), the
-    // minimum needed amount of shift is larger than 32. Hence, this may generate better
-    // code for 32-bit or smaller architectures. Even for 64-bit architectures, it seems
-    // compilers tend to generate mov + mul instead of a single imul for an unknown
-    // reason if we just write n / 10.
+    // Without the bound on n_max (which compilers these days never leverage),
+    // the minimum needed amount of shift is larger than 32. Hence, this may
+    // generate better code for 32-bit or smaller architectures. Even for 64-bit
+    // architectures, it seems compilers tend to generate mov + mul instead of a
+    // single imul for an unknown reason if we just write n / 10.
     if constexpr (std::is_same<UInt, uint32_t>::value && N == 1 && n_max <= UINT32_C(1073741828)) {
         return UInt(wuint::umul64(n, UINT32_C(429496730)) >> 32);
     }
     // Specialize for 64-bit division by 10.
-    // Without the bound on n_max (which compilers these days never leverage), the
-    // minimum needed amount of shift is larger than 64.
+    // Without the bound on n_max (which compilers these days never leverage),
+    // the minimum needed amount of shift is larger than 64.
     else if constexpr (std::is_same<UInt, uint64_t>::value && N == 1 &&
                        n_max <= UINT64_C(4611686018427387908)) {
         return UInt(wuint::umul128_upper64(n, UINT64_C(1844674407370955162)));
     }
     // Specialize for 32-bit division by 100.
-    // It seems compilers tend to generate mov + mul instead of a single imul for an
-    // unknown reason if we just write n / 100.
+    // It seems compilers tend to generate mov + mul instead of a single imul
+    // for an unknown reason if we just write n / 100.
     else if constexpr (std::is_same<UInt, uint32_t>::value && N == 2) {
         return UInt(wuint::umul64(n, UINT32_C(1374389535)) >> 37);
     }
     // Specialize for 64-bit division by 1000.
-    // Without the bound on n_max (which compilers these days never leverage), the
-    // smallest magic number for this computation does not fit into 64-bits.
+    // Without the bound on n_max (which compilers these days never leverage),
+    // the smallest magic number for this computation does not fit into 64-bits.
     else if constexpr (std::is_same<UInt, uint64_t>::value && N == 3 &&
                        n_max <= UINT64_C(15534100272597517998)) {
         return UInt(wuint::umul128_upper64(n, UINT64_C(4722366482869645214)) >> 8);
@@ -1634,18 +1647,19 @@ struct compressed_cache_holder<ieee754_binary64, Dummy> {
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////
-// Forward declarations of user-specializable templates used in the main algorithm.
+// Forward declarations of user-specializable templates used in the main
+// algorithm.
 ////////////////////////////////////////////////////////////////////////////////////////
 
-// Remove trailing zeros from significand and add the number of removed zeros into
-// exponent.
+// Remove trailing zeros from significand and add the number of removed zeros
+// into exponent.
 template <class TrailingZeroPolicy, class Format, class DecimalSignificand,
           class DecimalExponentType>
 struct remove_trailing_zeros_traits;
 
-// Users can specialize this traits class to make Dragonbox work with their own formats.
-// However, this requires detailed knowledge on how the algorithm works, so it is
-// recommended to read through the paper.
+// Users can specialize this traits class to make Dragonbox work with their own
+// formats. However, this requires detailed knowledge on how the algorithm
+// works, so it is recommended to read through the paper.
 template <class FormatTraits, class CacheEntryType, size_t cache_bits_>
 struct multiplication_traits;
 
@@ -2125,8 +2139,8 @@ inline constexpr struct away_from_zero_t {
 } // namespace decimal_to_binary_rounding
 
 namespace binary_to_decimal_rounding {
-// (Always assumes nearest rounding modes, as there can be no tie for other rounding
-// modes.)
+// (Always assumes nearest rounding modes, as there can be no tie for other
+// rounding modes.)
 enum class tag_t { do_not_care, to_even, to_odd, away_from_zero, toward_zero };
 
 // The parameter significand corresponds to 10\tilde{s}+t in the paper.
@@ -2289,8 +2303,8 @@ struct remove_trailing_zeros_traits<policy::trailing_zero::remove_t, ieee754_bin
     WJR_INTRINSIC_INLINE static constexpr void
     remove_trailing_zeros(uint32_t &significand, DecimalExponentType &exponent) noexcept {
         // See https://github.com/jk-jeon/rtz_benchmark.
-        // The idea of branchless search below is by reddit users r/pigeon768 and
-        // r/TheoreticalDumbass.
+        // The idea of branchless search below is by reddit users r/pigeon768
+        // and r/TheoreticalDumbass.
 
         auto r = rotr(uint32_t(significand * UINT32_C(184254097)), 4);
         auto b = r < UINT32_C(429497);
@@ -2317,8 +2331,8 @@ struct remove_trailing_zeros_traits<policy::trailing_zero::remove_t, ieee754_bin
     WJR_INTRINSIC_INLINE static constexpr void
     remove_trailing_zeros(uint64_t &significand, DecimalExponentType &exponent) noexcept {
         // See https://github.com/jk-jeon/rtz_benchmark.
-        // The idea of branchless search below is by reddit users r/pigeon768 and
-        // r/TheoreticalDumbass.
+        // The idea of branchless search below is by reddit users r/pigeon768
+        // and r/TheoreticalDumbass.
 
         auto r = rotr(uint64_t(significand * UINT64_C(28999941890838049)), 8);
         auto b = r < UINT64_C(184467440738);
@@ -2557,7 +2571,8 @@ struct impl : private FormatTraits::format {
         decimal_fp<carrier_uint, decimal_exponent_type<PreferredIntegerTypesPolicy>,
                    SignPolicy::return_has_sign, TrailingZeroPolicy::report_trailing_zeros>;
 
-    //// The main algorithm assumes the input is a normal/subnormal finite number.
+    //// The main algorithm assumes the input is a normal/subnormal finite
+    /// number.
 
     template <class SignPolicy, class TrailingZeroPolicy, class IntervalTypeProvider,
               class BinaryToDecimalRoundingPolicy, class CachePolicy,
@@ -2586,10 +2601,10 @@ struct impl : private FormatTraits::format {
             binary_exponent += format::exponent_bias - format::significand_bits;
 
             // Shorter interval case; proceed like Schubfach.
-            // One might think this condition is wrong, since when exponent_bits ==
-            // 1 and two_fc == 0, the interval is actually regular. However, it
-            // turns out that this seemingly wrong condition is actually fine,
-            // because the end result is anyway the same.
+            // One might think this condition is wrong, since when exponent_bits
+            // == 1 and two_fc == 0, the interval is actually regular. However,
+            // it turns out that this seemingly wrong condition is actually
+            // fine, because the end result is anyway the same.
             //
             // [binary32]
             // (fc-1/2) * 2^e = 1.175'494'28... * 10^-38
@@ -2598,9 +2613,10 @@ struct impl : private FormatTraits::format {
             // (fc+1/2) * 2^e = 1.175'494'42... * 10^-38
             //
             // Hence, shorter_interval_case will return 1.175'494'4 * 10^-38.
-            // 1.175'494'3 * 10^-38 is also a correct shortest representation that
-            // will be rejected if we assume shorter interval, but 1.175'494'4 *
-            // 10^-38 is closer to the true value so it doesn't matter.
+            // 1.175'494'3 * 10^-38 is also a correct shortest representation
+            // that will be rejected if we assume shorter interval,
+            // but 1.175'494'4 * 10^-38 is closer to the true value so it
+            // doesn't matter.
             //
             // [binary64]
             // (fc-1/2) * 2^e = 2.225'073'858'507'201'13... * 10^-308
@@ -2608,10 +2624,10 @@ struct impl : private FormatTraits::format {
             //    fc    * 2^e = 2.225'073'858'507'201'38... * 10^-308
             // (fc+1/2) * 2^e = 2.225'073'858'507'201'63... * 10^-308
             //
-            // Hence, shorter_interval_case will return 2.225'073'858'507'201'4 *
-            // 10^-308. This is indeed of the shortest length, and it is the unique
-            // one closest to the true value among valid representations of the same
-            // length.
+            // Hence, shorter_interval_case will return 2.225'073'858'507'201'4
+            // * 10^-308. This is indeed of the shortest length, and it is the
+            // unique one closest to the true value among valid representations
+            // of the same length.
             static_assert(std::is_same<format, ieee754_binary32>::value ||
                               std::is_same<format, ieee754_binary64>::value,
                           "");
@@ -2653,9 +2669,10 @@ struct impl : private FormatTraits::format {
 
                 // Try bigger divisor.
                 // zi is at most floor((f_c + 1/2) * 2^e * 10^k0).
-                // Substituting f_c = 2^p and k0 = -floor(log10(3 * 2^(e-2))), we get
-                // zi <= floor((2^(p+1) + 1) * 20/3) <= ceil((2^(p+1) + 1)/3) * 20.
-                // This computation does not overflow for any of the formats I care about.
+                // Substituting f_c = 2^p and k0 = -floor(log10(3 * 2^(e-2))),
+                // we get zi <= floor((2^(p+1) + 1) * 20/3) <= ceil((2^(p+1) +
+                // 1)/3) * 20. This computation does not overflow for any of the
+                // formats I care about.
                 carrier_uint decimal_significand = div::divide_by_pow10<
                     1, carrier_uint,
                     carrier_uint(((((carrier_uint(1) << (significand_bits + 1)) + 1) / 3) + 1) *
@@ -2716,16 +2733,16 @@ struct impl : private FormatTraits::format {
         // 10^kappa <= deltai < 10^(kappa + 1)
         auto const deltai =
             static_cast<remainder_type_>(multiplication_traits_::compute_delta(cache, beta));
-        // For the case of binary32, the result of integer check is not correct for
-        // 29711844 * 2^-82
-        // = 6.1442653300000000008655037797566933477355632930994033813476... * 10^-18
-        // and 29711844 * 2^-81
-        // = 1.2288530660000000001731007559513386695471126586198806762695... * 10^-17,
-        // and they are the unique counterexamples. However, since 29711844 is even,
-        // this does not cause any problem for the endpoints calculations; it can only
-        // cause a problem when we need to perform integer check for the center.
-        // Fortunately, with these inputs, that branch is never executed, so we are
-        // fine.
+        // For the case of binary32, the result of integer check is not correct
+        // for 29711844 * 2^-82
+        // = 6.1442653300000000008655037797566933477355632930994033813476... *
+        // 10^-18 and 29711844 * 2^-81
+        // = 1.2288530660000000001731007559513386695471126586198806762695... *
+        // 10^-17, and they are the unique counterexamples. However, since
+        // 29711844 is even, this does not cause any problem for the endpoints
+        // calculations; it can only cause a problem when we need to perform
+        // integer check for the center. Fortunately, with these inputs, that
+        // branch is never executed, so we are fine.
         auto const z_result =
             multiplication_traits_::compute_mul(carrier_uint((two_fc | 1) << beta), cache);
 
@@ -2791,9 +2808,9 @@ struct impl : private FormatTraits::format {
                       policy::binary_to_decimal_rounding::tag_t::do_not_care) {
             // Normally, we want to compute
             // significand += r / small_divisor
-            // and return, but we need to take care of the case that the resulting
-            // value is exactly the right endpoint, while that is not included in the
-            // interval.
+            // and return, but we need to take care of the case that the
+            // resulting value is exactly the right endpoint, while that is not
+            // included in the interval.
             if (!interval_type.include_right_endpoint()) {
                 // Is r divisible by 10^kappa?
                 if (div::check_divisibility_and_divide_by_pow10<kappa>(r) && z_result.is_integer) {
@@ -2806,8 +2823,8 @@ struct impl : private FormatTraits::format {
                 decimal_significand += div::small_division_by_pow10<kappa>(r);
             }
         } else {
-            // delta is equal to 10^(kappa + elog10(2) - floor(elog10(2))), so dist cannot
-            // be larger than r.
+            // delta is equal to 10^(kappa + elog10(2) - floor(elog10(2))), so
+            // dist cannot be larger than r.
             auto dist = remainder_type_(r - (deltai / 2) + (small_divisor / 2));
             bool const approx_y_parity = ((dist ^ (small_divisor / 2)) & 1) != 0;
 
@@ -2820,19 +2837,20 @@ struct impl : private FormatTraits::format {
 
             if (divisible_by_small_divisor) {
                 // Check z^(f) >= epsilon^(f).
-                // We have either yi == zi - epsiloni or yi == (zi - epsiloni) - 1,
-                // where yi == zi - epsiloni if and only if z^(f) >= epsilon^(f).
-                // Since there are only 2 possibilities, we only need to care about the
-                // parity. Also, zi and r should have the same parity since the divisor
-                // is an even number.
+                // We have either yi == zi - epsiloni or yi == (zi - epsiloni) -
+                // 1, where yi == zi - epsiloni if and only if z^(f) >=
+                // epsilon^(f). Since there are only 2 possibilities, we only
+                // need to care about the parity. Also, zi and r should have the
+                // same parity since the divisor is an even number.
                 auto const y_result =
                     multiplication_traits_::compute_mul_parity(two_fc, cache, beta);
                 if (y_result.parity != approx_y_parity) {
                     --decimal_significand;
                 } else {
                     // If z^(f) >= epsilon^(f), we might have a tie
-                    // when z^(f) == epsilon^(f), or equivalently, when y is an integer.
-                    // For tie-to-up case, we can just choose the upper one.
+                    // when z^(f) == epsilon^(f), or equivalently, when y is an
+                    // integer. For tie-to-up case, we can just choose the upper
+                    // one.
                     if (BinaryToDecimalRoundingPolicy::prefer_round_down(decimal_significand) &
                         y_result.is_integer) {
                         --decimal_significand;
@@ -2900,10 +2918,10 @@ struct impl : private FormatTraits::format {
 
         // Deal with the unique exceptional cases
         // 29711844 * 2^-82
-        // = 6.1442653300000000008655037797566933477355632930994033813476... * 10^-18
-        // and 29711844 * 2^-81
-        // = 1.2288530660000000001731007559513386695471126586198806762695... * 10^-17
-        // for binary32.
+        // = 6.1442653300000000008655037797566933477355632930994033813476... *
+        // 10^-18 and 29711844 * 2^-81
+        // = 1.2288530660000000001731007559513386695471126586198806762695... *
+        // 10^-17 for binary32.
         if constexpr (std::is_same<format, ieee754_binary32>::value) {
             if (binary_exponent <= -80) {
                 x_result.is_integer = false;
@@ -2940,15 +2958,14 @@ struct impl : private FormatTraits::format {
                 // Compare the fractional parts.
                 // This branch is never taken for the exceptional cases
                 // 2f_c = 29711482, e = -81
-                // (6.1442649164096937243516663440523473127541365101933479309082... *
-                // 10^-18) and 2f_c = 29711482, e = -80
-                // (1.2288529832819387448703332688104694625508273020386695861816... *
-                // 10^-17).
-                // For the case of compressed cache for binary32, there is another
-                // exceptional case 2f_c = 33554430, e = -10 (16383.9990234375). In this
-                // case, the recovered cache is two large to make compute_mul_parity
-                // mistakenly conclude that z is not an integer, but actually z = 16384 is
-                // an integer.
+                // (6.1442649164096937243516663440523473127541365101933479309082...
+                // * 10^-18) and 2f_c = 29711482, e = -80
+                // (1.2288529832819387448703332688104694625508273020386695861816...
+                // * 10^-17). For the case of compressed cache for binary32,
+                // there is another exceptional case 2f_c = 33554430, e = -10
+                // (16383.9990234375). In this case, the recovered cache is two
+                // large to make compute_mul_parity mistakenly conclude that z
+                // is not an integer, but actually z = 16384 is an integer.
                 if constexpr (std::is_same<cache_holder_type,
                                            compressed_cache_holder<ieee754_binary32>>::value) {
                     if (two_fc == 33554430 && binary_exponent == -10) {
@@ -3043,8 +3060,8 @@ struct impl : private FormatTraits::format {
 
         constexpr auto big_divisor = compute_power<kappa + 1>(remainder_type_(10));
 
-        // Using an upper bound on zi, we might be able to optimize the division better
-        // than the compiler; we are computing zi / big_divisor here.
+        // Using an upper bound on zi, we might be able to optimize the division
+        // better than the compiler; we are computing zi / big_divisor here.
         carrier_uint decimal_significand = div::divide_by_pow10<
             kappa + 1, carrier_uint,
             carrier_uint((carrier_uint(1) << (significand_bits + 1)) * big_divisor - 1)>(zi);
@@ -3096,27 +3113,33 @@ struct impl : private FormatTraits::format {
 // Policy holder.
 ////////////////////////////////////////////////////////////////////////////////////////
 
-// The library will specify a list of accepted kinds of policies and their defaults,
-// and the user will pass a list of policies parameters. The policy parameters are
-// supposed to be stateless and only convey information through their types.
-// The aim of the helper classes/functions given below is to do the following:
-//   1. Check if the policy parameters given by the user are all valid; that means,
-//      each of them should be at least of one of the kinds specified by the library.
-//      If that's not the case, then the compilation fails.
-//   2. Check if multiple policy parameters for the same kind is specified by the
+// The library will specify a list of accepted kinds of policies and their
+// defaults, and the user will pass a list of policies parameters. The policy
+// parameters are supposed to be stateless and only convey information through
+// their types. The aim of the helper classes/functions given below is to do the
+// following:
+//   1. Check if the policy parameters given by the user are all valid; that
+//   means,
+//      each of them should be at least of one of the kinds specified by the
+//      library. If that's not the case, then the compilation fails.
+//   2. Check if multiple policy parameters for the same kind is specified by
+//   the
 //      user. If that's the case, then the compilation fails.
-//   3. Build a class deriving from all policies the user have given, and also from
+//   3. Build a class deriving from all policies the user have given, and also
+//   from
 //      the default policies if the user did not specify one for some kinds.
-// The library considers a certain policy parameter to belong to a specific kind if and
-// only if the parameter's type has a member type with a specific name; for example, it
-// belongs to "sign policy" kind if there is a member type sign_policy.
+// The library considers a certain policy parameter to belong to a specific kind
+// if and only if the parameter's type has a member type with a specific name;
+// for example, it belongs to "sign policy" kind if there is a member type
+// sign_policy.
 
 // For a given kind, find a policy belonging to that kind.
 // Check if there are more than one such policies.
 enum class policy_found_info { not_found, unique, repeated };
 template <class Policy, policy_found_info info>
 struct found_policy_pair {
-    // Either the policy parameter type given by the user, or the default policy.
+    // Either the policy parameter type given by the user, or the default
+    // policy.
     using policy = Policy;
     static constexpr auto found_info = info;
 };
@@ -3125,23 +3148,27 @@ template <class KindDetector, class DefaultPolicy>
 struct detector_default_pair {
     using kind_detector = KindDetector;
 
-    // Iterate through all given policy parameter types and see if there is a policy
-    // parameter type belonging to the policy kind specified by KindDetector.
+    // Iterate through all given policy parameter types and see if there is a
+    // policy parameter type belonging to the policy kind specified by
+    // KindDetector.
     // 1. If there is none, get_found_policy_pair returns
     //    found_policy_pair<DefaultPolicy, policy_found_info::not_found>.
-    // 2. If there is only one parameter type belonging to the specified kind, then
+    // 2. If there is only one parameter type belonging to the specified kind,
+    // then
     //    get_found_policy_pair returns
     //    found_policy_pair<Policy, policy_found_info::unique>
-    //    where Policy is the unique parameter type belonging to the specified kind.
-    // 3. If there are multiple parameter types belonging to the specified kind, then
+    //    where Policy is the unique parameter type belonging to the specified
+    //    kind.
+    // 3. If there are multiple parameter types belonging to the specified kind,
+    // then
     //    get_found_policy_pair returns
     //    found_policy_pair<FirstPolicy, policy_found_info::repeated>
-    //    where FirstPolicy is the first parameter type belonging to the specified kind.
-    //    The compilation must fail if this happens.
+    //    where FirstPolicy is the first parameter type belonging to the
+    //    specified kind. The compilation must fail if this happens.
     // This is done by first setting FoundPolicyInfo below to
-    // found_policy_pair<DefaultPolicy, policy_found_info::not_found>, and then iterate
-    // over Policies, replacing FoundPolicyInfo by the appropriate one if a parameter
-    // type belonging to the specified kind is found.
+    // found_policy_pair<DefaultPolicy, policy_found_info::not_found>, and then
+    // iterate over Policies, replacing FoundPolicyInfo by the appropriate one
+    // if a parameter type belonging to the specified kind is found.
 
     template <class FoundPolicyInfo, class... Policies>
     struct get_found_policy_pair_impl;
@@ -3190,7 +3217,8 @@ check_policy_validity(dummy<Policy>,
                                  detector_default_pair_list<RemainingDetectorDefaultPairs...>{});
 }
 
-// Check if all of policies belong to some of the kinds specified by the library.
+// Check if all of policies belong to some of the kinds specified by the
+// library.
 template <class DetectorDefaultPairList>
 constexpr bool check_policy_list_validity(DetectorDefaultPairList) noexcept {
     return true;
@@ -3206,22 +3234,22 @@ constexpr bool check_policy_list_validity(DetectorDefaultPairList, dummy<FirstPo
 template <class... Policies>
 struct policy_holder : Policies... {};
 
-// Iterate through the library-specified list of base-default pairs, i.e., the list of
-// policy kinds and their defaults. For each base-default pair, call
-// base_default_pair::get_found_policy_pair on the list of user-specified list of
-// policies to get found_policy_pair, and build the list of them.
+// Iterate through the library-specified list of base-default pairs, i.e., the
+// list of policy kinds and their defaults. For each base-default pair, call
+// base_default_pair::get_found_policy_pair on the list of user-specified list
+// of policies to get found_policy_pair, and build the list of them.
 
 template <bool repeated_, class... FoundPolicyPairs>
 struct found_policy_pair_list {
     // This will be set to be true if and only if there exists at least one
     // found_policy_pair inside FoundPolicyPairs with
-    // found_info == policy_found_info::repeated, in which case the compilation must
-    // fail.
+    // found_info == policy_found_info::repeated, in which case the compilation
+    // must fail.
     static constexpr bool repeated = repeated_;
 };
 
-// Iterate through DetectorDefaultPairList and augment FoundPolicyPairList by one at each
-// iteration.
+// Iterate through DetectorDefaultPairList and augment FoundPolicyPairList by
+// one at each iteration.
 template <class DetectorDefaultPairList, class FoundPolicyPairList, class... Policies>
 struct make_policy_pair_list_impl;
 
@@ -3236,8 +3264,8 @@ struct make_policy_pair_list_impl<detector_default_pair_list<>,
 
 // For the first detector-default pair in the remaining list, call
 // detector_default_pair::get_found_policy_pair on Policies and add the returned
-// found_policy_pair into the current list of found_policy_pair's, and move to the next
-// detector-default pair.
+// found_policy_pair into the current list of found_policy_pair's, and move to
+// the next detector-default pair.
 template <class FirstDetectorDefaultPair, class... RemainingDetectorDefaultPairs, bool repeated,
           class... FoundPolicyPairs, class... Policies>
 struct make_policy_pair_list_impl<
@@ -3259,8 +3287,9 @@ using policy_pair_list =
     typename make_policy_pair_list_impl<DetectorDefaultPairList, found_policy_pair_list<false>,
                                         Policies...>::type;
 
-// Unpack FoundPolicyPairList into found_policy_pair's and build the policy_holder type
-// from the corresponding typelist of found_policy_pair::policy's.
+// Unpack FoundPolicyPairList into found_policy_pair's and build the
+// policy_holder type from the corresponding typelist of
+// found_policy_pair::policy's.
 template <class FoundPolicyPairList, class... RawPolicies>
 struct convert_to_policy_holder_impl;
 
@@ -3657,7 +3686,8 @@ WJR_CONSTEXPR20 char *to_chars(Float x, char *buffer, Policies... policies) noex
 // Maximum required buffer size (excluding null-terminator)
 template <class FloatFormat>
 inline constexpr size_t max_output_string_length =
-    // sign(1) + significand + decimal_point(1) + exp_marker(1) + exp_sign(1) + exp
+    // sign(1) + significand + decimal_point(1) + exp_marker(1) + exp_sign(1) +
+    // exp
     1 + FloatFormat::decimal_significand_digits + 1 + 1 + 1 + FloatFormat::decimal_exponent_digits;
 
 template <typename Float>

@@ -29,8 +29,8 @@
 #define WJR_SIMD_DEF_VAR 2
 // Use assembly.
 #define WJR_ASSEMBLY_DEF_VAR 3
-// Use C++ standard from newer standard. For example, maybe use bit_cast in C++20, but
-// use others in C++17.
+// Use C++ standard from newer standard. For example, maybe use bit_cast in
+// C++20, but use others in C++17.
 #define WJR_CXX_STANDARD_DEF_VAR 4
 #define WJR_GENERIC_DEF_VAR 5
 
@@ -134,8 +134,8 @@
     #define WJR_HAS_FEATURE_FLOAT128 WJR_HAS_DEF
 #endif
 
-// There are some issues with the optimization of int128 in both lower and higher versions
-// (13.1/13.2) of GCC.
+// There are some issues with the optimization of int128 in both lower and
+// higher versions (13.1/13.2) of GCC.
 #if WJR_HAS_FEATURE(INT128) &&                                                                     \
     (defined(WJR_COMPILER_CLANG) ||                                                                \
      (defined(WJR_COMPILER_GCC) && WJR_HAS_GCC(8, 1, 0) && !WJR_HAS_GCC(13, 1, 0)))

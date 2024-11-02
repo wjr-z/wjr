@@ -199,12 +199,12 @@
 #endif
 
 /**
- * @details For Clang version 14.0.0-, __builtin_constant_p have some performance issue.
- * \n
+ * @details For Clang version 14.0.0-, __builtin_constant_p have some
+ * performance issue. \n
  * 1. Cannot propagate __builtin_constant_p beyond function \n
- * 2. Maybe prevent function be inlined. For low version clang, it will inline all path
- * even if only one path will be executed, then the function that calls it will not be
- * inlined.
+ * 2. Maybe prevent function be inlined. For low version clang, it will inline
+ * all path even if only one path will be executed, then the function that calls
+ * it will not be inlined.
  */
 #if WJR_HAS_BUILTIN(__builtin_constant_p)
     #define WJR_BUILTIN_CONSTANT_P(expr) __builtin_constant_p(expr)

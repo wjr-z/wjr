@@ -57,8 +57,8 @@ WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) noexcept {
  * @brief Add two numbers with carry-in, and return the result and carry-out
  *
  * @note The carry-in and carry-out are limited to 0 and 1
- * @tparam U Type of the carry-in and carry-out. It must be an unsigned integral type.
- * the default type is the same as `T`
+ * @tparam U Type of the carry-in and carry-out. It must be an unsigned integral
+ * type. the default type is the same as `T`
  * @param[in] c_in The carry-in flag.
  * @param[out] c_out The carry-out flag.
  *
@@ -76,10 +76,11 @@ WJR_INTRINSIC_CONSTEXPR20 T addc(T a, T b, type_identity_t<U> c_in, U &c_out) no
         return WJR_BUILTIN_CONSTANT_P_TRUE(x == 0) ? 2 : WJR_BUILTIN_CONSTANT_P(x) ? 1 : 0;
     };
 
-    // The compiler should be able to optimize the judgment condition of if when enabling
-    // optimization. If it doesn't work, then there should be a issue
+    // The compiler should be able to optimize the judgment condition of if when
+    // enabling optimization. If it doesn't work, then there should be a issue
     if (is_constant_evaluated() ||
-        // constant value is zero or constant value number greater or equal than 2
+        // constant value is zero or constant value number greater or equal than
+        // 2
         (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >= 2)) {
         return fallback_addc(a, b, c_in, c_out);
     }
@@ -96,17 +97,18 @@ WJR_INTRINSIC_CONSTEXPR20 T addc(T a, T b, type_identity_t<U> c_in, U &c_out) no
 }
 
 /**
- * @brief Performs addition with carry-in and carry-out, optimized for subsequent
- * branching based on carry-out.
+ * @brief Performs addition with carry-in and carry-out, optimized for
+ * subsequent branching based on carry-out.
  *
- * @details This function, `addc_cc`, adds two numbers with a carry-in, and returns the
- * result and a carry-out. The carry-out (`c_out`) is optimized for subsequent code that
- * branches based on its value. For example, it can be used with jump instructions like
- * `je` or `jne`. This is in contrast to the `addc` function, which may use instructions
- * like `setc` or `test` for branching.
+ * @details This function, `addc_cc`, adds two numbers with a carry-in, and
+ * returns the result and a carry-out. The carry-out (`c_out`) is optimized for
+ * subsequent code that branches based on its value. For example, it can be used
+ * with jump instructions like `je` or `jne`. This is in contrast to the `addc`
+ * function, which may use instructions like `setc` or `test` for branching.
  *
  * @note The carry-in and carry-out are limited to 0 and 1
- * @tparam U Type of the carry-in and carry-out. It must be an unsigned integral type.
+ * @tparam U Type of the carry-in and carry-out. It must be an unsigned integral
+ * type.
  * @param[in] c_in The carry-in flag.
  * @param[out] c_out The carry-out flag.
  */
@@ -119,10 +121,11 @@ WJR_INTRINSIC_CONSTEXPR20 T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noex
         return WJR_BUILTIN_CONSTANT_P_TRUE(x == 0) ? 2 : WJR_BUILTIN_CONSTANT_P(x) ? 1 : 0;
     };
 
-    // The compiler should be able to optimize the judgment condition of if when enabling
-    // optimization. If it doesn't work, then there should be a issue
+    // The compiler should be able to optimize the judgment condition of if when
+    // enabling optimization. If it doesn't work, then there should be a issue
     if (is_constant_evaluated() ||
-        // constant value is zero or constant value number greater or equal than 2
+        // constant value is zero or constant value number greater or equal than
+        // 2
         (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >= 2)) {
         return fallback_addc(a, b, c_in, c_out);
     }
@@ -189,10 +192,11 @@ WJR_INTRINSIC_CONSTEXPR20 U __addc_1_impl(uint64_t *dst, const uint64_t *src0, s
 }
 
 /**
- * @brief Add biginteger(src0) and number with carry-in, and return the result(dst) and
- * carry-out.
+ * @brief Add biginteger(src0) and number with carry-in, and return the
+ * result(dst) and carry-out.
  *
- * @tparam U Type of the carry-in and carry-out. It must be an unsigned integral type.
+ * @tparam U Type of the carry-in and carry-out. It must be an unsigned integral
+ * type.
  * @param[out] dst The result of the addition.
  * @param[in] src0 The biginteger to be added.
  * @param[in] n The number of elements in the biginteger.
@@ -263,10 +267,11 @@ WJR_INTRINSIC_CONSTEXPR U fallback_addc_n(uint64_t *dst, const uint64_t *src0, c
 }
 
 /**
- * @brief Add biginteger(src0) and biginteger(src1) with carry-in, and return the result
- * (dst) and carry-out.
+ * @brief Add biginteger(src0) and biginteger(src1) with carry-in, and return
+ * the result (dst) and carry-out.
  *
- * @tparam U Type of the carry-in and carry-out. It must be an unsigned integral type.
+ * @tparam U Type of the carry-in and carry-out. It must be an unsigned integral
+ * type.
  * @param[out] dst The result of the addition.
  * @param[in] src0 The biginteger to be added.
  * @param[in] src1 The biginteger to be added.

@@ -47,27 +47,29 @@ extern template from_chars_result<> __from_chars_impl<default_writer<double>, ch
     const char *first, const char *last, default_writer<double> wr, chars_format fmt) noexcept;
 
 /**
- * This function parses the character sequence [first,last) for a number. It parses
- * floating-point numbers expecting a locale-indepent format equivalent to what is used by
- * std::strtod in the default ("C") locale. The resulting floating-point value is the
- * closest floating-point values (using either float or double), using the "round to even"
- * convention for values that would otherwise fall right in-between two values. That is,
- * we provide exact parsing according to the IEEE standard.
+ * This function parses the character sequence [first,last) for a number. It
+ * parses floating-point numbers expecting a locale-indepent format equivalent
+ * to what is used by std::strtod in the default ("C") locale. The resulting
+ * floating-point value is the closest floating-point values (using either float
+ * or double), using the "round to even" convention for values that would
+ * otherwise fall right in-between two values. That is, we provide exact parsing
+ * according to the IEEE standard.
  *
- * Given a successful parse, the pointer (`ptr`) in the returned value is set to point
- * right after the parsed number, and the `value` referenced is set to the parsed value.
- * In case of error, the returned `ec` contains a representative error, otherwise the
- * default (`std::errc()`) value is stored.
+ * Given a successful parse, the pointer (`ptr`) in the returned value is set to
+ * point right after the parsed number, and the `value` referenced is set to the
+ * parsed value. In case of error, the returned `ec` contains a representative
+ * error, otherwise the default (`std::errc()`) value is stored.
  *
- * The implementation does not throw and does not allocate memory (e.g., with `new` or
- * `malloc`).
+ * The implementation does not throw and does not allocate memory (e.g., with
+ * `new` or `malloc`).
  *
- * Like the C++17 standard, the `fast_float::from_chars` functions take an optional last
- * argument of the type `fast_float::chars_format`. It is a bitset value: we check whether
- * `fmt & fast_float::chars_format::fixed` and `fmt &
- * fast_float::chars_format::scientific` are set to determine whether we allow the fixed
- * point and scientific notation respectively. The default is
- * `fast_float::chars_format::general` which allows both `fixed` and `scientific`.
+ * Like the C++17 standard, the `fast_float::from_chars` functions take an
+ * optional last argument of the type `fast_float::chars_format`. It is a bitset
+ * value: we check whether `fmt & fast_float::chars_format::fixed` and `fmt &
+ * fast_float::chars_format::scientific` are set to determine whether we allow
+ * the fixed point and scientific notation respectively. The default is
+ * `fast_float::chars_format::general` which allows both `fixed` and
+ * `scientific`.
  */
 template <chars_format Fmt = chars_format::general>
 from_chars_result<> from_chars(const char *first, const char *last, float &value,
@@ -1053,16 +1055,17 @@ struct powers_template {
 
 using powers = powers_template<>;
 
-// This will compute or rather approximate w * 5**q and return a pair of 64-bit words
-// approximating the result, with the high" part corresponding to the most significant
-// bits and the low part corresponding to the least significant bits.
+// This will compute or rather approximate w * 5**q and return a pair of 64-bit
+// words approximating the result, with the high" part corresponding to the most
+// significant bits and the low part corresponding to the least significant
+// bits.
 //
 template <int bit_precision>
 WJR_INTRINSIC_INLINE uint128_t compute_product_approximation(int64_t q, uint64_t w) {
     const int index = 2 * int(q - powers::smallest_power_of_five);
-    // For small values of q, e.g., q in [0,27], the answer is always exact because
-    // The line uint128_t firstproduct = mul64x64to128(w, power_of_five_128[index]);
-    // gives the exact answer.
+    // For small values of q, e.g., q in [0,27], the answer is always exact
+    // because The line uint128_t firstproduct = mul64x64to128(w,
+    // power_of_five_128[index]); gives the exact answer.
     uint128_t firstproduct = mul64x64to128(w, powers::power_of_five_128[index]);
     static_assert((bit_precision >= 0) && (bit_precision <= 64), " precision should  be in (0,64]");
     constexpr uint64_t precision_mask = (bit_precision < 64)
@@ -1070,8 +1073,9 @@ WJR_INTRINSIC_INLINE uint128_t compute_product_approximation(int64_t q, uint64_t
                                             : uint64_t(0xFFFFFFFFFFFFFFFF);
     if ((firstproduct.high & precision_mask) ==
         precision_mask) { // could further guard with (lower + w < lower)
-        // regarding the second product, we only need secondproduct.high, but our
-        // expectation is that the compiler will optimize this extra work away if needed.
+        // regarding the second product, we only need secondproduct.high, but
+        // our expectation is that the compiler will optimize this extra work
+        // away if needed.
         const uint128_t secondproduct = mul64x64to128(w, powers::power_of_five_128[index + 1]);
         firstproduct.low += secondproduct.high;
         if (secondproduct.high > firstproduct.low) {
@@ -1127,10 +1131,10 @@ WJR_INTRINSIC_INLINE adjusted_mantissa compute_error(int64_t q, uint64_t w) noex
 }
 
 // w * 10 ** q
-// The returned value should be a valid ieee64 number that simply need to be packed.
-// However, in some very rare cases, the computation will fail. In such cases, we
-// return an adjusted_mantissa with a negative power of 2: the caller should recompute
-// in such cases.
+// The returned value should be a valid ieee64 number that simply need to be
+// packed. However, in some very rare cases, the computation will fail. In such
+// cases, we return an adjusted_mantissa with a negative power of 2: the caller
+// should recompute in such cases.
 template <typename binary>
 WJR_CONST WJR_INTRINSIC_INLINE adjusted_mantissa compute_float(int64_t q, uint64_t w) noexcept {
     adjusted_mantissa answer;
@@ -1156,28 +1160,28 @@ WJR_CONST WJR_INTRINSIC_INLINE adjusted_mantissa compute_float(int64_t q, uint64
     // The required precision is binary::mantissa_explicit_bits() + 3 because
     // 1. We need the implicit bit
     // 2. We need an extra bit for rounding purposes
-    // 3. We might lose a bit due to the "upperbit" routine (result too small, requiring a
-    // shift)
+    // 3. We might lose a bit due to the "upperbit" routine (result too small,
+    // requiring a shift)
 
     const uint128_t product =
         compute_product_approximation<binary::mantissa_explicit_bits() + 3>(q, w);
     if (product.low == 0xFFFFFFFFFFFFFFFF) { //  could guard it further
-        // In some very rare cases, this could happen, in which case we might need a more
-        // accurate computation that what we can provide cheaply. This is very, very
-        // unlikely.
+        // In some very rare cases, this could happen, in which case we might
+        // need a more accurate computation that what we can provide cheaply.
+        // This is very, very unlikely.
         //
         const bool inside_safe_exponent =
             (q >= -27) && (q <= 55); // always good because 5**q <2**128 when q>=0,
-        // and otherwise, for q<0, we have 5**-q<2**64 and the 128-bit reciprocal allows
-        // for exact computation.
+        // and otherwise, for q<0, we have 5**-q<2**64 and the 128-bit
+        // reciprocal allows for exact computation.
         if (!inside_safe_exponent) {
             return compute_error_scaled<binary>(q, product.high, lz);
         }
     }
-    // The "compute_product_approximation" function can be slightly slower than a
-    // branchless approach: uint128_t product = compute_product(q, w); but in practice, we
-    // can win big with the compute_product_approximation if its additional branch is
-    // easily predicted. Which is best is data specific.
+    // The "compute_product_approximation" function can be slightly slower than
+    // a branchless approach: uint128_t product = compute_product(q, w); but in
+    // practice, we can win big with the compute_product_approximation if its
+    // additional branch is easily predicted. Which is best is data specific.
     const int upperbit = int(product.high >> 63);
 
     answer.mantissa = product.high >> (upperbit + 64 - binary::mantissa_explicit_bits() - 3);
@@ -1201,25 +1205,26 @@ WJR_CONST WJR_INTRINSIC_INLINE adjusted_mantissa compute_float(int64_t q, uint64
         // There is a weird scenario where we don't have a subnormal but just.
         // Suppose we start with 2.2250738585072013e-308, we end up
         // with 0x3fffffffffffff x 2^-1023-53 which is technically subnormal
-        // whereas 0x40000000000000 x 2^-1023-53  is normal. Now, we need to round
-        // up 0x3fffffffffffff x 2^-1023-53  and once we do, we are no longer
-        // subnormal, but we can only know this after rounding.
-        // So we only declare a subnormal if we are smaller than the threshold.
+        // whereas 0x40000000000000 x 2^-1023-53  is normal. Now, we need to
+        // round up 0x3fffffffffffff x 2^-1023-53  and once we do, we are no
+        // longer subnormal, but we can only know this after rounding. So we
+        // only declare a subnormal if we are smaller than the threshold.
         answer.power2 =
             (answer.mantissa < (uint64_t(1) << binary::mantissa_explicit_bits())) ? 0 : 1;
         return answer;
     }
 
-    // usually, we round *up*, but if we fall right in between and and we have an
-    // even basis, we need to round down
-    // We are only concerned with the cases where 5**q fits in single 64-bit word.
+    // usually, we round *up*, but if we fall right in between and and we have
+    // an even basis, we need to round down We are only concerned with the cases
+    // where 5**q fits in single 64-bit word.
     if ((product.low <= 1) && (q >= binary::min_exponent_round_to_even()) &&
         (q <= binary::max_exponent_round_to_even()) &&
         ((answer.mantissa & 3) == 1)) { // we may fall between two floats!
         // To be in-between two floats we need that in doing
         //   answer.mantissa = product.high >> (upperbit + 64 -
         //   binary::mantissa_explicit_bits() - 3);
-        // ... we dropped out only zeroes. But if this happened, then we can go back!!!
+        // ... we dropped out only zeroes. But if this happened, then we can go
+        // back!!!
         if ((answer.mantissa << (upperbit + 64 - binary::mantissa_explicit_bits() - 3)) ==
             product.high) {
             answer.mantissa &= ~uint64_t(1); // flip it so that we do not round up
@@ -1252,15 +1257,15 @@ WJR_CONST WJR_INTRINSIC_INLINE adjusted_mantissa compute_integer(uint64_t w) noe
     // The required precision is binary::mantissa_explicit_bits() + 3 because
     // 1. We need the implicit bit
     // 2. We need an extra bit for rounding purposes
-    // 3. We might lose a bit due to the "upperbit" routine (result too small, requiring a
-    // shift)
+    // 3. We might lose a bit due to the "upperbit" routine (result too small,
+    // requiring a shift)
 
     const uint128_t product =
         compute_product_approximation<binary::mantissa_explicit_bits() + 3>(0, w);
-    // The "compute_product_approximation" function can be slightly slower than a
-    // branchless approach: uint128_t product = compute_product(q, w); but in practice, we
-    // can win big with the compute_product_approximation if its additional branch is
-    // easily predicted. Which is best is data specific.
+    // The "compute_product_approximation" function can be slightly slower than
+    // a branchless approach: uint128_t product = compute_product(q, w); but in
+    // practice, we can win big with the compute_product_approximation if its
+    // additional branch is easily predicted. Which is best is data specific.
     const int upperbit = int(product.high >> 63);
 
     answer.mantissa = product.high >> (upperbit + 64 - binary::mantissa_explicit_bits() - 3);
@@ -1284,23 +1289,24 @@ WJR_CONST WJR_INTRINSIC_INLINE adjusted_mantissa compute_integer(uint64_t w) noe
         // There is a weird scenario where we don't have a subnormal but just.
         // Suppose we start with 2.2250738585072013e-308, we end up
         // with 0x3fffffffffffff x 2^-1023-53 which is technically subnormal
-        // whereas 0x40000000000000 x 2^-1023-53  is normal. Now, we need to round
-        // up 0x3fffffffffffff x 2^-1023-53  and once we do, we are no longer
-        // subnormal, but we can only know this after rounding.
-        // So we only declare a subnormal if we are smaller than the threshold.
+        // whereas 0x40000000000000 x 2^-1023-53  is normal. Now, we need to
+        // round up 0x3fffffffffffff x 2^-1023-53  and once we do, we are no
+        // longer subnormal, but we can only know this after rounding. So we
+        // only declare a subnormal if we are smaller than the threshold.
         answer.power2 =
             (answer.mantissa < (uint64_t(1) << binary::mantissa_explicit_bits())) ? 0 : 1;
         return answer;
     }
 
-    // usually, we round *up*, but if we fall right in between and and we have an
-    // even basis, we need to round down
-    // We are only concerned with the cases where 5**q fits in single 64-bit word.
+    // usually, we round *up*, but if we fall right in between and and we have
+    // an even basis, we need to round down We are only concerned with the cases
+    // where 5**q fits in single 64-bit word.
     if (product.low <= 1 && (answer.mantissa & 3) == 1) { // we may fall between two floats!
         // To be in-between two floats we need that in doing
         //   answer.mantissa = product.high >> (upperbit + 64 -
         //   binary::mantissa_explicit_bits() - 3);
-        // ... we dropped out only zeroes. But if this happened, then we can go back!!!
+        // ... we dropped out only zeroes. But if this happened, then we can go
+        // back!!!
         if ((answer.mantissa << (upperbit + 64 - binary::mantissa_explicit_bits() - 3)) ==
             product.high) {
             answer.mantissa &= ~uint64_t(1); // flip it so that we do not round up
@@ -1705,7 +1711,8 @@ void parse_mantissa(bigint &result, span<const char> integer, span<const char> f
             }
 
             if (digits == max_digits) {
-                // add the temporary value, then check if we've truncated any digits
+                // add the temporary value, then check if we've truncated any
+                // digits
                 add_native(result, uint64_t(powers_of_ten_uint64[counter]), value);
 
                 if (bool truncated = is_truncated(p, pend); truncated) {
@@ -1756,8 +1763,8 @@ adjusted_mantissa negative_digit_comp(bigint &bigmant, adjusted_mantissa am,
     bigint &real_digits = bigmant;
     int32_t real_exp = exponent;
 
-    // get the value of `b`, rounded down, and get a fixed_stack_biginteger representation
-    // of b+h
+    // get the value of `b`, rounded down, and get a fixed_stack_biginteger
+    // representation of b+h
     adjusted_mantissa am_b = am;
     // gcc7 buf: use a lambda to remove the noexcept qualifier bug with
     // -Wnoexcept-type.
@@ -1890,10 +1897,10 @@ WJR_INTRINSIC_INLINE bool rounds_to_nearest() noexcept {
     //
     // The volatile keywoard prevents the compiler from computing the function
     // at compile-time.
-    // There might be other ways to prevent compile-time optimizations (e.g., asm).
-    // The value does not need to be std::numeric_limits<float>::min(), any small
-    // value so that 1 + x should round to 1 would do (after accounting for excess
-    // precision, as in 387 instructions).
+    // There might be other ways to prevent compile-time optimizations (e.g.,
+    // asm). The value does not need to be std::numeric_limits<float>::min(),
+    // any small value so that 1 + x should round to 1 would do (after
+    // accounting for excess precision, as in 387 instructions).
     static volatile float fmin = std::numeric_limits<float>::min();
     float fmini = fmin; // we copy it so that it gets loaded at most once.
 //
@@ -2027,8 +2034,9 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
 
         ++p;
         const char *before = p;
-        // can occur at most twice without overflowing, but let it occur more, since
-        // for integers with many digits, digit parsing is the primary bottleneck.
+        // can occur at most twice without overflowing, but let it occur more,
+        // since for integers with many digits, digit parsing is the primary
+        // bottleneck.
         if (last - p >= 8) {
             if (is_made_of_eight_digits_fast(p)) {
                 do {
@@ -2172,7 +2180,8 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
                     }
                     exponent = pns.fraction.data() - p + exp_number;
                 }
-                // We have now corrected both exponent and uval, to a truncated value
+                // We have now corrected both exponent and uval, to a truncated
+                // value
             }
         }
 
@@ -2181,14 +2190,13 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
         T &float_v = wr.get_float();
 
         // The implementation of the Clinger's fast path is convoluted because
-        // we want round-to-nearest in all cases, irrespective of the rounding mode
-        // selected on the thread.
-        // We proceed optimistically, assuming that detail::rounds_to_nearest()
-        // returns true.
+        // we want round-to-nearest in all cases, irrespective of the rounding
+        // mode selected on the thread. We proceed optimistically, assuming that
+        // detail::rounds_to_nearest() returns true.
         if (binary_format<T>::min_exponent_fast_path() <= pns.exponent &&
             pns.exponent <= binary_format<T>::max_exponent_fast_path() && !too_many_digits) {
-            // Unfortunately, the conventional Clinger's fast path is only possible
-            // when the system rounds to the nearest float.
+            // Unfortunately, the conventional Clinger's fast path is only
+            // possible when the system rounds to the nearest float.
             //
             // We expect the next branch to almost always be selected.
             // We could check it first (before the previous branch), but
@@ -2211,12 +2219,13 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
                 }
             } else {
                 // We do not have that fegetround() == FE_TONEAREST.
-                // Next is a modified Clinger's fast path, inspired by Jakub Jelínek's
-                // proposal
+                // Next is a modified Clinger's fast path, inspired by Jakub
+                // Jelínek's proposal
                 if (pns.exponent >= 0 &&
                     uval <= binary_format<T>::max_mantissa_fast_path(pns.exponent)) {
 #if defined(__clang__)
-                    // ClangCL may map 0 to -0.0 when fegetround() == FE_DOWNWARD
+                    // ClangCL may map 0 to -0.0 when fegetround() ==
+                    // FE_DOWNWARD
                     if (uval == 0) {
                         float_v = pns.negative ? T(-0.) : T(0.);
                         return answer;
@@ -2239,8 +2248,8 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
         }
 
         // If we called compute_float<binary_format<T>>(pns.exponent, uval)
-        // and we have an invalid power (am.power2 < 0), then we need to go the long
-        // way around again. This is very uncommon.
+        // and we have an invalid power (am.power2 < 0), then we need to go the
+        // long way around again. This is very uncommon.
         if (am.power2 < 0) {
             am.power2 -= invalid_am_bias;
 

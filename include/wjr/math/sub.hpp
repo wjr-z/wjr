@@ -66,10 +66,11 @@ WJR_INTRINSIC_CONSTEXPR20 T subc(T a, T b, type_identity_t<U> c_in, U &c_out) no
         return WJR_BUILTIN_CONSTANT_P_TRUE(x == 0) ? 2 : WJR_BUILTIN_CONSTANT_P(x) ? 1 : 0;
     };
 
-    // The compiler should be able to optimize the judgment condition of if when enabling
-    // optimization. If it doesn't work, then there should be a issue
+    // The compiler should be able to optimize the judgment condition of if when
+    // enabling optimization. If it doesn't work, then there should be a issue
     if (is_constant_evaluated() ||
-        // constant value is zero or constant value number greater or equal than 2
+        // constant value is zero or constant value number greater or equal than
+        // 2
         (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >= 2)) {
         return fallback_subc(a, b, c_in, c_out);
     }
@@ -86,11 +87,12 @@ WJR_INTRINSIC_CONSTEXPR20 T subc(T a, T b, type_identity_t<U> c_in, U &c_out) no
 }
 
 /*
- Used for subc and then jump according to cc flag. Therefore, the types of c_in and
- c_out are limited to uint8_t, while the default c_in and c_out types of normal subc are
- the same as T, so that the high register is not cleared. Currently, GCC/Clang @=cccond
- cannot know that the high register is not cleared, so the performance is worse than the
- normal version when cc flag is not needed immediately.
+ Used for subc and then jump according to cc flag. Therefore, the types of c_in
+ and c_out are limited to uint8_t, while the default c_in and c_out types of
+ normal subc are the same as T, so that the high register is not cleared.
+ Currently, GCC/Clang @=cccond cannot know that the high register is not
+ cleared, so the performance is worse than the normal version when cc flag is
+ not needed immediately.
 */
 template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noexcept {
@@ -101,10 +103,11 @@ WJR_INTRINSIC_CONSTEXPR20 T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noex
         return WJR_BUILTIN_CONSTANT_P_TRUE(x == 0) ? 2 : WJR_BUILTIN_CONSTANT_P(x) ? 1 : 0;
     };
 
-    // The compiler should be able to optimize the judgment condition of if when enabling
-    // optimization. If it doesn't work, then there should be a issue
+    // The compiler should be able to optimize the judgment condition of if when
+    // enabling optimization. If it doesn't work, then there should be a issue
     if (is_constant_evaluated() ||
-        // constant value is zero or constant value number greater or equal than 2
+        // constant value is zero or constant value number greater or equal than
+        // 2
         (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >= 2)) {
         return fallback_subc(a, b, c_in, c_out);
     }

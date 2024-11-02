@@ -47,7 +47,8 @@ private:
  *
  * @brief Compressed capture any type as a new type.
  *
- * @details Use `EBO`(empty base optimization) to compress the size of the object.
+ * @details Use `EBO`(empty base optimization) to compress the size of the
+ * object.
  *
  */
 template <typename T, typename Tag = void>
@@ -77,7 +78,8 @@ public:
  *
  * @brief Check if a class can be compressed.
  *
- * @details A class can be compressed if it is a `empty` `class`, and it is not `final`.
+ * @details A class can be compressed if it is a `empty` `class`, and it is not
+ * `final`.
  *
  */
 template <typename T>
@@ -106,10 +108,9 @@ struct __is_tuple_like_impl<
 /**
  * @brief Use template<...>typename like to like all element of LP and RP.
  *
- * @details For example, like is std::is_assignable, LP is std::tuple<T0, U0>, RP is
- * std::tuple<T1, U1>. \n
- * Then __is_tuple_like = std::conjunction<std::is_assignable<T0,
- * T1>, std::is_assignable<U0, U1>>.
+ * @details For example, like is std::is_assignable, LP is std::tuple<T0, U0>,
+ * RP is std::tuple<T1, U1>. \n Then __is_tuple_like =
+ * std::conjunction<std::is_assignable<T0, T1>, std::is_assignable<U0, U1>>.
  *
  */
 template <typename LP, typename RP>
@@ -137,10 +138,9 @@ struct __is_tuple_test_impl<Test, std::index_sequence<Idxs...>, LP, RP,
 /**
  * @brief Use template<...>typename Test to test all element of LP and RP.
  *
- * @details For example, Test is std::is_assignable, LP is std::tuple<T0, U0>, RP is
- * std::tuple<T1, U1>. \n
- * Then __is_tuple_test = std::conjunction<std::is_assignable<T0,
- * T1>, std::is_assignable<U0, U1>>.
+ * @details For example, Test is std::is_assignable, LP is std::tuple<T0, U0>,
+ * RP is std::tuple<T1, U1>. \n Then __is_tuple_test =
+ * std::conjunction<std::is_assignable<T0, T1>, std::is_assignable<U0, U1>>.
  *
  */
 template <template <typename...> typename Test, typename LP, typename RP>

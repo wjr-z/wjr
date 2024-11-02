@@ -73,13 +73,13 @@
     #endif // !defined(WJR_SIZEOF_LONG)
 
     #if !defined(WJR_SIZEOF_LONG_LONG)
-        #if defined(__hpux) // HP-UX's value of ULONG_LONG_MAX is unusable in preprocessor
-                            // expressions
+        #if defined(__hpux) // HP-UX's value of ULONG_LONG_MAX is unusable in
+                            // preprocessor expressions
             #define WJR_SIZEOF_LONG_LONG 8
         #else
 
-            // The list of the non-standard macros (the ones except ULLONG_MAX) is taken
-            // from cstdint.hpp
+            // The list of the non-standard macros (the ones except ULLONG_MAX)
+            // is taken from cstdint.hpp
             #if defined(ULLONG_MAX)
                 #define WJR_ULLONG_MAX ULLONG_MAX
             #elif defined(ULONG_LONG_MAX)
@@ -120,8 +120,8 @@
     #include <wchar.h>
 
     #if defined(_MSC_VER) && (_MSC_VER <= 1310 || defined(UNDER_CE) && _MSC_VER <= 1500)
-        // MSVC 7.1 and MSVC 8 (arm) define WCHAR_MAX to a value not suitable for constant
-        // expressions
+        // MSVC 7.1 and MSVC 8 (arm) define WCHAR_MAX to a value not suitable
+        // for constant expressions
         #define WJR_SIZEOF_WCHAR_T 2
     #elif (WCHAR_MAX + 0) == 0xff || (WCHAR_MAX + 0) == 0x7f
         #define WJR_SIZEOF_WCHAR_T 1
@@ -140,11 +140,11 @@
     #error "Not support"
 #endif
 
-// Detect value sizes of the different floating point types. The value sizes may be less
-// than the corresponding type sizes if the type contains padding bits. This is typical
-// e.g. with x87 80-bit extended double types, which are often represented as 96 or
-// 128-bit types. See: https://en.wikipedia.org/wiki/IEEE_754 For Intel x87 extended
-// double see:
+// Detect value sizes of the different floating point types. The value sizes may
+// be less than the corresponding type sizes if the type contains padding bits.
+// This is typical e.g. with x87 80-bit extended double types, which are often
+// represented as 96 or 128-bit types. See:
+// https://en.wikipedia.org/wiki/IEEE_754 For Intel x87 extended double see:
 // https://en.wikipedia.org/wiki/Extended_precision#x86_Architecture_Extended_Precision_Format
 // For IBM extended double (a.k.a. double-double) see:
 // https://en.wikipedia.org/wiki/Long_double#Implementations,
@@ -251,8 +251,8 @@
         #elif (FLT_MANT_DIG == 53) && (FLT_MAX_EXP == 1024) // IEEE 754 binary64
             #define WJR_SIZEOF_FLOAT_VALUE 8
         #elif (FLT_MANT_DIG == 64 || FLT_MANT_DIG == 53 || FLT_MANT_DIG == 24) &&                  \
-            (FLT_MAX_EXP == 16384) // x87 extended double, with full 64-bit significand or
-                                   // reduced to 53 or 24 bits
+            (FLT_MAX_EXP == 16384) // x87 extended double, with full 64-bit
+                                   // significand or reduced to 53 or 24 bits
             #define WJR_SIZEOF_FLOAT_VALUE 10
         #elif (FLT_MANT_DIG == 106) && (FLT_MAX_EXP == 1024)   // IBM extended double
             #define WJR_SIZEOF_FLOAT_VALUE 16
@@ -269,8 +269,8 @@
         #elif (DBL_MANT_DIG == 53) && (DBL_MAX_EXP == 1024) // IEEE 754 binary64
             #define WJR_SIZEOF_DOUBLE_VALUE 8
         #elif (DBL_MANT_DIG == 64 || DBL_MANT_DIG == 53 || DBL_MANT_DIG == 24) &&                  \
-            (DBL_MAX_EXP == 16384) // x87 extended double, with full 64-bit significand or
-                                   // reduced to 53 or 24 bits
+            (DBL_MAX_EXP == 16384) // x87 extended double, with full 64-bit
+                                   // significand or reduced to 53 or 24 bits
             #define WJR_SIZEOF_DOUBLE_VALUE 10
         #elif (DBL_MANT_DIG == 106) && (DBL_MAX_EXP == 1024)   // IBM extended double
             #define WJR_SIZEOF_DOUBLE_VALUE 16
@@ -287,8 +287,8 @@
         #elif (LDBL_MANT_DIG == 53) && (LDBL_MAX_EXP == 1024) // IEEE 754 binary64
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 8
         #elif (LDBL_MANT_DIG == 64 || LDBL_MANT_DIG == 53 || LDBL_MANT_DIG == 24) &&               \
-            (LDBL_MAX_EXP == 16384) // x87 extended double, with full 64-bit significand
-                                    // or reduced to 53 or 24 bits
+            (LDBL_MAX_EXP == 16384) // x87 extended double, with full 64-bit
+                                    // significand or reduced to 53 or 24 bits
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 10
         #elif (LDBL_MANT_DIG == 106) && (LDBL_MAX_EXP == 1024)   // IBM extended double
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 16
@@ -350,8 +350,8 @@
                            ? 4u                                                                    \
                            : ((x) <= 8u ? 8u : ((x) <= 16u ? 16u : ((x) <= 32u ? 32u : (x)))))))
 
-    // Make our best guess. These sizes may not be accurate, but they are good enough to
-    // estimate the size of the storage required to hold these types.
+    // Make our best guess. These sizes may not be accurate, but they are good
+    // enough to estimate the size of the storage required to hold these types.
     #if !defined(WJR_SIZEOF_FLOAT) && defined(WJR_SIZEOF_FLOAT_VALUE)
         #define WJR_SIZEOF_FLOAT WJR_ALIGN_SIZE_TO_POWER_OF_2(WJR_SIZEOF_FLOAT_VALUE)
     #endif

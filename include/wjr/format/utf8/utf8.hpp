@@ -147,8 +147,8 @@ WJR_INTRINSIC_CONSTEXPR int codepoint_to_utf8(uint8_t *dst, uint32_t code_point)
         dst[1] = uint8_t(((code_point >> 6) & 63) + 128);
         dst[2] = uint8_t((code_point & 63) + 128);
         return 3;
-    } else if (code_point <= 0x10FFFF) { // if you know you have a valid code point, this
-                                         // is not needed
+    } else if (code_point <= 0x10FFFF) { // if you know you have a valid code
+                                         // point, this is not needed
         dst[0] = uint8_t((code_point >> 18) + 240);
         dst[1] = uint8_t(((code_point >> 12) & 63) + 128);
         dst[2] = uint8_t(((code_point >> 6) & 63) + 128);

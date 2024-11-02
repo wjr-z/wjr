@@ -32,8 +32,8 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(ASM_ADDC)
 
 /**
- * @brief Use inline assembly to add two 64-bit integers with carry-in and return the
- * carry-out.
+ * @brief Use inline assembly to add two 64-bit integers with carry-in and
+ * return the carry-out.
  *
  * @details The carry-in and carry-out flags are both 0 or 1. \n
  * The carry-out flag is set to 1 if the result overflows. \n
@@ -118,10 +118,11 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out)
 #if WJR_HAS_BUILTIN(ASM_ADDC_CC)
 
 /**
- * @brief Use inline assembly to add two 64-bit integers with carry-in and return the
- * carry-out.
+ * @brief Use inline assembly to add two 64-bit integers with carry-in and
+ * return the carry-out.
  *
- * @details Similar to asm_addc, but the carry-out flag is set by using constraint
+ * @details Similar to asm_addc, but the carry-out flag is set by using
+ * constraint
  * "=@cccond" instead of "setb". \n
  *
  * @param[in] c_in
@@ -232,7 +233,8 @@ WJR_INTRINSIC_INLINE void __asm_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0
  * @brief Use inline assembly to add two 64-bit integers and return the
  * carry-out.
  *
- * @details Optimzation for __asm_addc_cc_128 and __asm_addc_128 when the carry-in is 0.
+ * @details Optimzation for __asm_addc_cc_128 and __asm_addc_128 when the
+ * carry-in is 0.
  *
  */
 WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_zero_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
@@ -274,8 +276,8 @@ WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_zero_128(uint64_t &al, uint64_t &ah, 
 #if WJR_HAS_BUILTIN(__ASM_ADDC_128)
 
 /**
- * @brief Use inline assembly to add two 64-bit integers with carry-in and return the
- * carry-out.
+ * @brief Use inline assembly to add two 64-bit integers with carry-in and
+ * return the carry-out.
  *
  */
 WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
@@ -325,10 +327,11 @@ WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_
 #if WJR_HAS_BUILTIN(__ASM_ADDC_CC_128)
 
 /**
- * @brief Use inline assembly to add two 64-bit integers with carry-in and return the
- * carry-out.
+ * @brief Use inline assembly to add two 64-bit integers with carry-in and
+ * return the carry-out.
  *
- * @details Similar to __asm_addc_128, but the carry-out flag is set by using constraint
+ * @details Similar to __asm_addc_128, but the carry-out flag is set by using
+ * constraint
  * "=@cccond" instead of "setb".
  *
  */

@@ -124,8 +124,8 @@ struct basic_span_traits {
  *
  * @brief A view over a contiguous sequence of objectsd.
  *
- * @tparam Extent if Extent is `dynamic_extent`, the span is a runtime-sized view.
- * Otherwise, the span is a compile-time-sized view.
+ * @tparam Extent if Extent is `dynamic_extent`, the span is a runtime-sized
+ * view. Otherwise, the span is a compile-time-sized view.
  */
 template <typename T, size_t Extent>
 class span {
@@ -355,9 +355,10 @@ public:
     /**
      * @brief Construct a span from a container.
      *
-     * @details The container must have a `data()` member function that returns a @ref
-     * __is_span_iterator. The container must also have a `size()` member function that
-     * can be converted to `size_type`.
+     * @details The container must have a `data()` member function that returns
+     * a @ref
+     * __is_span_iterator. The container must also have a `size()` member
+     * function that can be converted to `size_type`.
      *
      */
     template <typename Container,
@@ -367,8 +368,8 @@ public:
     /**
      * @brief Construct a span from a container.
      *
-     * @details Like @ref span(Container &&), but the span is not dynamic-sized, so the
-     * construct must be explicit.
+     * @details Like @ref span(Container &&), but the span is not dynamic-sized,
+     * so the construct must be explicit.
      *
      */
     template <typename Container,

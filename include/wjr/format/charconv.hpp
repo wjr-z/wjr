@@ -45,8 +45,8 @@ struct __is_fast_convert_iterator : __is_fast_convert_iterator_helper<Iter> {};
  * @brief Iterator concept that can be used in fast_convert.
  *
  * @details The iterator must be contiguous iterator and the value_type must be
- * trivial and sizeof(value_type) == 1. Cast to_address(iter) to uint8_t*(to_chars)/const
- * uint8_t*(from_chars) in fast_convert.
+ * trivial and sizeof(value_type) == 1. Cast to_address(iter) to
+ * uint8_t*(to_chars)/const uint8_t*(from_chars) in fast_convert.
  *
  */
 template <typename Iter>
@@ -883,8 +883,8 @@ Iter __to_chars_backward_unchecked_impl(Iter first, Value val, IBase ibase,
 }
 
 /**
- * @brief Convert an unsigned integer to a string in reverse order without checking
- * buf size.
+ * @brief Convert an unsigned integer to a string in reverse order without
+ * checking buf size.
  *
  * @details Only use fast_convert mode.
  *
@@ -926,8 +926,8 @@ Iter to_chars_backward_unchecked_dynamic(Iter first, Value val, unsigned int bas
 }
 
 /**
- * @brief Convert an unsigned integer to a string in reverse order without checking
- * buf size.
+ * @brief Convert an unsigned integer to a string in reverse order without
+ * checking buf size.
  *
  *
  */
@@ -1401,11 +1401,12 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, IBase base,
 /**
  * @brief Convert an unsigned integer to a string without checking buf size.
  *
- * @details Iter can be any output iterator. Support fast_convert mode and fallback mode.
- * \n fast_convert mode : \n fast_convert mode is used when
- * __is_fast_convert_iterator_v<Iter> is true. \n caclulate the number of digits and
- * convert the integer to a string in reverse order. \n fallback mode : \n use buffer to
- * store the result and use @ref wjr::copy to copy the result to the output iterator. \n
+ * @details Iter can be any output iterator. Support fast_convert mode and
+ * fallback mode. \n fast_convert mode : \n fast_convert mode is used when
+ * __is_fast_convert_iterator_v<Iter> is true. \n caclulate the number of digits
+ * and convert the integer to a string in reverse order. \n fallback mode : \n
+ * use buffer to store the result and use @ref wjr::copy to copy the result to
+ * the output iterator. \n
  *
  */
 template <typename Iter, typename Value, unsigned int IBase = 10,
@@ -1445,8 +1446,9 @@ Iter to_chars_unchecked_dynamic(Iter ptr, Value val, unsigned int base, Converte
  * @brief Convert an unsigned integer to a string without checking buf size.
  *
  * @tparam Iter The iterator type. Must be random access iterator.
- * @tparam Value The value type. If Converter is origin_converter_t, Value must be
- * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
+ * @tparam Value The value type. If Converter is origin_converter_t, Value must
+ * be non-bool unsigned integral type. Otherwise, Value must be non-bool
+ * integral type.
  *
  */
 template <typename Iter, typename Value, typename IBase, typename Converter = char_converter_t,

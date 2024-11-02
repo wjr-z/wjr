@@ -36,11 +36,11 @@ struct escape_sequence {
     const char string[7]; // technically, we only ever need 6 characters, we pad to 8
 };
 
-// Fast path for the case where we have no control character, no ", and no backslash.
-// This should include most keys.
+// Fast path for the case where we have no control character, no ", and no
+// backslash. This should include most keys.
 //
-// We would like to use 'bool' but some compilers take offense to bitwise operation
-// with bool types.
+// We would like to use 'bool' but some compilers take offense to bitwise
+// operation with bool types.
 inline constexpr char needs_escaping[] = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -82,8 +82,9 @@ WJR_INTRINSIC_INLINE void format_string(Container &cont, std::string_view str) {
         }
     }
 
-    // The following is also possible and omits a 256-byte table, but it is slower:
-    // for (; (pos < unescaped.length()) && (uint8_t(unescaped[pos]) > 0x1F)
+    // The following is also possible and omits a 256-byte table, but it is
+    // slower: for (; (pos < unescaped.length()) && (uint8_t(unescaped[pos]) >
+    // 0x1F)
     //      && (unescaped[pos] != '\"') && (unescaped[pos] != '\\'); pos++) {}
 
     // At least for long strings, the following should be fast. We could
@@ -110,8 +111,8 @@ SLOW_PATH : {
         default:
             if (uint8_t(first[pos + i]) <= 0x1F) {
                 // If packed, this uses 8 * 32 bytes.
-                // Note that we expect most compilers to embed this code in the data
-                // section.
+                // Note that we expect most compilers to embed this code in the
+                // data section.
                 constexpr static escape_sequence escaped[32] = {
                     {6, "\\u0000"}, {6, "\\u0001"}, {6, "\\u0002"}, {6, "\\u0003"}, {6, "\\u0004"},
                     {6, "\\u0005"}, {6, "\\u0006"}, {6, "\\u0007"}, {2, "\\b"},     {2, "\\t"},
@@ -158,8 +159,8 @@ SLOW_PATH : {
                     default:
                         if (uint8_t(first[pos + i]) <= 0x1F) {
                             // If packed, this uses 8 * 32 bytes.
-                            // Note that we expect most compilers to embed this code in
-                            // the data section.
+                            // Note that we expect most compilers to embed this
+                            // code in the data section.
                             constexpr static escape_sequence escaped[32] = {
                                 {6, "\\u0000"}, {6, "\\u0001"}, {6, "\\u0002"}, {6, "\\u0003"},
                                 {6, "\\u0004"}, {6, "\\u0005"}, {6, "\\u0006"}, {6, "\\u0007"},
@@ -196,8 +197,9 @@ SMALL_SLOW_PATH:
 SMALL_SLOW_PATH_NO_COPY:
 
     // We caught a control character if we enter this loop (slow).
-    // Note that we are do not restart from the beginning, but rather we continue
-    // from the point where we encountered something that requires escaping.
+    // Note that we are do not restart from the beginning, but rather we
+    // continue from the point where we encountered something that requires
+    // escaping.
     for (; pos < length; pos++) {
         switch (first[pos]) {
         case '\"': {

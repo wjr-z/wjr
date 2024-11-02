@@ -57,23 +57,23 @@ static void print_2_digits(int n, char *buffer) noexcept {
     __to_chars_unroll_2<10>(reinterpret_cast<uint8_t *>(buffer), n, char_converter);
 }
 
-// These digit generation routines are inspired by James Anhalt's itoa algorithm:
-// https://github.com/jeaiii/itoa
-// The main idea is for given n, find y such that floor(10^k * y / 2^32) = n holds,
-// where k is an appropriate integer depending on the length of n.
-// For example, if n = 1234567, we set k = 6. In this case, we have
-// floor(y / 2^32) = 1,
-// floor(10^2 * ((10^0 * y) mod 2^32) / 2^32) = 23,
-// floor(10^2 * ((10^2 * y) mod 2^32) / 2^32) = 45, and
+// These digit generation routines are inspired by James Anhalt's itoa
+// algorithm: https://github.com/jeaiii/itoa The main idea is for given n, find
+// y such that floor(10^k * y / 2^32) = n holds, where k is an appropriate
+// integer depending on the length of n. For example, if n = 1234567, we set k
+// = 6. In this case, we have floor(y / 2^32) = 1, floor(10^2 * ((10^0 * y) mod
+// 2^32) / 2^32) = 23, floor(10^2 * ((10^2 * y) mod 2^32) / 2^32) = 45, and
 // floor(10^2 * ((10^4 * y) mod 2^32) / 2^32) = 67.
-// See https://jk-jeon.github.io/posts/2022/02/jeaiii-algorithm/ for more explanation.
+// See https://jk-jeon.github.io/posts/2022/02/jeaiii-algorithm/ for more
+// explanation.
 
 WJR_INTRINSIC_INLINE static void print_9_digits(std::uint32_t s32, int &exponent,
                                                 char *&buffer) noexcept {
     // -- IEEE-754 binary32
     // Since we do not cut trailing zeros in advance, s32 must be of 6~9 digits
     // unless the original input was subnormal.
-    // In particular, when it is of 9 digits it shouldn't have any trailing zeros.
+    // In particular, when it is of 9 digits it shouldn't have any trailing
+    // zeros.
     // -- IEEE-754 binary64
     // In this case, s32 must be of 7~9 digits unless the input is subnormal,
     // and it shouldn't have any trailing zeros if it is of 9 digits.
@@ -114,15 +114,16 @@ WJR_INTRINSIC_INLINE static void print_9_digits(std::uint32_t s32, int &exponent
         if ((prod & UINT32_C(0xffffffff)) <=
             std::uint32_t((std::uint64_t(1) << 32) / UINT32_C(1000000))) {
             // The number of characters actually need to be written is:
-            //   1, if only the first digit is nonzero, which means that either s32 is of
-            //   7 digits or it is of 8 digits but the second digit is zero, or 3,
-            //   otherwise.
-            // Note that buffer[2] is never '0' if s32 is of 7 digits, because the input
-            // is never zero.
+            //   1, if only the first digit is nonzero, which means that either
+            //   s32 is of 7 digits or it is of 8 digits but the second digit is
+            //   zero, or 3, otherwise.
+            // Note that buffer[2] is never '0' if s32 is of 7 digits, because
+            // the input is never zero.
             buffer += (1 + (int(head_digits >= 10) & int(buffer[2] > '0')) * 2);
         } else {
             // At least one of the remaining 6 digits are nonzero.
-            // After this adjustment, now the first destination becomes buffer + 2.
+            // After this adjustment, now the first destination becomes buffer
+            // + 2.
             buffer += int(head_digits >= 10);
 
             // Obtain the next two digits.
@@ -169,12 +170,13 @@ WJR_INTRINSIC_INLINE static void print_9_digits(std::uint32_t s32, int &exponent
 
         // Remaining 4 digits are all zero?
         if ((prod & UINT32_C(0xffffffff)) <= std::uint32_t((std::uint64_t(1) << 32) / 10000)) {
-            // The number of characters actually written is 1 or 3, similarly to the case
-            // of 7 or 8 digits.
+            // The number of characters actually written is 1 or 3, similarly to
+            // the case of 7 or 8 digits.
             buffer += (1 + (int(head_digits >= 10) & int(buffer[2] > '0')) * 2);
         } else {
             // At least one of the remaining 4 digits are nonzero.
-            // After this adjustment, now the first destination becomes buffer + 2.
+            // After this adjustment, now the first destination becomes buffer
+            // + 2.
             buffer += int(head_digits >= 10);
 
             // Obtain the next two digits.
@@ -209,12 +211,13 @@ WJR_INTRINSIC_INLINE static void print_9_digits(std::uint32_t s32, int &exponent
 
         // Remaining 2 digits are all zero?
         if ((prod & UINT32_C(0xffffffff)) <= std::uint32_t((std::uint64_t(1) << 32) / 100)) {
-            // The number of characters actually written is 1 or 3, similarly to the case
-            // of 7 or 8 digits.
+            // The number of characters actually written is 1 or 3, similarly to
+            // the case of 7 or 8 digits.
             buffer += (1 + (int(head_digits >= 10) & int(buffer[2] > '0')) * 2);
         } else {
             // At least one of the remaining 2 digits are nonzero.
-            // After this adjustment, now the first destination becomes buffer + 2.
+            // After this adjustment, now the first destination becomes buffer
+            // + 2.
             buffer += int(head_digits >= 10);
 
             // Obtain the last two digits.
@@ -233,8 +236,8 @@ WJR_INTRINSIC_INLINE static void print_9_digits(std::uint32_t s32, int &exponent
         // This third character may be overwritten later but we don't care.
         buffer[2] = radix_100_table[s32 * 2 + 1];
 
-        // The number of characters actually written is 1 or 3, similarly to the case of
-        // 7 or 8 digits.
+        // The number of characters actually written is 1 or 3, similarly to the
+        // case of 7 or 8 digits.
         buffer += (1 + (int(s32 >= 10) & int(buffer[2] > '0')) * 2);
     }
 }
@@ -269,7 +272,8 @@ char *to_chars<ieee754_binary32, std::uint32_t>(std::uint32_t s32, int exponent,
 template <>
 char *to_chars<ieee754_binary64, std::uint64_t>(std::uint64_t const significand, int exponent,
                                                 char *buffer) noexcept {
-    // Print significand by decomposing it into a 9-digit block and a 8-digit block.
+    // Print significand by decomposing it into a 9-digit block and a 8-digit
+    // block.
     std::uint32_t first_block, second_block;
     bool no_second_block;
 
@@ -286,12 +290,12 @@ char *to_chars<ieee754_binary64, std::uint64_t>(std::uint64_t const significand,
     if (no_second_block) {
         print_9_digits(first_block, exponent, buffer);
     } else {
-        // We proceed similarly to print_9_digits(), but since we do not need to remove
-        // trailing zeros, the procedure is a bit simpler.
+        // We proceed similarly to print_9_digits(), but since we do not need to
+        // remove trailing zeros, the procedure is a bit simpler.
         if (first_block >= UINT32_C(100000000)) {
-            // The input is of 17 digits, thus there should be no trailing zero at all.
-            // The first block is of 9 digits.
-            // 1441151882 = ceil(2^57 / 1'0000'0000) + 1
+            // The input is of 17 digits, thus there should be no trailing zero
+            // at all. The first block is of 9 digits. 1441151882 = ceil(2^57 /
+            // 1'0000'0000) + 1
             auto prod = first_block * UINT64_C(1441151882);
             prod >>= 25;
             std::memcpy(buffer, radix_100_head_table + int(prod >> 32) * 2, 2);

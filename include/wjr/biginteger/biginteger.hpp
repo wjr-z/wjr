@@ -4,8 +4,8 @@
  * @brief
  * @version 0.1
  * @date 2024-09-16
- * @todo Add more attributes to help the compiler optimize to zero overhead. Such as
- * unsigned biginteger, fixed size biginteger.
+ * @todo Add more attributes to help the compiler optimize to zero overhead.
+ * Such as unsigned biginteger, fixed size biginteger.
  *
  * @copyright Copyright (c) 2024
  *
@@ -88,8 +88,8 @@ struct __unref_wrapper_helper<default_biginteger_size_reference> {
 /**
  * @brief data_type of biginteger
  *
- * @details View the data of biginteger. Used for type erasure. Manage memory allocation
- * and release on your own.
+ * @details View the data of biginteger. Used for type erasure. Manage memory
+ * allocation and release on your own.
  *
  */
 struct biginteger_data {

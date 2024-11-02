@@ -10,8 +10,9 @@
 #include <wjr/preprocessor/detail.hpp>
 #include <wjr/preprocessor/logical.hpp>
 
-// Due to the fact that call is not a simple expansion, but takes the previous output as
-// the next input, the difficulty of implementing recursion is also high.
+// Due to the fact that call is not a simple expansion, but takes the previous
+// output as the next input, the difficulty of implementing recursion is also
+// high.
 #include <wjr/preprocessor/queue/algorithm.hpp>
 
 #define WJR_PP_BOOL_IF_NE(expr, t, f) WJR_PP_BOOL_IF(WJR_PP_BOOL(expr), t, f)

@@ -181,8 +181,8 @@ private:
 };
 
 /**
- * @brief A stack allocator for fast simulation of stack memory on the heap, singleton
- * mode.
+ * @brief A stack allocator for fast simulation of stack memory on the heap,
+ * singleton mode.
  */
 struct singleton_stack_allocator_object {
     using Instance = stack_allocator_object<40_KB>;
@@ -194,7 +194,8 @@ struct singleton_stack_allocator_object {
 };
 
 /**
- * @details Used for container. This allocator won't deallocate memory allocated by
+ * @details Used for container. This allocator won't deallocate memory allocated
+ * by
  * __small_allocate until container is destroyed.
  *
  */
@@ -202,11 +203,13 @@ template <typename T>
 class weak_stack_allocator;
 
 /**
- * @brief A unique stack allocator for fast simulation of stack memory on the heap.
+ * @brief A unique stack allocator for fast simulation of stack memory on the
+ * heap.
  *
- * @details When a unique_stack_allocator object is destroyed, all the memory it allocates
- * is released.\n And a new unique_stack_allocator constructed in the lifetime of a
- * unique_stack_allocator object must be destroyed in the current lifetime.
+ * @details When a unique_stack_allocator object is destroyed, all the memory it
+ * allocates is released.\n And a new unique_stack_allocator constructed in the
+ * lifetime of a unique_stack_allocator object must be destroyed in the current
+ * lifetime.
  *
  */
 class unique_stack_allocator {
@@ -246,9 +249,10 @@ private:
 /**
  * @brief Point to unique_stack_allocator.
  *
- * @details Use a pointer to unique_stack_allocator to allocate memory. This class must be
- * used carefully. If recursively using it as a reference and allocating memory,
- * unique_stack_allocator should be avoided from being reused in the current function.
+ * @details Use a pointer to unique_stack_allocator to allocate memory. This
+ * class must be used carefully. If recursively using it as a reference and
+ * allocating memory, unique_stack_allocator should be avoided from being reused
+ * in the current function.
  *
  */
 template <typename T>

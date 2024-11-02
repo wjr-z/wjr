@@ -13,9 +13,12 @@ enum class error_code : uint8_t {
     TAPE_ERROR,                 ///< Something went wrong, this is a generic error
     DEPTH_ERROR,                ///< Your document exceeds the user-specified depth limitation
     STRING_ERROR,               ///< Problem while parsing a string
-    T_ATOM_ERROR,               ///< Problem while parsing an atom starting with the letter 't'
-    F_ATOM_ERROR,               ///< Problem while parsing an atom starting with the letter 'f'
-    N_ATOM_ERROR,               ///< Problem while parsing an atom starting with the letter 'n'
+    T_ATOM_ERROR,               ///< Problem while parsing an atom starting with the letter
+                                ///< 't'
+    F_ATOM_ERROR,               ///< Problem while parsing an atom starting with the letter
+                                ///< 'f'
+    N_ATOM_ERROR,               ///< Problem while parsing an atom starting with the letter
+                                ///< 'n'
     NUMBER_ERROR,               ///< Problem while parsing a number
     BIGINT_ERROR,               ///< The integer value exceeds 64 bits
     UTF8_ERROR,                 ///< the input is not valid UTF-8
@@ -33,8 +36,9 @@ enum class error_code : uint8_t {
     INVALID_URI_FRAGMENT,       ///< Invalid URI fragment
     UNEXPECTED_ERROR,           ///< indicative of a bug in simdjson
     PARSER_IN_USE,              ///< parser is already in use.
-    OUT_OF_ORDER_ITERATION,     ///< tried to iterate an array or object out of order (checked
-                                ///< when SIMDJSON_DEVELOPMENT_CHECKS=1)
+    OUT_OF_ORDER_ITERATION,     ///< tried to iterate an array or object out of
+                                ///< order (checked when
+                                ///< SIMDJSON_DEVELOPMENT_CHECKS=1)
     INCOMPLETE_ARRAY_OR_OBJECT, ///< The document ends early.
     SCALAR_DOCUMENT_AS_VALUE,   ///< A scalar document is treated as a value.
     OUT_OF_BOUNDS,              ///< Attempted to access location outside of document.
@@ -68,17 +72,20 @@ using number_unsigned_t = integral_constant<value_t, value_t::number_unsigned>;
 using number_signed_t = integral_constant<value_t, value_t::number_signed>;
 /// @brief used for identify floating point type (double)
 using number_float_t = integral_constant<value_t, value_t::number_float>;
-/// @brief used for identify string type (According to the parameters of basic_json)
+/// @brief used for identify string type (According to the parameters of
+/// basic_json)
 using string_t = integral_constant<value_t, value_t::string>;
-/// @brief used for identify object type (According to the parameters of basic_json)
+/// @brief used for identify object type (According to the parameters of
+/// basic_json)
 using object_t = integral_constant<value_t, value_t::object>;
-/// @brief used for identify array type (According to the parameters of basic_json)
+/// @brief used for identify array type (According to the parameters of
+/// basic_json)
 using array_t = integral_constant<value_t, value_t::array>;
 
 /**
- * @brief Generic classes that require self-management to avoid code bloating caused by
- * templates. For example, when returning a number, it is not related to string, object,
- * or array type.
+ * @brief Generic classes that require self-management to avoid code bloating
+ * caused by templates. For example, when returning a number, it is not related
+ * to string, object, or array type.
  *
  */
 struct basic_value {

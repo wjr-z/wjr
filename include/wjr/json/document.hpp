@@ -473,13 +473,13 @@ void format(Formatter fmt, const basic_document<Traits> &doc) noexcept {
 }
 
 /**
- * @details At present, it's a simple but flexible implementation solution. This is not as
- * good as a only iteration in terms of performance. \n
- * Performance (use std::map and wjr::vector as container on my local x64 2.50 GHz
- * machine) : \n twitter.document : 700~720 MB/s \n canada.document : 660~680 MB/s
+ * @details At present, it's a simple but flexible implementation solution. This
+ * is not as good as a only iteration in terms of performance. \n Performance
+ * (use std::map and wjr::vector as container on my local x64 2.50 GHz machine)
+ * : \n twitter.document : 700~720 MB/s \n canada.document : 660~680 MB/s
  * @todo 1. For most strings, only need to check first character to compare.
- * 2. Maybe use hash like std::unordered_map, but for long strings, compare even faster
- * than hash.
+ * 2. Maybe use hash like std::unordered_map, but for long strings, compare even
+ * faster than hash.
  * 3. Use B plus tree ?
  * 4. In place construct without using low performance basic_document.
  *

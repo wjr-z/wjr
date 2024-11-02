@@ -8,8 +8,8 @@ namespace wjr {
 
 // find the first position(ret) that is not equal to number "from"
 // and replace [0, ret) to number "to"
-// For example, inc replaces a continuous segment of -1 with 0. And dec replaces a
-// continuous segment of 0 with -1
+// For example, inc replaces a continuous segment of -1 with 0. And dec replaces
+// a continuous segment of 0 with -1
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 size_t replace_find_not(T *dst, const T *src, size_t n,
                                                   type_identity_t<T> from,

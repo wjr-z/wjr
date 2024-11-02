@@ -36,9 +36,9 @@ struct tp_transform<C<Args...>, F> {
  * @details use with apply, bind, bind_front, bind_back...  \
  * For example: \
  * tp_transform_f<tp_bind_front<tp_apply_f, tp_bind_front<std::is_same>>,   \
- * tp_list<tp_list<int, float>, tp_list<float, float>, tp_list<int, double>>>   \
- * -> tp_list<std::is_same<int, float>, std::is_same<float, float>, std::is_same<int,   \
- * double>>
+ * tp_list<tp_list<int, float>, tp_list<float, float>, tp_list<int, double>>> \
+ * -> tp_list<std::is_same<int, float>, std::is_same<float, float>,
+ * std::is_same<int,   \ double>>
  *
  */
 template <typename T, template <typename...> typename F>

@@ -22,10 +22,11 @@ inline constexpr in_place_empty_t in_place_empty = {};
  * Used to avoid value initialization.  \n
  * For example : \n
  * @code
- * wjr::vector<int> vec(10, default_construct); // default construct with 10 elements.
- * wjr::vector<int> vec2(10); // value construct with 10 elements.
+ * wjr::vector<int> vec(10, default_construct); // default construct with 10
+ * elements. wjr::vector<int> vec2(10); // value construct with 10 elements.
  * wjr::vector<int> vec3(10, 0); // value construct with 10 elements.
- * wjr::vector<int> vec4(10, value_construct); // value construct with 10 elements.
+ * wjr::vector<int> vec4(10, value_construct); // value construct with 10
+ * elements.
  * @endcode
  * elements of vec are not initialized. \n
  * elements of vec2, vec3, vec4 are initialized with 0.

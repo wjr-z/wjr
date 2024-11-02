@@ -50,7 +50,8 @@ case tp_at_t<CaseList, (Case)>::value: {                                        
 #define WJR_REGISTER_SWITCH_CASE_256(Idx)                                                          \
     WJR_REGISTER_SWITCH_CASE_64(Idx)                                                               \
     WJR_REGISTER_SWITCH_CASE_64(Idx + 64)                                                          \
-    WJR_REGISTER_SWITCH_CASE_64(Idx + 128) WJR_REGISTER_SWITCH_CASE_64(Idx + 192)
+    WJR_REGISTER_SWITCH_CASE_64(Idx + 128)                                                         \
+    WJR_REGISTER_SWITCH_CASE_64(Idx + 192)
 
 #define WJR_REGISTER_SWITCH_DEFAULT                                                                \
 default: {                                                                                         \

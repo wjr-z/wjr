@@ -31,7 +31,8 @@ WJR_INTRINSIC_INLINE void push_front(lkf_forward_list_node *head,
 
 /**
  * @brief If head node is destroyed during exchange_front, then the behavior is
- * undefined. Make sure the head node won't be destroyed or lock it, or use clear.
+ * undefined. Make sure the head node won't be destroyed or lock it, or use
+ * clear.
  *
  */
 template <typename Func>
@@ -55,7 +56,8 @@ WJR_NODISCARD WJR_INTRINSIC_INLINE forward_list_node *exchange_front(lkf_forward
 
 /**
  * @brief If head node is destroyed during pop_front, then the behavior is
- * undefined. Make sure the head node won't be destroyed or lock it, or use clear.
+ * undefined. Make sure the head node won't be destroyed or lock it, or use
+ * clear.
  *
  */
 WJR_NODISCARD WJR_INTRINSIC_INLINE forward_list_node *

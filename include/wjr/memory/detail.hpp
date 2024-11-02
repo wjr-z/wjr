@@ -35,9 +35,9 @@ constexpr T *to_address(T *p) noexcept {
 }
 
 /**
- * @details If std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p) is valid, return
- * std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p), otherwise return
- * to_address(p.operator->()).
+ * @details If std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p) is valid,
+ * return std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p), otherwise
+ * return to_address(p.operator->()).
  */
 template <typename Ptr>
 constexpr auto to_address(const Ptr &p) noexcept {
@@ -59,8 +59,8 @@ constexpr auto to_address(const std::move_iterator<Iter> &p) noexcept {
 }
 
 /**
- * @brief Return to_address(p) if p is a contiguous iterator and contiguouse iterato check
- * is disabled, otherwise return p.
+ * @brief Return to_address(p) if p is a contiguous iterator and contiguouse
+ * iterato check is disabled, otherwise return p.
  *
  */
 template <typename T>

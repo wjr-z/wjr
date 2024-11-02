@@ -64,9 +64,9 @@ WJR_CONST WJR_INTRINSIC_INLINE div1by1_uint_t<T> div1by1_internal_uint_gen(T d) 
     // Power of 2
     if (is_zero_or_single_bit(d)) {
         // We need to subtract 1 from the shift value in case of an unsigned
-        // branchfree div1by1_divider because there is a hardcoded right shift by 1
-        // in its division algorithm. Because of this we also need to add back
-        // 1 in its recovery algorithm.
+        // branchfree div1by1_divider because there is a hardcoded right shift
+        // by 1 in its division algorithm. Because of this we also need to add
+        // back 1 in its recovery algorithm.
         result.magic = 0;
         result.more = static_cast<uint8_t>(floor_log_2_d - (type == branch::free));
     } else {

@@ -1,5 +1,7 @@
 #include "detail.hpp"
 
+#include <wjr/preprocessor.hpp>
+
 using namespace wjr;
 
 #define CASSERT(expr) static_assert(expr, "")

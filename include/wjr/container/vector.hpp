@@ -163,6 +163,10 @@ public:
 
     WJR_CONSTEXPR20 void deallocate(_Alty &al) noexcept(
         noexcept(_Alty_traits::deallocate(al, this->m_storage.m_data, this->capacity()))) {
+        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(data() == nullptr)) {
+            return;
+        }
+
         if (m_storage.m_data != nullptr) {
             deallocate_nonnull(al);
         }
@@ -450,8 +454,6 @@ public:
 private:
     using STraits = storage_traits_type;
 
-    static_assert(is_contiguous_iterator_v<iterator>);
-    static_assert(is_contiguous_iterator_v<const_iterator>);
     static_assert(std::is_nothrow_default_constructible_v<storage_type>);
 
     static constexpr bool __is_nothrow_deallocate =
@@ -519,7 +521,8 @@ private:
     }
 
 public:
-    WJR_CONSTEXPR20 basic_vector(const basic_vector &other) noexcept(noexcept(basic_vector(
+    WJR_CONSTEXPR20
+    basic_vector(const basic_vector &other) noexcept(noexcept(basic_vector(
         other, _Alty_traits::select_on_container_copy_construction(other.__get_allocator()),
         in_place_empty)))
         : basic_vector(other,
@@ -557,7 +560,8 @@ public:
     WJR_CONSTEXPR20 ~basic_vector() noexcept { __destroy_and_deallocate(); }
 
     WJR_CONSTEXPR20 basic_vector &operator=(const basic_vector &other) noexcept(
-        noexcept(storage_fn_type::copy_assign(*this, other))) {
+        noexcept(storage_fn_type::copy_assign(std::declval<basic_vector &>(),
+                                              std::declval<const basic_vector &>()))) {
         if (WJR_LIKELY(this != std::addressof(other))) {
             storage_fn_type::copy_assign(*this, other);
         }
@@ -566,7 +570,8 @@ public:
     }
 
     WJR_CONSTEXPR20 basic_vector &operator=(basic_vector &&other) noexcept(
-        noexcept(storage_fn_type::move_assign(*this, std::move(other)))) {
+        noexcept(storage_fn_type::move_assign(std::declval<basic_vector &>(),
+                                              std::declval<basic_vector &&>()))) {
         WJR_ASSERT(this != std::addressof(other));
         storage_fn_type::move_assign(*this, std::move(other));
         return *this;
@@ -812,9 +817,7 @@ public:
     }
 
     WJR_PURE WJR_CONSTEXPR20 pointer data() noexcept { return get_storage().data(); }
-
     WJR_PURE WJR_CONSTEXPR20 const_pointer data() const noexcept { return get_storage().data(); }
-
     WJR_PURE WJR_CONSTEXPR20 const_pointer cdata() const noexcept { return data(); }
 
     template <typename... Args>

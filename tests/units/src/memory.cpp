@@ -8,17 +8,10 @@
 using namespace wjr;
 
 TEST(memory, stack_allocator) {
-
-    static_assert(is_trivially_allocator_v<math_detail::weak_stack_alloc<char>>, "error");
-
-    do {
-        math_detail::stack_alloc_object obj;
-        (void)(obj);
-    } while (false);
+    static_assert(is_trivially_allocator_v<weak_stack_allocator<char>>, "error");
 
     do {
-        math_detail::stack_alloc_object obj = {};
-        unique_stack_allocator stkal(obj);
+        unique_stack_allocator stkal;
 
         for (int i = 0; i < 32 * 1024; ++i) {
             (void)stkal.allocate(16);
@@ -27,13 +20,11 @@ TEST(memory, stack_allocator) {
     } while (false);
 
     do {
-        math_detail::stack_alloc_object obj = {};
-        unique_stack_allocator stkal(obj);
+        unique_stack_allocator stkal;
         (void)stkal.allocate(36 * 1024);
 
-        unique_stack_allocator stkal2(obj);
+        unique_stack_allocator stkal2;
         (void)stkal.allocate(16);
-
     } while (false);
 }
 

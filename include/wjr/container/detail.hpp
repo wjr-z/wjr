@@ -133,13 +133,14 @@ public:
     constexpr static bool is_contiguous_v = is_contiguous_iterator_v<iterator>;
 
     /**
-     * @details Trivially contiguous means that the container can be resized and then
-     * filled, and the result should be consistent with the element by element push_back
-     * result. It does not verify whether the element is trial. Because different
-     * containers may have different ways of constructing elements. The main purpose is
-     * for types like std::basic_string<CharT, Traits, Alloc>, and for unknown
-     * Traits, it should not be assumed that filling after resizing yields the same
-     * result as using Traits::copy.
+     * @details Trivially contiguous means that the container can be resized and
+     * then filled, and the result should be consistent with the element by
+     * element push_back result. It does not verify whether the element is
+     * trial. Because different containers may have different ways of
+     * constructing elements. The main purpose is for types like
+     * std::basic_string<CharT, Traits, Alloc>, and for unknown Traits, it
+     * should not be assumed that filling after resizing yields the same result
+     * as using Traits::copy.
      *
      */
     constexpr static bool is_trivially_contiguous_v = false;

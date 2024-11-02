@@ -84,11 +84,11 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) noexcept {
 /**
  * @brief Fast count trailing zeros
  *
- * @details Very fast even on non-optimized platforms by using a De Bruijn sequence. \n
- * Try __builtin_clz if available, otherwise fallback to a portable implementation. \n
- * In fallback_clz, use popcount and lowbit if POPCOUNT and POPCNT are available, make
- * sure popcount is fast. \n
- * Then use De Bruijn sequence, just a bit slower than popcount + lowbit.
+ * @details Very fast even on non-optimized platforms by using a De Bruijn
+ * sequence. \n Try __builtin_clz if available, otherwise fallback to a portable
+ * implementation. \n In fallback_clz, use popcount and lowbit if POPCOUNT and
+ * POPCNT are available, make sure popcount is fast. \n Then use De Bruijn
+ * sequence, just a bit slower than popcount + lowbit.
  *
  * @tparam T Must be an unsigned integral type
  */

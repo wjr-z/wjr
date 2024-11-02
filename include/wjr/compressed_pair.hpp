@@ -28,16 +28,18 @@ namespace wjr {
  * @brief Select the base class of compressed_pair.
  *
  * @details For compressed_pair<T, U> : \n
- * If `T` is @ref is_compressed_v "compressed" and `U` is not ref is_compressed_v
- * "compressed", then the base class is
+ * If `T` is @ref is_compressed_v "compressed" and `U` is not ref
+ * is_compressed_v "compressed", then the base class is
  * @ref compressed_capture_leaf \<T> and @ref capture_leaf \<U>. \n
  * If `T` is not ref is_compressed_v "compressed" and `U` is ref is_compressed_v
  * "compressed", then the base class is
  * @ref capture_leaf \<T> and @ref compressed_capture_leaf \<U>. \n
- * If `T` and `U` are both ref is_compressed_v "compressed", then the base class is
+ * If `T` and `U` are both ref is_compressed_v "compressed", then the base class
+ * is
  * @ref compressed_capture_leaf \<T> and @ref capture_leaf \<U>. \n
- * Otherwise, the base class is @ref capture_leaf \<T> and @ref capture_leaf \<U>. \n
- * Notice that both `T` and `U` are ref is_compressed_v "compressed" is not allowed.
+ * Otherwise, the base class is @ref capture_leaf \<T> and @ref capture_leaf
+ * \<U>. \n Notice that both `T` and `U` are ref is_compressed_v "compressed" is
+ * not allowed.
  *
  */
 template <size_t index, typename T, typename U, typename Tag = void>
@@ -71,13 +73,14 @@ using __compressed_pair_base2 = compressed_pair_wrapper<1, U, T, __compressed_pa
  *
  * @brief A pair used empty base optimization to reduce the size of the pair.
  *
- * @details See @ref compressed_pair_wrapper for the base class of compressed_pair. \n
- * compressed_pair is final, so it can't be derived from. \n
+ * @details See @ref compressed_pair_wrapper for the base class of
+ * compressed_pair. \n compressed_pair is final, so it can't be derived from. \n
  * For example : \n
  * @code
- * static_assert(sizeof(compressed_pair<int, double>) == sizeof(int) + sizeof(double));
- * static_assert(sizeof(compressed_pair<std::allocator<int>, int>) == sizeof(int));
- * static_assert(sizeof(compressed_pair<int, std::allocator<int>>) == sizeof(int));
+ * static_assert(sizeof(compressed_pair<int, double>) == sizeof(int) +
+ * sizeof(double)); static_assert(sizeof(compressed_pair<std::allocator<int>,
+ * int>) == sizeof(int)); static_assert(sizeof(compressed_pair<int,
+ * std::allocator<int>>) == sizeof(int));
  * @endcode
  */
 template <typename T, typename U>

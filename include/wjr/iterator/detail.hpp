@@ -1,6 +1,8 @@
 #ifndef WJR_ITERATOR_DETAIL_HPP__
 #define WJR_ITERATOR_DETAIL_HPP__
 
+#include <iterator>
+
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
@@ -23,13 +25,6 @@ using iterator_category_t = typename std::iterator_traits<Iter>::iterator_catego
 template <typename T>
 using iterator_common_reference_t =
     common_reference_t<iterator_reference_t<T>, iterator_value_t<T> &>;
-
-template <typename In, typename = void>
-struct __is_indirectly_readable_impl : std::false_type {};
-
-// template <typename In>
-// struct __is_indirectly_readable_impl<In, std::void_t<
-// >> : std::true_type {};
 
 template <typename Iter, typename = void>
 struct __is_iterator_impl : std::false_type {};
@@ -115,7 +110,7 @@ using iterator_contiguous_value_t = std::remove_reference_t<iterator_reference_t
 template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<Iter>)>
 using iterator_contiguous_pointer_t = std::add_pointer_t<iterator_contiguous_value_t<Iter>>;
 
-#if WJR_DEBUG_LEVEL >= 2
+#if WJR_DEBUG_LEVEL >= 3
     #define WJR_HAS_DEBUG_CONTIGUOUS_ITERATOR_CHECKER WJR_HAS_DEF
 #endif
 

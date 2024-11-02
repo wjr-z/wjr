@@ -717,9 +717,9 @@ using __uninitialized_enabler =
 /**
  * @class uninitialized
  *
- * @details Uninitialized object. Make trivially constructible and destructible of
- * any type. At present, the detector for detecting the legality of states under DEBUG has
- * been removed.
+ * @details Uninitialized object. Make trivially constructible and destructible
+ * of any type. At present, the detector for detecting the legality of states
+ * under DEBUG has been removed.
  *
  */
 template <typename T>

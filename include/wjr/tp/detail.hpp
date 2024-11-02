@@ -350,8 +350,8 @@ struct tp_concat<T, U, Args3...> {
     using type = typename tp_concat<typename tp_concat<T, U>::type, Args3...>::type;
 };
 
-/// @brief f(L1<Args...>, L2<Args2...>, ... Ln<Argsn...>) -> L1<Args..., Args2...,
-/// Argsn...>
+/// @brief f(L1<Args...>, L2<Args2...>, ... Ln<Argsn...>) -> L1<Args...,
+/// Args2..., Argsn...>
 template <typename... Args>
 using tp_concat_t = typename tp_concat<Args...>::type;
 
@@ -366,8 +366,8 @@ struct tp_replace_at<T, 0, U> {
     using type = tp_push_front_t<tp_pop_front_t<T>, U>;
 };
 
-/// @brief f(L<Args...>, idx, U) -> L<Args[0 ~ idx - 1], U, Args[idx + 1 ~ tp_size_v<T> -
-/// 1]>
+/// @brief f(L<Args...>, idx, U) -> L<Args[0 ~ idx - 1], U, Args[idx + 1 ~
+/// tp_size_v<T> - 1]>
 template <typename T, size_t idx, typename U>
 using tp_replace_at_t = typename tp_replace_at<T, idx, U>::type;
 
