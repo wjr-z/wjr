@@ -32,6 +32,8 @@ __addsubmul_impl<default_biginteger_storage>(basic_biginteger<default_biginteger
                                              const biginteger_data *lhs, const biginteger_data *rhs,
                                              int32_t xmask) noexcept;
 
+} // namespace biginteger_detail
+
 std::ostream &operator<<(std::ostream &os, const biginteger_data &src) noexcept {
     if (const std::ostream::sentry ok(os); ok) {
         unique_stack_allocator stkal;
@@ -70,7 +72,5 @@ std::ostream &operator<<(std::ostream &os, const biginteger_data &src) noexcept 
 
     return os;
 }
-
-} // namespace biginteger_detail
 
 } // namespace wjr
