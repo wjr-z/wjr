@@ -7,10 +7,10 @@
 #if WJR_HAS_BUILTIN(__builtin_clz)
     #define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF
 #elif defined(_MSC_VER) && defined(WJR_X86)
-    #define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF_VAR(2)
+    #define WJR_HAS_BUILTIN_CLZ WJR_HAS_SIMD_DEF
 #endif
 
-#if WJR_HAS_BUILTIN(CLZ) == 2
+#if WJR_HAS_BUILTIN(CLZ) == WJR_SIMD_DEF_VAR
     #include <wjr/arch/x86/simd/intrin.hpp>
 #endif
 

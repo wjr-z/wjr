@@ -15,15 +15,15 @@
     #endif
 #else
     #if defined(_MSC_VER)
-        #define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF_VAR(2)
+        #define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_SIMD_DEF
     #endif
 
     #if defined(WJR_ENABLE_ASSEMBLY)
-        #define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_DEF_VAR(3)
+        #define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_ASSEMBLY_DEF
     #endif
 #endif
 
-#if WJR_HAS_BUILTIN(ASM_ADDC) == 2
+#if WJR_HAS_BUILTIN(ASM_ADDC) == WJR_SIMD_DEF_VAR
     #include <wjr/arch/x86/simd/intrin.hpp>
 #endif
 

@@ -8,10 +8,10 @@
     #if WJR_HAS_BUILTIN(__builtin_popcount)
         #define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF
     #elif defined(_MSC_VER)
-        #define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF_VAR(2)
+        #define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_SIMD_DEF
     #endif
 
-    #if WJR_HAS_BUILTIN(POPCOUNT) == 2
+    #if WJR_HAS_BUILTIN(POPCOUNT) == WJR_SIMD_DEF_VAR
         #include <wjr/arch/x86/simd/intrin.hpp>
     #endif
 

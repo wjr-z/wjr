@@ -167,7 +167,7 @@ public:
             return;
         }
 
-        if (m_storage.m_data != nullptr) {
+        if (WJR_LIKELY(m_storage.m_data != nullptr)) {
             deallocate_nonnull(al);
         }
     }

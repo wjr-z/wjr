@@ -188,7 +188,7 @@ WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) noexcept
             return;
         }
 
-        if (n == 1) {
+        if (WJR_UNLIKELY(n == 1)) {
             dst[0] = ~src[0];
             return;
         }

@@ -122,23 +122,22 @@ public:
 
     ~__default_ring_buffer_storage() = default;
 
+    WJR_CONSTEXPR20 void deallocate_nonnull(_Alty &al) noexcept(
+        noexcept(_Alty_traits::deallocate(al, this->m_storage.m_data, this->capacity()))) {
+        WJR_ASSERT_ASSUME_L2(m_storage.m_data != nullptr);
+        WJR_ASSERT_ASSUME_L2(capacity() != 0);
+        _Alty_traits::deallocate(al, m_storage.m_data, capacity());
+    }
+
     WJR_CONSTEXPR20 void deallocate(_Alty &al) noexcept(
         noexcept(_Alty_traits::deallocate(al, this->m_storage.m_data, this->capacity()))) {
         if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(data() == nullptr)) {
             return;
         }
 
-        if (m_storage.m_data != nullptr) {
-            WJR_ASSERT_ASSUME_L2(capacity() != 0);
-            _Alty_traits::deallocate(al, m_storage.m_data, capacity());
+        if (WJR_LIKELY(m_storage.m_data != nullptr)) {
+            deallocate_nonnull(al);
         }
-    }
-
-    WJR_CONSTEXPR20 void deallocate_nonnull(_Alty &al) noexcept(
-        noexcept(_Alty_traits::deallocate(al, this->m_storage.m_data, this->capacity()))) {
-        WJR_ASSERT_ASSUME_L2(m_storage.m_data != nullptr);
-        WJR_ASSERT_ASSUME_L2(capacity() != 0);
-        _Alty_traits::deallocate(al, m_storage.m_data, capacity());
     }
 
     WJR_INTRINSIC_CONSTEXPR20 static void

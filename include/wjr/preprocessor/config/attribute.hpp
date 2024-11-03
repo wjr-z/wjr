@@ -57,6 +57,18 @@
     #define WJR_MAYBE_UNUSED
 #endif
 
+#if WJR_HAS_CPP_ATTRIBUTE(likely)
+    #define WJR_CPP_LIKELY [[likely]]
+#else
+    #define WJR_CPP_LIKELY
+#endif
+
+#if WJR_HAS_CPP_ATTRIBUTE(unlikely)
+    #define WJR_CPP_UNLIKELY [[unlikely]]
+#else
+    #define WJR_CPP_UNLIKELY
+#endif
+
 #if WJR_HAS_ATTRIBUTE(always_inline)
     #define WJR_FORCEINLINE __attribute__((always_inline))
 #elif defined(_MSC_VER)
@@ -185,8 +197,8 @@
     #define WJR_VERY_LIKELY(exp, probability) WJR_EXPECT_WITH_PROBABILITY(exp, true, probability)
     #define WJR_VERY_UNLIKELY(exp, probability) WJR_EXPECT_WITH_PROBABILITY(exp, false, probability)
 #else
-    #define WJR_VERY_LIKELY(exp, probability) WJR_LIKELY((exp))
-    #define WJR_VERY_UNLIKELY(exp, probability) WJR_UNLIKELY((exp))
+    #define WJR_VERY_LIKELY(exp, probability) WJR_LIKELY(exp)
+    #define WJR_VERY_UNLIKELY(exp, probability) WJR_UNLIKELY(exp)
 #endif
 
 #if defined(__cpp_lib_is_constant_evaluated)

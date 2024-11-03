@@ -25,7 +25,7 @@ namespace wjr {
     #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
         #define WJR_HAS_BUILTIN_ASM_MUL_1 WJR_HAS_DEF
     #elif defined(WJR_ENABLE_ASSEMBLY)
-        #define WJR_HAS_BUILTIN_ASM_MUL_1 WJR_HAS_DEF_VAR(3)
+        #define WJR_HAS_BUILTIN_ASM_MUL_1 WJR_HAS_ASSEMBLY_DEF
     #endif
 #endif
 
@@ -33,7 +33,7 @@ namespace wjr {
     #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
         #define WJR_HAS_BUILTIN_ASM_ADDMUL_1 WJR_HAS_DEF
     #elif defined(WJR_ENABLE_ASSEMBLY)
-        #define WJR_HAS_BUILTIN_ASM_ADDMUL_1 WJR_HAS_DEF_VAR(3)
+        #define WJR_HAS_BUILTIN_ASM_ADDMUL_1 WJR_HAS_ASSEMBLY_DEF
     #endif
 #endif
 
@@ -41,7 +41,7 @@ namespace wjr {
     #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
         #define WJR_HAS_BUILTIN_ASM_SUBMUL_1 WJR_HAS_DEF
     #elif defined(WJR_ENABLE_ASSEMBLY)
-        #define WJR_HAS_BUILTIN_ASM_SUBMUL_1 WJR_HAS_DEF_VAR(3)
+        #define WJR_HAS_BUILTIN_ASM_SUBMUL_1 WJR_HAS_ASSEMBLY_DEF
     #endif
 #endif
 
@@ -50,8 +50,8 @@ namespace wjr {
         #define WJR_HAS_BUILTIN_ASM_ADDLSH_N WJR_HAS_DEF
         #define WJR_HAS_BUILTIN_ASM_RSBLSH_N WJR_HAS_DEF
     #elif defined(WJR_ENABLE_ASSEMBLY)
-        #define WJR_HAS_BUILTIN_ASM_ADDLSH_N WJR_HAS_DEF_VAR(3)
-        #define WJR_HAS_BUILTIN_ASM_RSBLSH_N WJR_HAS_DEF_VAR(3)
+        #define WJR_HAS_BUILTIN_ASM_ADDLSH_N WJR_HAS_ASSEMBLY_DEF
+        #define WJR_HAS_BUILTIN_ASM_RSBLSH_N WJR_HAS_ASSEMBLY_DEF
     #endif
 #endif
 
@@ -60,8 +60,8 @@ namespace wjr {
         #define WJR_HAS_BUILTIN_ASM_BASECASE_MUL_S WJR_HAS_DEF
         #define WJR_HAS_BUILTIN_ASM_BASECASE_SQR WJR_HAS_DEF
     #elif defined(WJR_ENABLE_ASSEMBLY)
-        #define WJR_HAS_BUILTIN_ASM_BASECASE_MUL_S WJR_HAS_DEF_VAR(3)
-        #define WJR_HAS_BUILTIN_ASM_BASECASE_SQR WJR_HAS_DEF_VAR(3)
+        #define WJR_HAS_BUILTIN_ASM_BASECASE_MUL_S WJR_HAS_ASSEMBLY_DEF
+        #define WJR_HAS_BUILTIN_ASM_BASECASE_SQR WJR_HAS_ASSEMBLY_DEF
     #endif
 #endif
 

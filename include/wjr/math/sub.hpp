@@ -375,7 +375,7 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n_pos(uint64_t *dst, const uint64_t *
         hi = -hi;
     }
 
-    ssize_t ret = __fasts_from_unsigned(idx);
+    ssize_t ret = __fast_from_unsigned(idx);
     WJR_ASSUME(ret >= 1);
 
     do {
@@ -474,7 +474,7 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s_pos(uint64_t *dst, const uint64_t *
 
             uint64_t hi = src0[m];
             hi -= subc_n(dst, src0, src1, m);
-            ssize_t ret = __fasts_from_unsigned(m + 1);
+            ssize_t ret = __fast_from_unsigned(m + 1);
 
             if (WJR_LIKELY(hi != 0)) {
                 dst[m] = hi;
@@ -496,7 +496,7 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s_pos(uint64_t *dst, const uint64_t *
     }
 
     (void)subc_s(dst, src0, m + idx, src1, m);
-    ssize_t ret = __fasts_from_unsigned(m + idx);
+    ssize_t ret = __fast_from_unsigned(m + idx);
     WJR_ASSUME(ret >= 2);
     ret -= dst[m + idx - 1] == 0;
     WJR_ASSUME(ret >= 1);
@@ -511,11 +511,11 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0
                                              type_identity_t<U> cf1) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     if (cf0 != cf1) {
-        ssize_t ret = __fasts_from_unsigned(n);
+        ssize_t ret = __fast_from_unsigned(n);
         U cf = 0;
         if (cf0 < cf1) {
             std::swap(src0, src1);
-            ret = __fasts_negate(ret);
+            ret = __fast_negate(ret);
             cf = cf1 - cf0;
         } else {
             cf = cf0 - cf1;

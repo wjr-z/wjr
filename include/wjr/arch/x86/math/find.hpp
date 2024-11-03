@@ -23,6 +23,7 @@ WJR_PURE size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) noe
 
     size_t rem = n & 7;
 
+    // todo : probability 37.5%
     if (rem > 4) {
     #if !WJR_HAS_SIMD(AVX2)
         auto x0 = sse::loadu(src0 + (rem - 4));
@@ -122,12 +123,12 @@ WJR_PURE size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) noe
 
         if (WJR_UNLIKELY(!avx::test_all_zeros(z))) {
             avx::mask_type mask = avx::movemask_epi8(r0);
-            if (mask != 0) {
+            if (WJR_UNLIKELY(mask != 0)) {
                 return rem + ctz(mask) / 8;
             }
 
             mask = avx::movemask_epi8(r1);
-            if (mask != 0) {
+            if (WJR_UNLIKELY(mask != 0)) {
                 return rem + 4 + ctz(mask) / 8;
             }
 
@@ -156,19 +157,19 @@ WJR_PURE WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src0, const T *src1
         return 0;
     }
 
-    if (n == 1 || WJR_UNLIKELY(src0[1] == src1[1])) {
+    if (WJR_UNLIKELY(n == 1 || src0[1] == src1[1])) {
         return 1;
     }
 
-    if (n == 2 || WJR_UNLIKELY(src0[2] == src1[2])) {
+    if (WJR_UNLIKELY(n == 2 || src0[2] == src1[2])) {
         return 2;
     }
 
-    if (n == 3 || WJR_UNLIKELY(src0[3] == src1[3])) {
+    if (WJR_UNLIKELY(n == 3 || src0[3] == src1[3])) {
         return 3;
     }
 
-    if (n == 4) {
+    if (WJR_UNLIKELY(n == 4)) {
         return 4;
     }
 
@@ -320,19 +321,19 @@ WJR_PURE WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src, T val, size_t 
         return 0;
     }
 
-    if (n == 1 || WJR_UNLIKELY(src[1] == val)) {
+    if (WJR_UNLIKELY(n == 1 || src[1] == val)) {
         return 1;
     }
 
-    if (n == 2 || WJR_UNLIKELY(src[2] == val)) {
+    if (WJR_UNLIKELY(n == 2 || src[2] == val)) {
         return 2;
     }
 
-    if (n == 3 || WJR_UNLIKELY(src[3] == val)) {
+    if (WJR_UNLIKELY(n == 3 || src[3] == val)) {
         return 3;
     }
 
-    if (n == 4) {
+    if (WJR_UNLIKELY(n == 4)) {
         return 4;
     }
 
@@ -538,19 +539,19 @@ WJR_PURE WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src0, const
         return n;
     }
 
-    if (n == 1 || WJR_UNLIKELY(src0[n - 2] == src1[n - 2])) {
+    if (WJR_UNLIKELY(n == 1 || src0[n - 2] == src1[n - 2])) {
         return n - 1;
     }
 
-    if (n == 2 || WJR_UNLIKELY(src0[n - 3] == src1[n - 3])) {
+    if (WJR_UNLIKELY(n == 2 || src0[n - 3] == src1[n - 3])) {
         return n - 2;
     }
 
-    if (n == 3 || WJR_UNLIKELY(src0[n - 4] == src1[n - 4])) {
+    if (WJR_UNLIKELY(n == 3 || src0[n - 4] == src1[n - 4])) {
         return n - 3;
     }
 
-    if (n == 4) {
+    if (WJR_UNLIKELY(n == 4)) {
         return n - 4;
     }
 
@@ -582,7 +583,7 @@ WJR_PURE size_t large_builtin_reverse_find_n(const T *src, T val, size_t n) noex
     const size_t rem = n & 7;
     n -= rem;
 
-    if (rem > 4) {
+    if (WJR_UNLIKELY(rem > 4)) {
     #if !WJR_HAS_SIMD(AVX2)
         auto x0 = sse::loadu(src + n + 2);
         auto x1 = sse::loadu(src + n);
@@ -705,19 +706,19 @@ WJR_PURE WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src, T val,
         return n;
     }
 
-    if (n == 1 || WJR_UNLIKELY(src[n - 2] == val)) {
+    if (WJR_UNLIKELY(n == 1 || src[n - 2] == val)) {
         return n - 1;
     }
 
-    if (n == 2 || WJR_UNLIKELY(src[n - 3] == val)) {
+    if (WJR_UNLIKELY(n == 2 || src[n - 3] == val)) {
         return n - 2;
     }
 
-    if (n == 3 || WJR_UNLIKELY(src[n - 4] == val)) {
+    if (WJR_UNLIKELY(n == 3 || src[n - 4] == val)) {
         return n - 3;
     }
 
-    if (n == 4) {
+    if (WJR_UNLIKELY(n == 4)) {
         return n - 4;
     }
 

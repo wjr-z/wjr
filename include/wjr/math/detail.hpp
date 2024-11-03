@@ -44,7 +44,7 @@ WJR_CONST constexpr T __ceil_div(T n, type_identity_t<T> div) noexcept {
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST constexpr std::make_signed_t<T> __fasts_from_unsigned(T x) noexcept {
+WJR_CONST constexpr std::make_signed_t<T> __fast_from_unsigned(T x) noexcept {
     const std::make_signed_t<T> ret = x;
     WJR_ASSERT_ASSUME_L2(ret >= 0);
     return ret;
@@ -52,48 +52,48 @@ WJR_CONST constexpr std::make_signed_t<T> __fasts_from_unsigned(T x) noexcept {
 
 template <typename T, typename U = std::make_unsigned_t<T>,
           WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr U __fasts_abs(T x) noexcept {
+WJR_CONST constexpr U __fast_abs(T x) noexcept {
     return static_cast<U>(x < 0 ? -x : x);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_negate(T x) noexcept {
+WJR_CONST constexpr T __fast_negate(T x) noexcept {
     return -x;
 }
 
 template <typename T, typename U = std::make_unsigned_t<T>,
           WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_conditional_negate(bool condition, T x) noexcept {
+WJR_CONST constexpr T __fast_conditional_negate(bool condition, T x) noexcept {
     return condition ? -x : x;
 }
 
 template <typename T, typename U = std::make_unsigned_t<T>,
           WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_negate_with(T condition, T x) noexcept {
+WJR_CONST constexpr T __fast_negate_with(T condition, T x) noexcept {
     return condition < 0 ? -x : x;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_increment(T x) noexcept {
+WJR_CONST constexpr T __fast_increment(T x) noexcept {
     WJR_ASSERT_L2(x != std::numeric_limits<T>::min() && x != std::numeric_limits<T>::max());
 
     return x < 0 ? x - 1 : x + 1;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_decrement(T x) noexcept {
+WJR_CONST constexpr T __fast_decrement(T x) noexcept {
     WJR_ASSERT_L2(x != 0 && x + 1 != T(0));
 
     return x < 0 ? x + 1 : x - 1;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_add(T x, std::make_unsigned_t<T> y) noexcept {
+WJR_CONST constexpr T __fast_add(T x, std::make_unsigned_t<T> y) noexcept {
     return x < 0 ? x - y : x + y;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_sub(T x, std::make_unsigned_t<T> y) noexcept {
+WJR_CONST constexpr T __fast_sub(T x, std::make_unsigned_t<T> y) noexcept {
     return x < 0 ? x + y : x - y;
 }
 

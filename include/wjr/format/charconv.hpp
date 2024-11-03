@@ -629,7 +629,7 @@ public:
         WJR_ASSERT_L2(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= nd);
 
-        if (WJR_UNLIKELY(n >= 4)) {
+        if (WJR_LIKELY(n >= 4)) {
             do {
                 __to_chars_unroll_4<2>(ptr - 4, x & 0x0f, conv);
                 ptr -= 4;
@@ -637,7 +637,7 @@ public:
                 n -= 4;
             } while (WJR_LIKELY(n >= 4));
 
-            if (n == 0) {
+            if (WJR_UNLIKELY(n == 0)) {
                 return ptr;
             }
         }
@@ -678,7 +678,7 @@ public:
         WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 2) / 3);
 
         if constexpr (nd >= 16) {
-            if (WJR_UNLIKELY(n >= 4)) {
+            if (WJR_LIKELY(n >= 4)) {
                 do {
                     __to_chars_unroll_4<8>(ptr - 4, x & 0x0fff, conv);
                     ptr -= 4;
@@ -686,7 +686,7 @@ public:
                     n -= 4;
                 } while (WJR_LIKELY(n >= 4));
 
-                if (n == 0) {
+                if (WJR_UNLIKELY(n == 0)) {
                     return ptr;
                 }
             }
@@ -728,7 +728,7 @@ public:
         WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 3) / 4);
 
         if constexpr (nd >= 16) {
-            if (WJR_UNLIKELY(n >= 4)) {
+            if (WJR_LIKELY(n >= 4)) {
                 do {
                     __to_chars_unroll_4<16>(ptr - 4, x & 0xffff, conv);
                     ptr -= 4;
@@ -736,7 +736,7 @@ public:
                     n -= 4;
                 } while (WJR_LIKELY(n >= 4));
 
-                if (n == 0) {
+                if (WJR_UNLIKELY(n == 0)) {
                     return ptr;
                 }
             }
@@ -804,6 +804,8 @@ public:
             } while (WJR_LIKELY(val >= 100));
         }
 
+        // todo : The branch prediction rate here is 50%, maybe a branchless algorithm is
+        // better.
         if (val < 10) {
             *--ptr = conv.template to<10>(val);
             return ptr;
@@ -1476,19 +1478,19 @@ public:
         WJR_ASSERT_ASSUME(1 <= n && n <= nd);
 
         if constexpr (nd >= 16) {
-            if (WJR_UNLIKELY(n >= 8)) {
+            if (WJR_LIKELY(n >= 8)) {
                 do {
                     val = (val << 8) + __from_chars_unroll_8<2>(first, conv);
                     first += 8;
                     n -= 8;
                 } while (WJR_LIKELY(n >= 8));
 
-                if (n == 0) {
+                if (WJR_UNLIKELY(n == 0)) {
                     return;
                 }
             }
         } else if constexpr (nd == 8) {
-            if (WJR_UNLIKELY(n == 8)) {
+            if (WJR_LIKELY(n == 8)) {
                 val = __from_chars_unroll_8<2>(first, conv);
                 first += 8;
                 return;
@@ -1546,14 +1548,14 @@ public:
         WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 2) / 3);
 
         if constexpr (nd >= 32) {
-            if (WJR_UNLIKELY(n >= 8)) {
+            if (WJR_LIKELY(n >= 8)) {
                 do {
                     val = (val << 24) + __from_chars_unroll_8<8>(first, conv);
                     first += 8;
                     n -= 8;
                 } while (WJR_LIKELY(n >= 8));
 
-                if (n == 0) {
+                if (WJR_UNLIKELY(n == 0)) {
                     return;
                 }
             }
@@ -1610,14 +1612,14 @@ public:
         WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 3) / 4);
 
         if constexpr (nd >= 64) {
-            if (WJR_UNLIKELY(n >= 8)) {
+            if (WJR_LIKELY(n >= 8)) {
                 do {
                     val = (val << 32) + __from_chars_unroll_8<16>(first, conv);
                     first += 8;
                     n -= 8;
                 } while (WJR_LIKELY(n >= 8));
 
-                if (n == 0) {
+                if (WJR_UNLIKELY(n == 0)) {
                     return;
                 }
             }
