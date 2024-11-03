@@ -28,7 +28,7 @@ WJR_ALL_NONNULL WJR_PURE int large_builtin_compare_n(const T *src0, const T *src
             const auto r = sse::cmpeq_epi64(x, y);                                                 \
                                                                                                    \
             const sse::mask_type mask = ~sse::movemask_epi8(r);                                    \
-            if (WJR_UNLIKELY(mask != 0)) {                                                         \
+            if (mask != 0) {                                                                       \
                 if (mask == 0xFF00) {                                                              \
                     return src0[(index) + 1] < src1[(index) + 1] ? -1 : 1;                         \
                 }                                                                                  \
@@ -44,7 +44,7 @@ WJR_ALL_NONNULL WJR_PURE int large_builtin_compare_n(const T *src0, const T *src
                 const auto r = avx::cmpeq_epi64(x, y);                                             \
                                                                                                    \
                 const avx::mask_type mask = ~avx::movemask_epi8(r);                                \
-                if (WJR_UNLIKELY(mask != 0)) {                                                     \
+                if (mask != 0) {                                                                   \
                     const auto offset = ctz(mask) / 8;                                             \
                     return src0[(index) + offset] < src1[(index) + offset] ? -1 : 1;               \
                 }                                                                                  \
@@ -181,7 +181,7 @@ WJR_ALL_NONNULL WJR_PURE int large_builtin_reverse_compare_n(const T *src0, cons
             const auto r = sse::cmpeq_epi64(x, y);                                                 \
                                                                                                    \
             const sse::mask_type mask = ~sse::movemask_epi8(r);                                    \
-            if (WJR_UNLIKELY(mask != 0)) {                                                         \
+            if (mask != 0) {                                                                       \
                 if (mask == 0x00FF) {                                                              \
                     return src0[index] < src1[index] ? -1 : 1;                                     \
                 }                                                                                  \
@@ -197,7 +197,7 @@ WJR_ALL_NONNULL WJR_PURE int large_builtin_reverse_compare_n(const T *src0, cons
                 const auto r = avx::cmpeq_epi64(x, y);                                             \
                                                                                                    \
                 const avx::mask_type mask = ~avx::movemask_epi8(r);                                \
-                if (WJR_UNLIKELY(mask != 0)) {                                                     \
+                if (mask != 0) {                                                                   \
                     const auto offset = clz(mask) / 8;                                             \
                     return src0[(index) + 3 - offset] < src1[(index) + 3 - offset] ? -1 : 1;       \
                 }                                                                                  \

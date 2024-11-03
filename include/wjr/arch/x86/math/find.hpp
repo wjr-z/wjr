@@ -123,12 +123,12 @@ WJR_PURE size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) noe
 
         if (WJR_UNLIKELY(!avx::test_all_zeros(z))) {
             avx::mask_type mask = avx::movemask_epi8(r0);
-            if (WJR_UNLIKELY(mask != 0)) {
+            if (mask != 0) {
                 return rem + ctz(mask) / 8;
             }
 
             mask = avx::movemask_epi8(r1);
-            if (WJR_UNLIKELY(mask != 0)) {
+            if (mask != 0) {
                 return rem + 4 + ctz(mask) / 8;
             }
 

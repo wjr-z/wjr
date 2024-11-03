@@ -86,7 +86,7 @@ struct ieee754_binary_traits {
 
     // ExponentUInt needs to be large enough to hold (unsigned) exponent bits as
     // well as the (signed) actual exponent.
-    // TODO: static overflow guard against intermediate computations.
+    // todo: static overflow guard against intermediate computations.
     static_assert(detail::value_bits<ExponentInt>::value >= Format::exponent_bits + 1,
                   "wjr::dragonbox: insufficient number of bits");
     static_assert(std::is_signed<ExponentInt>::value);

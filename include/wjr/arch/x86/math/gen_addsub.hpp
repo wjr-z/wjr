@@ -173,7 +173,7 @@ WJR_ALL_NONNULL inline uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addc
         WJR_PP_STR(WJR_adcsbb) "{q 48(%[src1]), %[r8]| %[r8], [%[src1] + 48]}\n\t"
         "mov{q %[r11], 40(%[dst])| [%[dst] + 40], %[r11]}\n\t"
 
-        // TODO : optimize pipeline
+        // todo : optimize pipeline
         "lea{q 64(%[src0]), %[src0]| %[src0], [%[src0] + 64]}\n\t"
         "lea{q 64(%[src1]), %[src1]| %[src1], [%[src1] + 64]}\n\t"
         "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"

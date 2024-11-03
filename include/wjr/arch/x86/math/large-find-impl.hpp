@@ -26,7 +26,7 @@ WJR_ALL_NONNULL WJR_PURE size_t large_builtin_find_not_n(const T *src0, const T 
             const auto r = sse::cmpeq_epi64(x, y);                                                 \
                                                                                                    \
             const sse::mask_type mask = ~sse::movemask_epi8(r);                                    \
-            if (WJR_UNLIKELY(mask != 0)) {                                                         \
+            if (mask != 0) {                                                                       \
                 return (index) + (mask == 0xFF00);                                                 \
             }                                                                                      \
         } while (false)
@@ -39,7 +39,7 @@ WJR_ALL_NONNULL WJR_PURE size_t large_builtin_find_not_n(const T *src0, const T 
                 const auto r = avx::cmpeq_epi64(x, y);                                             \
                                                                                                    \
                 const avx::mask_type mask = ~avx::movemask_epi8(r);                                \
-                if (WJR_UNLIKELY(mask != 0)) {                                                     \
+                if (mask != 0) {                                                                   \
                     return (index) + ctz(mask) / 8;                                                \
                 }                                                                                  \
             } while (false)
@@ -145,7 +145,7 @@ WJR_ALL_NONNULL WJR_PURE size_t large_builtin_find_not_n(const T *src, T val, si
             const auto r = sse::cmpeq_epi64(sse::loadu(src + (index)), y2);                        \
                                                                                                    \
             const sse::mask_type mask = ~sse::movemask_epi8(r);                                    \
-            if (WJR_UNLIKELY(mask != 0)) {                                                         \
+            if (mask != 0) {                                                                       \
                 return (index) + (mask == 0xFF00);                                                 \
             }                                                                                      \
         } while (false)
@@ -156,7 +156,7 @@ WJR_ALL_NONNULL WJR_PURE size_t large_builtin_find_not_n(const T *src, T val, si
                 const auto r = avx::cmpeq_epi64(avx::loadu(src + (index)), y4);                    \
                                                                                                    \
                 const avx::mask_type mask = ~avx::movemask_epi8(r);                                \
-                if (WJR_UNLIKELY(mask != 0)) {                                                     \
+                if (mask != 0) {                                                                   \
                     return (index) + ctz(mask) / 8;                                                \
                 }                                                                                  \
             } while (false)
@@ -270,7 +270,7 @@ WJR_ALL_NONNULL WJR_PURE size_t large_builtin_reverse_find_not_n(const T *src0, 
             const auto r = sse::cmpeq_epi64(x, y);                                                 \
                                                                                                    \
             const sse::mask_type mask = ~sse::movemask_epi8(r);                                    \
-            if (WJR_UNLIKELY(mask != 0)) {                                                         \
+            if (mask != 0) {                                                                       \
                 return (index) + 2 - (mask == 0x00FF);                                             \
             }                                                                                      \
         } while (false)
@@ -283,7 +283,7 @@ WJR_ALL_NONNULL WJR_PURE size_t large_builtin_reverse_find_not_n(const T *src0, 
                 const auto r = avx::cmpeq_epi64(x, y);                                             \
                                                                                                    \
                 const avx::mask_type mask = ~avx::movemask_epi8(r);                                \
-                if (WJR_UNLIKELY(mask != 0)) {                                                     \
+                if (mask != 0) {                                                                   \
                     return (index) + 4 - clz(mask) / 8;                                            \
                 }                                                                                  \
             } while (false)
@@ -392,7 +392,7 @@ WJR_ALL_NONNULL WJR_PURE size_t large_builtin_reverse_find_not_n(const T *src, T
             const auto r = sse::cmpeq_epi64(x, y2);                                                \
                                                                                                    \
             const sse::mask_type mask = ~sse::movemask_epi8(r);                                    \
-            if (WJR_UNLIKELY(mask != 0)) {                                                         \
+            if (mask != 0) {                                                                       \
                 return (index) + 2 - (mask == 0x00FF);                                             \
             }                                                                                      \
         } while (false)
@@ -404,7 +404,7 @@ WJR_ALL_NONNULL WJR_PURE size_t large_builtin_reverse_find_not_n(const T *src, T
                 const auto r = avx::cmpeq_epi64(x, y4);                                            \
                                                                                                    \
                 const avx::mask_type mask = ~avx::movemask_epi8(r);                                \
-                if (WJR_UNLIKELY(mask != 0)) {                                                     \
+                if (mask != 0) {                                                                   \
                     return (index) + 4 - clz(mask) / 8;                                            \
                 }                                                                                  \
             } while (false)

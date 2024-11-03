@@ -10,7 +10,7 @@
 namespace wjr {
 
 /*
- TODO :
+ todo :
  1. __div_constant_128
  2. __mod_constant_128
  3. __div_qr_constant_128
