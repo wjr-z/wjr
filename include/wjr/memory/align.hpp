@@ -41,7 +41,7 @@ constexpr T *assume_aligned(T *ptr) noexcept {
 #if WJR_HAS_BUILTIN(__builtin_assume_aligned)
     ptr = __builtin_assume_aligned(ptr, N);
     return ptr;
-#elif defined(WJR_CXX_20)
+#elif defined(WJR_CPP_20)
     return std::assume_aligned<N>(ptr);
 #else
     WJR_ASSERT_ASSUME_L2(is_aligned(ptr, N));

@@ -19,7 +19,7 @@ WJR_REGISTER_HAS_TYPE(pointer_traits_to_address,
 
 WJR_REGISTER_HAS_TYPE(pointer_access, std::declval<const Ptr &>().operator->(), Ptr);
 
-#if defined(WJR_CXX_20)
+#if defined(WJR_CPP_20)
 
 template <typename Ptr>
 constexpr auto to_address(const Ptr &p) noexcept {

@@ -3,14 +3,14 @@
 
 #include <wjr/preprocessor.hpp>
 
-#if defined(WJR_CXX_20)
+#if defined(WJR_CPP_20)
     #include <atomic>
 #else
     #include <boost/atomic.hpp>
 #endif
 
 namespace wjr {
-#if defined(WJR_CXX_20)
+#if defined(WJR_CPP_20)
 namespace atomic_namespace = std;
 #else
 namespace atomic_namespace = boost;

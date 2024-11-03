@@ -80,7 +80,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_floor(T x) noexcept {
 
 #if WJR_HAS_BUILTIN(__builtin_bit_cast) || WJR_HAS_MSVC(19, 27)
     #define WJR_HAS_BUILTIN_BIT_CAST WJR_HAS_DEF
-#elif defined(WJR_CXX_20)
+#elif defined(WJR_CPP_20)
 #endif
 
 template <typename To, typename From,

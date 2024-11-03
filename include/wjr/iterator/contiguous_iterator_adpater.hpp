@@ -14,7 +14,7 @@ class contiguous_const_iterator_adapter {
     friend struct std::pointer_traits;
 
 public:
-#if defined(WJR_CXX_20)
+#if defined(WJR_CPP_20)
     using iterator_concept = std::contiguous_iterator_tag;
 #endif
     using iterator_category = std::random_access_iterator_tag;
@@ -222,7 +222,7 @@ class contiguous_iterator_adapter : public contiguous_const_iterator_adapter<Con
     friend struct std::pointer_traits;
 
 public:
-#if defined(WJR_CXX_20)
+#if defined(WJR_CPP_20)
     using iterator_concept = typename Mybase::iterator_concept;
 #endif
     using iterator_category = typename Mybase::iterator_category;

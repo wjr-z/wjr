@@ -85,11 +85,11 @@ template <typename CharT, typename Traits, typename Alloc>
 WJR_INTRINSIC_INLINE void
 __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
                        typename std::basic_string<CharT, Traits, Alloc>::size_type sz) {
-    #if !defined(WJR_CXX_20)
+    #if !defined(WJR_CPP_20)
     if (sz > str.capacity()) {
     #endif
         str.reserve(sz);
-    #if !defined(WJR_CXX_20)
+    #if !defined(WJR_CPP_20)
     }
     #endif
 

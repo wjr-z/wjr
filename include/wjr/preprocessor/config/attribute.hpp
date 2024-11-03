@@ -3,7 +3,7 @@
 
 #include <wjr/preprocessor/config/has.hpp>
 
-#if defined(WJR_CXX_20)
+#if defined(WJR_CPP_20)
     #include <version>
 #endif
 
@@ -273,7 +273,7 @@
 
 #define WJR_INLINE inline
 
-#if defined(WJR_CXX_20)
+#if defined(WJR_CPP_20)
     #define WJR_CONSTEXPR20 constexpr
 #else
     #define WJR_CONSTEXPR20
