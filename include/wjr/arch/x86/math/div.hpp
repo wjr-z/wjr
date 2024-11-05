@@ -79,7 +79,7 @@ extern "C" WJR_ALL_NONNULL WJR_MS_ABI uint64_t __wjr_asm_divexact_dbm1c(uint64_t
                                                                         uint64_t h) noexcept;
 
 WJR_INTRINSIC_INLINE uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
-                                                 uint64_t bd, uint64_t h) WJR_NONNULL noexcept {
+                                                 uint64_t bd, uint64_t h) noexcept {
     return __wjr_asm_divexact_dbm1c(dst, src, n, bd, h);
 }
 

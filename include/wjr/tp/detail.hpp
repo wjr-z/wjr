@@ -676,22 +676,14 @@ struct tp_iota {
 template <typename Type, Type Min, size_t Count>
 using tp_iota_t = typename tp_iota<Type, Min, Count>::type;
 
-template <typename T>
-struct tp_integers_list;
-
 template <typename Type, Type... Vals>
-struct tp_integers_list<std::integer_sequence<Type, Vals...>> {
-    using type = tp_list<integral_constant<Type, Vals>...>;
-};
-
-template <typename Type, Type... Vals>
-using tp_integers_list_t = typename tp_integers_list<std::integer_sequence<Type, Vals...>>::type;
+using tp_integers_list_t = tp_list<integral_constant<Type, Vals>...>;
 
 template <size_t... Vals>
 using tp_indexs_list_t = tp_integers_list_t<size_t, Vals...>;
 
 template <typename T, size_t N>
-using tp_make_integers_list_t = typename tp_integers_list<tp_iota_t<T, 0, N>>::type;
+using tp_make_integers_list_t = tp_iota_t<T, 0, N>;
 
 template <size_t N>
 using tp_make_indexs_list_t = tp_make_integers_list_t<size_t, N>;

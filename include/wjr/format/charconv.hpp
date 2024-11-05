@@ -136,14 +136,15 @@ inline constexpr int is_fast_container_inserter_v = __is_fast_container_inserter
 } // namespace charconv_detail
 
 // require operator() of Converter is constexpr
-template <typename Converter, uint64_t Base, int Unroll>
+template <typename Converter, uint32_t Base, int Unroll>
 class __char_converter_table_t {
-    static constexpr uint64_t pw2 = Unroll == 2 ? Base * Base : Base * Base * Base * Base;
+    static constexpr uint32_t pw2 = Unroll == 2 ? Base * Base : Base * Base * Base * Base;
+    static_assert(pw2 <= 1024);
 
 public:
     constexpr __char_converter_table_t() : table() {
-        for (uint64_t i = 0, j = 0; i < pw2; ++i, j += Unroll) {
-            int x = i;
+        for (uint32_t i = 0, j = 0; i < pw2; ++i, j += Unroll) {
+            uint32_t x = i;
             for (int k = Unroll - 1; ~k; --k) {
                 table[j + k] = Converter::to(x % Base);
                 x /= Base;
@@ -159,7 +160,7 @@ private:
     std::array<char, pw2 * Unroll> table;
 };
 
-template <typename Converter, uint64_t Base, int Unroll>
+template <typename Converter, uint32_t Base, int Unroll>
 inline constexpr __char_converter_table_t<Converter, Base, Unroll> __char_converter_table{};
 
 template <uint64_t Base>
