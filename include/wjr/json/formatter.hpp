@@ -95,6 +95,18 @@ WJR_INTRINSIC_INLINE void format_string(Container &cont, std::string_view str) {
     return;
 
 SLOW_PATH : {
+    // If packed, this uses 8 * 32 bytes.
+    // Note that we expect most compilers to embed this code in the
+    // data section.
+    constexpr static escape_sequence escaped[32] = {
+        {6, "\\u0000"}, {6, "\\u0001"}, {6, "\\u0002"}, {6, "\\u0003"}, {6, "\\u0004"},
+        {6, "\\u0005"}, {6, "\\u0006"}, {6, "\\u0007"}, {2, "\\b"},     {2, "\\t"},
+        {2, "\\n"},     {6, "\\u000b"}, {2, "\\f"},     {2, "\\r"},     {6, "\\u000e"},
+        {6, "\\u000f"}, {6, "\\u0010"}, {6, "\\u0011"}, {6, "\\u0012"}, {6, "\\u0013"},
+        {6, "\\u0014"}, {6, "\\u0015"}, {6, "\\u0016"}, {6, "\\u0017"}, {6, "\\u0018"},
+        {6, "\\u0019"}, {6, "\\u001a"}, {6, "\\u001b"}, {6, "\\u001c"}, {6, "\\u001d"},
+        {6, "\\u001e"}, {6, "\\u001f"}};
+
     std::memcpy(ptr, first, pos);
     try_uninitialized_resize(cont, (ptr + pos) - cont.data());
 
@@ -110,17 +122,6 @@ SLOW_PATH : {
         }
         default:
             if (uint8_t(first[pos + i]) <= 0x1F) {
-                // If packed, this uses 8 * 32 bytes.
-                // Note that we expect most compilers to embed this code in the
-                // data section.
-                constexpr static escape_sequence escaped[32] = {
-                    {6, "\\u0000"}, {6, "\\u0001"}, {6, "\\u0002"}, {6, "\\u0003"}, {6, "\\u0004"},
-                    {6, "\\u0005"}, {6, "\\u0006"}, {6, "\\u0007"}, {2, "\\b"},     {2, "\\t"},
-                    {2, "\\n"},     {6, "\\u000b"}, {2, "\\f"},     {2, "\\r"},     {6, "\\u000e"},
-                    {6, "\\u000f"}, {6, "\\u0010"}, {6, "\\u0011"}, {6, "\\u0012"}, {6, "\\u0013"},
-                    {6, "\\u0014"}, {6, "\\u0015"}, {6, "\\u0016"}, {6, "\\u0017"}, {6, "\\u0018"},
-                    {6, "\\u0019"}, {6, "\\u001a"}, {6, "\\u001b"}, {6, "\\u001c"}, {6, "\\u001d"},
-                    {6, "\\u001e"}, {6, "\\u001f"}};
                 const auto u = escaped[uint8_t(first[pos + i])];
                 if (u.length == 2) {
                     append_string(cont, u.string, 2);
@@ -158,18 +159,6 @@ SLOW_PATH : {
                     }
                     default:
                         if (uint8_t(first[pos + i]) <= 0x1F) {
-                            // If packed, this uses 8 * 32 bytes.
-                            // Note that we expect most compilers to embed this
-                            // code in the data section.
-                            constexpr static escape_sequence escaped[32] = {
-                                {6, "\\u0000"}, {6, "\\u0001"}, {6, "\\u0002"}, {6, "\\u0003"},
-                                {6, "\\u0004"}, {6, "\\u0005"}, {6, "\\u0006"}, {6, "\\u0007"},
-                                {2, "\\b"},     {2, "\\t"},     {2, "\\n"},     {6, "\\u000b"},
-                                {2, "\\f"},     {2, "\\r"},     {6, "\\u000e"}, {6, "\\u000f"},
-                                {6, "\\u0010"}, {6, "\\u0011"}, {6, "\\u0012"}, {6, "\\u0013"},
-                                {6, "\\u0014"}, {6, "\\u0015"}, {6, "\\u0016"}, {6, "\\u0017"},
-                                {6, "\\u0018"}, {6, "\\u0019"}, {6, "\\u001a"}, {6, "\\u001b"},
-                                {6, "\\u001c"}, {6, "\\u001d"}, {6, "\\u001e"}, {6, "\\u001f"}};
                             const auto u = escaped[uint8_t(first[pos + i])];
                             if (u.length == 2) {
                                 append_string(cont, u.string, 2);
@@ -212,17 +201,6 @@ SMALL_SLOW_PATH_NO_COPY:
         }
         default:
             if (uint8_t(first[pos]) <= 0x1F) {
-                // If packed, this uses 8 * 32 bytes.
-                // Note that we expect most compilers to embed this code in
-                // the data section.
-                constexpr static escape_sequence escaped[32] = {
-                    {6, "\\u0000"}, {6, "\\u0001"}, {6, "\\u0002"}, {6, "\\u0003"}, {6, "\\u0004"},
-                    {6, "\\u0005"}, {6, "\\u0006"}, {6, "\\u0007"}, {2, "\\b"},     {2, "\\t"},
-                    {2, "\\n"},     {6, "\\u000b"}, {2, "\\f"},     {2, "\\r"},     {6, "\\u000e"},
-                    {6, "\\u000f"}, {6, "\\u0010"}, {6, "\\u0011"}, {6, "\\u0012"}, {6, "\\u0013"},
-                    {6, "\\u0014"}, {6, "\\u0015"}, {6, "\\u0016"}, {6, "\\u0017"}, {6, "\\u0018"},
-                    {6, "\\u0019"}, {6, "\\u001a"}, {6, "\\u001b"}, {6, "\\u001c"}, {6, "\\u001d"},
-                    {6, "\\u001e"}, {6, "\\u001f"}};
                 const auto u = escaped[uint8_t(first[pos])];
                 if (u.length == 2) {
                     append_string(cont, u.string, 2);

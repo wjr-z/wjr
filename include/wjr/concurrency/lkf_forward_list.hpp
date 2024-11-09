@@ -1,7 +1,8 @@
 #ifndef WJR_CONCURRENCY_LKF_FORWARD_LIST_HPP__
 #define WJR_CONCURRENCY_LKF_FORWARD_LIST_HPP__
 
-#include <wjr/concurrency/atomic.hpp>
+#include <atomic>
+
 #include <wjr/container/forward_list.hpp>
 
 namespace wjr::intrusive {
@@ -12,16 +13,16 @@ struct lkf_forward_list_node {
     lkf_forward_list_node &operator=(const lkf_forward_list_node &) = delete;
     ~lkf_forward_list_node() = default;
 
-    atomic<forward_list_node *> next;
+    std::atomic<forward_list_node *> next;
 };
 
 WJR_INTRINSIC_INLINE void push_front(lkf_forward_list_node *head, forward_list_node *node,
                                      forward_list_node *tail) noexcept {
-    auto *old_node = head->next.load(memory_order_relaxed);
+    auto *old_node = head->next.load(std::memory_order_relaxed);
     do {
         tail->next = old_node;
-    } while (!head->next.compare_exchange_weak(old_node, node, memory_order_acq_rel,
-                                               memory_order_relaxed));
+    } while (!head->next.compare_exchange_weak(old_node, node, std::memory_order_acq_rel,
+                                               std::memory_order_relaxed));
 }
 
 WJR_INTRINSIC_INLINE void push_front(lkf_forward_list_node *head,
@@ -38,7 +39,7 @@ WJR_INTRINSIC_INLINE void push_front(lkf_forward_list_node *head,
 template <typename Func>
 WJR_NODISCARD WJR_INTRINSIC_INLINE forward_list_node *exchange_front(lkf_forward_list_node *head,
                                                                      Func func) noexcept {
-    auto *node = head->next.load(memory_order_relaxed);
+    auto *node = head->next.load(std::memory_order_relaxed);
     forward_list_node *next_node;
 
     do {
@@ -47,8 +48,8 @@ WJR_NODISCARD WJR_INTRINSIC_INLINE forward_list_node *exchange_front(lkf_forward
         }
 
         next_node = func(node);
-    } while (!head->next.compare_exchange_weak(node, next_node, memory_order_acq_rel,
-                                               memory_order_relaxed));
+    } while (!head->next.compare_exchange_weak(node, next_node, std::memory_order_acq_rel,
+                                               std::memory_order_relaxed));
 
     WJR_ASSERT_ASSUME(node != nullptr);
     return node;
