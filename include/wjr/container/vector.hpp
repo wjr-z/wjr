@@ -957,7 +957,8 @@ public:
      * @brief clear() if capacity() < new_capacity.
      *
      * @details Useful when old data unused. If reserved, this function won't
-     * move any old data to new pointer.
+     * move any old data to new pointer. This is also very useful when the move constructor is
+     * deleted.
      */
     WJR_CONSTEXPR20 void clear_if_reserved(size_type n) {
         if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(empty())) {

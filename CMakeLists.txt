@@ -103,34 +103,6 @@ set(WJR_CXX_FLAGS_DEBUG)
 set(WJR_CXX_FLAGS_RELEASE)
 set(WJR_CXX_LINKER_FLAGS)
 
-if(MSVC)
-   if(WJR_DISABLE_EXCEPTIONS)
-      list(APPEND WJR_CXX_FLAGS /D_HAS_EXCEPTIONS:0)
-   endif()
-
-   list(APPEND WJR_CXX_FLAGS /W3 /Zc:preprocessor /Zc:lambda /EHsc)
-
-   list(APPEND WJR_CXX_FLAGS_DEBUG /DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_DEBUG})
-   list(APPEND WJR_CXX_FLAGS_RELEASE /DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_RELEASE})
-
-   if (WIN32)
-      list(APPEND WJR_CXX_LINKER_FLAGS /lsynchronization)
-   endif()
-else()
-   if(WJR_DISABLE_EXCEPTIONS)
-      list(APPEND WJR_CXX_FLAGS -fno-exceptions)
-   endif()
-
-   list(APPEND WJR_CXX_FLAGS -march=native -Wall -Wextra -Wshadow -Wformat=2 -Wunused)
-
-   list(APPEND WJR_CXX_FLAGS_DEBUG -DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_DEBUG})
-   list(APPEND WJR_CXX_FLAGS_RELEASE -DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_RELEASE})
-
-   if (WIN32)
-      list(APPEND WJR_CXX_LINKER_FLAGS -lsynchronization)
-   endif()
-endif()
-
 if (NOT WJR_DISABLE_CXX_20 AND "cxx_std_20" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
    message("Enable C++ 20.")
    set (WJR_USE_CXX_20 ON)
@@ -142,6 +114,42 @@ if (WJR_USE_CXX_20)
    target_compile_features(wjr PUBLIC cxx_std_20)
 else()
    target_compile_features(wjr PUBLIC cxx_std_17)
+endif()
+
+if(MSVC)
+   list(APPEND WJR_CXX_FLAGS /W3 /Zc:preprocessor /Zc:lambda /EHsc /wd4146 /wd4309 /wd4244)
+
+   list(APPEND WJR_CXX_FLAGS_DEBUG /DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_DEBUG})
+   list(APPEND WJR_CXX_FLAGS_RELEASE /DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_RELEASE})
+
+   if (WIN32)
+      list(APPEND WJR_CXX_LINKER_FLAGS /lsynchronization)
+   endif()
+
+   if(WJR_DISABLE_EXCEPTIONS)
+      list(APPEND WJR_CXX_FLAGS /D_HAS_EXCEPTIONS=0 /DWJR_DISABLE_EXCEPTIONS)
+   endif()
+
+   if(WJR_LIGHT_ASSERT)
+      list(APPEND WJR_CXX_FLAGS /DWJR_LIGHT_ASSERT)
+   endif()
+else()
+   list(APPEND WJR_CXX_FLAGS -march=native -Wall -Wextra -Wshadow -Wformat=2 -Wunused)
+
+   list(APPEND WJR_CXX_FLAGS_DEBUG -DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_DEBUG})
+   list(APPEND WJR_CXX_FLAGS_RELEASE -DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_RELEASE})
+
+   if (WIN32)
+      list(APPEND WJR_CXX_LINKER_FLAGS -lsynchronization)
+   endif()
+
+   if(WJR_DISABLE_EXCEPTIONS)
+      list(APPEND WJR_CXX_FLAGS -fno-exceptions -DWJR_DISABLE_EXCEPTIONS)
+   endif()
+
+   if(WJR_LIGHT_ASSERT)
+      list(APPEND WJR_CXX_FLAGS -DWJR_LIGHT_ASSERT)
+   endif()
 endif()
 
 target_compile_options(wjr
@@ -158,40 +166,10 @@ target_compile_definitions(wjr
    PUBLIC $<$<COMPILE_LANGUAGE:CXX>: ${WJR_COMPILE_DEFINITIONS}$<SEMICOLON>>
 )
 
-if(WJR_DISABLE_EXCEPTIONS)
-   target_compile_definitions(wjr
-      PUBLIC $<$<COMPILE_LANGUAGE:CXX>: -DWJR_DISABLE_EXCEPTIONS >
-   )
-endif()
-
-if(WJR_LIGHT_ASSERT)
-   target_compile_definitions(wjr
-      PUBLIC $<$<COMPILE_LANGUAGE:CXX>: -DWJR_LIGHT_ASSERT >
-   )
-endif()
-
-if (WJR_USE_CXX_20)
-   set(WJR_ATOMIC_LIBS)
-else()
-   add_subdirectory(third-party/boost/config)
-   add_subdirectory(third-party/boost/predef)
-   if (WIN32)
-      add_subdirectory(third-party/boost/winapi)
-   endif()
-   add_subdirectory(third-party/boost/atomic)
-
-   if(WJR_DISABLE_EXCEPTIONS)
-      target_compile_definitions(boost_atomic PUBLIC BOOST_NO_EXCEPTIONS)
-   endif()
-   
-   set(WJR_ATOMIC_LIBS Boost::atomic)
-endif()
-
 target_link_libraries(wjr 
    PUBLIC
       ${WJR_LIBS}
       ${WJR_ASSEMBLY_LIBS}
-      ${WJR_ATOMIC_LIBS}
 )
 
 set(WJR_PCH PUBLIC 
