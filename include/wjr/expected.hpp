@@ -112,18 +112,18 @@ private:
     E m_val;
 };
 
-template <typename T>
+template <typename E>
 struct __expected_unwrap {
-    using type = T;
+    using type = E;
 };
 
-template <typename T, T uniq_success>
-struct __expected_unwrap<compressed_value<T, uniq_success>> {
-    using type = T;
+template <typename E, E uniq_success>
+struct __expected_unwrap<compressed_value<E, uniq_success>> {
+    using type = E;
 };
 
-template <typename T>
-using __expected_unwrap_t = typename __expected_unwrap<T>::type;
+template <typename E>
+using __expected_unwrap_t = typename __expected_unwrap<E>::type;
 
 template <typename T, typename E>
 class expected;
@@ -501,6 +501,11 @@ struct expected_operations_base<void, E> : expected_storage_base<void, E> {
     constexpr void set_valid() noexcept { Mybase::set_valid(); }
     constexpr void set_invalid() noexcept { Mybase::set_invalid(); }
 
+    constexpr void construct_value() noexcept {
+        set_valid();
+        WJR_ASSERT_ASSUME_L2(this->has_value());
+    }
+
     template <typename... Args>
     constexpr void
     construct_error(Args &&...args) noexcept(std::is_nothrow_constructible_v<error_type, Args...>) {
@@ -510,21 +515,27 @@ struct expected_operations_base<void, E> : expected_storage_base<void, E> {
     }
 
     WJR_CONSTEXPR20 void __copy_construct(const expected_operations_base &other) {
-        if (!other.has_value()) {
+        if (other.has_value()) {
+            construct_value();
+        } else {
             construct_error(other.m_err);
         }
     }
 
     WJR_CONSTEXPR20 void __move_construct(expected_operations_base &&other) noexcept(
         std::is_nothrow_move_constructible_v<error_type>) {
-        if (!other.has_value()) {
+        if (other.has_value()) {
+            construct_value();
+        } else {
             construct_error(std::move(other.m_err));
         }
     }
 
     WJR_CONSTEXPR20 void __copy_assign(const expected_operations_base &other) {
         if (this->has_value()) {
-            if (!other.has_value()) {
+            if (WJR_LIKELY(other.has_value())) {
+                WJR_ASSERT_ASSUME_L2(this->has_value());
+            } else {
                 wjr::construct_at(std::addressof(this->m_err), other.m_err);
                 set_invalid();
                 WJR_ASSERT_ASSUME_L2(!this->has_value());
@@ -544,7 +555,9 @@ struct expected_operations_base<void, E> : expected_storage_base<void, E> {
     WJR_CONSTEXPR20 void __move_assign(expected_operations_base &&other) noexcept(
         std::is_nothrow_move_assignable_v<error_type>) {
         if (this->has_value()) {
-            if (!other.has_value()) {
+            if (WJR_LIKELY(other.has_value())) {
+                WJR_ASSERT_ASSUME_L2(this->has_value());
+            } else {
                 wjr::construct_at(std::addressof(this->m_err), std::move(other.m_err));
                 set_invalid();
                 WJR_ASSERT_ASSUME_L2(!this->has_value());
@@ -1034,7 +1047,7 @@ public:
         return U(unexpect, std::move(error()));
     }
 
-    template <typename Func, typename U = __expected_result<Func, E &>>
+    template <typename Func, typename U = __expected_result<Func, error_type &>>
     constexpr U or_else(Func &&func) & {
         if (WJR_UNLIKELY(!has_value())) {
             return std::invoke(std::forward<Func>(func), error());
@@ -1043,7 +1056,7 @@ public:
         return U(std::in_place, this->m_val);
     }
 
-    template <typename Func, typename U = __expected_result<Func, const E &>>
+    template <typename Func, typename U = __expected_result<Func, const error_type &>>
     constexpr U or_else(Func &&func) const & {
         if (WJR_UNLIKELY(!has_value())) {
             return std::invoke(std::forward<Func>(func), error());
@@ -1052,7 +1065,7 @@ public:
         return U(std::in_place, this->m_val);
     }
 
-    template <typename Func, typename U = __expected_result<Func, E &&>>
+    template <typename Func, typename U = __expected_result<Func, error_type &&>>
     constexpr U or_else(Func &&func) && {
         if (WJR_UNLIKELY(!has_value())) {
             return std::invoke(std::forward<Func>(func), std::move(error()));
@@ -1061,7 +1074,7 @@ public:
         return U(std::in_place, std::move(this->m_val));
     }
 
-    template <typename Func, typename U = __expected_result<Func, const E &&>>
+    template <typename Func, typename U = __expected_result<Func, const error_type &&>>
     constexpr U or_else(Func &&func) const && {
         if (WJR_UNLIKELY(!has_value())) {
             return std::invoke(std::forward<Func>(func), std::move(error()));
@@ -1359,7 +1372,9 @@ public:
     WJR_CONSTEXPR20 explicit(!std::is_convertible_v<const G &, error_type>)
         expected(const expected<void, G> &other)
         : Mybase(enable_default_constructor) {
-        if (!other.has_value()) {
+        if (other.has_value()) {
+            this->construct_value();
+        } else {
             this->construct_error(std::forward<const G &>(other.m_err));
         }
     }
@@ -1369,7 +1384,9 @@ public:
     WJR_CONSTEXPR20 explicit(!std::is_convertible_v<G, error_type>)
         expected(expected<void, G> &&other)
         : Mybase(enable_default_constructor) {
-        if (!other.has_value()) {
+        if (other.has_value()) {
+            this->construct_value();
+        } else {
             this->construct_error(std::forward<G>(other.m_err));
         }
     }
@@ -1379,7 +1396,9 @@ public:
                                expected_detail::expected_construct_with_v<void, error_type, void, G>
                                    &&std::is_convertible_v<const G &, error_type>)>
     WJR_CONSTEXPR20 expected(const expected<void, G> &other) : Mybase(enable_default_constructor) {
-        if (!other.has_value()) {
+        if (other.has_value()) {
+            this->construct_value();
+        } else {
             this->construct_error(std::forward<const G &>(other.m_err));
         }
     }
@@ -1390,7 +1409,9 @@ public:
                            !std::is_convertible_v<const G &, error_type>)>
     WJR_CONSTEXPR20 explicit expected(const expected<void, G> &other)
         : Mybase(enable_default_constructor) {
-        if (!other.has_value()) {
+        if (other.has_value()) {
+            this->construct_value();
+        } else {
             this->construct_error(std::forward<const G &>(other.m_err));
         }
     }
@@ -1400,7 +1421,9 @@ public:
                                expected_detail::expected_construct_with_v<void, error_type, void, G>
                                    &&std::is_convertible_v<G, error_type>)>
     WJR_CONSTEXPR20 expected(expected<void, G> &&other) : Mybase(enable_default_constructor) {
-        if (!other.has_value()) {
+        if (other.has_value()) {
+            this->construct_value();
+        } else {
             this->construct_error(std::forward<G>(other.m_err));
         }
     }
@@ -1410,7 +1433,9 @@ public:
                                        !std::is_convertible_v<G, error_type>)>
     WJR_CONSTEXPR20 explicit expected(expected<void, G> &&other)
         : Mybase(enable_default_constructor) {
-        if (!other.has_value()) {
+        if (other.has_value()) {
+            this->construct_value();
+        } else {
             this->construct_error(std::forward<G>(other.m_err));
         }
     }
@@ -1524,7 +1549,7 @@ public:
         return U(unexpect, std::move(error()));
     }
 
-    template <typename Func, typename U = __expected_result<Func, E &>>
+    template <typename Func, typename U = __expected_result<Func, error_type &>>
     constexpr U or_else(Func &&func) & {
         if (WJR_UNLIKELY(!has_value())) {
             return std::invoke(std::forward<Func>(func), error());
@@ -1533,7 +1558,7 @@ public:
         return U();
     }
 
-    template <typename Func, typename U = __expected_result<Func, const E &>>
+    template <typename Func, typename U = __expected_result<Func, const error_type &>>
     constexpr U or_else(Func &&func) const & {
         if (WJR_UNLIKELY(!has_value())) {
             return std::invoke(std::forward<Func>(func), error());
@@ -1542,7 +1567,7 @@ public:
         return U();
     }
 
-    template <typename Func, typename U = __expected_result<Func, E &&>>
+    template <typename Func, typename U = __expected_result<Func, error_type &&>>
     constexpr U or_else(Func &&func) && {
         if (WJR_UNLIKELY(!has_value())) {
             return std::invoke(std::forward<Func>(func), std::move(error()));
@@ -1722,9 +1747,6 @@ public:
         return rhs == lhs;
     }
 };
-
-template <typename T, typename E, E uniq_success>
-using compressed_expected = expected<T, compressed_value<E, uniq_success>>;
 
 #define WJR_EXPECTED_TRY(...)                                                                      \
     do {                                                                                           \

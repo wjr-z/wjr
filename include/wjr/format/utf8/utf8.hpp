@@ -197,7 +197,7 @@ WJR_PURE WJR_INTRINSIC_INLINE bool check_unicode_escape(const char *first) noexc
     return read_memory<uint16_t>(first) == escape;
 }
 
-WJR_PURE WJR_INTRINSIC_INLINE optional<const char *>
+WJR_PURE WJR_INTRINSIC_INLINE compressed_pointer_optional<const char *>
 check_unicode_codepoint(const char *first) noexcept {
     uint32_t code_point = detail::hex_to_u32_unchecked(first);
     first += 4;
@@ -226,7 +226,7 @@ check_unicode_codepoint(const char *first) noexcept {
     return first;
 }
 
-WJR_PURE WJR_INTRINSIC_INLINE optional<const char *>
+WJR_PURE WJR_INTRINSIC_INLINE compressed_pointer_optional<const char *>
 check_unicode_codepoint(const char *first, const char *last) noexcept {
     if (WJR_UNLIKELY(last - first < 4)) {
         return nullopt;
@@ -263,8 +263,8 @@ check_unicode_codepoint(const char *first, const char *last) noexcept {
     return first;
 }
 
-WJR_INTRINSIC_INLINE optional<const char *> unicode_codepoint_to_utf8(char *&dst,
-                                                                      const char *first) noexcept {
+WJR_INTRINSIC_INLINE compressed_pointer_optional<const char *>
+unicode_codepoint_to_utf8(char *&dst, const char *first) noexcept {
     uint32_t code_point = detail::hex_to_u32_unchecked(first);
     first += 4;
 
@@ -297,8 +297,8 @@ WJR_INTRINSIC_INLINE optional<const char *> unicode_codepoint_to_utf8(char *&dst
     return first;
 }
 
-WJR_INTRINSIC_INLINE optional<const char *> unicode_codepoint_to_utf8(char *&dst, const char *first,
-                                                                      const char *last) noexcept {
+WJR_INTRINSIC_INLINE compressed_pointer_optional<const char *>
+unicode_codepoint_to_utf8(char *&dst, const char *first, const char *last) noexcept {
     if (WJR_UNLIKELY(last - first < 4)) {
         return nullopt;
     }
@@ -379,8 +379,8 @@ WJR_ALL_NONNULL inline optional<void> check_unicode(const char *first, const cha
 #endif
 }
 
-inline optional<char *> fallback_unicode_to_utf8(char *dst, const char *first,
-                                                 const char *last) noexcept {
+inline compressed_pointer_optional<char *> fallback_unicode_to_utf8(char *dst, const char *first,
+                                                                    const char *last) noexcept {
     if (WJR_UNLIKELY(first == last)) {
         return dst;
     }
@@ -412,12 +412,12 @@ inline optional<char *> fallback_unicode_to_utf8(char *dst, const char *first,
 }
 
 #if WJR_HAS_BUILTIN(UTF8_UNICODE_TO_UTF8)
-extern WJR_ALL_NONNULL optional<char *> builtin_unicode_to_utf8(char *dst, const char *first,
-                                                                const char *last) noexcept;
+extern WJR_ALL_NONNULL compressed_pointer_optional<char *>
+builtin_unicode_to_utf8(char *dst, const char *first, const char *last) noexcept;
 #endif
 
-WJR_ALL_NONNULL inline optional<char *> unicode_to_utf8(char *dst, const char *first,
-                                                        const char *last) noexcept {
+WJR_ALL_NONNULL inline compressed_pointer_optional<char *>
+unicode_to_utf8(char *dst, const char *first, const char *last) noexcept {
 #if WJR_HAS_BUILTIN(UTF8_UNICODE_TO_UTF8)
     return builtin_unicode_to_utf8(dst, first, last);
 #else

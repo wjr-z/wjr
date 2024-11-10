@@ -4,7 +4,7 @@
 #include <list>
 
 #if defined(WJR_USE_GMP)
-#include <gmp.h>
+    #include <gmp.h>
 #endif
 
 #include <wjr/math.hpp>
@@ -15,53 +15,48 @@ TEST(math, popcount_ctz_clz) {
 
 #define WJR_TEST_PTZ(queue) WJR_PP_TRANSFORM_PUT(queue, WJR_TEST_PTZ_I_CALLER)
 
-#define WJR_TEST_POPCOUNT_I(type, x, ans)                                                \
-    WJR_ASSERT(fallback_popcount<type>(x) == ans)                                        \
-    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(POPCOUNT), ;                                       \
-                      WJR_ASSERT((builtin_popcount<type>(x) == ans)), )
-#define WJR_TEST_CTZ_I(type, x, ans)                                                     \
-    type n = x;                                                                          \
-    auto ctz_ans = popcount<type>((type)(lowbit(n) - 1));                                \
-    WJR_ASSERT((x == 0 ? std::numeric_limits<type>::digits : fallback_ctz<type>(x)) ==   \
-               ctz_ans)                                                                  \
-    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(CTZ), ;                                            \
-                      WJR_ASSERT((countr_zero<type>(x) == ctz_ans)), )
-#define WJR_TEST_CLZ_I(type, x, ans)                                                     \
-    auto clz_ans = []() -> int {                                                         \
-        type n = x;                                                                      \
-        constexpr auto nd = std::numeric_limits<type>::digits;                           \
-        if (n == 0) {                                                                    \
-            return nd;                                                                   \
-        }                                                                                \
-        n |= n >> 1;                                                                     \
-        n |= n >> 2;                                                                     \
-        n |= n >> 4;                                                                     \
-        if constexpr (nd >= 16) {                                                        \
-            n |= n >> 8;                                                                 \
-        }                                                                                \
-        if constexpr (nd >= 32) {                                                        \
-            n |= n >> 16;                                                                \
-        }                                                                                \
-        if constexpr (nd >= 64) {                                                        \
-            n |= n >> 32;                                                                \
-        }                                                                                \
-        ++n;                                                                             \
-        return nd - countr_zero<type>(n);                                                \
-    }();                                                                                 \
-    WJR_ASSERT((x == 0 ? std::numeric_limits<type>::digits : fallback_clz<type>(x)) ==   \
-               clz_ans)                                                                  \
-    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(CTZ), ;                                            \
-                      WJR_ASSERT((countl_zero<type>(x) == clz_ans)), )
+#define WJR_TEST_POPCOUNT_I(type, x, ans)                                                          \
+    WJR_ASSERT(fallback_popcount<type>(x) == ans)                                                  \
+    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(POPCOUNT), ; WJR_ASSERT((builtin_popcount<type>(x) == ans)), )
+#define WJR_TEST_CTZ_I(type, x, ans)                                                               \
+    type n = x;                                                                                    \
+    auto ctz_ans = popcount<type>((type)(lowbit(n) - 1));                                          \
+    WJR_ASSERT((x == 0 ? std::numeric_limits<type>::digits : fallback_ctz<type>(x)) == ctz_ans)    \
+    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(CTZ), ; WJR_ASSERT((countr_zero<type>(x) == ctz_ans)), )
+#define WJR_TEST_CLZ_I(type, x, ans)                                                               \
+    auto clz_ans = []() -> int {                                                                   \
+        type n = x;                                                                                \
+        constexpr auto nd = std::numeric_limits<type>::digits;                                     \
+        if (n == 0) {                                                                              \
+            return nd;                                                                             \
+        }                                                                                          \
+        n |= n >> 1;                                                                               \
+        n |= n >> 2;                                                                               \
+        n |= n >> 4;                                                                               \
+        if constexpr (nd >= 16) {                                                                  \
+            n |= n >> 8;                                                                           \
+        }                                                                                          \
+        if constexpr (nd >= 32) {                                                                  \
+            n |= n >> 16;                                                                          \
+        }                                                                                          \
+        if constexpr (nd >= 64) {                                                                  \
+            n |= n >> 32;                                                                          \
+        }                                                                                          \
+        ++n;                                                                                       \
+        return nd - countr_zero<type>(n);                                                          \
+    }();                                                                                           \
+    WJR_ASSERT((x == 0 ? std::numeric_limits<type>::digits : fallback_clz<type>(x)) == clz_ans)    \
+    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(CTZ), ; WJR_ASSERT((countl_zero<type>(x) == clz_ans)), )
 
-#define WJR_TEST_PTZ_I_CALLER(args)                                                      \
-    do {                                                                                 \
-        WJR_TEST_POPCOUNT_I args;                                                        \
-    } while (false);                                                                         \
-    do {                                                                                 \
-        WJR_TEST_CTZ_I args;                                                             \
-    } while (false);                                                                         \
-    do {                                                                                 \
-        WJR_TEST_CLZ_I args;                                                             \
+#define WJR_TEST_PTZ_I_CALLER(args)                                                                \
+    do {                                                                                           \
+        WJR_TEST_POPCOUNT_I args;                                                                  \
+    } while (false);                                                                               \
+    do {                                                                                           \
+        WJR_TEST_CTZ_I args;                                                                       \
+    } while (false);                                                                               \
+    do {                                                                                           \
+        WJR_TEST_CLZ_I args;                                                                       \
     } while (false)
 
     WJR_TEST_PTZ_I_CALLER((uint8_t, 0x00, 0));
@@ -163,47 +158,46 @@ TEST(math, popcount_ctz_clz) {
 
 TEST(math, addc) {
 
-#define WJR_TEST_ADDC(type, x, y, ci, ans, ans_co)                                       \
-    WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)
-#define WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)                                 \
-    WJR_ASSERT((fallback_addc<type, type>(x, y, ci, co) == ans && co == ans_co));        \
-    WJR_PP_BOOL_IF(                                                                      \
-        WJR_HAS_BUILTIN(ADDC),                                                           \
-        do {                                                                             \
-            WJR_ASSERT((builtin_addc<type, type>(x, y, ci, co) == ans && co == ans_co)); \
-        } while (false),                                                                     \
-        {});                                                                             \
-    WJR_PP_BOOL_IF_NE(                                                                   \
-        WJR_HAS_BUILTIN(ASM_ADDC), do {                                                  \
-            if constexpr (std::is_same_v<type, uint64_t>) {                              \
-                WJR_ASSERT((asm_addc<type>(x, y, ci, co) == ans && co == ans_co));       \
-                WJR_ASSERT(WJR_PP_BOOL_IF(                                               \
-                    WJR_HAS_BUILTIN(ASM_ADDC_CC),                                        \
-                    (asm_addc_cc(x, y, ci, co2) == ans && co2 == ans_co), true));        \
-            }                                                                            \
+#define WJR_TEST_ADDC(type, x, y, ci, ans, ans_co) WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)
+#define WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)                                           \
+    WJR_ASSERT((fallback_addc<type, type>(x, y, ci, co) == ans && co == ans_co));                  \
+    WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ADDC),                                                          \
+                   do {                                                                            \
+                       WJR_ASSERT(                                                                 \
+                           (builtin_addc<type, type>(x, y, ci, co) == ans && co == ans_co));       \
+                   } while (false),                                                                \
+                   {});                                                                            \
+    WJR_PP_BOOL_IF_NE(                                                                             \
+        WJR_HAS_BUILTIN(ASM_ADDC), do {                                                            \
+            if constexpr (std::is_same_v<type, uint64_t>) {                                        \
+                WJR_ASSERT((asm_addc<type>(x, y, ci, co) == ans && co == ans_co));                 \
+                WJR_ASSERT(WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_ADDC_CC),                            \
+                                          (asm_addc_cc(x, y, ci, co2) == ans && co2 == ans_co),    \
+                                          true));                                                  \
+            }                                                                                      \
         } while (false), )
 
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
-#define WJR_ASM_VOLATILE_TEST_ADDC_F() asm volatile("" : "+r"(c), "+r"(e)::"memory")
+    #define WJR_ASM_VOLATILE_TEST_ADDC_F() asm volatile("" : "+r"(c), "+r"(e)::"memory")
 #else
-#define WJR_ASM_VOLATILE_TEST_ADDC_F()
+    #define WJR_ASM_VOLATILE_TEST_ADDC_F()
 #endif
 
-#define WJR_TEST_ADDC_F(type)                                                            \
-    do {                                                                                 \
-        constexpr auto maxn = std::numeric_limits<type>::max();                          \
-        type co;                                                                         \
-        uint8_t co2;                                                                     \
-        WJR_TEST_ADDC(type, 0, 0, 0, 0, 0);                                              \
-        WJR_TEST_ADDC(type, 0, 0, 1, 1, 0);                                              \
-        WJR_TEST_ADDC(type, 0, maxn, 0, maxn, 0);                                        \
-        WJR_TEST_ADDC(type, 1, maxn, 0, 0, 1);                                           \
-        WJR_TEST_ADDC(type, 0, maxn, 1, 0, 1);                                           \
-        WJR_TEST_ADDC(type, 1, maxn, 1, 1, 1);                                           \
-        type c = 1;                                                                      \
-        type e = 3;                                                                      \
-        WJR_ASM_VOLATILE_TEST_ADDC_F();                                                  \
-        WJR_TEST_ADDC(type, e, c, c, 5, 0);                                              \
+#define WJR_TEST_ADDC_F(type)                                                                      \
+    do {                                                                                           \
+        constexpr auto maxn = std::numeric_limits<type>::max();                                    \
+        type co;                                                                                   \
+        uint8_t co2;                                                                               \
+        WJR_TEST_ADDC(type, 0, 0, 0, 0, 0);                                                        \
+        WJR_TEST_ADDC(type, 0, 0, 1, 1, 0);                                                        \
+        WJR_TEST_ADDC(type, 0, maxn, 0, maxn, 0);                                                  \
+        WJR_TEST_ADDC(type, 1, maxn, 0, 0, 1);                                                     \
+        WJR_TEST_ADDC(type, 0, maxn, 1, 0, 1);                                                     \
+        WJR_TEST_ADDC(type, 1, maxn, 1, 1, 1);                                                     \
+        type c = 1;                                                                                \
+        type e = 3;                                                                                \
+        WJR_ASM_VOLATILE_TEST_ADDC_F();                                                            \
+        WJR_TEST_ADDC(type, e, c, c, 5, 0);                                                        \
     } while (false);
 
     WJR_PP_TRANSFORM_PUT((unsigned char, unsigned int, unsigned long, unsigned long long),
@@ -352,46 +346,45 @@ TEST(math, addc_n) {
 
 TEST(math, sub) {
 
-#define WJR_TEST_SUBC(type, x, y, ci, ans, ans_co)                                       \
-    WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)
-#define WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)                                 \
-    WJR_ASSERT((fallback_subc<type, type>(x, y, ci, co) == ans && co == ans_co))         \
-    WJR_PP_BOOL_IF(                                                                      \
-        WJR_HAS_BUILTIN(SUBC), ; do {                                                    \
-            WJR_ASSERT((builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co)); \
-        } while (false), )                                                                   \
-    WJR_PP_BOOL_IF_NE(                                                                   \
-        WJR_HAS_BUILTIN(ASM_SUBC), ; do {                                                \
-            if constexpr (std::is_same_v<type, uint64_t>) {                              \
-                WJR_ASSERT((asm_subc<type>(x, y, ci, co) == ans && co == ans_co));       \
-                WJR_ASSERT(WJR_PP_BOOL_IF(                                               \
-                    WJR_HAS_BUILTIN(ASM_SUBC_CC),                                        \
-                    (asm_subc_cc(x, y, ci, co2) == ans && co2 == ans_co), true));        \
-            }                                                                            \
+#define WJR_TEST_SUBC(type, x, y, ci, ans, ans_co) WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)
+#define WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)                                           \
+    WJR_ASSERT((fallback_subc<type, type>(x, y, ci, co) == ans && co == ans_co))                   \
+    WJR_PP_BOOL_IF(                                                                                \
+        WJR_HAS_BUILTIN(SUBC), ; do {                                                              \
+            WJR_ASSERT((builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co));           \
+        } while (false), )                                                                         \
+    WJR_PP_BOOL_IF_NE(                                                                             \
+        WJR_HAS_BUILTIN(ASM_SUBC), ; do {                                                          \
+            if constexpr (std::is_same_v<type, uint64_t>) {                                        \
+                WJR_ASSERT((asm_subc<type>(x, y, ci, co) == ans && co == ans_co));                 \
+                WJR_ASSERT(WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_SUBC_CC),                            \
+                                          (asm_subc_cc(x, y, ci, co2) == ans && co2 == ans_co),    \
+                                          true));                                                  \
+            }                                                                                      \
         } while (false), )
 
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
-#define WJR_ASM_VOLATILE_TEST_SUBC_F() asm volatile("" : "+r"(c), "+r"(e)::"memory")
+    #define WJR_ASM_VOLATILE_TEST_SUBC_F() asm volatile("" : "+r"(c), "+r"(e)::"memory")
 #else
-#define WJR_ASM_VOLATILE_TEST_SUBC_F()
+    #define WJR_ASM_VOLATILE_TEST_SUBC_F()
 #endif
 
-#define WJR_TEST_SUBC_F(type)                                                            \
-    do {                                                                                 \
-        constexpr auto maxn = std::numeric_limits<type>::max();                          \
-        type co;                                                                         \
-        uint8_t co2;                                                                     \
-        WJR_TEST_SUBC(type, 0, 0, 0, 0, 0);                                              \
-        WJR_TEST_SUBC(type, 0, 0, 1, maxn, 1);                                           \
-        WJR_TEST_SUBC(type, 1, 0, 1, 0, 0);                                              \
-        WJR_TEST_SUBC(type, 0, maxn, 0, 1, 1);                                           \
-        WJR_TEST_SUBC(type, 1, maxn, 0, 2, 1);                                           \
-        WJR_TEST_SUBC(type, 0, maxn, 1, 0, 1);                                           \
-        WJR_TEST_SUBC(type, 1, maxn, 1, 1, 1);                                           \
-        type c = 1;                                                                      \
-        type e = 3;                                                                      \
-        WJR_ASM_VOLATILE_TEST_SUBC_F();                                                  \
-        WJR_TEST_SUBC(type, e, c, c, 1, 0);                                              \
+#define WJR_TEST_SUBC_F(type)                                                                      \
+    do {                                                                                           \
+        constexpr auto maxn = std::numeric_limits<type>::max();                                    \
+        type co;                                                                                   \
+        uint8_t co2;                                                                               \
+        WJR_TEST_SUBC(type, 0, 0, 0, 0, 0);                                                        \
+        WJR_TEST_SUBC(type, 0, 0, 1, maxn, 1);                                                     \
+        WJR_TEST_SUBC(type, 1, 0, 1, 0, 0);                                                        \
+        WJR_TEST_SUBC(type, 0, maxn, 0, 1, 1);                                                     \
+        WJR_TEST_SUBC(type, 1, maxn, 0, 2, 1);                                                     \
+        WJR_TEST_SUBC(type, 0, maxn, 1, 0, 1);                                                     \
+        WJR_TEST_SUBC(type, 1, maxn, 1, 1, 1);                                                     \
+        type c = 1;                                                                                \
+        type e = 3;                                                                                \
+        WJR_ASM_VOLATILE_TEST_SUBC_F();                                                            \
+        WJR_TEST_SUBC(type, e, c, c, 1, 0);                                                        \
     } while (false);
 
     WJR_PP_TRANSFORM_PUT((unsigned char, unsigned int, unsigned long, unsigned long long),
@@ -406,26 +399,26 @@ TEST(math, sub) {
 #define WJR_TEST_SUBC_1(queue) WJR_PP_TRANSFORM_PUT(queue, WJR_TEST_SUBC_1_I_CALLER)
 #define WJR_TEST_SUBC_1_EXPAND(args) WJR_TEST_SUBC_1_EXPAND_I args
 #define WJR_TEST_SUBC_1_EXPAND_I(...) __VA_ARGS__
-#define WJR_TEST_SUBC_1_I(inputs, c, c_in, outputs, ans)                                 \
-    {                                                                                    \
-        constexpr auto N = WJR_PP_QUEUE_SIZE(inputs);                                    \
-        auto init = [](uint64_t *arr, auto... args) {                                    \
-            auto il = {(args)...};                                                       \
-            for (size_t i = 0; i < il.size(); ++i) {                                     \
-                arr[i] = il.begin()[i];                                                  \
-            }                                                                            \
-        };                                                                               \
-        uint64_t in[N];                                                                  \
-        uint64_t out[N];                                                                 \
-        uint64_t expect[N];                                                              \
-        init(in, WJR_PP_QUEUE_EXPAND(inputs));                                           \
-        init(expect, WJR_PP_QUEUE_EXPAND(outputs));                                      \
-        WJR_ASSERT((subc_1<uint64_t>(out, in, N, c, c_in) == ans));                      \
-        WJR_ASSERT((memcmp(out, expect, sizeof(out)) == 0),                              \
-                   "uncorrect array of subc_1<uint64_t>, different array");              \
-        WJR_ASSERT((subc_1<uint64_t>(in, in, N, c, c_in) == ans));                       \
-        WJR_ASSERT((memcmp(in, expect, sizeof(out)) == 0),                               \
-                   "uncorrect array of subc_1<uint64_t>, same array");                   \
+#define WJR_TEST_SUBC_1_I(inputs, c, c_in, outputs, ans)                                           \
+    {                                                                                              \
+        constexpr auto N = WJR_PP_QUEUE_SIZE(inputs);                                              \
+        auto init = [](uint64_t *arr, auto... args) {                                              \
+            auto il = {(args)...};                                                                 \
+            for (size_t i = 0; i < il.size(); ++i) {                                               \
+                arr[i] = il.begin()[i];                                                            \
+            }                                                                                      \
+        };                                                                                         \
+        uint64_t in[N];                                                                            \
+        uint64_t out[N];                                                                           \
+        uint64_t expect[N];                                                                        \
+        init(in, WJR_PP_QUEUE_EXPAND(inputs));                                                     \
+        init(expect, WJR_PP_QUEUE_EXPAND(outputs));                                                \
+        WJR_ASSERT((subc_1<uint64_t>(out, in, N, c, c_in) == ans));                                \
+        WJR_ASSERT((memcmp(out, expect, sizeof(out)) == 0),                                        \
+                   "uncorrect array of subc_1<uint64_t>, different array");                        \
+        WJR_ASSERT((subc_1<uint64_t>(in, in, N, c, c_in) == ans));                                 \
+        WJR_ASSERT((memcmp(in, expect, sizeof(out)) == 0),                                         \
+                   "uncorrect array of subc_1<uint64_t>, same array");                             \
     }
 #define WJR_TEST_SUBC_1_I_CALLER(args) WJR_TEST_SUBC_1_I args
 
@@ -433,8 +426,7 @@ TEST(math, sub) {
                      ((0, 2, 3), 1, 0, (-1, 1, 3), 0), ((1, 2, 3), 1, 1, (-1, 1, 3), 0)));
 
     WJR_TEST_SUBC_1((((2, 2, 3), 1, 1, (0, 2, 3), 0), ((1, 0, 3), 1, 1, (-1, -1, 2), 0),
-                     ((0, 0, 0), 3, 1, (-4, -1, -1), 1),
-                     ((5, 0, 0), 10, 1, (-6, -1, -1), 1)));
+                     ((0, 0, 0), 3, 1, (-4, -1, -1), 1), ((5, 0, 0), 10, 1, (-6, -1, -1), 1)));
 
 #undef WJR_TEST_SUBC_1_I_CALLER
 #undef WJR_TEST_SUBC_1_I
@@ -1058,8 +1050,7 @@ TEST(math, reverse_compare_n) {
 }
 
 TEST(math, shld) {
-#define WJR_TEST_SHLD(hi, lo, c, expect)                                                 \
-    WJR_ASSERT(shld<uint64_t>((hi), (lo), (c)) == (expect))
+#define WJR_TEST_SHLD(hi, lo, c, expect) WJR_ASSERT(shld<uint64_t>((hi), (lo), (c)) == (expect))
 
     WJR_TEST_SHLD(0, 0, 1, 0);
     WJR_TEST_SHLD(0, 1, 1, 0);
@@ -1071,8 +1062,7 @@ TEST(math, shld) {
 }
 
 TEST(math, shrd) {
-#define WJR_TEST_SHRD(lo, hi, c, expect)                                                 \
-    WJR_ASSERT(shrd<uint64_t>((lo), (hi), (c)) == (expect))
+#define WJR_TEST_SHRD(lo, hi, c, expect) WJR_ASSERT(shrd<uint64_t>((lo), (hi), (c)) == (expect))
 
     WJR_TEST_SHRD(0, 0, 1, 0);
     WJR_TEST_SHRD(0, 1, 1, 1ull << 63);
@@ -1142,8 +1132,8 @@ TEST(math, rshift_n) {
 TEST(math_detail, default_stack_allocator) {}
 
 TEST(math, __add_128) {
-    auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                    uint64_t anslo, uint64_t anshi) {
+    auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t anslo,
+                    uint64_t anshi) {
         __add_128(lo0, hi0, lo0, hi0, lo1, hi1);
         WJR_ASSERT(lo0 == anslo);
         WJR_ASSERT(hi0 == anshi);
@@ -1191,8 +1181,7 @@ TEST(math, __addc_128) {
     check(1, 1, 1, 1, 0, 2, 2, 0);
     check(UINT64_MAX, UINT64_MAX, 0, 1, 0, UINT64_MAX, 0, 1);
     check(0, 1, 0, UINT64_MAX, 0, 0, 0, 1);
-    check(UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX, 0, UINT64_MAX - 1, UINT64_MAX,
-          1);
+    check(UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX, 0, UINT64_MAX - 1, UINT64_MAX, 1);
 
     check(0, 0, 0, 0, 1, 1, 0, 0);
     check(1, 0, 0, 0, 1, 2, 0, 0);
@@ -1213,8 +1202,8 @@ TEST(math, __addc_128) {
 }
 
 TEST(math, __sub_128) {
-    auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                    uint64_t anslo, uint64_t anshi) {
+    auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t anslo,
+                    uint64_t anshi) {
         __sub_128(lo0, hi0, lo0, hi0, lo1, hi1);
         WJR_ASSERT(lo0 == anslo);
         WJR_ASSERT(hi0 == anshi);
@@ -1643,31 +1632,24 @@ using namespace charconv_detail;
 static_assert(std::is_same_v<fast_buffer_t<char *>, char>, "");
 static_assert(std::is_same_v<fast_buffer_t<uint8_t *>, uint8_t>, "");
 static_assert(std::is_same_v<fast_buffer_t<int *>, char>, "");
-static_assert(std::is_same_v<fast_buffer_t<std::back_insert_iterator<std::string>>, char>,
-              "");
+static_assert(std::is_same_v<fast_buffer_t<std::back_insert_iterator<std::string>>, char>, "");
 static_assert(
-    std::is_same_v<fast_buffer_t<std::back_insert_iterator<std::vector<uint8_t>>>,
-                   uint8_t>,
-    "");
+    std::is_same_v<fast_buffer_t<std::back_insert_iterator<std::vector<uint8_t>>>, uint8_t>, "");
 
 static_assert(is_fast_container_inserter_v<int *> == 0, "");
-static_assert(
-    is_fast_container_inserter_v<std::back_insert_iterator<std::vector<char>>> == 1, "");
+static_assert(is_fast_container_inserter_v<std::back_insert_iterator<std::vector<char>>> == 1, "");
 static_assert(is_fast_container_inserter_v<std::back_insert_iterator<std::string>> ==
                   WJR_PP_BOOL_IF(WJR_HAS_FEATURE(STRING_UNINITIALIZED_RESIZE), 2, 1),
               "");
-static_assert(is_fast_container_inserter_v<std::back_insert_iterator<std::wstring>> == 0,
-              "");
+static_assert(is_fast_container_inserter_v<std::back_insert_iterator<std::wstring>> == 0, "");
 
 struct Traits : public std::char_traits<char> {};
-static_assert(is_fast_container_inserter_v<
-                  std::back_insert_iterator<std::basic_string<char, Traits>>> == 0,
-              "");
+static_assert(
+    is_fast_container_inserter_v<std::back_insert_iterator<std::basic_string<char, Traits>>> == 0,
+    "");
 
-static_assert(is_fast_container_inserter_v<std::back_insert_iterator<vector<char>>> == 2,
-              "");
-static_assert(is_fast_container_inserter_v<std::back_insert_iterator<vector<int>>> == 0,
-              "");
+static_assert(is_fast_container_inserter_v<std::back_insert_iterator<vector<char>>> == 2, "");
+static_assert(is_fast_container_inserter_v<std::back_insert_iterator<vector<int>>> == 0, "");
 
 } // namespace convert_tests
 
@@ -1693,8 +1675,7 @@ TEST(math, to_chars) {
             WJR_ASSERT(ret0.ec == ret1.ec);
 
             if ((bool)ret0) {
-                WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
-                           std::string_view(c, ret1.ptr - c));
+                WJR_ASSERT(std::string_view(b, ret0.ptr - b) == std::string_view(c, ret1.ptr - c));
             } else {
                 WJR_ASSERT(ret1.ptr == c + k);
             }
@@ -1721,8 +1702,7 @@ TEST(math, to_chars) {
             WJR_ASSERT(ret0.ec == ret1.ec);
 
             if ((bool)ret0) {
-                WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
-                           std::string(lst.begin(), ret1.ptr));
+                WJR_ASSERT(std::string_view(b, ret0.ptr - b) == std::string(lst.begin(), ret1.ptr));
             } else {
                 WJR_ASSERT(std::distance(lst.begin(), ret1.ptr) == k);
             }
@@ -1742,8 +1722,7 @@ TEST(math, to_chars) {
             do {
                 auto ret1 = to_chars_unchecked(c, x, base);
 
-                WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
-                           std::string_view(c, ret1 - c));
+                WJR_ASSERT(std::string_view(b, ret0.ptr - b) == std::string_view(c, ret1 - c));
             } while (false);
 
             // test random access iterator of __fallback_to_chars_unchecked
@@ -1880,14 +1859,12 @@ TEST(math, biginteger_to_chars) {
                     ch = ch < 10 ? ch + '0' : ch - 10 + 'a';
                 }
 
-                WJR_ASSERT(std::string_view(b.data(), len) ==
-                           std::string_view(c.data(), len2));
+                WJR_ASSERT(std::string_view(b.data(), len) == std::string_view(c.data(), len2));
 
                 b.clear();
                 biginteger_to_chars(std::back_inserter(b), d.data(), i, base);
                 len = b.size();
-                WJR_ASSERT(std::string_view(b.data(), len) ==
-                           std::string_view(c.data(), len2));
+                WJR_ASSERT(std::string_view(b.data(), len) == std::string_view(c.data(), len2));
             }
         }
     }
@@ -1918,8 +1895,7 @@ TEST(math, biginteger_from_chars) {
                 }
 
                 size_t len =
-                    biginteger_from_chars(c.data(), c.data() + i, a.data(), base) -
-                    a.data();
+                    biginteger_from_chars(c.data(), c.data() + i, a.data(), base) - a.data();
 
                 WJR_ASSERT(len == len2);
                 WJR_ASSERT(std::equal(a.begin(), a.begin() + len, b.begin()));

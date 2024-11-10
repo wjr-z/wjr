@@ -43,6 +43,19 @@ public:
 };
 
 template <typename T>
+struct __optional_unwrap {
+    using type = T;
+};
+
+template <typename T, T uniq_success>
+struct __optional_unwrap<compressed_value<T, uniq_success>> {
+    using type = T;
+};
+
+template <typename T>
+using __optional_unwrap_t = typename __optional_unwrap<T>::type;
+
+template <typename T>
 class optional;
 
 namespace optional_detail {
@@ -167,12 +180,14 @@ struct optional_operations_base : optional_storage_base<T> {
     using Mybase = optional_storage_base<T>;
     using Mybase::Mybase;
 
+    using value_type = __optional_unwrap_t<T>;
+
     constexpr void set_valid() noexcept { Mybase::set_valid(); }
     constexpr void set_invalid() noexcept { Mybase::set_invalid(); }
 
     template <typename... Args>
     constexpr void
-    construct_value(Args &&...args) noexcept(std::is_nothrow_constructible_v<T, Args...>) {
+    construct_value(Args &&...args) noexcept(std::is_nothrow_constructible_v<value_type, Args...>) {
         wjr::construct_at(std::addressof(this->m_val), std::forward<Args>(args)...);
         set_valid();
     }
@@ -188,7 +203,7 @@ struct optional_operations_base : optional_storage_base<T> {
     }
 
     WJR_CONSTEXPR20 void __move_construct(optional_operations_base &&other) noexcept(
-        std::is_nothrow_move_constructible_v<T>) {
+        std::is_nothrow_move_constructible_v<value_type>) {
         if (other.has_value()) {
             construct_value(std::move(other.m_val));
         } else {
@@ -213,8 +228,8 @@ struct optional_operations_base : optional_storage_base<T> {
         }
     }
 
-    WJR_CONSTEXPR20 void
-    __move_assign(optional_operations_base &&other) noexcept(std::is_nothrow_move_assignable_v<T>) {
+    WJR_CONSTEXPR20 void __move_assign(optional_operations_base &&other) noexcept(
+        std::is_nothrow_move_assignable_v<value_type>) {
         if (this->has_value()) {
             if (WJR_LIKELY(other.has_value())) {
                 this->m_val = std::move(other.m_val);
@@ -237,54 +252,26 @@ struct optional_operations_base<void> : optional_storage_base<void> {
     using Mybase = optional_storage_base<void>;
     using Mybase::Mybase;
 
+    using value_type = void;
+
     constexpr void set_valid() noexcept { Mybase::set_valid(); }
     constexpr void set_invalid() noexcept { Mybase::set_invalid(); }
-
-    constexpr void construct_value() noexcept { set_valid(); }
-    constexpr void construct_error() noexcept { set_invalid(); }
-
-    WJR_CONSTEXPR20 void __copy_construct(const optional_operations_base &other) {
-        if (other.has_value()) {
-            construct_value();
-        } else {
-            construct_error();
-        }
-    }
-
-    WJR_CONSTEXPR20 void __move_construct(optional_operations_base &&other) noexcept {
-        if (other.has_value()) {
-            construct_value();
-        } else {
-            construct_error();
-        }
-    }
-
-    WJR_CONSTEXPR20 void __copy_assign(const optional_operations_base &other) {
-        if (other.has_value()) {
-            set_valid();
-        } else {
-            set_invalid();
-        }
-    }
-
-    WJR_CONSTEXPR20 void __move_assign(optional_operations_base &&other) noexcept {
-        if (other.has_value()) {
-            set_valid();
-        } else {
-            set_invalid();
-        }
-    }
 };
 
 template <typename T>
 struct __optional_storage_impl {
-    using type = control_special_members_base<
-        optional_operations_base<T>, std::is_trivially_copy_constructible_v<T>,
-        std::is_trivially_move_constructible_v<T>,
-        std::is_trivially_copy_assignable_v<T> && std::is_trivially_copy_constructible_v<T> &&
-            std::is_trivially_destructible_v<T>,
-        std::is_trivially_move_assignable_v<T> && std::is_trivially_move_constructible_v<T> &&
-            std::is_trivially_destructible_v<T>>;
+    using value_type = __optional_unwrap_t<T>;
+
+    using type =
+        control_special_members_base<optional_operations_base<T>,
+                                     std::is_trivially_copy_constructible_v<value_type>,
+                                     std::is_trivially_move_constructible_v<value_type>,
+                                     std::is_trivially_copy_assignable_v<value_type> &&
+                                         std::is_trivially_copy_constructible_v<value_type> &&
+                                         std::is_trivially_destructible_v<value_type>,
+                                     std::is_trivially_move_assignable_v<value_type> &&
+                                         std::is_trivially_move_constructible_v<value_type> &&
+                                         std::is_trivially_destructible_v<value_type>>;
 };
 
 template <>
@@ -362,14 +349,14 @@ using __optional_result = std::remove_cv_t<std::invoke_result_t<Func, Args...>>;
 
 template <typename T>
 class WJR_EMPTY_BASES optional : optional_detail::optional_storage<T>,
-                                 optional_detail::enable_optional_storage<T> {
+                                 optional_detail::enable_optional_storage<__optional_unwrap_t<T>> {
     using Mybase = optional_detail::optional_storage<T>;
 
     template <typename OT>
     friend class optional;
 
 public:
-    using value_type = T;
+    using value_type = typename Mybase::value_type;
 
     optional() = default;
     optional(const optional &) = default;
@@ -378,21 +365,23 @@ public:
     optional &operator=(optional &&) = default;
     ~optional() = default;
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<value_type, Args...>)>
     constexpr explicit optional(std::in_place_t, Args &&...args)
         : Mybase(std::in_place, std::forward<Args>(args)...) {}
 
-    template <typename U, typename... Args,
-              WJR_REQUIRES(std::is_constructible_v<T, std::initializer_list<U> &, Args...>)>
+    template <
+        typename U, typename... Args,
+        WJR_REQUIRES(std::is_constructible_v<value_type, std::initializer_list<U> &, Args...>)>
     constexpr explicit optional(std::in_place_t, std::initializer_list<U> il, Args &&...args)
         : Mybase(std::in_place, il, std::forward<Args>(args)...) {}
 
     constexpr optional(nullopt_t) : Mybase(nullopt) {}
 
 #if defined(__cpp_conditional_explicit)
-    template <typename U, WJR_REQUIRES(std::is_constructible_v<T, const U &>
-                                           &&optional_detail::optional_construct_with_v<T, U>)>
-    WJR_CONSTEXPR20 explicit(!std::is_convertible_v<const U &, T>)
+    template <typename U,
+              WJR_REQUIRES(std::is_constructible_v<value_type, const U &>
+                               &&optional_detail::optional_construct_with_v<value_type, U>)>
+    WJR_CONSTEXPR20 explicit(!std::is_convertible_v<const U &, value_type>)
         optional(const optional<U> &other)
         : Mybase(enable_default_constructor) {
         if (other.has_value()) {
@@ -402,9 +391,10 @@ public:
         }
     }
 
-    template <typename U, WJR_REQUIRES(std::is_constructible_v<T, U>
-                                           &&optional_detail::optional_construct_with_v<T, U>)>
-    WJR_CONSTEXPR20 explicit(!std::is_convertible_v<U, T>) optional(optional<U> &&other)
+    template <typename U,
+              WJR_REQUIRES(std::is_constructible_v<value_type, U>
+                               &&optional_detail::optional_construct_with_v<value_type, U>)>
+    WJR_CONSTEXPR20 explicit(!std::is_convertible_v<U, value_type>) optional(optional<U> &&other)
         : Mybase(enable_default_constructor) {
         if (other.has_value()) {
             this->construct_value(std::forward<U>(other.m_val));
@@ -413,9 +403,9 @@ public:
         }
     }
 #else
-    template <typename U, WJR_REQUIRES(std::is_constructible_v<T, const U &>
-                                           &&optional_detail::optional_construct_with_v<T, U>
-                                               &&std::is_convertible_v<const U &, T>)>
+    template <typename U, WJR_REQUIRES(std::is_constructible_v<value_type, const U &> &&
+                                           optional_detail::optional_construct_with_v<value_type, U>
+                                               &&std::is_convertible_v<const U &, value_type>)>
     WJR_CONSTEXPR20 optional(const optional<U> &other) : Mybase(enable_default_constructor) {
         if (other.has_value()) {
             this->construct_value(std::forward<const U &>(other.m_val));
@@ -424,9 +414,10 @@ public:
         }
     }
 
-    template <typename U, WJR_REQUIRES(std::is_constructible_v<T, const U &>
-                                           &&optional_detail::optional_construct_with_v<T, U> &&
-                                       !std::is_convertible_v<const U &, T>)>
+    template <typename U,
+              WJR_REQUIRES(std::is_constructible_v<value_type, const U &>
+                               &&optional_detail::optional_construct_with_v<value_type, U> &&
+                           !std::is_convertible_v<const U &, value_type>)>
     WJR_CONSTEXPR20 explicit optional(const optional<U> &other)
         : Mybase(enable_default_constructor) {
         if (other.has_value()) {
@@ -436,9 +427,9 @@ public:
         }
     }
 
-    template <typename U, WJR_REQUIRES(std::is_constructible_v<T, U>
-                                           &&optional_detail::optional_construct_with_v<T, U>
-                                               &&std::is_convertible_v<U, T>)>
+    template <typename U, WJR_REQUIRES(std::is_constructible_v<value_type, U> &&
+                                           optional_detail::optional_construct_with_v<value_type, U>
+                                               &&std::is_convertible_v<U, value_type>)>
     WJR_CONSTEXPR20 optional(optional<U> &&other) : Mybase(enable_default_constructor) {
         if (other.has_value()) {
             this->construct_value(std::forward<U>(other.m_val));
@@ -447,9 +438,10 @@ public:
         }
     }
 
-    template <typename U, WJR_REQUIRES(std::is_constructible_v<T, U>
-                                           &&optional_detail::optional_construct_with_v<T, U> &&
-                                       !std::is_convertible_v<U, T>)>
+    template <typename U,
+              WJR_REQUIRES(std::is_constructible_v<value_type, U>
+                               &&optional_detail::optional_construct_with_v<value_type, U> &&
+                           !std::is_convertible_v<U, value_type>)>
     WJR_CONSTEXPR20 explicit optional(optional<U> &&other) : Mybase(enable_default_constructor) {
         if (other.has_value()) {
             this->construct_value(std::forward<U>(other.m_val));
@@ -460,16 +452,19 @@ public:
 #endif
 
 #if defined(__cpp_conditional_explicit)
-    template <typename U = T, WJR_REQUIRES(optional_detail::optional_construct_with_arg_v<T, U>)>
-    constexpr explicit(!std::is_convertible_v<U, T>) optional(U &&v)
+    template <typename U = value_type,
+              WJR_REQUIRES(optional_detail::optional_construct_with_arg_v<value_type, U>)>
+    constexpr explicit(!std::is_convertible_v<U, value_type>) optional(U &&v)
         : Mybase(std::in_place, std::forward<U>(v)) {}
 #else
-    template <typename U = T, WJR_REQUIRES(optional_detail::optional_construct_with_arg_v<T, U>
-                                               &&std::is_convertible_v<U, T>)>
+    template <typename U = value_type,
+              WJR_REQUIRES(optional_detail::optional_construct_with_arg_v<value_type, U>
+                               &&std::is_convertible_v<U, value_type>)>
     constexpr optional(U &&v) : Mybase(std::in_place, std::forward<U>(v)) {}
 
-    template <typename U = T, WJR_REQUIRES(optional_detail::optional_construct_with_arg_v<T, U> &&
-                                           !std::is_convertible_v<U, T>)>
+    template <typename U = value_type,
+              WJR_REQUIRES(optional_detail::optional_construct_with_arg_v<value_type, U> &&
+                           !std::is_convertible_v<U, value_type>)>
     constexpr explicit optional(U &&v) : Mybase(std::in_place, std::forward<U>(v)) {}
 #endif
 
@@ -485,9 +480,10 @@ public:
     template <typename U,
               WJR_REQUIRES(!std::is_same_v<remove_cvref_t<U>, optional> &&
                            optional_detail::is_not_nullopt_t<remove_cvref_t<U>>::value &&
-                           std::is_constructible_v<T, U> && std::is_assignable_v<T &, U> &&
-                           (std::is_nothrow_constructible_v<T, U> ||
-                            std::is_nothrow_move_constructible_v<T>))>
+                           std::is_constructible_v<value_type, U> &&
+                           std::is_assignable_v<value_type &, U> &&
+                           (std::is_nothrow_constructible_v<value_type, U> ||
+                            std::is_nothrow_move_constructible_v<value_type>))>
     WJR_CONSTEXPR20 optional &operator=(U &&v) {
         if (has_value()) {
             this->m_val = std::forward<U>(v);
@@ -502,27 +498,27 @@ public:
     using Mybase::has_value;
     constexpr explicit operator bool() const noexcept { return has_value(); }
 
-    constexpr T *operator->() noexcept { return std::addressof(this->m_val); }
-    constexpr const T *operator->() const noexcept { return std::addressof(this->m_val); }
+    constexpr value_type *operator->() noexcept { return std::addressof(this->m_val); }
+    constexpr const value_type *operator->() const noexcept { return std::addressof(this->m_val); }
 
-    constexpr T &operator*() & noexcept {
+    constexpr value_type &operator*() & noexcept {
         WJR_ASSERT(has_value());
         return this->m_val;
     }
-    constexpr const T &operator*() const & noexcept {
+    constexpr const value_type &operator*() const & noexcept {
         WJR_ASSERT(has_value());
         return this->m_val;
     }
-    constexpr T &&operator*() && noexcept {
+    constexpr value_type &&operator*() && noexcept {
         WJR_ASSERT(has_value());
         return std::move(this->m_val);
     }
-    constexpr const T &&operator*() const && noexcept {
+    constexpr const value_type &&operator*() const && noexcept {
         WJR_ASSERT(has_value());
         return std::move(this->m_val);
     }
 
-    constexpr T &value() & {
+    constexpr value_type &value() & {
         if (WJR_UNLIKELY(!has_value())) {
             WJR_THROW(bad_optional_access{});
         }
@@ -530,7 +526,7 @@ public:
         return this->m_val;
     }
 
-    constexpr const T &value() const & {
+    constexpr const value_type &value() const & {
         if (WJR_UNLIKELY(!has_value())) {
             WJR_THROW(bad_optional_access{});
         }
@@ -538,7 +534,7 @@ public:
         return this->m_val;
     }
 
-    constexpr T &&value() && {
+    constexpr value_type &&value() && {
         if (WJR_UNLIKELY(!has_value())) {
             WJR_THROW(bad_optional_access{});
         }
@@ -546,7 +542,7 @@ public:
         return std::move(this->m_val);
     }
 
-    constexpr const T &&value() const && {
+    constexpr const value_type &&value() const && {
         if (WJR_UNLIKELY(!has_value())) {
             WJR_THROW(bad_optional_access{});
         }
@@ -555,16 +551,17 @@ public:
     }
 
     template <typename U>
-    constexpr T value_or(U &&default_value) const & {
-        return has_value() ? **this : static_cast<T>(std::forward<U>(default_value));
+    constexpr value_type value_or(U &&default_value) const & {
+        return has_value() ? **this : static_cast<value_type>(std::forward<U>(default_value));
     }
 
     template <typename U>
-    constexpr T value_or(U &&default_value) && {
-        return has_value() ? std::move(**this) : static_cast<T>(std::forward<U>(default_value));
+    constexpr value_type value_or(U &&default_value) && {
+        return has_value() ? std::move(**this)
+                           : static_cast<value_type>(std::forward<U>(default_value));
     }
 
-    template <typename Func, typename U = __optional_result<Func, T &>>
+    template <typename Func, typename U = __optional_result<Func, value_type &>>
     constexpr U and_then(Func &&func) & {
         if (WJR_LIKELY(has_value())) {
             return std::invoke(std::forward<Func>(func), this->m_val);
@@ -573,7 +570,7 @@ public:
         return U{};
     }
 
-    template <typename Func, typename U = __optional_result<Func, const T &>>
+    template <typename Func, typename U = __optional_result<Func, const value_type &>>
     constexpr U and_then(Func &&func) const & {
         if (WJR_LIKELY(has_value())) {
             return std::invoke(std::forward<Func>(func), this->m_val);
@@ -582,7 +579,7 @@ public:
         return U{};
     }
 
-    template <typename Func, typename U = __optional_result<Func, T &&>>
+    template <typename Func, typename U = __optional_result<Func, value_type &&>>
     constexpr U and_then(Func &&func) && {
         if (WJR_LIKELY(has_value())) {
             return std::invoke(std::forward<Func>(func), std::move(this->m_val));
@@ -591,7 +588,7 @@ public:
         return U{};
     }
 
-    template <typename Func, typename U = __optional_result<Func, const T &&>>
+    template <typename Func, typename U = __optional_result<Func, const value_type &&>>
     constexpr U and_then(Func &&func) const && {
         if (WJR_LIKELY(has_value())) {
             return std::invoke(std::forward<Func>(func), std::move(this->m_val));
@@ -636,7 +633,7 @@ public:
         return U(std::in_place, std::move(this->m_val));
     }
 
-    template <typename Func, typename U = __optional_result<Func, T &>>
+    template <typename Func, typename U = __optional_result<Func, value_type &>>
     constexpr optional<U> transform(Func &&func) & {
         if (has_value()) {
             if constexpr (!std::is_void_v<U>) {
@@ -650,7 +647,7 @@ public:
         return optional<U>{};
     }
 
-    template <typename Func, typename U = __optional_result<Func, const T &>>
+    template <typename Func, typename U = __optional_result<Func, const value_type &>>
     constexpr optional<U> transform(Func &&func) const & {
         if (has_value()) {
             if constexpr (!std::is_void_v<U>) {
@@ -664,7 +661,7 @@ public:
         return optional<U>{};
     }
 
-    template <typename Func, typename U = __optional_result<Func, T &&>>
+    template <typename Func, typename U = __optional_result<Func, value_type &&>>
     constexpr optional<U> transform(Func &&func) && {
         if (has_value()) {
             if constexpr (!std::is_void_v<U>) {
@@ -678,7 +675,7 @@ public:
         return optional<U>{};
     }
 
-    template <typename Func, typename U = __optional_result<Func, const T &&>>
+    template <typename Func, typename U = __optional_result<Func, const value_type &&>>
     constexpr optional<U> transform(Func &&func) const && {
         if (has_value()) {
             if constexpr (!std::is_void_v<U>) {
@@ -692,8 +689,8 @@ public:
         return optional<U>{};
     }
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
-    constexpr T &emplace(Args &&...args) noexcept {
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<value_type, Args...>)>
+    constexpr value_type &emplace(Args &&...args) noexcept {
         if (has_value()) {
             std::destroy_at(std::addressof(this->m_val));
         } else {
@@ -728,10 +725,12 @@ private:
     }
 
 public:
-    template <typename _T = T, WJR_REQUIRES(std::is_swappable_v<_T> &&std::is_move_constructible_v<
-                                            _T> &&std::is_nothrow_move_constructible_v<_T>)>
-    WJR_CONSTEXPR20 void swap(optional &other) noexcept(
-        std::is_nothrow_move_constructible_v<T> &&std::is_nothrow_swappable_v<T>) {
+    template <typename _T = value_type,
+              WJR_REQUIRES(std::is_swappable_v<_T> &&std::is_move_constructible_v<_T>
+                               &&std::is_nothrow_move_constructible_v<_T>)>
+    WJR_CONSTEXPR20 void
+    swap(optional &other) noexcept(std::is_nothrow_move_constructible_v<value_type>
+                                       &&std::is_nothrow_swappable_v<value_type>) {
         using std::swap;
         if (has_value()) {
             if (other.has_value()) {
@@ -805,10 +804,7 @@ public:
     constexpr optional(nullopt_t) : Mybase(nullopt) {}
 
     WJR_CONSTEXPR20 optional &operator=(nullopt_t) {
-        if (has_value()) {
-            this->set_invalid();
-        }
-
+        this->set_invalid();
         return *this;
     }
 
@@ -847,33 +843,10 @@ public:
         return optional<U>{};
     }
 
-    constexpr void emplace() noexcept {
-        if (has_value()) {
-        } else {
-            this->set_valid();
-        }
-    }
+    constexpr void emplace() noexcept { this->set_valid(); }
 
-private:
-    WJR_CONSTEXPR20 void __swap_impl(optional &other) noexcept {
-        this->set_invalid();
-        other.set_valid();
-    }
-
-public:
     WJR_CONSTEXPR20 void swap(optional &other) noexcept {
-        using std::swap;
-        if (has_value()) {
-            if (other.has_value()) {
-            } else {
-                __swap_impl(other);
-            }
-        } else {
-            if (!other.has_value()) {
-            } else {
-                other.__swap_impl(*this);
-            }
-        }
+        std::swap(this->m_has_val, other.m_has_val);
     }
 
     template <typename T2>
@@ -889,12 +862,12 @@ public:
     }
 };
 
-template <typename T, T uniq_failed>
-using compressed_optional = optional<compressed_value<T, uniq_failed>>;
+template <typename T>
+using compressed_pointer_optional_value =
+    std::enable_if_t<std::is_pointer_v<T>, compressed_value<T, nullptr>>;
 
 template <typename T>
-using __compressed_pointer_optional =
-    std::enable_if_t<std::is_pointer_v<T>, compressed_optional<T, nullptr>>;
+using compressed_pointer_optional = optional<compressed_pointer_optional_value<T>>;
 
 #define WJR_OPTIONAL_TRY(...)                                                                      \
     do {                                                                                           \

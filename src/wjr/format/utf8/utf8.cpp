@@ -261,7 +261,8 @@ WJR_INTRINSIC_INLINE char *small_copy(char *dst, const char *src, unsigned int n
 } // namespace
 
 #if WJR_HAS_BUILTIN(UTF8_UNICODE_TO_UTF8)
-optional<char *> builtin_unicode_to_utf8(char *dst, const char *first, const char *last) noexcept {
+compressed_pointer_optional<char *> builtin_unicode_to_utf8(char *dst, const char *first,
+                                                            const char *last) noexcept {
     using namespace detail;
     constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
     using simd = std::conditional_t<is_avx, avx, sse>;
