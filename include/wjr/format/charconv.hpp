@@ -5,7 +5,6 @@
 
 #include <wjr/assert.hpp>
 #include <wjr/container/type_traits.hpp>
-#include <wjr/expected.hpp>
 #include <wjr/format/charconv-impl.hpp>
 #include <wjr/math/bit.hpp>
 #include <wjr/math/mul.hpp>

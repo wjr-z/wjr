@@ -16,8 +16,6 @@ namespace wjr {
 template <typename simd, typename T>
 void large_builtin_set_n(T *dst, typename simd::int_type y, size_t n) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
-
-    using simd_int = typename simd::int_type;
     constexpr auto simd_width = simd::width();
     constexpr auto type_width = simd_width / nd;
     constexpr auto u8_width = simd_width / 8;
@@ -34,20 +32,27 @@ void large_builtin_set_n(T *dst, typename simd::int_type y, size_t n) noexcept {
     simd::storeu(dst + type_width * 3, y);
     simd::storeu(dst + n - type_width * 4, y);
 
-    uintptr_t ps = reinterpret_cast<uintptr_t>(dst);
-    uintptr_t pe = reinterpret_cast<uintptr_t>(dst + n);
+    const uintptr_t updst = reinterpret_cast<uintptr_t>(dst);
+    T *ps;
+    T *pe;
 
-    ps += mask;
-    ps &= -mask;
-    pe &= -mask;
+    {
+        uintptr_t ups = updst;
+        uintptr_t upe = reinterpret_cast<uintptr_t>(dst + n);
+
+        ups += mask;
+        ups &= -mask;
+        upe &= -mask;
+
+        ps = reinterpret_cast<T *>(ups);
+        pe = reinterpret_cast<T *>(upe);
+    }
 
     if (WJR_UNLIKELY(ps == pe)) {
         return;
     }
 
-    const uintptr_t mo = reinterpret_cast<uintptr_t>(dst) % sizeof(T);
-
-    if (mo != 0) {
+    if (const uintptr_t mo = updst % sizeof(T); mo != 0) {
         y = simd::Or(
             simd::srl(y, simd_cast<uint8_t, __m128i_t>(mo * 8), T()),
             simd::sll(y, simd_cast<uint8_t, __m128i_t>(std::numeric_limits<T>::digits - mo * 8),
@@ -55,15 +60,13 @@ void large_builtin_set_n(T *dst, typename simd::int_type y, size_t n) noexcept {
     }
 
     do {
-        simd::store(reinterpret_cast<simd_int *>(ps), y);
-        simd::store(reinterpret_cast<simd_int *>(ps + u8_width), y);
-        simd::store(reinterpret_cast<simd_int *>(ps + u8_width * 2), y);
-        simd::store(reinterpret_cast<simd_int *>(ps + u8_width * 3), y);
+        simd::store(ps, y);
+        simd::store(ps + type_width, y);
+        simd::store(ps + type_width * 2, y);
+        simd::store(ps + type_width * 3, y);
 
-        ps += u8_width * 4;
+        ps += type_width * 4;
     } while (WJR_LIKELY(ps != pe));
-
-    return;
 }
 
 template <typename T>

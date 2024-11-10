@@ -5,6 +5,10 @@
 
 #include <wjr/expected.hpp>
 
+#if defined(WJR_X86)
+    #include <wjr/arch/x86/format/utf8/utf8.hpp>
+#endif
+
 namespace wjr::utf8 {
 
 namespace detail {
@@ -121,17 +125,17 @@ inline constexpr std::array<uint32_t, 886> digit_to_val32 = {
     0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
     0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
 
-WJR_PURE WJR_INTRINSIC_CONSTEXPR uint32_t hex_to_u32_unchecked(const uint8_t *src) noexcept {
-    const uint32_t v1 = digit_to_val32[630u + src[0]];
-    const uint32_t v2 = digit_to_val32[420u + src[1]];
-    const uint32_t v3 = digit_to_val32[210u + src[2]];
-    const uint32_t v4 = digit_to_val32[0u + src[3]];
+WJR_PURE WJR_INTRINSIC_CONSTEXPR uint32_t hex_to_u32_unchecked(const char *src) noexcept {
+    const uint32_t v1 = digit_to_val32[630u + to_u8(src[0])];
+    const uint32_t v2 = digit_to_val32[420u + to_u8(src[1])];
+    const uint32_t v3 = digit_to_val32[210u + to_u8(src[2])];
+    const uint32_t v4 = digit_to_val32[0u + to_u8(src[3])];
     return v1 | v2 | v3 | v4;
 }
 
-WJR_INTRINSIC_CONSTEXPR int codepoint_to_utf8(uint8_t *dst, uint32_t code_point) noexcept {
+WJR_INTRINSIC_CONSTEXPR int codepoint_to_utf8(char *dst, uint32_t code_point) noexcept {
     if (code_point <= 0x7F) {
-        dst[0] = static_cast<uint8_t>(code_point);
+        dst[0] = uint8_t(code_point);
         return 1; // ascii
     }
 
@@ -164,161 +168,261 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool check_codepoint(uint32_t code_point) noex
     return code_point <= 0x10FFFF;
 }
 
+inline constexpr std::array<uint8_t, 256> escape_table = {
+    0, 0, 0,    0, 0,    0, 0,    0,    0, 0, 0, 0, 0,    0, 0,    0, // 0x0.
+    0, 0, 0,    0, 0,    0, 0,    0,    0, 0, 0, 0, 0,    0, 0,    0, 0, 0, 0x22, 0, 0, 0, 0, 0,
+    0, 0, 0,    0, 0,    0, 0,    0x2f, 0, 0, 0, 0, 0,    0, 0,    0, 0, 0, 0,    0, 0, 0, 0, 0,
+
+    0, 0, 0,    0, 0,    0, 0,    0,    0, 0, 0, 0, 0,    0, 0,    0, // 0x4.
+    0, 0, 0,    0, 0,    0, 0,    0,    0, 0, 0, 0, 0x5c, 0, 0,    0, // 0x5.
+    0, 0, 0x08, 0, 0,    0, 0x0c, 0,    0, 0, 0, 0, 0,    0, 0x0a, 0, // 0x6.
+    0, 0, 0x0d, 0, 0x09, 0, 0,    0,    0, 0, 0, 0, 0,    0, 0,    0, // 0x7.
+
+    0, 0, 0,    0, 0,    0, 0,    0,    0, 0, 0, 0, 0,    0, 0,    0, 0, 0, 0,    0, 0, 0, 0, 0,
+    0, 0, 0,    0, 0,    0, 0,    0,    0, 0, 0, 0, 0,    0, 0,    0, 0, 0, 0,    0, 0, 0, 0, 0,
+    0, 0, 0,    0, 0,    0, 0,    0,    0, 0, 0, 0, 0,    0, 0,    0,
+
+    0, 0, 0,    0, 0,    0, 0,    0,    0, 0, 0, 0, 0,    0, 0,    0, 0, 0, 0,    0, 0, 0, 0, 0,
+    0, 0, 0,    0, 0,    0, 0,    0,    0, 0, 0, 0, 0,    0, 0,    0, 0, 0, 0,    0, 0, 0, 0, 0,
+    0, 0, 0,    0, 0,    0, 0,    0,    0, 0, 0, 0, 0,    0, 0,    0,
+};
+
 } // namespace detail
 
 /**
  * @brief Check if starts with `\u'
  */
-WJR_PURE WJR_INTRINSIC_INLINE compressed_expected<void, bool, true>
-check_unicode_escape(const uint8_t *first) noexcept {
+WJR_PURE WJR_INTRINSIC_INLINE bool check_unicode_escape(const char *first) noexcept {
     constexpr uint16_t escape = (static_cast<uint8_t>('\\') << 8) | static_cast<uint8_t>('u');
-    if (WJR_LIKELY(read_memory<uint16_t>(first) == escape)) {
+    return read_memory<uint16_t>(first) == escape;
+}
+
+WJR_PURE WJR_INTRINSIC_INLINE optional<const char *>
+check_unicode_codepoint(const char *first) noexcept {
+    uint32_t code_point = detail::hex_to_u32_unchecked(first);
+    first += 4;
+
+    if (WJR_UNLIKELY(code_point >= 0xd800 && code_point < 0xdc00)) {
+        if (WJR_UNLIKELY(!check_unicode_escape(first))) {
+            return nullopt;
+        }
+
+        const uint32_t code_point_2 = detail::hex_to_u32_unchecked(first + 2);
+        const uint32_t low_bit = code_point_2 - 0xdc00;
+        if (low_bit >> 10) {
+            return nullopt;
+        }
+
+        code_point = (((code_point - 0xd800) << 10) | low_bit) + 0x10000;
+        first += 6;
+    } else if (code_point >= 0xdc00 && code_point <= 0xdfff) {
+        return nullopt;
+    }
+
+    if (const bool success = detail::check_codepoint(code_point); WJR_UNLIKELY(!success)) {
+        return nullopt;
+    }
+
+    return first;
+}
+
+WJR_PURE WJR_INTRINSIC_INLINE optional<const char *>
+check_unicode_codepoint(const char *first, const char *last) noexcept {
+    if (WJR_UNLIKELY(last - first < 4)) {
+        return nullopt;
+    }
+
+    uint32_t code_point = detail::hex_to_u32_unchecked(first);
+    first += 4;
+
+    if (WJR_UNLIKELY(code_point >= 0xd800 && code_point < 0xdc00)) {
+        if (WJR_UNLIKELY(last - first < 6)) {
+            return nullopt;
+        }
+
+        if (WJR_UNLIKELY(!check_unicode_escape(first))) {
+            return nullopt;
+        }
+
+        const uint32_t code_point_2 = detail::hex_to_u32_unchecked(first + 2);
+        const uint32_t low_bit = code_point_2 - 0xdc00;
+        if (low_bit >> 10) {
+            return nullopt;
+        }
+
+        code_point = (((code_point - 0xd800) << 10) | low_bit) + 0x10000;
+        first += 6;
+    } else if (code_point >= 0xdc00 && code_point <= 0xdfff) {
+        return nullopt;
+    }
+
+    if (const bool success = detail::check_codepoint(code_point); WJR_UNLIKELY(!success)) {
+        return nullopt;
+    }
+
+    return first;
+}
+
+WJR_INTRINSIC_INLINE optional<const char *> unicode_codepoint_to_utf8(char *&dst,
+                                                                      const char *first) noexcept {
+    uint32_t code_point = detail::hex_to_u32_unchecked(first);
+    first += 4;
+
+    if (WJR_UNLIKELY(code_point >= 0xd800 && code_point < 0xdc00)) {
+        constexpr uint16_t escaped = (static_cast<uint8_t>('\\') << 8) | static_cast<uint8_t>('u');
+
+        if (WJR_UNLIKELY(read_memory<uint16_t>(first) != escaped)) {
+            return nullopt;
+        }
+
+        const uint32_t code_point_2 = detail::hex_to_u32_unchecked(first + 2);
+        const uint32_t low_bit = code_point_2 - 0xdc00;
+        if (low_bit >> 10) {
+            return nullopt;
+        }
+
+        code_point = (((code_point - 0xd800) << 10) | low_bit) + 0x10000;
+        first += 6;
+    } else if (code_point >= 0xdc00 && code_point <= 0xdfff) {
+        return nullopt;
+    }
+
+    const int offset = detail::codepoint_to_utf8(dst, code_point);
+    dst += offset;
+
+    if (WJR_UNLIKELY(offset == 0)) {
+        return nullopt;
+    }
+
+    return first;
+}
+
+WJR_INTRINSIC_INLINE optional<const char *> unicode_codepoint_to_utf8(char *&dst, const char *first,
+                                                                      const char *last) noexcept {
+    if (WJR_UNLIKELY(last - first < 4)) {
+        return nullopt;
+    }
+
+    uint32_t code_point = detail::hex_to_u32_unchecked(first);
+    first += 4;
+
+    if (WJR_UNLIKELY(code_point >= 0xd800 && code_point < 0xdc00)) {
+        if (WJR_UNLIKELY(last - first < 6)) {
+            return nullopt;
+        }
+
+        constexpr uint16_t escaped = (static_cast<uint8_t>('\\') << 8) | static_cast<uint8_t>('u');
+
+        if (WJR_UNLIKELY(read_memory<uint16_t>(first) != escaped)) {
+            return nullopt;
+        }
+
+        const uint32_t code_point_2 = detail::hex_to_u32_unchecked(first + 2);
+        const uint32_t low_bit = code_point_2 - 0xdc00;
+        if (low_bit >> 10) {
+            return nullopt;
+        }
+
+        code_point = (((code_point - 0xd800) << 10) | low_bit) + 0x10000;
+        first += 6;
+    } else if (code_point >= 0xdc00 && code_point <= 0xdfff) {
+        return nullopt;
+    }
+
+    const int offset = detail::codepoint_to_utf8(dst, code_point);
+    dst += offset;
+
+    if (WJR_UNLIKELY(offset == 0)) {
+        return nullopt;
+    }
+
+    return first;
+}
+
+inline optional<void> fallback_check_unicode(const char *first, const char *last) noexcept {
+    if (WJR_UNLIKELY(first == last)) {
         return {};
     }
 
-    return unexpected(false);
+    do {
+        uint8_t ch = *first++;
+
+        if (WJR_UNLIKELY(ch == '\\')) {
+            WJR_ASSERT(first != last);
+            ch = *first++;
+
+            if (WJR_UNLIKELY(ch == 'u')) {
+                WJR_EXPECTED_SET(first, check_unicode_codepoint(first, last));
+            } else {
+                const uint8_t code = detail::escape_table[ch];
+
+                if (WJR_UNLIKELY(code == 0)) {
+                    return nullopt;
+                }
+            }
+        }
+    } while (first != last);
+
+    return {};
 }
 
-WJR_PURE WJR_INTRINSIC_INLINE compressed_expected<const uint8_t *, bool, true>
-check_unicode_codepoint(const uint8_t *first) noexcept {
-    uint32_t code_point = detail::hex_to_u32_unchecked(first);
-    first += 4;
+#if WJR_HAS_BUILTIN(UTF8_CHECK_UNICODE)
+extern WJR_ALL_NONNULL optional<void> builtin_check_unicode(const char *first,
+                                                            const char *last) noexcept;
+#endif
 
-    if (WJR_UNLIKELY(code_point >= 0xd800 && code_point < 0xdc00)) {
-        if (WJR_UNLIKELY(!check_unicode_escape(first))) {
-            return unexpected(false);
-        }
-
-        const uint32_t code_point_2 = detail::hex_to_u32_unchecked(first + 2);
-        const uint32_t low_bit = code_point_2 - 0xdc00;
-        if (low_bit >> 10) {
-            return unexpected(false);
-        }
-
-        code_point = (((code_point - 0xd800) << 10) | low_bit) + 0x10000;
-        first += 6;
-    } else if (code_point >= 0xdc00 && code_point <= 0xdfff) {
-        return unexpected(false);
-    }
-
-    if (const bool success = detail::check_codepoint(code_point); WJR_UNLIKELY(!success)) {
-        return unexpected(false);
-    }
-
-    return first;
+WJR_ALL_NONNULL inline optional<void> check_unicode(const char *first, const char *last) noexcept {
+#if WJR_HAS_BUILTIN(UTF8_CHECK_UNICODE)
+    return builtin_check_unicode(first, last);
+#else
+    return fallback_check_unicode(first, last);
+#endif
 }
 
-WJR_PURE WJR_INTRINSIC_INLINE compressed_expected<const uint8_t *, bool, true>
-check_unicode_codepoint(const uint8_t *first, const uint8_t *last) noexcept {
-    if (WJR_UNLIKELY(last - first < 4)) {
-        return unexpected(false);
+inline optional<char *> fallback_unicode_to_utf8(char *dst, const char *first,
+                                                 const char *last) noexcept {
+    if (WJR_UNLIKELY(first == last)) {
+        return dst;
     }
 
-    uint32_t code_point = detail::hex_to_u32_unchecked(first);
-    first += 4;
+    do {
+        uint8_t ch = to_u8(*first++);
 
-    if (WJR_UNLIKELY(code_point >= 0xd800 && code_point < 0xdc00)) {
-        if (WJR_UNLIKELY(last - first < 6)) {
-            return unexpected(false);
+        if (WJR_UNLIKELY(ch == '\\')) {
+            WJR_ASSERT(first != last);
+            ch = *first++;
+
+            if (WJR_UNLIKELY(ch == 'u')) {
+                WJR_EXPECTED_SET(first, unicode_codepoint_to_utf8(dst, first, last));
+            } else {
+                const uint8_t code = detail::escape_table[ch];
+
+                if (WJR_UNLIKELY(code == 0)) {
+                    return nullopt;
+                }
+
+                *dst++ = code;
+            }
+        } else {
+            *dst++ = ch;
         }
+    } while (first != last);
 
-        if (WJR_UNLIKELY(!check_unicode_escape(first))) {
-            return unexpected(false);
-        }
-
-        const uint32_t code_point_2 = detail::hex_to_u32_unchecked(first + 2);
-        const uint32_t low_bit = code_point_2 - 0xdc00;
-        if (low_bit >> 10) {
-            return unexpected(false);
-        }
-
-        code_point = (((code_point - 0xd800) << 10) | low_bit) + 0x10000;
-        first += 6;
-    } else if (code_point >= 0xdc00 && code_point <= 0xdfff) {
-        return unexpected(false);
-    }
-
-    if (const bool success = detail::check_codepoint(code_point); WJR_UNLIKELY(!success)) {
-        return unexpected(false);
-    }
-
-    return first;
+    return dst;
 }
 
-WJR_INTRINSIC_INLINE compressed_expected<const uint8_t *, bool, true>
-parse_unicode_codepoint(uint8_t *&dst, const uint8_t *first) noexcept {
-    uint32_t code_point = detail::hex_to_u32_unchecked(first);
-    first += 4;
+#if WJR_HAS_BUILTIN(UTF8_UNICODE_TO_UTF8)
+extern WJR_ALL_NONNULL optional<char *> builtin_unicode_to_utf8(char *dst, const char *first,
+                                                                const char *last) noexcept;
+#endif
 
-    if (WJR_UNLIKELY(code_point >= 0xd800 && code_point < 0xdc00)) {
-        constexpr uint16_t escaped = (static_cast<uint8_t>('\\') << 8) | static_cast<uint8_t>('u');
-
-        if (WJR_UNLIKELY(read_memory<uint16_t>(first) != escaped)) {
-            return unexpected(false);
-        }
-
-        const uint32_t code_point_2 = detail::hex_to_u32_unchecked(first + 2);
-        const uint32_t low_bit = code_point_2 - 0xdc00;
-        if (low_bit >> 10) {
-            return unexpected(false);
-        }
-
-        code_point = (((code_point - 0xd800) << 10) | low_bit) + 0x10000;
-        first += 6;
-    } else if (code_point >= 0xdc00 && code_point <= 0xdfff) {
-        return unexpected(false);
-    }
-
-    const int offset = detail::codepoint_to_utf8(dst, code_point);
-    dst += offset;
-
-    if (WJR_UNLIKELY(offset == 0)) {
-        return unexpected(false);
-    }
-
-    return first;
-}
-
-WJR_INTRINSIC_INLINE compressed_expected<const uint8_t *, bool, true>
-parse_unicode_codepoint(uint8_t *&dst, const uint8_t *first, const uint8_t *last) noexcept {
-    if (WJR_UNLIKELY(last - first < 4)) {
-        return unexpected(false);
-    }
-
-    uint32_t code_point = detail::hex_to_u32_unchecked(first);
-    first += 4;
-
-    if (WJR_UNLIKELY(code_point >= 0xd800 && code_point < 0xdc00)) {
-        if (WJR_UNLIKELY(last - first < 6)) {
-            return unexpected(false);
-        }
-
-        constexpr uint16_t escaped = (static_cast<uint8_t>('\\') << 8) | static_cast<uint8_t>('u');
-
-        if (WJR_UNLIKELY(read_memory<uint16_t>(first) != escaped)) {
-            return unexpected(false);
-        }
-
-        const uint32_t code_point_2 = detail::hex_to_u32_unchecked(first + 2);
-        const uint32_t low_bit = code_point_2 - 0xdc00;
-        if (low_bit >> 10) {
-            return unexpected(false);
-        }
-
-        code_point = (((code_point - 0xd800) << 10) | low_bit) + 0x10000;
-        first += 6;
-    } else if (code_point >= 0xdc00 && code_point <= 0xdfff) {
-        return unexpected(false);
-    }
-
-    const int offset = detail::codepoint_to_utf8(dst, code_point);
-    dst += offset;
-
-    if (WJR_UNLIKELY(offset == 0)) {
-        return unexpected(false);
-    }
-
-    return first;
+WJR_ALL_NONNULL inline optional<char *> unicode_to_utf8(char *dst, const char *first,
+                                                        const char *last) noexcept {
+#if WJR_HAS_BUILTIN(UTF8_UNICODE_TO_UTF8)
+    return builtin_unicode_to_utf8(dst, first, last);
+#else
+    return fallback_unicode_to_utf8(dst, first, last);
+#endif
 }
 
 } // namespace wjr::utf8

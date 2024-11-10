@@ -11,6 +11,8 @@
 #include <wjr/preprocessor.hpp>
 #include <wjr/tag.hpp>
 
+static_assert(CHAR_BIT == 8, "Only support 8-bite char.");
+
 namespace wjr {
 
 struct in_place_max_t {
@@ -164,6 +166,16 @@ struct is_nonbool_signed_integral
 
 template <typename T>
 inline constexpr bool is_nonbool_signed_integral_v = is_nonbool_signed_integral<T>::value;
+
+template <typename T, WJR_REQUIRES(sizeof(T) == 1 && is_nonbool_integral_v<T>)>
+WJR_CONST constexpr uint8_t to_u8(T value) noexcept {
+    return value;
+}
+
+template <typename T, WJR_REQUIRES(sizeof(T) == 1 && is_nonbool_integral_v<T>)>
+WJR_CONST constexpr char to_char(T value) noexcept {
+    return value;
+}
 
 // type identity
 template <typename T>
