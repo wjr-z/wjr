@@ -33,15 +33,19 @@ inline constexpr std::array<uint8_t, 256> escape_table = {
 namespace detail {
 
 inline result<char *> parse_string(char *dst, const char *first, const char *last) noexcept {
-    return utf8::unicode_to_utf8(dst, first, last).transform_error([](auto) -> result_error {
-        return error_code::UTF8_ERROR;
-    });
+    if (auto ret = utf8::unicode_to_utf8(dst, first, last); WJR_UNLIKELY(!ret)) {
+        return unexpected(error_code::UTF8_ERROR);
+    } else {
+        return *ret;
+    }
 }
 
 inline result<void> check_string(const char *first, const char *last) noexcept {
-    return utf8::check_unicode(first, last).transform_error([](auto) -> result_error {
-        return error_code::UTF8_ERROR;
-    });
+    if (auto ret = utf8::check_unicode(first, last); WJR_UNLIKELY(!ret)) {
+        return unexpected(error_code::UTF8_ERROR);
+    } else {
+        return {};
+    }
 }
 
 } // namespace detail

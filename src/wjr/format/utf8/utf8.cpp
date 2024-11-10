@@ -31,7 +31,7 @@ optional<void> builtin_check_unicode(const char *first, const char *last) noexce
                     const uint8_t ch = first[u8_width];
 
                     if (WJR_UNLIKELY(ch == 'u')) {
-                        WJR_EXPECTED_SET(first,
+                        WJR_OPTIONAL_SET(first,
                                          check_unicode_codepoint(first + u8_width + 1, last));
 
                         if (first + u8_width <= last) {
@@ -60,7 +60,7 @@ optional<void> builtin_check_unicode(const char *first, const char *last) noexce
 
                 if (WJR_UNLIKELY(ch == 'u')) {
                     const char *__first;
-                    WJR_EXPECTED_SET(__first, check_unicode_codepoint(first + pos + 2, last));
+                    WJR_OPTIONAL_SET(__first, check_unicode_codepoint(first + pos + 2, last));
 
                     if (to_unsigned(__first - first) >= u8_width) {
                         first = __first;
@@ -122,7 +122,7 @@ SMALL:
                 sse::movemask_epi8(sse::cmpeq_epi8(x1, sse::set1_epi8('\\'))) << m;
 
             if (WJR_LIKELY(B == 0)) {
-                return {};
+                return __void_opt;
             }
 
             break;
@@ -133,7 +133,7 @@ SMALL:
             if (WJR_UNLIKELY(n <= 4)) {
                 if (WJR_UNLIKELY(n < 2)) {
                     if (WJR_UNLIKELY(first == last)) {
-                        return {};
+                        return __void_opt;
                     }
 
                     const uint8_t ch = *first++;
@@ -141,7 +141,7 @@ SMALL:
                         return nullopt;
                     }
 
-                    return {};
+                    return __void_opt;
                 }
 
                 const auto m = n - 2;
@@ -151,7 +151,7 @@ SMALL:
                     sse::movemask_epi8(sse::cmpeq_epi8(x1, sse::set1_epi8('\\'))) << m;
 
                 if (WJR_LIKELY(B == 0)) {
-                    return {};
+                    return __void_opt;
                 }
 
                 break;
@@ -164,7 +164,7 @@ SMALL:
                 sse::movemask_epi8(sse::cmpeq_epi8(x1, sse::set1_epi8('\\'))) << m;
 
             if (WJR_LIKELY(B == 0)) {
-                return {};
+                return __void_opt;
             }
 
             break;
@@ -177,7 +177,7 @@ SMALL:
             sse::movemask_epi8(sse::cmpeq_epi8(x1, sse::set1_epi8('\\'))) << m;
 
         if (WJR_LIKELY(B == 0)) {
-            return {};
+            return __void_opt;
         }
     } while (false);
 
@@ -192,10 +192,10 @@ SMALL:
 
         if (WJR_UNLIKELY(ch == 'u')) {
             const char *__first = first;
-            WJR_EXPECTED_SET(__first, check_unicode_codepoint(first + pos + 2, last));
+            WJR_OPTIONAL_SET(__first, check_unicode_codepoint(first + pos + 2, last));
 
             if (__first == last) {
-                return {};
+                return __void_opt;
             }
 
             // two backslash
@@ -218,7 +218,7 @@ SMALL:
         B &= B - 1;
     } while (B);
 
-    return {};
+    return __void_opt;
 }
 #endif
 
@@ -290,7 +290,7 @@ optional<char *> builtin_unicode_to_utf8(char *dst, const char *first, const cha
                     const uint8_t ch = first[u8_width];
 
                     if (WJR_UNLIKELY(ch == 'u')) {
-                        WJR_EXPECTED_SET(
+                        WJR_OPTIONAL_SET(
                             first, unicode_codepoint_to_utf8(dst, first + u8_width + 1, last));
 
                         if (first + u8_width <= last) {
@@ -320,7 +320,7 @@ optional<char *> builtin_unicode_to_utf8(char *dst, const char *first, const cha
 
                 if (WJR_UNLIKELY(ch == 'u')) {
                     const char *__first;
-                    WJR_EXPECTED_SET(__first,
+                    WJR_OPTIONAL_SET(__first,
                                      unicode_codepoint_to_utf8(dst, first + pos + 2, last));
 
                     if (to_unsigned(__first - first) >= u8_width) {
@@ -473,7 +473,7 @@ SMALL:
 
         if (WJR_UNLIKELY(ch == 'u')) {
             const char *__first = first;
-            WJR_EXPECTED_SET(__first, unicode_codepoint_to_utf8(dst, first + pos + 2, last));
+            WJR_OPTIONAL_SET(__first, unicode_codepoint_to_utf8(dst, first + pos + 2, last));
 
             if (__first == last) {
                 return dst;

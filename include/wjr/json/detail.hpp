@@ -46,7 +46,7 @@ enum class error_code : uint8_t {
     NUM_ERROR_CODES,
 };
 
-using result_error = compressed_unexpected<error_code, error_code::SUCCESS>;
+using result_error = compressed_value<error_code, error_code::SUCCESS>;
 
 template <typename T>
 using result = expected<T, result_error>;

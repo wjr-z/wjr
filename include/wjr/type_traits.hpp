@@ -1,6 +1,7 @@
 #ifndef WJR_TYPE_TRAITS_HPP__
 #define WJR_TYPE_TRAITS_HPP__
 
+#include <climits>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -34,6 +35,15 @@ struct in_place_min_t {
 inline constexpr in_place_min_t in_place_min = {};
 
 using std::integral_constant;
+
+template <typename T, typename U>
+struct is_void_or : U {};
+
+template <typename U>
+struct is_void_or<void, U> : std::true_type {};
+
+template <typename T, typename U>
+inline constexpr bool is_void_or_v = is_void_or<T, U>::value;
 
 template <typename... Args>
 struct multi_conditional;

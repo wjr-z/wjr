@@ -3,7 +3,7 @@
 
 #include <array>
 
-#include <wjr/expected.hpp>
+#include <wjr/optional.hpp>
 
 #if defined(WJR_X86)
     #include <wjr/arch/x86/format/utf8/utf8.hpp>
@@ -341,7 +341,7 @@ WJR_INTRINSIC_INLINE optional<const char *> unicode_codepoint_to_utf8(char *&dst
 
 inline optional<void> fallback_check_unicode(const char *first, const char *last) noexcept {
     if (WJR_UNLIKELY(first == last)) {
-        return {};
+        return __void_opt;
     }
 
     do {
@@ -352,7 +352,7 @@ inline optional<void> fallback_check_unicode(const char *first, const char *last
             ch = *first++;
 
             if (WJR_UNLIKELY(ch == 'u')) {
-                WJR_EXPECTED_SET(first, check_unicode_codepoint(first, last));
+                WJR_OPTIONAL_SET(first, check_unicode_codepoint(first, last));
             } else {
                 const uint8_t code = detail::escape_table[ch];
 
@@ -363,7 +363,7 @@ inline optional<void> fallback_check_unicode(const char *first, const char *last
         }
     } while (first != last);
 
-    return {};
+    return __void_opt;
 }
 
 #if WJR_HAS_BUILTIN(UTF8_CHECK_UNICODE)
@@ -393,7 +393,7 @@ inline optional<char *> fallback_unicode_to_utf8(char *dst, const char *first,
             ch = *first++;
 
             if (WJR_UNLIKELY(ch == 'u')) {
-                WJR_EXPECTED_SET(first, unicode_codepoint_to_utf8(dst, first, last));
+                WJR_OPTIONAL_SET(first, unicode_codepoint_to_utf8(dst, first, last));
             } else {
                 const uint8_t code = detail::escape_table[ch];
 
