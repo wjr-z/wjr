@@ -122,7 +122,7 @@ SMALL:
                 sse::movemask_epi8(sse::cmpeq_epi8(x1, sse::set1_epi8('\\'))) << m;
 
             if (WJR_LIKELY(B == 0)) {
-                return __void_opt;
+                return voidopt;
             }
 
             break;
@@ -133,7 +133,7 @@ SMALL:
             if (WJR_UNLIKELY(n <= 4)) {
                 if (WJR_UNLIKELY(n < 2)) {
                     if (WJR_UNLIKELY(first == last)) {
-                        return __void_opt;
+                        return voidopt;
                     }
 
                     const uint8_t ch = *first++;
@@ -141,7 +141,7 @@ SMALL:
                         return nullopt;
                     }
 
-                    return __void_opt;
+                    return voidopt;
                 }
 
                 const auto m = n - 2;
@@ -151,7 +151,7 @@ SMALL:
                     sse::movemask_epi8(sse::cmpeq_epi8(x1, sse::set1_epi8('\\'))) << m;
 
                 if (WJR_LIKELY(B == 0)) {
-                    return __void_opt;
+                    return voidopt;
                 }
 
                 break;
@@ -164,7 +164,7 @@ SMALL:
                 sse::movemask_epi8(sse::cmpeq_epi8(x1, sse::set1_epi8('\\'))) << m;
 
             if (WJR_LIKELY(B == 0)) {
-                return __void_opt;
+                return voidopt;
             }
 
             break;
@@ -177,7 +177,7 @@ SMALL:
             sse::movemask_epi8(sse::cmpeq_epi8(x1, sse::set1_epi8('\\'))) << m;
 
         if (WJR_LIKELY(B == 0)) {
-            return __void_opt;
+            return voidopt;
         }
     } while (false);
 
@@ -195,7 +195,7 @@ SMALL:
             WJR_OPTIONAL_SET(__first, check_unicode_codepoint(first + pos + 2, last));
 
             if (__first == last) {
-                return __void_opt;
+                return voidopt;
             }
 
             // two backslash
@@ -218,7 +218,7 @@ SMALL:
         B &= B - 1;
     } while (B);
 
-    return __void_opt;
+    return voidopt;
 }
 #endif
 
@@ -261,7 +261,7 @@ WJR_INTRINSIC_INLINE char *small_copy(char *dst, const char *src, unsigned int n
 } // namespace
 
 #if WJR_HAS_BUILTIN(UTF8_UNICODE_TO_UTF8)
-compressed_pointer_optional<char *> builtin_unicode_to_utf8(char *dst, const char *first,
+compressed_optional<char *> builtin_unicode_to_utf8(char *dst, const char *first,
                                                             const char *last) noexcept {
     using namespace detail;
     constexpr auto is_avx = WJR_HAS_SIMD(AVX2);

@@ -28,12 +28,12 @@ struct nullopt_t {
 
 inline constexpr nullopt_t nullopt{nullopt_t::__tag{}};
 
-struct __void_opt_t {
+struct voidopt_t {
     struct __tag {};
-    constexpr explicit __void_opt_t(__tag) noexcept {}
+    constexpr explicit voidopt_t(__tag) noexcept {}
 };
 
-inline constexpr __void_opt_t __void_opt{__void_opt_t::__tag{}};
+inline constexpr voidopt_t voidopt{voidopt_t::__tag{}};
 
 class bad_optional_access : public std::exception {
 public:
@@ -694,7 +694,6 @@ public:
         if (has_value()) {
             std::destroy_at(std::addressof(this->m_val));
         } else {
-            std::destroy_at(std::addressof(this->m_err));
             this->set_valid();
         }
 
@@ -800,7 +799,7 @@ public:
     ~optional() = default;
 
     constexpr explicit optional(std::in_place_t) : Mybase(std::in_place) {}
-    constexpr optional(__void_opt_t) : Mybase(std::in_place) {}
+    constexpr optional(voidopt_t) : Mybase(std::in_place) {}
     constexpr optional(nullopt_t) : Mybase(nullopt) {}
 
     WJR_CONSTEXPR20 optional &operator=(nullopt_t) {
@@ -862,12 +861,19 @@ public:
     }
 };
 
-template <typename T>
-using compressed_pointer_optional_value =
-    std::enable_if_t<std::is_pointer_v<T>, compressed_value<T, nullptr>>;
+template <typename T, typename = void>
+struct compressed_optional_value {};
 
 template <typename T>
-using compressed_pointer_optional = optional<compressed_pointer_optional_value<T>>;
+struct compressed_optional_value<T *, void> {
+    using type = compressed_value<T *, nullptr>;
+};
+
+template <typename T>
+using compressed_optional_value_t = typename compressed_optional_value<T>::type;
+
+template <typename T>
+using compressed_optional = optional<compressed_optional_value_t<T>>;
 
 #define WJR_OPTIONAL_TRY(...)                                                                      \
     do {                                                                                           \

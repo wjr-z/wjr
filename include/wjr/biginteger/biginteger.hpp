@@ -15,12 +15,12 @@
 #define WJR_BIGINTEGER_BIGINTEGER_HPP__
 
 #include <istream>
-#include <optional>
 
 #include <wjr/format/ostream_insert.hpp>
 #include <wjr/math.hpp>
 #include <wjr/span.hpp>
 #include <wjr/vector.hpp>
+#include <wjr/optional.hpp>
 
 namespace wjr {
 
@@ -1875,7 +1875,7 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     auto *rp = const_cast<pointer>(rhs->data());
 
     unique_stack_allocator stkal;
-    std::optional<uninitialized<basic_biginteger<S>>> tmp;
+    optional<uninitialized<basic_biginteger<S>>> tmp;
 
     if (dst->capacity() < dusize) {
         tmp.emplace(dst->get_growth_capacity(dst->capacity(), dusize), in_place_reserve,
@@ -1945,7 +1945,7 @@ void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept {
     auto *sp = const_cast<pointer>(src->data());
 
     unique_stack_allocator stkal;
-    std::optional<uninitialized<basic_biginteger<S>>> tmp;
+    optional<uninitialized<basic_biginteger<S>>> tmp;
 
     if (dst->capacity() < dusize) {
         tmp.emplace(dst->get_growth_capacity(dst->capacity(), dusize), in_place_reserve,
