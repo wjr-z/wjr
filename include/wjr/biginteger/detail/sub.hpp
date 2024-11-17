@@ -1,11 +1,9 @@
 #ifndef WJR_BIGINTEGER_DETAIL_SUB_HPP__
 #define WJR_BIGINTEGER_DETAIL_SUB_HPP__
 
-#include <wjr/assert.hpp>
 #include <wjr/biginteger/detail/sub-impl.hpp>
-#include <wjr/math/detail.hpp>
 #include <wjr/math/replace.hpp>
-#include <wjr/math/sub-impl.hpp>
+#include <wjr/math/sub.hpp>
 
 #if defined(WJR_X86)
     #include <wjr/arch/x86/biginteger/detail/sub.hpp>

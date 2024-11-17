@@ -464,7 +464,7 @@ WJR_INTRINSIC_INLINE void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0
 }
 
 template <typename T>
-uint64_t *__mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n) noexcept {
+WJR_INTRINSIC_INLINE uint64_t *__mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n) noexcept {
     if constexpr (std::is_same_v<T, uint64_t *>) {
         return al;
     } else {
@@ -473,8 +473,9 @@ uint64_t *__mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n) noexcept {
 }
 
 template <__mul_mode mode>
-void __inline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
-                         size_t n, uint64_t *mal) noexcept {
+WJR_INTRINSIC_INLINE void __inline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                              const uint64_t *src1, size_t n,
+                                              uint64_t *mal) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
     WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
@@ -507,8 +508,9 @@ WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *sr
 }
 
 template <__mul_mode mode, uint64_t m0 = UINT64_MAX, uint64_t m1 = UINT64_MAX>
-void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1, size_t n,
-             uint64_t *stk, uint64_t &c_out, uint64_t cf0, uint64_t cf1) noexcept {
+WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                  const uint64_t *src1, size_t n, uint64_t *stk, uint64_t &c_out,
+                                  uint64_t cf0, uint64_t cf1) noexcept {
     WJR_ASSERT_ASSUME(cf0 <= m0);
     WJR_ASSERT_ASSUME(cf1 <= m1);
 
@@ -542,8 +544,8 @@ WJR_INTRINSIC_INLINE void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0
 }
 
 template <__mul_mode mode>
-inline void __inline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                              uint64_t *mal) noexcept {
+WJR_INTRINSIC_INLINE void __inline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
+                                            size_t n, uint64_t *mal) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
 
@@ -564,8 +566,8 @@ extern WJR_ALL_NONNULL void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst, cons
                                                 size_t n) noexcept;
 
 template <__mul_mode mode>
-void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-           WJR_MAYBE_UNUSED uint64_t *stk) noexcept {
+WJR_INTRINSIC_INLINE void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
+                                WJR_MAYBE_UNUSED uint64_t *stk) noexcept {
     if constexpr (mode <= __mul_mode ::toom33) {
         __inline_sqr_impl<mode>(dst, src, n, stk);
     } else {
@@ -574,8 +576,8 @@ void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 }
 
 template <__mul_mode mode, uint64_t m = UINT64_MAX>
-void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n, uint64_t *stk,
-           uint64_t &c_out, uint64_t cf) noexcept {
+WJR_INTRINSIC_INLINE void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
+                                uint64_t *stk, uint64_t &c_out, uint64_t cf) noexcept {
     WJR_ASSERT_ASSUME(cf <= m);
 
     __sqr<mode>(dst, src, n, stk);
