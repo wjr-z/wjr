@@ -1,7 +1,7 @@
-#ifndef WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
-#define WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
+#ifndef WJR_BIGINTEGER_DETAIL_PRECOMPUTE_CHARS_CONVERT_HPP__
+#define WJR_BIGINTEGER_DETAIL_PRECOMPUTE_CHARS_CONVERT_HPP__
 
-#include <wjr/math/mul.hpp>
+#include <wjr/biginteger/detail/mul.hpp>
 
 namespace wjr {
 
@@ -30,4 +30,4 @@ precompute_chars_convert(precompute_chars_convert_t *pre_table, size_t n, unsign
 
 } // namespace wjr
 
-#endif // WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
+#endif // WJR_BIGINTEGER_DETAIL_PRECOMPUTE_CHARS_CONVERT_HPP__

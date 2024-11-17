@@ -1,8 +1,12 @@
 #ifndef WJR_MATH_UINT128_T_HPP__
 #define WJR_MATH_UINT128_T_HPP__
 
+#include <wjr/math/add.hpp>
 #include <wjr/math/div-impl.hpp>
 #include <wjr/math/divider.hpp>
+#include <wjr/math/mul.hpp>
+#include <wjr/math/shift.hpp>
+#include <wjr/math/sub.hpp>
 
 namespace wjr {
 

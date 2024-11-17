@@ -1,5 +1,5 @@
-#ifndef WJR_ARCH_X86_UTF8_UTF8_HPP__
-#define WJR_ARCH_X86_UTF8_UTF8_HPP__
+#ifndef WJR_ARCH_X86_FORMAT_UTF8_UTF8_HPP__
+#define WJR_ARCH_X86_FORMAT_UTF8_UTF8_HPP__
 
 #include <wjr/arch/x86/simd/simd.hpp>
 
@@ -8,4 +8,4 @@
     #define WJR_HAS_BUILTIN_UTF8_UNICODE_TO_UTF8 WJR_HAS_DEF
 #endif
 
-#endif // WJR_ARCH_X86_UTF8_UTF8_HPP__
+#endif // WJR_ARCH_X86_FORMAT_UTF8_UTF8_HPP__

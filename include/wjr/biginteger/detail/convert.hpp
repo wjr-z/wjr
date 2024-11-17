@@ -1,10 +1,10 @@
-#ifndef WJR_MATH_CONVERT_HPP__
-#define WJR_MATH_CONVERT_HPP__
+#ifndef WJR_BIGINTEGER_DETAIL_CONVERT_HPP__
+#define WJR_BIGINTEGER_DETAIL_CONVERT_HPP__
 
 #include <wjr/format/charconv.hpp>
 
-#include <wjr/math/div.hpp>
-#include <wjr/math/precompute-chars-convert.hpp>
+#include <wjr/biginteger/detail/div.hpp>
+#include <wjr/biginteger/detail/precompute-chars-convert.hpp>
 #include <wjr/memory/stack_allocator.hpp>
 
 namespace wjr {
@@ -944,4 +944,4 @@ uint64_t *biginteger_from_chars(Iter first, Iter last, uint64_t *up, unsigned in
 
 } // namespace wjr
 
-#endif // WJR_MATH_CONVERT_HPP__
+#endif // WJR_BIGINTEGER_DETAIL_CONVERT_HPP__

@@ -4,7 +4,6 @@
 #include <wjr/assert.hpp>
 #include <wjr/math/div-impl.hpp>
 #include <wjr/math/mul.hpp>
-#include <wjr/type_traits.hpp>
 
 namespace wjr {
 
@@ -58,7 +57,7 @@ WJR_CONST WJR_INTRINSIC_INLINE div1by1_uint_t<T> div1by1_internal_uint_gen(T d) 
 
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-    div1by1_uint_t<T, false> result;
+    div1by1_uint_t<T> result;
     const uint8_t floor_log_2_d = static_cast<uint8_t>(nd - 1 - clz<T>(d));
 
     // Power of 2
@@ -120,8 +119,8 @@ WJR_CONST WJR_INTRINSIC_INLINE div1by1_uint_t<T> div1by1_uint_gen(T d) noexcept 
     } else {
         WJR_ASSERT(d != 1, "The divisor cannot be 1");
         const auto ret = div1by1_internal_uint_gen<type>(d);
-        return div1by1_uint_t<T>{tmp.magic,
-                                 static_cast<uint8_t>(tmp.more & div1by1_shift_mask<T>::value)};
+        return div1by1_uint_t<T>{ret.magic,
+                                 static_cast<uint8_t>(ret.more & div1by1_shift_mask<T>::value)};
     }
 }
 
@@ -163,20 +162,20 @@ WJR_CONST WJR_INTRINSIC_INLINE T div1by1_uint_do(T d, const div1by1_uint_t<T> &d
 template <typename T, branch type = branch::free>
 class div1by1_divider {
 private:
-    using dispatcher_t = div1by1_uint_t<T, branchfree>;
+    using dispatcher_t = div1by1_uint_t<T>;
 
 public:
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(div1by1_divider);
 
-    WJR_INTRINSIC_INLINE div1by1_divider(T d) { div = div1by1_uint_gen<T, branchfree>(d); }
+    WJR_INTRINSIC_INLINE div1by1_divider(T d) { div = div1by1_uint_gen<T, type>(d); }
 
     WJR_INTRINSIC_INLINE T divide(T n) const { return div1by1_uint_do(n, div); }
 
-    WJR_CONST bool operator==(const div1by1_divider<T, branchfree> &other) const {
+    WJR_CONST bool operator==(const div1by1_divider<T, type> &other) const {
         return div.denom.magic == other.denom.magic && div.denom.more == other.denom.more;
     }
 
-    WJR_CONST bool operator!=(const div1by1_divider<T, branchfree> &other) const {
+    WJR_CONST bool operator!=(const div1by1_divider<T, type> &other) const {
         return !(*this == other);
     }
 

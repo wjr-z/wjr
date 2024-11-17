@@ -5,7 +5,6 @@
 
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
     #define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF
-    #define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_DEF
     #define WJR_HAS_BUILTIN___ASM_ADD_128 WJR_HAS_DEF
     #define WJR_HAS_BUILTIN___ASM_ADDC_128 WJR_HAS_DEF
 
@@ -16,10 +15,6 @@
 #else
     #if defined(_MSC_VER)
         #define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_SIMD_DEF
-    #endif
-
-    #if defined(WJR_ENABLE_ASSEMBLY)
-        #define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_ASSEMBLY_DEF
     #endif
 #endif
 
@@ -180,11 +175,6 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
     return a;
 }
 
-#endif
-
-#if WJR_HAS_BUILTIN(ASM_ADDC_N)
-    #define WJR_ADDSUB_I 1
-    #include <wjr/arch/x86/math/gen_addsub.hpp>
 #endif
 
 #if WJR_HAS_BUILTIN(__ASM_ADD_128)

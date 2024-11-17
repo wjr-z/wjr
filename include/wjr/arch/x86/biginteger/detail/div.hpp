@@ -1,5 +1,5 @@
-#ifndef WJR_ARCH_X86_MATH_DIV_HPP__
-#define WJR_ARCH_X86_MATH_DIV_HPP__
+#ifndef WJR_ARCH_X86_BIGINTEGER_DETAIL_DIV_HPP__
+#define WJR_ARCH_X86_BIGINTEGER_DETAIL_DIV_HPP__
 
 #include <wjr/type_traits.hpp>
 
@@ -89,4 +89,4 @@ WJR_INTRINSIC_INLINE uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *
 
 } // namespace wjr
 
-#endif // WJR_ARCH_X86_MATH_DIV_HPP__
+#endif // WJR_ARCH_X86_BIGINTEGER_DETAIL_DIV_HPP__

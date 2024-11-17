@@ -1,4 +1,4 @@
-#include <wjr/math.hpp>
+#include <wjr/biginteger/detail.hpp>
 
 namespace wjr {
 

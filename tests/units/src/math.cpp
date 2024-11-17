@@ -7,6 +7,7 @@
     #include <gmp.h>
 #endif
 
+#include <wjr/biginteger/detail.hpp>
 #include <wjr/math.hpp>
 
 using namespace wjr;
@@ -413,10 +414,10 @@ TEST(math, sub) {
         uint64_t expect[N];                                                                        \
         init(in, WJR_PP_QUEUE_EXPAND(inputs));                                                     \
         init(expect, WJR_PP_QUEUE_EXPAND(outputs));                                                \
-        WJR_ASSERT((subc_1<uint64_t>(out, in, N, c, c_in) == ans));                                \
+        WJR_ASSERT((subc_1(out, in, N, c, c_in) == ans));                                          \
         WJR_ASSERT((memcmp(out, expect, sizeof(out)) == 0),                                        \
                    "uncorrect array of subc_1<uint64_t>, different array");                        \
-        WJR_ASSERT((subc_1<uint64_t>(in, in, N, c, c_in) == ans));                                 \
+        WJR_ASSERT((subc_1(in, in, N, c, c_in) == ans));                                           \
         WJR_ASSERT((memcmp(in, expect, sizeof(out)) == 0),                                         \
                    "uncorrect array of subc_1<uint64_t>, same array");                             \
     }

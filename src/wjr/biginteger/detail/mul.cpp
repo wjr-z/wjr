@@ -1,5 +1,5 @@
-#include <wjr/math/div.hpp>
-#include <wjr/math/mul.hpp>
+#include <wjr/biginteger/detail/div.hpp>
+#include <wjr/biginteger/detail/mul.hpp>
 #include <wjr/memory/stack_allocator.hpp>
 #include <wjr/tuple.hpp>
 

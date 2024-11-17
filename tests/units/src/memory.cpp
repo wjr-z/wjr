@@ -2,7 +2,7 @@
 
 #include "detail.hpp"
 
-#include <wjr/math.hpp>
+#include <wjr/memory/stack_allocator.hpp>
 #include <wjr/memory/uninitialized.hpp>
 
 using namespace wjr;
@@ -41,22 +41,17 @@ TEST(memory, uninitialized) {
                       "trivially copy assignable error");
         static_assert(!std::is_trivially_move_assignable_v<type>,
                       "trivially move assignable error");
-        static_assert(std::is_trivially_destructible_v<type>,
-                      "trivially destructible error");
+        static_assert(std::is_trivially_destructible_v<type>, "trivially destructible error");
     } while (false);
 
     do {
         using type = uninitialized<std::string>;
         static_assert(std::is_default_constructible_v<type>,
                       "trivially default constructible error");
-        static_assert(std::is_copy_constructible_v<type>,
-                      "trivially copy constructible error");
-        static_assert(std::is_move_constructible_v<type>,
-                      "trivially move constructible error");
-        static_assert(!std::is_copy_assignable_v<type>,
-                      "trivially copy assignable error");
-        static_assert(!std::is_move_assignable_v<type>,
-                      "trivially move assignable error");
+        static_assert(std::is_copy_constructible_v<type>, "trivially copy constructible error");
+        static_assert(std::is_move_constructible_v<type>, "trivially move constructible error");
+        static_assert(!std::is_copy_assignable_v<type>, "trivially copy assignable error");
+        static_assert(!std::is_move_assignable_v<type>, "trivially move assignable error");
         static_assert(std::is_destructible_v<type>, "trivially destructible error");
     } while (false);
 }

@@ -380,7 +380,7 @@ WJR_ALL_NONNULL inline optional<void> check_unicode(const char *first, const cha
 }
 
 inline compressed_optional<char *> fallback_unicode_to_utf8(char *dst, const char *first,
-                                                                    const char *last) noexcept {
+                                                            const char *last) noexcept {
     if (WJR_UNLIKELY(first == last)) {
         return dst;
     }
@@ -416,8 +416,8 @@ extern WJR_ALL_NONNULL compressed_optional<char *>
 builtin_unicode_to_utf8(char *dst, const char *first, const char *last) noexcept;
 #endif
 
-WJR_ALL_NONNULL inline compressed_optional<char *>
-unicode_to_utf8(char *dst, const char *first, const char *last) noexcept {
+WJR_ALL_NONNULL inline compressed_optional<char *> unicode_to_utf8(char *dst, const char *first,
+                                                                   const char *last) noexcept {
 #if WJR_HAS_BUILTIN(UTF8_UNICODE_TO_UTF8)
     return builtin_unicode_to_utf8(dst, first, last);
 #else

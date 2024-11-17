@@ -41,7 +41,7 @@ set(WJR_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 set(WJR_LIB_DIR ${PROJECT_SOURCE_DIR}/src)
 
 macro(WJR_ADD_SRCS TARGET PATH)
-   file(GLOB_RECURSE TMP_SRCS ${WJR_LIB_DIR}/wjr/${PATH}/*.cpp)
+   file(GLOB_RECURSE TMP_SRCS ${WJR_LIB_DIR}/wjr/${PATH}/*.cpp ${WJR_LIB_DIR}/wjr/${PATH}/**/*.cpp)
    list(APPEND ${TARGET} ${TMP_SRCS})
 endmacro()
 
@@ -49,7 +49,6 @@ set(WJR_SRCS ${WJR_LIB_DIR}/wjr/assert.cpp)
 WJR_ADD_SRCS(WJR_SRCS biginteger)
 WJR_ADD_SRCS(WJR_SRCS format)
 WJR_ADD_SRCS(WJR_SRCS json)
-WJR_ADD_SRCS(WJR_SRCS math)
 WJR_ADD_SRCS(WJR_SRCS memory)
 
 if(WJR_ARCH)
@@ -67,17 +66,17 @@ if(WJR_ENABLE_ASSEMBLY)
 
    if(WJR_ARCH)
       set(WJR_ASSEMBLY_SRCS
-         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/math/basecase_mul_s.asm
-         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/math/basecase_sqr.asm
-         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/math/divexact_dbm1c.asm
-         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/math/mul_1.asm
-         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/math/addmul_1.asm
-         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/math/submul_1.asm
+         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/basecase_mul_s.asm
+         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/basecase_sqr.asm
+         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/divexact_dbm1c.asm
+         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/mul_1.asm
+         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/addmul_1.asm
+         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/submul_1.asm
       )
 
       set(WJR_ADDSUB_SRCS
-         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/math/addsub_n.asm
-         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/math/addrsblsh_n.asm
+         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/addsub_n.asm
+         ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/addrsblsh_n.asm
       )
 
       add_library(wjr_asm OBJECT ${WJR_ASSEMBLY_SRCS})

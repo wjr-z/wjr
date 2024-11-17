@@ -1,4 +1,8 @@
-#include <wjr/math/div.hpp>
+#include <wjr/biginteger/detail/add.hpp>
+#include <wjr/biginteger/detail/bignum-config.hpp>
+#include <wjr/biginteger/detail/div.hpp>
+#include <wjr/biginteger/detail/mul.hpp>
+#include <wjr/biginteger/detail/sub.hpp>
 #include <wjr/memory/stack_allocator.hpp>
 
 namespace wjr {
