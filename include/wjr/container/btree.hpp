@@ -8,6 +8,7 @@
  * @details The multiset/multimap/set/map adapter has not been implemented yet.
  * Only use when key is trivial. Otherwise, this maybe won't faster than
  * std::map.  \n Deletion is slower than std::map.
+ * Temporary discard!
  *
  * @todo
  *

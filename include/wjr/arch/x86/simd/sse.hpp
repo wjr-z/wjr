@@ -709,7 +709,7 @@ namespace sse_detail {
 namespace {
 #if WJR_HAS_SIMD(SSE2)
 
-inline const __m128i srli_epi8_mask[8] = {
+static const __m128i srli_epi8_mask[8] = {
     sse::set1_epi16(0xFFFF), sse::set1_epi16(0x7F7F), sse::set1_epi16(0x3F3F),
     sse::set1_epi16(0x1F1F), sse::set1_epi16(0xF0F),  sse::set1_epi16(0x707),
     sse::set1_epi16(0x303),  sse::set1_epi16(0x101),

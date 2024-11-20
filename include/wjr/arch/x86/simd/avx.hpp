@@ -625,7 +625,7 @@ namespace avx_detail {
 namespace {
 #if WJR_HAS_SIMD(AVX2)
 
-inline const __m256i srli_epi8_mask[8] = {
+static const __m256i srli_epi8_mask[8] = {
     avx::set1_epi16(0xFFFF), avx::set1_epi16(0x7F7F), avx::set1_epi16(0x3F3F),
     avx::set1_epi16(0x1F1F), avx::set1_epi16(0xF0F),  avx::set1_epi16(0x707),
     avx::set1_epi16(0x303),  avx::set1_epi16(0x101),
