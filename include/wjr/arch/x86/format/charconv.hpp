@@ -24,7 +24,7 @@ static const __m128i mul10p4x = simd_cast<uint32_t, __m128i_t>(10000);
 static const __m128i mul10p2 = sse::set1_epi16(5243);
 static const __m128i mul10p2x = sse::set1_epi16(100);
 static const __m128i mul10p1 = sse::set1_epi16((short)52429u);
-static const __m128i mul10p1x = sse::set1_epi16(10);
+static const __m128i mul10q8mask = sse::set1_epi16(~0b111);
 
 static const __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
 
@@ -52,9 +52,9 @@ WJR_CONST WJR_INTRINSIC_INLINE uint64_t builtin_to_chars_unroll_8_fast_10(uint32
     x = _mm_packus_epi16(q, r);
 
     q = _mm_mulhi_epu16(x, to_chars_detail::mul10p1);
+    r = _mm_sub_epi16(x, _mm_and_si128(q, to_chars_detail::mul10q8mask));
     q = _mm_srli_epi16(q, 3);
-
-    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, to_chars_detail::mul10p1x));
+    r = _mm_sub_epi16(r, _mm_slli_epi16(q, 1));
     x = _mm_packus_epi16(q, r);
 
     return simd_cast<__m128i_t, uint64_t>(sse::shuffle_epi8(x, to_chars_detail::shuf));

@@ -301,7 +301,8 @@ __biginteger_to_chars_power_of_two_impl<char_converter_t>(uint8_t *first, const 
 template <typename Converter>
 WJR_ALL_NONNULL WJR_RETURNS_NONNULL uint8_t *
 basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n, Converter conv) noexcept {
-    if (n > 4) {
+    constexpr size_t div_qr_2_threshold = 6;
+    if (n >= div_qr_2_threshold) {
         do {
             uint64_t q;
             uint64_t rem[2];
@@ -333,7 +334,7 @@ basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n, Converter conv) noexc
             hi /= 100;
             buf[-19] = conv.template to<10>(hi);
             buf -= 19;
-        } while (n > 4);
+        } while (n >= div_qr_2_threshold);
     }
 
     do {
