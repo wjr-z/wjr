@@ -317,19 +317,15 @@ basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n, Converter conv) noexc
             uint64_t lo, hi;
             hi = div128by64to64_noshift(lo, rem[0], rem[1], div2by1_divider_noshift_of_big_base_10);
 
-            __to_chars_unroll_8<10>(buf - 8, lo % 1'0000'0000, conv);
-            lo /= 1'0000'0000;
-            __to_chars_unroll_8<10>(buf - 16, lo % 1'0000'0000, conv);
-            lo /= 1'0000'0000;
+            __to_chars_unroll_16<10>(buf - 16, lo % 1'0000'0000'0000'0000, conv);
+            lo /= 1'0000'0000'0000'0000;
             __to_chars_unroll_2<10>(buf - 18, lo % 100, conv);
             lo /= 100;
             buf[-19] = conv.template to<10>(lo);
             buf -= 19;
 
-            __to_chars_unroll_8<10>(buf - 8, hi % 1'0000'0000, conv);
-            hi /= 1'0000'0000;
-            __to_chars_unroll_8<10>(buf - 16, hi % 1'0000'0000, conv);
-            hi /= 1'0000'0000;
+            __to_chars_unroll_16<10>(buf - 16, hi % 1'0000'0000'0000'0000, conv);
+            hi /= 1'0000'0000'0000'0000;
             __to_chars_unroll_2<10>(buf - 18, hi % 100, conv);
             hi /= 100;
             buf[-19] = conv.template to<10>(hi);
@@ -350,10 +346,8 @@ basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n, Converter conv) noexc
             up[n - 1] = q;
         }
 
-        __to_chars_unroll_8<10>(buf - 8, rem % 1'0000'0000, conv);
-        rem /= 1'0000'0000;
-        __to_chars_unroll_8<10>(buf - 16, rem % 1'0000'0000, conv);
-        rem /= 1'0000'0000;
+        __to_chars_unroll_16<10>(buf - 16, rem % 1'0000'0000'0000'0000, conv);
+        rem /= 1'0000'0000'0000'0000;
         __to_chars_unroll_2<10>(buf - 18, rem % 100, conv);
         rem /= 100;
         buf[-19] = conv.template to<10>(rem);

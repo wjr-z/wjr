@@ -715,6 +715,8 @@ static const __m128i srli_epi8_mask[8] = {
     sse::set1_epi16(0x303),  sse::set1_epi16(0x101),
 };
 
+static const __m128i ascii_base_10 = sse::set1_epi8('0');
+
 #endif
 } // namespace
 } // namespace sse_detail
