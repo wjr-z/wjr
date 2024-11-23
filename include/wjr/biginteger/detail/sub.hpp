@@ -382,7 +382,7 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0
         c_out = cf - subc_n(dst, src0, src1, n);
         return ret;
     }
-    
+
     c_out = 0;
     return abs_subc_n(dst, src0, src1, n);
 }
