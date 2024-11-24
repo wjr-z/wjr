@@ -7,10 +7,13 @@
  *
  * @details The multiset/multimap/set/map adapter has not been implemented yet.
  * Only use when key is trivial. Otherwise, this maybe won't faster than
- * std::map.  \n Deletion is slower than std::map.
- * Temporary discard!
+ * std::map because its search complexity is O((k - 1) * (log n / log k)).
+ * Insertion and deletion may cause iterators to fail.
  *
  * @todo
+ * 1. Erase a range with optimization.
+ * 2. Construct with a range with optimization.
+ * 3. Merage with optimization.
  *
  * @version 0.1
  * @date 2024-05-06
@@ -40,6 +43,12 @@ struct btree_leaf_node;
 
 namespace btree_detail {
 
+/**
+ * @brief I have temporarily abandoned the number of dynamic nodes for optimization purposes
+ *
+ */
+inline constexpr size_t node_size = 8;
+
 template <typename T>
 struct is_possible_inline_key : std::is_trivially_copyable<T> {};
 
@@ -58,7 +67,6 @@ WJR_INTRINSIC_INLINE void btree_assign(T &dst, const T &from) {
 template <size_t Min, size_t Max, typename Other>
 WJR_INTRINSIC_INLINE void builtin_btree_copy(const Other *first, const Other *last,
                                              Other *dst) noexcept {
-    WJR_ASSUME(to_unsigned(last - first) >= Min && to_unsigned(last - first) <= Max);
     constexpr auto Size = sizeof(Other);
 
     if constexpr (Min == 0) {
@@ -67,30 +75,11 @@ WJR_INTRINSIC_INLINE void builtin_btree_copy(const Other *first, const Other *la
         }
     }
 
-    const auto n = last - first;
-
-    if constexpr (Max > 8) {
-        if (WJR_LIKELY(n >= 8)) {
-            uint8_t x0[Size * 8];
-            uint8_t x1[Size * 8];
-            std::memcpy(x0, first, Size * 8);
-            std::memcpy(x1, last - 8, Size * 8);
-            std::memcpy(dst, x0, Size * 8);
-            std::memcpy(dst + n - 8, x1, Size * 8);
-            return;
-        }
-    } else if constexpr (Max == 8) {
-        if (WJR_LIKELY(n == 8)) {
-            uint8_t x[Size * 8];
-            std::memcpy(x, first, Size * 8);
-            std::memcpy(dst, x, Size * 8);
-            return;
-        }
-    }
+    const auto n = to_unsigned(last - first);
+    WJR_ASSUME(n >= Min && n <= Max);
 
     if constexpr (Max > 4) {
-        constexpr bool __expect = Max < 8;
-        if (WJR_EXPECT(n >= 4, __expect)) {
+        if (WJR_LIKELY(n >= 4)) {
             uint8_t x0[Size * 4];
             uint8_t x1[Size * 4];
             std::memcpy(x0, first, Size * 4);
@@ -99,18 +88,10 @@ WJR_INTRINSIC_INLINE void builtin_btree_copy(const Other *first, const Other *la
             std::memcpy(dst + n - 4, x1, Size * 4);
             return;
         }
-    } else if constexpr (Max == 4) {
-        if (WJR_LIKELY(n == 4)) {
-            uint8_t x[Size * 4];
-            std::memcpy(x, first, Size * 4);
-            std::memcpy(dst, x, Size * 4);
-            return;
-        }
     }
 
     if constexpr (Max > 2) {
-        constexpr bool __expect = Max < 4;
-        if (WJR_EXPECT(n >= 2, __expect)) {
+        if (n >= 2) {
             uint8_t x0[Size * 2];
             uint8_t x1[Size * 2];
             std::memcpy(x0, first, Size * 2);
@@ -119,37 +100,26 @@ WJR_INTRINSIC_INLINE void builtin_btree_copy(const Other *first, const Other *la
             std::memcpy(dst + n - 2, x1, Size * 2);
             return;
         }
-    } else if constexpr (Max == 2) {
-        if (WJR_LIKELY(n == 2)) {
-            uint8_t x[Size * 2];
-            std::memcpy(x, first, Size * 2);
-            std::memcpy(dst, x, Size * 2);
-            return;
-        }
     }
 
     btree_assign(dst[0], first[0]);
+
+    if constexpr (Max == 2) {
+        if (n == 1)
+            return;
+        btree_assign(dst[1], first[1]);
+    }
 }
 
 template <size_t Min, size_t Max, typename Other>
 WJR_INTRINSIC_INLINE void copy(const Other *first, const Other *last, Other *dest) noexcept {
-    if constexpr (Max <= 16) {
-        builtin_btree_copy<Min, Max>(first, last, dest);
-    } else {
-        WJR_ASSUME(to_unsigned(last - first) >= Min && to_unsigned(last - first) <= Max);
-        (void)std::copy(first, last, dest);
-    }
+    builtin_btree_copy<Min, Max>(first, last, dest);
 }
 
 template <size_t Min, size_t Max, typename Other>
 WJR_INTRINSIC_INLINE void copy_backward(const Other *first, const Other *last,
                                         Other *dest) noexcept {
-    if constexpr (Max <= 16) {
-        builtin_btree_copy<Min, Max>(first, last, dest - (last - first));
-    } else {
-        WJR_ASSUME(to_unsigned(last - first) >= Min && to_unsigned(last - first) <= Max);
-        (void)std::copy_backward(first, last, dest);
-    }
+    builtin_btree_copy<Min, Max>(first, last, dest - (last - first));
 }
 
 } // namespace btree_detail
@@ -194,8 +164,7 @@ struct __btree_inline_traits<Key, void> {
     }
 };
 
-template <typename Key, typename Value, bool Multi, typename Compare = std::less<>,
-          bool TrivialSearch = true>
+template <typename Key, typename Value, bool Multi, typename Compare = std::less<>>
 struct btree_traits : __btree_inline_traits<Key, Value> {
 private:
     using Mybase = __btree_inline_traits<Key, Value>;
@@ -217,7 +186,6 @@ public:
     static constexpr bool is_inline_key = Mybase::is_inline_key;
     static constexpr bool is_inline_value = Mybase::is_inline_value;
     static constexpr bool is_map = Mybase::is_map;
-    static constexpr bool is_trivial_search = TrivialSearch;
 
     using inline_key_type = std::conditional_t<is_inline_key, key_type, key_type *>;
     using inline_value_type = std::conditional_t<is_inline_value, value_type, value_type *>;
@@ -334,8 +302,8 @@ struct btree_inner_node : btree_node<Traits> {
     using value_type = typename Traits::value_type;
     using inline_key_type = typename Traits::inline_key_type;
 
-    alignas(16) inline_key_type m_keys[16];
-    alignas(16) btree_node<Traits> *m_sons[16 + 1];
+    alignas(16) inline_key_type m_keys[btree_detail::node_size];
+    alignas(16) btree_node<Traits> *m_sons[btree_detail::node_size + 1];
 };
 
 template <typename Traits>
@@ -385,7 +353,7 @@ struct btree_leaf_node : btree_list_base<Traits> {
         btree_detail::btree_assign(m_values[idx], value);
     }
 
-    alignas(16) inline_value_type m_values[16];
+    alignas(16) inline_value_type m_values[btree_detail::node_size];
 };
 
 template <typename Traits>
@@ -468,7 +436,7 @@ public:
         if (m_pos != 0) {
             --m_pos;
         } else {
-            m_node = m_node->prev();
+            m_node = m_node->prev;
             m_pos = __get_usize() - 1;
         }
 
@@ -504,7 +472,7 @@ protected:
 
     WJR_INTRINSIC_INLINE btree_const_iterator &__adjust_next() noexcept {
         if (WJR_UNLIKELY(m_pos == __get_usize())) {
-            m_node = m_node->next();
+            m_node = m_node->next;
             m_pos = 0;
         }
 
@@ -615,14 +583,14 @@ struct basic_btree_searcher_impl;
     } while (false)
 
 template <>
-struct basic_btree_searcher_impl<16, void> {
-    static constexpr size_t node_size = 16;
+struct basic_btree_searcher_impl<8, void> {
+    static constexpr size_t node_size = 8;
 
     template <size_t Min, typename node_type, typename Compare>
     WJR_PURE WJR_INTRINSIC_INLINE static unsigned int
-    trivial_search(const node_type *current, unsigned int size, Compare &&comp) noexcept {
+    search(const node_type *current, unsigned int size, Compare &&comp) noexcept {
         static_assert(Min != 0);
-        static_assert(Min == 1 || Min == 8);
+        static_assert(Min == 1 || Min == 4);
 
         WJR_ASSERT_ASSUME(size >= Min);
         WJR_ASSERT_ASSUME(size <= node_size);
@@ -631,330 +599,8 @@ struct basic_btree_searcher_impl<16, void> {
         WJR_REGISTER_BLPUS_SEARCH_2(2, 3, 4);
         WJR_REGISTER_BLPUS_SEARCH_2(4, 5, 6);
         WJR_REGISTER_BLPUS_SEARCH_2(6, 7, 8);
-        WJR_REGISTER_BLPUS_SEARCH_2(8, 9, 10);
-        WJR_REGISTER_BLPUS_SEARCH_2(10, 11, 12);
-        WJR_REGISTER_BLPUS_SEARCH_2(12, 13, 14);
-        WJR_REGISTER_BLPUS_SEARCH_2(14, 15, 16);
 
-        return 16;
-    }
-
-    template <size_t Min, typename node_type, typename Compare>
-    WJR_PURE WJR_INTRINSIC_INLINE static unsigned int
-    non_trivial_search(const node_type *current, unsigned int size, Compare &&comp) noexcept {
-        static_assert(Min != 0);
-        static_assert(Min == 1 || Min == 8);
-
-        WJR_ASSERT_ASSUME(size >= Min);
-        WJR_ASSERT_ASSUME(size <= node_size);
-
-        if constexpr (Min == 1) {
-            if (size <= 4) {
-                if (size == 1 || comp(current, 1)) {
-                    if (comp(current, 0)) {
-                        return 0;
-                    }
-
-                    return 1;
-                }
-
-                if (size == 2 || comp(current, 2)) {
-                    return 2;
-                }
-
-                if (size == 3 || comp(current, 3)) {
-                    return 3;
-                }
-
-                return 4;
-            }
-
-            if (size <= 8) {
-                if (comp(current, 3)) {
-                    if (comp(current, 1)) {
-                        if (comp(current, 0)) {
-                            return 0;
-                        }
-
-                        return 1;
-                    }
-
-                    if (comp(current, 2)) {
-                        return 2;
-                    }
-
-                    return 3;
-                }
-
-                if (size == 5 || comp(current, 5)) {
-                    if (comp(current, 4)) {
-                        return 4;
-                    }
-
-                    return 5;
-                }
-
-                if (size == 6 || comp(current, 6)) {
-                    return 6;
-                }
-
-                if (size == 7 || comp(current, 7)) {
-                    return 7;
-                }
-
-                return 8;
-            }
-
-            if (size <= 12) {
-                if (comp(current, 5)) {
-                    if (comp(current, 2)) {
-                        if (comp(current, 0)) {
-                            return 0;
-                        }
-
-                        if (comp(current, 1)) {
-                            return 1;
-                        }
-
-                        return 2;
-                    }
-
-                    if (comp(current, 3)) {
-                        return 3;
-                    }
-
-                    if (comp(current, 4)) {
-                        return 4;
-                    }
-
-                    return 5;
-                }
-
-                if (comp(current, 8)) {
-                    if (comp(current, 6)) {
-                        return 6;
-                    }
-
-                    if (comp(current, 7)) {
-                        return 7;
-                    }
-
-                    return 8;
-                }
-
-                if (size == 9) {
-                    return 9;
-                }
-
-                if (size == 10 || comp(current, 10)) {
-                    if (comp(current, 9)) {
-                        return 9;
-                    }
-
-                    return 10;
-                }
-
-                if (size == 11 || comp(current, 11)) {
-                    return 11;
-                }
-
-                return 12;
-            }
-
-            if (comp(current, 7)) {
-                if (comp(current, 3)) {
-                    if (comp(current, 1)) {
-                        if (comp(current, 0)) {
-                            return 0;
-                        }
-
-                        return 1;
-                    }
-
-                    if (comp(current, 2)) {
-                        return 2;
-                    }
-                }
-
-                if (comp(current, 5)) {
-                    if (comp(current, 4)) {
-                        return 4;
-                    }
-
-                    return 5;
-                }
-
-                if (comp(current, 6)) {
-                    return 6;
-                }
-
-                return 7;
-            }
-
-            if (comp(current, 11)) {
-                if (comp(current, 9)) {
-                    if (comp(current, 8)) {
-                        return 8;
-                    }
-
-                    return 9;
-                }
-
-                if (comp(current, 10)) {
-                    return 10;
-                }
-
-                return 11;
-            }
-
-            if (size == 13 || comp(current, 13)) {
-                if (comp(current, 12)) {
-                    return 12;
-                }
-
-                return 13;
-            }
-
-            if (size == 14 || comp(current, 14)) {
-                return 14;
-            }
-
-            if (size == 15 || comp(current, 15)) {
-                return 15;
-            }
-
-            return 16;
-        } else {
-            if (size <= 12) {
-                if (comp(current, 5)) {
-                    if (comp(current, 2)) {
-                        if (comp(current, 0)) {
-                            return 0;
-                        }
-
-                        if (comp(current, 1)) {
-                            return 1;
-                        }
-
-                        return 2;
-                    }
-
-                    if (comp(current, 3)) {
-                        return 3;
-                    }
-
-                    if (comp(current, 4)) {
-                        return 4;
-                    }
-
-                    return 5;
-                }
-
-                if (size == 8 || comp(current, 8)) {
-                    if (comp(current, 6)) {
-                        return 6;
-                    }
-
-                    if (comp(current, 7)) {
-                        return 7;
-                    }
-
-                    return 8;
-                }
-
-                if (size == 9) {
-                    return 9;
-                }
-
-                if (size == 10 || comp(current, 10)) {
-                    if (comp(current, 9)) {
-                        return 9;
-                    }
-
-                    return 10;
-                }
-
-                if (size == 11 || comp(current, 11)) {
-                    return 11;
-                }
-
-                return 12;
-            }
-
-            if (comp(current, 7)) {
-                if (comp(current, 3)) {
-                    if (comp(current, 1)) {
-                        if (comp(current, 0)) {
-                            return 0;
-                        }
-
-                        return 1;
-                    }
-
-                    if (comp(current, 2)) {
-                        return 2;
-                    }
-                }
-
-                if (comp(current, 5)) {
-                    if (comp(current, 4)) {
-                        return 4;
-                    }
-
-                    return 5;
-                }
-
-                if (comp(current, 6)) {
-                    return 6;
-                }
-
-                return 7;
-            }
-
-            if (comp(current, 11)) {
-                if (comp(current, 9)) {
-                    if (comp(current, 8)) {
-                        return 8;
-                    }
-
-                    return 9;
-                }
-
-                if (comp(current, 10)) {
-                    return 10;
-                }
-
-                return 11;
-            }
-
-            if (size == 13 || comp(current, 13)) {
-                if (comp(current, 12)) {
-                    return 12;
-                }
-
-                return 13;
-            }
-
-            if (size == 14 || comp(current, 14)) {
-                return 14;
-            }
-
-            if (size == 15 || comp(current, 15)) {
-                return 15;
-            }
-
-            return 16;
-        }
-    }
-
-    template <size_t Min, bool TrivialSearch, typename node_type, typename Compare>
-    WJR_PURE WJR_INTRINSIC_INLINE static unsigned int
-    search(const node_type *current, unsigned int size, Compare &&comp) noexcept {
-        if constexpr (TrivialSearch) {
-            return trivial_search<Min>(current, size, std::forward<Compare>(comp));
-        } else {
-            return non_trivial_search<Min>(current, size, std::forward<Compare>(comp));
-        }
+        return 8;
     }
 };
 
@@ -968,7 +614,7 @@ class basic_btree {
 
     friend class container_fn<_Alty>;
 
-    static constexpr size_t node_size = 16;
+    static constexpr size_t node_size = 8;
     static constexpr bool is_inline_key = Traits::is_inline_key;
     static constexpr bool is_inline_value = Traits::is_inline_value;
     using inline_key_type = typename Traits::inline_key_type;
@@ -977,7 +623,6 @@ class basic_btree {
     static constexpr size_t ceil_half = node_size - floor_half;
     static constexpr size_t max_moved_elements = (ceil_half + 1) / 2;
     static constexpr bool multi = Traits::multi;
-    static constexpr bool is_trivial_search = Traits::is_trivial_search;
 
     using node_type = typename Traits::node_type;
     using inner_node_type = typename Traits::inner_node_type;
@@ -1597,7 +1242,7 @@ private:
 
         if constexpr (Adjust) {
             if (WJR_UNLIKELY(pos == cur_usize)) {
-                return const_iterator(current->as_leaf()->__get_list()->next(), 0);
+                return const_iterator(current->as_leaf()->__get_list()->next, 0);
             }
         }
 
@@ -1609,7 +1254,7 @@ private:
     __search(const node_type *current, unsigned int size, Compare &&comp) noexcept {
         static_assert(Min != 0);
 
-        return basic_btree_searcher_impl<node_size>::template search<Min, is_trivial_search>(
+        return basic_btree_searcher_impl<node_size>::template search<Min>(
             current, size, std::forward<Compare>(comp));
     }
 
@@ -1650,54 +1295,50 @@ private:
                          T *&lhs, T *&rhs) noexcept {
         unsigned int size;
 
-        do {
-            if (pos != par_size) {
-                const auto tmp = static_cast<T *>(parent->m_sons[pos + 1]);
-                unsigned int tmp_size;
+        if (pos != 0) {
+            auto *const tmp = static_cast<T *>(parent->m_sons[pos - 1]);
+            unsigned int tmp_size;
 
-                if constexpr (std::is_same_v<T, leaf_node_type>) {
-                    tmp_size = -tmp->size();
-                } else {
-                    tmp_size = tmp->size();
-                }
-
-                WJR_ASSERT_ASSUME(tmp_size >= floor_half);
-
-                rhs = tmp;
-                size = tmp_size;
+            if constexpr (std::is_same_v<T, leaf_node_type>) {
+                tmp_size = -tmp->size();
             } else {
-                auto tmp = static_cast<T *>(parent->m_sons[pos - 1]);
-                lhs = tmp;
-
-                if constexpr (std::is_same_v<T, leaf_node_type>) {
-                    return -tmp->size();
-                } else {
-                    return tmp->size();
-                }
-            }
-        } while (false);
-
-        do {
-            if (pos != 0) {
-                const auto tmp = static_cast<T *>(parent->m_sons[pos - 1]);
-                unsigned int tmp_size;
-
-                if constexpr (std::is_same_v<T, leaf_node_type>) {
-                    tmp_size = -tmp->size();
-                } else {
-                    tmp_size = tmp->size();
-                }
-
-                if (tmp_size >= size) {
-                    lhs = tmp;
-                    size = tmp_size;
-                    break;
-                }
+                tmp_size = tmp->size();
             }
 
+            WJR_ASSERT_ASSUME(tmp_size >= floor_half);
+            lhs = tmp;
+            size = tmp_size;
+        } else {
+            auto *const tmp = static_cast<T *>(parent->m_sons[pos + 1]);
             lhs = nullptr;
-        } while (false);
+            rhs = tmp;
+            if constexpr (std::is_same_v<T, leaf_node_type>) {
+                return -tmp->size();
+            } else {
+                return tmp->size();
+            }
+        }
 
+        if (pos != par_size) {
+            auto *const tmp = static_cast<T *>(parent->m_sons[pos + 1]);
+            unsigned int tmp_size;
+
+            if constexpr (std::is_same_v<T, leaf_node_type>) {
+                tmp_size = -tmp->size();
+            } else {
+                tmp_size = tmp->size();
+            }
+
+            WJR_ASSERT_ASSUME(tmp_size >= floor_half);
+
+            if (tmp_size > size) {
+                lhs = nullptr;
+                rhs = tmp;
+                return tmp_size;
+            }
+        }
+
+        WJR_ASSERT_ASSUME_L2(lhs != nullptr);
         return size;
     }
 
@@ -2061,7 +1702,7 @@ private:
         } while (false);
 
         lhs->size() = -(merge_size - 1);
-        remove_uninit(rhs);
+        remove(rhs);
         __drop_leaf_node(rhs);
 
         __rec_erase_iter(parent, par_pos, cur_size);

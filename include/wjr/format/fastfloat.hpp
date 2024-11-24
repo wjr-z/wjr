@@ -2291,6 +2291,7 @@ INTEGER:
     // of a 64-bit integer. However, this is uncommon.
     //
     // We can deal with up to 19 digits.
+    // todo : Maybe need to make this branch unlikely.
     if (digit_count > 19) { // this is uncommon
         // It is possible that the integer had an overflow.
         // We have to handle the case where we have 0.0000somenumber.

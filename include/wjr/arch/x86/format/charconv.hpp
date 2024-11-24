@@ -19,11 +19,11 @@ namespace wjr {
 namespace to_chars_detail {
 namespace {
 
-static const __m128i mul10p4 = sse::set1_epi32((int32_t)3518437209);
+static const __m128i mul10p4 = sse::set1_epi32((int32_t)0xD1B7'1759);
 static const __m128i mul10p4x = sse::set1_epi32(10000);
-static const __m128i mul10p2 = sse::set1_epi16(5243);
+static const __m128i mul10p2 = sse::set1_epi16(0x147B);
 static const __m128i mul10p2x = sse::set1_epi16(100);
-static const __m128i mul10p1 = sse::set1_epi16((int16_t)52429u);
+static const __m128i mul10p1 = sse::set1_epi16((int16_t)0xCCCD);
 static const __m128i mul10q8mask = sse::set1_epi16(~0b111);
 
 static const __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15);
@@ -90,7 +90,7 @@ WJR_INTRINSIC_INLINE __m128i builtin_to_chars_unroll_16_fast_10(uint64_t in) noe
 
     {
         auto high = static_cast<uint32_t>(in / 1'0000'0000);
-        auto low = static_cast<uint32_t>(in % 1'0000'0000);
+        uint32_t low = in - high * 1'0000'0000;
         x = sse::set_epi32(0, low, 0, high);
     }
 

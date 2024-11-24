@@ -1,20 +1,18 @@
-#ifndef WJR_CONTIANER_GENERIC_BSET_HPP__
-#define WJR_CONTIANER_GENERIC_BSET_HPP__
+#ifndef WJR_CONTIANER_GENERIC_BTREE_MAP_HPP__
+#define WJR_CONTIANER_GENERIC_BTREE_MAP_HPP__
 
 #include <wjr/container/btree.hpp>
 
 namespace wjr {
 
-template <typename Key, typename Pr, bool TrivialSearch>
-using __bset_traits = btree_traits<Key, void, false, Pr, TrivialSearch>;
-
-template <typename Key, typename Pr = std::less<Key>, bool TrivialSearch = true>
-class bset : public basic_btree<__bset_traits<Key, Pr, TrivialSearch>> {
-    using Traits = __bset_traits<Key, Pr, TrivialSearch>;
+template <typename Key, typename Value, typename Pr = std::less<Key>>
+class btree_map : public basic_btree<btree_traits<Key, Value, false, Pr>> {
+    using Traits = btree_traits<Key, Value, false, Pr>;
     using Mybase = basic_btree<Traits>;
 
 public:
     using key_type = typename Mybase::key_type;
+    using mapped_type = typename Mybase::mapped_type;
     using value_type = typename Mybase::value_type;
     using size_type = typename Mybase::size_type;
     using difference_type = typename Mybase::difference_type;
@@ -42,6 +40,21 @@ private:
     }
 
 public:
+    mapped_type &at(const key_type &key) {
+        auto iter = this->lower_bound(key);
+        if (!__is_lower_bound_same(iter, key)) {
+            WJR_THROW(std::out_of_range("invalid map key"));
+        }
+
+        return iter->second;
+    }
+
+    const mapped_type &at(const key_type &key) const {
+        return const_cast<btree_map &>(*this).at(key);
+    }
+
+    mapped_type &operator[](const key_type &key) { return try_emplace(key).first->second; }
+
     std::pair<iterator, bool> insert(const value_type &val) noexcept {
         return this->__emplace_unique(val);
     }
@@ -51,8 +64,18 @@ public:
     }
 
     template <typename... Args>
-    WJR_INTRINSIC_INLINE std::pair<iterator, bool> emplace(Args &&...args) noexcept {
+    std::pair<iterator, bool> emplace(Args &&...args) noexcept {
         return this->__emplace_unique(std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    std::pair<iterator, bool> try_emplace(const key_type &k, Args &&...args) {
+        return __try_emplace_unique(k, std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    std::pair<iterator, bool> try_emplace(key_type &&k, Args &&...args) {
+        return __try_emplace_unique(std::move(k), std::forward<Args>(args)...);
     }
 
     size_type count(const key_type &key) const noexcept { return __count_unique(key) ? 1 : 0; }
@@ -60,4 +83,4 @@ public:
 
 } // namespace wjr
 
-#endif // WJR_CONTIANER_GENERIC_BSET_HPP__
+#endif // WJR_CONTIANER_GENERIC_BTREE_MAP_HPP__

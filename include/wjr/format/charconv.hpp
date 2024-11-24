@@ -231,11 +231,12 @@ class __to_chars_unroll_4_fast_fn_impl<16> : public __to_chars_unroll_4_fast_fn_
 
 template <uint64_t Base>
 class __to_chars_unroll_8_fast_fn_impl_base {
-#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
+    static_assert(Base == 10);
 public:
+#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
     template <typename Converter>
-    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint64_t val, Converter conv) noexcept {
-        builtin_to_chars_unroll_8_fast<Base>(ptr, static_cast<uint32_t>(val), conv);
+    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val, Converter conv) noexcept {
+        builtin_to_chars_unroll_8_fast<Base>(ptr, val, conv);
     }
 #endif
 };
@@ -248,8 +249,8 @@ class __to_chars_unroll_8_fast_fn_impl<10> : public __to_chars_unroll_8_fast_fn_
 
 template <uint64_t Base>
 class __to_chars_unroll_16_fast_fn_impl_base {
-#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_16_FAST)
 public:
+#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_16_FAST)
     template <typename Converter>
     WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint64_t val, Converter conv) noexcept {
         builtin_to_chars_unroll_16_fast<Base>(ptr, val, conv);
@@ -312,9 +313,9 @@ class __to_chars_unroll_8_fn_impl : public __to_chars_unroll_8_fast_fn_impl<Base
 
 public:
     template <typename Converter>
-    WJR_INTRINSIC_INLINE void operator()(uint8_t *ptr, uint64_t val,
+    WJR_INTRINSIC_INLINE void operator()(uint8_t *ptr, uint32_t val,
                                          Converter conv) const noexcept {
-        if constexpr (charconv_detail::has_to_chars_fast_fn_fast_conv_v<Mybase, uint64_t,
+        if constexpr (charconv_detail::has_to_chars_fast_fn_fast_conv_v<Mybase, uint32_t,
                                                                         Converter>) {
             Mybase::__fast_conv(ptr, val, conv);
         } else {
