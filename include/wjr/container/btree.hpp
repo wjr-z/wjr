@@ -14,6 +14,8 @@
  * 1. Erase a range with optimization.
  * 2. Construct with a range with optimization.
  * 3. Merage with optimization.
+ * 
+ * @deprecated
  *
  * @version 0.1
  * @date 2024-05-06
@@ -307,19 +309,14 @@ struct btree_inner_node : btree_node<Traits> {
 };
 
 template <typename Traits>
-struct btree_list_base : btree_node<Traits>, intrusive::list_node {
+struct btree_list_base : btree_node<Traits>, intrusive::list_node<> {
 private:
     using Mybase = btree_node<Traits>;
 
 public:
-    using list_node_type = intrusive::list_node;
-
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(btree_list_base);
 
     constexpr btree_list_base(btree_node_constructor_t) noexcept : Mybase(btree_node_constructor) {}
-
-    constexpr list_node_type *__get_list() noexcept { return this; }
-    constexpr const list_node_type *__get_list() const noexcept { return this; }
 };
 
 template <typename Traits>
@@ -328,7 +325,6 @@ struct btree_leaf_node : btree_list_base<Traits> {
     using value_type = typename Traits::value_type;
     constexpr static bool is_inline_value = Traits::is_inline_value;
     using inline_value_type = typename Traits::inline_value_type;
-    using list_node_type = intrusive::list_node;
 
     const key_type &__get_key(unsigned int pos) const noexcept {
         return Traits::get_key(Traits::__get_value(m_values[pos]));
@@ -391,7 +387,7 @@ class btree_const_iterator {
     template <typename Other>
     friend class basic_btree;
 
-    using list_node_type = intrusive::list_node;
+    using list_node_type = intrusive::list_node<>;
 
 public:
     using iterator_category = std::bidirectional_iterator_tag;
@@ -492,7 +488,7 @@ class btree_iterator : public btree_const_iterator<Traits> {
     template <typename Other>
     friend class basic_btree;
 
-    using list_node_type = intrusive::list_node;
+    using list_node_type = intrusive::list_node<>;
 
 public:
     using Mybase::Mybase;
@@ -628,7 +624,7 @@ class basic_btree {
     using inner_node_type = typename Traits::inner_node_type;
     using leaf_node_type = typename Traits::leaf_node_type;
     using list_base_type = typename Traits::list_base_type;
-    using list_node_type = intrusive::list_node;
+    using list_node_type = intrusive::list_node<>;
 
 public:
     using key_type = typename Traits::key_type;
@@ -1272,21 +1268,18 @@ private:
     WJR_PURE WJR_INTRINSIC_INLINE static unsigned int
     __search(const inner_node_type *current, unsigned int size, const key_type &key,
              const key_compare &comp) noexcept {
-        return __search<Min>(
-            current, size, [&key, &comp](const node_type *current, unsigned int pos) {
-                return __compare<Upper>(Traits::__get_key(current->as_inner()->m_keys[pos]), key,
-                                        comp);
-            });
+        return __search<Min>(current, size, [&key, &comp](const node_type *cur, unsigned int pos) {
+            return __compare<Upper>(Traits::__get_key(cur->as_inner()->m_keys[pos]), key, comp);
+        });
     }
 
     template <bool Upper, size_t Min>
     WJR_PURE WJR_INTRINSIC_INLINE static unsigned int
     __search(const leaf_node_type *current, unsigned int size, const key_type &key,
              const key_compare &comp) noexcept {
-        return __search<Min>(
-            current, size, [&key, &comp](const node_type *current, unsigned int pos) {
-                return __compare<Upper>(current->as_leaf()->__get_key(pos), key, comp);
-            });
+        return __search<Min>(current, size, [&key, &comp](const node_type *cur, unsigned int pos) {
+            return __compare<Upper>(cur->as_leaf()->__get_key(pos), key, comp);
+        });
     }
 
     template <typename T>

@@ -7,49 +7,46 @@
 
 namespace wjr::intrusive {
 
-struct forward_list_node {
-    forward_list_node *next;
+template <typename T = void, typename Tag = void>
+class forward_list_node {
+public:
+    forward_list_node() noexcept : m_next(nullptr) {}
+    forward_list_node(default_construct_t) noexcept {}
+    forward_list_node(const forward_list_node &) = default;
+    forward_list_node(forward_list_node &&) = default;
+    forward_list_node &operator=(const forward_list_node &) = default;
+    forward_list_node &operator=(forward_list_node &&) = default;
+    ~forward_list_node() = default;
+
+    constexpr forward_list_node *next() noexcept { return m_next; }
+    constexpr const forward_list_node *next() const noexcept { return m_next; }
+
+    constexpr void set_next(forward_list_node *node) noexcept { m_next = node; }
+
+    constexpr T *self() noexcept { return static_cast<T *>(this); }
+    constexpr const T *self() const noexcept { return static_cast<const T *>(this); }
+
+    constexpr void init_self() noexcept { m_next = nullptr; }
+
+    constexpr bool empty() const noexcept { return m_next == nullptr; }
+
+    constexpr void insert_after(forward_list_node *head, forward_list_node *tail) noexcept {
+        tail->m_next = m_next;
+        m_next = head;
+    }
+
+    constexpr void insert_after(forward_list_node *node) noexcept { insert_after(node, node); }
+
+    constexpr void push_back(forward_list_node *node) noexcept {
+        WJR_ASSERT(m_next == nullptr);
+        m_next = node;
+    }
+
+private:
+    forward_list_node *m_next;
 };
 
-static_assert(std::is_standard_layout_v<forward_list_node>);
-
-constexpr void init(forward_list_node *node) noexcept { node->next = nullptr; }
-
-constexpr void insert_after(forward_list_node *prev, forward_list_node *head,
-                            forward_list_node *tail) noexcept {
-    tail->next = prev->next;
-    prev->next = head;
-}
-
-constexpr void insert_after(forward_list_node *prev, forward_list_node *node) noexcept {
-    node->next = prev->next;
-    prev->next = node;
-}
-
-constexpr void push_front(forward_list_node *prev, forward_list_node *head,
-                          forward_list_node *tail) noexcept {
-    insert_after(prev, head, tail);
-}
-
-constexpr void push_front(forward_list_node *prev, forward_list_node *node) noexcept {
-    insert_after(prev, node);
-}
-
-constexpr void push_back(forward_list_node *tail, forward_list_node *node) noexcept {
-    tail->next = node;
-}
-
-constexpr bool empty(const forward_list_node *node) noexcept { return node->next == nullptr; }
-
-constexpr forward_list_node *next(forward_list_node *node) noexcept { return node->next; }
-constexpr const forward_list_node *next(const forward_list_node *node) noexcept {
-    return node->next;
-}
-
-constexpr void pop_front(forward_list_node *head, forward_list_node *node) noexcept {
-    WJR_ASSERT_ASSUME(head->next == node);
-    head->next = node->next;
-}
+static_assert(std::is_standard_layout_v<forward_list_node<>>);
 
 } // namespace wjr::intrusive
 

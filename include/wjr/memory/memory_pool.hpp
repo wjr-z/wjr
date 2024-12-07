@@ -22,13 +22,13 @@
 namespace wjr {
 
 struct automatic_free_pool {
-    using chunk = intrusive::list_node;
+    struct chunk : intrusive::list_node<chunk> {};
 
-    automatic_free_pool() noexcept { init(&head); }
+    automatic_free_pool() = default;
     ~automatic_free_pool() noexcept {
-        chunk *node = head.next;
+        chunk *node = head.next()->self();
         while (node != std::addressof(head)) {
-            auto *const nxt = node->next;
+            auto *const nxt = node->next()->self();
             free(node);
             node = nxt;
         }
@@ -47,7 +47,7 @@ struct automatic_free_pool {
 
     void deallocate(void *ptr) noexcept {
         auto *const node = reinterpret_cast<chunk *>(static_cast<char *>(ptr) - sizeof(chunk));
-        remove(node);
+        node->remove();
         free(node);
     }
 

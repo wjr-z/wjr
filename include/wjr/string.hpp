@@ -20,7 +20,7 @@ WJR_INTRINSIC_INLINE void
 __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
                        typename std::basic_string<CharT, Traits, Alloc>::size_type sz) {
     using Size = typename std::basic_string<CharT, Traits, Alloc>::size_type;
-    str.resize_and_overwrite(sz, [](char *, Size sz) { return sz; });
+    str.resize_and_overwrite(sz, [](char *, Size _sz) { return _sz; });
 }
 
     #define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(...)

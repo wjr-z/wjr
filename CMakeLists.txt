@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(wjr LANGUAGES CXX)
+project(wjr VERSION 0.1.1 LANGUAGES CXX)
 
 if(NOT(CMAKE_SIZEOF_VOID_P EQUAL 8))
    message(FATAL_ERROR "Not support non 64-bit currently, CMake will exit.")
