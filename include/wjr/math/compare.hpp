@@ -20,17 +20,14 @@ WJR_INTRINSIC_CONSTEXPR int fallback_compare_n(const T *src0, const T *src1, siz
     return 0;
 }
 
-template <typename T>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR20 int compare_n(const T *src0, const T *src1, size_t n) noexcept {
     if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
         return 0;
     }
 
 #if WJR_HAS_BUILTIN(COMPARE_N)
-    if constexpr (sizeof(T) == 8) {
-        static_assert(sizeof(T) != 8 || std::is_unsigned_v<T>,
-                      "T must be unsigned if sizeof(T) == 8");
-
+    if constexpr (sizeof(T) == 8 && std::is_unsigned_v<T>) {
         if (is_constant_evaluated()) {
             return fallback_compare_n(src0, src1, n);
         }
@@ -59,7 +56,7 @@ WJR_INTRINSIC_CONSTEXPR int fallback_reverse_compare_n(const T *src0, const T *s
     return 0;
 }
 
-template <typename T>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR20 int reverse_compare_n(const T *src0, const T *src1,
                                                          size_t n) noexcept {
     if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
@@ -67,10 +64,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR20 int reverse_compare_n(const T *src0, const T 
     }
 
 #if WJR_HAS_BUILTIN(COMPARE_N)
-    if constexpr (sizeof(T) == 8) {
-        static_assert(sizeof(T) != 8 || std::is_unsigned_v<T>,
-                      "T must be unsigned if sizeof(T) == 8");
-
+    if constexpr (sizeof(T) == 8 && std::is_unsigned_v<T>) {
         if (is_constant_evaluated()) {
             return fallback_reverse_compare_n(src0, src1, n);
         }

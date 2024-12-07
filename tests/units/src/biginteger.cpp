@@ -1,7 +1,7 @@
 #include "detail.hpp"
 
 #if defined(WJR_USE_GMP)
-#include <gmp.h>
+    #include <gmp.h>
 #endif
 
 #include <wjr/biginteger.hpp>
@@ -694,6 +694,39 @@ TEST(biginteger, convert) {
 
                     WJR_ASSERT(equal(a, b));
                 }
+            }
+        }
+    }
+#endif
+}
+
+TEST(biginteger, pow) {
+    {
+        biginteger a;
+        pow(a, 0, 0);
+        WJR_ASSERT(a == 1u);
+        pow(a, -14348907, 3);
+        WJR_ASSERT(a == biginteger("-2954312706550833698643"));
+    }
+#if defined(WJR_USE_GMP)
+    {
+        biginteger a;
+        mpz_t b;
+        mpz_init(b);
+
+        const int N = 1 << 14;
+
+        for (int n = 0; n < N; n += (n <= 64 ? 1 : n / 4)) {
+            const int maxn = bit_width<uint32_t>(n + 1) + 8;
+            for (int M = 0; M < maxn; ++M) {
+                uint64_t x = mt_rand();
+                a = x;
+                copy(b, a);
+
+                pow(a, a, n);
+                mpz_pow_ui(b, b, n);
+
+                WJR_ASSERT(equal(a, b));
             }
         }
     }

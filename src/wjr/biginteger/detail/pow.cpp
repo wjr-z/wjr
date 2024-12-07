@@ -12,13 +12,17 @@ size_t pow_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t exp, uint64_
     WJR_ASSERT(n >= 1);
     /* FIXME: Add operand overlap criteria */
 
-    if (exp <= 1) {
+    if (exp <= 2) {
         if (exp == 0) {
             dst[0] = 1;
             return 1;
-        } else {
+        } else if (exp == 1) {
             std::copy_n(src, n, dst);
             return n;
+        } else {
+            sqr(dst, src, n);
+            n <<= 1;
+            return n - (dst[n - 1] == 0);
         }
     }
 

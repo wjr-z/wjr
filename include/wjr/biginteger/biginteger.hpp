@@ -4,8 +4,11 @@
  * @brief
  * @version 0.1
  * @date 2024-09-16
- * @todo Add more attributes to help the compiler optimize to zero overhead.
+ * @todo
+ * 1. Add more attributes to help the compiler optimize to zero overhead.
  * Such as unsigned biginteger, fixed size biginteger.
+ * 2. Optimize reserve. For example, A = B + C, if A is restrict, then there's no need to memcpy if
+ * A need to reserve.
  *
  * @copyright Copyright (c) 2024
  *
@@ -694,6 +697,24 @@ WJR_PURE inline uint32_t __ctz_impl(const biginteger_data *num) noexcept;
 template <typename S>
 void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint32_t exp) noexcept;
 
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+void __pow_impl(basic_biginteger<S> *dst, T num, uint32_t exp) noexcept {
+    biginteger_data __num;
+    uint64_t u64;
+
+    if constexpr (std::is_unsigned_v<T>) {
+        u64 = num;
+        __num.m_data = &u64;
+        __num.m_size = 1;
+    } else {
+        u64 = __fast_abs(num);
+        __num.m_data = &u64;
+        __num.m_size = -1;
+    }
+
+    __pow_impl(dst, &__num, exp);
+}
+
 /// @private
 struct __powmod_iterator {
     __powmod_iterator(const uint64_t *ptr_, uint32_t size_) noexcept
@@ -1070,6 +1091,11 @@ inline uint32_t countr_zero(const biginteger_data &num) noexcept { return ctz(nu
 template <typename S>
 void pow(basic_biginteger<S> &dst, const biginteger_data &num, uint32_t exp) noexcept {
     biginteger_detail::__pow_impl(&dst, &num, exp);
+}
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+void pow(basic_biginteger<S> &dst, T num, uint32_t exp) noexcept {
+    biginteger_detail::__pow_impl(&dst, num, exp);
 }
 
 /**
@@ -3291,45 +3317,55 @@ inline uint32_t __ctz_impl(const biginteger_data *num) noexcept {
 
 template <typename S>
 void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint32_t exp) noexcept {
-    if (exp == 0) {
-        *dst = 1u;
+    const int32_t nssize = num->get_ssize();
+    if (WJR_UNLIKELY(nssize == 0)) {
+        *dst = exp == 0 ? 1u : 0u;
         return;
     }
 
-    const uint32_t nbits = __bit_width_impl(num);
-    const uint32_t dbits = nbits * exp;
-    const uint32_t max_dusize = (dbits + 63) / 64;
-
-    dst->reserve(max_dusize);
-    *dst = *num;
-
-    while (!(exp & 1)) {
-        sqr(*dst, *dst);
-        exp >>= 1;
-    }
-
-    if (exp == 1) {
+    if (exp <= 2) {
+        if (exp == 0) {
+            *dst = 1u;
+        } else if (exp == 1) {
+            *dst = *num;
+        } else {
+            sqr(*dst, *num);
+        }
         return;
     }
 
-    basic_biginteger<S> tmp;
-    exp >>= 1;
-    sqr(tmp, *dst);
+    const uint32_t nusize = __fast_abs(nssize);
+    const uint32_t max_dusize = (uint64_t(__bit_width_impl(num)) * exp + 63) / 64;
 
-    if (exp & 1) {
-        mul(*dst, *dst, tmp);
+    using pointer = uint64_t *;
+
+    auto *dp = dst->data();
+    auto *np = const_cast<pointer>(num->data());
+
+    unique_stack_allocator stkal;
+    optional<uninitialized<basic_biginteger<S>>> tmp;
+
+    if (dst->capacity() < max_dusize) {
+        tmp.emplace(dst->get_growth_capacity(dst->capacity(), max_dusize), in_place_reserve,
+                    dst->get_allocator());
+        dp = (**tmp).data();
+    } else {
+        if (dp == np) {
+            np = static_cast<pointer>(stkal.allocate(max_dusize * sizeof(uint64_t)));
+            std::copy_n(dp, nusize, np);
+        }
     }
 
-    if (exp != 1) {
-        do {
-            exp >>= 1;
-            sqr(tmp, tmp);
+    // todo : optimize this size.
+    uint64_t *const tp = static_cast<uint64_t *>(stkal.allocate(max_dusize * sizeof(uint64_t)));
+    uint32_t dusize = pow_1(dp, np, nusize, exp, tp);
 
-            if (exp & 1) {
-                mul(*dst, *dst, tmp);
-            }
-        } while (exp != 1);
+    if (tmp.has_value()) {
+        *dst = **std::move(tmp);
+        tmp->reset();
     }
+
+    dst->set_ssize(__fast_conditional_negate<int32_t>((nssize < 0) && (exp & 1), dusize));
 }
 
 /// @private

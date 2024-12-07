@@ -34,7 +34,6 @@ public:
         : first(input.data()), last(input.data() + input.size()) {}
 
     class result_type {
-
     public:
         constexpr static uint32_t mask = static_cast<uint32_t>(1) << 31;
 

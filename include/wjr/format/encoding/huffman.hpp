@@ -1,3 +1,14 @@
+/**
+ * @file huffman.hpp
+ * @author your name (you@domain.com)
+ * @brief
+ * @version 0.1
+ * @date 2024-12-07
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #ifndef WJR_FORMAT_ENCODING_HUFFMAN_HPP__
 #define WJR_FORMAT_ENCODING_HUFFMAN_HPP__
 
