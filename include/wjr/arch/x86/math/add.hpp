@@ -5,7 +5,6 @@
 
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
     #define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF
-    #define WJR_HAS_BUILTIN___ASM_ADD_128 WJR_HAS_DEF
     #define WJR_HAS_BUILTIN___ASM_ADDC_128 WJR_HAS_DEF
 
     #if WJR_HAS_FEATURE(INLINE_ASM_CCCOND)
@@ -173,46 +172,6 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
             : "cc");
     }
     return a;
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(__ASM_ADD_128)
-
-/**
- * @brief Use inline assembly to add two 64-bit integers and return the result.
- *
- */
-WJR_INTRINSIC_INLINE void __asm_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
-                                        uint64_t lo1, uint64_t hi1) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(hi0) && hi0 <= UINT32_MAX) {
-        asm("add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-            "adc{q %[hi0], %[hi1]| %[hi1], %[hi0]}"
-            : [lo0] "+&r"(lo0), [hi1] "+r"(hi1)
-            : [lo1] "r"(lo1), [hi0] "i"(hi0)
-            : "cc");
-        al = lo0;
-        ah = hi1;
-        return;
-    } else if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
-        asm("add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-            "adc{q %[hi1], %[hi0]| %[hi0], %[hi1]}"
-            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
-            : [lo1] "r"(lo1), [hi1] "i"(hi1)
-            : "cc");
-        al = lo0;
-        ah = hi0;
-        return;
-    }
-
-    asm("add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-        "adc{q %[hi1], %[hi0]| %[hi0], %[hi1]}"
-        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
-        : [lo1] "r"(lo1), [hi1] "r"(hi1)
-        : "cc");
-    al = lo0;
-    ah = hi0;
-    return;
 }
 
 #endif

@@ -145,45 +145,12 @@ WJR_INTRINSIC_CONSTEXPR20 bool sub_overflow(type_identity_t<T> a, type_identity_
 #endif
 }
 
-WJR_INTRINSIC_CONSTEXPR void __fallback_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                                uint64_t hi0, uint64_t lo1, uint64_t hi1) noexcept {
-    uint64_t __al = lo0 - lo1;
-    ah = hi0 - hi1 - (__al > lo0);
-    al = __al;
-}
-
-#if WJR_HAS_FEATURE(FAST_INT128_ADDSUB)
-    #define WJR_HAS_BUILTIN___BUILTIN_SUB_128 WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(__BUILTIN_SUBC_128)
-
-WJR_INTRINSIC_INLINE void __builtin_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
-                                            uint64_t lo1, uint64_t hi1) noexcept {
-    const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
-    const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
-    x0 -= x1;
-
-    al = x0;
-    ah = x0 >> 64;
-}
-
-#endif
-
 // <ah, al> = <hi0, lo0> - <hi1, lo1>
 WJR_INTRINSIC_CONSTEXPR20 void __sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
                                          uint64_t lo1, uint64_t hi1) noexcept {
-#if WJR_HAS_BUILTIN(__BUILTIN_SUB_128) || WJR_HAS_BUILTIN(__ASM_SUB_128)
-    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P_TRUE(lo0 == 0) ||
-        WJR_BUILTIN_CONSTANT_P_TRUE(lo1 == 0) || WJR_BUILTIN_CONSTANT_P(lo0 + hi0)) {
-        return __fallback_sub_128(al, ah, lo0, hi0, lo1, hi1);
-    }
-
-    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_SUB_128), __builtin_sub_128,
-                          __asm_sub_128)(al, ah, lo0, hi0, lo1, hi1);
-#else
-    return __fallback_sub_128(al, ah, lo0, hi0, lo1, hi1);
-#endif
+    const uint64_t __al = lo0 - lo1;
+    ah = hi0 - hi1 - (__al > lo0);
+    al = __al;
 }
 
 WJR_INTRINSIC_CONSTEXPR20 uint64_t __fallback_subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
