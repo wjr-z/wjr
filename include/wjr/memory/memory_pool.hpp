@@ -41,7 +41,7 @@ struct automatic_free_pool {
 
     WJR_MALLOC void *allocate(size_t n) noexcept {
         auto *const ptr = static_cast<chunk *>(malloc(n + sizeof(chunk)));
-        push_back(&head, ptr);
+        head.push_back(ptr);
         return reinterpret_cast<char *>(ptr) + sizeof(chunk);
     }
 

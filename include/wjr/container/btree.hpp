@@ -14,7 +14,7 @@
  * 1. Erase a range with optimization.
  * 2. Construct with a range with optimization.
  * 3. Merage with optimization.
- * 
+ *
  * @deprecated
  *
  * @version 0.1
@@ -82,8 +82,8 @@ WJR_INTRINSIC_INLINE void builtin_btree_copy(const Other *first, const Other *la
 
     if constexpr (Max > 4) {
         if (WJR_LIKELY(n >= 4)) {
-            uint8_t x0[Size * 4];
-            uint8_t x1[Size * 4];
+            char x0[Size * 4];
+            char x1[Size * 4];
             std::memcpy(x0, first, Size * 4);
             std::memcpy(x1, last - 4, Size * 4);
             std::memcpy(dst, x0, Size * 4);
@@ -94,8 +94,8 @@ WJR_INTRINSIC_INLINE void builtin_btree_copy(const Other *first, const Other *la
 
     if constexpr (Max > 2) {
         if (n >= 2) {
-            uint8_t x0[Size * 2];
-            uint8_t x1[Size * 2];
+            char x0[Size * 2];
+            char x1[Size * 2];
             std::memcpy(x0, first, Size * 2);
             std::memcpy(x1, last - 2, Size * 2);
             std::memcpy(dst, x0, Size * 2);
@@ -172,8 +172,7 @@ private:
     using Mybase = __btree_inline_traits<Key, Value>;
 
 public:
-    using _Alty =
-        typename std::allocator_traits<memory_pool<uint8_t>>::template rebind_alloc<uint8_t>;
+    using _Alty = typename std::allocator_traits<memory_pool<char>>::template rebind_alloc<char>;
     using _Alty_traits = std::allocator_traits<_Alty>;
     using storage_fn_type = container_fn<_Alty>;
 
@@ -309,7 +308,7 @@ struct btree_inner_node : btree_node<Traits> {
 };
 
 template <typename Traits>
-struct btree_list_base : btree_node<Traits>, intrusive::list_node<> {
+struct btree_list_base : btree_node<Traits>, intrusive::list_node<btree_list_base<Traits>> {
 private:
     using Mybase = btree_node<Traits>;
 
@@ -387,7 +386,7 @@ class btree_const_iterator {
     template <typename Other>
     friend class basic_btree;
 
-    using list_node_type = intrusive::list_node<>;
+    using list_node_type = intrusive::list_node<list_base_type>;
 
 public:
     using iterator_category = std::bidirectional_iterator_tag;
@@ -408,7 +407,7 @@ protected:
         : m_node(const_cast<list_node_type *>(list_node)), m_pos(pos) {}
 
     btree_const_iterator(const leaf_node_type *leaf, unsigned int pos) noexcept
-        : btree_const_iterator(leaf->__get_list(), pos) {}
+        : btree_const_iterator(static_cast<const list_node_type *>(leaf), pos) {}
 
 public:
     reference operator*() const noexcept {
@@ -468,7 +467,7 @@ protected:
 
     WJR_INTRINSIC_INLINE btree_const_iterator &__adjust_next() noexcept {
         if (WJR_UNLIKELY(m_pos == __get_usize())) {
-            m_node = m_node->next;
+            m_node = m_node->next();
             m_pos = 0;
         }
 
@@ -484,11 +483,12 @@ template <typename Traits>
 class btree_iterator : public btree_const_iterator<Traits> {
     using Mybase = btree_const_iterator<Traits>;
     using leaf_node_type = typename Traits::leaf_node_type;
+    using list_base_type = typename Traits::list_base_type;
 
     template <typename Other>
     friend class basic_btree;
 
-    using list_node_type = intrusive::list_node<>;
+    using list_node_type = intrusive::list_node<list_base_type>;
 
 public:
     using Mybase::Mybase;
@@ -624,7 +624,7 @@ class basic_btree {
     using inner_node_type = typename Traits::inner_node_type;
     using leaf_node_type = typename Traits::leaf_node_type;
     using list_base_type = typename Traits::list_base_type;
-    using list_node_type = intrusive::list_node<>;
+    using list_node_type = intrusive::list_node<list_base_type>;
 
 public:
     using key_type = typename Traits::key_type;
@@ -765,20 +765,20 @@ protected:
     WJR_INTRINSIC_INLINE static void __drop_inner_node(inner_node_type *node) noexcept {
         _Alty al;
         destroy_at_using_allocator(node, al);
-        _Alty_traits::deallocate(al, reinterpret_cast<uint8_t *>(node), sizeof(inner_node_type));
+        _Alty_traits::deallocate(al, reinterpret_cast<char *>(node), sizeof(inner_node_type));
     }
 
     WJR_INTRINSIC_INLINE static void __drop_leaf_node(leaf_node_type *node) noexcept {
         _Alty al;
         destroy_at_using_allocator(node, al);
-        _Alty_traits::deallocate(al, reinterpret_cast<uint8_t *>(node), sizeof(leaf_node_type));
+        _Alty_traits::deallocate(al, reinterpret_cast<char *>(node), sizeof(leaf_node_type));
     }
 
     WJR_INTRINSIC_INLINE static void __drop_node(inline_value_type node) noexcept {
         if constexpr (!is_inline_value) {
             _Alty al;
             destroy_at_using_allocator(std::addressof(node), al);
-            _Alty_traits::deallocate(al, reinterpret_cast<uint8_t *>(node), sizeof(value_type));
+            _Alty_traits::deallocate(al, reinterpret_cast<char *>(node), sizeof(value_type));
         }
     }
 
@@ -899,7 +899,7 @@ private:
                 }
             }
 
-            intrusive::push_back(&__get_sentry(), this_leaf);
+            __get_sentry()->push_back(this_leaf);
             return std::make_pair(this_leaf->__get_key(0), this_leaf);
         }
 
@@ -981,7 +981,7 @@ private:
                 __drop_node(leaf->m_values[i]);
             }
 
-            list_node_type *next = intrusive::next(leaf);
+            list_node_type *next = leaf->next()->self();
             __drop_leaf_node(leaf);
 
             // if `current' is the last child of parent
@@ -1148,7 +1148,7 @@ private:
             leaf->size() = -1;
             leaf->m_parent = nullptr;
             leaf->__assign(0, xval);
-            intrusive::push_front(&__get_sentry(), leaf);
+            __get_sentry().push_front(leaf);
             return iterator(leaf, 0);
         }
 
@@ -1167,8 +1167,7 @@ private:
         }
 
         auto *const inst = __create_leaf_node();
-        intrusive::push_front(leaf, inst);
-
+        leaf->push_front(inst);
         leaf->size() = -(int)(floor_half + 1);
         inst->size() = -(int)(node_size - floor_half);
 
@@ -1238,7 +1237,7 @@ private:
 
         if constexpr (Adjust) {
             if (WJR_UNLIKELY(pos == cur_usize)) {
-                return const_iterator(current->as_leaf()->__get_list()->next, 0);
+                return const_iterator(current->as_leaf()->next(), 0);
             }
         }
 
@@ -1709,11 +1708,11 @@ private:
     }
 
     WJR_INTRINSIC_CONSTEXPR list_node_type &__get_sentry() noexcept {
-        return *m_pair.second().__get_list();
+        return *m_pair.second().self();
     }
 
     WJR_INTRINSIC_CONSTEXPR const list_node_type &__get_sentry() const noexcept {
-        return *m_pair.second().__get_list();
+        return *m_pair.second().self();
     }
 
     WJR_INTRINSIC_CONSTEXPR size_type &__get_size() noexcept { return m_pair.second().m_root_size; }

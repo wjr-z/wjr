@@ -31,7 +31,7 @@ public:
 
 private:
     WJR_PURE bool __is_lower_bound_same(const_iterator iter, const key_type &key) const {
-        return iter != this->cend() && !this->get_comp()(Traits::get_key(*iter), key);
+        return iter != this->cend() && !this->key_comp()(Traits::get_key(*iter), key);
     }
 
     WJR_PURE bool __count_unique(const key_type &key) const {
@@ -70,12 +70,12 @@ public:
 
     template <typename... Args>
     std::pair<iterator, bool> try_emplace(const key_type &k, Args &&...args) {
-        return __try_emplace_unique(k, std::forward<Args>(args)...);
+        return this->__try_emplace_unique(k, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     std::pair<iterator, bool> try_emplace(key_type &&k, Args &&...args) {
-        return __try_emplace_unique(std::move(k), std::forward<Args>(args)...);
+        return this->__try_emplace_unique(std::move(k), std::forward<Args>(args)...);
     }
 
     size_type count(const key_type &key) const noexcept { return __count_unique(key) ? 1 : 0; }

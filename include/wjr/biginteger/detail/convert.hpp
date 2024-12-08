@@ -528,6 +528,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
     }
     }
 
+    // todo : optimize memory usage
     const size_t capacity = ((64 * n) * 4 + 12) / 13;
     WJR_BIGINTEGER_TO_CHARS_IMPL(base, __biginteger_basecase_to_chars, -__ptr, capacity,
                                  (up, n, base));
@@ -566,6 +567,7 @@ template <typename Iter, typename Converter = char_converter_t>
 Iter biginteger_to_chars(Iter first, const uint64_t *up, size_t n, unsigned int base = 10,
                          Converter conv = {}) noexcept {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
+    WJR_ASSERT_ASSUME(n != 0);
     WJR_ASSERT_ASSUME(up[n - 1] != 0);
 
     return __biginteger_to_chars_impl(first, up, n, base, conv);

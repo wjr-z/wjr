@@ -40,13 +40,8 @@ public:
         node->m_next = next;
     }
 
-    friend constexpr void push_back(list_node *head, list_node *node) noexcept {
-        insert(head->m_prev, head, node);
-    }
-
-    friend constexpr void push_front(list_node *head, list_node *node) noexcept {
-        insert(head, head->m_next, node);
-    }
+    constexpr void push_back(list_node *node) noexcept { insert(m_prev, this, node); }
+    constexpr void push_front(list_node *node) noexcept { insert(this, m_next, node); }
 
     constexpr void remove() noexcept {
         m_prev->m_next = m_next;
@@ -58,6 +53,16 @@ public:
         from->m_next->m_prev = to;
         to->m_prev = from->m_prev;
         from->m_prev->m_next = to;
+    }
+
+    template <typename U, WJR_REQUIRES(std::is_same_v<U, Tag>)>
+    constexpr list_node *get_list_node() noexcept {
+        return this;
+    }
+
+    template <typename U, WJR_REQUIRES(std::is_same_v<U, Tag>)>
+    constexpr const list_node *get_list_node() const noexcept {
+        return this;
     }
 
 private:

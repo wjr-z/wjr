@@ -75,7 +75,7 @@ public:
     }
 
     constexpr uint128_t &operator+=(uint64_t lo_) noexcept {
-        __fallback_add_128(low, high, low, high, lo_, 0);
+        __add_128(low, high, low, high, lo_, 0);
         return *this;
     }
 
@@ -97,7 +97,7 @@ public:
     }
 
     constexpr uint128_t &operator-=(uint64_t lo_) noexcept {
-        __fallback_sub_128(low, high, low, high, lo_, 0);
+        __sub_128(low, high, low, high, lo_, 0);
         return *this;
     }
 
