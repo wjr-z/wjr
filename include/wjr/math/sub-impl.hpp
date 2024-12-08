@@ -17,8 +17,8 @@ template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool sub_overflow(type_identity_t<T> a,
                                                           type_identity_t<T> b, T &ret) noexcept;
 
-WJR_INTRINSIC_CONSTEXPR20 void __sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
-                                         uint64_t lo1, uint64_t hi1) noexcept;
+WJR_INTRINSIC_CONSTEXPR void __sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
+                                       uint64_t lo1, uint64_t hi1) noexcept;
 
 WJR_INTRINSIC_CONSTEXPR20 uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,

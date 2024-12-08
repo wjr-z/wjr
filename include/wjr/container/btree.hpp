@@ -648,9 +648,7 @@ public:
 
     basic_btree() noexcept : basic_btree(key_compare()) {}
 
-    explicit basic_btree(const key_compare &comp) noexcept : m_pair(comp, btree_node_constructor) {
-        init(&__get_sentry());
-    }
+    explicit basic_btree(const key_compare &comp) noexcept : m_pair(comp, btree_node_constructor) {}
 
     // not implemented currently
     basic_btree(const basic_btree &other) noexcept(
@@ -706,13 +704,13 @@ public:
     constexpr key_compare &key_comp() noexcept { return m_pair.first(); }
     constexpr const key_compare &key_comp() const noexcept { return m_pair.first(); }
 
-    iterator begin() noexcept { return iterator(next(&__get_sentry()), 0); }
-    const_iterator begin() const noexcept { return const_iterator(next(&__get_sentry()), 0); }
-    const_iterator cbegin() const noexcept { return const_iterator(next(&__get_sentry()), 0); }
+    iterator begin() noexcept { return iterator(next(__get_sentry()), 0); }
+    const_iterator begin() const noexcept { return const_iterator(next(__get_sentry()), 0); }
+    const_iterator cbegin() const noexcept { return const_iterator(next(__get_sentry()), 0); }
 
-    iterator end() noexcept { return iterator(&__get_sentry(), 0); }
-    const_iterator end() const noexcept { return const_iterator(&__get_sentry(), 0); }
-    const_iterator cend() const noexcept { return const_iterator(&__get_sentry(), 0); }
+    iterator end() noexcept { return iterator(__get_sentry(), 0); }
+    const_iterator end() const noexcept { return const_iterator(__get_sentry(), 0); }
+    const_iterator cend() const noexcept { return const_iterator(__get_sentry(), 0); }
 
     reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
     const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
@@ -872,14 +870,14 @@ private:
     void __move_tree(basic_btree &&other) noexcept {
         node_type *&root = other.__get_root();
         if (WJR_UNLIKELY(root == nullptr)) {
-            init(&__get_sentry());
+            __get_sentry()->init_self();
             return;
         }
 
         __get_root() = std::exchange(root, nullptr);
         __get_size() = std::exchange(other.__get_size(), 0);
-        replace_uninit(&other.__get_sentry(), &__get_sentry());
-        init(&other.__get_sentry());
+        replace_uninit(other.__get_sentry(), __get_sentry());
+        other.__get_sentry()->init_self();
     }
 
     std::pair<inline_key_type, node_type *> __rec_copy_tree(const node_type *current) noexcept {
@@ -927,7 +925,7 @@ private:
 
     void __copy_tree(const basic_btree &other) noexcept {
         const node_type *current = other.__get_root();
-        init(&__get_sentry());
+        __get_sentry()->init_self();
         if (WJR_UNLIKELY(current == nullptr)) {
             return;
         }
@@ -1006,7 +1004,7 @@ private:
                 pos = 0;
             }
 
-            WJR_ASSERT(next != &__get_sentry());
+            WJR_ASSERT(next != __get_sentry());
 
             current = static_cast<leaf_node_type *>(next);
             cur_size = -current->size();
@@ -1148,7 +1146,7 @@ private:
             leaf->size() = -1;
             leaf->m_parent = nullptr;
             leaf->__assign(0, xval);
-            __get_sentry().push_front(leaf);
+            __get_sentry()->push_front(leaf);
             return iterator(leaf, 0);
         }
 
@@ -1589,7 +1587,7 @@ private:
             if (cur_size == 1) {
                 __drop_leaf_node(leaf);
                 __get_root() = nullptr;
-                init(&__get_sentry());
+                __get_sentry()->init_self();
                 return cend();
             }
 
@@ -1707,12 +1705,12 @@ private:
         return m_pair.second().m_parent;
     }
 
-    WJR_INTRINSIC_CONSTEXPR list_node_type &__get_sentry() noexcept {
-        return *m_pair.second().self();
+    WJR_INTRINSIC_CONSTEXPR list_node_type *__get_sentry() noexcept {
+        return m_pair.second().self();
     }
 
-    WJR_INTRINSIC_CONSTEXPR const list_node_type &__get_sentry() const noexcept {
-        return *m_pair.second().self();
+    WJR_INTRINSIC_CONSTEXPR const list_node_type *__get_sentry() const noexcept {
+        return m_pair.second().self();
     }
 
     WJR_INTRINSIC_CONSTEXPR size_type &__get_size() noexcept { return m_pair.second().m_root_size; }
