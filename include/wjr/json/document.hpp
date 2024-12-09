@@ -1,3 +1,16 @@
+/**
+ * @file document.hpp
+ * @author your name (you@domain.com)
+ * @brief
+ * @version 0.1
+ * @date 2024-12-08
+ *
+ * @todo Optimization, separate document and parser.
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #ifndef WJR_JSON_DOCUMENT_HPP__
 #define WJR_JSON_DOCUMENT_HPP__
 
@@ -5,6 +18,8 @@
 
 #include <wjr/json/formatter.hpp>
 #include <wjr/json/visitor.hpp>
+
+#include <wjr/container/btree_map.hpp>
 
 namespace wjr::json {
 
@@ -23,7 +38,7 @@ inline constexpr bool is_document_v = is_document<T>::value;
 namespace detail {
 
 template <template <typename Char, typename Traits, typename Alloc> typename String,
-          template <typename Key, typename Ty, typename Pr, typename Alloc> typename Object,
+          template <typename... Types> typename Object,
           template <typename T, typename Alloc> typename Array>
 struct basic_document_traits {
 private:
@@ -31,8 +46,7 @@ private:
 
 public:
     using string_type = String<char, std::char_traits<char>, memory_pool<char>>;
-    using object_type = Object<string_type, document_type, std::less<>,
-                               memory_pool<std::pair<const string_type, document_type>>>;
+    using object_type = Object<string_type, document_type, std::less<string_type>>;
     using array_type = Array<document_type, memory_pool<document_type>>;
 
     using value_type = document_type;
@@ -51,7 +65,7 @@ public:
                            has_compare<typename object_type::key_compare, Key, string_type>> {};
 };
 
-using default_document_traits = basic_document_traits<std::basic_string, std::map, vector>;
+using default_document_traits = basic_document_traits<std::basic_string, btree_map, vector>;
 using __default_document_string = typename default_document_traits::string_type;
 
 template <typename Document>
