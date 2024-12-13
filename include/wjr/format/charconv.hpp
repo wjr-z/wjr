@@ -232,6 +232,7 @@ class __to_chars_unroll_4_fast_fn_impl<16> : public __to_chars_unroll_4_fast_fn_
 template <uint64_t Base>
 class __to_chars_unroll_8_fast_fn_impl_base {
     static_assert(Base == 10);
+
 public:
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
     template <typename Converter>

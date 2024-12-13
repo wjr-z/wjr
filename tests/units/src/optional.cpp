@@ -48,55 +48,55 @@ TEST(optional, constructor) {
         using type = decltype(x);
         {
             type a;
-            WJR_ASSERT(!a.has_value());
+            WJR_ASSERT_L0(!a.has_value());
         }
         {
             type a;
             type b(a);
-            WJR_ASSERT(!b.has_value());
-            WJR_ASSERT(a == b);
+            WJR_ASSERT_L0(!b.has_value());
+            WJR_ASSERT_L0(a == b);
         }
         {
             type a;
             type b(std::move(a));
-            WJR_ASSERT(!b.has_value());
+            WJR_ASSERT_L0(!b.has_value());
         }
         {
             type a(val);
-            WJR_ASSERT(a.has_value());
-            WJR_ASSERT(*a == val);
+            WJR_ASSERT_L0(a.has_value());
+            WJR_ASSERT_L0(*a == val);
             type b(a);
-            WJR_ASSERT(b.has_value());
-            WJR_ASSERT(*b == val);
-            WJR_ASSERT(a == b);
+            WJR_ASSERT_L0(b.has_value());
+            WJR_ASSERT_L0(*b == val);
+            WJR_ASSERT_L0(a == b);
             type c(std::move(a));
-            WJR_ASSERT(c.has_value());
-            WJR_ASSERT(*c == val);
-            WJR_ASSERT(b == c);
+            WJR_ASSERT_L0(c.has_value());
+            WJR_ASSERT_L0(*c == val);
+            WJR_ASSERT_L0(b == c);
         }
         {
             auto val2(val);
             type a(std::move(val2));
-            WJR_ASSERT(a.has_value());
-            WJR_ASSERT(*a == val);
+            WJR_ASSERT_L0(a.has_value());
+            WJR_ASSERT_L0(*a == val);
         }
         {
             type a(std::in_place, val);
-            WJR_ASSERT(a.has_value());
-            WJR_ASSERT(*a == val);
+            WJR_ASSERT_L0(a.has_value());
+            WJR_ASSERT_L0(*a == val);
         }
         {
             auto val2(val);
             type a(std::in_place, std::move(val2));
-            WJR_ASSERT(a.has_value());
-            WJR_ASSERT(*a == val);
+            WJR_ASSERT_L0(a.has_value());
+            WJR_ASSERT_L0(*a == val);
         }
         {
             type a(nullopt);
-            WJR_ASSERT(!a.has_value());
+            WJR_ASSERT_L0(!a.has_value());
             type b(a);
-            WJR_ASSERT(!b.has_value());
-            WJR_ASSERT(a == b);
+            WJR_ASSERT_L0(!b.has_value());
+            WJR_ASSERT_L0(a == b);
         }
     };
 
@@ -108,25 +108,25 @@ TEST(optional, constructor) {
         using type = decltype(x);
         {
             type a;
-            WJR_ASSERT(!a.has_value());
+            WJR_ASSERT_L0(!a.has_value());
         }
         {
             type a;
             type b(a);
-            WJR_ASSERT(!b.has_value());
+            WJR_ASSERT_L0(!b.has_value());
         }
         {
             type a;
             type c(std::move(a));
-            WJR_ASSERT(!c.has_value());
+            WJR_ASSERT_L0(!c.has_value());
         }
         {
             type a(std::in_place);
-            WJR_ASSERT(a.has_value());
+            WJR_ASSERT_L0(a.has_value());
             type b(a);
-            WJR_ASSERT(b.has_value());
+            WJR_ASSERT_L0(b.has_value());
             type c(std::move(a));
-            WJR_ASSERT(c.has_value());
+            WJR_ASSERT_L0(c.has_value());
         }
     };
 

@@ -40,6 +40,20 @@ private:
     }
 
 public:
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(btree_map);
+
+    template <typename Iter>
+    btree_map(Iter first, Iter last, const key_compare &comp = key_compare()) noexcept
+        : Mybase(comp) {
+        for (; first != last; ++first) {
+            emplace(*first);
+        }
+    }
+
+    btree_map(std::initializer_list<value_type> il,
+              const key_compare &comp = key_compare()) noexcept
+        : btree_map(il.begin(), il.end(), comp) {}
+
     mapped_type &at(const key_type &key) {
         auto iter = this->lower_bound(key);
         if (!__is_lower_bound_same(iter, key)) {
@@ -80,6 +94,42 @@ public:
 
     size_type count(const key_type &key) const noexcept { return __count_unique(key) ? 1 : 0; }
 };
+
+template <typename Key, typename Value, typename Pr>
+WJR_NODISCARD bool operator==(const btree_map<Key, Value, Pr> &lhs,
+                              const btree_map<Key, Value, Pr> &rhs) {
+    return lhs.size() == rhs.size() && std::equal(lhs.begin(), lhs.end(), rhs.begin());
+}
+
+template <typename Key, typename Value, typename Pr>
+WJR_NODISCARD bool operator!=(const btree_map<Key, Value, Pr> &lhs,
+                              const btree_map<Key, Value, Pr> &rhs) {
+    return !(lhs == rhs);
+}
+
+template <typename Key, typename Value, typename Pr>
+WJR_NODISCARD bool operator<(const btree_map<Key, Value, Pr> &lhs,
+                             const btree_map<Key, Value, Pr> &rhs) {
+    return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+
+template <typename Key, typename Value, typename Pr>
+WJR_NODISCARD bool operator>(const btree_map<Key, Value, Pr> &lhs,
+                             const btree_map<Key, Value, Pr> &rhs) {
+    return rhs < lhs;
+}
+
+template <typename Key, typename Value, typename Pr>
+WJR_NODISCARD bool operator<=(const btree_map<Key, Value, Pr> &lhs,
+                              const btree_map<Key, Value, Pr> &rhs) {
+    return !(rhs < lhs);
+}
+
+template <typename Key, typename Value, typename Pr>
+WJR_NODISCARD bool operator>=(const btree_map<Key, Value, Pr> &lhs,
+                              const btree_map<Key, Value, Pr> &rhs) {
+    return !(lhs < rhs);
+}
 
 } // namespace wjr
 

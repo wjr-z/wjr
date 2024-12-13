@@ -89,12 +89,14 @@ using array_t = integral_constant<value_t, value_t::array>;
  *
  */
 struct basic_value {
-    basic_value() = default;
+    basic_value() noexcept : m_type(value_t::null) {}
     basic_value(const basic_value &) = default;
     basic_value(basic_value &&) = default;
     basic_value &operator=(const basic_value &) = default;
     basic_value &operator=(basic_value &&) = default;
     ~basic_value() = default;
+
+    basic_value(default_construct_t) noexcept {}
 
     basic_value(null_t) noexcept : m_type(value_t::null) {}
     basic_value(boolean_t, bool f) noexcept : m_boolean(f), m_type(value_t::boolean) {}
@@ -154,7 +156,7 @@ struct basic_value {
         void *m_ptr;
     };
 
-    value_t m_type = value_t::null;
+    value_t m_type;
 };
 
 } // namespace wjr::json

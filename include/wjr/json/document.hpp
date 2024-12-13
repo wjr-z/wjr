@@ -46,7 +46,7 @@ private:
 
 public:
     using string_type = String<char, std::char_traits<char>, memory_pool<char>>;
-    using object_type = Object<string_type, document_type, std::less<string_type>>;
+    using object_type = Object<string_type, document_type, std::less<>>;
     using array_type = Array<document_type, memory_pool<document_type>>;
 
     using value_type = document_type;
@@ -1871,22 +1871,21 @@ protected:
 
     WJR_INTRINSIC_INLINE result<void> visit_root_number(const char *first,
                                                         const char *last) const noexcept {
-        WJR_EXPECTED_INIT(ret, parse_number(first, last));
-        current->m_value = *ret;
+        WJR_EXPECTED_INIT(ret, parse_number(first, last, current->m_value));
         return {};
     }
 
     WJR_INTRINSIC_INLINE result<void> visit_object_number(const char *first,
                                                           const char *last) const noexcept {
-        WJR_EXPECTED_INIT(ret, parse_number(first, last));
-        element->m_value = *ret;
+        WJR_EXPECTED_INIT(ret, parse_number(first, last, element->m_value));
         return {};
     }
 
     WJR_INTRINSIC_INLINE result<void> visit_array_number(const char *first,
                                                          const char *last) const noexcept {
-        WJR_EXPECTED_INIT(ret, parse_number(first, last));
-        current->__get_array().emplace_back(*ret);
+        basic_value value(default_construct);
+        WJR_EXPECTED_INIT(ret, parse_number(first, last, value));
+        current->__get_array().emplace_back(value);
         return {};
     }
 
@@ -2317,8 +2316,7 @@ std::ostream &operator<<(std::ostream &os, const basic_document<DocumentTraits> 
 }
 
 template <typename Traits>
-WJR_PURE bool operator==(const basic_document<Traits> &lhs,
-                         const basic_document<Traits> &rhs) noexcept {
+bool operator==(const basic_document<Traits> &lhs, const basic_document<Traits> &rhs) noexcept {
     switch (lhs.type()) {
     case value_t::null: {
         return rhs.is_null();

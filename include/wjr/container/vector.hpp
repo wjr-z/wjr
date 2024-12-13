@@ -1769,33 +1769,33 @@ void swap(basic_vector<Storage> &lhs, basic_vector<Storage> &rhs) noexcept {
 }
 
 template <typename Storage>
-WJR_PURE bool operator==(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
+bool operator==(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
     return std::equal(lhs.begin_unsafe(), lhs.end_unsafe(), rhs.begin_unsafe(), rhs.end_unsafe());
 }
 
 template <typename Storage>
-WJR_PURE bool operator!=(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
+bool operator!=(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
     return !(lhs == rhs);
 }
 
 template <typename Storage>
-WJR_PURE bool operator<(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
+bool operator<(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
     return std::lexicographical_compare(lhs.begin_unsafe(), lhs.end_unsafe(), rhs.begin_unsafe(),
                                         rhs.end_unsafe());
 }
 
 template <typename Storage>
-WJR_PURE bool operator>(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
+bool operator>(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
     return rhs < lhs;
 }
 
 template <typename Storage>
-WJR_PURE bool operator<=(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
+bool operator<=(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
     return !(rhs < lhs);
 }
 
 template <typename Storage>
-WJR_PURE bool operator>=(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
+bool operator>=(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
     return !(lhs < rhs);
 }
 
