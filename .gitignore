@@ -30,13 +30,4 @@ msvc_build
 *.vcxproj
 *.vcxproj.filters
 .VScodeCounter
-**/simdjson.hpp*
-**/simdjson.cpp*
-examples/demo/data/
 **/cmake
-CMakeSettings.json
-git.sh
-push.sh
-a.hpp
-b.hpp
-a.cpp

@@ -244,4 +244,4 @@ bool tester(uint64_t seed, size_t volume) {
     return true;
 }
 
-TEST(fastfloat, random_string) { WJR_ASSERT(tester(std::random_device{}(), 200000)); }
+TEST(fastfloat, random_string) { WJR_ASSERT_L0(tester(std::random_device{}(), 200000)); }

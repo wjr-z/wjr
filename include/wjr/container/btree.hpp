@@ -15,10 +15,8 @@
  * 2. Construct with a range with optimization.
  * 3. Merage with optimization.
  *
- * @deprecated
- *
- * @version 0.1
- * @date 2024-05-06
+ * @version 0.2
+ * @date 2024-12-15
  *
  */
 
@@ -170,10 +168,6 @@ public:
     using leaf_node_type = btree_leaf_node<btree_traits>;
     static constexpr bool multi = Multi;
 
-    WJR_INTRINSIC_INLINE static key_type *__to_key(const key_type &key) noexcept {
-        return const_cast<key_type *>(std::addressof(key));
-    }
-
     template <size_t Min, size_t Max, typename Other>
     WJR_INTRINSIC_INLINE static void copy(const Other *first, const Other *last,
                                           Other *dest) noexcept {
@@ -234,7 +228,7 @@ struct btree_inner_node : btree_node<Traits> {
     using key_type = typename Traits::key_type;
     using value_type = typename Traits::value_type;
 
-    alignas(16) key_type *m_keys[btree_detail::node_size];
+    alignas(16) const key_type *m_keys[btree_detail::node_size];
     alignas(16) btree_node<Traits> *m_sons[btree_detail::node_size + 1];
 };
 
@@ -585,18 +579,6 @@ public:
         __move_tree(std::move(other));
     }
 
-    template <typename Iter>
-    basic_btree(Iter first, Iter last, const key_compare &comp = key_compare()) noexcept
-        : basic_btree(comp) {
-        for (; first != last; ++first) {
-            emplace(*first);
-        }
-    }
-
-    basic_btree(std::initializer_list<value_type> il,
-                const key_compare &comp = key_compare()) noexcept
-        : basic_btree(il.begin(), il.end(), comp) {}
-
     basic_btree &operator=(const basic_btree &other) noexcept {
         if (WJR_UNLIKELY(this == std::addressof(other))) {
             return *this;
@@ -627,9 +609,9 @@ public:
     constexpr key_compare &key_comp() noexcept { return m_pair.first(); }
     constexpr const key_compare &key_comp() const noexcept { return m_pair.first(); }
 
-    iterator begin() noexcept { return iterator(next(__get_sentry()), 0); }
-    const_iterator begin() const noexcept { return const_iterator(next(__get_sentry()), 0); }
-    const_iterator cbegin() const noexcept { return const_iterator(next(__get_sentry()), 0); }
+    iterator begin() noexcept { return iterator(__get_sentry()->next(), 0); }
+    const_iterator begin() const noexcept { return const_iterator(__get_sentry()->next(), 0); }
+    const_iterator cbegin() const noexcept { return const_iterator(__get_sentry()->next(), 0); }
 
     iterator end() noexcept { return iterator(__get_sentry(), 0); }
     const_iterator end() const noexcept { return const_iterator(__get_sentry(), 0); }
@@ -742,15 +724,29 @@ protected:
         return __emplace_unique(std::move(val));
     }
 
-    template <typename Key, typename... Args>
-    std::pair<iterator, bool> __try_emplace_unique(Key &&key, Args &&...args) {
+    template <typename... Args>
+    std::pair<iterator, bool> __try_emplace_unique(const key_type &key, Args &&...args) {
         const auto [iter, inserted] = __get_insert_unique_pos(key);
 
         if (WJR_LIKELY(inserted)) {
             ++__get_size();
-            const auto xval = __create_node(std::piecewise_construct,
-                                            std::forward_as_tuple(std::forward<Key>(key)),
-                                            std::forward_as_tuple(std::forward<Args>(args)...));
+            auto *const xval = __create_node(std::piecewise_construct, std::forward_as_tuple(key),
+                                             std::forward_as_tuple(std::forward<Args>(args)...));
+            return {__insert_iter(iter, xval), true};
+        }
+
+        return {iterator(iter).__adjust_next(), false};
+    }
+
+    template <typename... Args>
+    std::pair<iterator, bool> __try_emplace_unique(key_type &&key, Args &&...args) {
+        const auto [iter, inserted] = __get_insert_unique_pos(key);
+
+        if (WJR_LIKELY(inserted)) {
+            ++__get_size();
+            auto *const xval =
+                __create_node(std::piecewise_construct, std::forward_as_tuple(std::move(key)),
+                              std::forward_as_tuple(std::forward<Args>(args)...));
             return {__insert_iter(iter, xval), true};
         }
 
@@ -790,11 +786,11 @@ private:
 
         __get_root() = std::exchange(root, nullptr);
         __get_size() = std::exchange(other.__get_size(), 0);
-        replace_uninit(other.__get_sentry(), __get_sentry());
+        replace(other.__get_sentry(), __get_sentry());
         other.__get_sentry()->init_self();
     }
 
-    std::pair<key_type *, node_type *> __rec_copy_tree(const node_type *current) noexcept {
+    std::pair<const key_type *, node_type *> __rec_copy_tree(const node_type *current) noexcept {
         int cur_size = current->size();
 
         if (cur_size < 0) {
@@ -808,12 +804,12 @@ private:
             }
 
             __get_sentry()->push_back(this_leaf);
-            return std::make_pair(this_leaf->__get_key(0), this_leaf);
+            return {std::addressof(this_leaf->__get_key(0)), this_leaf};
         }
 
         auto *const this_inner = __create_inner_node();
         this_inner->size() = cur_size;
-        key_type *Key;
+        const key_type *Key;
         const unsigned int cur_usize = cur_size;
 
         for (unsigned i = 0; i <= cur_usize; ++i) {
@@ -928,122 +924,6 @@ private:
 
     // member function for container_fn (END)
 
-    WJR_INTRINSIC_INLINE void __rec_insert_iter(node_type *current, node_type *inst) noexcept {
-        node_type *parent = current->m_parent;
-        key_type *key = Traits::__to_key(inst->as_leaf()->__get_key(0));
-
-        while (parent != nullptr) {
-            inst->m_parent = parent;
-            unsigned int pos = current->pos() + 1;
-            current = parent;
-            auto *const inner = current->as_inner();
-
-            unsigned int cur_size = inner->size() + 1;
-            key_type **const keys = inner->m_keys;
-            node_type **const sons = inner->m_sons;
-
-            // non-full inner
-            if (WJR_LIKELY(cur_size != node_size + 1)) {
-                Traits::template copy_backward<0, node_size - 1>(
-                    keys + pos - 1, keys + cur_size - 1, keys + cur_size);
-                Traits::template copy_backward<0, node_size - 1>(sons + pos, sons + cur_size,
-                                                                 sons + cur_size + 1);
-
-                inner->size() = cur_size;
-                keys[pos - 1] = key;
-                sons[pos] = inst;
-
-                inst->pos() = pos;
-                for (unsigned int i = pos + 1; i <= cur_size; ++i) {
-                    sons[i]->pos() = i;
-                }
-
-                return;
-            }
-
-            parent = inner->m_parent;
-
-            auto *const tmp_inst = __create_inner_node();
-
-            inner->size() = (int)(ceil_half);
-            tmp_inst->size() = (int)(floor_half);
-
-            key_type *next_key;
-
-            if (pos <= ceil_half) {
-                next_key = keys[ceil_half - 1];
-
-                Traits::template copy<floor_half, floor_half>(keys + ceil_half, keys + node_size,
-                                                              tmp_inst->m_keys);
-                Traits::template copy<floor_half + 1, floor_half + 1>(
-                    sons + ceil_half, sons + node_size + 1, tmp_inst->m_sons);
-                Traits::template copy_backward<0, ceil_half>(keys + pos - 1, keys + ceil_half - 1,
-                                                             keys + ceil_half);
-                Traits::template copy_backward<0, ceil_half>(sons + pos, sons + ceil_half,
-                                                             sons + ceil_half + 1);
-
-                keys[pos - 1] = key;
-                sons[pos] = inst;
-
-                inst->pos() = pos;
-                for (unsigned int i = pos + 1; i <= ceil_half; ++i) {
-                    sons[i]->pos() = i;
-                }
-            } else {
-                if (pos == ceil_half + 1) {
-                    next_key = key;
-
-                    Traits::template copy<floor_half, floor_half>(
-                        keys + ceil_half, keys + node_size, tmp_inst->m_keys);
-                    Traits::template copy<floor_half, floor_half>(
-                        sons + ceil_half + 1, sons + node_size + 1, tmp_inst->m_sons + 1);
-
-                    tmp_inst->m_sons[0] = inst;
-                } else {
-                    next_key = keys[ceil_half];
-
-                    Traits::template copy<0, floor_half - 1>(keys + ceil_half + 1, keys + pos - 1,
-                                                             tmp_inst->m_keys);
-                    Traits::template copy<1, floor_half>(sons + ceil_half + 1, sons + pos,
-                                                         tmp_inst->m_sons);
-
-                    const unsigned int rpos = pos - ceil_half - 1;
-
-                    Traits::template copy<0, floor_half - 1>(keys + pos - 1, keys + node_size,
-                                                             tmp_inst->m_keys + rpos);
-                    Traits::template copy<0, floor_half - 1>(sons + pos, sons + node_size + 1,
-                                                             tmp_inst->m_sons + rpos + 1);
-
-                    tmp_inst->m_keys[rpos - 1] = key;
-                    tmp_inst->m_sons[rpos] = inst;
-                }
-            }
-
-            for (unsigned int i = 0; i <= floor_half; ++i) {
-                tmp_inst->m_sons[i]->m_parent = tmp_inst;
-                tmp_inst->m_sons[i]->pos() = i;
-            }
-
-            key = next_key;
-            inst = tmp_inst;
-        }
-
-        auto *const new_root = __create_inner_node();
-        new_root->size() = 1;
-        new_root->m_parent = nullptr;
-        new_root->m_keys[0] = key;
-        new_root->m_sons[0] = current;
-        new_root->m_sons[1] = inst;
-        current->pos() = 0;
-        inst->pos() = 1;
-
-        current->m_parent = new_root;
-        inst->m_parent = new_root;
-
-        __get_root() = new_root;
-        return;
-    }
-
     WJR_NODISCARD WJR_NOINLINE WJR_HOT WJR_FLATTEN iterator
     __insert_iter(const_iterator iter, value_type *xval) noexcept {
         leaf_node_type *leaf;
@@ -1061,8 +941,9 @@ private:
         }
 
         leaf = iter.get_leaf();
-        unsigned int pos = iter.pos();
-        unsigned int cur_size = static_cast<unsigned int>(-leaf->size());
+
+        const unsigned int pos = iter.pos();
+        const unsigned int cur_size = static_cast<unsigned int>(-leaf->size());
 
         // non-full leaf
         if (WJR_LIKELY(cur_size != node_size)) {
@@ -1074,30 +955,146 @@ private:
             return iterator(leaf, pos);
         }
 
-        auto *const inst = __create_leaf_node();
-        leaf->push_front(inst);
+        auto *const inst_leaf = __create_leaf_node();
+        leaf->push_front(inst_leaf);
         leaf->size() = -(int)(floor_half + 1);
-        inst->size() = -(int)(node_size - floor_half);
+        inst_leaf->size() = -(int)(node_size - floor_half);
 
-        leaf_node_type *result;
+        iterator result;
 
         if (pos <= floor_half) {
-            leaf->template __copy<ceil_half, ceil_half>(floor_half, node_size, 0, inst);
+            leaf->template __copy<ceil_half, ceil_half>(floor_half, node_size, 0, inst_leaf);
             leaf->template __copy_backward<0, floor_half>(pos, floor_half, floor_half + 1, leaf);
             leaf->__assign(pos, xval);
-            result = leaf;
+            result = iterator(leaf, pos);
         } else {
-            // pos in inst
+            // pos in inst_leaf
             const unsigned int rpos = pos - floor_half - 1;
-            leaf->template __copy<0, ceil_half - 1>(floor_half + 1, pos, 0, inst);
-            leaf->template __copy<0, ceil_half - 1>(pos, node_size, rpos + 1, inst);
-            inst->__assign(rpos, xval);
-            result = inst;
-            pos = rpos;
+            leaf->template __copy<0, ceil_half - 1>(floor_half + 1, pos, 0, inst_leaf);
+            leaf->template __copy<0, ceil_half - 1>(pos, node_size, rpos + 1, inst_leaf);
+            inst_leaf->__assign(rpos, xval);
+            result = iterator(inst_leaf, rpos);
         }
 
-        __rec_insert_iter(leaf, inst);
-        return iterator(result, pos);
+        {
+            node_type *current = leaf;
+            node_type *inst = inst_leaf;
+
+            node_type *parent = current->m_parent;
+            const key_type *key = std::addressof(inst->as_leaf()->__get_key(0));
+
+            while (parent != nullptr) {
+                inst->m_parent = parent;
+                const unsigned int pos = current->pos() + 1;
+                current = parent;
+                auto *const inner = current->as_inner();
+
+                unsigned int cur_size = inner->size() + 1;
+                const key_type **const keys = inner->m_keys;
+                node_type **const sons = inner->m_sons;
+
+                // non-full inner
+                if (WJR_LIKELY(cur_size != node_size + 1)) {
+                    Traits::template copy_backward<0, node_size - 1>(
+                        keys + pos - 1, keys + cur_size - 1, keys + cur_size);
+                    Traits::template copy_backward<0, node_size - 1>(sons + pos, sons + cur_size,
+                                                                     sons + cur_size + 1);
+
+                    inner->size() = cur_size;
+                    keys[pos - 1] = key;
+                    sons[pos] = inst;
+
+                    inst->pos() = pos;
+                    for (unsigned int i = pos + 1; i <= cur_size; ++i) {
+                        sons[i]->pos() = i;
+                    }
+
+                    return result;
+                }
+
+                parent = inner->m_parent;
+
+                auto *const tmp_inst = __create_inner_node();
+
+                inner->size() = (int)(ceil_half);
+                tmp_inst->size() = (int)(floor_half);
+
+                const key_type *next_key;
+
+                if (pos <= ceil_half) {
+                    next_key = keys[ceil_half - 1];
+
+                    Traits::template copy<floor_half, floor_half>(
+                        keys + ceil_half, keys + node_size, tmp_inst->m_keys);
+                    Traits::template copy<floor_half + 1, floor_half + 1>(
+                        sons + ceil_half, sons + node_size + 1, tmp_inst->m_sons);
+                    Traits::template copy_backward<0, ceil_half>(
+                        keys + pos - 1, keys + ceil_half - 1, keys + ceil_half);
+                    Traits::template copy_backward<0, ceil_half>(sons + pos, sons + ceil_half,
+                                                                 sons + ceil_half + 1);
+
+                    keys[pos - 1] = key;
+                    sons[pos] = inst;
+
+                    inst->pos() = pos;
+                    for (unsigned int i = pos + 1; i <= ceil_half; ++i) {
+                        sons[i]->pos() = i;
+                    }
+                } else {
+                    if (pos == ceil_half + 1) {
+                        next_key = key;
+
+                        Traits::template copy<floor_half, floor_half>(
+                            keys + ceil_half, keys + node_size, tmp_inst->m_keys);
+                        Traits::template copy<floor_half, floor_half>(
+                            sons + ceil_half + 1, sons + node_size + 1, tmp_inst->m_sons + 1);
+
+                        tmp_inst->m_sons[0] = inst;
+                    } else {
+                        next_key = keys[ceil_half];
+
+                        Traits::template copy<0, floor_half - 1>(keys + ceil_half + 1,
+                                                                 keys + pos - 1, tmp_inst->m_keys);
+                        Traits::template copy<1, floor_half>(sons + ceil_half + 1, sons + pos,
+                                                             tmp_inst->m_sons);
+
+                        const unsigned int rpos = pos - ceil_half - 1;
+
+                        Traits::template copy<0, floor_half - 1>(keys + pos - 1, keys + node_size,
+                                                                 tmp_inst->m_keys + rpos);
+                        Traits::template copy<0, floor_half - 1>(sons + pos, sons + node_size + 1,
+                                                                 tmp_inst->m_sons + rpos + 1);
+
+                        tmp_inst->m_keys[rpos - 1] = key;
+                        tmp_inst->m_sons[rpos] = inst;
+                    }
+                }
+
+                for (unsigned int i = 0; i <= floor_half; ++i) {
+                    tmp_inst->m_sons[i]->m_parent = tmp_inst;
+                    tmp_inst->m_sons[i]->pos() = i;
+                }
+
+                key = next_key;
+                inst = tmp_inst;
+            }
+
+            auto *const new_root = __create_inner_node();
+            new_root->size() = 1;
+            new_root->m_parent = nullptr;
+            new_root->m_keys[0] = key;
+            new_root->m_sons[0] = current;
+            new_root->m_sons[1] = inst;
+            current->pos() = 0;
+            inst->pos() = 1;
+
+            current->m_parent = new_root;
+            inst->m_parent = new_root;
+
+            __get_root() = new_root;
+        }
+
+        return result;
     }
 
     template <bool Upper, bool Adjust>
@@ -1483,7 +1480,7 @@ private:
 
                     if (tmp_pos != 0) {
                         current->as_inner()->m_keys[tmp_pos - 1] =
-                            Traits::__to_key(leaf->__get_key(0));
+                            std::addressof(leaf->__get_key(0));
                         break;
                     }
 
@@ -1568,7 +1565,7 @@ private:
 
                     if (tmp_pos != 0) {
                         current->as_inner()->m_keys[tmp_pos - 1] =
-                            Traits::__to_key(leaf->__get_key(0));
+                            std::addressof(leaf->__get_key(0));
                     }
                 }
 
@@ -1596,7 +1593,7 @@ private:
             current = parent;
             parent = current->m_parent;
 
-            current->as_inner()->m_keys[tmp_pos - 1] = Traits::__to_key(rhs->__get_key(0));
+            current->as_inner()->m_keys[tmp_pos - 1] = std::addressof(rhs->__get_key(0));
 
             return iterator(leaf, pos);
         } while (false);

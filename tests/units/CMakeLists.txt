@@ -40,19 +40,11 @@ set(BUILD_GTEST ON CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(googletest)
 
+aux_source_directory(src TEST_SRCS)
+
 add_executable(
    tests
-   src/preprocessor.cpp
-   src/math.cpp
-   src/memory.cpp
-   src/container.cpp
-   src/compressed_pair.cpp
-   src/tuple.cpp
-   src/biginteger.cpp
-   src/expected.cpp
-   src/fastfloat.cpp
-   src/json.cpp
-   src/optional.cpp
+   ${TEST_SRCS}
 )
 
 if(WJR_ENABLE_COVERAGE)
@@ -100,8 +92,6 @@ else()
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I \"D:\\msys\\home\\19663\\gmp-6.3.0\" ")
 endif()
 message(${CMAKE_CXX_FLAGS})
-
-
 
 set(GMP_LIBS "D:\\msys\\home\\19663\\gmp-6.3.0\\.libs")
 
