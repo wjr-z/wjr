@@ -52,11 +52,7 @@ inline constexpr size_t node_size = 8;
 
 template <typename T>
 WJR_INTRINSIC_INLINE void btree_assign(T &dst, const T &from) {
-    if constexpr (std::is_copy_assignable_v<T>) {
-        dst = from;
-    } else {
-        std::memcpy(std::addressof(dst), std::addressof(from), sizeof(T));
-    }
+    dst = from;
 }
 
 template <size_t Min, size_t Max, typename Other>
@@ -97,12 +93,11 @@ WJR_INTRINSIC_INLINE void builtin_btree_copy(const Other *first, const Other *la
         }
     }
 
-    btree_assign(dst[0], first[0]);
-
+    dst[0] = first[0];
     if constexpr (Max == 2) {
         if (n == 1)
             return;
-        btree_assign(dst[1], first[1]);
+        dst[1] = first[1];
     }
 }
 
@@ -483,15 +478,15 @@ struct basic_btree_searcher_impl<8, void> {
 private:
     template <typename Compare>
     WJR_INTRINSIC_INLINE static unsigned int search_1_impl(unsigned int size,
-                                                           Compare &&comp) noexcept {
+                                                           const Compare &comp) noexcept {
         if (size == 1 || comp(1)) {
             if (comp(0)) {
                 return 0;
             }
             return 1;
         }
-        if (size < 4) {
-            if (size == 2 || comp(2)) {
+        if (size <= 3) {
+            if (size != 3 || comp(2)) {
                 return 2;
             }
             return 3;
@@ -502,8 +497,8 @@ private:
             }
             return 3;
         }
-        if (size < 6) {
-            if (size == 4 || comp(4)) {
+        if (size <= 5) {
+            if (size != 5 || comp(4)) {
                 return 4;
             }
             return 5;
@@ -514,25 +509,18 @@ private:
             }
             return 5;
         }
-        if (size < 8) {
-            if (size == 6 || comp(6)) {
-                return 6;
-            }
+        if (size == 6 || comp(6)) {
+            return 6;
+        }
+        if (size == 7 || comp(7)) {
             return 7;
         }
-        if (comp(7)) {
-            if (comp(6)) {
-                return 6;
-            }
-            return 7;
-        }
-
         return 8;
     }
 
     template <typename Compare>
     WJR_INTRINSIC_INLINE static unsigned int search_4_impl(unsigned int size,
-                                                           Compare &&comp) noexcept {
+                                                           const Compare &comp) noexcept {
         if (comp(1)) {
             if (comp(0)) {
                 return 0;
@@ -545,8 +533,8 @@ private:
             }
             return 3;
         }
-        if (size < 6) {
-            if (size == 4 || comp(4)) {
+        if (size <= 5) {
+            if (size != 5 || comp(4)) {
                 return 4;
             }
             return 5;
@@ -557,34 +545,28 @@ private:
             }
             return 5;
         }
-        if (size < 8) {
-            if (size == 6 || comp(6)) {
-                return 6;
-            }
+        if (size == 6 || comp(6)) {
+            return 6;
+        }
+        if (size == 7 || comp(7)) {
             return 7;
         }
-        if (comp(7)) {
-            if (comp(6)) {
-                return 6;
-            }
-            return 7;
-        }
-
         return 8;
     }
 
 public:
     template <size_t Min, typename Compare>
-    WJR_INTRINSIC_INLINE static unsigned int search(unsigned int size, Compare &&comp) noexcept {
+    WJR_INTRINSIC_INLINE static unsigned int search(unsigned int size,
+                                                    const Compare &comp) noexcept {
         static_assert(Min == 1 || Min == 4);
 
         WJR_ASSERT_ASSUME(size >= Min);
         WJR_ASSERT_ASSUME(size <= node_size);
 
         if constexpr (Min == 1) {
-            return search_1_impl(size, std::forward<Compare>(comp));
+            return search_1_impl(size, comp);
         } else {
-            return search_4_impl(size, std::forward<Compare>(comp));
+            return search_4_impl(size, comp);
         }
     }
 };

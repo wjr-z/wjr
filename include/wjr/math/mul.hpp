@@ -7,6 +7,7 @@
  */
 
 #include <wjr/math/add.hpp>
+#include <wjr/math/ctz.hpp>
 #include <wjr/math/detail.hpp>
 
 #if defined(_MSC_VER) && defined(WJR_X86)

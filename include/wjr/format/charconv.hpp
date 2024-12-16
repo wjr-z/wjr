@@ -7,6 +7,7 @@
 #include <wjr/container/type_traits.hpp>
 #include <wjr/format/charconv-impl.hpp>
 #include <wjr/math/bit.hpp>
+#include <wjr/math/broadcast.hpp>
 #include <wjr/math/mul.hpp>
 #include <wjr/memory/copy.hpp>
 #include <wjr/string.hpp>
