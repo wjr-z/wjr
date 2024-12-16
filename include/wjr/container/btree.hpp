@@ -69,7 +69,7 @@ WJR_INTRINSIC_INLINE void builtin_btree_copy(const Ptr *first, const Ptr *last, 
     WJR_ASSUME(n >= Min && n <= Max);
 
     if constexpr (Max > 4) {
-        if (WJR_LIKELY(n >= 4)) {
+        if (WJR_UNLIKELY(n > 4)) {
             char x0[Size * 4];
             char x1[Size * 4];
             builtin_memcpy(x0, first, Size * 4);
@@ -81,7 +81,7 @@ WJR_INTRINSIC_INLINE void builtin_btree_copy(const Ptr *first, const Ptr *last, 
     }
 
     if constexpr (Max > 2) {
-        if (n >= 2) {
+        if (WJR_LIKELY(n >= 2)) {
             char x0[Size * 2];
             char x1[Size * 2];
             builtin_memcpy(x0, first, Size * 2);
@@ -567,8 +567,7 @@ public:
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    static_assert(node_size >= 3, "node_size must be greater than or equal to 3.");
-    static_assert(node_size <= 255, "node_size must be less than or equal to 255.");
+    static_assert(node_size == 8, "node_size must be equal to 8.");
 
     basic_btree() noexcept : basic_btree(key_compare()) {}
 

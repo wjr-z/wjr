@@ -1114,7 +1114,7 @@ WJR_INTRINSIC_INLINE adjusted_mantissa compute_error_scaled(int64_t q, uint64_t 
     const int hilz = int(w >> 63) ^ 1;
     adjusted_mantissa answer;
     answer.mantissa = w << hilz;
-    const int bias = binary::mantissa_explicit_bits() - binary::minimum_exponent();
+    constexpr int bias = binary::mantissa_explicit_bits() - binary::minimum_exponent();
     answer.power2 = int32_t(detail::power(int32_t(q)) + bias - hilz - lz - 62 + invalid_am_bias);
     return answer;
 }
