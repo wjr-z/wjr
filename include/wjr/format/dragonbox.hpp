@@ -3632,7 +3632,7 @@ WJR_CONSTEXPR20 char *to_chars_n_impl(float_bits<FormatTraits> br, char *buffer)
                 buffer[6] = 't';
                 buffer[7] = 'y';
             } else {
-                std::memcpy(buffer, "Infinity", 8);
+                builtin_memcpy(buffer, "Infinity", 8);
             }
             return buffer + 8;
         } else {

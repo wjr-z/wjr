@@ -82,7 +82,7 @@ WJR_INTRINSIC_INLINE static void print_9_digits(std::uint32_t s32, int &exponent
         // 1441151882 = ceil(2^57 / 1'0000'0000) + 1
         auto prod = s32 * UINT64_C(1441151882);
         prod >>= 25;
-        std::memcpy(buffer, radix_100_head_table + int(prod >> 32) * 2, 2);
+        builtin_memcpy(buffer, radix_100_head_table + int(prod >> 32) * 2, 2);
 
         prod = (prod & UINT32_C(0xffffffff)) * 100;
         print_2_digits(int(prod >> 32), buffer + 2);
@@ -106,7 +106,7 @@ WJR_INTRINSIC_INLINE static void print_9_digits(std::uint32_t s32, int &exponent
         exponent += (6 + int(head_digits >= 10));
 
         // Write the first digit and the decimal point.
-        std::memcpy(buffer, radix_100_head_table + head_digits * 2, 2);
+        builtin_memcpy(buffer, radix_100_head_table + head_digits * 2, 2);
         // This third character may be overwritten later but we don't care.
         buffer[2] = radix_100_table[head_digits * 2 + 1];
 
@@ -164,7 +164,7 @@ WJR_INTRINSIC_INLINE static void print_9_digits(std::uint32_t s32, int &exponent
         exponent += (4 + int(head_digits >= 10));
 
         // Write the first digit and the decimal point.
-        std::memcpy(buffer, radix_100_head_table + head_digits * 2, 2);
+        builtin_memcpy(buffer, radix_100_head_table + head_digits * 2, 2);
         // This third character may be overwritten later but we don't care.
         buffer[2] = radix_100_table[head_digits * 2 + 1];
 
@@ -205,7 +205,7 @@ WJR_INTRINSIC_INLINE static void print_9_digits(std::uint32_t s32, int &exponent
         exponent += (2 + int(head_digits >= 10));
 
         // Write the first digit and the decimal point.
-        std::memcpy(buffer, radix_100_head_table + head_digits * 2, 2);
+        builtin_memcpy(buffer, radix_100_head_table + head_digits * 2, 2);
         // This third character may be overwritten later but we don't care.
         buffer[2] = radix_100_table[head_digits * 2 + 1];
 
@@ -232,7 +232,7 @@ WJR_INTRINSIC_INLINE static void print_9_digits(std::uint32_t s32, int &exponent
         exponent += int(s32 >= 10);
 
         // Write the first digit and the decimal point.
-        std::memcpy(buffer, radix_100_head_table + s32 * 2, 2);
+        builtin_memcpy(buffer, radix_100_head_table + s32 * 2, 2);
         // This third character may be overwritten later but we don't care.
         buffer[2] = radix_100_table[s32 * 2 + 1];
 
@@ -250,7 +250,7 @@ char *to_chars<ieee754_binary32, std::uint32_t>(std::uint32_t s32, int exponent,
 
     // Print exponent and return
     if (exponent < 0) {
-        std::memcpy(buffer, "E-", 2);
+        builtin_memcpy(buffer, "E-", 2);
         buffer += 2;
         exponent = -exponent;
     } else {
@@ -298,7 +298,7 @@ char *to_chars<ieee754_binary64, std::uint64_t>(std::uint64_t const significand,
             // 1'0000'0000) + 1
             auto prod = first_block * UINT64_C(1441151882);
             prod >>= 25;
-            std::memcpy(buffer, radix_100_head_table + int(prod >> 32) * 2, 2);
+            builtin_memcpy(buffer, radix_100_head_table + int(prod >> 32) * 2, 2);
             prod = (prod & UINT32_C(0xffffffff)) * 100;
             print_2_digits(int(prod >> 32), buffer + 2);
             prod = (prod & UINT32_C(0xffffffff)) * 100;
@@ -331,7 +331,7 @@ char *to_chars<ieee754_binary64, std::uint64_t>(std::uint64_t const significand,
                 prod >>= 16;
                 auto const head_digits = int(prod >> 32);
 
-                std::memcpy(buffer, radix_100_head_table + head_digits * 2, 2);
+                builtin_memcpy(buffer, radix_100_head_table + head_digits * 2, 2);
                 buffer[2] = radix_100_table[head_digits * 2 + 1];
 
                 exponent += (6 + int(head_digits >= 10));
@@ -352,7 +352,7 @@ char *to_chars<ieee754_binary64, std::uint64_t>(std::uint64_t const significand,
                 auto prod = first_block * UINT64_C(429497);
                 auto const head_digits = int(prod >> 32);
 
-                std::memcpy(buffer, radix_100_head_table + head_digits * 2, 2);
+                builtin_memcpy(buffer, radix_100_head_table + head_digits * 2, 2);
                 buffer[2] = radix_100_table[head_digits * 2 + 1];
 
                 exponent += (4 + int(head_digits >= 10));
@@ -371,7 +371,7 @@ char *to_chars<ieee754_binary64, std::uint64_t>(std::uint64_t const significand,
                 auto prod = first_block * UINT64_C(42949673);
                 auto const head_digits = int(prod >> 32);
 
-                std::memcpy(buffer, radix_100_head_table + head_digits * 2, 2);
+                builtin_memcpy(buffer, radix_100_head_table + head_digits * 2, 2);
                 buffer[2] = radix_100_table[head_digits * 2 + 1];
 
                 exponent += (2 + int(head_digits >= 10));
@@ -384,7 +384,7 @@ char *to_chars<ieee754_binary64, std::uint64_t>(std::uint64_t const significand,
                 buffer += 4;
             } else {
                 // 1 or 2 digits.
-                std::memcpy(buffer, radix_100_head_table + first_block * 2, 2);
+                builtin_memcpy(buffer, radix_100_head_table + first_block * 2, 2);
                 buffer[2] = radix_100_table[first_block * 2 + 1];
 
                 exponent += int(first_block >= 10);
@@ -434,7 +434,7 @@ char *to_chars<ieee754_binary64, std::uint64_t>(std::uint64_t const significand,
 
     // Print exponent and return
     if (exponent < 0) {
-        std::memcpy(buffer, "E-", 2);
+        builtin_memcpy(buffer, "E-", 2);
         buffer += 2;
         exponent = -exponent;
     } else {

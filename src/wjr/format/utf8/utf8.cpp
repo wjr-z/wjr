@@ -228,13 +228,13 @@ WJR_INTRINSIC_INLINE char *small_copy(char *dst, const char *src, unsigned int n
     if (n >= 8) {
     #if WJR_HAS_SIMD(AVX2)
         if (n >= 16) {
-            std::memcpy(dst, src, 16);
-            std::memcpy(dst + n - 16, src + n - 16, 16);
+            builtin_memcpy(dst, src, 16);
+            builtin_memcpy(dst + n - 16, src + n - 16, 16);
             return dst + n;
         }
     #endif
-        std::memcpy(dst, src, 8);
-        std::memcpy(dst + n - 8, src + n - 8, 8);
+        builtin_memcpy(dst, src, 8);
+        builtin_memcpy(dst + n - 8, src + n - 8, 8);
         return dst + n;
     }
 
@@ -243,14 +243,14 @@ WJR_INTRINSIC_INLINE char *small_copy(char *dst, const char *src, unsigned int n
     }
 
     if (n >= 4) {
-        std::memcpy(dst, src, 4);
-        std::memcpy(dst + n - 4, src + n - 4, 4);
+        builtin_memcpy(dst, src, 4);
+        builtin_memcpy(dst + n - 4, src + n - 4, 4);
         return dst + n;
     }
 
     if (n >= 2) {
-        std::memcpy(dst, src, 2);
-        std::memcpy(dst + n - 2, src + n - 2, 2);
+        builtin_memcpy(dst, src, 2);
+        builtin_memcpy(dst + n - 2, src + n - 2, 2);
         return dst + n;
     }
 
@@ -424,8 +424,8 @@ SMALL:
                     sse::movemask_epi8(sse::cmpeq_epi8(x1, sse::set1_epi8('\\'))) << m;
 
                 if (WJR_LIKELY(B == 0)) {
-                    std::memcpy(dst, first, 2);
-                    std::memcpy(dst + m, first + m, 2);
+                    builtin_memcpy(dst, first, 2);
+                    builtin_memcpy(dst + m, first + m, 2);
                     return dst + n;
                 }
 
@@ -439,8 +439,8 @@ SMALL:
                 sse::movemask_epi8(sse::cmpeq_epi8(x1, sse::set1_epi8('\\'))) << m;
 
             if (WJR_LIKELY(B == 0)) {
-                std::memcpy(dst, first, 4);
-                std::memcpy(dst + m, first + m, 4);
+                builtin_memcpy(dst, first, 4);
+                builtin_memcpy(dst + m, first + m, 4);
                 return dst + n;
             }
 
@@ -454,8 +454,8 @@ SMALL:
             sse::movemask_epi8(sse::cmpeq_epi8(x1, sse::set1_epi8('\\'))) << m;
 
         if (WJR_LIKELY(B == 0)) {
-            std::memcpy(dst, first, 8);
-            std::memcpy(dst + m, first + m, 8);
+            builtin_memcpy(dst, first, 8);
+            builtin_memcpy(dst + m, first + m, 8);
             return dst + n;
         }
     } while (false);

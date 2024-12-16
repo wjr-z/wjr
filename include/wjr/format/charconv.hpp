@@ -171,10 +171,10 @@ public:
         auto *const str = static_cast<char *>(ptr);
         if constexpr (Base * Base <= 16) {
             constexpr auto &table = __char_converter_table<Converter, Base, 4>;
-            std::memcpy(str, table.data() + val * 4 + 2, 2);
+            builtin_memcpy(str, table.data() + val * 4 + 2, 2);
         } else {
             constexpr auto &table = __char_converter_table<Converter, Base, 2>;
-            std::memcpy(str, table.data() + val * 2, 2);
+            builtin_memcpy(str, table.data() + val * 2, 2);
         }
     }
 };
@@ -202,15 +202,15 @@ public:
         auto *const str = static_cast<char *>(ptr);
         if constexpr (Base * Base <= 16) {
             constexpr auto &table = __char_converter_table<Converter, Base, 4>;
-            std::memcpy(str, table.data() + val * 4, 4);
+            builtin_memcpy(str, table.data() + val * 4, 4);
         } else {
             constexpr auto &table = __char_converter_table<Converter, Base, 2>;
             constexpr auto Base2 = Base * Base;
             const uint32_t hi = val / Base2;
             const uint32_t lo = val % Base2;
 
-            std::memcpy(str, table.data() + hi * 2, 2);
-            std::memcpy(str + 2, table.data() + lo * 2, 2);
+            builtin_memcpy(str, table.data() + hi * 2, 2);
+            builtin_memcpy(str + 2, table.data() + lo * 2, 2);
         }
     }
 };

@@ -55,10 +55,9 @@ WJR_INTRINSIC_INLINE void btree_assign(T &dst, const T &from) {
     dst = from;
 }
 
-template <size_t Min, size_t Max, typename Other>
-WJR_INTRINSIC_INLINE void builtin_btree_copy(const Other *first, const Other *last,
-                                             Other *dst) noexcept {
-    constexpr auto Size = sizeof(Other);
+template <size_t Min, size_t Max, typename Ptr, WJR_REQUIRES(std::is_pointer_v<Ptr>)>
+WJR_INTRINSIC_INLINE void builtin_btree_copy(const Ptr *first, const Ptr *last, Ptr *dst) noexcept {
+    constexpr auto Size = sizeof(Ptr);
 
     if constexpr (Min == 0) {
         if (WJR_UNLIKELY(first == last)) {
@@ -73,10 +72,10 @@ WJR_INTRINSIC_INLINE void builtin_btree_copy(const Other *first, const Other *la
         if (WJR_LIKELY(n >= 4)) {
             char x0[Size * 4];
             char x1[Size * 4];
-            std::memcpy(x0, first, Size * 4);
-            std::memcpy(x1, last - 4, Size * 4);
-            std::memcpy(dst, x0, Size * 4);
-            std::memcpy(dst + n - 4, x1, Size * 4);
+            builtin_memcpy(x0, first, Size * 4);
+            builtin_memcpy(x1, last - 4, Size * 4);
+            builtin_memcpy(dst, x0, Size * 4);
+            builtin_memcpy(dst + n - 4, x1, Size * 4);
             return;
         }
     }
@@ -85,10 +84,10 @@ WJR_INTRINSIC_INLINE void builtin_btree_copy(const Other *first, const Other *la
         if (n >= 2) {
             char x0[Size * 2];
             char x1[Size * 2];
-            std::memcpy(x0, first, Size * 2);
-            std::memcpy(x1, last - 2, Size * 2);
-            std::memcpy(dst, x0, Size * 2);
-            std::memcpy(dst + n - 2, x1, Size * 2);
+            builtin_memcpy(x0, first, Size * 2);
+            builtin_memcpy(x1, last - 2, Size * 2);
+            builtin_memcpy(dst, x0, Size * 2);
+            builtin_memcpy(dst + n - 2, x1, Size * 2);
             return;
         }
     }
@@ -101,14 +100,13 @@ WJR_INTRINSIC_INLINE void builtin_btree_copy(const Other *first, const Other *la
     }
 }
 
-template <size_t Min, size_t Max, typename Other>
-WJR_INTRINSIC_INLINE void copy(const Other *first, const Other *last, Other *dest) noexcept {
+template <size_t Min, size_t Max, typename Ptr>
+WJR_INTRINSIC_INLINE void copy(const Ptr *first, const Ptr *last, Ptr *dest) noexcept {
     builtin_btree_copy<Min, Max>(first, last, dest);
 }
 
-template <size_t Min, size_t Max, typename Other>
-WJR_INTRINSIC_INLINE void copy_backward(const Other *first, const Other *last,
-                                        Other *dest) noexcept {
+template <size_t Min, size_t Max, typename Ptr>
+WJR_INTRINSIC_INLINE void copy_backward(const Ptr *first, const Ptr *last, Ptr *dest) noexcept {
     builtin_btree_copy<Min, Max>(first, last, dest - (last - first));
 }
 
@@ -164,15 +162,14 @@ public:
     using leaf_node_type = btree_leaf_node<btree_traits>;
     static constexpr bool multi = Multi;
 
-    template <size_t Min, size_t Max, typename Other>
-    WJR_INTRINSIC_INLINE static void copy(const Other *first, const Other *last,
-                                          Other *dest) noexcept {
+    template <size_t Min, size_t Max, typename Ptr>
+    WJR_INTRINSIC_INLINE static void copy(const Ptr *first, const Ptr *last, Ptr *dest) noexcept {
         return btree_detail::copy<Min, Max>(first, last, dest);
     }
 
-    template <size_t Min, size_t Max, typename Other>
-    WJR_INTRINSIC_INLINE static void copy_backward(const Other *first, const Other *last,
-                                                   Other *dest) noexcept {
+    template <size_t Min, size_t Max, typename Ptr>
+    WJR_INTRINSIC_INLINE static void copy_backward(const Ptr *first, const Ptr *last,
+                                                   Ptr *dest) noexcept {
         return btree_detail::copy_backward<Min, Max>(first, last, dest);
     }
 };
@@ -479,79 +476,41 @@ private:
     template <typename Compare>
     WJR_INTRINSIC_INLINE static unsigned int search_1_impl(unsigned int size,
                                                            const Compare &comp) noexcept {
-        if (size == 1 || comp(1)) {
-            if (comp(0)) {
-                return 0;
+        unsigned int i = 1;
+        while (WJR_LIKELY(size > i)) {
+            if (comp(i)) {
+                if (comp(i - 1)) {
+                    return i - 1;
+                }
+                return i;
             }
-            return 1;
+
+            i += 2;
         }
-        if (size <= 3) {
-            if (size != 3 || comp(2)) {
-                return 2;
-            }
-            return 3;
+        if (size != i || comp(i - 1)) {
+            return i - 1;
         }
-        if (comp(3)) {
-            if (comp(2)) {
-                return 2;
-            }
-            return 3;
-        }
-        if (size <= 5) {
-            if (size != 5 || comp(4)) {
-                return 4;
-            }
-            return 5;
-        }
-        if (comp(5)) {
-            if (comp(4)) {
-                return 4;
-            }
-            return 5;
-        }
-        if (size == 6 || comp(6)) {
-            return 6;
-        }
-        if (size == 7 || comp(7)) {
-            return 7;
-        }
-        return 8;
+        return i;
     }
 
     template <typename Compare>
     WJR_INTRINSIC_INLINE static unsigned int search_4_impl(unsigned int size,
                                                            const Compare &comp) noexcept {
-        if (comp(1)) {
-            if (comp(0)) {
-                return 0;
+        unsigned int i = 1;
+        do {
+            if (comp(i)) {
+                if (comp(i - 1)) {
+                    return i - 1;
+                }
+                return i;
             }
-            return 1;
+
+            i += 2;
+        } while (WJR_LIKELY(size > i));
+        if (size != i || comp(i - 1)) {
+            return i - 1;
         }
-        if (comp(3)) {
-            if (comp(2)) {
-                return 2;
-            }
-            return 3;
-        }
-        if (size <= 5) {
-            if (size != 5 || comp(4)) {
-                return 4;
-            }
-            return 5;
-        }
-        if (comp(5)) {
-            if (comp(4)) {
-                return 4;
-            }
-            return 5;
-        }
-        if (size == 6 || comp(6)) {
-            return 6;
-        }
-        if (size == 7 || comp(7)) {
-            return 7;
-        }
-        return 8;
+        return i;
     }
 
 public:

@@ -237,6 +237,11 @@
     #define WJR_BUILTIN_CLEAR_PADDING(x) __builtin_zero_non_value_bits(x)
 #endif
 
+#if WJR_HAS_BUILTIN(__builtin_memcpy)
+    #define WJR_HAS_BUILTIN_MEMCPY WJR_HAS_DEF
+    #define WJR_BUILTIN_MEMCPY_THRESHOLD 256
+#endif
+
 #if defined(WJR_FORCEINLINE)
     #define WJR_INTRINSIC_INLINE inline WJR_FORCEINLINE
 #else

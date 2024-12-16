@@ -91,7 +91,7 @@ WJR_PURE WJR_INTRINSIC_INLINE To bit_cast(const From &src) noexcept {
     return __builtin_bit_cast(To, src);
 #else
     To dst;
-    std::memcpy(std::addressof(dst), std::addressof(src), sizeof(To));
+    builtin_memcpy(std::addressof(dst), std::addressof(src), sizeof(To));
     return dst;
 #endif
 }
@@ -114,9 +114,9 @@ WJR_INTRINSIC_INLINE void clear_tail_padding_bits(To &to) noexcept {
 
 template <typename To, typename From>
 WJR_INTRINSIC_INLINE To bitwise_cast_memcpy(From const &from) noexcept {
-    constexpr auto copy_size = sizeof(From) < sizeof(To) ? sizeof(From) : sizeof(To);
+    static constexpr auto copy_size = sizeof(From) < sizeof(To) ? sizeof(From) : sizeof(To);
     To dst;
-    std::memcpy(std::addressof(dst), std::addressof(from), copy_size);
+    builtin_memcpy(std::addressof(dst), std::addressof(from), copy_size);
     clear_tail_padding_bits<sizeof(From)>(dst);
     return dst;
 }

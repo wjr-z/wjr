@@ -155,6 +155,14 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x) noexcept {
 #endif
 }
 
+WJR_INTRINSIC_INLINE void builtin_memcpy(void *dst, void const *src, size_t size) noexcept {
+#if WJR_HAS_BUILTIN(MEMCPY)
+    (void)__builtin_memcpy(dst, src, size);
+#else
+    (void)std::memcpy(dst, src, size);
+#endif
+}
+
 WJR_INTRINSIC_INLINE void maybe_null_memcpy(void *dst, void const *src, size_t size) noexcept {
     if (WJR_UNLIKELY(size == 0)) {
         return;
@@ -166,13 +174,13 @@ WJR_INTRINSIC_INLINE void maybe_null_memcpy(void *dst, void const *src, size_t s
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr) noexcept {
     T x;
-    std::memcpy(std::addressof(x), ptr, sizeof(T));
+    builtin_memcpy(std::addressof(x), ptr, sizeof(T));
     return x;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x) noexcept {
-    std::memcpy(ptr, std::addressof(x), sizeof(T));
+    builtin_memcpy(ptr, std::addressof(x), sizeof(T));
 }
 
 template <class Pointer, class SizeType = std::size_t>
