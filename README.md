@@ -74,3 +74,6 @@ enable_special_members_of_args_base可以方便的禁用特殊成员函数。
 20. concurrency \
 pause，lock-free单向链表简单实现，spin_mutex    \
 todo : 无锁数据结构，RCU, scheduler等
+
+### 单元测试
+目前尚未适配需要使用GMP的测试
