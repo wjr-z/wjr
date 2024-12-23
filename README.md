@@ -77,3 +77,6 @@ todo :
 1. 无锁数据结构，RCU, scheduler等
 2. 使用forked fastfloat/dragonbox.
 3. 支持使用fmt
+
+### 单元测试
+目前尚未适配需要使用GMP的测试。需要自行指定GMP Path.

@@ -13,7 +13,7 @@ if (NOT DEFINED WJR_DEBUG_LEVEL_RELEASE)
    set(WJR_DEBUG_LEVEL_RELEASE 0)
 endif()
 
-if(MSVC)
+if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
    add_compile_definitions(__ADX__)
    add_compile_definitions(__BMI2__)
    add_compile_definitions(__AVX2__)
@@ -27,7 +27,7 @@ set(CMAKE_USE_GMP on)
 
 if(CMAKE_USE_GMP)
    add_compile_definitions(WJR_USE_GMP)
-   if(MSVC)
+   if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
       set(USE_GMP_FLAGS "/I \"D:\\msys\\home\\19663\\gmp-6.3.0\"")
    else()
       set(USE_GMP_FLAGS "-I \"D:\\msys\\home\\19663\\gmp-6.3.0\"")
@@ -36,12 +36,13 @@ else()
    set(USE_GMP_FLAGS "")
 endif()
 
-if(MSVC)
+if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
    set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} /O2 /std:c++17 /Zc:preprocessor ${USE_GMP_FLAGS}")
 else()
    set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -O3 -std=c++2a -DNDEBUG -DWJR_DEBUG_LEVEL=0 \
    -march=native ${USE_GMP_FLAGS} -Wall -Wextra -g")
 endif()
+
 
 message(${CMAKE_CXX_FLAGS})
 
