@@ -73,4 +73,7 @@ control_special_members_base可以方便的生成尽可能trivial的特殊成员
 enable_special_members_of_args_base可以方便的禁用特殊成员函数。
 20. concurrency \
 pause，lock-free单向链表简单实现，spin_mutex    \
-todo : 无锁数据结构，RCU, scheduler等
+todo : 
+1. 无锁数据结构，RCU, scheduler等
+2. 使用forked fastfloat/dragonbox.
+3. 支持使用fmt

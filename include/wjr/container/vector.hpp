@@ -37,6 +37,8 @@
  * -# size_type operator--() noexcept
  * -# size_type operator+=(size_type) noexcept
  * -# size_type operator-=(size_type) noexcept
+ * 
+ * @todo SSO vector.
  *
  * @version 0.2
  * @date 2024-04-29

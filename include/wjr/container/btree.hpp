@@ -142,7 +142,7 @@ private:
     using Mybase = __btree_inline_traits<Key, Value>;
 
 public:
-    using _Alty = typename std::allocator_traits<memory_pool<char>>::template rebind_alloc<char>;
+    using _Alty = memory_pool<char>;
     using _Alty_traits = std::allocator_traits<_Alty>;
     using storage_fn_type = container_fn<_Alty>;
 
@@ -571,17 +571,21 @@ public:
 
     basic_btree() noexcept : basic_btree(key_compare()) {}
 
-    explicit basic_btree(const key_compare &comp) noexcept : m_pair(comp, btree_node_constructor) {}
+    explicit basic_btree(const key_compare &comp) noexcept(
+        std::is_nothrow_copy_constructible_v<key_compare>)
+        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(comp),
+                 wjr::forward_as_tuple(std::piecewise_construct, wjr::forward_as_tuple(),
+                                       wjr::forward_as_tuple(btree_node_constructor))) {}
 
     // not implemented currently
     basic_btree(const basic_btree &other) noexcept(
         std::is_nothrow_copy_constructible_v<key_compare>)
-        : m_pair(other.key_comp(), btree_node_constructor) {
+        : basic_btree(other.key_comp()) {
         __copy_tree(other);
     }
 
     basic_btree(basic_btree &&other) noexcept(std::is_nothrow_move_constructible_v<key_compare>)
-        : m_pair(std::move(other.key_comp()), btree_node_constructor) {
+        : basic_btree(std::move(other.key_comp())) {
         __move_tree(std::move(other));
     }
 
@@ -640,16 +644,16 @@ public:
     }
 
 protected:
-    WJR_INTRINSIC_INLINE static inner_node_type *__create_inner_node() noexcept {
-        _Alty al;
+    WJR_INTRINSIC_INLINE inner_node_type *__create_inner_node() noexcept {
+        auto &al = __get_allocator();
         auto *const node = reinterpret_cast<inner_node_type *>(
             _Alty_traits::allocate(al, sizeof(inner_node_type)));
         uninitialized_construct_using_allocator(node, al, default_construct);
         return node;
     }
 
-    WJR_INTRINSIC_INLINE static leaf_node_type *__create_leaf_node() noexcept {
-        _Alty al;
+    WJR_INTRINSIC_INLINE leaf_node_type *__create_leaf_node() noexcept {
+        auto &al = __get_allocator();
         auto *const node =
             reinterpret_cast<leaf_node_type *>(_Alty_traits::allocate(al, sizeof(leaf_node_type)));
         uninitialized_construct_using_allocator(node, al, default_construct);
@@ -657,28 +661,28 @@ protected:
     }
 
     template <typename... Args>
-    WJR_INTRINSIC_INLINE static value_type *__create_node(Args &&...args) noexcept {
-        _Alty al;
+    WJR_INTRINSIC_INLINE value_type *__create_node(Args &&...args) noexcept {
+        auto &al = __get_allocator();
         auto *const node =
             reinterpret_cast<value_type *>(_Alty_traits::allocate(al, sizeof(value_type)));
         uninitialized_construct_using_allocator(node, al, std::forward<Args>(args)...);
         return node;
     }
 
-    WJR_INTRINSIC_INLINE static void __drop_inner_node(inner_node_type *node) noexcept {
-        _Alty al;
+    WJR_INTRINSIC_INLINE void __drop_inner_node(inner_node_type *node) noexcept {
+        auto &al = __get_allocator();
         destroy_at_using_allocator(node, al);
         _Alty_traits::deallocate(al, reinterpret_cast<char *>(node), sizeof(inner_node_type));
     }
 
-    WJR_INTRINSIC_INLINE static void __drop_leaf_node(leaf_node_type *node) noexcept {
-        _Alty al;
+    WJR_INTRINSIC_INLINE void __drop_leaf_node(leaf_node_type *node) noexcept {
+        auto &al = __get_allocator();
         destroy_at_using_allocator(node, al);
         _Alty_traits::deallocate(al, reinterpret_cast<char *>(node), sizeof(leaf_node_type));
     }
 
-    WJR_INTRINSIC_INLINE static void __drop_node(value_type *node) noexcept {
-        _Alty al;
+    WJR_INTRINSIC_INLINE void __drop_node(value_type *node) noexcept {
+        auto &al = __get_allocator();
         destroy_at_using_allocator(std::addressof(node), al);
         _Alty_traits::deallocate(al, reinterpret_cast<char *>(node), sizeof(value_type));
     }
@@ -917,6 +921,11 @@ private:
         __move_tree(std::move(other));
     }
 
+    WJR_CONSTEXPR20 _Alty &__get_allocator() noexcept { return m_pair.second().first(); }
+    WJR_CONSTEXPR20 const _Alty &__get_allocator() const noexcept {
+        return m_pair.second().first();
+    }
+
     // member function for container_fn (END)
 
     WJR_NODISCARD WJR_NOINLINE WJR_HOT WJR_FLATTEN iterator
@@ -1126,12 +1135,10 @@ private:
         current = current->as_inner()->m_sons[pos];
         cur_size = current->size();
 
-        if (cur_size >= 0) {
-            do {
-                pos = __search<Upper, floor_half>(current->as_inner(), cur_size, key, comp);
-                current = current->as_inner()->m_sons[pos];
-                cur_size = current->size();
-            } while (cur_size >= 0);
+        while (cur_size >= 0) {
+            pos = __search<Upper, floor_half>(current->as_inner(), cur_size, key, comp);
+            current = current->as_inner()->m_sons[pos];
+            cur_size = current->size();
         }
 
         const unsigned int cur_usize = static_cast<unsigned int>(-cur_size);
@@ -1596,27 +1603,31 @@ private:
         return iterator(leaf, pos).__adjust_next();
     }
 
-    WJR_INTRINSIC_CONSTEXPR node_type *&__get_root() noexcept { return m_pair.second().m_parent; }
+    WJR_INTRINSIC_CONSTEXPR node_type *&__get_root() noexcept {
+        return m_pair.second().second().m_parent;
+    }
 
     WJR_INTRINSIC_CONSTEXPR const node_type *__get_root() const noexcept {
-        return m_pair.second().m_parent;
+        return m_pair.second().second().m_parent;
     }
 
     WJR_INTRINSIC_CONSTEXPR list_node_type *__get_sentry() noexcept {
-        return m_pair.second().self();
+        return m_pair.second().second().self();
     }
 
     WJR_INTRINSIC_CONSTEXPR const list_node_type *__get_sentry() const noexcept {
-        return m_pair.second().self();
+        return m_pair.second().second().self();
     }
 
-    WJR_INTRINSIC_CONSTEXPR size_type &__get_size() noexcept { return m_pair.second().m_root_size; }
+    WJR_INTRINSIC_CONSTEXPR size_type &__get_size() noexcept {
+        return m_pair.second().second().m_root_size;
+    }
 
     WJR_INTRINSIC_CONSTEXPR const size_type &__get_size() const noexcept {
-        return m_pair.second().m_root_size;
+        return m_pair.second().second().m_root_size;
     }
 
-    compressed_pair<key_compare, list_base_type> m_pair;
+    compressed_pair<key_compare, compressed_pair<_Alty, list_base_type>> m_pair;
 };
 
 } // namespace wjr
