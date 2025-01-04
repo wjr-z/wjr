@@ -94,7 +94,7 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
     #endif
 
     string_set_length_hacker(str, sz);
-    WJR_ASSERT_L2(str.size() == sz);
+    WJR_ASSERT_L3(str.size() == sz);
     str[sz] = '\0';
 }
 
@@ -149,9 +149,11 @@ struct append_fn_impl<std::basic_string<Char, Traits, Alloc>>
     #define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Name, Container)
 #endif
 
-using default_string = std::basic_string<char, std::char_traits<char>, memory_pool<char>>;
+namespace string_details {
+using default_string = std::basic_string<char, std::char_traits<char>, std::allocator<char>>;
+}
 
-WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(default_string, default_string);
+WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(default_string, string_details::default_string);
 
 template <typename Char, typename Traits, typename Alloc>
 struct get_relocate_mode<std::basic_string<Char, Traits, Alloc>> {

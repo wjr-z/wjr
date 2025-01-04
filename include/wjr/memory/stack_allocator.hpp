@@ -5,7 +5,9 @@
 
 #include <wjr/math/literals.hpp>
 #include <wjr/memory/memory_pool.hpp>
+#include <wjr/string.hpp>
 #include <wjr/type_traits.hpp>
+
 
 namespace wjr {
 
@@ -53,7 +55,7 @@ private:
 
             if (WJR_UNLIKELY(m_size == m_capacity)) {
                 const uint16_t new_capacity = m_idx + 2 * (bufsize - 1);
-                memory_pool<alloc_node> pool;
+                std::allocator<alloc_node> pool;
                 auto *const new_ptr = pool.allocate(new_capacity);
                 if (WJR_LIKELY(m_idx != 0)) {
                     std::copy_n(m_ptr, m_idx, new_ptr);
@@ -302,6 +304,14 @@ public:
 private:
     UniqueStackAllocator *m_alloc = nullptr;
 };
+
+namespace string_details {
+using weak_stack_allocator_string =
+    std::basic_string<char, std::char_traits<char>, weak_stack_allocator<char>>;
+}
+
+WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(weak_stack_allocator_string,
+                                         string_details::weak_stack_allocator_string);
 
 } // namespace wjr
 

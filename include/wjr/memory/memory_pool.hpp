@@ -108,11 +108,7 @@ public:
     }
 };
 
-/// @todo My own allocator.
-template <typename Ty>
-using memory_pool = std::allocator<Ty>;
-
-static_assert(std::is_empty_v<memory_pool<char>>);
+static_assert(std::is_empty_v<std::allocator<char>>);
 
 } // namespace wjr
 

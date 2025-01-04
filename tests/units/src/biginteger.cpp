@@ -9,7 +9,7 @@
 using namespace wjr;
 
 namespace wjr {
-template class basic_biginteger<default_biginteger_vector_storage<memory_pool<uint64_t>>>;
+template class basic_biginteger<default_biginteger_vector_storage<std::allocator<uint64_t>>>;
 }
 
 #if defined(WJR_USE_GMP)

@@ -142,7 +142,7 @@ private:
     using Mybase = __btree_inline_traits<Key, Value>;
 
 public:
-    using _Alty = memory_pool<char>;
+    using _Alty = std::allocator<char>;
     using _Alty_traits = std::allocator_traits<_Alty>;
     using storage_fn_type = container_fn<_Alty>;
 

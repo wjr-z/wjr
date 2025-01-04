@@ -189,9 +189,8 @@ private:
     template <typename Tuple1, typename Tuple2, size_t... N1, size_t... N2>
     constexpr compressed_pair(
         Tuple1 &tp1, Tuple2 &tp2, std::index_sequence<N1...>,
-        std::index_sequence<N2...>) noexcept(noexcept(Mybase1(std::get<N1>(std::move(tp1))...))
-                                                 && noexcept(
-                                                     Mybase2(std::get<N2>(std::move(tp2))...)))
+        std::index_sequence<N2...>) noexcept(noexcept(Mybase1(std::get<N1>(std::move(tp1))...)) &&
+                                             noexcept(Mybase2(std::get<N2>(std::move(tp2))...)))
         : Mybase1(std::get<N1>(std::move(tp1))...), Mybase2(std::get<N2>(std::move(tp2))...) {}
 
 public:

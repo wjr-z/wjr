@@ -44,8 +44,7 @@
     #error "WJR_DEBUG_LEVEL must be 0 ~ 3"
 #endif
 
-#if WJR_DEBUG_LEVEL == 0
-    #undef WJR_LIGHT_ASSERT
+#if WJR_DEBUG_LEVEL == 0 && !defined(WJR_LIGHT_ASSERT)
     #define WJR_LIGHT_ASSERT
 #endif
 

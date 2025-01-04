@@ -22,7 +22,7 @@ static_assert(is_contiguous_iterator_v<typename vector<int>::const_iterator>, ""
 static_assert(is_contiguous_iterator_v<typename vector<std::string>::iterator>, "");
 static_assert(is_contiguous_iterator_v<typename vector<std::string>::const_iterator>, "");
 
-static_assert(is_trivially_allocator_v<memory_pool<int>>, "");
+static_assert(is_trivially_allocator_v<std::allocator<int>>, "");
 
 template <typename Iter, typename Func>
 void for_each_n(Iter first, size_t n, Func fn) {
@@ -115,8 +115,8 @@ template <typename T>
 using wvector = wjr::vector<T>;
 
 namespace wjr {
-template class basic_vector<default_vector_storage<int, memory_pool<int>>>;
-template class basic_vector<default_vector_storage<std::string, memory_pool<std::string>>>;
+template class basic_vector<default_vector_storage<int, std::allocator<int>>>;
+template class basic_vector<default_vector_storage<std::string, std::allocator<std::string>>>;
 } // namespace wjr
 
 TEST(vector, construct) {
@@ -135,7 +135,7 @@ TEST(vector, construct) {
     {
         auto test = [](auto _Val) {
             using T = decltype(_Val);
-            memory_pool<T> al;
+            std::allocator<T> al;
             wvector<T> v(al);
             EXPECT_EQ(v.size(), 0);
             EXPECT_GE(v.capacity(), 0);
@@ -146,7 +146,7 @@ TEST(vector, construct) {
     {
         auto test = [](auto _Val, size_t n) {
             using T = decltype(_Val);
-            memory_pool<T> al;
+            std::allocator<T> al;
             wvector<T> v(n, al);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
@@ -160,7 +160,7 @@ TEST(vector, construct) {
     {
         auto test = [](auto _Val, size_t n) {
             using T = decltype(_Val);
-            memory_pool<T> al;
+            std::allocator<T> al;
             wvector<T> V(n, _Val, al);
             wvector<T> v(V);
             EXPECT_EQ(v.size(), n);
@@ -182,7 +182,7 @@ TEST(vector, construct) {
     {
         auto test = [](auto _Val, size_t n) {
             using T = decltype(_Val);
-            memory_pool<T> al;
+            std::allocator<T> al;
             wvector<T> V(n, _Val, al);
             wvector<T> v(V, al);
             EXPECT_EQ(v.size(), n);
@@ -204,7 +204,7 @@ TEST(vector, construct) {
     {
         auto test = [](auto _Val, size_t n) {
             using T = decltype(_Val);
-            memory_pool<T> al;
+            std::allocator<T> al;
             wvector<T> V(n, _Val, al);
             wvector<T> v(std::move(V));
             EXPECT_EQ(v.size(), n);
@@ -221,7 +221,7 @@ TEST(vector, construct) {
     {
         auto test = [](auto _Val, size_t n) {
             using T = decltype(_Val);
-            memory_pool<T> al;
+            std::allocator<T> al;
             wvector<T> V(n, _Val, al);
             wvector<T> v(std::move(V), al);
             EXPECT_EQ(v.size(), n);
@@ -238,7 +238,7 @@ TEST(vector, construct) {
     {
         auto test = [](auto _Val, int n, auto first, auto last) {
             using T = decltype(_Val);
-            memory_pool<T> al;
+            std::allocator<T> al;
             wvector<T> v(first, last, al);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
@@ -272,7 +272,7 @@ TEST(vector, construct) {
         auto test = [](auto _Val, auto il) {
             using T = decltype(_Val);
             auto n = il.size();
-            memory_pool<T> al;
+            std::allocator<T> al;
             wvector<T> v(il, al);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
@@ -302,7 +302,7 @@ TEST(vector, assignment) {
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
-            memory_pool<T> al;
+            std::allocator<T> al;
             wvector<T> V(n, _Val, al);
             wvector<T> v(c);
             v.resize(s);
@@ -324,7 +324,7 @@ TEST(vector, assignment) {
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
-            memory_pool<T> al;
+            std::allocator<T> al;
             wvector<T> V(n, _Val, al);
             wvector<T> v(c);
             v.resize(s);

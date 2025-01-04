@@ -879,7 +879,7 @@ private:
     compressed_pair<_Alty, storage_type> m_pair;
 };
 
-template <typename Iter, typename T = iterator_value_t<Iter>, typename Alloc = memory_pool<T>,
+template <typename Iter, typename T = iterator_value_t<Iter>, typename Alloc = std::allocator<T>,
           WJR_REQUIRES(is_iterator_v<Iter>)>
 basic_ring_buffer(Iter, Iter, Alloc = Alloc())
     -> basic_ring_buffer<default_ring_buffer_storage<T, Alloc>>;
@@ -889,7 +889,7 @@ struct get_relocate_mode<basic_ring_buffer<S>> {
     static constexpr relocate_t value = basic_ring_buffer<S>::relocate_mode;
 };
 
-template <typename T, typename Alloc = memory_pool<T>>
+template <typename T, typename Alloc = std::allocator<T>>
 using ring_buffer = basic_ring_buffer<default_ring_buffer_storage<T, Alloc>>;
 
 /**
@@ -900,7 +900,7 @@ using ring_buffer = basic_ring_buffer<default_ring_buffer_storage<T, Alloc>>;
  * modified through move assignment. For example, ring_buffer that using stack
  * allocator.
  */
-template <typename T, typename Alloc = memory_pool<T>>
+template <typename T, typename Alloc = std::allocator<T>>
 using fixed_ring_buffer = basic_ring_buffer<fixed_ring_buffer_storage<T, Alloc>>;
 
 template <typename Storage>

@@ -45,9 +45,9 @@ private:
     using document_type = basic_document<basic_document_traits>;
 
 public:
-    using string_type = String<char, std::char_traits<char>, memory_pool<char>>;
+    using string_type = String<char, std::char_traits<char>, std::allocator<char>>;
     using object_type = Object<string_type, document_type, std::less<>>;
-    using array_type = Array<document_type, memory_pool<document_type>>;
+    using array_type = Array<document_type, std::allocator<document_type>>;
 
     using value_type = document_type;
     using reference = value_type &;
@@ -460,9 +460,9 @@ public:                                                                         
 
 template <typename T, typename... Args>
 T *__document_create(Args &&...args) noexcept(
-    noexcept(std::declval<memory_pool<T>>().allocate(1)) &&
+    noexcept(std::declval<std::allocator<T>>().allocate(1)) &&
     std::is_nothrow_constructible_v<T, Args &&...>) {
-    memory_pool<T> al;
+    std::allocator<T> al;
     auto *const ptr = al.allocate(1);
     wjr::construct_at(ptr, std::forward<Args>(args)...);
     return ptr;
@@ -470,9 +470,9 @@ T *__document_create(Args &&...args) noexcept(
 
 template <typename T>
 void __document_destroy(T *ptr) noexcept(std::is_nothrow_destructible_v<T> && noexcept(
-    std::declval<memory_pool<T>>().deallocate(std::declval<T *>(), 1))) {
+    std::declval<std::allocator<T>>().deallocate(std::declval<T *>(), 1))) {
     std::destroy_at(ptr);
-    memory_pool<T> al;
+    std::allocator<T> al;
     al.deallocate(ptr, 1);
 }
 

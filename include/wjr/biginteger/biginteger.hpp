@@ -9,6 +9,7 @@
  * Such as unsigned biginteger, fixed size biginteger.
  * 2. Optimize reserve. For example, A = B + C, if A is restrict, then there's no need to memcpy if
  * A need to reserve.
+ * 3. Optimization of constant value.
  *
  * @copyright Copyright (c) 2024
  *
@@ -230,17 +231,17 @@ class basic_biginteger;
 template <typename Alloc>
 using default_biginteger = basic_biginteger<default_biginteger_vector_storage<Alloc>>;
 
-using biginteger = default_biginteger<memory_pool<uint64_t>>;
+using biginteger = default_biginteger<std::allocator<uint64_t>>;
 
 using stack_biginteger = default_biginteger<weak_stack_allocator<uint64_t>>;
 
 template <typename Alloc>
 using default_fixed_biginteger = basic_biginteger<fixed_biginteger_vector_storage<Alloc>>;
 
-using fixed_biginteger = default_fixed_biginteger<memory_pool<uint64_t>>;
+using fixed_biginteger = default_fixed_biginteger<std::allocator<uint64_t>>;
 using fixed_stack_biginteger = default_fixed_biginteger<weak_stack_allocator<uint64_t>>;
 
-using default_biginteger_storage = default_biginteger_vector_storage<memory_pool<uint64_t>>;
+using default_biginteger_storage = default_biginteger_vector_storage<std::allocator<uint64_t>>;
 
 WJR_INTRINSIC_CONSTEXPR biginteger_data make_biginteger_data(span<const uint64_t> sp) noexcept {
     return biginteger_data{const_cast<uint64_t *>(sp.data()), static_cast<int32_t>(sp.size()), 0};
@@ -3468,7 +3469,7 @@ void absolute(basic_biginteger<S> &dst) noexcept {
 template <typename Traits, typename S>
 std::basic_istream<char, Traits> &operator>>(std::basic_istream<char, Traits> &is,
                                              basic_biginteger<S> &dst) noexcept {
-    std::basic_string<char, Traits, memory_pool<char>> str;
+    std::basic_string<char, Traits, std::allocator<char>> str;
     is >> str;
     from_chars(str.data(), str.data() + str.size(), dst, 0);
     return is;

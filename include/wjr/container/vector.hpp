@@ -242,7 +242,7 @@ struct get_relocate_mode<fixed_vector_storage<T, Alloc>> {
 
 template <typename T, size_t Capacity>
 class inplace_vector_storage {
-    using Alloc = memory_pool<T>;
+    using Alloc = std::allocator<T>;
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
@@ -1735,7 +1735,7 @@ private:
     compressed_pair<_Alty, storage_type> m_pair;
 };
 
-template <typename Iter, typename T = iterator_value_t<Iter>, typename Alloc = memory_pool<T>,
+template <typename Iter, typename T = iterator_value_t<Iter>, typename Alloc = std::allocator<T>,
           WJR_REQUIRES(is_iterator_v<Iter>)>
 basic_vector(Iter, Iter, Alloc = Alloc()) -> basic_vector<default_vector_storage<T, Alloc>>;
 
@@ -1744,7 +1744,7 @@ struct get_relocate_mode<basic_vector<S>> {
     static constexpr relocate_t value = basic_vector<S>::relocate_mode;
 };
 
-template <typename T, typename Alloc = memory_pool<T>>
+template <typename T, typename Alloc = std::allocator<T>>
 using vector = basic_vector<default_vector_storage<T, Alloc>>;
 
 /**
@@ -1762,7 +1762,7 @@ using inplace_vector = basic_vector<inplace_vector_storage<T, Capacity>>;
  * modified through move assignment. For example, vector that using stack
  * allocator.
  */
-template <typename T, typename Alloc = memory_pool<T>>
+template <typename T, typename Alloc = std::allocator<T>>
 using fixed_vector = basic_vector<fixed_vector_storage<T, Alloc>>;
 
 template <typename Storage>
