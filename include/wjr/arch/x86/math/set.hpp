@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include <wjr/arch/x86/simd/simd.hpp>
+#include <wjr/math/rotate.hpp>
 
 namespace wjr {
 
@@ -13,68 +14,23 @@ namespace wjr {
 
 #if WJR_HAS_BUILTIN(SET_N)
 
+namespace set_detail {
+inline constexpr bool is_avx = WJR_HAS_SIMD(AVX2);
+using simd = std::conditional_t<is_avx, avx, sse>;
+} // namespace set_detail
+
 template <typename simd, typename T>
-void large_builtin_set_n(T *dst, typename simd::int_type y, size_t n) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-    constexpr auto simd_width = simd::width();
-    constexpr auto type_width = simd_width / nd;
-    constexpr auto u8_width = simd_width / 8;
-    constexpr auto mask = u8_width * 4;
+WJR_HOT void large_builtin_set_n(T *dst, T val, size_t n) noexcept;
 
-    WJR_ASSUME(n > type_width * 4);
-
-    simd::storeu(dst, y);
-    simd::storeu(dst + n - type_width, y);
-    simd::storeu(dst + type_width, y);
-    simd::storeu(dst + n - type_width * 2, y);
-    simd::storeu(dst + type_width * 2, y);
-    simd::storeu(dst + n - type_width * 3, y);
-    simd::storeu(dst + type_width * 3, y);
-    simd::storeu(dst + n - type_width * 4, y);
-
-    const uintptr_t updst = reinterpret_cast<uintptr_t>(dst);
-    T *ps;
-    T *pe;
-
-    {
-        uintptr_t ups = updst;
-        uintptr_t upe = reinterpret_cast<uintptr_t>(dst + n);
-
-        ups += mask;
-        ups &= -mask;
-        upe &= -mask;
-
-        ps = reinterpret_cast<T *>(ups);
-        pe = reinterpret_cast<T *>(upe);
-    }
-
-    if (WJR_UNLIKELY(ps == pe)) {
-        return;
-    }
-
-    if (const uintptr_t mo = updst % sizeof(T); mo != 0) {
-        y = simd::Or(
-            simd::srl(y, simd_cast<uint8_t, __m128i_t>(mo * 8), T()),
-            simd::sll(y, simd_cast<uint8_t, __m128i_t>(std::numeric_limits<T>::digits - mo * 8),
-                      T()));
-    }
-
-    do {
-        simd::store(ps, y);
-        simd::store(ps + type_width, y);
-        simd::store(ps + type_width * 2, y);
-        simd::store(ps + type_width * 3, y);
-
-        ps += type_width * 4;
-    } while (WJR_LIKELY(ps != pe));
-}
+extern template void large_builtin_set_n<set_detail::simd, uint64_t>(uint64_t *, uint64_t,
+                                                                     size_t) noexcept;
 
 template <typename T>
 WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
-    constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
+    constexpr auto is_avx = set_detail::is_avx;
 
-    using simd = std::conditional_t<is_avx, avx, sse>;
+    using simd = typename set_detail::simd;
     constexpr auto simd_width = simd::width();
     constexpr auto type_width = simd_width / nd;
 
@@ -94,22 +50,7 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
     }
 
     if (WJR_LIKELY(n >= type_width)) {
-        const auto y = simd::set1(val, T());
-        if (WJR_UNLIKELY(n > type_width * 2)) {
-            if (WJR_UNLIKELY(n > type_width * 4)) {
-                return large_builtin_set_n<simd>(dst, y, n);
-            }
-
-            simd::storeu(dst, y);
-            simd::storeu(dst + type_width, y);
-            simd::storeu(dst + n - type_width, y);
-            simd::storeu(dst + n - type_width * 2, y);
-            return;
-        }
-
-        simd::storeu(dst, y);
-        simd::storeu(dst + n - type_width, y);
-        return;
+        return large_builtin_set_n<simd>(dst, val, n);
     }
 
     const auto y = sse::set1(val, T());

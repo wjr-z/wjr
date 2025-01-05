@@ -1258,7 +1258,7 @@ private:
 
             const auto inner = current->as_inner();
 
-            key_type **const keys = inner->m_keys;
+            const key_type **const keys = inner->m_keys;
             node_type **const sons = inner->m_sons;
 
             if (cur_size > floor_half) {
@@ -1311,7 +1311,7 @@ private:
 
                     const unsigned int moved_elements = (next_size - floor_half + 1) / 2;
 
-                    key_type *key = lhs->m_keys[next_size - moved_elements];
+                    const key_type *key = lhs->m_keys[next_size - moved_elements];
 
                     if (moved_elements != 1) {
                         Traits::template copy_backward<0, floor_half - 1>(
@@ -1381,7 +1381,7 @@ private:
 
                     const unsigned int moved_elements = (next_size - floor_half + 1) / 2;
 
-                    key_type *key = rhs->m_keys[moved_elements - 1];
+                    const key_type *key = rhs->m_keys[moved_elements - 1];
 
                     Traits::template copy<0, floor_half - 1>(keys + pos, keys + floor_half,
                                                              keys + pos - 1);
@@ -1596,7 +1596,7 @@ private:
         } while (false);
 
         lhs->size() = -(merge_size - 1);
-        remove(rhs);
+        rhs->remove();
         __drop_leaf_node(rhs);
 
         __rec_erase_iter(parent, par_pos, cur_size);

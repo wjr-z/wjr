@@ -15,10 +15,8 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t __addc_1_impl(uint64_t *dst, const uint64_t *
                                                  uint64_t src1, uint64_t c_in) noexcept {
     uint8_t overflow;
     dst[0] = addc_cc(src0[0], src1, static_cast<uint8_t>(c_in), overflow);
-
     if (overflow) {
         const size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, UINT64_MAX, 0);
-
         if (WJR_UNLIKELY(idx == n)) {
             return 1;
         }
@@ -49,6 +47,10 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t __addc_1_impl(uint64_t *dst, const uint64_t *
  * @param[in] src1 The number to be added.
  * @param[in] c_in The carry-in flag.
  * @return The carry-out flag.
+ * 
+ * @pre 1. n >= 1
+ * @pre 2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+ * @pre 3. c_in <= 1
  */
 WJR_INTRINSIC_CONSTEXPR20 uint64_t addc_1(uint64_t *dst, const uint64_t *src0, size_t n,
                                           uint64_t src1, uint64_t c_in) noexcept {
@@ -123,6 +125,10 @@ WJR_INTRINSIC_CONSTEXPR uint64_t fallback_addc_n(uint64_t *dst, const uint64_t *
  * @param[in] n The number of elements in the biginteger.
  * @param[in] c_in The carry-in flag.
  * @return The carry-out flag.
+ * 
+ * @pre 1. n >= 1
+ * @pre 2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+ * @pre 3. WJR_IS_SAME_OR_INCR_P(dst, n, src1, n)
  */
 WJR_INTRINSIC_CONSTEXPR20 uint64_t addc_n(uint64_t *dst, const uint64_t *src0, const uint64_t *src1,
                                           size_t n, uint64_t c_in) noexcept {
@@ -141,13 +147,15 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t addc_n(uint64_t *dst, const uint64_t *src0, c
 #endif
 }
 
-/*
-require :
-1. m >= 1
-2. n >= m
-3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
-*/
+/**
+ * @brief Add biginteger(src0) and biginteger(src1) with carry-in, and return
+ * the result (dst) and carry-out.
+ *
+ * @pre 1. m >= 1
+ * @pre 2. n >= m
+ * @pre 3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+ * @pre 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
+ */
 WJR_INTRINSIC_CONSTEXPR20 uint64_t addc_s(uint64_t *dst, const uint64_t *src0, size_t n,
                                           const uint64_t *src1, size_t m, uint64_t c_in) noexcept {
     WJR_ASSERT_ASSUME(m >= 1);
@@ -162,13 +170,15 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t addc_s(uint64_t *dst, const uint64_t *src0, s
     return c_in;
 }
 
-/*
-require :
-1. n >= 0
-2. n >= m
-3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
-*/
+/**
+ * @brief Add biginteger(src0) and biginteger(src1) with carry-in, and return
+ * the result (dst) and carry-out.
+ *
+ * @pre 1. m >= 0
+ * @pre 2. n >= m and n >= 1
+ * @pre 3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+ * @pre 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
+ */
 WJR_INTRINSIC_CONSTEXPR20 uint64_t addc_sz(uint64_t *dst, const uint64_t *src0, size_t n,
                                            const uint64_t *src1, size_t m, uint64_t c_in) noexcept {
     WJR_ASSERT_ASSUME(n >= m);

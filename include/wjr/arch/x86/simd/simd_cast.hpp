@@ -23,6 +23,11 @@ struct __m128_t {
     using type = __m128;
 };
 
+template <>
+struct simd_wrapper<__m128> {
+    using type = __m128_t;
+};
+
 #endif // SSE
 
 #if WJR_HAS_SIMD(SSE2)
@@ -33,6 +38,16 @@ struct __m128i_t {
 
 struct __m128d_t {
     using type = __m128d;
+};
+
+template <>
+struct simd_wrapper<__m128i> {
+    using type = simd_wrapper_t<__m128i_t>;
+};
+
+template <>
+struct simd_wrapper<__m128d> {
+    using type = simd_wrapper_t<__m128d_t>;
 };
 
 template <>
@@ -203,6 +218,21 @@ struct __m256i_t {
 
 struct __m256d_t {
     using type = __m256d;
+};
+
+template <>
+struct simd_wrapper<__m256> {
+    using type = simd_wrapper_t<__m256_t>;
+};
+
+template <>
+struct simd_wrapper<__m256i> {
+    using type = simd_wrapper_t<__m256i_t>;
+};
+
+template <>
+struct simd_wrapper<__m256d> {
+    using type = simd_wrapper_t<__m256d_t>;
 };
 
 template <>

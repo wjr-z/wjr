@@ -147,7 +147,7 @@ struct avx {
     WJR_INTRINSIC_INLINE static __m256i setmax(int32_t) noexcept;
     WJR_INTRINSIC_INLINE static __m256i setmax(int64_t) noexcept;
 
-    WJR_INTRINSIC_INLINE static void stream(__m256i *p, __m256i a) noexcept;
+    WJR_INTRINSIC_INLINE static void stream(void *p, __m256i a) noexcept;
 
     WJR_INTRINSIC_INLINE static void store(void *p, __m256i a) noexcept;
     WJR_INTRINSIC_INLINE static void storeu(void *p, __m256i a) noexcept;
@@ -950,8 +950,7 @@ __m256i avx::setmax(int16_t) noexcept { return setmax_epi16(); }
 __m256i avx::setmax(int32_t) noexcept { return setmax_epi32(); }
 __m256i avx::setmax(int64_t) noexcept { return setmax_epi64(); }
 
-void avx::stream(__m256i *p, __m256i a) noexcept { _mm256_stream_si256(p, a); }
-
+void avx::stream(void *p, __m256i a) noexcept { _mm256_stream_si256(static_cast<__m256i *>(p), a); }
 void avx::store(void *p, __m256i a) noexcept { _mm256_store_si256(static_cast<__m256i *>(p), a); }
 void avx::storeu(void *p, __m256i a) noexcept { _mm256_storeu_si256(static_cast<__m256i *>(p), a); }
 

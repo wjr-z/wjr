@@ -1,6 +1,6 @@
 /**
  * @file document.hpp
- * @author your name (you@domain.com)
+ * @author wjr
  * @brief
  * @version 0.1
  * @date 2024-12-08

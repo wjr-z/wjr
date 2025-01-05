@@ -15,10 +15,8 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t __subc_1_impl(uint64_t *dst, const uint64_t *
                                                  uint64_t src1, uint64_t c_in) noexcept {
     uint8_t overflow;
     dst[0] = subc_cc(src0[0], src1, static_cast<uint8_t>(c_in), overflow);
-
     if (overflow) {
         size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, 0, UINT64_MAX);
-
         if (WJR_UNLIKELY(idx == n)) {
             return 1;
         }
@@ -37,11 +35,13 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t __subc_1_impl(uint64_t *dst, const uint64_t *
     return 0;
 }
 
-/*
-require :
-1. n >= 1
-2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-*/
+/**
+ * @brief Subtract biginteger(src0) and number with carry-in, and return the
+ * result(dst) and carry-out.
+ *
+ * @pre 1. n >= 1
+ * @pre 2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+ */
 WJR_INTRINSIC_CONSTEXPR20 uint64_t subc_1(uint64_t *dst, const uint64_t *src0, size_t n,
                                           uint64_t src1, uint64_t c_in) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -102,12 +102,14 @@ WJR_INTRINSIC_CONSTEXPR uint64_t fallback_subc_n(uint64_t *dst, const uint64_t *
     return c_in;
 }
 
-/*
-require :
-1. n >= 1
-2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-3. WJR_IS_SAME_OR_INCR_P(dst, n, src1, n)
-*/
+/**
+ * @brief Subtract biginteger(src0) and biginteger(src1) with carry-in, and
+ * return the result(dst) and carry-out.
+ *
+ * @pre 1. n >= 1
+ * @pre 2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+ * @pre 3. WJR_IS_SAME_OR_INCR_P(dst, n, src1, n)
+ */
 WJR_INTRINSIC_CONSTEXPR20 uint64_t subc_n(uint64_t *dst, const uint64_t *src0, const uint64_t *src1,
                                           size_t n, uint64_t c_in) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -125,13 +127,15 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t subc_n(uint64_t *dst, const uint64_t *src0, c
 #endif
 }
 
-/*
-require :
-1. m >= 1
-2. n >= m
-3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
-*/
+/**
+ * @brief Subtract biginteger(src0) and biginteger(src1) with carry-in, and
+ * return the result(dst) and carry-out.
+ *
+ * @pre 1. m >= 1
+ * @pre 2. n >= m
+ * @pre 3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+ * @pre 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
+ */
 WJR_INTRINSIC_CONSTEXPR20 uint64_t subc_s(uint64_t *dst, const uint64_t *src0, size_t n,
                                           const uint64_t *src1, size_t m, uint64_t c_in) noexcept {
     WJR_ASSERT_ASSUME(m >= 1);
@@ -146,13 +150,15 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t subc_s(uint64_t *dst, const uint64_t *src0, s
     return c_in;
 }
 
-/*
-require :
-1. n >= 0
-2. n >= m
-3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
-*/
+/**
+ * @brief Subtract biginteger(src0) and biginteger(src1) with carry-in, and
+ * return the result(dst) and carry-out.
+ *
+ * @pre 1. n >= 0
+ * @pre 2. n >= m and n >= 1
+ * @pre 3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+ * @pre 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
+ */
 WJR_INTRINSIC_CONSTEXPR20 uint64_t subc_sz(uint64_t *dst, const uint64_t *src0, size_t n,
                                            const uint64_t *src1, size_t m, uint64_t c_in) noexcept {
     WJR_ASSERT_ASSUME(n >= m);
@@ -168,6 +174,15 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t subc_sz(uint64_t *dst, const uint64_t *src0, 
     return c_in;
 }
 
+/**
+ * @brief If src0 > src1, subtract biginteger(src0) and biginteger(src1), and
+ * return the result(dst) and 1; Otherwise, if src0 < src1, subtract biginteger(src1)
+ * and biginteger(src0), and return the result(dst) and -1; Otherwise, return 0.
+ *
+ * @pre 1. n >= 1
+ * @pre 2. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n)
+ * @pre 3. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n)
+ */
 WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0,
                                              const uint64_t *src1, size_t n) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -186,7 +201,7 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0
 
     WJR_ASSUME(idx >= 1);
 
-    uint64_t hi = 0;
+    uint64_t hi;
     WJR_ASSUME(src0[idx - 1] != src1[idx - 1]);
     const bool overflow = sub_overflow(src0[idx - 1], src1[idx - 1], hi);
 
@@ -226,9 +241,10 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n_pos(uint64_t *dst, const uint64_t *
 
     WJR_ASSUME(idx >= 1);
 
-    uint64_t hi = 0;
+    uint64_t hi;
     WJR_ASSUME(src0[idx - 1] != src1[idx - 1]);
     const bool overflow = sub_overflow(src0[idx - 1], src1[idx - 1], hi);
+    WJR_ASSUME(hi != 0);
 
     if (overflow) {
         std::swap(src0, src1);
@@ -239,14 +255,9 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n_pos(uint64_t *dst, const uint64_t *
     WJR_ASSUME(ret >= 1);
 
     do {
-        if (WJR_UNLIKELY(idx == 1)) {
-            dst[0] = hi;
-            break;
+        if (WJR_LIKELY(idx != 1)) {
+            hi -= subc_n(dst, src0, src1, idx - 1);
         }
-
-        WJR_ASSUME(ret >= 2);
-
-        hi -= subc_n(dst, src0, src1, idx - 1);
 
         if (WJR_LIKELY(hi != 0)) {
             dst[idx - 1] = hi;
@@ -370,7 +381,7 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0
     WJR_ASSERT_ASSUME(n >= 1);
     if (WJR_LIKELY(cf0 != cf1)) {
         ssize_t ret = __fast_from_unsigned(n);
-        uint64_t cf = 0;
+        uint64_t cf;
         if (cf0 < cf1) {
             std::swap(src0, src1);
             ret = __fast_negate(ret);

@@ -1,0 +1,3 @@
+[submodule "third-party/cpu_features"]
+	path = third-party/cpu_features
+	url = https://github.com/google/cpu_features.git

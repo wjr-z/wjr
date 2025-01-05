@@ -165,10 +165,14 @@ target_compile_definitions(wjr
    PUBLIC $<$<COMPILE_LANGUAGE:CXX>: ${WJR_COMPILE_DEFINITIONS}$<SEMICOLON>>
 )
 
+add_subdirectory(third-party/cpu_features)
+
 target_link_libraries(wjr 
    PUBLIC
       ${WJR_LIBS}
       ${WJR_ASSEMBLY_LIBS}
+   PRIVATE
+      CpuFeatures::cpu_features
 )
 
 set(WJR_PCH PUBLIC 

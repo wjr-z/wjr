@@ -549,10 +549,9 @@ struct sse {
     WJR_INTRINSIC_INLINE static __m128i srli(__m128i a, int imm8, uint32_t) noexcept;
     WJR_INTRINSIC_INLINE static __m128i srli(__m128i a, int imm8, uint64_t) noexcept;
 
-    WJR_INTRINSIC_INLINE static void stream(__m128i *ptr, __m128i v) noexcept;
-
-    WJR_INTRINSIC_INLINE static void store(void *ptr, __m128i val) noexcept;
-    WJR_INTRINSIC_INLINE static void storeu(void *ptr, __m128i val) noexcept;
+    WJR_INTRINSIC_INLINE static void stream(void *p, __m128i a) noexcept;
+    WJR_INTRINSIC_INLINE static void store(void *p, __m128i a) noexcept;
+    WJR_INTRINSIC_INLINE static void storeu(void *p, __m128i a) noexcept;
 
     WJR_INTRINSIC_INLINE static __m128i sub_epi8(__m128i a, __m128i b) noexcept;
     WJR_INTRINSIC_INLINE static __m128i sub_epi16(__m128i a, __m128i b) noexcept;
@@ -1831,14 +1830,9 @@ __m128i sse::srli(__m128i a, int imm8, uint16_t) noexcept { return srli_epi16(a,
 __m128i sse::srli(__m128i a, int imm8, uint32_t) noexcept { return srli_epi32(a, imm8); }
 __m128i sse::srli(__m128i a, int imm8, uint64_t) noexcept { return srli_epi64(a, imm8); }
 
-void sse::stream(__m128i *ptr, __m128i v) noexcept { _mm_stream_si128(ptr, v); }
-
-void sse::store(void *ptr, __m128i val) noexcept {
-    _mm_store_si128(static_cast<__m128i *>(ptr), val);
-}
-void sse::storeu(void *ptr, __m128i val) noexcept {
-    _mm_storeu_si128(static_cast<__m128i *>(ptr), val);
-}
+void sse::stream(void *p, __m128i a) noexcept { _mm_stream_si128(static_cast<__m128i *>(p), a); }
+void sse::store(void *p, __m128i a) noexcept { _mm_store_si128(static_cast<__m128i *>(p), a); }
+void sse::storeu(void *p, __m128i a) noexcept { _mm_storeu_si128(static_cast<__m128i *>(p), a); }
 
 __m128i sse::sub_epi8(__m128i a, __m128i b) noexcept { return _mm_sub_epi8(a, b); }
 __m128i sse::sub_epi16(__m128i a, __m128i b) noexcept { return _mm_sub_epi16(a, b); }
