@@ -120,8 +120,7 @@ WJR_HOT void large_builtin_set_n(T *dst, T val, size_t n) noexcept {
 
         ps = reinterpret_cast<T *>((reinterpret_cast<uintptr_t>(dst) + 64) & -64);
         pe = reinterpret_cast<T *>(reinterpret_cast<uintptr_t>(pe) & -64);
-        // rep_stos(ps, val, pe - ps);
-        rep_stos(reinterpret_cast<uint8_t *>(ps), val, (pe - ps) * sizeof(T));
+        rep_stos(ps, val, pe - ps);
         return;
     }
 #endif

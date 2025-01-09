@@ -31,3 +31,7 @@ msvc_build
 *.vcxproj.filters
 .VScodeCounter
 **/cmake
+*.txt
+*.sh
+.vs
+CMakeSettings.json
