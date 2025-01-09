@@ -1,54 +1,70 @@
+/**
+ * @file set.cpp
+ * @author wjr
+ * @brief large size memory set
+ * @version 0.1
+ * @date 2025-01-09
+ *
+ * @copyright Copyright (c) 2025
+ *
+ * @todo 1. Use streaming stores for large memory set \n
+ * @todo 2. Threshold for different SIMD and platform
+ *
+ */
+
 #include <cpuinfo_x86.h>
 #include <wjr/arch/x86/math/set.hpp>
 
 namespace wjr {
 
-#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM) || defined(WJR_COMPILER_MSVC)
-    #define WJR_HAS_BUILTIN_REP_STOS WJR_HAS_DEF
-#endif
+#if WJR_HAS_BUILTIN(SET_N)
 
-#if WJR_HAS_BUILTIN(REP_STOS)
+    #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM) || defined(WJR_COMPILER_MSVC)
+        #define WJR_HAS_BUILTIN_REP_STOS WJR_HAS_DEF
+    #endif
+
+    #if WJR_HAS_BUILTIN(REP_STOS)
 
 WJR_INTRINSIC_INLINE void rep_stos(uint8_t *s, uint8_t val, size_t n) {
-    #if defined(WJR_COMPILER_MSVC)
+        #if defined(WJR_COMPILER_MSVC)
     __stosb(reinterpret_cast<unsigned char *>(s), val, n);
-    #else
+        #else
     asm volatile("rep stosb" : "+D"(s), "+c"(n) : "a"(val) : "memory");
-    #endif
+        #endif
 }
 
 WJR_INTRINSIC_INLINE void rep_stos(uint16_t *s, uint16_t val, size_t n) {
-    #if defined(WJR_COMPILER_MSVC)
+        #if defined(WJR_COMPILER_MSVC)
     __stosw(reinterpret_cast<unsigned short *>(s), val, n);
-    #else
+        #else
     asm volatile("rep stosw" : "+D"(s), "+c"(n) : "a"(val) : "memory");
-    #endif
+        #endif
 }
 
 WJR_INTRINSIC_INLINE void rep_stos(uint32_t *s, uint32_t val, size_t n) {
-    #if defined(WJR_COMPILER_MSVC)
+        #if defined(WJR_COMPILER_MSVC)
     __stosd(reinterpret_cast<unsigned long *>(s), val, n);
-    #else
+        #else
     asm volatile("rep stosd" : "+D"(s), "+c"(n) : "a"(val) : "memory");
-    #endif
+        #endif
 }
 
 WJR_INTRINSIC_INLINE void rep_stos(uint64_t *s, uint64_t val, size_t n) {
-    #if defined(WJR_COMPILER_MSVC)
+        #if defined(WJR_COMPILER_MSVC)
     __stosq(reinterpret_cast<unsigned long long *>(s), val, n);
-    #else
+        #else
     asm volatile("rep stosq" : "+D"(s), "+c"(n) : "a"(val) : "memory");
-    #endif
+        #endif
 }
 
 bool __x86_is_enhanced_rep = cpu_features::GetX86Info().features.erms != 0;
-#else
+    #else
 inline constexpr bool __x86_is_enhanced_rep = false;
-#endif
+    #endif
 
-#ifndef WJR_X86_REP_STOSB_DEFAULT_THRESHOLD
-    #define WJR_X86_REP_STOSB_DEFAULT_THRESHOLD ((size_t)(1) << 24)
-#endif
+    #ifndef WJR_X86_REP_STOSB_DEFAULT_THRESHOLD
+        #define WJR_X86_REP_STOSB_DEFAULT_THRESHOLD ((size_t)(1) << 24)
+    #endif
 
 inline constexpr size_t __x86_rep_stosb_default_threshold = WJR_X86_REP_STOSB_DEFAULT_THRESHOLD;
 
@@ -93,7 +109,7 @@ WJR_HOT void large_builtin_set_n(T *dst, T val, size_t n) noexcept {
     T *ps;
     T *pe = dst + n;
 
-#if WJR_HAS_BUILTIN(REP_STOS)
+    #if WJR_HAS_BUILTIN(REP_STOS)
     if (WJR_UNLIKELY(n > __x86_rep_stosb_threshold<T>)) {
         simd::storeu(dst, y);
         simd::storeu(pe - type_width, y);
@@ -123,7 +139,7 @@ WJR_HOT void large_builtin_set_n(T *dst, T val, size_t n) noexcept {
         rep_stos(ps, val, pe - ps);
         return;
     }
-#endif
+    #endif
 
     do {
         const uintptr_t ups = (reinterpret_cast<uintptr_t>(dst) + u8_width) & -u8_width;
@@ -156,5 +172,7 @@ WJR_HOT void large_builtin_set_n(T *dst, T val, size_t n) noexcept {
 
 template void large_builtin_set_n<set_detail::simd, uint64_t>(uint64_t *, uint64_t,
                                                               size_t) noexcept;
+
+#endif
 
 } // namespace wjr

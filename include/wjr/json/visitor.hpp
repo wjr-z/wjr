@@ -184,7 +184,7 @@ WJR_NOINLINE result<void> parse(Parser &&par, const reader &rd) noexcept {
         return {};
     }
 
-OBJECT_ELEMENTS : {
+OBJECT_ELEMENTS: {
     if (const uint8_t ch = ptr[next_token]; WJR_UNLIKELY(ch != ',')) {
         if (WJR_UNLIKELY(ch != '}')) {
             return unexpected(error_code::TAPE_ERROR);
@@ -214,7 +214,7 @@ OBJECT_ELEMENTS : {
         return unexpected(error_code::TAPE_ERROR);
     }
 
-OBJECT_ELEMENT : {
+OBJECT_ELEMENT: {
     WJR_EXPECTED_TRY(read(next_token, error_code::UNCLOSED_STRING));
     WJR_EXPECTED_TRY(par.visit_object_key_string(ptr + token + 1, ptr + next_token));
     WJR_EXPECTED_TRY(read(next_token));
@@ -322,7 +322,7 @@ OBJECT_ELEMENT : {
 }
 }
 
-ARRAY_ELEMENTS : {
+ARRAY_ELEMENTS: {
     if (const uint8_t ch = ptr[next_token]; WJR_UNLIKELY(ch != ',')) {
         if (WJR_UNLIKELY(ch != ']')) {
             return unexpected(error_code::TAPE_ERROR);

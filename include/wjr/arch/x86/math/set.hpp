@@ -15,7 +15,7 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(SET_N)
 
 namespace set_detail {
-inline constexpr bool is_avx = WJR_HAS_SIMD(AVX2);
+inline constexpr bool is_avx = WJR_HAS_SIMD(AVX);
 using simd = std::conditional_t<is_avx, avx, sse>;
 } // namespace set_detail
 

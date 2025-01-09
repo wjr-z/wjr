@@ -1836,8 +1836,8 @@ from_chars_result<> parse_infnan(const char *first, const char *last, T &value) 
     answer.ptr = first;
     answer.ec = std::errc(); // be optimistic
     bool minusSign = false;
-    if (*first == '-') {     // assume first < last, so dereference without checks;
-                             // C++17 20.19.3.(7.1) explicitly forbids '+' here
+    if (*first == '-') { // assume first < last, so dereference without checks;
+                         // C++17 20.19.3.(7.1) explicitly forbids '+' here
         minusSign = true;
         ++first;
     }

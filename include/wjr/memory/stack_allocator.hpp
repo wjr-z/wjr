@@ -8,7 +8,6 @@
 #include <wjr/string.hpp>
 #include <wjr/type_traits.hpp>
 
-
 namespace wjr {
 
 inline constexpr size_t stack_allocator_threshold = 16_KB;

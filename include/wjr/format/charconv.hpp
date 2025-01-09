@@ -565,8 +565,8 @@ inline constexpr uint64_t __count_digits10_u32_table[] = {
 #undef WJR_INC
 
 #define WJR_POWERS_OF_10(factor)                                                                   \
-    factor * 10, (factor)*100, (factor)*1000, (factor)*10000, (factor)*100000, (factor)*1000000,   \
-        (factor)*10000000, (factor)*100000000, (factor)*1000000000
+    factor * 10, (factor) * 100, (factor) * 1000, (factor) * 10000, (factor) * 100000,             \
+        (factor) * 1000000, (factor) * 10000000, (factor) * 100000000, (factor) * 1000000000
 
 inline constexpr uint8_t __count_digits10_u64_bsr2log10[] = {
     1,  1,  1,  2,  2,  2,  3,  3,  3,  4,  4,  4,  4,  5,  5,  5,  6,  6,  6,  7,  7,  7,

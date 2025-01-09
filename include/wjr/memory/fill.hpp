@@ -6,4 +6,4 @@
 
 namespace wjr {} // namespace wjr
 
-#endif           // WJR_MEMORY_COPY_HPP__
+#endif // WJR_MEMORY_COPY_HPP__

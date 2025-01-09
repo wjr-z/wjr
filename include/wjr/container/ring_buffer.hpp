@@ -280,8 +280,8 @@ public:
         const size_type n,
         const allocator_type &al =
             allocator_type()) noexcept(std::is_nothrow_constructible_v<_Alty,
-                                                                       const allocator_type &>
-                                           && noexcept(__construct_n(n, value_construct)))
+                                                                       const allocator_type &> &&
+                                       noexcept(__construct_n(n, value_construct)))
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
         __construct_n(n, value_construct);
     }
@@ -291,8 +291,8 @@ public:
         size_type n, const value_type &val,
         const allocator_type &al =
             allocator_type()) noexcept(std::is_nothrow_constructible_v<_Alty,
-                                                                       const allocator_type &>
-                                           && noexcept(__construct_n(n, val)))
+                                                                       const allocator_type &> &&
+                                       noexcept(__construct_n(n, val)))
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
         __construct_n(n, val);
     }
@@ -301,8 +301,8 @@ private:
     template <typename _Alloc>
     WJR_CONSTEXPR20
     basic_ring_buffer(const basic_ring_buffer &other, _Alloc &&al, in_place_empty_t) noexcept(
-        std::is_nothrow_constructible_v<_Alty, _Alloc &&> &&__is_nothrow_uninitialized_construct
-            &&std::is_nothrow_copy_constructible_v<value_type>)
+        std::is_nothrow_constructible_v<_Alty, _Alloc &&> && __is_nothrow_uninitialized_construct &&
+        std::is_nothrow_copy_constructible_v<value_type>)
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
         const size_type __size = other.size();
         if (WJR_LIKELY(__size != 0)) {
@@ -328,7 +328,7 @@ private:
     template <typename _Alloc>
     WJR_CONSTEXPR20
     basic_ring_buffer(basic_ring_buffer &&other, _Alloc &&al, in_place_empty_t) noexcept(
-        std::is_nothrow_constructible_v<_Alty, _Alloc &&> &&__is_nothrow_take_storage)
+        std::is_nothrow_constructible_v<_Alty, _Alloc &&> && __is_nothrow_take_storage)
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
         __take_storage(std::move(other));
     }
@@ -881,8 +881,8 @@ private:
 
 template <typename Iter, typename T = iterator_value_t<Iter>, typename Alloc = std::allocator<T>,
           WJR_REQUIRES(is_iterator_v<Iter>)>
-basic_ring_buffer(Iter, Iter, Alloc = Alloc())
-    -> basic_ring_buffer<default_ring_buffer_storage<T, Alloc>>;
+basic_ring_buffer(Iter, Iter,
+                  Alloc = Alloc()) -> basic_ring_buffer<default_ring_buffer_storage<T, Alloc>>;
 
 template <typename S>
 struct get_relocate_mode<basic_ring_buffer<S>> {

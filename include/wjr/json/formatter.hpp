@@ -94,7 +94,7 @@ WJR_INTRINSIC_INLINE void format_string(Container &cont, std::string_view str) {
     *ptr++ = '\"';
     return;
 
-SLOW_PATH : {
+SLOW_PATH: {
     // If packed, this uses 8 * 32 bytes.
     // Note that we expect most compilers to embed this code in the
     // data section.
@@ -211,7 +211,7 @@ SMALL_SLOW_PATH_NO_COPY:
                 cont.push_back(first[pos]);
             }
         } // switch
-    }     // for
+    } // for
 
     cont.push_back('\"');
     return;

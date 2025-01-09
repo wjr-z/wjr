@@ -35,7 +35,7 @@
 #endif
 
 #if defined(_MSC_VER)
-    #define WJR_HAS_MSVC(minor, level) (_MSC_VER >= (minor)*100 + (level))
+    #define WJR_HAS_MSVC(minor, level) (_MSC_VER >= (minor) * 100 + (level))
 #else
     #define WJR_HAS_MSVC(minor, level) 0
 #endif

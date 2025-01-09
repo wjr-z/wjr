@@ -505,7 +505,7 @@ struct tp_zip<C, T> {
 template <template <typename...> typename C, typename T, typename... Args>
 struct tp_zip<C, T, Args...> {
     constexpr static size_t size = tp_size_v<T>;
-    static_assert(((size == tp_size_v<Args>)&&...),
+    static_assert(((size == tp_size_v<Args>) && ...),
                   "tp_zip arguments must have same size, \
 		you can make all arguments have same size by tp_");
     using type =

@@ -399,7 +399,7 @@ WJR_PURE size_t large_builtin_reverse_find_n(const T *src0, const T *src1, size_
                                                                                                    \
             avx::mask_type mask = avx::movemask_epi8(r);                                           \
             if (WJR_LIKELY(mask != 0)) {                                                           \
-                return (index)-clz(mask) / 8;                                                      \
+                return (index) - clz(mask) / 8;                                                    \
             }                                                                                      \
         } while (false)
 
@@ -570,7 +570,7 @@ WJR_PURE size_t large_builtin_reverse_find_n(const T *src, T val, size_t n) noex
                                                                                                    \
             avx::mask_type mask = avx::movemask_epi8(r);                                           \
             if (WJR_LIKELY(mask != 0)) {                                                           \
-                return (index)-clz(mask) / 8;                                                      \
+                return (index) - clz(mask) / 8;                                                    \
             }                                                                                      \
         } while (false)
 

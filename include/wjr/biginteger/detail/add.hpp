@@ -47,7 +47,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t __addc_1_impl(uint64_t *dst, const uint64_t *
  * @param[in] src1 The number to be added.
  * @param[in] c_in The carry-in flag.
  * @return The carry-out flag.
- * 
+ *
  * @pre 1. n >= 1
  * @pre 2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
  * @pre 3. c_in <= 1
@@ -125,7 +125,7 @@ WJR_INTRINSIC_CONSTEXPR uint64_t fallback_addc_n(uint64_t *dst, const uint64_t *
  * @param[in] n The number of elements in the biginteger.
  * @param[in] c_in The carry-in flag.
  * @return The carry-out flag.
- * 
+ *
  * @pre 1. n >= 1
  * @pre 2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
  * @pre 3. WJR_IS_SAME_OR_INCR_P(dst, n, src1, n)

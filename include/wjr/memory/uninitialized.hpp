@@ -397,8 +397,8 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
 }
 
 template <typename T>
-T *relocate_at(T *src, T *dst) noexcept(
-    std::is_nothrow_move_constructible_v<T> &&std::is_nothrow_destructible_v<T>) {
+T *relocate_at(T *src, T *dst) noexcept(std::is_nothrow_move_constructible_v<T> &&
+                                        std::is_nothrow_destructible_v<T>) {
     if constexpr (get_relocate_mode_v<T> == relocate_t::trivial) {
         builtin_memcpy(dst, src, sizeof(T));
     } else {
@@ -411,7 +411,7 @@ T *relocate_at(T *src, T *dst) noexcept(
 
 template <typename T, typename Alloc>
 T *uninitialized_relocate_at_using_allocator(T *src, T *dst, Alloc &alloc) noexcept(
-    std::is_nothrow_move_constructible_v<T> &&std::is_nothrow_destructible_v<T>) {
+    std::is_nothrow_move_constructible_v<T> && std::is_nothrow_destructible_v<T>) {
     if constexpr (is_trivially_allocator_v<Alloc>) {
         return relocate_at(src, dst);
     } else {

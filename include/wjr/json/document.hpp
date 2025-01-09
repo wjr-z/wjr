@@ -84,8 +84,8 @@ struct __document_get_impl;
     template <>                                                                                    \
     struct __document_get_impl<T##_t> {                                                            \
         template <typename Document>                                                               \
-        WJR_PURE WJR_INTRINSIC_CONSTEXPR static auto get(Document &&doc) noexcept                  \
-            -> decltype(std::declval<Document &&>().__get_##T()) {                                 \
+        WJR_PURE WJR_INTRINSIC_CONSTEXPR static auto                                               \
+        get(Document &&doc) noexcept -> decltype(std::declval<Document &&>().__get_##T()) {        \
             return std::forward<Document>(doc).__get_##T();                                        \
         }                                                                                          \
     }
@@ -469,8 +469,9 @@ T *__document_create(Args &&...args) noexcept(
 }
 
 template <typename T>
-void __document_destroy(T *ptr) noexcept(std::is_nothrow_destructible_v<T> && noexcept(
-    std::declval<std::allocator<T>>().deallocate(std::declval<T *>(), 1))) {
+void __document_destroy(T *ptr) noexcept(
+    std::is_nothrow_destructible_v<T> &&
+    noexcept(std::declval<std::allocator<T>>().deallocate(std::declval<T *>(), 1))) {
     std::destroy_at(ptr);
     std::allocator<T> al;
     al.deallocate(ptr, 1);

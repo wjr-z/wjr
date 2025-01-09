@@ -715,8 +715,9 @@ public:
     }
 
 private:
-    WJR_CONSTEXPR20 void __swap_impl(optional &other) noexcept(
-        std::is_nothrow_move_constructible_v<T> &&std::is_nothrow_swappable_v<T>) {
+    WJR_CONSTEXPR20 void
+    __swap_impl(optional &other) noexcept(std::is_nothrow_move_constructible_v<T> &&
+                                          std::is_nothrow_swappable_v<T>) {
         wjr::construct_at(std::addressof(other.m_val), std::move(this->m_val));
         std::destroy_at(std::addressof(this->m_val));
         this->set_invalid();
@@ -728,8 +729,8 @@ public:
               WJR_REQUIRES(std::is_swappable_v<_T> &&std::is_move_constructible_v<_T>
                                &&std::is_nothrow_move_constructible_v<_T>)>
     WJR_CONSTEXPR20 void
-    swap(optional &other) noexcept(std::is_nothrow_move_constructible_v<value_type>
-                                       &&std::is_nothrow_swappable_v<value_type>) {
+    swap(optional &other) noexcept(std::is_nothrow_move_constructible_v<value_type> &&
+                                   std::is_nothrow_swappable_v<value_type>) {
         using std::swap;
         if (has_value()) {
             if (other.has_value()) {

@@ -156,9 +156,9 @@
 
     #if (__FLT_RADIX__ == 2)
 
-        #if (__FLT_MANT_DIG__ == 11) && (__FLT_MAX_EXP__ == 16)     // IEEE 754 binary16
+        #if (__FLT_MANT_DIG__ == 11) && (__FLT_MAX_EXP__ == 16) // IEEE 754 binary16
             #define WJR_SIZEOF_FLOAT_VALUE 2
-        #elif (__FLT_MANT_DIG__ == 24) && (__FLT_MAX_EXP__ == 128)  // IEEE 754 binary32
+        #elif (__FLT_MANT_DIG__ == 24) && (__FLT_MAX_EXP__ == 128) // IEEE 754 binary32
             #define WJR_SIZEOF_FLOAT_VALUE 4
         #elif (__FLT_MANT_DIG__ == 53) && (__FLT_MAX_EXP__ == 1024) // IEEE 754 binary64
             #define WJR_SIZEOF_FLOAT_VALUE 8
@@ -166,17 +166,17 @@
             (__FLT_MAX_EXP__ == 16384) // x87 extended double, with full 64-bit
                                        // significand or reduced to 53 or 24 bits
             #define WJR_SIZEOF_FLOAT_VALUE 10
-        #elif (__FLT_MANT_DIG__ == 106) && (__FLT_MAX_EXP__ == 1024)   // IBM extended double
+        #elif (__FLT_MANT_DIG__ == 106) && (__FLT_MAX_EXP__ == 1024) // IBM extended double
             #define WJR_SIZEOF_FLOAT_VALUE 16
-        #elif (__FLT_MANT_DIG__ == 113) && (__FLT_MAX_EXP__ == 16384)  // IEEE 754 binary128
+        #elif (__FLT_MANT_DIG__ == 113) && (__FLT_MAX_EXP__ == 16384) // IEEE 754 binary128
             #define WJR_SIZEOF_FLOAT_VALUE 16
         #elif (__FLT_MANT_DIG__ == 237) && (__FLT_MAX_EXP__ == 262144) // IEEE 754 binary256
             #define WJR_SIZEOF_FLOAT_VALUE 32
         #endif
 
-        #if (__DBL_MANT_DIG__ == 11) && (__DBL_MAX_EXP__ == 16)     // IEEE 754 binary16
+        #if (__DBL_MANT_DIG__ == 11) && (__DBL_MAX_EXP__ == 16) // IEEE 754 binary16
             #define WJR_SIZEOF_DOUBLE_VALUE 2
-        #elif (__DBL_MANT_DIG__ == 24) && (__DBL_MAX_EXP__ == 128)  // IEEE 754 binary32
+        #elif (__DBL_MANT_DIG__ == 24) && (__DBL_MAX_EXP__ == 128) // IEEE 754 binary32
             #define WJR_SIZEOF_DOUBLE_VALUE 4
         #elif (__DBL_MANT_DIG__ == 53) && (__DBL_MAX_EXP__ == 1024) // IEEE 754 binary64
             #define WJR_SIZEOF_DOUBLE_VALUE 8
@@ -184,17 +184,17 @@
             (__DBL_MAX_EXP__ == 16384) // x87 extended double, with full 64-bit
                                        // significand or reduced to 53 or 24 bits
             #define WJR_SIZEOF_DOUBLE_VALUE 10
-        #elif (__DBL_MANT_DIG__ == 106) && (__DBL_MAX_EXP__ == 1024)   // IBM extended double
+        #elif (__DBL_MANT_DIG__ == 106) && (__DBL_MAX_EXP__ == 1024) // IBM extended double
             #define WJR_SIZEOF_DOUBLE_VALUE 16
-        #elif (__DBL_MANT_DIG__ == 113) && (__DBL_MAX_EXP__ == 16384)  // IEEE 754 binary128
+        #elif (__DBL_MANT_DIG__ == 113) && (__DBL_MAX_EXP__ == 16384) // IEEE 754 binary128
             #define WJR_SIZEOF_DOUBLE_VALUE 16
         #elif (__DBL_MANT_DIG__ == 237) && (__DBL_MAX_EXP__ == 262144) // IEEE 754 binary256
             #define WJR_SIZEOF_DOUBLE_VALUE 32
         #endif
 
-        #if (__LDBL_MANT_DIG__ == 11) && (__LDBL_MAX_EXP__ == 16)     // IEEE 754 binary16
+        #if (__LDBL_MANT_DIG__ == 11) && (__LDBL_MAX_EXP__ == 16) // IEEE 754 binary16
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 2
-        #elif (__LDBL_MANT_DIG__ == 24) && (__LDBL_MAX_EXP__ == 128)  // IEEE 754 binary32
+        #elif (__LDBL_MANT_DIG__ == 24) && (__LDBL_MAX_EXP__ == 128) // IEEE 754 binary32
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 4
         #elif (__LDBL_MANT_DIG__ == 53) && (__LDBL_MAX_EXP__ == 1024) // IEEE 754 binary64
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 8
@@ -202,9 +202,9 @@
             (__LDBL_MAX_EXP__ == 16384) // x87 extended double, with full 64-bit
                                         // significand or reduced to 53 or 24 bits
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 10
-        #elif (__LDBL_MANT_DIG__ == 106) && (__LDBL_MAX_EXP__ == 1024)   // IBM extended double
+        #elif (__LDBL_MANT_DIG__ == 106) && (__LDBL_MAX_EXP__ == 1024) // IBM extended double
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 16
-        #elif (__LDBL_MANT_DIG__ == 113) && (__LDBL_MAX_EXP__ == 16384)  // IEEE 754 binary128
+        #elif (__LDBL_MANT_DIG__ == 113) && (__LDBL_MAX_EXP__ == 16384) // IEEE 754 binary128
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 16
         #elif (__LDBL_MANT_DIG__ == 237) && (__LDBL_MAX_EXP__ == 262144) // IEEE 754 binary256
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 32
@@ -212,25 +212,25 @@
 
     #elif (__FLT_RADIX__ == 10)
 
-        #if (__FLT_MANT_DIG__ == 7) && (__FLT_MAX_EXP__ == 97)      // IEEE 754 decimal32
+        #if (__FLT_MANT_DIG__ == 7) && (__FLT_MAX_EXP__ == 97) // IEEE 754 decimal32
             #define WJR_SIZEOF_FLOAT_VALUE 4
-        #elif (__FLT_MANT_DIG__ == 16) && (__FLT_MAX_EXP__ == 385)  // IEEE 754 decimal64
+        #elif (__FLT_MANT_DIG__ == 16) && (__FLT_MAX_EXP__ == 385) // IEEE 754 decimal64
             #define WJR_SIZEOF_FLOAT_VALUE 8
         #elif (__FLT_MANT_DIG__ == 34) && (__FLT_MAX_EXP__ == 6145) // IEEE 754 decimal128
             #define WJR_SIZEOF_FLOAT_VALUE 16
         #endif
 
-        #if (__DBL_MANT_DIG__ == 7) && (__DBL_MAX_EXP__ == 97)      // IEEE 754 decimal32
+        #if (__DBL_MANT_DIG__ == 7) && (__DBL_MAX_EXP__ == 97) // IEEE 754 decimal32
             #define WJR_SIZEOF_DOUBLE_VALUE 4
-        #elif (__DBL_MANT_DIG__ == 16) && (__DBL_MAX_EXP__ == 385)  // IEEE 754 decimal64
+        #elif (__DBL_MANT_DIG__ == 16) && (__DBL_MAX_EXP__ == 385) // IEEE 754 decimal64
             #define WJR_SIZEOF_DOUBLE_VALUE 8
         #elif (__DBL_MANT_DIG__ == 34) && (__DBL_MAX_EXP__ == 6145) // IEEE 754 decimal128
             #define WJR_SIZEOF_DOUBLE_VALUE 16
         #endif
 
-        #if (__LDBL_MANT_DIG__ == 7) && (__LDBL_MAX_EXP__ == 97)      // IEEE 754 decimal32
+        #if (__LDBL_MANT_DIG__ == 7) && (__LDBL_MAX_EXP__ == 97) // IEEE 754 decimal32
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 4
-        #elif (__LDBL_MANT_DIG__ == 16) && (__LDBL_MAX_EXP__ == 385)  // IEEE 754 decimal64
+        #elif (__LDBL_MANT_DIG__ == 16) && (__LDBL_MAX_EXP__ == 385) // IEEE 754 decimal64
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 8
         #elif (__LDBL_MANT_DIG__ == 34) && (__LDBL_MAX_EXP__ == 6145) // IEEE 754 decimal128
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 16
@@ -244,9 +244,9 @@
 
     #if (FLT_RADIX == 2)
 
-        #if (FLT_MANT_DIG == 11) && (FLT_MAX_EXP == 16)     // IEEE 754 binary16
+        #if (FLT_MANT_DIG == 11) && (FLT_MAX_EXP == 16) // IEEE 754 binary16
             #define WJR_SIZEOF_FLOAT_VALUE 2
-        #elif (FLT_MANT_DIG == 24) && (FLT_MAX_EXP == 128)  // IEEE 754 binary32
+        #elif (FLT_MANT_DIG == 24) && (FLT_MAX_EXP == 128) // IEEE 754 binary32
             #define WJR_SIZEOF_FLOAT_VALUE 4
         #elif (FLT_MANT_DIG == 53) && (FLT_MAX_EXP == 1024) // IEEE 754 binary64
             #define WJR_SIZEOF_FLOAT_VALUE 8
@@ -254,17 +254,17 @@
             (FLT_MAX_EXP == 16384) // x87 extended double, with full 64-bit
                                    // significand or reduced to 53 or 24 bits
             #define WJR_SIZEOF_FLOAT_VALUE 10
-        #elif (FLT_MANT_DIG == 106) && (FLT_MAX_EXP == 1024)   // IBM extended double
+        #elif (FLT_MANT_DIG == 106) && (FLT_MAX_EXP == 1024) // IBM extended double
             #define WJR_SIZEOF_FLOAT_VALUE 16
-        #elif (FLT_MANT_DIG == 113) && (FLT_MAX_EXP == 16384)  // IEEE 754 binary128
+        #elif (FLT_MANT_DIG == 113) && (FLT_MAX_EXP == 16384) // IEEE 754 binary128
             #define WJR_SIZEOF_FLOAT_VALUE 16
         #elif (FLT_MANT_DIG == 237) && (FLT_MAX_EXP == 262144) // IEEE 754 binary256
             #define WJR_SIZEOF_FLOAT_VALUE 32
         #endif
 
-        #if (DBL_MANT_DIG == 11) && (DBL_MAX_EXP == 16)     // IEEE 754 binary16
+        #if (DBL_MANT_DIG == 11) && (DBL_MAX_EXP == 16) // IEEE 754 binary16
             #define WJR_SIZEOF_DOUBLE_VALUE 2
-        #elif (DBL_MANT_DIG == 24) && (DBL_MAX_EXP == 128)  // IEEE 754 binary32
+        #elif (DBL_MANT_DIG == 24) && (DBL_MAX_EXP == 128) // IEEE 754 binary32
             #define WJR_SIZEOF_DOUBLE_VALUE 4
         #elif (DBL_MANT_DIG == 53) && (DBL_MAX_EXP == 1024) // IEEE 754 binary64
             #define WJR_SIZEOF_DOUBLE_VALUE 8
@@ -272,17 +272,17 @@
             (DBL_MAX_EXP == 16384) // x87 extended double, with full 64-bit
                                    // significand or reduced to 53 or 24 bits
             #define WJR_SIZEOF_DOUBLE_VALUE 10
-        #elif (DBL_MANT_DIG == 106) && (DBL_MAX_EXP == 1024)   // IBM extended double
+        #elif (DBL_MANT_DIG == 106) && (DBL_MAX_EXP == 1024) // IBM extended double
             #define WJR_SIZEOF_DOUBLE_VALUE 16
-        #elif (DBL_MANT_DIG == 113) && (DBL_MAX_EXP == 16384)  // IEEE 754 binary128
+        #elif (DBL_MANT_DIG == 113) && (DBL_MAX_EXP == 16384) // IEEE 754 binary128
             #define WJR_SIZEOF_DOUBLE_VALUE 16
         #elif (DBL_MANT_DIG == 237) && (DBL_MAX_EXP == 262144) // IEEE 754 binary256
             #define WJR_SIZEOF_DOUBLE_VALUE 32
         #endif
 
-        #if (LDBL_MANT_DIG == 11) && (LDBL_MAX_EXP == 16)     // IEEE 754 binary16
+        #if (LDBL_MANT_DIG == 11) && (LDBL_MAX_EXP == 16) // IEEE 754 binary16
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 2
-        #elif (LDBL_MANT_DIG == 24) && (LDBL_MAX_EXP == 128)  // IEEE 754 binary32
+        #elif (LDBL_MANT_DIG == 24) && (LDBL_MAX_EXP == 128) // IEEE 754 binary32
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 4
         #elif (LDBL_MANT_DIG == 53) && (LDBL_MAX_EXP == 1024) // IEEE 754 binary64
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 8
@@ -290,9 +290,9 @@
             (LDBL_MAX_EXP == 16384) // x87 extended double, with full 64-bit
                                     // significand or reduced to 53 or 24 bits
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 10
-        #elif (LDBL_MANT_DIG == 106) && (LDBL_MAX_EXP == 1024)   // IBM extended double
+        #elif (LDBL_MANT_DIG == 106) && (LDBL_MAX_EXP == 1024) // IBM extended double
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 16
-        #elif (LDBL_MANT_DIG == 113) && (LDBL_MAX_EXP == 16384)  // IEEE 754 binary128
+        #elif (LDBL_MANT_DIG == 113) && (LDBL_MAX_EXP == 16384) // IEEE 754 binary128
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 16
         #elif (LDBL_MANT_DIG == 237) && (LDBL_MAX_EXP == 262144) // IEEE 754 binary256
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 32
@@ -300,25 +300,25 @@
 
     #elif (FLT_RADIX == 10)
 
-        #if (FLT_MANT_DIG == 7) && (FLT_MAX_EXP == 97)      // IEEE 754 decimal32
+        #if (FLT_MANT_DIG == 7) && (FLT_MAX_EXP == 97) // IEEE 754 decimal32
             #define WJR_SIZEOF_FLOAT_VALUE 4
-        #elif (FLT_MANT_DIG == 16) && (FLT_MAX_EXP == 385)  // IEEE 754 decimal64
+        #elif (FLT_MANT_DIG == 16) && (FLT_MAX_EXP == 385) // IEEE 754 decimal64
             #define WJR_SIZEOF_FLOAT_VALUE 8
         #elif (FLT_MANT_DIG == 34) && (FLT_MAX_EXP == 6145) // IEEE 754 decimal128
             #define WJR_SIZEOF_FLOAT_VALUE 16
         #endif
 
-        #if (DBL_MANT_DIG == 7) && (DBL_MAX_EXP == 97)      // IEEE 754 decimal32
+        #if (DBL_MANT_DIG == 7) && (DBL_MAX_EXP == 97) // IEEE 754 decimal32
             #define WJR_SIZEOF_DOUBLE_VALUE 4
-        #elif (DBL_MANT_DIG == 16) && (DBL_MAX_EXP == 385)  // IEEE 754 decimal64
+        #elif (DBL_MANT_DIG == 16) && (DBL_MAX_EXP == 385) // IEEE 754 decimal64
             #define WJR_SIZEOF_DOUBLE_VALUE 8
         #elif (DBL_MANT_DIG == 34) && (DBL_MAX_EXP == 6145) // IEEE 754 decimal128
             #define WJR_SIZEOF_DOUBLE_VALUE 16
         #endif
 
-        #if (LDBL_MANT_DIG == 7) && (LDBL_MAX_EXP == 97)      // IEEE 754 decimal32
+        #if (LDBL_MANT_DIG == 7) && (LDBL_MAX_EXP == 97) // IEEE 754 decimal32
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 4
-        #elif (LDBL_MANT_DIG == 16) && (LDBL_MAX_EXP == 385)  // IEEE 754 decimal64
+        #elif (LDBL_MANT_DIG == 16) && (LDBL_MAX_EXP == 385) // IEEE 754 decimal64
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 8
         #elif (LDBL_MANT_DIG == 34) && (LDBL_MAX_EXP == 6145) // IEEE 754 decimal128
             #define WJR_SIZEOF_LONG_DOUBLE_VALUE 16
