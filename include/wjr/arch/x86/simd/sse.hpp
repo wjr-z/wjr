@@ -33,11 +33,11 @@ struct sse {
     constexpr static size_t width() noexcept;
     constexpr static mask_type mask() noexcept;
 
-    WJR_INTRINSIC_CONSTEXPR static int clz_nz_epu64(mask_type x) noexcept;
-    WJR_INTRINSIC_CONSTEXPR static int clz_nz(mask_type x, uint64_t) noexcept;
+    WJR_INTRINSIC_INLINE static int clz_nz_epu64(mask_type x) noexcept;
+    WJR_INTRINSIC_INLINE static int clz_nz(mask_type x, uint64_t) noexcept;
 
-    WJR_INTRINSIC_CONSTEXPR static int ctz_nz_epu64(mask_type x) noexcept;
-    WJR_INTRINSIC_CONSTEXPR static int ctz_nz(mask_type x, uint64_t) noexcept;
+    WJR_INTRINSIC_INLINE static int ctz_nz_epu64(mask_type x) noexcept;
+    WJR_INTRINSIC_INLINE static int ctz_nz(mask_type x, uint64_t) noexcept;
 
 #if WJR_HAS_SIMD(SSE)
 
@@ -769,19 +769,19 @@ struct broadcast_fn<__m128i_t, __m128i_t> {
 constexpr size_t sse::width() noexcept { return 128; }
 constexpr sse::mask_type sse::mask() noexcept { return 0xFFFF; }
 
-constexpr int sse::clz_nz_epu64(mask_type x) noexcept {
+int sse::clz_nz_epu64(mask_type x) noexcept {
     // x == (0xFFFF || 0xFF00 || 0x00FF)
     return x == 0x00FF ? 8 : 0;
 }
 
-constexpr int sse::clz_nz(mask_type x, uint64_t) noexcept { return clz_nz_epu64(x); }
+int sse::clz_nz(mask_type x, uint64_t) noexcept { return clz_nz_epu64(x); }
 
-constexpr int sse::ctz_nz_epu64(mask_type x) noexcept {
+int sse::ctz_nz_epu64(mask_type x) noexcept {
     // x == (0xFFFF || 0xFF00 || 0x00FF)
     return x == 0xFF00 ? 8 : 0;
 }
 
-constexpr int sse::ctz_nz(mask_type x, uint64_t) noexcept { return ctz_nz_epu64(x); }
+int sse::ctz_nz(mask_type x, uint64_t) noexcept { return ctz_nz_epu64(x); }
 
 #if WJR_HAS_SIMD(SSE)
 
@@ -868,6 +868,7 @@ __m128i sse::adds(__m128i a, __m128i b, uint16_t) noexcept { return adds_epu16(a
 
 template <int imm8>
 __m128i sse::alignr(__m128i a, __m128i b) noexcept {
+    static_assert(imm8 >= 0 && imm8 <= 16, "imm8 must be in range [0, 16]");
     constexpr int s = imm8 & 0x1F;
     #if WJR_HAS_SIMD(SSSE3)
     return _mm_alignr_epi8(a, b, s);
@@ -879,9 +880,13 @@ __m128i sse::alignr(__m128i a, __m128i b) noexcept {
         return a;
     }
     if constexpr (s < 16) {
-        return Or(slli<16 - s>(a), srli<s>(b));
+        if constexpr (s == 8) {
+            return shuffle_epi32<_MM_SHUFFLE(2, 1, 0, 3)>(a, b);
+        } else {
+            return Or(slli<16 - s>(a), srli<s>(b));
+        }
     }
-    return srli<s - 16>(a);
+    WJR_UNREACHABLE();
     #endif // SSSE3
 }
 

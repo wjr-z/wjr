@@ -9,11 +9,9 @@ namespace wjr {
 extern cpu_features::X86Info x86_cpu_info;
 extern bool __x86_is_enhanced_rep;
 
-template <typename T>
-extern size_t __x86_rep_stosb_threshold;
-extern template size_t __x86_rep_stosb_threshold<uint16_t>;
-extern template size_t __x86_rep_stosb_threshold<uint32_t>;
-extern template size_t __x86_rep_stosb_threshold<uint64_t>;
+extern size_t __x86_rep_stosb_threshold_u16;
+extern size_t __x86_rep_stosb_threshold_u32;
+extern size_t __x86_rep_stosb_threshold_u64;
 
 } // namespace wjr
 

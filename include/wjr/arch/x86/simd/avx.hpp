@@ -22,11 +22,11 @@ struct avx {
     constexpr static size_t width() noexcept;
     constexpr static mask_type mask() noexcept;
 
-    WJR_INTRINSIC_CONSTEXPR static int clz_nz_epu64(mask_type x) noexcept;
-    WJR_INTRINSIC_CONSTEXPR static int clz_nz(mask_type x, uint64_t) noexcept;
+    WJR_INTRINSIC_INLINE static int clz_nz_epu64(mask_type x) noexcept;
+    WJR_INTRINSIC_INLINE static int clz_nz(mask_type x, uint64_t) noexcept;
 
-    WJR_INTRINSIC_CONSTEXPR static int ctz_nz_epu64(mask_type x) noexcept;
-    WJR_INTRINSIC_CONSTEXPR static int ctz_nz(mask_type x, uint64_t) noexcept;
+    WJR_INTRINSIC_INLINE static int ctz_nz_epu64(mask_type x) noexcept;
+    WJR_INTRINSIC_INLINE static int ctz_nz(mask_type x, uint64_t) noexcept;
 
 #if WJR_HAS_SIMD(AVX)
 
@@ -529,6 +529,14 @@ struct avx {
     WJR_INTRINSIC_INLINE static __m256i slli(__m256i a, int imm8, uint32_t) noexcept;
     WJR_INTRINSIC_INLINE static __m256i slli(__m256i a, int imm8, uint64_t) noexcept;
 
+    WJR_INTRINSIC_INLINE static __m256i sllv_epi32(__m256i a, __m256i b) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i sllv_epi64(__m256i a, __m256i b) noexcept;
+
+    WJR_INTRINSIC_INLINE static __m256i sllv(__m256i a, __m256i b, int32_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i sllv(__m256i a, __m256i b, int64_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i sllv(__m256i a, __m256i b, uint32_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i sllv(__m256i a, __m256i b, uint64_t) noexcept;
+
     WJR_INTRINSIC_INLINE static __m256i sra_epi16(__m256i a, __m128i b) noexcept;
     WJR_INTRINSIC_INLINE static __m256i sra_epi32(__m256i a, __m128i b) noexcept;
 
@@ -569,6 +577,14 @@ struct avx {
     WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, uint16_t) noexcept;
     WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, uint32_t) noexcept;
     WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, uint64_t) noexcept;
+
+    WJR_INTRINSIC_INLINE static __m256i srlv_epi32(__m256i a, __m256i b) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i srlv_epi64(__m256i a, __m256i b) noexcept;
+
+    WJR_INTRINSIC_INLINE static __m256i srlv(__m256i a, __m256i b, int32_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i srlv(__m256i a, __m256i b, int64_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i srlv(__m256i a, __m256i b, uint32_t) noexcept;
+    WJR_INTRINSIC_INLINE static __m256i srlv(__m256i a, __m256i b, uint64_t) noexcept;
 
     WJR_INTRINSIC_INLINE static __m256i sub_epi8(__m256i a, __m256i b) noexcept;
     WJR_INTRINSIC_INLINE static __m256i sub_epi16(__m256i a, __m256i b) noexcept;
@@ -695,11 +711,11 @@ constexpr size_t avx::width() noexcept { return 256; }
 
 constexpr avx::mask_type avx::mask() noexcept { return 0xffffffff; }
 
-constexpr int avx::clz_nz_epu64(mask_type mask) noexcept { return clz(mask); }
-constexpr int avx::clz_nz(mask_type mask, uint64_t) noexcept { return clz_nz_epu64(mask); }
+int avx::clz_nz_epu64(mask_type mask) noexcept { return clz(mask); }
+int avx::clz_nz(mask_type mask, uint64_t) noexcept { return clz_nz_epu64(mask); }
 
-constexpr int avx::ctz_nz_epu64(mask_type mask) noexcept { return ctz(mask); }
-constexpr int avx::ctz_nz(mask_type mask, uint64_t) noexcept { return ctz_nz_epu64(mask); }
+int avx::ctz_nz_epu64(mask_type mask) noexcept { return ctz(mask); }
+int avx::ctz_nz(mask_type mask, uint64_t) noexcept { return ctz_nz_epu64(mask); }
 
 #if WJR_HAS_SIMD(AVX)
 
@@ -1536,6 +1552,14 @@ __m256i avx::slli(__m256i a, int imm8, uint16_t) noexcept { return slli_epi16(a,
 __m256i avx::slli(__m256i a, int imm8, uint32_t) noexcept { return slli_epi32(a, imm8); }
 __m256i avx::slli(__m256i a, int imm8, uint64_t) noexcept { return slli_epi64(a, imm8); }
 
+__m256i avx::sllv_epi32(__m256i a, __m256i b) noexcept { return _mm256_sllv_epi32(a, b); }
+__m256i avx::sllv_epi64(__m256i a, __m256i b) noexcept { return _mm256_sllv_epi64(a, b); }
+
+__m256i avx::sllv(__m256i a, __m256i b, int32_t) noexcept { return sllv_epi32(a, b); }
+__m256i avx::sllv(__m256i a, __m256i b, int64_t) noexcept { return sllv_epi64(a, b); }
+__m256i avx::sllv(__m256i a, __m256i b, uint32_t) noexcept { return sllv_epi32(a, b); }
+__m256i avx::sllv(__m256i a, __m256i b, uint64_t) noexcept { return sllv_epi64(a, b); }
+
 __m256i avx::sra_epi16(__m256i a, __m128i b) noexcept { return _mm256_sra_epi16(a, b); }
 __m256i avx::sra_epi32(__m256i a, __m128i b) noexcept { return _mm256_sra_epi32(a, b); }
 
@@ -1583,6 +1607,14 @@ __m256i avx::srli(__m256i a, int imm8, uint8_t) noexcept { return srli_epi8(a, i
 __m256i avx::srli(__m256i a, int imm8, uint16_t) noexcept { return srli_epi16(a, imm8); }
 __m256i avx::srli(__m256i a, int imm8, uint32_t) noexcept { return srli_epi32(a, imm8); }
 __m256i avx::srli(__m256i a, int imm8, uint64_t) noexcept { return srli_epi64(a, imm8); }
+
+__m256i avx::srlv_epi32(__m256i a, __m256i b) noexcept { return _mm256_srlv_epi32(a, b); }
+__m256i avx::srlv_epi64(__m256i a, __m256i b) noexcept { return _mm256_srlv_epi64(a, b); }
+
+__m256i avx::srlv(__m256i a, __m256i b, int32_t) noexcept { return srlv_epi32(a, b); }
+__m256i avx::srlv(__m256i a, __m256i b, int64_t) noexcept { return srlv_epi64(a, b); }
+__m256i avx::srlv(__m256i a, __m256i b, uint32_t) noexcept { return srlv_epi32(a, b); }
+__m256i avx::srlv(__m256i a, __m256i b, uint64_t) noexcept { return srlv_epi64(a, b); }
 
 __m256i avx::sub_epi8(__m256i a, __m256i b) noexcept { return _mm256_sub_epi8(a, b); }
 __m256i avx::sub_epi16(__m256i a, __m256i b) noexcept { return _mm256_sub_epi16(a, b); }

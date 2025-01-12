@@ -59,6 +59,23 @@ WJR_INTRINSIC_INLINE void rep_stos(uint64_t *s, uint64_t val, size_t n) {
 
     #endif
 
+namespace {
+template <typename T>
+struct set_threshold {};
+
+    #define WJR_REGISTER_SET_HELPER(type)                                                          \
+        template <>                                                                                \
+        struct set_threshold<uint##type##_t> {                                                     \
+            static size_t get() noexcept { return __x86_rep_stosb_threshold_u##type; }             \
+        }
+
+WJR_REGISTER_SET_HELPER(16);
+WJR_REGISTER_SET_HELPER(32);
+WJR_REGISTER_SET_HELPER(64);
+
+    #undef WJR_REGISTER_SET_HELPER
+} // namespace
+
 template <typename simd, typename T>
 WJR_HOT void large_builtin_set_n(T *dst, T val, size_t n) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
@@ -94,7 +111,7 @@ WJR_HOT void large_builtin_set_n(T *dst, T val, size_t n) noexcept {
     T *pe = dst + n;
 
     #if WJR_HAS_BUILTIN(REP_STOS)
-    if (WJR_UNLIKELY(n > __x86_rep_stosb_threshold<T>)) {
+    if (WJR_UNLIKELY(n > set_threshold<T>::get())) {
         simd::storeu(dst, y);
         simd::storeu(pe - type_width, y);
 
