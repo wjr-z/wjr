@@ -17,12 +17,13 @@ TEST(math, popcount_ctz_clz) {
 #define WJR_TEST_PTZ(queue) WJR_PP_TRANSFORM_PUT(queue, WJR_TEST_PTZ_I_CALLER)
 
 #define WJR_TEST_POPCOUNT_I(type, x, ans)                                                          \
-    WJR_ASSERT_L0(fallback_popcount<type>(x) == ans)                                                  \
-    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(POPCOUNT), ; WJR_ASSERT_L0((builtin_popcount<type>(x) == ans)), )
+    WJR_ASSERT_L0(fallback_popcount<type>(x) == ans)                                               \
+    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(POPCOUNT), ;                                                 \
+                      WJR_ASSERT_L0((builtin_popcount<type>(x) == ans)), )
 #define WJR_TEST_CTZ_I(type, x, ans)                                                               \
     type n = x;                                                                                    \
     auto ctz_ans = popcount<type>((type)(lowbit(n) - 1));                                          \
-    WJR_ASSERT_L0((x == 0 ? std::numeric_limits<type>::digits : fallback_ctz<type>(x)) == ctz_ans)    \
+    WJR_ASSERT_L0((x == 0 ? std::numeric_limits<type>::digits : fallback_ctz<type>(x)) == ctz_ans) \
     WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(CTZ), ; WJR_ASSERT_L0((countr_zero<type>(x) == ctz_ans)), )
 #define WJR_TEST_CLZ_I(type, x, ans)                                                               \
     auto clz_ans = []() -> int {                                                                   \
@@ -46,7 +47,7 @@ TEST(math, popcount_ctz_clz) {
         ++n;                                                                                       \
         return nd - countr_zero<type>(n);                                                          \
     }();                                                                                           \
-    WJR_ASSERT_L0((x == 0 ? std::numeric_limits<type>::digits : fallback_clz<type>(x)) == clz_ans)    \
+    WJR_ASSERT_L0((x == 0 ? std::numeric_limits<type>::digits : fallback_clz<type>(x)) == clz_ans) \
     WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(CTZ), ; WJR_ASSERT_L0((countl_zero<type>(x) == clz_ans)), )
 
 #define WJR_TEST_PTZ_I_CALLER(args)                                                                \
@@ -161,20 +162,20 @@ TEST(math, addc) {
 
 #define WJR_TEST_ADDC(type, x, y, ci, ans, ans_co) WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)
 #define WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)                                           \
-    WJR_ASSERT_L0((fallback_addc<type, type>(x, y, ci, co) == ans && co == ans_co));                  \
+    WJR_ASSERT_L0((fallback_addc<type, type>(x, y, ci, co) == ans && co == ans_co));               \
     WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ADDC),                                                          \
                    do {                                                                            \
-                       WJR_ASSERT_L0(                                                                 \
+                       WJR_ASSERT_L0(                                                              \
                            (builtin_addc<type, type>(x, y, ci, co) == ans && co == ans_co));       \
                    } while (false),                                                                \
                    {});                                                                            \
     WJR_PP_BOOL_IF_NE(                                                                             \
         WJR_HAS_BUILTIN(ASM_ADDC), do {                                                            \
             if constexpr (std::is_same_v<type, uint64_t>) {                                        \
-                WJR_ASSERT_L0((asm_addc<type>(x, y, ci, co) == ans && co == ans_co));                 \
-                WJR_ASSERT_L0(WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_ADDC_CC),                            \
-                                          (asm_addc_cc(x, y, ci, co2) == ans && co2 == ans_co),    \
-                                          true));                                                  \
+                WJR_ASSERT_L0((asm_addc<type>(x, y, ci, co) == ans && co == ans_co));              \
+                WJR_ASSERT_L0(WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_ADDC_CC),                         \
+                                             (asm_addc_cc(x, y, ci, co2) == ans && co2 == ans_co), \
+                                             true));                                               \
             }                                                                                      \
         } while (false), )
 
@@ -349,18 +350,18 @@ TEST(math, sub) {
 
 #define WJR_TEST_SUBC(type, x, y, ci, ans, ans_co) WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)
 #define WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)                                           \
-    WJR_ASSERT_L0((fallback_subc<type, type>(x, y, ci, co) == ans && co == ans_co))                   \
+    WJR_ASSERT_L0((fallback_subc<type, type>(x, y, ci, co) == ans && co == ans_co))                \
     WJR_PP_BOOL_IF(                                                                                \
         WJR_HAS_BUILTIN(SUBC), ; do {                                                              \
-            WJR_ASSERT_L0((builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co));           \
+            WJR_ASSERT_L0((builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co));        \
         } while (false), )                                                                         \
     WJR_PP_BOOL_IF_NE(                                                                             \
         WJR_HAS_BUILTIN(ASM_SUBC), ; do {                                                          \
             if constexpr (std::is_same_v<type, uint64_t>) {                                        \
-                WJR_ASSERT_L0((asm_subc<type>(x, y, ci, co) == ans && co == ans_co));                 \
-                WJR_ASSERT_L0(WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_SUBC_CC),                            \
-                                          (asm_subc_cc(x, y, ci, co2) == ans && co2 == ans_co),    \
-                                          true));                                                  \
+                WJR_ASSERT_L0((asm_subc<type>(x, y, ci, co) == ans && co == ans_co));              \
+                WJR_ASSERT_L0(WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_SUBC_CC),                         \
+                                             (asm_subc_cc(x, y, ci, co2) == ans && co2 == ans_co), \
+                                             true));                                               \
             }                                                                                      \
         } while (false), )
 
@@ -414,12 +415,12 @@ TEST(math, sub) {
         uint64_t expect[N];                                                                        \
         init(in, WJR_PP_QUEUE_EXPAND(inputs));                                                     \
         init(expect, WJR_PP_QUEUE_EXPAND(outputs));                                                \
-        WJR_ASSERT_L0((subc_1(out, in, N, c, c_in) == ans));                                          \
-        WJR_ASSERT_L0((memcmp(out, expect, sizeof(out)) == 0),                                        \
-                   "uncorrect array of subc_1<uint64_t>, different array");                        \
-        WJR_ASSERT_L0((subc_1(in, in, N, c, c_in) == ans));                                           \
-        WJR_ASSERT_L0((memcmp(in, expect, sizeof(out)) == 0),                                         \
-                   "uncorrect array of subc_1<uint64_t>, same array");                             \
+        WJR_ASSERT_L0((subc_1(out, in, N, c, c_in) == ans));                                       \
+        WJR_ASSERT_L0((memcmp(out, expect, sizeof(out)) == 0),                                     \
+                      "uncorrect array of subc_1<uint64_t>, different array");                     \
+        WJR_ASSERT_L0((subc_1(in, in, N, c, c_in) == ans));                                        \
+        WJR_ASSERT_L0((memcmp(in, expect, sizeof(out)) == 0),                                      \
+                      "uncorrect array of subc_1<uint64_t>, same array");                          \
     }
 #define WJR_TEST_SUBC_1_I_CALLER(args) WJR_TEST_SUBC_1_I args
 
@@ -917,22 +918,37 @@ TEST(math, negate_n) {
 }
 
 TEST(math, set_n) {
-    std::vector<uint64_t> a;
-    for (size_t n = 0; n <= 384; ++n) {
-        a.resize(n);
+    auto test = [](auto x) {
+        using type = decltype(x);
+        std::vector<type> a;
+        for (size_t n = 0; n <= 384; ++n) {
+            a.resize(n);
+            type b = mt_rand();
 
-        uint64_t b = mt_rand();
+            std::fill(a.begin(), a.end(), 0);
+            set_n(a.data(), x, n);
 
-        for (auto &i : a) {
-            i = mt_rand();
+            for (auto &i : a) {
+                WJR_ASSERT_L0(i == x);
+            }
         }
 
-        set_n(a.data(), b, n);
+        for (size_t n = 512; n <= (1ull << 24); n *= 2) {
+            a.resize(n);
+            type b = mt_rand();
 
-        for (auto &i : a) {
-            WJR_ASSERT_L0(i == b);
+            std::fill(a.begin(), a.end(), 0);
+            set_n(a.data(), x, n);
+
+            for (auto &i : a) {
+                WJR_ASSERT_L0(i == x);
+            }
         }
-    }
+    };
+
+    test((uint16_t)0);
+    test((uint32_t)0);
+    test((uint64_t)0);
 }
 
 TEST(math, compare_n) {
@@ -1676,7 +1692,8 @@ TEST(math, to_chars) {
             WJR_ASSERT_L0(ret0.ec == ret1.ec);
 
             if ((bool)ret0) {
-                WJR_ASSERT_L0(std::string_view(b, ret0.ptr - b) == std::string_view(c, ret1.ptr - c));
+                WJR_ASSERT_L0(std::string_view(b, ret0.ptr - b) ==
+                              std::string_view(c, ret1.ptr - c));
             } else {
                 WJR_ASSERT_L0(ret1.ptr == c + k);
             }
@@ -1690,7 +1707,7 @@ TEST(math, to_chars) {
 
             if ((bool)ret0) {
                 WJR_ASSERT_L0(std::string_view(b, ret0.ptr - b) ==
-                           std::string_view(vec.data(), ret1.ptr - vec.data()));
+                              std::string_view(vec.data(), ret1.ptr - vec.data()));
             } else {
                 WJR_ASSERT_L0(ret1.ptr == vec.data() + k);
             }
@@ -1703,7 +1720,8 @@ TEST(math, to_chars) {
             WJR_ASSERT_L0(ret0.ec == ret1.ec);
 
             if ((bool)ret0) {
-                WJR_ASSERT_L0(std::string_view(b, ret0.ptr - b) == std::string(lst.begin(), ret1.ptr));
+                WJR_ASSERT_L0(std::string_view(b, ret0.ptr - b) ==
+                              std::string(lst.begin(), ret1.ptr));
             } else {
                 WJR_ASSERT_L0(std::distance(lst.begin(), ret1.ptr) == k);
             }
@@ -1716,7 +1734,7 @@ TEST(math, to_chars) {
                 auto ret1 = to_chars_backward_unchecked(c + 64, x, base);
 
                 WJR_ASSERT_L0(std::string_view(b, ret0.ptr - b) ==
-                           std::string_view(ret1, c + 64 - ret1));
+                              std::string_view(ret1, c + 64 - ret1));
             } while (false);
 
             // test __fast_to_chars_unchecked
@@ -1733,7 +1751,7 @@ TEST(math, to_chars) {
                 (void)to_chars_unchecked(std::back_inserter(vec), x, base);
 
                 WJR_ASSERT_L0(std::string_view(b, ret0.ptr - b) ==
-                           std::string_view((char *)vec.data(), vec.size()));
+                              std::string_view((char *)vec.data(), vec.size()));
             } while (false);
 
             // test forward iterator of __fallback_to_chars_unchecked
@@ -1743,7 +1761,7 @@ TEST(math, to_chars) {
                 (void)to_chars_unchecked(std::back_inserter(lst), x, base);
 
                 WJR_ASSERT_L0(std::string_view(b, ret0.ptr - b) ==
-                           std::string(lst.begin(), lst.end()));
+                              std::string(lst.begin(), lst.end()));
 
                 lst.resize(64);
             } while (false);

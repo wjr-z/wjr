@@ -12,7 +12,7 @@
  *
  */
 
-#include <cpuinfo_x86.h>
+#include <wjr/arch/x86/cpuinfo.hpp>
 #include <wjr/arch/x86/math/set.hpp>
 
 namespace wjr {
@@ -45,7 +45,7 @@ WJR_INTRINSIC_INLINE void rep_stos(uint32_t *s, uint32_t val, size_t n) {
         #if defined(WJR_COMPILER_MSVC)
     __stosd(reinterpret_cast<unsigned long *>(s), val, n);
         #else
-    asm volatile("rep stosd" : "+D"(s), "+c"(n) : "a"(val) : "memory");
+    asm volatile("rep stos{l|d}" : "+D"(s), "+c"(n) : "a"(val) : "memory");
         #endif
 }
 
@@ -57,23 +57,7 @@ WJR_INTRINSIC_INLINE void rep_stos(uint64_t *s, uint64_t val, size_t n) {
         #endif
 }
 
-bool __x86_is_enhanced_rep = cpu_features::GetX86Info().features.erms != 0;
-    #else
-inline constexpr bool __x86_is_enhanced_rep = false;
     #endif
-
-    #ifndef WJR_X86_REP_STOSB_DEFAULT_THRESHOLD
-        #define WJR_X86_REP_STOSB_DEFAULT_THRESHOLD ((size_t)(1) << 24)
-    #endif
-
-inline constexpr size_t __x86_rep_stosb_default_threshold = WJR_X86_REP_STOSB_DEFAULT_THRESHOLD;
-
-template <typename T>
-size_t __x86_rep_stosb_threshold =
-    __x86_is_enhanced_rep ? __x86_rep_stosb_default_threshold / sizeof(T)
-                          : std::numeric_limits<size_t>::max();
-
-template size_t __x86_rep_stosb_threshold<uint64_t>;
 
 template <typename simd, typename T>
 WJR_HOT void large_builtin_set_n(T *dst, T val, size_t n) noexcept {
@@ -170,6 +154,10 @@ WJR_HOT void large_builtin_set_n(T *dst, T val, size_t n) noexcept {
     simd::store(ps - type_width, y);
 }
 
+template void large_builtin_set_n<set_detail::simd, uint16_t>(uint16_t *, uint16_t,
+                                                              size_t) noexcept;
+template void large_builtin_set_n<set_detail::simd, uint32_t>(uint32_t *, uint32_t,
+                                                              size_t) noexcept;
 template void large_builtin_set_n<set_detail::simd, uint64_t>(uint64_t *, uint64_t,
                                                               size_t) noexcept;
 

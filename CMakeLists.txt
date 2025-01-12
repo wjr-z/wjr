@@ -168,10 +168,9 @@ target_compile_definitions(wjr
 add_subdirectory(third-party/cpu_features)
 
 target_link_libraries(wjr 
-   PUBLIC
+   PRIVATE
       ${WJR_LIBS}
       ${WJR_ASSEMBLY_LIBS}
-   PRIVATE
       CpuFeatures::cpu_features
 )
 

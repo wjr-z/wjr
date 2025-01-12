@@ -190,8 +190,8 @@ decltype(auto) build_tree(size_t n, Getter getter) noexcept {
                     new_node.set_right(leaf_first);
                     ++leaf_first;
                     ++pair_first;
-                } while (0);
-            } while (0);
+                } while (false);
+            } while (false);
 
             --inner_last;
             --size_last;

@@ -1,11 +1,12 @@
 #ifndef WJR_ARCH_X86_SIMD_SSE_HPP__
 #define WJR_ARCH_X86_SIMD_SSE_HPP__
 
-#include <wjr/arch/x86/simd/simd_cast.hpp>
-
 #include <cstring>
 
+#include <wjr/arch/x86/simd/simd_cast.hpp>
 #include <wjr/math/broadcast.hpp>
+#include <wjr/math/clz.hpp>
+#include <wjr/math/ctz.hpp>
 #include <wjr/memory/detail.hpp>
 
 namespace wjr {
@@ -31,6 +32,12 @@ struct sse {
 
     constexpr static size_t width() noexcept;
     constexpr static mask_type mask() noexcept;
+
+    WJR_INTRINSIC_CONSTEXPR static int clz_nz_epu64(mask_type x) noexcept;
+    WJR_INTRINSIC_CONSTEXPR static int clz_nz(mask_type x, uint64_t) noexcept;
+
+    WJR_INTRINSIC_CONSTEXPR static int ctz_nz_epu64(mask_type x) noexcept;
+    WJR_INTRINSIC_CONSTEXPR static int ctz_nz(mask_type x, uint64_t) noexcept;
 
 #if WJR_HAS_SIMD(SSE)
 
@@ -760,8 +767,21 @@ struct broadcast_fn<__m128i_t, __m128i_t> {
 /*------------------------sse------------------------*/
 
 constexpr size_t sse::width() noexcept { return 128; }
-
 constexpr sse::mask_type sse::mask() noexcept { return 0xFFFF; }
+
+constexpr int sse::clz_nz_epu64(mask_type x) noexcept {
+    // x == (0xFFFF || 0xFF00 || 0x00FF)
+    return x == 0x00FF ? 8 : 0;
+}
+
+constexpr int sse::clz_nz(mask_type x, uint64_t) noexcept { return clz_nz_epu64(x); }
+
+constexpr int sse::ctz_nz_epu64(mask_type x) noexcept {
+    // x == (0xFFFF || 0xFF00 || 0x00FF)
+    return x == 0xFF00 ? 8 : 0;
+}
+
+constexpr int sse::ctz_nz(mask_type x, uint64_t) noexcept { return ctz_nz_epu64(x); }
 
 #if WJR_HAS_SIMD(SSE)
 

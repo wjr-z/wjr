@@ -22,6 +22,12 @@ struct avx {
     constexpr static size_t width() noexcept;
     constexpr static mask_type mask() noexcept;
 
+    WJR_INTRINSIC_CONSTEXPR static int clz_nz_epu64(mask_type x) noexcept;
+    WJR_INTRINSIC_CONSTEXPR static int clz_nz(mask_type x, uint64_t) noexcept;
+
+    WJR_INTRINSIC_CONSTEXPR static int ctz_nz_epu64(mask_type x) noexcept;
+    WJR_INTRINSIC_CONSTEXPR static int ctz_nz(mask_type x, uint64_t) noexcept;
+
 #if WJR_HAS_SIMD(AVX)
 
     WJR_INTRINSIC_INLINE static __m256i concat(__m128i a, __m128i b) noexcept;
@@ -688,6 +694,12 @@ struct broadcast_fn<__m128i_t, __m256i_t> {
 constexpr size_t avx::width() noexcept { return 256; }
 
 constexpr avx::mask_type avx::mask() noexcept { return 0xffffffff; }
+
+constexpr int avx::clz_nz_epu64(mask_type mask) noexcept { return clz(mask); }
+constexpr int avx::clz_nz(mask_type mask, uint64_t) noexcept { return clz_nz_epu64(mask); }
+
+constexpr int avx::ctz_nz_epu64(mask_type mask) noexcept { return ctz(mask); }
+constexpr int avx::ctz_nz(mask_type mask, uint64_t) noexcept { return ctz_nz_epu64(mask); }
 
 #if WJR_HAS_SIMD(AVX)
 

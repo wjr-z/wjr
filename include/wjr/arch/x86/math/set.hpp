@@ -20,8 +20,12 @@ using simd = std::conditional_t<is_avx, avx, sse>;
 } // namespace set_detail
 
 template <typename simd, typename T>
-WJR_HOT void large_builtin_set_n(T *dst, T val, size_t n) noexcept;
+WJR_HOT extern void large_builtin_set_n(T *dst, T val, size_t n) noexcept;
 
+extern template void large_builtin_set_n<set_detail::simd, uint16_t>(uint16_t *, uint16_t,
+                                                                     size_t) noexcept;
+extern template void large_builtin_set_n<set_detail::simd, uint32_t>(uint32_t *, uint32_t,
+                                                                     size_t) noexcept;
 extern template void large_builtin_set_n<set_detail::simd, uint64_t>(uint64_t *, uint64_t,
                                                                      size_t) noexcept;
 
@@ -31,8 +35,7 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
     constexpr auto is_avx = set_detail::is_avx;
 
     using simd = typename set_detail::simd;
-    constexpr auto simd_width = simd::width();
-    constexpr auto type_width = simd_width / nd;
+    constexpr auto type_width = simd::width() / nd;
 
     constexpr auto sse_width = sse::width();
     constexpr auto sse_loop = sse_width / nd;
