@@ -45,7 +45,7 @@ macro(WJR_ADD_SRCS TARGET PATH)
    list(APPEND ${TARGET} ${TMP_SRCS})
 endmacro()
 
-set(WJR_SRCS ${WJR_LIB_DIR}/wjr/assert.cpp)
+set(WJR_SRCS .)
 WJR_ADD_SRCS(WJR_SRCS biginteger)
 WJR_ADD_SRCS(WJR_SRCS format)
 WJR_ADD_SRCS(WJR_SRCS json)
