@@ -78,5 +78,6 @@ todo :
 2. 使用forked fastfloat/dragonbox.
 3. 支持使用fmt
 
-### 单元测试
-目前尚未适配需要使用GMP的测试。需要自行指定GMP Path.
+## todo
+1. 目前尚未适配需要使用GMP的测试。需要自行指定GMP Path。
+2. 测试CPU x86-64 alderlake（主要的优化target cpu）。

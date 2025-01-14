@@ -6,10 +6,14 @@
 
 namespace wjr {
 
-// find the first position(ret) that is not equal to number "from"
-// and replace [0, ret) to number "to"
-// For example, inc replaces a continuous segment of -1 with 0. And dec replaces
-// a continuous segment of 0 with -1
+/**
+ * @details Find the first position(ret) that is not equal to number "from" and replace [0, ret) to
+ * number "to" For example, inc replaces a continuous segment of -1 with 0. And dec replaces a
+ * continuous segment of 0 with -1
+ *
+ * @todo Optimization, merge builtin_find_not_n and builtin_set_n.
+ *
+ */
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 size_t replace_find_not(T *dst, const T *src, size_t n,
                                                   type_identity_t<T> from,
@@ -22,8 +26,9 @@ WJR_INTRINSIC_CONSTEXPR20 size_t replace_find_not(T *dst, const T *src, size_t n
     return ret;
 }
 
-// find the last position(ret-1) that is not equal to number "from"
-// and replace [ret, n) to number "to"
+/**
+ * @details Reverse order of @ref replace_find_not.
+ */
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 size_t reverse_replace_find_not(T *dst, const T *src, size_t n,
                                                           type_identity_t<T> from,

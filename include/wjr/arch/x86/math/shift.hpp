@@ -41,7 +41,7 @@ WJR_ALL_NONNULL WJR_INTRINSIC_INLINE void builtin_lshift_n_impl(T *dst, const T 
                                                                 unsigned int cl) noexcept {
     if (n <= shift_detail::small_shift_n_threshold) {
         if (WJR_LIKELY(--n)) {
-    #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
+    #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM) && defined(__BMI2__)
             unsigned int tcl = 64 - cl;
             uint64_t __cl = cl;
             uint64_t __tcl = tcl;
@@ -106,23 +106,23 @@ WJR_ALL_NONNULL WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T 
                                                                 unsigned int cl) noexcept {
     if (n <= shift_detail::small_shift_n_threshold) {
         if (WJR_LIKELY(--n)) {
-    #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
+    #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM) && defined(__BMI2__)
             unsigned int tcl = 64 - cl;
             uint64_t __cl = cl;
             uint64_t __tcl = tcl;
             uint64_t t0, t1;
+            size_t i = 0;
             asm volatile(
                 ".Lloop%=:\n\t"
-                "shrx{q %[cl], (%[src]), %[t0]| %[t0], [%[src]], %[cl]}\n\t"
-                "shlx{q %[tcl], 8(%[src]), %[t1]| %[t1], [%[src] + 8], %[tcl]}\n\t"
+                "shrx{q %[cl], (%[src], %[i], 8), %[t0]| %[t0], [%[src] + %[i] * 8], %[cl]}\n\t"
+                "shlx{q %[tcl], 8(%[src], %[i], 8), %[t1]| %[t1], [%[src] + %[i] * 8 + 8], %[tcl]}\n\t"
                 "or{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
-                "mov{q %[t0], (%[dst])| [%[dst]], %[t0]}\n\t"
-                "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
-                "lea{q 8(%[src]), %[src]| %[src], [%[src] + 8]}\n\t"
-                "dec %[n]\n\t"
+                "mov{q %[t0], (%[dst], %[i], 8)| [%[dst] + %[i] * 8], %[t0]}\n\t"
+                "add{q $1, %[i]| %[i], 1}\n\t"
+                "cmp{q %[i], %[n]| %[n], %[i]}\n\t"
                 "jne .Lloop%=\n\t"
-                : [dst] "+r"(dst), [src] "+r"(src), [n] "+&r"(n), [t0] "=&r"(t0), [t1] "=&r"(t1)
-                : [cl] "r"(__cl), [tcl] "r"(__tcl)
+                : [dst] "+r"(dst), [src] "+r"(src), [i] "+&r"(i), [t0] "=&r"(t0), [t1] "=&r"(t1)
+                : [cl] "r"(__cl), [tcl] "r"(__tcl), [n] "r"(n)
                 : "cc", "memory");
     #else
             WJR_UNROLL(1)
