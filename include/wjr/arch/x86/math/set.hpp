@@ -40,19 +40,44 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
     constexpr auto sse_width = sse::width();
     constexpr auto sse_loop = sse_width / nd;
 
-    if (WJR_BUILTIN_CONSTANT_P_TRUE(n <= 4)) {
-        for (size_t i = 0; i < n; ++i) {
-            dst[i] = val;
-        }
-
-        return;
-    }
-
     if (WJR_UNLIKELY(n == 0)) {
         return;
     }
 
     if (WJR_LIKELY(n >= type_width)) {
+        if (WJR_BUILTIN_CONSTANT_P(n) && n <= type_width * 8) {
+    #if defined(WJR_COMPILER_CLANG)
+            for (size_t i = 0; i < n; ++i) {
+                dst[i] = val;
+            }
+    #else
+            const auto y = sse::set1(val, T());
+            if (n > type_width * 4) {
+                simd::storeu(dst, y);
+                simd::storeu(dst + type_width, y);
+                simd::storeu(dst + type_width * 2, y);
+                simd::storeu(dst + type_width * 3, y);
+                simd::storeu(dst + n - type_width * 4, y);
+                simd::storeu(dst + n - type_width * 3, y);
+                simd::storeu(dst + n - type_width * 2, y);
+                simd::storeu(dst + n - type_width, y);
+                return;
+            }
+
+            if (n > type_width * 2) {
+                simd::storeu(dst, y);
+                simd::storeu(dst + type_width, y);
+                simd::storeu(dst + n - type_width * 2, y);
+                simd::storeu(dst + n - type_width, y);
+                return;
+            }
+
+            simd::storeu(dst, y);
+            simd::storeu(dst + n - type_width, y);
+    #endif
+            return;
+        }
+
         // todo : Use memset or this function.
         return large_builtin_set_n<simd>(dst, val, n);
     }
