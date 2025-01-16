@@ -75,8 +75,7 @@ WJR_NORETURN inline void __assert_failed_handler(const char *expr, const char *f
 
 /// @private
 template <typename... Args>
-WJR_NORETURN void __assert_light_failed_handler(const char *expr, const char *, const char *, int,
-                                                Args &&...args) noexcept {
+WJR_NORETURN void __assert_light_failed_handler(const char *expr, Args &&...args) noexcept {
     std::cerr << "Assert message:";
     (void)(std::cerr << ... << std::forward<Args>(args));
     std::cerr << '\n';
@@ -84,15 +83,16 @@ WJR_NORETURN void __assert_light_failed_handler(const char *expr, const char *, 
 }
 
 /// @private
-WJR_NORETURN inline void __assert_light_failed_handler(const char *expr, const char *, const char *,
-                                                       int) noexcept {
+WJR_NORETURN inline void __assert_light_failed_handler(const char *expr) noexcept {
     __assert_light_failed(expr);
 }
 
 #if defined(WJR_LIGHT_ASSERT)
-    #define WJR_ASSERT_FAILED_HANDLER ::wjr::__assert_light_failed_handler
+    #define WJR_ASSERT_FAILED_HANDLER(expr, _file, _function, _line, ...)                          \
+        ::wjr::__assert_light_failed_handler(expr, ##__VA_ARGS__)
 #else
-    #define WJR_ASSERT_FAILED_HANDLER ::wjr::__assert_failed_handler
+    #define WJR_ASSERT_FAILED_HANDLER(expr, file, function, line, ...)                             \
+        ::wjr::__assert_failed_handler(expr, file, function, line, ##__VA_ARGS__)
 #endif
 
 // LCOV_EXCL_STOP

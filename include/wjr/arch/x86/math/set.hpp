@@ -51,7 +51,7 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
                 dst[i] = val;
             }
     #else
-            const auto y = sse::set1(val, T());
+            const auto y = simd::set1(val, T());
             if (n > type_width * 4) {
                 simd::storeu(dst, y);
                 simd::storeu(dst + type_width, y);

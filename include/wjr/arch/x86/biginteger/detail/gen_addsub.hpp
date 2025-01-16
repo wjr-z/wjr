@@ -130,7 +130,7 @@ WJR_ALL_NONNULL inline uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addc
         "lea{q 16(%[src1]), %[src1]| %[src1], [%[src1] + 16]}\n\t"
         "lea{q 16(%[dst]), %[dst]| %[dst], [%[dst] + 16]}\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".Lloop%=:\n\t"
 
         ".Lb2%=:\n\t"

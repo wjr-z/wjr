@@ -27,8 +27,8 @@
 #define WJR_ATTRIBUTES(...) WJR_PP_TRANSFORM_PUT((__VA_ARGS__), WJR_ATTRIBUTES_CALLER)
 #define WJR_ATTRIBUTES_CALLER(x) WJR_ATTRIBUTE(x)
 
-#define WJR_PRAGMA_I(expr) _Pragma(#expr)
 #if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_MSVC)
+    #define WJR_PRAGMA_I(expr) _Pragma(#expr)
     #define WJR_PRAGMA(expr) WJR_PRAGMA_I(expr)
 #else
     #define WJR_PRAGMA(expr)
@@ -42,6 +42,22 @@
     #endif
 #else
     #define WJR_UNROLL(loop)
+#endif
+
+#define WJR_HAS_FEATURE_FORCE_NOVECTOR WJR_HAS_DEF
+
+#if defined(WJR_COMPILER_CLANG)
+    #define WJR_NOVECTOR _Pragma("clang loop unroll(disable) vectorize(disable)")
+#elif defined(WJR_COMPILER_GCC)
+    #if WJR_HAS_GCC(14, 1, 0)
+        #define WJR_NOVECTOR _Pragma("GCC novector")
+    #else
+        #define WJR_NOVECTOR _Pragma("GCC unroll(0)")
+        #undef WJR_HAS_FEATURE_FORCE_NOVECTOR
+    #endif
+#else
+    #define WJR_NOVECTOR WJR_UNROLL(1)
+    #undef WJR_HAS_FEATURE_FORCE_NOVECTOR
 #endif
 
 #define WJR_IS_OVERLAP_P(p, pn, q, qn) ((p) + (pn) > (q) && (q) + (qn) > (p))
