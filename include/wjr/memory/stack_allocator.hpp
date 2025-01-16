@@ -304,13 +304,13 @@ private:
     UniqueStackAllocator *m_alloc = nullptr;
 };
 
-namespace string_details {
+namespace string_detail {
 using weak_stack_allocator_string =
     std::basic_string<char, std::char_traits<char>, weak_stack_allocator<char>>;
 }
 
 WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(weak_stack_allocator_string,
-                                         string_details::weak_stack_allocator_string);
+                                         string_detail::weak_stack_allocator_string);
 
 } // namespace wjr
 

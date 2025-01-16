@@ -24,6 +24,7 @@
 #include <wjr/assert.hpp>
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/container_fn.hpp>
+#include <wjr/container/forward_list.hpp>
 #include <wjr/container/list.hpp>
 #include <wjr/memory/memory_pool.hpp>
 #include <wjr/memory/uninitialized.hpp>
@@ -49,11 +50,6 @@ namespace btree_detail {
  *
  */
 inline constexpr size_t node_size = 8;
-
-template <typename T>
-WJR_INTRINSIC_INLINE void btree_assign(T &dst, const T &from) {
-    dst = from;
-}
 
 template <size_t Min, size_t Max, typename Ptr, WJR_REQUIRES(std::is_pointer_v<Ptr>)>
 WJR_INTRINSIC_INLINE void builtin_btree_copy(const Ptr *first, const Ptr *last, Ptr *dst) noexcept {
@@ -261,7 +257,7 @@ struct btree_leaf_node : btree_list_base<Traits> {
     }
 
     WJR_INTRINSIC_INLINE void __assign(unsigned int idx, value_type *value) noexcept {
-        btree_detail::btree_assign(m_values[idx], value);
+        m_values[idx] = value;
     }
 
     alignas(16) value_type *m_values[btree_detail::node_size];
@@ -644,7 +640,7 @@ public:
     }
 
 protected:
-    WJR_INTRINSIC_INLINE inner_node_type *__create_inner_node() noexcept {
+    inner_node_type *__create_inner_node() noexcept {
         auto &al = __get_allocator();
         auto *const node = reinterpret_cast<inner_node_type *>(
             _Alty_traits::allocate(al, sizeof(inner_node_type)));
@@ -652,7 +648,7 @@ protected:
         return node;
     }
 
-    WJR_INTRINSIC_INLINE leaf_node_type *__create_leaf_node() noexcept {
+    leaf_node_type *__create_leaf_node() noexcept {
         auto &al = __get_allocator();
         auto *const node =
             reinterpret_cast<leaf_node_type *>(_Alty_traits::allocate(al, sizeof(leaf_node_type)));
@@ -661,7 +657,7 @@ protected:
     }
 
     template <typename... Args>
-    WJR_INTRINSIC_INLINE value_type *__create_node(Args &&...args) noexcept {
+    value_type *__create_node(Args &&...args) noexcept {
         auto &al = __get_allocator();
         auto *const node =
             reinterpret_cast<value_type *>(_Alty_traits::allocate(al, sizeof(value_type)));
@@ -669,19 +665,19 @@ protected:
         return node;
     }
 
-    WJR_INTRINSIC_INLINE void __drop_inner_node(inner_node_type *node) noexcept {
+    void __drop_inner_node(inner_node_type *node) noexcept {
         auto &al = __get_allocator();
         destroy_at_using_allocator(node, al);
         _Alty_traits::deallocate(al, reinterpret_cast<char *>(node), sizeof(inner_node_type));
     }
 
-    WJR_INTRINSIC_INLINE void __drop_leaf_node(leaf_node_type *node) noexcept {
+    void __drop_leaf_node(leaf_node_type *node) noexcept {
         auto &al = __get_allocator();
         destroy_at_using_allocator(node, al);
         _Alty_traits::deallocate(al, reinterpret_cast<char *>(node), sizeof(leaf_node_type));
     }
 
-    WJR_INTRINSIC_INLINE void __drop_node(value_type *node) noexcept {
+    void __drop_node(value_type *node) noexcept {
         auto &al = __get_allocator();
         destroy_at_using_allocator(std::addressof(node), al);
         _Alty_traits::deallocate(al, reinterpret_cast<char *>(node), sizeof(value_type));

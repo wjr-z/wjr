@@ -53,6 +53,7 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
     }
 
     if (WJR_LIKELY(n >= type_width)) {
+        // todo : Use memset or this function.
         return large_builtin_set_n<simd>(dst, val, n);
     }
 

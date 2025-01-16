@@ -5,7 +5,7 @@
  * @version 0.1
  * @date 2025-01-13
  *
- * @todo More optimization for some arch.
+ * @todo More optimization for some arch. Maybe only use SSE on AMD.
  *
  * @copyright Copyright (c) 2025
  *
@@ -119,8 +119,7 @@ void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int cl
             LAST = simd_shift<simd>::mergel(NOW, LAST);                                            \
             auto r0 = simd_shift<simd>::sll(LAST, y);                                              \
             auto r1 = simd_shift<simd>::srl(NOW, z);                                               \
-            auto r = simd::Or(r0, r1);                                                             \
-            simd::storeu(dst - type_width - (index), r);                                           \
+            LAST = simd::Or(r0, r1);                                                               \
         } while (false)
 
     using simd = std::conditional_t<WJR_HAS_SIMD(AVX2), avx, sse>;
@@ -157,6 +156,7 @@ void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int cl
     if (n & type_width) {
         const auto x1 = simd::loadu(src - (type_width + 1));
         WJR_REGISTER_LSHIFT_N_IMPL(0, x0, x1);
+        simd::storeu(dst - type_width, x0);
         x0 = x1;
 
         dst -= type_width;
@@ -168,6 +168,8 @@ void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int cl
         const auto x2 = simd::loadu(src - (type_width + 1) - (type_width));
         WJR_REGISTER_LSHIFT_N_IMPL(0, x0, x1);
         WJR_REGISTER_LSHIFT_N_IMPL(type_width, x1, x2);
+        simd::storeu(dst - type_width, x0);
+        simd::storeu(dst - type_width * 2, x1);
         x0 = x2;
 
         dst -= type_width * 2;
@@ -188,6 +190,10 @@ void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int cl
         WJR_REGISTER_LSHIFT_N_IMPL(type_width, x1, x2);
         WJR_REGISTER_LSHIFT_N_IMPL(type_width * 2, x2, x3);
         WJR_REGISTER_LSHIFT_N_IMPL(type_width * 3, x3, x4);
+        simd::storeu(dst - type_width, x0);
+        simd::storeu(dst - type_width * 2, x1);
+        simd::storeu(dst - type_width * 3, x2);
+        simd::storeu(dst - type_width * 4, x3);
         x0 = x4;
 
         dst -= type_width * 4;
@@ -215,8 +221,7 @@ WJR_ALL_NONNULL void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n,
             LAST = simd_shift<simd>::merger(LAST, NOW);                                            \
             auto r0 = simd_shift<simd>::srl(LAST, y);                                              \
             auto r1 = simd_shift<simd>::sll(NOW, z);                                               \
-            auto r = simd::Or(r0, r1);                                                             \
-            simd::storeu(dst + (index), r);                                                        \
+            LAST = simd::Or(r0, r1);                                                               \
         } while (false)
 
     using simd = std::conditional_t<WJR_HAS_SIMD(AVX2), avx, sse>;
@@ -253,6 +258,7 @@ WJR_ALL_NONNULL void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n,
     if (n & type_width) {
         const auto x1 = simd::loadu(src + 1);
         WJR_REGISTER_RSHIFT_N_IMPL(0, x0, x1);
+        simd::storeu(dst, x0);
         x0 = x1;
 
         dst += type_width;
@@ -264,6 +270,8 @@ WJR_ALL_NONNULL void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n,
         const auto x2 = simd::loadu(src + 1 + type_width);
         WJR_REGISTER_RSHIFT_N_IMPL(0, x0, x1);
         WJR_REGISTER_RSHIFT_N_IMPL(type_width, x1, x2);
+        simd::storeu(dst, x0);
+        simd::storeu(dst + type_width, x1);
         x0 = x2;
 
         dst += type_width * 2;
@@ -284,6 +292,10 @@ WJR_ALL_NONNULL void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n,
         WJR_REGISTER_RSHIFT_N_IMPL(type_width, x1, x2);
         WJR_REGISTER_RSHIFT_N_IMPL(type_width * 2, x2, x3);
         WJR_REGISTER_RSHIFT_N_IMPL(type_width * 3, x3, x4);
+        simd::storeu(dst, x0);
+        simd::storeu(dst + type_width, x1);
+        simd::storeu(dst + type_width * 2, x2);
+        simd::storeu(dst + type_width * 3, x3);
         x0 = x4;
 
         dst += type_width * 4;
