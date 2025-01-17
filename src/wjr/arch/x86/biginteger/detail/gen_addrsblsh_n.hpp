@@ -163,7 +163,7 @@ uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(uint64_t *d
         "lea{q 16(%[src1]), %[src1]| %[src1], [%[src1] + 16]}\n\t"
         "lea{q 16(%[dst]), %[dst]| %[dst], [%[dst] + 16]}\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".Lloop%=:\n\t"
 
         ".Lb2%=:\n\t"

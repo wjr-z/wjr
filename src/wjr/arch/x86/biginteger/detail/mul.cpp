@@ -83,7 +83,7 @@ uint64_t __wjr_asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t 
         "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
         "jrcxz .Ld1%=\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".Lloop%=:\n\t"
 
         ".Lb1%=:\n\t"
@@ -224,7 +224,7 @@ uint64_t __wjr_asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64
         "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
         "jrcxz .Ld1%=\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".Lloop%=:\n\t"
 
         ".Lb1%=:\n\t"
@@ -382,7 +382,7 @@ uint64_t __wjr_asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64
         "lea{q 8(%[src]), %[src]| %[src], [%[src] + 8]}\n\t"
         "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".Lloop%=:\n\t"
 
         ".Lb1%=:\n\t"
@@ -624,7 +624,7 @@ void __wjr_asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t r
         "lea{q 8(%[src0]), %[src0]| %[src0], [%[src0] + 8]}\n\t"
         "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".Lloop%=:\n\t"
 
         ".Lb1%=:\n\t"
@@ -741,7 +741,7 @@ void __wjr_asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t r
         "mulx{q -8(%[src0]), %[r8], %[r9]| %[r9], %[r8], [%[src0] - 8]}\n\t"
         "lea{q 8(%[dst], %[adj], 8), %[dst]| %[dst], [%[dst] + %[adj] * 8 + 8]}\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".LLoop%=:\n\t"
 
         ".LB1%=:\n\t"
@@ -953,7 +953,7 @@ void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx)
         "lea{q 16(%[src]), %[src]| %[src], [%[src] + 16]}\n\t"
         "lea{q 16(%[dst]), %[dst]| %[dst], [%[dst] + 16]}\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".Lloop%=:\n\t"
 
         ".Lb1%=:\n\t"
@@ -1079,7 +1079,7 @@ void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx)
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
         "jmp .Ls0b0%=\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".Ls0loop%=:\n\t"
 
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
@@ -1148,7 +1148,7 @@ void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx)
         "mulx{q 8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 8]}\n\t"
         "jmp .Ls7b7%=\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".Ls7loop%=:\n\t"
 
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
@@ -1216,7 +1216,7 @@ void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx)
         "mulx{q 16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] + 16]}\n\t"
         "jmp .Ls6b6%=\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".Ls6loop%=:\n\t"
 
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
@@ -1284,7 +1284,7 @@ void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx)
         "mulx{q -40(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 40]}\n\t"
         "jmp .Ls5b5%=\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".Ls5loop%=:\n\t"
 
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
@@ -1352,7 +1352,7 @@ void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx)
         "mulx{q -32(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 32]}\n\t"
         "jmp .Ls4b4%=\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".Ls4loop%=:\n\t"
 
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
@@ -1420,7 +1420,7 @@ void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx)
         "mulx{q -24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 24]}\n\t"
         "jmp .Ls3b3%=\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".Ls3loop%=:\n\t"
 
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
@@ -1488,7 +1488,7 @@ void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx)
         "mulx{q -16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 16]}\n\t"
         "jmp .Ls2b2%=\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".Ls2loop%=:\n\t"
 
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
@@ -1566,7 +1566,7 @@ void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx)
         "mulx{q -8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 8]}\n\t"
         "jrcxz .Ls1d1%=\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".Ls1loop%=:\n\t"
 
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
@@ -1729,7 +1729,7 @@ void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx)
         "lea{q 8(%[src]), %[src]| %[src], [%[src] + 8]}\n\t"
         "lea{q 16(%[dst]), %[dst]| %[dst], [%[dst] + 16]}\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".Llsloop%=:\n\t"
 
         ".Llsb1%=:\n\t"
