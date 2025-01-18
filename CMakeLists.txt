@@ -60,7 +60,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
       list(APPEND WJR_CXX_FLAGS /DWJR_LIGHT_ASSERT)
    endif()
 else()
-   list(APPEND WJR_CXX_FLAGS -march=native -Wall -Wextra -Wshadow -Wformat=2 -Wunused -Waddress-of-packed-member -ftime-trace)
+   list(APPEND WJR_CXX_FLAGS -march=native -Wall -Wextra -Wshadow -Wformat=2 -Wunused -Waddress-of-packed-member)
    list(APPEND WJR_CXX_FLAGS_DEBUG -DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_DEBUG})
    list(APPEND WJR_CXX_FLAGS_RELEASE -DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_RELEASE})
 
