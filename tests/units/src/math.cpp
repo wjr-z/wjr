@@ -926,10 +926,10 @@ TEST(math, set_n) {
             type b = mt_rand();
 
             std::fill(a.begin(), a.end(), 0);
-            set_n(a.data(), x, n);
+            set_n(a.data(), b, n);
 
             for (auto &i : a) {
-                WJR_ASSERT_L0(i == x);
+                WJR_ASSERT_L0(i == b);
             }
         }
 
@@ -938,10 +938,10 @@ TEST(math, set_n) {
             type b = mt_rand();
 
             std::fill(a.begin(), a.end(), 0);
-            set_n(a.data(), x, n);
+            set_n(a.data(), b, n);
 
             for (auto &i : a) {
-                WJR_ASSERT_L0(i == x);
+                WJR_ASSERT_L0(i == b);
             }
         }
     };

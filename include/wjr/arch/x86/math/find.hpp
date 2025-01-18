@@ -768,8 +768,7 @@ WJR_PURE WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src, T 
     }
 
     const size_t ret = large_builtin_reverse_find_not_n(src, val, n);
-    WJR_ASSUME(n > 4);
-    WJR_ASSUME(ret <= n - 4);
+    WJR_ASSUME(ret >= 0 && ret <= n - 2);
     return ret;
 }
 
