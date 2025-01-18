@@ -1,3 +1,14 @@
+/**
+ * @file container_fn.hpp
+ * @author wjr
+ * @brief 
+ * @version 0.1
+ * @date 2025-01-18
+ * 
+ * @copyright Copyright (c) 2025
+ * 
+ */
+
 #ifndef WJR_CONTAINER_CONTAINER_TRAITS_HPP__
 #define WJR_CONTAINER_CONTAINER_TRAITS_HPP__
 
@@ -48,7 +59,7 @@ public:
                    : noexcept(lhs.__destroy_and_deallocate()))) {
         if constexpr (propagate_on_container_copy_assignment::value) {
             auto &lhs_allocator = lhs.__get_allocator();
-            auto &rhs_allocator = rhs.__get_allocator();
+            const auto &rhs_allocator = rhs.__get_allocator();
             if constexpr (!is_always_equal::value) {
                 if (lhs_allocator != rhs_allocator) {
                     lhs.__destroy_and_deallocate();

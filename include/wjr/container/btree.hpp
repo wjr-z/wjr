@@ -15,6 +15,7 @@
  * 2. Construct with a range with optimization.
  * 3. Merge with optimization.
  * 4. Code size optimization.
+ * 5. GCC optimization on unpacked struct failed?
  *
  * @version 0.2
  * @date 2024-12-15

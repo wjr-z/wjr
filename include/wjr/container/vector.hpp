@@ -143,7 +143,6 @@ protected:
         pointer m_buffer = nullptr;
     };
 
-    using data_type = Data;
     using size_ref = default_vector_size_reference<pointer, size_type>;
 
 public:
@@ -212,7 +211,7 @@ public:
     WJR_PURE WJR_CONSTEXPR20 const_pointer data() const noexcept { return m_storage.m_data; }
 
 protected:
-    data_type m_storage;
+    Data m_storage;
 };
 
 /**
@@ -266,8 +265,6 @@ private:
         size_type m_size = 0;
         alignas(max_alignment) char m_data[Capacity * sizeof(T)];
     };
-
-    using data_type = Data;
 
 public:
     static constexpr bool is_trivially_relocate_v = __use_memcpy;
@@ -379,7 +376,7 @@ private:
         std::memcpy(dst, src, count * sizeof(T));
     }
 
-    data_type m_storage;
+    Data m_storage;
 };
 
 template <typename T, size_t Capacity>
