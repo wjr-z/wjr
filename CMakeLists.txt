@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.21)
 project(wjr VERSION 0.1.1 LANGUAGES CXX)
 
 if(NOT(CMAKE_SIZEOF_VOID_P EQUAL 8))
@@ -26,6 +26,7 @@ add_subdirectory(third-party/cpu_features)
 
 #
 # initialize flags
+# todo : More SIMD flags for MSVC.
 #
 set(WJR_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 set(WJR_LIB_DIR ${PROJECT_SOURCE_DIR}/src)
@@ -120,6 +121,11 @@ macro(wjr_add_cpp_source TARGET PATH)
 endmacro()
 
 #
+# precompile headers
+#
+set(WJR_PCH_COMMON PUBLIC ${WJR_INCLUDE_DIR}/wjr/type_traits.hpp ${WJR_INCLUDE_DIR}/wjr/assert.hpp)
+
+#
 # library : preprocessor
 #
 
@@ -148,11 +154,8 @@ if(WJR_ENABLE_ARCH_ASSEMBLY)
       ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/submul_1.asm
    )
 
-   add_library(wjr_assembly OBJECT
-      ${WJR_ASSEMBLY_SRCS}
-      $<TARGET_OBJECTS:wjr_add_n>
-      $<TARGET_OBJECTS:wjr_sub_n>
-   )
+   add_library(wjr_assembly OBJECT ${WJR_ASSEMBLY_SRCS})
+   target_link_libraries(wjr_assembly INTERFACE $<TARGET_OBJECTS:wjr_add_n> $<TARGET_OBJECTS:wjr_sub_n>)
 endif()
 
 #
@@ -162,15 +165,17 @@ if(WJR_ARCH)
    set(WJR_ARCH_SRCS)
    wjr_add_cpp_source(WJR_ARCH_SRCS arch/${WJR_ARCH})
 
-   set(WJR_ARCH_LIBS ${WJR_ARCH_SRCS})
+   add_library(wjr_arch OBJECT ${WJR_ARCH_SRCS})
+   setup_cpp_include_and_definitions(wjr_arch)
+
+   set(WJR_ARCH_LIBS)
 
    if(WJR_ENABLE_ARCH_ASSEMBLY)
       list(APPEND WJR_ARCH_LIBS $<TARGET_OBJECTS:wjr_assembly>)
    endif()
 
-   add_library(wjr_arch OBJECT ${WJR_ARCH_LIBS})
-   setup_cpp_include_and_definitions(wjr_arch)
-   target_link_libraries(wjr_arch PRIVATE CpuFeatures::cpu_features)
+   target_link_libraries(wjr_arch PRIVATE CpuFeatures::cpu_features INTERFACE ${WJR_ARCH_LIBS})
+   target_precompile_headers(wjr_arch INTERFACE ${WJR_PCH_COMMON})
 endif()
 
 #
@@ -192,3 +197,4 @@ add_library(wjr STATIC ${WJR_LIBS})
 setup_cpp_include_and_definitions(wjr)
 target_link_libraries(wjr PRIVATE CpuFeatures::cpu_features)
 add_library(wjr::wjr ALIAS wjr)
+target_precompile_headers(wjr PRIVATE ${WJR_PCH_COMMON})
