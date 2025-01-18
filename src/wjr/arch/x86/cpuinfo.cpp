@@ -1,3 +1,6 @@
+#include <limits>
+#include <cstdint>
+
 #include <wjr/arch/x86/cpuinfo.hpp>
 
 namespace wjr {

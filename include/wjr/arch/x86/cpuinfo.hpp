@@ -1,7 +1,7 @@
 #ifndef WJR_ARCH_X86_CPUINFO_HPP__
 #define WJR_ARCH_X86_CPUINFO_HPP__
 
-#include <cstdint>
+#include <cstddef>
 
 #include <cpuinfo_x86.h>
 
