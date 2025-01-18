@@ -264,13 +264,13 @@ public:
 
     constexpr reference front() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_L0(size() > 0, "basic_vector::front: empty");
+        WJR_ASSERT_L0(size() > 0, "span::front: empty");
 #endif
         return *data();
     }
     constexpr reference back() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_L0(size() > 0, "basic_vector::front: empty");
+        WJR_ASSERT_L0(size() > 0, "span::front: empty");
 #endif
         return *(end_unsafe() - 1);
     }
@@ -285,7 +285,7 @@ public:
 
     constexpr reference operator[](size_type pos) const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_L0(pos < size(), "basic_vector::operator[]: out of range");
+        WJR_ASSERT_L0(pos < size(), "span::operator[]: out of range");
 #endif
         return data()[pos];
     }
