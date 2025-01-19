@@ -6,9 +6,9 @@
 namespace wjr {
 
 template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T shld(T hi, T lo, unsigned int cl) noexcept;
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T shld(T hi, T lo, unsigned int cl) noexcept;
 template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T shrd(T lo, T hi, unsigned int cl) noexcept;
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T shrd(T lo, T hi, unsigned int cl) noexcept;
 
 #if WJR_HAS_SIMD(SSE2)
     #define WJR_HAS_BUILTIN_LSHIFT_N WJR_HAS_DEF

@@ -424,6 +424,17 @@ extern WJR_ALL_NONNULL void toom33_mul_s(uint64_t *WJR_RESTRICT dst, const uint6
 extern WJR_ALL_NONNULL void toom3_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
                                       uint64_t *stk) noexcept;
 
+extern void nussbaumer_mul(uint64_t *pp, const uint64_t *ap, size_t an, const uint64_t *bp,
+                           size_t bn) noexcept;
+
+extern uint64_t mul_fft(uint64_t *op, size_t pl, const uint64_t *n, size_t nl, const uint64_t *m,
+                        size_t ml, int k) noexcept;
+
+inline void fft_mul(uint64_t *pp, const uint64_t *ap, size_t an, const uint64_t *bp,
+                    size_t bn) noexcept {
+    nussbaumer_mul(pp, ap, an, bp, bn);
+}
+
 WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom22_s_itch(size_t m) noexcept {
     return m * 4 + (m / 2) + 64;
 }
@@ -440,6 +451,23 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom44_n_itch(size_t m) noexcept { retu
 
 WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom55_n_itch(size_t m) noexcept {
     return m * 3 + (m / 2) + 32;
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t mulmod_bknp1_itch(size_t rn) noexcept { return rn << 2; }
+WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t sqrmod_bknp1_itch(size_t rn) noexcept { return rn * 3; }
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 size_t mulmod_bnm1_itch(size_t rn, size_t an, size_t bn) {
+    size_t n, itch;
+    n = rn >> 1;
+    itch = rn + 4 + (an > n ? (bn > n ? rn : n) : 0);
+    return itch;
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 size_t sqrmod_bnm1_itch(size_t rn, size_t an) {
+    size_t n, itch;
+    n = rn >> 1;
+    itch = rn + 3 + (an > n ? an : 0);
+    return itch;
 }
 
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool toom44_ok(size_t n, size_t m) noexcept {
@@ -637,6 +665,89 @@ WJR_INTRINSIC_INLINE void basecase_sqr(uint64_t *WJR_RESTRICT dst, const uint64_
     return basecase_mul_s(dst, src, n, src, n);
 #endif
 }
+
+extern WJR_CONST int fft_best_k(size_t n, int sqr) noexcept;
+extern WJR_PURE uint64_t mod_34lsub1(const uint64_t *p, size_t n) noexcept;
+
+/* Returns smallest possible number of limbs >= pl for a fft of size 2^k,
+   i.e. smallest multiple of 2^k >= pl.
+
+   Don't declare static: needed by tuneup.
+*/
+WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t fft_next_size(size_t pl, int k) noexcept {
+    pl = 1 + ((pl - 1) >> k); /* ceil (pl/2^k) */
+    return pl << k;
+}
+
+WJR_CONST WJR_INLINE_CONSTEXPR20 size_t mulmod_bnm1_next_size(size_t n) noexcept {
+    size_t nh;
+
+    if (n < WJR_MULMOD_BNM1_THRESHOLD)
+        return n;
+    if (n < 4 * (WJR_MULMOD_BNM1_THRESHOLD - 1) + 1)
+        return (n + (2 - 1)) & (-2);
+    if (n < 8 * (WJR_MULMOD_BNM1_THRESHOLD - 1) + 1)
+        return (n + (4 - 1)) & (-4);
+
+    nh = (n + 1) >> 1;
+
+    if (nh < WJR_MUL_FFT_MODF_THRESHOLD)
+        return (n + (8 - 1)) & (-8);
+
+    return 2 * fft_next_size(nh, fft_best_k(nh, 0));
+}
+
+WJR_CONST WJR_INLINE_CONSTEXPR20 size_t sqrmod_bnm1_next_size(size_t n) noexcept {
+    size_t nh;
+
+    if (n < WJR_SQRMOD_BNM1_THRESHOLD)
+        return n;
+    if (n < 4 * (WJR_SQRMOD_BNM1_THRESHOLD - 1) + 1)
+        return (n + (2 - 1)) & (-2);
+    if (n < 8 * (WJR_SQRMOD_BNM1_THRESHOLD - 1) + 1)
+        return (n + (4 - 1)) & (-4);
+
+    nh = (n + 1) >> 1;
+
+    if (nh < WJR_SQR_FFT_MODF_THRESHOLD)
+        return (n + (8 - 1)) & (-8);
+
+    return 2 * fft_next_size(nh, fft_best_k(nh, 1));
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR bool mulmod_bknp1_usable(size_t rn, unsigned &k,
+                                                           size_t mn) noexcept {
+    return ((mn) >= 18) && ((rn) > 16) &&
+           (((rn) % ((k) = 3) == 0) ||
+            (((((mn) >= 35) && ((rn) >= 32))) &&
+             ((((rn) % ((k) = 5) == 0)) ||
+              (((mn) >= 49) && (((rn) % ((k) = 7) == 0) ||
+                                (((mn) >= 104) && ((rn) >= 64) &&
+                                 (((rn) % ((k) = 13) == 0) || (((mn) >= 136) && ((rn) >= 128) &&
+                                                               ((rn) % ((k) = 17) == 0)))))))));
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR bool sqrmod_bknp1_usable(size_t rn, unsigned &k,
+                                                           size_t mn) noexcept {
+    return (mn >= 27) && (rn > 24) &&
+           ((rn % (k = 3) == 0) ||
+            ((((mn >= 55) && (rn > 50))) &&
+             (((rn % (k = 5) == 0)) ||
+              ((mn >= 56) && ((rn % (k = 7) == 0) ||
+                              ((mn >= 143) && (rn >= 128) &&
+                               ((rn % (k = 13) == 0) ||
+                                ((mn >= 272) && (rn >= 256) && (rn % (k = 17) == 0)))))))));
+}
+
+extern void mulmod_bknp1(uint64_t *rp, const uint64_t *ap, const uint64_t *bp, size_t n, unsigned k,
+                         uint64_t *tp) noexcept;
+extern void sqrmod_bknp1(uint64_t *rp, const uint64_t *ap, size_t n, unsigned k,
+                         uint64_t *tp) noexcept;
+
+extern void mulmod_bnm1(uint64_t *rp, size_t rn, const uint64_t *ap, size_t an, const uint64_t *bp,
+                        size_t bn, uint64_t *tp) noexcept;
+extern void sqrmod_bnm1(uint64_t *rp, size_t rn, const uint64_t *ap, size_t an,
+                        uint64_t *tp) noexcept;
 
 } // namespace wjr
 

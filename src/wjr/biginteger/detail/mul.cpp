@@ -204,23 +204,23 @@ void __noinline_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, siz
     }
 
     do {
-        if (m < toom44_mul_threshold) {
+        if (m < toom44_mul_threshold)
             break;
-        }
 
         if (m < toom55_mul_threshold) {
-            if (!toom44_ok(n, m)) {
+            if (!toom44_ok(n, m))
                 break;
-            }
 
             uint64_t *stk = __mul_s_allocate(stkal, toom44_n_itch(m));
             toom44_mul_s(dst, src0, n, src1, m, stk);
             return;
         }
 
-        if (!toom55_ok(n, m)) {
+        if (((n + m) >> 1) >= WJR_MUL_FFT_THRESHOLD && 3 * m >= WJR_MUL_FFT_THRESHOLD)
+            goto FFT_MUL;
+
+        if (!toom55_ok(n, m))
             break;
-        }
 
         uint64_t *stk = __mul_s_allocate(stkal, toom55_n_itch(m));
         toom55_mul_s(dst, src0, n, src1, m, stk);
@@ -303,6 +303,50 @@ void __noinline_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, siz
             }
         }
     }
+
+    return;
+
+FFT_MUL:
+
+    if (n >= 8 * m) {
+        uint64_t *tmp;
+
+        /* The maximum tmp usage is for the mpn_mul result.  */
+        tmp = stkal.template allocate<uint64_t>(9 * m >> 1);
+
+        fft_mul(dst, src0, 3 * m, src1, m);
+        n -= 3 * m;
+        src0 += 3 * m;
+        dst += 3 * m;
+
+        uint64_t cf = 0;
+
+        while (2 * n >= 7 * m) /* n >= 3.5vn  */
+        {
+            fft_mul(tmp, src0, 3 * m, src1, m);
+            n -= 3 * m;
+            src0 += 3 * m;
+
+            cf = addc_n(dst, dst, tmp, m, cf);
+            copy_restrict(tmp + m, tmp + 4 * m, dst + m);
+            cf = addc_1(dst + m, dst + m, 3 * m, 0, cf);
+
+            dst += 3 * m;
+        }
+
+        /* m / 2 <= n < 3.5vn */
+
+        if (n < m)
+            mul_s(tmp, src1, m, src0, n);
+        else
+            mul_s(tmp, src0, n, src1, m);
+
+        cf = addc_n(dst, dst, tmp, m, cf);
+        copy_restrict(tmp + m, tmp + m + n, dst + m);
+        cf = addc_1(dst + m, dst + m, n, 0, cf);
+        WJR_ASSERT(cf == 0);
+    } else
+        fft_mul(dst, src0, n, src1, m);
 }
 
 void __noinline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
@@ -332,8 +376,12 @@ void __noinline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, con
         return toom44_mul_s(dst, src0, n, src1, n, stk);
     }
 
-    uint64_t *stk = __mul_s_allocate(stkal, toom55_n_itch(n));
-    return toom55_mul_s(dst, src0, n, src1, n, stk);
+    if (n < WJR_MUL_FFT_THRESHOLD) {
+        uint64_t *stk = __mul_s_allocate(stkal, toom55_n_itch(n));
+        return toom55_mul_s(dst, src0, n, src1, n, stk);
+    }
+
+    return fft_mul(dst, src0, n, src1, n);
 }
 
 void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n) noexcept {
@@ -361,8 +409,12 @@ void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t
         return toom4_sqr(dst, src, n, stk);
     }
 
-    uint64_t *stk = __mul_s_allocate(stkal, toom55_n_itch(n));
-    return toom5_sqr(dst, src, n, stk);
+    if (n < WJR_SQR_FFT_THRESHOLD) {
+        uint64_t *stk = __mul_s_allocate(stkal, toom55_n_itch(n));
+        return toom5_sqr(dst, src, n, stk);
+    }
+
+    return fft_mul(dst, src, n, src, n);
 }
 
 #define WJR_SUBMUL_1_S(A, n, B, m, cfA, cfB, ml, ret)                                              \
