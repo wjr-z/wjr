@@ -380,7 +380,7 @@ uint8_t *basecase_to_chars(uint8_t *first, size_t len, uint64_t *up, size_t n, u
         first = std::fill_n(first, len - rlen, conv.template to<1>(0));
     }
 
-    return std::copy(start, end, first);
+    return copy_restrict(start, end, first);
 }
 
 template <typename Converter>

@@ -1,3 +1,19 @@
+/**
+ * @file set.hpp
+ * @author wjr
+ * @brief This is a small size optimized memset, but it also support uint16_t/uint32_t/uint64_t.
+ * @details Only uint16_t/uint32_t/uint64_t on x86-64 platform is fully optimized currently.
+ * @version 0.1
+ * @date 2025-01-19
+ *
+ * @todo 1. Using builtin_memset on small size, and then fallback to my own large_builtin_memset or
+ * std::memset.
+ * 2. Support stream load/store to optimize.
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
+
 #ifndef WJR_MATH_SET_HPP__
 #define WJR_MATH_SET_HPP__
 

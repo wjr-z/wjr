@@ -1915,10 +1915,10 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
             if (dp == rp) {
                 rp = lp;
             }
-            std::copy_n(dp, lusize, lp);
+            copy_n_restrict(dp, lusize, lp);
         } else if (dp == rp) {
             rp = static_cast<pointer>(stkal.allocate(rusize * sizeof(uint64_t)));
-            std::copy_n(dp, rusize, rp);
+            copy_n_restrict(dp, rusize, rp);
         }
     }
 
@@ -1982,7 +1982,7 @@ void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept {
     } else {
         if (dp == sp) {
             sp = static_cast<pointer>(stkal.allocate(susize * sizeof(uint64_t)));
-            std::copy_n(dp, susize, sp);
+            copy_n_restrict(dp, susize, sp);
         }
     }
 
@@ -2256,13 +2256,13 @@ void __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
 
     if (dp == rp || dp == qp) {
         auto *tp = (pointer)stkal.allocate(dusize * sizeof(uint64_t));
-        std::copy_n(dp, dusize, tp);
+        copy_n_restrict(dp, dusize, tp);
         dp = tp;
     }
 
     if (np == rp || np == qp) {
         auto *tp = (pointer)stkal.allocate(nusize * sizeof(uint64_t));
-        std::copy_n(np, nusize, tp);
+        copy_n_restrict(np, nusize, tp);
         np = tp;
     }
 
@@ -2304,13 +2304,13 @@ void __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
 
     if (dp == qp) {
         auto tp = (pointer)stkal.allocate(dusize * sizeof(uint64_t));
-        std::copy_n(dp, dusize, tp);
+        copy_n_restrict(dp, dusize, tp);
         dp = tp;
     }
 
     if (np == qp) {
         auto tp = (pointer)stkal.allocate(nusize * sizeof(uint64_t));
-        std::copy_n(np, nusize, tp);
+        copy_n_restrict(np, nusize, tp);
         np = tp;
     }
 
@@ -2357,13 +2357,13 @@ void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 
     if (dp == rp) {
         const auto tp = (pointer)stkal.allocate(dusize * sizeof(uint64_t));
-        std::copy_n(dp, dusize, tp);
+        copy_n_restrict(dp, dusize, tp);
         dp = tp;
     }
 
     if (np == rp) {
         const auto tp = (pointer)stkal.allocate(nusize * sizeof(uint64_t));
-        std::copy_n(np, nusize, tp);
+        copy_n_restrict(np, nusize, tp);
         np = tp;
     }
 
@@ -2533,10 +2533,9 @@ void __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
 
     if (__equal_pointer(div, quot) || __equal_pointer(div, rem)) {
         const auto dusize = __fast_abs(dssize);
-        const auto ptr = (uint64_t *)stkal.allocate(dusize * sizeof(uint64_t));
+        auto *const ptr = (uint64_t *)stkal.allocate(dusize * sizeof(uint64_t));
         tmp_div = {ptr, dssize, 0};
-        std::copy_n(div->data(), dusize, ptr);
-
+        copy_n_restrict(div->data(), dusize, ptr);
         div = &tmp_div;
     }
 
@@ -2575,10 +2574,9 @@ void __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 
     if (__equal_pointer(div, rem)) {
         const auto dusize = __fast_abs(dssize);
-        const auto ptr = (uint64_t *)stkal.allocate(dusize * sizeof(uint64_t));
+        auto *const ptr = (uint64_t *)stkal.allocate(dusize * sizeof(uint64_t));
         tmp_div = {ptr, dssize, 0};
-        std::copy_n(div->data(), dusize, ptr);
-
+        copy_n_restrict(div->data(), dusize, ptr);
         div = &tmp_div;
     }
 
@@ -2725,10 +2723,9 @@ void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
 
     if (__equal_pointer(div, quot) || __equal_pointer(div, rem)) {
         const auto dusize = __fast_abs(dssize);
-        const auto ptr = (uint64_t *)stkal.allocate(dusize * sizeof(uint64_t));
+        auto *const ptr = (uint64_t *)stkal.allocate(dusize * sizeof(uint64_t));
         tmp_div = {ptr, dssize, 0};
-        std::copy_n(div->data(), dusize, ptr);
-
+        copy_n_restrict(div->data(), dusize, ptr);
         div = &tmp_div;
     }
 
@@ -2767,9 +2764,9 @@ void __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 
     if (__equal_pointer(div, rem)) {
         const auto dusize = __fast_abs(dssize);
-        const auto ptr = (uint64_t *)stkal.allocate(dusize * sizeof(uint64_t));
+        auto *const ptr = (uint64_t *)stkal.allocate(dusize * sizeof(uint64_t));
         tmp_div = {ptr, dssize, 0};
-        std::copy_n(div->data(), dusize, ptr);
+        copy_n_restrict(div->data(), dusize, ptr);
 
         div = &tmp_div;
     }
@@ -3176,8 +3173,8 @@ void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
     unique_stack_allocator stkal;
 
     if (__equal_pointer(dst, limit)) {
-        const auto tp = static_cast<uint64_t *>(stkal.allocate(size * sizeof(uint64_t)));
-        std::copy_n(lp, size, tp);
+        auto *const tp = static_cast<uint64_t *>(stkal.allocate(size * sizeof(uint64_t)));
+        copy_n_restrict(lp, size, tp);
         lp = tp;
     }
 
@@ -3252,8 +3249,8 @@ void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit
     unique_stack_allocator stkal;
 
     if (__equal_pointer(dst, limit)) {
-        const auto tp = (uint64_t *)stkal.allocate(size * sizeof(uint64_t));
-        std::copy_n(lp, size, tp);
+        auto *const tp = (uint64_t *)stkal.allocate(size * sizeof(uint64_t));
+        copy_n_restrict(lp, size, tp);
         lp = tp;
     }
 
@@ -3353,7 +3350,7 @@ void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint32_t e
     } else {
         if (dp == np) {
             np = static_cast<pointer>(stkal.allocate(max_dusize * sizeof(uint64_t)));
-            std::copy_n(dp, nusize, np);
+            copy_n_restrict(dp, nusize, np);
         }
     }
 

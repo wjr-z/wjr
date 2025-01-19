@@ -1,3 +1,16 @@
+/**
+ * @file copy.hpp
+ * @author wjr
+ * @brief
+ * @version 0.1
+ * @date 2025-01-19
+ *
+ * @todo 1. More fast small copy.
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
+
 #ifndef WJR_MEMORY_COPY_HPP__
 #define WJR_MEMORY_COPY_HPP__
 
@@ -56,7 +69,7 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
 
 /// @private
 template <typename InputIt, typename OutputIt>
-constexpr OutputIt __copy_restrict_aux(add_restrict_t<InputIt> first, add_restrict_t<InputIt> last,
+constexpr OutputIt __copy_restrict_aux(add_restrict_t<InputIt> first, InputIt last,
                                        add_restrict_t<OutputIt> d_first) noexcept {
     return wjr::copy(first, last, d_first);
 }
