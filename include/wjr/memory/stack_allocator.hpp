@@ -18,7 +18,7 @@ class stack_allocator_object {
     friend class unique_stack_allocator;
 
     constexpr static size_t Cache = 32_KB;
-    constexpr static uint16_t bufsize = 4;
+    constexpr static uint_fast16_t bufsize = 4;
 
     struct alloc_node {
         char *ptr;
@@ -32,7 +32,7 @@ class stack_allocator_object {
 public:
     struct stack_top {
         char *ptr;
-        uint16_t idx;
+        uint_fast16_t idx;
         large_stack_top *large;
     };
 
@@ -47,10 +47,10 @@ private:
     WJR_NOINLINE void __small_reallocate(stack_top &top) noexcept;
 
     WJR_NOINLINE void __small_redeallocate() noexcept {
-        const uint16_t new_size = m_idx + bufsize - 1;
+        const uint_fast16_t new_size = m_idx + bufsize - 1;
         __default_alloc_template__ pool;
 
-        for (uint16_t i = new_size; i < m_size; ++i) {
+        for (uint_fast16_t i = new_size; i < m_size; ++i) {
             pool.chunk_deallocate(m_ptr[i].ptr, m_ptr[i].end - m_ptr[i].ptr);
         }
 
@@ -63,8 +63,8 @@ private:
         }
 
         m_cache.ptr = top.ptr;
-        if (top.idx != UINT16_MAX) {
-            const uint16_t idx = top.idx;
+        if (top.idx != UINT_FAST16_MAX) {
+            const uint_fast16_t idx = top.idx;
             m_cache.end = m_ptr[idx].end;
             m_idx = idx;
             if (WJR_UNLIKELY(m_size - idx >= bufsize)) {
@@ -101,7 +101,7 @@ public:
 
     WJR_NODISCARD WJR_MALLOC void *allocate(size_t n, stack_top &top) noexcept {
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
-            if (WJR_UNLIKELY(n >= stack_allocator_threshold)) {
+            if (n >= stack_allocator_threshold) {
                 return __large_allocate(n, top);
             }
 
@@ -129,15 +129,15 @@ public:
 
     void set(stack_top &top) const noexcept {
         top.ptr = m_cache.ptr;
-        top.idx = UINT16_MAX;
+        top.idx = UINT_FAST16_MAX;
         top.large = nullptr;
     }
 
 private:
     alloc_node m_cache = {nullptr, nullptr};
-    uint16_t m_idx = UINT16_MAX;
-    uint16_t m_size = 0;
-    uint16_t m_capacity = 0;
+    uint_fast16_t m_idx = UINT_FAST16_MAX;
+    uint_fast16_t m_size = 0;
+    uint_fast16_t m_capacity = 0;
     alloc_node *m_ptr = nullptr;
 };
 
