@@ -11,13 +11,11 @@
     #endif
 #endif
 
-namespace wjr {
-
+namespace wjr::math {
 #if WJR_HAS_BUILTIN(ASM_SUBC_N)
     #define WJR_ADDSUB_I 0
-    #include <wjr/arch/x86/math/gen_addsub.hpp>
+    #include <wjr/arch/x86/biginteger/detail/gen_addsub.hpp>
 #endif
-
-} // namespace wjr
+} // namespace wjr::math
 
 #endif // WJR_ARCH_X86_BIGINTEGER_DETAIL_SUB_HPP__

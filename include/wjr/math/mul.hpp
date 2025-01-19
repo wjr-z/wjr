@@ -44,8 +44,8 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_mul64(uint64_t a, uint64_t b, uint64
     uint64_t rm1 = al * bh;
     uint64_t rl = al * bl;
 
-    __add_128(rl, rh, rl, rh, rm0 << 32, rm0 >> 32);
-    __add_128(rl, rh, rl, rh, rm1 << 32, rm1 >> 32);
+    add_128(rl, rh, rl, rh, rm0 << 32, rm0 >> 32);
+    add_128(rl, rh, rl, rh, rm1 << 32, rm1 >> 32);
 
     hi = rh;
     return rl;

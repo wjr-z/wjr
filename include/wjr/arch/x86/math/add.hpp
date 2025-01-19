@@ -21,7 +21,7 @@
     #include <wjr/arch/x86/simd/intrin.hpp>
 #endif
 
-namespace wjr {
+namespace wjr::math {
 
 #if WJR_HAS_BUILTIN(ASM_ADDC)
 
@@ -327,6 +327,6 @@ WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_128(uint64_t &al, uint64_t &ah, uint6
 
 #endif
 
-} // namespace wjr
+} // namespace wjr::math
 
 #endif // WJR_ARCH_X86_MATH_ADD_HPP__

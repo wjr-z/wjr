@@ -9,7 +9,7 @@
     #include <wjr/arch/x86/math/sub.hpp>
 #endif
 
-namespace wjr {
+namespace wjr::math {
 
 template <typename T, typename U>
 WJR_INTRINSIC_CONSTEXPR T fallback_subc(T a, T b, U c_in, U &c_out) noexcept {
@@ -146,8 +146,8 @@ WJR_INTRINSIC_CONSTEXPR20 bool sub_overflow(type_identity_t<T> a, type_identity_
 }
 
 // <ah, al> = <hi0, lo0> - <hi1, lo1>
-WJR_INTRINSIC_CONSTEXPR void __sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
-                                       uint64_t lo1, uint64_t hi1) noexcept {
+WJR_INTRINSIC_CONSTEXPR void sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
+                                     uint64_t lo1, uint64_t hi1) noexcept {
     const uint64_t __al = lo0 - lo1;
     ah = hi0 - hi1 - (__al > lo0);
     al = __al;
@@ -190,6 +190,6 @@ WJR_INTRINSIC_CONSTEXPR20 uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint
 #endif
 }
 
-} // namespace wjr
+} // namespace wjr::math
 
 #endif // WJR_MATH_SUB_HPP__

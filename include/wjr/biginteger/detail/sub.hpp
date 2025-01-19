@@ -9,7 +9,7 @@
     #include <wjr/arch/x86/biginteger/detail/sub.hpp>
 #endif
 
-namespace wjr {
+namespace wjr::math {
 
 WJR_INTRINSIC_CONSTEXPR20 uint64_t __subc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
                                                  uint64_t src1, uint64_t c_in) noexcept {
@@ -398,6 +398,6 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0
     return abs_subc_n(dst, src0, src1, n);
 }
 
-} // namespace wjr
+} // namespace wjr::math
 
 #endif // WJR_BIGINTEGER_DETAIL_SUB_HPP__

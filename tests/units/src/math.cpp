@@ -162,20 +162,20 @@ TEST(math, addc) {
 
 #define WJR_TEST_ADDC(type, x, y, ci, ans, ans_co) WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)
 #define WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)                                           \
-    WJR_ASSERT_L0((fallback_addc<type, type>(x, y, ci, co) == ans && co == ans_co));               \
+    WJR_ASSERT_L0((math::fallback_addc<type, type>(x, y, ci, co) == ans && co == ans_co));         \
     WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ADDC),                                                          \
                    do {                                                                            \
                        WJR_ASSERT_L0(                                                              \
-                           (builtin_addc<type, type>(x, y, ci, co) == ans && co == ans_co));       \
+                           (math::builtin_addc<type, type>(x, y, ci, co) == ans && co == ans_co)); \
                    } while (false),                                                                \
                    {});                                                                            \
     WJR_PP_BOOL_IF_NE(                                                                             \
         WJR_HAS_BUILTIN(ASM_ADDC), do {                                                            \
             if constexpr (std::is_same_v<type, uint64_t>) {                                        \
-                WJR_ASSERT_L0((asm_addc<type>(x, y, ci, co) == ans && co == ans_co));              \
-                WJR_ASSERT_L0(WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_ADDC_CC),                         \
-                                             (asm_addc_cc(x, y, ci, co2) == ans && co2 == ans_co), \
-                                             true));                                               \
+                WJR_ASSERT_L0((math::asm_addc<type>(x, y, ci, co) == ans && co == ans_co));        \
+                WJR_ASSERT_L0(WJR_PP_BOOL_IF(                                                      \
+                    WJR_HAS_BUILTIN(ASM_ADDC_CC),                                                  \
+                    (math::asm_addc_cc(x, y, ci, co2) == ans && co2 == ans_co), true));            \
             }                                                                                      \
         } while (false), )
 
@@ -350,18 +350,18 @@ TEST(math, sub) {
 
 #define WJR_TEST_SUBC(type, x, y, ci, ans, ans_co) WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)
 #define WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)                                           \
-    WJR_ASSERT_L0((fallback_subc<type, type>(x, y, ci, co) == ans && co == ans_co))                \
+    WJR_ASSERT_L0((math::fallback_subc<type, type>(x, y, ci, co) == ans && co == ans_co))          \
     WJR_PP_BOOL_IF(                                                                                \
         WJR_HAS_BUILTIN(SUBC), ; do {                                                              \
-            WJR_ASSERT_L0((builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co));        \
+            WJR_ASSERT_L0((math::builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co));  \
         } while (false), )                                                                         \
     WJR_PP_BOOL_IF_NE(                                                                             \
         WJR_HAS_BUILTIN(ASM_SUBC), ; do {                                                          \
             if constexpr (std::is_same_v<type, uint64_t>) {                                        \
-                WJR_ASSERT_L0((asm_subc<type>(x, y, ci, co) == ans && co == ans_co));              \
-                WJR_ASSERT_L0(WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_SUBC_CC),                         \
-                                             (asm_subc_cc(x, y, ci, co2) == ans && co2 == ans_co), \
-                                             true));                                               \
+                WJR_ASSERT_L0((math::asm_subc<type>(x, y, ci, co) == ans && co == ans_co));        \
+                WJR_ASSERT_L0(WJR_PP_BOOL_IF(                                                      \
+                    WJR_HAS_BUILTIN(ASM_SUBC_CC),                                                  \
+                    (math::asm_subc_cc(x, y, ci, co2) == ans && co2 == ans_co), true));            \
             }                                                                                      \
         } while (false), )
 
@@ -1148,10 +1148,10 @@ TEST(math, rshift_n) {
 
 TEST(math_detail, default_stack_allocator) {}
 
-TEST(math, __add_128) {
+TEST(math, add_128) {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t anslo,
                     uint64_t anshi) {
-        __add_128(lo0, hi0, lo0, hi0, lo1, hi1);
+        add_128(lo0, hi0, lo0, hi0, lo1, hi1);
         WJR_ASSERT_L0(lo0 == anslo);
         WJR_ASSERT_L0(hi0 == anshi);
     };
@@ -1177,7 +1177,7 @@ TEST(math, __add_128) {
 TEST(math, __addc_128) {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t c,
                     uint64_t anslo, uint64_t anshi, uint64_t ansc) {
-        auto cf = __addc_128(lo0, hi0, lo0, hi0, lo1, hi1, c);
+        auto cf = math::__addc_128(lo0, hi0, lo0, hi0, lo1, hi1, c);
         WJR_ASSERT_L0(lo0 == anslo);
         WJR_ASSERT_L0(hi0 == anshi);
         WJR_ASSERT_L0(cf == ansc);
@@ -1221,7 +1221,7 @@ TEST(math, __addc_128) {
 TEST(math, __sub_128) {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t anslo,
                     uint64_t anshi) {
-        __sub_128(lo0, hi0, lo0, hi0, lo1, hi1);
+        sub_128(lo0, hi0, lo0, hi0, lo1, hi1);
         WJR_ASSERT_L0(lo0 == anslo);
         WJR_ASSERT_L0(hi0 == anshi);
     };
@@ -1243,7 +1243,7 @@ TEST(math, __sub_128) {
 TEST(math, __subc_128) {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t c,
                     uint64_t anslo, uint64_t anshi, uint64_t ansc) {
-        auto cf = __subc_128(lo0, hi0, lo0, hi0, lo1, hi1, c);
+        auto cf = math::__subc_128(lo0, hi0, lo0, hi0, lo1, hi1, c);
         WJR_ASSERT_L0(lo0 == anslo);
         WJR_ASSERT_L0(hi0 == anshi);
         WJR_ASSERT_L0(cf == ansc);

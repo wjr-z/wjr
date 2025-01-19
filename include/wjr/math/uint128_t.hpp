@@ -66,7 +66,7 @@ public:
         : low(static_cast<T>(value)), high(static_cast<T>(value >= 0 ? 0 : -1)) {}
 
     WJR_CONSTEXPR20 uint128_t &operator+=(uint128_t other) noexcept {
-        __add_128(low, high, low, high, other.low, other.high);
+        add_128(low, high, low, high, other.low, other.high);
         return *this;
     }
 
@@ -75,7 +75,7 @@ public:
     }
 
     constexpr uint128_t &operator+=(uint64_t lo_) noexcept {
-        __add_128(low, high, low, high, lo_, 0);
+        add_128(low, high, low, high, lo_, 0);
         return *this;
     }
 
@@ -88,7 +88,7 @@ public:
     }
 
     WJR_CONSTEXPR20 uint128_t &operator-=(uint128_t other) noexcept {
-        __sub_128(low, high, low, high, other.low, other.high);
+        sub_128(low, high, low, high, other.low, other.high);
         return *this;
     }
 
@@ -97,7 +97,7 @@ public:
     }
 
     constexpr uint128_t &operator-=(uint64_t lo_) noexcept {
-        __sub_128(low, high, low, high, lo_, 0);
+        sub_128(low, high, low, high, lo_, 0);
         return *this;
     }
 

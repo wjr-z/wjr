@@ -3,6 +3,7 @@
 #include <wjr/biginteger/detail/div.hpp>
 #include <wjr/biginteger/detail/mul.hpp>
 #include <wjr/biginteger/detail/sub.hpp>
+#include <wjr/memory/copy.hpp>
 #include <wjr/memory/stack_allocator.hpp>
 
 namespace wjr {
@@ -70,7 +71,7 @@ uint64_t div_qr_2_noshift(uint64_t *dst, uint64_t *rem, const uint64_t *src, siz
     u1 = src[n - 2];
 
     if (__less_equal_128(divisor0, divisor1, u1, u2)) {
-        __sub_128(u1, u2, u1, u2, divisor0, divisor1);
+        sub_128(u1, u2, u1, u2, divisor0, divisor1);
         qh = 1;
     }
 
@@ -187,7 +188,7 @@ uint64_t sb_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div
             q = divider::divide(d0, d1, dinv, src[0], n0, n1);
 
             cy = submul_1(src - m, div, m, q);
-            cy = __subc_cc_128(n0, n1, n0, n1, cy, 0, 0);
+            cy = math::__subc_cc_128(n0, n1, n0, n1, cy, 0, 0);
             src[0] = n0;
 
             if (WJR_UNLIKELY(cy != 0)) {
@@ -311,7 +312,7 @@ uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div
 
                 if (m > 2) {
                     cy = submul_1(src - m, div - m, m - 2, q);
-                    cy = __subc_cc_128(n0, n1, n0, n1, cy, 0, 0);
+                    cy = math::__subc_cc_128(n0, n1, n0, n1, cy, 0, 0);
                     src[-2] = n0;
 
                     if (WJR_UNLIKELY(cy != 0)) {
@@ -415,7 +416,6 @@ void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n
 
     const unsigned int adjust = src[n - 1] >= div[m - 1];
     if (n + adjust >= 2 * m) {
-        uint64_t *sp;
         uint64_t *dp;
 
         dst[n - m] = 0;
@@ -423,16 +423,15 @@ void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n
         const auto shift = clz(div[m - 1]);
         const size_t alloc = n + 1 + (shift != 0 ? m : 0);
         unique_stack_allocator stkal;
-        auto *const stk = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * alloc));
-        sp = stk;
+        auto *const sp = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * alloc));
 
         if (shift != 0) {
-            dp = stk + (n + 1);
+            dp = sp + (n + 1);
             (void)lshift_n(dp, div, m, shift);
             sp[n] = lshift_n(sp, src, n, shift);
         } else {
             dp = const_cast<uint64_t *>(div);
-            std::copy_n(src, n, sp);
+            copy_n_restrict(src, n, sp);
             sp[n] = 0;
         }
 
@@ -461,7 +460,7 @@ void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n
         return;
     }
 
-    uint64_t *sp, *dp;
+    uint64_t *dp;
     size_t st;
 
     st = m - qn; // st = m - qn = 2 * m - n + adjust > 2 * adjust
@@ -470,11 +469,10 @@ void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n
 
     const size_t alloc = 2 * qn + (shift != 0 ? qn : 0);
     unique_stack_allocator stkal;
-    auto *const stk = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * alloc));
-    sp = stk;
+    auto *const sp = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * alloc));
 
     if (shift != 0) {
-        dp = stk + 2 * qn;
+        dp = sp + 2 * qn;
         (void)lshift_n(dp, div + st, qn, shift, div[st - 1]);
         if (adjust) {
             sp[2 * qn - 1] = lshift_n(sp, src + n - 2 * qn + 1, 2 * qn - 1, shift, src[n - 2 * qn]);
@@ -484,10 +482,10 @@ void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n
     } else {
         dp = const_cast<uint64_t *>(div + st);
         if (adjust) {
-            std::copy_n(src + n - 2 * qn + 1, 2 * qn - 1, sp);
+            copy_n_restrict(src + n - 2 * qn + 1, 2 * qn - 1, sp);
             sp[2 * qn - 1] = 0;
         } else {
-            std::copy_n(src + n - 2 * qn, 2 * qn, sp);
+            copy_n_restrict(src + n - 2 * qn, 2 * qn, sp);
         }
     }
 

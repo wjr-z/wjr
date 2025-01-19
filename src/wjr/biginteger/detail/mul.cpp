@@ -1,5 +1,6 @@
 #include <wjr/biginteger/detail/div.hpp>
 #include <wjr/biginteger/detail/mul.hpp>
+#include <wjr/memory/copy.hpp>
 #include <wjr/memory/stack_allocator.hpp>
 #include <wjr/tuple.hpp>
 
@@ -108,7 +109,7 @@ void __toom22_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
             src0 += 2 * m;
 
             cf = addc_n(dst, dst, tmp, m, cf);
-            std::copy(tmp + m, tmp + 3 * m, dst + m);
+            copy_restrict(tmp + m, tmp + 3 * m, dst + m);
             cf = addc_1(dst + m, dst + m, 2 * m, 0, cf);
 
             dst += 2 * m;
@@ -123,7 +124,7 @@ void __toom22_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
         }
 
         cf = addc_n(dst, dst, tmp, m, cf);
-        std::copy(tmp + m, tmp + m + n, dst + m);
+        copy_restrict(tmp + m, tmp + m + n, dst + m);
         cf = addc_1(dst + m, dst + m, n, 0, cf);
         WJR_ASSERT(cf == 0);
     } else {
@@ -171,7 +172,7 @@ void __noinline_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, siz
                 src0 += 2 * m;
 
                 cf = addc_n(dst, dst, tmp, m, cf);
-                std::copy(tmp + m, tmp + 3 * m, dst + m);
+                copy_restrict(tmp + m, tmp + 3 * m, dst + m);
                 cf = addc_1(dst + m, dst + m, 2 * m, 0, cf);
 
                 dst += 2 * m;
@@ -186,7 +187,7 @@ void __noinline_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, siz
             }
 
             cf = addc_n(dst, dst, tmp, m, cf);
-            std::copy(tmp + m, tmp + m + n, dst + m);
+            copy_restrict(tmp + m, tmp + m + n, dst + m);
             cf = addc_1(dst + m, dst + m, n, 0, cf);
             WJR_ASSERT(cf == 0);
         } else {
@@ -253,7 +254,7 @@ void __noinline_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, siz
             src0 += 2 * m;
 
             cf = addc_n(dst, dst, tmp, m, cf);
-            std::copy(tmp + m, tmp + 3 * m, dst + m);
+            copy_restrict(tmp + m, tmp + 3 * m, dst + m);
             cf = addc_1(dst + m, dst + m, 2 * m, 0, cf);
 
             dst += 2 * m;
@@ -266,7 +267,7 @@ void __noinline_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, siz
         }
 
         cf = addc_n(dst, dst, tmp, m, cf);
-        std::copy(tmp + m, tmp + m + n, dst + m);
+        copy_restrict(tmp + m, tmp + m + n, dst + m);
         cf = addc_1(dst + m, dst + m, n, 0, cf);
         WJR_ASSERT(cf == 0);
     } else {
