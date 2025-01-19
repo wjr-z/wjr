@@ -262,7 +262,7 @@ uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div
     uint64_t qh, cy;
 
     unique_stack_allocator stkal;
-    auto *const tp = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * m));
+    auto *const tp = stkal.template allocate<uint64_t>(m);
 
     qn = n - m;
     dst += qn;
@@ -423,7 +423,7 @@ void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n
         const auto shift = clz(div[m - 1]);
         const size_t alloc = n + 1 + (shift != 0 ? m : 0);
         unique_stack_allocator stkal;
-        auto *const sp = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * alloc));
+        auto *const sp = stkal.template allocate<uint64_t>(alloc);
 
         if (shift != 0) {
             dp = sp + (n + 1);
@@ -469,7 +469,7 @@ void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n
 
     const size_t alloc = 2 * qn + (shift != 0 ? qn : 0);
     unique_stack_allocator stkal;
-    auto *const sp = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * alloc));
+    auto *const sp = stkal.template allocate<uint64_t>(alloc);
 
     if (shift != 0) {
         dp = sp + 2 * qn;
@@ -513,7 +513,7 @@ void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n
 
     WJR_ASSUME(st >= 1);
 
-    auto *const rp = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * m));
+    auto *const rp = stkal.template allocate<uint64_t>(m);
 
     size_t cf;
 

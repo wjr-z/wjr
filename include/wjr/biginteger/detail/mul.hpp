@@ -468,7 +468,7 @@ WJR_INTRINSIC_INLINE uint64_t *__mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n
     if constexpr (std::is_same_v<T, uint64_t *>) {
         return al;
     } else {
-        return static_cast<uint64_t *>(al.allocate(sizeof(uint64_t) * n));
+        return al.template allocate<uint64_t>(n);
     }
 }
 

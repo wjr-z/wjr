@@ -1911,13 +1911,13 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
         dp = (**tmp).data();
     } else {
         if (dp == lp) {
-            lp = static_cast<pointer>(stkal.allocate(lusize * sizeof(uint64_t)));
+            lp = stkal.template allocate<uint64_t>(lusize);
             if (dp == rp) {
                 rp = lp;
             }
             copy_n_restrict(dp, lusize, lp);
         } else if (dp == rp) {
-            rp = static_cast<pointer>(stkal.allocate(rusize * sizeof(uint64_t)));
+            rp = stkal.template allocate<uint64_t>(rusize);
             copy_n_restrict(dp, rusize, rp);
         }
     }
@@ -1981,7 +1981,7 @@ void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept {
         dp = (**tmp).data();
     } else {
         if (dp == sp) {
-            sp = static_cast<pointer>(stkal.allocate(susize * sizeof(uint64_t)));
+            sp = stkal.template allocate<uint64_t>(susize);
             copy_n_restrict(dp, susize, sp);
         }
     }
@@ -2073,13 +2073,13 @@ void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, uint
                 }
 
                 if (cf != 0) {
-                    cf += negate_n(dp, dp, new_dusize) - 1;
+                    cf += math::bi_negate_n(dp, dp, new_dusize) - 1;
                     dp[new_dusize] = cf;
                     ++new_dusize;
                     dssize = __fast_negate(dssize);
                 }
             } else {
-                cf += negate_n(dp, dp, dusize) - 1;
+                cf += math::bi_negate_n(dp, dp, dusize) - 1;
 
                 const auto cf2 = cf == UINT64_MAX;
                 cf += cf2;
@@ -2148,7 +2148,7 @@ void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     }
 
     unique_stack_allocator stkal;
-    auto *tp = static_cast<uint64_t *>(stkal.allocate(tusize * sizeof(uint64_t)));
+    auto *tp = stkal.template allocate<uint64_t>(tusize);
 
     mul_s(tp, lhs->data(), lusize, rhs->data(), rusize);
     tusize -= tp[tusize - 1] == 0;
@@ -2255,13 +2255,13 @@ void __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
     unique_stack_allocator stkal;
 
     if (dp == rp || dp == qp) {
-        auto *tp = (pointer)stkal.allocate(dusize * sizeof(uint64_t));
+        auto *tp = stkal.template allocate<uint64_t>(dusize);
         copy_n_restrict(dp, dusize, tp);
         dp = tp;
     }
 
     if (np == rp || np == qp) {
-        auto *tp = (pointer)stkal.allocate(nusize * sizeof(uint64_t));
+        auto *tp = stkal.template allocate<uint64_t>(nusize);
         copy_n_restrict(np, nusize, tp);
         np = tp;
     }
@@ -2303,18 +2303,18 @@ void __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
     unique_stack_allocator stkal;
 
     if (dp == qp) {
-        auto tp = (pointer)stkal.allocate(dusize * sizeof(uint64_t));
+        auto tp = stkal.template allocate<uint64_t>(dusize);
         copy_n_restrict(dp, dusize, tp);
         dp = tp;
     }
 
     if (np == qp) {
-        auto tp = (pointer)stkal.allocate(nusize * sizeof(uint64_t));
+        auto tp = stkal.template allocate<uint64_t>(nusize);
         copy_n_restrict(np, nusize, tp);
         np = tp;
     }
 
-    const auto rp = (pointer)stkal.allocate(dusize * sizeof(uint64_t));
+    const auto rp = stkal.template allocate<uint64_t>(dusize);
 
     div_qr_s(qp, rp, np, nusize, dp, dusize);
 
@@ -2356,18 +2356,18 @@ void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
     unique_stack_allocator stkal;
 
     if (dp == rp) {
-        const auto tp = (pointer)stkal.allocate(dusize * sizeof(uint64_t));
+        const auto tp = stkal.template allocate<uint64_t>(dusize);
         copy_n_restrict(dp, dusize, tp);
         dp = tp;
     }
 
     if (np == rp) {
-        const auto tp = (pointer)stkal.allocate(nusize * sizeof(uint64_t));
+        const auto tp = stkal.template allocate<uint64_t>(nusize);
         copy_n_restrict(np, nusize, tp);
         np = tp;
     }
 
-    const auto qp = (pointer)stkal.allocate(qssize * sizeof(uint64_t));
+    const auto qp = stkal.template allocate<uint64_t>(qssize);
 
     div_qr_s(qp, rp, np, nusize, dp, dusize);
 
@@ -2533,7 +2533,7 @@ void __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
 
     if (__equal_pointer(div, quot) || __equal_pointer(div, rem)) {
         const auto dusize = __fast_abs(dssize);
-        auto *const ptr = (uint64_t *)stkal.allocate(dusize * sizeof(uint64_t));
+        auto *const ptr = stkal.template allocate<uint64_t>(dusize);
         tmp_div = {ptr, dssize, 0};
         copy_n_restrict(div->data(), dusize, ptr);
         div = &tmp_div;
@@ -2574,7 +2574,7 @@ void __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 
     if (__equal_pointer(div, rem)) {
         const auto dusize = __fast_abs(dssize);
-        auto *const ptr = (uint64_t *)stkal.allocate(dusize * sizeof(uint64_t));
+        auto *const ptr = stkal.template allocate<uint64_t>(dusize);
         tmp_div = {ptr, dssize, 0};
         copy_n_restrict(div->data(), dusize, ptr);
         div = &tmp_div;
@@ -2723,7 +2723,7 @@ void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
 
     if (__equal_pointer(div, quot) || __equal_pointer(div, rem)) {
         const auto dusize = __fast_abs(dssize);
-        auto *const ptr = (uint64_t *)stkal.allocate(dusize * sizeof(uint64_t));
+        auto *const ptr = stkal.template allocate<uint64_t>(dusize);
         tmp_div = {ptr, dssize, 0};
         copy_n_restrict(div->data(), dusize, ptr);
         div = &tmp_div;
@@ -2764,7 +2764,7 @@ void __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 
     if (__equal_pointer(div, rem)) {
         const auto dusize = __fast_abs(dssize);
-        auto *const ptr = (uint64_t *)stkal.allocate(dusize * sizeof(uint64_t));
+        auto *const ptr = stkal.template allocate<uint64_t>(dusize);
         tmp_div = {ptr, dssize, 0};
         copy_n_restrict(div->data(), dusize, ptr);
 
@@ -3069,7 +3069,7 @@ void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num, u
         np = (uint64_t *)(num->data());
 
         const auto size = std::min<uint32_t>(nusize, offset + 1);
-        (void)negate_n(rp, np, size);
+        (void)math::bi_negate_n(rp, np, size);
         for (uint32_t i = size; i <= offset; ++i) {
             rp[i] = UINT64_MAX;
         }
@@ -3173,7 +3173,7 @@ void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
     unique_stack_allocator stkal;
 
     if (__equal_pointer(dst, limit)) {
-        auto *const tp = static_cast<uint64_t *>(stkal.allocate(size * sizeof(uint64_t)));
+        auto *const tp = stkal.template allocate<uint64_t>(size);
         copy_n_restrict(lp, size, tp);
         lp = tp;
     }
@@ -3249,7 +3249,7 @@ void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit
     unique_stack_allocator stkal;
 
     if (__equal_pointer(dst, limit)) {
-        auto *const tp = (uint64_t *)stkal.allocate(size * sizeof(uint64_t));
+        auto *const tp = stkal.template allocate<uint64_t>(size);
         copy_n_restrict(lp, size, tp);
         lp = tp;
     }
@@ -3349,13 +3349,13 @@ void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint32_t e
         dp = (**tmp).data();
     } else {
         if (dp == np) {
-            np = static_cast<pointer>(stkal.allocate(max_dusize * sizeof(uint64_t)));
+            np = stkal.template allocate<uint64_t>(max_dusize);
             copy_n_restrict(dp, nusize, np);
         }
     }
 
     // todo : optimize this size.
-    uint64_t *const tp = static_cast<uint64_t *>(stkal.allocate(max_dusize * sizeof(uint64_t)));
+    uint64_t *const tp = stkal.template allocate<uint64_t>(max_dusize);
     uint32_t dusize = pow_1(dp, np, nusize, exp, tp);
 
     if (tmp.has_value()) {

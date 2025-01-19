@@ -153,6 +153,8 @@ WJR_NORETURN inline void __assert_light_failed_handler(const char *expr) noexcep
 #define WJR_ASSERT(...) WJR_ASSERT_L1(__VA_ARGS__)
 #define WJR_ASSERT_ASSUME(...) WJR_ASSERT_ASSUME_L1(__VA_ARGS__)
 
+#define WJR_ASSERT_ALWAYS(...) WJR_ASSERT_L0(__VA_ARGS__)
+
 } // namespace wjr
 
 #endif // WJR_ASSERT_HPP__

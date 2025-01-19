@@ -496,21 +496,21 @@ public:
 
     WJR_CONSTEXPR20 reference front() noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_L0(!empty(), "basic_ring_buffer::front: empty");
+        WJR_ASSERT_ALWAYS(!empty(), "basic_ring_buffer::front: empty");
 #endif
         return *__get_head();
     }
 
     WJR_CONSTEXPR20 const_reference front() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_L0(!empty(), "basic_ring_buffer::front: empty");
+        WJR_ASSERT_ALWAYS(!empty(), "basic_ring_buffer::front: empty");
 #endif
         return *__get_head();
     }
 
     WJR_CONSTEXPR20 reference back() noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_L0(!empty(), "basic_ring_buffer::back: empty");
+        WJR_ASSERT_ALWAYS(!empty(), "basic_ring_buffer::back: empty");
 #endif
         pointer __tail = __get_tail();
         __tail = __tail == data() ? __get_buf_end() : __tail;
@@ -519,7 +519,7 @@ public:
 
     WJR_CONSTEXPR20 const_reference back() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_L0(!empty(), "basic_ring_buffer::back: empty");
+        WJR_ASSERT_ALWAYS(!empty(), "basic_ring_buffer::back: empty");
 #endif
         const_pointer __tail = __get_tail();
         __tail = __tail == data() ? __get_buf_end() : __tail;

@@ -433,7 +433,7 @@ __biginteger_basecase_to_chars(uint8_t *first, const uint64_t *up, size_t n, uns
     precompute_chars_convert_t pre[64 - 3];
 
     unique_stack_allocator stkal;
-    auto *stk = static_cast<uint64_t *>(stkal.allocate((n * 18 / 5 + 192) * sizeof(uint64_t)));
+    auto *stk = stkal.template allocate<uint64_t>(n * 18 / 5 + 192);
     auto *const __up = stk;
     std::copy_n(up, n, __up);
     stk += n;
@@ -497,7 +497,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
         return ptr;                                                                                \
     } else {                                                                                       \
         unique_stack_allocator stkal;                                                              \
-        auto *const __ptr = static_cast<uint8_t *>(stkal.allocate(SIZE * sizeof(uint64_t)));       \
+        auto *const __ptr = stkal.template allocate<uint64_t>(SIZE);                               \
         const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;                     \
                                                                                                    \
         return wjr::copy_n((charconv_detail::fast_buffer_t<Iter> *)__ptr, __size, ptr);            \
@@ -878,7 +878,7 @@ uint64_t *__basecase_basecase_from_chars(const uint8_t *first, size_t n, uint64_
 
     unique_stack_allocator stkal;
     const size_t un = n / per_digits + 1;
-    auto *stk = static_cast<uint64_t *>(stkal.allocate((un * 16 / 5 + 192) * sizeof(uint64_t)));
+    auto *stk = stkal.template allocate<uint64_t>(un * 16 / 5 + 192);
     auto *const first_pre = precompute_chars_convert(pre, un, base, stk);
     stk += un * 8 / 5 + 128;
     return up + dc_from_chars(first, n, up, first_pre, stk, conv);

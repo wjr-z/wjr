@@ -1,20 +1,20 @@
-#ifndef WJR_ARCH_X86_MATH_NOT_HPP__
-#define WJR_ARCH_X86_MATH_NOT_HPP__
+#ifndef WJR_ARCH_X86_BIGINTEGER_DETAIL_NOT_HPP__
+#define WJR_ARCH_X86_BIGINTEGER_DETAIL_NOT_HPP__
 
 #include <wjr/arch/x86/simd/simd.hpp>
 #include <wjr/math/detail.hpp>
 #include <wjr/memory/align.hpp>
 
-namespace wjr {
+namespace wjr::math {
 
 #if WJR_HAS_SIMD(SSE2)
-    #define WJR_HAS_BUILTIN_COMPLEMENT_N WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_BI_NOT_N WJR_HAS_DEF
 #endif
 
-#if WJR_HAS_BUILTIN(COMPLEMENT_N)
+#if WJR_HAS_BUILTIN(BI_NOT_N)
 
 template <typename T>
-void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
+void large_builtin_bi_not_n(T *dst, const T *src, size_t n) noexcept {
     constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 
     using simd = std::conditional_t<is_avx, avx, sse>;
@@ -135,7 +135,8 @@ void large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
 }
 
 template <typename T>
-WJR_INTRINSIC_INLINE void unaligned_large_builtin_not_n(T *dst, const T *src, size_t n) noexcept {
+WJR_INTRINSIC_INLINE void unaligned_large_builtin_bi_not_n(T *dst, const T *src,
+                                                           size_t n) noexcept {
     size_t idx = 0;
     const auto y = sse::ones();
 
@@ -180,7 +181,7 @@ WJR_INTRINSIC_INLINE void unaligned_large_builtin_not_n(T *dst, const T *src, si
 }
 
 template <typename T>
-WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) noexcept {
+WJR_INTRINSIC_INLINE void builtin_bi_not_n(T *dst, const T *src, size_t n) noexcept {
     static_assert(sizeof(T) == 8);
 
     if (WJR_UNLIKELY(n < 4)) {
@@ -205,14 +206,14 @@ WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) noexcept
     // Can be aligned
     // todo : Align those that cannot be aligned with T through uint8_t
     if (WJR_LIKELY(n >= 35 && reinterpret_cast<uintptr_t>(dst) % sizeof(T) == 0)) {
-        return large_builtin_not_n(dst, src, n);
+        return large_builtin_bi_not_n(dst, src, n);
     }
 
-    return unaligned_large_builtin_not_n(dst, src, n);
+    return unaligned_large_builtin_bi_not_n(dst, src, n);
 }
 
-#endif //
+#endif
 
-} // namespace wjr
+} // namespace wjr::math
 
-#endif // WJR_ARCH_X86_MATH_NOT_HPP__
+#endif // WJR_ARCH_X86_BIGINTEGER_DETAIL_NOT_HPP__
