@@ -37,76 +37,76 @@ TEST(expected, constructor) {
         using type = decltype(x);
         {
             type a;
-            WJR_ASSERT_L0(a.has_value());
-            WJR_ASSERT_L0(*a == x);
+            WJR_ASSERT_ALWAYS(a.has_value());
+            WJR_ASSERT_ALWAYS(*a == x);
         }
         {
             type a;
             type b(a);
-            WJR_ASSERT_L0(b.has_value());
-            WJR_ASSERT_L0(*b == x);
-            WJR_ASSERT_L0(a == b);
+            WJR_ASSERT_ALWAYS(b.has_value());
+            WJR_ASSERT_ALWAYS(*b == x);
+            WJR_ASSERT_ALWAYS(a == b);
         }
         {
             type a;
             type b(std::move(a));
-            WJR_ASSERT_L0(b.has_value());
-            WJR_ASSERT_L0(*b == x);
+            WJR_ASSERT_ALWAYS(b.has_value());
+            WJR_ASSERT_ALWAYS(*b == x);
         }
         {
             type a(val);
-            WJR_ASSERT_L0(a.has_value());
-            WJR_ASSERT_L0(*a == val);
+            WJR_ASSERT_ALWAYS(a.has_value());
+            WJR_ASSERT_ALWAYS(*a == val);
         }
         {
             auto val2(val);
             type a(std::move(val2));
-            WJR_ASSERT_L0(a.has_value());
-            WJR_ASSERT_L0(*a == val);
+            WJR_ASSERT_ALWAYS(a.has_value());
+            WJR_ASSERT_ALWAYS(*a == val);
         }
         {
             type a(std::in_place, val);
-            WJR_ASSERT_L0(a.has_value());
-            WJR_ASSERT_L0(*a == val);
+            WJR_ASSERT_ALWAYS(a.has_value());
+            WJR_ASSERT_ALWAYS(*a == val);
         }
         {
             auto val2(val);
             type a(std::in_place, std::move(val2));
-            WJR_ASSERT_L0(a.has_value());
-            WJR_ASSERT_L0(*a == val);
+            WJR_ASSERT_ALWAYS(a.has_value());
+            WJR_ASSERT_ALWAYS(*a == val);
         }
         {
             wjr::unexpected ec(err);
             type a(ec);
-            WJR_ASSERT_L0(!a.has_value());
-            WJR_ASSERT_L0(a.error() == err);
+            WJR_ASSERT_ALWAYS(!a.has_value());
+            WJR_ASSERT_ALWAYS(a.error() == err);
             type b(a);
-            WJR_ASSERT_L0(!b.has_value());
-            WJR_ASSERT_L0(b.error() == err);
-            WJR_ASSERT_L0(a == b);
+            WJR_ASSERT_ALWAYS(!b.has_value());
+            WJR_ASSERT_ALWAYS(b.error() == err);
+            WJR_ASSERT_ALWAYS(a == b);
         }
         {
             wjr::unexpected ec(err);
             type a(std::move(ec));
-            WJR_ASSERT_L0(!a.has_value());
-            WJR_ASSERT_L0(a.error() == err);
+            WJR_ASSERT_ALWAYS(!a.has_value());
+            WJR_ASSERT_ALWAYS(a.error() == err);
             type b(std::move(a));
-            WJR_ASSERT_L0(!b.has_value());
-            WJR_ASSERT_L0(b.error() == err);
+            WJR_ASSERT_ALWAYS(!b.has_value());
+            WJR_ASSERT_ALWAYS(b.error() == err);
         }
 
         {
             auto ec(err);
             type a(unexpect, ec);
-            WJR_ASSERT_L0(!a.has_value());
-            WJR_ASSERT_L0(a.error() == err);
+            WJR_ASSERT_ALWAYS(!a.has_value());
+            WJR_ASSERT_ALWAYS(a.error() == err);
         }
 
         {
             auto ec(err);
             type a(unexpect, std::move(ec));
-            WJR_ASSERT_L0(!a.has_value());
-            WJR_ASSERT_L0(a.error() == err);
+            WJR_ASSERT_ALWAYS(!a.has_value());
+            WJR_ASSERT_ALWAYS(a.error() == err);
         }
     };
 
@@ -122,52 +122,52 @@ TEST(expected, constructor) {
         using type = decltype(x);
         {
             type a;
-            WJR_ASSERT_L0(a.has_value());
+            WJR_ASSERT_ALWAYS(a.has_value());
         }
         {
             type a;
             type b(a);
-            WJR_ASSERT_L0(b.has_value());
+            WJR_ASSERT_ALWAYS(b.has_value());
         }
         {
             type a;
             type c(std::move(a));
-            WJR_ASSERT_L0(c.has_value());
+            WJR_ASSERT_ALWAYS(c.has_value());
         }
         {
             type a(std::in_place);
-            WJR_ASSERT_L0(a.has_value());
+            WJR_ASSERT_ALWAYS(a.has_value());
         }
         {
             wjr::unexpected ec(err);
             type a(ec);
-            WJR_ASSERT_L0(!a.has_value());
-            WJR_ASSERT_L0(a.error() == err);
+            WJR_ASSERT_ALWAYS(!a.has_value());
+            WJR_ASSERT_ALWAYS(a.error() == err);
             type b(a);
-            WJR_ASSERT_L0(!b.has_value());
-            WJR_ASSERT_L0(b.error() == err);
-            WJR_ASSERT_L0(a == b);
+            WJR_ASSERT_ALWAYS(!b.has_value());
+            WJR_ASSERT_ALWAYS(b.error() == err);
+            WJR_ASSERT_ALWAYS(a == b);
         }
         {
             wjr::unexpected ec(err);
             type a(std::move(ec));
-            WJR_ASSERT_L0(!a.has_value());
-            WJR_ASSERT_L0(a.error() == err);
+            WJR_ASSERT_ALWAYS(!a.has_value());
+            WJR_ASSERT_ALWAYS(a.error() == err);
             type b(std::move(a));
-            WJR_ASSERT_L0(!b.has_value());
-            WJR_ASSERT_L0(b.error() == err);
+            WJR_ASSERT_ALWAYS(!b.has_value());
+            WJR_ASSERT_ALWAYS(b.error() == err);
         }
         {
             auto ec(err);
             type a(unexpect, ec);
-            WJR_ASSERT_L0(!a.has_value());
-            WJR_ASSERT_L0(a.error() == err);
+            WJR_ASSERT_ALWAYS(!a.has_value());
+            WJR_ASSERT_ALWAYS(a.error() == err);
         }
         {
             auto ec(err);
             type a(unexpect, std::move(ec));
-            WJR_ASSERT_L0(!a.has_value());
-            WJR_ASSERT_L0(a.error() == err);
+            WJR_ASSERT_ALWAYS(!a.has_value());
+            WJR_ASSERT_ALWAYS(a.error() == err);
         }
     };
 

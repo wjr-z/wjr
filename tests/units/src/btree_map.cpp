@@ -12,10 +12,10 @@ TEST(btree_map, construct) {
             using value_type = remove_cvref_t<decltype(value)>;
             {
                 btree_map<key_type, value_type> map;
-                WJR_ASSERT_L0(map.empty());
-                WJR_ASSERT_L0(map.size() == 0);
-                WJR_ASSERT_L0(map.begin() == map.end());
-                WJR_ASSERT_L0(map.rbegin() == map.rend());
+                WJR_ASSERT_ALWAYS(map.empty());
+                WJR_ASSERT_ALWAYS(map.size() == 0);
+                WJR_ASSERT_ALWAYS(map.begin() == map.end());
+                WJR_ASSERT_ALWAYS(map.rbegin() == map.rend());
             }
 
             for (int n = 0; n < 1024; n = (n << 1) | 1) {
@@ -26,14 +26,14 @@ TEST(btree_map, construct) {
 
                 btree_map<key_type, value_type> map(vec.begin(), vec.end());
                 std::map<key_type, value_type> std_map(vec.begin(), vec.end());
-                WJR_ASSERT_L0(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
+                WJR_ASSERT_ALWAYS(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
                 btree_map<key_type, value_type> map2(map);
-                WJR_ASSERT_L0(std::equal(map2.begin(), map2.end(), std_map.begin(), std_map.end()));
-                WJR_ASSERT_L0(std::equal(map.begin(), map.end(), map2.begin(), map2.end()));
+                WJR_ASSERT_ALWAYS(std::equal(map2.begin(), map2.end(), std_map.begin(), std_map.end()));
+                WJR_ASSERT_ALWAYS(std::equal(map.begin(), map.end(), map2.begin(), map2.end()));
                 btree_map<key_type, value_type> map3(std::move(map2));
-                WJR_ASSERT_L0(map2.empty());
-                WJR_ASSERT_L0(std::equal(map3.begin(), map3.end(), std_map.begin(), std_map.end()));
-                WJR_ASSERT_L0(std::equal(map.begin(), map.end(), map3.begin(), map3.end()));
+                WJR_ASSERT_ALWAYS(map2.empty());
+                WJR_ASSERT_ALWAYS(std::equal(map3.begin(), map3.end(), std_map.begin(), std_map.end()));
+                WJR_ASSERT_ALWAYS(std::equal(map.begin(), map.end(), map3.begin(), map3.end()));
             }
         };
 
@@ -62,7 +62,7 @@ TEST(btree_map, emplace) {
                         std_map.emplace(pr);
                     }
 
-                    WJR_ASSERT_L0(
+                    WJR_ASSERT_ALWAYS(
                         std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
                 }
 
@@ -75,7 +75,7 @@ TEST(btree_map, emplace) {
                         std_map.emplace(pr.first, pr.second);
                     }
 
-                    WJR_ASSERT_L0(
+                    WJR_ASSERT_ALWAYS(
                         std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
                 }
             }

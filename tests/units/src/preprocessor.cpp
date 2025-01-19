@@ -94,7 +94,7 @@ TEST(preprocessor, compiler) {
     CASSERT(WJR_HAS_BUILTIN(__TEST) == 0);
 }
 
-#define WJR_TEST_STR(a, b) WJR_ASSERT_L0(std::string_view(a) == std::string_view(b))
+#define WJR_TEST_STR(a, b) WJR_ASSERT_ALWAYS(std::string_view(a) == std::string_view(b))
 
 TEST(preprocessor, detail) {
     WJR_TEST_STR(WJR_PP_STR((WJR_PP_IOTA(0))), "()");

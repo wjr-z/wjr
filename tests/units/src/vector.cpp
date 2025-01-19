@@ -554,15 +554,15 @@ TEST(vector, emplace_back) {
         wvector<int> a;
         a.emplace_back(default_construct);
 
-        WJR_ASSERT_L0(a.size() == 1);
+        WJR_ASSERT_ALWAYS(a.size() == 1);
     }
 
     {
         wvector<std::string> a;
         a.emplace_back(default_construct);
 
-        WJR_ASSERT_L0(a.size() == 1);
-        WJR_ASSERT_L0(a[0].empty());
+        WJR_ASSERT_ALWAYS(a.size() == 1);
+        WJR_ASSERT_ALWAYS(a[0].empty());
     }
 }
 
@@ -742,16 +742,16 @@ TEST(vector, swap) {
 TEST(vector, ptr_unsafe) {
     {
         wvector<int> a(16);
-        WJR_ASSERT_L0(a.begin_unsafe() == wjr::to_address(a.begin()));
-        WJR_ASSERT_L0(a.end_unsafe() == wjr::to_address(a.end()));
-        WJR_ASSERT_L0(a.buf_end_unsafe() == a.begin_unsafe() + a.capacity());
+        WJR_ASSERT_ALWAYS(a.begin_unsafe() == wjr::to_address(a.begin()));
+        WJR_ASSERT_ALWAYS(a.end_unsafe() == wjr::to_address(a.end()));
+        WJR_ASSERT_ALWAYS(a.buf_end_unsafe() == a.begin_unsafe() + a.capacity());
     }
 }
 
 TEST(vector, construct_dctor) {
     {
         wvector<std::string> vec(16, default_construct);
-        for_each_n(vec.begin(), 16, [](auto &x) { WJR_ASSERT_L0(x.empty()); });
+        for_each_n(vec.begin(), 16, [](auto &x) { WJR_ASSERT_ALWAYS(x.empty()); });
     }
 }
 
@@ -760,7 +760,7 @@ TEST(vector, clear) {
         wvector<std::string> vec(16, default_construct);
         vec.clear();
 
-        WJR_ASSERT_L0(vec.empty());
+        WJR_ASSERT_ALWAYS(vec.empty());
     }
 }
 
@@ -768,10 +768,10 @@ TEST(vector, front) {
     {
         wvector<std::string> vec(16, default_construct);
 
-        WJR_ASSERT_L0(vec.front().empty());
-        WJR_ASSERT_L0(vec.front() == vec[0]);
-        WJR_ASSERT_L0(vec.front() == vec.begin()[0]);
-        WJR_ASSERT_L0(vec.front() == *vec.begin());
-        WJR_ASSERT_L0(vec.front() == *vec.data());
+        WJR_ASSERT_ALWAYS(vec.front().empty());
+        WJR_ASSERT_ALWAYS(vec.front() == vec[0]);
+        WJR_ASSERT_ALWAYS(vec.front() == vec.begin()[0]);
+        WJR_ASSERT_ALWAYS(vec.front() == *vec.begin());
+        WJR_ASSERT_ALWAYS(vec.front() == *vec.data());
     }
 }
