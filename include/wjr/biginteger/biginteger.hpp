@@ -2713,7 +2713,6 @@ uint64_t __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 template <typename S0, typename S1>
 void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
                     const biginteger_data *num, const biginteger_data *div) noexcept {
-
     WJR_ASSERT_ASSUME(!__equal_pointer(quot, rem), "quot should not be the same as rem");
 
     unique_stack_allocator stkal;

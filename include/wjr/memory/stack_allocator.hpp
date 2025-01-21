@@ -18,72 +18,84 @@ class stack_allocator_object {
     friend class unique_stack_allocator;
 
     constexpr static size_t Cache = 32_KB;
-    constexpr static uint_fast16_t bufsize = 4;
+    constexpr static uint_fast32_t bufsize = 3;
 
     struct alloc_node {
         char *ptr;
         char *end;
     };
 
-    struct large_stack_top {
-        large_stack_top *prev;
+    struct large_memory {
+        large_memory *prev;
     };
 
 public:
-    struct stack_top {
-        char *ptr;
-        uint_fast16_t idx;
-        large_stack_top *large;
+    class stack_restorer {
+        friend class stack_allocator_object;
+
+    public:
+        WJR_INTRINSIC_INLINE stack_restorer(stack_allocator_object *object) noexcept;
+        inline ~stack_restorer() noexcept;
+
+        stack_restorer(const stack_restorer &) = delete;
+        stack_restorer(stack_restorer &&) = delete;
+
+        WJR_PURE stack_allocator_object *object() noexcept { return m_object; }
+
+    private:
+        stack_allocator_object *m_object;
+        char *m_ptr;
+        uint_fast32_t m_idx;
+        large_memory *m_large;
     };
 
 private:
-    void *__large_allocate(size_t n, stack_top &top) noexcept {
-        auto *const buffer = static_cast<large_stack_top *>(malloc(sizeof(large_stack_top) + n));
-        buffer->prev = top.large;
-        top.large = buffer;
+    void *__large_allocate(size_t n, large_memory *&restorer_large) noexcept {
+        auto *const buffer = static_cast<large_memory *>(malloc(sizeof(large_memory) + n));
+        buffer->prev = restorer_large;
+        restorer_large = buffer;
         return buffer + 1;
     }
 
-    WJR_NOINLINE void __small_reallocate(stack_top &top) noexcept;
+    void __large_deallocate(large_memory *buffer) noexcept;
+
+    WJR_MALLOC void *__small_allocate(size_t n, stack_restorer &restorer) noexcept {
+        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
+            __small_reallocate(restorer.m_ptr);
+        }
+
+        WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
+        auto *const ret = m_cache.ptr;
+        m_cache.ptr += n;
+        return ret;
+    }
+
+    void __small_deallocate(const stack_restorer &restorer) noexcept {
+        const auto curr = m_idx;
+        m_idx = restorer.m_idx;
+        m_cache.ptr = restorer.m_ptr;
+        // Fast path.
+        if (WJR_LIKELY(m_idx == curr)) {
+            return;
+        }
+
+        m_cache.end = m_ptr[m_idx].end;
+        if (WJR_UNLIKELY(m_size - m_idx >= bufsize)) {
+            __small_redeallocate();
+        }
+    }
+
+    void __small_reallocate(char *&restore_ptr) noexcept;
 
     WJR_NOINLINE void __small_redeallocate() noexcept {
-        const uint_fast16_t new_size = m_idx + bufsize - 1;
+        const uint_fast32_t new_size = m_idx + bufsize - 1;
         __default_alloc_template__ pool;
 
-        for (uint_fast16_t i = new_size; i < m_size; ++i) {
+        for (uint_fast32_t i = new_size; i < m_size; ++i) {
             pool.chunk_deallocate(m_ptr[i].ptr, m_ptr[i].end - m_ptr[i].ptr);
         }
 
         m_size = new_size;
-    }
-
-    void __small_deallocate(const stack_top &top) noexcept {
-        if (WJR_UNLIKELY(top.ptr == nullptr)) {
-            return;
-        }
-
-        m_cache.ptr = top.ptr;
-        if (top.idx != UINT_FAST16_MAX) {
-            const uint_fast16_t idx = top.idx;
-            m_cache.end = m_ptr[idx].end;
-            m_idx = idx;
-            if (WJR_UNLIKELY(m_size - idx >= bufsize)) {
-                __small_redeallocate();
-            }
-        }
-    }
-
-    WJR_MALLOC void *__small_allocate(size_t n, stack_top &top) noexcept {
-        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
-            __small_reallocate(top);
-        }
-
-        WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
-        WJR_ASSERT_ASSUME_L2(top.ptr != nullptr);
-
-        auto *const ret = m_cache.ptr;
-        m_cache.ptr += n;
-        return ret;
     }
 
 public:
@@ -99,47 +111,42 @@ public:
     stack_allocator_object &operator=(stack_allocator_object &&) = delete;
     ~stack_allocator_object() = default;
 
-    WJR_NODISCARD WJR_MALLOC void *allocate(size_t n, stack_top &top) noexcept {
+    WJR_NODISCARD WJR_MALLOC void *allocate(size_t n, stack_restorer &restorer) noexcept {
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(n >= stack_allocator_threshold)) {
+            return __large_allocate(n, restorer.m_large);
+        }
+
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
             if (n >= stack_allocator_threshold) {
-                return __large_allocate(n, top);
+                return __large_allocate(n, restorer.m_large);
             }
 
-            __small_reallocate(top);
+            __small_reallocate(restorer.m_ptr);
         }
 
         WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
-        WJR_ASSERT_ASSUME_L2(top.ptr != nullptr);
-
         auto *const ret = m_cache.ptr;
         m_cache.ptr += n;
         return ret;
     }
 
-    void deallocate(const stack_top &top) noexcept {
-        __small_deallocate(top);
-
-        auto *buffer = top.large;
-        while (WJR_UNLIKELY(buffer != nullptr)) {
-            auto *const prev = buffer->prev;
-            free(buffer);
-            buffer = prev;
-        }
-    }
-
-    void set(stack_top &top) const noexcept {
-        top.ptr = m_cache.ptr;
-        top.idx = UINT_FAST16_MAX;
-        top.large = nullptr;
+    void deallocate(const stack_restorer &restorer) noexcept {
+        __small_deallocate(restorer);
+        if (auto *buffer = restorer.m_large; buffer != nullptr)
+            __large_deallocate(buffer);
     }
 
 private:
-    alloc_node m_cache = {nullptr, nullptr};
-    uint_fast16_t m_idx = UINT_FAST16_MAX;
-    uint_fast16_t m_size = 0;
-    uint_fast16_t m_capacity = 0;
+    alignas(16) alloc_node m_cache = {nullptr, nullptr};
+    uint_fast32_t m_idx = 0;
+    uint_fast32_t m_size = 0;
+    uint_fast32_t m_capacity = 0;
     alloc_node *m_ptr = nullptr;
 };
+
+stack_allocator_object::stack_restorer::stack_restorer(stack_allocator_object *object) noexcept
+    : m_object(object), m_ptr(object->m_cache.ptr), m_idx(object->m_idx), m_large(nullptr) {}
+stack_allocator_object::stack_restorer::~stack_restorer() noexcept { m_object->deallocate(*this); }
 
 /**
  * @brief A stack allocator for fast simulation of stack memory on the heap,
@@ -176,26 +183,24 @@ class weak_stack_allocator;
 class unique_stack_allocator {
     using Object = singleton_stack_allocator_object;
     using Instance = typename Object::Instance;
-    using stack_top = typename Instance::stack_top;
+    using stack_restorer = typename Instance::stack_restorer;
 
     template <typename T>
     friend class weak_stack_allocator;
 
 public:
     WJR_INTRINSIC_INLINE
-    unique_stack_allocator() noexcept : m_instance(std::addressof(Object::get_instance())) {
-        m_instance->set(m_top);
-    }
+    unique_stack_allocator() noexcept : m_restorer(std::addressof(Object::get_instance())) {}
 
     unique_stack_allocator(const unique_stack_allocator &) = delete;
     unique_stack_allocator(unique_stack_allocator &&) = delete;
     unique_stack_allocator &operator=(const unique_stack_allocator &) = delete;
     unique_stack_allocator &operator=(unique_stack_allocator &&) = delete;
 
-    ~unique_stack_allocator() noexcept { m_instance->deallocate(m_top); }
+    ~unique_stack_allocator() = default;
 
     WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *allocate(size_t n) noexcept {
-        return m_instance->allocate(n, m_top);
+        return m_restorer.object()->allocate(n, m_restorer);
     }
 
     template <typename Ty>
@@ -205,11 +210,10 @@ public:
 
 private:
     WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *__small_allocate(size_t n) noexcept {
-        return m_instance->__small_allocate(n, m_top);
+        return m_restorer.object()->__small_allocate(n, m_restorer);
     }
 
-    Instance *m_instance;
-    stack_top m_top;
+    stack_restorer m_restorer;
 };
 
 /**

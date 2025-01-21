@@ -2,21 +2,49 @@
 
 namespace wjr {
 
-void stack_allocator_object::__small_reallocate(stack_top &top) noexcept {
-    if (WJR_UNLIKELY(top.idx == UINT_FAST16_MAX)) {
-        top.idx = m_idx;
+void stack_allocator_object::__large_deallocate(large_memory *buffer) noexcept {
+    WJR_ASSERT(buffer != nullptr);
+    do {
+        auto *const prev = buffer->prev;
+        free(buffer);
+        buffer = prev;
+    } while (buffer != nullptr);
+}
+
+void stack_allocator_object::__small_reallocate(char *&restore_ptr) noexcept {
+    static constexpr uint_fast32_t capacity_grow = 16;
+
+    // This is the initial state
+    if (WJR_UNLIKELY(m_capacity == 0)) {
+        {
+            const uint_fast32_t new_capacity = capacity_grow;
+            std::allocator<alloc_node> pool;
+            m_ptr = pool.allocate(new_capacity);
+            m_size = 1;
+            m_capacity = new_capacity;
+        }
+
+        {
+            const size_t capacity = Cache;
+            __default_alloc_template__ pool;
+            auto *const buffer = static_cast<char *>(pool.chunk_allocate(capacity));
+            m_cache = m_ptr[0] = {buffer, buffer + capacity};
+        }
+
+        restore_ptr = m_cache.ptr;
+        return;
     }
 
     ++m_idx;
     if (WJR_UNLIKELY(m_idx == m_size)) {
         if (WJR_UNLIKELY(m_size == m_capacity)) {
-            const uint16_t new_capacity = m_idx + 16;
+            const uint_fast32_t new_capacity = m_capacity + capacity_grow;
             std::allocator<alloc_node> pool;
             auto *const new_ptr = pool.allocate(new_capacity);
-            if (WJR_LIKELY(m_idx != 0)) {
-                std::copy_n(m_ptr, m_idx, new_ptr);
-                pool.deallocate(m_ptr, m_capacity);
-            }
+
+            std::copy_n(m_ptr, m_idx, new_ptr);
+            pool.deallocate(m_ptr, m_capacity);
+
             m_ptr = new_ptr;
             m_capacity = new_capacity;
         }
@@ -26,16 +54,10 @@ void stack_allocator_object::__small_reallocate(stack_top &top) noexcept {
         const size_t capacity = Cache << ((2 * m_idx + 3) / 5);
         __default_alloc_template__ pool;
         auto *const buffer = static_cast<char *>(pool.chunk_allocate(capacity));
-        if (WJR_UNLIKELY(m_idx == 0)) {
-            top.ptr = buffer;
-            top.idx = 0;
-        }
-
         m_ptr[m_idx] = {buffer, buffer + capacity};
     }
 
     m_cache = m_ptr[m_idx];
-    WJR_ASSERT(top.ptr != nullptr);
 }
 
 } // namespace wjr
