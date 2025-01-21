@@ -347,25 +347,4 @@ precompute_chars_convert_t *precompute_chars_convert(precompute_chars_convert_t 
     return pre_table;
 }
 
-template size_t
-__biginteger_to_chars_power_of_two_impl<char_converter_t>(uint8_t *first, const uint64_t *up,
-                                                          size_t n, unsigned int base,
-                                                          char_converter_t conv) noexcept;
-
-template uint8_t *basecase_to_chars_10<char_converter_t>(uint8_t *buf, uint64_t *up, size_t n,
-                                                         char_converter_t conv) noexcept;
-
-template uint8_t *__biginteger_basecase_to_chars<char_converter_t>(uint8_t *first,
-                                                                   const uint64_t *up, size_t n,
-                                                                   unsigned int base,
-                                                                   char_converter_t conv) noexcept;
-
-template size_t basecase_from_chars_10<char_converter_t>(const uint8_t *first, size_t n,
-                                                         uint64_t *up,
-                                                         char_converter_t conv) noexcept;
-
-template uint64_t *__basecase_basecase_from_chars<char_converter_t>(const uint8_t *first, size_t n,
-                                                                    uint64_t *up, unsigned int base,
-                                                                    char_converter_t) noexcept;
-
 } // namespace wjr

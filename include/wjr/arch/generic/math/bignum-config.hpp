@@ -111,7 +111,7 @@
         }                                                                                          \
     }
 #define WJR_MUL_FFT_TABLE3_SIZE 227
-#define WJR_MUL_FFT_THRESHOLD 6272
+#define WJR_MUL_FFT_THRESHOLD 4800
 
 #define WJR_SQR_FFT_MODF_THRESHOLD 400 /* k = 5 */
 #define WJR_SQR_FFT_TABLE3                                                                         \
@@ -148,6 +148,6 @@
         }                                                                                          \
     }
 #define WJR_SQR_FFT_TABLE3_SIZE 205
-#define WJR_SQR_FFT_THRESHOLD 4224
+#define WJR_SQR_FFT_THRESHOLD 3200
 
 #endif // WJR_GENERIC_MATH_BIGNUM_CONFIG_HPP__

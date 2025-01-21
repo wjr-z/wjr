@@ -285,7 +285,7 @@ WJR_CONST inline bool __equal_pointer(const biginteger_data *lhs,
 }
 
 /// @private
-template <bool Checked, typename S>
+template <bool Check, typename S>
 WJR_ALL_NONNULL from_chars_result<const char *>
 __from_chars_impl(const char *first, const char *last, basic_biginteger<S> *dst,
                   unsigned int base) noexcept;
@@ -1428,7 +1428,7 @@ void swap(basic_biginteger<Storage> &lhs, basic_biginteger<Storage> &rhs) noexce
 
 namespace biginteger_detail {
 
-template <bool Checked, typename S>
+template <bool Check, typename S>
 from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
                                                   basic_biginteger<S> *dst,
                                                   unsigned int base) noexcept {
@@ -1442,7 +1442,7 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
         uint8_t ch;
         ch = *first;
 
-        if constexpr (Checked) {
+        if constexpr (Check) {
             first = skip_whitespace(first, last);
         } else {
             WJR_ASSERT(!charconv_detail::isspace(ch));
@@ -1458,7 +1458,7 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
             ch = *first;
         }
 
-        if constexpr (Checked) {
+        if constexpr (Check) {
             if (base == 0) {
                 base = 10;
                 if (ch == '0') {
@@ -1492,7 +1492,7 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
         }
 
 #if WJR_DEBUG_LEGVEL < 3
-        if constexpr (Checked) {
+        if constexpr (Check) {
 #endif
             if (base <= 10) {
                 const auto __try_match = [base](uint8_t &__ch) {
@@ -1598,7 +1598,7 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
             first = last;
         }
 #else
-        if constexpr (Checked) {
+        if constexpr (Check) {
             WJR_ASSERT(first == last);
         }
 #endif

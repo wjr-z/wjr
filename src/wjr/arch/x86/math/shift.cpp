@@ -181,6 +181,7 @@ void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int cl
         return;
     }
 
+    // todo : unroll
     do {
         auto x1 = simd::loadu(src - (type_width + 1));
         auto x2 = simd::loadu(src - (type_width + 1) - (type_width));
@@ -283,6 +284,7 @@ WJR_ALL_NONNULL void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n,
         return;
     }
 
+    // todo : unroll
     do {
         auto x1 = simd::loadu(src + 1);
         auto x2 = simd::loadu(src + 1 + (type_width));

@@ -371,7 +371,6 @@ static inline void mpn_fft_normalize(mp_ptr ap, mp_size_t n) {
 /* a[i] <- a[i]*b[i] mod 2^(n*GMP_NUMB_BITS)+1 for 0 <= i < K */
 static void mpn_fft_mul_modF_K(mp_ptr *ap, mp_ptr *bp, mp_size_t n, mp_size_t K) {
     unsigned i;
-    unsigned k;
     int sqr = (ap == bp);
     TMP_DECL;
 
@@ -440,7 +439,7 @@ static void mpn_fft_mul_modF_K(mp_ptr *ap, mp_ptr *bp, mp_size_t n, mp_size_t K)
         }
     }
 #if !TUNE_PROGRAM_BUILD
-    else if (MPN_MULMOD_BKNP1_USABLE(n, k, MUL_FFT_MODF_THRESHOLD)) {
+    else if (unsigned k; MPN_MULMOD_BKNP1_USABLE(n, k, MUL_FFT_MODF_THRESHOLD)) {
         mp_ptr a;
         mp_size_t n_k = n / k;
 

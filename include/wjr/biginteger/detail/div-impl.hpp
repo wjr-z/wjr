@@ -26,10 +26,7 @@ WJR_INTRINSIC_INLINE void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t 
 WJR_INTRINSIC_CONSTEXPR20 uint64_t divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
                                                   uint64_t bd, uint64_t h) noexcept;
 
-WJR_INTRINSIC_CONSTEXPR20 void divexact_dbm1c_shift(uint64_t *dst, const uint64_t *src, size_t n,
-                                                    uint64_t bd, uint64_t cl,
-                                                    uint64_t hicf) noexcept;
-
+/// @brief Automatically select the optimal strategy
 template <uint64_t c>
 WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
                                             integral_constant<uint64_t, c>,
