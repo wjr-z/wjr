@@ -1,10 +1,7 @@
-#ifndef WJR_CONTAINER_CONTAINER_VECTOR_HPP__
-#define WJR_CONTAINER_CONTAINER_VECTOR_HPP__
-
 /**
  * @file vector.hpp
- * @brief Vector container with definable internal structure
- *
+ * @author wjr
+ * @brief
  * @details
  * Customized internal structure needs to follow the following function
  * signature: \n
@@ -38,12 +35,19 @@
  * -# size_type operator+=(size_type) noexcept
  * -# size_type operator-=(size_type) noexcept
  *
- * @todo SSO vector.
+ * @todo 1. SSO vector. Not in accordance with standards.
+ * 2. realloc. It is necessary for weak_stack_allcoator. Because this allocator can easily expand in
+ * place.
  *
  * @version 0.2
  * @date 2024-04-29
  *
+ * @copyright Copyright (c) 2025
+ *
  */
+
+#ifndef WJR_CONTAINER_CONTAINER_VECTOR_HPP__
+#define WJR_CONTAINER_CONTAINER_VECTOR_HPP__
 
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/container_fn.hpp>

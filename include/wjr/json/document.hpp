@@ -5,7 +5,8 @@
  * @version 0.1
  * @date 2024-12-08
  *
- * @todo Optimization, separate document and parser.
+ * @todo 1. Optimization, separate document and parser.
+ * 2. Use flat_map instead of std::map.
  *
  * @copyright Copyright (c) 2024
  *
@@ -16,10 +17,10 @@
 
 #include <map>
 
+#include <wjr/format/ostream_insert.hpp>
 #include <wjr/json/formatter.hpp>
 #include <wjr/json/visitor.hpp>
-
-#include <wjr/container/btree_map.hpp>
+#include <wjr/memory/stack_allocator.hpp>
 
 namespace wjr::json {
 
@@ -65,7 +66,7 @@ public:
                            has_compare<typename object_type::key_compare, Key, string_type>> {};
 };
 
-using default_document_traits = basic_document_traits<std::basic_string, btree_map, vector>;
+using default_document_traits = basic_document_traits<std::basic_string, std::map, vector>;
 using __default_document_string = typename default_document_traits::string_type;
 
 template <typename Document>
@@ -226,7 +227,7 @@ public:
     }
 };
 
-template <typename T, typename Enable = void>
+template <typename T>
 struct document_serializer_impl {
     using value_type = T;
 };
@@ -506,7 +507,7 @@ class basic_document {
     template <typename T>
     friend struct __document_get_impl;
 
-    template <typename T, typename Enable>
+    template <typename T>
     friend struct document_serializer_impl;
 
     template <typename Arithmetic>
@@ -1155,7 +1156,7 @@ private:
 };
 
 template <>
-struct document_serializer_impl<std::nullptr_t, void> {
+struct document_serializer_impl<std::nullptr_t> {
     using value_type = std::nullptr_t;
 
     /// from_document
@@ -1193,7 +1194,7 @@ struct document_serializer_impl<std::nullptr_t, void> {
 };
 
 template <>
-struct document_serializer_impl<bool, void> {
+struct document_serializer_impl<bool> {
     using value_type = bool;
 
     /// from_document
@@ -1292,12 +1293,31 @@ struct __document_serializer_arithmetic {
 
 using document = basic_document<detail::default_document_traits>;
 
-template <typename Arithmetic>
-struct document_serializer_impl<Arithmetic, std::enable_if_t<std::is_arithmetic_v<Arithmetic>>>
-    : __document_serializer_arithmetic<Arithmetic> {};
+// register Arithmetic
+#define WJR_DOCUMENT_REGISTER_ARITHMETIC(Arithmetic)                                               \
+    template <>                                                                                    \
+    struct document_serializer_impl<Arithmetic> : __document_serializer_arithmetic<Arithmetic> {}
+
+WJR_DOCUMENT_REGISTER_ARITHMETIC(char);
+WJR_DOCUMENT_REGISTER_ARITHMETIC(signed char);
+WJR_DOCUMENT_REGISTER_ARITHMETIC(unsigned char);
+WJR_DOCUMENT_REGISTER_ARITHMETIC(wchar_t);
+WJR_DOCUMENT_REGISTER_ARITHMETIC(char16_t);
+WJR_DOCUMENT_REGISTER_ARITHMETIC(char32_t);
+WJR_DOCUMENT_REGISTER_ARITHMETIC(short);
+WJR_DOCUMENT_REGISTER_ARITHMETIC(unsigned short);
+WJR_DOCUMENT_REGISTER_ARITHMETIC(int);
+WJR_DOCUMENT_REGISTER_ARITHMETIC(unsigned int);
+WJR_DOCUMENT_REGISTER_ARITHMETIC(long);
+WJR_DOCUMENT_REGISTER_ARITHMETIC(unsigned long);
+WJR_DOCUMENT_REGISTER_ARITHMETIC(long long);
+WJR_DOCUMENT_REGISTER_ARITHMETIC(unsigned long long);
+WJR_DOCUMENT_REGISTER_ARITHMETIC(float);
+WJR_DOCUMENT_REGISTER_ARITHMETIC(double);
+WJR_DOCUMENT_REGISTER_ARITHMETIC(long double);
 
 template <>
-struct document_serializer_impl<std::string_view, void> {
+struct document_serializer_impl<std::string_view> {
     using value_type = std::string_view;
 
     /// from_document
@@ -1342,7 +1362,7 @@ struct document_serializer_impl<std::string_view, void> {
 };
 
 template <typename Alloc>
-struct document_serializer_impl<std::basic_string<char, std::char_traits<char>, Alloc>, void> {
+struct document_serializer_impl<std::basic_string<char, std::char_traits<char>, Alloc>> {
     using value_type = std::basic_string<char, std::char_traits<char>, Alloc>;
 
     /// from_document
@@ -1644,11 +1664,11 @@ public:
 };
 
 template <typename T, typename Alloc>
-struct document_serializer_impl<std::vector<T, Alloc>, void>
+struct document_serializer_impl<std::vector<T, Alloc>>
     : __document_serializer_array<std::vector<T, Alloc>> {};
 
 template <typename Traits>
-struct document_serializer_impl<basic_vector<Traits>, void>
+struct document_serializer_impl<basic_vector<Traits>>
     : __document_serializer_array<basic_vector<Traits>> {};
 
 template <typename T>
@@ -1791,19 +1811,19 @@ struct __document_serializer_object {
 };
 
 template <typename Key, typename Value, typename Pr, typename Alloc>
-struct document_serializer_impl<std::map<Key, Value, Pr, Alloc>, void>
+struct document_serializer_impl<std::map<Key, Value, Pr, Alloc>>
     : __document_serializer_object<std::map<Key, Value, Pr, Alloc>> {};
 
 template <typename Key, typename Value, typename Pr, typename Alloc>
-struct document_serializer_impl<std::multimap<Key, Value, Pr, Alloc>, void>
+struct document_serializer_impl<std::multimap<Key, Value, Pr, Alloc>>
     : __document_serializer_object<std::multimap<Key, Value, Pr, Alloc>> {};
 
 template <typename Key, typename Value, typename Hash, typename Eq, typename Alloc>
-struct document_serializer_impl<std::unordered_map<Key, Value, Hash, Eq, Alloc>, void>
+struct document_serializer_impl<std::unordered_map<Key, Value, Hash, Eq, Alloc>>
     : __document_serializer_array<std::unordered_map<Key, Value, Hash, Eq, Alloc>> {};
 
 template <typename Key, typename Value, typename Hash, typename Eq, typename Alloc>
-struct document_serializer_impl<std::unordered_multimap<Key, Value, Hash, Eq, Alloc>, void>
+struct document_serializer_impl<std::unordered_multimap<Key, Value, Hash, Eq, Alloc>>
     : __document_serializer_array<std::unordered_multimap<Key, Value, Hash, Eq, Alloc>> {};
 
 namespace detail {
@@ -2225,7 +2245,6 @@ void format_impl(Formatter fmt, const basic_document<Traits> &doc, unsigned dept
                 fmt.format_comma();
 
             LOOP0_HEAD:
-
                 fmt.format_newline();
                 fmt.format_indents(depth + 1);
 
