@@ -14,6 +14,9 @@ WJR_INTRINSIC_CONSTEXPR20 void bi_not_n(uint64_t *dst, const uint64_t *src, size
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
 #if WJR_HAS_BUILTIN(BI_NOT_N)
+    if (is_constant_evaluated()) {
+        return not_n(dst, src, n);
+    }
     return builtin_bi_not_n(dst, src, n);
 #else
     return not_n(dst, src, n);
