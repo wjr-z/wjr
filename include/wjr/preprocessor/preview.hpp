@@ -60,6 +60,14 @@
     #undef WJR_HAS_FEATURE_FORCE_NOVECTOR
 #endif
 
+#define WJR_HAS_FEATURE_NO_UNIQUE_ADDRESS WJR_HAS_DEF
+#if WJR_HAS_CPP_ATTRIBUTE(no_unique_address)
+    #define WJR_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#else
+    #define WJR_NO_UNIQUE_ADDRESS
+    #undef WJR_HAS_FEATURE_NO_UNIQUE_ADDRESS
+#endif
+
 #define WJR_IS_OVERLAP_P(p, pn, q, qn) ((p) + (pn) > (q) && (q) + (qn) > (p))
 #define WJR_IS_SEPARATE_P(p, pn, q, qn) (!WJR_IS_OVERLAP_P(p, pn, q, qn))
 #define WJR_IS_SAME_OR_SEPARATE_P(p, pn, q, qn) (((p) == (q)) || WJR_IS_SEPARATE_P(p, pn, q, qn))
