@@ -9,6 +9,7 @@
  * Only use when key is trivial. Otherwise, this maybe won't faster than
  * std::map because its search complexity is O((k - 1) * (log n / log k)).
  * Insertion and deletion may cause iterators to fail.
+ * Don't use it currently.
  *
  * @todo
  * 1. Erase a range with optimization.
@@ -16,6 +17,9 @@
  * 3. Merge with optimization.
  * 4. Code size optimization.
  * 5. GCC optimization on unpacked struct failed?
+ * 6. Clang optimization on memcpy so stupid.
+ * 7. MSVC bug on memcpy order
+ * (https://developercommunity.visualstudio.com/t/incorrect-memcpy-optimization/1151407).
  *
  * @version 0.2
  * @date 2024-12-15
@@ -27,6 +31,7 @@
 #include <wjr/container/container_fn.hpp>
 #include <wjr/container/forward_list.hpp>
 #include <wjr/container/list.hpp>
+#include <wjr/memory/copy.hpp>
 #include <wjr/memory/memory_pool.hpp>
 #include <wjr/memory/uninitialized.hpp>
 
@@ -52,59 +57,14 @@ namespace btree_detail {
  */
 inline constexpr size_t node_size = 8;
 
-template <size_t Min, size_t Max, typename Ptr, WJR_REQUIRES(std::is_pointer_v<Ptr>)>
-WJR_INTRINSIC_INLINE void builtin_btree_copy(const Ptr *first, const Ptr *last, Ptr *dst) noexcept {
-    constexpr auto Size = sizeof(Ptr);
-
-    if constexpr (Min == 0) {
-        if (WJR_UNLIKELY(first == last)) {
-            return;
-        }
-    }
-
-    const auto n = to_unsigned(last - first);
-    WJR_ASSUME(n >= Min && n <= Max);
-
-    if constexpr (Max > 4) {
-        if (WJR_UNLIKELY(n > 4)) {
-            char x0[Size * 4];
-            char x1[Size * 4];
-            builtin_memcpy(x0, first, Size * 4);
-            builtin_memcpy(x1, last - 4, Size * 4);
-            builtin_memcpy(dst, x0, Size * 4);
-            builtin_memcpy(dst + n - 4, x1, Size * 4);
-            return;
-        }
-    }
-
-    if constexpr (Max > 2) {
-        if (WJR_LIKELY(n >= 2)) {
-            char x0[Size * 2];
-            char x1[Size * 2];
-            builtin_memcpy(x0, first, Size * 2);
-            builtin_memcpy(x1, last - 2, Size * 2);
-            builtin_memcpy(dst, x0, Size * 2);
-            builtin_memcpy(dst + n - 2, x1, Size * 2);
-            return;
-        }
-    }
-
-    dst[0] = first[0];
-    if constexpr (Max == 2) {
-        if (n == 1)
-            return;
-        dst[1] = first[1];
-    }
-}
-
 template <size_t Min, size_t Max, typename Ptr>
 WJR_INTRINSIC_INLINE void copy(const Ptr *first, const Ptr *last, Ptr *dest) noexcept {
-    builtin_btree_copy<Min, Max>(first, last, dest);
+    small_pointer_copy<Min, Max>(first, last, dest);
 }
 
 template <size_t Min, size_t Max, typename Ptr>
 WJR_INTRINSIC_INLINE void copy_backward(const Ptr *first, const Ptr *last, Ptr *dest) noexcept {
-    builtin_btree_copy<Min, Max>(first, last, dest - (last - first));
+    small_pointer_copy<Min, Max>(first, last, dest - (last - first));
 }
 
 } // namespace btree_detail
@@ -158,17 +118,6 @@ public:
     using list_base_type = btree_list_base<btree_traits>;
     using leaf_node_type = btree_leaf_node<btree_traits>;
     static constexpr bool multi = Multi;
-
-    template <size_t Min, size_t Max, typename Ptr>
-    WJR_INTRINSIC_INLINE static void copy(const Ptr *first, const Ptr *last, Ptr *dest) noexcept {
-        return btree_detail::copy<Min, Max>(first, last, dest);
-    }
-
-    template <size_t Min, size_t Max, typename Ptr>
-    WJR_INTRINSIC_INLINE static void copy_backward(const Ptr *first, const Ptr *last,
-                                                   Ptr *dest) noexcept {
-        return btree_detail::copy_backward<Min, Max>(first, last, dest);
-    }
 };
 
 struct btree_node_constructor_t {};
@@ -245,16 +194,15 @@ struct btree_leaf_node : btree_list_base<Traits> {
     template <size_t Min, size_t Max>
     WJR_INTRINSIC_INLINE void __copy(unsigned int start, unsigned int end, unsigned int dst_start,
                                      btree_leaf_node *dst) const noexcept {
-        Traits::template copy<Min, Max>(m_values + start, m_values + end,
-                                        dst->m_values + dst_start);
+        btree_detail::copy<Min, Max>(m_values + start, m_values + end, dst->m_values + dst_start);
     }
 
     template <size_t Min, size_t Max>
     WJR_INTRINSIC_INLINE void __copy_backward(unsigned int start, unsigned int end,
                                               unsigned int dst_end,
                                               btree_leaf_node *dst) const noexcept {
-        Traits::template copy_backward<Min, Max>(m_values + start, m_values + end,
-                                                 dst->m_values + dst_end);
+        btree_detail::copy_backward<Min, Max>(m_values + start, m_values + end,
+                                              dst->m_values + dst_end);
     }
 
     WJR_INTRINSIC_INLINE void __assign(unsigned int idx, value_type *value) noexcept {
@@ -1001,10 +949,10 @@ private:
 
                 // non-full inner
                 if (WJR_LIKELY(cur_size != node_size + 1)) {
-                    Traits::template copy_backward<0, node_size - 1>(
+                    btree_detail::copy_backward<0, node_size - 1>(
                         keys + pos - 1, keys + cur_size - 1, keys + cur_size);
-                    Traits::template copy_backward<0, node_size - 1>(sons + pos, sons + cur_size,
-                                                                     sons + cur_size + 1);
+                    btree_detail::copy_backward<0, node_size - 1>(sons + pos, sons + cur_size,
+                                                                  sons + cur_size + 1);
 
                     inner->size() = cur_size;
                     keys[pos - 1] = key;
@@ -1030,14 +978,14 @@ private:
                 if (pos <= ceil_half) {
                     next_key = keys[ceil_half - 1];
 
-                    Traits::template copy<floor_half, floor_half>(
-                        keys + ceil_half, keys + node_size, tmp_inst->m_keys);
-                    Traits::template copy<floor_half + 1, floor_half + 1>(
+                    btree_detail::copy<floor_half, floor_half>(keys + ceil_half, keys + node_size,
+                                                               tmp_inst->m_keys);
+                    btree_detail::copy<floor_half + 1, floor_half + 1>(
                         sons + ceil_half, sons + node_size + 1, tmp_inst->m_sons);
-                    Traits::template copy_backward<0, ceil_half>(
-                        keys + pos - 1, keys + ceil_half - 1, keys + ceil_half);
-                    Traits::template copy_backward<0, ceil_half>(sons + pos, sons + ceil_half,
-                                                                 sons + ceil_half + 1);
+                    btree_detail::copy_backward<0, ceil_half>(keys + pos - 1, keys + ceil_half - 1,
+                                                              keys + ceil_half);
+                    btree_detail::copy_backward<0, ceil_half>(sons + pos, sons + ceil_half,
+                                                              sons + ceil_half + 1);
 
                     keys[pos - 1] = key;
                     sons[pos] = inst;
@@ -1050,26 +998,26 @@ private:
                     if (pos == ceil_half + 1) {
                         next_key = key;
 
-                        Traits::template copy<floor_half, floor_half>(
+                        btree_detail::copy<floor_half, floor_half>(
                             keys + ceil_half, keys + node_size, tmp_inst->m_keys);
-                        Traits::template copy<floor_half, floor_half>(
+                        btree_detail::copy<floor_half, floor_half>(
                             sons + ceil_half + 1, sons + node_size + 1, tmp_inst->m_sons + 1);
 
                         tmp_inst->m_sons[0] = inst;
                     } else {
                         next_key = keys[ceil_half];
 
-                        Traits::template copy<0, floor_half - 1>(keys + ceil_half + 1,
-                                                                 keys + pos - 1, tmp_inst->m_keys);
-                        Traits::template copy<1, floor_half>(sons + ceil_half + 1, sons + pos,
-                                                             tmp_inst->m_sons);
+                        btree_detail::copy<0, floor_half - 1>(keys + ceil_half + 1, keys + pos - 1,
+                                                              tmp_inst->m_keys);
+                        btree_detail::copy<1, floor_half>(sons + ceil_half + 1, sons + pos,
+                                                          tmp_inst->m_sons);
 
                         const unsigned int rpos = pos - ceil_half - 1;
 
-                        Traits::template copy<0, floor_half - 1>(keys + pos - 1, keys + node_size,
-                                                                 tmp_inst->m_keys + rpos);
-                        Traits::template copy<0, floor_half - 1>(sons + pos, sons + node_size + 1,
-                                                                 tmp_inst->m_sons + rpos + 1);
+                        btree_detail::copy<0, floor_half - 1>(keys + pos - 1, keys + node_size,
+                                                              tmp_inst->m_keys + rpos);
+                        btree_detail::copy<0, floor_half - 1>(sons + pos, sons + node_size + 1,
+                                                              tmp_inst->m_sons + rpos + 1);
 
                         tmp_inst->m_keys[rpos - 1] = key;
                         tmp_inst->m_sons[rpos] = inst;
@@ -1259,10 +1207,9 @@ private:
             node_type **const sons = inner->m_sons;
 
             if (cur_size > floor_half) {
-                Traits::template copy<0, node_size - 1>(keys + pos, keys + cur_size,
-                                                        keys + pos - 1);
-                Traits::template copy<0, node_size - 1>(sons + pos + 1, sons + cur_size + 1,
-                                                        sons + pos);
+                btree_detail::copy<0, node_size - 1>(keys + pos, keys + cur_size, keys + pos - 1);
+                btree_detail::copy<0, node_size - 1>(sons + pos + 1, sons + cur_size + 1,
+                                                     sons + pos);
 
                 for (unsigned int i = pos; i < cur_size; ++i) {
                     sons[i]->pos() = i;
@@ -1287,15 +1234,14 @@ private:
                     rhs = inner;
 
                     if (next_size == floor_half) {
-                        Traits::template copy<0, floor_half - 1>(keys, keys + pos - 1,
-                                                                 lhs->m_keys + floor_half + 1);
-                        Traits::template copy<1, floor_half>(sons, sons + pos,
-                                                             lhs->m_sons + floor_half + 1);
-                        Traits::template copy<0, floor_half - 1>(keys + pos, keys + floor_half,
-                                                                 lhs->m_keys + floor_half + pos);
-                        Traits::template copy<0, floor_half - 1>(
-                            sons + pos + 1, sons + floor_half + 1,
-                            lhs->m_sons + floor_half + pos + 1);
+                        btree_detail::copy<0, floor_half - 1>(keys, keys + pos - 1,
+                                                              lhs->m_keys + floor_half + 1);
+                        btree_detail::copy<1, floor_half>(sons, sons + pos,
+                                                          lhs->m_sons + floor_half + 1);
+                        btree_detail::copy<0, floor_half - 1>(keys + pos, keys + floor_half,
+                                                              lhs->m_keys + floor_half + pos);
+                        btree_detail::copy<0, floor_half - 1>(sons + pos + 1, sons + floor_half + 1,
+                                                              lhs->m_sons + floor_half + pos + 1);
 
                         for (unsigned int i = floor_half; i <= merge_size; ++i) {
                             lhs->m_sons[i]->m_parent = lhs;
@@ -1311,9 +1257,9 @@ private:
                     const key_type *key = lhs->m_keys[next_size - moved_elements];
 
                     if (moved_elements != 1) {
-                        Traits::template copy_backward<0, floor_half - 1>(
+                        btree_detail::copy_backward<0, floor_half - 1>(
                             keys + pos, keys + floor_half, keys + floor_half + moved_elements - 1);
-                        Traits::template copy_backward<0, floor_half - 1>(
+                        btree_detail::copy_backward<0, floor_half - 1>(
                             sons + pos + 1, sons + floor_half + 1,
                             sons + floor_half + moved_elements);
                         for (unsigned int i = pos + moved_elements; i < floor_half + moved_elements;
@@ -1322,16 +1268,16 @@ private:
                         }
                     }
 
-                    Traits::template copy_backward<0, floor_half - 1>(
-                        keys, keys + pos - 1, keys + pos + moved_elements - 1);
-                    Traits::template copy_backward<1, floor_half>(sons, sons + pos,
-                                                                  sons + pos + moved_elements);
-                    Traits::template copy<0, max_moved_elements - 1>(lhs->m_keys + next_size -
-                                                                         moved_elements + 1,
-                                                                     lhs->m_keys + next_size, keys);
-                    Traits::template copy<1, max_moved_elements>(lhs->m_sons + next_size -
-                                                                     moved_elements + 1,
-                                                                 lhs->m_sons + next_size + 1, sons);
+                    btree_detail::copy_backward<0, floor_half - 1>(keys, keys + pos - 1,
+                                                                   keys + pos + moved_elements - 1);
+                    btree_detail::copy_backward<1, floor_half>(sons, sons + pos,
+                                                               sons + pos + moved_elements);
+                    btree_detail::copy<0, max_moved_elements - 1>(lhs->m_keys + next_size -
+                                                                      moved_elements + 1,
+                                                                  lhs->m_keys + next_size, keys);
+                    btree_detail::copy<1, max_moved_elements>(lhs->m_sons + next_size -
+                                                                  moved_elements + 1,
+                                                              lhs->m_sons + next_size + 1, sons);
 
                     keys[moved_elements - 1] = par_inner->m_keys[par_pos - 1];
                     par_inner->m_keys[par_pos - 1] = key;
@@ -1353,13 +1299,13 @@ private:
                     lhs = inner;
 
                     if (next_size == floor_half) {
-                        Traits::template copy<0, floor_half - 1>(keys + pos, keys + floor_half,
-                                                                 keys + pos - 1);
-                        Traits::template copy<0, floor_half - 1>(sons + pos + 1,
-                                                                 sons + floor_half + 1, sons + pos);
-                        Traits::template copy<0, floor_half>(rhs->m_keys, rhs->m_keys + floor_half,
-                                                             keys + floor_half);
-                        Traits::template copy<0, floor_half + 1>(
+                        btree_detail::copy<0, floor_half - 1>(keys + pos, keys + floor_half,
+                                                              keys + pos - 1);
+                        btree_detail::copy<0, floor_half - 1>(sons + pos + 1, sons + floor_half + 1,
+                                                              sons + pos);
+                        btree_detail::copy<0, floor_half>(rhs->m_keys, rhs->m_keys + floor_half,
+                                                          keys + floor_half);
+                        btree_detail::copy<0, floor_half + 1>(
                             rhs->m_sons, rhs->m_sons + floor_half + 1, sons + floor_half);
 
                         for (unsigned int i = pos; i < floor_half; ++i) {
@@ -1380,17 +1326,17 @@ private:
 
                     const key_type *key = rhs->m_keys[moved_elements - 1];
 
-                    Traits::template copy<0, floor_half - 1>(keys + pos, keys + floor_half,
-                                                             keys + pos - 1);
-                    Traits::template copy<0, floor_half - 1>(sons + pos + 1, sons + floor_half + 1,
-                                                             sons + pos);
-                    Traits::template copy<0, max_moved_elements - 1>(
+                    btree_detail::copy<0, floor_half - 1>(keys + pos, keys + floor_half,
+                                                          keys + pos - 1);
+                    btree_detail::copy<0, floor_half - 1>(sons + pos + 1, sons + floor_half + 1,
+                                                          sons + pos);
+                    btree_detail::copy<0, max_moved_elements - 1>(
                         rhs->m_keys, rhs->m_keys + moved_elements - 1, keys + floor_half);
-                    Traits::template copy<1, max_moved_elements>(
+                    btree_detail::copy<1, max_moved_elements>(
                         rhs->m_sons, rhs->m_sons + moved_elements, sons + floor_half);
-                    Traits::template copy<node_size - max_moved_elements, node_size - 1>(
+                    btree_detail::copy<node_size - max_moved_elements, node_size - 1>(
                         rhs->m_keys + moved_elements, rhs->m_keys + next_size, rhs->m_keys);
-                    Traits::template copy<node_size - max_moved_elements + 1, node_size>(
+                    btree_detail::copy<node_size - max_moved_elements + 1, node_size>(
                         rhs->m_sons + moved_elements, rhs->m_sons + next_size + 1, rhs->m_sons);
 
                     keys[floor_half - 1] = par_inner->m_keys[par_pos];
@@ -1435,10 +1381,10 @@ private:
             return;
         }
 
-        Traits::template copy<0, node_size>(inner->m_keys + pos, inner->m_keys + cur_size,
-                                            inner->m_keys + pos - 1);
-        Traits::template copy<0, node_size>(inner->m_sons + pos + 1, inner->m_sons + cur_size + 1,
-                                            inner->m_sons + pos);
+        btree_detail::copy<0, node_size>(inner->m_keys + pos, inner->m_keys + cur_size,
+                                         inner->m_keys + pos - 1);
+        btree_detail::copy<0, node_size>(inner->m_sons + pos + 1, inner->m_sons + cur_size + 1,
+                                         inner->m_sons + pos);
 
         for (unsigned int i = pos; i < cur_size; ++i) {
             inner->m_sons[i]->pos() = i;
