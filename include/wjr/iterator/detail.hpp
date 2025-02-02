@@ -90,7 +90,7 @@ struct __is_contiguous_iterator_impl
 template <typename Iter>
 struct __is_contiguous_iterator_impl<std::move_iterator<Iter>>
     : std::conjunction<__is_contiguous_iterator_impl<Iter>,
-                       std::is_trivial<iterator_value_t<Iter>>> {};
+                       std::is_trivially_copyable<iterator_value_t<Iter>>> {};
 
 #if defined(WJR_CPP_20)
 template <typename Iter>

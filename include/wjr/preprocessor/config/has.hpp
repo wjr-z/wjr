@@ -221,7 +221,7 @@
     #define WJR_HAS_SIMD_PCLMUL WJR_HAS_DEF
 #endif
 
-#if defined(WJR_X86)
+#if defined(WJR_ARCH_X86)
     #define WJR_ARCH x86
 #endif
 

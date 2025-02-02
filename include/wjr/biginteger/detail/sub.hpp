@@ -5,7 +5,7 @@
 #include <wjr/math/replace.hpp>
 #include <wjr/math/sub.hpp>
 
-#if defined(WJR_X86)
+#if defined(WJR_ARCH_X86)
     #include <wjr/arch/x86/biginteger/detail/sub.hpp>
 #endif
 

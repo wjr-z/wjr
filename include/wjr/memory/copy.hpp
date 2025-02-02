@@ -20,7 +20,7 @@
 #include <wjr/iterator/inserter.hpp>
 #include <wjr/memory/detail.hpp>
 
-#if defined(WJR_X86)
+#if defined(WJR_ARCH_X86)
     #include <wjr/arch/x86/memory/copy.hpp>
 #endif
 

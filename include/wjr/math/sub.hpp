@@ -5,7 +5,7 @@
 #include <wjr/math/detail.hpp>
 #include <wjr/math/sub-impl.hpp>
 
-#if defined(WJR_X86)
+#if defined(WJR_ARCH_X86)
     #include <wjr/arch/x86/math/sub.hpp>
 #endif
 

@@ -17,7 +17,7 @@
  * 3. Merge with optimization.
  * 4. Code size optimization.
  * 5. GCC optimization on unpacked struct failed?
- * 6. Clang optimization on memcpy so stupid.
+ * 6. Clang optimization on memcpy is so stupid.
  * 7. MSVC bug on memcpy order
  * (https://developercommunity.visualstudio.com/t/incorrect-memcpy-optimization/1151407).
  *
@@ -326,7 +326,7 @@ protected:
 
     WJR_INTRINSIC_INLINE btree_const_iterator &__adjust_next() noexcept {
         if (WJR_UNLIKELY(m_pos == __get_usize())) {
-            m_node = m_node->next();
+            m_node = m_node->next;
             m_pos = 0;
         }
 
@@ -564,9 +564,9 @@ public:
     constexpr key_compare &key_comp() noexcept { return m_pair.first(); }
     constexpr const key_compare &key_comp() const noexcept { return m_pair.first(); }
 
-    iterator begin() noexcept { return iterator(__get_sentry()->next(), 0); }
-    const_iterator begin() const noexcept { return const_iterator(__get_sentry()->next(), 0); }
-    const_iterator cbegin() const noexcept { return const_iterator(__get_sentry()->next(), 0); }
+    iterator begin() noexcept { return iterator(__get_sentry()->next, 0); }
+    const_iterator begin() const noexcept { return const_iterator(__get_sentry()->next, 0); }
+    const_iterator cbegin() const noexcept { return const_iterator(__get_sentry()->next, 0); }
 
     iterator end() noexcept { return iterator(__get_sentry(), 0); }
     const_iterator end() const noexcept { return const_iterator(__get_sentry(), 0); }
@@ -829,7 +829,7 @@ private:
                 __drop_node(leaf->m_values[i]);
             }
 
-            list_node_type *next = leaf->next()->self();
+            list_node_type *next = leaf->next->self();
             __drop_leaf_node(leaf);
 
             // if `current' is the last child of parent
@@ -1091,7 +1091,7 @@ private:
 
         if constexpr (Adjust) {
             if (WJR_UNLIKELY(pos == cur_usize)) {
-                return const_iterator(current->as_leaf()->next(), 0);
+                return const_iterator(current->as_leaf()->next, 0);
             }
         }
 

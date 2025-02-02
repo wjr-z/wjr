@@ -8,7 +8,7 @@
 #include <wjr/math/mul.hpp>
 #include <wjr/math/shift.hpp>
 
-#if defined(WJR_X86)
+#if defined(WJR_ARCH_X86)
     #include <wjr/arch/x86/math/divider.hpp>
 #endif
 

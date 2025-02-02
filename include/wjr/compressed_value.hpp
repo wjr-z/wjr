@@ -7,7 +7,7 @@
 namespace wjr {
 template <typename T, T uniq_value>
 class compressed_value {
-    static_assert(std::is_trivial_v<T>, "Only support trivial type currently.");
+    static_assert(std::is_trivially_copyable_v<T>, "Only support trivial type currently.");
     static_assert(sizeof(T) <= sizeof(void *), "Don't need to compress.");
 
 public:

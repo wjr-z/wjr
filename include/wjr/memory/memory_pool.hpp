@@ -26,12 +26,8 @@ struct automatic_free_pool {
 
     automatic_free_pool() = default;
     ~automatic_free_pool() noexcept {
-        chunk *node = head.next()->self();
-        while (node != std::addressof(head)) {
-            auto *const nxt = node->next()->self();
-            free(node);
-            node = nxt;
-        }
+        chunk *node, *next;
+        WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) { free(next); }
     }
 
     automatic_free_pool(const automatic_free_pool &) = delete;

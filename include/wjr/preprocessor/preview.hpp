@@ -121,7 +121,7 @@
     CLASS &operator=(CLASS &&) = default;                                                          \
     ~CLASS() = default
 
-#if defined(WJR_WINDOWS)
+#if defined(WJR_OS_WINDOWS)
     #if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG)
         #define WJR_HAS_DECLSPEC
         #define WJR_SYMBOL_EXPORT __attribute__((__dllexport__))

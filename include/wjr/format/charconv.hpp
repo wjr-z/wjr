@@ -12,7 +12,7 @@
 #include <wjr/memory/copy.hpp>
 #include <wjr/string.hpp>
 
-#if defined(WJR_X86)
+#if defined(WJR_ARCH_X86)
     #include <wjr/arch/x86/format/charconv.hpp>
 #endif
 
@@ -26,7 +26,7 @@ WJR_CONST constexpr bool isspace(uint8_t ch) noexcept { return char_converter.fr
 
 template <typename T>
 struct __is_fast_convert_value
-    : std::conjunction<std::is_trivial<T>, std::bool_constant<sizeof(T) == 1>> {};
+    : std::conjunction<std::is_trivially_copyable<T>, std::bool_constant<sizeof(T) == 1>> {};
 
 template <typename T>
 inline constexpr bool __is_fast_convert_value_v = __is_fast_convert_value<T>::value;

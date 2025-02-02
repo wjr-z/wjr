@@ -8,9 +8,8 @@
 namespace wjr::intrusive {
 
 template <typename T = void, typename Tag = void>
-class list_node {
-public:
-    list_node() noexcept : m_next(this), m_prev(this) {}
+struct list_node {
+    list_node() noexcept : next(this), prev(this) {}
     list_node(default_construct_t) noexcept {}
     list_node(const list_node &) = default;
     list_node(list_node &&) = default;
@@ -18,41 +17,32 @@ public:
     list_node &operator=(list_node &&) = default;
     ~list_node() = default;
 
-    constexpr list_node *next() noexcept { return m_next; }
-    constexpr const list_node *next() const noexcept { return m_next; }
-    constexpr list_node *prev() noexcept { return m_prev; }
-    constexpr const list_node *prev() const noexcept { return m_prev; }
-
-    constexpr void set_next(list_node *node) noexcept { m_next = node; }
-    constexpr void set_prev(list_node *node) noexcept { m_prev = node; }
-
     constexpr T *self() noexcept { return static_cast<T *>(this); }
     constexpr const T *self() const noexcept { return static_cast<const T *>(this); }
+    constexpr void init_self() noexcept { next = prev = this; }
 
-    constexpr void init_self() noexcept { m_next = m_prev = this; }
+    constexpr bool empty() const noexcept { return next == this; }
 
-    constexpr bool empty() const noexcept { return m_next == this; }
-
-    friend constexpr void insert(list_node *prev, list_node *next, list_node *node) noexcept {
-        prev->m_next = node;
-        node->m_prev = prev;
-        next->m_prev = node;
-        node->m_next = next;
+    friend constexpr void insert(list_node *pre, list_node *nex, list_node *node) noexcept {
+        pre->next = node;
+        node->prev = pre;
+        nex->prev = node;
+        node->next = nex;
     }
 
-    constexpr void push_back(list_node *node) noexcept { insert(m_prev, this, node); }
-    constexpr void push_front(list_node *node) noexcept { insert(this, m_next, node); }
+    constexpr void push_back(list_node *node) noexcept { insert(prev, this, node); }
+    constexpr void push_front(list_node *node) noexcept { insert(this, next, node); }
 
     constexpr void remove() noexcept {
-        m_prev->m_next = m_next;
-        m_next->m_prev = m_prev;
+        prev->next = next;
+        next->prev = prev;
     }
 
     friend constexpr void replace(list_node *from, list_node *to) noexcept {
-        to->m_next = from->m_next;
-        from->m_next->m_prev = to;
-        to->m_prev = from->m_prev;
-        from->m_prev->m_next = to;
+        to->next = from->next;
+        from->next->prev = to;
+        to->prev = from->prev;
+        from->prev->next = to;
     }
 
     template <typename U, WJR_REQUIRES(std::is_same_v<U, Tag>)>
@@ -65,12 +55,23 @@ public:
         return this;
     }
 
-private:
-    list_node *m_next;
-    list_node *m_prev;
+    list_node *next;
+    list_node *prev;
 };
 
 static_assert(std::is_standard_layout_v<list_node<>>);
+
+#define WJR_LIST_FOR_EACH(pos, head) for (pos = (head)->next; (pos) != (head); pos = (pos)->next)
+
+#define WJR_LIST_FOR_EACH_SAFE(pos, n, head)                                                       \
+    for (pos = (head)->next, n = (pos)->next; (pos) != (head); pos = n, n = (n)->next)
+
+#define WJR_LIST_FOR_EACH_ENTRY(pos, head)                                                         \
+    for (pos = (head)->next->self(); (pos) != (head); pos = (pos)->next->self())
+
+#define WJR_LIST_FOR_EACH_ENTRY_SAFE(pos, n, head)                                                 \
+    for (pos = (head)->next->self(), n = (pos)->next->self(); (pos) != (head);                     \
+         pos = n, n = (n)->next->self())
 
 } // namespace wjr::intrusive
 

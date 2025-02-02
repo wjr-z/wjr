@@ -4,7 +4,7 @@
 #include <wjr/math/bitwise.hpp>
 #include <wjr/type_traits.hpp>
 
-#if defined(WJR_X86)
+#if defined(WJR_ARCH_X86)
     #include <wjr/arch/x86/biginteger/detail/not.hpp>
 #endif
 

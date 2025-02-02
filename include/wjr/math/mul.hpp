@@ -10,11 +10,11 @@
 #include <wjr/math/ctz.hpp>
 #include <wjr/math/detail.hpp>
 
-#if defined(_MSC_VER) && defined(WJR_X86)
+#if defined(_MSC_VER) && defined(WJR_ARCH_X86)
     #define WJR_HAS_BUILTIN_MSVC_MULH64 WJR_HAS_DEF
 #endif
 
-#if defined(WJR_X86)
+#if defined(WJR_ARCH_X86)
     #include <wjr/arch/x86/math/mul.hpp>
 #endif
 

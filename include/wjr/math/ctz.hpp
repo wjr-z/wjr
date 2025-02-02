@@ -6,7 +6,7 @@
 
 #if WJR_HAS_BUILTIN(__builtin_ctz)
     #define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF
-#elif defined(_MSC_VER) && defined(WJR_X86)
+#elif defined(_MSC_VER) && defined(WJR_ARCH_X86)
     #define WJR_HAS_BUILTIN_CTZ WJR_HAS_SIMD_DEF
 #endif
 

@@ -5,7 +5,7 @@
 #include <wjr/memory/detail.hpp>
 #include <wjr/simd/detail.hpp>
 
-#if defined(WJR_X86)
+#if defined(WJR_ARCH_X86)
     #include <wjr/arch/x86/simd/simd.hpp>
 #endif
 
