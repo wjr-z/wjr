@@ -49,10 +49,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
    list(APPEND WJR_CXX_FLAGS_DEBUG /DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_DEBUG})
    list(APPEND WJR_CXX_FLAGS_RELEASE /DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_RELEASE})
 
-   if(WIN32)
-      list(APPEND WJR_CXX_LINKER_FLAGS /lsynchronization)
-   endif()
-
    if(WJR_DISABLE_EXCEPTIONS)
       list(APPEND WJR_CXX_FLAGS /D_HAS_EXCEPTIONS=0 /DWJR_DISABLE_EXCEPTIONS)
    endif()
@@ -64,10 +60,6 @@ else()
    list(APPEND WJR_CXX_FLAGS -march=native -Wall -Wextra -Wshadow -Wformat=2 -Wunused -Waddress-of-packed-member)
    list(APPEND WJR_CXX_FLAGS_DEBUG -DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_DEBUG})
    list(APPEND WJR_CXX_FLAGS_RELEASE -DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_RELEASE})
-
-   if(WIN32)
-      list(APPEND WJR_CXX_LINKER_FLAGS -lsynchronization)
-   endif()
 
    if(WJR_DISABLE_EXCEPTIONS)
       list(APPEND WJR_CXX_FLAGS -fno-exceptions -DWJR_DISABLE_EXCEPTIONS)
@@ -84,7 +76,7 @@ if(WJR_ENABLE_ASSEMBLY AND WJR_ARCH)
    set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -x assembler-with-cpp")
 
    set(WJR_ENABLE_ARCH_ASSEMBLY ON)
-   set(WJR_COMPILE_DEFINITIONS WJR_ENABLE_ASSEMBLY)
+   list(APPEND WJR_COMPILE_DEFINITIONS WJR_ENABLE_ASSEMBLY)
    message("Enable ${WJR_ARCH} assembly.")
 endif()
 
@@ -119,6 +111,8 @@ macro(wjr_add_cpp_source TARGET PATH)
    file(GLOB_RECURSE TMP_SRCS ${WJR_LIB_DIR}/wjr/${PATH}/*.cpp ${WJR_LIB_DIR}/wjr/${PATH}/**/*.cpp)
    list(APPEND ${TARGET} ${TMP_SRCS})
 endmacro()
+
+set(WJR_LIBS)
 
 #
 # precompile headers
@@ -155,7 +149,7 @@ if(WJR_ENABLE_ARCH_ASSEMBLY)
    )
 
    add_library(wjr_assembly OBJECT ${WJR_ASSEMBLY_SRCS})
-   target_link_libraries(wjr_assembly INTERFACE $<TARGET_OBJECTS:wjr_add_n> $<TARGET_OBJECTS:wjr_sub_n>)
+   list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr_assembly> $<TARGET_OBJECTS:wjr_add_n> $<TARGET_OBJECTS:wjr_sub_n>)
 endif()
 
 #
@@ -174,8 +168,9 @@ if(WJR_ARCH)
       list(APPEND WJR_ARCH_LIBS $<TARGET_OBJECTS:wjr_assembly>)
    endif()
 
-   target_link_libraries(wjr_arch PRIVATE CpuFeatures::cpu_features INTERFACE ${WJR_ARCH_LIBS})
+   target_include_directories(wjr_arch PRIVATE $<TARGET_PROPERTY:CpuFeatures::cpu_features,INTERFACE_INCLUDE_DIRECTORIES>)
    target_precompile_headers(wjr_arch INTERFACE ${WJR_PCH_COMMON})
+   list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr_arch>)
 endif()
 
 #
@@ -187,7 +182,7 @@ wjr_add_cpp_source(WJR_SRCS format)
 wjr_add_cpp_source(WJR_SRCS json)
 wjr_add_cpp_source(WJR_SRCS memory)
 
-set(WJR_LIBS ${WJR_SRCS})
+list(APPEND WJR_LIBS ${WJR_SRCS})
 
 if(WJR_ARCH)
    list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr_arch>)
