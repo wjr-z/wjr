@@ -3,7 +3,11 @@
 
 #include <atomic>
 
+#include <wjr/preprocessor.hpp>
+
 namespace wjr {
+
+#if defined(WJR_CPP_20)
 
 template <typename T>
 T atomic_ref_load(T *obj, std::memory_order order = std::memory_order_seq_cst) noexcept {
@@ -57,6 +61,8 @@ T atomic_ref_fetch_exchange(T *obj, typename std::atomic_ref<T>::value_type desi
     std::atomic_ref<T> ref(*obj);
     return ref.exchange(desired, order);
 }
+
+#endif
 
 } // namespace wjr
 
