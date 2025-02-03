@@ -1,12 +1,12 @@
 /**
  * @file container_fn.hpp
  * @author wjr
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2025-01-18
- * 
+ *
  * @copyright Copyright (c) 2025
- * 
+ *
  */
 
 #ifndef WJR_CONTAINER_CONTAINER_TRAITS_HPP__
@@ -15,7 +15,9 @@
 #include <memory>
 #include <type_traits>
 
+#include <wjr/assert.hpp>
 #include <wjr/preprocessor.hpp>
+
 
 namespace wjr {
 
@@ -40,8 +42,7 @@ namespace wjr {
 template <typename Alloc>
 class container_fn {
 private:
-    using allocator_type = Alloc;
-    using allocator_traits = std::allocator_traits<allocator_type>;
+    using allocator_traits = std::allocator_traits<Alloc>;
     using is_always_equal = typename allocator_traits::is_always_equal;
     using propagate_on_container_copy_assignment =
         typename allocator_traits::propagate_on_container_copy_assignment;
@@ -54,7 +55,7 @@ public:
     WJR_CONSTEXPR20 static void copy_assign(Container &lhs, const Container &rhs) noexcept(
         noexcept(lhs.__copy_element(rhs)) && !propagate_on_container_copy_assignment::value
             ? true
-            : (noexcept(lhs.__get_allocator() = rhs.__get_allocator()) && is_always_equal::value
+            : (std::is_nothrow_copy_assignable_v<Alloc> && is_always_equal::value
                    ? true
                    : noexcept(lhs.__destroy_and_deallocate()))) {
         if constexpr (propagate_on_container_copy_assignment::value) {
@@ -78,7 +79,7 @@ public:
                 std::disjunction_v<propagate_on_container_move_assignment, is_always_equal>
             ? (!propagate_on_container_move_assignment::value
                    ? true
-                   : noexcept(lhs.__get_allocator() = std::move(rhs.__get_allocator())))
+                   : std::is_nothrow_move_assignable_v<Alloc>)
             : (noexcept(lhs.__destroy()) && noexcept(lhs.__move_element(std::move(rhs))))) {
         if constexpr (std::disjunction_v<propagate_on_container_move_assignment, is_always_equal>) {
             lhs.__destroy_and_deallocate();
@@ -102,13 +103,16 @@ public:
         noexcept(lhs.__swap_storage(rhs)) &&
                 !std::conjunction_v<propagate_on_container_swap, std::negation<is_always_equal>>
             ? true
-            : noexcept(std::swap(lhs.__get_allocator(), rhs.__get_allocator()))) {
-        if constexpr (std::conjunction_v<propagate_on_container_swap,
-                                         std::negation<is_always_equal>>) {
-            auto &lhs_allocator = lhs.__get_allocator();
-            auto &rhs_allocator = rhs.__get_allocator();
-            if (lhs_allocator != rhs_allocator) {
-                std::swap(lhs_allocator, rhs_allocator);
+            : std::is_nothrow_swappable_v<Alloc>) {
+        if constexpr (std::negation<is_always_equal>) {
+            if constexpr (propagate_on_container_swap::value) {
+                auto &lhs_allocator = lhs.__get_allocator();
+                auto &rhs_allocator = rhs.__get_allocator();
+                if (lhs_allocator != rhs_allocator) {
+                    std::swap(lhs_allocator, rhs_allocator);
+                }
+            } else {
+                WJR_ASSERT(lhs.__get_allocator() == rhs.__get_allocator());
             }
         }
 

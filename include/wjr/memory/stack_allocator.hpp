@@ -237,7 +237,10 @@ public:
     using value_type = T;
     using size_type = size_t;
     using difference_type = ptrdiff_t;
-    using propagate_on_container_move_assignment = std::true_type;
+    using propagate_on_container_copy_assignment = std::false_type;
+    using propagate_on_container_move_assignment = std::false_type;
+    using propagate_on_container_swap = std::false_type;
+    using is_always_equal = std::false_type;
     using is_trivially_allocator = std::true_type;
 
     template <typename Other>
@@ -245,7 +248,12 @@ public:
         using other = weak_stack_allocator<Other>;
     };
 
-    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(weak_stack_allocator);
+    weak_stack_allocator() = default;
+    weak_stack_allocator(const weak_stack_allocator &) = default;
+    weak_stack_allocator(weak_stack_allocator &&) = default;
+    weak_stack_allocator &operator=(const weak_stack_allocator &) = delete;
+    weak_stack_allocator &operator=(weak_stack_allocator &&) = delete;
+    ~weak_stack_allocator() = default;
 
     weak_stack_allocator(UniqueStackAllocator &alloc) noexcept : m_alloc(std::addressof(alloc)) {}
 
@@ -266,6 +274,16 @@ public:
         if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
             free(ptr);
         }
+    }
+
+    friend bool operator==(const weak_stack_allocator &lhs,
+                           const weak_stack_allocator &rhs) noexcept {
+        return lhs.m_alloc == rhs.m_alloc;
+    }
+
+    friend bool operator!=(const weak_stack_allocator &lhs,
+                           const weak_stack_allocator &rhs) noexcept {
+        return !(lhs == rhs);
     }
 
 private:
