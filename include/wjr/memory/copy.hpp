@@ -202,8 +202,9 @@ constexpr OutputIt move_n_restrict(InputIt first, Size count, OutputIt d_first) 
 }
 
 template <size_t Min, size_t Max>
-WJR_INTRINSIC_INLINE void fallback_small_pointer_copy(void *const *first, void *const *last,
-                                                      void **dst) noexcept {
+WJR_INTRINSIC_INLINE void fallback_small_pointer_copy(const void *const *first,
+                                                      const void *const *last,
+                                                      const void **dst) noexcept {
     static_assert(Max != 2);
     static_assert(sizeof(void *) == 8);
 
@@ -246,9 +247,11 @@ WJR_INTRINSIC_INLINE void fallback_small_pointer_copy(void *const *first, void *
 template <size_t Min, size_t Max, typename Ptr>
 WJR_INTRINSIC_INLINE void small_pointer_copy(Ptr const *first, Ptr const *last, Ptr *dst) noexcept {
 #if WJR_HAS_BUILTIN(SMALL_POINTER_COPY)
-    builtin_small_pointer_copy<Min, Max>(first, last, dst);
+    builtin_small_pointer_copy<Min, Max>((const void *const *)(first), (const void *const *)(last),
+                                         (const void **)(dst));
 #else
-    fallback_small_pointer_copy<Min, Max>(first, last, dst);
+    fallback_small_pointer_copy<Min, Max>((const void *const *)(first), (const void *const *)(last),
+                                          (const void **)(dst));
 #endif
 }
 

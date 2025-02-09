@@ -11,9 +11,10 @@ namespace wjr {
 
 #if WJR_HAS_BUILTIN(SMALL_POINTER_COPY)
 
-template <size_t Min, size_t Max, typename Ptr>
-WJR_INTRINSIC_INLINE void builtin_small_pointer_copy(Ptr const *first, Ptr const *last,
-                                                     Ptr *dst) noexcept {
+template <size_t Min, size_t Max>
+WJR_INTRINSIC_INLINE void builtin_small_pointer_copy(const void *const *first,
+                                                     const void *const *last,
+                                                     const void **dst) noexcept {
     static_assert(Max > 2 && Max <= 8);
     static_assert(sizeof(void *) == 8);
 

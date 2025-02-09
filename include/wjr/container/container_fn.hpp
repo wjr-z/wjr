@@ -18,7 +18,6 @@
 #include <wjr/assert.hpp>
 #include <wjr/preprocessor.hpp>
 
-
 namespace wjr {
 
 /**
@@ -104,7 +103,7 @@ public:
                 !std::conjunction_v<propagate_on_container_swap, std::negation<is_always_equal>>
             ? true
             : std::is_nothrow_swappable_v<Alloc>) {
-        if constexpr (std::negation<is_always_equal>) {
+        if constexpr (std::negation_v<is_always_equal>) {
             if constexpr (propagate_on_container_swap::value) {
                 auto &lhs_allocator = lhs.__get_allocator();
                 auto &rhs_allocator = rhs.__get_allocator();
