@@ -4,3 +4,6 @@
 [submodule "third-party/urcu"]
 	path = third-party/urcu
 	url = https://github.com/urcu/userspace-rcu.git
+[submodule "third-party/highwayhash"]
+	path = third-party/highwayhash
+	url = https://github.com/google/highwayhash.git

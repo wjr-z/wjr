@@ -21,6 +21,12 @@
 
 namespace wjr {
 
+/**
+ * @brief Automatic free all memory when thread exit.
+ * @details For example, it is possible to have a trivial destructor to thread_local
+ * variables that require high performance. Such as stack allocator.
+ *
+ */
 struct automatic_free_pool {
     struct chunk : intrusive::list_node<chunk> {};
 

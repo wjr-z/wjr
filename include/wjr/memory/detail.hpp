@@ -95,7 +95,10 @@ enum class endian {
 inline constexpr bool is_little_endian = endian::native == endian::little;
 inline constexpr bool is_big_endian = !is_little_endian;
 
-static_assert(is_little_endian, "Don't support big endian.");
+static_assert(
+    is_little_endian,
+    "Don't support big endian. There are currently many optimizations that rely on small end sequences,\
+    which may gradually become compatible in the future");
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T fallback_byteswap(T x) noexcept {

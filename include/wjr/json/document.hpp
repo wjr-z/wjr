@@ -5,7 +5,7 @@
  * @version 0.1
  * @date 2024-12-08
  *
- * @todo 1. Optimization, separate document and parser.
+ * @todo 1. Optimization, separate document and element.
  * 2. Use flat_map instead of std::map.
  *
  * @copyright Copyright (c) 2024
@@ -67,7 +67,6 @@ public:
 };
 
 using default_document_traits = basic_document_traits<std::basic_string, std::map, vector>;
-using __default_document_string = typename default_document_traits::string_type;
 
 template <typename Document>
 class basic_document_parser;
@@ -496,8 +495,7 @@ void format(Formatter fmt, const basic_document<Traits> &doc) noexcept {
  * @todo 1. For most strings, only need to check first character to compare.
  * 2. Maybe use hash like std::unordered_map, but for long strings, compare even
  * faster than hash.
- * 3. Use B plus tree ?
- * 4. In place construct without using low performance basic_document.
+ * 3. In place construct without using low performance basic_document.
  *
  */
 template <typename Traits>
@@ -1291,6 +1289,7 @@ struct __document_serializer_arithmetic {
     }
 };
 
+/// @brief This is a generic JSON document.
 using document = basic_document<detail::default_document_traits>;
 
 // register Arithmetic
