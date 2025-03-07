@@ -1610,23 +1610,23 @@ __m128i sse::packs_epi32(__m128i a, __m128i b) noexcept { return _mm_packs_epi32
 __m128i sse::packus_epi16(__m128i a, __m128i b) noexcept { return _mm_packus_epi16(a, b); }
 
 __m128i sse::loadu_si48(const void *ptr) noexcept {
-    return insert_epi16<2>(loadu_si32(ptr), reinterpret_cast<const uint16_t *>(ptr)[2]);
+    return insert_epi16<2>(loadu_si32(ptr), static_cast<const uint16_t *>(ptr)[2]);
 }
 
 __m128i sse::loadu_si80(const void *ptr) noexcept {
-    return insert_epi16<4>(loadu_si64(ptr), reinterpret_cast<const uint16_t *>(ptr)[4]);
+    return insert_epi16<4>(loadu_si64(ptr), static_cast<const uint16_t *>(ptr)[4]);
 }
 
 __m128i sse::loadu_si96(const void *ptr) noexcept {
     #if WJR_HAS_SIMD(SSE4_1)
-    return insert_epi32<2>(loadu_si64(ptr), reinterpret_cast<const uint32_t *>(ptr)[2]);
+    return insert_epi32<2>(loadu_si64(ptr), static_cast<const uint32_t *>(ptr)[2]);
     #else
-    return insert_epi16<5>(loadu_si80(ptr), reinterpret_cast<const uint16_t *>(ptr)[5]);
+    return insert_epi16<5>(loadu_si80(ptr), static_cast<const uint16_t *>(ptr)[5]);
     #endif
 }
 
 __m128i sse::loadu_si112(const void *ptr) noexcept {
-    return insert_epi16<6>(loadu_si96(ptr), reinterpret_cast<const uint16_t *>(ptr)[6]);
+    return insert_epi16<6>(loadu_si96(ptr), static_cast<const uint16_t *>(ptr)[6]);
 }
 
 __m128i sse::loadu_si128(const void *ptr) noexcept { return loadu(ptr); }

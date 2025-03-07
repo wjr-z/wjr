@@ -86,7 +86,6 @@ using __compressed_pair_base2 = compressed_pair_wrapper<1, U, T, __compressed_pa
 template <typename T, typename U>
 class WJR_EMPTY_BASES compressed_pair final : __compressed_pair_base1<T, U>,
                                               __compressed_pair_base2<T, U> {
-
     using Mybase1 = __compressed_pair_base1<T, U>;
     using Mybase2 = __compressed_pair_base2<T, U>;
 

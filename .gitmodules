@@ -7,3 +7,6 @@
 [submodule "third-party/highwayhash"]
 	path = third-party/highwayhash
 	url = https://github.com/google/highwayhash.git
+[submodule "third-party/Vc"]
+	path = third-party/Vc
+	url = https://github.com/VcDevel/Vc.git
