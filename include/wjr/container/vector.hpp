@@ -3,44 +3,70 @@
  * @author wjr
  * @brief
  * @details
- * Customized internal structure needs to follow the following function
- * signature: \n
- * 1. storage() noexcept
- * 2. ~storage() noexcept
- * 3. void deallocate(_Alty& al) noexcept(optional)
- * 5. void uninitialized_construct(storage_type &other, size_type size,
+ * Functions that need to be implemented:
+ * - storage() noexcept
+ *  Should not allocate any memmory. By default, it is just trivial.
+ *
+ * - ~storage() noexcept
+ *  Don't need to destroy/deallocate. By default, it is just trivial.
+ *
+ * - [optional] void destroy(_Alty& al) noexcept(optional)
+ *  Use `al` to destroy all elements, don't need to set `empty` state. \n
+ *  If this function is not provided, it will be used by default: \n
+ * ```cpp
+ *  destroy_using_allocator(begin_unsafe(), end_unsafe(), get_allocator());
+ * ```
+ *
+ * - void deallocate(_Alty& al) noexcept(optional)
+ *  Use `al` to deallocate, don't need to set `empty` state.
+ *
+ * - [optional] void deallocate_nonnul(_Alty& al) noexcept(optional)
+ *  Similar to deallocate , but ensure that it is definitely not an `empty` state.
+ *  If this function is not provided, it will be used by default: \n
+ *  ```cpp
+ *  deallocate();
+ *  ```
+ *  Low frequency of use, therefore it is an optional implementation
+ *
+ * - [optional] void destroy_and_deallocate(_Alty& al) noexcept(optional)
+ *  Use `al` to destroy and then deallocate, don't need to set `empty` state. \n
+ *  For some cases, perhaps destroy and dispose can be merged for optimization. \n
+ *  If this function is not provided, it will be used by default: \n
+ *  ```cpp
+ *  destroy(); deallocate();
+ *  ```
+ *
+ * - [static] void uninitialized_construct(storage_type &other, size_type size,
  * size_type capacity, _Alty& al) noexcept
- * 6. void take_storage(storage& other, _Alty& al) noexcept(optional)
- * 7. void swap_storage(storage& other, _Alty& al) noexcept(optional)
- * 8. decltype(auto) size() noexcept
- * 9. size_type capacity() const noexcept
- * 10 pointer data() noexcept
- * 11. const_pointer data() const noexcept
+ *  Construct a storage of other from this storage, this function can be static. \n
+ *  Ensure that the capacity is not zero.
  *
- * 1 : should not allocate memory. \n
- * 2 : don't need to destroy or deallocate. \n
- * 3 : deallocate. \n
- * 4 : destroy and deallocate. \n
- * 5 : uninitialized construct the storage. allocate memory and set the size
- * and capacity. \n 6 : take the storage from other. set other to empty. \n 7 :
- * swap the storage with other. \n 8 : get the size. the return type must be
- * reference, such as size_type&, std::reference_wrapper<size_type> and so on.
- * \n 9 : get the capacity. \n 10-11 : get the pointer. \n
+ * - void take_storage(storage& other, _Alty& al) noexcept(optional)
+ *  take the storage from other and set other to `empty` state. \n
+ *  The `other` storage, it should be able to ensure the correct execution of
+ * destroy_and_deallocate! But it do not guarantee any other functions, such as
+ * destroy/deallocate/deallocate_nonnull, size(), capacity() ...
  *
- * the size type of 8 need to implement the following function signature: \n
- * -# auto& operator=(size_type) noexcept
- * -# operator size_type() const noexcept
- * -# size_type operator++() noexcept
- * -# size_type operator--() noexcept
- * -# size_type operator+=(size_type) noexcept
- * -# size_type operator-=(size_type) noexcept
+ * - void swap_storage(storage& other, _Alty& al) noexcept(optional)
+ *  Swap the storage with other. \n
+ *  For most cases, it should comply with standards, such as not causing iterators to fail. \n
+ *  But for more specialized containers like small-vector, it cannot be guaranteed!!!
  *
- * @todo 1. SSO vector. Not in accordance with standards.
+ * - [optinal] void shrink_to_fit(storage& other) noexcept(optional)
+ *
+ * - [optinal] void empty(storage& other) noexcept(optional)
+ *
+ * Traits that need to be implemented:
+ * - is_reallocatable
+ *  If false, then the capacity can only be modified in some special cases.
+ *
+ * @todo
+ * 1. small vector. Not in accordance with standards.
  * 2. realloc. It is necessary for weak_stack_allcoator. Because this allocator can easily expand in
  * place.
  *
- * @version 0.2
- * @date 2024-04-29
+ * @version 0.3
+ * @date 2025-03-09
  *
  * @copyright Copyright (c) 2025
  *
@@ -160,19 +186,31 @@ public:
     ~__default_vector_storage() = default;
 
     WJR_CONSTEXPR20 void deallocate_nonnull(_Alty &al) noexcept(
-        noexcept(_Alty_traits::deallocate(al, this->m_storage.m_data, this->capacity()))) {
-        WJR_ASSERT_ASSUME_L2(m_storage.m_data != nullptr);
+        noexcept(_Alty_traits::deallocate(al, this->data(), this->capacity()))) {
+        WJR_ASSERT_ASSUME_L2(data() != nullptr);
         WJR_ASSERT_ASSUME_L2(capacity() != 0);
-        _Alty_traits::deallocate(al, m_storage.m_data, capacity());
+        _Alty_traits::deallocate(al, data(), capacity());
     }
 
-    WJR_CONSTEXPR20 void deallocate(_Alty &al) noexcept(
-        noexcept(_Alty_traits::deallocate(al, this->m_storage.m_data, this->capacity()))) {
+    WJR_CONSTEXPR20 void deallocate(_Alty &al) noexcept(noexcept(deallocate_nonnull(al))) {
         if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(data() == nullptr)) {
             return;
         }
 
-        if (WJR_LIKELY(m_storage.m_data != nullptr)) {
+        if (data() != nullptr) {
+            deallocate_nonnull(al);
+        }
+    }
+
+    WJR_CONSTEXPR20 void
+    destroy_and_deallocate(_Alty &al) noexcept(std::is_nothrow_destructible_v<value_type> &&
+                                               noexcept(deallocate_nonnull(al))) {
+        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(data() == nullptr)) {
+            return;
+        }
+
+        if (data() != nullptr) {
+            destroy_using_allocator(m_storage.m_data, m_storage.m_end, al);
             deallocate_nonnull(al);
         }
     }
@@ -192,7 +230,7 @@ public:
     WJR_CONSTEXPR20 void take_storage(Mybase &other, _Alty &) noexcept {
         auto &other_storage = other.m_storage;
         m_storage = std::move(other_storage);
-        other_storage = {};
+        other_storage.m_data = nullptr;
     }
 
     WJR_CONSTEXPR20 void swap_storage(Mybase &other, _Alty &) noexcept {
@@ -261,14 +299,15 @@ public:
 
 private:
     static constexpr auto max_alignment = std::max<size_type>(alignof(T), alignof(size_type));
-    static constexpr bool __use_memcpy = is_trivially_allocator_construct_v<Alloc, T, T &&> &&
-                                         std::is_trivially_copyable_v<T> &&
-                                         Capacity * sizeof(T) <= 64;
 
     struct Data {
         size_type m_size = 0;
-        alignas(max_alignment) char m_data[Capacity * sizeof(T)];
+        alignas(max_alignment) std::byte m_data[Capacity * sizeof(T)];
     };
+
+    static constexpr bool __use_memcpy = is_trivially_allocator_construct_v<Alloc, T, T &&> &&
+                                         std::is_trivially_copyable_v<Data> &&
+                                         (Capacity == 1 || sizeof(Data) <= 64);
 
 public:
     static constexpr bool is_trivially_relocate_v = __use_memcpy;
@@ -283,8 +322,6 @@ public:
     ~inplace_vector_storage() = default;
 
     WJR_CONSTEXPR20 void deallocate(_Alty &) noexcept { /* do nothing */ }
-
-    WJR_CONSTEXPR20 void deallocate_nonnull(_Alty &) noexcept { /* do nothing */ }
 
     WJR_CONSTEXPR20 static void uninitialized_construct(inplace_vector_storage &other,
                                                         size_type size,
@@ -342,7 +379,6 @@ public:
                 wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs, al);
                 wjr::uninitialized_move_n_restrict_using_allocator(tmp, lsize, rhs, al);
             }
-            return;
         } else if (rsize) {
             if constexpr (__use_memcpy) {
                 __memcpy(lhs, rhs, Capacity);
@@ -351,7 +387,6 @@ public:
             }
             m_storage.m_size = rsize;
             other_storage.m_size = 0;
-            return;
         } else if (lsize) {
             if constexpr (__use_memcpy) {
                 __memcpy(rhs, lhs, Capacity);
@@ -360,9 +395,6 @@ public:
             }
             other_storage.m_size = lsize;
             m_storage.m_size = 0;
-            return;
-        } else {
-            return;
         }
     }
 
@@ -390,9 +422,16 @@ struct get_relocate_mode<inplace_vector_storage<T, Capacity>> {
                                             : relocate_t::maybe_trivial;
 };
 
+WJR_REGISTER_HAS_TYPE(vector_storage_destroy,
+                      std::declval<Storage>().destroy(std::declval<Alty &>()), Storage, Alty);
+WJR_REGISTER_HAS_TYPE(vector_storage_deallocate_nonnull,
+                      std::declval<Storage>().deallocate_nonnull(std::declval<Alty &>()), Storage,
+                      Alty);
+WJR_REGISTER_HAS_TYPE(vector_storage_destroy_and_deallocate,
+                      std::declval<Storage>().destroy_and_deallocate(std::declval<Alty &>()),
+                      Storage, Alty);
 WJR_REGISTER_HAS_TYPE(vector_storage_shrink_to_fit, std::declval<Storage>().shrink_to_fit(),
                       Storage);
-
 WJR_REGISTER_HAS_TYPE(vector_storage_empty, std::declval<Storage>().empty(), Storage);
 
 template <typename Storage>
@@ -457,10 +496,6 @@ private:
 
     static_assert(std::is_nothrow_default_constructible_v<storage_type>);
 
-    static constexpr bool __is_nothrow_deallocate =
-        noexcept(std::declval<storage_type &>().deallocate(std::declval<_Alty &>()));
-    static constexpr bool __is_nothrow_deallocate_nonnull =
-        noexcept(std::declval<storage_type &>().deallocate_nonnull(std::declval<_Alty &>()));
     static constexpr bool __is_nothrow_uninitialized_construct =
         noexcept(std::declval<storage_type &>().uninitialized_construct(
             std::declval<storage_type &>(), std::declval<size_type>(), std::declval<size_type>(),
@@ -1063,17 +1098,19 @@ public:
     }
 
 private:
-    WJR_CONSTEXPR20 void __deallocate() noexcept(__is_nothrow_deallocate) {
+    WJR_CONSTEXPR20 void
+    __deallocate() noexcept(noexcept(get_storage().deallocate(__get_allocator()))) {
         get_storage().deallocate(__get_allocator());
     }
 
-    // member function for container_fn (START)
+    template <typename S, WJR_REQUIRES(has_vector_storage_destroy_v<S, _Alty>)>
+    WJR_CONSTEXPR20 void
+    __destroy_impl() noexcept(noexcept(get_storage().destroy(__get_allocator()))) {
+        get_storage().destroy(__get_allocator());
+    }
 
-    WJR_CONSTEXPR20 _Alty &__get_allocator() noexcept { return m_pair.first(); }
-
-    WJR_CONSTEXPR20 const _Alty &__get_allocator() const noexcept { return m_pair.first(); }
-
-    WJR_CONSTEXPR20 void __destroy() noexcept(std::is_nothrow_destructible_v<value_type>) {
+    template <typename S, WJR_REQUIRES(!has_vector_storage_destroy_v<S, _Alty>)>
+    WJR_CONSTEXPR20 void __destroy_impl() noexcept(std::is_nothrow_destructible_v<value_type>) {
         if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(empty())) {
             return;
         }
@@ -1081,10 +1118,31 @@ private:
         destroy_using_allocator(begin_unsafe(), end_unsafe(), __get_allocator());
     }
 
-    WJR_CONSTEXPR20 void __destroy_and_deallocate() noexcept(noexcept(__destroy()) &&
-                                                             __is_nothrow_deallocate) {
+    template <typename S, WJR_REQUIRES(has_vector_storage_destroy_and_deallocate_v<S, _Alty>)>
+    WJR_CONSTEXPR20 void __destroy_and_deallocate_impl() noexcept(
+        noexcept(get_storage().destroy_and_deallocate(__get_allocator()))) {
+        get_storage().destroy_and_deallocate(__get_allocator());
+    }
+
+    template <typename S, WJR_REQUIRES(!has_vector_storage_destroy_and_deallocate_v<S, _Alty>)>
+    WJR_CONSTEXPR20 void __destroy_and_deallocate_impl() noexcept(noexcept(__destroy()) &&
+                                                                  noexcept(__deallocate())) {
         __destroy();
         __deallocate();
+    }
+
+    // member function for container_fn (START)
+
+    WJR_CONSTEXPR20 _Alty &__get_allocator() noexcept { return m_pair.first(); }
+    WJR_CONSTEXPR20 const _Alty &__get_allocator() const noexcept { return m_pair.first(); }
+
+    WJR_CONSTEXPR20 void __destroy() noexcept(noexcept(__destroy_impl<storage_type>())) {
+        __destroy_impl<storage_type>();
+    }
+
+    WJR_CONSTEXPR20 void
+    __destroy_and_deallocate() noexcept(noexcept(__destroy_and_deallocate_impl<storage_type>())) {
+        __destroy_and_deallocate_impl<storage_type>();
     }
 
     WJR_CONSTEXPR20 void __copy_element(const basic_vector &other) {
@@ -1106,8 +1164,20 @@ private:
 
     // member function for container_fn (END)
 
-    WJR_CONSTEXPR20 void __deallocate_nonnull() noexcept(__is_nothrow_deallocate_nonnull) {
+    template <typename S, WJR_REQUIRES(has_vector_storage_deallocate_nonnull_v<S, _Alty>)>
+    WJR_CONSTEXPR20 void __deallocate_nonnull_impl() noexcept(
+        noexcept(get_storage().deallocate_nonnull(__get_allocator()))) {
         get_storage().deallocate_nonnull(__get_allocator());
+    }
+
+    template <typename S, WJR_REQUIRES(!has_vector_storage_deallocate_nonnull_v<S, _Alty>)>
+    WJR_CONSTEXPR20 void __deallocate_nonnull_impl() noexcept(noexcept(__deallocate())) {
+        __deallocate();
+    }
+
+    WJR_CONSTEXPR20 void
+    __deallocate_nonnull() noexcept(noexcept(__deallocate_nonnull_impl<storage_type>())) {
+        __deallocate_nonnull_impl<storage_type>();
     }
 
     WJR_PURE WJR_CONSTEXPR20 __get_size_t __get_size() noexcept { return get_storage().size(); }

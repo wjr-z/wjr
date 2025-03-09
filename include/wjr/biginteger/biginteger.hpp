@@ -148,7 +148,14 @@ public:
     }
 
     void deallocate(_Alty &al) noexcept {
-        if (WJR_LIKELY(data() != nullptr)) {
+        if (data() != nullptr) {
+            deallocate_nonnull(al);
+        }
+    }
+
+    void destroy_and_deallocate(_Alty &al) noexcept {
+        if (data() != nullptr) {
+            destroy_n_using_allocator(data(), (size_type)size(), al);
             deallocate_nonnull(al);
         }
     }
@@ -167,7 +174,6 @@ public:
         auto &other_storage = other.m_storage;
         m_storage = other_storage;
         other_storage.m_data = nullptr;
-        other_storage.m_size = other_storage.m_capacity = 0;
     }
 
     void swap_storage(Mybase &other, _Alty &) noexcept { std::swap(m_storage, other.m_storage); }

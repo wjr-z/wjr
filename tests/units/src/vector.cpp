@@ -209,8 +209,6 @@ TEST(vector, construct) {
             wvector<T> v(std::move(V));
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
-            EXPECT_EQ(V.size(), 0);
-            EXPECT_GE(V.capacity(), 0);
             for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
         };
         run_range([&](int i) {
@@ -226,8 +224,6 @@ TEST(vector, construct) {
             wvector<T> v(std::move(V), al);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
-            EXPECT_EQ(V.size(), 0);
-            EXPECT_GE(V.capacity(), 0);
             for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
         };
         run_range([&](int i) {
@@ -331,8 +327,6 @@ TEST(vector, assignment) {
             v = std::move(V);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
-            EXPECT_EQ(V.size(), 0);
-            EXPECT_GE(V.capacity(), 0);
             for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
         };
         run_range3([&](int n, int s, int c) {

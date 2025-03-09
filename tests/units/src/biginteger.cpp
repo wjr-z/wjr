@@ -144,7 +144,6 @@ TEST(biginteger, construct) {
 
         biginteger c(std::move(a));
 
-        WJR_ASSERT_ALWAYS(a == 0);
         WJR_ASSERT_ALWAYS(c == 1);
     }
 
@@ -157,7 +156,6 @@ TEST(biginteger, construct) {
 
         biginteger c(std::move(a));
 
-        WJR_ASSERT_ALWAYS(a == 0);
         WJR_ASSERT_ALWAYS(c == -1);
     }
 
@@ -188,7 +186,6 @@ TEST(biginteger, construct) {
 
         biginteger c(std::move(a));
 
-        WJR_ASSERT_ALWAYS(a == 0);
         WJR_ASSERT_ALWAYS(c == b);
         WJR_ASSERT_ALWAYS(c[1023] == 1);
         WJR_ASSERT_ALWAYS(c.size() == 1024);
@@ -208,7 +205,6 @@ TEST(biginteger, assignment) {
         biginteger c;
         c = std::move(a);
 
-        WJR_ASSERT_ALWAYS(a == 0);
         WJR_ASSERT_ALWAYS(c == 0);
     }
 
@@ -224,7 +220,6 @@ TEST(biginteger, assignment) {
         biginteger c;
         c = std::move(a);
 
-        WJR_ASSERT_ALWAYS(a == 0);
         WJR_ASSERT_ALWAYS(c == 1);
     }
 
@@ -240,7 +235,6 @@ TEST(biginteger, assignment) {
         biginteger c;
         c = std::move(a);
 
-        WJR_ASSERT_ALWAYS(a == 0);
         WJR_ASSERT_ALWAYS(c == -1);
     }
 
@@ -255,7 +249,6 @@ TEST(biginteger, assignment) {
 
         b = std::move(a);
 
-        WJR_ASSERT_ALWAYS(a == 0);
         WJR_ASSERT_ALWAYS(b == 3);
     }
 }
