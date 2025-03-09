@@ -466,7 +466,6 @@ public:
                             _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
         other.m_size = size;
         if (__is_small_capacity(capacity)) {
-            other.m_capacity = capacity;
             return;
         }
 
@@ -479,13 +478,13 @@ public:
     take_storage(small_vector_storage &other,
                  _Alty &al) noexcept(std::is_nothrow_move_constructible_v<value_type>) {
         m_size = other.size();
-        m_capacity = other.capacity();
         if (other.__is_small()) {
             __reset_data();
             wjr::uninitialized_move_n_restrict_using_allocator(other.data(), other.size(), data(),
                                                                al);
         } else {
             m_data = other.m_data;
+            m_capacity = other.capacity();
         }
 
         other.m_size = 0;
@@ -514,38 +513,40 @@ public:
                 wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs, al);
                 wjr::uninitialized_move_n_restrict_using_allocator(tmp, lsize, rhs, al);
             } else {
+                const size_type capacity = other.m_capacity;
                 wjr::uninitialized_move_n_restrict_using_allocator(data(), size(),
                                                                    other.__get_storage(), al);
                 m_data = other.m_data;
+                m_capacity = capacity;
                 other.__reset_data();
             }
         } else {
             if (other.__is_small()) {
+                const size_type capacity = m_capacity;
                 wjr::uninitialized_move_n_restrict_using_allocator(other.data(), other.size(),
                                                                    __get_storage(), al);
                 other.m_data = m_data;
+                other.m_capacity = capacity;
                 __reset_data();
             } else {
                 std::swap(m_data, other.m_data);
+                std::swap(m_capacity, other.m_capacity);
             }
         }
 
         std::swap(m_size, other.m_size);
-        std::swap(m_capacity, other.m_capacity);
     }
 
     WJR_CONSTEXPR20 size_type &size() noexcept { return m_size; }
     WJR_CONSTEXPR20 size_type size() const noexcept { return m_size; }
-    constexpr size_type capacity() const noexcept { return m_capacity; }
+    constexpr size_type capacity() const noexcept { return __is_small() ? Capacity : m_capacity; }
 
     WJR_CONSTEXPR20 pointer data() noexcept { return m_data; }
     WJR_CONSTEXPR20 const_pointer data() const noexcept { return m_data; }
 
 private:
     constexpr bool __is_small() const noexcept { return m_data == __get_storage(); }
-
     constexpr bool __is_large() const noexcept { return !__is_small(); }
-
     constexpr void __reset_data() noexcept { m_data = __get_storage(); }
 
     static constexpr bool __is_small_capacity(size_type capacity) noexcept {
@@ -563,9 +564,10 @@ private:
 
     pointer m_data = reinterpret_cast<pointer>(m_storage);
     size_type m_size = 0;
-    size_type m_capacity = Capacity;
-
-    alignas(alignof(T)) std::byte m_storage[Capacity * sizeof(T)];
+    union {
+        size_type m_capacity;
+        alignas(alignof(T)) std::byte m_storage[Capacity * sizeof(T)];
+    };
 };
 
 template <typename T, size_t Capacity, typename Alloc>
@@ -1976,10 +1978,10 @@ template <typename T, size_t Capacity>
 using inplace_vector = basic_vector<inplace_vector_storage<T, Capacity>>;
 
 /**
- * @brief 
- * 
+ * @brief
+ *
  * @note Swap does not comply with the C++ specification/
- * 
+ *
  */
 template <typename T, size_t Capacity, typename Alloc = std::allocator<T>>
 using small_vector = basic_vector<small_vector_storage<T, Capacity, Alloc>>;
