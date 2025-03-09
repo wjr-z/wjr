@@ -731,6 +731,17 @@ TEST(vector, swap) {
             for_each_n(v1.begin(), m, [](auto &x) { EXPECT_EQ(x, 2); });
             for_each_n(v2.begin(), n, [](auto &x) { EXPECT_EQ(x, 1); });
         }
+
+    for (int n = 0; n < 32; ++n)
+        for (int m = 0; m < 32; ++m) {
+            small_vector<int, 4> v1(n, 1);
+            small_vector<int, 4> v2(m, 2);
+            v1.swap(v2);
+            EXPECT_EQ(v1.size(), m);
+            EXPECT_EQ(v2.size(), n);
+            for_each_n(v1.begin(), m, [](auto &x) { EXPECT_EQ(x, 2); });
+            for_each_n(v2.begin(), n, [](auto &x) { EXPECT_EQ(x, 1); });
+        }
 }
 
 TEST(vector, ptr_unsafe) {
