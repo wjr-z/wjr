@@ -28,6 +28,8 @@ extern "C" uint64_t __rdtsc();
 
 namespace wjr {
 
+#define WJR_HAS_FEATURE_RDTSC WJR_HAS_DEF
+
 WJR_INTRINSIC_INLINE int64_t rdtsc() noexcept {
 #if defined(__i386__)
     int64_t ret;
@@ -182,11 +184,13 @@ WJR_INTRINSIC_INLINE int64_t rdtsc() noexcept {
     gettimeofday(&tv, nullptr);
     return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
 #else
-        // The soft failover to a generic implementation is automatic only for ARM.
-        // For other platforms the developer is expected to make an attempt to create
-        // a fast implementation and use generic version if nothing better is
-        // available.
-    #error You need to define CycleTimer for your OS and CPU
+    // The soft failover to a generic implementation is automatic only for ARM.
+    // For other platforms the developer is expected to make an attempt to create
+    // a fast implementation and use generic version if nothing better is
+    // available.
+    #undef WJR_HAS_FEATURE_RDTSC
+    // #error You need to define CycleTimer for your OS and CPU
+    WJR_UNREACHABLE();
 #endif
 }
 

@@ -44,11 +44,11 @@ struct automatic_free_pool {
     WJR_MALLOC void *allocate(size_t n) noexcept {
         auto *const ptr = static_cast<chunk *>(malloc(n + sizeof(chunk)));
         head.push_back(ptr);
-        return reinterpret_cast<char *>(ptr) + sizeof(chunk);
+        return reinterpret_cast<std::byte *>(ptr) + sizeof(chunk);
     }
 
     void deallocate(void *ptr) noexcept {
-        auto *const node = reinterpret_cast<chunk *>(static_cast<char *>(ptr) - sizeof(chunk));
+        auto *const node = reinterpret_cast<chunk *>(static_cast<std::byte *>(ptr) - sizeof(chunk));
         node->remove();
         free(node);
     }
@@ -64,7 +64,7 @@ struct automatic_free_pool {
 class __default_alloc_template__ {
     union obj {
         union obj *free_list_link;
-        char client_data[1];
+        std::byte client_data[1];
     };
 
     WJR_CONST static constexpr size_t __round_up(size_t bytes) noexcept {

@@ -642,7 +642,7 @@ struct __uninitialized_base;
 
 template <typename T>
 struct __aligned_storage_t {
-    alignas(T) char buf[sizeof(T)];
+    alignas(T) std::byte buf[sizeof(T)];
 };
 
 #define WJR_REGISTER_UNION_BASE(CON, DES)                                                          \

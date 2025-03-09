@@ -21,8 +21,8 @@ class stack_allocator_object {
     constexpr static uint_fast32_t bufsize = 3;
 
     struct alloc_node {
-        char *ptr;
-        char *end;
+        std::byte *ptr;
+        std::byte *end;
     };
 
     struct large_memory {
@@ -44,7 +44,7 @@ public:
 
     private:
         stack_allocator_object *m_object;
-        char *m_ptr;
+        std::byte * m_ptr;
         uint_fast32_t m_idx;
         large_memory *m_large;
     };
@@ -85,7 +85,7 @@ private:
         }
     }
 
-    void __small_reallocate(char *&restore_ptr) noexcept;
+    void __small_reallocate(std::byte *&restore_ptr) noexcept;
 
     WJR_NOINLINE void __small_redeallocate() noexcept {
         const uint_fast32_t new_size = m_idx + bufsize - 1;

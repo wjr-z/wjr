@@ -20,7 +20,7 @@ extern "C" void __yield(void);
 #endif
 
 /**
- * @brief Unlike:: pause, this is cheap.
+ * @brief Unlike ::pause, this is cheap.
  */
 WJR_INTRINSIC_INLINE void pause_intrinsic() noexcept {
 #if defined(_MSC_VER)

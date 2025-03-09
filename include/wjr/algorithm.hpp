@@ -179,7 +179,6 @@ constant_length_strncasecmp(const char *a, const char *b, integral_constant<unsi
     } else if constexpr (Length == 2 || Length == 4 || Length == 8) {
         using diff_type = uint_t<Length * 8>;
         constexpr diff_type mask = broadcast<uint8_t, diff_type>(0xDF);
-
         diff_type diff = (read_memory<diff_type>(a) ^ read_memory<diff_type>(b)) & mask;
         return diff == 0;
     } else if constexpr (Length == 3) {

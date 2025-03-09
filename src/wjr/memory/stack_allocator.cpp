@@ -11,7 +11,7 @@ void stack_allocator_object::__large_deallocate(large_memory *buffer) noexcept {
     } while (buffer != nullptr);
 }
 
-void stack_allocator_object::__small_reallocate(char *&restore_ptr) noexcept {
+void stack_allocator_object::__small_reallocate(std::byte *&restore_ptr) noexcept {
     static constexpr uint_fast32_t capacity_grow = 16;
 
     // This is the initial state
@@ -27,7 +27,7 @@ void stack_allocator_object::__small_reallocate(char *&restore_ptr) noexcept {
         {
             const size_t capacity = Cache;
             __default_alloc_template__ pool;
-            auto *const buffer = static_cast<char *>(pool.chunk_allocate(capacity));
+            auto *const buffer = static_cast<std::byte *>(pool.chunk_allocate(capacity));
             m_cache = m_ptr[0] = {buffer, buffer + capacity};
         }
 
@@ -53,7 +53,7 @@ void stack_allocator_object::__small_reallocate(char *&restore_ptr) noexcept {
 
         const size_t capacity = Cache << ((2 * m_idx + 3) / 5);
         __default_alloc_template__ pool;
-        auto *const buffer = static_cast<char *>(pool.chunk_allocate(capacity));
+        auto *const buffer = static_cast<std::byte *>(pool.chunk_allocate(capacity));
         m_ptr[m_idx] = {buffer, buffer + capacity};
     }
 
