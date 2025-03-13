@@ -126,11 +126,13 @@ TEST(biginteger, construct) {
     {
         biginteger a;
         biginteger b(a);
-        biginteger c(std::move(a));
-        biginteger d = c;
 
         WJR_ASSERT_ALWAYS(a == 0);
         WJR_ASSERT_ALWAYS(b == 0);
+        
+        biginteger c(std::move(a));
+        biginteger d = c;
+
         WJR_ASSERT_ALWAYS(c == 0);
         WJR_ASSERT_ALWAYS(d == 0);
     }
