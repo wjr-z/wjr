@@ -14,19 +14,12 @@ struct get_relocate_mode<std::unique_ptr<T, D>> {
     static constexpr relocate_t value = relocate_t::maybe_trivial;
 };
 
+#if defined(WJR_CPP_20)
+using std::to_address;
+#else
+
 WJR_REGISTER_HAS_TYPE(pointer_traits_to_address,
                       std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()), Ptr);
-
-WJR_REGISTER_HAS_TYPE(pointer_access, std::declval<const Ptr &>().operator->(), Ptr);
-
-#if defined(WJR_CPP_20)
-
-template <typename Ptr>
-constexpr auto to_address(const Ptr &p) noexcept {
-    return std::to_address(p);
-}
-
-#else
 
 template <typename T>
 constexpr T *to_address(T *p) noexcept {

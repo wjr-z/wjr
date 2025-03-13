@@ -44,14 +44,15 @@ public:
 
     private:
         stack_allocator_object *m_object;
-        std::byte * m_ptr;
+        std::byte *m_ptr;
         uint_fast32_t m_idx;
         large_memory *m_large;
     };
 
 private:
     void *__large_allocate(size_t n, large_memory *&restorer_large) noexcept {
-        auto *const buffer = static_cast<large_memory *>(malloc(sizeof(large_memory) + n));
+        auto *const buffer =
+            static_cast<large_memory *>(::operator new[](sizeof(large_memory) + n));
         buffer->prev = restorer_large;
         restorer_large = buffer;
         return buffer + 1;
@@ -263,7 +264,7 @@ public:
     WJR_NODISCARD WJR_MALLOC T *allocate(size_type n) noexcept {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
-            return static_cast<T *>(malloc(size));
+            return static_cast<T *>(::operator new[](size));
         }
 
         return static_cast<T *>(m_alloc->__small_allocate(size));
@@ -272,7 +273,7 @@ public:
     void deallocate(WJR_MAYBE_UNUSED T *ptr, WJR_MAYBE_UNUSED size_type n) noexcept {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
-            free(ptr);
+            ::operator delete[](ptr);
         }
     }
 

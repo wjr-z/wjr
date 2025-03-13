@@ -250,7 +250,11 @@ public:
                                               dst->m_values + dst_end);
     }
 
+#if WJR_HAS_GCC(6, 0, 0)
+    alignas(16) value_type *m_values[];
+#else
     alignas(16) value_type *m_values[0];
+#endif
 };
 
 template <typename Traits>
