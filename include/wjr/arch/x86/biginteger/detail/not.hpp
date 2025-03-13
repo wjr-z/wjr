@@ -1,14 +1,14 @@
 /**
  * @file not.hpp
  * @author wjr
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2025-01-20
- * 
+ *
  * @todo Optimize... and move large builtin to .cpp.
- * 
+ *
  * @copyright Copyright (c) 2025
- * 
+ *
  */
 
 #ifndef WJR_ARCH_X86_BIGINTEGER_DETAIL_NOT_HPP__

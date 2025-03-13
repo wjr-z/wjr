@@ -4,11 +4,11 @@
  * @brief GMP...
  * @version 0.1
  * @date 2025-01-19
- * 
+ *
  * @todo Assembly optimization.
- * 
+ *
  * @copyright Copyright (c) 2025
- * 
+ *
  */
 
 #include <wjr/biginteger/detail/mul.hpp>

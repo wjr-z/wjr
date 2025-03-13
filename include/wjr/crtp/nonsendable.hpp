@@ -55,7 +55,7 @@ protected:
 private:
     void check(const nonsendable &other) noexcept {
         WJR_ASSERT_ALWAYS(m_thread_id == other.m_thread_id,
-                      "Cross-thread access detected when using a nonsendable object.");
+                          "Cross-thread access detected when using a nonsendable object.");
     }
 
     std::thread::id m_thread_id;

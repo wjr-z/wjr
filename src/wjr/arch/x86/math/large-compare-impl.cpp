@@ -4,7 +4,7 @@
  * @brief
  * @version 0.1
  * @date 2025-01-12
- * 
+ *
  * @todo Support uint8_t, uint16_t, uint32_t.
  *
  * @copyright Copyright (c) 2025
