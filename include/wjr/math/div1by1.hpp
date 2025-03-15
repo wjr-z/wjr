@@ -169,7 +169,7 @@ public:
 
     WJR_INTRINSIC_INLINE div1by1_divider(T d) { div = div1by1_uint_gen<T, type>(d); }
 
-    WJR_INTRINSIC_INLINE T divide(T n) const { return div1by1_uint_do(n, div); }
+    WJR_INTRINSIC_INLINE T divide(T n) const { return div1by1_uint_do<T, type>(n, div); }
 
     WJR_CONST bool operator==(const div1by1_divider<T, type> &other) const {
         return div.denom.magic == other.denom.magic && div.denom.more == other.denom.more;
