@@ -29,7 +29,7 @@ size_t large_builtin_find_not_n(const T *src0, const T *src1, size_t n) noexcept
                 const SIMD::mask_type mask = ~SIMD::movemask_epi8(r);                              \
                 return (index) + SIMD::ctz_nz(mask, T()) / 8;                                      \
             }                                                                                      \
-        } while (false)
+        } while (0)
 
     #define WJR_REGISTER_FIND_NOT_N_2(index) WJR_REGISTER_FIND_NOT_N_SIMD(sse, index)
 
@@ -114,7 +114,7 @@ size_t large_builtin_find_not_n(const T *src, T val, size_t n) noexcept {
                 const SIMD::mask_type mask = ~SIMD::movemask_epi8(r);                              \
                 return (index) + SIMD::ctz_nz(mask, T()) / 8;                                      \
             }                                                                                      \
-        } while (false)
+        } while (0)
 
     #define WJR_REGISTER_FIND_NOT_N_2(index) WJR_REGISTER_FIND_NOT_N_SIMD(sse, index, y2)
 
@@ -214,7 +214,7 @@ size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1, size_t n) 
                 const SIMD::mask_type mask = ~SIMD::movemask_epi8(r);                              \
                 return (index) + (WIDTH) - SIMD::clz_nz(mask, T()) / 8;                            \
             }                                                                                      \
-        } while (false)
+        } while (0)
 
     #define WJR_REGISTER_REVERSE_FIND_NOT_N_2(index) WJR_REGISTER_FIND_NOT_N_SIMD(sse, 2, index)
 
@@ -298,7 +298,7 @@ size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) noexcept 
                 const SIMD::mask_type mask = ~SIMD::movemask_epi8(r);                              \
                 return (index) + (WIDTH) - SIMD::clz_nz(mask, T()) / 8;                            \
             }                                                                                      \
-        } while (false)
+        } while (0)
 
     #define WJR_REGISTER_REVERSE_FIND_NOT_N_2(index)                                               \
         WJR_REGISTER_REVERSE_FIND_NOT_N_SIMD(sse, 2, index, y2)

@@ -48,7 +48,7 @@ uint64_t div_qr_1_shift(uint64_t *dst, uint64_t &rem, const uint64_t *src, size_
         }
 
         dst[0] = div.divide(divisor, value, rbp << shift, hi);
-    } while (false);
+    } while (0);
 
     rem = hi >> shift;
     return qh;
@@ -88,7 +88,7 @@ uint64_t div_qr_2_noshift(uint64_t *dst, uint64_t *rem, const uint64_t *src, siz
             --n;
         } while (WJR_LIKELY(n != 0));
 
-    } while (false);
+    } while (0);
 
     rem[0] = u1;
     rem[1] = u2;
@@ -139,7 +139,7 @@ uint64_t div_qr_2_shift(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_
         }
 
         dst[0] = div.divide(divisor0, divisor1, value, rbp << shift, u1, u2);
-    } while (false);
+    } while (0);
 
     rem[0] = shrd(u1, u2, shift);
     rem[1] = u2 >> shift;

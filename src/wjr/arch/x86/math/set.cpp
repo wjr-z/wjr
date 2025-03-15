@@ -103,7 +103,7 @@ WJR_HOT void large_builtin_set_n(T *dst, T val, size_t n) noexcept {
         simd::storeu(dst, y);
         simd::storeu(dst + n - type_width, y);
         return;
-    } while (false);
+    } while (0);
 
     WJR_ASSUME(n > type_width * 4);
 
@@ -152,7 +152,7 @@ WJR_HOT void large_builtin_set_n(T *dst, T val, size_t n) noexcept {
             const uintptr_t mo = reinterpret_cast<uintptr_t>(dst) % sizeof(T);
             y = simd::set1(rotr(val, mo * 8), T());
         }
-    } while (false);
+    } while (0);
 
     if (WJR_LIKELY(ps <= pe - type_width * 4)) {
         do {

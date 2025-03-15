@@ -161,7 +161,7 @@
         if (!(expr)) {                                                                             \
             WJR_UNREACHABLE();                                                                     \
         }                                                                                          \
-    } while (false)
+    } while (0)
 
 #if WJR_HAS_BUILTIN(__builtin_assume)
     #define WJR_ASSUME(expr) __builtin_assume(expr)

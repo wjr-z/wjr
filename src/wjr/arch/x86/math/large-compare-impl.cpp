@@ -34,7 +34,7 @@ int large_builtin_compare_n(const T *src0, const T *src1, size_t n) noexcept {
                 const auto offset = SIMD::ctz_nz(mask, T()) / 8;                                   \
                 return src0[(index) + offset] < src1[(index) + offset] ? -1 : 1;                   \
             }                                                                                      \
-        } while (false)
+        } while (0)
 
     #define WJR_REGISTER_COMPARE_NOT_N_2(index) WJR_REGISTER_COMPARE_NOT_N_SIMD(sse, index)
 
@@ -136,7 +136,7 @@ int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_t n) noex
                            ? -1                                                                    \
                            : 1;                                                                    \
             }                                                                                      \
-        } while (false)
+        } while (0)
 
     #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_2(index)                                            \
         WJR_REGISTER_REVERSE_COMPARE_NOT_N_SIMD(sse, 2, index)

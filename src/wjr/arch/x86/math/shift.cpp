@@ -120,7 +120,7 @@ void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int cl
             auto r0 = simd_shift<simd>::sll(LAST, y);                                              \
             auto r1 = simd_shift<simd>::srl(NOW, z);                                               \
             LAST = simd::Or(r0, r1);                                                               \
-        } while (false)
+        } while (0)
 
     using simd = std::conditional_t<WJR_HAS_SIMD(AVX2), avx, sse>;
     constexpr auto type_width = simd::width() / std::numeric_limits<T>::digits;
@@ -139,7 +139,7 @@ void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int cl
             if (idx == 2)
                 break;
             dst[-3] = shld(src[-3], src[-4], cl);
-        } while (false);
+        } while (0);
         dst -= idx;
         src -= idx;
     #else
@@ -223,7 +223,7 @@ WJR_ALL_NONNULL void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n,
             auto r0 = simd_shift<simd>::srl(LAST, y);                                              \
             auto r1 = simd_shift<simd>::sll(NOW, z);                                               \
             LAST = simd::Or(r0, r1);                                                               \
-        } while (false)
+        } while (0)
 
     using simd = std::conditional_t<WJR_HAS_SIMD(AVX2), avx, sse>;
     constexpr auto type_width = simd::width() / std::numeric_limits<T>::digits;
@@ -242,7 +242,7 @@ WJR_ALL_NONNULL void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n,
             if (idx == 2)
                 break;
             dst[2] = shrd(src[2], src[3], cl);
-        } while (false);
+        } while (0);
         dst += idx;
         src += idx;
     #else

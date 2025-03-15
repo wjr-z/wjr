@@ -1006,7 +1006,7 @@ private:
                 leaf->__assign(pos, xval);
                 return iterator(leaf, pos);
             }
-        } while (false);
+        } while (0);
 
         iterator result;
         node_type *inst;
@@ -1033,7 +1033,7 @@ private:
             }
 
             inst = inst_leaf;
-        } while (false);
+        } while (0);
 
         {
             node_type *current = leaf;
@@ -1456,7 +1456,7 @@ private:
                 }
 
                 return;
-            } while (false);
+            } while (0);
 
             lhs->size() = merge_size;
             __drop_inner_node(rhs);
@@ -1634,7 +1634,7 @@ private:
             current->as_inner()->m_keys[tmp_pos - 1] = std::addressof(rhs->__get_key(0));
 
             return iterator(leaf, pos).__adjust_next();
-        } while (false);
+        } while (0);
 
         lhs->size() = -(merge_size - 1);
         rhs->remove();

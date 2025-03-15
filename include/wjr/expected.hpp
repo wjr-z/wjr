@@ -1756,7 +1756,7 @@ public:
         if (auto exp = (__VA_ARGS__); WJR_UNLIKELY(!exp)) {                                        \
             return ::wjr::unexpected(std::move(exp).error());                                      \
         }                                                                                          \
-    } while (false)
+    } while (0)
 
 #define WJR_EXPECTED_INIT(NAME, ...)                                                               \
     auto NAME = (__VA_ARGS__);                                                                     \
@@ -1771,7 +1771,7 @@ public:
         } else {                                                                                   \
             VAR = *std::move(exp);                                                                 \
         }                                                                                          \
-    } while (false)
+    } while (0)
 
 } // namespace wjr
 

@@ -179,7 +179,7 @@ SMALL:
         if (WJR_LIKELY(B == 0)) {
             return voidopt;
         }
-    } while (false);
+    } while (0);
 
     do {
         const int pos = ctz(B);
@@ -458,7 +458,7 @@ SMALL:
             builtin_memcpy(dst + m, first + m, 8);
             return dst + n;
         }
-    } while (false);
+    } while (0);
 
     int last_pos = 0;
 

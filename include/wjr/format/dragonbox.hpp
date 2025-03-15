@@ -2796,7 +2796,7 @@ struct impl : private FormatTraits::format {
             return SignPolicy::handle_sign(
                 s, TrailingZeroPolicy::template on_trailing_zeros<format>(
                        decimal_significand, decimal_exponent_type_(minus_k + kappa + 1)));
-        } while (false);
+        } while (0);
 
         //////////////////////////////////////////////////////////////////////
         // Step 3: Find the significand with the smaller divisor.
@@ -2983,7 +2983,7 @@ struct impl : private FormatTraits::format {
             return SignPolicy::handle_sign(
                 s, TrailingZeroPolicy::template on_trailing_zeros<format>(
                        decimal_significand, decimal_exponent_type_(minus_k + kappa + 1)));
-        } while (false);
+        } while (0);
 
         //////////////////////////////////////////////////////////////////////
         // Step 3: Find the significand with the smaller divisor.
@@ -3083,7 +3083,7 @@ struct impl : private FormatTraits::format {
             return SignPolicy::handle_sign(
                 s, TrailingZeroPolicy::template on_trailing_zeros<format>(
                        decimal_significand, decimal_exponent_type_(minus_k + kappa + 1)));
-        } while (false);
+        } while (0);
 
         //////////////////////////////////////////////////////////////////////
         // Step 3: Find the significand with the small divisor.

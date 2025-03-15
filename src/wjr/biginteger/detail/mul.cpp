@@ -225,7 +225,7 @@ void __noinline_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, siz
         uint64_t *stk = __mul_s_allocate(stkal, toom55_n_itch(m));
         toom55_mul_s(dst, src0, n, src1, m, stk);
         return;
-    } while (false);
+    } while (0);
 
     if (2 * n >= 5 * m) {
         uint64_t *tmp = __mul_s_allocate(stkal, (4 * m));
@@ -427,7 +427,7 @@ void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t
         }                                                                                          \
                                                                                                    \
         ret = cfA - __cf;                                                                          \
-    } while (false)
+    } while (0)
 
 #define WJR_ADDLSH_S(dst, A, n, B, m, cfA, cfB, cl, ret)                                           \
     do {                                                                                           \
@@ -439,7 +439,7 @@ void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t
         }                                                                                          \
                                                                                                    \
         ret = cfA + __cf;                                                                          \
-    } while (false)
+    } while (0)
 
 #define WJR_ADDLSH_NS(dst, A, m, B, n, cfA, cfB, cl, ret)                                          \
     do {                                                                                           \
@@ -452,7 +452,7 @@ void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t
         }                                                                                          \
                                                                                                    \
         ret = (cfB << (cl)) + __cf;                                                                \
-    } while (false)
+    } while (0)
 
 void toom22_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
                   size_t m, uint64_t *stk) noexcept {
@@ -506,7 +506,7 @@ void toom22_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, co
     ZERO:
         set_n(wp, 0, l * 2);
         break;
-    } while (false);
+    } while (0);
 
     __inline_mul_n_impl<__mul_mode::toom22>(p0, u0, v0, l, stk);
     __toom22_mul_s_impl(p2, u1, rn, v1, rm, stk);
@@ -558,7 +558,7 @@ void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n, uint64
     ZERO:
         set_n(wp, 0, l * 2);
         break;
-    } while (false);
+    } while (0);
 
     __inline_sqr_impl<__mul_mode::toom22>(p0, u0, l, stk);
     __inline_sqr_impl<__mul_mode::toom22>(p2, u1, rn, stk);
@@ -2274,7 +2274,7 @@ WJR_NODISCARD bool toom_eval_opposite_half_exp(toom_eval_opposite_exp_args &args
             (void)rshift_n(A, A, n, sA - 1, cfA);                                                  \
             cfA >>= sA - 1;                                                                        \
         }                                                                                          \
-    } while (false)
+    } while (0)
 
 /**
  * @details \n
@@ -2300,7 +2300,7 @@ WJR_NODISCARD bool toom_eval_opposite_half_exp(toom_eval_opposite_exp_args &args
             (void)rshift_n(B, B, n, sB - 1, cfB);                                                  \
             cfB >>= sB - 1;                                                                        \
         }                                                                                          \
-    } while (false)
+    } while (0)
 
 void toom_interpolation_even_4_solve(uint64_t *w0p, uint64_t *w2p, uint64_t *w4p, uint64_t *w6p,
                                      size_t n, uint64_t *tp) noexcept {
@@ -2905,7 +2905,7 @@ void toom_interpolation_9p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l
 
         // W5 -= tmp
         cf5 -= cft + subc_n(w5p, w5p, tmp, l * 2);
-    } while (false);
+    } while (0);
 
     // W5 /= 4
     (void)rshift_n(w5p, w5p, l * 2, 2, cf5);

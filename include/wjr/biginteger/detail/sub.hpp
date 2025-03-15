@@ -218,7 +218,7 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0
 
         hi -= subc_n(dst, src0, src1, idx - 1);
         dst[idx - 1] = hi;
-    } while (false);
+    } while (0);
 
     return overflow ? -1 : 1;
 }
@@ -264,7 +264,7 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n_pos(uint64_t *dst, const uint64_t *
         } else {
             --ret;
         }
-    } while (false);
+    } while (0);
 
     WJR_ASSUME(ret > 0);
     return overflow ? -ret : ret;
@@ -295,7 +295,7 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s1(uint64_t *dst, const uint64_t *src
         hi -= subc_n(dst, src0, src1, m);
         dst[m] = hi;
         return 1;
-    } while (false);
+    } while (0);
 
     return abs_subc_n(dst, src0, src1, m);
 }
@@ -355,7 +355,7 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s_pos(uint64_t *dst, const uint64_t *
 
             WJR_ASSUME(ret > 0);
             return ret;
-        } while (false);
+        } while (0);
 
         return abs_subc_n_pos(dst, src0, src1, m);
     }

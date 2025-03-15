@@ -1559,7 +1559,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
 
             ch = *p - '0';
         } while (WJR_LIKELY(ch < 10));
-    } while (false);
+    } while (0);
 
     do {
         end_of_integer_part = p;
@@ -1640,7 +1640,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
                 return detail::parse_infnan(first, last, float_v);
             }
         }
-    } while (false);
+    } while (0);
 
     exp_number = 0;
 
@@ -1817,7 +1817,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
         }
 
         return answer;
-    } while (false);
+    } while (0);
 
 INTEGER_AT_END:
     end_of_integer_part = p;

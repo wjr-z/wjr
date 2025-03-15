@@ -42,7 +42,7 @@ inline uint64_t div_qr_1_noshift(uint64_t *dst, uint64_t &rem, const uint64_t *s
             --n;
         } while (WJR_LIKELY(n != 0));
 
-    } while (false);
+    } while (0);
 
     rem = hi;
     return qh;
@@ -455,7 +455,7 @@ WJR_PURE WJR_INLINE_CONSTEXPR20 uint64_t mod_1_noshift(
             --n;
         } while (WJR_LIKELY(n != 0));
 
-    } while (false);
+    } while (0);
 
     return hi;
 }
@@ -496,7 +496,7 @@ mod_1_shift(const uint64_t *src, size_t n, const div2by1_divider<uint64_t> &div)
         }
 
         (void)div.divide(divisor, value, rbp << shift, hi);
-    } while (false);
+    } while (0);
 
     return hi >> shift;
 }

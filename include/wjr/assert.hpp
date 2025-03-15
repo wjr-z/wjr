@@ -101,7 +101,7 @@ WJR_NORETURN inline void __assert_light_failed_handler(const char *expr) noexcep
                                       ##__VA_ARGS__);                                              \
             WJR_UNREACHABLE();                                                                     \
         }                                                                                          \
-    } while (false)
+    } while (0)
 
 // do nothing
 #define WJR_ASSERT_UNCHECK_I(...) ((void)0)
@@ -113,7 +113,7 @@ WJR_NORETURN inline void __assert_light_failed_handler(const char *expr) noexcep
                                       ##__VA_ARGS__);                                              \
             WJR_UNREACHABLE();                                                                     \
         }                                                                                          \
-    } while (false)
+    } while (0)
 
 // do nothing
 #define WJR_ASSERT_ASSUME_UNCHECK_I(expr, ...) WJR_ASSUME(expr)

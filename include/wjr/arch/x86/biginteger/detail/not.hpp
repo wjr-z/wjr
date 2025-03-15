@@ -57,7 +57,7 @@ void large_builtin_bi_not_n(T *dst, const T *src, size_t n) noexcept {
         if (offset == 3) {
             dst[2] = ~src[2];
         }
-    } while (false);
+    } while (0);
 
     dst += offset;
     src += offset;

@@ -881,7 +881,7 @@ using compressed_optional = optional<compressed_optional_value_t<T>>;
         if (auto exp = (__VA_ARGS__); WJR_UNLIKELY(!exp)) {                                        \
             return ::wjr::nullopt;                                                                 \
         }                                                                                          \
-    } while (false)
+    } while (0)
 
 #define WJR_OPTIONAL_INIT(NAME, ...)                                                               \
     auto NAME = (__VA_ARGS__);                                                                     \
@@ -896,7 +896,7 @@ using compressed_optional = optional<compressed_optional_value_t<T>>;
         } else {                                                                                   \
             VAR = *std::move(exp);                                                                 \
         }                                                                                          \
-    } while (false)
+    } while (0)
 
 } // namespace wjr
 
