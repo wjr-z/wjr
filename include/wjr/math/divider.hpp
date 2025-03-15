@@ -78,6 +78,10 @@ public:
                                                             T &hi) noexcept {
         WJR_ASSERT_ASSUME_L3(__has_high_bit(divisor));
 
+        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(hi == 0)) {
+            return divide_hi0(divisor, lo, hi);
+        }
+
         if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(lo == 0)) {
             return divide_lo0(divisor, value, lo, hi);
         }
@@ -121,12 +125,10 @@ private:
         const T hi1 = hi + 1;
 
         T rax, rdx;
-
         rax = mul(hi, value, rdx);
         add_128(rax, rdx, rax, rdx, lo, hi1);
 
         lo -= mullo(rdx, divisor);
-
         div2by1_adjust(rax, divisor, lo, rdx);
 
         if (WJR_UNLIKELY(lo >= divisor)) {
@@ -144,15 +146,24 @@ private:
         return rdx;
     }
 
+    WJR_INTRINSIC_CONSTEXPR20 static T divide_hi0(T divisor, T lo, T &hi) noexcept {
+        T rdx = 0;
+        if (lo >= divisor) {
+            lo -= divisor;
+            rdx = 1;
+        }
+
+        hi = lo;
+        return rdx;
+    }
+
     WJR_INTRINSIC_CONSTEXPR20 static T divide_lo0(T divisor, T value, T lo, T &hi) noexcept {
         const T hi1 = hi + 1;
         T rax, rdx;
-
         rax = mul(hi, value, rdx);
         rdx += hi1;
 
         lo -= mullo(rdx, divisor);
-
         div2by1_adjust(rax, divisor, lo, rdx);
 
         hi = lo;
