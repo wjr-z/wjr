@@ -31,7 +31,7 @@
 
 #include <wjr/algorithm.hpp>
 #include <wjr/format/charconv.hpp>
-#include <wjr/math/uint128_t.hpp>
+#include <wjr/math/div.hpp>
 #include <wjr/span.hpp>
 
 namespace wjr::fastfloat {

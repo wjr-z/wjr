@@ -32,8 +32,12 @@ WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64_shift(
     return result;
 }
 
-WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64_impl(
-    uint64_t &rem, uint64_t lo, uint64_t hi, const div2by1_divider<uint64_t> &divider) noexcept {
+/*
+ not optimize for divider that is power of 2,
+ manually consider whether it needs to be optimized
+*/
+WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                               const div2by1_divider<uint64_t> &divider) noexcept {
     if (divider.get_shift() == 0) {
         return div128by64to64_noshift(rem, lo, hi, divider);
     }
@@ -46,17 +50,8 @@ WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64_impl(
  manually consider whether it needs to be optimized
 */
 WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
-                                               const div2by1_divider<uint64_t> &divider) noexcept {
-    return div128by64to64_impl(rem, lo, hi, divider);
-}
-
-/*
- not optimize for divider that is power of 2,
- manually consider whether it needs to be optimized
-*/
-WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
                                                uint64_t div) noexcept {
-    return div128by64to64_impl(rem, lo, hi, wjr::div2by1_divider<uint64_t>(div));
+    return div128by64to64(rem, lo, hi, wjr::div2by1_divider<uint64_t>(div));
 }
 
 inline uint128_t
@@ -92,8 +87,12 @@ inline uint128_t div128by64to128_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
     return {q0, q1};
 }
 
-inline uint128_t div128by64to128_impl(uint64_t &rem, uint64_t lo, uint64_t hi,
-                                      const div2by1_divider<uint64_t> &divider) noexcept {
+/*
+ not optimize for divider that is power of 2,
+ manually consider whether it needs to be optimized
+*/
+inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                 const div2by1_divider<uint64_t> &divider) noexcept {
     if (divider.get_shift() == 0) {
         return div128by64to128_noshift(rem, lo, hi, divider);
     }
@@ -105,17 +104,56 @@ inline uint128_t div128by64to128_impl(uint64_t &rem, uint64_t lo, uint64_t hi,
  not optimize for divider that is power of 2,
  manually consider whether it needs to be optimized
 */
-inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
-                                 const div2by1_divider<uint64_t> &divider) noexcept {
-    return div128by64to128_impl(rem, lo, hi, divider);
+inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi, uint64_t div) noexcept {
+    return div128by64to128(rem, lo, hi, div2by1_divider<uint64_t>(div));
 }
 
-/*
- not optimize for divider that is power of 2,
- manually consider whether it needs to be optimized
-*/
-inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi, uint64_t div) noexcept {
-    return div128by64to128_impl(rem, lo, hi, div2by1_divider<uint64_t>(div));
+inline uint64_t div128by128to64_noshift(uint128_t &rem, uint64_t lo, uint64_t hi,
+                                        const div3by2_divider_noshift<uint64_t> &divider) {
+    const uint64_t divisor0 = divider.get_divisor0();
+    const uint64_t divisor1 = divider.get_divisor1();
+
+    uint64_t qh = 0;
+    if (__less_equal_128(divisor0, divisor1, lo, hi)) {
+        sub_128(lo, hi, lo, hi, divisor0, divisor1);
+        qh = 1;
+    }
+
+    rem.low = lo;
+    rem.high = hi;
+    return qh;
+}
+
+inline uint64_t div128by128to64_shift(uint128_t &rem, uint64_t lo, uint64_t hi,
+                                      const div3by2_divider<uint64_t> &divider) {
+    const uint64_t divisor0 = divider.get_divisor0();
+    const uint64_t divisor1 = divider.get_divisor1();
+    const uint64_t value = divider.get_value();
+    const auto shift = divider.get_shift();
+
+    uint64_t qh;
+    uint64_t u1, u2;
+    uint64_t rbp;
+
+    rbp = lo;
+    u2 = hi;
+    u1 = shld(u2, rbp, shift);
+    u2 >>= (64 - shift);
+
+    qh = divider.divide(divisor0, divisor1, value, rbp << shift, u1, u2);
+
+    rem.low = shrd(u1, u2, shift);
+    rem.high = u2 >> shift;
+    return qh;
+}
+
+inline uint64_t div128by128to64(uint128_t &rem, uint64_t lo, uint64_t hi,
+                                const div3by2_divider<uint64_t> &divider) noexcept {
+    if (divider.get_shift() == 0) {
+        return div128by128to64_noshift(rem, lo, hi, divider);
+    }
+
+    return div128by128to64_shift(rem, lo, hi, divider);
 }
 
 } // namespace wjr

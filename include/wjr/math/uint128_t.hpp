@@ -155,7 +155,7 @@ public:
     }
 
     friend WJR_CONST WJR_CONSTEXPR20 bool operator==(uint128_t lhs, uint128_t rhs) noexcept {
-        return lhs.low == rhs.low && lhs.high == rhs.high;
+        return __equal_128(lhs.low, lhs.high, rhs.low, rhs.high);
     }
 
     friend WJR_CONST WJR_CONSTEXPR20 bool operator!=(uint128_t lhs, uint128_t rhs) noexcept {

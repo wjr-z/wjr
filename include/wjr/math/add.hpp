@@ -22,7 +22,11 @@ WJR_INTRINSIC_CONSTEXPR T fallback_addc(T a, T b, U c_in, U &c_out) noexcept {
     return ret;
 }
 
-// todo : Support GCC optimization, GCC don't support size of 1, 2
+#if WJR_HAS_BUILTIN(__builtin_add_overflow)
+    #define WJR_HAS_BUILTIN_ADD_OVERFLOW WJR_HAS_DEF
+#endif
+
+// todo : Support GCC optimization, GCC don't support size of 1, 2. Support add_overflow.
 #if WJR_HAS_BUILTIN(__builtin_addcb) && WJR_HAS_BUILTIN(__builtin_addcll)
     #define WJR_HAS_BUILTIN_ADDC WJR_HAS_DEF
 #endif
@@ -143,10 +147,6 @@ WJR_INTRINSIC_CONSTEXPR20 T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noex
     return addc(a, b, c_in, c_out);
 #endif
 }
-
-#if WJR_HAS_BUILTIN(__builtin_add_overflow)
-    #define WJR_HAS_BUILTIN_ADD_OVERFLOW WJR_HAS_DEF
-#endif
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 bool fallback_add_overflow(T a, T b, T &ret) noexcept {

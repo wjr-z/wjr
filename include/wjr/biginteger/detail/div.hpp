@@ -136,6 +136,14 @@ extern WJR_ALL_NONNULL uint64_t div_qr_2_shift(uint64_t *dst, uint64_t *rem, con
 WJR_INTRINSIC_INLINE uint64_t div_qr_2_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src,
                                             size_t n,
                                             const div3by2_divider<uint64_t> &div) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == 2)) {
+        uint128_t rem128;
+        uint64_t qh = div128by128to64(rem128, src[0], src[1], div);
+        rem[0] = rem128.low;
+        rem[1] = rem128.high;
+        return qh;
+    }
+
     if (div.get_shift() == 0) {
         return div_qr_2_noshift(dst, rem, src, n, div);
     }

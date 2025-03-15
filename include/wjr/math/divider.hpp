@@ -275,6 +275,10 @@ public:
 
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(div3by2_divider_noshift);
 
+    /**
+     * @param d0 low
+     * @param d1 high
+     */
     WJR_INTRINSIC_CONSTEXPR20 div3by2_divider_noshift(T d0, T d1) noexcept
         : m_divisor0(d0), m_divisor1(d1) {
         m_value = reciprocal(d0, d1);
@@ -380,6 +384,10 @@ public:
 
     constexpr explicit div3by2_divider(const Mybase &base) noexcept : Mybase(base), m_shift(0) {}
 
+    /**
+     * @param d0 low
+     * @param d1 high
+     */
     WJR_INTRINSIC_CONSTEXPR20 div3by2_divider(T d0, T d1) noexcept {
         m_divisor0 = d0;
         m_divisor1 = d1;

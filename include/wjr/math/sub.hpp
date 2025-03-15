@@ -22,7 +22,11 @@ WJR_INTRINSIC_CONSTEXPR T fallback_subc(T a, T b, U c_in, U &c_out) noexcept {
     return ret;
 }
 
-// todo : Support GCC optimization, GCC don't support size of 1, 2
+#if WJR_HAS_BUILTIN(__builtin_sub_overflow)
+    #define WJR_HAS_BUILTIN_SUB_OVERFLOW WJR_HAS_DEF
+#endif
+
+// todo : Support GCC optimization, GCC don't support size of 1, 2. Support sub_overflow
 #if WJR_HAS_BUILTIN(__builtin_subcb) && WJR_HAS_BUILTIN(__builtin_subcll)
     #define WJR_HAS_BUILTIN_SUBC WJR_HAS_DEF
 #endif
@@ -121,10 +125,6 @@ WJR_INTRINSIC_CONSTEXPR20 T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noex
     return subc(a, b, c_in, c_out);
 #endif
 }
-
-#if WJR_HAS_BUILTIN(__builtin_sub_overflow)
-    #define WJR_HAS_BUILTIN_SUB_OVERFLOW WJR_HAS_DEF
-#endif
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 bool fallback_sub_overflow(T a, T b, T &ret) noexcept {
