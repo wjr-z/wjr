@@ -22,7 +22,8 @@ WJR_INTRINSIC_CONSTEXPR T fallback_subc(T a, T b, U c_in, U &c_out) noexcept {
     return ret;
 }
 
-#if WJR_HAS_BUILTIN(__builtin_subc)
+// todo : Support GCC optimization, GCC don't support size of 1, 2
+#if WJR_HAS_BUILTIN(__builtin_subcb) && WJR_HAS_BUILTIN(__builtin_subcll)
     #define WJR_HAS_BUILTIN_SUBC WJR_HAS_DEF
 #endif
 

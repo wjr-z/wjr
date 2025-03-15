@@ -22,7 +22,8 @@ WJR_INTRINSIC_CONSTEXPR T fallback_addc(T a, T b, U c_in, U &c_out) noexcept {
     return ret;
 }
 
-#if WJR_HAS_BUILTIN(__builtin_addc)
+// todo : Support GCC optimization, GCC don't support size of 1, 2
+#if WJR_HAS_BUILTIN(__builtin_addcb) && WJR_HAS_BUILTIN(__builtin_addcll)
     #define WJR_HAS_BUILTIN_ADDC WJR_HAS_DEF
 #endif
 
@@ -35,7 +36,7 @@ WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) noexcept {
     #define WJR_REGISTER_BUILTIN_ADDC(suffix, type)                                                \
         if constexpr (nd <= std::numeric_limits<type>::digits) {                                   \
             type __c_out;                                                                          \
-            const T ret = __builtin_addc##suffix(a, b, static_cast<type>(c_in), &__c_out);         \
+            T ret = __builtin_addc##suffix(a, b, static_cast<type>(c_in), &__c_out);               \
             c_out = static_cast<U>(__c_out);                                                       \
             return ret;                                                                            \
         } else
