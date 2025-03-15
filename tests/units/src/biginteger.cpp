@@ -49,17 +49,17 @@ TEST(biginteger, random) {
         biginteger a;
 
         urandom_bit(a, 0, __mt_rand);
-        WJR_ASSERT_ALWAYS(a == 0);
+        WJR_CHECK(a == 0);
 
         for (int i = 0; i < 8; ++i) {
             urandom_bit(a, 1, __mt_rand);
-            WJR_ASSERT_ALWAYS(a >= 0 && a < 2);
+            WJR_CHECK(a >= 0 && a < 2);
 
             urandom_bit(a, 2, __mt_rand);
-            WJR_ASSERT_ALWAYS(a >= 0 && a < 4);
+            WJR_CHECK(a >= 0 && a < 4);
 
             urandom_bit(a, 7, __mt_rand);
-            WJR_ASSERT_ALWAYS(a >= 0 && a < (1u << 7));
+            WJR_CHECK(a >= 0 && a < (1u << 7));
         }
     }
 
@@ -67,17 +67,17 @@ TEST(biginteger, random) {
         biginteger a;
 
         urandom_exact_bit(a, 0, __mt_rand);
-        WJR_ASSERT_ALWAYS(a == 0);
+        WJR_CHECK(a == 0);
 
         for (int i = 0; i < 8; ++i) {
             urandom_exact_bit(a, 1, __mt_rand);
-            WJR_ASSERT_ALWAYS(a >= 1 && a < 2);
+            WJR_CHECK(a >= 1 && a < 2);
 
             urandom_exact_bit(a, 2, __mt_rand);
-            WJR_ASSERT_ALWAYS(a >= 2 && a < 4);
+            WJR_CHECK(a >= 2 && a < 4);
 
             urandom_exact_bit(a, 7, __mt_rand);
-            WJR_ASSERT_ALWAYS(a >= (1u << 6) && a < (1u << 7));
+            WJR_CHECK(a >= (1u << 6) && a < (1u << 7));
         }
     }
 
@@ -107,7 +107,7 @@ TEST(biginteger, random) {
             const float f = (num[2] * 1.0 / num[1]);
 
             if (f < FLOOR || f > CEIL) {
-                WJR_ASSERT_ALWAYS(T != TRY);
+                WJR_CHECK(T != TRY);
                 continue;
             }
 
@@ -120,59 +120,59 @@ TEST(biginteger, construct) {
     {
         biginteger a;
 
-        WJR_ASSERT_ALWAYS(a == 0);
+        WJR_CHECK(a == 0);
     }
 
     {
         biginteger a;
         biginteger b(a);
 
-        WJR_ASSERT_ALWAYS(a == 0);
-        WJR_ASSERT_ALWAYS(b == 0);
-        
+        WJR_CHECK(a == 0);
+        WJR_CHECK(b == 0);
+
         biginteger c(std::move(a));
         biginteger d = c;
 
-        WJR_ASSERT_ALWAYS(c == 0);
-        WJR_ASSERT_ALWAYS(d == 0);
+        WJR_CHECK(c == 0);
+        WJR_CHECK(d == 0);
     }
 
     {
         biginteger a(1);
         biginteger b(a);
 
-        WJR_ASSERT_ALWAYS(a == 1);
-        WJR_ASSERT_ALWAYS(b == 1);
+        WJR_CHECK(a == 1);
+        WJR_CHECK(b == 1);
 
         biginteger c(std::move(a));
 
-        WJR_ASSERT_ALWAYS(c == 1);
+        WJR_CHECK(c == 1);
     }
 
     {
         biginteger a(-1);
         biginteger b(a);
 
-        WJR_ASSERT_ALWAYS(a == -1);
-        WJR_ASSERT_ALWAYS(b == -1);
+        WJR_CHECK(a == -1);
+        WJR_CHECK(b == -1);
 
         biginteger c(std::move(a));
 
-        WJR_ASSERT_ALWAYS(c == -1);
+        WJR_CHECK(c == -1);
     }
 
     {
         biginteger a(0);
 
-        WJR_ASSERT_ALWAYS(a == 0);
+        WJR_CHECK(a == 0);
 
         biginteger b(1);
 
-        WJR_ASSERT_ALWAYS(b == 1);
+        WJR_CHECK(b == 1);
 
         biginteger c(-1);
 
-        WJR_ASSERT_ALWAYS(c == -1);
+        WJR_CHECK(c == -1);
     }
 
     {
@@ -182,15 +182,15 @@ TEST(biginteger, construct) {
 
         biginteger b(a);
 
-        WJR_ASSERT_ALWAYS(a == b);
-        WJR_ASSERT_ALWAYS(b[1023] == 1);
-        WJR_ASSERT_ALWAYS(b.size() == 1024);
+        WJR_CHECK(a == b);
+        WJR_CHECK(b[1023] == 1);
+        WJR_CHECK(b.size() == 1024);
 
         biginteger c(std::move(a));
 
-        WJR_ASSERT_ALWAYS(c == b);
-        WJR_ASSERT_ALWAYS(c[1023] == 1);
-        WJR_ASSERT_ALWAYS(c.size() == 1024);
+        WJR_CHECK(c == b);
+        WJR_CHECK(c[1023] == 1);
+        WJR_CHECK(c.size() == 1024);
     }
 }
 
@@ -201,13 +201,13 @@ TEST(biginteger, assignment) {
         biginteger b;
         b = a;
 
-        WJR_ASSERT_ALWAYS(a == 0);
-        WJR_ASSERT_ALWAYS(b == 0);
+        WJR_CHECK(a == 0);
+        WJR_CHECK(b == 0);
 
         biginteger c;
         c = std::move(a);
 
-        WJR_ASSERT_ALWAYS(c == 0);
+        WJR_CHECK(c == 0);
     }
 
     {
@@ -216,13 +216,13 @@ TEST(biginteger, assignment) {
         biginteger b;
         b = a;
 
-        WJR_ASSERT_ALWAYS(a == 1);
-        WJR_ASSERT_ALWAYS(b == 1);
+        WJR_CHECK(a == 1);
+        WJR_CHECK(b == 1);
 
         biginteger c;
         c = std::move(a);
 
-        WJR_ASSERT_ALWAYS(c == 1);
+        WJR_CHECK(c == 1);
     }
 
     {
@@ -231,13 +231,13 @@ TEST(biginteger, assignment) {
         biginteger b;
         b = a;
 
-        WJR_ASSERT_ALWAYS(a == -1);
-        WJR_ASSERT_ALWAYS(b == -1);
+        WJR_CHECK(a == -1);
+        WJR_CHECK(b == -1);
 
         biginteger c;
         c = std::move(a);
 
-        WJR_ASSERT_ALWAYS(c == -1);
+        WJR_CHECK(c == -1);
     }
 
     {
@@ -246,12 +246,12 @@ TEST(biginteger, assignment) {
         biginteger b;
         b = -1;
 
-        WJR_ASSERT_ALWAYS(a == 3);
-        WJR_ASSERT_ALWAYS(b == -1);
+        WJR_CHECK(a == 3);
+        WJR_CHECK(b == -1);
 
         b = std::move(a);
 
-        WJR_ASSERT_ALWAYS(b == 3);
+        WJR_CHECK(b == 3);
     }
 }
 
@@ -262,10 +262,10 @@ TEST(biginteger, addsub) {
         biginteger c;
 
         add(c, a, b);
-        WJR_ASSERT_ALWAYS(c == 2);
+        WJR_CHECK(c == 2);
 
         sub(c, a, b);
-        WJR_ASSERT_ALWAYS(c == 0);
+        WJR_CHECK(c == 0);
     }
 
     {
@@ -274,10 +274,10 @@ TEST(biginteger, addsub) {
         biginteger c;
 
         add(c, a, b);
-        WJR_ASSERT_ALWAYS(c == 0);
+        WJR_CHECK(c == 0);
 
         sub(c, a, b);
-        WJR_ASSERT_ALWAYS(c == 2);
+        WJR_CHECK(c == 2);
     }
 
     {
@@ -286,10 +286,10 @@ TEST(biginteger, addsub) {
         biginteger c;
 
         add(c, a, b);
-        WJR_ASSERT_ALWAYS(c == 0);
+        WJR_CHECK(c == 0);
 
         sub(c, a, b);
-        WJR_ASSERT_ALWAYS(c == -2);
+        WJR_CHECK(c == -2);
     }
 
     {
@@ -298,10 +298,10 @@ TEST(biginteger, addsub) {
         biginteger c;
 
         add(c, a, b);
-        WJR_ASSERT_ALWAYS(c == -2);
+        WJR_CHECK(c == -2);
 
         sub(c, a, b);
-        WJR_ASSERT_ALWAYS(c == 0);
+        WJR_CHECK(c == 0);
     }
 
 #if defined(WJR_USE_GMP)
@@ -328,11 +328,11 @@ TEST(biginteger, addsub) {
                     add(c, a, b);
                     mpz_add(c1, a1, b1);
 
-                    WJR_ASSERT_ALWAYS(equal(c, c1));
+                    WJR_CHECK(equal(c, c1));
 
                     sub(c, a, b);
                     mpz_sub(c1, a1, b1);
-                    WJR_ASSERT_ALWAYS(equal(c, c1));
+                    WJR_CHECK(equal(c, c1));
 
                     a.negate();
                     mpz_neg(a1, a1);
@@ -361,21 +361,21 @@ TEST(biginteger, addsub) {
                         add(c, a, x);
                         mpz_add_ui(c1, a1, x);
 
-                        WJR_ASSERT_ALWAYS(equal(c, c1));
+                        WJR_CHECK(equal(c, c1));
 
                         add(c, x, a);
 
-                        WJR_ASSERT_ALWAYS(equal(c, c1));
+                        WJR_CHECK(equal(c, c1));
 
                         sub(c, a, x);
                         mpz_sub_ui(c1, a1, x);
 
-                        WJR_ASSERT_ALWAYS(equal(c, c1));
+                        WJR_CHECK(equal(c, c1));
 
                         sub(c, x, a);
                         mpz_ui_sub(c1, x, a1);
 
-                        WJR_ASSERT_ALWAYS(equal(c, c1));
+                        WJR_CHECK(equal(c, c1));
 
                         a.negate();
                         mpz_neg(a1, a1);
@@ -413,19 +413,19 @@ TEST(biginteger, mul) {
                     mul(c, a, b);
                     mpz_mul(c1, a1, b1);
 
-                    WJR_ASSERT_ALWAYS(equal(c, c1));
+                    WJR_CHECK(equal(c, c1));
 
                     addmul(c, a, b);
                     mpz_addmul(c1, a1, b1);
 
-                    WJR_ASSERT_ALWAYS(equal(c, c1));
+                    WJR_CHECK(equal(c, c1));
 
                     c = a;
                     mpz_set(c1, a1);
                     mul(a, a, b);
                     mpz_mul(a1, a1, b1);
 
-                    WJR_ASSERT_ALWAYS(equal(a, a1));
+                    WJR_CHECK(equal(a, a1));
 
                     a = c;
                     mpz_set(a1, c1);
@@ -457,16 +457,16 @@ TEST(biginteger, mul) {
                         mul(c, a, x);
                         mpz_mul_ui(c1, a1, x);
 
-                        WJR_ASSERT_ALWAYS(equal(c, c1));
+                        WJR_CHECK(equal(c, c1));
 
                         mul(c, x, a);
 
-                        WJR_ASSERT_ALWAYS(equal(c, c1));
+                        WJR_CHECK(equal(c, c1));
 
                         mul_2exp(c, a, x % 1024);
                         mpz_mul_2exp(c1, a1, x % 1024);
 
-                        WJR_ASSERT_ALWAYS(equal(c, c1));
+                        WJR_CHECK(equal(c, c1));
 
                         a.negate();
                         mpz_neg(a1, a1);
@@ -501,7 +501,7 @@ TEST(biginteger, sqr) {
                     sqr(b, a);
                     mpz_mul(b1, a1, a1);
 
-                    WJR_ASSERT_ALWAYS(equal(b, b1));
+                    WJR_CHECK(equal(b, b1));
 
                     a.negate();
                     mpz_neg(a1, a1);
@@ -539,50 +539,50 @@ TEST(biginteger, div) {
                     tdiv_qr(c, d, a, b);
                     mpz_tdiv_qr(c1, d1, a1, b1);
 
-                    WJR_ASSERT_ALWAYS(equal(c, c1));
-                    WJR_ASSERT_ALWAYS(equal(d, d1));
+                    WJR_CHECK(equal(c, c1));
+                    WJR_CHECK(equal(d, d1));
 
                     tdiv_q(c, a, b);
                     mpz_tdiv_q(c1, a1, b1);
 
-                    WJR_ASSERT_ALWAYS(equal(c, c1));
+                    WJR_CHECK(equal(c, c1));
 
                     tdiv_r(d, a, b);
                     mpz_tdiv_r(d1, a1, b1);
 
-                    WJR_ASSERT_ALWAYS(equal(d, d1));
+                    WJR_CHECK(equal(d, d1));
 
                     fdiv_qr(c, d, a, b);
                     mpz_fdiv_qr(c1, d1, a1, b1);
 
-                    WJR_ASSERT_ALWAYS(equal(c, c1));
-                    WJR_ASSERT_ALWAYS(equal(d, d1));
+                    WJR_CHECK(equal(c, c1));
+                    WJR_CHECK(equal(d, d1));
 
                     fdiv_q(c, a, b);
                     mpz_fdiv_q(c1, a1, b1);
 
-                    WJR_ASSERT_ALWAYS(equal(c, c1));
+                    WJR_CHECK(equal(c, c1));
 
                     fdiv_r(d, a, b);
                     mpz_fdiv_r(d1, a1, b1);
 
-                    WJR_ASSERT_ALWAYS(equal(d, d1));
+                    WJR_CHECK(equal(d, d1));
 
                     cdiv_qr(c, d, a, b);
                     mpz_cdiv_qr(c1, d1, a1, b1);
 
-                    WJR_ASSERT_ALWAYS(equal(c, c1));
-                    WJR_ASSERT_ALWAYS(equal(d, d1));
+                    WJR_CHECK(equal(c, c1));
+                    WJR_CHECK(equal(d, d1));
 
                     cdiv_q(c, a, b);
                     mpz_cdiv_q(c1, a1, b1);
 
-                    WJR_ASSERT_ALWAYS(equal(c, c1));
+                    WJR_CHECK(equal(c, c1));
 
                     cdiv_r(d, a, b);
                     mpz_cdiv_r(d1, a1, b1);
 
-                    WJR_ASSERT_ALWAYS(equal(d, d1));
+                    WJR_CHECK(equal(d, d1));
 
                     a.negate();
                     mpz_neg(a1, a1);
@@ -622,32 +622,32 @@ TEST(biginteger, div_2exp) {
                         tdiv_q_2exp(b, a, shift);
                         mpz_tdiv_q_2exp(b1, a1, shift);
 
-                        WJR_ASSERT_ALWAYS(equal(b, b1));
+                        WJR_CHECK(equal(b, b1));
 
                         tdiv_r_2exp(b, a, shift);
                         mpz_tdiv_r_2exp(b1, a1, shift);
 
-                        WJR_ASSERT_ALWAYS(equal(b, b1));
+                        WJR_CHECK(equal(b, b1));
 
                         cdiv_q_2exp(b, a, shift);
                         mpz_cdiv_q_2exp(b1, a1, shift);
 
-                        WJR_ASSERT_ALWAYS(equal(b, b1));
+                        WJR_CHECK(equal(b, b1));
 
                         fdiv_q_2exp(b, a, shift);
                         mpz_fdiv_q_2exp(b1, a1, shift);
 
-                        WJR_ASSERT_ALWAYS(equal(b, b1));
+                        WJR_CHECK(equal(b, b1));
 
                         cdiv_r_2exp(b, a, shift);
                         mpz_cdiv_r_2exp(b1, a1, shift);
 
-                        WJR_ASSERT_ALWAYS(equal(b, b1));
+                        WJR_CHECK(equal(b, b1));
 
                         fdiv_r_2exp(b, a, shift);
                         mpz_fdiv_r_2exp(b1, a1, shift);
 
-                        WJR_ASSERT_ALWAYS(equal(b, b1));
+                        WJR_CHECK(equal(b, b1));
 
                         a.negate();
                         mpz_neg(a1, a1);
@@ -687,7 +687,7 @@ TEST(biginteger, convert) {
                     a.from_string(str, base);
                     mpz_set_str(b, str.data(), base);
 
-                    WJR_ASSERT_ALWAYS(equal(a, b));
+                    WJR_CHECK(equal(a, b));
                 }
             }
         }
@@ -699,9 +699,9 @@ TEST(biginteger, pow) {
     {
         biginteger a;
         pow(a, 0, 0);
-        WJR_ASSERT_ALWAYS(a == 1u);
+        WJR_CHECK(a == 1u);
         pow(a, -14348907, 3);
-        WJR_ASSERT_ALWAYS(a == biginteger("-2954312706550833698643"));
+        WJR_CHECK(a == biginteger("-2954312706550833698643"));
     }
 #if defined(WJR_USE_GMP)
     {
@@ -721,7 +721,7 @@ TEST(biginteger, pow) {
                 pow(a, a, n);
                 mpz_pow_ui(b, b, n);
 
-                WJR_ASSERT_ALWAYS(equal(a, b));
+                WJR_CHECK(equal(a, b));
             }
         }
     }

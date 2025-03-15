@@ -950,14 +950,14 @@ public:
 
     WJR_CONSTEXPR20 reference operator[](size_type pos) noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_ALWAYS(pos < size(), "basic_vector::operator[]: out of range");
+        WJR_CHECK(pos < size(), "basic_vector::operator[]: out of range");
 #endif
         return data()[pos];
     }
 
     WJR_CONSTEXPR20 const_reference operator[](size_type pos) const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_ALWAYS(pos < size(), "basic_vector::operator[]: out of range");
+        WJR_CHECK(pos < size(), "basic_vector::operator[]: out of range");
 #endif
         return data()[pos];
     }
@@ -980,28 +980,28 @@ public:
 
     WJR_CONSTEXPR20 reference front() noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_ALWAYS(!empty(), "basic_vector::front: empty");
+        WJR_CHECK(!empty(), "basic_vector::front: empty");
 #endif
         return *data();
     }
 
     WJR_CONSTEXPR20 const_reference front() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_ALWAYS(!empty(), "basic_vector::front: empty");
+        WJR_CHECK(!empty(), "basic_vector::front: empty");
 #endif
         return *data();
     }
 
     WJR_CONSTEXPR20 reference back() noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_ALWAYS(!empty(), "basic_vector::back: empty");
+        WJR_CHECK(!empty(), "basic_vector::back: empty");
 #endif
         return *(end_unsafe() - 1);
     }
 
     WJR_CONSTEXPR20 const_reference back() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_ALWAYS(!empty(), "basic_vector::back: empty");
+        WJR_CHECK(!empty(), "basic_vector::back: empty");
 #endif
         return *(end_unsafe() - 1);
     }

@@ -72,7 +72,7 @@ using mp_limb_t = uint64_t;
 #define mpn_sub_nc wjr::subc_n
 #define GMP_LIMB_HIGHBIT ((UINT64_C(1)) << 63)
 #define ASSERT WJR_ASSERT
-#define ASSERT_ALWAYS WJR_ASSERT_ALWAYS
+#define ASSERT_ALWAYS WJR_CHECK
 #define ASSERT_NOCARRY(x) (void)x
 #define MPN_MULMOD_BKNP1_USABLE wjr::mulmod_bknp1_usable
 #define MPN_SQRMOD_BKNP1_USABLE wjr::sqrmod_bknp1_usable

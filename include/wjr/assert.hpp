@@ -75,10 +75,7 @@ WJR_NORETURN inline void __assert_failed_handler(const char *expr, const char *f
 
 /// @private
 template <typename... Args>
-WJR_NORETURN void __assert_light_failed_handler(const char *expr, Args &&...args) noexcept {
-    std::cerr << "Assert message:";
-    (void)(std::cerr << ... << std::forward<Args>(args));
-    std::cerr << '\n';
+WJR_NORETURN void __assert_light_failed_handler(const char *expr, Args &&...) noexcept {
     __assert_light_failed(expr);
 }
 
@@ -116,7 +113,6 @@ WJR_NORETURN inline void __assert_light_failed_handler(const char *expr) noexcep
                                       ##__VA_ARGS__);                                              \
             WJR_UNREACHABLE();                                                                     \
         }                                                                                          \
-        WJR_ASSUME(expr);                                                                          \
     } while (false)
 
 // do nothing
@@ -153,7 +149,7 @@ WJR_NORETURN inline void __assert_light_failed_handler(const char *expr) noexcep
 #define WJR_ASSERT(...) WJR_ASSERT_L1(__VA_ARGS__)
 #define WJR_ASSERT_ASSUME(...) WJR_ASSERT_ASSUME_L1(__VA_ARGS__)
 
-#define WJR_ASSERT_ALWAYS(...) WJR_ASSERT_L0(__VA_ARGS__)
+#define WJR_CHECK(...) WJR_ASSERT_L0(__VA_ARGS__)
 
 } // namespace wjr
 

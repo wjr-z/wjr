@@ -35,18 +35,18 @@ TEST(json, parse) {
 
     {
         reader rd(twitter_json);
-        WJR_ASSERT_ALWAYS(check(rd).has_value());
+        WJR_CHECK(check(rd).has_value());
         auto ret = document::parse(rd);
-        WJR_ASSERT_ALWAYS(ret.has_value());
-        auto &j = *ret;
+        WJR_CHECK(ret.has_value());
+        auto j = std::move(*ret);
         auto str = j.to_string();
         rd.read(str);
         ret = document::parse(rd);
-        WJR_ASSERT_ALWAYS(ret.has_value());
-        auto &j2 = *ret;
+        WJR_CHECK(ret.has_value());
+        auto j2 = std::move(*ret);
         auto str2 = j2.to_string();
-        WJR_ASSERT_ALWAYS(j == j2);
-        WJR_ASSERT_ALWAYS(str == str2);
+        WJR_CHECK(j == j2);
+        WJR_CHECK(str == str2);
     }
 }
 
@@ -70,13 +70,13 @@ void json_constructor_test(const T &expected) {
 
     do {
         document doc(expected);
-        WJR_ASSERT_ALWAYS((T)doc == expected);
+        WJR_CHECK((T)doc == expected);
         doc = expected;
-        WJR_ASSERT_ALWAYS((T)doc == expected);
+        WJR_CHECK((T)doc == expected);
         T val(doc);
-        WJR_ASSERT_ALWAYS(val == expected);
+        WJR_CHECK(val == expected);
         doc.get_to(val);
-        WJR_ASSERT_ALWAYS(val == expected);
+        WJR_CHECK(val == expected);
     } while (0);
 
     do {
@@ -84,14 +84,14 @@ void json_constructor_test(const T &expected) {
         T c1(expected);
 
         document doc(std::move(c0));
-        WJR_ASSERT_ALWAYS((T)doc == expected);
+        WJR_CHECK((T)doc == expected);
         doc = std::move(c1);
-        WJR_ASSERT_ALWAYS((T)doc == expected);
+        WJR_CHECK((T)doc == expected);
         T val(std::move(doc));
-        WJR_ASSERT_ALWAYS(val == expected);
+        WJR_CHECK(val == expected);
         document doc2(expected);
         std::move(doc2).get_to(val);
-        WJR_ASSERT_ALWAYS(val == expected);
+        WJR_CHECK(val == expected);
     } while (0);
 }
 
@@ -112,8 +112,8 @@ TEST(json, constructor) {
             document a(std::string_view("name"));
             document b(std::string("version"));
 
-            WJR_ASSERT_ALWAYS((std::string_view)a == "name");
-            WJR_ASSERT_ALWAYS((std::string_view)b == "version");
+            WJR_CHECK((std::string_view)a == "name");
+            WJR_CHECK((std::string_view)b == "version");
 
             static_assert(!std::is_constructible_v<std::string_view, document &&>, "");
 
@@ -121,9 +121,9 @@ TEST(json, constructor) {
             std::string d(b);
             std::string e(std::move(b));
 
-            WJR_ASSERT_ALWAYS(c == "name");
-            WJR_ASSERT_ALWAYS(d == "version");
-            WJR_ASSERT_ALWAYS(e == "version");
+            WJR_CHECK(c == "name");
+            WJR_CHECK(d == "version");
+            WJR_CHECK(e == "version");
         } while (false);
 
         do {
@@ -134,8 +134,8 @@ TEST(json, constructor) {
 
             auto iter = a.begin();
             for (auto &[key, value] : b.template get<object_t>()) {
-                WJR_ASSERT_ALWAYS((std::string_view)(key) == iter->first);
-                WJR_ASSERT_ALWAYS((std::string_view)(value) == iter->second);
+                WJR_CHECK((std::string_view)(key) == iter->first);
+                WJR_CHECK((std::string_view)(value) == iter->second);
                 ++iter;
             }
         } while (false);
@@ -146,7 +146,7 @@ TEST(json, constructor) {
 
             auto iter = a.begin();
             for (auto &elem : b.template get<array_t>()) {
-                WJR_ASSERT_ALWAYS((int)(elem) == *iter);
+                WJR_CHECK((int)(elem) == *iter);
                 ++iter;
             }
 
@@ -154,7 +154,7 @@ TEST(json, constructor) {
 
             iter = a.begin();
             for (auto &elem : c) {
-                WJR_ASSERT_ALWAYS((int)(elem) == *iter);
+                WJR_CHECK((int)(elem) == *iter);
                 ++iter;
             }
         } while (false);
@@ -164,10 +164,10 @@ TEST(json, constructor) {
             reader rd(str);
 
             test_struct0 it(document::parse(rd).value());
-            WJR_ASSERT_ALWAYS(it.name == "wjr");
-            WJR_ASSERT_ALWAYS(it.version == "1.0.0");
-            WJR_ASSERT_ALWAYS(it.age == 22);
+            WJR_CHECK(it.name == "wjr");
+            WJR_CHECK(it.version == "1.0.0");
+            WJR_CHECK(it.age == 22);
         } while (false);
     }
-    WJR_CATCH(...) { WJR_ASSERT_ALWAYS(false); }
+    WJR_CATCH(...) { WJR_CHECK(false); }
 }
