@@ -9,7 +9,7 @@ if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE Release)
 endif()
 
-if (NOT DEFINED WJR_DEBUG_LEVEL_RELEASE)
+if(NOT DEFINED WJR_DEBUG_LEVEL_RELEASE)
    set(WJR_DEBUG_LEVEL_RELEASE 3)
 endif()
 
@@ -53,37 +53,39 @@ if(WJR_ENABLE_COVERAGE)
    # find required tools
    # find_program(LCOV lcov REQUIRED)
    # find_program(GENHTML genhtml REQUIRED)
-
    set(target tests)
 
    target_compile_options(${target}
-				PRIVATE -fprofile-instr-generate -fcoverage-mapping -fno-inline)
-			target_link_options(${target}
-				PUBLIC -fprofile-instr-generate -fcoverage-mapping)
+      PRIVATE -fprofile-instr-generate -fcoverage-mapping -fno-inline)
+   target_link_options(${target}
+      PUBLIC -fprofile-instr-generate -fcoverage-mapping)
 
    # add coverage target
    find_program(LLVM_COV_PATH llvm-cov REQUIRED)
-        find_program(LLVM_PROFDATA_PATH llvm-profdata REQUIRED)
-        add_custom_target(coverage-${target}
-            COMMAND $<TARGET_FILE:${target}>
-            # COMMAND del coverage /S /Q
-            COMMAND ${LLVM_PROFDATA_PATH} merge
-                                    -sparse default.profraw -o default.profdata
-            COMMAND ${LLVM_COV_PATH} show $<TARGET_FILE:${target}>
-                                    -instr-profile=default.profdata
-                                    -show-line-counts-or-regions
-                                    -use-color
-                                    -show-instantiation-summary
-                                    -show-branches=count
-                                    -format=html
-                                    -output-dir=coverage-${target}
-            COMMAND ${LLVM_COV_PATH} report $<TARGET_FILE:${target}>
-                                    -instr-profile=default.profdata
-                                    -show-region-summary=false
-                                    -show-branch-summary=false
-                                    -show-branch-summary=false
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-        )
+   find_program(LLVM_PROFDATA_PATH llvm-profdata REQUIRED)
+   add_custom_target(coverage-${target}
+      COMMAND $<TARGET_FILE:${target}>
+
+      # COMMAND del coverage /S /Q
+      COMMAND ${LLVM_PROFDATA_PATH} merge
+      -sparse default.profraw -o default.profdata
+      COMMAND ${LLVM_COV_PATH} show $<TARGET_FILE:${target}>
+      -instr-profile=default.profdata
+      -show-line-counts-or-regions
+      -use-color
+      -show-instantiation-summary
+      -show-branches=count
+      -format=html
+      -output-dir=coverage-${target}
+      --ignore-filename-regex="\(tests\|gmp\)"
+      COMMAND ${LLVM_COV_PATH} report $<TARGET_FILE:${target}>
+      -instr-profile=default.profdata
+      -show-region-summary=false
+      -show-branch-summary=false
+      -show-branch-summary=false
+      --ignore-filename-regex="\(tests\|gmp\)"
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+   )
 endif()
 
 if(MSVC)
@@ -91,13 +93,14 @@ if(MSVC)
 else()
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I \"D:\\msys\\home\\19663\\gmp-6.3.0\" ")
 endif()
+
 message(${CMAKE_CXX_FLAGS})
 
 set(GMP_LIBS "D:\\msys\\home\\19663\\gmp-6.3.0\\.libs")
 
 link_directories(${GMP_LIBS})
 target_link_libraries(tests
-PRIVATE
+   PRIVATE
    wjr
    ${GMP_LIBS}/libgmp.dll.a
    ${GMP_LIBS}/libgmpxx.dll.a
@@ -105,5 +108,4 @@ PRIVATE
 )
 
 # target_precompile_headers(tests REUSE_FROM wjr)
-
 enable_testing()

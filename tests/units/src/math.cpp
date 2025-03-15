@@ -17,13 +17,12 @@ TEST(math, popcount_ctz_clz) {
 #define WJR_TEST_PTZ(queue) WJR_PP_TRANSFORM_PUT(queue, WJR_TEST_PTZ_I_CALLER)
 
 #define WJR_TEST_POPCOUNT_I(type, x, ans)                                                          \
-    WJR_CHECK(fallback_popcount<type>(x) == ans)                                               \
-    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(POPCOUNT), ;                                                 \
-                      WJR_CHECK((builtin_popcount<type>(x) == ans)), )
+    WJR_CHECK(fallback_popcount<type>(x) == ans)                                                   \
+    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(POPCOUNT), ; WJR_CHECK((builtin_popcount<type>(x) == ans)), )
 #define WJR_TEST_CTZ_I(type, x, ans)                                                               \
     type n = x;                                                                                    \
     auto ctz_ans = popcount<type>((type)(lowbit(n) - 1));                                          \
-    WJR_CHECK((x == 0 ? std::numeric_limits<type>::digits : fallback_ctz<type>(x)) == ctz_ans) \
+    WJR_CHECK((x == 0 ? std::numeric_limits<type>::digits : fallback_ctz<type>(x)) == ctz_ans)     \
     WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(CTZ), ; WJR_CHECK((countr_zero<type>(x) == ctz_ans)), )
 #define WJR_TEST_CLZ_I(type, x, ans)                                                               \
     auto clz_ans = []() -> int {                                                                   \
@@ -47,7 +46,7 @@ TEST(math, popcount_ctz_clz) {
         ++n;                                                                                       \
         return nd - countr_zero<type>(n);                                                          \
     }();                                                                                           \
-    WJR_CHECK((x == 0 ? std::numeric_limits<type>::digits : fallback_clz<type>(x)) == clz_ans) \
+    WJR_CHECK((x == 0 ? std::numeric_limits<type>::digits : fallback_clz<type>(x)) == clz_ans)     \
     WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(CTZ), ; WJR_CHECK((countl_zero<type>(x) == clz_ans)), )
 
 #define WJR_TEST_PTZ_I_CALLER(args)                                                                \
@@ -162,18 +161,18 @@ TEST(math, addc) {
 
 #define WJR_TEST_ADDC(type, x, y, ci, ans, ans_co) WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)
 #define WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)                                           \
-    WJR_CHECK((math::fallback_addc<type, type>(x, y, ci, co) == ans && co == ans_co));         \
+    WJR_CHECK((math::fallback_addc<type, type>(x, y, ci, co) == ans && co == ans_co));             \
     WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ADDC),                                                          \
                    do {                                                                            \
-                       WJR_CHECK(                                                              \
+                       WJR_CHECK(                                                                  \
                            (math::builtin_addc<type, type>(x, y, ci, co) == ans && co == ans_co)); \
                    } while (false),                                                                \
                    {});                                                                            \
     WJR_PP_BOOL_IF_NE(                                                                             \
         WJR_HAS_BUILTIN(ASM_ADDC), do {                                                            \
             if constexpr (std::is_same_v<type, uint64_t>) {                                        \
-                WJR_CHECK((math::asm_addc<type>(x, y, ci, co) == ans && co == ans_co));        \
-                WJR_CHECK(WJR_PP_BOOL_IF(                                                      \
+                WJR_CHECK((math::asm_addc<type>(x, y, ci, co) == ans && co == ans_co));            \
+                WJR_CHECK(WJR_PP_BOOL_IF(                                                          \
                     WJR_HAS_BUILTIN(ASM_ADDC_CC),                                                  \
                     (math::asm_addc_cc(x, y, ci, co2) == ans && co2 == ans_co), true));            \
             }                                                                                      \
@@ -212,154 +211,20 @@ TEST(math, addc) {
 #undef WJR_TEST_ADDC
 }
 
-TEST(math, addc_1) {
-
-    {
-        std::vector<uint64_t> in, tmp, copy;
-        uint64_t add;
-        for (size_t n = 1; n <= 256; n = n + (n == 1 ? 1 : n / 2)) {
-            in.resize(n);
-            tmp.resize(n);
-            for (auto &x : in) {
-                x = 1;
-            }
-
-            for (auto arr : {&in, &tmp}) {
-                for (uint64_t cf : {0, 1}) {
-                    for (size_t k : {0, 1, 2, -1}) {
-                        copy = in;
-
-                        if (!k) {
-                            add = 3 - cf;
-                        } else {
-                            add = -1 - cf;
-                        }
-
-                        auto l = std::min(k, n);
-
-                        for (size_t p = 1; p < l; ++p) {
-                            in[p] = -1;
-                        }
-
-                        auto &out = *arr;
-
-                        uint64_t c_out = addc_1(out.data(), in.data(), n, add, cf);
-
-                        if (l == n && k) {
-                            WJR_CHECK(c_out == 1);
-                        } else {
-                            WJR_CHECK(c_out == 0);
-                        }
-
-                        if (!k) {
-                            WJR_CHECK(out[0] == 4);
-                            for (size_t p = 1; p < n; ++p) {
-                                WJR_CHECK(out[p] == 1);
-                            }
-                        } else {
-                            for (size_t p = 0; p < l; ++p) {
-                                WJR_CHECK(out[p] == 0);
-                            }
-                            if (l != n) {
-                                WJR_CHECK(out[l] == 2);
-                                for (size_t p = l + 1; p < n; ++p) {
-                                    WJR_CHECK(out[p] == 1);
-                                }
-                            }
-                        }
-
-                        in = copy;
-                    }
-                }
-            }
-        }
-    }
-
-    {
-        std::vector<uint64_t> x, y;
-        for (size_t n = 1; n <= 256; ++n) {
-            x.resize(n);
-            y.resize(n);
-            for (auto &j : x) {
-                j = -1;
-            }
-
-            auto cf = addc_1(y.data(), x.data(), n, 1, 0u);
-            WJR_CHECK(cf == 1);
-            for (auto &j : y) {
-                WJR_CHECK(j == 0);
-            }
-
-            cf = addc_1(y.data(), x.data(), n, 0, 1u);
-            WJR_CHECK(cf == 1);
-            for (auto &j : y) {
-                WJR_CHECK(j == 0);
-            }
-
-            cf = addc_1(y.data(), x.data(), n, 1, 1u);
-            WJR_CHECK(cf == 1);
-            WJR_CHECK(y[0] == 1);
-            for (size_t j = 1; j < n; ++j) {
-                WJR_CHECK(y[j] == 0);
-            }
-
-            cf = addc_1(x.data(), x.data(), n, 1, 0u);
-            WJR_CHECK(cf == 1);
-            for (auto &j : x) {
-                WJR_CHECK(j == 0);
-                j = -1;
-            }
-
-            if (n > 1) {
-                cf = addc_1(x.data(), x.data() + 1, n - 1, 1, 0u);
-                WJR_CHECK(cf == 1);
-                for (size_t j = 0; j < n - 1; ++j) {
-                    WJR_CHECK(x[j] == 0);
-                }
-                WJR_CHECK(x.back() == -1ull);
-            }
-        }
-    }
-}
-
-TEST(math, addc_n) {
-    std::vector<uint64_t> a, b, c;
-    for (size_t n = 1; n <= 384; ++n) {
-        a.resize(n);
-        b.resize(n);
-        c.resize(n);
-
-        a[0] = 1;
-        b[0] = -1;
-
-        for (size_t i = 1; i < n; ++i) {
-            a[i] = 1;
-            b[i] = -2;
-        }
-
-        auto cf = addc_n(c.data(), a.data(), b.data(), n, 0u);
-        WJR_CHECK(cf == 1);
-
-        for (auto &i : c) {
-            WJR_CHECK(i == 0);
-        }
-    }
-}
-
 TEST(math, sub) {
 
 #define WJR_TEST_SUBC(type, x, y, ci, ans, ans_co) WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)
 #define WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)                                           \
-    WJR_CHECK((math::fallback_subc<type, type>(x, y, ci, co) == ans && co == ans_co))          \
+    WJR_CHECK((math::fallback_subc<type, type>(x, y, ci, co) == ans && co == ans_co))              \
     WJR_PP_BOOL_IF(                                                                                \
         WJR_HAS_BUILTIN(SUBC), ; do {                                                              \
-            WJR_CHECK((math::builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co));  \
+            WJR_CHECK((math::builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co));      \
         } while (false), )                                                                         \
     WJR_PP_BOOL_IF_NE(                                                                             \
         WJR_HAS_BUILTIN(ASM_SUBC), ; do {                                                          \
             if constexpr (std::is_same_v<type, uint64_t>) {                                        \
-                WJR_CHECK((math::asm_subc<type>(x, y, ci, co) == ans && co == ans_co));        \
-                WJR_CHECK(WJR_PP_BOOL_IF(                                                      \
+                WJR_CHECK((math::asm_subc<type>(x, y, ci, co) == ans && co == ans_co));            \
+                WJR_CHECK(WJR_PP_BOOL_IF(                                                          \
                     WJR_HAS_BUILTIN(ASM_SUBC_CC),                                                  \
                     (math::asm_subc_cc(x, y, ci, co2) == ans && co2 == ans_co), true));            \
             }                                                                                      \
@@ -397,178 +262,6 @@ TEST(math, sub) {
 #undef WJR_TEST_SUBC_F
 #undef WJR_TEST_SUBC_I
 #undef WJR_TEST_SUBC
-
-#define WJR_TEST_SUBC_1(queue) WJR_PP_TRANSFORM_PUT(queue, WJR_TEST_SUBC_1_I_CALLER)
-#define WJR_TEST_SUBC_1_EXPAND(args) WJR_TEST_SUBC_1_EXPAND_I args
-#define WJR_TEST_SUBC_1_EXPAND_I(...) __VA_ARGS__
-#define WJR_TEST_SUBC_1_I(inputs, c, c_in, outputs, ans)                                           \
-    {                                                                                              \
-        constexpr auto N = WJR_PP_QUEUE_SIZE(inputs);                                              \
-        auto init = [](uint64_t *arr, auto... args) {                                              \
-            auto il = {(args)...};                                                                 \
-            for (size_t i = 0; i < il.size(); ++i) {                                               \
-                arr[i] = il.begin()[i];                                                            \
-            }                                                                                      \
-        };                                                                                         \
-        uint64_t in[N];                                                                            \
-        uint64_t out[N];                                                                           \
-        uint64_t expect[N];                                                                        \
-        init(in, WJR_PP_QUEUE_EXPAND(inputs));                                                     \
-        init(expect, WJR_PP_QUEUE_EXPAND(outputs));                                                \
-        WJR_CHECK((subc_1(out, in, N, c, c_in) == ans));                                       \
-        WJR_CHECK((memcmp(out, expect, sizeof(out)) == 0),                                     \
-                      "uncorrect array of subc_1<uint64_t>, different array");                     \
-        WJR_CHECK((subc_1(in, in, N, c, c_in) == ans));                                        \
-        WJR_CHECK((memcmp(in, expect, sizeof(out)) == 0),                                      \
-                      "uncorrect array of subc_1<uint64_t>, same array");                          \
-    }
-#define WJR_TEST_SUBC_1_I_CALLER(args) WJR_TEST_SUBC_1_I args
-
-    WJR_TEST_SUBC_1((((1, 2, 3), 0, 0, (1, 2, 3), 0), ((1, 2, 3), 1, 0, (0, 2, 3), 0),
-                     ((0, 2, 3), 1, 0, (-1, 1, 3), 0), ((1, 2, 3), 1, 1, (-1, 1, 3), 0)));
-
-    WJR_TEST_SUBC_1((((2, 2, 3), 1, 1, (0, 2, 3), 0), ((1, 0, 3), 1, 1, (-1, -1, 2), 0),
-                     ((0, 0, 0), 3, 1, (-4, -1, -1), 1), ((5, 0, 0), 10, 1, (-6, -1, -1), 1)));
-
-#undef WJR_TEST_SUBC_1_I_CALLER
-#undef WJR_TEST_SUBC_1_I
-#undef WJR_TEST_SUBC_1_EXPAND_I
-#undef WJR_TEST_SUBC_1_EXPAND
-#undef WJR_TEST_SUBC_1
-}
-
-TEST(math, subc_1) {
-
-    {
-        std::vector<uint64_t> in, tmp, copy;
-        uint64_t sub;
-        for (size_t n = 1; n <= 256; n = n + (n == 1 ? 1 : n / 2)) {
-            in.resize(n);
-            tmp.resize(n);
-            for (auto &x : in) {
-                x = 4;
-            }
-
-            for (auto arr : {&in, &tmp}) {
-                for (uint64_t cf : {0, 1}) {
-                    for (size_t k : {0, 1, 2, -1}) {
-                        copy = in;
-
-                        if (!k) {
-                            sub = 2 - cf;
-                        } else {
-                            sub = 5 - cf;
-                        }
-
-                        auto l = std::min(k, n);
-
-                        for (size_t p = 1; p < l; ++p) {
-                            in[p] = 0;
-                        }
-
-                        auto &out = *arr;
-
-                        uint64_t c_out = subc_1(out.data(), in.data(), n, sub, cf);
-
-                        if (l == n && k) {
-                            WJR_CHECK(c_out == 1);
-                        } else {
-                            WJR_CHECK(c_out == 0);
-                        }
-
-                        if (!k) {
-                            WJR_CHECK(out[0] == 2);
-                            for (size_t p = 1; p < n; ++p) {
-                                WJR_CHECK(out[p] == 4);
-                            }
-                        } else {
-                            for (size_t p = 0; p < l; ++p) {
-                                WJR_CHECK(out[p] == -1ull);
-                            }
-                            if (l != n) {
-                                WJR_CHECK(out[l] == 3);
-                                for (size_t p = l + 1; p < n; ++p) {
-                                    WJR_CHECK(out[p] == 4);
-                                }
-                            }
-                        }
-
-                        in = copy;
-                    }
-                }
-            }
-        }
-    }
-
-    {
-        std::vector<uint64_t> x, y;
-        for (size_t n = 1; n <= 256; ++n) {
-            x.resize(n);
-            y.resize(n);
-            for (auto &j : x) {
-                j = 0;
-            }
-
-            auto cf = subc_1(y.data(), x.data(), n, 1, 0u);
-            WJR_CHECK(cf == 1);
-            for (auto &j : y) {
-                WJR_CHECK(j == -1ull);
-            }
-
-            cf = subc_1(y.data(), x.data(), n, 0, 1u);
-            WJR_CHECK(cf == 1);
-            for (auto &j : y) {
-                WJR_CHECK(j == -1ull);
-            }
-
-            cf = subc_1(y.data(), x.data(), n, 1, 1u);
-            WJR_CHECK(cf == 1);
-            WJR_CHECK(y[0] == -2ull);
-            for (size_t j = 1; j < n; ++j) {
-                WJR_CHECK(y[j] == -1ull);
-            }
-
-            cf = subc_1(x.data(), x.data(), n, 1, 0u);
-            WJR_CHECK(cf == 1);
-            for (auto &j : x) {
-                WJR_CHECK(j == -1ull);
-                j = 0;
-            }
-
-            if (n > 1) {
-                cf = subc_1(x.data(), x.data() + 1, n - 1, 1, 0u);
-                WJR_CHECK(cf == 1);
-                for (size_t j = 0; j < n - 1; ++j) {
-                    WJR_CHECK(x[j] == -1ull);
-                }
-                WJR_CHECK(x.back() == 0);
-            }
-        }
-    }
-}
-
-TEST(math, subc_n) {
-    std::vector<uint64_t> a, b, c;
-    for (size_t n = 1; n <= 384; ++n) {
-        a.resize(n);
-        b.resize(n);
-        c.resize(n);
-
-        a[0] = 1;
-        b[0] = 2;
-
-        for (size_t i = 1; i < n; ++i) {
-            a[i] = 1;
-            b[i] = 1;
-        }
-
-        auto cf = subc_n(c.data(), a.data(), b.data(), n, 0u);
-        WJR_CHECK(cf == 1);
-
-        for (auto &i : c) {
-            WJR_CHECK(i == -1ull);
-        }
-    }
 }
 
 TEST(math, broadcast) {
@@ -1146,8 +839,6 @@ TEST(math, rshift_n) {
     }
 }
 
-TEST(math_detail, default_stack_allocator) {}
-
 TEST(math, add_128) {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t anslo,
                     uint64_t anshi) {
@@ -1293,355 +984,6 @@ TEST(math, mul_128) {
     }
 }
 
-#if defined(WJR_USE_GMP)
-
-TEST(math, mul_1) {
-
-    const int T = 64;
-    const int N = 240;
-
-    std::vector<uint64_t> a(N), b(N), c(N);
-
-    for (int i = 0; i < T; ++i) {
-        for (int j = 1; j < N; ++j) {
-            uint64_t ml = mt_rand();
-
-            for (int k = 0; k < j; ++k) {
-                a[k] = mt_rand();
-            }
-
-            auto cf = mul_1(b.data(), a.data(), j, ml);
-            auto cf2 = mpn_mul_1(c.data(), a.data(), j, ml);
-
-            WJR_CHECK(cf == cf2);
-            WJR_CHECK(std::equal(b.begin(), b.begin() + j, c.begin()));
-        }
-    }
-}
-
-TEST(math, addmul_1) {
-
-    const int T = 64;
-    const int N = 240;
-
-    std::vector<uint64_t> a(N), b(N), c(N);
-
-    for (int i = 0; i < T; ++i) {
-        for (int j = 1; j < N; ++j) {
-            uint64_t ml = mt_rand();
-
-            for (int k = 0; k < j; ++k) {
-                a[k] = mt_rand();
-            }
-
-            auto cf = addmul_1(b.data(), a.data(), j, ml);
-            auto cf2 = mpn_addmul_1(c.data(), a.data(), j, ml);
-
-            WJR_CHECK(cf == cf2);
-            WJR_CHECK(std::equal(b.begin(), b.begin() + j, c.begin()));
-        }
-    }
-}
-
-TEST(math, submul_1) {
-
-    const int T = 64;
-    const int N = 240;
-
-    std::vector<uint64_t> a(N), b(N), c(N);
-
-    for (int i = 0; i < T; ++i) {
-        for (int j = 1; j < N; ++j) {
-            uint64_t ml = mt_rand();
-
-            for (int k = 0; k < j; ++k) {
-                a[k] = mt_rand();
-            }
-
-            auto cf = submul_1(b.data(), a.data(), j, ml);
-            auto cf2 = mpn_submul_1(c.data(), a.data(), j, ml);
-
-            WJR_CHECK(cf == cf2);
-            WJR_CHECK(std::equal(b.begin(), b.begin() + j, c.begin()));
-        }
-    }
-}
-
-TEST(math, addlsh_n) {
-
-    const int T = 64;
-    const int N = 240;
-
-    std::vector<uint64_t> a(N), b(N), c(N), d(N), e(N);
-
-    for (int i = 0; i < T; ++i) {
-        for (int j = 1; j < N; ++j) {
-            unsigned int cl = mt_rand() % 64;
-
-            for (int k = 0; k < j; ++k) {
-                a[k] = mt_rand();
-            }
-
-            for (int k = 0; k < j; ++k) {
-                b[k] = mt_rand();
-            }
-
-            // c = a + (b << cl)
-            // d = a + (b << cl)
-
-            auto cf = addlsh_n(c.data(), a.data(), b.data(), j, cl);
-            auto cf2 = lshift_n(e.data(), b.data(), j, cl);
-            cf2 += addc_n(d.data(), a.data(), e.data(), j);
-
-            WJR_CHECK(cf == cf2);
-            WJR_CHECK(std::equal(c.begin(), c.begin() + j, d.begin()));
-
-            // c = b + (c << cl)
-            // d = b + (d << cl)
-
-            cf = addlsh_n(c.data(), b.data(), c.data(), j, cl);
-            cf2 = lshift_n(e.data(), d.data(), j, cl);
-            cf2 += addc_n(d.data(), b.data(), e.data(), j);
-
-            WJR_CHECK(cf == cf2);
-            WJR_CHECK(std::equal(c.begin(), c.begin() + j, d.begin()));
-        }
-    }
-}
-
-TEST(math, rsblsh_n) {
-
-    const int T = 64;
-    const int N = 240;
-
-    std::vector<uint64_t> a(N), b(N), c(N), d(N), e(N);
-
-    for (int i = 0; i < T; ++i) {
-        for (int j = 1; j < N; ++j) {
-            unsigned int cl = mt_rand() % 64;
-
-            for (int k = 0; k < j; ++k) {
-                a[k] = mt_rand();
-            }
-
-            for (int k = 0; k < j; ++k) {
-                b[k] = mt_rand();
-            }
-
-            // c = (b << cl) - a
-            // d = (b << cl) - a
-
-            auto cf = rsblsh_n(c.data(), a.data(), b.data(), j, cl);
-            auto cf2 = lshift_n(e.data(), b.data(), j, cl);
-            cf2 -= subc_n(d.data(), e.data(), a.data(), j);
-
-            WJR_CHECK(cf == cf2);
-            WJR_CHECK(std::equal(c.begin(), c.begin() + j, d.begin()));
-
-            // c = (c << cl) - b
-            // d = (d << cl) - b
-
-            cf = rsblsh_n(c.data(), b.data(), c.data(), j, cl);
-            cf2 = lshift_n(e.data(), d.data(), j, cl);
-            cf2 -= subc_n(d.data(), e.data(), b.data(), j);
-
-            WJR_CHECK(cf == cf2);
-            WJR_CHECK(std::equal(c.begin(), c.begin() + j, d.begin()));
-        }
-    }
-}
-
-template <uint64_t c>
-constexpr bool __test_divexact_fast() {
-    constexpr auto ss = __divexact_init<c>();
-    return ss.mode == 2 && ss.cl == 0;
-}
-
-static_assert(__test_divexact_fast<3>(), "");
-static_assert(__test_divexact_fast<5>(), "");
-static_assert(__test_divexact_fast<15>(), "");
-static_assert(__test_divexact_fast<17>(), "");
-
-TEST(math, mul_s) {
-
-    const int T = 4;
-    const int N = 2400;
-    std::vector<uint64_t> a(N), b(N), c(N * 2), d(N * 2);
-
-    for (int i = 0; i < T; ++i) {
-        for (int j = 1; j < N; j += (j <= 180 ? 1 : j / 7)) {
-            for (int k = 1; k <= j; k += (k <= 180 ? 1 : k / 7)) {
-                for (int p = 0; p < j; ++p) {
-                    a[p] = mt_rand();
-                }
-                for (int p = 0; p < k; ++p) {
-                    b[p] = mt_rand();
-                }
-
-                mul_s(c.data(), a.data(), j, b.data(), k);
-                mpn_mul(d.data(), a.data(), j, b.data(), k);
-                WJR_CHECK(std::equal(c.begin(), c.begin() + j + k, d.begin()));
-            }
-        }
-    }
-}
-
-TEST(math, mul_n) {
-
-    const int T = 16;
-    const int N = 2400;
-    std::vector<uint64_t> a(N), b(N), c(N * 2), d(N * 2);
-
-    for (int i = 0; i < T; ++i) {
-        for (int j = 1; j < N; j += (j <= 180 ? 1 : j / 7)) {
-            for (int p = 0; p < j; ++p) {
-                a[p] = mt_rand();
-            }
-            for (int p = 0; p < j; ++p) {
-                b[p] = mt_rand();
-            }
-
-            mul_n(c.data(), a.data(), b.data(), j);
-            mpn_mul_n(d.data(), a.data(), b.data(), j);
-            WJR_CHECK(std::equal(c.begin(), c.begin() + j * 2, d.begin()));
-        }
-    }
-}
-
-TEST(math, sqr) {
-
-    const int T = 16;
-    const int N = 2400;
-    std::vector<uint64_t> a(N), b(N * 2), c(N * 2);
-
-    for (int i = 0; i < T; ++i) {
-        for (int j = 1; j < N; j += (j <= 180 ? 1 : j / 7)) {
-            for (int p = 0; p < j; ++p) {
-                a[p] = mt_rand();
-            }
-
-            sqr(b.data(), a.data(), j);
-            mpn_sqr(c.data(), a.data(), j);
-            WJR_CHECK(std::equal(b.begin(), b.begin() + j * 2, c.begin()));
-        }
-    }
-}
-
-#endif
-
-TEST(math, div_qr_1) {
-
-    const int T = 8;
-    const int N = 32;
-    const int M = 2400;
-
-    std::vector<uint64_t> a(M), b(M), c(M);
-
-    auto check = [&](size_t n, uint64_t div, auto divc) {
-        uint64_t rem;
-        div_qr_1(b.data(), rem, a.data(), n, divc);
-        auto cf = mul_1(c.data(), b.data(), n, div);
-        WJR_CHECK(cf == 0);
-        cf = addc_1(c.data(), c.data(), n, rem);
-        WJR_CHECK(cf == 0);
-        WJR_CHECK(std::equal(a.begin(), a.begin() + n, c.begin()));
-    };
-
-    for (int i = 0; i < N; ++i) {
-        const uint64_t div = mt_rand();
-        div2by1_divider<uint64_t> divc(div);
-
-        for (int t = 0; t < T; ++t) {
-            for (int j = 1; j < M; j += (j <= 180 ? 1 : j / 7)) {
-                for (int k = 0; k < j; ++k) {
-                    a[k] = mt_rand();
-                }
-
-                check(j, div, div);
-                check(j, div, divc);
-            }
-        }
-    }
-}
-
-TEST(math, div_qr_2) {
-
-    const int T = 8;
-    const int N = 32;
-    const int M = 2400;
-
-    std::vector<uint64_t> a(M), b(M), c(M + 1);
-
-    auto check = [&](size_t n, uint64_t *div) {
-        uint64_t rem[2];
-        div_qr_2(b.data(), rem, a.data(), n, div);
-
-        if (n - 1 >= 2) {
-            mul_s(c.data(), b.data(), n - 1, div, 2);
-        } else {
-            mul_s(c.data(), div, 2, b.data(), n - 1);
-        }
-
-        WJR_CHECK(c[n] == 0);
-        auto cf = addc_s(c.data(), c.data(), n, rem, 2);
-        WJR_CHECK(cf == 0);
-        WJR_CHECK(std::equal(a.begin(), a.begin() + n, c.begin()));
-    };
-
-    for (int i = 0; i < N; ++i) {
-        uint64_t div[2] = {mt_rand(), mt_rand()};
-
-        for (int t = 0; t < T; ++t) {
-            for (int j = 2; j < M; j += (j <= 180 ? 1 : j / 7)) {
-                for (int k = 0; k < j; ++k) {
-                    a[k] = mt_rand();
-                }
-
-                check(j, div);
-            }
-        }
-    }
-}
-
-TEST(math, div_qr_s) {
-
-    const int T = 8;
-    const int N = 2400;
-
-    std::vector<uint64_t> a(N), b(N + 1), c(N + 1), d(N + 1), rem(N);
-
-    auto check = [&](size_t n, size_t m) {
-        div_qr_s(c.data(), rem.data(), a.data(), n, b.data(), m);
-
-        if (n - m + 1 >= m) {
-            mul_s(d.data(), c.data(), n - m + 1, b.data(), m);
-        } else {
-            mul_s(d.data(), b.data(), m, c.data(), n - m + 1);
-        }
-
-        WJR_CHECK(d[n] == 0);
-        auto cf = addc_s(d.data(), d.data(), n, rem.data(), m);
-        WJR_CHECK(cf == 0);
-        WJR_CHECK(std::equal(a.begin(), a.begin() + n, d.begin()));
-    };
-
-    for (int t = 0; t < T; ++t) {
-        for (int i = 2; i < N; i += (i <= 180 ? 1 : i / 7)) {
-            for (int j = 1; j <= i; j += (j <= 180 ? 1 : j / 7)) {
-                for (int k = 0; k < i; ++k) {
-                    a[k] = mt_rand();
-                }
-
-                for (int k = 0; k < j; ++k) {
-                    b[k] = mt_rand();
-                }
-
-                check(i, j);
-            }
-        }
-    }
-}
-
 namespace convert_tests {
 using namespace wjr;
 using namespace charconv_detail;
@@ -1692,8 +1034,7 @@ TEST(math, to_chars) {
             WJR_CHECK(ret0.ec == ret1.ec);
 
             if ((bool)ret0) {
-                WJR_CHECK(std::string_view(b, ret0.ptr - b) ==
-                              std::string_view(c, ret1.ptr - c));
+                WJR_CHECK(std::string_view(b, ret0.ptr - b) == std::string_view(c, ret1.ptr - c));
             } else {
                 WJR_CHECK(ret1.ptr == c + k);
             }
@@ -1707,7 +1048,7 @@ TEST(math, to_chars) {
 
             if ((bool)ret0) {
                 WJR_CHECK(std::string_view(b, ret0.ptr - b) ==
-                              std::string_view(vec.data(), ret1.ptr - vec.data()));
+                          std::string_view(vec.data(), ret1.ptr - vec.data()));
             } else {
                 WJR_CHECK(ret1.ptr == vec.data() + k);
             }
@@ -1720,8 +1061,7 @@ TEST(math, to_chars) {
             WJR_CHECK(ret0.ec == ret1.ec);
 
             if ((bool)ret0) {
-                WJR_CHECK(std::string_view(b, ret0.ptr - b) ==
-                              std::string(lst.begin(), ret1.ptr));
+                WJR_CHECK(std::string_view(b, ret0.ptr - b) == std::string(lst.begin(), ret1.ptr));
             } else {
                 WJR_CHECK(std::distance(lst.begin(), ret1.ptr) == k);
             }
@@ -1734,7 +1074,7 @@ TEST(math, to_chars) {
                 auto ret1 = to_chars_backward_unchecked(c + 64, x, base);
 
                 WJR_CHECK(std::string_view(b, ret0.ptr - b) ==
-                              std::string_view(ret1, c + 64 - ret1));
+                          std::string_view(ret1, c + 64 - ret1));
             } while (false);
 
             // test __fast_to_chars_unchecked
@@ -1751,7 +1091,7 @@ TEST(math, to_chars) {
                 (void)to_chars_unchecked(std::back_inserter(vec), x, base);
 
                 WJR_CHECK(std::string_view(b, ret0.ptr - b) ==
-                              std::string_view((char *)vec.data(), vec.size()));
+                          std::string_view((char *)vec.data(), vec.size()));
             } while (false);
 
             // test forward iterator of __fallback_to_chars_unchecked
@@ -1760,8 +1100,7 @@ TEST(math, to_chars) {
 
                 (void)to_chars_unchecked(std::back_inserter(lst), x, base);
 
-                WJR_CHECK(std::string_view(b, ret0.ptr - b) ==
-                              std::string(lst.begin(), lst.end()));
+                WJR_CHECK(std::string_view(b, ret0.ptr - b) == std::string(lst.begin(), lst.end()));
 
                 lst.resize(64);
             } while (false);
@@ -1846,91 +1185,91 @@ TEST(math, from_chars) {
     }
 }
 
-#if defined(WJR_USE_GMP)
+TEST(math, div1by1) {
+    auto check = [](auto ic) {
+        constexpr auto type = ic();
+        for (size_t i = 0; i < 100; ++i) {
+            uint64_t divisor;
+            do {
+                divisor = mt_rand();
+            } while (divisor <= 1);
 
-TEST(math, biginteger_to_chars) {
-
-    const int T = 4;
-    const int N = 1024;
-    const int M = N * 64;
-
-    std::vector<uint64_t> a(N), d(N);
-    std::string b(M, '0'), c(M, '0');
-
-    for (int t = 0; t < T; ++t) {
-        for (unsigned base : {2, 4, 8, 16, 32, 10}) {
-            for (int i = 1; i < N; ++i) {
-
-                for (int j = 0; j < i; ++j) {
-                    a[j] = mt_rand();
-                }
-                while (a[i - 1] == 0) {
-                    a[i - 1] = mt_rand();
-                }
-
-                d = a;
-
-                b.reserve(i * 64);
-                size_t len = biginteger_to_chars(b.data(), d.data(), i, base) - b.data();
-                size_t len2 = mpn_get_str((unsigned char *)c.data(), base, a.data(), i);
-
-                for (auto &ch : c) {
-                    ch = ch < 10 ? ch + '0' : ch - 10 + 'a';
-                }
-
-                WJR_CHECK(std::string_view(b.data(), len) == std::string_view(c.data(), len2));
-
-                b.clear();
-                biginteger_to_chars(std::back_inserter(b), d.data(), i, base);
-                len = b.size();
-                WJR_CHECK(std::string_view(b.data(), len) == std::string_view(c.data(), len2));
+            div1by1_divider<uint64_t, type> div(divisor);
+            for (size_t j = 0; j < 100; ++j) {
+                uint64_t val = mt_rand();
+                uint64_t q = val / div;
+                uint64_t o = q * divisor;
+                uint64_t delta = val - o;
+                WJR_CHECK(delta >= 0 && delta < divisor);
             }
         }
-    }
-}
 
-TEST(math, biginteger_from_chars) {
-    const int T = 4;
-    const int N = 8096;
-    const int M = N;
-
-    std::vector<uint64_t> a(N), b(N);
-    std::string c(M, '0');
-
-    for (int t = 0; t < T; ++t) {
-        for (int i = 1; i < M;) {
-            for (auto base : {2, 8, 16, 10}) {
-                for (int j = 0; j < i; ++j) {
-                    c[j] = mt_rand() % base;
-                }
-                while (c[0] == 0) {
-                    c[0] = mt_rand() % base;
-                }
-
-                size_t len2 = mpn_set_str(b.data(), (unsigned char *)c.data(), i, base);
-
-                for (auto &ch : c) {
-                    ch = ch < 10 ? ch + '0' : ch - 10 + 'a';
-                }
-
-                size_t len =
-                    biginteger_from_chars(c.data(), c.data() + i, a.data(), base) - a.data();
-
-                WJR_CHECK(len == len2);
-                WJR_CHECK(std::equal(a.begin(), a.begin() + len, b.begin()));
-            }
-
-            if (i < 64) {
-                ++i;
-            } else if (i < 256) {
-                i += 7;
-            } else if (i < 1024) {
-                i += 29;
-            } else {
-                i += 53;
+        for (auto divisor : std::initializer_list<uint64_t>{2, 4, 8, 16, 32, 64, 128, 256, 512,
+                                                            1024, UINT64_C(1) << 63, 3, 5, 7, 9, 11,
+                                                            13, 17, (UINT64_C(1) << 63) - 1}) {
+            div1by1_divider<uint64_t, type> div(divisor);
+            for (size_t j = 0; j < 100; ++j) {
+                uint64_t val = mt_rand();
+                uint64_t q = val / div;
+                uint64_t o = q * divisor;
+                uint64_t delta = val - o;
+                WJR_CHECK(delta >= 0 && delta < divisor);
             }
         }
-    }
+    };
+
+    check(integral_constant<branch, branch::free>{});
+    check(integral_constant<branch, branch::full>{});
 }
 
-#endif
+TEST(math, div2by1) {
+    auto check128 = [](uint64_t lo, uint64_t hi) {
+        uint128_t u128(lo, hi);
+
+        for (size_t j = 0; j < 100; ++j) {
+            uint64_t divisor;
+            do {
+                divisor = mt_rand();
+            } while (divisor == 0);
+
+            uint64_t rem;
+            uint128_t q = div128by64to128(rem, lo, hi, divisor);
+            uint128_t o = q * divisor + rem;
+            WJR_CHECK(o == u128);
+        }
+    };
+
+    auto check64 = [](uint64_t lo, uint64_t hi) {
+        uint128_t u128(lo, hi);
+        for (size_t j = 0; j < 100; ++j) {
+            std::uniform_int_distribution<uint64_t> uni(hi + 1, UINT64_MAX);
+            uint64_t divisor = uni(__mt_rand);
+
+            uint64_t rem;
+            uint64_t q = div128by64to64(rem, lo, hi, divisor);
+            uint128_t o = uint128_t(q) * divisor + rem;
+            WJR_CHECK(o == u128);
+        }
+    };
+
+    for (size_t i = 0; i < 100; ++i) {
+        uint64_t lo, hi;
+        lo = mt_rand();
+        hi = mt_rand();
+
+        check128(lo, hi);
+        check128(0, hi);
+        check128(lo, 0);
+
+        while (hi == UINT64_MAX) {
+            hi = mt_rand();
+        }
+
+        check64(lo, hi);
+        check64(0, hi);
+        check64(lo, 0);
+    }
+
+    check128(0, 0);
+    check64(0, 0);
+}
