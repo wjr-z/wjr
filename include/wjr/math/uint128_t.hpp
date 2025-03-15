@@ -38,24 +38,6 @@ public:
         }
     }
 
-    template <size_t I>
-    constexpr uint64_t &&get() && noexcept {
-        if constexpr (I == 0) {
-            return std::move(low);
-        } else {
-            return std::move(high);
-        }
-    }
-
-    template <size_t I>
-    constexpr const uint64_t &&get() const && noexcept {
-        if constexpr (I == 0) {
-            return std::move(low);
-        } else {
-            return std::move(high);
-        }
-    }
-
     constexpr uint128_t(uint64_t lo_, uint64_t hi_) noexcept : low(lo_), high(hi_) {}
 
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>

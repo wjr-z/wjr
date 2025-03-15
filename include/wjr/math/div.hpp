@@ -16,15 +16,14 @@ namespace wjr {
 
 WJR_INLINE_CONSTEXPR20 uint64_t
 div128by64to64_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
-                       const wjr::div2by1_divider_noshift<uint64_t> &divider) noexcept {
+                       const div2by1_divider_noshift<uint64_t> &divider) noexcept {
     const uint64_t result = divider.divide(lo, hi);
     rem = hi;
     return result;
 }
 
-WJR_INLINE_CONSTEXPR20 uint64_t
-div128by64to64_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
-                     const wjr::div2by1_divider<uint64_t> &divider) noexcept {
+WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64_shift(
+    uint64_t &rem, uint64_t lo, uint64_t hi, const div2by1_divider<uint64_t> &divider) noexcept {
     const auto shift = divider.get_shift();
     hi = shld(hi, lo, shift);
     lo <<= shift;
@@ -33,9 +32,8 @@ div128by64to64_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
     return result;
 }
 
-WJR_INLINE_CONSTEXPR20 uint64_t
-div128by64to64_impl(uint64_t &rem, uint64_t lo, uint64_t hi,
-                    const wjr::div2by1_divider<uint64_t> &divider) noexcept {
+WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64_impl(
+    uint64_t &rem, uint64_t lo, uint64_t hi, const div2by1_divider<uint64_t> &divider) noexcept {
     if (divider.get_shift() == 0) {
         return div128by64to64_noshift(rem, lo, hi, divider);
     }
@@ -72,8 +70,7 @@ div128by64to128_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
         hi -= divisor;
     }
 
-    q0 = divider.divide(lo, hi);
-    rem = hi;
+    q0 = div128by64to64_noshift(rem, lo, hi, divider);
     return {q0, q1};
 }
 
