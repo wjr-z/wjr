@@ -116,8 +116,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out)
  * return the carry-out.
  *
  * @details Similar to asm_addc, but the carry-out flag is set by using
- * constraint
- * "=@cccond" instead of "setb". \n
+ * constraint "=@cccond" instead of "setb". \n
  *
  * @param[in] c_in
  * @param[out] c_out

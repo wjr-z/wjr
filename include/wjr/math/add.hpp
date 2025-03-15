@@ -56,6 +56,9 @@ WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) noexcept {
 /**
  * @brief Add two numbers with carry-in, and return the result and carry-out
  *
+ * @details If c_out is needed, and its type is not `uint8_t`, then this maybe faster than addc_cc,
+ * because addc_cc maybe need to cast `uint8_t` to type `U`.
+ *
  * @note The carry-in and carry-out are limited to 0 and 1
  * @tparam U Type of the carry-in and carry-out. It must be an unsigned integral
  * type. the default type is the same as `T`
