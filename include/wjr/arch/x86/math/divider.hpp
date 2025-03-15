@@ -21,8 +21,8 @@ WJR_INTRINSIC_INLINE void asm_div2by1_adjust(T rax, T div, T &r8, T &rdx) noexce
     asm("cmp{q %[rax], %[r8]| %[r8], %[rax]}\n\t"
         "cmovb{q %[r8], %[r9]| %[r9], %[r8]}\n\t"
         "adc{q $-1, %[rdx]| %[rdx], -1}"
-        : [r9] "+r"(r9), [r8] "+r"(r8), [rdx] "+r"(rdx)
-        : [rax] "r"(rax)
+        : [r9] "+r"(r9), [rdx] "+r"(rdx)
+        : [r8] "r"(r8), [rax] "r"(rax)
         : "cc", "memory");
     r8 = r9;
 }
