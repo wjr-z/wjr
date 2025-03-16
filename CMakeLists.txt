@@ -23,6 +23,7 @@ option(WJR_DEBUG_LEVEL_DEBUG "Debug level in debug version(default = 3)." 3)
 # third-party
 #
 add_subdirectory(third-party/cpu_features)
+add_subdirectory(third-party/fmt)
 
 #
 # initialize flags
@@ -190,6 +191,6 @@ endif()
 
 add_library(wjr STATIC ${WJR_LIBS})
 setup_cpp_include_and_definitions(wjr)
-target_link_libraries(wjr PRIVATE CpuFeatures::cpu_features)
+target_link_libraries(wjr PUBLIC fmt::fmt PRIVATE CpuFeatures::cpu_features)
 add_library(wjr::wjr ALIAS wjr)
 target_precompile_headers(wjr PRIVATE ${WJR_PCH_COMMON})

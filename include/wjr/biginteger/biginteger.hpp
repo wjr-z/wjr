@@ -27,6 +27,8 @@
 #include <wjr/span.hpp>
 #include <wjr/vector.hpp>
 
+#include <fmt/format.h>
+
 namespace wjr {
 
 namespace biginteger_detail {
@@ -3483,7 +3485,7 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
     if (const std::ostream::sentry ok(os); ok) {
         unique_stack_allocator stkal;
         std::basic_string<char, Traits, weak_stack_allocator<char>> buffer(stkal);
-        buffer.reserve(128);
+        buffer.reserve(256);
 
         const std::ios_base::fmtflags flags = os.flags();
 
@@ -3522,6 +3524,48 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
 extern std::ostream &operator<<(std::ostream &os, const biginteger_data &src) noexcept;
 
 } // namespace wjr
+
+namespace fmt {
+template <>
+struct formatter<wjr::biginteger_data> {
+private:
+    detail::dynamic_format_specs<char> m_specs;
+
+public:
+    FMT_CONSTEXPR auto parse(parse_context<char> &ctx) -> const char * {
+        if (ctx.begin() == ctx.end() || *ctx.begin() == '}')
+            return ctx.begin();
+        auto end = detail::parse_format_specs(ctx.begin(), ctx.end(), m_specs, ctx,
+                                              detail::type::int128_type);
+        if (m_specs.upper()) {
+            report_error("Upper letters are temporarily not supported");
+        }
+        return end;
+    }
+
+private:
+    void do_format(const wjr::biginteger_data &value,
+                   wjr::vector<char, wjr::weak_stack_allocator<char>> &buffer) const;
+
+public:
+    template <typename Context>
+    auto format(const wjr::biginteger_data &value, Context &ctx) const -> decltype(ctx.out()) {
+        wjr::unique_stack_allocator stkal;
+        wjr::vector<char, wjr::weak_stack_allocator<char>> buffer(stkal);
+        do_format(value, buffer);
+        std::string_view data(buffer.data(), buffer.size());
+        auto specs = format_specs(m_specs);
+        if (m_specs.dynamic()) {
+            detail::handle_dynamic_spec(specs.dynamic_width(), specs.width, m_specs.width_ref,
+            ctx);
+        }
+        return detail::write_bytes<char>(ctx.out(), data, specs);
+    }
+};
+
+template <typename S>
+struct formatter<wjr::basic_biginteger<S>> : formatter<wjr::biginteger_data> {};
+} // namespace fmt
 
 namespace std {
 

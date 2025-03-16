@@ -63,7 +63,7 @@
  * @todo
  * 1. small vector. Not in accordance with standards.
  * 2. realloc. It is necessary for weak_stack_allcoator. Because this allocator can easily expand in
- * place.
+ * place and do not clear any data.
  * 3. take_storage from init state?
  *
  * @version 0.3

@@ -38,7 +38,7 @@ std::ostream &operator<<(std::ostream &os, const biginteger_data &src) noexcept 
     if (const std::ostream::sentry ok(os); ok) {
         unique_stack_allocator stkal;
         vector<char, weak_stack_allocator<char>> buffer(stkal);
-        buffer.clear_if_reserved(128);
+        buffer.clear_if_reserved(256);
 
         const std::ios_base::fmtflags flags = os.flags();
 
@@ -74,3 +74,43 @@ std::ostream &operator<<(std::ostream &os, const biginteger_data &src) noexcept 
 }
 
 } // namespace wjr
+
+namespace fmt {
+
+void formatter<wjr::biginteger_data>::do_format(
+    const wjr::biginteger_data &value,
+    wjr::vector<char, wjr::weak_stack_allocator<char>> &buffer) const {
+    buffer.clear_if_reserved(256);
+
+    if (m_specs.sign() != sign::none && !value.is_negate()) {
+        buffer.push_back('+');
+    }
+
+    int base = 10;
+    switch (m_specs.type()) {
+    case presentation_type::bin:
+        base = 2;
+        if (m_specs.alt())
+            buffer.append({'0', m_specs.upper() ? 'B' : 'b'});
+        break;
+    case presentation_type::oct:
+        base = 8;
+        if (m_specs.alt())
+            buffer.append('0');
+        break;
+    case presentation_type::hex:
+        base = 16;
+        if (m_specs.alt())
+            buffer.append({'0', m_specs.upper() ? 'X' : 'x'});
+        break;
+    case presentation_type::dec:
+        WJR_FALLTHROUGH;
+    case presentation_type::none:
+        break;
+    default:
+        WJR_UNREACHABLE();
+    }
+
+    (void)to_chars_unchecked(std::back_inserter(buffer), value, base);
+}
+} // namespace fmt
