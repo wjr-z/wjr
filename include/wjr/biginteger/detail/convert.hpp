@@ -369,7 +369,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
         return ptr;                                                                                \
     } else {                                                                                       \
         unique_stack_allocator stkal;                                                              \
-        auto *const __ptr = stkal.template allocate<uint64_t>(SIZE);                               \
+        auto *const __ptr = reinterpret_cast<uint8_t *>(stkal.template allocate<uint64_t>(SIZE));  \
         const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;                     \
                                                                                                    \
         return wjr::copy_n((charconv_detail::fast_buffer_t<Iter> *)__ptr, __size, ptr);            \
