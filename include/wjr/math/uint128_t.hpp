@@ -41,10 +41,10 @@ public:
     constexpr uint128_t(uint64_t lo_, uint64_t hi_) noexcept : low(lo_), high(hi_) {}
 
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-    constexpr uint128_t(T value) noexcept : low(value), high(0) {}
+    explicit constexpr uint128_t(T value) noexcept : low(value), high(0) {}
 
     template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-    constexpr uint128_t(T value) noexcept
+    explicit constexpr uint128_t(T value) noexcept
         : low(static_cast<T>(value)), high(static_cast<T>(value >= 0 ? 0 : -1)) {}
 
     WJR_CONSTEXPR20 uint128_t &operator+=(uint128_t other) noexcept {

@@ -51,7 +51,7 @@ WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint6
 */
 WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
                                                uint64_t div) noexcept {
-    return div128by64to64(rem, lo, hi, wjr::div2by1_divider<uint64_t>(div));
+    return div128by64to64(rem, lo, hi, div2by1_divider<uint64_t>(div));
 }
 
 inline uint128_t
