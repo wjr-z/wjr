@@ -148,8 +148,8 @@ constexpr void sort(Iter first, Iter last) {
 } // namespace constant
 
 template <typename CharT, typename Traits>
-WJR_INTRINSIC_INLINE bool starts_with(std::basic_string_view<CharT, Traits> str,
-                                      std::basic_string_view<CharT, Traits> sv) noexcept {
+WJR_PURE constexpr bool starts_with(std::basic_string_view<CharT, Traits> str,
+                                    std::basic_string_view<CharT, Traits> sv) noexcept {
     const auto length = sv.size();
     if (str.size() < length) {
         return false;
@@ -159,8 +159,8 @@ WJR_INTRINSIC_INLINE bool starts_with(std::basic_string_view<CharT, Traits> str,
 }
 
 template <typename CharT, typename Traits>
-WJR_INTRINSIC_INLINE bool ends_with(std::basic_string_view<CharT, Traits> str,
-                                    std::basic_string_view<CharT, Traits> sv) noexcept {
+WJR_PURE constexpr bool ends_with(std::basic_string_view<CharT, Traits> str,
+                                  std::basic_string_view<CharT, Traits> sv) noexcept {
     const auto n = str.size();
     const auto length = sv.size();
     if (n < length) {
