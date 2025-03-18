@@ -1253,13 +1253,13 @@ public:
 
 private:
     WJR_CONSTEXPR20 void
-    __deallocate() noexcept(noexcept(get_storage().deallocate(__get_allocator()))) {
+    __deallocate() noexcept(noexcept(get_storage().deallocate(this->__get_allocator()))) {
         get_storage().deallocate(__get_allocator());
     }
 
     template <typename S, WJR_REQUIRES(has_vector_storage_destroy_v<S, _Alty>)>
     WJR_CONSTEXPR20 void
-    __destroy_impl() noexcept(noexcept(get_storage().destroy(__get_allocator()))) {
+    __destroy_impl() noexcept(noexcept(get_storage().destroy(this->__get_allocator()))) {
         get_storage().destroy(__get_allocator());
     }
 
@@ -1274,13 +1274,13 @@ private:
 
     template <typename S, WJR_REQUIRES(has_vector_storage_destroy_and_deallocate_v<S, _Alty>)>
     WJR_CONSTEXPR20 void __destroy_and_deallocate_impl() noexcept(
-        noexcept(get_storage().destroy_and_deallocate(__get_allocator()))) {
+        noexcept(get_storage().destroy_and_deallocate(this->__get_allocator()))) {
         get_storage().destroy_and_deallocate(__get_allocator());
     }
 
     template <typename S, WJR_REQUIRES(!has_vector_storage_destroy_and_deallocate_v<S, _Alty>)>
-    WJR_CONSTEXPR20 void __destroy_and_deallocate_impl() noexcept(noexcept(__destroy()) &&
-                                                                  noexcept(__deallocate())) {
+    WJR_CONSTEXPR20 void __destroy_and_deallocate_impl() noexcept(noexcept(this->__destroy()) &&
+                                                                  noexcept(this->__deallocate())) {
         __destroy();
         __deallocate();
     }

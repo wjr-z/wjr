@@ -62,24 +62,6 @@ struct automatic_free_pool {
 };
 
 class __default_alloc_template__ {
-    union obj {
-        union obj *free_list_link;
-        std::byte client_data[1];
-    };
-
-    WJR_CONST static constexpr size_t __round_up(size_t bytes) noexcept {
-        return (((bytes) + 2048 - 1) & ~(2048 - 1));
-    }
-
-    WJR_CONST static WJR_CONSTEXPR20 unsigned int __get_index(unsigned int bytes) noexcept {
-        return static_cast<unsigned int>(
-            bit_width<uint16_t>(static_cast<uint16_t>((bytes - 1) >> 3)));
-    }
-
-    WJR_CONST static constexpr unsigned int __get_size(unsigned int idx) noexcept {
-        return static_cast<unsigned int>(1) << (idx + 3);
-    }
-
     static automatic_free_pool &get_chunk() noexcept { return automatic_free_pool::get_instance(); }
 
     struct object {

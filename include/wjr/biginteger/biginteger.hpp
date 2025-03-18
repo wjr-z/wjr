@@ -2,8 +2,8 @@
  * @file biginteger.hpp
  * @author wjr
  * @brief
- * @version 0.1
- * @date 2024-09-16
+ * @version 0.2
+ * @date 2025-03-16
  * @todo
  * 1. Add more attributes to help the compiler optimize to zero overhead.
  * Such as unsigned biginteger, fixed size biginteger.
