@@ -33,6 +33,12 @@ struct list_node {
     constexpr void push_back(list_node *node) noexcept { insert(prev, this, node); }
     constexpr void push_front(list_node *node) noexcept { insert(this, next, node); }
 
+    constexpr list_node *front() noexcept { return next; }
+    constexpr const list_node *front() const noexcept { return next; }
+
+    constexpr list_node *back() noexcept { return prev; }
+    constexpr const list_node *back() const noexcept { return prev; }
+
     constexpr void remove() noexcept {
         prev->next = next;
         next->prev = prev;

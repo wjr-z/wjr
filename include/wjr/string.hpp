@@ -95,6 +95,7 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
 
     string_set_length_hacker(str, sz);
     WJR_ASSERT_L3(str.size() == sz);
+    // todo : This can be removed in some cases.
     str[sz] = '\0';
 }
 

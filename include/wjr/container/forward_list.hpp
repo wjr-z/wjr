@@ -35,6 +35,9 @@ struct hlist_node {
         next = node;
     }
 
+    constexpr hlist_node *front() noexcept { return next; }
+    constexpr const hlist_node *front() const noexcept { return next; }
+
     hlist_node *next;
 };
 
