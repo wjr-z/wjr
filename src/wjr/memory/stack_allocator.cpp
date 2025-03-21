@@ -26,8 +26,8 @@ void stack_allocator_object::__small_reallocate(std::byte *&restore_ptr) noexcep
 
         {
             const size_t capacity = Cache;
-            __default_alloc_template__ pool;
-            auto *const buffer = static_cast<std::byte *>(pool.chunk_allocate(capacity));
+            auto *const buffer =
+                static_cast<std::byte *>(automatic_free_pool::get_instance().allocate(capacity));
             m_cache = m_ptr[0] = {buffer, buffer + capacity};
         }
 
@@ -52,8 +52,8 @@ void stack_allocator_object::__small_reallocate(std::byte *&restore_ptr) noexcep
         ++m_size;
 
         const size_t capacity = Cache << ((2 * m_idx + 3) / 5);
-        __default_alloc_template__ pool;
-        auto *const buffer = static_cast<std::byte *>(pool.chunk_allocate(capacity));
+        auto *const buffer =
+            static_cast<std::byte *>(automatic_free_pool::get_instance().allocate(capacity));
         m_ptr[m_idx] = {buffer, buffer + capacity};
     }
 

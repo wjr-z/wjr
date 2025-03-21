@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #include <wjr/math/literals.hpp>
-#include <wjr/memory/memory_pool.hpp>
+#include <wjr/memory/automatic_free_pool.hpp>
 #include <wjr/string.hpp>
 #include <wjr/type_traits.hpp>
 
@@ -90,10 +90,10 @@ private:
 
     WJR_NOINLINE void __small_redeallocate() noexcept {
         const uint_fast32_t new_size = m_idx + bufsize - 1;
-        __default_alloc_template__ pool;
 
+        auto &pool = automatic_free_pool::get_instance();
         for (uint_fast32_t i = new_size; i < m_size; ++i) {
-            pool.chunk_deallocate(m_ptr[i].ptr, m_ptr[i].end - m_ptr[i].ptr);
+            pool.deallocate(m_ptr[i].ptr);
         }
 
         m_size = new_size;
