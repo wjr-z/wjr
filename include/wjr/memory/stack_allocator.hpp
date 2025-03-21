@@ -17,7 +17,7 @@ class unique_stack_allocator;
 class stack_allocator_object {
     friend class unique_stack_allocator;
 
-    constexpr static size_t Cache = 32_KB;
+    constexpr static size_t Cache = align_up(32_KB, mem::default_new_alignment);
     constexpr static uint_fast32_t bufsize = 3;
 
     struct alloc_node {
@@ -28,6 +28,9 @@ class stack_allocator_object {
     struct large_memory {
         large_memory *prev;
     };
+
+    static constexpr size_t aligned_header_size =
+        align_up(sizeof(large_memory), mem::default_new_alignment);
 
 public:
     class stack_restorer {
@@ -51,11 +54,11 @@ public:
 
 private:
     void *__large_allocate(size_t n, large_memory *&restorer_large) noexcept {
-        auto *const buffer =
-            static_cast<large_memory *>(::operator new[](sizeof(large_memory) + n));
+        auto *const raw = ::operator new[](n + aligned_header_size);
+        auto *const buffer = static_cast<large_memory *>(raw);
         buffer->prev = restorer_large;
         restorer_large = buffer;
-        return buffer + 1;
+        return static_cast<void *>(static_cast<std::byte *>(raw) + aligned_header_size);
     }
 
     void __large_deallocate(large_memory *buffer) noexcept;
@@ -66,8 +69,9 @@ private:
         }
 
         WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
-        auto *const ret = m_cache.ptr;
-        m_cache.ptr += n;
+
+        auto *const ret = assume_aligned<mem::default_new_alignment>(m_cache.ptr);
+        m_cache.ptr += align_up(n, mem::default_new_alignment);
         return ret;
     }
 
@@ -126,8 +130,9 @@ public:
         }
 
         WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
-        auto *const ret = m_cache.ptr;
-        m_cache.ptr += n;
+
+        auto *const ret = assume_aligned<mem::default_new_alignment>(m_cache.ptr);
+        m_cache.ptr += align_up(n, mem::default_new_alignment);
         return ret;
     }
 

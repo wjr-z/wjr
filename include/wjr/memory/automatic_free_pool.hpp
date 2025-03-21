@@ -2,6 +2,7 @@
 #define WJR_MEMORY_AUTOMATIC_FREE_POOL_HPP__
 
 #include <wjr/container/list.hpp>
+#include <wjr/memory/align.hpp>
 
 namespace wjr {
 
@@ -13,6 +14,8 @@ namespace wjr {
  */
 struct automatic_free_pool {
     struct chunk : intrusive::list_node<chunk> {};
+    static constexpr size_t aligned_header_size =
+        align_up(sizeof(chunk), mem::default_new_alignment);
 
     automatic_free_pool() = default;
     ~automatic_free_pool() noexcept {
@@ -25,14 +28,15 @@ struct automatic_free_pool {
     automatic_free_pool &operator=(const automatic_free_pool &) = delete;
     automatic_free_pool &operator=(automatic_free_pool &&) = delete;
 
-    WJR_MALLOC void *allocate(size_t n) noexcept {
-        auto *const ptr = static_cast<chunk *>(::operator new[](n + sizeof(chunk)));
-        head.push_back(ptr);
-        return reinterpret_cast<std::byte *>(ptr) + sizeof(chunk);
+    WJR_MALLOC void *allocate(size_t n) {
+        auto *const raw = ::operator new[](n + aligned_header_size);
+        head.push_back(static_cast<chunk *>(raw));
+        return static_cast<void *>(static_cast<std::byte *>(raw) + aligned_header_size);
     }
 
     void deallocate(void *ptr) noexcept {
-        auto *const node = reinterpret_cast<chunk *>(static_cast<std::byte *>(ptr) - sizeof(chunk));
+        auto *const node =
+            reinterpret_cast<chunk *>(static_cast<std::byte *>(ptr) - aligned_header_size);
         node->remove();
         ::operator delete[](node);
     }
