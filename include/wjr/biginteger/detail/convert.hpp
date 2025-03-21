@@ -26,201 +26,38 @@ inline constexpr auto div3by2_divider_shift_of_big_base_10 = div3by2_divider<uin
 
 template <typename Converter>
 size_t __biginteger_to_chars_2_impl(uint8_t *first, const uint64_t *up, size_t n,
-                                    Converter conv) noexcept {
-    WJR_ASSERT_L2(up[n - 1] != 0);
-    WJR_ASSERT_ASSUME(n >= 2);
+                                    Converter conv) noexcept;
 
-    uint64_t x = up[n - 1];
-    --n;
-    const int pc = clz(x);
-    const int hbits = 64 - pc;
-    WJR_ASSUME(1 <= hbits && hbits <= 64);
-
-    const size_t len = hbits + 64 * n;
-    first += len;
-
-    do {
-        x = *up;
-
-        for (int i = 0; i < 8; ++i) {
-            __to_chars_unroll_8<2>(first - 8, x & 0xff, conv);
-            first -= 8;
-            x >>= 8;
-        }
-
-        ++up;
-        --n;
-    } while (n != 0);
-    x = *up;
-
-    (void)__unsigned_to_chars_backward_unchecked<2>(first, hbits, x, conv);
-    return len;
-}
+extern template size_t
+__biginteger_to_chars_2_impl<char_converter_t>(uint8_t *first, const uint64_t *up, size_t n,
+                                               char_converter_t conv) noexcept;
+extern template size_t
+__biginteger_to_chars_2_impl<origin_converter_t>(uint8_t *first, const uint64_t *up, size_t n,
+                                                 origin_converter_t conv) noexcept;
 
 template <typename Converter>
 size_t __biginteger_to_chars_8_impl(uint8_t *first, const uint64_t *up, size_t n,
-                                    Converter conv) noexcept {
-    WJR_ASSERT_L2(up[n - 1] != 0);
-    WJR_ASSERT_ASSUME(n >= 2);
+                                    Converter conv) noexcept;
 
-    uint64_t x = up[n - 1];
-    --n;
-    const int pc = clz(x);
-    int hbits = 64 - pc;
-    WJR_ASSUME(1 <= hbits && hbits <= 64);
+extern template size_t
+__biginteger_to_chars_8_impl<char_converter_t>(uint8_t *first, const uint64_t *up, size_t n,
+                                               char_converter_t conv) noexcept;
 
-    const size_t len = (hbits + 64 * n + 2) / 3;
-    first += len;
-
-    int rest = 0;
-    unsigned int last = 0;
-
-    do {
-        x = *up;
-
-        switch (rest) {
-        case 0: {
-            rest = 2;
-            break;
-        }
-        case 2: {
-            __to_chars_unroll_2<8>(first - 2, last | ((x & 0x03) << 4), conv);
-            first -= 2;
-            x >>= 2;
-            rest = 4;
-            break;
-        }
-        case 4: {
-            __to_chars_unroll_2<8>(first - 2, last | ((x & 0x0f) << 2), conv);
-            first -= 2;
-            x >>= 4;
-            rest = 0;
-            break;
-        }
-        default: {
-            WJR_UNREACHABLE();
-            break;
-        }
-        }
-
-        __to_chars_unroll_8<8>(first - 8, x & 0xff'ffff, conv);
-        x >>= 24;
-        __to_chars_unroll_8<8>(first - 16, x & 0xff'ffff, conv);
-        x >>= 24;
-        __to_chars_unroll_4<8>(first - 20, x & 0x0fff, conv);
-        x >>= 12;
-        first -= 20;
-
-        last = x;
-
-        ++up;
-        --n;
-    } while (n);
-    x = *up;
-
-    switch (rest) {
-    case 0: {
-        break;
-    }
-    case 2: {
-        __to_chars_unroll_2<8>(first - 2, last | ((x & 0x03) << 4), conv);
-        first -= 2;
-        if (hbits <= 2) {
-            goto DONE;
-        }
-        hbits -= 2;
-        x >>= 2;
-        break;
-    }
-    case 4: {
-        if (WJR_UNLIKELY(hbits == 1)) {
-            *--first = conv.template to<8>(x << 2 | last);
-            goto DONE;
-        }
-
-        __to_chars_unroll_2<8>(first - 2, last | ((x & 0x0f) << 2), conv);
-        first -= 2;
-        if (hbits <= 4) {
-            goto DONE;
-        }
-        hbits -= 4;
-        x >>= 4;
-        break;
-    }
-    default: {
-        WJR_UNREACHABLE();
-        break;
-    }
-    }
-
-    if (WJR_LIKELY(hbits + 2 >= 12)) {
-        do {
-            __to_chars_unroll_4<8>(first - 4, x & 0x0fff, conv);
-            first -= 4;
-            x >>= 12;
-            hbits -= 12;
-        } while (WJR_LIKELY(hbits + 2 >= 12));
-    }
-
-    switch ((hbits + 2) / 3) {
-    case 3: {
-        *--first = conv.template to<8>(x & 0x07);
-        x >>= 3;
-        WJR_FALLTHROUGH;
-    }
-    case 2: {
-        __to_chars_unroll_2<8>(first - 2, x, conv);
-        break;
-    }
-    case 1: {
-        *--first = conv.template to<8>(x);
-        WJR_FALLTHROUGH;
-    }
-    case 0: {
-        break;
-    }
-    default: {
-        WJR_UNREACHABLE();
-        break;
-    }
-    }
-
-DONE:
-    return len;
-}
+extern template size_t
+__biginteger_to_chars_8_impl<origin_converter_t>(uint8_t *first, const uint64_t *up, size_t n,
+                                                 origin_converter_t conv) noexcept;
 
 template <typename Converter>
 size_t __biginteger_to_chars_16_impl(uint8_t *first, const uint64_t *up, size_t n,
-                                     Converter conv) noexcept {
-    WJR_ASSERT_L2(up[n - 1] != 0);
-    WJR_ASSERT_ASSUME(n >= 2);
+                                     Converter conv) noexcept;
 
-    uint64_t x = up[n - 1];
-    --n;
-    const int pc = clz(x);
-    int hbits = 64 - pc;
-    WJR_ASSUME(1 <= hbits && hbits <= 64);
-    hbits = (hbits + 3) / 4;
+extern template size_t
+__biginteger_to_chars_16_impl<char_converter_t>(uint8_t *first, const uint64_t *up, size_t n,
+                                                char_converter_t conv) noexcept;
 
-    const size_t len = hbits + 16 * n;
-    first += len;
-
-    do {
-        x = *up;
-
-        __to_chars_unroll_8<16>(first - 8, x & 0xffff'ffff, conv);
-        __to_chars_unroll_8<16>(first - 16, x >> 32, conv);
-        first -= 16;
-
-        ++up;
-        --n;
-    } while (n);
-    x = *up;
-
-    (void)__unsigned_to_chars_backward_unchecked<16>(first, hbits, x, conv);
-
-    return len;
-}
+extern template size_t
+__biginteger_to_chars_16_impl<origin_converter_t>(uint8_t *first, const uint64_t *up, size_t n,
+                                                  origin_converter_t conv) noexcept;
 
 template <typename Converter>
 WJR_ALL_NONNULL size_t __biginteger_to_chars_power_of_two_impl(uint8_t *first, const uint64_t *up,
