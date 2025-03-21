@@ -236,17 +236,16 @@ struct get_relocate_mode<fixed_biginteger_vector_storage<Alloc>> {
 template <typename Storage>
 class basic_biginteger;
 
-template <typename Alloc>
+template <typename Alloc = std::allocator<uint64_t>>
 using default_biginteger = basic_biginteger<default_biginteger_vector_storage<Alloc>>;
 
-using biginteger = default_biginteger<std::allocator<uint64_t>>;
-
+using biginteger = default_biginteger<>;
 using stack_biginteger = default_biginteger<weak_stack_allocator<uint64_t>>;
 
-template <typename Alloc>
+template <typename Alloc = std::allocator<uint64_t>>
 using default_fixed_biginteger = basic_biginteger<fixed_biginteger_vector_storage<Alloc>>;
 
-using fixed_biginteger = default_fixed_biginteger<std::allocator<uint64_t>>;
+using fixed_biginteger = default_fixed_biginteger<>;
 using fixed_stack_biginteger = default_fixed_biginteger<weak_stack_allocator<uint64_t>>;
 
 using default_biginteger_storage = default_biginteger_vector_storage<std::allocator<uint64_t>>;
@@ -3556,8 +3555,7 @@ public:
         std::string_view data(buffer.data(), buffer.size());
         auto specs = format_specs(m_specs);
         if (m_specs.dynamic()) {
-            detail::handle_dynamic_spec(specs.dynamic_width(), specs.width, m_specs.width_ref,
-            ctx);
+            detail::handle_dynamic_spec(specs.dynamic_width(), specs.width, m_specs.width_ref, ctx);
         }
         return detail::write_bytes<char>(ctx.out(), data, specs);
     }
