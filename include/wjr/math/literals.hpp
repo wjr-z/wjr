@@ -1,8 +1,6 @@
 #ifndef WJR_MATH_LITERAL_HPP__
 #define WJR_MATH_LITERAL_HPP__
 
-#include <wjr/preprocessor.hpp>
-
 namespace wjr {
 
 constexpr unsigned long long operator"" _KB(unsigned long long n) noexcept { return n * 1024; }
