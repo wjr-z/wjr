@@ -17,7 +17,7 @@ class unique_stack_allocator;
 class stack_allocator_object {
     friend class unique_stack_allocator;
 
-    constexpr static size_t Cache = align_up(32_KB, mem::default_new_alignment);
+    constexpr static size_t cache_size = align_up(32_KB, mem::default_new_alignment);
     constexpr static uint_fast32_t bufsize = 3;
 
     struct alloc_node {
@@ -65,7 +65,8 @@ private:
 
     WJR_MALLOC void *__small_allocate(size_t n, stack_restorer &restorer) noexcept {
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
-            __small_reallocate(restorer.m_ptr);
+            if (auto ptr = __small_reallocate(); ptr)
+                restorer.m_ptr = static_cast<std::byte *>(ptr);
         }
 
         WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
@@ -85,16 +86,14 @@ private:
         }
 
         m_cache.end = m_ptr[m_idx].end;
-        if (WJR_UNLIKELY(m_size - m_idx >= bufsize)) {
+        if (WJR_UNLIKELY(m_size - m_idx >= bufsize))
             __small_redeallocate();
-        }
     }
 
-    void __small_reallocate(std::byte *&restore_ptr) noexcept;
+    void *__small_reallocate() noexcept;
 
     WJR_NOINLINE void __small_redeallocate() noexcept {
         const uint_fast32_t new_size = m_idx + bufsize - 1;
-
         auto &pool = automatic_free_pool::get_instance();
         for (uint_fast32_t i = new_size; i < m_size; ++i) {
             pool.deallocate(m_ptr[i].ptr);
@@ -126,7 +125,8 @@ public:
                 return __large_allocate(n, restorer.m_large);
             }
 
-            __small_reallocate(restorer.m_ptr);
+            if (auto ptr = __small_reallocate(); ptr)
+                restorer.m_ptr = static_cast<std::byte *>(ptr);
         }
 
         WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);

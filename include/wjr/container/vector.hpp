@@ -81,7 +81,6 @@
 #include <wjr/iterator/contiguous_iterator_adpater.hpp>
 #include <wjr/math/detail.hpp>
 #include <wjr/memory/copy.hpp>
-#include <wjr/memory/memory_pool.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
 
 namespace wjr {

@@ -2,8 +2,6 @@
 #define WJR_TYPE_TRAITS_HPP__
 
 #include <climits>
-#include <cstddef>
-#include <cstdint>
 #include <functional>
 #include <limits>
 #include <type_traits>
