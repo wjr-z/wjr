@@ -33,15 +33,15 @@ class stack_allocator_object {
         align_up(sizeof(large_memory), mem::default_new_alignment);
 
 public:
-    class stack_restorer {
+    class stack_context {
         friend class stack_allocator_object;
 
     public:
-        WJR_INTRINSIC_INLINE stack_restorer(stack_allocator_object *object) noexcept;
-        inline ~stack_restorer() noexcept;
+        WJR_INTRINSIC_INLINE stack_context(stack_allocator_object *object) noexcept;
+        inline ~stack_context() noexcept;
 
-        stack_restorer(const stack_restorer &) = delete;
-        stack_restorer(stack_restorer &&) = delete;
+        stack_context(const stack_context &) = delete;
+        stack_context(stack_context &&) = delete;
 
         WJR_PURE stack_allocator_object *object() noexcept { return m_object; }
 
@@ -63,7 +63,7 @@ private:
 
     void __large_deallocate(large_memory *buffer) noexcept;
 
-    WJR_MALLOC void *__small_allocate(size_t n, stack_restorer &restorer) noexcept {
+    WJR_MALLOC void *__small_allocate(size_t n, stack_context &restorer) noexcept {
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
             if (auto ptr = __small_reallocate(); ptr)
                 restorer.m_ptr = static_cast<std::byte *>(ptr);
@@ -76,7 +76,7 @@ private:
         return ret;
     }
 
-    void __small_deallocate(const stack_restorer &restorer) noexcept {
+    void __small_deallocate(const stack_context &restorer) noexcept {
         const auto curr = m_idx;
         m_idx = restorer.m_idx;
         m_cache.ptr = restorer.m_ptr;
@@ -115,7 +115,7 @@ public:
     stack_allocator_object &operator=(stack_allocator_object &&) = delete;
     ~stack_allocator_object() = default;
 
-    WJR_NODISCARD WJR_MALLOC void *allocate(size_t n, stack_restorer &restorer) noexcept {
+    WJR_NODISCARD WJR_MALLOC void *allocate(size_t n, stack_context &restorer) noexcept {
         if (WJR_BUILTIN_CONSTANT_P_TRUE(n >= stack_allocator_threshold)) {
             return __large_allocate(n, restorer.m_large);
         }
@@ -136,7 +136,7 @@ public:
         return ret;
     }
 
-    void deallocate(const stack_restorer &restorer) noexcept {
+    void deallocate(const stack_context &restorer) noexcept {
         __small_deallocate(restorer);
         if (auto *buffer = restorer.m_large; buffer != nullptr)
             __large_deallocate(buffer);
@@ -150,9 +150,10 @@ private:
     alloc_node *m_ptr = nullptr;
 };
 
-stack_allocator_object::stack_restorer::stack_restorer(stack_allocator_object *object) noexcept
+stack_allocator_object::stack_context::stack_context(stack_allocator_object *object) noexcept
     : m_object(object), m_ptr(object->m_cache.ptr), m_idx(object->m_idx), m_large(nullptr) {}
-stack_allocator_object::stack_restorer::~stack_restorer() noexcept { m_object->deallocate(*this); }
+
+stack_allocator_object::stack_context::~stack_context() noexcept { m_object->deallocate(*this); }
 
 /**
  * @brief A stack allocator for fast simulation of stack memory on the heap,
@@ -189,7 +190,7 @@ class weak_stack_allocator;
 class unique_stack_allocator {
     using Object = singleton_stack_allocator_object;
     using Instance = typename Object::Instance;
-    using stack_restorer = typename Instance::stack_restorer;
+    using stack_context = typename Instance::stack_context;
 
     template <typename T>
     friend class weak_stack_allocator;
@@ -219,7 +220,7 @@ private:
         return m_restorer.object()->__small_allocate(n, m_restorer);
     }
 
-    stack_restorer m_restorer;
+    stack_context m_restorer;
 };
 
 /**
