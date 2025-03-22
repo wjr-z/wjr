@@ -53,20 +53,20 @@ public:
     };
 
 private:
-    void *__large_allocate(size_t n, large_memory *&restorer_large) noexcept {
+    void *__large_allocate(size_t n, large_memory *&mem) noexcept {
         auto *const raw = ::operator new[](n + aligned_header_size);
         auto *const buffer = static_cast<large_memory *>(raw);
-        buffer->prev = restorer_large;
-        restorer_large = buffer;
+        buffer->prev = mem;
+        mem = buffer;
         return static_cast<void *>(static_cast<std::byte *>(raw) + aligned_header_size);
     }
 
     void __large_deallocate(large_memory *buffer) noexcept;
 
-    WJR_MALLOC void *__small_allocate(size_t n, stack_context &restorer) noexcept {
+    WJR_MALLOC void *__small_allocate(size_t n, stack_context &context) noexcept {
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
             if (auto ptr = __small_reallocate(); ptr)
-                restorer.m_ptr = static_cast<std::byte *>(ptr);
+                context.m_ptr = static_cast<std::byte *>(ptr);
         }
 
         WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
@@ -76,10 +76,10 @@ private:
         return ret;
     }
 
-    void __small_deallocate(const stack_context &restorer) noexcept {
+    void __small_deallocate(const stack_context &context) noexcept {
         const auto curr = m_idx;
-        m_idx = restorer.m_idx;
-        m_cache.ptr = restorer.m_ptr;
+        m_idx = context.m_idx;
+        m_cache.ptr = context.m_ptr;
         // Fast path.
         if (WJR_LIKELY(m_idx == curr)) {
             return;
@@ -115,18 +115,18 @@ public:
     stack_allocator_object &operator=(stack_allocator_object &&) = delete;
     ~stack_allocator_object() = default;
 
-    WJR_NODISCARD WJR_MALLOC void *allocate(size_t n, stack_context &restorer) noexcept {
+    WJR_NODISCARD WJR_MALLOC void *allocate(size_t n, stack_context &context) noexcept {
         if (WJR_BUILTIN_CONSTANT_P_TRUE(n >= stack_allocator_threshold)) {
-            return __large_allocate(n, restorer.m_large);
+            return __large_allocate(n, context.m_large);
         }
 
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
             if (n >= stack_allocator_threshold) {
-                return __large_allocate(n, restorer.m_large);
+                return __large_allocate(n, context.m_large);
             }
 
             if (auto ptr = __small_reallocate(); ptr)
-                restorer.m_ptr = static_cast<std::byte *>(ptr);
+                context.m_ptr = static_cast<std::byte *>(ptr);
         }
 
         WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
@@ -136,9 +136,9 @@ public:
         return ret;
     }
 
-    void deallocate(const stack_context &restorer) noexcept {
-        __small_deallocate(restorer);
-        if (auto *buffer = restorer.m_large; buffer != nullptr)
+    void deallocate(const stack_context &context) noexcept {
+        __small_deallocate(context);
+        if (auto *buffer = context.m_large; buffer != nullptr)
             __large_deallocate(buffer);
     }
 
@@ -197,7 +197,7 @@ class unique_stack_allocator {
 
 public:
     WJR_INTRINSIC_INLINE
-    unique_stack_allocator() noexcept : m_restorer(std::addressof(Object::get_instance())) {}
+    unique_stack_allocator() noexcept : m_context(std::addressof(Object::get_instance())) {}
 
     unique_stack_allocator(const unique_stack_allocator &) = delete;
     unique_stack_allocator(unique_stack_allocator &&) = delete;
@@ -207,7 +207,7 @@ public:
     ~unique_stack_allocator() = default;
 
     WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *allocate(size_t n) noexcept {
-        return m_restorer.object()->allocate(n, m_restorer);
+        return m_context.object()->allocate(n, m_context);
     }
 
     template <typename Ty>
@@ -217,10 +217,10 @@ public:
 
 private:
     WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *__small_allocate(size_t n) noexcept {
-        return m_restorer.object()->__small_allocate(n, m_restorer);
+        return m_context.object()->__small_allocate(n, m_context);
     }
 
-    stack_context m_restorer;
+    stack_context m_context;
 };
 
 /**
