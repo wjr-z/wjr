@@ -1,4 +1,5 @@
 
+#include <wjr/arch/x86/simd/simd.hpp>
 #include <wjr/format/utf8/utf8.hpp>
 #include <wjr/math/ctz.hpp>
 

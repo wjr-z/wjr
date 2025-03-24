@@ -1,3 +1,4 @@
+#include <wjr/arch/x86/simd/simd.hpp>
 #include <wjr/json/lexer.hpp>
 #include <wjr/math.hpp>
 

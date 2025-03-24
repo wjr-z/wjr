@@ -118,7 +118,7 @@ set(WJR_LIBS)
 #
 # precompile headers
 #
-set(WJR_PCH_COMMON PUBLIC ${WJR_INCLUDE_DIR}/wjr/type_traits.hpp ${WJR_INCLUDE_DIR}/wjr/assert.hpp)
+set(WJR_PCH_COMMON ${WJR_INCLUDE_DIR}/wjr/type_traits.hpp ${WJR_INCLUDE_DIR}/wjr/assert.hpp)
 
 #
 # library : preprocessor
@@ -164,7 +164,7 @@ if(WJR_ARCH)
    setup_cpp_include_and_definitions(wjr_arch)
 
    target_include_directories(wjr_arch PRIVATE $<TARGET_PROPERTY:CpuFeatures::cpu_features,INTERFACE_INCLUDE_DIRECTORIES>)
-   target_precompile_headers(wjr_arch PRIVATE ${WJR_PCH_COMMON})
+   target_precompile_headers(wjr_arch PUBLIC ${WJR_PCH_COMMON})
 
    list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr_arch>)
 endif()
@@ -189,4 +189,4 @@ setup_cpp_include_and_definitions(wjr)
 target_link_libraries(wjr PUBLIC fmt::fmt PRIVATE CpuFeatures::cpu_features)
 add_library(wjr::wjr ALIAS wjr)
 
-target_precompile_headers(wjr PRIVATE ${WJR_PCH_COMMON})
+target_precompile_headers(wjr PUBLIC ${WJR_PCH_COMMON})

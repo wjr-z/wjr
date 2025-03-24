@@ -1,7 +1,7 @@
 #ifndef WJR_ARCH_X86_MATH_SHIFT_HPP__
 #define WJR_ARCH_X86_MATH_SHIFT_HPP__
 
-#include <wjr/arch/x86/simd/simd.hpp>
+#include <wjr/type_traits.hpp>
 
 namespace wjr {
 

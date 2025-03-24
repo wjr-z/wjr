@@ -205,9 +205,6 @@ template <size_t Min, size_t Max>
 WJR_INTRINSIC_INLINE void fallback_small_pointer_copy(const void *const *first,
                                                       const void *const *last,
                                                       const void **dst) noexcept {
-    static_assert(Max != 2);
-    static_assert(sizeof(void *) == 8);
-
     if constexpr (Min == 0) {
         if (WJR_UNLIKELY(first == last)) {
             return;
@@ -246,6 +243,8 @@ WJR_INTRINSIC_INLINE void fallback_small_pointer_copy(const void *const *first,
 
 template <size_t Min, size_t Max, typename Ptr>
 WJR_INTRINSIC_INLINE void small_pointer_copy(Ptr const *first, Ptr const *last, Ptr *dst) noexcept {
+    static_assert(Max > 2 && Max <= 8);
+
 #if WJR_HAS_BUILTIN(SMALL_POINTER_COPY)
     builtin_small_pointer_copy<Min, Max>((const void *const *)(first), (const void *const *)(last),
                                          (const void **)(dst));

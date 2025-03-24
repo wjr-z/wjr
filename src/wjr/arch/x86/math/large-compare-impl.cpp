@@ -12,6 +12,7 @@
  */
 
 #include <wjr/arch/x86/math/large-compare-impl.hpp>
+#include <wjr/arch/x86/simd/simd.hpp>
 #include <wjr/arch/x86/simd/simd_unroll_macro.hpp>
 
 namespace wjr {

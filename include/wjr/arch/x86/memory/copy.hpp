@@ -15,9 +15,6 @@ template <size_t Min, size_t Max>
 WJR_INTRINSIC_INLINE void builtin_small_pointer_copy(const void *const *first,
                                                      const void *const *last,
                                                      const void **dst) noexcept {
-    static_assert(Max > 2 && Max <= 8);
-    static_assert(sizeof(void *) == 8);
-
     if constexpr (Min == 0) {
         if (WJR_UNLIKELY(first == last)) {
             return;

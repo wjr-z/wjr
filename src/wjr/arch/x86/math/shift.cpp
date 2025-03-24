@@ -12,6 +12,7 @@
  */
 
 #include <wjr/arch/x86/math/shift.hpp>
+#include <wjr/arch/x86/simd/simd.hpp>
 #include <wjr/math/shift.hpp>
 
 namespace wjr {
