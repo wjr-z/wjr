@@ -158,8 +158,6 @@ WJR_INTRINSIC_INLINE T builtin_rshift_n(T *dst, const T *src, size_t n, unsigned
 
 #endif
 
-#undef WJR_SHIFT_FUNCTION_OPTIMIZE
-
 } // namespace wjr
 
 #endif // WJR_ARCH_X86_MATH_SHIFT_HPP__
