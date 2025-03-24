@@ -108,7 +108,7 @@ macro(setup_cpp_include_and_definitions TARGET)
    )
 endmacro()
 
-macro(wjr_add_cpp_source TARGET PATH)
+macro(add_cpp_source TARGET PATH)
    file(GLOB_RECURSE TMP_SRCS ${WJR_LIB_DIR}/wjr/${PATH}/*.cpp ${WJR_LIB_DIR}/wjr/${PATH}/**/*.cpp)
    list(APPEND ${TARGET} ${TMP_SRCS})
 endmacro()
@@ -158,19 +158,14 @@ endif()
 #
 if(WJR_ARCH)
    set(WJR_ARCH_SRCS)
-   wjr_add_cpp_source(WJR_ARCH_SRCS arch/${WJR_ARCH})
+   add_cpp_source(WJR_ARCH_SRCS arch/${WJR_ARCH})
 
    add_library(wjr_arch OBJECT ${WJR_ARCH_SRCS})
    setup_cpp_include_and_definitions(wjr_arch)
 
-   set(WJR_ARCH_LIBS)
-
-   if(WJR_ENABLE_ARCH_ASSEMBLY)
-      list(APPEND WJR_ARCH_LIBS $<TARGET_OBJECTS:wjr_assembly>)
-   endif()
-
    target_include_directories(wjr_arch PRIVATE $<TARGET_PROPERTY:CpuFeatures::cpu_features,INTERFACE_INCLUDE_DIRECTORIES>)
-   target_precompile_headers(wjr_arch INTERFACE ${WJR_PCH_COMMON})
+   target_precompile_headers(wjr_arch PRIVATE ${WJR_PCH_COMMON})
+
    list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr_arch>)
 endif()
 
@@ -178,10 +173,10 @@ endif()
 # library : wjr
 #
 set(WJR_SRCS ${WJR_LIB_DIR}/wjr/assert.cpp)
-wjr_add_cpp_source(WJR_SRCS biginteger)
-wjr_add_cpp_source(WJR_SRCS format)
-wjr_add_cpp_source(WJR_SRCS json)
-wjr_add_cpp_source(WJR_SRCS memory)
+add_cpp_source(WJR_SRCS biginteger)
+add_cpp_source(WJR_SRCS format)
+add_cpp_source(WJR_SRCS json)
+add_cpp_source(WJR_SRCS memory)
 
 list(APPEND WJR_LIBS ${WJR_SRCS})
 
@@ -193,4 +188,5 @@ add_library(wjr STATIC ${WJR_LIBS})
 setup_cpp_include_and_definitions(wjr)
 target_link_libraries(wjr PUBLIC fmt::fmt PRIVATE CpuFeatures::cpu_features)
 add_library(wjr::wjr ALIAS wjr)
+
 target_precompile_headers(wjr PRIVATE ${WJR_PCH_COMMON})

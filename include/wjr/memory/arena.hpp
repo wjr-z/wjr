@@ -18,7 +18,7 @@ public:
     arena &operator=(arena &&) = delete;
 
     WJR_MALLOC void *allocate(size_t n) noexcept {
-        if (WJR_UNLIKELY(m_end - m_start < n)) {
+        if (WJR_UNLIKELY(to_unsigned(m_end - m_start) < n)) {
             return __allocate_large(n);
         }
 
