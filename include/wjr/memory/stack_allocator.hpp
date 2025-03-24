@@ -155,6 +155,8 @@ stack_allocator_object::stack_context::stack_context(stack_allocator_object *obj
 
 stack_allocator_object::stack_context::~stack_context() noexcept { m_object->deallocate(*this); }
 
+static_assert(std::is_trivially_destructible_v<stack_allocator_object>);
+
 /**
  * @brief A stack allocator for fast simulation of stack memory on the heap,
  * singleton mode.
@@ -234,7 +236,6 @@ private:
  */
 template <typename T>
 class weak_stack_allocator {
-    using StackAllocator = singleton_stack_allocator_object;
     using UniqueStackAllocator = unique_stack_allocator;
 
     template <typename U>
