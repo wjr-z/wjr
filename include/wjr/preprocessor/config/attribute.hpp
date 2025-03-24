@@ -262,9 +262,18 @@
     #define WJR_CONST
 #endif
 
-#if WJR_HAS_ATTRIBUTE(malloc)
-    #define WJR_MALLOC __attribute__((malloc))
+#if defined(__clang__) || defined(__GNUC__)
+    #define WJR_ALLOCATOR
+    #if WJR_HAS_ATTRIBUTE(malloc)
+        #define WJR_MALLOC __attribute__((malloc))
+    #else
+        #define WJR_MALLOC
+    #endif
+#elif defined(_MSC_VER)
+    #define WJR_ALLOCATOR __declspec(allocator) __declspec(restrict)
+    #define WJR_MALLOC
 #else
+    #define WJR_ALLOCATOR
     #define WJR_MALLOC
 #endif
 

@@ -29,16 +29,15 @@ struct automatic_free_pool {
     automatic_free_pool &operator=(automatic_free_pool &&) = delete;
 
     WJR_MALLOC void *allocate(size_t n) {
-        auto *const raw = ::operator new[](n + aligned_header_size);
+        auto *const raw = malloc(n + aligned_header_size);
         head.push_back(static_cast<chunk *>(raw));
         return static_cast<void *>(static_cast<std::byte *>(raw) + aligned_header_size);
     }
 
     void deallocate(void *ptr) noexcept {
-        auto *const node =
-            reinterpret_cast<chunk *>(static_cast<std::byte *>(ptr) - aligned_header_size);
-        node->remove();
-        ::operator delete[](node);
+        auto *const node = static_cast<std::byte *>(ptr) - aligned_header_size;
+        reinterpret_cast<chunk *>(node)->remove();
+        free(node);
     }
 
     static automatic_free_pool &get_instance() noexcept {

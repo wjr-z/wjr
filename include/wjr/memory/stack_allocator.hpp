@@ -17,7 +17,7 @@ class unique_stack_allocator;
 class stack_allocator_object {
     friend class unique_stack_allocator;
 
-    constexpr static size_t cache_size = align_up(32_KB, mem::default_new_alignment);
+    constexpr static size_t cache_size = align_up(16_KB, mem::default_new_alignment);
     constexpr static uint_fast32_t bufsize = 3;
 
     struct alloc_node {
@@ -37,13 +37,13 @@ public:
         friend class stack_allocator_object;
 
     public:
-        WJR_INTRINSIC_INLINE stack_context(stack_allocator_object *object) noexcept;
+        inline stack_context(stack_allocator_object *object) noexcept;
         inline ~stack_context() noexcept;
 
         stack_context(const stack_context &) = delete;
         stack_context(stack_context &&) = delete;
 
-        WJR_PURE stack_allocator_object *object() noexcept { return m_object; }
+        stack_allocator_object *object() noexcept { return m_object; }
 
     private:
         stack_allocator_object *m_object;
@@ -53,15 +53,15 @@ public:
     };
 
 private:
-    void *__large_allocate(size_t n, large_memory *&mem) noexcept {
-        auto *const raw = ::operator new[](n + aligned_header_size);
+    static void *__large_allocate(size_t n, large_memory *&mem) noexcept {
+        auto *const raw = malloc(n + aligned_header_size);
         auto *const buffer = static_cast<large_memory *>(raw);
         buffer->prev = mem;
         mem = buffer;
         return static_cast<void *>(static_cast<std::byte *>(raw) + aligned_header_size);
     }
 
-    void __large_deallocate(large_memory *buffer) noexcept;
+    static void __large_deallocate(large_memory *buffer) noexcept;
 
     WJR_MALLOC void *__small_allocate(size_t n, stack_context &context) noexcept {
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
@@ -270,7 +270,7 @@ public:
     WJR_NODISCARD WJR_MALLOC T *allocate(size_type n) noexcept {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
-            return static_cast<T *>(::operator new[](size));
+            return static_cast<T *>(malloc(size));
         }
 
         return static_cast<T *>(m_alloc->__small_allocate(size));
@@ -279,7 +279,7 @@ public:
     void deallocate(WJR_MAYBE_UNUSED T *ptr, WJR_MAYBE_UNUSED size_type n) noexcept {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
-            ::operator delete[](ptr);
+            free(ptr);
         }
     }
 
