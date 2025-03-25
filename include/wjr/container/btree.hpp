@@ -35,6 +35,7 @@
 #include <wjr/container/forward_list.hpp>
 #include <wjr/container/list.hpp>
 #include <wjr/memory/copy.hpp>
+#include <wjr/memory/small_pointer_copy.hpp>
 #include <wjr/memory/uninitialized.hpp>
 
 namespace wjr {
