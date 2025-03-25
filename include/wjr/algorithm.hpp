@@ -2,7 +2,6 @@
 #define WJR_FORMAT_ALGORITHM_HPP__
 
 #include <algorithm>
-#include <string_view>
 
 #include <wjr/iterator/detail.hpp>
 #include <wjr/math/broadcast.hpp>
@@ -146,29 +145,6 @@ constexpr void sort(Iter first, Iter last) {
 }
 
 } // namespace constant
-
-template <typename CharT, typename Traits>
-WJR_PURE constexpr bool starts_with(std::basic_string_view<CharT, Traits> str,
-                                    std::basic_string_view<CharT, Traits> sv) noexcept {
-    const auto length = sv.size();
-    if (str.size() < length) {
-        return false;
-    }
-
-    return Traits::compare(str.data(), sv.data(), length) == 0;
-}
-
-template <typename CharT, typename Traits>
-WJR_PURE constexpr bool ends_with(std::basic_string_view<CharT, Traits> str,
-                                  std::basic_string_view<CharT, Traits> sv) noexcept {
-    const auto n = str.size();
-    const auto length = sv.size();
-    if (n < length) {
-        return false;
-    }
-
-    return Traits::compare(str.data() + n - length, sv.data(), length) == 0;
-}
 
 template <unsigned int Length, WJR_REQUIRES(Length <= 8)>
 WJR_PURE WJR_INTRINSIC_INLINE bool
