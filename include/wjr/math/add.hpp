@@ -206,12 +206,12 @@ WJR_INTRINSIC_CONSTEXPR20 uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah, uint
                                                 uint8_t c_in) noexcept {
 #if WJR_HAS_BUILTIN(__ASM_ADDC_CC_128)
     if (is_constant_evaluated()) {
-        return __fallback_addc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+        return truncate_cast<uint8_t>(__fallback_addc_128(al, ah, lo0, hi0, lo1, hi1, c_in));
     }
 
     return __asm_addc_cc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
 #else
-    return fast_cast<uint8_t>(__addc_128(al, ah, lo0, hi0, lo1, hi1, c_in));
+    return truncate_cast<uint8_t>(__addc_128(al, ah, lo0, hi0, lo1, hi1, c_in));
 #endif
 }
 

@@ -2339,6 +2339,8 @@ std::ostream &operator<<(std::ostream &os, const basic_document<DocumentTraits> 
 
 template <typename Traits>
 bool operator==(const basic_document<Traits> &lhs, const basic_document<Traits> &rhs) noexcept {
+    static constexpr double eps = std::numeric_limits<double>::epsilon();
+
     switch (lhs.type()) {
     case value_t::null: {
         return rhs.is_null();
@@ -2347,9 +2349,23 @@ bool operator==(const basic_document<Traits> &lhs, const basic_document<Traits> 
         return rhs.is_boolean();
     }
     case value_t::number_unsigned:
-    case value_t::number_signed:
+    case value_t::number_signed: {
+        if (!rhs.is_number()) {
+            return false;
+        }
+
+        if (!rhs.is_number_float()) {
+            return static_cast<uint64_t>(lhs) == static_cast<uint64_t>(rhs);
+        }
+
+        return std::abs(static_cast<double>(lhs) - static_cast<double>(rhs)) <= eps;
+    }
     case value_t::number_float: {
-        return rhs.is_number() && (static_cast<double>(lhs) == static_cast<double>(rhs));
+        if (!rhs.is_number()) {
+            return false;
+        }
+
+        return std::abs(static_cast<double>(lhs) - static_cast<double>(rhs)) <= eps;
     }
     case value_t::string: {
         return rhs.is_string() &&

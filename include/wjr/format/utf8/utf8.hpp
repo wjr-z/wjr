@@ -367,8 +367,8 @@ inline optional<void> fallback_check_unicode(const char *first, const char *last
 }
 
 #if WJR_HAS_BUILTIN(UTF8_CHECK_UNICODE)
-extern WJR_ALL_NONNULL optional<void> builtin_check_unicode(const char *first,
-                                                            const char *last) noexcept;
+extern WJR_ALL_NONNULL WJR_PURE optional<void> builtin_check_unicode(const char *first,
+                                                                     const char *last) noexcept;
 #endif
 
 WJR_ALL_NONNULL inline optional<void> check_unicode(const char *first, const char *last) noexcept {

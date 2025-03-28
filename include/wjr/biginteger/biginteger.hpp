@@ -1498,7 +1498,7 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
             WJR_ASSERT(base != 0);
         }
 
-#if WJR_DEBUG_LEGVEL < 3
+#if WJR_DEBUG_LEVEL < 3
         if constexpr (Check) {
 #endif
             if (base <= 10) {
@@ -1599,7 +1599,7 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
                     ch = *first;
                 } while (__try_match(ch));
             }
-#if WJR_DEBUG_LEGVEL < 3
+#if WJR_DEBUG_LEVEL < 3
         } else {
             __first = first;
             first = last;
@@ -2304,8 +2304,8 @@ void __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
     quot->reserve(qssize);
     auto qp = quot->data();
 
-    auto np = (pointer)num->data();
-    auto dp = (pointer)div->data();
+    auto np = const_cast<pointer>(num->data());
+    auto dp = const_cast<pointer>(div->data());
 
     unique_stack_allocator stkal;
 
@@ -2357,8 +2357,8 @@ void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 
     using pointer = uint64_t *;
 
-    auto np = (pointer)num->data();
-    auto dp = (pointer)div->data();
+    auto np = const_cast<pointer>(num->data());
+    auto dp = const_cast<pointer>(div->data());
 
     unique_stack_allocator stkal;
 
@@ -3032,7 +3032,7 @@ void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num, u
     shift %= 64;
 
     uint64_t *rp;
-    auto np = (uint64_t *)(num->data());
+    auto np = const_cast<pointer>(num->data());
 
     if ((nssize ^ xdir) < 0) {
         if (__equal_pointer(rem, num)) {
@@ -3072,7 +3072,7 @@ void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num, u
 
         rem->reserve(offset + 1);
         rp = rem->data();
-        np = (uint64_t *)(num->data());
+        np = const_cast<pointer>(num->data());
 
         const auto size = std::min<uint32_t>(nusize, offset + 1);
         (void)math::bi_negate_n(rp, np, size);

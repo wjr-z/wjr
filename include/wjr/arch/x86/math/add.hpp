@@ -102,7 +102,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out)
     return a;
     #else
     uint64_t ret;
-    c_out = fast_cast<U>(_addcarry_u64(fast_cast<unsigned char>(c_in), a, b, &ret));
+    c_out = truncate_cast<U>(_addcarry_u64(truncate_cast<unsigned char>(c_in), a, b, &ret));
     return ret;
     #endif
 }

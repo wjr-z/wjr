@@ -29,6 +29,8 @@
 #ifndef WJR_FORMAT_FASTFLOAT_HPP__
 #define WJR_FORMAT_FASTFLOAT_HPP__
 
+#include <cfloat>
+
 #include <wjr/algorithm.hpp>
 #include <wjr/format/charconv.hpp>
 #include <wjr/math/div.hpp>

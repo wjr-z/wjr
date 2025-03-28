@@ -38,6 +38,18 @@ using mp_limb_t = uint64_t;
 
 #undef WANT_ADDSUB
 
+#undef HAVE_NATIVE_mpn_add_n_sub_n
+#define HAVE_NATIVE_mpn_add_n_sub_n 0
+
+#undef HAVE_NATIVE_mpn_rsh1add_n
+#define HAVE_NATIVE_mpn_rsh1add_n 0
+
+#undef HAVE_NATIVE_mpn_rsh1add_nc
+#define HAVE_NATIVE_mpn_rsh1add_nc 0
+
+#undef HAVE_NATIVE_mpn_add_nc
+#define HAVE_NATIVE_mpn_add_nc 1
+
 #define TRACE(x)
 
 #define MULMOD_BNM1_THRESHOLD WJR_MULMOD_BNM1_THRESHOLD

@@ -20,8 +20,8 @@ WJR_CONST constexpr T clear_lowbit(T n) noexcept {
     return n & (n - 1);
 }
 
-template <typename T, typename U, WJR_REQUIRES(std::is_integral_v<T> &&std::is_integral_v<U>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T fast_cast(U value) noexcept {
+template <typename T, typename U>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T truncate_cast(U value) noexcept {
     WJR_ASSUME(in_range<T>(value));
     return static_cast<T>(value);
 }
@@ -45,7 +45,7 @@ WJR_CONST constexpr T __ceil_div(T n, type_identity_t<T> div) noexcept {
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST constexpr std::make_signed_t<T> __fast_from_unsigned(T x) noexcept {
-    const std::make_signed_t<T> ret = x;
+    const auto ret = static_cast<std::make_signed_t<T>>(x);
     WJR_ASSERT_ASSUME_L2(ret >= 0);
     return ret;
 }

@@ -926,20 +926,20 @@ public:
     constexpr T *operator->() noexcept { return std::addressof(this->m_val); }
     constexpr const T *operator->() const noexcept { return std::addressof(this->m_val); }
 
-    constexpr T &operator*() & noexcept {
-        WJR_ASSERT(has_value());
+    WJR_PURE constexpr T &operator*() & noexcept {
+        WJR_ASSERT_L2(has_value());
         return this->m_val;
     }
-    constexpr const T &operator*() const & noexcept {
-        WJR_ASSERT(has_value());
+    WJR_PURE constexpr const T &operator*() const & noexcept {
+        WJR_ASSERT_L2(has_value());
         return this->m_val;
     }
-    constexpr T &&operator*() && noexcept {
-        WJR_ASSERT(has_value());
+    WJR_PURE constexpr T &&operator*() && noexcept {
+        WJR_ASSERT_L2(has_value());
         return std::move(this->m_val);
     }
-    constexpr const T &&operator*() const && noexcept {
-        WJR_ASSERT(has_value());
+    WJR_PURE constexpr const T &&operator*() const && noexcept {
+        WJR_ASSERT_L2(has_value());
         return std::move(this->m_val);
     }
 

@@ -1,4 +1,4 @@
-#include <wjr/arch/x86/biginteger/detail/mul-impl.hpp>
+#include <wjr/arch/x86/biginteger/detail/mul.hpp>
 
 namespace wjr {
 

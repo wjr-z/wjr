@@ -509,7 +509,7 @@ public:
         WJR_ASSERT(has_value());
         return this->m_val;
     }
-    constexpr value_type &&operator*() && noexcept {
+    WJR_PURE constexpr value_type &&operator*() && noexcept {
         WJR_ASSERT(has_value());
         return std::move(this->m_val);
     }

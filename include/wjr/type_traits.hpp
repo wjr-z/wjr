@@ -318,12 +318,12 @@ template <typename From, typename To>
 inline constexpr bool is_convertible_to_v = is_convertible_to<From, To>::value;
 
 template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<Value>)>
-WJR_CONST constexpr std::make_signed_t<Value> to_signed(Value value) noexcept {
+constexpr std::make_signed_t<Value> to_signed(Value value) noexcept {
     return static_cast<std::make_signed_t<Value>>(value);
 }
 
 template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<Value>)>
-WJR_CONST constexpr std::make_unsigned_t<Value> to_unsigned(Value value) noexcept {
+constexpr std::make_unsigned_t<Value> to_unsigned(Value value) noexcept {
     return static_cast<std::make_unsigned_t<Value>>(value);
 }
 

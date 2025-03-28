@@ -65,7 +65,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t mul_1(uint64_t *dst, const uint64_t *src, siz
             return 0;
         }
 
-        const unsigned int c = ctz(ml);
+        const unsigned int c = to_unsigned(ctz(ml));
         return lshift_n(dst, src, n, c);
     }
 
