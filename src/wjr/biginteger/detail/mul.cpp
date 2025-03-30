@@ -6,6 +6,10 @@
 
 namespace wjr {
 
+/**
+ * @todo carry-flag in toom_interpolation struct's bits.
+ */
+
 struct toom_interpolation_5p_struct {
     bool neg1;
     uint64_t cf1;
@@ -34,6 +38,15 @@ struct toom_interpolation_7p_struct {
 
 template <size_t P>
 using toom_interpolation_high_p_struct = std::array<uint64_t, P - 2>;
+
+template <typename T>
+WJR_INTRINSIC_INLINE uint64_t *__mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n) noexcept {
+    if constexpr (std::is_same_v<T, uint64_t *>) {
+        return al;
+    } else {
+        return al.template allocate<uint64_t>(n);
+    }
+}
 
 enum class __mul_mode : uint8_t {
     toom22 = 0x00,

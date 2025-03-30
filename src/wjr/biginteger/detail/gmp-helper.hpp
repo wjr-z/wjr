@@ -112,3 +112,27 @@ using mp_limb_t = uint64_t;
 #define mpn_fft_best_k wjr::fft_best_k
 #define mpn_zero_p(src, n) (wjr::find_not_n(src, 0, n) == n)
 #define mpn_mulmod_bnm1_next_size mulmod_bnm1_next_size
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR bool mulmod_bknp1_usable(size_t rn, unsigned &k,
+                                                           size_t mn) noexcept {
+    return ((mn) >= 18) && ((rn) > 16) &&
+           (((rn) % ((k) = 3) == 0) ||
+            (((((mn) >= 35) && ((rn) >= 32))) &&
+             ((((rn) % ((k) = 5) == 0)) ||
+              (((mn) >= 49) && (((rn) % ((k) = 7) == 0) ||
+                                (((mn) >= 104) && ((rn) >= 64) &&
+                                 (((rn) % ((k) = 13) == 0) || (((mn) >= 136) && ((rn) >= 128) &&
+                                                               ((rn) % ((k) = 17) == 0)))))))));
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR bool sqrmod_bknp1_usable(size_t rn, unsigned &k,
+                                                           size_t mn) noexcept {
+    return (mn >= 27) && (rn > 24) &&
+           ((rn % (k = 3) == 0) ||
+            ((((mn >= 55) && (rn > 50))) &&
+             (((rn % (k = 5) == 0)) ||
+              ((mn >= 56) && ((rn % (k = 7) == 0) ||
+                              ((mn >= 143) && (rn >= 128) &&
+                               ((rn % (k = 13) == 0) ||
+                                ((mn >= 272) && (rn >= 256) && (rn % (k = 17) == 0)))))))));
+}

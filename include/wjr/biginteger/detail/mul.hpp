@@ -483,39 +483,6 @@ WJR_CONST inline size_t sqrmod_bnm1_next_size(size_t n) noexcept {
     return 2 * fft_next_size(nh, fft_best_k(nh, 1));
 }
 
-WJR_CONST WJR_INTRINSIC_CONSTEXPR bool mulmod_bknp1_usable(size_t rn, unsigned &k,
-                                                           size_t mn) noexcept {
-    return ((mn) >= 18) && ((rn) > 16) &&
-           (((rn) % ((k) = 3) == 0) ||
-            (((((mn) >= 35) && ((rn) >= 32))) &&
-             ((((rn) % ((k) = 5) == 0)) ||
-              (((mn) >= 49) && (((rn) % ((k) = 7) == 0) ||
-                                (((mn) >= 104) && ((rn) >= 64) &&
-                                 (((rn) % ((k) = 13) == 0) || (((mn) >= 136) && ((rn) >= 128) &&
-                                                               ((rn) % ((k) = 17) == 0)))))))));
-}
-
-WJR_CONST WJR_INTRINSIC_CONSTEXPR bool sqrmod_bknp1_usable(size_t rn, unsigned &k,
-                                                           size_t mn) noexcept {
-    return (mn >= 27) && (rn > 24) &&
-           ((rn % (k = 3) == 0) ||
-            ((((mn >= 55) && (rn > 50))) &&
-             (((rn % (k = 5) == 0)) ||
-              ((mn >= 56) && ((rn % (k = 7) == 0) ||
-                              ((mn >= 143) && (rn >= 128) &&
-                               ((rn % (k = 13) == 0) ||
-                                ((mn >= 272) && (rn >= 256) && (rn % (k = 17) == 0)))))))));
-}
-
-template <typename T>
-WJR_INTRINSIC_INLINE uint64_t *__mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n) noexcept {
-    if constexpr (std::is_same_v<T, uint64_t *>) {
-        return al;
-    } else {
-        return al.template allocate<uint64_t>(n);
-    }
-}
-
 inline void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
                   size_t m) noexcept;
 
