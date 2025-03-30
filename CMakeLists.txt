@@ -35,7 +35,6 @@ set(WJR_LIB_DIR ${PROJECT_SOURCE_DIR}/src)
 set(WJR_CXX_FLAGS)
 set(WJR_CXX_FLAGS_DEBUG)
 set(WJR_CXX_FLAGS_RELEASE)
-set(WJR_CXX_LINKER_FLAGS)
 set(WJR_COMPILE_DEFINITIONS)
 
 if(NOT WJR_DISABLE_CXX_20 AND "cxx_std_20" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
@@ -99,10 +98,6 @@ macro(setup_cpp_include_and_definitions TARGET)
       PUBLIC $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELEASE>>:${WJR_CXX_FLAGS_RELEASE}$<SEMICOLON>>
    )
 
-   target_link_options(${TARGET}
-      PUBLIC $<$<COMPILE_LANGUAGE:CXX>: LINKER: ${WJR_CXX_LINKER_FLAGS} $<SEMICOLON>>
-   )
-
    target_compile_definitions(${TARGET}
       PUBLIC $<$<COMPILE_LANGUAGE:CXX>: ${WJR_COMPILE_DEFINITIONS}$<SEMICOLON>>
    )
@@ -119,6 +114,11 @@ set(WJR_LIBS)
 # precompile headers
 #
 set(WJR_PCH_COMMON ${WJR_INCLUDE_DIR}/wjr/type_traits.hpp ${WJR_INCLUDE_DIR}/wjr/assert.hpp)
+set(WJR_PCH_SIMD)
+
+if(WJR_ARCH)
+   list(APPEND WJR_PCH_SIMD ${WJR_INCLUDE_DIR}/wjr/arch/${WJR_ARCH}/simd/simd.hpp)
+endif()
 
 #
 # library : preprocessor
@@ -164,25 +164,75 @@ if(WJR_ARCH)
    setup_cpp_include_and_definitions(wjr_arch)
 
    target_include_directories(wjr_arch PRIVATE $<TARGET_PROPERTY:CpuFeatures::cpu_features,INTERFACE_INCLUDE_DIRECTORIES>)
-   target_precompile_headers(wjr_arch PUBLIC ${WJR_PCH_COMMON})
+   target_link_libraries(wjr_arch INTERFACE CpuFeatures::cpu_features)
+   target_precompile_headers(wjr_arch PUBLIC ${WJR_PCH_COMMON} ${WJR_PCH_SIMD})
 
    list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr_arch>)
 endif()
+
+#
+# library : memory
+#
+set(WJR_SRCS)
+add_cpp_source(WJR_SRCS memory)
+
+add_library(wjr_memory OBJECT ${WJR_SRCS})
+setup_cpp_include_and_definitions(wjr_memory)
+
+target_precompile_headers(wjr_memory PRIVATE ${WJR_PCH_COMMON})
+
+list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr_memory>)
+
+#
+# library : biginteger
+#
+set(WJR_SRCS)
+add_cpp_source(WJR_SRCS biginteger)
+
+add_library(wjr_biginteger OBJECT ${WJR_SRCS})
+setup_cpp_include_and_definitions(wjr_biginteger)
+
+target_include_directories(wjr_biginteger PUBLIC $<TARGET_PROPERTY:fmt::fmt,INTERFACE_INCLUDE_DIRECTORIES>)
+target_link_directories(wjr_biginteger INTERFACE fmt::fmt)
+target_precompile_headers(wjr_biginteger PRIVATE ${WJR_PCH_COMMON} ${WJR_PCH_SIMD})
+
+list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr_biginteger>)
+
+#
+# library : format
+#
+set(WJR_SRCS)
+add_cpp_source(WJR_SRCS format)
+
+add_library(wjr_format OBJECT ${WJR_SRCS})
+setup_cpp_include_and_definitions(wjr_format)
+
+target_include_directories(wjr_format PUBLIC $<TARGET_PROPERTY:wjr_biginteger,INTERFACE_INCLUDE_DIRECTORIES>)
+target_link_directories(wjr_format INTERFACE wjr_biginteger)
+target_precompile_headers(wjr_format PRIVATE ${WJR_PCH_COMMON} ${WJR_PCH_SIMD})
+
+list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr_format>)
+
+#
+# library : json
+#
+set(WJR_SRCS)
+add_cpp_source(WJR_SRCS json)
+
+add_library(wjr_json OBJECT ${WJR_SRCS})
+setup_cpp_include_and_definitions(wjr_json)
+
+target_include_directories(wjr_json PUBLIC $<TARGET_PROPERTY:wjr_format,INTERFACE_INCLUDE_DIRECTORIES>)
+target_link_directories(wjr_json INTERFACE wjr_format)
+target_precompile_headers(wjr_json PRIVATE ${WJR_PCH_COMMON} ${WJR_PCH_SIMD})
+
+list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr_json>)
 
 #
 # library : wjr
 #
 set(WJR_SRCS ${WJR_LIB_DIR}/wjr/assert.cpp)
-add_cpp_source(WJR_SRCS biginteger)
-add_cpp_source(WJR_SRCS format)
-add_cpp_source(WJR_SRCS json)
-add_cpp_source(WJR_SRCS memory)
-
 list(APPEND WJR_LIBS ${WJR_SRCS})
-
-if(WJR_ARCH)
-   list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr_arch>)
-endif()
 
 add_library(wjr STATIC ${WJR_LIBS})
 setup_cpp_include_and_definitions(wjr)

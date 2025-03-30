@@ -10,6 +10,7 @@
  * 2. Optimize reserve. For example, A = B + C, if A is restrict, then there's no need to memcpy if
  * A need to reserve.
  * 3. Optimization of constant value.
+ * 4. Use dispatch to optimize compile and binary size.
  *
  * @copyright Copyright (c) 2024
  *
