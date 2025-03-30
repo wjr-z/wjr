@@ -6,6 +6,148 @@
 
 namespace wjr {
 
+struct toom_interpolation_5p_struct {
+    bool neg1;
+    uint64_t cf1;
+    uint64_t cf2;
+    uint64_t cf3;
+};
+
+struct toom_interpolation_6p_struct {
+    uint8_t neg1 : 1;
+    uint8_t neg3 : 1;
+    uint64_t cf1;
+    uint64_t cf2;
+    uint64_t cf3;
+    uint64_t cf4;
+};
+
+struct toom_interpolation_7p_struct {
+    uint8_t neg1 : 1;
+    uint8_t neg3 : 1;
+    uint64_t cf1;
+    uint64_t cf2;
+    uint64_t cf3;
+    uint64_t cf4;
+    uint64_t cf5;
+};
+
+template <size_t P>
+using toom_interpolation_high_p_struct = std::array<uint64_t, P - 2>;
+
+enum class __mul_mode : uint8_t {
+    toom22 = 0x00,
+    toom33 = 0x01,
+    all = 0x03,
+};
+
+template <__mul_mode mode>
+WJR_INTRINSIC_INLINE void __inline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                              const uint64_t *src1, size_t n,
+                                              uint64_t *mal) noexcept {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
+
+    if (n < toom22_mul_threshold) {
+        return basecase_mul_s(dst, src0, n, src1, n);
+    }
+
+    if (mode <= __mul_mode::toom22 || n < toom33_mul_threshold) {
+        uint64_t *stk = __mul_s_allocate(mal, toom22_n_itch(n));
+        return toom22_mul_s(dst, src0, n, src1, n, stk);
+    }
+
+    uint64_t *stk = __mul_s_allocate(mal, toom33_n_itch(n));
+    return toom33_mul_s(dst, src0, n, src1, n, stk);
+}
+
+template <__mul_mode mode>
+WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                  const uint64_t *src1, size_t n,
+                                  WJR_MAYBE_UNUSED uint64_t *stk) noexcept {
+    if constexpr (mode <= __mul_mode::toom33) {
+        __inline_mul_n_impl<mode>(dst, src0, src1, n, stk);
+    } else {
+        mul_n(dst, src0, src1, n);
+    }
+}
+
+template <__mul_mode mode, uint64_t m0 = UINT64_MAX, uint64_t m1 = UINT64_MAX>
+WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                  const uint64_t *src1, size_t n, uint64_t *stk, uint64_t &c_out,
+                                  uint64_t cf0, uint64_t cf1) noexcept {
+    WJR_ASSERT_ASSUME(cf0 <= m0);
+    WJR_ASSERT_ASSUME(cf1 <= m1);
+
+    __mul_n<mode>(dst, src0, src1, n, stk);
+
+    if constexpr (m0 == 0 || m1 == 0) {
+        c_out = 0;
+    } else if constexpr (m0 == 1 || m1 == 1) {
+        if constexpr (m0 == 1 && m1 == 1) {
+            c_out = cf0 && cf1;
+        } else if constexpr (m0 == 1) {
+            c_out = cf0 ? cf1 : 0;
+        } else {
+            c_out = cf1 ? cf0 : 0;
+        }
+    } else {
+        c_out = cf0 * cf1;
+    }
+
+    c_out += try_addmul_1<m0>(dst + n, src1, n, cf0);
+    c_out += try_addmul_1<m1>(dst + n, src0, n, cf1);
+}
+
+template <__mul_mode mode>
+WJR_INTRINSIC_INLINE void __inline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
+                                            size_t n, uint64_t *mal) noexcept {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
+
+    if (n < toom2_sqr_threshold) {
+        return basecase_sqr(dst, src, n);
+    }
+
+    if (mode <= __mul_mode::toom22 || n < toom3_sqr_threshold) {
+        uint64_t *stk = __mul_s_allocate(mal, toom22_n_itch(n));
+        return toom2_sqr(dst, src, n, stk);
+    }
+
+    uint64_t *stk = __mul_s_allocate(mal, toom33_n_itch(n));
+    return toom3_sqr(dst, src, n, stk);
+}
+
+template <__mul_mode mode>
+WJR_INTRINSIC_INLINE void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
+                                WJR_MAYBE_UNUSED uint64_t *stk) noexcept {
+    if constexpr (mode <= __mul_mode ::toom33) {
+        __inline_sqr_impl<mode>(dst, src, n, stk);
+    } else {
+        sqr(dst, src, n);
+    }
+}
+
+template <__mul_mode mode, uint64_t m = UINT64_MAX>
+WJR_INTRINSIC_INLINE void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
+                                uint64_t *stk, uint64_t &c_out, uint64_t cf) noexcept {
+    WJR_ASSERT_ASSUME(cf <= m);
+
+    __sqr<mode>(dst, src, n, stk);
+
+    if constexpr (m == 0) {
+        c_out = 0;
+    } else if constexpr (m == 1) {
+        c_out = cf;
+    } else {
+        c_out = cf * cf;
+    }
+
+    constexpr auto m2 = in_range<uint32_t>(m) ? m * 2 : m;
+    c_out += try_addmul_1<m2>(dst + n, src, n, 2 * cf);
+}
+
 /**
  * @details \n
  * l = max(ceil(n/3), ceil(m/2)) \n
@@ -140,8 +282,8 @@ void __toom22_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
 
 } // namespace
 
-void __noinline_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                           const uint64_t *src1, size_t m) noexcept {
+void __mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
+                  size_t m) noexcept {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
     WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n + m, src0, n));
@@ -349,8 +491,8 @@ FFT_MUL:
         fft_mul(dst, src0, n, src1, m);
 }
 
-void __noinline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
-                           size_t n) noexcept {
+void __mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
+                  size_t n) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
     WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
@@ -384,7 +526,7 @@ void __noinline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, con
     return fft_mul(dst, src0, n, src1, n);
 }
 
-void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n) noexcept {
+void __sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
 

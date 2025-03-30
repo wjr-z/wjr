@@ -3032,7 +3032,7 @@ void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num, u
     shift %= 64;
 
     uint64_t *rp;
-    auto np = const_cast<pointer>(num->data());
+    auto *np = const_cast<uint64_t *>(num->data());
 
     if ((nssize ^ xdir) < 0) {
         if (__equal_pointer(rem, num)) {
@@ -3072,7 +3072,7 @@ void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num, u
 
         rem->reserve(offset + 1);
         rp = rem->data();
-        np = const_cast<pointer>(num->data());
+        np = const_cast<uint64_t *>(num->data());
 
         const auto size = std::min<uint32_t>(nusize, offset + 1);
         (void)math::bi_negate_n(rp, np, size);
