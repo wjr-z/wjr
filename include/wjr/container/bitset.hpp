@@ -8,6 +8,8 @@
 #include <wjr/math/shift.hpp>
 #include <wjr/type_traits.hpp>
 
+#include <fmt/format.h>
+
 namespace wjr {
 
 template <size_t N>
@@ -576,5 +578,31 @@ std::basic_ostream<Char, Traits> &operator<<(std::basic_ostream<Char, Traits> &o
 }
 
 } // namespace wjr
+
+namespace fmt {
+template <size_t N, typename Char>
+struct formatter<wjr::bitset<N>, Char> : nested_formatter<std::basic_string_view<Char>, Char> {
+private:
+    // Functor because C++11 doesn't support generic lambdas.
+    struct writer {
+        const wjr::bitset<N> &bs;
+
+        template <typename OutputIt>
+        FMT_CONSTEXPR auto operator()(OutputIt out) -> OutputIt {
+            for (auto pos = N; pos > 0; --pos) {
+                out = detail::write<Char>(out, bs[pos - 1] ? Char('1') : Char('0'));
+            }
+
+            return out;
+        }
+    };
+
+public:
+    template <typename FormatContext>
+    auto format(const wjr::bitset<N> &bs, FormatContext &ctx) const -> decltype(ctx.out()) {
+        return this->write_padded(ctx, writer{bs});
+    }
+};
+} // namespace fmt
 
 #endif // WJR_CONTAINER_BITSET_HPP__
