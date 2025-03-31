@@ -1,5 +1,5 @@
 最低要求：  \
-C++17，64位系统。  \
+C++17，64位系统，CMake。  \
 绝大多数优化仅针对x64。 目前异常处理支持不佳。  
 1. 非侵入式容器 bitset, B+-tree, basic_vector...
 - bitset : 支持不初始化值的bitset。在解析器中很常见，仅需根据depth更新而不需要初始化。
@@ -75,8 +75,7 @@ enable_special_members_of_args_base可以方便的禁用特殊成员函数。
 pause，lock-free单向链表简单实现，spin_mutex    \
 todo : 
 1. 无锁数据结构，RCU, scheduler等
-2. 使用forked fastfloat/dragonbox.
-3. 支持使用fmt
+2. dispatch, 优化编译
 
 ## todo
 1. 目前尚未适配需要使用GMP的测试。需要自行指定GMP Path。
