@@ -94,7 +94,7 @@ TEST(preprocessor, compiler) {
     CASSERT(WJR_HAS_BUILTIN(__TEST) == 0);
 }
 
-#define WJR_TEST_STR(a, b) WJR_CHECK(std::string_view(a) == std::string_view(b))
+#define WJR_TEST_STR(a, b) static_assert(std::string_view(a) == std::string_view(b))
 
 TEST(preprocessor, detail) {
     WJR_TEST_STR(WJR_PP_STR((WJR_PP_IOTA(0))), "()");
@@ -110,7 +110,7 @@ TEST(preprocessor, detail) {
 }
 
 #if defined(WJR_COMPILER_MSVC) && !defined(WJR_COMPILER_CLANG)
-#define WJR_TEST_MSVC
+    #define WJR_TEST_MSVC
 #endif
 
 TEST(preprocessor_preview, queue) {
@@ -169,28 +169,26 @@ TEST(preprocessor_preview, queue) {
 
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_UNWRAP(((1), (2), (3)))), "(1, 2, 3)");
 
-    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_ZIP_2((1, 2, 3), (4, 5, 6))),
-                 "((1, 4), (2, 5), (3, 6))");
+    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_ZIP_2((1, 2, 3), (4, 5, 6))), "((1, 4), (2, 5), (3, 6))");
 
 #define WJR_TEST_SELF(x) x
 #define WJR_TEST_F(x) f(x)
 #define WJR_TEST_ADD(x, y) x + y
 #define WJR_TEST_SUB(x, y) x - y
 
-    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_TRANSFORM((1, 2, 3), WJR_TEST_SELF)),
-                 "(1, 2, 3)");
-    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_TRANSFORM((1, 2, 3), WJR_TEST_F)),
-                 "(f(1), f(2), f(3))");
-    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_TRANSFORMS(
-                     (1, 2, 3), (WJR_TEST_F, WJR_TEST_SELF, WJR_TEST_F))),
-                 "(f(1), 2, f(3))");
+    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_TRANSFORM((1, 2, 3), WJR_TEST_SELF)), "(1, 2, 3)");
+    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_TRANSFORM((1, 2, 3), WJR_TEST_F)), "(f(1), f(2), f(3))");
+    WJR_TEST_STR(
+        WJR_PP_STR(WJR_PP_QUEUE_TRANSFORMS((1, 2, 3), (WJR_TEST_F, WJR_TEST_SELF, WJR_TEST_F))),
+        "(f(1), 2, f(3))");
 
-    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_ACCUMULATE(0, (1, 2, 3), WJR_TEST_ADD)),
-                 "0 + 1 + 2 + 3");
-    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_ACCUMULATES(
-                     0, (1, 2, 3), (WJR_TEST_ADD, WJR_TEST_ADD, WJR_TEST_SUB))),
+    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_ACCUMULATE(0, (1, 2, 3), WJR_TEST_ADD)), "0 + 1 + 2 + 3");
+    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_ACCUMULATES(0, (1, 2, 3),
+                                                     (WJR_TEST_ADD, WJR_TEST_ADD, WJR_TEST_SUB))),
                  "0 + 1 + 2 - 3");
 
 #undef WJR_TEST_F
 #undef WJR_TEST_SELF
+
+    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_ZIP_IOTA((A, B, C))), "((0, A), (1, B), (2, C))");
 }

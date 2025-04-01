@@ -1200,7 +1200,7 @@ TEST(math, div1by1) {
                 uint64_t q = val / div;
                 uint64_t o = q * divisor;
                 uint64_t delta = val - o;
-                WJR_CHECK(delta >= 0 && delta < divisor);
+                WJR_CHECK(delta < divisor);
             }
         }
 
@@ -1213,7 +1213,7 @@ TEST(math, div1by1) {
                 uint64_t q = val / div;
                 uint64_t o = q * divisor;
                 uint64_t delta = val - o;
-                WJR_CHECK(delta >= 0 && delta < divisor);
+                WJR_CHECK(delta < divisor);
             }
         }
     };

@@ -118,4 +118,9 @@
         WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_FRONT(x))),                                            \
         WJR_PP_QUEUE_POP_FRONT(y)
 
+// (A, B, C) -> ((0, A), (1, B), (2, C))
+#define WJR_PP_QUEUE_ZIP_IOTA(queue)                                                               \
+    WJR_PP_QUEUE_ZIP_IOTA_I((WJR_PP_IOTA(WJR_PP_QUEUE_SIZE(queue))), queue)
+#define WJR_PP_QUEUE_ZIP_IOTA_I(ID, queue) WJR_PP_QUEUE_ZIP_2(ID, queue)
+
 #endif // WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP__
