@@ -52,54 +52,25 @@ private:
  *
  */
 template <typename T, typename Tag = void>
-class compressed_capture_leaf
-#if !WJR_HAS_FEATURE(NO_UNIQUE_ADDRESS)
-    : T
-#endif
-{
-#if !WJR_HAS_FEATURE(NO_UNIQUE_ADDRESS)
+class compressed_capture_leaf : T {
     using Mybase = T;
-#endif
 
 public:
     using value_type = T;
 
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
-    constexpr compressed_capture_leaf() noexcept(std::is_nothrow_constructible_v<T>)
-#if !WJR_HAS_FEATURE(NO_UNIQUE_ADDRESS)
-        : Mybase()
-#else
-        : m_value()
-#endif
-    {
-    }
+    constexpr compressed_capture_leaf() noexcept(std::is_nothrow_constructible_v<T>) : Mybase() {}
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr compressed_capture_leaf(Args &&...args) noexcept(std::is_constructible_v<T, Args...>)
-#if !WJR_HAS_FEATURE(NO_UNIQUE_ADDRESS)
-        : Mybase(std::forward<Args>(args)...)
-#else
-        : m_value(std::forward<Args>(args)...)
-#endif
-    {
-    }
+        : Mybase(std::forward<Args>(args)...) {}
 
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
     constexpr explicit compressed_capture_leaf(default_construct_t) noexcept(
         std::is_nothrow_default_constructible_v<T>) {}
 
-#if !WJR_HAS_FEATURE(NO_UNIQUE_ADDRESS)
     constexpr T &get() noexcept { return *this; }
     constexpr const T &get() const noexcept { return *this; }
-#else
-    constexpr T &get() noexcept { return m_value; }
-    constexpr const T &get() const noexcept { return m_value; }
-#endif
-
-#if WJR_HAS_FEATURE(NO_UNIQUE_ADDRESS)
-private:
-    WJR_NO_UNIQUE_ADDRESS T m_value;
-#endif
 };
 
 /**

@@ -109,6 +109,12 @@ struct biginteger_data {
 
     constexpr int32_t get_ssize() const noexcept { return m_size; }
 
+    constexpr uint64_t *data() noexcept { return m_data; }
+    void set_ssize(int32_t size) noexcept {
+        WJR_ASSERT_ASSUME_L2(__fast_abs(size) <= m_capacity);
+        m_size = size;
+    }
+
     uint64_t *m_data = nullptr;
     int32_t m_size = 0;
     uint32_t m_capacity = 0;
@@ -197,12 +203,9 @@ public:
 
     template <typename T>
     void set_ssize(T size) = delete;
+    void set_ssize(int32_t size) noexcept { m_storage.set_ssize(size); }
 
-    void set_ssize(int32_t size) noexcept {
-        WJR_ASSERT_ASSUME(__fast_abs(size) <= capacity());
-        m_storage.m_size = size;
-    }
-
+    biginteger_data *__get_data() noexcept { return std::addressof(m_storage); }
     const biginteger_data *__get_data() const noexcept { return std::addressof(m_storage); }
 
 protected:
@@ -1384,6 +1387,7 @@ public:
     const_reverse_iterator crend() const noexcept { return m_vec.crend(); }
 
     int32_t get_ssize() const { return get_storage().get_ssize(); }
+
     template <typename T,
               WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> || std::is_same_v<T, int32_t>)>
     void set_ssize(T new_size) noexcept {
@@ -1410,10 +1414,11 @@ public:
     storage_type &get_storage() noexcept { return m_vec.get_storage(); }
     const storage_type &get_storage() const noexcept { return m_vec.get_storage(); }
 
+    biginteger_data *__get_data() noexcept { return get_storage().__get_data(); }
     const biginteger_data *__get_data() const noexcept { return get_storage().__get_data(); }
 
-    const biginteger_data &__get_ref() const noexcept { return *__get_data(); }
-    operator const biginteger_data &() const noexcept { return __get_ref(); }
+    operator biginteger_data &() noexcept { return *__get_data(); }
+    operator const biginteger_data &() const noexcept { return *__get_data(); }
 
 private:
     void __check_high_bit() const {
