@@ -14,15 +14,6 @@ __addsub_impl<true, default_biginteger_storage>(basic_biginteger<default_biginte
                                                 const biginteger_data *lhs,
                                                 const biginteger_data *rhs) noexcept;
 
-template void
-__mul_impl<default_biginteger_storage>(basic_biginteger<default_biginteger_storage> *dst,
-                                       const biginteger_data *lhs,
-                                       const biginteger_data *rhs) noexcept;
-
-template void
-__sqr_impl<default_biginteger_storage>(basic_biginteger<default_biginteger_storage> *dst,
-                                       const biginteger_data *src) noexcept;
-
 template <bool Check>
 from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
                                                   biginteger_dispatcher dst,
@@ -249,6 +240,141 @@ template from_chars_result<const char *> __from_chars_impl<true>(const char *fir
                                                                  biginteger_dispatcher dst,
                                                                  unsigned int base) noexcept;
 
+void __mul_impl(biginteger_dispatcher dst, const biginteger_data *lhs,
+                const biginteger_data *rhs) noexcept {
+    int32_t lssize = lhs->get_ssize();
+    int32_t rssize = rhs->get_ssize();
+    uint32_t lusize = __fast_abs(lssize);
+    uint32_t rusize = __fast_abs(rssize);
+
+    if (lusize < rusize) {
+        std::swap(lhs, rhs);
+        std::swap(lusize, rusize);
+    }
+
+    if (WJR_UNLIKELY(rusize == 0)) {
+        dst.set_ssize(0);
+        return;
+    }
+
+    const int32_t mask = lssize ^ rssize;
+
+    int32_t dssize;
+    uint32_t dusize;
+
+    if (rusize == 1) {
+        dst.reserve(lusize + 1);
+        const auto cf = mul_1(dst.data(), lhs->data(), lusize, rhs->data()[0]);
+        dssize = __fast_negate_with<int32_t>(mask, lusize + (cf != 0));
+        if (cf != 0) {
+            dst.data()[lusize] = cf;
+        }
+        dst.set_ssize(dssize);
+        return;
+    }
+
+    dusize = lusize + rusize;
+
+    using pointer = uint64_t *;
+
+    auto *dp = dst.data();
+    auto *lp = const_cast<pointer>(lhs->data());
+    auto *rp = const_cast<pointer>(rhs->data());
+
+    unique_stack_allocator stkal;
+    biginteger_dispatcher tmp(enable_default_constructor);
+
+    if (dst.capacity() < dusize) {
+        tmp = dst.construct_reserve(dusize, &stkal);
+        dp = tmp.data();
+    } else {
+        if (dp == lp) {
+            lp = stkal.template allocate<uint64_t>(lusize);
+            if (dp == rp) {
+                rp = lp;
+            }
+            copy_n_restrict(dp, lusize, lp);
+        } else if (dp == rp) {
+            rp = stkal.template allocate<uint64_t>(rusize);
+            copy_n_restrict(dp, rusize, rp);
+        }
+    }
+
+    if (WJR_UNLIKELY(lp == rp)) {
+        sqr(dp, lp, lusize);
+    } else {
+        mul_s(dp, lp, lusize, rp, rusize);
+    }
+
+    const bool cf = dp[dusize - 1] == 0;
+    dssize = __fast_negate_with<int32_t>(mask, dusize - cf);
+
+    if (tmp.has_value()) {
+        dst.move_assign(tmp.raw());
+        tmp.destroy();
+    }
+
+    dst.set_ssize(dssize);
+}
+
+void __sqr_impl(biginteger_dispatcher dst, const biginteger_data *src) noexcept {
+    int32_t sssize = src->get_ssize();
+    uint32_t susize = __fast_abs(sssize);
+
+    if (WJR_UNLIKELY(susize == 0)) {
+        dst.set_ssize(0);
+        return;
+    }
+
+    int32_t dssize;
+    uint32_t dusize;
+
+    if (susize == 1) {
+        dst.reserve(susize + 1);
+        const uint64_t num = src->data()[0];
+        uint64_t cf;
+        dst.data()[0] = mul(num, num, cf);
+        dssize = 1 + (cf != 0);
+        if (cf != 0) {
+            dst.data()[1] = cf;
+        }
+        dst.set_ssize(dssize);
+        return;
+    }
+
+    dusize = susize * 2;
+
+    using pointer = uint64_t *;
+
+    auto *dp = dst.data();
+    auto *sp = const_cast<pointer>(src->data());
+
+    unique_stack_allocator stkal;
+    biginteger_dispatcher tmp(enable_default_constructor);
+
+    if (dst.capacity() < dusize) {
+        tmp = dst.construct_reserve(dusize, &stkal);
+        dp = tmp.data();
+    } else {
+        if (dp == sp) {
+            sp = stkal.template allocate<uint64_t>(susize);
+            copy_n_restrict(dp, susize, sp);
+        }
+    }
+
+    sqr(dp, sp, susize);
+
+    const bool cf = dp[dusize - 1] == 0;
+    dssize = dusize - cf;
+
+    if (tmp.has_value()) {
+        dst.move_assign(tmp.raw());
+        tmp.destroy();
+    }
+
+    dst.set_ssize(dssize);
+}
+
 void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_data *lhs, uint64_t rhs,
                       int32_t xmask) noexcept {
     const int32_t lssize = lhs->get_ssize();
@@ -434,6 +560,142 @@ void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_data *lhs,
     }
 
     dst.set_ssize(__fast_conditional_negate<int32_t>(dssize < 0, dusize));
+}
+
+void __tdiv_qr_impl(biginteger_dispatcher quot, biginteger_dispatcher rem,
+                    const biginteger_data *num, const biginteger_data *div) noexcept {
+    WJR_ASSERT_ASSUME(!__equal_pointer(quot.raw(), rem.raw()),
+                      "quot should not be the same as rem");
+
+    const auto nssize = num->get_ssize();
+    const auto dssize = div->get_ssize();
+    const auto nusize = __fast_abs(nssize);
+    auto dusize = __fast_abs(dssize);
+    int32_t qssize = nusize - dusize + 1;
+
+    WJR_ASSERT(dusize != 0, "division by zero");
+
+    rem.reserve(dusize);
+    auto *rp = rem.data();
+
+    // num < div
+    if (qssize <= 0) {
+        auto np = num->data();
+        if (np != rp) {
+            std::copy_n(np, nusize, rp);
+            rem.set_ssize(nssize);
+        }
+
+        quot.set_ssize(0);
+        return;
+    }
+
+    using pointer = uint64_t *;
+
+    quot.reserve(qssize);
+    auto *qp = quot.data();
+
+    auto *np = const_cast<pointer>(num->data());
+    auto *dp = const_cast<pointer>(div->data());
+
+    unique_stack_allocator stkal;
+
+    if (dp == rp || dp == qp) {
+        auto *tp = stkal.template allocate<uint64_t>(dusize);
+        copy_n_restrict(dp, dusize, tp);
+        dp = tp;
+    }
+
+    if (np == rp || np == qp) {
+        auto *tp = stkal.template allocate<uint64_t>(nusize);
+        copy_n_restrict(np, nusize, tp);
+        np = tp;
+    }
+
+    div_qr_s(qp, rp, np, nusize, dp, dusize);
+
+    qssize -= qp[qssize - 1] == 0;
+    dusize = normalize(rp, dusize);
+
+    quot.set_ssize(__fast_conditional_negate<int32_t>((nssize ^ dssize) < 0, qssize));
+    rem.set_ssize(__fast_conditional_negate<int32_t>(nssize < 0, dusize));
+}
+
+void __cfdiv_r_2exp_impl(biginteger_dispatcher rem, const biginteger_data *num, uint32_t shift,
+                         int32_t xdir) noexcept {
+    int32_t nssize = num->get_ssize();
+
+    if (nssize == 0) {
+        rem.set_ssize(0);
+        return;
+    }
+
+    uint32_t nusize = __fast_abs(nssize);
+    uint32_t offset = shift / 64;
+    shift %= 64;
+
+    uint64_t *rp;
+    auto *np = const_cast<uint64_t *>(num->data());
+
+    if ((nssize ^ xdir) < 0) {
+        if (__equal_pointer(rem.raw(), num)) {
+            if (nusize <= offset) {
+                return;
+            }
+
+            rp = np;
+        } else {
+            const auto size = std::min<uint32_t>(nusize, offset + 1);
+            rem.reserve(size);
+            rp = rem.data();
+            std::copy_n(np, size, rp);
+
+            if (nusize <= offset) {
+                rem.set_ssize(nssize);
+                return;
+            }
+        }
+    } else {
+        do {
+            if (nusize <= offset) {
+                break;
+            }
+
+            if (find_not_n(np, 0, offset) != offset) {
+                break;
+            }
+
+            if ((np[offset] & (((uint64_t)(1) << shift) - 1)) != 0) {
+                break;
+            }
+
+            rem.set_ssize(0);
+            return;
+        } while (0);
+
+        rem.reserve(offset + 1);
+        rp = rem.data();
+        np = const_cast<uint64_t *>(num->data());
+
+        const auto size = std::min<uint32_t>(nusize, offset + 1);
+        (void)math::bi_negate_n(rp, np, size);
+        for (uint32_t i = size; i <= offset; ++i) {
+            rp[i] = UINT64_MAX;
+        }
+
+        nssize = -nssize;
+    }
+
+    uint64_t hi = rp[offset] & (((uint64_t)(1) << shift) - 1);
+    rp[offset] = hi;
+
+    if (hi == 0) {
+        offset = normalize(rp, offset);
+    } else {
+        ++offset;
+    }
+
+    rem.set_ssize(__fast_conditional_negate<int32_t>(nssize < 0, offset));
 }
 
 } // namespace biginteger_detail

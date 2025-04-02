@@ -286,8 +286,7 @@ using optional_storage = typename __optional_storage_impl<T>::type;
 template <typename T>
 struct __enable_optional_storage_impl {
     using type = enable_special_members_base<
-        std::is_default_constructible_v<T>, true, std::is_copy_constructible_v<T>,
-        std::is_move_constructible_v<T>,
+        true, true, std::is_copy_constructible_v<T>, std::is_move_constructible_v<T>,
         std::is_copy_assignable_v<T> && std::is_copy_constructible_v<T> &&
             std::is_nothrow_move_constructible_v<T>,
         std::is_move_assignable_v<T> && std::is_move_constructible_v<T> &&
