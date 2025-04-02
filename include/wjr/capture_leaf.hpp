@@ -3,6 +3,7 @@
 
 #include <tuple>
 
+#include <wjr/container/container_of.hpp>
 #include <wjr/crtp/class_base.hpp>
 #include <wjr/tp/algorithm.hpp>
 #include <wjr/type_traits.hpp>
@@ -18,6 +19,9 @@ namespace wjr {
 template <typename T, typename Tag = void>
 class capture_leaf : enable_special_members_of_args_base<Tag, T> {
     using Mybase = enable_special_members_of_args_base<Tag, T>;
+
+    template <typename _Mybase, typename _Tag, typename _Enable>
+    friend struct container_of_fn;
 
 public:
     using value_type = T;
@@ -40,6 +44,24 @@ public:
 
 private:
     T m_value;
+};
+
+template <typename T, typename TagT>
+struct container_of_fn<capture_leaf<T, TagT>, void,
+                       std::enable_if_t<std::is_standard_layout_v<T>>> {
+    using base_type = capture_leaf<T, TagT>;
+    using value_type = T;
+
+    base_type &operator()(value_type &ref) const noexcept {
+        return *reinterpret_cast<base_type *>(reinterpret_cast<std::byte *>(std::addressof(ref)) -
+                                              offsetof(base_type, m_value));
+    }
+
+    const base_type &operator()(const value_type &ref) const noexcept {
+        return *reinterpret_cast<const base_type *>(
+            reinterpret_cast<const std::byte *>(std::addressof(ref)) -
+            offsetof(base_type, m_value));
+    }
 };
 
 /**
@@ -71,6 +93,20 @@ public:
 
     constexpr T &get() noexcept { return *this; }
     constexpr const T &get() const noexcept { return *this; }
+};
+
+template <typename T, typename TagT>
+struct container_of_fn<compressed_capture_leaf<T, TagT>, void> {
+    using base_type = compressed_capture_leaf<T, TagT>;
+    using value_type = T;
+
+    constexpr base_type &operator()(value_type &ref) const noexcept {
+        return static_cast<base_type &>(ref);
+    }
+
+    constexpr const base_type &operator()(const value_type &ref) const noexcept {
+        return static_cast<const base_type &>(ref);
+    }
 };
 
 /**

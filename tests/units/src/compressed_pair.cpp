@@ -10,19 +10,44 @@ using namespace wjr;
 struct disable_construct : enable_default_constructor_base<false, disable_construct> {
     using Mybase = enable_default_constructor_base<false, disable_construct>;
 
-    explicit disable_construct(enable_default_constructor_t)
-        : Mybase(enable_default_constructor) {}
+    explicit disable_construct(enable_default_constructor_t) : Mybase(enable_default_constructor) {}
+};
+
+struct default_construtor_struct {
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(default_construtor_struct);
+    default_construtor_struct(enable_default_constructor_t) {}
 };
 
 TEST(compressed_pair, constructor) {
     using cpi2 = compressed_pair<int, int>;
     using cpis = compressed_pair<int, std::string>;
-    static_assert(std::is_trivially_copyable_v<cpi2>, "trivially copyable error");
-    static_assert(!std::is_trivially_copyable_v<cpis>, "trivially copyable error");
-    static_assert(
-        sizeof(compressed_pair<std::less<>, compressed_pair<std::greater<>, int>>) ==
-            sizeof(int),
-        "size error");
+
+    static_assert(std::is_trivially_copyable_v<cpi2>,
+                  "compressed_pair<int, int> must be trivially copyable");
+
+    static_assert(!std::is_trivially_copyable_v<cpis>,
+                  "Why compressed_pair<int, std::string> is trivially copyable?");
+
+    static_assert(sizeof(compressed_pair<std::less<>, compressed_pair<std::greater<>, int>>) ==
+                      sizeof(int),
+                  "compressed_pair EBO miss");
+
+    static_assert(sizeof(compressed_pair<std::allocator<int>, int>) == sizeof(int),
+                  "compressed_pair EBO miss");
+
+    static_assert(std::is_standard_layout_v<compressed_pair<int, int>>,
+                  "compressed_pair must be standard layout");
+
+    static_assert(std::is_standard_layout_v<compressed_pair<std::allocator<int>, int>>,
+                  "compressed_pair must be standard layout");
+
+    static_assert(std::is_standard_layout_v<compressed_pair<int, std::allocator<int>>>,
+                  "compressed_pair must be standard layout");
+
+    static_assert(std::is_constructible_v<compressed_pair<default_construtor_struct, int>,
+                                          enable_default_constructor_t, int>,
+                  "There is ambiguity in the constructor of comrpessed_pair \
+         when using enable_default_constructor_t");
 
     {
         cpi2 a;
@@ -98,8 +123,7 @@ TEST(compressed_pair, constructor) {
     {
         using type = compressed_pair<disable_construct, int>;
         static_assert(sizeof(type) == sizeof(int), "size error");
-        static_assert(!std::is_default_constructible_v<type>,
-                      "default constructible error");
+        static_assert(!std::is_default_constructible_v<type>, "default constructible error");
         type a(enable_default_constructor, 3);
         WJR_CHECK(a.second() == 3);
         type b(a);

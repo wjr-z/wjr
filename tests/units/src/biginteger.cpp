@@ -8,6 +8,12 @@
 
 using namespace wjr;
 
+static_assert(std::is_standard_layout_v<biginteger>, "bigintger must have standard layout");
+static_assert(std::is_standard_layout_v<stack_biginteger>, "bigintger must have standard layout");
+static_assert(std::is_standard_layout_v<fixed_biginteger>, "bigintger must have standard layout");
+static_assert(std::is_standard_layout_v<fixed_stack_biginteger>,
+              "bigintger must have standard layout");
+
 namespace wjr {
 template class basic_biginteger<default_biginteger_vector_storage<std::allocator<uint64_t>>>;
 }

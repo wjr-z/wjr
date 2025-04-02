@@ -87,167 +87,67 @@ struct trandom_fn<std::string, void> {
     }
 };
 
-static uint64_t cnt = 0;
-static uint64_t cnt2 = 0;
-static uint64_t cnt96 = 0;
-static uint64_t cnt160 = 0;
-static uint64_t size = 0;
-static uint64_t size2 = 0;
+struct table {
+    void (*clear_if_reserved)(biginteger_data *, uint32_t);
+};
 
-void *operator new(std::size_t n) noexcept(false) {
-    ++cnt;
-    size += n;
-    if (n == 96) {
-        ++cnt96;
-    } else if (n == 160)
-        ++cnt160;
-    return malloc(n);
-}
-void operator delete(void *p) throw() {
-    ++cnt2;
-    free(p);
-}
+template <typename T>
+struct tt {
+    static constexpr table tc = {
+        [](biginteger_data *x, uint32_t n) { ((T *)x)->clear_if_reserved(n); }};
+};
 
-void *operator new[](std::size_t s) noexcept(false) {
-    ++cnt;
-    size += s;
-    if (s == 96) {
-        ++cnt96;
-    } else if (s == 160)
-        ++cnt160;
-    return malloc(s);
-}
-void operator delete[](void *p) throw() {
-    ++cnt2;
-    free(p);
-}
+struct biginteger_dispatcher {
 
-using Al = std::allocator<char>;
-using Alt = std::allocator_traits<Al>;
+    template <typename T>
+    biginteger_dispatcher(T *p) noexcept : ptr(p->__get_data()), table(&tt<T>::tc) {}
 
-auto allocate_node(size_t n) -> void * {
-    Al al;
-    return Alt::allocate(al, n);
-}
+    void clear_if_reserved(uint32_t n) { table->clear_if_reserved(ptr, n); }
+
+    uint64_t *data() const { return ptr->data(); }
+
+    void set_ssize(int32_t n) const { ptr->set_ssize(n); }
+
+    biginteger_data *ptr;
+    const table *table;
+};
 
 int main() {
-    while (0) {
-        int n = 1024;
-        int m = 6e8 / (n * log2(n) + 8);
-
-        test([&]() {
-            for (int j = 0; j < m; ++j) {
-                vector<void *> vec;
-                for (int i = 0; i < n; ++i) {
-                    if (i % 33 == 0) {
-                        vec.push_back(allocate_node(160));
-                    }
-                    if (i % 6 == 0) {
-                        vec.push_back(allocate_node(96));
-                    }
-                    vec.push_back(allocate_node(8));
-                }
-                for (auto i : vec) {
-                    free(i);
-                }
-            }
-        });
-
-        test([&]() {
-            for (int j = 0; j < m; ++j) {
-                vector<void *> vec;
-                for (int i = 0; i < n; ++i) {
-                    vec.push_back(malloc(40));
-                }
-                for (auto i : vec) {
-                    free(i);
-                }
-            }
-        });
-
-        return 0;
-    }
-
-    // for (int n = 8; n <= 1e5; n <<= 1)
     {
-        int n = 1024;
+        capture_leaf<int> x;
+        auto &z = container_of<capture_leaf<int>>(x.get());
+
+        compressed_pair<int, double> y;
+        auto &z2 = container_of<compressed_pair<int, double>, double>(y.second());
+
         vector<int> vec;
-        std::mt19937 mt_rand(std::random_device{}());
-        int m = 1e4;
-        for (int i = 0; i < n; ++i)
-            vec.emplace_back(trandom<int>());
-        std::cout << "n = " << n << std::endl;
-        test([&]() {
-            btree_map<int, int> bt;
-            for (auto i : vec) {
-                bt.emplace(i, i);
-            }
-            for (int j = 0; j < m; ++j) {
-                for (auto i : vec) {
-                    auto iter = bt.lower_bound(i);
-                    if (iter != bt.end()) {
-                        asm volatile("" : "+r"(iter->second));
-                    }
-                }
-            }
-        });
-
-        test([&]() {
-            std::map<int, int> bt;
-            for (auto i : vec) {
-                bt.emplace(i, i);
-            }
-            for (int j = 0; j < m; ++j) {
-                for (auto i : vec) {
-                    auto iter = bt.lower_bound(i);
-                    if (iter != bt.end()) {
-                        asm volatile("" : "+r"(iter->second));
-                    }
-                }
-            }
-        });
-
-        // test([&]() {
-        //     for (int j = 0; j < m; ++j) {
-        //         cnt = cnt2 = size = 0;
-        //         cnt96 = cnt160 = 0;
-        //         std::map<int, int, comp> bt;
-        //         for (auto i : vec) {
-        //             bt.emplace(i, i);
-        //         }
-        //         std::cout << cnt << ' ' << cnt2 << ' ' << size << std::endl;
-        //         std::cout << cnt96 << ' ' << cnt160 << std::endl;
-        //     }
-        // });
-        // std::cout << cnt << ' ' << cnt2 << ' ' << size << std::endl;
+        auto& s = vec.get_storage();
+        
+        container_of<vector<int>>(s);
         return 0;
     }
+    // {
+    //     int T = 1e6;
+    //     test([&]() {
+    //         for (int i = 0; i < T; ++i) {
+    //             biginteger x;
+    //             biginteger_dispatcher dst(&x);
+    //             asm volatile("" : "+r"(dst.ptr)::"memory");
+    //             dst.clear_if_reserved(1);
+    //             dst.data()[0] = i;
+    //             dst.set_ssize(i == 0 ? 0 : 1);
+    //         }
+    //     });
 
-    for (int n = 8; n <= 1e5; n <<= 1) {
-        vector<std::string> vec;
-        std::mt19937 mt_rand(std::random_device{}());
-        int m = 2e7 / (n * log2(n) + 8);
-        for (int i = 0; i < n; ++i)
-            vec.emplace_back(trandom<std::string>());
-        std::cout << "n = " << n << std::endl;
-        test([&]() {
-            for (int j = 0; j < m; ++j) {
-                btree_map<std::string, std::string, comp> bt;
-                for (auto &i : vec) {
-                    bt.emplace(i, i);
-                }
-            }
-        });
-        test([&]() {
-            for (int j = 0; j < m; ++j) {
-                std::map<std::string, std::string, comp> bt;
-                for (auto &i : vec) {
-                    bt.emplace(i, i);
-                }
-            }
-        });
-    }
-
+    //     test([&]() {
+    //         for (int i = 0; i < T; ++i) {
+    //             biginteger dst;
+    //             dst.clear_if_reserved(1);
+    //             dst.data()[0] = i;
+    //             dst.set_ssize(i == 0 ? 0 : 1);
+    //         }
+    //     });
+    // }
     return 0;
 }
 
