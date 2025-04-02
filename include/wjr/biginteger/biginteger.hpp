@@ -101,13 +101,20 @@ struct __unref_wrapper_helper<default_biginteger_size_reference> {
  *
  */
 struct biginteger_data {
+    constexpr uint64_t *data() noexcept { return m_data; }
     constexpr const uint64_t *data() const noexcept { return m_data; }
+
     constexpr uint32_t size() const noexcept { return __fast_abs(m_size); }
 
     constexpr bool empty() const noexcept { return m_size == 0; }
     constexpr bool is_negate() const noexcept { return m_size < 0; }
 
     constexpr int32_t get_ssize() const noexcept { return m_size; }
+
+    constexpr void set_ssize(int32_t size) noexcept {
+        WJR_ASSERT_ASSUME_L2(__fast_abs(size) <= m_capacity);
+        m_size = size;
+    }
 
     uint64_t *m_data = nullptr;
     int32_t m_size = 0;
@@ -120,9 +127,12 @@ struct biginteger_data {
  *
  */
 template <typename Alloc, typename Mybase, typename IsReallocatable>
-class __default_biginteger_vector_storage {
+class __default_biginteger_vector_storage : private biginteger_data {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<uint64_t>;
     using _Alty_traits = std::allocator_traits<_Alty>;
+
+    template <typename _Mybase, typename _Tag, typename _Enable>
+    friend struct container_of_fn;
 
 public:
     using value_type = uint64_t;
@@ -167,46 +177,46 @@ public:
                                  _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
         const auto result = allocate_at_least(al, capacity);
 
-        auto &storage = other.m_storage;
-        storage.m_data = result.ptr;
-        storage.m_size = __fast_negate_with<int32_t>(m_storage.m_size, size);
-        storage.m_capacity = static_cast<size_type>(result.count);
+        other.m_data = result.ptr;
+        other.m_size = __fast_negate_with<int32_t>(this->m_size, size);
+        other.m_capacity = static_cast<size_type>(result.count);
     }
 
     void take_storage(Mybase &other, _Alty &) noexcept {
-        auto &other_storage = other.m_storage;
-        m_storage = other_storage;
-        other_storage.m_data = nullptr;
+        *__get_data() = *other.__get_data();
+        other.m_data = nullptr;
     }
 
-    void swap_storage(Mybase &other, _Alty &) noexcept { std::swap(m_storage, other.m_storage); }
+    void swap_storage(Mybase &other, _Alty &) noexcept {
+        std::swap(*__get_data(), *other.__get_data());
+    }
 
     WJR_PURE default_biginteger_size_reference size() noexcept {
-        return default_biginteger_size_reference(m_storage.m_size);
+        return default_biginteger_size_reference(this->m_size);
     }
 
-    size_type size() const noexcept { return __fast_abs(m_storage.m_size); }
-    WJR_PURE size_type capacity() const noexcept { return m_storage.m_capacity; }
+    WJR_PURE constexpr size_type size() const noexcept { return __fast_abs(this->m_size); }
+    WJR_PURE constexpr size_type capacity() const noexcept { return this->m_capacity; }
 
-    WJR_PURE pointer data() noexcept { return m_storage.m_data; }
-    WJR_PURE const_pointer data() const noexcept { return m_storage.m_data; }
+    WJR_PURE constexpr pointer data() noexcept { return this->m_data; }
+    WJR_PURE constexpr const_pointer data() const noexcept { return this->m_data; }
 
     // extension
 
-    int32_t get_ssize() const noexcept { return m_storage.m_size; }
+    constexpr int32_t get_ssize() const noexcept { return this->m_size; }
 
     template <typename T>
     void set_ssize(T size) = delete;
 
-    void set_ssize(int32_t size) noexcept {
-        WJR_ASSERT_ASSUME(__fast_abs(size) <= capacity());
-        m_storage.m_size = size;
+    constexpr void set_ssize(int32_t size) noexcept { biginteger_data::set_ssize(size); }
+
+    constexpr biginteger_data *__get_data() noexcept {
+        return static_cast<biginteger_data *>(this);
     }
 
-    const biginteger_data *__get_data() const noexcept { return std::addressof(m_storage); }
-
-protected:
-    biginteger_data m_storage;
+    constexpr const biginteger_data *__get_data() const noexcept {
+        return static_cast<const biginteger_data *>(this);
+    }
 };
 
 /**
@@ -255,6 +265,53 @@ WJR_INTRINSIC_CONSTEXPR biginteger_data make_biginteger_data(span<const uint64_t
     return biginteger_data{const_cast<uint64_t *>(sp.data()), static_cast<int32_t>(sp.size()), 0};
 }
 
+struct biginteger_dispatch_table {
+    void (*reserve)(biginteger_data *, uint32_t);
+    void (*clear_if_reserved)(biginteger_data *, uint32_t);
+    void (*clear)(biginteger_data *);
+};
+
+template <typename T>
+struct biginteger_dispatch_static_table {
+    static constexpr biginteger_dispatch_table table = {
+        [](biginteger_data *data, uint32_t n) { container_of<T>(*data).reserve(n); },
+        [](biginteger_data *data, uint32_t n) { container_of<T>(*data).clear_if_reserved(n); },
+        [](biginteger_data *data) { container_of<T>(*data).clear(); }};
+};
+
+class biginteger_dispatcher {
+public:
+    template <typename T>
+    constexpr biginteger_dispatcher(T *p) noexcept
+        : ptr(p->__get_data()), v_table(&biginteger_dispatch_static_table<T>::table) {}
+
+    biginteger_dispatcher() = delete;
+    biginteger_dispatcher(const biginteger_dispatcher &) = default;
+    biginteger_dispatcher(biginteger_dispatcher &&) = default;
+    biginteger_dispatcher &operator=(const biginteger_dispatcher &) = default;
+    biginteger_dispatcher &operator=(biginteger_dispatcher &&) = default;
+
+    constexpr uint64_t *data() noexcept { return ptr->data(); }
+    constexpr const uint64_t *data() const noexcept { return ptr->data(); }
+
+    constexpr uint32_t size() const noexcept { return ptr->size(); }
+
+    constexpr bool empty() const noexcept { return ptr->empty(); }
+    constexpr bool is_negate() const noexcept { return ptr->is_negate(); }
+
+    constexpr int32_t get_ssize() const noexcept { return ptr->get_ssize(); }
+
+    void set_ssize(int32_t size) const noexcept { ptr->set_ssize(size); }
+
+    void reserve(uint32_t size) const { v_table->reserve(ptr, size); }
+    void clear_if_reserved(uint32_t size) const { v_table->clear_if_reserved(ptr, size); }
+    void clear() const { v_table->clear(ptr); }
+
+private:
+    biginteger_data *ptr;
+    const biginteger_dispatch_table *v_table;
+};
+
 namespace biginteger_detail {
 
 // const basic_biginteger<Storage>* don't need to get allocator
@@ -292,15 +349,27 @@ WJR_CONST inline bool __equal_pointer(const biginteger_data *lhs,
     return lhs == rhs;
 }
 
+template <bool Check>
+WJR_ALL_NONNULL from_chars_result<const char *>
+__from_chars_impl(const char *first, const char *last, biginteger_dispatcher dst,
+                  unsigned int base) noexcept;
+
+extern template from_chars_result<const char *>
+__from_chars_impl<false>(const char *first, const char *last, biginteger_dispatcher dst,
+                         unsigned int base) noexcept;
+
+extern template from_chars_result<const char *> __from_chars_impl<true>(const char *first,
+                                                                        const char *last,
+                                                                        biginteger_dispatcher dst,
+                                                                        unsigned int base) noexcept;
+
 /// @private
 template <bool Check, typename S>
 WJR_ALL_NONNULL from_chars_result<const char *>
 __from_chars_impl(const char *first, const char *last, basic_biginteger<S> *dst,
-                  unsigned int base) noexcept;
-
-extern template from_chars_result<const char *> __from_chars_impl<true, default_biginteger_storage>(
-    const char *first, const char *last, basic_biginteger<default_biginteger_storage> *dst,
-    unsigned int base) noexcept;
+                  unsigned int base) noexcept {
+    return __from_chars_impl<Check>(first, last, biginteger_dispatcher(dst), base);
+}
 
 /// @private
 WJR_PURE inline int32_t __compare_impl(const biginteger_data *lhs,
@@ -459,9 +528,15 @@ __sqr_impl<default_biginteger_storage>(basic_biginteger<default_biginteger_stora
                                        const biginteger_data *src) noexcept;
 
 /// @private
+extern WJR_ALL_NONNULL void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_data *lhs,
+                                             uint64_t rhs, int32_t xmask) noexcept;
+
+/// @private
 template <typename S>
 void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, uint64_t rhs,
-                      int32_t xmask) noexcept;
+                      int32_t xmask) noexcept {
+    __addsubmul_impl(biginteger_dispatcher(dst), lhs, rhs, xmask);
+}
 
 /// @private
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
@@ -499,15 +574,15 @@ void __submul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) 
     }
 }
 
+extern WJR_ALL_NONNULL void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_data *lhs,
+                                             const biginteger_data *rhs, int32_t xmask) noexcept;
+
 /// @private
 template <typename S>
 WJR_ALL_NONNULL void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                                      const biginteger_data *rhs, int32_t xmask) noexcept;
-
-extern template void
-__addsubmul_impl<default_biginteger_storage>(basic_biginteger<default_biginteger_storage> *dst,
-                                             const biginteger_data *lhs, const biginteger_data *rhs,
-                                             int32_t xmask) noexcept;
+                                      const biginteger_data *rhs, int32_t xmask) noexcept {
+    __addsubmul_impl(biginteger_dispatcher(dst), lhs, rhs, xmask);
+}
 
 /// @private
 template <typename S>
@@ -1127,6 +1202,9 @@ void powmod(basic_biginteger<S> &dst, const biginteger_data &num, uint64_t exp,
 
 template <typename Storage>
 class basic_biginteger {
+    template <typename _Mybase, typename _Tag, typename _Enable>
+    friend struct container_of_fn;
+
 public:
     using storage_type = Storage;
     using vector_type = basic_vector<storage_type>;
@@ -1410,9 +1488,13 @@ public:
     storage_type &get_storage() noexcept { return m_vec.get_storage(); }
     const storage_type &get_storage() const noexcept { return m_vec.get_storage(); }
 
+    biginteger_data *__get_data() noexcept { return get_storage().__get_data(); }
     const biginteger_data *__get_data() const noexcept { return get_storage().__get_data(); }
 
+    biginteger_data &__get_ref() noexcept { return *__get_data(); }
     const biginteger_data &__get_ref() const noexcept { return *__get_data(); }
+
+    operator biginteger_data &() noexcept { return __get_ref(); }
     operator const biginteger_data &() const noexcept { return __get_ref(); }
 
 private:
@@ -1429,232 +1511,33 @@ struct get_relocate_mode<basic_biginteger<S>> {
         get_relocate_mode_v<typename basic_biginteger<S>::vector_type>;
 };
 
+template <typename S>
+struct container_of_fn<basic_biginteger<S>, void,
+                       std::enable_if_t<std::is_standard_layout_v<basic_biginteger<S>>>> {
+    using base_type = basic_biginteger<S>;
+    using value_type = biginteger_data;
+
+    base_type &operator()(value_type &ref) const noexcept {
+        auto &__vecctor = container_of<typename base_type::vector_type>(static_cast<S &>(ref));
+        return *reinterpret_cast<base_type *>(
+            reinterpret_cast<std::byte *>(std::addressof(__vecctor)) - offsetof(base_type, m_vec));
+    }
+
+    const base_type &operator()(const value_type &ref) const noexcept {
+        const auto &__vecctor =
+            container_of<typename base_type::vector_type>(static_cast<S &>(ref));
+        return *reinterpret_cast<const base_type *>(
+            reinterpret_cast<const std::byte *>(std::addressof(__vecctor)) -
+            offsetof(base_type, m_vec));
+    }
+};
+
 template <typename Storage>
 void swap(basic_biginteger<Storage> &lhs, basic_biginteger<Storage> &rhs) noexcept {
     lhs.swap(rhs);
 }
 
 namespace biginteger_detail {
-
-template <bool Check, typename S>
-from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
-                                                  basic_biginteger<S> *dst,
-                                                  unsigned int base) noexcept {
-    const auto *__first = first;
-
-    do {
-        if (WJR_UNLIKELY(first == last)) {
-            break;
-        }
-
-        uint8_t ch;
-        ch = *first;
-
-        if constexpr (Check) {
-            first = skip_whitespace(first, last);
-        } else {
-            WJR_ASSERT(!charconv_detail::isspace(ch));
-        }
-
-        int sign = 0;
-        if (ch == '-') {
-            sign = 1;
-            if (++first == last) {
-                break;
-            }
-
-            ch = *first;
-        }
-
-        if constexpr (Check) {
-            if (base == 0) {
-                base = 10;
-                if (ch == '0') {
-                    base = 8;
-                    if (++first == last) {
-                        break;
-                    }
-
-                    ch = *first;
-                    if (ch == 'x' || ch == 'X') {
-                        base = 16;
-                        if (++first == last) {
-                            break;
-                        }
-
-                        ch = *first;
-                    } else {
-                        if (ch == 'b' || ch == 'B') {
-                            base = 2;
-                            if (++first == last) {
-                                break;
-                            }
-
-                            ch = *first;
-                        }
-                    }
-                }
-            }
-        } else {
-            WJR_ASSERT(base != 0);
-        }
-
-#if WJR_DEBUG_LEVEL < 3
-        if constexpr (Check) {
-#endif
-            if (base <= 10) {
-                const auto __try_match = [base](uint8_t &__ch) {
-                    __ch -= '0';
-                    return __ch < base;
-                };
-
-                if (WJR_UNLIKELY(!__try_match(ch))) {
-                    break;
-                }
-
-                if (WJR_UNLIKELY(ch == 0)) {
-                    goto LOOP_HEAD_0;
-
-                    do {
-                        ch = *first;
-                        if (ch != '0') {
-                            goto LOOP_END_0;
-                        }
-
-                    LOOP_HEAD_0:
-                        ++first;
-                    } while (first != last);
-
-                    dst->set_ssize(0);
-                    return {first, std::errc{}};
-                LOOP_END_0:
-
-                    if (!__try_match(ch)) {
-                        dst->set_ssize(0);
-                        return {first, std::errc{}};
-                    }
-                }
-
-                __first = first;
-
-                if (++first != last) {
-                    if (last - first >= 8) {
-                        do {
-                            if (!check_eight_digits(first, base)) {
-                                break;
-                            }
-
-                            first += 8;
-                        } while (last - first >= 8);
-                    }
-
-                    ch = *first;
-                    if (__try_match(ch)) {
-                        do {
-                            ++first;
-                            ch = *first;
-                        } while (__try_match(ch));
-                    }
-                }
-            } else {
-                const auto __try_match = [base](uint8_t &__ch) {
-                    __ch = char_converter.from(__ch);
-                    return __ch < base;
-                };
-
-                if (WJR_UNLIKELY(!__try_match(ch))) {
-                    break;
-                }
-
-                if (WJR_UNLIKELY(ch == 0)) {
-                    goto LOOP_HEAD_1;
-
-                    do {
-                        ch = *first;
-                        if (ch != '0') {
-                            goto LOOP_END_1;
-                        }
-
-                    LOOP_HEAD_1:
-                        ++first;
-                    } while (first != last);
-
-                    dst->clear();
-                    return {first, std::errc{}};
-                LOOP_END_1:
-
-                    if (!__try_match(ch)) {
-                        dst->clear();
-                        return {first, std::errc{}};
-                    }
-                }
-
-                __first = first;
-
-                do {
-                    ++first;
-                    if (first == last) {
-                        break;
-                    }
-
-                    ch = *first;
-                } while (__try_match(ch));
-            }
-#if WJR_DEBUG_LEVEL < 3
-        } else {
-            __first = first;
-            first = last;
-        }
-#else
-        if constexpr (Check) {
-            WJR_ASSERT(first == last);
-        }
-#endif
-
-        const uint32_t str_size = static_cast<uint32_t>(first - __first);
-        uint32_t capacity;
-
-        switch (base) {
-        case 2: {
-            capacity = __ceil_div(str_size, 64);
-            break;
-        }
-        case 8: {
-            capacity = __ceil_div(str_size * 3, 64);
-            break;
-        }
-        case 16: {
-            capacity = __ceil_div(str_size, 16);
-            break;
-        }
-        case 4:
-        case 32: {
-            const int bits = base == 4 ? 2 : 5;
-            capacity = __ceil_div(str_size * bits, 64);
-            break;
-        }
-        case 10: {
-            // capacity = (str_size * log2(10) + 63) / 64;
-            capacity = __ceil_div(str_size * 10 / 3, 64);
-            break;
-        }
-        default: {
-            WJR_UNREACHABLE();
-            break;
-        }
-        }
-
-        dst->clear_if_reserved(capacity);
-        auto *const ptr = dst->data();
-        int32_t dssize = biginteger_from_chars(__first, first, ptr, base) - ptr;
-        dssize = __fast_conditional_negate<int32_t>(sign, dssize);
-        dst->set_ssize(dssize);
-        return {first, std::errc{}};
-    } while (0);
-
-    dst->clear();
-    return {__first, std::errc::invalid_argument};
-}
 
 inline int32_t __compare_impl(const biginteger_data *lhs, const biginteger_data *rhs) noexcept {
     const auto lssize = lhs->get_ssize();
@@ -2005,195 +1888,6 @@ void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) noexcept {
     }
 
     dst->set_ssize(dssize);
-}
-
-template <typename S>
-void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, uint64_t rhs,
-                      int32_t xmask) noexcept {
-    const int32_t lssize = lhs->get_ssize();
-
-    if (lssize == 0 || rhs == 0) {
-        return;
-    }
-
-    const uint32_t lusize = __fast_abs(lssize);
-    int32_t dssize = dst->get_ssize();
-
-    if (dssize == 0) {
-        dst->reserve(lusize + 1);
-        const auto dp = dst->data();
-        const auto cf = mul_1(dp, lhs->data(), lusize, rhs);
-        dssize = lssize + (cf != 0);
-        if (cf != 0) {
-            dp[lusize] = cf;
-        }
-
-        dst->set_ssize(__fast_negate_with(xmask, dssize));
-        return;
-    }
-
-    xmask ^= lssize;
-    xmask ^= dssize;
-
-    const uint32_t dusize = __fast_abs(dssize);
-
-    uint32_t new_dusize = std::max(lusize, dusize);
-    const uint32_t min_size = std::min(lusize, dusize);
-    dst->reserve(new_dusize + 1);
-
-    auto *dp = dst->data();
-    const auto *lp = lhs->data();
-
-    uint64_t cf;
-
-    // dst += abs(lhs) * abs(rhs)
-    if (xmask >= 0) {
-        cf = addmul_1(dp, lp, min_size, rhs);
-
-        dp += min_size;
-        lp += min_size;
-
-        int32_t sdelta = lusize - dusize;
-
-        if (sdelta != 0) {
-            uint64_t cf2;
-            if (sdelta > 0) {
-                cf2 = mul_1(dp, lp, sdelta, rhs);
-            } else {
-                sdelta = -sdelta;
-                cf2 = 0;
-            }
-
-            cf = cf2 + addc_1(dp, dp, sdelta, cf);
-        }
-
-        dp[sdelta] = cf;
-        new_dusize += (cf != 0);
-    }
-    // dst -= abs(lhs) * abs(rhs)
-    else {
-        cf = submul_1(dp, lp, min_size, rhs);
-
-        do {
-            if (dusize >= lusize) {
-                if (dusize != lusize) {
-                    cf = subc_1(dp + lusize, dp + lusize, dusize - lusize, cf);
-                }
-
-                if (cf != 0) {
-                    cf += math::bi_negate_n(dp, dp, new_dusize) - 1;
-                    dp[new_dusize] = cf;
-                    ++new_dusize;
-                    dssize = __fast_negate(dssize);
-                }
-            } else {
-                cf += math::bi_negate_n(dp, dp, dusize) - 1;
-
-                const auto cf2 = cf == UINT64_MAX;
-                cf += cf2;
-
-                const auto cf3 = mul_1(dp + dusize, lp + dusize, lusize - dusize, rhs);
-                cf = cf3 + addc_1(dp + dusize, dp + dusize, lusize - dusize, cf);
-
-                dp[new_dusize] = cf;
-                new_dusize += (cf != 0);
-
-                if (cf2) {
-                    (void)subc_1(dp + dusize, dp + dusize, new_dusize - dusize, 1);
-                }
-
-                dssize = __fast_negate(dssize);
-            }
-
-            new_dusize = normalize(dp, new_dusize);
-        } while (0);
-    }
-
-    dst->set_ssize(__fast_conditional_negate<int32_t>(dssize < 0, new_dusize));
-}
-
-template <typename S>
-void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                      const biginteger_data *rhs, int32_t xmask) noexcept {
-    int32_t lssize = lhs->get_ssize();
-    int32_t rssize = rhs->get_ssize();
-
-    if (lssize == 0 || rssize == 0) {
-        return;
-    }
-
-    uint32_t lusize = __fast_abs(lssize);
-    uint32_t rusize = __fast_abs(rssize);
-
-    if (lusize < rusize) {
-        std::swap(lhs, rhs);
-        std::swap(lssize, rssize);
-        std::swap(lusize, rusize);
-    }
-
-    xmask ^= rssize;
-
-    if (rusize == 1) {
-        __addsubmul_impl(dst, lhs, rhs->data()[0], xmask);
-        return;
-    }
-
-    xmask ^= lssize;
-
-    int32_t dssize = dst->get_ssize();
-    xmask ^= dssize;
-    uint32_t dusize = __fast_abs(dssize);
-
-    uint32_t tusize = lusize + rusize;
-    dst->reserve(std::max(tusize, dusize) + 1);
-    auto *const dp = dst->data();
-
-    if (dssize == 0) {
-        mul_s(dp, lhs->data(), lusize, rhs->data(), rusize);
-        tusize -= dp[tusize - 1] == 0;
-        dst->set_ssize(__fast_conditional_negate<int32_t>(xmask < 0, tusize));
-        return;
-    }
-
-    unique_stack_allocator stkal;
-    auto *tp = stkal.template allocate<uint64_t>(tusize);
-
-    mul_s(tp, lhs->data(), lusize, rhs->data(), rusize);
-    tusize -= tp[tusize - 1] == 0;
-
-    auto *up = dp;
-    uint32_t uusize = dusize;
-
-    if (xmask >= 0) {
-        if (uusize < tusize) {
-            up = tp;
-            uusize = tusize;
-            tp = dp;
-            tusize = dusize;
-
-            dusize = uusize;
-        }
-
-        const auto cf = addc_s(dp, up, uusize, tp, tusize);
-        dp[uusize] = cf;
-        dusize = uusize + (cf != 0);
-    } else {
-        if (uusize < tusize || (uusize == tusize && reverse_compare_n(up, tp, uusize) < 0)) {
-            up = tp;
-            uusize = tusize;
-            tp = dp;
-            tusize = dusize;
-
-            dusize = uusize;
-
-            dssize = __fast_negate(dssize);
-        }
-
-        (void)subc_s(dp, up, uusize, tp, tusize);
-        dssize = normalize(dp, dusize);
-    }
-
-    dst->set_ssize(__fast_conditional_negate<int32_t>(dssize < 0, dusize));
 }
 
 template <typename S>

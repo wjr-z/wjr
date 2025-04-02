@@ -3,6 +3,7 @@
 
 #include <tuple>
 
+#include <wjr/container/container_of.hpp>
 #include <wjr/crtp/class_base.hpp>
 #include <wjr/tp/algorithm.hpp>
 #include <wjr/type_traits.hpp>
@@ -18,6 +19,9 @@ namespace wjr {
 template <typename T, typename Tag = void>
 class capture_leaf : enable_special_members_of_args_base<Tag, T> {
     using Mybase = enable_special_members_of_args_base<Tag, T>;
+
+    template <typename _Mybase, typename _Tag, typename _Enable>
+    friend struct container_of_fn;
 
 public:
     using value_type = T;
@@ -42,6 +46,24 @@ private:
     T m_value;
 };
 
+template <typename T, typename TagT>
+struct container_of_fn<capture_leaf<T, TagT>, void,
+                       std::enable_if_t<std::is_standard_layout_v<T>>> {
+    using base_type = capture_leaf<T, TagT>;
+    using value_type = T;
+
+    base_type &operator()(value_type &ref) const noexcept {
+        return *reinterpret_cast<base_type *>(reinterpret_cast<std::byte *>(std::addressof(ref)) -
+                                              offsetof(base_type, m_value));
+    }
+
+    const base_type &operator()(const value_type &ref) const noexcept {
+        return *reinterpret_cast<const base_type *>(
+            reinterpret_cast<const std::byte *>(std::addressof(ref)) -
+            offsetof(base_type, m_value));
+    }
+};
+
 /**
  * @class compressed_capture_leaf
  *
@@ -52,54 +74,39 @@ private:
  *
  */
 template <typename T, typename Tag = void>
-class compressed_capture_leaf
-#if !WJR_HAS_FEATURE(NO_UNIQUE_ADDRESS)
-    : T
-#endif
-{
-#if !WJR_HAS_FEATURE(NO_UNIQUE_ADDRESS)
+class compressed_capture_leaf : T {
     using Mybase = T;
-#endif
 
 public:
     using value_type = T;
 
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
-    constexpr compressed_capture_leaf() noexcept(std::is_nothrow_constructible_v<T>)
-#if !WJR_HAS_FEATURE(NO_UNIQUE_ADDRESS)
-        : Mybase()
-#else
-        : m_value()
-#endif
-    {
-    }
+    constexpr compressed_capture_leaf() noexcept(std::is_nothrow_constructible_v<T>) : Mybase() {}
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr compressed_capture_leaf(Args &&...args) noexcept(std::is_constructible_v<T, Args...>)
-#if !WJR_HAS_FEATURE(NO_UNIQUE_ADDRESS)
-        : Mybase(std::forward<Args>(args)...)
-#else
-        : m_value(std::forward<Args>(args)...)
-#endif
-    {
-    }
+        : Mybase(std::forward<Args>(args)...) {}
 
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
     constexpr explicit compressed_capture_leaf(default_construct_t) noexcept(
         std::is_nothrow_default_constructible_v<T>) {}
 
-#if !WJR_HAS_FEATURE(NO_UNIQUE_ADDRESS)
     constexpr T &get() noexcept { return *this; }
     constexpr const T &get() const noexcept { return *this; }
-#else
-    constexpr T &get() noexcept { return m_value; }
-    constexpr const T &get() const noexcept { return m_value; }
-#endif
+};
 
-#if WJR_HAS_FEATURE(NO_UNIQUE_ADDRESS)
-private:
-    WJR_NO_UNIQUE_ADDRESS T m_value;
-#endif
+template <typename T, typename TagT>
+struct container_of_fn<compressed_capture_leaf<T, TagT>, void> {
+    using base_type = compressed_capture_leaf<T, TagT>;
+    using value_type = T;
+
+    constexpr base_type &operator()(value_type &ref) const noexcept {
+        return static_cast<base_type &>(ref);
+    }
+
+    constexpr const base_type &operator()(const value_type &ref) const noexcept {
+        return static_cast<const base_type &>(ref);
+    }
 };
 
 /**

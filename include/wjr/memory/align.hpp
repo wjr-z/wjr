@@ -44,7 +44,6 @@ constexpr T *assume_aligned(T *ptr) noexcept {
     #if WJR_HAS_BUILTIN(__builtin_assume_aligned)
     return static_cast<T *>(__builtin_assume_aligned(ptr, N));
     #else
-    WJR_ASSUME(is_aigned(ptr, N));
     return ptr;
     #endif
 }

@@ -625,6 +625,11 @@ private:
 
     static constexpr relocate_t relocate_mode = get_common_relocate_mode_v<storage_type, _Alty>;
 
+    template <typename _Mybase, typename _Tag, typename _Enable>
+    friend struct container_of_fn;
+
+    using __pair_type = compressed_pair<_Alty, storage_type>;
+
 public:
     static_assert(std::is_same_v<typename _Alty_traits::value_type, value_type>,
                   "allocator_type::value_type must be the same as value_type");
@@ -1954,7 +1959,7 @@ private:
     }
 
 private:
-    compressed_pair<_Alty, storage_type> m_pair;
+    __pair_type m_pair;
 };
 
 template <typename Iter, typename T = iterator_value_t<Iter>, typename Alloc = std::allocator<T>,
@@ -1964,6 +1969,48 @@ basic_vector(Iter, Iter, Alloc = Alloc()) -> basic_vector<default_vector_storage
 template <typename S>
 struct get_relocate_mode<basic_vector<S>> {
     static constexpr relocate_t value = basic_vector<S>::relocate_mode;
+};
+
+template <typename S>
+struct container_of_fn<basic_vector<S>, void,
+                       std::enable_if_t<std::is_standard_layout_v<basic_vector<S>>>> {
+    using base_type = basic_vector<S>;
+    using value_type = S;
+
+    base_type &operator()(value_type &ref) const noexcept {
+        auto &__pair = container_of<typename base_type::__pair_type, std::in_place_index_t<1>>(ref);
+        return *reinterpret_cast<base_type *>(
+            reinterpret_cast<std::byte *>(std::addressof(__pair)) - offsetof(base_type, m_pair));
+    }
+
+    const base_type &operator()(const value_type &ref) const noexcept {
+        const auto &__pair =
+            container_of<typename base_type::__pair_type, std::in_place_index_t<1>>(ref);
+        return *reinterpret_cast<const base_type *>(
+            reinterpret_cast<const std::byte *>(std::addressof(__pair)) -
+            offsetof(base_type, m_pair));
+    }
+};
+
+template <typename S>
+struct container_of_fn<basic_vector<S>, void,
+                       std::enable_if_t<!std::is_standard_layout_v<basic_vector<S>> &&
+                                        sizeof(basic_vector<S>) == sizeof(S)>> {
+    using base_type = basic_vector<S>;
+    using value_type = S;
+
+    base_type &operator()(value_type &ref) const noexcept {
+        auto &__pair = container_of<typename base_type::__pair_type, value_type>(ref);
+        return *reinterpret_cast<base_type *>(
+            reinterpret_cast<std::byte *>(std::addressof(__pair)) - offsetof(base_type, m_pair));
+    }
+
+    const base_type &operator()(const value_type &ref) const noexcept {
+        const auto &__pair = container_of<typename base_type::__pair_type, value_type>(ref);
+        return *reinterpret_cast<const base_type *>(
+            reinterpret_cast<const std::byte *>(std::addressof(__pair)) -
+            offsetof(base_type, m_pair));
+    }
 };
 
 template <typename T, typename Alloc = std::allocator<T>>
