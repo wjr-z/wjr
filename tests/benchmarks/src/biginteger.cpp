@@ -59,19 +59,15 @@ static void wjr_addc_n(benchmark::State &state) {
 
 static void wjr_subc_1(benchmark::State &state) {
     auto n = state.range(0);
-    const int N = 13;
-    std::vector<uint64_t> a(n), b(N), c(n);
+    std::vector<uint64_t> a(n), c(n);
 
-    std::generate(b.begin(), b.end(), mt_rand);
-
-    int64_t i = 0;
+    RandomSeq b;
 
     random_run(
         state, [&]() { std::generate(a.begin(), a.end(), mt_rand); },
         [&]() {
-            auto p = wjr::subc_1(c.data(), a.data(), n, b[i]);
+            auto p = wjr::subc_1(c.data(), a.data(), n, b());
             benchmark::DoNotOptimize(p);
-            i = i == N - 1 ? 0 : i + 1;
         });
 }
 
@@ -126,86 +122,71 @@ static void wjr_negate_n(benchmark::State &state) {
 
 static void wjr_mul_1(benchmark::State &state) {
     auto n = state.range(0);
-    const int N = 13;
-    std::vector<uint64_t> a(n), b(N), c(n);
+    std::vector<uint64_t> a(n), c(n);
 
     std::generate(a.begin(), a.end(), mt_rand);
-    std::generate(b.begin(), b.end(), mt_rand);
 
-    int64_t i = 0;
+    RandomSeq b;
 
     for (auto _ : state) {
-        auto p = wjr::mul_1(c.data(), a.data(), n, b[i]);
+        auto p = wjr::mul_1(c.data(), a.data(), n, b());
         benchmark::DoNotOptimize(p);
-        i = i == N - 1 ? 0 : i + 1;
     }
 }
 
 static void wjr_addmul_1(benchmark::State &state) {
     auto n = state.range(0);
-    const int N = 13;
-    std::vector<uint64_t> a(n), b(N), c(n);
+    std::vector<uint64_t> a(n), c(n);
 
     std::generate(a.begin(), a.end(), mt_rand);
-    std::generate(b.begin(), b.end(), mt_rand);
 
-    int64_t i = 0;
+    RandomSeq b;
 
     for (auto _ : state) {
-        auto p = wjr::addmul_1(c.data(), a.data(), n, b[i]);
+        auto p = wjr::addmul_1(c.data(), a.data(), n, b());
         benchmark::DoNotOptimize(p);
-        i = i == N - 1 ? 0 : i + 1;
     }
 }
 
 static void wjr_submul_1(benchmark::State &state) {
     auto n = state.range(0);
-    const int N = 13;
-    std::vector<uint64_t> a(n), b(N), c(n);
+    std::vector<uint64_t> a(n), c(n);
 
     std::generate(a.begin(), a.end(), mt_rand);
-    std::generate(b.begin(), b.end(), mt_rand);
 
-    int64_t i = 0;
+    RandomSeq b;
 
     for (auto _ : state) {
-        auto p = wjr::submul_1(c.data(), a.data(), n, b[i]);
+        auto p = wjr::submul_1(c.data(), a.data(), n, b());
         benchmark::DoNotOptimize(p);
-        i = i == N - 1 ? 0 : i + 1;
     }
 }
 
 static void wjr_addlsh_n(benchmark::State &state) {
     auto n = state.range(0);
-    const int N = 13;
-    std::vector<uint64_t> a(n), b(N), c(n), d(n);
+    std::vector<uint64_t> a(n), c(n), d(n);
 
     std::generate(a.begin(), a.end(), mt_rand);
-    std::generate(b.begin(), b.end(), []() { return mt_rand() % 64; });
 
-    int64_t i = 0;
+    RandomSeq b(0, 63);
 
     for (auto _ : state) {
-        auto p = wjr::addlsh_n(d.data(), a.data(), c.data(), n, b[i]);
+        auto p = wjr::addlsh_n(d.data(), a.data(), c.data(), n, b());
         benchmark::DoNotOptimize(p);
-        i = i == N - 1 ? 0 : i + 1;
     }
 }
 
 static void wjr_rsblsh_n(benchmark::State &state) {
     auto n = state.range(0);
-    const int N = 13;
-    std::vector<uint64_t> a(n), b(N), c(n), d(n);
+    std::vector<uint64_t> a(n), c(n), d(n);
 
     std::generate(a.begin(), a.end(), mt_rand);
-    std::generate(b.begin(), b.end(), []() { return mt_rand() % 64; });
 
-    int64_t i = 0;
+    RandomSeq b(0, 63);
 
     for (auto _ : state) {
-        auto p = wjr::rsblsh_n(d.data(), a.data(), c.data(), n, b[i]);
+        auto p = wjr::rsblsh_n(d.data(), a.data(), c.data(), n, b());
         benchmark::DoNotOptimize(p);
-        i = i == N - 1 ? 0 : i + 1;
     }
 }
 
@@ -247,29 +228,26 @@ static void wjr_sqr(benchmark::State &state) {
 
 static void wjr_div_qr_1(benchmark::State &state) {
     auto n = state.range(0);
-    const int N = 13;
-    std::vector<uint64_t> a(n), b(N), q(n);
+    std::vector<uint64_t> a(n), q(n);
     uint64_t rem;
 
-    std::generate(b.begin(), b.end(), mt_rand);
-
-    int64_t i = 0;
+    RandomSeq b(1);
 
     random_run(
         state, [&]() { std::generate(a.begin(), a.end(), mt_rand); },
         [&]() {
-            wjr::div_qr_1(q.data(), rem, a.data(), n, b[i]);
+            wjr::div_qr_1(q.data(), rem, a.data(), n, b());
             benchmark::DoNotOptimize(rem);
-            i = i == N - 1 ? 0 : i + 1;
         });
 }
 
 static void wjr_div_qr_2(benchmark::State &state) {
     auto n = state.range(0);
-    const int N = 13;
+    const int N = 137;
     std::vector<uint64_t> a(n), b(N + 1), q(n), r(2);
 
-    std::generate(b.begin(), b.end(), mt_rand);
+    RandomSeq seq(1);
+    std::generate(b.begin(), b.end(), seq);
 
     int64_t i = 0;
 
@@ -287,11 +265,13 @@ static void wjr_div_qr_s(benchmark::State &state) {
     auto m = state.range(1);
     std::vector<uint64_t> a(n), b(m), q(n), r(m);
 
+    RandomSeq seq(1);
+
     random_run(
         state,
         [&]() {
             std::generate(a.begin(), a.end(), mt_rand);
-            std::generate(b.begin(), b.end(), mt_rand);
+            std::generate(b.begin(), b.end(), seq);
         },
         [&]() { wjr::div_qr_s(q.data(), r.data(), a.data(), n, b.data(), m); });
 }
@@ -365,19 +345,15 @@ BENCHMARK(wjr_bi_add_ui)->NORMAL_TESTS(4, 2, 256);
 
 static void gmp_addc_1(benchmark::State &state) {
     auto n = state.range(0);
-    const int N = 13;
-    std::vector<uint64_t> a(n), b(N), c(n);
+    std::vector<uint64_t> a(n), c(n);
 
-    std::generate(b.begin(), b.end(), mt_rand);
-
-    int64_t i = 0;
+    RandomSeq b;
 
     random_run(
         state, [&]() { std::generate(a.begin(), a.end(), mt_rand); },
         [&]() {
-            auto p = mpn_add_1(c.data(), a.data(), n, b[i]);
+            auto p = mpn_add_1(c.data(), a.data(), n, b());
             benchmark::DoNotOptimize(p);
-            i = i == N - 1 ? 0 : i + 1;
         });
 }
 
@@ -410,19 +386,15 @@ static void gmp_addc_n(benchmark::State &state) {
 
 static void gmp_subc_1(benchmark::State &state) {
     auto n = state.range(0);
-    const int N = 13;
-    std::vector<uint64_t> a(n), b(N), c(n);
+    std::vector<uint64_t> a(n), c(n);
 
-    std::generate(b.begin(), b.end(), mt_rand);
-
-    int64_t i = 0;
+    RandomSeq b;
 
     random_run(
         state, [&]() { std::generate(a.begin(), a.end(), mt_rand); },
         [&]() {
-            auto p = mpn_sub_1(c.data(), a.data(), n, b[i]);
+            auto p = mpn_sub_1(c.data(), a.data(), n, b());
             benchmark::DoNotOptimize(p);
-            i = i == N - 1 ? 0 : i + 1;
         });
 }
 
@@ -483,52 +455,43 @@ static void gmp_rshift_n(benchmark::State &state) {
 
 static void gmp_mul_1(benchmark::State &state) {
     auto n = state.range(0);
-    const int N = 13;
-    std::vector<uint64_t> a(n), b(N), c(n);
+    std::vector<uint64_t> a(n), c(n);
 
     std::generate(a.begin(), a.end(), mt_rand);
-    std::generate(b.begin(), b.end(), mt_rand);
 
-    int64_t i = 0;
+    RandomSeq b;
 
     for (auto _ : state) {
-        auto p = mpn_mul_1(c.data(), a.data(), n, b[i]);
+        auto p = mpn_mul_1(c.data(), a.data(), n, b());
         benchmark::DoNotOptimize(p);
-        i = i == N - 1 ? 0 : i + 1;
     }
 }
 
 static void gmp_addmul_1(benchmark::State &state) {
     auto n = state.range(0);
-    const int N = 13;
-    std::vector<uint64_t> a(n), b(N), c(n);
+    std::vector<uint64_t> a(n), c(n);
 
     std::generate(a.begin(), a.end(), mt_rand);
-    std::generate(b.begin(), b.end(), mt_rand);
 
-    int64_t i = 0;
+    RandomSeq b;
 
     for (auto _ : state) {
-        auto p = mpn_addmul_1(c.data(), a.data(), n, b[i]);
+        auto p = mpn_addmul_1(c.data(), a.data(), n, b());
         benchmark::DoNotOptimize(p);
-        i = i == N - 1 ? 0 : i + 1;
     }
 }
 
 static void gmp_submul_1(benchmark::State &state) {
     auto n = state.range(0);
-    const int N = 13;
-    std::vector<uint64_t> a(n), b(N), c(n);
+    std::vector<uint64_t> a(n), c(n);
 
     std::generate(a.begin(), a.end(), mt_rand);
-    std::generate(b.begin(), b.end(), mt_rand);
 
-    int64_t i = 0;
+    RandomSeq b;
 
     for (auto _ : state) {
-        auto p = mpn_submul_1(c.data(), a.data(), n, b[i]);
+        auto p = mpn_submul_1(c.data(), a.data(), n, b());
         benchmark::DoNotOptimize(p);
-        i = i == N - 1 ? 0 : i + 1;
     }
 }
 
@@ -570,29 +533,26 @@ static void gmp_sqr(benchmark::State &state) {
 
 static void gmp_div_qr_1(benchmark::State &state) {
     auto n = state.range(0);
-    const int N = 13;
-    std::vector<uint64_t> a(n), b(N), q(n);
+    std::vector<uint64_t> a(n), q(n);
     uint64_t rem;
 
-    std::generate(b.begin(), b.end(), mt_rand);
-
-    int64_t i = 0;
+    RandomSeq b(1);
 
     random_run(
         state, [&]() { std::generate(a.begin(), a.end(), mt_rand); },
         [&]() {
-            rem = mpn_div_qr_1(q.data(), &q[n - 1], a.data(), n, b[i]);
+            rem = mpn_div_qr_1(q.data(), &q[n - 1], a.data(), n, b());
             benchmark::DoNotOptimize(rem);
-            i = i == N - 1 ? 0 : i + 1;
         });
 }
 
 static void gmp_div_qr_2(benchmark::State &state) {
     auto n = state.range(0);
-    const int N = 13;
+    const int N = 137;
     std::vector<uint64_t> a(n), b(N + 1), q(n), r(2);
 
-    std::generate(b.begin(), b.end(), mt_rand);
+    RandomSeq seq(1);
+    std::generate(b.begin(), b.end(), seq);
 
     int64_t i = 0;
 
@@ -610,11 +570,13 @@ static void gmp_div_qr_s(benchmark::State &state) {
     auto m = state.range(1);
     std::vector<uint64_t> a(n), b(m), q(n), r(m);
 
+    RandomSeq seq(1);
+
     random_run(
         state,
         [&]() {
             std::generate(a.begin(), a.end(), mt_rand);
-            std::generate(b.begin(), b.end(), mt_rand);
+            std::generate(b.begin(), b.end(), seq);
         },
         [&]() { mpn_tdiv_qr(q.data(), r.data(), 0, a.data(), n, b.data(), m); });
 }
