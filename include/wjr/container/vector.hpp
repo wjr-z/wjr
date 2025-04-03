@@ -903,25 +903,47 @@ public:
     }
 
 private:
+    WJR_CONSTEXPR20 void __reserve_checked_impl(size_type n) {
+        if constexpr (is_reallocatable::value) {
+            const size_type old_capacity = capacity();
+            WJR_ASSERT_ASSUME_L2(old_capacity < n);
+            auto &al = __get_allocator();
+            const size_type old_size = size();
+            const size_type new_capacity = get_growth_capacity(old_capacity, n);
+
+            storage_type new_storage;
+            uninitialized_construct(new_storage, old_size, new_capacity);
+
+            uninitialized_relocate_n_restrict_using_allocator(data(), old_size, new_storage.data(),
+                                                              al);
+
+            __deallocate();
+            __take_storage(new_storage);
+        }
+    }
+
     WJR_CONSTEXPR20 void __reserve_impl(size_type n) {
         if constexpr (is_reallocatable::value) {
             const size_type old_capacity = capacity();
             if (WJR_UNLIKELY(old_capacity < n)) {
-                auto &al = __get_allocator();
-                const size_type old_size = size();
-                const size_type new_capacity = get_growth_capacity(old_capacity, n);
-
-                storage_type new_storage;
-                uninitialized_construct(new_storage, old_size, new_capacity);
-
-                uninitialized_relocate_n_restrict_using_allocator(data(), old_size,
-                                                                  new_storage.data(), al);
-
-                __deallocate();
-                __take_storage(new_storage);
+                __reserve_checked_impl(n);
             }
         } else {
             WJR_ASSERT_ASSUME(n <= capacity());
+        }
+    }
+
+    WJR_CONSTEXPR20 void __empty_reserve_checked_impl(size_type n) {
+        if constexpr (is_reallocatable::value) {
+            const size_type old_capacity = capacity();
+            WJR_ASSERT_ASSUME_L2(old_capacity < n);
+            const size_type new_capacity = get_growth_capacity(old_capacity, n);
+
+            storage_type new_storage;
+            uninitialized_construct(new_storage, 0, new_capacity);
+
+            __deallocate();
+            __take_storage(new_storage);
         }
     }
 
@@ -929,13 +951,7 @@ private:
         if constexpr (is_reallocatable::value) {
             const size_type old_capacity = capacity();
             if (WJR_UNLIKELY(old_capacity < n)) {
-                const size_type new_capacity = get_growth_capacity(old_capacity, n);
-
-                storage_type new_storage;
-                uninitialized_construct(new_storage, 0, new_capacity);
-
-                __deallocate();
-                __take_storage(new_storage);
+                __empty_reserve_checked_impl(n);
             }
         } else {
             WJR_ASSERT_ASSUME(n <= capacity());
@@ -1162,6 +1178,13 @@ public:
 
         __clear_if_reserved_impl(n);
     }
+
+    /**
+     * @brief reserve when capacity() < n
+     * @details Fast-path check capacity and then reserve.
+     *
+     */
+    WJR_CONSTEXPR20 void __reserve_checked(size_type n) { __reserve_checked_impl(n); }
 
     WJR_CONSTEXPR20 void resize(const size_type new_size, default_construct_t) {
         __resize(new_size, default_construct);

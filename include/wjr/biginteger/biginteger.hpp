@@ -316,7 +316,7 @@ private:
 };
 
 struct biginteger_dispatch_table {
-    void (*reserve)(biginteger_data *, uint32_t);
+    void (*__reserve_checked)(biginteger_data *, uint32_t);
     void (*clear_if_reserved)(biginteger_data *, uint32_t);
     void (*clear)(biginteger_data *);
     biginteger_dispatcher (*construct_reserve)(biginteger_data *, uint32_t,
@@ -325,7 +325,11 @@ struct biginteger_dispatch_table {
     void (*move_assign)(biginteger_data *, biginteger_data *);
 };
 
-void biginteger_dispatcher::reserve(uint32_t size) const { v_table->reserve(ptr, size); }
+void biginteger_dispatcher::reserve(uint32_t size) const {
+    // fast-path
+    if (WJR_UNLIKELY(ptr->capacity() < size))
+        v_table->__reserve_checked(ptr, size);
+}
 void biginteger_dispatcher::clear_if_reserved(uint32_t size) const {
     v_table->clear_if_reserved(ptr, size);
 }
@@ -457,19 +461,15 @@ template <typename S>
 void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs, const biginteger_data *rhs) noexcept;
 
 /// @private
+extern WJR_ALL_NONNULL void __addsub_impl(biginteger_dispatcher dst, const biginteger_data *lhs,
+                                          const biginteger_data *rhs, bool xsign) noexcept;
+
+/// @private
 template <bool xsign, typename S>
 WJR_ALL_NONNULL void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                                   const biginteger_data *rhs) noexcept;
-
-extern template void
-__addsub_impl<false, default_biginteger_storage>(basic_biginteger<default_biginteger_storage> *dst,
-                                                 const biginteger_data *lhs,
-                                                 const biginteger_data *rhs) noexcept;
-
-extern template void
-__addsub_impl<true, default_biginteger_storage>(basic_biginteger<default_biginteger_storage> *dst,
-                                                const biginteger_data *lhs,
-                                                const biginteger_data *rhs) noexcept;
+                                   const biginteger_data *rhs) noexcept {
+    __addsub_impl(biginteger_dispatcher(dst), lhs, rhs, xsign);
+}
 
 /// @private
 template <typename S>
@@ -1427,6 +1427,9 @@ public:
     void clear_if_reserved(size_type new_capacity) noexcept {
         m_vec.clear_if_reserved(new_capacity);
     }
+    void __reserve_checked(size_type new_capacity) noexcept {
+        m_vec.__reserve_checked(new_capacity);
+    }
 
     void shrink_to_fit() { m_vec.shrink_to_fit(); }
 
@@ -1742,51 +1745,6 @@ void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs, const biginteger_data
         else {
             (void)subc_1(dp, rp, rusize, lhs);
             dssize = __fast_negate<int32_t>(rusize - (dp[rusize - 1] == 0));
-        }
-    }
-
-    dst->set_ssize(dssize);
-}
-
-template <bool xsign, typename S>
-void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
-                   const biginteger_data *rhs) noexcept {
-    auto lssize = lhs->get_ssize();
-    int32_t rssize = __fast_conditional_negate<int32_t>(xsign, rhs->get_ssize());
-    uint32_t lusize = __fast_abs(lssize);
-    uint32_t rusize = __fast_abs(rssize);
-
-    if (lusize < rusize) {
-        std::swap(lhs, rhs);
-        std::swap(lssize, rssize);
-        std::swap(lusize, rusize);
-    }
-
-    dst->reserve(lusize + 1);
-
-    auto *const dp = dst->data();
-    const auto *const lp = lhs->data();
-    const auto *const rp = rhs->data();
-    int32_t dssize;
-
-    if (rusize == 0) {
-        if (lp != dp) {
-            std::copy_n(lp, lusize, dp);
-            dst->set_ssize(lssize);
-        }
-
-        return;
-    }
-
-    // different sign
-    if ((lssize ^ rssize) < 0) {
-        const auto ans = static_cast<int32_t>(abs_subc_s_pos(dp, lp, lusize, rp, rusize));
-        dssize = __fast_negate_with<int32_t>(lssize, ans);
-    } else {
-        const auto cf = addc_s(dp, lp, lusize, rp, rusize);
-        dssize = __fast_negate_with<int32_t>(lssize, lusize + cf);
-        if (cf) {
-            dp[lusize] = 1;
         }
     }
 

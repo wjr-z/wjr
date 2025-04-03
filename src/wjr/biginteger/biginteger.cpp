@@ -4,16 +4,6 @@ namespace wjr {
 
 namespace biginteger_detail {
 
-template void
-__addsub_impl<false, default_biginteger_storage>(basic_biginteger<default_biginteger_storage> *dst,
-                                                 const biginteger_data *lhs,
-                                                 const biginteger_data *rhs) noexcept;
-
-template void
-__addsub_impl<true, default_biginteger_storage>(basic_biginteger<default_biginteger_storage> *dst,
-                                                const biginteger_data *lhs,
-                                                const biginteger_data *rhs) noexcept;
-
 template <bool Check>
 from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
                                                   biginteger_dispatcher dst,
@@ -239,6 +229,50 @@ template from_chars_result<const char *> __from_chars_impl<true>(const char *fir
                                                                  const char *last,
                                                                  biginteger_dispatcher dst,
                                                                  unsigned int base) noexcept;
+
+void __addsub_impl(biginteger_dispatcher dst, const biginteger_data *lhs,
+                   const biginteger_data *rhs, bool xsign) noexcept {
+    auto lssize = lhs->get_ssize();
+    int32_t rssize = __fast_conditional_negate<int32_t>(xsign, rhs->get_ssize());
+    uint32_t lusize = __fast_abs(lssize);
+    uint32_t rusize = __fast_abs(rssize);
+
+    if (lusize < rusize) {
+        std::swap(lhs, rhs);
+        std::swap(lssize, rssize);
+        std::swap(lusize, rusize);
+    }
+
+    dst.reserve(lusize + 1);
+
+    auto *const dp = dst.data();
+    const auto *const lp = lhs->data();
+    const auto *const rp = rhs->data();
+    int32_t dssize;
+
+    if (rusize == 0) {
+        if (lp != dp) {
+            std::copy_n(lp, lusize, dp);
+            dst.set_ssize(lssize);
+        }
+
+        return;
+    }
+
+    // different sign
+    if ((lssize ^ rssize) < 0) {
+        const auto ans = static_cast<int32_t>(abs_subc_s_pos(dp, lp, lusize, rp, rusize));
+        dssize = __fast_negate_with<int32_t>(lssize, ans);
+    } else {
+        const auto cf = addc_s(dp, lp, lusize, rp, rusize);
+        dssize = __fast_negate_with<int32_t>(lssize, lusize + cf);
+        if (cf) {
+            dp[lusize] = 1;
+        }
+    }
+
+    dst.set_ssize(dssize);
+}
 
 void __mul_impl(biginteger_dispatcher dst, const biginteger_data *lhs,
                 const biginteger_data *rhs) noexcept {
