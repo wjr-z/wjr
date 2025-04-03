@@ -45,7 +45,7 @@ else()
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-   list(APPEND WJR_CXX_FLAGS /W3 /Zc:preprocessor /Zc:lambda /EHsc /wd4146 /wd4309 /wd4244)
+   list(APPEND WJR_CXX_FLAGS /W3 /Zc:preprocessor /Zc:lambda /EHsc /wd4146 /wd4309 /wd4244 /utf-8)
    list(APPEND WJR_CXX_FLAGS_DEBUG /DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_DEBUG})
    list(APPEND WJR_CXX_FLAGS_RELEASE /DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_RELEASE})
 
