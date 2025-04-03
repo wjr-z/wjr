@@ -1,53 +1,58 @@
 cmake_minimum_required(VERSION 3.14)
-project(wjr LANGUAGES CXX)
+project(tests LANGUAGES CXX)
 
 include(FetchContent)
+
+set(WJR_ENABLE_ASSEMBLY ON)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-add_compile_definitions(WJR_USE_GMP)
+if(NOT DEFINED WJR_DEBUG_LEVEL_RELEASE)
+    set(WJR_DEBUG_LEVEL_RELEASE 3)
+endif()
 
-set(BUILD_TESTING OFF)
+if(MSVC)
+    add_compile_definitions(__ADX__)
+    add_compile_definitions(__BMI2__)
+    add_compile_definitions(__AVX2__)
+    add_compile_definitions(__POPCNT__)
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/arch:AVX2>)
+endif()
 
-set(CMAKE_CXX_SOURCE_FILE_EXTENSIONS c;cc;cxx;cpp;h;hpp)
-
-set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -O3 -std=c++17 -march=native -m64 -DNDEBUG -Wall -Wextra -DWJR_DEBUG_LEVEL=0 -I \"D:\\msys\\home\\19663\\gmp-6.3.0\" -lpthread")
-
-set(WJR_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/../../include)
-set(WJR_LIB_DIR ${PROJECT_SOURCE_DIR}/../../src)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../wjr ${CMAKE_CURRENT_BINARY_DIR}/wjr)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+
+add_compile_definitions(WJR_USE_GMP)
 
 add_subdirectory(googletest)
 add_subdirectory(benchmark)
 
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
 
-file(GLOB_RECURSE WJR_SRCS ${WJR_LIB_DIR}/*.cpp)
+if(MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /I \"D:\\msys\\home\\19663\\gmp-6.3.0\"")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I \"D:\\msys\\home\\19663\\gmp-6.3.0\" ")
+endif()
 
 add_executable(
-    wjr
+    tests
     src/main.cpp
     src/math.cpp
-    ${WJR_SRCS}
+    src/biginteger.cpp
 )
 
 set(GMP_LIBS "D:\\msys\\home\\19663\\gmp-6.3.0\\.libs")
-
 link_directories(${GMP_LIBS})
-target_link_libraries(wjr
-    ${GMP_LIBS}/libgmp.dll.a
-    ${GMP_LIBS}/libgmpxx.dll.a
-)
-
-target_include_directories(wjr PUBLIC
-    ${WJR_INCLUDE_DIR}
-)
 
 target_link_libraries(
+    tests
+    PRIVATE
     wjr
+    ${GMP_LIBS}/libgmp.dll.a
     benchmark::benchmark
 )

@@ -99,8 +99,8 @@ else()
 endif()
 
 set(GMP_LIBS "D:\\msys\\home\\19663\\gmp-6.3.0\\.libs")
-
 link_directories(${GMP_LIBS})
+
 target_link_libraries(tests
    PRIVATE
    wjr

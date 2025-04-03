@@ -9,8 +9,7 @@
 #include <fstream>
 
 #ifdef WJR_USE_GMP
-#include <gmp.h>
-#include <gmpxx.h>
+    #include <gmp.h>
 #endif
 
 static void wjr_popcount(benchmark::State &state) {
@@ -409,7 +408,7 @@ static void wjr_not_n(benchmark::State &state) {
     std::generate(a.begin(), a.end(), mt_rand);
 
     for (auto _ : state) {
-        wjr::not_n(b.data(), a.data(), n);
+        wjr::math::bi_not_n(b.data(), a.data(), n);
     }
 }
 
@@ -420,7 +419,7 @@ static void wjr_negate_n(benchmark::State &state) {
     std::generate(a.begin(), a.end(), mt_rand);
 
     for (auto _ : state) {
-        wjr::negate_n(b.data(), a.data(), n);
+        wjr::math::bi_negate_n(b.data(), a.data(), n);
     }
 }
 
@@ -791,7 +790,7 @@ static void fallback_addc(benchmark::State &state) {
     int64_t i = 0;
 
     for (auto _ : state) {
-        auto p = wjr::fallback_addc(a[i], b[i], cf[i], cf[i]);
+        auto p = wjr::math::fallback_addc(a[i], b[i], cf[i], cf[i]);
         benchmark::DoNotOptimize(p);
         i = i == n - 1 ? 0 : i + 1;
     }
@@ -808,7 +807,7 @@ static void fallback_subc(benchmark::State &state) {
     int64_t i = 0;
 
     for (auto _ : state) {
-        auto p = wjr::fallback_subc(a[i], b[i], cf[i], cf[i]);
+        auto p = wjr::math::fallback_subc(a[i], b[i], cf[i], cf[i]);
         benchmark::DoNotOptimize(p);
         i = i == n - 1 ? 0 : i + 1;
     }
@@ -1360,23 +1359,23 @@ static void biginteger_to_chars_tests(benchmark::internal::Benchmark *state) {
     }
 }
 
-#define __BIGINTEGER_FROM_CHARS_TESTS_I(base)                                            \
-    Args({base, 1})                                                                      \
-        ->Args({base, 2})                                                                \
-        ->Args({base, 4})                                                                \
-        ->Args({base, 8})                                                                \
-        ->Args({base, 16})                                                               \
-        ->Args({base, 32})                                                               \
-        ->Args({base, 64})                                                               \
-        ->Args({base, 256})                                                              \
-        ->Args({base, 1024})                                                             \
-        ->Args({base, 4096})                                                             \
-        ->Args({base, 16384})                                                            \
+#define __BIGINTEGER_FROM_CHARS_TESTS_I(base)                                                      \
+    Args({base, 1})                                                                                \
+        ->Args({base, 2})                                                                          \
+        ->Args({base, 4})                                                                          \
+        ->Args({base, 8})                                                                          \
+        ->Args({base, 16})                                                                         \
+        ->Args({base, 32})                                                                         \
+        ->Args({base, 64})                                                                         \
+        ->Args({base, 256})                                                                        \
+        ->Args({base, 1024})                                                                       \
+        ->Args({base, 4096})                                                                       \
+        ->Args({base, 16384})                                                                      \
         ->Args({base, 65536})
-#define BIGINTEGER_FROM_CHARS_TESTS()                                                    \
-    __BIGINTEGER_FROM_CHARS_TESTS_I(2)                                                   \
-        ->__BIGINTEGER_FROM_CHARS_TESTS_I(8)                                             \
-        ->__BIGINTEGER_FROM_CHARS_TESTS_I(10)                                            \
+#define BIGINTEGER_FROM_CHARS_TESTS()                                                              \
+    __BIGINTEGER_FROM_CHARS_TESTS_I(2)                                                             \
+        ->__BIGINTEGER_FROM_CHARS_TESTS_I(8)                                                       \
+        ->__BIGINTEGER_FROM_CHARS_TESTS_I(10)                                                      \
         ->__BIGINTEGER_FROM_CHARS_TESTS_I(16)
 
 BENCHMARK(wjr_popcount);
