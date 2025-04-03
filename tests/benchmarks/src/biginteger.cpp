@@ -386,6 +386,15 @@ static void wjr_bi_mul(benchmark::State &state) {
         [&]() { wjr::mul(c, a, b); });
 }
 
+static void wjr_bi_mul_ui(benchmark::State &state) {
+    auto n = state.range(0);
+    wjr::biginteger a, c;
+
+    RandomSeq b;
+
+    random_run(state, [&]() { random(a, n); }, [&]() { wjr::mul(c, a, b()); });
+}
+
 #ifdef WJR_USE_GMP
 
 static void gmp_addc_1(benchmark::State &state) {
@@ -716,7 +725,7 @@ BENCHMARK(wjr_bi_sub)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_bi_sub_ui)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_bi_ui_sub)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_bi_mul)->NORMAL_TESTS(4, 2, 256);
-// BENCHMARK(wjr_bi_mul_ui)->NORMAL_TESTS(4, 2, 256);
+BENCHMARK(wjr_bi_mul_ui)->NORMAL_TESTS(4, 2, 256);
 // BENCHMARK(wjr_bi_addmul)->NORMAL_TESTS(4, 2, 256);
 // BENCHMARK(wjr_bi_submul)->NORMAL_TESTS(4, 2, 256);
 // BENCHMARK(wjr_bi_div)->Apply(Product2D);
