@@ -724,7 +724,7 @@ BENCHMARK(wjr_bi_ui_add)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_bi_sub)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_bi_sub_ui)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_bi_ui_sub)->NORMAL_TESTS(4, 2, 256);
-BENCHMARK(wjr_bi_mul)->NORMAL_TESTS(4, 2, 256);
+BENCHMARK(wjr_bi_mul)->Apply(Product2D);
 BENCHMARK(wjr_bi_mul_ui)->NORMAL_TESTS(4, 2, 256);
 // BENCHMARK(wjr_bi_addmul)->NORMAL_TESTS(4, 2, 256);
 // BENCHMARK(wjr_bi_submul)->NORMAL_TESTS(4, 2, 256);
