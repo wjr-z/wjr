@@ -187,6 +187,8 @@ def compare(old, new, output):
     worse2 = []
     better5 = []
     worse5 = []
+    better30 = []
+    worse30 = []
 
     for name, item in map.items():
         if item[0] is None or item[1] is None:
@@ -204,7 +206,18 @@ def compare(old, new, output):
 
         str_delta = format(delta, 2)
 
-        if abs(delta) >= 5:
+        if abs(delta) >= 30:
+            if delta > 0:
+                color = COLOR_RED
+                worse30.append(name)
+            else:
+                color = COLOR_BLUE
+                better30.append(name)
+            print(
+                color + str_delta.rjust(20) + END_COLOR,
+                file=mylog,
+            )
+        elif abs(delta) >= 5:
             if delta > 0:
                 color = COLOR_RED
                 worse5.append(name)
@@ -231,6 +244,12 @@ def compare(old, new, output):
                 str_delta.rjust(20),
                 file=mylog,
             )
+            
+    print("-" * 93, file=mylog)
+
+    print_result(
+        worse30, "Performance has decreased by at least 30%:", mylog, COLOR_RED, END_COLOR
+    )
 
     print("-" * 93, file=mylog)
 
@@ -263,6 +282,16 @@ def compare(old, new, output):
     print_result(
         better5,
         "Performance has increased by at least 5%:",
+        mylog,
+        COLOR_BLUE,
+        END_COLOR,
+    )
+    
+    print("-" * 93, file=mylog)
+
+    print_result(
+        better30,
+        "Performance has increased by at least 30%:",
         mylog,
         COLOR_BLUE,
         END_COLOR,

@@ -23,22 +23,26 @@ endif()
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../wjr ${CMAKE_CURRENT_BINARY_DIR}/wjr)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_compile_definitions(WJR_USE_GMP)
 
-FetchContent_Declare(
-   googletest
-   GIT_REPOSITORY https://github.com/google/googletest.git
-   GIT_TAG release-1.10.0
-)
+if(EXISTS googletest)
+   add_subdirectory(googletest)
+else()
+   FetchContent_Declare(
+      googletest
+      GIT_REPOSITORY https://github.com/google/googletest.git
+      GIT_TAG release-1.10.0
+   )
 
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
-set(BUILD_GTEST ON CACHE BOOL "" FORCE)
+   set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+   set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+   set(BUILD_GTEST ON CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(googletest)
+   FetchContent_MakeAvailable(googletest)
+endif()
 
 aux_source_directory(src TEST_SRCS)
 
@@ -93,8 +97,6 @@ if(MSVC)
 else()
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I \"D:\\msys\\home\\19663\\gmp-6.3.0\" ")
 endif()
-
-message(${CMAKE_CXX_FLAGS})
 
 set(GMP_LIBS "D:\\msys\\home\\19663\\gmp-6.3.0\\.libs")
 
