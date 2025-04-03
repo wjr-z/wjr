@@ -322,6 +322,45 @@ static void wjr_biginteger_from_chars(benchmark::State &state) {
     }
 }
 
+inline void random(wjr::biginteger &a, size_t n) {
+    if (n == 0) {
+        a.clear();
+        return;
+    }
+    urandom_exact_bit(a, (n - 1) * 64 + mt_rand() % 64, __mt_rand);
+}
+
+static void wjr_bi_add(benchmark::State &state) {
+    auto n = state.range(0);
+    wjr::biginteger a, b, c;
+    random(a, n);
+    random(b, n);
+
+    for (auto _ : state) {
+        add(c, a, b);
+    }
+}
+
+static void wjr_bi_add_ui(benchmark::State &state) {
+    static int m = 1e3;
+    auto n = state.range(0);
+    wjr::vector<uint64_t> vec(m);
+}
+
+BENCHMARK(wjr_bi_add)->NORMAL_TESTS(4, 2, 256);
+BENCHMARK(wjr_bi_add_ui)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_ui_add)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_sub)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_sub_ui)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_ui_sub)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_mul)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_mul_ui)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_addmul)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_submul)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_div)->Apply(Product2D);
+// BENCHMARK(wjr_bi_to_chars)->Apply(biginteger_to_chars_tests);
+// BENCHMARK(wjr_bi_from_chars)->BIGINTEGER_FROM_CHARS_TESTS();
+
 #ifdef WJR_USE_GMP
 
 static void gmp_addc_1(benchmark::State &state) {
@@ -676,6 +715,20 @@ BENCHMARK(wjr_div_qr_2)->DenseRange(2, 4, 1)->RangeMultiplier(2)->Range(8, 256);
 BENCHMARK(wjr_div_qr_s)->Apply(Product2D);
 BENCHMARK(wjr_biginteger_to_chars)->Apply(biginteger_to_chars_tests);
 BENCHMARK(wjr_biginteger_from_chars)->BIGINTEGER_FROM_CHARS_TESTS();
+
+BENCHMARK(wjr_bi_add)->NORMAL_TESTS(4, 2, 256);
+BENCHMARK(wjr_bi_add_ui)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_ui_add)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_sub)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_sub_ui)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_ui_sub)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_mul)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_mul_ui)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_addmul)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_submul)->NORMAL_TESTS(4, 2, 256);
+// BENCHMARK(wjr_bi_div)->Apply(Product2D);
+// BENCHMARK(wjr_bi_to_chars)->Apply(biginteger_to_chars_tests);
+// BENCHMARK(wjr_bi_from_chars)->BIGINTEGER_FROM_CHARS_TESTS();
 
 #ifdef WJR_USE_GMP
 

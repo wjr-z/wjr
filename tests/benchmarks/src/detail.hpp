@@ -1,9 +1,12 @@
+#include <cstddef>
 #include <functional>
 #include <random>
 
 #include <benchmark/benchmark.h>
 
-static std::mt19937_64 __mt_rand(time(0));
+#include <wjr/vector.hpp>
+
+static std::mt19937_64 __mt_rand(std::random_device{}());
 static auto mt_rand = std::ref(__mt_rand);
 
 template <typename Re, typename Func>
@@ -40,7 +43,7 @@ void random_run(benchmark::State &state, Re re, Func fn, size_t step = 0) {
     (void)(begin != end);
 }
 
-#define NORMAL_TESTS(SMALL, MULTIPLY, MAXN)                                              \
+#define NORMAL_TESTS(SMALL, MULTIPLY, MAXN)                                                        \
     DenseRange(1, SMALL)->RangeMultiplier(MULTIPLY)->Range(SMALL * 2, MAXN)
 
 inline void Product2D(benchmark::internal::Benchmark *state) {
@@ -64,3 +67,30 @@ inline void Product2D(benchmark::internal::Benchmark *state) {
         }
     }
 }
+
+class RandomSeq {
+    static const int N = 137;
+    using vector_type = wjr::fixed_vector<uint64_t>;
+    using iterator = typename vector_type::iterator;
+
+public:
+    RandomSeq(uint64_t Min = 0, uint64_t Max = UINT64_MAX, int len = N)
+        : vec(len, wjr::in_place_reserve) {
+        std::uniform_int_distribution<uint64_t> dis(Min, Max);
+        for (auto &x : vec) {
+            x = dis(__mt_rand);
+        }
+
+        now = vec.begin();
+    }
+
+    uint64_t operator()() {
+        auto x = *now++;
+        now = now == vec.end() ? vec.begin() : now;
+        return x;
+    }
+
+private:
+    iterator now;
+    wjr::fixed_vector<uint64_t> vec;
+};

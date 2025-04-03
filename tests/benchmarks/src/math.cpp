@@ -7,99 +7,85 @@
 #include <wjr/math.hpp>
 
 static void wjr_popcount(benchmark::State &state) {
-    const int n = 17;
-    std::vector<uint64_t> a(n);
-
-    std::generate(a.begin(), a.end(), mt_rand);
-
-    int64_t i = 0;
+    RandomSeq seq;
 
     for (auto _ : state) {
-        auto p = wjr::popcount(a[i]);
+        auto p = wjr::popcount(seq());
         benchmark::DoNotOptimize(p);
-        i = i == n - 1 ? 0 : i + 1;
     }
 }
 
 static void wjr_clz(benchmark::State &state) {
-    const int n = 17;
-    std::vector<uint64_t> a(n);
-
-    std::generate(a.begin(), a.end(), mt_rand);
-
-    int64_t i = 0;
+    RandomSeq seq;
 
     for (auto _ : state) {
-        auto p = wjr::clz(a[i]);
+        auto p = wjr::clz(seq());
         benchmark::DoNotOptimize(p);
-        i = i == n - 1 ? 0 : i + 1;
     }
 }
 
 static void wjr_ctz(benchmark::State &state) {
-    const int n = 17;
-    std::vector<uint64_t> a(n);
-
-    std::generate(a.begin(), a.end(), mt_rand);
-
-    int64_t i = 0;
+    RandomSeq seq;
 
     for (auto _ : state) {
-        auto p = wjr::ctz(a[i]);
+        auto p = wjr::ctz(seq());
         benchmark::DoNotOptimize(p);
-        i = i == n - 1 ? 0 : i + 1;
     }
 }
 
 static void wjr_addc(benchmark::State &state) {
-    const int n = 17;
-    std::vector<uint64_t> a(n), b(n), cf(n);
+    RandomSeq a(0, UINT64_MAX, 137);
+    RandomSeq b(0, UINT64_MAX, 173);
+    RandomSeq cf(0, 1, 171);
 
-    std::generate(a.begin(), a.end(), mt_rand);
-    std::generate(b.begin(), b.end(), mt_rand);
-    std::generate(cf.begin(), cf.end(), []() { return mt_rand() & 1; });
-
-    int64_t i = 0;
+    uint64_t c_out;
 
     for (auto _ : state) {
-        auto p = wjr::addc(a[i], b[i], cf[i], cf[i]);
+        auto p = wjr::addc(a(), b(), cf(), c_out);
         benchmark::DoNotOptimize(p);
-        i = i == n - 1 ? 0 : i + 1;
+        benchmark::DoNotOptimize(c_out);
     }
 }
 
 static void wjr_addc_cc(benchmark::State &state) {
-    const int n = 17;
-    std::vector<uint64_t> a(n), b(n);
-    std::vector<uint8_t> cf(n);
+    RandomSeq a(0, UINT64_MAX, 137);
+    RandomSeq b(0, UINT64_MAX, 173);
+    RandomSeq cf(0, 1, 171);
 
-    std::generate(a.begin(), a.end(), mt_rand);
-    std::generate(b.begin(), b.end(), mt_rand);
-    std::generate(cf.begin(), cf.end(), []() { return mt_rand() & 1; });
-
-    int64_t i = 0;
+    uint8_t c_out;
 
     for (auto _ : state) {
-        auto p = wjr::addc_cc(a[i], b[i], cf[i], cf[i]);
+        auto p = wjr::addc_cc(a(), b(), cf(), c_out);
         benchmark::DoNotOptimize(p);
-        i = i == n - 1 ? 0 : i + 1;
+        benchmark::DoNotOptimize(c_out);
     }
 }
 
 static void wjr_subc(benchmark::State &state) {
-    const int n = 17;
-    std::vector<uint64_t> a(n), b(n), cf(n);
+    RandomSeq a(0, UINT64_MAX, 137);
+    RandomSeq b(0, UINT64_MAX, 173);
+    RandomSeq cf(0, 1, 171);
 
-    std::generate(a.begin(), a.end(), mt_rand);
-    std::generate(b.begin(), b.end(), mt_rand);
-    std::generate(cf.begin(), cf.end(), []() { return mt_rand() & 1; });
-
-    int64_t i = 0;
+    uint64_t c_out;
 
     for (auto _ : state) {
-        auto p = wjr::subc(a[i], b[i], cf[i], cf[i]);
+        auto p = wjr::subc(a(), b(), cf(), c_out);
         benchmark::DoNotOptimize(p);
-        i = i == n - 1 ? 0 : i + 1;
+        benchmark::DoNotOptimize(c_out);
+    }
+}
+
+static void wjr_subc_cc(benchmark::State &state) {
+    RandomSeq a(0, UINT64_MAX, 137);
+    RandomSeq b(0, UINT64_MAX, 173);
+    RandomSeq cf(0, 1, 171);
+
+    uint8_t c_out;
+
+    for (auto _ : state) {
+        auto p = wjr::subc_cc(a(), b(), cf(), c_out);
+        benchmark::DoNotOptimize(p);
+        benchmark::DoNotOptimize(c_out);
     }
 }
 
@@ -419,81 +405,57 @@ static void wjr_to_chars_unchecked(benchmark::State &state) {
 }
 
 static void fallback_popcount(benchmark::State &state) {
-    const int n = 17;
-    std::vector<uint64_t> a(n);
-
-    std::generate(a.begin(), a.end(), mt_rand);
-
-    int64_t i = 0;
+    RandomSeq seq;
 
     for (auto _ : state) {
-        auto p = wjr::fallback_popcount(a[i]);
+        auto p = wjr::fallback_popcount(seq());
         benchmark::DoNotOptimize(p);
-        i = i == n - 1 ? 0 : i + 1;
     }
 }
 
 static void fallback_clz(benchmark::State &state) {
-    const int n = 17;
-    std::vector<uint64_t> a(n);
-
-    std::generate(a.begin(), a.end(), mt_rand);
-
-    int64_t i = 0;
+    RandomSeq seq;
 
     for (auto _ : state) {
-        auto p = wjr::fallback_clz(a[i]);
+        auto p = wjr::fallback_clz(seq());
         benchmark::DoNotOptimize(p);
-        i = i == n - 1 ? 0 : i + 1;
     }
 }
 
 static void fallback_ctz(benchmark::State &state) {
-    const int n = 17;
-    std::vector<uint64_t> a(n);
-
-    std::generate(a.begin(), a.end(), mt_rand);
-
-    int64_t i = 0;
+    RandomSeq seq;
 
     for (auto _ : state) {
-        auto p = wjr::fallback_ctz(a[i]);
+        auto p = wjr::fallback_ctz(seq());
         benchmark::DoNotOptimize(p);
-        i = i == n - 1 ? 0 : i + 1;
     }
 }
 
 static void fallback_addc(benchmark::State &state) {
-    const int n = 17;
-    std::vector<uint64_t> a(n), b(n), cf(n);
+    RandomSeq a(0, UINT64_MAX, 137);
+    RandomSeq b(0, UINT64_MAX, 173);
+    RandomSeq cf(0, 1, 171);
 
-    std::generate(a.begin(), a.end(), mt_rand);
-    std::generate(b.begin(), b.end(), mt_rand);
-    std::generate(cf.begin(), cf.end(), []() { return mt_rand() & 1; });
-
-    int64_t i = 0;
+    uint64_t c_out;
 
     for (auto _ : state) {
-        auto p = wjr::math::fallback_addc(a[i], b[i], cf[i], cf[i]);
+        auto p = wjr::math::fallback_addc(a(), b(), cf(), c_out);
         benchmark::DoNotOptimize(p);
-        i = i == n - 1 ? 0 : i + 1;
+        benchmark::DoNotOptimize(c_out);
     }
 }
 
 static void fallback_subc(benchmark::State &state) {
-    const int n = 17;
-    std::vector<uint64_t> a(n), b(n), cf(n);
+    RandomSeq a(0, UINT64_MAX, 137);
+    RandomSeq b(0, UINT64_MAX, 173);
+    RandomSeq cf(0, 1, 171);
 
-    std::generate(a.begin(), a.end(), mt_rand);
-    std::generate(b.begin(), b.end(), mt_rand);
-    std::generate(cf.begin(), cf.end(), []() { return mt_rand() & 1; });
-
-    int64_t i = 0;
+    uint64_t c_out;
 
     for (auto _ : state) {
-        auto p = wjr::math::fallback_subc(a[i], b[i], cf[i], cf[i]);
+        auto p = wjr::math::fallback_subc(a(), b(), cf(), c_out);
         benchmark::DoNotOptimize(p);
-        i = i == n - 1 ? 0 : i + 1;
+        benchmark::DoNotOptimize(c_out);
     }
 }
 
@@ -782,6 +744,7 @@ BENCHMARK(wjr_ctz);
 BENCHMARK(wjr_addc);
 BENCHMARK(wjr_addc_cc);
 BENCHMARK(wjr_subc);
+BENCHMARK(wjr_subc_cc);
 BENCHMARK(wjr_compare_n)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_worst_compare_n)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_reverse_compare_n)->NORMAL_TESTS(4, 2, 256);
