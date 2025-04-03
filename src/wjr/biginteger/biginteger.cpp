@@ -655,6 +655,103 @@ void __tdiv_qr_impl(biginteger_dispatcher quot, biginteger_dispatcher rem,
     rem.set_ssize(__fast_conditional_negate<int32_t>(nssize < 0, dusize));
 }
 
+void __tdiv_q_impl(biginteger_dispatcher quot, const biginteger_data *num,
+                   const biginteger_data *div) noexcept {
+    const auto nssize = num->get_ssize();
+    const auto dssize = div->get_ssize();
+    const auto nusize = __fast_abs(nssize);
+    const auto dusize = __fast_abs(dssize);
+    int32_t qssize = nusize - dusize + 1;
+
+    WJR_ASSERT(dusize != 0, "division by zero");
+
+    // num < div
+    if (qssize <= 0) {
+        quot.set_ssize(0);
+        return;
+    }
+
+    using pointer = uint64_t *;
+
+    quot.reserve(qssize);
+    auto qp = quot.data();
+
+    auto np = const_cast<pointer>(num->data());
+    auto dp = const_cast<pointer>(div->data());
+
+    unique_stack_allocator stkal;
+
+    if (dp == qp) {
+        auto tp = stkal.template allocate<uint64_t>(dusize);
+        copy_n_restrict(dp, dusize, tp);
+        dp = tp;
+    }
+
+    if (np == qp) {
+        auto tp = stkal.template allocate<uint64_t>(nusize);
+        copy_n_restrict(np, nusize, tp);
+        np = tp;
+    }
+
+    const auto rp = stkal.template allocate<uint64_t>(dusize);
+
+    div_qr_s(qp, rp, np, nusize, dp, dusize);
+
+    qssize -= qp[qssize - 1] == 0;
+    quot.set_ssize(__fast_conditional_negate<int32_t>((nssize ^ dssize) < 0, qssize));
+}
+
+void __tdiv_r_impl(biginteger_dispatcher rem, const biginteger_data *num,
+                   const biginteger_data *div) noexcept {
+    const auto nssize = num->get_ssize();
+    const auto dssize = div->get_ssize();
+    const auto nusize = __fast_abs(nssize);
+    auto dusize = __fast_abs(dssize);
+    const int32_t qssize = nusize - dusize + 1;
+
+    WJR_ASSERT(dusize != 0, "division by zero");
+
+    rem.reserve(dusize);
+    auto rp = rem.data();
+
+    // num < div
+    if (qssize <= 0) {
+        const auto np = num->data();
+        if (np != rp) {
+            std::copy_n(np, nusize, rp);
+            rem.set_ssize(nssize);
+        }
+
+        return;
+    }
+
+    using pointer = uint64_t *;
+
+    auto np = const_cast<pointer>(num->data());
+    auto dp = const_cast<pointer>(div->data());
+
+    unique_stack_allocator stkal;
+
+    if (dp == rp) {
+        const auto tp = stkal.template allocate<uint64_t>(dusize);
+        copy_n_restrict(dp, dusize, tp);
+        dp = tp;
+    }
+
+    if (np == rp) {
+        const auto tp = stkal.template allocate<uint64_t>(nusize);
+        copy_n_restrict(np, nusize, tp);
+        np = tp;
+    }
+
+    const auto qp = stkal.template allocate<uint64_t>(qssize);
+
+    div_qr_s(qp, rp, np, nusize, dp, dusize);
+
+    dusize = normalize(rp, dusize);
+    rem.set_ssize(__fast_conditional_negate<int32_t>(nssize < 0, dusize));
+}
+
 void __cfdiv_r_2exp_impl(biginteger_dispatcher rem, const biginteger_data *num, uint32_t shift,
                          int32_t xdir) noexcept {
     int32_t nssize = num->get_ssize();

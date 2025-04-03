@@ -666,14 +666,26 @@ void __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
 }
 
 /// @private
+extern WJR_ALL_NONNULL void __tdiv_q_impl(biginteger_dispatcher quot, const biginteger_data *num,
+                                          const biginteger_data *div) noexcept;
+
+/// @private
 template <typename S>
 void __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                   const biginteger_data *div) noexcept;
+                   const biginteger_data *div) noexcept {
+    __tdiv_q_impl(biginteger_dispatcher(quot), num, div);
+}
+
+/// @private
+extern WJR_ALL_NONNULL void __tdiv_r_impl(biginteger_dispatcher rem, const biginteger_data *num,
+                                          const biginteger_data *div) noexcept;
 
 /// @private
 template <typename S>
 void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                   const biginteger_data *div) noexcept;
+                   const biginteger_data *div) noexcept {
+    __tdiv_r_impl(biginteger_dispatcher(rem), num, div);
+}
 
 /// @private
 template <typename S0, typename S1>
@@ -1801,105 +1813,6 @@ void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     dusize += (cf != 0);
 
     dst->set_ssize(__fast_conditional_negate<int32_t>(lssize < 0, dusize));
-}
-
-template <typename S>
-void __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                   const biginteger_data *div) noexcept {
-    const auto nssize = num->get_ssize();
-    const auto dssize = div->get_ssize();
-    const auto nusize = __fast_abs(nssize);
-    const auto dusize = __fast_abs(dssize);
-    int32_t qssize = nusize - dusize + 1;
-
-    WJR_ASSERT(dusize != 0, "division by zero");
-
-    // num < div
-    if (qssize <= 0) {
-        quot->set_ssize(0);
-        return;
-    }
-
-    using pointer = uint64_t *;
-
-    quot->reserve(qssize);
-    auto qp = quot->data();
-
-    auto np = const_cast<pointer>(num->data());
-    auto dp = const_cast<pointer>(div->data());
-
-    unique_stack_allocator stkal;
-
-    if (dp == qp) {
-        auto tp = stkal.template allocate<uint64_t>(dusize);
-        copy_n_restrict(dp, dusize, tp);
-        dp = tp;
-    }
-
-    if (np == qp) {
-        auto tp = stkal.template allocate<uint64_t>(nusize);
-        copy_n_restrict(np, nusize, tp);
-        np = tp;
-    }
-
-    const auto rp = stkal.template allocate<uint64_t>(dusize);
-
-    div_qr_s(qp, rp, np, nusize, dp, dusize);
-
-    qssize -= qp[qssize - 1] == 0;
-    quot->set_ssize(__fast_conditional_negate<int32_t>((nssize ^ dssize) < 0, qssize));
-}
-
-template <typename S>
-void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                   const biginteger_data *div) noexcept {
-    const auto nssize = num->get_ssize();
-    const auto dssize = div->get_ssize();
-    const auto nusize = __fast_abs(nssize);
-    auto dusize = __fast_abs(dssize);
-    const int32_t qssize = nusize - dusize + 1;
-
-    WJR_ASSERT(dusize != 0, "division by zero");
-
-    rem->reserve(dusize);
-    auto rp = rem->data();
-
-    // num < div
-    if (qssize <= 0) {
-        const auto np = num->data();
-        if (np != rp) {
-            std::copy_n(np, nusize, rp);
-            rem->set_ssize(nssize);
-        }
-
-        return;
-    }
-
-    using pointer = uint64_t *;
-
-    auto np = const_cast<pointer>(num->data());
-    auto dp = const_cast<pointer>(div->data());
-
-    unique_stack_allocator stkal;
-
-    if (dp == rp) {
-        const auto tp = stkal.template allocate<uint64_t>(dusize);
-        copy_n_restrict(dp, dusize, tp);
-        dp = tp;
-    }
-
-    if (np == rp) {
-        const auto tp = stkal.template allocate<uint64_t>(nusize);
-        copy_n_restrict(np, nusize, tp);
-        np = tp;
-    }
-
-    const auto qp = stkal.template allocate<uint64_t>(qssize);
-
-    div_qr_s(qp, rp, np, nusize, dp, dusize);
-
-    dusize = normalize(rp, dusize);
-    rem->set_ssize(__fast_conditional_negate<int32_t>(nssize < 0, dusize));
 }
 
 template <typename S0, typename S1>
