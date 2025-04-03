@@ -208,7 +208,6 @@ public:
 
     template <typename T>
     void set_ssize(T size) = delete;
-    void set_ssize(int32_t size) noexcept { m_storage.set_ssize(size); }
 
     constexpr void set_ssize(int32_t size) noexcept { biginteger_data::set_ssize(size); }
 
