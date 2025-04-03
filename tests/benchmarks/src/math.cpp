@@ -705,20 +705,6 @@ static void to_chars_tests(benchmark::internal::Benchmark *state) {
     }
 }
 
-static void biginteger_to_chars_tests(benchmark::internal::Benchmark *state) {
-    for (int base : {2, 8, 16, 10}) {
-        for (int n = 1; n <= 4; ++n) {
-            state->Args({base, n});
-        }
-        for (int n = 8; n <= 14; n += 2) {
-            state->Args({base, n});
-        }
-        for (int n = 16; n <= 1024; n *= 2) {
-            state->Args({base, n});
-        }
-    }
-}
-
 #define __BIGINTEGER_FROM_CHARS_TESTS_I(base)                                                      \
     Args({base, 1})                                                                                \
         ->Args({base, 2})                                                                          \

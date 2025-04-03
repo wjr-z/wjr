@@ -313,33 +313,78 @@ inline void random(wjr::biginteger &a, size_t n) {
 static void wjr_bi_add(benchmark::State &state) {
     auto n = state.range(0);
     wjr::biginteger a, b, c;
-    random(a, n);
-    random(b, n);
 
-    for (auto _ : state) {
-        add(c, a, b);
-    }
+    random_run(
+        state,
+        [&]() {
+            random(a, n);
+            random(b, n);
+        },
+        [&]() { wjr::add(c, a, b); });
 }
 
 static void wjr_bi_add_ui(benchmark::State &state) {
-    static int m = 1e3;
     auto n = state.range(0);
-    wjr::vector<uint64_t> vec(m);
+    wjr::biginteger a, c;
+
+    RandomSeq b;
+
+    random_run(state, [&]() { random(a, n); }, [&]() { wjr::add(c, a, b()); });
 }
 
-BENCHMARK(wjr_bi_add)->NORMAL_TESTS(4, 2, 256);
-BENCHMARK(wjr_bi_add_ui)->NORMAL_TESTS(4, 2, 256);
-// BENCHMARK(wjr_bi_ui_add)->NORMAL_TESTS(4, 2, 256);
-// BENCHMARK(wjr_bi_sub)->NORMAL_TESTS(4, 2, 256);
-// BENCHMARK(wjr_bi_sub_ui)->NORMAL_TESTS(4, 2, 256);
-// BENCHMARK(wjr_bi_ui_sub)->NORMAL_TESTS(4, 2, 256);
-// BENCHMARK(wjr_bi_mul)->NORMAL_TESTS(4, 2, 256);
-// BENCHMARK(wjr_bi_mul_ui)->NORMAL_TESTS(4, 2, 256);
-// BENCHMARK(wjr_bi_addmul)->NORMAL_TESTS(4, 2, 256);
-// BENCHMARK(wjr_bi_submul)->NORMAL_TESTS(4, 2, 256);
-// BENCHMARK(wjr_bi_div)->Apply(Product2D);
-// BENCHMARK(wjr_bi_to_chars)->Apply(biginteger_to_chars_tests);
-// BENCHMARK(wjr_bi_from_chars)->BIGINTEGER_FROM_CHARS_TESTS();
+static void wjr_bi_ui_add(benchmark::State &state) {
+    auto n = state.range(0);
+    wjr::biginteger b, c;
+
+    RandomSeq a;
+
+    random_run(state, [&]() { random(b, n); }, [&]() { wjr::add(c, a(), b); });
+}
+
+static void wjr_bi_sub(benchmark::State &state) {
+    auto n = state.range(0);
+    wjr::biginteger a, b, c;
+
+    random_run(
+        state,
+        [&]() {
+            random(a, n);
+            random(b, n);
+        },
+        [&]() { wjr::sub(c, a, b); });
+}
+
+static void wjr_bi_sub_ui(benchmark::State &state) {
+    auto n = state.range(0);
+    wjr::biginteger a, c;
+
+    RandomSeq b;
+
+    random_run(state, [&]() { random(a, n); }, [&]() { wjr::sub(c, a, b()); });
+}
+
+static void wjr_bi_ui_sub(benchmark::State &state) {
+    auto n = state.range(0);
+    wjr::biginteger b, c;
+
+    RandomSeq a;
+
+    random_run(state, [&]() { random(b, n); }, [&]() { wjr::sub(c, a(), b); });
+}
+
+static void wjr_bi_mul(benchmark::State &state) {
+    auto n = state.range(0);
+    auto m = state.range(1);
+    wjr::biginteger a, b, c;
+
+    random_run(
+        state,
+        [&]() {
+            random(a, n);
+            random(b, m);
+        },
+        [&]() { wjr::mul(c, a, b); });
+}
 
 #ifdef WJR_USE_GMP
 
@@ -609,20 +654,6 @@ static void gmp_biginteger_from_chars(benchmark::State &state) {
 
 #endif // WJR_USE_GMP
 
-static void to_chars_tests(benchmark::internal::Benchmark *state) {
-    for (int base : {2, 8, 16, 10}) {
-        for (int n = 1; n <= 8; ++n) {
-            state->Args({base, n});
-        }
-        for (int n = 10; n <= 16; n += 2) {
-            state->Args({base, n});
-        }
-        for (int n = 32; n <= 64; n += 8) {
-            state->Args({base, n});
-        }
-    }
-}
-
 static void biginteger_to_chars_tests(benchmark::internal::Benchmark *state) {
     for (int base : {2, 8, 16, 10}) {
         for (int n = 1; n <= 4; ++n) {
@@ -680,11 +711,11 @@ BENCHMARK(wjr_biginteger_from_chars)->BIGINTEGER_FROM_CHARS_TESTS();
 
 BENCHMARK(wjr_bi_add)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_bi_add_ui)->NORMAL_TESTS(4, 2, 256);
-// BENCHMARK(wjr_bi_ui_add)->NORMAL_TESTS(4, 2, 256);
-// BENCHMARK(wjr_bi_sub)->NORMAL_TESTS(4, 2, 256);
-// BENCHMARK(wjr_bi_sub_ui)->NORMAL_TESTS(4, 2, 256);
-// BENCHMARK(wjr_bi_ui_sub)->NORMAL_TESTS(4, 2, 256);
-// BENCHMARK(wjr_bi_mul)->NORMAL_TESTS(4, 2, 256);
+BENCHMARK(wjr_bi_ui_add)->NORMAL_TESTS(4, 2, 256);
+BENCHMARK(wjr_bi_sub)->NORMAL_TESTS(4, 2, 256);
+BENCHMARK(wjr_bi_sub_ui)->NORMAL_TESTS(4, 2, 256);
+BENCHMARK(wjr_bi_ui_sub)->NORMAL_TESTS(4, 2, 256);
+BENCHMARK(wjr_bi_mul)->NORMAL_TESTS(4, 2, 256);
 // BENCHMARK(wjr_bi_mul_ui)->NORMAL_TESTS(4, 2, 256);
 // BENCHMARK(wjr_bi_addmul)->NORMAL_TESTS(4, 2, 256);
 // BENCHMARK(wjr_bi_submul)->NORMAL_TESTS(4, 2, 256);
