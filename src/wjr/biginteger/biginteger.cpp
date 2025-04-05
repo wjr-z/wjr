@@ -829,6 +829,57 @@ void __cfdiv_r_2exp_impl(biginteger_dispatcher rem, const biginteger_data *num, 
     rem.set_ssize(__fast_conditional_negate<int32_t>(nssize < 0, offset));
 }
 
+void __pow_impl(biginteger_dispatcher dst, const biginteger_data *num, uint32_t exp) noexcept {
+    const int32_t nssize = num->get_ssize();
+    if (WJR_UNLIKELY(nssize == 0)) {
+        dst = exp == 0 ? 1u : 0u;
+        return;
+    }
+
+    if (exp <= 2) {
+        if (exp == 0) {
+            dst = 1u;
+        } else if (exp == 1) {
+            dst.copy_assign(num);
+        } else {
+            __sqr_impl(dst, num);
+        }
+        return;
+    }
+
+    const uint32_t nusize = __fast_abs(nssize);
+    const uint32_t max_dusize = (uint64_t(__bit_width_impl(num)) * exp + 63) / 64;
+
+    using pointer = uint64_t *;
+
+    auto *dp = dst.data();
+    auto *np = const_cast<pointer>(num->data());
+
+    unique_stack_allocator stkal;
+    biginteger_dispatcher tmp(enable_default_constructor);
+
+    if (dst.capacity() < max_dusize) {
+        tmp = dst.construct_reserve(max_dusize, &stkal);
+        dp = tmp.data();
+    } else {
+        if (dp == np) {
+            np = stkal.template allocate<uint64_t>(max_dusize);
+            copy_n_restrict(dp, nusize, np);
+        }
+    }
+
+    // todo : optimize this size.
+    uint64_t *const tp = stkal.template allocate<uint64_t>(max_dusize);
+    uint32_t dusize = pow_1(dp, np, nusize, exp, tp);
+
+    if (tmp.has_value()) {
+        dst.move_assign(tmp.raw());
+        tmp.destroy();
+    }
+
+    dst.set_ssize(__fast_conditional_negate<int32_t>((nssize < 0) && (exp & 1), dusize));
+}
+
 } // namespace biginteger_detail
 
 std::ostream &operator<<(std::ostream &os, const biginteger_data &src) noexcept {

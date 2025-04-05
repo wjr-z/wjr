@@ -3,7 +3,7 @@
 
 #include <tuple>
 
-#include <wjr/capture_leaf.hpp>
+#include <wjr/container/capture_leaf.hpp>
 #include <wjr/math/integral_constant.hpp>
 
 namespace wjr {

@@ -15,7 +15,7 @@
 #include <exception>
 
 #include <wjr/assert.hpp>
-#include <wjr/compressed_value.hpp>
+#include <wjr/container/compressed_value.hpp>
 #include <wjr/crtp/class_base.hpp>
 #include <wjr/memory/uninitialized.hpp>
 

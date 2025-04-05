@@ -1,5 +1,5 @@
-#ifndef WJR_COMPRESSED_VALUE_HPP__
-#define WJR_COMPRESSED_VALUE_HPP__
+#ifndef WJR_CONTAINER_COMPRESSED_VALUE_HPP__
+#define WJR_CONTAINER_COMPRESSED_VALUE_HPP__
 
 #include <wjr/assert.hpp>
 #include <wjr/type_traits.hpp>
@@ -29,4 +29,4 @@ private:
 };
 } // namespace wjr
 
-#endif // WJR_COMPRESSED_VALUE_HPP__
+#endif // WJR_CONTAINER_COMPRESSED_VALUE_HPP__

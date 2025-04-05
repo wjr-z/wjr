@@ -301,6 +301,30 @@ public:
 
     void set_ssize(int32_t size) const noexcept { ptr->set_ssize(size); }
 
+    template <typename UnsignedValue, WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
+    biginteger_dispatcher &operator=(UnsignedValue value) noexcept {
+        clear();
+        if (value != 0) {
+            reserve(1);
+            data()[0] = value;
+            set_ssize(1);
+        }
+
+        return *this;
+    }
+
+    template <typename SignedValue, WJR_REQUIRES(is_nonbool_signed_integral_v<SignedValue>)>
+    biginteger_dispatcher &operator=(SignedValue value) noexcept {
+        clear();
+        if (value != 0) {
+            reserve(1);
+            data()[0] = value < 0 ? -to_unsigned(value) : to_unsigned(value);
+            set_ssize(__fast_conditional_negate<int32_t>(value < 0, 1));
+        }
+
+        return *this;
+    }
+
     inline void reserve(uint32_t size) const;
     inline void clear_if_reserved(uint32_t size) const;
     inline void clear() const;
@@ -308,6 +332,7 @@ public:
     inline biginteger_dispatcher construct_reserve(uint32_t n, unique_stack_allocator *al) const;
 
     inline void destroy() const;
+    inline void copy_assign(const biginteger_data *rhs) const;
     inline void move_assign(biginteger_data *rhs) const;
 
 private:
@@ -322,6 +347,7 @@ struct biginteger_dispatch_table {
     biginteger_dispatcher (*construct_reserve)(biginteger_data *, uint32_t,
                                                unique_stack_allocator *);
     void (*destroy)(biginteger_data *);
+    void (*copy_assign)(biginteger_data *, const biginteger_data *);
     void (*move_assign)(biginteger_data *, biginteger_data *);
 };
 
@@ -341,6 +367,9 @@ biginteger_dispatcher biginteger_dispatcher::construct_reserve(uint32_t n,
 }
 
 void biginteger_dispatcher::destroy() const { v_table->destroy(ptr); }
+void biginteger_dispatcher::copy_assign(const biginteger_data *rhs) const {
+    v_table->copy_assign(ptr, rhs);
+}
 void biginteger_dispatcher::move_assign(biginteger_data *rhs) const {
     v_table->move_assign(ptr, rhs);
 }
@@ -359,6 +388,7 @@ struct biginteger_dispatch_static_table {
             return biginteger_dispatcher(tmp);
         },
         [](biginteger_data *data) { std::destroy_at(std::addressof(container_of<T>(*data))); },
+        [](biginteger_data *lhs, const biginteger_data *rhs) { container_of<T>(*lhs) = *rhs; },
         [](biginteger_data *lhs, biginteger_data *rhs) {
             container_of<T>(*lhs) = std::move(container_of<T>(*rhs));
         }};
@@ -854,9 +884,15 @@ WJR_PURE inline uint32_t __bit_width_impl(const biginteger_data *num) noexcept;
 /// @private
 WJR_PURE inline uint32_t __ctz_impl(const biginteger_data *num) noexcept;
 
+/// @private
+extern WJR_ALL_NONNULL void __pow_impl(biginteger_dispatcher dst, const biginteger_data *num,
+                                       uint32_t exp) noexcept;
+
 /// @todo optimize
 template <typename S>
-void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint32_t exp) noexcept;
+void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint32_t exp) noexcept {
+    __pow_impl(biginteger_dispatcher(dst), num, exp);
+}
 
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 void __pow_impl(basic_biginteger<S> *dst, T num, uint32_t exp) noexcept {
@@ -2671,59 +2707,6 @@ inline uint32_t __ctz_impl(const biginteger_data *num) noexcept {
     const uint32_t idx = static_cast<uint32_t>(find_not_n(ptr, 0, size));
     WJR_ASSERT(idx != size);
     return idx * 64 + ctz(ptr[idx]);
-}
-
-template <typename S>
-void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint32_t exp) noexcept {
-    const int32_t nssize = num->get_ssize();
-    if (WJR_UNLIKELY(nssize == 0)) {
-        *dst = exp == 0 ? 1u : 0u;
-        return;
-    }
-
-    if (exp <= 2) {
-        if (exp == 0) {
-            *dst = 1u;
-        } else if (exp == 1) {
-            *dst = *num;
-        } else {
-            sqr(*dst, *num);
-        }
-        return;
-    }
-
-    const uint32_t nusize = __fast_abs(nssize);
-    const uint32_t max_dusize = (uint64_t(__bit_width_impl(num)) * exp + 63) / 64;
-
-    using pointer = uint64_t *;
-
-    auto *dp = dst->data();
-    auto *np = const_cast<pointer>(num->data());
-
-    unique_stack_allocator stkal;
-    optional<uninitialized<basic_biginteger<S>>> tmp;
-
-    if (dst->capacity() < max_dusize) {
-        tmp.emplace(dst->get_growth_capacity(dst->capacity(), max_dusize), in_place_reserve,
-                    dst->get_allocator());
-        dp = (**tmp).data();
-    } else {
-        if (dp == np) {
-            np = stkal.template allocate<uint64_t>(max_dusize);
-            copy_n_restrict(dp, nusize, np);
-        }
-    }
-
-    // todo : optimize this size.
-    uint64_t *const tp = stkal.template allocate<uint64_t>(max_dusize);
-    uint32_t dusize = pow_1(dp, np, nusize, exp, tp);
-
-    if (tmp.has_value()) {
-        *dst = **std::move(tmp);
-        tmp->reset();
-    }
-
-    dst->set_ssize(__fast_conditional_negate<int32_t>((nssize < 0) && (exp & 1), dusize));
 }
 
 /// @private
