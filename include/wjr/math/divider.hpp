@@ -179,10 +179,10 @@ template <typename T>
 WJR_CONST WJR_CONSTEXPR20 T div2by1_divider_noshift<T>::__reciprocal_impl(T d) noexcept {
     WJR_ASSERT_ASSUME_L2(__has_high_bit(d));
 
-    uint64_t d40 = 0, d63 = 0;
-    uint32_t v0 = 0;
-    uint64_t v1 = 0, v2 = 0, v3 = 0, v4 = 0;
-    uint64_t t0 = 0, t1 = 0;
+    uint64_t d40, d63;
+    uint32_t v0;
+    uint64_t v1, v2, v3, v4;
+    uint64_t t0;
 
     // 40 bit
     d40 = (d >> 24) + 1;
@@ -193,17 +193,14 @@ WJR_CONST WJR_CONSTEXPR20 T div2by1_divider_noshift<T>::__reciprocal_impl(T d) n
     // 22 bit
     v1 = (v0 << 11) - (mullo<uint64_t>(mullo<uint32_t>(v0, v0), d40) >> 40) - 1;
 
-    t1 = mulhi<uint64_t>(v1 << 17, (1ull << 60) - mullo<uint64_t>(v1, d40));
-    // 35 bit
-    v2 = (v1 << 13) + t1;
+    v2 = mulhi<uint64_t>(v1 << 17, (1ull << 61) - mullo<uint64_t>(v1, d40));
 
-    t0 = 0 - mul<uint64_t>(v2, d63, t1);
+    t0 = 0 - mullo<uint64_t>(v2, d63);
     if (d & 1) {
         t0 += v2 >> 1;
     }
 
     v3 = (v2 << 31) + (mulhi<uint64_t>(t0, v2) >> 1);
-
     v1 = v3 + 1;
 
     if (WJR_UNLIKELY(v1 == 0)) {
