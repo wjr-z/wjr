@@ -23,12 +23,12 @@ struct hlist_node {
 
     constexpr bool empty() const noexcept { return next == nullptr; }
 
-    constexpr void insert_after(hlist_node *head, hlist_node *tail) noexcept {
+    constexpr void push_front(hlist_node *head, hlist_node *tail) noexcept {
         tail->next = next;
         next = head;
     }
 
-    constexpr void insert_after(hlist_node *node) noexcept { insert_after(node, node); }
+    constexpr void push_front(hlist_node *node) noexcept { push_front(node, node); }
 
     constexpr void push_back(hlist_node *node) noexcept {
         WJR_ASSERT(next == nullptr);
