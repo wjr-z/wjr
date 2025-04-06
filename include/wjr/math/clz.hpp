@@ -14,6 +14,10 @@
     #include <wjr/arch/x86/simd/intrin.hpp>
 #endif
 
+#if WJR_HAS_BUILTIN(CLZ) || !WJR_HAS_BUILTIN(POPCOUNT)
+    #define WJR_CLZ_NOT_FULL
+#endif
+
 namespace wjr {
 
 namespace constant {
@@ -130,15 +134,24 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
  */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
+    int ans;
 #if WJR_HAS_BUILTIN(CLZ)
     if (is_constant_evaluated()) {
-        return fallback_clz(x);
+        ans = fallback_clz(x);
+    } else {
+        ans = builtin_clz(x);
     }
-
-    return builtin_clz(x);
 #else
-    return fallback_clz(x);
+    ans = fallback_clz(x);
 #endif
+
+#if defined(WJR_CLZ_NOT_FULL)
+    WJR_ASSUME(ans >= 0 && ans < std::numeric_limits<T>::digits);
+#else
+    WJR_ASSUME(ans >= 0 && ans <= std::numeric_limits<T>::digits);
+#endif
+
+    return ans;
 }
 
 } // namespace wjr

@@ -392,6 +392,17 @@ public:
         return cnt;
     }
 
+    WJR_CONST constexpr size_t find_first_zero() const noexcept {
+        for (size_t i = 0; i < bytes_size - 1; ++i) {
+            int pos = countr_one(m_data[i]);
+            if (pos != std::numeric_limits<bit_type>::digits) {
+                return i * bits + pos;
+            }
+        }
+
+        return (bytes_size - 1) * bits + countr_one(m_data[bytes_size - 1]);
+    }
+
     /**
      * @todo Use lshfit_n to optimize.
      */

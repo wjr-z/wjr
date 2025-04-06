@@ -17,7 +17,7 @@ template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
     // If not use __builtin_clz and use popcount, then don't need to handle
     // zero.
-#if WJR_HAS_BUILTIN(CLZ) || !WJR_HAS_BUILTIN(POPCOUNT)
+#if defined(WJR_CLZ_NOT_FULL)
     if (WJR_UNLIKELY(x == 0)) {
         return std::numeric_limits<T>::digits;
     }
@@ -30,7 +30,7 @@ template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_zero(T x) noexcept {
     // If not use __builtin_ctz and use popcount, then don't need to handle
     // zero.
-#if WJR_HAS_BUILTIN(CTZ) || !WJR_HAS_BUILTIN(POPCOUNT)
+#if defined(WJR_CTZ_NOT_FULL)
     if (WJR_UNLIKELY(x == 0)) {
         return std::numeric_limits<T>::digits;
     }
