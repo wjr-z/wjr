@@ -363,7 +363,7 @@ struct container_of_fn<__compressed_pair_base<T, U>, std::in_place_index_t<1>,
  *
  * @brief A pair used empty base optimization to reduce the size of the pair.
  *
- * @details todo ...
+ * @details Guaranteed to be standard-layout if `T' and `U' both are standard-layout.
  */
 template <typename T, typename U>
 class WJR_EMPTY_BASES compressed_pair final : private __compressed_pair_base<T, U> {
