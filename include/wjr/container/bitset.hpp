@@ -199,7 +199,8 @@ class bitset {
     static constexpr bool fast_memset =
         bytes_size >= 4 && N <= 1024 && is_zero_or_single_bit(bytes_size);
     using bit_type = std::conditional_t<N <= 32, uint32_t, uint64_t>;
-    static constexpr bit_type mask = (static_cast<bit_type>(1) << (N % bits)) - 1;
+    static constexpr bit_type mask =
+        (static_cast<bit_type>(1) << (N % bits)) - static_cast<bit_type>(1);
     static constexpr bit_type maxn = static_cast<bit_type>(in_place_max);
     static constexpr size_t rest_bits = N % bits;
 
@@ -283,7 +284,11 @@ public:
     constexpr reference operator[](size_t pos) noexcept { return reference(this, pos); }
 
     constexpr bool test(size_t pos) const noexcept {
-        return ((m_data[pos / bits] >> (pos % bits)) & 1) != 0;
+        if constexpr (bytes_size == 1) {
+            return ((m_data[0] >> pos) & 1) != 0;
+        } else {
+            return ((m_data[pos / bits] >> (pos % bits)) & 1) != 0;
+        }
     }
 
     constexpr static size_t size() noexcept { return N; }
@@ -331,15 +336,24 @@ public:
     }
 
     constexpr bitset &set(size_t pos, bool value = true) noexcept {
-        WJR_ASSERT(pos < N);
+        WJR_ASSERT_L2(pos < N);
 
-        auto &word = m_data[pos / bits];
-        const auto set_byte = static_cast<bit_type>(1) << (pos % bits);
+        bit_type *word;
+        bit_type set_byte;
+
+        if constexpr (bytes_size == 1) {
+            word = std::addressof(m_data[0]);
+            set_byte = static_cast<bit_type>(1) << pos;
+
+        } else {
+            word = std::addressof(m_data[pos / bits]);
+            set_byte = static_cast<bit_type>(1) << (pos % bits);
+        }
 
         if (value) {
-            word |= set_byte;
+            *word |= set_byte;
         } else {
-            word &= ~set_byte;
+            *word &= ~set_byte;
         }
 
         return *this;
@@ -383,6 +397,27 @@ public:
         return ret;
     }
 
+    WJR_CONST constexpr bool all() const noexcept {
+        for (size_t i = 0; i < bytes_size - 1; ++i) {
+            if (m_data[i] != maxn)
+                return false;
+        }
+
+        return m_data[bytes_size - 1] == mask;
+    }
+
+    WJR_CONST constexpr bool any() const noexcept {
+        for (size_t i = 0; i < bytes_size; ++i) {
+            if (m_data[i] != 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    WJR_CONST constexpr bool none() const noexcept { return !any(); }
+
     WJR_CONST constexpr size_t count() const noexcept {
         size_t cnt = 0;
         for (size_t i = 0; i < bytes_size; ++i) {
@@ -392,10 +427,10 @@ public:
         return cnt;
     }
 
-    WJR_CONST constexpr size_t find_first_zero() const noexcept {
+    WJR_CONST constexpr size_t countr_one() const noexcept {
         for (size_t i = 0; i < bytes_size - 1; ++i) {
             int pos = countr_one(m_data[i]);
-            if (pos != std::numeric_limits<bit_type>::digits) {
+            if (pos != bits) {
                 return i * bits + pos;
             }
         }

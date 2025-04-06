@@ -10,19 +10,22 @@ template <typename T, size_t Size>
 class inplace_pool {
 public:
     WJR_MALLOC T *allocate() {
-        auto *const raw = malloc(n + aligned_header_size);
-        head.push_back(static_cast<chunk *>(raw));
-        return static_cast<void *>(static_cast<std::byte *>(raw) + aligned_header_size);
+        WJR_ASSERT_L2(m_mask.any());
+        size_t pos = m_mask.countr_one();
+        m_mask.set(pos);
+        return __get() + pos;
     }
 
-    void deallocate(void *ptr) noexcept {
-        auto *const node = static_cast<std::byte *>(ptr) - aligned_header_size;
-        reinterpret_cast<chunk *>(node)->remove();
-        free(node);
+    void deallocate(T *ptr) noexcept {
+        size_t pos = ptr - __get();
+        m_mask.reset(pos);
     }
 
 private:
-    bitset<Size> m_bs;
+    T *__get() noexcept { return reinterpret_cast<T *>(m_storage); }
+
+    bitset<Size> m_mask;
+    __aligned_storage_t<T> m_storage[Size];
 };
 
 } // namespace wjr
