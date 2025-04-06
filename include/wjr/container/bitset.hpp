@@ -231,53 +231,7 @@ public:
 
     template <typename Char, typename Traits>
     constexpr explicit bitset(std::basic_string_view<Char, Traits> str, size_t pos = 0,
-                              size_t n = size_t(-1), Char zero = Char('0'), Char one = Char('1')) {
-        str = str.substr(pos, n);
-        auto count = std::min<size_t>(N, str.size());
-        WJR_ASSUME(count <= N);
-
-        size_t xpos = 0;
-
-        if (count != 0) {
-            const auto *ptr = str.data();
-            ptr += count;
-
-            while (count >= bits) {
-                uint64_t val = 0;
-                for (size_t i = 0; i < bits; ++i) {
-                    const auto ch = ptr[-i - 1];
-                    if (Traits::eq(ch, one)) {
-                        val |= static_cast<bit_type>(ch) << i;
-                    } else if (!Traits::eq(ch, zero)) {
-                        WJR_THROW(std::invalid_argument("invalid bitset char"));
-                    }
-                }
-
-                ptr -= bits;
-                count -= bits;
-                m_data[xpos++] = val;
-            }
-
-            if (count != 0) {
-                uint64_t val = 0;
-
-                for (size_t i = 0; i < count; ++i) {
-                    const auto ch = ptr[-i - 1];
-                    if (Traits::eq(ch, one)) {
-                        val |= static_cast<bit_type>(ch) << i;
-                    } else if (!Traits::eq(ch, zero)) {
-                        WJR_THROW(std::invalid_argument("invalid bitset char"));
-                    }
-                }
-
-                m_data[xpos++] = val;
-            }
-        }
-
-        for (; xpos < bytes_size; ++xpos) {
-            m_data[xpos] = 0;
-        }
-    }
+                              size_t n = size_t(-1), Char zero = Char('0'), Char one = Char('1'));
 
     template <typename Char>
     constexpr explicit bitset(Char *str, size_t n = size_t(-1), Char zero = Char('0'),
@@ -441,102 +395,12 @@ public:
     /**
      * @todo Use lshfit_n to optimize.
      */
-    constexpr bitset &operator<<=(size_t offset) noexcept {
-        if (WJR_UNLIKELY(offset == 0)) {
-            return *this;
-        }
-
-        bit_type low = m_data[0];
-        m_data[0] <<= offset;
-
-        if constexpr (bytes_size & 1) {
-            if constexpr (bytes_size == 1) {
-                if constexpr (!full) {
-                    m_data[0] &= mask;
-                }
-            } else {
-                if constexpr (full) {
-                    for (size_t i = 1; i != bytes_size; i += 2) {
-                        bit_type now = m_data[i];
-                        m_data[i] = shld(now, low, offset);
-                        low = m_data[i + 1];
-                        m_data[i + 1] = shld(low, now, offset);
-                    }
-                } else {
-                    for (size_t i = 1; i < bytes_size - 2; i += 2) {
-                        bit_type now = m_data[i];
-                        m_data[i] = shld(now, low, offset);
-                        low = m_data[i + 1];
-                        m_data[i + 1] = shld(low, now, offset);
-                    }
-
-                    bit_type now = m_data[bytes_size - 2];
-                    m_data[bytes_size - 2] = shld(now, low, offset);
-                    low = m_data[bytes_size - 1];
-                    m_data[bytes_size - 1] = shld(low, now, offset) & mask;
-                }
-            }
-        } else {
-            for (size_t i = 1; i != bytes_size - 1; i += 2) {
-                bit_type now = m_data[i];
-                m_data[i] = shld(now, low, offset);
-                low = m_data[i + 1];
-                m_data[i + 1] = shld(low, now, offset);
-            }
-
-            m_data[bytes_size - 1] = shld(m_data[bytes_size - 1], low, offset) & mask;
-        }
-
-        return *this;
-    }
+    constexpr bitset &operator<<=(size_t offset) noexcept;
 
     /**
      * @todo Use rshfit_n to optimize.
      */
-    constexpr bitset &operator>>=(size_t offset) noexcept {
-        if (WJR_UNLIKELY(offset == 0)) {
-            return *this;
-        }
-
-        bit_type high = m_data[bytes_size - 1];
-        m_data[bytes_size - 1] >>= offset;
-
-        if constexpr (bytes_size & 1) {
-            if constexpr (bytes_size != 1) {
-                if constexpr (full) {
-                    for (size_t i = bytes_size - 1; i != 0; i -= 2) {
-                        bit_type now = m_data[i - 1];
-                        m_data[i - 1] = shrd(now, high, offset);
-                        high = m_data[i - 2];
-                        m_data[i - 2] = shrd(high, now, offset);
-                    }
-                } else {
-                    for (size_t i = bytes_size - 1; i != 2; i -= 2) {
-                        bit_type now = m_data[i - 1];
-                        m_data[i - 1] = shrd(now, high, offset);
-                        high = m_data[i - 2];
-                        m_data[i - 2] = shrd(high, now, offset);
-                    }
-
-                    bit_type now = m_data[1];
-                    m_data[1] = shrd(now, high, offset);
-                    high = m_data[0];
-                    m_data[0] = shrd(high, now, offset);
-                }
-            }
-        } else {
-            for (size_t i = bytes_size - 1; i != 1; i -= 2) {
-                bit_type now = m_data[i - 1];
-                m_data[i - 1] = shrd(now, high, offset);
-                high = m_data[i - 2];
-                m_data[i - 2] = shrd(high, now, offset);
-            }
-
-            m_data[0] = shrd(m_data[0], high, offset);
-        }
-
-        return *this;
-    }
+    constexpr bitset &operator>>=(size_t offset) noexcept;
 
     friend constexpr bitset operator<<(const bitset &bs, size_t offset) noexcept {
         bitset ret(bs);
@@ -568,6 +432,153 @@ public:
 private:
     bit_type m_data[bytes_size];
 };
+
+template <size_t N>
+template <typename Char, typename Traits>
+constexpr bitset<N>::bitset(std::basic_string_view<Char, Traits> str, size_t pos, size_t n,
+                            Char zero, Char one) {
+    str = str.substr(pos, n);
+    auto count = std::min<size_t>(N, str.size());
+    WJR_ASSUME(count <= N);
+
+    size_t xpos = 0;
+
+    if (count != 0) {
+        const auto *ptr = str.data();
+        ptr += count;
+
+        while (count >= bits) {
+            uint64_t val = 0;
+            for (size_t i = 0; i < bits; ++i) {
+                const auto ch = ptr[-i - 1];
+                if (Traits::eq(ch, one)) {
+                    val |= static_cast<bit_type>(ch) << i;
+                } else if (!Traits::eq(ch, zero)) {
+                    WJR_THROW(std::invalid_argument("invalid bitset char"));
+                }
+            }
+
+            ptr -= bits;
+            count -= bits;
+            m_data[xpos++] = val;
+        }
+
+        if (count != 0) {
+            uint64_t val = 0;
+
+            for (size_t i = 0; i < count; ++i) {
+                const auto ch = ptr[-i - 1];
+                if (Traits::eq(ch, one)) {
+                    val |= static_cast<bit_type>(ch) << i;
+                } else if (!Traits::eq(ch, zero)) {
+                    WJR_THROW(std::invalid_argument("invalid bitset char"));
+                }
+            }
+
+            m_data[xpos++] = val;
+        }
+    }
+
+    for (; xpos < bytes_size; ++xpos) {
+        m_data[xpos] = 0;
+    }
+}
+
+template <size_t N>
+constexpr bitset<N> &bitset<N>::operator<<=(size_t offset) noexcept {
+    if (WJR_UNLIKELY(offset == 0)) {
+        return *this;
+    }
+
+    bit_type low = m_data[0];
+    m_data[0] <<= offset;
+
+    if constexpr (bytes_size & 1) {
+        if constexpr (bytes_size == 1) {
+            if constexpr (!full) {
+                m_data[0] &= mask;
+            }
+        } else {
+            if constexpr (full) {
+                for (size_t i = 1; i != bytes_size; i += 2) {
+                    bit_type now = m_data[i];
+                    m_data[i] = shld(now, low, offset);
+                    low = m_data[i + 1];
+                    m_data[i + 1] = shld(low, now, offset);
+                }
+            } else {
+                for (size_t i = 1; i < bytes_size - 2; i += 2) {
+                    bit_type now = m_data[i];
+                    m_data[i] = shld(now, low, offset);
+                    low = m_data[i + 1];
+                    m_data[i + 1] = shld(low, now, offset);
+                }
+
+                bit_type now = m_data[bytes_size - 2];
+                m_data[bytes_size - 2] = shld(now, low, offset);
+                low = m_data[bytes_size - 1];
+                m_data[bytes_size - 1] = shld(low, now, offset) & mask;
+            }
+        }
+    } else {
+        for (size_t i = 1; i != bytes_size - 1; i += 2) {
+            bit_type now = m_data[i];
+            m_data[i] = shld(now, low, offset);
+            low = m_data[i + 1];
+            m_data[i + 1] = shld(low, now, offset);
+        }
+
+        m_data[bytes_size - 1] = shld(m_data[bytes_size - 1], low, offset) & mask;
+    }
+
+    return *this;
+}
+
+template <size_t N>
+constexpr bitset<N> &bitset<N>::operator>>=(size_t offset) noexcept {
+    if (WJR_UNLIKELY(offset == 0)) {
+        return *this;
+    }
+
+    bit_type high = m_data[bytes_size - 1];
+    m_data[bytes_size - 1] >>= offset;
+
+    if constexpr (bytes_size & 1) {
+        if constexpr (bytes_size != 1) {
+            if constexpr (full) {
+                for (size_t i = bytes_size - 1; i != 0; i -= 2) {
+                    bit_type now = m_data[i - 1];
+                    m_data[i - 1] = shrd(now, high, offset);
+                    high = m_data[i - 2];
+                    m_data[i - 2] = shrd(high, now, offset);
+                }
+            } else {
+                for (size_t i = bytes_size - 1; i != 2; i -= 2) {
+                    bit_type now = m_data[i - 1];
+                    m_data[i - 1] = shrd(now, high, offset);
+                    high = m_data[i - 2];
+                    m_data[i - 2] = shrd(high, now, offset);
+                }
+
+                bit_type now = m_data[1];
+                m_data[1] = shrd(now, high, offset);
+                high = m_data[0];
+                m_data[0] = shrd(high, now, offset);
+            }
+        }
+    } else {
+        for (size_t i = bytes_size - 1; i != 1; i -= 2) {
+            bit_type now = m_data[i - 1];
+            m_data[i - 1] = shrd(now, high, offset);
+            high = m_data[i - 2];
+            m_data[i - 2] = shrd(high, now, offset);
+        }
+
+        m_data[0] = shrd(m_data[0], high, offset);
+    }
+
+    return *this;
+}
 
 template <typename Char, typename Traits, size_t N>
 std::basic_ostream<Char, Traits> &operator<<(std::basic_ostream<Char, Traits> &os,
