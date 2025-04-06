@@ -8,6 +8,8 @@ namespace wjr {
 
 template <typename T, size_t Size>
 class inplace_pool {
+    static_assert(Size <= 64, "Maybe slow!!");
+
 public:
     WJR_MALLOC T *allocate() {
         WJR_ASSERT_L2(m_mask.any());
