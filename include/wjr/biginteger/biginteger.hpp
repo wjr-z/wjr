@@ -101,21 +101,28 @@ struct __unref_wrapper_helper<default_biginteger_size_reference> {
  *
  */
 struct biginteger_data {
-    constexpr uint64_t *data() noexcept { return m_data; }
-    constexpr const uint64_t *data() const noexcept { return m_data; }
+    WJR_PURE constexpr uint64_t *data() noexcept { return m_data; }
+    WJR_PURE constexpr const uint64_t *data() const noexcept { return m_data; }
 
-    constexpr uint32_t size() const noexcept { return __fast_abs(m_size); }
-    constexpr uint32_t capacity() const noexcept { return m_capacity; }
+    WJR_PURE constexpr uint32_t size() const noexcept { return __fast_abs(m_size); }
+    WJR_PURE constexpr uint32_t capacity() const noexcept { return m_capacity; }
 
-    constexpr bool empty() const noexcept { return m_size == 0; }
-    constexpr bool is_negate() const noexcept { return m_size < 0; }
+    WJR_PURE constexpr bool empty() const noexcept { return m_size == 0; }
 
-    constexpr int32_t get_ssize() const noexcept { return m_size; }
+    WJR_PURE constexpr int32_t get_ssize() const noexcept { return m_size; }
 
-    constexpr void set_ssize(int32_t size) noexcept {
-        WJR_ASSERT_ASSUME_L2(__fast_abs(size) <= m_capacity);
-        m_size = size;
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    void set_ssize(T new_size) noexcept {
+        m_size = truncate_cast<int32_t>(new_size);
     }
+
+    void conditional_negate(bool condition) noexcept {
+        set_ssize(__fast_conditional_negate<int32_t>(condition, get_ssize()));
+    }
+
+    void negate() noexcept { conditional_negate(true); }
+    bool is_negate() const noexcept { return get_ssize() < 0; }
+    void absolute() noexcept { set_ssize(__fast_abs(get_ssize())); }
 
     uint64_t *m_data = nullptr;
     int32_t m_size = 0;
@@ -196,20 +203,15 @@ public:
         return default_biginteger_size_reference(this->m_size);
     }
 
-    WJR_PURE constexpr size_type size() const noexcept { return biginteger_data::size(); }
-    WJR_PURE constexpr size_type capacity() const noexcept { return biginteger_data::capacity(); }
-
-    WJR_PURE constexpr pointer data() noexcept { return biginteger_data::data(); }
-    WJR_PURE constexpr const_pointer data() const noexcept { return biginteger_data::data(); }
-
-    // extension
-
-    constexpr int32_t get_ssize() const noexcept { return biginteger_data::get_ssize(); }
-
-    template <typename T>
-    void set_ssize(T size) = delete;
-
-    constexpr void set_ssize(int32_t size) noexcept { biginteger_data::set_ssize(size); }
+    using biginteger_data::absolute;
+    using biginteger_data::capacity;
+    using biginteger_data::conditional_negate;
+    using biginteger_data::data;
+    using biginteger_data::get_ssize;
+    using biginteger_data::is_negate;
+    using biginteger_data::negate;
+    using biginteger_data::set_ssize;
+    using biginteger_data::size;
 
     constexpr biginteger_data *__get_data() noexcept {
         return static_cast<biginteger_data *>(this);
@@ -260,8 +262,6 @@ using default_fixed_biginteger = basic_biginteger<fixed_biginteger_vector_storag
 using fixed_biginteger = default_fixed_biginteger<>;
 using fixed_stack_biginteger = default_fixed_biginteger<weak_stack_allocator<uint64_t>>;
 
-using default_biginteger_storage = default_biginteger_vector_storage<std::allocator<uint64_t>>;
-
 WJR_INTRINSIC_CONSTEXPR biginteger_data make_biginteger_data(span<const uint64_t> sp) noexcept {
     return biginteger_data{const_cast<uint64_t *>(sp.data()), static_cast<int32_t>(sp.size()), 0};
 }
@@ -285,7 +285,7 @@ public:
     biginteger_dispatcher &operator=(const biginteger_dispatcher &) = default;
     biginteger_dispatcher &operator=(biginteger_dispatcher &&) = default;
 
-    constexpr biginteger_data *raw() const noexcept { return ptr; }
+    WJR_PURE constexpr biginteger_data *raw() const noexcept { return ptr; }
     constexpr bool has_value() const noexcept { return ptr != nullptr; }
 
     constexpr uint64_t *data() noexcept { return ptr->data(); }
@@ -295,11 +295,16 @@ public:
     constexpr uint32_t capacity() const noexcept { return ptr->capacity(); }
 
     constexpr bool empty() const noexcept { return ptr->empty(); }
-    constexpr bool is_negate() const noexcept { return ptr->is_negate(); }
 
     constexpr int32_t get_ssize() const noexcept { return ptr->get_ssize(); }
 
     void set_ssize(int32_t size) const noexcept { ptr->set_ssize(size); }
+
+    void conditional_negate(bool condition) noexcept { ptr->conditional_negate(condition); }
+
+    void negate() noexcept { ptr->negate(); }
+    bool is_negate() const noexcept { return ptr->is_negate(); }
+    void absolute() noexcept { ptr->absolute(); }
 
     template <typename UnsignedValue, WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     biginteger_dispatcher &operator=(UnsignedValue value) noexcept {
@@ -341,7 +346,7 @@ private:
 };
 
 struct biginteger_dispatch_table {
-    void (*__reserve_checked)(biginteger_data *, uint32_t);
+    void (*__reserve_unchecked)(biginteger_data *, uint32_t);
     void (*clear_if_reserved)(biginteger_data *, uint32_t);
     void (*clear)(biginteger_data *);
     biginteger_dispatcher (*construct_reserve)(biginteger_data *, uint32_t,
@@ -354,7 +359,7 @@ struct biginteger_dispatch_table {
 void biginteger_dispatcher::reserve(uint32_t size) const {
     // fast-path
     if (WJR_UNLIKELY(ptr->capacity() < size))
-        v_table->__reserve_checked(ptr, size);
+        v_table->__reserve_unchecked(ptr, size);
 }
 void biginteger_dispatcher::clear_if_reserved(uint32_t size) const {
     v_table->clear_if_reserved(ptr, size);
@@ -377,7 +382,7 @@ void biginteger_dispatcher::move_assign(biginteger_data *rhs) const {
 template <typename T>
 struct biginteger_dispatch_static_table {
     static constexpr biginteger_dispatch_table table = {
-        [](biginteger_data *data, uint32_t n) { container_of<T>(*data).reserve(n); },
+        [](biginteger_data *data, uint32_t n) { container_of<T>(*data).__reserve_unchecked(n); },
         [](biginteger_data *data, uint32_t n) { container_of<T>(*data).clear_if_reserved(n); },
         [](biginteger_data *data) { container_of<T>(*data).clear(); },
         [](biginteger_data *data, uint32_t n, unique_stack_allocator *al) -> biginteger_dispatcher {
@@ -1374,10 +1379,10 @@ public:
         }
     }
 
-    explicit basic_biginteger(span<const char> sp, unsigned int base = 10,
+    explicit basic_biginteger(std::string_view str, unsigned int base = 10,
                               const allocator_type &al = allocator_type())
         : m_vec(al) {
-        from_string(sp, base);
+        from_string(str, base);
     }
 
     template <typename OthterStorage>
@@ -1418,7 +1423,7 @@ public:
         return *this;
     }
 
-    basic_biginteger &operator=(span<const char> sp) { return from_string(sp); }
+    basic_biginteger &operator=(std::string_view str) { return from_string(str); }
 
     template <typename OthterStorage>
     basic_biginteger &operator=(const basic_biginteger<OthterStorage> &other) {
@@ -1451,8 +1456,8 @@ public:
         }
     }
 
-    basic_biginteger &from_string(span<const char> sp, unsigned int base = 10) noexcept {
-        (void)from_chars(sp.data(), sp.data() + sp.size(), *this, base);
+    basic_biginteger &from_string(std::string_view str, unsigned int base = 10) noexcept {
+        (void)from_chars(str.data(), str.data() + str.size(), *this, base);
         return *this;
     }
 
@@ -1475,8 +1480,8 @@ public:
     void clear_if_reserved(size_type new_capacity) noexcept {
         m_vec.clear_if_reserved(new_capacity);
     }
-    void __reserve_checked(size_type new_capacity) noexcept {
-        m_vec.__reserve_checked(new_capacity);
+    void __reserve_unchecked(size_type new_capacity) noexcept {
+        m_vec.__reserve_unchecked(new_capacity);
     }
 
     void shrink_to_fit() { m_vec.shrink_to_fit(); }
@@ -1487,14 +1492,12 @@ public:
     void swap(basic_biginteger &other) noexcept { m_vec.swap(other.m_vec); }
 
     void conditional_negate(bool condition) noexcept {
-        set_ssize(__fast_conditional_negate<int32_t>(condition, get_ssize()));
+        get_storage().conditional_negate(condition);
     }
 
-    void negate() noexcept { conditional_negate(true); }
-
-    bool is_negate() const noexcept { return get_ssize() < 0; }
-
-    void absolute() noexcept { set_ssize(__fast_abs(get_ssize())); }
+    void negate() noexcept { get_storage().negate(); }
+    bool is_negate() const noexcept { return get_storage().is_negate(); }
+    void absolute() noexcept { get_storage().absolute(); }
 
     basic_biginteger &operator++() {
         increment(*this);
@@ -1579,16 +1582,9 @@ public:
 
     int32_t get_ssize() const { return get_storage().get_ssize(); }
 
-    template <typename T,
-              WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> || std::is_same_v<T, int32_t>)>
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     void set_ssize(T new_size) noexcept {
-        if constexpr (std::is_unsigned_v<T>) {
-            const auto u32size = static_cast<uint32_t>(new_size);
-            WJR_ASSERT_ASSUME(u32size == new_size);
-            get_storage().set_ssize(__fast_from_unsigned(u32size));
-        } else {
-            get_storage().set_ssize(new_size);
-        }
+        get_storage().set_ssize(new_size);
     }
 
     WJR_CONST static size_type get_growth_capacity(size_type old_capacity,

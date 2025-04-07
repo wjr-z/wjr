@@ -1184,7 +1184,7 @@ public:
      * @details Fast-path check capacity and then reserve.
      *
      */
-    WJR_CONSTEXPR20 void __reserve_checked(size_type n) { __reserve_checked_impl(n); }
+    WJR_CONSTEXPR20 void __reserve_unchecked(size_type n) { __reserve_checked_impl(n); }
 
     WJR_CONSTEXPR20 void resize(const size_type new_size, default_construct_t) {
         __resize(new_size, default_construct);

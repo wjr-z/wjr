@@ -35,3 +35,9 @@ msvc_build
 *.sh
 .vs
 CMakeSettings.json
+*.gz
+*.dot
+*.dot.*
+.ninja_log
+.ninja_deps
+build.ninja

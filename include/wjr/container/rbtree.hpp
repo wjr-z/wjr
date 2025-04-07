@@ -2,7 +2,6 @@
 #define WJR_CONTAINER_RBTREE_HPP__
 
 #include <wjr/assert.hpp>
-#include <wjr/container/intrusive_detail.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr::intrusive {
