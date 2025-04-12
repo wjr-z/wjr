@@ -16,9 +16,8 @@ public:
     object_pool(size_t cache = default_cache_size) : m_arena(cache) {}
 
     WJR_MALLOC T *allocate() noexcept {
-        if (m_head.next != nullptr) {
-            auto *ptr = m_head.next;
-            m_head.next = ptr->next;
+        if (m_head.next() != nullptr) {
+            auto *ptr = m_head.pop_front();
             return reinterpret_cast<T *>(ptr);
         }
 

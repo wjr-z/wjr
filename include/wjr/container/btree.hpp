@@ -400,7 +400,7 @@ protected:
 
     WJR_INTRINSIC_INLINE btree_const_iterator &__adjust_next() noexcept {
         if (WJR_UNLIKELY(m_pos == __get_usize())) {
-            m_leaf = static_cast<leaf_node_type *>(m_leaf->next);
+            m_leaf = static_cast<leaf_node_type *>(m_leaf->next());
             m_pos = 0;
         }
 
@@ -636,9 +636,9 @@ public:
     constexpr key_compare &key_comp() noexcept { return m_pair.first(); }
     constexpr const key_compare &key_comp() const noexcept { return m_pair.first(); }
 
-    iterator begin() noexcept { return iterator(__get_sentry()->next, 0); }
-    const_iterator begin() const noexcept { return const_iterator(__get_sentry()->next, 0); }
-    const_iterator cbegin() const noexcept { return const_iterator(__get_sentry()->next, 0); }
+    iterator begin() noexcept { return iterator(__get_sentry()->next(), 0); }
+    const_iterator begin() const noexcept { return const_iterator(__get_sentry()->next(), 0); }
+    const_iterator cbegin() const noexcept { return const_iterator(__get_sentry()->next(), 0); }
 
     iterator end() noexcept {
         return iterator(__get_sentry(), __get_root() == nullptr ? __get_size() : 0);
@@ -917,7 +917,7 @@ private:
                 __drop_node(leaf->m_values[i]);
             }
 
-            list_node_type *next = leaf->next->self();
+            list_node_type *next = leaf->next()->self();
             __drop_leaf_node(leaf);
 
             // if `current' is the last child of parent

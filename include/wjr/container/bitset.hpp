@@ -429,13 +429,13 @@ public:
 
     WJR_CONST constexpr size_t countr_one() const noexcept {
         for (size_t i = 0; i < bytes_size - 1; ++i) {
-            int pos = countr_one(m_data[i]);
+            int pos = wjr::countr_one(m_data[i]);
             if (pos != bits) {
                 return i * bits + pos;
             }
         }
 
-        return (bytes_size - 1) * bits + countr_one(m_data[bytes_size - 1]);
+        return (bytes_size - 1) * bits + wjr::countr_one(m_data[bytes_size - 1]);
     }
 
     /**
