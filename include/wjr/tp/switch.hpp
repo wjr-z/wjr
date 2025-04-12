@@ -7,8 +7,6 @@
 
 namespace wjr {
 
-static constexpr std::ratio<1, 6> switch_jump_table_threshold;
-
 struct switch_default_t {};
 inline constexpr switch_default_t switch_default;
 
@@ -127,20 +125,10 @@ struct switch_visitor {
 template <typename C>
 using switch_visitor_t = typename switch_visitor<C>::type;
 
-template <typename C, typename Val, typename Func, typename... Args>
-WJR_INTRINSIC_CONSTEXPR decltype(auto) vswitch(Val ms, Func &&func, Args &&...args) {
-    return switch_visitor_t<C>::visit(ms, std::forward<Func>(func), std::forward<Args>(args)...);
+template <typename Case, typename Val, typename Func, typename... Args>
+WJR_INTRINSIC_CONSTEXPR decltype(auto) vswitch(Val ms, Case, Func &&func, Args &&...args) {
+    return switch_visitor_t<Case>::visit(ms, std::forward<Func>(func), std::forward<Args>(args)...);
 }
-
-template <typename... Args>
-struct __tp_string_list {};
-
-template <char... Chars>
-using __tp_string_list_t = tp_rename_t<tp_integers_list_t<char, Chars...>, __tp_string_list>;
-
-template <typename... Args0, typename... Args1>
-struct tp_less<__tp_string_list<Args0...>, __tp_string_list<Args1...>>
-    : tp_lexicographical_compare_t<__tp_string_list<Args0...>, __tp_string_list<Args1...>> {};
 
 } // namespace wjr
 

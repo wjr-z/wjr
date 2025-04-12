@@ -121,6 +121,12 @@
     CLASS &operator=(CLASS &&) = default;                                                          \
     ~CLASS() = default
 
+#if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG)
+    #define WJR_VISIBILITY(value) __attribute__((__visibility__(value)))
+#else
+    #define WJR_VISIBILITY(value)
+#endif
+
 #if defined(WJR_OS_WINDOWS)
     #if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG)
         #define WJR_HAS_DECLSPEC

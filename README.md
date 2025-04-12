@@ -67,10 +67,10 @@ tp_integers_list_t可以通过宏字符串参数构建，也可以使用tp_xxx_t
 直接调用switch，支持最大256个case。 \
 18. expected    \
 C++20 expected的C++17实现。    \
-新增compressed_unexpected，但目前仅为复用代码，后续可能移至其他类（使用错误码而非bool记录是否存在值）。
+新增compressed_unexpected，但目前仅为复用代码，后续可能移至其他类（使用错误码而非bool记录是否存在值）。\
 19. crtp    \
 control_special_members_base可以方便的生成尽可能trivial的特殊成员函数。 \
-enable_special_members_of_args_base可以方便的禁用特殊成员函数。
+enable_special_members_of_args_base可以方便的禁用特殊成员函数。\
 20. concurrency \
 pause，lock-free单向链表简单实现，spin_mutex    \
 todo : 

@@ -8,6 +8,11 @@ namespace wjr {
 template <typename... Args>
 struct tp_list {};
 
+template <typename... Args>
+constexpr tp_list<Args...> tp_make_list(Args...) {
+    return {};
+}
+
 template <typename T>
 struct tp_is_container : std::false_type {};
 
