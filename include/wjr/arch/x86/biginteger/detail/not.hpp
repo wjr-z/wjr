@@ -202,12 +202,17 @@ WJR_INTRINSIC_INLINE void builtin_bi_not_n(T *dst, const T *src, size_t n) noexc
             return;
         }
 
-        dst[0] = ~src[0];
-        if (n == 3) {
-            sse::storeu(dst + 1, sse::Xor(sse::loadu(src + 1), sse::ones()));
-        } else {
-            dst[n - 1] = ~src[n - 1];
+        if (WJR_UNLIKELY(n == 1)) {
+            dst[0] = ~src[0];
+            return;
         }
+
+        sse::storeu(dst, sse::Xor(sse::loadu(src), sse::ones()));
+
+        if (n == 3) {
+            dst[2] = ~src[2];
+        }
+
         return;
     }
 

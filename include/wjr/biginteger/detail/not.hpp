@@ -10,10 +10,6 @@
 
 namespace wjr::math {
 
-/**
- * @brief Ensured not_n optimized version for dst<=src
- *
- */
 WJR_INTRINSIC_CONSTEXPR20 void bi_not_n(uint64_t *dst, const uint64_t *src, size_t n) noexcept {
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
