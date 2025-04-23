@@ -31,10 +31,10 @@
 
 #include <cfloat>
 
-#include <wjr/algorithm.hpp>
 #include <wjr/format/charconv.hpp>
 #include <wjr/math/div.hpp>
 #include <wjr/span.hpp>
+#include <wjr/string.hpp>
 
 namespace wjr::fastfloat {
 
@@ -1396,7 +1396,7 @@ from_chars_result<> parse_infnan(const char *first, const char *last, T &value) 
         ++first;
     }
     if (last - first >= 3) {
-        if (constant_length_strncasecmp(first, "nan", 3_u)) {
+        if (constant_length_strncaseequal(first, "nan", 3_u)) {
             answer.ptr = (first += 3);
             value = minusSign ? -std::numeric_limits<T>::quiet_NaN()
                               : std::numeric_limits<T>::quiet_NaN();
@@ -1414,8 +1414,8 @@ from_chars_result<> parse_infnan(const char *first, const char *last, T &value) 
             }
             return answer;
         }
-        if (constant_length_strncasecmp(first, "inf", 3_u)) {
-            if ((last - first >= 8) && constant_length_strncasecmp(first, "infinity", 8_u)) {
+        if (constant_length_strncaseequal(first, "inf", 3_u)) {
+            if ((last - first >= 8) && constant_length_strncaseequal(first, "infinity", 8_u)) {
                 answer.ptr = first + 8;
             } else {
                 answer.ptr = first + 3;

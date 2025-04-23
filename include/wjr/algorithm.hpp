@@ -5,7 +5,6 @@
 
 #include <wjr/iterator/detail.hpp>
 #include <wjr/math/broadcast.hpp>
-#include <wjr/math/integral_constant.hpp>
 #include <wjr/memory/detail.hpp>
 #include <wjr/type_traits.hpp>
 
@@ -145,32 +144,6 @@ constexpr void sort(Iter first, Iter last) {
 }
 
 } // namespace constant
-
-template <unsigned int Length, WJR_REQUIRES(Length <= 8)>
-WJR_PURE WJR_INTRINSIC_INLINE bool
-constant_length_strncasecmp(const char *a, const char *b, integral_constant<unsigned int, Length>) {
-    if constexpr (Length == 1) {
-        const char diff = (a[0] ^ b[0]) & 0xDF;
-        return diff == 0;
-    } else if constexpr (Length == 2 || Length == 4 || Length == 8) {
-        using diff_type = uint_t<Length * 8>;
-        constexpr diff_type mask = broadcast<uint8_t, diff_type>(0xDF);
-        diff_type diff = (read_memory<diff_type>(a) ^ read_memory<diff_type>(b)) & mask;
-        return diff == 0;
-    } else if constexpr (Length == 3) {
-        return constant_length_strncasecmp(a, b, 2_u) &
-               constant_length_strncasecmp(a + 2, b + 2, 1_u);
-    } else if constexpr (Length >= 5 && Length <= 6) {
-        constexpr auto RestLength = Length - 4;
-        return constant_length_strncasecmp(a, b, 4_u) &
-               constant_length_strncasecmp(a + 4, b + 4,
-                                           integral_constant<unsigned int, RestLength>());
-    } else {
-        static_assert(Length == 7);
-        return constant_length_strncasecmp(a, b, 4_u) &
-               constant_length_strncasecmp(a + 3, b + 3, 4_u);
-    }
-}
 
 } // namespace wjr
 

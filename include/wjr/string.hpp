@@ -5,6 +5,8 @@
 #include <string_view>
 
 #include <wjr/container/detail.hpp>
+#include <wjr/format/ctype.hpp>
+#include <wjr/math/integral_constant.hpp>
 
 namespace wjr {
 
@@ -184,6 +186,61 @@ WJR_PURE constexpr bool ends_with(std::basic_string_view<CharT, Traits> str,
     }
 
     return Traits::compare(str.data() + n - length, sv.data(), length) == 0;
+}
+
+template <unsigned int Length, WJR_REQUIRES(Length <= 8)>
+WJR_PURE WJR_INTRINSIC_INLINE bool
+constant_length_strncaseequal(const char *a, const char *b,
+                              integral_constant<unsigned int, Length>) {
+    if constexpr (Length == 1) {
+        const char diff = (a[0] ^ b[0]) & 0xDF;
+        return diff == 0;
+    } else if constexpr (Length == 2 || Length == 4 || Length == 8) {
+        using diff_type = uint_t<Length * 8>;
+        constexpr diff_type mask = broadcast<uint8_t, diff_type>(0xDF);
+        diff_type diff = (read_memory<diff_type>(a) ^ read_memory<diff_type>(b)) & mask;
+        return diff == 0;
+    } else if constexpr (Length == 3) {
+        return constant_length_strncaseequal(a, b, 2_u) &
+               constant_length_strncaseequal(a + 2, b + 2, 1_u);
+    } else if constexpr (Length >= 5 && Length <= 6) {
+        constexpr auto RestLength = Length - 4;
+        return constant_length_strncaseequal(a, b, 4_u) &
+               constant_length_strncaseequal(a + 4, b + 4,
+                                             integral_constant<unsigned int, RestLength>());
+    } else {
+        static_assert(Length == 7);
+        return constant_length_strncaseequal(a, b, 4_u) &
+               constant_length_strncaseequal(a + 3, b + 3, 4_u);
+    }
+}
+
+WJR_PURE constexpr int strncasecmp(const char *a, const char *b, size_t length) {
+    for (size_t i = 0; i < length; ++i) {
+        const char diff = (a[i] ^ b[i]) & 0xDF;
+        if (diff != 0) {
+            return a[i] < b[i] ? -1 : 1;
+        }
+    }
+
+    return 0;
+}
+
+WJR_PURE constexpr int compare_insensitive(std::string_view lhs, std::string_view rhs) {
+    if (int ret = strncasecmp(lhs.data(), rhs.data(), std::min(lhs.length(), rhs.length()))) {
+        return ret;
+    }
+
+    return lhs.size() == rhs.size() ? 0 : (lhs.size() < rhs.size() ? -1 : 1);
+}
+
+WJR_PURE constexpr bool starts_with_insensitive(std::string_view base, std::string_view sv) {
+    return base.size() >= sv.size() && strncasecmp(base.data(), sv.data(), sv.size()) == 0;
+}
+
+WJR_PURE constexpr bool ends_with_insensitive(std::string_view base, std::string_view sv) {
+    return base.size() >= sv.size() &&
+           strncasecmp(base.data() + base.size() - sv.size(), sv.data(), sv.size()) == 0;
 }
 
 } // namespace wjr
