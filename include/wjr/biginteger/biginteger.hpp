@@ -332,7 +332,7 @@ public:
 
     inline void reserve(uint32_t size) const;
     inline void clear_if_reserved(uint32_t size) const;
-    inline void clear() const;
+    inline void clear() const { set_ssize(0); }
 
     inline biginteger_dispatcher construct_reserve(uint32_t n, unique_stack_allocator *al) const;
 
@@ -348,7 +348,6 @@ private:
 struct biginteger_dispatch_table {
     void (*__reserve_unchecked)(biginteger_data *, uint32_t);
     void (*clear_if_reserved)(biginteger_data *, uint32_t);
-    void (*clear)(biginteger_data *);
     biginteger_dispatcher (*construct_reserve)(biginteger_data *, uint32_t,
                                                unique_stack_allocator *);
     void (*destroy)(biginteger_data *);
@@ -364,7 +363,6 @@ void biginteger_dispatcher::reserve(uint32_t size) const {
 void biginteger_dispatcher::clear_if_reserved(uint32_t size) const {
     v_table->clear_if_reserved(ptr, size);
 }
-void biginteger_dispatcher::clear() const { v_table->clear(ptr); }
 
 biginteger_dispatcher biginteger_dispatcher::construct_reserve(uint32_t n,
                                                                unique_stack_allocator *al) const {
@@ -384,7 +382,6 @@ struct biginteger_dispatch_static_table {
     static constexpr biginteger_dispatch_table table = {
         [](biginteger_data *data, uint32_t n) { container_of<T>(*data).__reserve_unchecked(n); },
         [](biginteger_data *data, uint32_t n) { container_of<T>(*data).clear_if_reserved(n); },
-        [](biginteger_data *data) { container_of<T>(*data).clear(); },
         [](biginteger_data *data, uint32_t n, unique_stack_allocator *al) -> biginteger_dispatcher {
             auto &dst = container_of<T>(*data);
             T *tmp = static_cast<T *>(al->allocate(sizeof(T)));
@@ -1487,7 +1484,7 @@ public:
     void shrink_to_fit() { m_vec.shrink_to_fit(); }
 
     /// equal to set_ssize(0)
-    void clear() { m_vec.clear(); }
+    void clear() { set_ssize(0); }
 
     void swap(basic_biginteger &other) noexcept { m_vec.swap(other.m_vec); }
 

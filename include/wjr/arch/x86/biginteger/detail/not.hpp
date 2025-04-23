@@ -197,22 +197,17 @@ template <typename T>
 WJR_INTRINSIC_INLINE void builtin_bi_not_n(T *dst, const T *src, size_t n) noexcept {
     static_assert(sizeof(T) == 8);
 
-    if (WJR_UNLIKELY(n < 4)) {
+    if (n < 4) {
         if (WJR_UNLIKELY(n == 0)) {
             return;
         }
 
-        if (WJR_UNLIKELY(n == 1)) {
-            dst[0] = ~src[0];
-            return;
-        }
-
-        sse::storeu(dst, sse::Xor(sse::loadu(src), sse::ones()));
-
+        dst[0] = ~src[0];
         if (n == 3) {
-            dst[2] = ~src[2];
+            sse::storeu(dst + 1, sse::Xor(sse::loadu(src + 1), sse::ones()));
+        } else {
+            dst[n - 1] = ~src[n - 1];
         }
-
         return;
     }
 
