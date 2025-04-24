@@ -6,6 +6,7 @@
 
 #include <wjr/container/detail.hpp>
 #include <wjr/format/ctype.hpp>
+#include <wjr/math/broadcast.hpp>
 #include <wjr/math/integral_constant.hpp>
 
 namespace wjr {

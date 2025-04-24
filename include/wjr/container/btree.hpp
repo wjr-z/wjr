@@ -112,6 +112,40 @@ WJR_INTRINSIC_INLINE void copy_backward(const Ptr *first, const Ptr *last, Ptr *
     }
 }
 
+template <typename Key, typename... Args>
+struct inplace_key_extract_map {
+    static constexpr bool extractable = false;
+};
+
+template <typename Key, typename Second>
+struct inplace_key_extract_map<Key, Key, Second> {
+    static constexpr bool extractable = true;
+
+    static const Key &extract(const Key &Val, const Second &) noexcept { return Val; }
+};
+
+template <typename Key, typename First, typename Second>
+struct inplace_key_extract_map<Key, std::pair<First, Second>> {
+    static constexpr bool extractable = std::is_same_v<Key, remove_cvref_t<First>>;
+
+    static const Key &extract(const std::pair<First, Second> &Val) noexcept { return Val.first; }
+};
+
+template <typename Key, typename... Args>
+struct inplace_key_extract_set {
+    // by default we can't extract the key in the emplace family and must construct a node we might
+    // not use
+    static constexpr bool extractable = false;
+};
+
+template <typename Key>
+struct inplace_key_extract_set<Key, Key> {
+    // we can extract the key in emplace if the emplaced type is identical to the key type
+    static constexpr bool extractable = true;
+
+    static const Key &extract(const Key &Val) noexcept { return Val; }
+};
+
 } // namespace btree_detail
 
 template <typename Key, typename Value>
@@ -120,6 +154,10 @@ struct __btree_inline_traits {
     using mapped_type = Value;
     static constexpr bool is_map = true;
     using value_type = std::pair<const key_type, mapped_type>;
+
+    template <typename... Args>
+    using inplace_key_extractor =
+        btree_detail::inplace_key_extract_map<Key, remove_cvref_t<Args>...>;
 
     WJR_INTRINSIC_INLINE static const key_type &get_key(const value_type &value) noexcept {
         return value.first;
@@ -132,6 +170,9 @@ struct __btree_inline_traits<Key, void> {
     using mapped_type = void;
     static constexpr bool is_map = false;
     using value_type = key_type;
+
+    template <typename... Args>
+    using inplace_key_extractor = btree_detail::inplace_key_extract_set<Key, Args...>;
 
     WJR_INTRINSIC_INLINE static const key_type &get_key(const value_type &value) noexcept {
         return value;
@@ -511,40 +552,16 @@ private:
         return i;
     }
 
-    template <typename Compare>
-    WJR_INTRINSIC_INLINE static unsigned int search_4_impl(unsigned int size,
-                                                           const Compare &comp) noexcept {
-        unsigned int i = 1;
-        do {
-            if (comp(i)) {
-                if (comp(i - 1)) {
-                    return i - 1;
-                }
-                return i;
-            }
-
-            i += 2;
-        } while (WJR_LIKELY(size > i));
-        if (size != i || comp(i - 1)) {
-            return i - 1;
-        }
-        return i;
-    }
-
 public:
     template <size_t Min, typename Compare>
     WJR_INTRINSIC_INLINE static unsigned int search(unsigned int size,
                                                     const Compare &comp) noexcept {
-        static_assert(Min == 1 || Min == 4);
+        static_assert(Min == 1);
 
         WJR_ASSERT_ASSUME(size >= Min);
         WJR_ASSERT_ASSUME(size <= node_size);
 
-        if constexpr (Min == 1) {
-            return search_1_impl(size, comp);
-        } else {
-            return search_4_impl(size, comp);
-        }
+        return search_1_impl(size, comp);
     }
 };
 
@@ -725,16 +742,30 @@ protected:
 
     template <typename... Args>
     std::pair<iterator, bool> __emplace_unique(Args &&...args) noexcept {
-        auto *const xval = __create_node(std::forward<Args>(args)...);
-        const auto &key = Traits::get_key(*xval);
-        const const_iterator iter = __get_insert_multi_pos(key);
-        const auto pos = iter.pos();
-        if (WJR_LIKELY(pos == 0 || key_comp()(iter.get_leaf()->__get_key(pos - 1), key))) {
-            return {__insert_iter(iter, xval), true};
-        }
+        using inplace_key_extractor =
+            typename Traits::template inplace_key_extractor<remove_cvref_t<Args>...>;
+        if constexpr (inplace_key_extractor::extractable) {
+            const auto &key = inplace_key_extractor::extract(std::forward<Args>(args)...);
+            const_iterator iter = __get_insert_multi_pos(key);
+            const auto pos = iter.pos();
+            if (WJR_LIKELY(pos == 0 || key_comp()(iter.get_leaf()->__get_key(pos - 1), key))) {
+                auto *const xval = __create_node(std::forward<Args>(args)...);
+                return {__insert_iter(iter, xval), true};
+            }
 
-        __drop_node(xval);
-        return {iterator(iter).__adjust_next(), false};
+            return {iterator(iter).__adjust_next(), false};
+        } else {
+            auto *const xval = __create_node(std::forward<Args>(args)...);
+            const auto &key = Traits::get_key(*xval);
+            const const_iterator iter = __get_insert_multi_pos(key);
+            const auto pos = iter.pos();
+            if (WJR_LIKELY(pos == 0 || key_comp()(iter.get_leaf()->__get_key(pos - 1), key))) {
+                return {__insert_iter(iter, xval), true};
+            }
+
+            __drop_node(xval);
+            return {iterator(iter).__adjust_next(), false};
+        }
     }
 
     iterator __insert_multi(const value_type &val) noexcept { return __emplace_multi(val); }

@@ -176,9 +176,9 @@ public:
     constexpr hlist_node *front() noexcept { return this->m_next; }
     constexpr const hlist_node *front() const noexcept { return this->m_next; }
 
-    constexpr iterator begin() noexcept { return iterator(m_next()); }
-    constexpr const_iterator begin() const noexcept { return const_iterator(m_next()); }
-    constexpr const_iterator cbegin() const noexcept { return const_iterator(m_next()); }
+    constexpr iterator begin() noexcept { return iterator(next()); }
+    constexpr const_iterator begin() const noexcept { return const_iterator(next()); }
+    constexpr const_iterator cbegin() const noexcept { return const_iterator(next()); }
 
     constexpr iterator end() noexcept { return iterator(nullptr); }
     constexpr const_iterator end() const noexcept { return const_iterator(nullptr); }
