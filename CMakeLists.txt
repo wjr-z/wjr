@@ -24,19 +24,6 @@ option(WJR_DEBUG_LEVEL_DEBUG "Debug level in debug version(default = 3)." 3)
 #
 add_subdirectory(third-party/cpu_features)
 add_subdirectory(third-party/fmt)
-add_subdirectory(third-party/boost/assert)
-add_subdirectory(third-party/boost/config)
-add_subdirectory(third-party/boost/core)
-add_subdirectory(third-party/boost/mp11)
-add_subdirectory(third-party/boost/static_assert)
-add_subdirectory(third-party/boost/type_traits)
-add_subdirectory(third-party/boost/integer)
-add_subdirectory(third-party/boost/throw_exception)
-add_subdirectory(third-party/boost/winapi)
-add_subdirectory(third-party/boost/pool)
-add_subdirectory(third-party/boost/predef)
-add_subdirectory(third-party/boost/smart_ptr)
-add_subdirectory(third-party/boost/context)
 
 #
 # initialize flags
@@ -249,7 +236,7 @@ list(APPEND WJR_LIBS ${WJR_SRCS})
 
 add_library(wjr STATIC ${WJR_LIBS})
 setup_cpp_include_and_definitions(wjr)
-target_link_libraries(wjr PUBLIC fmt::fmt Boost::context PRIVATE CpuFeatures::cpu_features)
+target_link_libraries(wjr PUBLIC fmt::fmt PRIVATE CpuFeatures::cpu_features)
 add_library(wjr::wjr ALIAS wjr)
 
 target_precompile_headers(wjr PUBLIC ${WJR_PCH_COMMON})
