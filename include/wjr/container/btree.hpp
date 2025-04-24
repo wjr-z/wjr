@@ -35,22 +35,10 @@
 #include <wjr/container/forward_list.hpp>
 #include <wjr/container/list.hpp>
 #include <wjr/memory/copy.hpp>
-#include <wjr/memory/small_pointer_copy.hpp>
+#include <wjr/memory/small_copy.hpp>
 #include <wjr/memory/uninitialized.hpp>
 
 namespace wjr {
-
-template <typename Traits>
-struct btree_node;
-
-template <typename Traits>
-struct btree_inner_node;
-
-template <typename Traits>
-struct btree_leaf_node;
-
-template <typename Traits>
-struct btree_root_node;
 
 namespace btree_detail {
 
@@ -60,8 +48,8 @@ namespace btree_detail {
  */
 inline constexpr size_t node_size = 8;
 
-template <size_t Min, size_t Max, typename Ptr>
-WJR_INTRINSIC_INLINE void copy(const Ptr *first, const Ptr *last, Ptr *dest) noexcept {
+template <size_t Min, size_t Max, typename T>
+WJR_INTRINSIC_INLINE void copy(const T *first, const T *last, T *dest) noexcept {
     if constexpr (Max <= 2) {
         static_assert(Max >= 1);
 
@@ -83,12 +71,12 @@ WJR_INTRINSIC_INLINE void copy(const Ptr *first, const Ptr *last, Ptr *dest) noe
             dest[1] = first[1];
         }
     } else {
-        small_pointer_copy<Min, Max>(first, last, dest);
+        small_copy<Min, Max>(first, last, dest);
     }
 }
 
-template <size_t Min, size_t Max, typename Ptr>
-WJR_INTRINSIC_INLINE void copy_backward(const Ptr *first, const Ptr *last, Ptr *dest) noexcept {
+template <size_t Min, size_t Max, typename T>
+WJR_INTRINSIC_INLINE void copy_backward(const T *first, const T *last, T *dest) noexcept {
     if constexpr (Max <= 2) {
         if constexpr (Min == 0) {
             if (first == last) {
@@ -108,7 +96,7 @@ WJR_INTRINSIC_INLINE void copy_backward(const Ptr *first, const Ptr *last, Ptr *
             dest[-2] = last[-2];
         }
     } else {
-        small_pointer_copy<Min, Max>(first, last, dest - (last - first));
+        small_copy<Min, Max>(first, last, dest - (last - first));
     }
 }
 
@@ -146,7 +134,32 @@ struct inplace_key_extract_set<Key, Key> {
     static const Key &extract(const Key &Val) noexcept { return Val; }
 };
 
+template <typename Key, typename = void>
+struct __is_inline_key {
+    static constexpr bool value = false;
+};
+
+template <typename Key>
+struct __is_inline_key<Key, std::enable_if_t<is_complete_v<Key>>> {
+    static constexpr bool value = std::is_trivial_v<Key> && sizeof(Key) <= 8;
+};
+
+template <typename Key>
+inline constexpr bool __is_inline_key_v = __is_inline_key<Key>::value;
+
 } // namespace btree_detail
+
+template <typename Traits>
+struct btree_node;
+
+template <typename Traits, bool Inline>
+struct btree_inner_node;
+
+template <typename Traits>
+struct btree_leaf_node;
+
+template <typename Traits>
+struct btree_root_node;
 
 template <typename Key, typename Value>
 struct __btree_inline_traits {
@@ -197,10 +210,12 @@ public:
     using value_type = typename Mybase::value_type;
     using key_compare = Compare;
 
+    static constexpr bool inline_key = btree_detail::__is_inline_key_v<key_type>;
+
     static constexpr bool is_map = Mybase::is_map;
 
     using node_type = btree_node<btree_traits>;
-    using inner_node_type = btree_inner_node<btree_traits>;
+    using inner_node_type = btree_inner_node<btree_traits, inline_key>;
     using leaf_node_type = btree_leaf_node<btree_traits>;
     static constexpr bool multi = Multi;
 };
@@ -247,12 +262,33 @@ public:
     btree_node *m_parent;
 };
 
-template <typename Traits>
+template <typename Traits, bool Inline = false>
 struct btree_inner_node : btree_node<Traits> {
     using key_type = typename Traits::key_type;
     using value_type = typename Traits::value_type;
 
+    using ikey_type = const key_type *;
+
+    static key_type &from_ikey(ikey_type &key) { return *key; }
+    static const key_type &from_ikey(const ikey_type &key) { return *key; }
+    static ikey_type to_ikey(const key_type &key) { return std::addressof(key); }
+
     alignas(16) const key_type *m_keys[btree_detail::node_size];
+    alignas(16) btree_node<Traits> *m_sons[btree_detail::node_size + 1];
+};
+
+template <typename Traits>
+struct btree_inner_node<Traits, true> : btree_node<Traits> {
+    using key_type = typename Traits::key_type;
+    using value_type = typename Traits::value_type;
+
+    using ikey_type = key_type;
+
+    static key_type &from_ikey(ikey_type &key) { return key; }
+    static const key_type &from_ikey(const ikey_type &key) { return key; }
+    static ikey_type to_ikey(const key_type &key) { return key; }
+
+    alignas(16) key_type m_keys[btree_detail::node_size];
     alignas(16) btree_node<Traits> *m_sons[btree_detail::node_size + 1];
 };
 
@@ -536,20 +572,16 @@ private:
     WJR_INTRINSIC_INLINE static unsigned int search_1_impl(unsigned int size,
                                                            const Compare &comp) noexcept {
         unsigned int i = 1;
-        while (WJR_LIKELY(size > i)) {
+        while (WJR_LIKELY(i < size)) {
             if (comp(i)) {
-                if (comp(i - 1)) {
-                    return i - 1;
-                }
-                return i;
+                // prop : 50%
+                return i - (int)comp(i - 1);
             }
 
             i += 2;
         }
-        if (size != i || comp(i - 1)) {
-            return i - 1;
-        }
-        return i;
+
+        return i - (int)(size != i || comp(i - 1));
     }
 
 public:
@@ -583,6 +615,7 @@ class basic_btree {
     using inner_node_type = typename Traits::inner_node_type;
     using leaf_node_type = typename Traits::leaf_node_type;
     using list_node_type = intrusive::list_node<leaf_node_type>;
+    using ikey_type = typename inner_node_type::ikey_type;
 
 public:
     using key_type = typename Traits::key_type;
@@ -601,8 +634,16 @@ public:
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
+private:
     static_assert(node_size == 8, "node_size must be equal to 8.");
 
+    static key_type &from_ikey(ikey_type &key) { return inner_node_type::from_ikey(key); }
+    static const key_type &from_ikey(const ikey_type &key) {
+        return inner_node_type::from_ikey(key);
+    }
+    static ikey_type to_ikey(const key_type &key) { return inner_node_type::to_ikey(key); }
+
+public:
     basic_btree() noexcept : basic_btree(key_compare()) {}
 
     explicit basic_btree(const key_compare &comp) noexcept(
@@ -846,7 +887,7 @@ private:
         other.__get_sentry()->init_self();
     }
 
-    std::pair<const key_type *, node_type *> __rec_copy_tree(const node_type *current) noexcept {
+    std::pair<ikey_type, node_type *> __rec_copy_tree(const node_type *current) noexcept {
         int cur_size = current->size();
 
         if (cur_size < 0) {
@@ -860,12 +901,12 @@ private:
             }
 
             __get_sentry()->push_back(this_leaf);
-            return {std::addressof(this_leaf->__get_key(0)), this_leaf};
+            return {to_ikey(this_leaf->__get_key(0)), this_leaf};
         }
 
         auto *const this_inner = __create_inner_node();
         this_inner->size() = cur_size;
-        const key_type *Key;
+        ikey_type Key;
         const unsigned int cur_usize = cur_size;
 
         for (unsigned i = 0; i <= cur_usize; ++i) {
@@ -990,6 +1031,15 @@ private:
         return m_pair.second().first();
     }
 
+    void __destroy() noexcept {
+        // do nothing
+        WJR_UNREACHABLE();
+    }
+
+    void __move_element(basic_btree &&) noexcept { // do nothing
+        WJR_UNREACHABLE();
+    }
+
     // member function for container_fn (END)
 
     WJR_NODISCARD WJR_NOINLINE WJR_HOT WJR_FLATTEN iterator
@@ -1069,7 +1119,7 @@ private:
         {
             node_type *current = leaf;
             node_type *parent = current->m_parent;
-            const key_type *key = std::addressof(inst->as_leaf()->__get_key(0));
+            ikey_type key = to_ikey(inst->as_leaf()->__get_key(0));
 
             while (parent != nullptr) {
                 inst->m_parent = parent;
@@ -1078,7 +1128,7 @@ private:
                 auto *const inner = current->as_inner();
 
                 unsigned int cur_size = inner->size() + 1;
-                const key_type **const keys = inner->m_keys;
+                auto *const keys = inner->m_keys;
                 node_type **const sons = inner->m_sons;
 
                 // non-full inner
@@ -1107,7 +1157,7 @@ private:
                 inner->size() = (int)(ceil_half);
                 tmp_inst->size() = (int)(floor_half);
 
-                const key_type *next_key;
+                ikey_type next_key;
 
                 if (pos <= ceil_half) {
                     next_key = keys[ceil_half - 1];
@@ -1241,7 +1291,7 @@ private:
                                                       const key_compare &comp) noexcept {
         return basic_btree_searcher_impl<node_size>::template search<Min>(
             size, [current, &key, &comp](unsigned int pos) {
-                return __compare<Upper>(*current->m_keys[pos], key, comp);
+                return __compare<Upper>(from_ikey(current->m_keys[pos]), key, comp);
             });
     }
 
@@ -1330,7 +1380,7 @@ private:
 
             const auto inner = current->as_inner();
 
-            const key_type **const keys = inner->m_keys;
+            auto *const keys = inner->m_keys;
             node_type **const sons = inner->m_sons;
 
             if (cur_size > floor_half) {
@@ -1381,7 +1431,7 @@ private:
 
                     const unsigned int moved_elements = (next_size - floor_half + 1) / 2;
 
-                    const key_type *key = lhs->m_keys[next_size - moved_elements];
+                    ikey_type key = lhs->m_keys[next_size - moved_elements];
 
                     if (moved_elements != 1) {
                         btree_detail::copy_backward<0, floor_half - 1>(
@@ -1451,7 +1501,7 @@ private:
 
                     const unsigned int moved_elements = (next_size - floor_half + 1) / 2;
 
-                    const key_type *key = rhs->m_keys[moved_elements - 1];
+                    ikey_type key = rhs->m_keys[moved_elements - 1];
 
                     btree_detail::copy<0, floor_half - 1>(keys + pos, keys + floor_half,
                                                           keys + pos - 1);

@@ -774,6 +774,20 @@ constexpr std::array<std::remove_cv_t<T>, N> to_array(T (&a)[N]) {
     return detail::to_array_impl(a, std::make_index_sequence<N>{});
 }
 
+template <typename T>
+struct is_complete_helper {
+    template <typename U>
+    static auto test(U *) -> std::integral_constant<bool, sizeof(U) == sizeof(U)>;
+    static auto test(...) -> std::false_type;
+    using type = decltype(test((T *)0));
+};
+
+template <typename T>
+struct is_complete : is_complete_helper<T>::type {};
+
+template <typename T>
+inline constexpr bool is_complete_v = is_complete<T>::value;
+
 } // namespace wjr
 
 #endif // ! WJR_TYPE_TRAITS_HPP__
