@@ -307,7 +307,7 @@ private:
 
     static constexpr bool __use_memcpy = is_trivially_allocator_construct_v<Alloc, T, T &&> &&
                                          std::is_trivially_copyable_v<Data> &&
-                                         (Capacity == 1 || sizeof(Data) <= 64);
+                                         (Capacity == 1 || sizeof(Data) <= 32);
 
 public:
     static constexpr bool is_trivially_relocate_v = __use_memcpy;
@@ -342,7 +342,7 @@ public:
 
         if constexpr (__use_memcpy) {
             if (other.size()) {
-                __memcpy(lhs, rhs, Capacity);
+                builtin_memcpy(lhs, rhs, Capacity);
             }
         } else {
             wjr::uninitialized_move_n_restrict_using_allocator(rhs, other_storage.m_size, lhs, al);
@@ -367,9 +367,9 @@ public:
             alignas(sizeof(T)) std::byte __tmp_storage[sizeof(T) * Capacity];
             T *tmp = reinterpret_cast<T *>(__tmp_storage);
             if constexpr (__use_memcpy) {
-                __memcpy(tmp, lhs, Capacity);
-                __memcpy(lhs, rhs, Capacity);
-                __memcpy(rhs, tmp, Capacity);
+                builtin_memcpy(tmp, lhs, Capacity);
+                builtin_memcpy(lhs, rhs, Capacity);
+                builtin_memcpy(rhs, tmp, Capacity);
             } else {
                 if (lsize > rsize) {
                     std::swap(lhs, rhs);
@@ -382,7 +382,7 @@ public:
             }
         } else if (rsize) {
             if constexpr (__use_memcpy) {
-                __memcpy(lhs, rhs, Capacity);
+                builtin_memcpy(lhs, rhs, Capacity);
             } else {
                 wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs, al);
             }
@@ -390,10 +390,11 @@ public:
             other_storage.m_size = 0;
         } else if (lsize) {
             if constexpr (__use_memcpy) {
-                __memcpy(rhs, lhs, Capacity);
+                builtin_memcpy(rhs, lhs, Capacity);
             } else {
                 wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize, rhs, al);
             }
+
             other_storage.m_size = lsize;
             m_storage.m_size = 0;
         }
@@ -409,10 +410,6 @@ public:
     }
 
 private:
-    static void __memcpy(pointer dst, const_pointer src, size_type count) noexcept {
-        std::memcpy(dst, src, count * sizeof(T));
-    }
-
     Data m_storage;
 };
 

@@ -152,10 +152,10 @@ inline constexpr bool __is_inline_key_v = __is_inline_key<Key>::value;
 template <typename Traits>
 struct btree_node;
 
-template <typename Traits, bool Inline>
+template <typename Traits, bool Inline = false>
 struct btree_inner_node;
 
-template <typename Traits>
+template <typename Traits, bool Inline = false>
 struct btree_leaf_node;
 
 template <typename Traits>
@@ -211,12 +211,13 @@ public:
     using key_compare = Compare;
 
     static constexpr bool inline_key = btree_detail::__is_inline_key_v<key_type>;
+    static constexpr bool inline_value = btree_detail::__is_inline_key_v<value_type>;
 
     static constexpr bool is_map = Mybase::is_map;
 
     using node_type = btree_node<btree_traits>;
     using inner_node_type = btree_inner_node<btree_traits, inline_key>;
-    using leaf_node_type = btree_leaf_node<btree_traits>;
+    using leaf_node_type = btree_leaf_node<btree_traits, inline_value>;
     static constexpr bool multi = Multi;
 };
 
@@ -262,7 +263,7 @@ public:
     btree_node *m_parent;
 };
 
-template <typename Traits, bool Inline = false>
+template <typename Traits, bool Inline>
 struct btree_inner_node : btree_node<Traits> {
     using key_type = typename Traits::key_type;
     using value_type = typename Traits::value_type;
@@ -292,15 +293,17 @@ struct btree_inner_node<Traits, true> : btree_node<Traits> {
     alignas(16) btree_node<Traits> *m_sons[btree_detail::node_size + 1];
 };
 
-template <typename Traits>
+template <typename Traits, bool Inline>
 struct alignas(16) btree_leaf_node : btree_node<Traits>,
-                                     intrusive::list_node<btree_leaf_node<Traits>> {
+                                     intrusive::list_node<btree_leaf_node<Traits, Inline>> {
 private:
     using Mybase = btree_node<Traits>;
     using key_type = typename Traits::key_type;
     using value_type = typename Traits::value_type;
 
 public:
+    using ivalue_type = value_type *;
+
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(btree_leaf_node);
 
     constexpr btree_leaf_node(btree_node_constructor_t) noexcept : Mybase(btree_node_constructor) {}
@@ -309,7 +312,7 @@ public:
         return Traits::get_key(*m_values[pos]);
     }
 
-    WJR_INTRINSIC_INLINE void __assign(unsigned int idx, value_type *value) noexcept {
+    WJR_INTRINSIC_INLINE void __assign(unsigned int idx, ivalue_type value) noexcept {
         m_values[idx] = value;
     }
 
@@ -327,6 +330,9 @@ public:
                                               dst->m_values + dst_end);
     }
 
+    static value_type &from_ivalue(ivalue_type &value) { return *value; }
+    static const value_type &from_ivalue(const ivalue_type &value) { return *value; }
+
 #if WJR_HAS_GCC(6, 0, 0)
     alignas(16) value_type *m_values[];
 #else
@@ -335,9 +341,56 @@ public:
 };
 
 template <typename Traits>
+struct alignas(16) btree_leaf_node<Traits, true>
+    : btree_node<Traits>, intrusive::list_node<btree_leaf_node<Traits, true>> {
+private:
+    using Mybase = btree_node<Traits>;
+    using key_type = typename Traits::key_type;
+    using value_type = typename Traits::value_type;
+
+public:
+    using ivalue_type = value_type;
+
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(btree_leaf_node);
+
+    constexpr btree_leaf_node(btree_node_constructor_t) noexcept : Mybase(btree_node_constructor) {}
+
+    WJR_INTRINSIC_INLINE const key_type &__get_key(unsigned int pos) const noexcept {
+        return Traits::get_key(m_values[pos]);
+    }
+
+    WJR_INTRINSIC_INLINE void __assign(unsigned int idx, ivalue_type value) noexcept {
+        m_values[idx] = value;
+    }
+
+    template <size_t Min, size_t Max>
+    WJR_INTRINSIC_INLINE void __copy(unsigned int start, unsigned int end, unsigned int dst_start,
+                                     btree_leaf_node *dst) const noexcept {
+        btree_detail::copy<Min, Max>(m_values + start, m_values + end, dst->m_values + dst_start);
+    }
+
+    template <size_t Min, size_t Max>
+    WJR_INTRINSIC_INLINE void __copy_backward(unsigned int start, unsigned int end,
+                                              unsigned int dst_end,
+                                              btree_leaf_node *dst) const noexcept {
+        btree_detail::copy_backward<Min, Max>(m_values + start, m_values + end,
+                                              dst->m_values + dst_end);
+    }
+
+    static value_type &from_ivalue(ivalue_type &value) { return value; }
+    static const value_type &from_ivalue(const ivalue_type &value) { return value; }
+
+#if WJR_HAS_GCC(6, 0, 0)
+    alignas(16) value_type m_values[];
+#else
+    alignas(16) value_type m_values[0];
+#endif
+};
+
+template <typename Traits>
 struct btree_root_node {
 private:
-    using Mybase = btree_leaf_node<Traits>;
+    using Mybase = typename Traits::leaf_node_type;
 
 public:
     using key_type = typename Traits::key_type;
@@ -430,7 +483,9 @@ protected:
         : btree_const_iterator(static_cast<const leaf_node_type *>(list_node), pos) {}
 
 public:
-    reference operator*() const noexcept { return *m_leaf->m_values[m_pos]; }
+    reference operator*() const noexcept {
+        return leaf_node_type::from_ivalue(m_leaf->m_values[m_pos]);
+    }
     pointer operator->() const noexcept { return std::addressof(this->operator*()); }
 
     btree_const_iterator &operator++() noexcept {
@@ -616,6 +671,7 @@ class basic_btree {
     using leaf_node_type = typename Traits::leaf_node_type;
     using list_node_type = intrusive::list_node<leaf_node_type>;
     using ikey_type = typename inner_node_type::ikey_type;
+    using ivalue_type = typename leaf_node_type::ivalue_type;
 
 public:
     using key_type = typename Traits::key_type;
@@ -642,6 +698,13 @@ private:
         return inner_node_type::from_ikey(key);
     }
     static ikey_type to_ikey(const key_type &key) { return inner_node_type::to_ikey(key); }
+
+    static value_type &from_ivalue(ivalue_type &value) {
+        return leaf_node_type::from_ivalue(value);
+    }
+    static const value_type &from_ivalue(const ivalue_type &value) {
+        return leaf_node_type::from_ivalue(value);
+    }
 
 public:
     basic_btree() noexcept : basic_btree(key_compare()) {}
@@ -742,11 +805,17 @@ protected:
     }
 
     template <typename... Args>
-    value_type *__create_node(Args &&...args) noexcept {
+    ivalue_type __create_node(Args &&...args) noexcept {
+        ivalue_type node;
         auto &al = __get_allocator();
-        auto *const node =
-            reinterpret_cast<value_type *>(_Alty_traits::allocate(al, sizeof(value_type)));
-        uninitialized_construct_using_allocator(node, al, std::forward<Args>(args)...);
+        if constexpr (Traits::inline_value) {
+            uninitialized_construct_using_allocator(std::addressof(node), al,
+                                                    std::forward<Args>(args)...);
+        } else {
+            node = reinterpret_cast<value_type *>(_Alty_traits::allocate(al, sizeof(value_type)));
+            uninitialized_construct_using_allocator(node, al, std::forward<Args>(args)...);
+        }
+
         return node;
     }
 
@@ -764,10 +833,14 @@ protected:
                                      sizeof(value_type *) * btree_detail::node_size);
     }
 
-    void __drop_node(value_type *node) noexcept {
+    void __drop_node(ivalue_type node) noexcept {
         auto &al = __get_allocator();
-        destroy_at_using_allocator(std::addressof(node), al);
-        _Alty_traits::deallocate(al, reinterpret_cast<char *>(node), sizeof(value_type));
+        if constexpr (Traits::inline_value) {
+            destroy_at_using_allocator(std::addressof(node), al);
+        } else {
+            destroy_at_using_allocator(std::addressof(node), al);
+            _Alty_traits::deallocate(al, reinterpret_cast<char *>(node), sizeof(value_type));
+        }
     }
 
     WJR_INTRINSIC_INLINE const_iterator __get_insert_multi_pos(const key_type &key) const noexcept {
@@ -776,7 +849,7 @@ protected:
 
     template <typename... Args>
     iterator __emplace_multi(Args &&...args) noexcept {
-        auto *const xval = __create_node(std::forward<Args>(args)...);
+        ivalue_type xval = __create_node(std::forward<Args>(args)...);
         const auto iter = __get_insert_multi_pos(Traits::get_key(*xval));
         return __insert_iter(iter, xval);
     }
@@ -790,14 +863,14 @@ protected:
             const_iterator iter = __get_insert_multi_pos(key);
             const auto pos = iter.pos();
             if (WJR_LIKELY(pos == 0 || key_comp()(iter.get_leaf()->__get_key(pos - 1), key))) {
-                auto *const xval = __create_node(std::forward<Args>(args)...);
+                ivalue_type xval = __create_node(std::forward<Args>(args)...);
                 return {__insert_iter(iter, xval), true};
             }
 
             return {iterator(iter).__adjust_next(), false};
         } else {
-            auto *const xval = __create_node(std::forward<Args>(args)...);
-            const auto &key = Traits::get_key(*xval);
+            ivalue_type xval = __create_node(std::forward<Args>(args)...);
+            const auto &key = Traits::get_key(from_ivalue(xval));
             const const_iterator iter = __get_insert_multi_pos(key);
             const auto pos = iter.pos();
             if (WJR_LIKELY(pos == 0 || key_comp()(iter.get_leaf()->__get_key(pos - 1), key))) {
@@ -897,7 +970,7 @@ private:
             auto *const this_leaf = __create_leaf_node();
             this_leaf->size() = cur_size;
             for (unsigned i = 0; i < cur_usize; ++i) {
-                this_leaf->__assign(i, __create_node(*leaf->m_values[i]));
+                this_leaf->__assign(i, __create_node(from_ivalue(leaf->m_values[i])));
             }
 
             __get_sentry()->push_back(this_leaf);
@@ -933,7 +1006,8 @@ private:
         __get_size() = size;
         if (WJR_UNLIKELY(current == nullptr)) {
             for (unsigned int i = 0; i < size; ++i) {
-                __get_base()->__assign(i, __create_node(*other.__get_base()->m_values[i]));
+                __get_base()->__assign(i,
+                                       __create_node(from_ivalue(other.__get_base()->m_values[i])));
             }
             return;
         }
@@ -1043,7 +1117,7 @@ private:
     // member function for container_fn (END)
 
     WJR_NODISCARD WJR_NOINLINE WJR_HOT WJR_FLATTEN iterator
-    __insert_iter(const_iterator iter, value_type *xval) noexcept {
+    __insert_iter(const_iterator iter, ivalue_type xval) noexcept {
         ++__get_size();
         unsigned int pos = iter.pos();
         leaf_node_type *leaf;
@@ -1581,7 +1655,7 @@ private:
         unsigned int cur_size = -leaf->size();
         node_type *parent = leaf->m_parent;
 
-        __drop_node(leaf->m_values[pos]);
+        __drop_node(std::addressof(from_ivalue(leaf->m_values[pos])));
 
         if (WJR_LIKELY(cur_size > floor_half)) {
             leaf->template __copy<0, node_size - 1>(pos + 1, cur_size, pos, leaf);

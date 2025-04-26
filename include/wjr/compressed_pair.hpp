@@ -570,28 +570,28 @@ public:
         return static_cast<const std::tuple_element_t<I, compressed_pair> &&>(get());
     }
 
-    template <size_t I, WJR_REQUIRES(I >= 0 && I < 2)>
+    template <typename Z, Z I>
     constexpr std::tuple_element_t<I, compressed_pair> &
-    operator[](integral_constant<size_t, I>) & noexcept {
+    operator[](integral_constant<Z, I>) & noexcept {
         return get<I>();
     }
 
-    template <size_t I, WJR_REQUIRES(I >= 0 && I < 2)>
+    template <typename Z, Z I>
     constexpr const std::tuple_element_t<I, compressed_pair> &
-    operator[](integral_constant<size_t, I>) const & noexcept {
+    operator[](integral_constant<Z, I>) const & noexcept {
         return get<I>();
     }
 
-    template <size_t I, WJR_REQUIRES(I >= 0 && I < 2)>
+    template <typename Z, Z I>
     constexpr std::tuple_element_t<I, compressed_pair> &&
-    operator[](integral_constant<size_t, I>) && noexcept {
-        return static_cast<std::tuple_element_t<I, compressed_pair> &&>(get<I>());
+    operator[](integral_constant<Z, I>) && noexcept {
+        return std::move(*this).template get<I>();
     }
 
-    template <size_t I, WJR_REQUIRES(I >= 0 && I < 2)>
+    template <typename Z, Z I>
     constexpr const std::tuple_element_t<I, compressed_pair> &&
-    operator[](integral_constant<size_t, I>) const && noexcept {
-        return static_cast<const std::tuple_element_t<I, compressed_pair> &&>(get<I>());
+    operator[](integral_constant<Z, I>) const && noexcept {
+        return std::move(*this).template get<I>();
     }
 };
 
