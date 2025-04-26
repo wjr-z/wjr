@@ -78,13 +78,8 @@ WJR_INTRINSIC_INLINE void small_copy(T const *first, T const *last, T *dst) noex
     static_assert(Max > 2 && Max <= 8);
     constexpr size_t Size = sizeof(T) * 8;
 
-#if WJR_HAS_BUILTIN(SMALL_COPY) && 0
-    builtin_small_copy<Min, Max>((const void *const *)(first), (const void *const *)(last),
-                                 (const void **)(dst));
-#else
     fallback_small_copy<Size, Min, Max>((const uint_t<Size> *)(first), (const uint_t<Size> *)(last),
                                         (uint_t<Size> *)(dst));
-#endif
 }
 } // namespace wjr
 
