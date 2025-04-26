@@ -968,7 +968,7 @@ private:
     }
 
     template <typename TV>
-    std::pair<ikey_type, node_type *> __rec_assign_tree(const node_type *current) noexcept {
+    std::pair<ikey_type, node_type *> __rec_assign_tree(node_type *current) noexcept {
         int cur_size = current->size();
 
         if (cur_size < 0) {
@@ -1008,9 +1008,9 @@ private:
         return {Key, this_inner};
     }
 
-    template <typename TV>
-    void __assign_tree(const basic_btree &other) noexcept {
-        const node_type *current = other.__get_root();
+    template <typename TV, typename BT>
+    void __assign_tree(BT &&other) noexcept {
+        node_type *current = const_cast<node_type *>(other.__get_root());
         __get_sentry()->init_self();
         unsigned int size = other.__get_size();
         __get_size() = size;
@@ -1019,6 +1019,7 @@ private:
                 __get_base()->__assign(i, __create_node(static_cast<TV>(
                                               from_ivalue(other.__get_base()->m_values[i]))));
             }
+
             return;
         }
 
@@ -1031,8 +1032,8 @@ private:
         __assign_tree<const value_type &>(other);
     }
 
-    void __move_assign_tree(const basic_btree &other) noexcept {
-        __assign_tree<value_type &&>(other);
+    void __move_assign_tree(basic_btree &&other) noexcept {
+        __assign_tree<value_type &&>(std::move(other));
     }
 
     // member function for container_fn (START)
@@ -1058,7 +1059,7 @@ private:
 
     void __destroy_and_move_element(basic_btree &&other) noexcept { // do nothing
         clear();
-        __move_assign_tree(other);
+        __move_assign_tree(std::move(other));
     }
 
     // member function for container_fn (END)

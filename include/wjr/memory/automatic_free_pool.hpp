@@ -29,7 +29,13 @@ struct automatic_free_pool {
         other.head.init_self();
     }
     automatic_free_pool &operator=(const automatic_free_pool &) = delete;
-    automatic_free_pool &operator=(automatic_free_pool &&) = delete;
+    automatic_free_pool &operator=(automatic_free_pool &&other) {
+        chunk *node, *next;
+        WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) { free(node); }
+        replace(&other.head, &head);
+        other.head.init_self();
+        return *this;
+    }
 
     WJR_MALLOC void *allocate(size_t n) {
         auto *const raw = malloc(n + aligned_header_size);

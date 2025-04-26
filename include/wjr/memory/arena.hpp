@@ -13,11 +13,9 @@ public:
     arena(size_t cache = default_cache_size) : m_cache(cache) {}
 
     arena(const arena &) = delete;
-    arena(arena &&other)
-        : m_start(other.m_start), m_end(other.m_end), m_cache(other.m_cache),
-          m_pool(std::move(other.m_pool)) {}
+    arena(arena &&other) = default;
     arena &operator=(const arena &) = delete;
-    arena &operator=(arena &&) = delete;
+    arena &operator=(arena &&other) = default;
 
     WJR_MALLOC void *allocate(size_t n) noexcept {
         if (WJR_UNLIKELY(to_unsigned(m_end - m_start) < n)) {

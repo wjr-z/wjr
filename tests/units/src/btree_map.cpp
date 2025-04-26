@@ -138,6 +138,19 @@ TEST(btree_map, search) {
                         WJR_CHECK(iter2 != std_map.end());
                         WJR_CHECK(*iter == *iter2);
                     }
+
+                    for (auto &[key, value] : vec) {
+                        auto iter = map.upper_bound(key);
+                        auto iter2 = std_map.upper_bound(key);
+
+                        if (iter == map.end()) {
+                            WJR_CHECK(iter2 == std_map.end());
+                            continue;
+                        }
+
+                        WJR_CHECK(iter2 != std_map.end());
+                        WJR_CHECK(*iter == *iter2);
+                    }
                 }
             }
         };
