@@ -1085,7 +1085,9 @@ public:
 
     WJR_CONSTEXPR20 void
     swap(basic_vector &other) noexcept(noexcept(storage_fn_type::swap(*this, other))) {
-        storage_fn_type::swap(*this, other);
+        if (WJR_LIKELY(this != std::addressof(other))) {
+            storage_fn_type::swap(*this, other);
+        }
     }
 
     WJR_CONSTEXPR20 void clear() noexcept {

@@ -159,3 +159,46 @@ TEST(btree_map, search) {
         test(std::string(), std::string());
     }
 }
+
+TEST(btree_map, swap) {
+    {
+        auto test = [](auto key, auto value) {
+            using key_type = remove_cvref_t<decltype(key)>;
+            using value_type = remove_cvref_t<decltype(value)>;
+
+            for (int n = 0; n < 256; n = (n << 1) | 1) {
+                vector<std::pair<key_type, value_type>> vec;
+                for (int i = 0; i < n; ++i) {
+                    vec.emplace_back(trandom<key_type>(), trandom<value_type>());
+                }
+
+                btree_map<key_type, value_type> map(vec.begin(), vec.end());
+                std::map<key_type, value_type> std_map(vec.begin(), vec.end());
+
+                for (int m = 0; m < 256; m = (m << 1 | 1)) {
+                    vector<std::pair<key_type, value_type>> vec2;
+
+                    for (int i = 0; i < m; ++i) {
+                        vec2.emplace_back(trandom<key_type>(), trandom<value_type>());
+                    }
+
+                    btree_map<key_type, value_type> map2(vec2.begin(), vec2.end());
+                    std::map<key_type, value_type> std_map2(vec2.begin(), vec2.end());
+
+                    map.swap(map2);
+
+                    WJR_CHECK(std::equal(map.begin(), map.end(), std_map2.begin(), std_map2.end()));
+                    WJR_CHECK(std::equal(map2.begin(), map2.end(), std_map.begin(), std_map.end()));
+
+                    map.swap(map2);
+
+                    WJR_CHECK(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
+                    WJR_CHECK(std::equal(map2.begin(), map2.end(), std_map2.begin(), std_map2.end()));
+                }
+            }
+        };
+
+        test(int(0), int(0));
+        test(std::string(), std::string());
+    }
+}

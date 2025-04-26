@@ -28,6 +28,7 @@ struct automatic_free_pool {
         replace(&other.head, &head);
         other.head.init_self();
     }
+
     automatic_free_pool &operator=(const automatic_free_pool &) = delete;
     automatic_free_pool &operator=(automatic_free_pool &&other) {
         chunk *node, *next;

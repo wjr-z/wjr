@@ -214,6 +214,9 @@ public:
     static constexpr bool is_inline_key = btree_detail::__is_inline_key_v<key_type>;
     static constexpr bool is_inline_value = btree_detail::__is_inline_key_v<value_type>;
 
+    using ikey_type = std::conditional_t<is_inline_key, key_type, const key_type *>;
+    using ivalue_type = std::conditional_t<is_inline_value, value_type, value_type *>;
+
     static constexpr bool is_map = Mybase::is_map;
 
     using node_type = btree_node<btree_traits>;
@@ -335,9 +338,9 @@ public:
     static const value_type &from_ivalue(const ivalue_type &value) { return *value; }
 
 #if WJR_HAS_GCC(6, 0, 0)
-    alignas(16) value_type *m_values[];
+    alignas(16) ivalue_type m_values[];
 #else
-    alignas(16) value_type *m_values[0];
+    alignas(16) ivalue_type m_values[0];
 #endif
 };
 
@@ -382,9 +385,9 @@ public:
     static const value_type &from_ivalue(const ivalue_type &value) { return value; }
 
 #if WJR_HAS_GCC(6, 0, 0)
-    alignas(16) value_type m_values[];
+    alignas(16) ivalue_type m_values[];
 #else
-    alignas(16) value_type m_values[0];
+    alignas(16) ivalue_type m_values[0];
 #endif
 };
 
@@ -420,7 +423,7 @@ public:
 
     union {
         Mybase m_base;
-        char m_buffer[sizeof(Mybase) + sizeof(value_type *) * 2];
+        char m_buffer[sizeof(Mybase) + sizeof(Traits::ivalue_type) * 2];
     };
 
     /** @todo static_assert of offsetof */
@@ -671,8 +674,8 @@ class basic_btree {
     using inner_node_type = typename Traits::inner_node_type;
     using leaf_node_type = typename Traits::leaf_node_type;
     using list_node_type = intrusive::list_node<leaf_node_type>;
-    using ikey_type = typename inner_node_type::ikey_type;
-    using ivalue_type = typename leaf_node_type::ivalue_type;
+    using ikey_type = typename Traits::ikey_type;
+    using ivalue_type = typename Traits::ivalue_type;
 
 public:
     using key_type = typename Traits::key_type;
@@ -784,6 +787,12 @@ public:
         __destroy_and_deallocate();
         __get_root() = nullptr;
         __get_size() = 0;
+    }
+
+    void swap(basic_btree &other) {
+        if (WJR_LIKELY(this != std::addressof(other))) {
+            storage_fn_type::swap(*this, other);
+        }
     }
 
 protected:
@@ -952,12 +961,8 @@ private:
         if (WJR_UNLIKELY(root == nullptr)) {
             __get_sentry()->init_self();
             auto &size = other.__get_size();
-            if (size == 0) {
-                // do nothing
-            } else {
-                other.__get_base()->template __copy<1, 2>(0, size, 0, __get_base());
-                __get_size() = std::exchange(size, 0);
-            }
+            other.__get_base()->template __copy<0, 2>(0, size, 0, __get_base());
+            __get_size() = std::exchange(size, 0);
             return;
         }
 
@@ -965,6 +970,44 @@ private:
         __get_size() = std::exchange(other.__get_size(), 0);
         replace(other.__get_sentry(), __get_sentry());
         other.__get_sentry()->init_self();
+    }
+
+    void __swap_small_impl(basic_btree &other) noexcept {
+        // this is small, other is not small
+        __get_base()->template __copy<0, 2>(0, size(), 0, other.__get_base());
+        std::swap(__get_root(), other.__get_root());
+        std::swap(__get_size(), other.__get_size());
+        replace(other.__get_sentry(), __get_sentry());
+        other.__get_sentry()->init_self();
+    }
+
+    void __swap_tree(basic_btree &other) noexcept {
+        if (__get_root() == nullptr) {
+            if (other.__get_root() == nullptr) {
+                alignas(sizeof(ivalue_type)) std::byte __tmp_storage[sizeof(ivalue_type) * 2];
+                auto *__tmp_ptr = reinterpret_cast<ivalue_type *>(__tmp_storage);
+
+                auto *lhs = __get_base();
+                auto *rhs = other.__get_base();
+                btree_detail::copy<0, 2>(lhs->m_values, lhs->m_values + size(), __tmp_ptr);
+                btree_detail::copy<0, 2>(rhs->m_values, rhs->m_values + other.size(),
+                                         lhs->m_values);
+                btree_detail::copy<0, 2>(__tmp_ptr, __tmp_ptr + size(), rhs->m_values);
+                std::swap(__get_size(), other.__get_size());
+            } else {
+                __swap_small_impl(other);
+            }
+            return;
+        }
+
+        if (other.__get_root() == nullptr) {
+            other.__swap_small_impl(*this);
+            return;
+        }
+
+        std::swap(__get_root(), other.__get_root());
+        std::swap(__get_size(), other.__get_size());
+        swap_with(__get_sentry(), other.__get_sentry());
     }
 
     template <typename TV>
@@ -1060,6 +1103,11 @@ private:
     void __destroy_and_move_element(basic_btree &&other) noexcept { // do nothing
         clear();
         __move_assign_tree(std::move(other));
+    }
+
+    void __swap_storage(basic_btree &other) noexcept {
+        std::swap(key_comp(), other.key_comp());
+        __swap_tree(other);
     }
 
     // member function for container_fn (END)

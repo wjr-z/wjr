@@ -127,10 +127,10 @@ class list_node_base {
 public:
     constexpr list_node_base() noexcept : m_next(this), m_prev(this) {}
     list_node_base(default_construct_t) noexcept {}
-    list_node_base(const list_node_base &) = default;
-    list_node_base(list_node_base &&) = default;
-    list_node_base &operator=(const list_node_base &) = default;
-    list_node_base &operator=(list_node_base &&) = default;
+    list_node_base(const list_node_base &) = delete;
+    list_node_base(list_node_base &&) = delete;
+    list_node_base &operator=(const list_node_base &) = delete;
+    list_node_base &operator=(list_node_base &&) = delete;
     ~list_node_base() = default;
 
     constexpr void init_self() noexcept { m_next = m_prev = this; }
@@ -160,6 +160,13 @@ public:
         from->m_prev->m_next = to;
     }
 
+    friend constexpr void swap_with(list_node_base *lhs, list_node_base *rhs) noexcept {
+        list_node_base tmp;
+        tmp.copy_from(lhs);
+        replace(rhs, lhs);
+        replace(&tmp, rhs);
+    }
+
     constexpr T *self() noexcept { return static_cast<T *>(this); }
     constexpr const T *self() const noexcept { return static_cast<const T *>(this); }
 
@@ -168,6 +175,11 @@ public:
 
     constexpr void set_next(list_node_base *node) { m_next = node; }
     constexpr void set_prev(list_node_base *node) { m_prev = node; }
+
+    constexpr void copy_from(list_node_base *node) {
+        m_next = node->m_next;
+        m_prev = node->m_prev;
+    }
 
 protected:
     list_node_base *m_next;
