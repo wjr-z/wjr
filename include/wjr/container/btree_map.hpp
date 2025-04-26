@@ -5,9 +5,10 @@
 
 namespace wjr {
 
-template <typename Key, typename Value, typename Pr = std::less<Key>>
-class btree_map : public basic_btree<btree_traits<Key, Value, false, Pr>> {
-    using Traits = btree_traits<Key, Value, false, Pr>;
+template <typename Key, typename Value, typename Pr = std::less<Key>,
+          typename Alloc = std::allocator<char>>
+class btree_map : public basic_btree<btree_traits<Key, Value, false, Pr, Alloc>> {
+    using Traits = btree_traits<Key, Value, false, Pr, Alloc>;
     using Mybase = basic_btree<Traits>;
 
 public:

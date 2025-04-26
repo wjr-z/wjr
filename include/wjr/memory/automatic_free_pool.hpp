@@ -24,7 +24,10 @@ struct automatic_free_pool {
     }
 
     automatic_free_pool(const automatic_free_pool &) = delete;
-    automatic_free_pool(automatic_free_pool &&) = delete;
+    automatic_free_pool(automatic_free_pool &&other) {
+        replace(&other.head, &head);
+        other.head.init_self();
+    }
     automatic_free_pool &operator=(const automatic_free_pool &) = delete;
     automatic_free_pool &operator=(automatic_free_pool &&) = delete;
 

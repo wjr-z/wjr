@@ -192,13 +192,14 @@ struct __btree_inline_traits<Key, void> {
     }
 };
 
-template <typename Key, typename Value, bool Multi, typename Compare = std::less<>>
+template <typename Key, typename Value, bool Multi, typename Compare = std::less<>,
+          typename Alloc = std::allocator<char>>
 struct btree_traits : __btree_inline_traits<Key, Value> {
 private:
     using Mybase = __btree_inline_traits<Key, Value>;
 
 public:
-    using _Alty = std::allocator<char>;
+    using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<char>;
     using _Alty_traits = std::allocator_traits<_Alty>;
     using storage_fn_type = container_fn<_Alty>;
 
@@ -210,14 +211,14 @@ public:
     using value_type = typename Mybase::value_type;
     using key_compare = Compare;
 
-    static constexpr bool inline_key = btree_detail::__is_inline_key_v<key_type>;
-    static constexpr bool inline_value = btree_detail::__is_inline_key_v<value_type>;
+    static constexpr bool is_inline_key = btree_detail::__is_inline_key_v<key_type>;
+    static constexpr bool is_inline_value = btree_detail::__is_inline_key_v<value_type>;
 
     static constexpr bool is_map = Mybase::is_map;
 
     using node_type = btree_node<btree_traits>;
-    using inner_node_type = btree_inner_node<btree_traits, inline_key>;
-    using leaf_node_type = btree_leaf_node<btree_traits, inline_value>;
+    using inner_node_type = btree_inner_node<btree_traits, is_inline_key>;
+    using leaf_node_type = btree_leaf_node<btree_traits, is_inline_value>;
     static constexpr bool multi = Multi;
 };
 
@@ -806,7 +807,7 @@ protected:
     ivalue_type __create_node(Args &&...args) noexcept {
         ivalue_type node;
         auto &al = __get_allocator();
-        if constexpr (Traits::inline_value) {
+        if constexpr (Traits::is_inline_value) {
             uninitialized_construct_using_allocator(std::addressof(node), al,
                                                     std::forward<Args>(args)...);
         } else {
@@ -833,7 +834,7 @@ protected:
 
     void __drop_node(ivalue_type node) noexcept {
         auto &al = __get_allocator();
-        if constexpr (Traits::inline_value) {
+        if constexpr (Traits::is_inline_value) {
             destroy_at_using_allocator(std::addressof(node), al);
         } else {
             destroy_at_using_allocator(std::addressof(node), al);
@@ -1727,7 +1728,7 @@ basic_btree<Traits>::__erase_iter(const_iterator iter) noexcept {
     unsigned int cur_size = -leaf->size();
     node_type *parent = leaf->m_parent;
 
-    __drop_node(std::addressof(from_ivalue(leaf->m_values[pos])));
+    __drop_node(leaf->m_values[pos]);
 
     if (WJR_LIKELY(cur_size > floor_half)) {
         leaf->template __copy<0, node_size - 1>(pos + 1, cur_size, pos, leaf);
@@ -1744,7 +1745,7 @@ basic_btree<Traits>::__erase_iter(const_iterator iter) noexcept {
                 parent = current->m_parent;
 
                 if (tmp_pos != 0) {
-                    current->as_inner()->m_keys[tmp_pos - 1] = std::addressof(leaf->__get_key(0));
+                    current->as_inner()->m_keys[tmp_pos - 1] = to_ikey(leaf->__get_key(0));
                     break;
                 }
 
@@ -1827,7 +1828,7 @@ basic_btree<Traits>::__erase_iter(const_iterator iter) noexcept {
                 } while (tmp_pos == 0 && tmp_parent != nullptr);
 
                 if (tmp_pos != 0) {
-                    current->as_inner()->m_keys[tmp_pos - 1] = std::addressof(leaf->__get_key(0));
+                    current->as_inner()->m_keys[tmp_pos - 1] = to_ikey(leaf->__get_key(0));
                 }
             }
 
@@ -1854,8 +1855,7 @@ basic_btree<Traits>::__erase_iter(const_iterator iter) noexcept {
         current = parent;
         parent = current->m_parent;
 
-        current->as_inner()->m_keys[tmp_pos - 1] = std::addressof(rhs->__get_key(0));
-
+        current->as_inner()->m_keys[tmp_pos - 1] = to_ikey(rhs->__get_key(0));
         return iterator(leaf, pos).__adjust_next();
     } while (0);
 
