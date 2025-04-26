@@ -1205,367 +1205,10 @@ private:
      *
      */
     WJR_INTRINSIC_INLINE void __rec_erase_iter(node_type *parent, unsigned int par_pos,
-                                               unsigned int par_size) noexcept {
-        constexpr unsigned int merge_size = floor_half * 2;
-
-        unsigned int pos;
-        unsigned int cur_size;
-        node_type *current;
-
-        current = parent;
-        pos = par_pos;
-        cur_size = par_size;
-        parent = current->m_parent;
-
-        while (parent != nullptr) {
-            WJR_ASSERT_ASSUME(pos > 0);
-
-            const auto inner = current->as_inner();
-
-            auto *const keys = inner->m_keys;
-            node_type **const sons = inner->m_sons;
-
-            if (cur_size > floor_half) {
-                btree_detail::copy<0, node_size - 1>(keys + pos, keys + cur_size, keys + pos - 1);
-                btree_detail::copy<0, node_size - 1>(sons + pos + 1, sons + cur_size + 1,
-                                                     sons + pos);
-
-                for (unsigned int i = pos; i < cur_size; ++i) {
-                    sons[i]->pos() = i;
-                }
-
-                inner->size() = cur_size - 1;
-                return;
-            }
-
-            WJR_ASSERT_ASSUME(cur_size == floor_half);
-
-            const auto par_inner = parent->as_inner();
-            par_pos = inner->pos();
-            par_size = par_inner->size();
-            inner_node_type *lhs;
-            inner_node_type *rhs;
-
-            unsigned int next_size = __init_remove_rotate(par_inner, par_pos, par_size, lhs, rhs);
-
-            do {
-                if (lhs != nullptr) {
-                    rhs = inner;
-
-                    if (next_size == floor_half) {
-                        btree_detail::copy<0, floor_half - 1>(keys, keys + pos - 1,
-                                                              lhs->m_keys + floor_half + 1);
-                        btree_detail::copy<1, floor_half>(sons, sons + pos,
-                                                          lhs->m_sons + floor_half + 1);
-                        btree_detail::copy<0, floor_half - 1>(keys + pos, keys + floor_half,
-                                                              lhs->m_keys + floor_half + pos);
-                        btree_detail::copy<0, floor_half - 1>(sons + pos + 1, sons + floor_half + 1,
-                                                              lhs->m_sons + floor_half + pos + 1);
-
-                        for (unsigned int i = floor_half; i <= merge_size; ++i) {
-                            lhs->m_sons[i]->m_parent = lhs;
-                            lhs->m_sons[i]->pos() = i;
-                        }
-
-                        lhs->m_keys[floor_half] = par_inner->m_keys[par_pos - 1];
-                        break;
-                    }
-
-                    const unsigned int moved_elements = (next_size - floor_half + 1) / 2;
-
-                    ikey_type key = lhs->m_keys[next_size - moved_elements];
-
-                    if (moved_elements != 1) {
-                        btree_detail::copy_backward<0, floor_half - 1>(
-                            keys + pos, keys + floor_half, keys + floor_half + moved_elements - 1);
-                        btree_detail::copy_backward<0, floor_half - 1>(
-                            sons + pos + 1, sons + floor_half + 1,
-                            sons + floor_half + moved_elements);
-                        for (unsigned int i = pos + moved_elements; i < floor_half + moved_elements;
-                             ++i) {
-                            sons[i]->pos() = i;
-                        }
-                    }
-
-                    btree_detail::copy_backward<0, floor_half - 1>(keys, keys + pos - 1,
-                                                                   keys + pos + moved_elements - 1);
-                    btree_detail::copy_backward<1, floor_half>(sons, sons + pos,
-                                                               sons + pos + moved_elements);
-                    btree_detail::copy<0, max_moved_elements - 1>(lhs->m_keys + next_size -
-                                                                      moved_elements + 1,
-                                                                  lhs->m_keys + next_size, keys);
-                    btree_detail::copy<1, max_moved_elements>(lhs->m_sons + next_size -
-                                                                  moved_elements + 1,
-                                                              lhs->m_sons + next_size + 1, sons);
-
-                    keys[moved_elements - 1] = par_inner->m_keys[par_pos - 1];
-                    par_inner->m_keys[par_pos - 1] = key;
-
-                    for (unsigned int i = 0; i < moved_elements; ++i) {
-                        sons[i]->m_parent = inner;
-                        sons[i]->pos() = i;
-                    }
-
-                    for (unsigned int i = moved_elements; i < pos + moved_elements; ++i) {
-                        sons[i]->pos() = i;
-                    }
-
-                    lhs->size() = next_size - moved_elements;
-                    inner->size() = floor_half + moved_elements - 1;
-                } else {
-                    WJR_ASSERT_ASSUME(rhs != nullptr);
-
-                    lhs = inner;
-
-                    if (next_size == floor_half) {
-                        btree_detail::copy<0, floor_half - 1>(keys + pos, keys + floor_half,
-                                                              keys + pos - 1);
-                        btree_detail::copy<0, floor_half - 1>(sons + pos + 1, sons + floor_half + 1,
-                                                              sons + pos);
-                        btree_detail::copy<0, floor_half>(rhs->m_keys, rhs->m_keys + floor_half,
-                                                          keys + floor_half);
-                        btree_detail::copy<0, floor_half + 1>(
-                            rhs->m_sons, rhs->m_sons + floor_half + 1, sons + floor_half);
-
-                        for (unsigned int i = pos; i < floor_half; ++i) {
-                            inner->m_sons[i]->pos() = i;
-                        }
-
-                        for (unsigned int i = floor_half; i <= merge_size; ++i) {
-                            inner->m_sons[i]->m_parent = inner;
-                            inner->m_sons[i]->pos() = i;
-                        }
-
-                        lhs->m_keys[floor_half - 1] = par_inner->m_keys[par_pos];
-                        ++par_pos;
-                        break;
-                    }
-
-                    const unsigned int moved_elements = (next_size - floor_half + 1) / 2;
-
-                    ikey_type key = rhs->m_keys[moved_elements - 1];
-
-                    btree_detail::copy<0, floor_half - 1>(keys + pos, keys + floor_half,
-                                                          keys + pos - 1);
-                    btree_detail::copy<0, floor_half - 1>(sons + pos + 1, sons + floor_half + 1,
-                                                          sons + pos);
-                    btree_detail::copy<0, max_moved_elements - 1>(
-                        rhs->m_keys, rhs->m_keys + moved_elements - 1, keys + floor_half);
-                    btree_detail::copy<1, max_moved_elements>(
-                        rhs->m_sons, rhs->m_sons + moved_elements, sons + floor_half);
-                    btree_detail::copy<node_size - max_moved_elements, node_size - 1>(
-                        rhs->m_keys + moved_elements, rhs->m_keys + next_size, rhs->m_keys);
-                    btree_detail::copy<node_size - max_moved_elements + 1, node_size>(
-                        rhs->m_sons + moved_elements, rhs->m_sons + next_size + 1, rhs->m_sons);
-
-                    keys[floor_half - 1] = par_inner->m_keys[par_pos];
-                    par_inner->m_keys[par_pos] = key;
-
-                    for (unsigned int i = pos; i < floor_half; ++i) {
-                        sons[i]->pos() = i;
-                    }
-
-                    for (unsigned int i = floor_half; i < floor_half + moved_elements; ++i) {
-                        sons[i]->m_parent = inner;
-                        sons[i]->pos() = i;
-                    }
-
-                    for (unsigned int i = 0; i <= next_size - moved_elements; ++i) {
-                        rhs->m_sons[i]->pos() = i;
-                    }
-
-                    rhs->size() = next_size - moved_elements;
-                    inner->size() = floor_half + moved_elements - 1;
-                }
-
-                return;
-            } while (0);
-
-            lhs->size() = merge_size;
-            __drop_inner_node(rhs);
-
-            pos = par_pos;
-            cur_size = par_size;
-            current = parent;
-            parent = current->m_parent;
-        }
-
-        const auto inner = current->as_inner();
-
-        if (cur_size == 1) {
-            __drop_inner_node(inner);
-            node_type *root = inner->m_sons[0];
-            __get_root() = root;
-            root->m_parent = nullptr;
-            return;
-        }
-
-        btree_detail::copy<0, node_size>(inner->m_keys + pos, inner->m_keys + cur_size,
-                                         inner->m_keys + pos - 1);
-        btree_detail::copy<0, node_size>(inner->m_sons + pos + 1, inner->m_sons + cur_size + 1,
-                                         inner->m_sons + pos);
-
-        for (unsigned int i = pos; i < cur_size; ++i) {
-            inner->m_sons[i]->pos() = i;
-        }
-
-        inner->size() = cur_size - 1;
-    }
+                                               unsigned int par_size) noexcept;
 
     WJR_NODISCARD WJR_NOINLINE WJR_HOT WJR_FLATTEN iterator
-    __erase_iter(const_iterator iter) noexcept {
-        --__get_size();
-
-        constexpr unsigned int merge_size = floor_half * 2;
-
-        leaf_node_type *leaf = iter.get_leaf();
-        unsigned int pos = iter.pos();
-        unsigned int cur_size = -leaf->size();
-        node_type *parent = leaf->m_parent;
-
-        __drop_node(std::addressof(from_ivalue(leaf->m_values[pos])));
-
-        if (WJR_LIKELY(cur_size > floor_half)) {
-            leaf->template __copy<0, node_size - 1>(pos + 1, cur_size, pos, leaf);
-            leaf->size() = -(cur_size - 1);
-
-            // first key in leaf is changed
-            if (pos == 0 && parent != nullptr) {
-                node_type *current = leaf;
-                unsigned int tmp_pos;
-
-                do {
-                    tmp_pos = current->pos();
-                    current = parent;
-                    parent = current->m_parent;
-
-                    if (tmp_pos != 0) {
-                        current->as_inner()->m_keys[tmp_pos - 1] =
-                            std::addressof(leaf->__get_key(0));
-                        break;
-                    }
-
-                } while (parent != nullptr);
-            }
-
-            return iterator(leaf, pos).__adjust_next();
-        }
-
-        if (parent == nullptr) {
-            if (cur_size == 1) {
-                __drop_leaf_node(leaf);
-                __get_root() = nullptr;
-                __get_sentry()->init_self();
-                return cend();
-            }
-
-            leaf->template __copy<0, node_size - 1>(pos + 1, cur_size, pos, leaf);
-            leaf->size() = -(cur_size - 1);
-            return iterator(leaf, pos).__adjust_next();
-        }
-
-        WJR_ASSERT_ASSUME(cur_size == floor_half);
-
-        const auto inner = parent->as_inner();
-        unsigned int par_pos = leaf->pos();
-        cur_size = inner->size();
-        leaf_node_type *lhs;
-        leaf_node_type *rhs;
-
-        const unsigned int next_size = __init_remove_rotate(inner, par_pos, cur_size, lhs, rhs);
-
-        do {
-            if (lhs != nullptr) {
-                rhs = leaf;
-
-                if (next_size == floor_half) {
-                    leaf->template __copy<0, floor_half>(0, pos, floor_half, lhs);
-                    leaf->template __copy<0, floor_half>(pos + 1, floor_half, pos + floor_half,
-                                                         lhs);
-
-                    leaf = lhs;
-                    pos += floor_half;
-                    break;
-                }
-
-                const unsigned int moved_elements = (next_size - floor_half + 1) / 2;
-
-                if (moved_elements != 1) {
-                    leaf->template __copy_backward<0, floor_half>(
-                        pos + 1, floor_half, floor_half + moved_elements - 1, leaf);
-                }
-
-                leaf->template __copy_backward<0, floor_half>(0, pos, pos + moved_elements, leaf);
-                lhs->template __copy<1, max_moved_elements>(next_size - moved_elements, next_size,
-                                                            0, leaf);
-
-                lhs->size() = -(next_size - moved_elements);
-                leaf->size() = -(floor_half + moved_elements - 1);
-
-                pos += moved_elements;
-            } else {
-                WJR_ASSERT_ASSUME(rhs != nullptr);
-
-                lhs = leaf;
-
-                leaf->template __copy<0, floor_half>(pos + 1, floor_half, pos, leaf);
-
-                // merge rhs to leaf, and pos of iter is zero, then
-                // need to update key in parent
-                if (pos == 0) {
-                    node_type *current = leaf;
-
-                    unsigned int tmp_pos;
-                    node_type *tmp_parent = parent;
-
-                    do {
-                        tmp_pos = current->pos();
-                        current = tmp_parent;
-                        tmp_parent = current->m_parent;
-                    } while (tmp_pos == 0 && tmp_parent != nullptr);
-
-                    if (tmp_pos != 0) {
-                        current->as_inner()->m_keys[tmp_pos - 1] =
-                            std::addressof(leaf->__get_key(0));
-                    }
-                }
-
-                if (next_size == floor_half) {
-                    rhs->template __copy<0, floor_half>(0, floor_half, floor_half - 1, leaf);
-
-                    ++par_pos;
-                    break;
-                }
-
-                const unsigned int moved_elements = (next_size - floor_half + 1) / 2;
-
-                rhs->template __copy<1, max_moved_elements>(0, moved_elements, floor_half - 1,
-                                                            leaf);
-                rhs->template __copy<1, node_size - max_moved_elements>(moved_elements, next_size,
-                                                                        0, rhs);
-
-                rhs->size() = -(next_size - moved_elements);
-                leaf->size() = -(floor_half + moved_elements - 1);
-            }
-
-            node_type *current = rhs;
-
-            unsigned int tmp_pos = current->pos();
-            current = parent;
-            parent = current->m_parent;
-
-            current->as_inner()->m_keys[tmp_pos - 1] = std::addressof(rhs->__get_key(0));
-
-            return iterator(leaf, pos).__adjust_next();
-        } while (0);
-
-        lhs->size() = -(merge_size - 1);
-        rhs->remove();
-        __drop_leaf_node(rhs);
-
-        __rec_erase_iter(parent, par_pos, cur_size);
-        return iterator(leaf, pos).__adjust_next();
-    }
+    __erase_iter(const_iterator iter) noexcept;
 
     WJR_INTRINSIC_CONSTEXPR leaf_node_type *__get_base() noexcept {
         return m_pair.second().second().__get_base();
@@ -1864,6 +1507,364 @@ basic_btree<Traits>::__insert_iter(const_iterator iter, ivalue_type xval) noexce
     }
 
     return result;
+}
+
+template <typename Traits>
+void basic_btree<Traits>::__rec_erase_iter(node_type *parent, unsigned int par_pos,
+                                           unsigned int par_size) noexcept {
+    constexpr unsigned int merge_size = floor_half * 2;
+
+    unsigned int pos;
+    unsigned int cur_size;
+    node_type *current;
+
+    current = parent;
+    pos = par_pos;
+    cur_size = par_size;
+    parent = current->m_parent;
+
+    while (parent != nullptr) {
+        WJR_ASSERT_ASSUME(pos > 0);
+
+        const auto inner = current->as_inner();
+
+        auto *const keys = inner->m_keys;
+        node_type **const sons = inner->m_sons;
+
+        if (cur_size > floor_half) {
+            btree_detail::copy<0, node_size - 1>(keys + pos, keys + cur_size, keys + pos - 1);
+            btree_detail::copy<0, node_size - 1>(sons + pos + 1, sons + cur_size + 1, sons + pos);
+
+            for (unsigned int i = pos; i < cur_size; ++i) {
+                sons[i]->pos() = i;
+            }
+
+            inner->size() = cur_size - 1;
+            return;
+        }
+
+        WJR_ASSERT_ASSUME(cur_size == floor_half);
+
+        const auto par_inner = parent->as_inner();
+        par_pos = inner->pos();
+        par_size = par_inner->size();
+        inner_node_type *lhs;
+        inner_node_type *rhs;
+
+        unsigned int next_size = __init_remove_rotate(par_inner, par_pos, par_size, lhs, rhs);
+
+        do {
+            if (lhs != nullptr) {
+                rhs = inner;
+
+                if (next_size == floor_half) {
+                    btree_detail::copy<0, floor_half - 1>(keys, keys + pos - 1,
+                                                          lhs->m_keys + floor_half + 1);
+                    btree_detail::copy<1, floor_half>(sons, sons + pos,
+                                                      lhs->m_sons + floor_half + 1);
+                    btree_detail::copy<0, floor_half - 1>(keys + pos, keys + floor_half,
+                                                          lhs->m_keys + floor_half + pos);
+                    btree_detail::copy<0, floor_half - 1>(sons + pos + 1, sons + floor_half + 1,
+                                                          lhs->m_sons + floor_half + pos + 1);
+
+                    for (unsigned int i = floor_half; i <= merge_size; ++i) {
+                        lhs->m_sons[i]->m_parent = lhs;
+                        lhs->m_sons[i]->pos() = i;
+                    }
+
+                    lhs->m_keys[floor_half] = par_inner->m_keys[par_pos - 1];
+                    break;
+                }
+
+                const unsigned int moved_elements = (next_size - floor_half + 1) / 2;
+
+                ikey_type key = lhs->m_keys[next_size - moved_elements];
+
+                if (moved_elements != 1) {
+                    btree_detail::copy_backward<0, floor_half - 1>(
+                        keys + pos, keys + floor_half, keys + floor_half + moved_elements - 1);
+                    btree_detail::copy_backward<0, floor_half - 1>(
+                        sons + pos + 1, sons + floor_half + 1, sons + floor_half + moved_elements);
+                    for (unsigned int i = pos + moved_elements; i < floor_half + moved_elements;
+                         ++i) {
+                        sons[i]->pos() = i;
+                    }
+                }
+
+                btree_detail::copy_backward<0, floor_half - 1>(keys, keys + pos - 1,
+                                                               keys + pos + moved_elements - 1);
+                btree_detail::copy_backward<1, floor_half>(sons, sons + pos,
+                                                           sons + pos + moved_elements);
+                btree_detail::copy<0, max_moved_elements - 1>(
+                    lhs->m_keys + next_size - moved_elements + 1, lhs->m_keys + next_size, keys);
+                btree_detail::copy<1, max_moved_elements>(lhs->m_sons + next_size - moved_elements +
+                                                              1,
+                                                          lhs->m_sons + next_size + 1, sons);
+
+                keys[moved_elements - 1] = par_inner->m_keys[par_pos - 1];
+                par_inner->m_keys[par_pos - 1] = key;
+
+                for (unsigned int i = 0; i < moved_elements; ++i) {
+                    sons[i]->m_parent = inner;
+                    sons[i]->pos() = i;
+                }
+
+                for (unsigned int i = moved_elements; i < pos + moved_elements; ++i) {
+                    sons[i]->pos() = i;
+                }
+
+                lhs->size() = next_size - moved_elements;
+                inner->size() = floor_half + moved_elements - 1;
+            } else {
+                WJR_ASSERT_ASSUME(rhs != nullptr);
+
+                lhs = inner;
+
+                if (next_size == floor_half) {
+                    btree_detail::copy<0, floor_half - 1>(keys + pos, keys + floor_half,
+                                                          keys + pos - 1);
+                    btree_detail::copy<0, floor_half - 1>(sons + pos + 1, sons + floor_half + 1,
+                                                          sons + pos);
+                    btree_detail::copy<0, floor_half>(rhs->m_keys, rhs->m_keys + floor_half,
+                                                      keys + floor_half);
+                    btree_detail::copy<0, floor_half + 1>(rhs->m_sons, rhs->m_sons + floor_half + 1,
+                                                          sons + floor_half);
+
+                    for (unsigned int i = pos; i < floor_half; ++i) {
+                        inner->m_sons[i]->pos() = i;
+                    }
+
+                    for (unsigned int i = floor_half; i <= merge_size; ++i) {
+                        inner->m_sons[i]->m_parent = inner;
+                        inner->m_sons[i]->pos() = i;
+                    }
+
+                    lhs->m_keys[floor_half - 1] = par_inner->m_keys[par_pos];
+                    ++par_pos;
+                    break;
+                }
+
+                const unsigned int moved_elements = (next_size - floor_half + 1) / 2;
+
+                ikey_type key = rhs->m_keys[moved_elements - 1];
+
+                btree_detail::copy<0, floor_half - 1>(keys + pos, keys + floor_half,
+                                                      keys + pos - 1);
+                btree_detail::copy<0, floor_half - 1>(sons + pos + 1, sons + floor_half + 1,
+                                                      sons + pos);
+                btree_detail::copy<0, max_moved_elements - 1>(
+                    rhs->m_keys, rhs->m_keys + moved_elements - 1, keys + floor_half);
+                btree_detail::copy<1, max_moved_elements>(rhs->m_sons, rhs->m_sons + moved_elements,
+                                                          sons + floor_half);
+                btree_detail::copy<node_size - max_moved_elements, node_size - 1>(
+                    rhs->m_keys + moved_elements, rhs->m_keys + next_size, rhs->m_keys);
+                btree_detail::copy<node_size - max_moved_elements + 1, node_size>(
+                    rhs->m_sons + moved_elements, rhs->m_sons + next_size + 1, rhs->m_sons);
+
+                keys[floor_half - 1] = par_inner->m_keys[par_pos];
+                par_inner->m_keys[par_pos] = key;
+
+                for (unsigned int i = pos; i < floor_half; ++i) {
+                    sons[i]->pos() = i;
+                }
+
+                for (unsigned int i = floor_half; i < floor_half + moved_elements; ++i) {
+                    sons[i]->m_parent = inner;
+                    sons[i]->pos() = i;
+                }
+
+                for (unsigned int i = 0; i <= next_size - moved_elements; ++i) {
+                    rhs->m_sons[i]->pos() = i;
+                }
+
+                rhs->size() = next_size - moved_elements;
+                inner->size() = floor_half + moved_elements - 1;
+            }
+
+            return;
+        } while (0);
+
+        lhs->size() = merge_size;
+        __drop_inner_node(rhs);
+
+        pos = par_pos;
+        cur_size = par_size;
+        current = parent;
+        parent = current->m_parent;
+    }
+
+    const auto inner = current->as_inner();
+
+    if (cur_size == 1) {
+        __drop_inner_node(inner);
+        node_type *root = inner->m_sons[0];
+        __get_root() = root;
+        root->m_parent = nullptr;
+        return;
+    }
+
+    btree_detail::copy<0, node_size>(inner->m_keys + pos, inner->m_keys + cur_size,
+                                     inner->m_keys + pos - 1);
+    btree_detail::copy<0, node_size>(inner->m_sons + pos + 1, inner->m_sons + cur_size + 1,
+                                     inner->m_sons + pos);
+
+    for (unsigned int i = pos; i < cur_size; ++i) {
+        inner->m_sons[i]->pos() = i;
+    }
+
+    inner->size() = cur_size - 1;
+}
+
+template <typename Traits>
+typename basic_btree<Traits>::iterator
+basic_btree<Traits>::__erase_iter(const_iterator iter) noexcept {
+    --__get_size();
+
+    constexpr unsigned int merge_size = floor_half * 2;
+
+    leaf_node_type *leaf = iter.get_leaf();
+    unsigned int pos = iter.pos();
+    unsigned int cur_size = -leaf->size();
+    node_type *parent = leaf->m_parent;
+
+    __drop_node(std::addressof(from_ivalue(leaf->m_values[pos])));
+
+    if (WJR_LIKELY(cur_size > floor_half)) {
+        leaf->template __copy<0, node_size - 1>(pos + 1, cur_size, pos, leaf);
+        leaf->size() = -(cur_size - 1);
+
+        // first key in leaf is changed
+        if (pos == 0 && parent != nullptr) {
+            node_type *current = leaf;
+            unsigned int tmp_pos;
+
+            do {
+                tmp_pos = current->pos();
+                current = parent;
+                parent = current->m_parent;
+
+                if (tmp_pos != 0) {
+                    current->as_inner()->m_keys[tmp_pos - 1] = std::addressof(leaf->__get_key(0));
+                    break;
+                }
+
+            } while (parent != nullptr);
+        }
+
+        return iterator(leaf, pos).__adjust_next();
+    }
+
+    if (parent == nullptr) {
+        if (cur_size == 1) {
+            __drop_leaf_node(leaf);
+            __get_root() = nullptr;
+            __get_sentry()->init_self();
+            return cend();
+        }
+
+        leaf->template __copy<0, node_size - 1>(pos + 1, cur_size, pos, leaf);
+        leaf->size() = -(cur_size - 1);
+        return iterator(leaf, pos).__adjust_next();
+    }
+
+    WJR_ASSERT_ASSUME(cur_size == floor_half);
+
+    const auto inner = parent->as_inner();
+    unsigned int par_pos = leaf->pos();
+    cur_size = inner->size();
+    leaf_node_type *lhs;
+    leaf_node_type *rhs;
+
+    const unsigned int next_size = __init_remove_rotate(inner, par_pos, cur_size, lhs, rhs);
+
+    do {
+        if (lhs != nullptr) {
+            rhs = leaf;
+
+            if (next_size == floor_half) {
+                leaf->template __copy<0, floor_half>(0, pos, floor_half, lhs);
+                leaf->template __copy<0, floor_half>(pos + 1, floor_half, pos + floor_half, lhs);
+
+                leaf = lhs;
+                pos += floor_half;
+                break;
+            }
+
+            const unsigned int moved_elements = (next_size - floor_half + 1) / 2;
+
+            if (moved_elements != 1) {
+                leaf->template __copy_backward<0, floor_half>(
+                    pos + 1, floor_half, floor_half + moved_elements - 1, leaf);
+            }
+
+            leaf->template __copy_backward<0, floor_half>(0, pos, pos + moved_elements, leaf);
+            lhs->template __copy<1, max_moved_elements>(next_size - moved_elements, next_size, 0,
+                                                        leaf);
+
+            lhs->size() = -(next_size - moved_elements);
+            leaf->size() = -(floor_half + moved_elements - 1);
+
+            pos += moved_elements;
+        } else {
+            WJR_ASSERT_ASSUME(rhs != nullptr);
+
+            lhs = leaf;
+
+            leaf->template __copy<0, floor_half>(pos + 1, floor_half, pos, leaf);
+
+            // merge rhs to leaf, and pos of iter is zero, then
+            // need to update key in parent
+            if (pos == 0) {
+                node_type *current = leaf;
+
+                unsigned int tmp_pos;
+                node_type *tmp_parent = parent;
+
+                do {
+                    tmp_pos = current->pos();
+                    current = tmp_parent;
+                    tmp_parent = current->m_parent;
+                } while (tmp_pos == 0 && tmp_parent != nullptr);
+
+                if (tmp_pos != 0) {
+                    current->as_inner()->m_keys[tmp_pos - 1] = std::addressof(leaf->__get_key(0));
+                }
+            }
+
+            if (next_size == floor_half) {
+                rhs->template __copy<0, floor_half>(0, floor_half, floor_half - 1, leaf);
+
+                ++par_pos;
+                break;
+            }
+
+            const unsigned int moved_elements = (next_size - floor_half + 1) / 2;
+
+            rhs->template __copy<1, max_moved_elements>(0, moved_elements, floor_half - 1, leaf);
+            rhs->template __copy<1, node_size - max_moved_elements>(moved_elements, next_size, 0,
+                                                                    rhs);
+
+            rhs->size() = -(next_size - moved_elements);
+            leaf->size() = -(floor_half + moved_elements - 1);
+        }
+
+        node_type *current = rhs;
+
+        unsigned int tmp_pos = current->pos();
+        current = parent;
+        parent = current->m_parent;
+
+        current->as_inner()->m_keys[tmp_pos - 1] = std::addressof(rhs->__get_key(0));
+
+        return iterator(leaf, pos).__adjust_next();
+    } while (0);
+
+    lhs->size() = -(merge_size - 1);
+    rhs->remove();
+    __drop_leaf_node(rhs);
+
+    __rec_erase_iter(parent, par_pos, cur_size);
+    return iterator(leaf, pos).__adjust_next();
 }
 
 } // namespace wjr
