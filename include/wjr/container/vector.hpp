@@ -1303,7 +1303,7 @@ private:
         __destroy_and_deallocate_impl<storage_type>();
     }
 
-    WJR_CONSTEXPR20 void __release() noexcept(noexcept(__destroy_and_deallocate())) {
+    WJR_CONSTEXPR20 void __release_before_copy() noexcept(noexcept(__destroy_and_deallocate())) {
         __destroy_and_deallocate();
         storage_type new_storage;
         __take_storage(new_storage);

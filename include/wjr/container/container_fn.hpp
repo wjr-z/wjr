@@ -28,7 +28,7 @@ namespace wjr {
  * @details container must have the following member functions:
  * 1. auto& __get_allocator() noexcept
  * 2. void __destroy_and_deallocate() noexcept
- * 3. void __release()
+ * 3. void __release_before_copy()
  * 4. void __copy_element(const container& other)
  * 5. void __take_storage(container&& other)
  * 6. void __destroy_and_move_element(container&& other)
@@ -65,7 +65,7 @@ public:
             const auto &rhs_allocator = rhs.__get_allocator();
             if constexpr (!is_always_equal::value) {
                 if (lhs_allocator != rhs_allocator) {
-                    lhs.__release();
+                    lhs.__release_before_copy();
                 }
             }
 
