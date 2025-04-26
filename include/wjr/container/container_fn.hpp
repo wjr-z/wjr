@@ -26,16 +26,18 @@ namespace wjr {
  * @brief The same characteristics and behavior of all allocator containers
  *
  * @details container must have the following member functions:
- * -# auto& __get_allocator() noexcept
- * -# void __destroy() noexcept
- * -# void __destroy_and_deallocate() noexcept
- * -# void __copy_element(const container& other)
- * -# void __take_storage(container&& other)
- * -# void __move_element(container&& other)
- * -# void __swap_storage(container& other)
+ * 1. auto& __get_allocator() noexcept
+ * 2. void __destroy_and_deallocate() noexcept
+ * 3. void __release()
+ * 4. void __copy_element(const container& other)
+ * 5. void __take_storage(container&& other)
+ * 6. void __destroy_and_move_element(container&& other)
+ * 7. void __swap_storage(container& other)
  *
- * 1 : Is used to manage the allocator of the container. \n
- * 2-3 : Is used to destroy the container and deallocate the memory. \n
+ * 1   : Is used to manage the allocator of the container. \n
+ * 2   : Destroy element but not release memory. \n
+ * worry about whether it is in an empty state.  \n
+ * 3   : __destroy_and_deallocate and clear, set to empty state.    \n
  * 4-7 : Is used to assign the container data. Shouldn't change the allocator.
  *
  */
@@ -63,7 +65,7 @@ public:
             const auto &rhs_allocator = rhs.__get_allocator();
             if constexpr (!is_always_equal::value) {
                 if (lhs_allocator != rhs_allocator) {
-                    lhs.__destroy_and_deallocate();
+                    lhs.__release();
                 }
             }
 
@@ -80,7 +82,7 @@ public:
             ? (!propagate_on_container_move_assignment::value
                    ? true
                    : std::is_nothrow_move_assignable_v<Alloc>)
-            : (noexcept(lhs.__destroy()) && noexcept(lhs.__move_element(std::move(rhs))))) {
+            : (noexcept(lhs.__destroy_and_move_element(std::move(rhs))))) {
         if constexpr (std::disjunction_v<propagate_on_container_move_assignment, is_always_equal>) {
             lhs.__destroy_and_deallocate();
             if constexpr (propagate_on_container_move_assignment::value) {
@@ -89,8 +91,7 @@ public:
             lhs.__take_storage(std::move(rhs));
         } else {
             if (lhs.__get_allocator() != rhs.__get_allocator()) {
-                lhs.__destroy();
-                lhs.__move_element(std::move(rhs));
+                lhs.__destroy_and_move_element(std::move(rhs));
             } else {
                 lhs.__destroy_and_deallocate();
                 lhs.__take_storage(std::move(rhs));

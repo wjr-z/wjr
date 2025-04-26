@@ -10,13 +10,6 @@
  * - ~storage() noexcept
  *  Don't need to destroy/deallocate. By default, it is just trivial.
  *
- * - [optional] void destroy(_Alty& al) noexcept(optional)
- *  Use `al` to destroy all elements, don't need to set `empty` state. \n
- *  If this function is not provided, it will be used by default: \n
- * ```cpp
- *  destroy_using_allocator(begin_unsafe(), end_unsafe(), get_allocator());
- * ```
- *
  * - void deallocate(_Alty& al) noexcept(optional)
  *  Use `al` to deallocate, don't need to set `empty` state.
  *
@@ -572,8 +565,6 @@ struct get_relocate_mode<small_vector_storage<T, Capacity, Alloc>> {
     static constexpr relocate_t value = relocate_t::normal;
 };
 
-WJR_REGISTER_HAS_TYPE(vector_storage_destroy,
-                      std::declval<Storage>().destroy(std::declval<Alty &>()), Storage, Alty);
 WJR_REGISTER_HAS_TYPE(vector_storage_deallocate_nonnull,
                       std::declval<Storage>().deallocate_nonnull(std::declval<Alty &>()), Storage,
                       Alty);
@@ -1281,14 +1272,7 @@ private:
         get_storage().deallocate(__get_allocator());
     }
 
-    template <typename S, WJR_REQUIRES(has_vector_storage_destroy_v<S, _Alty>)>
-    WJR_CONSTEXPR20 void
-    __destroy_impl() noexcept(noexcept(get_storage().destroy(this->__get_allocator()))) {
-        get_storage().destroy(__get_allocator());
-    }
-
-    template <typename S, WJR_REQUIRES(!has_vector_storage_destroy_v<S, _Alty>)>
-    WJR_CONSTEXPR20 void __destroy_impl() noexcept(std::is_nothrow_destructible_v<value_type>) {
+    WJR_CONSTEXPR20 void __destroy() noexcept(std::is_nothrow_destructible_v<value_type>) {
         if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(empty())) {
             return;
         }
@@ -1314,13 +1298,15 @@ private:
     WJR_CONSTEXPR20 _Alty &__get_allocator() noexcept { return m_pair.first(); }
     WJR_CONSTEXPR20 const _Alty &__get_allocator() const noexcept { return m_pair.first(); }
 
-    WJR_CONSTEXPR20 void __destroy() noexcept(noexcept(__destroy_impl<storage_type>())) {
-        __destroy_impl<storage_type>();
-    }
-
     WJR_CONSTEXPR20 void
     __destroy_and_deallocate() noexcept(noexcept(__destroy_and_deallocate_impl<storage_type>())) {
         __destroy_and_deallocate_impl<storage_type>();
+    }
+
+    WJR_CONSTEXPR20 void __release() noexcept(noexcept(__destroy_and_deallocate())) {
+        __destroy_and_deallocate();
+        storage_type new_storage;
+        __take_storage(new_storage);
     }
 
     WJR_CONSTEXPR20 void __copy_element(const basic_vector &other) {
@@ -1331,7 +1317,9 @@ private:
         __take_storage(other.get_storage());
     }
 
-    WJR_CONSTEXPR20 void __move_element(basic_vector &&other) {
+    WJR_CONSTEXPR20 void __destroy_and_move_element(basic_vector &&other) {
+        // clear but not deallocate
+        clear();
         assign(std::make_move_iterator(other.begin_unsafe()),
                std::make_move_iterator(other.end_unsafe()));
     }

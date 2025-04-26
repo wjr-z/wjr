@@ -860,8 +860,9 @@ protected:
 
         if constexpr (inplace_key_extractor::extractable) {
             const auto &key = inplace_key_extractor::extract(std::forward<Args>(args)...);
-            iter = lower_bound(key);
-            if (!(iter == cend() || key_comp()(Traits::get_key(*iter), key))) {
+            iter = upper_bound(key);
+            if (auto pos = iter.pos();
+                !(pos == 0 || key_comp()(iter.get_leaf()->__get_key(pos - 1), key))) {
                 return {iterator(iter), false};
             }
 
@@ -869,8 +870,9 @@ protected:
         } else {
             xval = __create_node(std::forward<Args>(args)...);
             const auto &key = Traits::get_key(from_ivalue(xval));
-            iter = lower_bound(key);
-            if (!(iter == cend() || key_comp()(Traits::get_key(*iter), key))) {
+            iter = upper_bound(key);
+            if (auto pos = iter.pos();
+                !(pos == 0 || key_comp()(iter.get_leaf()->__get_key(pos - 1), key))) {
                 __drop_node(xval);
                 return {iterator(iter), false};
             }
@@ -893,7 +895,8 @@ protected:
     template <typename... Args>
     std::pair<iterator, bool> __try_emplace_unique(const key_type &key, Args &&...args) {
         const_iterator iter = lower_bound(key);
-        if (iter == cend() || key_comp()(Traits::get_key(*iter), key)) {
+        if (auto pos = iter.pos();
+            pos == 0 || key_comp()(iter.get_leaf()->__get_key(pos - 1), key)) {
             ivalue_type xval = __create_node(std::piecewise_construct, std::forward_as_tuple(key),
                                              std::forward_as_tuple(std::forward<Args>(args)...));
             return {__insert_iter(iter, xval), true};
@@ -905,7 +908,8 @@ protected:
     template <typename... Args>
     std::pair<iterator, bool> __try_emplace_unique(key_type &&key, Args &&...args) {
         const_iterator iter = lower_bound(key);
-        if (iter == cend() || key_comp()(Traits::get_key(*iter), key)) {
+        if (auto pos = iter.pos();
+            pos == 0 || key_comp()(iter.get_leaf()->__get_key(pos - 1), key)) {
             ivalue_type xval =
                 __create_node(std::piecewise_construct, std::forward_as_tuple(std::move(key)),
                               std::forward_as_tuple(std::forward<Args>(args)...));
@@ -1011,24 +1015,21 @@ private:
 
     // member function for container_fn (START)
 
+    WJR_CONSTEXPR20 _Alty &__get_allocator() noexcept { return m_pair.second().first(); }
+    WJR_CONSTEXPR20 const _Alty &__get_allocator() const noexcept {
+        return m_pair.second().first();
+    }
+
     void __destroy_and_deallocate() noexcept;
+
+    void __release() noexcept { clear(); }
 
     void __take_storage(basic_btree &&other) noexcept {
         key_comp() = std::move(other.key_comp());
         __move_tree(std::move(other));
     }
 
-    WJR_CONSTEXPR20 _Alty &__get_allocator() noexcept { return m_pair.second().first(); }
-    WJR_CONSTEXPR20 const _Alty &__get_allocator() const noexcept {
-        return m_pair.second().first();
-    }
-
-    void __destroy() noexcept {
-        // do nothing
-        WJR_UNREACHABLE();
-    }
-
-    void __move_element(basic_btree &&) noexcept { // do nothing
+    void __destroy_and_move_element(basic_btree &&) noexcept { // do nothing
         WJR_UNREACHABLE();
     }
 
@@ -1067,6 +1068,11 @@ private:
 
         const unsigned int cur_usize = static_cast<unsigned int>(-cur_size);
         pos = __search<Upper, 1>(current->as_leaf(), cur_usize, key, comp);
+
+        // if (pos == cur_usize) {
+        //     return const_iterator(__get_sentry(), 0);
+        // }
+
         return const_iterator(current->as_leaf(), pos);
     }
 
@@ -1310,31 +1316,28 @@ basic_btree<Traits>::__insert_iter(const_iterator iter, ivalue_type xval) noexce
     }
 
     leaf = iter.get_leaf();
-    if (leaf != __get_base()) {
-        pos = iter.pos();
-        const unsigned int cur_size = static_cast<unsigned int>(-leaf->size());
+    do {
+        unsigned int cur_usize;
+
+        if (leaf != __get_base()) {
+            pos = iter.pos();
+            cur_usize = static_cast<unsigned int>(-leaf->size());
+        } else {
+            leaf = leaf->prev()->self();
+            cur_usize = static_cast<unsigned int>(-leaf->size());
+            pos = cur_usize;
+        }
 
         // non-full leaf
-        if (WJR_LIKELY(cur_size != node_size)) {
-            WJR_ASSERT_ASSUME(pos <= cur_size);
-            leaf->template __copy_backward<0, node_size - 1>(pos, cur_size, cur_size + 1, leaf);
+        if (WJR_LIKELY(cur_usize != node_size)) {
+            WJR_ASSERT_ASSUME(pos <= cur_usize);
+            leaf->template __copy_backward<0, node_size - 1>(pos, cur_usize, cur_usize + 1, leaf);
 
-            leaf->size() = -(cur_size + 1);
+            leaf->size() = -(cur_usize + 1);
             leaf->__assign(pos, xval);
             return iterator(leaf, pos);
         }
-    } else {
-        leaf = leaf->prev()->self();
-        const unsigned int cur_size = static_cast<unsigned int>(-leaf->size());
-        pos = cur_size;
-
-        // non-full leaf
-        if (WJR_LIKELY(cur_size != node_size)) {
-            leaf->size() = -(cur_size + 1);
-            leaf->__assign(pos, xval);
-            return iterator(leaf, pos);
-        }
-    }
+    } while (0);
 
     iterator result;
     node_type *inst;
