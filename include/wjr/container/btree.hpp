@@ -1065,8 +1065,12 @@ private:
     WJR_NODISCARD WJR_NOINLINE WJR_HOT WJR_FLATTEN iterator
     __insert_iter(const_iterator iter, ivalue_type xval) noexcept;
 
-    template <bool Upper, bool Adjust>
-    WJR_NOINLINE WJR_HOT WJR_FLATTEN const_iterator __search(const key_type &key) const noexcept {
+    static constexpr unsigned int __search_mask = 1u << 15;
+    static_assert(__search_mask > node_size);
+
+    template <bool Upper>
+    WJR_NOINLINE WJR_HOT WJR_FLATTEN const_iterator
+    __search_impl(const key_type &key) const noexcept {
         const auto &comp = key_comp();
         const node_type *current = __get_root();
         if (current == nullptr) {
@@ -1095,14 +1099,22 @@ private:
 
         const unsigned int cur_usize = static_cast<unsigned int>(-cur_size);
         pos = __search<Upper, 1>(current->as_leaf(), cur_usize, key, comp);
+        return const_iterator(current->as_leaf(), pos | (pos == cur_usize ? __search_mask : 0));
+    }
+
+    template <bool Upper, bool Adjust>
+    WJR_NOINLINE WJR_HOT WJR_FLATTEN const_iterator __search(const key_type &key) const noexcept {
+        const_iterator iter = __search_impl<Upper>(key);
 
         if constexpr (Adjust) {
-            if (WJR_UNLIKELY(pos == cur_usize)) {
-                return const_iterator(current->as_leaf()->next()->self(), 0);
+            if (WJR_LIKELY(!(iter.pos() & __search_mask))) {
+                return iter;
             }
-        }
 
-        return const_iterator(current->as_leaf(), pos);
+            return const_iterator(iter.get_leaf()->next()->self(), 0);
+        } else {
+            return const_iterator(iter.get_leaf(), iter.pos() & ~__search_mask);
+        }
     }
 
     template <bool Upper>
