@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #include <wjr/math/literals.hpp>
-#include <wjr/memory/automatic_free_pool.hpp>
+#include <wjr/memory/aligned_alloc.hpp>
 #include <wjr/string.hpp>
 #include <wjr/type_traits.hpp>
 
@@ -54,7 +54,7 @@ public:
 
 private:
     static void *__large_allocate(size_t n, large_memory *&mem) noexcept {
-        auto *const raw = std::malloc(n + aligned_header_size);
+        auto *const raw = mem::__default_allocate<>(n + aligned_header_size, std::nothrow);
         auto *const buffer = static_cast<large_memory *>(raw);
         buffer->prev = mem;
         mem = buffer;
@@ -92,15 +92,7 @@ private:
 
     void *__small_reallocate() noexcept;
 
-    WJR_NOINLINE void __small_redeallocate() noexcept {
-        const uint_fast32_t new_size = m_idx + bufsize - 1;
-        auto &pool = automatic_free_pool::get_instance();
-        for (uint_fast32_t i = new_size; i < m_size; ++i) {
-            pool.deallocate(m_ptr[i].ptr);
-        }
-
-        m_size = new_size;
-    }
+    WJR_NOINLINE void __small_redeallocate() noexcept;
 
 public:
     using value_type = void;
@@ -262,7 +254,8 @@ public:
     WJR_NODISCARD WJR_MALLOC T *allocate(size_type n) noexcept {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
-            return static_cast<T *>(std::malloc(size));
+            return static_cast<T *>(
+                mem::__default_allocate<mem::__new_alignof<T>>(size, std::nothrow));
         }
 
         return static_cast<T *>(m_alloc->__small_allocate(size));
@@ -271,7 +264,7 @@ public:
     void deallocate(WJR_MAYBE_UNUSED T *ptr, WJR_MAYBE_UNUSED size_type n) noexcept {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
-            std::free(ptr);
+            mem::__default_deallocate<mem::__new_alignof<T>>(ptr, std::nothrow);
         }
     }
 

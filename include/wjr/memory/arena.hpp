@@ -6,6 +6,11 @@
 
 namespace wjr {
 
+/**
+ * @brief
+ *
+ * @todo Alignment ...
+ */
 class arena {
 public:
     enum Rule : uint32_t {

@@ -423,7 +423,7 @@ public:
 
     union {
         Mybase m_base;
-        char m_buffer[sizeof(Mybase) + sizeof(Traits::ivalue_type) * 2];
+        char m_buffer[sizeof(Mybase) + sizeof(typename Traits::ivalue_type) * 2];
     };
 
     /** @todo static_assert of offsetof */

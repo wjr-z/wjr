@@ -1,6 +1,8 @@
 #ifndef WJR_MEMORY_OBJECT_POOL_HPP__
 #define WJR_MEMORY_OBJECT_POOL_HPP__
 
+#error "Do not use temporarily"
+
 #include <wjr/container/forward_list.hpp>
 #include <wjr/memory/arena.hpp>
 
@@ -17,7 +19,7 @@ public:
         replace(&other.m_head, &m_head);
     }
 
-    __dynamic_object_pool_impl(const __dynamic_object_pool_impl &) = delete;
+    __dynamic_object_pool_impl &operator=(const __dynamic_object_pool_impl &) = delete;
     __dynamic_object_pool_impl &operator=(__dynamic_object_pool_impl &&other) {
         replace(&other.m_head, &m_head);
         return *this;
@@ -60,7 +62,7 @@ public:
     };
 
     dynamic_object_pool(uint32_t cache = arena::default_cache_size,
-                        Rule rule = arena::Rule::Expansion_Constant)
+                        arena::Rule rule = arena::Rule::Expansion_Constant)
         : m_arena(cache, rule) {}
 
     dynamic_object_pool(const dynamic_object_pool &) = delete;
@@ -92,11 +94,15 @@ public:
         return Traits::deallocate_large(ptr, n);
     }
 
-    friend bool operator==(const xalloc &lhs, const xalloc &rhs) noexcept {
+    friend bool operator==(const dynamic_object_pool &lhs,
+                           const dynamic_object_pool &rhs) noexcept {
         return std::addressof(lhs) == std::addressof(rhs);
     }
 
-    friend bool operator!=(const xalloc &lhs, const xalloc &rhs) noexcept { return !(lhs == rhs); }
+    friend bool operator!=(const dynamic_object_pool &lhs,
+                           const dynamic_object_pool &rhs) noexcept {
+        return !(lhs == rhs);
+    }
 
 private:
     arena m_arena;

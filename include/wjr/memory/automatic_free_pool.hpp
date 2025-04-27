@@ -2,25 +2,29 @@
 #define WJR_MEMORY_AUTOMATIC_FREE_POOL_HPP__
 
 #include <wjr/container/list.hpp>
-#include <wjr/memory/align.hpp>
+#include <wjr/memory/aligned_alloc.hpp>
 
 namespace wjr {
 
 /**
  * @brief Automatic free all memory when thread exit.
  * @details For example, it is possible to have a trivial destructor to thread_local
- * variables that require high performance. Such as stack allocator.
+ * variables that require high performance. Such as stack allocator. This is usually used to
+ * allocate larger blocks of memory.
  *
  */
-struct automatic_free_pool {
+class automatic_free_pool {
     struct chunk : intrusive::list_node<chunk> {};
-    static constexpr size_t aligned_header_size =
-        align_up(sizeof(chunk), mem::default_new_alignment);
+
+public:
+    static constexpr size_t aligned_header_size = align_up(sizeof(chunk), mem::default_new_alignment);
 
     automatic_free_pool() = default;
     ~automatic_free_pool() noexcept {
         chunk *node, *next;
-        WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) { std::free(node); }
+        WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) {
+            mem::__default_deallocate<>(node, std::nothrow);
+        }
     }
 
     automatic_free_pool(const automatic_free_pool &) = delete;
@@ -32,14 +36,16 @@ struct automatic_free_pool {
     automatic_free_pool &operator=(const automatic_free_pool &) = delete;
     automatic_free_pool &operator=(automatic_free_pool &&other) {
         chunk *node, *next;
-        WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) { std::free(node); }
+        WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) {
+            mem::__default_deallocate<>(node, std::nothrow);
+        }
         replace(&other.head, &head);
         other.head.init_self();
         return *this;
     }
 
-    WJR_MALLOC void *allocate(size_t n) {
-        auto *const raw = std::malloc(n + aligned_header_size);
+    WJR_MALLOC void *allocate(size_t n) noexcept {
+        auto *const raw = mem::__default_allocate<>(n + aligned_header_size, std::nothrow);
         head.push_back(static_cast<chunk *>(raw));
         return static_cast<void *>(static_cast<std::byte *>(raw) + aligned_header_size);
     }
@@ -47,21 +53,12 @@ struct automatic_free_pool {
     void deallocate(void *ptr) noexcept {
         auto *const node = static_cast<std::byte *>(ptr) - aligned_header_size;
         reinterpret_cast<chunk *>(node)->remove();
-        std::free(node);
+        mem::__default_deallocate<>(node, std::nothrow);
     }
 
-    inline static automatic_free_pool &get_instance() noexcept;
-
+private:
     chunk head;
 };
-
-namespace mem {
-static thread_local automatic_free_pool __automatic_free_pool_singleton_instance;
-} // namespace mem
-
-automatic_free_pool &automatic_free_pool::get_instance() noexcept {
-    return mem::__automatic_free_pool_singleton_instance;
-}
 
 } // namespace wjr
 

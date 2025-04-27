@@ -2,6 +2,7 @@
 #define WJR_MEMORY_ALIGN_HPP__
 
 #include <cstdlib>
+#include <new>
 
 #include <wjr/assert.hpp>
 #include <wjr/math/bit.hpp>
@@ -52,13 +53,17 @@ constexpr T *assume_aligned(T *ptr) noexcept {
 #endif
 
 namespace mem {
-
 #if defined(__STDCPP_DEFAULT_NEW_ALIGNMENT__)
-inline constexpr size_t default_new_alignment = std::max<size_t>(
-    sizeof(void *), std::max<size_t>(alignof(max_align_t), __STDCPP_DEFAULT_NEW_ALIGNMENT__));
+inline constexpr size_t stdcpp_default_new_alignment = __STDCPP_DEFAULT_NEW_ALIGNMENT__;
 #else
-inline constexpr size_t kAlignment = std::max<size_t>(sizeof(void *), alignof(max_align_t));
+inline constexpr size_t stdcpp_default_new_alignment = 0;
 #endif
+
+inline constexpr size_t default_new_alignment = std::max<size_t>(
+    sizeof(void *), std::max<size_t>(alignof(max_align_t), stdcpp_default_new_alignment));
+
+template <typename T>
+inline constexpr size_t __new_alignof = std::max<size_t>(alignof(T), default_new_alignment);
 
 } // namespace mem
 

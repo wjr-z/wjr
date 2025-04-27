@@ -1,12 +1,27 @@
+#include <wjr/memory/automatic_free_pool.hpp>
 #include <wjr/memory/stack_allocator.hpp>
 
 namespace wjr {
+
+namespace {
+static thread_local automatic_free_pool __stack_free_pool;
+}
+
+void stack_allocator_object::__small_redeallocate() noexcept {
+    const uint_fast32_t new_size = m_idx + bufsize - 1;
+    auto &pool = __stack_free_pool;
+    for (uint_fast32_t i = new_size; i < m_size; ++i) {
+        pool.deallocate(m_ptr[i].ptr);
+    }
+
+    m_size = new_size;
+}
 
 void stack_allocator_object::__large_deallocate(large_memory *buffer) noexcept {
     WJR_ASSERT(buffer != nullptr);
     do {
         auto *const prev = buffer->prev;
-        std::free(buffer);
+        mem::__default_deallocate<>(buffer, std::nothrow);
         buffer = prev;
     } while (buffer != nullptr);
 }
@@ -26,8 +41,7 @@ void *stack_allocator_object::__small_reallocate() noexcept {
 
         {
             const size_t capacity = cache_size;
-            auto *const buffer =
-                static_cast<std::byte *>(automatic_free_pool::get_instance().allocate(capacity));
+            auto *const buffer = static_cast<std::byte *>(__stack_free_pool.allocate(capacity));
             m_cache = m_ptr[0] = {buffer, buffer + capacity};
         }
 
@@ -51,8 +65,7 @@ void *stack_allocator_object::__small_reallocate() noexcept {
         ++m_size;
 
         const size_t capacity = cache_size << ((2 * m_idx + 3) / 5);
-        auto *const buffer =
-            static_cast<std::byte *>(automatic_free_pool::get_instance().allocate(capacity));
+        auto *const buffer = static_cast<std::byte *>(__stack_free_pool.allocate(capacity));
         m_ptr[m_idx] = {buffer, buffer + capacity};
     }
 
