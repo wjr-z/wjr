@@ -54,7 +54,7 @@ public:
 
 private:
     static void *__large_allocate(size_t n, large_memory *&mem) noexcept {
-        auto *const raw = malloc(n + aligned_header_size);
+        auto *const raw = std::malloc(n + aligned_header_size);
         auto *const buffer = static_cast<large_memory *>(raw);
         buffer->prev = mem;
         mem = buffer;
@@ -157,18 +157,9 @@ stack_allocator_object::stack_context::~stack_context() noexcept { m_object->dea
 
 static_assert(std::is_trivially_destructible_v<stack_allocator_object>);
 
-/**
- * @brief A stack allocator for fast simulation of stack memory on the heap,
- * singleton mode.
- */
-struct singleton_stack_allocator_object {
-    using Instance = stack_allocator_object;
-
-    static Instance &get_instance() noexcept {
-        static thread_local Instance instance;
-        return instance;
-    }
-};
+namespace mem {
+static thread_local stack_allocator_object __stack_allocator_singleton_object;
+}
 
 /**
  * @details Used for container. This allocator won't deallocate memory allocated
@@ -190,8 +181,7 @@ class weak_stack_allocator;
  *
  */
 class unique_stack_allocator {
-    using Object = singleton_stack_allocator_object;
-    using Instance = typename Object::Instance;
+    using Instance = stack_allocator_object;
     using stack_context = typename Instance::stack_context;
 
     template <typename T>
@@ -199,7 +189,8 @@ class unique_stack_allocator {
 
 public:
     WJR_INTRINSIC_INLINE
-    unique_stack_allocator() noexcept : m_context(std::addressof(Object::get_instance())) {}
+    unique_stack_allocator() noexcept
+        : m_context(std::addressof(mem::__stack_allocator_singleton_object)) {}
 
     unique_stack_allocator(const unique_stack_allocator &) = delete;
     unique_stack_allocator(unique_stack_allocator &&) = delete;
@@ -271,7 +262,7 @@ public:
     WJR_NODISCARD WJR_MALLOC T *allocate(size_type n) noexcept {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
-            return static_cast<T *>(malloc(size));
+            return static_cast<T *>(std::malloc(size));
         }
 
         return static_cast<T *>(m_alloc->__small_allocate(size));
@@ -280,7 +271,7 @@ public:
     void deallocate(WJR_MAYBE_UNUSED T *ptr, WJR_MAYBE_UNUSED size_type n) noexcept {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
-            free(ptr);
+            std::free(ptr);
         }
     }
 

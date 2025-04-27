@@ -20,7 +20,7 @@ struct automatic_free_pool {
     automatic_free_pool() = default;
     ~automatic_free_pool() noexcept {
         chunk *node, *next;
-        WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) { free(node); }
+        WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) { std::free(node); }
     }
 
     automatic_free_pool(const automatic_free_pool &) = delete;
@@ -32,14 +32,14 @@ struct automatic_free_pool {
     automatic_free_pool &operator=(const automatic_free_pool &) = delete;
     automatic_free_pool &operator=(automatic_free_pool &&other) {
         chunk *node, *next;
-        WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) { free(node); }
+        WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) { std::free(node); }
         replace(&other.head, &head);
         other.head.init_self();
         return *this;
     }
 
     WJR_MALLOC void *allocate(size_t n) {
-        auto *const raw = malloc(n + aligned_header_size);
+        auto *const raw = std::malloc(n + aligned_header_size);
         head.push_back(static_cast<chunk *>(raw));
         return static_cast<void *>(static_cast<std::byte *>(raw) + aligned_header_size);
     }
@@ -47,16 +47,21 @@ struct automatic_free_pool {
     void deallocate(void *ptr) noexcept {
         auto *const node = static_cast<std::byte *>(ptr) - aligned_header_size;
         reinterpret_cast<chunk *>(node)->remove();
-        free(node);
+        std::free(node);
     }
 
-    static automatic_free_pool &get_instance() noexcept {
-        static thread_local automatic_free_pool instance;
-        return instance;
-    }
+    inline static automatic_free_pool &get_instance() noexcept;
 
     chunk head;
 };
+
+namespace mem {
+static thread_local automatic_free_pool __automatic_free_pool_singleton_instance;
+} // namespace mem
+
+automatic_free_pool &automatic_free_pool::get_instance() noexcept {
+    return mem::__automatic_free_pool_singleton_instance;
+}
 
 } // namespace wjr
 

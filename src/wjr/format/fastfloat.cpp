@@ -256,7 +256,7 @@ WJR_INTRINSIC_INLINE void pow5(bigint &big, uint32_t exp) noexcept {
         7450580596923828125UL,
     };
 
-    constexpr static uint64_t large_power_of_5[] = {1414648277510068013UL, 9180637584431281687UL,
+    static constexpr uint64_t large_power_of_5[] = {1414648277510068013UL, 9180637584431281687UL,
                                                     4539964771860779200UL, 10482974169319127550UL,
                                                     198276706040285095UL};
 

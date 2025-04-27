@@ -8,9 +8,17 @@ namespace wjr {
 
 class arena {
 public:
-    static constexpr size_t default_cache_size = 4_KB;
+    enum Rule : uint32_t {
+        Expansion_Constant = 0x00,
+        Expansion_Factor1_5 = 0x01,
+        Expansion_Factor2 = 0x02,
+        Expansion_Mask = 0x03,
+    };
 
-    arena(size_t cache = default_cache_size) : m_cache(cache) {}
+    static constexpr uint32_t default_cache_size = 4_KB;
+
+    arena(uint32_t cache = default_cache_size, Rule rule = Rule::Expansion_Constant)
+        : m_cache(cache), m_rule(rule) {}
 
     arena(const arena &) = delete;
     arena(arena &&other) = default;
@@ -32,7 +40,8 @@ private:
 
     std::byte *m_start = nullptr;
     std::byte *m_end = nullptr;
-    size_t m_cache;
+    uint32_t m_cache;
+    Rule m_rule;
     automatic_free_pool m_pool;
 };
 

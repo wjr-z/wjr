@@ -11,6 +11,8 @@ namespace wjr::json {
 
 namespace formatter_detail {
 
+namespace {
+
 template <typename Container>
 WJR_INTRINSIC_INLINE void append_string(Container &cont, const char *str, size_t length) {
     if constexpr (has_container_append_v<Container, const char *, size_t>) {
@@ -50,6 +52,17 @@ inline constexpr char needs_escaping[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+// If packed, this uses 8 * 32 bytes.
+// Note that we expect most compilers to embed this code in the
+// data section.
+inline constexpr escape_sequence escaped[32] = {
+    {6, "\\u0000"}, {6, "\\u0001"}, {6, "\\u0002"}, {6, "\\u0003"}, {6, "\\u0004"}, {6, "\\u0005"},
+    {6, "\\u0006"}, {6, "\\u0007"}, {2, "\\b"},     {2, "\\t"},     {2, "\\n"},     {6, "\\u000b"},
+    {2, "\\f"},     {2, "\\r"},     {6, "\\u000e"}, {6, "\\u000f"}, {6, "\\u0010"}, {6, "\\u0011"},
+    {6, "\\u0012"}, {6, "\\u0013"}, {6, "\\u0014"}, {6, "\\u0015"}, {6, "\\u0016"}, {6, "\\u0017"},
+    {6, "\\u0018"}, {6, "\\u0019"}, {6, "\\u001a"}, {6, "\\u001b"}, {6, "\\u001c"}, {6, "\\u001d"},
+    {6, "\\u001e"}, {6, "\\u001f"}};
 
 template <typename Container>
 WJR_INTRINSIC_INLINE void format_string(Container &cont, std::string_view str) {
@@ -95,18 +108,6 @@ WJR_INTRINSIC_INLINE void format_string(Container &cont, std::string_view str) {
     return;
 
 SLOW_PATH: {
-    // If packed, this uses 8 * 32 bytes.
-    // Note that we expect most compilers to embed this code in the
-    // data section.
-    constexpr static escape_sequence escaped[32] = {
-        {6, "\\u0000"}, {6, "\\u0001"}, {6, "\\u0002"}, {6, "\\u0003"}, {6, "\\u0004"},
-        {6, "\\u0005"}, {6, "\\u0006"}, {6, "\\u0007"}, {2, "\\b"},     {2, "\\t"},
-        {2, "\\n"},     {6, "\\u000b"}, {2, "\\f"},     {2, "\\r"},     {6, "\\u000e"},
-        {6, "\\u000f"}, {6, "\\u0010"}, {6, "\\u0011"}, {6, "\\u0012"}, {6, "\\u0013"},
-        {6, "\\u0014"}, {6, "\\u0015"}, {6, "\\u0016"}, {6, "\\u0017"}, {6, "\\u0018"},
-        {6, "\\u0019"}, {6, "\\u001a"}, {6, "\\u001b"}, {6, "\\u001c"}, {6, "\\u001d"},
-        {6, "\\u001e"}, {6, "\\u001f"}};
-
     std::memcpy(ptr, first, pos);
     try_uninitialized_resize(cont, (ptr + pos) - cont.data());
 
@@ -178,12 +179,14 @@ SLOW_PATH: {
         append_string(cont, first + last_pos, pos - last_pos);
     }
 
-    goto SMALL_SLOW_PATH_NO_COPY;
+    do {
+        break;
 
-SMALL_SLOW_PATH:
-    std::memcpy(ptr, first, pos);
-    try_uninitialized_resize(cont, (ptr + pos) - cont.data());
-SMALL_SLOW_PATH_NO_COPY:
+    SMALL_SLOW_PATH:
+        std::memcpy(ptr, first, pos);
+        try_uninitialized_resize(cont, (ptr + pos) - cont.data());
+
+    } while (0);
 
     // We caught a control character if we enter this loop (slow).
     // Note that we are do not restart from the beginning, but rather we
@@ -217,6 +220,8 @@ SMALL_SLOW_PATH_NO_COPY:
     return;
 }
 }
+
+} // namespace
 
 } // namespace formatter_detail
 

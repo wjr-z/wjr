@@ -116,10 +116,10 @@ class hlist_node_base {
 public:
     constexpr hlist_node_base() noexcept : m_next(nullptr) {}
     hlist_node_base(default_construct_t) noexcept {}
-    hlist_node_base(const hlist_node_base &) = default;
-    hlist_node_base(hlist_node_base &&) = default;
-    hlist_node_base &operator=(const hlist_node_base &) = default;
-    hlist_node_base &operator=(hlist_node_base &&) = default;
+    hlist_node_base(const hlist_node_base &) = delete;
+    hlist_node_base(hlist_node_base &&) = delete;
+    hlist_node_base &operator=(const hlist_node_base &) = delete;
+    hlist_node_base &operator=(hlist_node_base &&) = delete;
     ~hlist_node_base() = default;
 
     constexpr void init_self() noexcept { m_next = nullptr; }
@@ -136,6 +136,8 @@ public:
     friend void remove(hlist_node_base *prev, hlist_node_base *next) {
         prev->m_next = next->m_next;
     }
+
+    friend void replace(hlist_node_base *from, hlist_node_base *to) { to->m_next = from->m_next; }
 
     constexpr T *self() noexcept { return static_cast<T *>(this); }
     constexpr const T *self() const noexcept { return static_cast<const T *>(this); }
@@ -185,7 +187,6 @@ public:
     constexpr const_iterator cend() const noexcept { return const_iterator(nullptr); }
 };
 
-static_assert(std::is_standard_layout_v<hlist_node_base<>>);
 static_assert(std::is_standard_layout_v<hlist_node<>>);
 
 #define WJR_HLIST_FOR_EACH(pos, head) for (pos = (head)->next(); (pos); pos = (pos)->next())

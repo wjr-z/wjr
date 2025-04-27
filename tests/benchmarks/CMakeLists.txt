@@ -44,6 +44,7 @@ add_executable(
     src/main.cpp
     src/math.cpp
     src/biginteger.cpp
+    src/memory.cpp
 )
 
 set(GMP_LIBS "D:\\msys\\home\\19663\\gmp-6.3.0\\.libs")

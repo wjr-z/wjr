@@ -244,7 +244,6 @@ public:
     constexpr const_reverse_iterator crend() const noexcept { return rend(); }
 };
 
-static_assert(std::is_standard_layout_v<list_node_base<>>);
 static_assert(std::is_standard_layout_v<list_node<>>);
 
 #define WJR_LIST_FOR_EACH(pos, head)                                                               \

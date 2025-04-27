@@ -73,6 +73,7 @@
 #include <wjr/container/container_fn.hpp>
 #include <wjr/iterator/contiguous_iterator_adpater.hpp>
 #include <wjr/math/detail.hpp>
+#include <wjr/memory/allocate_at_least.hpp>
 #include <wjr/memory/copy.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
 

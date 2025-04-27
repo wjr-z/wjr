@@ -1,0 +1,4 @@
+#ifndef WJR_MEMORY_REALLOC_HPP__
+#define WJR_MEMORY_REALLOC_HPP__
+
+#endif // WJR_MEMORY_REALLOC_HPP__

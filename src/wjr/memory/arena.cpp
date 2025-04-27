@@ -2,6 +2,23 @@
 
 namespace wjr {
 void *arena::__allocate_large(size_t n) noexcept {
+    switch (m_rule & Rule::Expansion_Mask) {
+    case Rule::Expansion_Constant: {
+        break;
+    }
+    case Rule::Expansion_Factor1_5: {
+        m_cache += m_cache / 2;
+        break;
+    }
+    case Rule::Expansion_Factor2: {
+        m_cache += m_cache;
+        break;
+    }
+    default: {
+        WJR_UNREACHABLE();
+    }
+    }
+
     if (n > m_cache / 4) {
         return m_pool.allocate(n);
     }

@@ -28,7 +28,7 @@ namespace detail {
 
 inline constexpr auto &radix_100_table = __char_converter_table<char_converter_t, 10, 2>;
 
-static constexpr char radix_100_head_table[200] JKJ_STATIC_DATA_SECTION = {
+inline constexpr char radix_100_head_table[200] JKJ_STATIC_DATA_SECTION = {
     '0', '.', '1', '.', '2', '.', '3', '.', '4', '.', //
     '5', '.', '6', '.', '7', '.', '8', '.', '9', '.', //
     '1', '.', '1', '.', '1', '.', '1', '.', '1', '.', //
