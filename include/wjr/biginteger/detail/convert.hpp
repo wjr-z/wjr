@@ -114,8 +114,8 @@ uint8_t *dc_to_chars(uint8_t *first, size_t len, uint64_t *up, size_t n,
     }
 
     const auto *const pp = pre->ptr;
-    const auto pn = pre->n;
-    const auto ps = pre->shift;
+    const size_t pn = pre->size;
+    const size_t ps = pre->shift;
 
     WJR_ASSERT((pn + ps) * 5 >= n * 2);
 
@@ -123,7 +123,7 @@ uint8_t *dc_to_chars(uint8_t *first, size_t len, uint64_t *up, size_t n,
         return dc_to_chars(first, len, up, n, pre - 1, stk, conv);
     }
 
-    const auto pd = pre->digits_in_base;
+    const size_t pd = pre->digits_in_base;
     auto *qp = stk;
 
     div_qr_s(qp, up + ps, up + ps, n - ps, pp, pn);
@@ -490,8 +490,8 @@ size_t dc_from_chars(const uint8_t *first, size_t n, uint64_t *up, precompute_ch
         hn = dc_from_chars(first, hi, stk, pre - (lo * 2 >= n), up, conv);
     }
 
+    const size_t pn = pre->size;
     const size_t ps = pre->shift;
-    const size_t pn = pre->n;
 
     if (WJR_LIKELY(hn != 0)) {
         if (pn >= hn) {
@@ -536,7 +536,7 @@ uint64_t *__basecase_basecase_from_chars(const uint8_t *first, size_t n, uint64_
         return up + basecase_from_chars(first, n, up, base, conv);
     }
 
-    const auto per_digits = precompute_chars_convert_16n_ptr[base]->digits_in_one_base;
+    const auto per_digits = precompute_chars_convert_digits_in_one_base[base];
 
     precompute_chars_convert_t pre[64 - 3];
 

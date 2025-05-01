@@ -5,24 +5,22 @@
 
 namespace wjr {
 
-struct precompute_chars_convert_16n_t {
-    uint64_t big_base;
-    uint32_t n;
-    uint32_t digits_in_one_base;
-    uint32_t digits_in_sixteen_base;
-    uint64_t arr[16];
-};
+inline constexpr std::array<uint32_t, 37> precompute_chars_convert_digits_in_one_base = {
+    UINT32_C(0),  UINT32_C(0),  UINT32_C(0),  UINT32_C(40), UINT32_C(0),  UINT32_C(27),
+    UINT32_C(24), UINT32_C(22), UINT32_C(0),  UINT32_C(20), UINT32_C(19), UINT32_C(18),
+    UINT32_C(17), UINT32_C(17), UINT32_C(16), UINT32_C(16), UINT32_C(0),  UINT32_C(15),
+    UINT32_C(15), UINT32_C(15), UINT32_C(14), UINT32_C(14), UINT32_C(14), UINT32_C(14),
+    UINT32_C(13), UINT32_C(13), UINT32_C(13), UINT32_C(13), UINT32_C(13), UINT32_C(13),
+    UINT32_C(13), UINT32_C(12), UINT32_C(0),  UINT32_C(12), UINT32_C(12), UINT32_C(12),
+    UINT32_C(12)};
 
 struct precompute_chars_convert_t {
     const uint64_t *ptr;
-    uint32_t n;
+    uint32_t size;
     uint32_t shift;
     uint32_t digits_in_base;
     unsigned int base;
 };
-
-extern const std::array<const precompute_chars_convert_16n_t *, 37>
-    precompute_chars_convert_16n_ptr;
 
 extern WJR_ALL_NONNULL WJR_RETURNS_NONNULL precompute_chars_convert_t *
 precompute_chars_convert(precompute_chars_convert_t *pre_table, size_t n, unsigned int base,
