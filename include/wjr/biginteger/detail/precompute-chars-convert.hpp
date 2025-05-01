@@ -7,17 +7,17 @@ namespace wjr {
 
 struct precompute_chars_convert_16n_t {
     uint64_t big_base;
-    size_t n;
-    int digits_in_one_base;
-    int digits_in_sixteen_base;
+    uint32_t n;
+    uint32_t digits_in_one_base;
+    uint32_t digits_in_sixteen_base;
     uint64_t arr[16];
 };
 
 struct precompute_chars_convert_t {
     const uint64_t *ptr;
-    size_t n;
-    size_t shift;
-    size_t digits_in_base;
+    uint32_t n;
+    uint32_t shift;
+    uint32_t digits_in_base;
     unsigned int base;
 };
 

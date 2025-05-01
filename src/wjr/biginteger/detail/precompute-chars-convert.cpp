@@ -1,4 +1,4 @@
-#include <wjr/biginteger/detail.hpp>
+#include <wjr/biginteger/detail/precompute-chars-convert.hpp>
 
 namespace wjr {
 
@@ -303,16 +303,16 @@ precompute_chars_convert_t *precompute_chars_convert(precompute_chars_convert_t 
                                                      uint64_t *mem_table) noexcept {
     const precompute_chars_convert_16n_t *p16n = precompute_chars_convert_16n_ptr[base];
     const uint64_t big_base = p16n->big_base;
-    const size_t digits_in_one_base = p16n->digits_in_one_base;
+    const uint32_t digits_in_one_base = p16n->digits_in_one_base;
 
-    const auto set = [base](precompute_chars_convert_t *pre, const uint64_t *ptr, size_t _n,
-                            size_t shift, size_t digits_in_base) {
+    const auto set = [base](precompute_chars_convert_t *pre, const uint64_t *ptr, uint32_t _n,
+                            uint32_t shift, uint32_t digits_in_base) {
         *pre = {ptr, _n, shift, digits_in_base, base};
     };
 
-    size_t digits = p16n->n;
-    size_t shift = 16 - digits;
-    size_t digits_in_base = p16n->digits_in_sixteen_base;
+    uint32_t digits = p16n->n;
+    uint32_t shift = 16 - digits;
+    uint32_t digits_in_base = p16n->digits_in_sixteen_base;
 
     set(pre_table, nullptr, 0, 0, 0);
     ++pre_table;
