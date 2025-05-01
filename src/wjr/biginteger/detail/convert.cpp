@@ -2,6 +2,10 @@
 
 namespace wjr {
 
+namespace {
+inline constexpr size_t bignum_to_chars_div_qr_2_threshold = 6;
+}
+
 template <typename Converter>
 size_t __biginteger_to_chars_2_impl(uint8_t *first, const uint64_t *up, size_t n,
                                     Converter conv) noexcept {
@@ -307,43 +311,36 @@ __biginteger_to_chars_power_of_two_impl<origin_converter_t>(uint8_t *first, cons
 
 template <typename Converter>
 uint8_t *basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n, Converter conv) noexcept {
-    constexpr size_t div_qr_2_threshold = 6;
-    if (n >= div_qr_2_threshold) {
-        do {
-            uint64_t q;
-            uint64_t rem[2];
-            q = div_qr_2_shift(up, rem, up, n, div3by2_divider_shift_of_big_base_10);
-            if (q != 0) {
-                up[n - 2] = q;
-                n -= 1;
-            } else {
-                n -= 2;
-            }
-
-            uint64_t lo, hi;
-            hi = div128by64to64_noshift(lo, rem[0], rem[1], div2by1_divider_noshift_of_big_base_10);
-
-            __to_chars_unroll_16<10>(buf - 16, lo % 1'0000'0000'0000'0000, conv);
-            lo /= 1'0000'0000'0000'0000;
-            __to_chars_unroll_2<10>(buf - 18, lo % 100, conv);
-            lo /= 100;
-            buf[-19] = conv.template to<10>(lo);
-            buf -= 19;
-
-            __to_chars_unroll_16<10>(buf - 16, hi % 1'0000'0000'0000'0000, conv);
-            hi /= 1'0000'0000'0000'0000;
-            __to_chars_unroll_2<10>(buf - 18, hi % 100, conv);
-            hi /= 100;
-            buf[-19] = conv.template to<10>(hi);
-            buf -= 19;
-        } while (n >= div_qr_2_threshold);
-    }
-
-    do {
-        if (WJR_UNLIKELY(n == 1)) {
-            return __unsigned_to_chars_backward_unchecked<10>(buf, up[0], conv);
+    while (n >= bignum_to_chars_div_qr_2_threshold) {
+        uint64_t q;
+        uint64_t rem[2];
+        q = div_qr_2_shift(up, rem, up, n, div3by2_divider_shift_of_big_base_10);
+        if (q != 0) {
+            up[n - 2] = q;
+            n -= 1;
+        } else {
+            n -= 2;
         }
 
+        uint64_t lo, hi;
+        hi = div128by64to64_noshift(lo, rem[0], rem[1], div2by1_divider_noshift_of_big_base_10);
+
+        __to_chars_unroll_16<10>(buf - 16, lo % 1'0000'0000'0000'0000, conv);
+        lo /= 1'0000'0000'0000'0000;
+        __to_chars_unroll_2<10>(buf - 18, lo % 100, conv);
+        lo /= 100;
+        buf[-19] = conv.template to<10>(lo);
+        buf -= 19;
+
+        __to_chars_unroll_16<10>(buf - 16, hi % 1'0000'0000'0000'0000, conv);
+        hi /= 1'0000'0000'0000'0000;
+        __to_chars_unroll_2<10>(buf - 18, hi % 100, conv);
+        hi /= 100;
+        buf[-19] = conv.template to<10>(hi);
+        buf -= 19;
+    }
+
+    while (n != 1) {
         uint64_t q, rem;
 
         q = div_qr_1_noshift(up, rem, up, n, div2by1_divider_noshift_of_big_base_10);
@@ -359,9 +356,9 @@ uint8_t *basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n, Converter co
         buf[-19] = conv.template to<10>(rem);
 
         buf -= 19;
-    } while (n);
+    }
 
-    WJR_UNREACHABLE();
+    return __unsigned_to_chars_backward_unchecked<10>(buf, up[0], conv);
 }
 
 template uint8_t *basecase_to_chars_10<char_converter_t>(uint8_t *buf, uint64_t *up, size_t n,
