@@ -869,10 +869,20 @@ template <typename S, typename Engine,
 void __urandom_exact_bit_impl(basic_biginteger<S> *dst, uint32_t size, Engine &engine) noexcept;
 
 /// @private
+template <typename Engine, WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
+void __urandom_impl(biginteger_dispatcher dst, const biginteger_data *limit,
+                    Engine &engine) noexcept;
+
+/// @private
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
 void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
                     Engine &engine) noexcept;
+
+/// @private
+template <typename Engine, WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
+void __urandom_exact_impl(biginteger_dispatcher dst, const biginteger_data *limit,
+                          Engine &engine) noexcept;
 
 /// @private
 template <typename S, typename Engine,
@@ -2536,9 +2546,9 @@ void __urandom_exact_bit_impl(basic_biginteger<S> *dst, uint32_t size, Engine &e
     dst->set_ssize(dssize);
 }
 
-template <typename S, typename Engine,
-          WJR_REQUIRES_I(biginteger_uniform_random_bit_generator_v<Engine>)>
-void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
+/// @private
+template <typename Engine, WJR_REQUIRES_I(biginteger_uniform_random_bit_generator_v<Engine>)>
+void __urandom_impl(biginteger_dispatcher dst, const biginteger_data *limit,
                     Engine &engine) noexcept {
     uint32_t size = limit->size();
 
@@ -2548,20 +2558,20 @@ void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
         std::uniform_int_distribution<uint64_t> head(0, limit->data()[0] - 1);
         const uint64_t gen = head(engine);
 
-        dst->clear_if_reserved(1);
-        dst->data()[0] = gen;
-        dst->set_ssize(gen == 0 ? 0 : 1);
+        dst.clear_if_reserved(1);
+        dst.data()[0] = gen;
+        dst.set_ssize(gen == 0 ? 0 : 1);
         return;
     }
 
-    dst->reserve(size);
+    dst.reserve(size);
 
-    const auto dp = dst->data();
+    const auto dp = dst.data();
     const uint64_t *lp = limit->data();
 
     unique_stack_allocator stkal;
 
-    if (__equal_pointer(dst, limit)) {
+    if (__equal_pointer(dst.raw(), limit)) {
         auto *const tp = stkal.template allocate<uint64_t>(size);
         copy_n_restrict(lp, size, tp);
         lp = tp;
@@ -2606,38 +2616,44 @@ void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
     }
 
     size = normalize(dp, size);
-    dst->set_ssize(size);
+    dst.set_ssize(size);
 }
 
 template <typename S, typename Engine,
           WJR_REQUIRES_I(biginteger_uniform_random_bit_generator_v<Engine>)>
-void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
+void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
+                    Engine &engine) noexcept {
+    __urandom_impl(biginteger_dispatcher(dst), limit, engine);
+}
+
+template <typename Engine, WJR_REQUIRES_I(biginteger_uniform_random_bit_generator_v<Engine>)>
+void __urandom_exact_impl(biginteger_dispatcher dst, const biginteger_data *limit,
                           Engine &engine) noexcept {
     uint32_t size = limit->size();
 
     if (WJR_UNLIKELY(size <= 1)) {
         if (size == 0) {
-            dst->set_ssize(0);
+            dst.set_ssize(0);
             return;
         }
 
         std::uniform_int_distribution<uint64_t> head(0, limit->data()[0]);
         const uint64_t gen = head(engine);
 
-        dst->clear_if_reserved(1);
-        dst->data()[0] = gen;
-        dst->set_ssize(gen == 0 ? 0 : 1);
+        dst.clear_if_reserved(1);
+        dst.data()[0] = gen;
+        dst.set_ssize(gen == 0 ? 0 : 1);
         return;
     }
 
-    dst->reserve(size);
+    dst.reserve(size);
 
-    const auto dp = dst->data();
+    const auto dp = dst.data();
     const uint64_t *lp = limit->data();
 
     unique_stack_allocator stkal;
 
-    if (__equal_pointer(dst, limit)) {
+    if (__equal_pointer(dst.raw(), limit)) {
         auto *const tp = stkal.template allocate<uint64_t>(size);
         copy_n_restrict(lp, size, tp);
         lp = tp;
@@ -2674,7 +2690,14 @@ void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit
     }
 
     size = normalize(dp, size);
-    dst->set_ssize(size);
+    dst.set_ssize(size);
+}
+
+template <typename S, typename Engine,
+          WJR_REQUIRES_I(biginteger_uniform_random_bit_generator_v<Engine>)>
+void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
+                          Engine &engine) noexcept {
+    __urandom_exact_impl(biginteger_dispatcher(dst), limit, engine);
 }
 
 /// @private

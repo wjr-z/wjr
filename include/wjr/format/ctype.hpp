@@ -55,13 +55,15 @@ constexpr char toLower(char C) {
     return C;
 }
 
-constexpr char toupper(char C) {
+constexpr char toUpper(char C) {
     if (isLower(C)) {
         return C - 'a' + 'A';
     }
 
     return C;
 }
+
+constexpr bool isSpace(char C) { return cctype::get_code(C) == 64; }
 
 } // namespace wjr
 

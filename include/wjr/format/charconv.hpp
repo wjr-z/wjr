@@ -22,7 +22,7 @@ static_assert(sizeof(char) == sizeof(uint8_t), "Not support currently.");
 
 namespace charconv_detail {
 
-WJR_CONST constexpr bool isspace(uint8_t ch) noexcept { return char_converter.from(ch) == 64; }
+WJR_CONST constexpr bool isspace(uint8_t ch) noexcept { return isSpace(ch); }
 
 template <typename T>
 struct __is_fast_convert_value

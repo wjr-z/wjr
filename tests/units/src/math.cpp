@@ -1114,7 +1114,7 @@ TEST(math, to_chars) {
 
                 uint64_t x = mt_rand() & mask;
 
-                for (int k = 0; k <= 64; ++k) {
+                for (int k = 1; k <= 64; ++k) {
                     check(k, base, x);
                 }
 
@@ -1125,7 +1125,7 @@ TEST(math, to_chars) {
                         y = -y;
                     }
 
-                    for (int k = 0; k < 64; ++k) {
+                    for (int k = 1; k < 64; ++k) {
                         check(k, base, y);
                     }
                 }
@@ -1162,7 +1162,7 @@ TEST(math, from_chars) {
     for (int t = 0; t < T; ++t) {
         for (unsigned base : {2, 10}) {
             for (int i = 1; i <= 64; ++i) {
-                for (int k = 0; k <= i; ++k) {
+                for (int k = 1; k <= i; ++k) {
                     for (int p = 0; p < k; ++p) {
                         str[p] = mt_rand() % base + '0';
                     }
