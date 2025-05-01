@@ -6,6 +6,31 @@
 
 namespace wjr {
 
+namespace {
+inline constexpr size_t toom22_mul_threshold = WJR_TOOM22_MUL_THRESHOLD;
+inline constexpr size_t toom33_mul_threshold = WJR_TOOM33_MUL_THRESHOLD;
+inline constexpr size_t toom44_mul_threshold = WJR_TOOM44_MUL_THRESHOLD;
+inline constexpr size_t toom55_mul_threshold = WJR_TOOM55_MUL_THRESHOLD;
+inline constexpr size_t toom32_to_toom43_mul_threshold = WJR_TOOM32_TO_TOOM43_MUL_THRESHOLD;
+inline constexpr size_t toom32_to_toom53_mul_threshold = WJR_TOOM32_TO_TOOM53_MUL_THRESHOLD;
+inline constexpr size_t toom42_to_toom53_mul_threshold = WJR_TOOM42_TO_TOOM53_MUL_THRESHOLD;
+inline constexpr size_t toom42_to_toom63_mul_threshold = WJR_TOOM42_TO_TOOM63_MUL_THRESHOLD;
+
+inline constexpr size_t toom2_sqr_threshold = WJR_TOOM2_SQR_THRESHOLD;
+inline constexpr size_t toom3_sqr_threshold = WJR_TOOM3_SQR_THRESHOLD;
+inline constexpr size_t toom4_sqr_threshold = WJR_TOOM4_SQR_THRESHOLD;
+inline constexpr size_t toom5_sqr_threshold = WJR_TOOM5_SQR_THRESHOLD;
+
+WJR_CONST constexpr size_t toom22_s_itch(size_t m) noexcept { return m * 4 + (m / 2) + 64; }
+WJR_CONST constexpr size_t toom22_n_itch(size_t n) noexcept { return n * 2 + 64; }
+
+WJR_CONST constexpr size_t toom33_s_itch(size_t m) noexcept { return m * 4 + (m / 2) + 64; }
+WJR_CONST constexpr size_t toom33_n_itch(size_t m) noexcept { return m * 2 + 64; }
+
+WJR_CONST constexpr size_t toom44_n_itch(size_t m) noexcept { return m * 2 + 64; }
+
+WJR_CONST constexpr size_t toom55_n_itch(size_t m) noexcept { return m * 3 + (m / 2) + 32; }
+
 /**
  * @todo carry-flag in toom_interpolation struct's bits.
  */
@@ -133,6 +158,8 @@ WJR_INTRINSIC_INLINE void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
     c_out += try_addmul_1<m2>(dst + n, src, n, 2 * cf);
 }
 
+} // namespace
+
 /**
  * @details \n
  * l = max(ceil(n/3), ceil(m/2)) \n
@@ -195,17 +222,6 @@ void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, co
 void toom5_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n, uint64_t *stk) noexcept;
 
 namespace {
-
-inline constexpr size_t toom44_mul_threshold = WJR_TOOM44_MUL_THRESHOLD;
-inline constexpr size_t toom55_mul_threshold = WJR_TOOM55_MUL_THRESHOLD;
-inline constexpr size_t toom32_to_toom43_mul_threshold = WJR_TOOM32_TO_TOOM43_MUL_THRESHOLD;
-inline constexpr size_t toom32_to_toom53_mul_threshold = WJR_TOOM32_TO_TOOM53_MUL_THRESHOLD;
-inline constexpr size_t toom42_to_toom53_mul_threshold = WJR_TOOM42_TO_TOOM53_MUL_THRESHOLD;
-inline constexpr size_t toom42_to_toom63_mul_threshold = WJR_TOOM42_TO_TOOM63_MUL_THRESHOLD;
-
-inline constexpr size_t toom4_sqr_threshold = WJR_TOOM4_SQR_THRESHOLD;
-inline constexpr size_t toom5_sqr_threshold = WJR_TOOM5_SQR_THRESHOLD;
-
 void __toom22_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                          const uint64_t *src1, size_t m, uint64_t *mal) noexcept {
     WJR_ASSERT_ASSUME(m >= 1);

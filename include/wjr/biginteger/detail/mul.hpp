@@ -400,22 +400,6 @@ extern WJR_ALL_NONNULL void mulmod_bnm1(uint64_t *rp, size_t rn, const uint64_t 
 extern WJR_ALL_NONNULL void sqrmod_bnm1(uint64_t *rp, size_t rn, const uint64_t *ap, size_t an,
                                         uint64_t *tp) noexcept;
 
-inline constexpr size_t toom22_mul_threshold = WJR_TOOM22_MUL_THRESHOLD;
-inline constexpr size_t toom33_mul_threshold = WJR_TOOM33_MUL_THRESHOLD;
-
-inline constexpr size_t toom2_sqr_threshold = WJR_TOOM2_SQR_THRESHOLD;
-inline constexpr size_t toom3_sqr_threshold = WJR_TOOM3_SQR_THRESHOLD;
-
-WJR_CONST constexpr size_t toom22_s_itch(size_t m) noexcept { return m * 4 + (m / 2) + 64; }
-WJR_CONST constexpr size_t toom22_n_itch(size_t n) noexcept { return n * 2 + 64; }
-
-WJR_CONST constexpr size_t toom33_s_itch(size_t m) noexcept { return m * 4 + (m / 2) + 64; }
-WJR_CONST constexpr size_t toom33_n_itch(size_t m) noexcept { return m * 2 + 64; }
-
-WJR_CONST constexpr size_t toom44_n_itch(size_t m) noexcept { return m * 2 + 64; }
-
-WJR_CONST constexpr size_t toom55_n_itch(size_t m) noexcept { return m * 3 + (m / 2) + 32; }
-
 WJR_CONST constexpr size_t mulmod_bknp1_itch(size_t rn) noexcept { return rn << 2; }
 WJR_CONST constexpr size_t sqrmod_bknp1_itch(size_t rn) noexcept { return rn * 3; }
 
@@ -445,42 +429,6 @@ WJR_CONST constexpr bool toom55_ok(size_t n, size_t m) noexcept { return 4 * n +
 WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t fft_next_size(size_t pl, int k) noexcept {
     pl = 1 + ((pl - 1) >> k); /* ceil (pl/2^k) */
     return pl << k;
-}
-
-WJR_CONST inline size_t mulmod_bnm1_next_size(size_t n) noexcept {
-    size_t nh;
-
-    if (n < WJR_MULMOD_BNM1_THRESHOLD)
-        return n;
-    if (n < 4 * (WJR_MULMOD_BNM1_THRESHOLD - 1) + 1)
-        return (n + (2 - 1)) & (-2);
-    if (n < 8 * (WJR_MULMOD_BNM1_THRESHOLD - 1) + 1)
-        return (n + (4 - 1)) & (-4);
-
-    nh = (n + 1) >> 1;
-
-    if (nh < WJR_MUL_FFT_MODF_THRESHOLD)
-        return (n + (8 - 1)) & (-8);
-
-    return 2 * fft_next_size(nh, fft_best_k(nh, 0));
-}
-
-WJR_CONST inline size_t sqrmod_bnm1_next_size(size_t n) noexcept {
-    size_t nh;
-
-    if (n < WJR_SQRMOD_BNM1_THRESHOLD)
-        return n;
-    if (n < 4 * (WJR_SQRMOD_BNM1_THRESHOLD - 1) + 1)
-        return (n + (2 - 1)) & (-2);
-    if (n < 8 * (WJR_SQRMOD_BNM1_THRESHOLD - 1) + 1)
-        return (n + (4 - 1)) & (-4);
-
-    nh = (n + 1) >> 1;
-
-    if (nh < WJR_SQR_FFT_MODF_THRESHOLD)
-        return (n + (8 - 1)) & (-8);
-
-    return 2 * fft_next_size(nh, fft_best_k(nh, 1));
 }
 
 inline void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,

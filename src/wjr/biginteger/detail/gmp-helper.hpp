@@ -111,7 +111,6 @@ using mp_limb_t = uint64_t;
 #define mpn_fft_next_size wjr::fft_next_size
 #define mpn_fft_best_k wjr::fft_best_k
 #define mpn_zero_p(src, n) (wjr::find_not_n(src, 0, n) == n)
-#define mpn_mulmod_bnm1_next_size mulmod_bnm1_next_size
 
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool mulmod_bknp1_usable(size_t rn, unsigned &k,
                                                            size_t mn) noexcept {

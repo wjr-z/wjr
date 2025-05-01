@@ -230,6 +230,56 @@ template from_chars_result<const char *> __from_chars_impl<true>(const char *fir
                                                                  biginteger_dispatcher dst,
                                                                  unsigned int base) noexcept;
 
+template <bool xsign>
+void __addsub_impl(biginteger_dispatcher dst, const biginteger_data *lhs, uint64_t rhs) noexcept {
+    const int32_t lssize = lhs->get_ssize();
+    if (lssize == 0) {
+        dst.clear_if_reserved(1);
+
+        if (rhs == 0) {
+            dst.set_ssize(0);
+        } else {
+            dst.set_ssize(__fast_conditional_negate<int32_t>(xsign, 1));
+            dst.data()[0] = rhs;
+        }
+
+        return;
+    }
+
+    const uint32_t lusize = __fast_abs(lssize);
+    dst.reserve(lusize + 1);
+
+    auto *const dp = dst.data();
+    const auto *const lp = lhs->data();
+
+    using compare = std::conditional_t<xsign, std::less<>, std::greater<>>;
+    int32_t dssize;
+
+    // todo : Maybe make this a fast path.
+    if (compare{}(lssize, 0)) {
+        const uint32_t cf = addc_1(dp, lp, lusize, rhs, 0u);
+        dssize = __fast_conditional_negate<int32_t>(xsign, lusize + cf);
+        if (cf) {
+            dp[lusize] = 1;
+        }
+    } else {
+        if (lusize == 1 && lp[0] < rhs) {
+            dp[0] = rhs - lp[0];
+            dssize = __fast_conditional_negate<int32_t>(xsign, 1);
+        } else {
+            (void)subc_1(dp, lp, lusize, rhs);
+            dssize = __fast_conditional_negate<int32_t>(!xsign, lusize - (dp[lusize - 1] == 0));
+        }
+    }
+
+    dst.set_ssize(dssize);
+}
+
+template void __addsub_impl<false>(biginteger_dispatcher dst, const biginteger_data *lhs,
+                                   uint64_t rhs) noexcept;
+template void __addsub_impl<true>(biginteger_dispatcher dst, const biginteger_data *lhs,
+                                  uint64_t rhs) noexcept;
+
 void __addsub_impl(biginteger_dispatcher dst, const biginteger_data *lhs,
                    const biginteger_data *rhs, bool xsign) noexcept {
     auto lssize = lhs->get_ssize();
