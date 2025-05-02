@@ -1,0 +1,4 @@
+var structwjr_1_1dragonbox_1_1detail_1_1log_1_1floor__log10__pow2__minus__log10__4__over__3__info_3_012_01_4 =
+[
+    [ "default_return_type", "structwjr_1_1dragonbox_1_1detail_1_1log_1_1floor__log10__pow2__minus__log10__4__over__3__info_3_012_01_4.html#adf9ade585a1de82580527f6ee537a51d", null ]
+];

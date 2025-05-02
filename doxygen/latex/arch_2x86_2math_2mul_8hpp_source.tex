@@ -1,0 +1,39 @@
+\doxysection{mul.\+hpp}
+\hypertarget{arch_2x86_2math_2mul_8hpp_source}{}\label{arch_2x86_2math_2mul_8hpp_source}\index{include/wjr/arch/x86/math/mul.hpp@{include/wjr/arch/x86/math/mul.hpp}}
+\mbox{\hyperlink{arch_2x86_2math_2mul_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_ARCH\_X86\_MATH\_MUL\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_ARCH\_X86\_MATH\_MUL\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{mul-impl_8hpp}{wjr/arch/x86/math/mul-\/impl.hpp}}>}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{assert_8hpp}{wjr/assert.hpp}}>}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_BUILTIN(MSVC\_UMUL128)}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\ \ \ \ \#include\ <\mbox{\hyperlink{intrin_8hpp}{wjr/arch/x86/simd/intrin.hpp}}>}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_BUILTIN(UMUL128)}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_INTRINSIC\_INLINE}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_ae715595c98e62a9550266cb142cc4bb5}{builtin\_umul128}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{a}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{b}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{hi}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\ \ \ \ \#if\ WJR\_HAS\_BUILTIN(ASM\_UMUL128)}}
+\DoxyCodeLine{00017\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{lo}};}
+\DoxyCodeLine{00018\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}mul\{q\ \%3|\ \%3\}\(\backslash\)n\(\backslash\)t"{}}\ :\ \textcolor{stringliteral}{"{}=a,a"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{lo}}),\ \textcolor{stringliteral}{"{}=d,d"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{hi}})\ :\ \textcolor{stringliteral}{"{}\%a,r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{a}}),\ \textcolor{stringliteral}{"{}r,a"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{b}})\ :\ \textcolor{stringliteral}{"{}cc"{}});}
+\DoxyCodeLine{00019\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{lo}};}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\ \ \ \ \#elif\ WJR\_HAS\_BUILTIN(INT128\_UMUL128)}}
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_uint128\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{x}}\ =\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_uint128\_t}}\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{a}})\ *\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{b}};}
+\DoxyCodeLine{00022\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{hi}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{x}}\ >>\ 64;}
+\DoxyCodeLine{00023\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{x}});}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_umul128}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{a}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{b}},\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{hi}});}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00027\ \}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_ARCH\_X86\_MATH\_MUL\_HPP\_\_}}
+
+\end{DoxyCode}

@@ -1,0 +1,42 @@
+\doxysection{include/wjr/assert.hpp 文件参考}
+\hypertarget{assert_8hpp}{}\label{assert_8hpp}\index{include/wjr/assert.hpp@{include/wjr/assert.hpp}}
+
+
+Assertion utilities  
+
+
+\doxysubsubsection*{命名空间}
+\begin{DoxyCompactItemize}
+\item 
+namespace \mbox{\hyperlink{namespacewjr}{wjr}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{详细描述}
+Assertion utilities 
+
+\begin{DoxyAuthor}{作者}
+wjr 
+\end{DoxyAuthor}
+WJR\+\_\+\+DEBUG\+\_\+\+LEVEL \+: 0 \texorpdfstring{$\sim$}{\string~} 3 ~\newline
+0 \+: Release ~\newline
+1 \+: Beta ~\newline
+2 \+: Runtime detect ~\newline
+3 \+: Maximize runtime detect, for debug ~\newline
+If WJR\+\_\+\+DEBUG\+\_\+\+LEVEL is not defined, ~\newline
+If NDEBUG is defined, WJR\+\_\+\+DEBUG\+\_\+\+LEVEL is set to 0 by default. ~\newline
+Otherwise, WJR\+\_\+\+DEBUG\+\_\+\+LEVEL is set to 1 by default. ~\newline
+WJR\+\_\+\+ASSERT\+\_\+\+L(level, expr) \+: Specify the level of assertion, ~\newline
+if the WJR\+\_\+\+DEBUG\+\_\+\+LEVEL is greater than or equal to the level, ~\newline
+the assertion is executed. ~\newline
+WJR\+\_\+\+ASSERT(expr) \+: Equivalent to WJR\+\_\+\+ASSERT\+\_\+\+L(1, expr) ~\newline
+WJR\+\_\+\+ASSERT\+\_\+0(expr) \+: Always execute the assertion ~\newline
+ \begin{DoxyVersion}{版本}
+0.\+1 
+\end{DoxyVersion}
+\begin{DoxyDate}{日期}
+2024-\/06-\/01
+\end{DoxyDate}
+\begin{DoxyCopyright}{版权所有}
+Copyright (c) 2024 
+\end{DoxyCopyright}

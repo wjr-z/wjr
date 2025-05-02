@@ -1,0 +1,265 @@
+\doxysection{wjr\+::btree\+\_\+leaf\+\_\+node\texorpdfstring{$<$}{<} Traits, Inline \texorpdfstring{$>$}{>} 模板结构体 参考}
+\hypertarget{structwjr_1_1btree__leaf__node}{}\label{structwjr_1_1btree__leaf__node}\index{wjr::btree\_leaf\_node$<$ Traits, Inline $>$@{wjr::btree\_leaf\_node$<$ Traits, Inline $>$}}
+
+
+{\ttfamily \#include $<$btree.\+hpp$>$}
+
+
+
+类 wjr\+::btree\+\_\+leaf\+\_\+node\texorpdfstring{$<$}{<} Traits, Inline \texorpdfstring{$>$}{>} 继承关系图\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=550pt]{structwjr_1_1btree__leaf__node__inherit__graph}
+\end{center}
+\end{figure}
+
+
+wjr\+::btree\+\_\+leaf\+\_\+node\texorpdfstring{$<$}{<} Traits, Inline \texorpdfstring{$>$}{>} 的协作图\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=550pt]{structwjr_1_1btree__leaf__node__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public 类型}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1btree__leaf__node_a7f2948d7bab5ee9e7ad33a7a2a428fef}{ivalue\+\_\+type}} = value\+\_\+type \texorpdfstring{$\ast$}{*}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public 类型 继承自 \mbox{\hyperlink{structwjr_1_1btree__node}{wjr\+::btree\+\_\+node$<$ Traits $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1btree__node_a995d68ee277470a91fced2d92b01dae8}{key\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Traits\+::key\+\_\+type
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1btree__node_a124833516282d90819cc171dcc7688b8}{value\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Traits\+::value\+\_\+type
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1btree__node_a62ba19386b86e5f6ab688edab6a0a5b2}{inner\+\_\+node\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Traits\+::inner\+\_\+node\+\_\+type
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1btree__node_a1d7d83191dcf2edf0382f6434635f99f}{leaf\+\_\+node\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Traits\+::leaf\+\_\+node\+\_\+type
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1btree__node_a951cc4fdea213a442a333dde4cd7bb4b}{size\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Traits\+::size\+\_\+type
+\end{DoxyCompactItemize}
+\doxysubsection*{Public 类型 继承自 \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node}{wjr\+::intrusive\+::list\+\_\+node$<$ btree\+\_\+leaf\+\_\+node$<$ Traits, Inline $>$ $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a99a9edfed1218969a1263051542d9f13}{iterator}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a206d82b27d1d10d3ce4acd8e9b9be733}{const\+\_\+iterator}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_adb5ce14e7123eaaa0c13a66b37689146}{reverse\+\_\+iterator}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a1cda04af06da6ebb452e686a268462ab}{const\+\_\+reverse\+\_\+iterator}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public 成员函数}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{structwjr_1_1btree__leaf__node_ac0be74f7e79726d0e2bfb49f5f2e4a9d}{WJR\+\_\+\+ENABLE\+\_\+\+DEFAULT\+\_\+\+SPECIAL\+\_\+\+MEMBERS}} (\mbox{\hyperlink{structwjr_1_1btree__leaf__node}{btree\+\_\+leaf\+\_\+node}})
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1btree__leaf__node_a563e2d3a8819943de10a4a54832e2be3}{btree\+\_\+leaf\+\_\+node}} (\mbox{\hyperlink{structwjr_1_1btree__node__constructor__t}{btree\+\_\+node\+\_\+constructor\+\_\+t}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public 成员函数 继承自 \mbox{\hyperlink{structwjr_1_1btree__node}{wjr\+::btree\+\_\+node$<$ Traits $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1btree__node_a62ba19386b86e5f6ab688edab6a0a5b2}{inner\+\_\+node\+\_\+type}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{structwjr_1_1btree__node_ad1d11985dbf15166f85500e8fa453c15}{as\+\_\+inner}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1btree__node_a62ba19386b86e5f6ab688edab6a0a5b2}{inner\+\_\+node\+\_\+type}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{structwjr_1_1btree__node_a19b32cfe82c3f433abe2833d992ac8cc}{as\+\_\+inner}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1btree__node_a1d7d83191dcf2edf0382f6434635f99f}{leaf\+\_\+node\+\_\+type}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{structwjr_1_1btree__node_a06b665a778a6d92507ba48b82dc4d026}{as\+\_\+leaf}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1btree__node_a1d7d83191dcf2edf0382f6434635f99f}{leaf\+\_\+node\+\_\+type}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{structwjr_1_1btree__node_a830f196c5335685a2ad79057fd5159fe}{as\+\_\+leaf}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{structwjr_1_1btree__node_a3c77f98ba69b288f8f3bb3eb3f9ca4d9}{WJR\+\_\+\+ENABLE\+\_\+\+DEFAULT\+\_\+\+SPECIAL\+\_\+\+MEMBERS}} (\mbox{\hyperlink{structwjr_1_1btree__node}{btree\+\_\+node}})
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1btree__node_af8b582566e719d643aa4a471af4a0c1b}{btree\+\_\+node}} (\mbox{\hyperlink{structwjr_1_1btree__node__constructor__t}{btree\+\_\+node\+\_\+constructor\+\_\+t}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+PURE}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}} \& \mbox{\hyperlink{structwjr_1_1btree__node_acc7b7fd001f1f9382a2c62634e686f31}{size}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+PURE}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}} \& \mbox{\hyperlink{structwjr_1_1btree__node_a11661c3d00f5604c478d2c21034e884e}{size}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+PURE}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{unsigned}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}} \& \mbox{\hyperlink{structwjr_1_1btree__node_a305430db8f407f2152124e78086f3a77}{pos}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+PURE}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{unsigned}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}} \& \mbox{\hyperlink{structwjr_1_1btree__node_a2fdfb14c49310f114bdd198a5f19a009}{pos}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public 成员函数 继承自 \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node}{wjr\+::intrusive\+::list\+\_\+node$<$ btree\+\_\+leaf\+\_\+node$<$ Traits, Inline $>$ $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node}{list\+\_\+node}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_aee117e35b075fdab81a5d7d699af424c}{pop\+\_\+front}} () \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node}{list\+\_\+node}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a134fc189f603918bf8a6d1a2c7cd9485}{pop\+\_\+back}} () \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node}{list\+\_\+node}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a71c3ad02a6c907d4716f013af9111020}{next}} ()
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node}{list\+\_\+node}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_aa52bc8b9691753fa198087fd703c4550}{next}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node}{list\+\_\+node}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_aca5ac156ba606cfdf7f9a39b48a85f8a}{prev}} ()
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node}{list\+\_\+node}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_add7a6c5b0256227614cbcce12b5b743f}{prev}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node}{list\+\_\+node}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a16729257af709aac2077959f83ea7f18}{front}} () \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node}{list\+\_\+node}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a7cf8b60c665bd3d0595af0c92c43b896}{front}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node}{list\+\_\+node}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a9f0cf6c1888576b98347d5b7918baa43}{back}} () \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node}{list\+\_\+node}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a509ae4360ee486b38bb80ba8bc4c6e74}{back}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a99a9edfed1218969a1263051542d9f13}{iterator}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a733f71f9fe4660418a339439b65baaa6}{begin}} () \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a206d82b27d1d10d3ce4acd8e9b9be733}{const\+\_\+iterator}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a83bc52ad1c834479ad125f40bed48937}{begin}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a206d82b27d1d10d3ce4acd8e9b9be733}{const\+\_\+iterator}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_af4efc227b85f3141e408c914d6a129b1}{cbegin}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a99a9edfed1218969a1263051542d9f13}{iterator}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_ac4a4509f6a796b8280ed80bf8bcace81}{end}} () \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a206d82b27d1d10d3ce4acd8e9b9be733}{const\+\_\+iterator}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a65be22ec153b364621107faafcce5b77}{end}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a206d82b27d1d10d3ce4acd8e9b9be733}{const\+\_\+iterator}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a9dcc71d07c6fa496a0a18236e03ad4c1}{cend}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_adb5ce14e7123eaaa0c13a66b37689146}{reverse\+\_\+iterator}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a469849ee773cc7b5deb73946d92e9ddb}{rbegin}} () \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a1cda04af06da6ebb452e686a268462ab}{const\+\_\+reverse\+\_\+iterator}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a8d5ab320b8d7910d17bbf95928eeea96}{rbegin}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a1cda04af06da6ebb452e686a268462ab}{const\+\_\+reverse\+\_\+iterator}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a1be45889539e0757088f8de02f8ec230}{crbegin}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_adb5ce14e7123eaaa0c13a66b37689146}{reverse\+\_\+iterator}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a396b1877d307c1eaad0556aa557fb596}{rend}} () \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a1cda04af06da6ebb452e686a268462ab}{const\+\_\+reverse\+\_\+iterator}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_aac8fb033f641e479976e0f1b0d1b35c3}{rend}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a1cda04af06da6ebb452e686a268462ab}{const\+\_\+reverse\+\_\+iterator}} \mbox{\hyperlink{structwjr_1_1intrusive_1_1list__node_a4503771883fac584262293efd6b79cc4}{crend}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public 成员函数 继承自 \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base}{wjr\+::intrusive\+::list\+\_\+node\+\_\+base$<$ T $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_a9fbf0541a9eb539ec0106d5a6810f3a4}{list\+\_\+node\+\_\+base}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_a373f681f4bea4bdb0c675047eb6521fa}{list\+\_\+node\+\_\+base}} (\mbox{\hyperlink{structwjr_1_1default__construct__t}{default\+\_\+construct\+\_\+t}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_a2501825acbcd49a207481340589c3ed5}{list\+\_\+node\+\_\+base}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base}{list\+\_\+node\+\_\+base}} \&)=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{delete}}
+\item 
+\mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_a0e3e0ff96b357921d81497eeb23f308d}{list\+\_\+node\+\_\+base}} (\mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base}{list\+\_\+node\+\_\+base}} \&\&)=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{delete}}
+\item 
+\mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base}{list\+\_\+node\+\_\+base}} \& \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_a5cb69f5dc8c6cf4651516eafb4ec2af6}{operator=}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base}{list\+\_\+node\+\_\+base}} \&)=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{delete}}
+\item 
+\mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base}{list\+\_\+node\+\_\+base}} \& \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_a1e12914d60e7435e41645922d32bf2ae}{operator=}} (\mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base}{list\+\_\+node\+\_\+base}} \&\&)=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{delete}}
+\item 
+\mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_a6cfa830bee14f6837aa36ba38172c8b0}{\texorpdfstring{$\sim$}{\string~}list\+\_\+node\+\_\+base}} ()=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{default}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_ab2e07fac506a7a9b4dcdc5c42e12efa4}{init\+\_\+self}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_a7b466201d46a039fb443cf556ccff00f}{empty}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_aed9c08fe5dddca2896da1896fa03ceea}{push\+\_\+back}} (\mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base}{list\+\_\+node\+\_\+base}} \texorpdfstring{$\ast$}{*}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{node}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_af0629fc5cf5690f2dab18f821b395070}{push\+\_\+front}} (\mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base}{list\+\_\+node\+\_\+base}} \texorpdfstring{$\ast$}{*}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{node}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_a27f0b0aadb090f49e157e947ab12452e}{remove}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_a0837c475f268d6e89340f57cc659907e}{self}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_a417b63231ba9b1a0ef0b56e9e5b2fffa}{self}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base}{list\+\_\+node\+\_\+base}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_a6e5cd38aa62833200f2cdf03cc3ca146}{base}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base}{list\+\_\+node\+\_\+base}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_a7416db6184d2b94226d0c45ae4838821}{base}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_ac160adf27a9941daa8cdc921fb2add87}{set\+\_\+next}} (\mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base}{list\+\_\+node\+\_\+base}} \texorpdfstring{$\ast$}{*}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{node}})
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_a2662e849b2961b5d1ad4c6269e05b700}{set\+\_\+prev}} (\mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base}{list\+\_\+node\+\_\+base}} \texorpdfstring{$\ast$}{*}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{node}})
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_a9a025f991267e4e989871f4f6a4b66e0}{copy\+\_\+from}} (\mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base}{list\+\_\+node\+\_\+base}} \texorpdfstring{$\ast$}{*}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{node}})
+\end{DoxyCompactItemize}
+\doxysubsubsection*{静态 Public 成员函数}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{static}} value\+\_\+type \& \mbox{\hyperlink{structwjr_1_1btree__leaf__node_a658b835b7e4c2a7ed317028e89981e79}{from\+\_\+ivalue}} (\mbox{\hyperlink{structwjr_1_1btree__leaf__node_a7f2948d7bab5ee9e7ad33a7a2a428fef}{ivalue\+\_\+type}} \&value)
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{static}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} value\+\_\+type \& \mbox{\hyperlink{structwjr_1_1btree__leaf__node_a823ebb6e0486de70644dcc1140db1a85}{from\+\_\+ivalue}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1btree__leaf__node_a7f2948d7bab5ee9e7ad33a7a2a428fef}{ivalue\+\_\+type}} \&value)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public 属性}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{structwjr_1_1btree__leaf__node_a7f2948d7bab5ee9e7ad33a7a2a428fef}{ivalue\+\_\+type}} \mbox{\hyperlink{structwjr_1_1btree__leaf__node_a650e815e00c1def9af56fb31ea5c41c1}{m\+\_\+values}} \mbox{[}$\,$\mbox{]}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public 属性 继承自 \mbox{\hyperlink{structwjr_1_1btree__node}{wjr\+::btree\+\_\+node$<$ Traits $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\_\_normal\_node \mbox{\hyperlink{structwjr_1_1btree__node_a1f9aa89e139601fc9cc0ad8aafe12e11}{m\_node}}\\
+\>\mbox{\hyperlink{structwjr_1_1btree__node_a951cc4fdea213a442a333dde4cd7bb4b}{size\_type}} \mbox{\hyperlink{structwjr_1_1btree__node_ad011cb9e8c1b84d70247a0a78a62bd21}{m\_root\_size}}\\
+\}; \\
+
+\end{tabbing}\item 
+\mbox{\hyperlink{structwjr_1_1btree__node}{btree\+\_\+node}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{structwjr_1_1btree__node_a2930f1af361e71885e97f8cdccdcfab3}{m\+\_\+parent}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{额外继承的成员函数}
+\doxysubsection*{Protected 属性 继承自 \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base}{wjr\+::intrusive\+::list\+\_\+node\+\_\+base$<$ T $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base}{list\+\_\+node\+\_\+base}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_a500985300fd0b1f820a5bc19df3c7f3b}{m\+\_\+next}}
+\item 
+\mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base}{list\+\_\+node\+\_\+base}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classwjr_1_1intrusive_1_1list__node__base_a081e9dbc16d0f7cc0cec28ad40f7ff30}{m\+\_\+prev}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{成员类型定义说明}
+\Hypertarget{structwjr_1_1btree__leaf__node_a7f2948d7bab5ee9e7ad33a7a2a428fef}\label{structwjr_1_1btree__leaf__node_a7f2948d7bab5ee9e7ad33a7a2a428fef} 
+\index{wjr::btree\_leaf\_node$<$ Traits, Inline $>$@{wjr::btree\_leaf\_node$<$ Traits, Inline $>$}!ivalue\_type@{ivalue\_type}}
+\index{ivalue\_type@{ivalue\_type}!wjr::btree\_leaf\_node$<$ Traits, Inline $>$@{wjr::btree\_leaf\_node$<$ Traits, Inline $>$}}
+\doxysubsubsection{\texorpdfstring{ivalue\_type}{ivalue\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Traits , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} Inline$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1btree__leaf__node}{wjr\+::btree\+\_\+leaf\+\_\+node}}$<$ Traits, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Inline}} $>$\+::ivalue\+\_\+type = value\+\_\+type \texorpdfstring{$\ast$}{*}}
+
+
+
+\doxysubsection{构造及析构函数说明}
+\Hypertarget{structwjr_1_1btree__leaf__node_a563e2d3a8819943de10a4a54832e2be3}\label{structwjr_1_1btree__leaf__node_a563e2d3a8819943de10a4a54832e2be3} 
+\index{wjr::btree\_leaf\_node$<$ Traits, Inline $>$@{wjr::btree\_leaf\_node$<$ Traits, Inline $>$}!btree\_leaf\_node@{btree\_leaf\_node}}
+\index{btree\_leaf\_node@{btree\_leaf\_node}!wjr::btree\_leaf\_node$<$ Traits, Inline $>$@{wjr::btree\_leaf\_node$<$ Traits, Inline $>$}}
+\doxysubsubsection{\texorpdfstring{btree\_leaf\_node()}{btree\_leaf\_node()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Traits , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} Inline$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1btree__leaf__node}{wjr\+::btree\+\_\+leaf\+\_\+node}}$<$ Traits, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Inline}} $>$\+::btree\+\_\+leaf\+\_\+node (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structwjr_1_1btree__node__constructor__t}{btree\+\_\+node\+\_\+constructor\+\_\+t}}}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+
+
+\doxysubsection{成员函数说明}
+\Hypertarget{structwjr_1_1btree__leaf__node_a823ebb6e0486de70644dcc1140db1a85}\label{structwjr_1_1btree__leaf__node_a823ebb6e0486de70644dcc1140db1a85} 
+\index{wjr::btree\_leaf\_node$<$ Traits, Inline $>$@{wjr::btree\_leaf\_node$<$ Traits, Inline $>$}!from\_ivalue@{from\_ivalue}}
+\index{from\_ivalue@{from\_ivalue}!wjr::btree\_leaf\_node$<$ Traits, Inline $>$@{wjr::btree\_leaf\_node$<$ Traits, Inline $>$}}
+\doxysubsubsection{\texorpdfstring{from\_ivalue()}{from\_ivalue()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Traits , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} Inline$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{static}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} value\+\_\+type \& \mbox{\hyperlink{structwjr_1_1btree__leaf__node}{wjr\+::btree\+\_\+leaf\+\_\+node}}$<$ Traits, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Inline}} $>$\+::from\+\_\+ivalue (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1btree__leaf__node_a7f2948d7bab5ee9e7ad33a7a2a428fef}{ivalue\+\_\+type}} \&}]{value }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{structwjr_1_1btree__leaf__node_a658b835b7e4c2a7ed317028e89981e79}\label{structwjr_1_1btree__leaf__node_a658b835b7e4c2a7ed317028e89981e79} 
+\index{wjr::btree\_leaf\_node$<$ Traits, Inline $>$@{wjr::btree\_leaf\_node$<$ Traits, Inline $>$}!from\_ivalue@{from\_ivalue}}
+\index{from\_ivalue@{from\_ivalue}!wjr::btree\_leaf\_node$<$ Traits, Inline $>$@{wjr::btree\_leaf\_node$<$ Traits, Inline $>$}}
+\doxysubsubsection{\texorpdfstring{from\_ivalue()}{from\_ivalue()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Traits , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} Inline$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{static}} value\+\_\+type \& \mbox{\hyperlink{structwjr_1_1btree__leaf__node}{wjr\+::btree\+\_\+leaf\+\_\+node}}$<$ Traits, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Inline}} $>$\+::from\+\_\+ivalue (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structwjr_1_1btree__leaf__node_a7f2948d7bab5ee9e7ad33a7a2a428fef}{ivalue\+\_\+type}} \&}]{value }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{structwjr_1_1btree__leaf__node_ac0be74f7e79726d0e2bfb49f5f2e4a9d}\label{structwjr_1_1btree__leaf__node_ac0be74f7e79726d0e2bfb49f5f2e4a9d} 
+\index{wjr::btree\_leaf\_node$<$ Traits, Inline $>$@{wjr::btree\_leaf\_node$<$ Traits, Inline $>$}!WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS@{WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS}}
+\index{WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS@{WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS}!wjr::btree\_leaf\_node$<$ Traits, Inline $>$@{wjr::btree\_leaf\_node$<$ Traits, Inline $>$}}
+\doxysubsubsection{\texorpdfstring{WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS()}{WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Traits , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} Inline$>$ \\
+\mbox{\hyperlink{structwjr_1_1btree__leaf__node}{wjr\+::btree\+\_\+leaf\+\_\+node}}$<$ Traits, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Inline}} $>$\+::\+WJR\+\_\+\+ENABLE\+\_\+\+DEFAULT\+\_\+\+SPECIAL\+\_\+\+MEMBERS (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structwjr_1_1btree__leaf__node}{btree\+\_\+leaf\+\_\+node}}$<$ Traits, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Inline}} $>$}]{ }\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{类成员变量说明}
+\Hypertarget{structwjr_1_1btree__leaf__node_a650e815e00c1def9af56fb31ea5c41c1}\label{structwjr_1_1btree__leaf__node_a650e815e00c1def9af56fb31ea5c41c1} 
+\index{wjr::btree\_leaf\_node$<$ Traits, Inline $>$@{wjr::btree\_leaf\_node$<$ Traits, Inline $>$}!m\_values@{m\_values}}
+\index{m\_values@{m\_values}!wjr::btree\_leaf\_node$<$ Traits, Inline $>$@{wjr::btree\_leaf\_node$<$ Traits, Inline $>$}}
+\doxysubsubsection{\texorpdfstring{m\_values}{m\_values}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Traits , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} Inline$>$ \\
+\mbox{\hyperlink{structwjr_1_1btree__leaf__node_a7f2948d7bab5ee9e7ad33a7a2a428fef}{ivalue\+\_\+type}} \mbox{\hyperlink{structwjr_1_1btree__leaf__node}{wjr\+::btree\+\_\+leaf\+\_\+node}}$<$ Traits, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Inline}} $>$\+::m\+\_\+values}
+
+
+
+该结构体的文档由以下文件生成\+:\begin{DoxyCompactItemize}
+\item 
+include/wjr/container/\mbox{\hyperlink{btree_8hpp}{btree.\+hpp}}\end{DoxyCompactItemize}

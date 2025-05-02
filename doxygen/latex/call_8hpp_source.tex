@@ -1,0 +1,230 @@
+\doxysection{call.\+hpp}
+\hypertarget{call_8hpp_source}{}\label{call_8hpp_source}\index{include/wjr/preprocessor/queue/call.hpp@{include/wjr/preprocessor/queue/call.hpp}}
+\mbox{\hyperlink{call_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_PREPROCESSOR\_QUEUE\_CALL\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_PREPROCESSOR\_QUEUE\_CALL\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{dec_8hpp}{wjr/preprocessor/arithmatic/dec.hpp}}>}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{inc_8hpp}{wjr/preprocessor/arithmatic/inc.hpp}}>}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{detail_2basic_8hpp}{wjr/preprocessor/detail/basic.hpp}}>}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{queue_2basic_8hpp}{wjr/preprocessor/queue/basic.hpp}}>}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_N\_I(args,\ ops,\ WJR\_PP\_QUEUE\_SIZE(args))}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_N(args,\ ops,\ N)\ WJR\_PP\_QUEUE\_CALL\_N\_I(args,\ ops,\ WJR\_PP\_INC(N))}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_N\_I(args,\ ops,\ N)\ WJR\_PP\_QUEUE\_CALL\_N\_II(args,\ ops,\ N)}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_N\_II(args,\ ops,\ N)\ WJR\_PP\_QUEUE\_CALL\_\#\#N(args,\ ops)}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_GEN(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_GEN\_I(WJR\_PP\_QUEUE\_FRONT(ops),\ WJR\_PP\_QUEUE\_FRONT(args),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ WJR\_PP\_QUEUE\_FRONT(WJR\_PP\_QUEUE\_POP\_FRONT(args)))}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_GEN\_I(op,\ arg1,\ arg2)\ op(arg1,\ arg2)}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_EQ(args,\ ops)\ (WJR\_PP\_QUEUE\_CALL\_GEN(args,\ ops))}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE\_I(WJR\_PP\_QUEUE\_POP\_FRONT(WJR\_PP\_QUEUE\_POP\_FRONT(args)),\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ WJR\_PP\_QUEUE\_CALL\_GEN(args,\ ops))}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE\_I(arg1,\ arg2)\ WJR\_PP\_QUEUE\_PUSH\_FRONT(arg1,\ arg2)}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_I(args,\ ops,\ WJR\_PP\_QUEUE\_SIZE(args))}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_I(args,\ ops,\ N)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_II(args,\ ops,\ N)}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_II(args,\ ops,\ N)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_\#\#N(args,\ ops)}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_1(args,\ ops)\ args}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_2(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops)}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_3(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_2(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_4(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_3(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_5(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_4(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_6(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_5(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_7(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_6(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_8(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_7(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_9(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_8(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_10(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_9(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_11(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_10(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_12(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_11(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_13(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_12(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_14(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_13(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_15(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_14(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_16(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_15(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_17(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_16(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_18(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_17(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_19(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_18(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_20(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_19(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_21(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_20(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_22(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_21(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_23(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_22(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_24(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_23(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_25(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_24(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_26(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_25(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_27(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_26(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_28(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_27(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_29(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_28(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_30(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_29(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00091\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_31(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_30(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00093\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_32(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00094\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_31(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00095\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_33(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_32(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_34(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_33(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_35(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_34(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_36(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_35(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_37(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_36(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_38(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_37(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00107\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_39(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00108\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_38(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_40(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_39(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_41(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_40(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00113\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_42(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_41(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00115\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_43(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_42(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_44(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_43(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00119\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_45(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_44(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_46(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_45(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00123\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_47(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00124\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_46(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_48(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00126\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_47(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00127\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_49(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_48(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_50(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00130\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_49(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00131\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_51(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_50(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_52(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_51(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_53(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00136\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_52(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_54(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_53(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00139\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_55(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_54(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00141\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_56(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00142\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_55(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_57(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00144\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_56(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00145\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_58(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00146\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_57(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00147\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_59(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00148\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_58(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00149\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_60(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00150\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_59(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00151\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_61(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00152\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_60(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00153\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_62(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00154\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_61(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00155\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_63(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00156\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_62(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00157\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_64(args,\ ops)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00158\ \textcolor{preprocessor}{\ \ \ \ WJR\_PP\_QUEUE\_CALL\_63(WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS(args,\ ops),\ WJR\_PP\_QUEUE\_POP\_FRONT(ops))}}
+\DoxyCodeLine{00159\ }
+\DoxyCodeLine{00160\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_2(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_EQ(args,\ ops)}}
+\DoxyCodeLine{00161\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_3(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00162\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_4(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00163\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_5(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00164\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_6(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00165\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_7(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00166\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_8(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00167\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_9(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00168\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_10(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00169\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_11(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00170\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_12(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00171\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_13(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00172\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_14(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00173\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_15(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00174\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_16(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00175\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_17(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_18(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00177\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_19(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00178\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_20(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00179\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_21(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00180\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_22(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00181\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_23(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00182\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_24(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00183\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_25(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00184\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_26(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00185\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_27(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00186\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_28(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00187\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_29(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00188\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_30(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00189\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_31(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00190\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_32(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00191\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_33(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00192\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_34(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00193\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_35(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00194\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_36(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00195\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_37(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00196\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_38(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00197\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_39(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00198\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_40(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00199\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_41(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00200\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_42(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00201\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_43(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00202\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_44(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00203\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_45(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00204\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_46(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00205\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_47(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00206\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_48(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00207\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_49(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00208\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_50(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00209\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_51(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00210\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_52(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00211\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_53(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00212\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_54(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00213\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_55(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00214\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_56(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00215\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_57(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00216\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_58(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00217\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_59(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00218\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_60(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00219\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_61(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00220\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_62(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00221\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_63(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00222\ \textcolor{preprocessor}{\#define\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_64(args,\ ops)\ WJR\_PP\_QUEUE\_CALL\_NEW\_ARGS\_NE(args,\ ops)}}
+\DoxyCodeLine{00223\ }
+\DoxyCodeLine{00224\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ !\ WJR\_PREPROCESSOR\_QUEUE\_CALL\_HPP\_\_}}
+
+\end{DoxyCode}

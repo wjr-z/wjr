@@ -1,0 +1,286 @@
+\doxysection{wjr\+::fastfloat 命名空间参考}
+\hypertarget{namespacewjr_1_1fastfloat}{}\label{namespacewjr_1_1fastfloat}\index{wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection*{类}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1fastfloat_1_1binary__format}{binary\+\_\+format}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1fastfloat_1_1default__writer}{default\+\_\+writer}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1fastfloat_1_1parsed__number__string}{parsed\+\_\+number\+\_\+string}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1fastfloat_1_1powers__template}{powers\+\_\+template}}
+\begin{DoxyCompactList}\small\item\em When mapping numbers from decimal to binary, we go from w \texorpdfstring{$\ast$}{*} 10\texorpdfstring{$^\wedge$}{\string^}q to m \texorpdfstring{$\ast$}{*} 2\texorpdfstring{$^\wedge$}{\string^}p but we have 10\texorpdfstring{$^\wedge$}{\string^}q = 5\texorpdfstring{$^\wedge$}{\string^}q \texorpdfstring{$\ast$}{*} 2\texorpdfstring{$^\wedge$}{\string^}q, so effectively we are trying to match w \texorpdfstring{$\ast$}{*} 2\texorpdfstring{$^\wedge$}{\string^}q \texorpdfstring{$\ast$}{*} 5\texorpdfstring{$^\wedge$}{\string^}q to m \texorpdfstring{$\ast$}{*} 2\texorpdfstring{$^\wedge$}{\string^}p. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{类型定义}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_a734fceaa05b10d848bbbb16bd8131688}{powers}} = \mbox{\hyperlink{structwjr_1_1fastfloat_1_1powers__template}{powers\+\_\+template}}$<$$>$
+\end{DoxyCompactItemize}
+\doxysubsubsection*{函数}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_abd36a15d6cd7067ef56ad2600e9e7343}{chars\+\_\+format}} Fmt = chars\+\_\+format\+::general$>$ }\\\mbox{\hyperlink{structwjr_1_1from__chars__result}{from\+\_\+chars\+\_\+result}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_a91370754d41dad4384ecc01c3fd5fde7}{from\+\_\+chars}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} \texorpdfstring{$\ast$}{*}first, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} \texorpdfstring{$\ast$}{*}last, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{float}} \&value, integral\+\_\+constant$<$ \mbox{\hyperlink{namespacewjr_abd36a15d6cd7067ef56ad2600e9e7343}{chars\+\_\+format}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Fmt}} $>$ fmt=\{\}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\begin{DoxyCompactList}\small\item\em This function parses the character sequence \mbox{[}first,last) for a number. \end{DoxyCompactList}\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_abd36a15d6cd7067ef56ad2600e9e7343}{chars\+\_\+format}} Fmt = chars\+\_\+format\+::general$>$ }\\\mbox{\hyperlink{structwjr_1_1from__chars__result}{from\+\_\+chars\+\_\+result}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_ae55e203ced04eac22ad8f4126551fa60}{from\+\_\+chars}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} \texorpdfstring{$\ast$}{*}first, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} \texorpdfstring{$\ast$}{*}last, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{double}} \&value, integral\+\_\+constant$<$ \mbox{\hyperlink{namespacewjr_abd36a15d6cd7067ef56ad2600e9e7343}{chars\+\_\+format}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Fmt}} $>$ fmt=\{\}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+any\+\_\+of\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{float}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{double}} $>$) $>$ }\\\mbox{\hyperlink{structwjr_1_1from__chars__result}{from\+\_\+chars\+\_\+result}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_a7deb1b35b2266ffbbf8b25afc623066c}{from\+\_\+chars}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} \texorpdfstring{$\ast$}{*}first, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} \texorpdfstring{$\ast$}{*}last, \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \&value, \mbox{\hyperlink{namespacewjr_abd36a15d6cd7067ef56ad2600e9e7343}{chars\+\_\+format}} fmt) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_ae4dd1b497673fd4243456f514055eccd}{to\+\_\+float}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} negative, \mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{am}}, \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \&value)
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONST}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+INTRINSIC\+\_\+\+CONSTEXPR}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_afd0754a81420fb85eaa2dc4b69580ad1}{is\+\_\+integer}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{c}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}} bit\+\_\+precision$>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{classwjr_1_1uint128__t}{uint128\+\_\+t}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_a17f7848ef0d8f6727b50b5a59c51d4ea}{compute\+\_\+product\+\_\+approximation}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\+\_\+t}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{q}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{w}})
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{binary}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_aa1e24f31e0c7e08c0c366d92edbdaa6a}{compute\+\_\+error\+\_\+scaled}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\+\_\+t}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{q}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{w}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{lz}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{binary}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_a29a4091dd2c0c9f8c03df7cc5c16b43d}{compute\+\_\+error}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\+\_\+t}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{q}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{w}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{binary}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONST}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_aa2c777e9038111b6e4ed7932893911d1}{compute\+\_\+float}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\+\_\+t}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{q}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{w}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{binary}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONST}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_a5925c2e86f6067e1b8693880a5453db2}{compute\+\_\+integer}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{w}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\begin{DoxyCompactList}\small\item\em special case of compute\+\_\+float when q = 0. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int32\+\_\+t}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_afc16bd8b93c242a96f08c8bd3bec67e8}{scientific\+\_\+exponent}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\+\_\+t}} exponent, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}} mantissa) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$ }\\\mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_a3cb188eec4cb6b83250c83b488e51297}{digit\+\_\+comp}} (\mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{am}}, \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} $>$ integer, \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} $>$ fraction, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int32\+\_\+t}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{sci\+\_\+exp}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{template}} \mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_a37b5fa8c129cabd66a8ec8ab4e3b7b63}{digit\+\_\+comp$<$ float $>$}} (\mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{am}}, \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} $>$ integer, \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} $>$ fraction, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int32\+\_\+t}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{sci\+\_\+exp}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{template}} \mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_a5f66e6dd91541839a050f1615645f077}{digit\+\_\+comp$<$ double $>$}} (\mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{am}}, \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} $>$ integer, \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} $>$ fraction, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int32\+\_\+t}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{sci\+\_\+exp}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{变量}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int32\+\_\+t}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_a15d414739fcfc494631e6ab0028de3dd}{invalid\+\_\+am\+\_\+bias}} = -\/0x8000
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{double}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_a1a785851697e89799d29988411e820b7}{powers\+\_\+of\+\_\+ten\+\_\+double}} \mbox{[}$\,$\mbox{]}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{float}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_a38d3a9393981f43070a84d3b9083582c}{powers\+\_\+of\+\_\+ten\+\_\+float}} \mbox{[}$\,$\mbox{]}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\+\_\+55555}} = 5 \texorpdfstring{$\ast$}{*} 5 \texorpdfstring{$\ast$}{*} 5 \texorpdfstring{$\ast$}{*} 5 \texorpdfstring{$\ast$}{*} 5
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_a00ac0d0f055dab5e3d42e4675f1699c3}{max\+\_\+mantissa\+\_\+double}} \mbox{[}$\,$\mbox{]}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_a1e0fbddeb7e559c1557fa0c9fdf94599}{max\+\_\+mantissa\+\_\+float}} \mbox{[}$\,$\mbox{]}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{类型定义说明}
+\Hypertarget{namespacewjr_1_1fastfloat_a734fceaa05b10d848bbbb16bd8131688}\label{namespacewjr_1_1fastfloat_a734fceaa05b10d848bbbb16bd8131688} 
+\index{wjr::fastfloat@{wjr::fastfloat}!powers@{powers}}
+\index{powers@{powers}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{powers}{powers}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_a734fceaa05b10d848bbbb16bd8131688}{wjr\+::fastfloat\+::powers}} = \mbox{\hyperlink{structwjr_1_1fastfloat_1_1powers__template}{powers\+\_\+template}}$<$$>$}
+
+
+
+\doxysubsection{函数说明}
+\Hypertarget{namespacewjr_1_1fastfloat_a29a4091dd2c0c9f8c03df7cc5c16b43d}\label{namespacewjr_1_1fastfloat_a29a4091dd2c0c9f8c03df7cc5c16b43d} 
+\index{wjr::fastfloat@{wjr::fastfloat}!compute\_error@{compute\_error}}
+\index{compute\_error@{compute\_error}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{compute\_error()}{compute\_error()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{binary}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} wjr\+::fastfloat\+::compute\+\_\+error (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\+\_\+t}}}]{q,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}}}]{w }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [noexcept]}}
+
+\Hypertarget{namespacewjr_1_1fastfloat_aa1e24f31e0c7e08c0c366d92edbdaa6a}\label{namespacewjr_1_1fastfloat_aa1e24f31e0c7e08c0c366d92edbdaa6a} 
+\index{wjr::fastfloat@{wjr::fastfloat}!compute\_error\_scaled@{compute\_error\_scaled}}
+\index{compute\_error\_scaled@{compute\_error\_scaled}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{compute\_error\_scaled()}{compute\_error\_scaled()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{binary}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} wjr\+::fastfloat\+::compute\+\_\+error\+\_\+scaled (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\+\_\+t}}}]{q,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}}}]{w,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}}}]{lz }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [noexcept]}}
+
+\Hypertarget{namespacewjr_1_1fastfloat_aa2c777e9038111b6e4ed7932893911d1}\label{namespacewjr_1_1fastfloat_aa2c777e9038111b6e4ed7932893911d1} 
+\index{wjr::fastfloat@{wjr::fastfloat}!compute\_float@{compute\_float}}
+\index{compute\_float@{compute\_float}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{compute\_float()}{compute\_float()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{binary}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONST}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} wjr\+::fastfloat\+::compute\+\_\+float (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\+\_\+t}}}]{q,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}}}]{w }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [noexcept]}}
+
+\Hypertarget{namespacewjr_1_1fastfloat_a5925c2e86f6067e1b8693880a5453db2}\label{namespacewjr_1_1fastfloat_a5925c2e86f6067e1b8693880a5453db2} 
+\index{wjr::fastfloat@{wjr::fastfloat}!compute\_integer@{compute\_integer}}
+\index{compute\_integer@{compute\_integer}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{compute\_integer()}{compute\_integer()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{binary}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONST}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} wjr\+::fastfloat\+::compute\+\_\+integer (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}}}]{w }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [noexcept]}}
+
+
+
+special case of compute\+\_\+float when q = 0. 
+
+\Hypertarget{namespacewjr_1_1fastfloat_a17f7848ef0d8f6727b50b5a59c51d4ea}\label{namespacewjr_1_1fastfloat_a17f7848ef0d8f6727b50b5a59c51d4ea} 
+\index{wjr::fastfloat@{wjr::fastfloat}!compute\_product\_approximation@{compute\_product\_approximation}}
+\index{compute\_product\_approximation@{compute\_product\_approximation}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{compute\_product\_approximation()}{compute\_product\_approximation()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}} bit\+\_\+precision$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{classwjr_1_1uint128__t}{uint128\+\_\+t}} wjr\+::fastfloat\+::compute\+\_\+product\+\_\+approximation (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\+\_\+t}}}]{q,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}}}]{w }\end{DoxyParamCaption})}
+
+\Hypertarget{namespacewjr_1_1fastfloat_a3cb188eec4cb6b83250c83b488e51297}\label{namespacewjr_1_1fastfloat_a3cb188eec4cb6b83250c83b488e51297} 
+\index{wjr::fastfloat@{wjr::fastfloat}!digit\_comp@{digit\_comp}}
+\index{digit\_comp@{digit\_comp}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{digit\_comp()}{digit\_comp()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$ \\
+\mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} wjr\+::fastfloat\+::digit\+\_\+comp (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}}}]{am,  }\item[{\mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} $>$}]{integer,  }\item[{\mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} $>$}]{fraction,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int32\+\_\+t}}}]{sci\+\_\+exp }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [noexcept]}}
+
+\Hypertarget{namespacewjr_1_1fastfloat_a5f66e6dd91541839a050f1615645f077}\label{namespacewjr_1_1fastfloat_a5f66e6dd91541839a050f1615645f077} 
+\index{wjr::fastfloat@{wjr::fastfloat}!digit\_comp$<$ double $>$@{digit\_comp$<$ double $>$}}
+\index{digit\_comp$<$ double $>$@{digit\_comp$<$ double $>$}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{digit\_comp$<$ double $>$()}{digit\_comp< double >()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{template}} \mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_a3cb188eec4cb6b83250c83b488e51297}{wjr\+::fastfloat\+::digit\+\_\+comp}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{double}} $>$ (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}}}]{am,  }\item[{\mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} $>$}]{integer,  }\item[{\mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} $>$}]{fraction,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int32\+\_\+t}}}]{sci\+\_\+exp }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [extern]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacewjr_1_1fastfloat_a37b5fa8c129cabd66a8ec8ab4e3b7b63}\label{namespacewjr_1_1fastfloat_a37b5fa8c129cabd66a8ec8ab4e3b7b63} 
+\index{wjr::fastfloat@{wjr::fastfloat}!digit\_comp$<$ float $>$@{digit\_comp$<$ float $>$}}
+\index{digit\_comp$<$ float $>$@{digit\_comp$<$ float $>$}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{digit\_comp$<$ float $>$()}{digit\_comp< float >()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{template}} \mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_a3cb188eec4cb6b83250c83b488e51297}{wjr\+::fastfloat\+::digit\+\_\+comp}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{float}} $>$ (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}}}]{am,  }\item[{\mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} $>$}]{integer,  }\item[{\mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} $>$}]{fraction,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int32\+\_\+t}}}]{sci\+\_\+exp }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [extern]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacewjr_1_1fastfloat_ae55e203ced04eac22ad8f4126551fa60}\label{namespacewjr_1_1fastfloat_ae55e203ced04eac22ad8f4126551fa60} 
+\index{wjr::fastfloat@{wjr::fastfloat}!from\_chars@{from\_chars}}
+\index{from\_chars@{from\_chars}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{from\_chars()}{from\_chars()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_abd36a15d6cd7067ef56ad2600e9e7343}{chars\+\_\+format}} Fmt = chars\+\_\+format\+::general$>$ \\
+\mbox{\hyperlink{structwjr_1_1from__chars__result}{from\+\_\+chars\+\_\+result}} wjr\+::fastfloat\+::from\+\_\+chars (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} \texorpdfstring{$\ast$}{*}}]{first,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} \texorpdfstring{$\ast$}{*}}]{last,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{double}} \&}]{value,  }\item[{integral\+\_\+constant$<$ \mbox{\hyperlink{namespacewjr_abd36a15d6cd7067ef56ad2600e9e7343}{chars\+\_\+format}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Fmt}} $>$}]{fmt = {\ttfamily \{\}} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [noexcept]}}
+
+\Hypertarget{namespacewjr_1_1fastfloat_a91370754d41dad4384ecc01c3fd5fde7}\label{namespacewjr_1_1fastfloat_a91370754d41dad4384ecc01c3fd5fde7} 
+\index{wjr::fastfloat@{wjr::fastfloat}!from\_chars@{from\_chars}}
+\index{from\_chars@{from\_chars}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{from\_chars()}{from\_chars()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_abd36a15d6cd7067ef56ad2600e9e7343}{chars\+\_\+format}} Fmt = chars\+\_\+format\+::general$>$ \\
+\mbox{\hyperlink{structwjr_1_1from__chars__result}{from\+\_\+chars\+\_\+result}} wjr\+::fastfloat\+::from\+\_\+chars (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} \texorpdfstring{$\ast$}{*}}]{first,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} \texorpdfstring{$\ast$}{*}}]{last,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{float}} \&}]{value,  }\item[{integral\+\_\+constant$<$ \mbox{\hyperlink{namespacewjr_abd36a15d6cd7067ef56ad2600e9e7343}{chars\+\_\+format}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Fmt}} $>$}]{fmt = {\ttfamily \{\}} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [noexcept]}}
+
+
+
+This function parses the character sequence \mbox{[}first,last) for a number. 
+
+It parses floating-\/point numbers expecting a locale-\/indepent format equivalent to what is used by std\+::strtod in the default ("{}\+C"{}) locale. The resulting floating-\/point value is the closest floating-\/point values (using either float or double), using the "{}round to even"{} convention for values that would otherwise fall right in-\/between two values. That is, we provide exact parsing according to the IEEE standard.
+
+Given a successful parse, the pointer ({\ttfamily ptr}) in the returned value is set to point right after the parsed number, and the {\ttfamily value} referenced is set to the parsed value. In case of error, the returned {\ttfamily ec} contains a representative error, otherwise the default ({\ttfamily std\+::errc()}) value is stored.
+
+The implementation does not throw and does not allocate memory (e.\+g., with {\ttfamily new} or {\ttfamily malloc}).
+
+Like the C++17 standard, the {\ttfamily fast\+\_\+float\+::from\+\_\+chars} functions take an optional last argument of the type {\ttfamily fast\+\_\+float\+::chars\+\_\+format}. It is a bitset value\+: we check whether {\ttfamily fmt \& fast\+\_\+float\+::chars\+\_\+format\+::fixed} and {\ttfamily fmt \& fast\+\_\+float\+::chars\+\_\+format\+::scientific} are set to determine whether we allow the fixed point and scientific notation respectively. The default is {\ttfamily fast\+\_\+float\+::chars\+\_\+format\+::general} which allows both {\ttfamily fixed} and {\ttfamily scientific}. \Hypertarget{namespacewjr_1_1fastfloat_a7deb1b35b2266ffbbf8b25afc623066c}\label{namespacewjr_1_1fastfloat_a7deb1b35b2266ffbbf8b25afc623066c} 
+\index{wjr::fastfloat@{wjr::fastfloat}!from\_chars@{from\_chars}}
+\index{from\_chars@{from\_chars}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{from\_chars()}{from\_chars()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+any\+\_\+of\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{float}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{double}} $>$) $>$ \\
+\mbox{\hyperlink{structwjr_1_1from__chars__result}{from\+\_\+chars\+\_\+result}} wjr\+::fastfloat\+::from\+\_\+chars (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} \texorpdfstring{$\ast$}{*}}]{first,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} \texorpdfstring{$\ast$}{*}}]{last,  }\item[{\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \&}]{value,  }\item[{\mbox{\hyperlink{namespacewjr_abd36a15d6cd7067ef56ad2600e9e7343}{chars\+\_\+format}}}]{fmt }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [noexcept]}}
+
+\Hypertarget{namespacewjr_1_1fastfloat_afd0754a81420fb85eaa2dc4b69580ad1}\label{namespacewjr_1_1fastfloat_afd0754a81420fb85eaa2dc4b69580ad1} 
+\index{wjr::fastfloat@{wjr::fastfloat}!is\_integer@{is\_integer}}
+\index{is\_integer@{is\_integer}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{is\_integer()}{is\_integer()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONST}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+INTRINSIC\+\_\+\+CONSTEXPR}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} wjr\+::fastfloat\+::is\+\_\+integer (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}}}]{c }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [noexcept]}}
+
+\Hypertarget{namespacewjr_1_1fastfloat_afc16bd8b93c242a96f08c8bd3bec67e8}\label{namespacewjr_1_1fastfloat_afc16bd8b93c242a96f08c8bd3bec67e8} 
+\index{wjr::fastfloat@{wjr::fastfloat}!scientific\_exponent@{scientific\_exponent}}
+\index{scientific\_exponent@{scientific\_exponent}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{scientific\_exponent()}{scientific\_exponent()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int32\+\_\+t}} wjr\+::fastfloat\+::scientific\+\_\+exponent (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\+\_\+t}}}]{exponent,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}}}]{mantissa }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [noexcept]}}
+
+\Hypertarget{namespacewjr_1_1fastfloat_ae4dd1b497673fd4243456f514055eccd}\label{namespacewjr_1_1fastfloat_ae4dd1b497673fd4243456f514055eccd} 
+\index{wjr::fastfloat@{wjr::fastfloat}!to\_float@{to\_float}}
+\index{to\_float@{to\_float}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{to\_float()}{to\_float()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} wjr\+::fastfloat\+::to\+\_\+float (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}}}]{negative,  }\item[{\mbox{\hyperlink{structwjr_1_1fastfloat_1_1adjusted__mantissa}{adjusted\+\_\+mantissa}}}]{am,  }\item[{\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \&}]{value }\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{变量说明}
+\Hypertarget{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}\label{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1} 
+\index{wjr::fastfloat@{wjr::fastfloat}!constant\_55555@{constant\_55555}}
+\index{constant\_55555@{constant\_55555}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{constant\_55555}{constant\_55555}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}} wjr\+::fastfloat\+::constant\+\_\+55555 = 5 \texorpdfstring{$\ast$}{*} 5 \texorpdfstring{$\ast$}{*} 5 \texorpdfstring{$\ast$}{*} 5 \texorpdfstring{$\ast$}{*} 5\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}}
+
+\Hypertarget{namespacewjr_1_1fastfloat_a15d414739fcfc494631e6ab0028de3dd}\label{namespacewjr_1_1fastfloat_a15d414739fcfc494631e6ab0028de3dd} 
+\index{wjr::fastfloat@{wjr::fastfloat}!invalid\_am\_bias@{invalid\_am\_bias}}
+\index{invalid\_am\_bias@{invalid\_am\_bias}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{invalid\_am\_bias}{invalid\_am\_bias}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int32\+\_\+t}} wjr\+::fastfloat\+::invalid\+\_\+am\+\_\+bias = -\/0x8000\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}}
+
+\Hypertarget{namespacewjr_1_1fastfloat_a00ac0d0f055dab5e3d42e4675f1699c3}\label{namespacewjr_1_1fastfloat_a00ac0d0f055dab5e3d42e4675f1699c3} 
+\index{wjr::fastfloat@{wjr::fastfloat}!max\_mantissa\_double@{max\_mantissa\_double}}
+\index{max\_mantissa\_double@{max\_mantissa\_double}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{max\_mantissa\_double}{max\_mantissa\_double}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}} wjr\+::fastfloat\+::max\+\_\+mantissa\+\_\+double\mbox{[}$\,$\mbox{]}\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}}
+
+{\bfseries 初始值\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \{}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000,}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ 5,}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (5\ *\ 5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (5\ *\ 5\ *\ 5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (constant\_55555),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (\mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (constant\_55555\ *\ 5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (\mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ 5\ *\ 5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (constant\_55555\ *\ 5\ *\ 5\ *\ 5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (\mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ \mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (constant\_55555\ *\ constant\_55555\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (\mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ \mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ 5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (constant\_55555\ *\ constant\_55555\ *\ 5\ *\ 5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (\mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ \mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ \mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (constant\_55555\ *\ constant\_55555\ *\ constant\_55555\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (\mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ \mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ \mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ 5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (constant\_55555\ *\ constant\_55555\ *\ constant\_55555\ *\ 5\ *\ 5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (\mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ \mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ \mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ 5\ *\ 5\ *\ 5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (constant\_55555\ *\ constant\_55555\ *\ constant\_55555\ *\ constant\_55555),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (\mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ \mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ \mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ \mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /\ (constant\_55555\ *\ constant\_55555\ *\ constant\_55555\ *\ constant\_55555\ *\ 5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ (\mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ \mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ \mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ \mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ 5\ *\ 5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ 0x20000000000000\ /}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ (constant\_55555\ *\ constant\_55555\ *\ constant\_55555\ *\ constant\_55555\ *\ 5\ *\ 5\ *\ 5\ *\ 5)\}}
+
+\end{DoxyCode}
+\Hypertarget{namespacewjr_1_1fastfloat_a1e0fbddeb7e559c1557fa0c9fdf94599}\label{namespacewjr_1_1fastfloat_a1e0fbddeb7e559c1557fa0c9fdf94599} 
+\index{wjr::fastfloat@{wjr::fastfloat}!max\_mantissa\_float@{max\_mantissa\_float}}
+\index{max\_mantissa\_float@{max\_mantissa\_float}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{max\_mantissa\_float}{max\_mantissa\_float}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}} wjr\+::fastfloat\+::max\+\_\+mantissa\+\_\+float\mbox{[}$\,$\mbox{]}\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}}
+
+{\bfseries 初始值\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \{0x1000000,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0x1000000\ /\ 5,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0x1000000\ /\ (5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0x1000000\ /\ (5\ *\ 5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0x1000000\ /\ (5\ *\ 5\ *\ 5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0x1000000\ /\ (constant\_55555),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0x1000000\ /\ (\mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0x1000000\ /\ (constant\_55555\ *\ 5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0x1000000\ /\ (\mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ 5\ *\ 5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0x1000000\ /\ (constant\_55555\ *\ 5\ *\ 5\ *\ 5\ *\ 5),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0x1000000\ /\ (\mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}\ *\ \mbox{\hyperlink{namespacewjr_1_1fastfloat_ab7d4996180d8ddd89b2bd6ab75477de1}{constant\_55555}}),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0x1000000\ /}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (constant\_55555\ *\ constant\_55555\ *\ 5)\}}
+
+\end{DoxyCode}
+\Hypertarget{namespacewjr_1_1fastfloat_a1a785851697e89799d29988411e820b7}\label{namespacewjr_1_1fastfloat_a1a785851697e89799d29988411e820b7} 
+\index{wjr::fastfloat@{wjr::fastfloat}!powers\_of\_ten\_double@{powers\_of\_ten\_double}}
+\index{powers\_of\_ten\_double@{powers\_of\_ten\_double}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{powers\_of\_ten\_double}{powers\_of\_ten\_double}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{double}} wjr\+::fastfloat\+::powers\+\_\+of\+\_\+ten\+\_\+double\mbox{[}$\,$\mbox{]}\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}}
+
+{\bfseries 初始值\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \{1e0,\ \ 1e1,\ \ 1e2,\ \ 1e3,\ \ 1e4,\ \ 1e5,\ \ 1e6,\ \ 1e7,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1e8,\ \ 1e9,\ \ 1e10,\ 1e11,\ 1e12,\ 1e13,\ 1e14,\ 1e15,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1e16,\ 1e17,\ 1e18,\ 1e19,\ 1e20,\ 1e21,\ 1e22\}}
+
+\end{DoxyCode}
+\Hypertarget{namespacewjr_1_1fastfloat_a38d3a9393981f43070a84d3b9083582c}\label{namespacewjr_1_1fastfloat_a38d3a9393981f43070a84d3b9083582c} 
+\index{wjr::fastfloat@{wjr::fastfloat}!powers\_of\_ten\_float@{powers\_of\_ten\_float}}
+\index{powers\_of\_ten\_float@{powers\_of\_ten\_float}!wjr::fastfloat@{wjr::fastfloat}}
+\doxysubsubsection{\texorpdfstring{powers\_of\_ten\_float}{powers\_of\_ten\_float}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{float}} wjr\+::fastfloat\+::powers\+\_\+of\+\_\+ten\+\_\+float\mbox{[}$\,$\mbox{]}\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}}
+
+{\bfseries 初始值\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \{1e0,\ 1e1,\ 1e2,\ 1e3,\ 1e4,\ 1e5,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1e6,\ 1e7,\ 1e8,\ 1e9,\ 1e10\}}
+
+\end{DoxyCode}

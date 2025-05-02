@@ -1,0 +1,4 @@
+var structwjr_1_1dragonbox_1_1detail_1_1convert__to__policy__holder__impl_3_01found__policy__pair__l32840cb79f72f625864e4cfa2daac9f2 =
+[
+    [ "type", "structwjr_1_1dragonbox_1_1detail_1_1convert__to__policy__holder__impl_3_01found__policy__pair__l32840cb79f72f625864e4cfa2daac9f2.html#aa5c54b8dd39183dda201daa5fa87f7cd", null ]
+];

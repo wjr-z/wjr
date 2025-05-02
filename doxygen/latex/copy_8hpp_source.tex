@@ -1,0 +1,167 @@
+\doxysection{copy.\+hpp}
+\hypertarget{copy_8hpp_source}{}\label{copy_8hpp_source}\index{include/wjr/memory/copy.hpp@{include/wjr/memory/copy.hpp}}
+\mbox{\hyperlink{copy_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifndef\ WJR\_MEMORY\_COPY\_HPP\_\_}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ WJR\_MEMORY\_COPY\_HPP\_\_}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <algorithm>}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{container_2detail_8hpp}{wjr/container/detail.hpp}}>}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{inserter_8hpp}{wjr/iterator/inserter.hpp}}>}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{memory_2detail_8hpp}{wjr/memory/detail.hpp}}>}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ InputIt,\ \textcolor{keyword}{typename}\ OutputIt>}
+\DoxyCodeLine{00026\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \_\_copy\_impl(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ first,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ last,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}})\ \{}
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Out}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{remove\_cvref\_t<OutputIt>}};}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_back\_insert\_iterator\_v<Out>}}\ ||\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_insert\_iterator\_v<Out>}})\ \{}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Container}}\ =\ \textcolor{keyword}{typename}\ Out::container\_type;}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_back\_insert\_iterator\_v<Out>}})\ \{}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{has\_container\_append\_v<Container,\ InputIt,\ InputIt>}})\ \{}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a343c5423f8517d5d9f0b49d61b5944ec}{append}}(\mbox{\hyperlink{namespacewjr_ac02ea95ea4c50d46b72b5e7d3dd0eab7}{get\_inserter\_container}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}}),\ first,\ last);}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}};}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{has\_container\_insert\_v<Container,\ InputIt,\ InputIt>}})\ \{}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cont}}\ =\ \mbox{\hyperlink{namespacewjr_ac02ea95ea4c50d46b72b5e7d3dd0eab7}{get\_inserter\_container}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cont}}.insert(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cont}}.cend(),\ first,\ last);}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}};}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ std::copy(first,\ last,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{has\_container\_insert\_v<Container,\ InputIt,\ InputIt>}})\ \{}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cont}}\ =\ \mbox{\hyperlink{namespacewjr_ac02ea95ea4c50d46b72b5e7d3dd0eab7}{get\_inserter\_container}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ pos\ =\ \mbox{\hyperlink{namespacewjr_a5f65ff49b113a2ea0db249973b9ca74b}{get\_inserter\_iterator}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cont}}.insert(pos,\ first,\ last);}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}};}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ std::copy(first,\ last,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00053\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ std::copy(first,\ last,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00055\ \ \ \ \ \}}
+\DoxyCodeLine{00056\ \}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00064\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ InputIt,\ \textcolor{keyword}{typename}\ OutputIt>}
+\DoxyCodeLine{00065\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a8a4b1e72df3f9c8d26f5e026acd0b785}{copy}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ first,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ last,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}})\ \{}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keywordflow}{return}\ \_\_copy\_impl(\mbox{\hyperlink{namespacewjr_a72d0a3c330c09c64ad6006c5060706fd}{to\_contiguous\_address}}(first),\ \mbox{\hyperlink{namespacewjr_a72d0a3c330c09c64ad6006c5060706fd}{to\_contiguous\_address}}(last),}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a72d0a3c330c09c64ad6006c5060706fd}{to\_contiguous\_address}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}}));}
+\DoxyCodeLine{00068\ \}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00071\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ InputIt,\ \textcolor{keyword}{typename}\ OutputIt>}
+\DoxyCodeLine{00072\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \_\_copy\_restrict\_aux(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{add\_restrict\_t<InputIt>}}\ first,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ last,}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{add\_restrict\_t<OutputIt>}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a8a4b1e72df3f9c8d26f5e026acd0b785}{wjr::copy}}(first,\ last,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00075\ \}}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00078\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ InputIt,\ \textcolor{keyword}{typename}\ OutputIt>}
+\DoxyCodeLine{00079\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \_\_copy\_restrict\_impl(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ first,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ last,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_copy\_restrict\_aux<InputIt,\ OutputIt>}}(first,\ last,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00081\ \}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00090\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ InputIt,\ \textcolor{keyword}{typename}\ OutputIt>}
+\DoxyCodeLine{00091\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a87ada6c5e314a85b528b44d305ae02ed}{copy\_restrict}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ first,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ last,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}})\ \{}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_first}}\ =\ \mbox{\hyperlink{namespacewjr_a72d0a3c330c09c64ad6006c5060706fd}{to\_contiguous\_address}}(std::move(first));}
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_last}}\ =\ \mbox{\hyperlink{namespacewjr_a72d0a3c330c09c64ad6006c5060706fd}{to\_contiguous\_address}}(std::move(last));}
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_contiguous\_iterator\_v<OutputIt>}})\ \{}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_d\_first}}\ =\ \mbox{\hyperlink{namespacewjr_ac10a108048d34848ba57318afbb97841}{wjr::to\_address}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_d\_last}}\ =\ \_\_copy\_restrict\_impl(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_first}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_last}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_d\_first}});}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ std::next(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}},\ std::distance(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_d\_first}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_d\_last}}));}
+\DoxyCodeLine{00098\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \_\_copy\_restrict\_impl(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_first}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_last}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00100\ \ \ \ \ \}}
+\DoxyCodeLine{00101\ \}}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ InputIt,\ \textcolor{keyword}{typename}\ Size,\ \textcolor{keyword}{typename}\ OutputIt>}
+\DoxyCodeLine{00104\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \_\_copy\_n\_impl(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ first,\ Size\ count,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}})\ \{}
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Out}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{remove\_cvref\_t<OutputIt>}};}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_random\_access\_iterator\_v<InputIt>}}\ \&\&}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_back\_insert\_iterator\_v<Out>}}\ ||\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_insert\_iterator\_v<Out>}}))\ \{}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Container}}\ =\ \textcolor{keyword}{typename}\ Out::container\_type;}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_back\_insert\_iterator\_v<Out>}})\ \{}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{has\_container\_append\_v<Container,\ InputIt,\ InputIt>}})\ \{}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a343c5423f8517d5d9f0b49d61b5944ec}{append}}(\mbox{\hyperlink{namespacewjr_ac02ea95ea4c50d46b72b5e7d3dd0eab7}{get\_inserter\_container}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}}),\ first,\ std::next(first,\ count));}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}};}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{has\_container\_insert\_v<Container,\ InputIt,\ InputIt>}})\ \{}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cont}}\ =\ \mbox{\hyperlink{namespacewjr_ac02ea95ea4c50d46b72b5e7d3dd0eab7}{get\_inserter\_container}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cont}}.insert(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cont}}.cend(),\ first,\ std::next(first,\ count));}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}};}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ std::copy\_n(first,\ count,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{has\_container\_insert\_v<Container,\ InputIt,\ InputIt>}})\ \{}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cont}}\ =\ \mbox{\hyperlink{namespacewjr_ac02ea95ea4c50d46b72b5e7d3dd0eab7}{get\_inserter\_container}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ pos\ =\ \mbox{\hyperlink{namespacewjr_a5f65ff49b113a2ea0db249973b9ca74b}{get\_inserter\_iterator}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cont}}.insert(pos,\ first,\ std::next(first,\ count));}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}};}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ std::copy\_n(first,\ std::next(first,\ count),\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00132\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ std::copy\_n(first,\ count,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00134\ \ \ \ \ \}}
+\DoxyCodeLine{00135\ \}}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00143\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ InputIt,\ \textcolor{keyword}{typename}\ Size,\ \textcolor{keyword}{typename}\ OutputIt>}
+\DoxyCodeLine{00144\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a333144fda9d4d4c822b0914dc5ca3954}{copy\_n}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ first,\ Size\ count,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}})\ \{}
+\DoxyCodeLine{00145\ \ \ \ \ \textcolor{keywordflow}{return}\ \_\_copy\_n\_impl(\mbox{\hyperlink{namespacewjr_a72d0a3c330c09c64ad6006c5060706fd}{to\_contiguous\_address}}(first),\ count,\ \mbox{\hyperlink{namespacewjr_a72d0a3c330c09c64ad6006c5060706fd}{to\_contiguous\_address}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}}));}
+\DoxyCodeLine{00146\ \}}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00149\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ InputIt,\ \textcolor{keyword}{typename}\ Size,\ \textcolor{keyword}{typename}\ OutputIt>}
+\DoxyCodeLine{00150\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \_\_copy\_n\_restrict\_aux(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{add\_restrict\_t<InputIt>}}\ first,\ Size\ count,}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{add\_restrict\_t<OutputIt>}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}})\ \{}
+\DoxyCodeLine{00152\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a333144fda9d4d4c822b0914dc5ca3954}{wjr::copy\_n}}(first,\ count,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00153\ \}}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00156\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ InputIt,\ \textcolor{keyword}{typename}\ Size,\ \textcolor{keyword}{typename}\ OutputIt>}
+\DoxyCodeLine{00157\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \_\_copy\_n\_restrict\_impl(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ first,\ Size\ count,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}})\ \{}
+\DoxyCodeLine{00158\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_copy\_n\_restrict\_aux<InputIt,\ Size,\ OutputIt>}}(first,\ count,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00159\ \}}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00167\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ InputIt,\ \textcolor{keyword}{typename}\ Size,\ \textcolor{keyword}{typename}\ OutputIt>}
+\DoxyCodeLine{00168\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a5373ede27310266648ddeb0db648a327}{copy\_n\_restrict}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ first,\ Size\ count,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}})\ \{}
+\DoxyCodeLine{00169\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_first}}\ =\ \mbox{\hyperlink{namespacewjr_a72d0a3c330c09c64ad6006c5060706fd}{to\_contiguous\_address}}(std::move(first));}
+\DoxyCodeLine{00170\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_contiguous\_iterator\_v<OutputIt>}})\ \{}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_d\_first}}\ =\ \mbox{\hyperlink{namespacewjr_ac10a108048d34848ba57318afbb97841}{wjr::to\_address}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_d\_last}}\ =\ \_\_copy\_n\_restrict\_impl(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_first}},\ count,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_d\_first}});}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ std::next(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}},\ std::distance(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_d\_first}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_d\_last}}));}
+\DoxyCodeLine{00174\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \_\_copy\_n\_restrict\_impl(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_first}},\ count,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00176\ \ \ \ \ \}}
+\DoxyCodeLine{00177\ \}}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ InputIt,\ \textcolor{keyword}{typename}\ OutputIt>}
+\DoxyCodeLine{00180\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_ac8b9458cb5a35829280ddca5138d56be}{move}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ first,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ last,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}})\ \{}
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a8a4b1e72df3f9c8d26f5e026acd0b785}{wjr::copy}}(std::make\_move\_iterator(first),\ std::make\_move\_iterator(last),\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00182\ \}}
+\DoxyCodeLine{00183\ }
+\DoxyCodeLine{00184\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ InputIt,\ \textcolor{keyword}{typename}\ OutputIt>}
+\DoxyCodeLine{00185\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a4594897d88623bcf4e1917e5c715f01f}{move\_restrict}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ first,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ last,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}})\ \{}
+\DoxyCodeLine{00186\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a87ada6c5e314a85b528b44d305ae02ed}{wjr::copy\_restrict}}(std::make\_move\_iterator(first),\ std::make\_move\_iterator(last),}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00188\ \}}
+\DoxyCodeLine{00189\ }
+\DoxyCodeLine{00190\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ InputIt,\ \textcolor{keyword}{typename}\ Size,\ \textcolor{keyword}{typename}\ OutputIt>}
+\DoxyCodeLine{00191\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_ad3d278e86a1eb5fb10c676bdcda34742}{move\_n}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ first,\ Size\ count,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}})\ \{}
+\DoxyCodeLine{00192\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a333144fda9d4d4c822b0914dc5ca3954}{wjr::copy\_n}}(std::make\_move\_iterator(first),\ count,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00193\ \}}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ InputIt,\ \textcolor{keyword}{typename}\ Size,\ \textcolor{keyword}{typename}\ OutputIt>}
+\DoxyCodeLine{00196\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a8a47eb2e3bb3fc50d9e671ebd0b410ee}{move\_n\_restrict}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{InputIt}}\ first,\ Size\ count,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{OutputIt}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}})\ \{}
+\DoxyCodeLine{00197\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a5373ede27310266648ddeb0db648a327}{wjr::copy\_n\_restrict}}(std::make\_move\_iterator(first),\ count,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{d\_first}});}
+\DoxyCodeLine{00198\ \}}
+\DoxyCodeLine{00199\ }
+\DoxyCodeLine{00200\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00201\ }
+\DoxyCodeLine{00202\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_MEMORY\_COPY\_HPP\_\_}}
+
+\end{DoxyCode}

@@ -1,0 +1,209 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: include/wjr/json/reader.hpp 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('reader_8hpp_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">reader.hpp</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="reader_8hpp.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef WJR_JSON_READER_HPP__</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define WJR_JSON_READER_HPP__</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;<a class="code" href="json_2lexer_8hpp.html">wjr/json/lexer.hpp</a>&gt;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;<a class="code" href="vector_8hpp.html">wjr/vector.hpp</a>&gt;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacewjr_1_1json.html">wjr::json</a> {</div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
+<div class="foldopen" id="foldopen00013" data-start="{" data-end="};">
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno"><a class="line" href="classwjr_1_1json_1_1reader.html">   13</a></span><span class="keyword">class </span><a class="code hl_class" href="classwjr_1_1json_1_1reader.html">reader</a> {</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    <span class="keyword">using </span>Vector = <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">vector&lt;uint32_t&gt;</a>;</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="classwjr_1_1json_1_1reader.html#a1f7530c35237d2dfd98d3c288cd8dbc7">   17</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classwjr_1_1json_1_1reader.html#a1f7530c35237d2dfd98d3c288cd8dbc7">value_type</a> = <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint32_t</a>;</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="classwjr_1_1json_1_1reader.html#ad6e04b48080cff327b9dcb62cfcc2a76">   18</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classwjr_1_1json_1_1reader.html#ad6e04b48080cff327b9dcb62cfcc2a76">const_pointer</a> = <span class="keyword">const</span> <span class="keywordtype">char</span> *;</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="classwjr_1_1json_1_1reader.html#a7b5df89acf79c17d5734d3952bd160fe">   19</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classwjr_1_1json_1_1reader.html#a7b5df89acf79c17d5734d3952bd160fe">size_type</a> = <span class="keyword">typename</span> <a class="code hl_typedef" href="classwjr_1_1json_1_1lexer.html#a73d693a11379253e6eb4d3efe421288c">lexer::size_type</a>;</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="classwjr_1_1json_1_1reader.html#a34bb865c1ed914ca68e62d868288a6b4">   20</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classwjr_1_1json_1_1reader.html#a34bb865c1ed914ca68e62d868288a6b4">const_iterator</a> = <span class="keyword">typename</span> <a class="code hl_typedef" href="classwjr_1_1basic__vector.html#a7094bdcb53373b1768874d25dc1d2010">Vector::const_iterator</a>;</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno"><a class="line" href="classwjr_1_1json_1_1reader.html#a3a24d9284a870d002ffac86cf5e779d7">   22</a></span>    <a class="code hl_function" href="classwjr_1_1json_1_1reader.html#a3a24d9284a870d002ffac86cf5e779d7">WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS</a>(<a class="code hl_class" href="classwjr_1_1json_1_1reader.html">reader</a>);</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="classwjr_1_1json_1_1reader.html#a0bcdedfb26d845cd2890cbc15350e7e9">   24</a></span>    <a class="code hl_function" href="classwjr_1_1json_1_1reader.html#a0bcdedfb26d845cd2890cbc15350e7e9">reader</a>(<a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">span&lt;const char&gt;</a> <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">sp</a>) <span class="keyword">noexcept</span> { <a class="code hl_function" href="classwjr_1_1json_1_1reader.html#a18635d54ce2e163d8225d188b7406e5d">read</a>(<a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">sp</a>); }</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="classwjr_1_1json_1_1reader.html#ab96bcaa114fb96ab28de87a6d37702e8">   26</a></span>    <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="code hl_typedef" href="classwjr_1_1json_1_1reader.html#a34bb865c1ed914ca68e62d868288a6b4">const_iterator</a> <a class="code hl_function" href="classwjr_1_1json_1_1reader.html#ab96bcaa114fb96ab28de87a6d37702e8">begin</a>() <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="code hl_variable" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a> { <span class="keywordflow">return</span> m_tokens.<a class="code hl_function" href="classwjr_1_1basic__vector.html#abe8773ad6624f2b2aed75b7eb81a0216">begin</a>(); }</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="classwjr_1_1json_1_1reader.html#acedef70130fb40aee5c38389d7b8607d">   27</a></span>    <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="code hl_typedef" href="classwjr_1_1json_1_1reader.html#a34bb865c1ed914ca68e62d868288a6b4">const_iterator</a> <a class="code hl_function" href="classwjr_1_1json_1_1reader.html#acedef70130fb40aee5c38389d7b8607d">end</a>() <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="code hl_variable" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a> { <span class="keywordflow">return</span> m_tokens.<a class="code hl_function" href="classwjr_1_1basic__vector.html#a5c3402654a23d69103e3f2c5bac6dcfd">end</a>(); }</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="classwjr_1_1json_1_1reader.html#a88b9b177ac02d3a66cd36fafa7fcf774">   28</a></span>    <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="code hl_typedef" href="classwjr_1_1json_1_1reader.html#ad6e04b48080cff327b9dcb62cfcc2a76">const_pointer</a> <a class="code hl_function" href="classwjr_1_1json_1_1reader.html#a88b9b177ac02d3a66cd36fafa7fcf774">data</a>() <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="code hl_variable" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a> { <span class="keywordflow">return</span> m_str.<a class="code hl_function" href="classwjr_1_1span.html#aebae38a77a5d545cf8bfe04e31584caa">data</a>(); }</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="classwjr_1_1json_1_1reader.html#adea3ff835889720741717e795303f20a">   30</a></span>    <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="code hl_typedef" href="classwjr_1_1json_1_1reader.html#a7b5df89acf79c17d5734d3952bd160fe">size_type</a> <a class="code hl_function" href="classwjr_1_1json_1_1reader.html#adea3ff835889720741717e795303f20a">size</a>() <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="code hl_variable" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a> { <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span><a class="code hl_typedef" href="classwjr_1_1json_1_1reader.html#a7b5df89acf79c17d5734d3952bd160fe">size_type</a><span class="keyword">&gt;</span>(m_str.<a class="code hl_function" href="classwjr_1_1span.html#afa0bf663b408f3d732e076e5a5f4526d">size</a>()); }</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
+<div class="foldopen" id="foldopen00032" data-start="{" data-end="}">
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="classwjr_1_1json_1_1reader.html#a18635d54ce2e163d8225d188b7406e5d">   32</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classwjr_1_1json_1_1reader.html#a18635d54ce2e163d8225d188b7406e5d">read</a>(<a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">span&lt;const char&gt;</a> <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">sp</a>) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>        m_str = <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">sp</a>;</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>        <a class="code hl_class" href="classwjr_1_1json_1_1lexer.html">lexer</a> <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">lex</a>(m_str);</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>        <span class="keyword">const</span> <a class="code hl_typedef" href="classwjr_1_1json_1_1reader.html#a7b5df89acf79c17d5734d3952bd160fe">size_type</a> <a class="code hl_variable" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a> = <span class="keyword">static_cast&lt;</span><a class="code hl_typedef" href="classwjr_1_1json_1_1reader.html#a7b5df89acf79c17d5734d3952bd160fe">size_type</a><span class="keyword">&gt;</span>(m_str.<a class="code hl_function" href="classwjr_1_1span.html#afa0bf663b408f3d732e076e5a5f4526d">size</a>());</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>        <a class="code hl_typedef" href="classwjr_1_1json_1_1reader.html#a7b5df89acf79c17d5734d3952bd160fe">size_type</a> capacity = <a class="code hl_variable" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a> &lt;= 2048 ? <a class="code hl_variable" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a> : (<a class="code hl_variable" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a> &lt;= 16 * 2048 ? 2048 : <a class="code hl_variable" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a> / 16);</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>        <a class="code hl_typedef" href="classwjr_1_1json_1_1reader.html#a7b5df89acf79c17d5734d3952bd160fe">size_type</a> <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">buf_size</a> = capacity;</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>        <span class="keyword">typename</span> <a class="code hl_class" href="classwjr_1_1json_1_1lexer_1_1result__type.html">lexer::result_type</a> <a class="code hl_typedef" href="namespacewjr_1_1json.html#a3da33a0cdfd4791f1b9e324d2c275a0b">result</a>;</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>        m_tokens.<a class="code hl_function" href="classwjr_1_1basic__vector.html#a371fa38fb919d735118f4d819c48f6cd">clear</a>();</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>        <span class="keywordflow">do</span> {</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>            m_tokens.<a class="code hl_function" href="classwjr_1_1basic__vector.html#aef8f279f04223740abd01ed0206e5a4c">reserve</a>(capacity + 64);</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>            <a class="code hl_typedef" href="namespacewjr_1_1json.html#a3da33a0cdfd4791f1b9e324d2c275a0b">result</a> = <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">lex</a>.read(m_tokens.<a class="code hl_function" href="classwjr_1_1basic__vector.html#a96bb1a17ef53db20e69ed218e32a37cc">end_unsafe</a>(), <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">buf_size</a>);</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>            m_tokens.<a class="code hl_function" href="classwjr_1_1basic__vector.html#aa9581389f6d67c086b1d412683c12ed6">get_storage</a>().size() += <a class="code hl_typedef" href="namespacewjr_1_1json.html#a3da33a0cdfd4791f1b9e324d2c275a0b">result</a>.get();</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>            <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">buf_size</a> = capacity;</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>            capacity &lt;&lt;= 1;</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>        } <span class="keywordflow">while</span> (!<a class="code hl_typedef" href="namespacewjr_1_1json.html#a3da33a0cdfd4791f1b9e324d2c275a0b">result</a>.done());</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    }</div>
+</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno"><a class="line" href="classwjr_1_1json_1_1reader.html#a16e2525876946f536b915e90eb4e5533">   51</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classwjr_1_1json_1_1reader.html#a16e2525876946f536b915e90eb4e5533">clear</a>() <a class="code hl_variable" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a> { m_tokens.<a class="code hl_function" href="classwjr_1_1basic__vector.html#a371fa38fb919d735118f4d819c48f6cd">clear</a>(); }</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno"><a class="line" href="classwjr_1_1json_1_1reader.html#ac83d75d21f08c8e2b7ce80ee6e93a699">   52</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classwjr_1_1json_1_1reader.html#ac83d75d21f08c8e2b7ce80ee6e93a699">shrink_to_fit</a>() <a class="code hl_variable" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a> { m_tokens.<a class="code hl_function" href="classwjr_1_1basic__vector.html#a1b7729c372074f1c7a1a386a5d285b5b">shrink_to_fit</a>(); }</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span> </div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">span&lt;const char&gt;</a> m_str;</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    Vector m_tokens;</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>};</div>
+</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>} <span class="comment">// namespace wjr::json</span></div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span><span class="preprocessor">#endif </span><span class="comment">// WJR_JSON_READER_HPP__</span></div>
+<div class="ttc" id="aclasswjr_1_1basic__vector_html_a1b7729c372074f1c7a1a386a5d285b5b"><div class="ttname"><a href="classwjr_1_1basic__vector.html#a1b7729c372074f1c7a1a386a5d285b5b">wjr::basic_vector::shrink_to_fit</a></div><div class="ttdeci">WJR_CONSTEXPR20 void shrink_to_fit()</div><div class="ttdef"><b>Definition</b> vector.hpp:852</div></div>
+<div class="ttc" id="aclasswjr_1_1basic__vector_html_a371fa38fb919d735118f4d819c48f6cd"><div class="ttname"><a href="classwjr_1_1basic__vector.html#a371fa38fb919d735118f4d819c48f6cd">wjr::basic_vector::clear</a></div><div class="ttdeci">WJR_CONSTEXPR20 void clear() noexcept</div><div class="ttdef"><b>Definition</b> vector.hpp:1094</div></div>
+<div class="ttc" id="aclasswjr_1_1basic__vector_html_a5c3402654a23d69103e3f2c5bac6dcfd"><div class="ttname"><a href="classwjr_1_1basic__vector.html#a5c3402654a23d69103e3f2c5bac6dcfd">wjr::basic_vector::end</a></div><div class="ttdeci">WJR_CONSTEXPR20 iterator end() noexcept</div><div class="ttdef"><b>Definition</b> vector.hpp:819</div></div>
+<div class="ttc" id="aclasswjr_1_1basic__vector_html_a7094bdcb53373b1768874d25dc1d2010"><div class="ttname"><a href="classwjr_1_1basic__vector.html#a7094bdcb53373b1768874d25dc1d2010">wjr::basic_vector::const_iterator</a></div><div class="ttdeci">contiguous_const_iterator_adapter&lt; basic_vector, IteratorTraits &gt; const_iterator</div><div class="ttdef"><b>Definition</b> vector.hpp:633</div></div>
+<div class="ttc" id="aclasswjr_1_1basic__vector_html_a96bb1a17ef53db20e69ed218e32a37cc"><div class="ttname"><a href="classwjr_1_1basic__vector.html#a96bb1a17ef53db20e69ed218e32a37cc">wjr::basic_vector::end_unsafe</a></div><div class="ttdeci">WJR_CONSTEXPR20 pointer end_unsafe() noexcept</div><div class="ttdef"><b>Definition</b> vector.hpp:787</div></div>
+<div class="ttc" id="aclasswjr_1_1basic__vector_html_aa9581389f6d67c086b1d412683c12ed6"><div class="ttname"><a href="classwjr_1_1basic__vector.html#aa9581389f6d67c086b1d412683c12ed6">wjr::basic_vector::get_storage</a></div><div class="ttdeci">WJR_CONSTEXPR20 storage_type &amp; get_storage() noexcept</div><div class="ttdef"><b>Definition</b> vector.hpp:1251</div></div>
+<div class="ttc" id="aclasswjr_1_1basic__vector_html_abe8773ad6624f2b2aed75b7eb81a0216"><div class="ttname"><a href="classwjr_1_1basic__vector.html#abe8773ad6624f2b2aed75b7eb81a0216">wjr::basic_vector::begin</a></div><div class="ttdeci">WJR_CONSTEXPR20 iterator begin() noexcept</div><div class="ttdef"><b>Definition</b> vector.hpp:811</div></div>
+<div class="ttc" id="aclasswjr_1_1basic__vector_html_aef8f279f04223740abd01ed0206e5a4c"><div class="ttname"><a href="classwjr_1_1basic__vector.html#aef8f279f04223740abd01ed0206e5a4c">wjr::basic_vector::reserve</a></div><div class="ttdeci">WJR_CONSTEXPR20 void reserve(size_type n)</div><div class="ttdef"><b>Definition</b> vector.hpp:951</div></div>
+<div class="ttc" id="aclasswjr_1_1json_1_1lexer_1_1result__type_html"><div class="ttname"><a href="classwjr_1_1json_1_1lexer_1_1result__type.html">wjr::json::lexer::result_type</a></div><div class="ttdef"><b>Definition</b> lexer-impl.hpp:36</div></div>
+<div class="ttc" id="aclasswjr_1_1json_1_1lexer_html"><div class="ttname"><a href="classwjr_1_1json_1_1lexer.html">wjr::json::lexer</a></div><div class="ttdef"><b>Definition</b> lexer-impl.hpp:22</div></div>
+<div class="ttc" id="aclasswjr_1_1json_1_1lexer_html_a73d693a11379253e6eb4d3efe421288c"><div class="ttname"><a href="classwjr_1_1json_1_1lexer.html#a73d693a11379253e6eb4d3efe421288c">wjr::json::lexer::size_type</a></div><div class="ttdeci">uint32_t size_type</div><div class="ttdef"><b>Definition</b> lexer-impl.hpp:24</div></div>
+<div class="ttc" id="aclasswjr_1_1json_1_1reader_html"><div class="ttname"><a href="classwjr_1_1json_1_1reader.html">wjr::json::reader</a></div><div class="ttdoc">Save position of all tokens.</div><div class="ttdef"><b>Definition</b> reader.hpp:13</div></div>
+<div class="ttc" id="aclasswjr_1_1json_1_1reader_html_a0bcdedfb26d845cd2890cbc15350e7e9"><div class="ttname"><a href="classwjr_1_1json_1_1reader.html#a0bcdedfb26d845cd2890cbc15350e7e9">wjr::json::reader::reader</a></div><div class="ttdeci">reader(span&lt; const char &gt; sp) noexcept</div><div class="ttdef"><b>Definition</b> reader.hpp:24</div></div>
+<div class="ttc" id="aclasswjr_1_1json_1_1reader_html_a16e2525876946f536b915e90eb4e5533"><div class="ttname"><a href="classwjr_1_1json_1_1reader.html#a16e2525876946f536b915e90eb4e5533">wjr::json::reader::clear</a></div><div class="ttdeci">void clear() noexcept</div><div class="ttdef"><b>Definition</b> reader.hpp:51</div></div>
+<div class="ttc" id="aclasswjr_1_1json_1_1reader_html_a18635d54ce2e163d8225d188b7406e5d"><div class="ttname"><a href="classwjr_1_1json_1_1reader.html#a18635d54ce2e163d8225d188b7406e5d">wjr::json::reader::read</a></div><div class="ttdeci">void read(span&lt; const char &gt; sp) noexcept</div><div class="ttdef"><b>Definition</b> reader.hpp:32</div></div>
+<div class="ttc" id="aclasswjr_1_1json_1_1reader_html_a1f7530c35237d2dfd98d3c288cd8dbc7"><div class="ttname"><a href="classwjr_1_1json_1_1reader.html#a1f7530c35237d2dfd98d3c288cd8dbc7">wjr::json::reader::value_type</a></div><div class="ttdeci">uint32_t value_type</div><div class="ttdef"><b>Definition</b> reader.hpp:17</div></div>
+<div class="ttc" id="aclasswjr_1_1json_1_1reader_html_a34bb865c1ed914ca68e62d868288a6b4"><div class="ttname"><a href="classwjr_1_1json_1_1reader.html#a34bb865c1ed914ca68e62d868288a6b4">wjr::json::reader::const_iterator</a></div><div class="ttdeci">typename Vector::const_iterator const_iterator</div><div class="ttdef"><b>Definition</b> reader.hpp:20</div></div>
+<div class="ttc" id="aclasswjr_1_1json_1_1reader_html_a3a24d9284a870d002ffac86cf5e779d7"><div class="ttname"><a href="classwjr_1_1json_1_1reader.html#a3a24d9284a870d002ffac86cf5e779d7">wjr::json::reader::WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS</a></div><div class="ttdeci">WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(reader)</div></div>
+<div class="ttc" id="aclasswjr_1_1json_1_1reader_html_a7b5df89acf79c17d5734d3952bd160fe"><div class="ttname"><a href="classwjr_1_1json_1_1reader.html#a7b5df89acf79c17d5734d3952bd160fe">wjr::json::reader::size_type</a></div><div class="ttdeci">typename lexer::size_type size_type</div><div class="ttdef"><b>Definition</b> reader.hpp:19</div></div>
+<div class="ttc" id="aclasswjr_1_1json_1_1reader_html_a88b9b177ac02d3a66cd36fafa7fcf774"><div class="ttname"><a href="classwjr_1_1json_1_1reader.html#a88b9b177ac02d3a66cd36fafa7fcf774">wjr::json::reader::data</a></div><div class="ttdeci">WJR_CONSTEXPR20 const_pointer data() const noexcept</div><div class="ttdef"><b>Definition</b> reader.hpp:28</div></div>
+<div class="ttc" id="aclasswjr_1_1json_1_1reader_html_ab96bcaa114fb96ab28de87a6d37702e8"><div class="ttname"><a href="classwjr_1_1json_1_1reader.html#ab96bcaa114fb96ab28de87a6d37702e8">wjr::json::reader::begin</a></div><div class="ttdeci">WJR_CONSTEXPR20 const_iterator begin() const noexcept</div><div class="ttdef"><b>Definition</b> reader.hpp:26</div></div>
+<div class="ttc" id="aclasswjr_1_1json_1_1reader_html_ac83d75d21f08c8e2b7ce80ee6e93a699"><div class="ttname"><a href="classwjr_1_1json_1_1reader.html#ac83d75d21f08c8e2b7ce80ee6e93a699">wjr::json::reader::shrink_to_fit</a></div><div class="ttdeci">void shrink_to_fit() noexcept</div><div class="ttdef"><b>Definition</b> reader.hpp:52</div></div>
+<div class="ttc" id="aclasswjr_1_1json_1_1reader_html_acedef70130fb40aee5c38389d7b8607d"><div class="ttname"><a href="classwjr_1_1json_1_1reader.html#acedef70130fb40aee5c38389d7b8607d">wjr::json::reader::end</a></div><div class="ttdeci">WJR_CONSTEXPR20 const_iterator end() const noexcept</div><div class="ttdef"><b>Definition</b> reader.hpp:27</div></div>
+<div class="ttc" id="aclasswjr_1_1json_1_1reader_html_ad6e04b48080cff327b9dcb62cfcc2a76"><div class="ttname"><a href="classwjr_1_1json_1_1reader.html#ad6e04b48080cff327b9dcb62cfcc2a76">wjr::json::reader::const_pointer</a></div><div class="ttdeci">const char * const_pointer</div><div class="ttdef"><b>Definition</b> reader.hpp:18</div></div>
+<div class="ttc" id="aclasswjr_1_1json_1_1reader_html_adea3ff835889720741717e795303f20a"><div class="ttname"><a href="classwjr_1_1json_1_1reader.html#adea3ff835889720741717e795303f20a">wjr::json::reader::size</a></div><div class="ttdeci">WJR_CONSTEXPR20 size_type size() const noexcept</div><div class="ttdef"><b>Definition</b> reader.hpp:30</div></div>
+<div class="ttc" id="aclasswjr_1_1span_html_aebae38a77a5d545cf8bfe04e31584caa"><div class="ttname"><a href="classwjr_1_1span.html#aebae38a77a5d545cf8bfe04e31584caa">wjr::span::data</a></div><div class="ttdeci">WJR_PURE constexpr pointer data() const noexcept</div><div class="ttdef"><b>Definition</b> span.hpp:293</div></div>
+<div class="ttc" id="aclasswjr_1_1span_html_afa0bf663b408f3d732e076e5a5f4526d"><div class="ttname"><a href="classwjr_1_1span.html#afa0bf663b408f3d732e076e5a5f4526d">wjr::span::size</a></div><div class="ttdeci">WJR_PURE constexpr size_type size() const noexcept</div><div class="ttdef"><b>Definition</b> span.hpp:295</div></div>
+<div class="ttc" id="ainclude_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_html_a42a1da88df05bc933612820bb42db3a2"><div class="ttname"><a href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a></div><div class="ttdeci">WJR_ALL_NONNULL uint64_t const uint64_t const uint64_t size_t n</div><div class="ttdef"><b>Definition</b> gen_addrsblsh_n.hpp:22</div></div>
+<div class="ttc" id="ajson_2lexer_8hpp_html"><div class="ttname"><a href="json_2lexer_8hpp.html">lexer.hpp</a></div></div>
+<div class="ttc" id="anamespacewjr_1_1json_html"><div class="ttname"><a href="namespacewjr_1_1json.html">wjr::json</a></div><div class="ttdef"><b>Definition</b> detail.hpp:7</div></div>
+<div class="ttc" id="anamespacewjr_1_1json_html_a3da33a0cdfd4791f1b9e324d2c275a0b"><div class="ttname"><a href="namespacewjr_1_1json.html#a3da33a0cdfd4791f1b9e324d2c275a0b">wjr::json::result</a></div><div class="ttdeci">expected&lt; T, result_error &gt; result</div><div class="ttdef"><b>Definition</b> detail.hpp:52</div></div>
+<div class="ttc" id="anamespacewjr_html_a1acbd863328d678d9e25f3a31ef82df0"><div class="ttname"><a href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">wjr::iterator_reference_t</a></div><div class="ttdeci">typename std::iterator_traits&lt; Iter &gt;::reference iterator_reference_t</div><div class="ttdef"><b>Definition</b> detail.hpp:17</div></div>
+<div class="ttc" id="anamespacewjr_html_af89e8e658fd9c3a3b154c55677a3b528"><div class="ttname"><a href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">wjr::noexcept</a></div><div class="ttdeci">const biginteger_data T rhs noexcept</div><div class="ttdef"><b>Definition</b> biginteger.hpp:1055</div></div>
+<div class="ttc" id="avector_8hpp_html"><div class="ttname"><a href="vector_8hpp.html">vector.hpp</a></div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_1efa0e4d5c42031eef05b07d97cdbde6.html">wjr</a></li><li class="navelem"><a class="el" href="dir_3071541dcc873a93c6b1a0f1d3546991.html">json</a></li><li class="navelem"><a class="el" href="reader_8hpp.html">reader.hpp</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

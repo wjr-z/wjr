@@ -1,0 +1,32 @@
+\doxysection{mul-\/impl.hpp}
+\hypertarget{mul-impl_8hpp_source}{}\label{mul-impl_8hpp_source}\index{include/wjr/arch/x86/math/mul-\/impl.hpp@{include/wjr/arch/x86/math/mul-\/impl.hpp}}
+\mbox{\hyperlink{mul-impl_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_ARCH\_X86\_MATH\_MUL\_IMPL\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_ARCH\_X86\_MATH\_MUL\_IMPL\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{type__traits_8hpp}{wjr/type\_traits.hpp}}>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ WJR\_HAS\_BUILTIN\_UMUL128\ WJR\_HAS\_DEF}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_FEATURE(GCC\_STYLE\_INLINE\_ASM)}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_BUILTIN\_ASM\_UMUL128\ WJR\_HAS\_DEF}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#elif\ WJR\_HAS\_FEATURE(INT128)}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_BUILTIN\_INT128\_UMUL128\ WJR\_HAS\_DEF}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#elif\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_BUILTIN\_MSVC\_UMUL128\ WJR\_HAS\_DEF}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\ \ \ \ \#undef\ WJR\_HAS\_BUILTIN\_UMUL128}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#if\ defined(\_\_BMI2\_\_)}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_BUILTIN\_MULX\_U64\ WJR\_HAS\_DEF}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_ARCH\_X86\_MATH\_MUL\_IMPL\_HPP\_\_}}
+
+\end{DoxyCode}

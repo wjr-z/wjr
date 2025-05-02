@@ -1,0 +1,27 @@
+\doxysection{platform.\+hpp}
+\hypertarget{platform_8hpp_source}{}\label{platform_8hpp_source}\index{include/wjr/preprocessor/config/platform.hpp@{include/wjr/preprocessor/config/platform.hpp}}
+\mbox{\hyperlink{platform_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_PREPROCESSOR\_CONFIG\_PLATFORM\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_PREPROCESSOR\_CONFIG\_PLATFORM\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ Os}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#if\ defined(WIN32)\ ||\ defined(\_WIN64)\ ||\ defined(\_WIN32)\ ||\ defined(\_\_WIN32\_\_)\ ||\ defined(\_\_NT\_\_)}}
+\DoxyCodeLine{00009\ \ \ \ \ \textcolor{comment}{//\ define\ something\ for\ Windows\ (32-\/bit\ and\ 64-\/bit,\ this\ part\ is\ common)}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_OS\_WINDOWS}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#elif\ (defined(\_\_freebsd\_\_)\ ||\ defined(\_\_FreeBSD\_\_))}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_OS\_FREEBSD}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#elif\ defined(\_\_OpenBSD\_\_)}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_OS\_OPENBSD}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#elif\ defined(\_\_ANDROID\_\_)}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_OS\_ANDROID}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#elif\ defined(\_\_linux\_\_)}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_OS\_LINUX}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#elif\ defined(\_\_unix\_\_)\ }\textcolor{comment}{//\ all\ unices\ not\ caught\ above}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_OS\_UNIX}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_PREPROCESSOR\_CONFIG\_PLATFORM\_HPP\_\_}}
+
+\end{DoxyCode}

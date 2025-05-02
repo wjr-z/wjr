@@ -1,0 +1,151 @@
+\doxysection{wjr\+::stack\+\_\+allocator\+\_\+object类 参考}
+\hypertarget{classwjr_1_1stack__allocator__object}{}\label{classwjr_1_1stack__allocator__object}\index{wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}}
+
+
+{\ttfamily \#include $<$stack\+\_\+allocator.\+hpp$>$}
+
+
+
+wjr\+::stack\+\_\+allocator\+\_\+object 的协作图\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=207pt]{classwjr_1_1stack__allocator__object__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{类}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classwjr_1_1stack__allocator__object_1_1stack__context}{stack\+\_\+context}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public 类型}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1stack__allocator__object_a468794cfb552ab0c7d045360435499da}{value\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1stack__allocator__object_ac19e3bc195bf7eaad45f14b780c8ff6d}{size\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1stack__allocator__object_aa43124de8a045d623bc6868e4b5eae21}{difference\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ptrdiff\+\_\+t}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1stack__allocator__object_a13b50d2c3bc9430e201ac7773888abf3}{propagate\+\_\+on\+\_\+container\+\_\+move\+\_\+assignment}} = std\+::true\+\_\+type
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public 成员函数}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classwjr_1_1stack__allocator__object_a55698cfa48e916c80851da3a536c7394}{stack\+\_\+allocator\+\_\+object}} ()=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{default}}
+\item 
+\mbox{\hyperlink{classwjr_1_1stack__allocator__object_ae2391e4d38f67a1dc5486bbd3981df3a}{stack\+\_\+allocator\+\_\+object}} (\mbox{\hyperlink{classwjr_1_1stack__allocator__object}{stack\+\_\+allocator\+\_\+object}} \&)=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{delete}}
+\item 
+\mbox{\hyperlink{classwjr_1_1stack__allocator__object_ae98f2455efbfc4952fbb391d9c522a72}{stack\+\_\+allocator\+\_\+object}} (\mbox{\hyperlink{classwjr_1_1stack__allocator__object}{stack\+\_\+allocator\+\_\+object}} \&\&)=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{delete}}
+\item 
+\mbox{\hyperlink{classwjr_1_1stack__allocator__object}{stack\+\_\+allocator\+\_\+object}} \& \mbox{\hyperlink{classwjr_1_1stack__allocator__object_a39124b5f71aa70993aee08e9e4a90877}{operator=}} (\mbox{\hyperlink{classwjr_1_1stack__allocator__object}{stack\+\_\+allocator\+\_\+object}} \&)=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{delete}}
+\item 
+\mbox{\hyperlink{classwjr_1_1stack__allocator__object}{stack\+\_\+allocator\+\_\+object}} \& \mbox{\hyperlink{classwjr_1_1stack__allocator__object_a1c945e4b802a104b5ce1b2656fbd27a2}{operator=}} (\mbox{\hyperlink{classwjr_1_1stack__allocator__object}{stack\+\_\+allocator\+\_\+object}} \&\&)=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{delete}}
+\item 
+\mbox{\hyperlink{classwjr_1_1stack__allocator__object_a1992ca71f6de6f9bb38451c4a04dcb3f}{\texorpdfstring{$\sim$}{\string~}stack\+\_\+allocator\+\_\+object}} ()=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{default}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+NODISCARD}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+MALLOC}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classwjr_1_1stack__allocator__object_aa7471a2e98675c3db98f23d0c7e33aa5}{allocate}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}}, \mbox{\hyperlink{classwjr_1_1stack__allocator__object_1_1stack__context}{stack\+\_\+context}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{context}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1stack__allocator__object_acc12502734f52c9a2668ff6144972583}{deallocate}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1stack__allocator__object_1_1stack__context}{stack\+\_\+context}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{context}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{友元}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} \mbox{\hyperlink{classwjr_1_1stack__allocator__object_a6340a86a79411477b32d3bee1ead23e1}{unique\+\_\+stack\+\_\+allocator}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{成员类型定义说明}
+\Hypertarget{classwjr_1_1stack__allocator__object_aa43124de8a045d623bc6868e4b5eae21}\label{classwjr_1_1stack__allocator__object_aa43124de8a045d623bc6868e4b5eae21} 
+\index{wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}!difference\_type@{difference\_type}}
+\index{difference\_type@{difference\_type}!wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}}
+\doxysubsubsection{\texorpdfstring{difference\_type}{difference\_type}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1stack__allocator__object_aa43124de8a045d623bc6868e4b5eae21}{wjr\+::stack\+\_\+allocator\+\_\+object\+::difference\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ptrdiff\+\_\+t}}}
+
+\Hypertarget{classwjr_1_1stack__allocator__object_a13b50d2c3bc9430e201ac7773888abf3}\label{classwjr_1_1stack__allocator__object_a13b50d2c3bc9430e201ac7773888abf3} 
+\index{wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}!propagate\_on\_container\_move\_assignment@{propagate\_on\_container\_move\_assignment}}
+\index{propagate\_on\_container\_move\_assignment@{propagate\_on\_container\_move\_assignment}!wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}}
+\doxysubsubsection{\texorpdfstring{propagate\_on\_container\_move\_assignment}{propagate\_on\_container\_move\_assignment}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1stack__allocator__object_a13b50d2c3bc9430e201ac7773888abf3}{wjr\+::stack\+\_\+allocator\+\_\+object\+::propagate\+\_\+on\+\_\+container\+\_\+move\+\_\+assignment}} = std\+::true\+\_\+type}
+
+\Hypertarget{classwjr_1_1stack__allocator__object_ac19e3bc195bf7eaad45f14b780c8ff6d}\label{classwjr_1_1stack__allocator__object_ac19e3bc195bf7eaad45f14b780c8ff6d} 
+\index{wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}!size\_type@{size\_type}}
+\index{size\_type@{size\_type}!wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}}
+\doxysubsubsection{\texorpdfstring{size\_type}{size\_type}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1stack__allocator__object_ac19e3bc195bf7eaad45f14b780c8ff6d}{wjr\+::stack\+\_\+allocator\+\_\+object\+::size\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}}}
+
+\Hypertarget{classwjr_1_1stack__allocator__object_a468794cfb552ab0c7d045360435499da}\label{classwjr_1_1stack__allocator__object_a468794cfb552ab0c7d045360435499da} 
+\index{wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}!value\_type@{value\_type}}
+\index{value\_type@{value\_type}!wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}}
+\doxysubsubsection{\texorpdfstring{value\_type}{value\_type}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1stack__allocator__object_a468794cfb552ab0c7d045360435499da}{wjr\+::stack\+\_\+allocator\+\_\+object\+::value\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}}}
+
+
+
+\doxysubsection{构造及析构函数说明}
+\Hypertarget{classwjr_1_1stack__allocator__object_a55698cfa48e916c80851da3a536c7394}\label{classwjr_1_1stack__allocator__object_a55698cfa48e916c80851da3a536c7394} 
+\index{wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}!stack\_allocator\_object@{stack\_allocator\_object}}
+\index{stack\_allocator\_object@{stack\_allocator\_object}!wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}}
+\doxysubsubsection{\texorpdfstring{stack\_allocator\_object()}{stack\_allocator\_object()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily wjr\+::stack\+\_\+allocator\+\_\+object\+::stack\+\_\+allocator\+\_\+object (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [default]}}
+
+\Hypertarget{classwjr_1_1stack__allocator__object_ae2391e4d38f67a1dc5486bbd3981df3a}\label{classwjr_1_1stack__allocator__object_ae2391e4d38f67a1dc5486bbd3981df3a} 
+\index{wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}!stack\_allocator\_object@{stack\_allocator\_object}}
+\index{stack\_allocator\_object@{stack\_allocator\_object}!wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}}
+\doxysubsubsection{\texorpdfstring{stack\_allocator\_object()}{stack\_allocator\_object()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily wjr\+::stack\+\_\+allocator\+\_\+object\+::stack\+\_\+allocator\+\_\+object (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1stack__allocator__object}{stack\+\_\+allocator\+\_\+object}} \&}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{classwjr_1_1stack__allocator__object_ae98f2455efbfc4952fbb391d9c522a72}\label{classwjr_1_1stack__allocator__object_ae98f2455efbfc4952fbb391d9c522a72} 
+\index{wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}!stack\_allocator\_object@{stack\_allocator\_object}}
+\index{stack\_allocator\_object@{stack\_allocator\_object}!wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}}
+\doxysubsubsection{\texorpdfstring{stack\_allocator\_object()}{stack\_allocator\_object()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily wjr\+::stack\+\_\+allocator\+\_\+object\+::stack\+\_\+allocator\+\_\+object (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1stack__allocator__object}{stack\+\_\+allocator\+\_\+object}} \&\&}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{classwjr_1_1stack__allocator__object_a1992ca71f6de6f9bb38451c4a04dcb3f}\label{classwjr_1_1stack__allocator__object_a1992ca71f6de6f9bb38451c4a04dcb3f} 
+\index{wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}!````~stack\_allocator\_object@{\texorpdfstring{$\sim$}{\string~}stack\_allocator\_object}}
+\index{````~stack\_allocator\_object@{\texorpdfstring{$\sim$}{\string~}stack\_allocator\_object}!wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}stack\_allocator\_object()}{\string~stack\_allocator\_object()}}
+{\footnotesize\ttfamily wjr\+::stack\+\_\+allocator\+\_\+object\+::\texorpdfstring{$\sim$}{\string~}stack\+\_\+allocator\+\_\+object (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [default]}}
+
+
+
+\doxysubsection{成员函数说明}
+\Hypertarget{classwjr_1_1stack__allocator__object_aa7471a2e98675c3db98f23d0c7e33aa5}\label{classwjr_1_1stack__allocator__object_aa7471a2e98675c3db98f23d0c7e33aa5} 
+\index{wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}!allocate@{allocate}}
+\index{allocate@{allocate}!wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}}
+\doxysubsubsection{\texorpdfstring{allocate()}{allocate()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+NODISCARD}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+MALLOC}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \texorpdfstring{$\ast$}{*} wjr\+::stack\+\_\+allocator\+\_\+object\+::allocate (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}}}]{n,  }\item[{\mbox{\hyperlink{classwjr_1_1stack__allocator__object_1_1stack__context}{stack\+\_\+context}} \&}]{context }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1stack__allocator__object_acc12502734f52c9a2668ff6144972583}\label{classwjr_1_1stack__allocator__object_acc12502734f52c9a2668ff6144972583} 
+\index{wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}!deallocate@{deallocate}}
+\index{deallocate@{deallocate}!wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}}
+\doxysubsubsection{\texorpdfstring{deallocate()}{deallocate()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} wjr\+::stack\+\_\+allocator\+\_\+object\+::deallocate (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1stack__allocator__object_1_1stack__context}{stack\+\_\+context}} \&}]{context }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1stack__allocator__object_a1c945e4b802a104b5ce1b2656fbd27a2}\label{classwjr_1_1stack__allocator__object_a1c945e4b802a104b5ce1b2656fbd27a2} 
+\index{wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}!operator=@{operator=}}
+\index{operator=@{operator=}!wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classwjr_1_1stack__allocator__object}{stack\+\_\+allocator\+\_\+object}} \& wjr\+::stack\+\_\+allocator\+\_\+object\+::operator= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1stack__allocator__object}{stack\+\_\+allocator\+\_\+object}} \&\&}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{classwjr_1_1stack__allocator__object_a39124b5f71aa70993aee08e9e4a90877}\label{classwjr_1_1stack__allocator__object_a39124b5f71aa70993aee08e9e4a90877} 
+\index{wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}!operator=@{operator=}}
+\index{operator=@{operator=}!wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classwjr_1_1stack__allocator__object}{stack\+\_\+allocator\+\_\+object}} \& wjr\+::stack\+\_\+allocator\+\_\+object\+::operator= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1stack__allocator__object}{stack\+\_\+allocator\+\_\+object}} \&}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+\doxysubsection{友元及相关函数文档}
+\Hypertarget{classwjr_1_1stack__allocator__object_a6340a86a79411477b32d3bee1ead23e1}\label{classwjr_1_1stack__allocator__object_a6340a86a79411477b32d3bee1ead23e1} 
+\index{wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}!unique\_stack\_allocator@{unique\_stack\_allocator}}
+\index{unique\_stack\_allocator@{unique\_stack\_allocator}!wjr::stack\_allocator\_object@{wjr::stack\_allocator\_object}}
+\doxysubsubsection{\texorpdfstring{unique\_stack\_allocator}{unique\_stack\_allocator}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{friend}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} \mbox{\hyperlink{classwjr_1_1unique__stack__allocator}{unique\+\_\+stack\+\_\+allocator}}\hspace{0.3cm}{\ttfamily [friend]}}
+
+
+
+该类的文档由以下文件生成\+:\begin{DoxyCompactItemize}
+\item 
+include/wjr/memory/\mbox{\hyperlink{stack__allocator_8hpp}{stack\+\_\+allocator.\+hpp}}\item 
+src/wjr/memory/\mbox{\hyperlink{stack__allocator_8cpp}{stack\+\_\+allocator.\+cpp}}\end{DoxyCompactItemize}

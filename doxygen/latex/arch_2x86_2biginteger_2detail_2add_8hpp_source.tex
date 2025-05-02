@@ -1,0 +1,27 @@
+\doxysection{add.\+hpp}
+\hypertarget{arch_2x86_2biginteger_2detail_2add_8hpp_source}{}\label{arch_2x86_2biginteger_2detail_2add_8hpp_source}\index{include/wjr/arch/x86/biginteger/detail/add.hpp@{include/wjr/arch/x86/biginteger/detail/add.hpp}}
+\mbox{\hyperlink{arch_2x86_2biginteger_2detail_2add_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_ARCH\_X86\_BIGINTEGER\_DETAIL\_ADD\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_ARCH\_X86\_BIGINTEGER\_DETAIL\_ADD\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{arch_2x86_2math_2add_8hpp}{wjr/arch/x86/math/add.hpp}}>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_FEATURE(GCC\_STYLE\_INLINE\_ASM)}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_BUILTIN\_ASM\_ADDC\_N\ WJR\_HAS\_DEF}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\ \ \ \ \#if\ defined(WJR\_ENABLE\_ASSEMBLY)}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ WJR\_HAS\_BUILTIN\_ASM\_ADDC\_N\ WJR\_HAS\_ASSEMBLY\_DEF}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr_1_1math}{wjr::math}}\ \{}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_BUILTIN(ASM\_ADDC\_N)}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_ADDSUB\_I\ 1}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\ \ \ \ \#include\ <\mbox{\hyperlink{gen__addsub_8hpp}{wjr/arch/x86/biginteger/detail/gen\_addsub.hpp}}>}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00019\ \}\ \textcolor{comment}{//\ namespace\ wjr::math}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_ARCH\_X86\_BIGINTEGER\_DETAIL\_ADD\_HPP\_\_}}
+
+\end{DoxyCode}

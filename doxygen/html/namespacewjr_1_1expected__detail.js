@@ -1,0 +1,27 @@
+var namespacewjr_1_1expected__detail =
+[
+    [ "__enable_expected_storage_impl", "structwjr_1_1expected__detail_1_1____enable__expected__storage__impl.html", "structwjr_1_1expected__detail_1_1____enable__expected__storage__impl" ],
+    [ "__enable_expected_storage_impl< void, E >", "structwjr_1_1expected__detail_1_1____enable__expected__storage__impl_3_01void_00_01_e_01_4.html", "structwjr_1_1expected__detail_1_1____enable__expected__storage__impl_3_01void_00_01_e_01_4" ],
+    [ "__expected_storage_impl", "structwjr_1_1expected__detail_1_1____expected__storage__impl.html", "structwjr_1_1expected__detail_1_1____expected__storage__impl" ],
+    [ "__expected_storage_impl< void, E >", "structwjr_1_1expected__detail_1_1____expected__storage__impl_3_01void_00_01_e_01_4.html", "structwjr_1_1expected__detail_1_1____expected__storage__impl_3_01void_00_01_e_01_4" ],
+    [ "expected_construct_with", "structwjr_1_1expected__detail_1_1expected__construct__with.html", null ],
+    [ "expected_construct_with< void, E, void, G >", "structwjr_1_1expected__detail_1_1expected__construct__with_3_01void_00_01_e_00_01void_00_01_g_01_4.html", null ],
+    [ "expected_construct_with_arg", "structwjr_1_1expected__detail_1_1expected__construct__with__arg.html", null ],
+    [ "expected_operations_base", "structwjr_1_1expected__detail_1_1expected__operations__base.html", "structwjr_1_1expected__detail_1_1expected__operations__base" ],
+    [ "expected_operations_base< void, E >", "structwjr_1_1expected__detail_1_1expected__operations__base_3_01void_00_01_e_01_4.html", "structwjr_1_1expected__detail_1_1expected__operations__base_3_01void_00_01_e_01_4" ],
+    [ "expected_storage_base", "structwjr_1_1expected__detail_1_1expected__storage__base.html", "structwjr_1_1expected__detail_1_1expected__storage__base" ],
+    [ "expected_storage_base< T, compressed_value< E, uniq_success >, false >", "structwjr_1_1expected__detail_1_1expected__storage__base_3_01_t_00_01compressed__value_3_01_e_001d87bb21dcfb6d3bd22fe8cd1d343703.html", "structwjr_1_1expected__detail_1_1expected__storage__base_3_01_t_00_01compressed__value_3_01_e_001d87bb21dcfb6d3bd22fe8cd1d343703" ],
+    [ "expected_storage_base< T, compressed_value< E, uniq_success >, true >", "structwjr_1_1expected__detail_1_1expected__storage__base_3_01_t_00_01compressed__value_3_01_e_006d145fd09cdc7d65535bc3d236a770fe.html", "structwjr_1_1expected__detail_1_1expected__storage__base_3_01_t_00_01compressed__value_3_01_e_006d145fd09cdc7d65535bc3d236a770fe" ],
+    [ "expected_storage_base< T, E, false >", "structwjr_1_1expected__detail_1_1expected__storage__base_3_01_t_00_01_e_00_01false_01_4.html", "structwjr_1_1expected__detail_1_1expected__storage__base_3_01_t_00_01_e_00_01false_01_4" ],
+    [ "expected_storage_base< void, compressed_value< E, uniq_success >, true >", "structwjr_1_1expected__detail_1_1expected__storage__base_3_01void_00_01compressed__value_3_01_e_1bf0199c1233067d44e4c8dbbe0824ef.html", "structwjr_1_1expected__detail_1_1expected__storage__base_3_01void_00_01compressed__value_3_01_e_1bf0199c1233067d44e4c8dbbe0824ef" ],
+    [ "expected_storage_base< void, E, false >", "structwjr_1_1expected__detail_1_1expected__storage__base_3_01void_00_01_e_00_01false_01_4.html", "structwjr_1_1expected__detail_1_1expected__storage__base_3_01void_00_01_e_00_01false_01_4" ],
+    [ "expected_storage_base< void, E, true >", "structwjr_1_1expected__detail_1_1expected__storage__base_3_01void_00_01_e_00_01true_01_4.html", "structwjr_1_1expected__detail_1_1expected__storage__base_3_01void_00_01_e_00_01true_01_4" ],
+    [ "is_not_expected", "structwjr_1_1expected__detail_1_1is__not__expected.html", null ],
+    [ "is_not_expected< expected< T, E > >", "structwjr_1_1expected__detail_1_1is__not__expected_3_01expected_3_01_t_00_01_e_01_4_01_4.html", null ],
+    [ "is_not_unexpected", "structwjr_1_1expected__detail_1_1is__not__unexpected.html", null ],
+    [ "is_not_unexpected< unexpected< E > >", "structwjr_1_1expected__detail_1_1is__not__unexpected_3_01unexpected_3_01_e_01_4_01_4.html", null ],
+    [ "enable_expected_storage", "namespacewjr_1_1expected__detail.html#a52321c0fd96fc52a71aa30b31b6072ec", null ],
+    [ "expected_storage", "namespacewjr_1_1expected__detail.html#a8dc20b8ed1be36f013789bf8ba930fdd", null ],
+    [ "expected_construct_with_arg_v", "namespacewjr_1_1expected__detail.html#adc85c494b93f9fc16a9b492d0adb26fc", null ],
+    [ "expected_construct_with_v", "namespacewjr_1_1expected__detail.html#ab022674c6dd9c0b094c04f50e5ac609b", null ]
+];

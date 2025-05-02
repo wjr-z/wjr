@@ -1,0 +1,48 @@
+\doxysection{include/wjr/memory/inline\+\_\+arg.hpp 文件参考}
+\hypertarget{inline__arg_8hpp}{}\label{inline__arg_8hpp}\index{include/wjr/memory/inline\_arg.hpp@{include/wjr/memory/inline\_arg.hpp}}
+
+
+Sometimes need to use T instead of const T\& to optimize.  
+
+
+\doxysubsubsection*{类}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classwjr_1_1inline__arg}{wjr\+::inline\+\_\+arg$<$ T, Inlined $>$}}
+\begin{DoxyCompactList}\small\item\em Inlined arg for T. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classwjr_1_1inline__arg_3_01_t_00_01false_01_4}{wjr\+::inline\+\_\+arg$<$ T, false $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1is__possible__inline__arg}{wjr\+::is\+\_\+possible\+\_\+inline\+\_\+arg$<$ T $>$}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{命名空间}
+\begin{DoxyCompactItemize}
+\item 
+namespace \mbox{\hyperlink{namespacewjr}{wjr}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{类型定义}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Threshold = sizeof(void \texorpdfstring{$\ast$}{*}) \texorpdfstring{$\ast$}{*} 2$>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{namespacewjr_a46caf62eda91716070d9999d8d72fb53}{wjr\+::auto\+\_\+arg}} = \mbox{\hyperlink{classwjr_1_1inline__arg}{inline\+\_\+arg}}$<$\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a348131353596f264c3ac089da146b288}{is\+\_\+possible\+\_\+inline\+\_\+arg\+\_\+v}}$<$\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}$>$ \&\& \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{sizeof}}(\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}) $<$= \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Threshold}}$>$
+\end{DoxyCompactItemize}
+\doxysubsubsection*{变量}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{namespacewjr_a348131353596f264c3ac089da146b288}{wjr\+::is\+\_\+possible\+\_\+inline\+\_\+arg\+\_\+v}} = \mbox{\hyperlink{structwjr_1_1is__possible__inline__arg}{is\+\_\+possible\+\_\+inline\+\_\+arg}}$<$\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}$>$\+::value
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{详细描述}
+Sometimes need to use T instead of const T\& to optimize. 
+
+\begin{DoxyAuthor}{作者}
+wjr 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{版本}
+0.\+1 
+\end{DoxyVersion}
+\begin{DoxyDate}{日期}
+2024-\/07-\/07
+\end{DoxyDate}
+\begin{DoxyCopyright}{版权所有}
+Copyright (c) 2024 
+\end{DoxyCopyright}

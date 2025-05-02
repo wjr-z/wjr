@@ -1,0 +1,1069 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: wjr::bitset_const_iterator&lt; Bitset &gt; 模板类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('classwjr_1_1bitset__const__iterator.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Public 类型</a> &#124;
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="#pro-methods">Protected 成员函数</a> &#124;
+<a href="#pro-attribs">Protected 属性</a> &#124;
+<a href="#friends">友元</a> &#124;
+<a href="classwjr_1_1bitset__const__iterator-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">wjr::bitset_const_iterator&lt; Bitset &gt; 模板类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="container_2bitset_8hpp_source.html">bitset.hpp</a>&gt;</code></p>
+<div class="dynheader">
+类 wjr::bitset_const_iterator&lt; Bitset &gt; 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><img src="classwjr_1_1bitset__const__iterator__inherit__graph.png" border="0" usemap="#awjr_1_1bitset__const__iterator_3_01_bitset_01_4_inherit__map" alt="Inheritance graph"/></div>
+<map name="awjr_1_1bitset__const__iterator_3_01_bitset_01_4_inherit__map" id="awjr_1_1bitset__const__iterator_3_01_bitset_01_4_inherit__map">
+<area shape="rect" title=" " alt="" coords="5,5,163,347"/>
+<area shape="rect" href="classwjr_1_1bitset__iterator.html" title=" " alt="" coords="26,395,142,672"/>
+<area shape="poly" title=" " alt="" coords="87,362,87,395,81,395,81,362"/>
+</map>
+</div>
+<div class="dynheader">
+wjr::bitset_const_iterator&lt; Bitset &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><img src="classwjr_1_1bitset__const__iterator__coll__graph.png" border="0" usemap="#awjr_1_1bitset__const__iterator_3_01_bitset_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="awjr_1_1bitset__const__iterator_3_01_bitset_01_4_coll__map" id="awjr_1_1bitset__const__iterator_3_01_bitset_01_4_coll__map">
+<area shape="rect" title=" " alt="" coords="5,5,163,347"/>
+</map>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:a0ac9ecb5a68dc8fcf03452c9a13bd360" id="r_a0ac9ecb5a68dc8fcf03452c9a13bd360"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0ac9ecb5a68dc8fcf03452c9a13bd360">iterator_category</a> = std::random_access_iterator_tag</td></tr>
+<tr class="separator:a0ac9ecb5a68dc8fcf03452c9a13bd360"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a881b26fe37594ff664e79d7aac4ab239" id="r_a881b26fe37594ff664e79d7aac4ab239"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a881b26fe37594ff664e79d7aac4ab239">value_type</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a></td></tr>
+<tr class="separator:a881b26fe37594ff664e79d7aac4ab239"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31a0a17b40e6e37cb6d469b3781f1b09" id="r_a31a0a17b40e6e37cb6d469b3781f1b09"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a31a0a17b40e6e37cb6d469b3781f1b09">difference_type</a> = std::ptrdiff_t</td></tr>
+<tr class="separator:a31a0a17b40e6e37cb6d469b3781f1b09"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aefce200ccf5f7ed151d5c34082c9359f" id="r_aefce200ccf5f7ed151d5c34082c9359f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aefce200ccf5f7ed151d5c34082c9359f">pointer</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a></td></tr>
+<tr class="separator:aefce200ccf5f7ed151d5c34082c9359f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9dad383b3f6125769e7043d975b81b87" id="r_a9dad383b3f6125769e7043d975b81b87"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9dad383b3f6125769e7043d975b81b87">reference</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a></td></tr>
+<tr class="separator:a9dad383b3f6125769e7043d975b81b87"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:a28d54ba703e37afda415f020cda8a9ee" id="r_a28d54ba703e37afda415f020cda8a9ee"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a28d54ba703e37afda415f020cda8a9ee">bitset_const_iterator</a> ()=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:a28d54ba703e37afda415f020cda8a9ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a045888056ff3c2cccb8471dc6524457c" id="r_a045888056ff3c2cccb8471dc6524457c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a045888056ff3c2cccb8471dc6524457c">bitset_const_iterator</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:a045888056ff3c2cccb8471dc6524457c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc4d6dd18bd52bfba7b806567fea7cfe" id="r_abc4d6dd18bd52bfba7b806567fea7cfe"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abc4d6dd18bd52bfba7b806567fea7cfe">bitset_const_iterator</a> (<a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;&amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:abc4d6dd18bd52bfba7b806567fea7cfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acff8a09879c09a14d683493f60ff74b5" id="r_acff8a09879c09a14d683493f60ff74b5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acff8a09879c09a14d683493f60ff74b5">operator=</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:acff8a09879c09a14d683493f60ff74b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af56e6e1243514c44318ba93f79beaafd" id="r_af56e6e1243514c44318ba93f79beaafd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af56e6e1243514c44318ba93f79beaafd">operator=</a> (<a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;&amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:af56e6e1243514c44318ba93f79beaafd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a22674a57e7785880a81246b00a772506" id="r_a22674a57e7785880a81246b00a772506"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a22674a57e7785880a81246b00a772506">~bitset_const_iterator</a> ()=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:a22674a57e7785880a81246b00a772506"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a152cdf60f2f81213710e1232209b19eb" id="r_a152cdf60f2f81213710e1232209b19eb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a9dad383b3f6125769e7043d975b81b87">reference</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a152cdf60f2f81213710e1232209b19eb">operator*</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a152cdf60f2f81213710e1232209b19eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b790c6b993f1a7bb0b29796c8f35b0d" id="r_a4b790c6b993f1a7bb0b29796c8f35b0d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4b790c6b993f1a7bb0b29796c8f35b0d">operator++</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a4b790c6b993f1a7bb0b29796c8f35b0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad137a4a8a1dab82eec39c1bce34b569" id="r_aad137a4a8a1dab82eec39c1bce34b569"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aad137a4a8a1dab82eec39c1bce34b569">operator++</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:aad137a4a8a1dab82eec39c1bce34b569"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a461fe4f8644bfb2407ae573e23ac56ef" id="r_a461fe4f8644bfb2407ae573e23ac56ef"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a461fe4f8644bfb2407ae573e23ac56ef">operator--</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a461fe4f8644bfb2407ae573e23ac56ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af2bd41dd42fe413559c12afa2d150f91" id="r_af2bd41dd42fe413559c12afa2d150f91"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af2bd41dd42fe413559c12afa2d150f91">operator--</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:af2bd41dd42fe413559c12afa2d150f91"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad6c9e1a68ef80f45389424249351ae7a" id="r_ad6c9e1a68ef80f45389424249351ae7a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad6c9e1a68ef80f45389424249351ae7a">operator+=</a> (<a class="el" href="#a31a0a17b40e6e37cb6d469b3781f1b09">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ad6c9e1a68ef80f45389424249351ae7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24fade1fe4e14c1764dc7aab6e212582" id="r_a24fade1fe4e14c1764dc7aab6e212582"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a24fade1fe4e14c1764dc7aab6e212582">operator+</a> (<a class="el" href="#a31a0a17b40e6e37cb6d469b3781f1b09">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a24fade1fe4e14c1764dc7aab6e212582"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23386b2519b15b561e6d0bbdbd6efc6b" id="r_a23386b2519b15b561e6d0bbdbd6efc6b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a23386b2519b15b561e6d0bbdbd6efc6b">operator-=</a> (<a class="el" href="#a31a0a17b40e6e37cb6d469b3781f1b09">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a23386b2519b15b561e6d0bbdbd6efc6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2798b85a110b8d37ac5f31f97d6951de" id="r_a2798b85a110b8d37ac5f31f97d6951de"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2798b85a110b8d37ac5f31f97d6951de">operator-</a> (<a class="el" href="#a31a0a17b40e6e37cb6d469b3781f1b09">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a2798b85a110b8d37ac5f31f97d6951de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2115030e400c166cbda8f3f929bcca6a" id="r_a2115030e400c166cbda8f3f929bcca6a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a31a0a17b40e6e37cb6d469b3781f1b09">difference_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2115030e400c166cbda8f3f929bcca6a">operator-</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a2115030e400c166cbda8f3f929bcca6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5e888fac7c5442acccac726c1632822" id="r_aa5e888fac7c5442acccac726c1632822"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a9dad383b3f6125769e7043d975b81b87">reference</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa5e888fac7c5442acccac726c1632822">operator[]</a> (<a class="el" href="#a31a0a17b40e6e37cb6d469b3781f1b09">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:aa5e888fac7c5442acccac726c1632822"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59294c2ab474c722ec327e38c8a719fd" id="r_a59294c2ab474c722ec327e38c8a719fd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a59294c2ab474c722ec327e38c8a719fd">operator==</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a59294c2ab474c722ec327e38c8a719fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e4d97fa11d3b5a0a03bc94032189438" id="r_a2e4d97fa11d3b5a0a03bc94032189438"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2e4d97fa11d3b5a0a03bc94032189438">operator!=</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a2e4d97fa11d3b5a0a03bc94032189438"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae68694de9ae9f2ed8bdfe3de9a234166" id="r_ae68694de9ae9f2ed8bdfe3de9a234166"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae68694de9ae9f2ed8bdfe3de9a234166">operator&lt;</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ae68694de9ae9f2ed8bdfe3de9a234166"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a2586155e7f2268cc09b7ea9dd7befb" id="r_a0a2586155e7f2268cc09b7ea9dd7befb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0a2586155e7f2268cc09b7ea9dd7befb">operator&gt;</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a0a2586155e7f2268cc09b7ea9dd7befb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3fe762143d03f70771e33a25cc4529cc" id="r_a3fe762143d03f70771e33a25cc4529cc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3fe762143d03f70771e33a25cc4529cc">operator&lt;=</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a3fe762143d03f70771e33a25cc4529cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0aba87e056a2f0ba72a311ad397abc9f" id="r_a0aba87e056a2f0ba72a311ad397abc9f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0aba87e056a2f0ba72a311ad397abc9f">operator&gt;=</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a0aba87e056a2f0ba72a311ad397abc9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected 成员函数</h2></td></tr>
+<tr class="memitem:a56f770e3b827dff98f77eae327ae1d36" id="r_a56f770e3b827dff98f77eae327ae1d36"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a56f770e3b827dff98f77eae327ae1d36">bitset_const_iterator</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> *<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_bitset</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_pos</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a56f770e3b827dff98f77eae327ae1d36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
+Protected 属性</h2></td></tr>
+<tr class="memitem:a9261216ac4ab4a8adbd1630aaa3c98ff" id="r_a9261216ac4ab4a8adbd1630aaa3c98ff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9261216ac4ab4a8adbd1630aaa3c98ff">m_bitset</a></td></tr>
+<tr class="separator:a9261216ac4ab4a8adbd1630aaa3c98ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a372cc6075c69349a65cbe3fb723fafe4" id="r_a372cc6075c69349a65cbe3fb723fafe4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a372cc6075c69349a65cbe3fb723fafe4">m_pos</a></td></tr>
+<tr class="separator:a372cc6075c69349a65cbe3fb723fafe4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
+友元</h2></td></tr>
+<tr class="memitem:aa489206b79b5c23c6f006a7512ebb953" id="r_aa489206b79b5c23c6f006a7512ebb953"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a> _N&gt; </td></tr>
+<tr class="memitem:aa489206b79b5c23c6f006a7512ebb953"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#aa489206b79b5c23c6f006a7512ebb953">bitset</a></td></tr>
+<tr class="separator:aa489206b79b5c23c6f006a7512ebb953"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c04e8de4a79adeec75c81cc1e3b87fb" id="r_a3c04e8de4a79adeec75c81cc1e3b87fb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3c04e8de4a79adeec75c81cc1e3b87fb">operator+</a> (<a class="el" href="#a31a0a17b40e6e37cb6d469b3781f1b09">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a3c04e8de4a79adeec75c81cc1e3b87fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">成员类型定义说明</h2>
+<a id="a31a0a17b40e6e37cb6d469b3781f1b09" name="a31a0a17b40e6e37cb6d469b3781f1b09"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a31a0a17b40e6e37cb6d469b3781f1b09">&#9670;&#160;</a></span>difference_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;::difference_type = std::ptrdiff_t</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0ac9ecb5a68dc8fcf03452c9a13bd360" name="a0ac9ecb5a68dc8fcf03452c9a13bd360"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0ac9ecb5a68dc8fcf03452c9a13bd360">&#9670;&#160;</a></span>iterator_category</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;::iterator_category = std::random_access_iterator_tag</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aefce200ccf5f7ed151d5c34082c9359f" name="aefce200ccf5f7ed151d5c34082c9359f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aefce200ccf5f7ed151d5c34082c9359f">&#9670;&#160;</a></span>pointer</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;::pointer = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9dad383b3f6125769e7043d975b81b87" name="a9dad383b3f6125769e7043d975b81b87"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9dad383b3f6125769e7043d975b81b87">&#9670;&#160;</a></span>reference</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;::reference = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a881b26fe37594ff664e79d7aac4ab239" name="a881b26fe37594ff664e79d7aac4ab239"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a881b26fe37594ff664e79d7aac4ab239">&#9670;&#160;</a></span>value_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;::value_type = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">构造及析构函数说明</h2>
+<a id="a28d54ba703e37afda415f020cda8a9ee" name="a28d54ba703e37afda415f020cda8a9ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a28d54ba703e37afda415f020cda8a9ee">&#9670;&#160;</a></span>bitset_const_iterator() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;::bitset_const_iterator </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a045888056ff3c2cccb8471dc6524457c" name="a045888056ff3c2cccb8471dc6524457c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a045888056ff3c2cccb8471dc6524457c">&#9670;&#160;</a></span>bitset_const_iterator() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;::bitset_const_iterator </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abc4d6dd18bd52bfba7b806567fea7cfe" name="abc4d6dd18bd52bfba7b806567fea7cfe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abc4d6dd18bd52bfba7b806567fea7cfe">&#9670;&#160;</a></span>bitset_const_iterator() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;::bitset_const_iterator </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a22674a57e7785880a81246b00a772506" name="a22674a57e7785880a81246b00a772506"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a22674a57e7785880a81246b00a772506">&#9670;&#160;</a></span>~bitset_const_iterator()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;::~<a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a56f770e3b827dff98f77eae327ae1d36" name="a56f770e3b827dff98f77eae327ae1d36"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a56f770e3b827dff98f77eae327ae1d36">&#9670;&#160;</a></span>bitset_const_iterator() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;::bitset_const_iterator </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> *</td>          <td class="paramname"><span class="paramname"><em>_bitset</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a></td>          <td class="paramname"><span class="paramname"><em>_pos</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="a2e4d97fa11d3b5a0a03bc94032189438" name="a2e4d97fa11d3b5a0a03bc94032189438"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2e4d97fa11d3b5a0a03bc94032189438">&#9670;&#160;</a></span>operator!=()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator!</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a152cdf60f2f81213710e1232209b19eb" name="a152cdf60f2f81213710e1232209b19eb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a152cdf60f2f81213710e1232209b19eb">&#9670;&#160;</a></span>operator*()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a9dad383b3f6125769e7043d975b81b87">reference</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>* </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a24fade1fe4e14c1764dc7aab6e212582" name="a24fade1fe4e14c1764dc7aab6e212582"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a24fade1fe4e14c1764dc7aab6e212582">&#9670;&#160;</a></span>operator+()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>+ </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#a31a0a17b40e6e37cb6d469b3781f1b09">difference_type</a></td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4b790c6b993f1a7bb0b29796c8f35b0d" name="a4b790c6b993f1a7bb0b29796c8f35b0d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b790c6b993f1a7bb0b29796c8f35b0d">&#9670;&#160;</a></span>operator++() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp; <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>++ </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aad137a4a8a1dab82eec39c1bce34b569" name="aad137a4a8a1dab82eec39c1bce34b569"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aad137a4a8a1dab82eec39c1bce34b569">&#9670;&#160;</a></span>operator++() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>++ </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a></td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad6c9e1a68ef80f45389424249351ae7a" name="ad6c9e1a68ef80f45389424249351ae7a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad6c9e1a68ef80f45389424249351ae7a">&#9670;&#160;</a></span>operator+=()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp; <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>+= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#a31a0a17b40e6e37cb6d469b3781f1b09">difference_type</a></td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2115030e400c166cbda8f3f929bcca6a" name="a2115030e400c166cbda8f3f929bcca6a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2115030e400c166cbda8f3f929bcca6a">&#9670;&#160;</a></span>operator-() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a31a0a17b40e6e37cb6d469b3781f1b09">difference_type</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>- </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2798b85a110b8d37ac5f31f97d6951de" name="a2798b85a110b8d37ac5f31f97d6951de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2798b85a110b8d37ac5f31f97d6951de">&#9670;&#160;</a></span>operator-() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>- </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#a31a0a17b40e6e37cb6d469b3781f1b09">difference_type</a></td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a461fe4f8644bfb2407ae573e23ac56ef" name="a461fe4f8644bfb2407ae573e23ac56ef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a461fe4f8644bfb2407ae573e23ac56ef">&#9670;&#160;</a></span>operator--() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp; <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>-- </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af2bd41dd42fe413559c12afa2d150f91" name="af2bd41dd42fe413559c12afa2d150f91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af2bd41dd42fe413559c12afa2d150f91">&#9670;&#160;</a></span>operator--() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>-- </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a></td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a23386b2519b15b561e6d0bbdbd6efc6b" name="a23386b2519b15b561e6d0bbdbd6efc6b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a23386b2519b15b561e6d0bbdbd6efc6b">&#9670;&#160;</a></span>operator-=()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp; <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>-= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#a31a0a17b40e6e37cb6d469b3781f1b09">difference_type</a></td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae68694de9ae9f2ed8bdfe3de9a234166" name="ae68694de9ae9f2ed8bdfe3de9a234166"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae68694de9ae9f2ed8bdfe3de9a234166">&#9670;&#160;</a></span>operator&lt;()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>&lt; </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3fe762143d03f70771e33a25cc4529cc" name="a3fe762143d03f70771e33a25cc4529cc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3fe762143d03f70771e33a25cc4529cc">&#9670;&#160;</a></span>operator&lt;=()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>&lt;= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af56e6e1243514c44318ba93f79beaafd" name="af56e6e1243514c44318ba93f79beaafd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af56e6e1243514c44318ba93f79beaafd">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp; <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="acff8a09879c09a14d683493f60ff74b5" name="acff8a09879c09a14d683493f60ff74b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acff8a09879c09a14d683493f60ff74b5">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> &amp; <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a59294c2ab474c722ec327e38c8a719fd" name="a59294c2ab474c722ec327e38c8a719fd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a59294c2ab474c722ec327e38c8a719fd">&#9670;&#160;</a></span>operator==()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>== </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0a2586155e7f2268cc09b7ea9dd7befb" name="a0a2586155e7f2268cc09b7ea9dd7befb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a2586155e7f2268cc09b7ea9dd7befb">&#9670;&#160;</a></span>operator&gt;()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>&gt; </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0aba87e056a2f0ba72a311ad397abc9f" name="a0aba87e056a2f0ba72a311ad397abc9f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0aba87e056a2f0ba72a311ad397abc9f">&#9670;&#160;</a></span>operator&gt;=()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>&gt;= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa5e888fac7c5442acccac726c1632822" name="aa5e888fac7c5442acccac726c1632822"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5e888fac7c5442acccac726c1632822">&#9670;&#160;</a></span>operator[]()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a9dad383b3f6125769e7043d975b81b87">reference</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>[] </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#a31a0a17b40e6e37cb6d469b3781f1b09">difference_type</a></td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">友元及相关函数文档</h2>
+<a id="aa489206b79b5c23c6f006a7512ebb953" name="aa489206b79b5c23c6f006a7512ebb953"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa489206b79b5c23c6f006a7512ebb953">&#9670;&#160;</a></span>bitset</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a> _N&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">friend</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="classwjr_1_1bitset.html">bitset</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3c04e8de4a79adeec75c81cc1e3b87fb" name="a3c04e8de4a79adeec75c81cc1e3b87fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3c04e8de4a79adeec75c81cc1e3b87fb">&#9670;&#160;</a></span>operator+</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">operator</a>+ </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#a31a0a17b40e6e37cb6d469b3781f1b09">difference_type</a></td>          <td class="paramname"><span class="paramname"><em>n</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">类成员变量说明</h2>
+<a id="a9261216ac4ab4a8adbd1630aaa3c98ff" name="a9261216ac4ab4a8adbd1630aaa3c98ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9261216ac4ab4a8adbd1630aaa3c98ff">&#9670;&#160;</a></span>m_bitset</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a>* <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;::m_bitset</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a372cc6075c69349a65cbe3fb723fafe4" name="a372cc6075c69349a65cbe3fb723fafe4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a372cc6075c69349a65cbe3fb723fafe4">&#9670;&#160;</a></span>m_pos</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a> <a class="el" href="classwjr_1_1bitset__const__iterator.html">wjr::bitset_const_iterator</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Bitset</a> &gt;::m_pos</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/wjr/container/<a class="el" href="container_2bitset_8hpp_source.html">bitset.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacewjr.html">wjr</a></li><li class="navelem"><a class="el" href="classwjr_1_1bitset__const__iterator.html">bitset_const_iterator</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

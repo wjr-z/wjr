@@ -1,0 +1,60 @@
+\doxysection{include/wjr/optional.hpp 文件参考}
+\hypertarget{optional_8hpp}{}\label{optional_8hpp}\index{include/wjr/optional.hpp@{include/wjr/optional.hpp}}
+\doxysubsubsection*{类}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1nullopt__t}{wjr\+::nullopt\+\_\+t}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1voidopt__t}{wjr\+::voidopt\+\_\+t}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1bad__optional__access}{wjr\+::bad\+\_\+optional\+\_\+access}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1optional}{wjr\+::optional$<$ T $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1optional_3_01void_01_4}{wjr\+::optional$<$ void $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1compressed__optional__value}{wjr\+::compressed\+\_\+optional\+\_\+value$<$ T, typename $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1compressed__optional__value_3_01_t_01_5_00_01void_01_4}{wjr\+::compressed\+\_\+optional\+\_\+value$<$ T \texorpdfstring{$\ast$}{*}, void $>$}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{命名空间}
+\begin{DoxyCompactItemize}
+\item 
+namespace \mbox{\hyperlink{namespacewjr}{wjr}}
+\item 
+namespace \mbox{\hyperlink{namespacestd}{std}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{类型定义}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{namespacewjr_af3d347d802070fc52b04993837117b15}{wjr\+::compressed\+\_\+optional\+\_\+value\+\_\+t}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{structwjr_1_1compressed__optional__value}{compressed\+\_\+optional\+\_\+value}}$<$\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}$>$\+::type
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{namespacewjr_a2dcc50c7bd4db78b1ff35f6287b5a1ec}{wjr\+::compressed\+\_\+optional}} = \mbox{\hyperlink{classwjr_1_1optional}{optional}}$<$\mbox{\hyperlink{namespacewjr_af3d347d802070fc52b04993837117b15}{compressed\+\_\+optional\+\_\+value\+\_\+t}}$<$\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}$>$$>$
+\end{DoxyCompactItemize}
+\doxysubsubsection*{函数}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$typename T $>$ }\\constexpr void \mbox{\hyperlink{namespacestd_afebcfea32a1aed3f5cc9d33bc0a682f3}{std\+::swap}} (\mbox{\hyperlink{classwjr_1_1optional}{wjr\+::optional}}$<$ T $>$ \&lhs, \mbox{\hyperlink{classwjr_1_1optional}{wjr\+::optional}}$<$ T $>$ \&rhs) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(lhs.\+swap(rhs)))
+\end{DoxyCompactItemize}
+\doxysubsubsection*{变量}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1nullopt__t}{nullopt\+\_\+t}} \mbox{\hyperlink{namespacewjr_aa56dfd3356bc1080b386617ac05eaabf}{wjr\+::nullopt}} \{nullopt\+\_\+t\+::\+\_\+\+\_\+tag\{\}\}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1voidopt__t}{voidopt\+\_\+t}} \mbox{\hyperlink{namespacewjr_aa57dca17eff5402fe9bc51167a9fe260}{wjr\+::voidopt}} \{voidopt\+\_\+t\+::\+\_\+\+\_\+tag\{\}\}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{详细描述}
+\begin{DoxyAuthor}{作者}
+wjr
+\end{DoxyAuthor}
+\begin{DoxyVersion}{版本}
+0.\+1 
+\end{DoxyVersion}
+\begin{DoxyDate}{日期}
+2024-\/11-\/10
+\end{DoxyDate}
+\begin{DoxyCopyright}{版权所有}
+Copyright (c) 2024 
+\end{DoxyCopyright}

@@ -1,0 +1,508 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: wjr::btree_traits&lt; Key, Value, Multi, Compare, Alloc &gt; 模板结构体 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('structwjr_1_1btree__traits.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Public 类型</a> &#124;
+<a href="#pub-static-attribs">静态 Public 属性</a> &#124;
+<a href="structwjr_1_1btree__traits-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">wjr::btree_traits&lt; Key, Value, Multi, Compare, Alloc &gt; 模板结构体 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="btree_8hpp_source.html">btree.hpp</a>&gt;</code></p>
+<div class="dynheader">
+类 wjr::btree_traits&lt; Key, Value, Multi, Compare, Alloc &gt; 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><img src="structwjr_1_1btree__traits__inherit__graph.png" border="0" usemap="#awjr_1_1btree__traits_3_01_key_00_01_value_00_01_multi_00_01_compare_00_01_alloc_01_4_inherit__map" alt="Inheritance graph"/></div>
+<map name="awjr_1_1btree__traits_3_01_key_00_01_value_00_01_multi_00_01_compare_00_01_alloc_01_4_inherit__map" id="awjr_1_1btree__traits_3_01_key_00_01_value_00_01_multi_00_01_compare_00_01_alloc_01_4_inherit__map">
+<area shape="rect" title=" " alt="" coords="9,155,131,320"/>
+<area shape="rect" title=" " alt="" coords="5,5,135,107"/>
+<area shape="poly" title=" " alt="" coords="73,122,73,155,67,155,67,122"/>
+</map>
+</div>
+<div class="dynheader">
+wjr::btree_traits&lt; Key, Value, Multi, Compare, Alloc &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><img src="structwjr_1_1btree__traits__coll__graph.png" border="0" usemap="#awjr_1_1btree__traits_3_01_key_00_01_value_00_01_multi_00_01_compare_00_01_alloc_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="awjr_1_1btree__traits_3_01_key_00_01_value_00_01_multi_00_01_compare_00_01_alloc_01_4_coll__map" id="awjr_1_1btree__traits_3_01_key_00_01_value_00_01_multi_00_01_compare_00_01_alloc_01_4_coll__map">
+<area shape="rect" title=" " alt="" coords="9,155,131,320"/>
+<area shape="rect" title=" " alt="" coords="5,5,135,107"/>
+<area shape="poly" title=" " alt="" coords="73,122,73,155,67,155,67,122"/>
+</map>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:a776e985b5625772e165a39cf9cee5ec3" id="r_a776e985b5625772e165a39cf9cee5ec3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a776e985b5625772e165a39cf9cee5ec3">_Alty</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> std::allocator_traits&lt;Alloc&gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::template</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rebind_alloc</a>&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">char</a>&gt;</td></tr>
+<tr class="separator:a776e985b5625772e165a39cf9cee5ec3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6832dfb138471c4a5ed832838df92e2" id="r_ab6832dfb138471c4a5ed832838df92e2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab6832dfb138471c4a5ed832838df92e2">_Alty_traits</a> = std::allocator_traits&lt;<a class="el" href="#a776e985b5625772e165a39cf9cee5ec3">_Alty</a>&gt;</td></tr>
+<tr class="separator:ab6832dfb138471c4a5ed832838df92e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a322af8539ea0c5949c0144d8ad46b13d" id="r_a322af8539ea0c5949c0144d8ad46b13d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a322af8539ea0c5949c0144d8ad46b13d">storage_fn_type</a> = <a class="el" href="classwjr_1_1container__fn.html">container_fn</a>&lt;<a class="el" href="#a776e985b5625772e165a39cf9cee5ec3">_Alty</a>&gt;</td></tr>
+<tr class="separator:a322af8539ea0c5949c0144d8ad46b13d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a70d1547bd43d0c63d06d106a499032" id="r_a9a70d1547bd43d0c63d06d106a499032"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9a70d1547bd43d0c63d06d106a499032">size_type</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> _Alty_traits::size_type</td></tr>
+<tr class="separator:a9a70d1547bd43d0c63d06d106a499032"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad69c0319dcd0e3a25ad3caae18f6eedb" id="r_ad69c0319dcd0e3a25ad3caae18f6eedb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad69c0319dcd0e3a25ad3caae18f6eedb">difference_type</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> _Alty_traits::difference_type</td></tr>
+<tr class="separator:ad69c0319dcd0e3a25ad3caae18f6eedb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa532adabdf5a3c251bb8eb073219390f" id="r_aa532adabdf5a3c251bb8eb073219390f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa532adabdf5a3c251bb8eb073219390f">key_type</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Mybase::key_type</td></tr>
+<tr class="separator:aa532adabdf5a3c251bb8eb073219390f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1d49064f273061a5dea4c8bd6b01c25f" id="r_a1d49064f273061a5dea4c8bd6b01c25f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1d49064f273061a5dea4c8bd6b01c25f">mapped_type</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Mybase::mapped_type</td></tr>
+<tr class="separator:a1d49064f273061a5dea4c8bd6b01c25f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8054f53f1446b9166f67daceb1fe529c" id="r_a8054f53f1446b9166f67daceb1fe529c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8054f53f1446b9166f67daceb1fe529c">value_type</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Mybase::value_type</td></tr>
+<tr class="separator:a8054f53f1446b9166f67daceb1fe529c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbb34c0e82c329196763e8d8fac952f5" id="r_adbb34c0e82c329196763e8d8fac952f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adbb34c0e82c329196763e8d8fac952f5">key_compare</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a></td></tr>
+<tr class="separator:adbb34c0e82c329196763e8d8fac952f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a15a3767b12b0406b4aa038c885b802ac" id="r_a15a3767b12b0406b4aa038c885b802ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a15a3767b12b0406b4aa038c885b802ac">ikey_type</a> = std::conditional_t&lt;<a class="el" href="#a643d3f47a17051eb18ffdb54ec448abf">is_inline_key</a>, <a class="el" href="#aa532adabdf5a3c251bb8eb073219390f">key_type</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="#aa532adabdf5a3c251bb8eb073219390f">key_type</a> *&gt;</td></tr>
+<tr class="separator:a15a3767b12b0406b4aa038c885b802ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6901e9b922c0ddf5db0b170f8b2ab1f" id="r_ae6901e9b922c0ddf5db0b170f8b2ab1f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae6901e9b922c0ddf5db0b170f8b2ab1f">ivalue_type</a> = std::conditional_t&lt;<a class="el" href="#a6b8c0d6ac4bdd3a97909a5009ce74fb4">is_inline_value</a>, <a class="el" href="#a8054f53f1446b9166f67daceb1fe529c">value_type</a>, <a class="el" href="#a8054f53f1446b9166f67daceb1fe529c">value_type</a> *&gt;</td></tr>
+<tr class="separator:ae6901e9b922c0ddf5db0b170f8b2ab1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae771b361db27a93d23a6df333712f217" id="r_ae771b361db27a93d23a6df333712f217"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae771b361db27a93d23a6df333712f217">node_type</a> = <a class="el" href="structwjr_1_1btree__node.html">btree_node</a>&lt;<a class="el" href="structwjr_1_1btree__traits.html">btree_traits</a>&gt;</td></tr>
+<tr class="separator:ae771b361db27a93d23a6df333712f217"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e7f9dccccb8db0b0a7a6fbe71456b33" id="r_a6e7f9dccccb8db0b0a7a6fbe71456b33"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6e7f9dccccb8db0b0a7a6fbe71456b33">inner_node_type</a> = <a class="el" href="structwjr_1_1btree__inner__node.html">btree_inner_node</a>&lt;<a class="el" href="structwjr_1_1btree__traits.html">btree_traits</a>, <a class="el" href="#a643d3f47a17051eb18ffdb54ec448abf">is_inline_key</a>&gt;</td></tr>
+<tr class="separator:a6e7f9dccccb8db0b0a7a6fbe71456b33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af36ba401b9376ec8c556caa64d1c4362" id="r_af36ba401b9376ec8c556caa64d1c4362"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af36ba401b9376ec8c556caa64d1c4362">leaf_node_type</a> = <a class="el" href="structwjr_1_1btree__leaf__node.html">btree_leaf_node</a>&lt;<a class="el" href="structwjr_1_1btree__traits.html">btree_traits</a>, <a class="el" href="#a6b8c0d6ac4bdd3a97909a5009ce74fb4">is_inline_value</a>&gt;</td></tr>
+<tr class="separator:af36ba401b9376ec8c556caa64d1c4362"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+静态 Public 属性</h2></td></tr>
+<tr class="memitem:a643d3f47a17051eb18ffdb54ec448abf" id="r_a643d3f47a17051eb18ffdb54ec448abf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a643d3f47a17051eb18ffdb54ec448abf">is_inline_key</a> = btree_detail::__is_inline_key_v&lt;<a class="el" href="#aa532adabdf5a3c251bb8eb073219390f">key_type</a>&gt;</td></tr>
+<tr class="separator:a643d3f47a17051eb18ffdb54ec448abf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b8c0d6ac4bdd3a97909a5009ce74fb4" id="r_a6b8c0d6ac4bdd3a97909a5009ce74fb4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6b8c0d6ac4bdd3a97909a5009ce74fb4">is_inline_value</a> = btree_detail::__is_inline_key_v&lt;<a class="el" href="#a8054f53f1446b9166f67daceb1fe529c">value_type</a>&gt;</td></tr>
+<tr class="separator:a6b8c0d6ac4bdd3a97909a5009ce74fb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a15c0f531e09cf1ed21488cb8b1652fba" id="r_a15c0f531e09cf1ed21488cb8b1652fba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a15c0f531e09cf1ed21488cb8b1652fba">is_map</a> = Mybase::is_map</td></tr>
+<tr class="separator:a15c0f531e09cf1ed21488cb8b1652fba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af64e9ba7307edf101fc83aa31d3e4e3e" id="r_af64e9ba7307edf101fc83aa31d3e4e3e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af64e9ba7307edf101fc83aa31d3e4e3e">multi</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a></td></tr>
+<tr class="separator:af64e9ba7307edf101fc83aa31d3e4e3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">成员类型定义说明</h2>
+<a id="a776e985b5625772e165a39cf9cee5ec3" name="a776e985b5625772e165a39cf9cee5ec3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a776e985b5625772e165a39cf9cee5ec3">&#9670;&#160;</a></span>_Alty</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::_Alty = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> std::allocator_traits&lt;Alloc&gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::template</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rebind_alloc</a>&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">char</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab6832dfb138471c4a5ed832838df92e2" name="ab6832dfb138471c4a5ed832838df92e2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6832dfb138471c4a5ed832838df92e2">&#9670;&#160;</a></span>_Alty_traits</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::_Alty_traits = std::allocator_traits&lt;<a class="el" href="#a776e985b5625772e165a39cf9cee5ec3">_Alty</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad69c0319dcd0e3a25ad3caae18f6eedb" name="ad69c0319dcd0e3a25ad3caae18f6eedb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad69c0319dcd0e3a25ad3caae18f6eedb">&#9670;&#160;</a></span>difference_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::difference_type = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> _Alty_traits::difference_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a15a3767b12b0406b4aa038c885b802ac" name="a15a3767b12b0406b4aa038c885b802ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a15a3767b12b0406b4aa038c885b802ac">&#9670;&#160;</a></span>ikey_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::ikey_type = std::conditional_t&lt;<a class="el" href="#a643d3f47a17051eb18ffdb54ec448abf">is_inline_key</a>, <a class="el" href="#aa532adabdf5a3c251bb8eb073219390f">key_type</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="#aa532adabdf5a3c251bb8eb073219390f">key_type</a> *&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6e7f9dccccb8db0b0a7a6fbe71456b33" name="a6e7f9dccccb8db0b0a7a6fbe71456b33"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6e7f9dccccb8db0b0a7a6fbe71456b33">&#9670;&#160;</a></span>inner_node_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::inner_node_type = <a class="el" href="structwjr_1_1btree__inner__node.html">btree_inner_node</a>&lt;<a class="el" href="structwjr_1_1btree__traits.html">btree_traits</a>, <a class="el" href="#a643d3f47a17051eb18ffdb54ec448abf">is_inline_key</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae6901e9b922c0ddf5db0b170f8b2ab1f" name="ae6901e9b922c0ddf5db0b170f8b2ab1f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6901e9b922c0ddf5db0b170f8b2ab1f">&#9670;&#160;</a></span>ivalue_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::ivalue_type = std::conditional_t&lt;<a class="el" href="#a6b8c0d6ac4bdd3a97909a5009ce74fb4">is_inline_value</a>, <a class="el" href="#a8054f53f1446b9166f67daceb1fe529c">value_type</a>, <a class="el" href="#a8054f53f1446b9166f67daceb1fe529c">value_type</a> *&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adbb34c0e82c329196763e8d8fac952f5" name="adbb34c0e82c329196763e8d8fac952f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbb34c0e82c329196763e8d8fac952f5">&#9670;&#160;</a></span>key_compare</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::key_compare = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa532adabdf5a3c251bb8eb073219390f" name="aa532adabdf5a3c251bb8eb073219390f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa532adabdf5a3c251bb8eb073219390f">&#9670;&#160;</a></span>key_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::key_type = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Mybase::key_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af36ba401b9376ec8c556caa64d1c4362" name="af36ba401b9376ec8c556caa64d1c4362"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af36ba401b9376ec8c556caa64d1c4362">&#9670;&#160;</a></span>leaf_node_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::leaf_node_type = <a class="el" href="structwjr_1_1btree__leaf__node.html">btree_leaf_node</a>&lt;<a class="el" href="structwjr_1_1btree__traits.html">btree_traits</a>, <a class="el" href="#a6b8c0d6ac4bdd3a97909a5009ce74fb4">is_inline_value</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1d49064f273061a5dea4c8bd6b01c25f" name="a1d49064f273061a5dea4c8bd6b01c25f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1d49064f273061a5dea4c8bd6b01c25f">&#9670;&#160;</a></span>mapped_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::mapped_type = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Mybase::mapped_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae771b361db27a93d23a6df333712f217" name="ae771b361db27a93d23a6df333712f217"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae771b361db27a93d23a6df333712f217">&#9670;&#160;</a></span>node_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::node_type = <a class="el" href="structwjr_1_1btree__node.html">btree_node</a>&lt;<a class="el" href="structwjr_1_1btree__traits.html">btree_traits</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9a70d1547bd43d0c63d06d106a499032" name="a9a70d1547bd43d0c63d06d106a499032"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a70d1547bd43d0c63d06d106a499032">&#9670;&#160;</a></span>size_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::size_type = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> _Alty_traits::size_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a322af8539ea0c5949c0144d8ad46b13d" name="a322af8539ea0c5949c0144d8ad46b13d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a322af8539ea0c5949c0144d8ad46b13d">&#9670;&#160;</a></span>storage_fn_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::storage_fn_type = <a class="el" href="classwjr_1_1container__fn.html">container_fn</a>&lt;<a class="el" href="#a776e985b5625772e165a39cf9cee5ec3">_Alty</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8054f53f1446b9166f67daceb1fe529c" name="a8054f53f1446b9166f67daceb1fe529c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8054f53f1446b9166f67daceb1fe529c">&#9670;&#160;</a></span>value_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::value_type = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Mybase::value_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">类成员变量说明</h2>
+<a id="a643d3f47a17051eb18ffdb54ec448abf" name="a643d3f47a17051eb18ffdb54ec448abf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a643d3f47a17051eb18ffdb54ec448abf">&#9670;&#160;</a></span>is_inline_key</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::is_inline_key = btree_detail::__is_inline_key_v&lt;<a class="el" href="#aa532adabdf5a3c251bb8eb073219390f">key_type</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6b8c0d6ac4bdd3a97909a5009ce74fb4" name="a6b8c0d6ac4bdd3a97909a5009ce74fb4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b8c0d6ac4bdd3a97909a5009ce74fb4">&#9670;&#160;</a></span>is_inline_value</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::is_inline_value = btree_detail::__is_inline_key_v&lt;<a class="el" href="#a8054f53f1446b9166f67daceb1fe529c">value_type</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a15c0f531e09cf1ed21488cb8b1652fba" name="a15c0f531e09cf1ed21488cb8b1652fba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a15c0f531e09cf1ed21488cb8b1652fba">&#9670;&#160;</a></span>is_map</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::is_map = Mybase::is_map</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af64e9ba7307edf101fc83aa31d3e4e3e" name="af64e9ba7307edf101fc83aa31d3e4e3e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af64e9ba7307edf101fc83aa31d3e4e3e">&#9670;&#160;</a></span>multi</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> Multi, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>  = std::less&lt;&gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Alloc  = std::allocator&lt;char&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="structwjr_1_1btree__traits.html">wjr::btree_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Key</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Value</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Compare</a>, Alloc &gt;::multi = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Multi</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该结构体的文档由以下文件生成:<ul>
+<li>include/wjr/container/<a class="el" href="btree_8hpp_source.html">btree.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacewjr.html">wjr</a></li><li class="navelem"><a class="el" href="structwjr_1_1btree__traits.html">btree_traits</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

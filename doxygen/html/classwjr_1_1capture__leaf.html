@@ -1,0 +1,390 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: wjr::capture_leaf&lt; T, Tag &gt; 模板类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('classwjr_1_1capture__leaf.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Public 类型</a> &#124;
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="#friends">友元</a> &#124;
+<a href="classwjr_1_1capture__leaf-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">wjr::capture_leaf&lt; T, Tag &gt; 模板类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>Capture any type as a new type.  
+ <a href="#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="capture__leaf_8hpp_source.html">capture_leaf.hpp</a>&gt;</code></p>
+<div class="dynheader">
+类 wjr::capture_leaf&lt; T, Tag &gt; 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><img src="classwjr_1_1capture__leaf__inherit__graph.png" border="0" usemap="#awjr_1_1capture__leaf_3_01_t_00_01_tag_01_4_inherit__map" alt="Inheritance graph"/></div>
+<map name="awjr_1_1capture__leaf_3_01_t_00_01_tag_01_4_inherit__map" id="awjr_1_1capture__leaf_3_01_t_00_01_tag_01_4_inherit__map">
+<area shape="rect" title="Capture any type as a new type." alt="" coords="539,629,653,800"/>
+<area shape="rect" href="structwjr_1_1enable__special__members__base.html" title=" " alt="" coords="511,325,681,581"/>
+<area shape="poly" title=" " alt="" coords="599,596,599,629,593,629,593,596"/>
+<area shape="rect" href="structwjr_1_1enable__default__constructor__base.html" title=" " alt="" coords="5,5,184,277"/>
+<area shape="poly" title=" " alt="" coords="197,275,198,275,275,327,358,369,440,402,512,426,510,431,438,407,356,374,272,331,194,279,194,279"/>
+<area shape="rect" href="structwjr_1_1enable__destructor__base.html" title=" " alt="" coords="209,27,378,256"/>
+<area shape="poly" title=" " alt="" coords="384,266,393,275,452,333,513,385,509,389,448,337,389,279,380,269"/>
+<area shape="rect" href="structwjr_1_1enable__copy__constructor__base.html" title=" " alt="" coords="403,13,584,269"/>
+<area shape="poly" title=" " alt="" coords="543,283,557,325,552,326,538,284"/>
+<area shape="rect" href="structwjr_1_1enable__move__constructor__base.html" title=" " alt="" coords="608,13,792,269"/>
+<area shape="poly" title=" " alt="" coords="655,284,641,326,636,325,650,282"/>
+<area shape="rect" href="structwjr_1_1enable__copy__assignment__base.html" title=" " alt="" coords="816,13,1000,269"/>
+<area shape="poly" title=" " alt="" coords="808,277,806,279,745,337,683,389,679,385,741,333,802,275,804,273"/>
+<area shape="rect" href="structwjr_1_1enable__move__assignment__base.html" title=" " alt="" coords="1025,13,1210,269"/>
+<area shape="poly" title=" " alt="" coords="1015,279,1014,280,931,333,843,376,757,409,682,433,680,428,755,404,841,371,929,328,1010,275,1012,274"/>
+</map>
+</div>
+<div class="dynheader">
+wjr::capture_leaf&lt; T, Tag &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><img src="classwjr_1_1capture__leaf__coll__graph.png" border="0" usemap="#awjr_1_1capture__leaf_3_01_t_00_01_tag_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="awjr_1_1capture__leaf_3_01_t_00_01_tag_01_4_coll__map" id="awjr_1_1capture__leaf_3_01_t_00_01_tag_01_4_coll__map">
+<area shape="rect" title="Capture any type as a new type." alt="" coords="539,629,653,800"/>
+<area shape="rect" href="structwjr_1_1enable__special__members__base.html" title=" " alt="" coords="511,325,681,581"/>
+<area shape="poly" title=" " alt="" coords="599,596,599,629,593,629,593,596"/>
+<area shape="rect" href="structwjr_1_1enable__default__constructor__base.html" title=" " alt="" coords="5,5,184,277"/>
+<area shape="poly" title=" " alt="" coords="197,275,198,275,275,327,358,369,440,402,512,426,510,431,438,407,356,374,272,331,194,279,194,279"/>
+<area shape="rect" href="structwjr_1_1enable__destructor__base.html" title=" " alt="" coords="209,27,378,256"/>
+<area shape="poly" title=" " alt="" coords="384,266,393,275,452,333,513,385,509,389,448,337,389,279,380,269"/>
+<area shape="rect" href="structwjr_1_1enable__copy__constructor__base.html" title=" " alt="" coords="403,13,584,269"/>
+<area shape="poly" title=" " alt="" coords="543,283,557,325,552,326,538,284"/>
+<area shape="rect" href="structwjr_1_1enable__move__constructor__base.html" title=" " alt="" coords="608,13,792,269"/>
+<area shape="poly" title=" " alt="" coords="655,284,641,326,636,325,650,282"/>
+<area shape="rect" href="structwjr_1_1enable__copy__assignment__base.html" title=" " alt="" coords="816,13,1000,269"/>
+<area shape="poly" title=" " alt="" coords="808,277,806,279,745,337,683,389,679,385,741,333,802,275,804,273"/>
+<area shape="rect" href="structwjr_1_1enable__move__assignment__base.html" title=" " alt="" coords="1025,13,1210,269"/>
+<area shape="poly" title=" " alt="" coords="1015,279,1014,280,931,333,843,376,757,409,682,433,680,428,755,404,841,371,929,328,1010,275,1012,274"/>
+</map>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:a66b6fcc7cd124938d3e5cae70bfb1aa1" id="r_a66b6fcc7cd124938d3e5cae70bfb1aa1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a66b6fcc7cd124938d3e5cae70bfb1aa1">value_type</a> = <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a></td></tr>
+<tr class="separator:a66b6fcc7cd124938d3e5cae70bfb1aa1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:ab67ee7f96e5ec0c410e0c6d95694f417" id="r_ab67ee7f96e5ec0c410e0c6d95694f417"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>  = T, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::is_default_constructible_v&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;) &gt; </td></tr>
+<tr class="memitem:ab67ee7f96e5ec0c410e0c6d95694f417"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ab67ee7f96e5ec0c410e0c6d95694f417">capture_leaf</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a>(std::is_nothrow_constructible_v&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;)</td></tr>
+<tr class="separator:ab67ee7f96e5ec0c410e0c6d95694f417"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad5cc73777f5256b02aaf79f83952315e" id="r_ad5cc73777f5256b02aaf79f83952315e"><td class="memTemplParams" colspan="2">template&lt;typename... Args, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::is_constructible_v&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, Args... &gt;) &gt; </td></tr>
+<tr class="memitem:ad5cc73777f5256b02aaf79f83952315e"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ad5cc73777f5256b02aaf79f83952315e">capture_leaf</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Args</a> &amp;&amp;...<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">args</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a>(std::is_constructible_v&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, Args... &gt;)</td></tr>
+<tr class="separator:ad5cc73777f5256b02aaf79f83952315e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69fbab97f79363723ceca907bc0dfc77" id="r_a69fbab97f79363723ceca907bc0dfc77"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>  = T, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::is_default_constructible_v&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;) &gt; </td></tr>
+<tr class="memitem:a69fbab97f79363723ceca907bc0dfc77"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a69fbab97f79363723ceca907bc0dfc77">capture_leaf</a> (<a class="el" href="structwjr_1_1default__construct__t.html">default_construct_t</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a>(std::is_nothrow_default_constructible_v&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;)</td></tr>
+<tr class="separator:a69fbab97f79363723ceca907bc0dfc77"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abdfc29ec5b4d7989021173a000ec0ebd" id="r_abdfc29ec5b4d7989021173a000ec0ebd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abdfc29ec5b4d7989021173a000ec0ebd">get</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:abdfc29ec5b4d7989021173a000ec0ebd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac3bb223f39b471928dd050079c7a094b" id="r_ac3bb223f39b471928dd050079c7a094b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac3bb223f39b471928dd050079c7a094b">get</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ac3bb223f39b471928dd050079c7a094b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
+友元</h2></td></tr>
+<tr class="memitem:ab1a7cc1f62daaecd82012d41a8a025dd" id="r_ab1a7cc1f62daaecd82012d41a8a025dd"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> _Mybase , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_Tag</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_Enable</a> &gt; </td></tr>
+<tr class="memitem:ab1a7cc1f62daaecd82012d41a8a025dd"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">struct</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ab1a7cc1f62daaecd82012d41a8a025dd">container_of_fn</a></td></tr>
+<tr class="separator:ab1a7cc1f62daaecd82012d41a8a025dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> = void&gt;<br />
+class wjr::capture_leaf&lt; T, Tag &gt;</div><p>Capture any type as a new type. </p>
+<p>Can be used as a class base. </p>
+</div><h2 class="groupheader">成员类型定义说明</h2>
+<a id="a66b6fcc7cd124938d3e5cae70bfb1aa1" name="a66b6fcc7cd124938d3e5cae70bfb1aa1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a66b6fcc7cd124938d3e5cae70bfb1aa1">&#9670;&#160;</a></span>value_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1capture__leaf.html">wjr::capture_leaf</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::value_type = <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">构造及析构函数说明</h2>
+<a id="ab67ee7f96e5ec0c410e0c6d95694f417" name="ab67ee7f96e5ec0c410e0c6d95694f417"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab67ee7f96e5ec0c410e0c6d95694f417">&#9670;&#160;</a></span>capture_leaf() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>  = T, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::is_default_constructible_v&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1capture__leaf.html">wjr::capture_leaf</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::capture_leaf </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad5cc73777f5256b02aaf79f83952315e" name="ad5cc73777f5256b02aaf79f83952315e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad5cc73777f5256b02aaf79f83952315e">&#9670;&#160;</a></span>capture_leaf() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<div class="memtemplate">
+template&lt;typename... Args, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::is_constructible_v&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, Args... &gt;) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1capture__leaf.html">wjr::capture_leaf</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::capture_leaf </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Args</a> &amp;&amp;...</td>          <td class="paramname"><span class="paramname"><em>args</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a69fbab97f79363723ceca907bc0dfc77" name="a69fbab97f79363723ceca907bc0dfc77"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69fbab97f79363723ceca907bc0dfc77">&#9670;&#160;</a></span>capture_leaf() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>  = T, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::is_default_constructible_v&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1capture__leaf.html">wjr::capture_leaf</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::capture_leaf </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structwjr_1_1default__construct__t.html">default_construct_t</a></td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="ac3bb223f39b471928dd050079c7a094b" name="ac3bb223f39b471928dd050079c7a094b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac3bb223f39b471928dd050079c7a094b">&#9670;&#160;</a></span>get() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &amp; <a class="el" href="classwjr_1_1capture__leaf.html">wjr::capture_leaf</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::get </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abdfc29ec5b4d7989021173a000ec0ebd" name="abdfc29ec5b4d7989021173a000ec0ebd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abdfc29ec5b4d7989021173a000ec0ebd">&#9670;&#160;</a></span>get() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &amp; <a class="el" href="classwjr_1_1capture__leaf.html">wjr::capture_leaf</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::get </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">友元及相关函数文档</h2>
+<a id="ab1a7cc1f62daaecd82012d41a8a025dd" name="ab1a7cc1f62daaecd82012d41a8a025dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab1a7cc1f62daaecd82012d41a8a025dd">&#9670;&#160;</a></span>container_of_fn</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> _Mybase , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_Tag</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_Enable</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">friend</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">struct</a> <a class="el" href="structwjr_1_1container__of__fn.html">container_of_fn</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/wjr/container/<a class="el" href="capture__leaf_8hpp_source.html">capture_leaf.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacewjr.html">wjr</a></li><li class="navelem"><a class="el" href="classwjr_1_1capture__leaf.html">capture_leaf</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

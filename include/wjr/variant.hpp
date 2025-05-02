@@ -28,9 +28,11 @@ std::variant<Args...> &&__is_as_variant_impl(std::variant<Args...> &&);
 template <typename... Args>
 const std::variant<Args...> &&__is_as_variant_impl(const std::variant<Args...> &&);
 
+/// @private
 template <typename T, typename Enable>
 struct __is_as_variant_helper : std::false_type {};
 
+/// @private
 template <typename T>
 struct __is_as_variant_helper<T, std::void_t<decltype(__is_as_variant_impl(std::declval<T>()))>>
     : std::true_type {};

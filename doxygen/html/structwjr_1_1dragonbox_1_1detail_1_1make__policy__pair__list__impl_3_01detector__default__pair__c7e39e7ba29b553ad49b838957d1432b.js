@@ -1,0 +1,4 @@
+var structwjr_1_1dragonbox_1_1detail_1_1make__policy__pair__list__impl_3_01detector__default__pair__c7e39e7ba29b553ad49b838957d1432b =
+[
+    [ "type", "structwjr_1_1dragonbox_1_1detail_1_1make__policy__pair__list__impl_3_01detector__default__pair__c7e39e7ba29b553ad49b838957d1432b.html#abeec57b6974c548f9ec3556e845abe3b", null ]
+];

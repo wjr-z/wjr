@@ -1,0 +1,98 @@
+\doxysection{div.\+hpp}
+\hypertarget{arch_2x86_2biginteger_2detail_2div_8hpp_source}{}\label{arch_2x86_2biginteger_2detail_2div_8hpp_source}\index{include/wjr/arch/x86/biginteger/detail/div.hpp@{include/wjr/arch/x86/biginteger/detail/div.hpp}}
+\mbox{\hyperlink{arch_2x86_2biginteger_2detail_2div_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_ARCH\_X86\_BIGINTEGER\_DETAIL\_DIV\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_ARCH\_X86\_BIGINTEGER\_DETAIL\_DIV\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{type__traits_8hpp}{wjr/type\_traits.hpp}}>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#if\ defined(\_\_BMI2\_\_)}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\ \ \ \ \#if\ WJR\_HAS\_FEATURE(GCC\_STYLE\_INLINE\_ASM)}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ WJR\_HAS\_BUILTIN\_ASM\_DIVEXACT\_DBM1C\ WJR\_HAS\_DEF}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\ \ \ \ \#elif\ defined(WJR\_ENABLE\_ASSEMBLY)}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ WJR\_HAS\_BUILTIN\_ASM\_DIVEXACT\_DBM1C\ WJR\_HAS\_ASSEMBLY\_DEF}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_BUILTIN(ASM\_DIVEXACT\_DBM1C)}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\ \ \ \ \#if\ WJR\_HAS\_BUILTIN(ASM\_DIVEXACT\_DBM1C)\ ==\ 1}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{comment}{//\ todo\ :\ optimize\ pipeline}}
+\DoxyCodeLine{00021\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_ALL\_NONNULL}}\ \textcolor{keyword}{inline}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_a90743c3a0965a1d742929754cbe29ac2}{asm\_divexact\_dbm1c}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{dst}},\ \textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{src}},\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},}
+\DoxyCodeLine{00022\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bd}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{h}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00023\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{gen__addsub_8hpp_a338c714a93a43aa16b7b45f969e22e31}{r8}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{h}},\ \mbox{\hyperlink{gen__addsub_8hpp_acd23bd73fa99ef0cc188e12082793a8d}{r9}}\ =\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},\ \mbox{\hyperlink{gen__addsub_8hpp_a672542f94403b54948dff9d8fa7cb0f1}{r10}},\ \mbox{\hyperlink{gen__addsub_8hpp_a70e44c46ce043102a19d3e826d1349d9}{r11}}\ =\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\_t}}\textcolor{keyword}{>}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}});}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{src}}\ +=\ \mbox{\hyperlink{gen__addsub_8hpp_acd23bd73fa99ef0cc188e12082793a8d}{r9}};}
+\DoxyCodeLine{00026\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{dst}}\ +=\ \mbox{\hyperlink{gen__addsub_8hpp_acd23bd73fa99ef0cc188e12082793a8d}{r9}};}
+\DoxyCodeLine{00027\ \ \ \ \ \mbox{\hyperlink{gen__addsub_8hpp_acd23bd73fa99ef0cc188e12082793a8d}{r9}}\ =\ -\/\mbox{\hyperlink{gen__addsub_8hpp_acd23bd73fa99ef0cc188e12082793a8d}{r9}};}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}and\{l\ \$3,\ \%k[r11]|\ \%k[r11],\ 3\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}je\ .Lb0\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ -\/4(\%[r9],\ \%[r11],\ 1),\ \%[r9]|\ \%[r9],\ [\%[r9]\ +\ \%[r11]\ *\ 1\ -\/\ 4]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}cmp\{l\ \$2,\ \%k[r11]|\ \%k[r11],\ 2\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jb\ .Lb1\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}je\ .Lb2\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jmp\ .Lb3\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Lloop\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Lb0\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mulx\{q\ (\%[src],\ \%[r9],\ 8),\ \%[r10],\ \%[r11]|\ \%[r11],\ \%[r10],\ [\%[src]\ +\ \%[r9]\ *\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sub\{q\ \%[r10],\ \%[r8]|\ \%[r8],\ \%[r10]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ \%[r8],\ (\%[dst],\ \%[r9],\ 8)|\ [\%[dst]\ +\ \%[r9]\ *\ 8],\ \%[r8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sbb\{q\ \%[r11],\ \%[r8]|\ \%[r8],\ \%[r11]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Lb3\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mulx\{q\ 8(\%[src],\ \%[r9],\ 8),\ \%[r10],\ \%[r11]|\ \%[r11],\ \%[r10],\ [\%[src]\ +\ \%[r9]\ *\ 8\ +\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sub\{q\ \%[r10],\ \%[r8]|\ \%[r8],\ \%[r10]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ \%[r8],\ 8(\%[dst],\ \%[r9],\ 8)|\ [\%[dst]\ +\ \%[r9]\ *\ 8\ +\ 8],\ \%[r8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sbb\{q\ \%[r11],\ \%[r8]|\ \%[r8],\ \%[r11]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Lb2\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mulx\{q\ 16(\%[src],\ \%[r9],\ 8),\ \%[r10],\ \%[r11]|\ \%[r11],\ \%[r10],\ [\%[src]\ +\ \%[r9]\ *\ 8\ +\ 16]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sub\{q\ \%[r10],\ \%[r8]|\ \%[r8],\ \%[r10]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ \%[r8],\ 16(\%[dst],\ \%[r9],\ 8)|\ [\%[dst]\ +\ \%[r9]\ *\ 8\ +\ 16],\ \%[r8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sbb\{q\ \%[r11],\ \%[r8]|\ \%[r8],\ \%[r11]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Lb1\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mulx\{q\ 24(\%[src],\ \%[r9],\ 8),\ \%[r10],\ \%[r11]|\ \%[r11],\ \%[r10],\ [\%[src]\ +\ \%[r9]\ *\ 8\ +\ 24]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sub\{q\ \%[r10],\ \%[r8]|\ \%[r8],\ \%[r10]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ \%[r8],\ 24(\%[dst],\ \%[r9],\ 8)|\ [\%[dst]\ +\ \%[r9]\ *\ 8\ +\ 24],\ \%[r8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sbb\{q\ \%[r11],\ \%[r8]|\ \%[r8],\ \%[r11]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}add\{q\ \$4,\ \%[r9]|\ \%[r9],\ 4\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jne\ .Lloop\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ :\ [\mbox{\hyperlink{gen__addsub_8hpp_a338c714a93a43aa16b7b45f969e22e31}{r8}}]\ \textcolor{stringliteral}{"{}+\&r"{}}(\mbox{\hyperlink{gen__addsub_8hpp_a338c714a93a43aa16b7b45f969e22e31}{r8}}),\ [\mbox{\hyperlink{gen__addsub_8hpp_acd23bd73fa99ef0cc188e12082793a8d}{r9}}]\ \textcolor{stringliteral}{"{}+\&r"{}}(\mbox{\hyperlink{gen__addsub_8hpp_acd23bd73fa99ef0cc188e12082793a8d}{r9}}),\ [\mbox{\hyperlink{gen__addsub_8hpp_a672542f94403b54948dff9d8fa7cb0f1}{r10}}]\ \textcolor{stringliteral}{"{}=\&r"{}}(\mbox{\hyperlink{gen__addsub_8hpp_a672542f94403b54948dff9d8fa7cb0f1}{r10}}),\ [\mbox{\hyperlink{gen__addsub_8hpp_a70e44c46ce043102a19d3e826d1349d9}{r11}}]\ \textcolor{stringliteral}{"{}+\&r"{}}(\mbox{\hyperlink{gen__addsub_8hpp_a70e44c46ce043102a19d3e826d1349d9}{r11}})}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}d"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bd}}),\ [\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{dst}}]\ \textcolor{stringliteral}{"{}r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{dst}}),\ [\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{src}}]\ \textcolor{stringliteral}{"{}r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{src}})}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}cc"{}},\ \textcolor{stringliteral}{"{}memory"{}});}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{gen__addsub_8hpp_a338c714a93a43aa16b7b45f969e22e31}{r8}};}
+\DoxyCodeLine{00072\ \}}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_ALL\_NONNULL}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_MS\_ABI}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \_\_wjr\_asm\_divexact\_dbm1c(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{dst}},}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{src}},}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bd}},}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{h}})\ \textcolor{keyword}{noexcept};}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_INTRINSIC\_INLINE}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_a90743c3a0965a1d742929754cbe29ac2}{asm\_divexact\_dbm1c}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{dst}},\ \textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{src}},\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bd}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{h}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keywordflow}{return}\ \_\_wjr\_asm\_divexact\_dbm1c(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{dst}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{src}},\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bd}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{h}});}
+\DoxyCodeLine{00084\ \}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_ARCH\_X86\_BIGINTEGER\_DETAIL\_DIV\_HPP\_\_}}
+
+\end{DoxyCode}

@@ -1,0 +1,1115 @@
+  % Handle batch mode
+  % to overcome problems with too many open files
+  \let\mypdfximage\pdfximage\def\pdfximage{\immediate\mypdfximage}
+  \pdfminorversion=7
+  % Set document class depending on configuration
+  \documentclass[twoside]{book}
+  %% moved from doxygen.sty due to workaround for LaTex 2019 version and unmaintained tabu package
+  \usepackage{ifthen}
+  \ifx\requestedLaTeXdate\undefined
+    \usepackage{array}
+  \else
+    \usepackage{array}[=2016-10-06]
+  \fi
+  %%
+  % Packages required by doxygen
+  \makeatletter
+  \providecommand\IfFormatAtLeastTF{\@ifl@t@r\fmtversion}
+  % suppress package identification of infwarerr as it contains the word "warning"
+  \let\@@protected@wlog\protected@wlog
+  \def\protected@wlog#1{\wlog{package info suppressed}}
+  \RequirePackage{infwarerr}
+  \let\protected@wlog\@@protected@wlog
+  \makeatother
+  \IfFormatAtLeastTF{2016/01/01}{}{\usepackage{fixltx2e}} % for \textsubscript
+  \IfFormatAtLeastTF{2015/01/01}{\pdfsuppresswarningpagegroup=1}{}
+  \usepackage{doxygen}
+  \usepackage{graphicx}
+  \usepackage[utf8]{inputenc}
+  \usepackage{makeidx}
+  \PassOptionsToPackage{warn}{textcomp}
+  \usepackage{textcomp}
+  \usepackage[nointegrals]{wasysym}
+  \usepackage{ifxetex}
+  % NLS support packages
+  \usepackage{CJKutf8}
+  % Define default fonts
+  % Font selection
+  % set main and monospaced font
+  \usepackage[scaled=.90]{helvet}
+\usepackage{courier}
+\renewcommand{\familydefault}{\sfdefault}
+  \doxyallsectionsfont{%
+    \fontseries{bc}\selectfont%
+    \color{darkgray}%
+  }
+  \renewcommand{\DoxyLabelFont}{%
+    \fontseries{bc}\selectfont%
+    \color{darkgray}%
+  }
+  \newcommand{\+}{\discretionary{\mbox{\scriptsize$\hookleftarrow$}}{}{}}
+   % Arguments of doxygenemoji:
+   % 1) ':<text>:' form of the emoji, already LaTeX-escaped
+   % 2) file with the name of the emoji without the .png extension
+   % in case image exist use this otherwise use the ':<text>:' form
+   \newcommand{\doxygenemoji}[2]{%
+     \IfFileExists{./#2.png}{\raisebox{-0.1em}{\includegraphics[height=0.9em]{./#2.png}}}{#1}%
+   }
+  % Page & text layout
+  \usepackage{geometry}
+  \geometry{%
+    a4paper,%
+    top=2.5cm,%
+    bottom=2.5cm,%
+    left=2.5cm,%
+    right=2.5cm%
+  }
+  \usepackage{changepage}
+  % Allow a bit of overflow to go unnoticed by other means
+  \tolerance=750
+  \hfuzz=15pt
+  \hbadness=750
+  \setlength{\emergencystretch}{15pt}
+  \setlength{\parindent}{0cm}
+  \newcommand{\doxynormalparskip}{\setlength{\parskip}{3ex plus 2ex minus 2ex}}
+  \newcommand{\doxytocparskip}{\setlength{\parskip}{1ex plus 0ex minus 0ex}}
+  \doxynormalparskip
+  % Redefine paragraph/subparagraph environments, using sectsty fonts
+  \makeatletter
+  \renewcommand{\paragraph}{%
+    \@startsection{paragraph}{4}{0ex}{-1.0ex}{1.0ex}{%
+      \normalfont\normalsize\bfseries\SS@parafont%
+    }%
+  }
+  \renewcommand{\subparagraph}{%
+    \@startsection{subparagraph}{5}{0ex}{-1.0ex}{1.0ex}{%
+      \normalfont\normalsize\bfseries\SS@subparafont%
+    }%
+  }
+  \makeatother
+  \makeatletter
+  \newcommand\hrulefilll{\leavevmode\leaders\hrule\hskip 0pt plus 1filll\kern\z@}
+  \makeatother
+  % Headers & footers
+  \usepackage{fancyhdr}
+  \pagestyle{fancyplain}
+  \renewcommand{\footrulewidth}{0.4pt}
+  \fancypagestyle{fancyplain}{
+    \fancyhf{}
+    \fancyhead[LE, RO]{\bfseries\thepage}
+    \fancyhead[LO]{\bfseries\rightmark}
+    \fancyhead[RE]{\bfseries\leftmark}
+    \fancyfoot[LO, RE]{\bfseries\scriptsize 制作者 Doxygen }
+  }
+  \fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyfoot[LO, RE]{\bfseries\scriptsize 制作者 Doxygen }
+    \renewcommand{\headrulewidth}{0pt}
+  }
+  \pagestyle{fancyplain}
+  \renewcommand{\chaptermark}[1]{%
+    \markboth{#1}{}%
+  }
+  \renewcommand{\sectionmark}[1]{%
+    \markright{\thesection\ #1}%
+  }
+  % ToC, LoF, LoT, bibliography, and index
+  % Indices & bibliography
+  \usepackage{natbib}
+  \usepackage[titles]{tocloft}
+  \setcounter{tocdepth}{3}
+  \setcounter{secnumdepth}{5}
+  % creating indexes
+  \makeindex
+  \usepackage{newunicodechar}
+  \makeatletter
+    \def\doxynewunicodechar#1#2{%
+    \@tempswafalse
+    \edef\nuc@tempa{\detokenize{#1}}%
+    \if\relax\nuc@tempa\relax
+      \nuc@emptyargerr
+    \else
+      \edef\@tempb{\expandafter\@car\nuc@tempa\@nil}%
+      \nuc@check
+      \if@tempswa
+        \@namedef{u8:\nuc@tempa}{#2}%
+      \fi
+    \fi
+  }
+  \makeatother
+  \doxynewunicodechar{⁻}{${}^{-}$}% Superscript minus
+  \doxynewunicodechar{²}{${}^{2}$}% Superscript two
+  \doxynewunicodechar{³}{${}^{3}$}% Superscript three
+  % Hyperlinks
+    % Hyperlinks (required, but should be loaded last)
+    \ifpdf
+      \usepackage[pdftex,pagebackref=true]{hyperref}
+    \else
+      \ifxetex
+        \usepackage[pagebackref=true]{hyperref}
+      \else
+        \usepackage[ps2pdf,pagebackref=true]{hyperref}
+      \fi
+    \fi
+    \hypersetup{%
+      colorlinks=true,%
+      linkcolor=blue,%
+      citecolor=blue,%
+      unicode,%
+      pdftitle={wjr},%
+      pdfsubject={none}%
+    }
+  % Custom commands used by the header
+  % Custom commands
+  \newcommand{\clearemptydoublepage}{%
+    \newpage{\pagestyle{empty}\cleardoublepage}%
+  }
+  % caption style definition
+  \usepackage{caption}
+  \captionsetup{labelsep=space,justification=centering,font={bf},singlelinecheck=off,skip=4pt,position=top}
+  % in page table of contents
+  \IfFormatAtLeastTF{2023/05/01}{\usepackage[deeplevels]{etoc}}{\usepackage[deeplevels]{etoc_doxygen}}
+  \etocsettocstyle{\doxytocparskip}{\doxynormalparskip}
+  \etocsetlevel{subsubsubsection}{4}
+  \etocsetlevel{subsubsubsubsection}{5}
+  \etocsetlevel{subsubsubsubsubsection}{6}
+  \etocsetlevel{subsubsubsubsubsubsection}{7}
+  \etocsetlevel{paragraph}{8}
+  \etocsetlevel{subparagraph}{9}
+  % prevent numbers overlap the titles in toc
+  \renewcommand{\numberline}[1]{#1~}
+% End of preamble, now comes the document contents
+%===== C O N T E N T S =====
+\begin{document}
+  \raggedbottom
+  \begin{CJK}{UTF8}{gbsn}
+  % Titlepage & ToC
+    % To avoid duplicate page anchors due to reuse of same numbers for
+    % the index (be it as roman numbers)
+    \hypersetup{pageanchor=false,
+                bookmarksnumbered=true,
+                pdfencoding=unicode
+               }
+  \pagenumbering{alph}
+  \begin{titlepage}
+  \vspace*{7cm}
+  \begin{center}%
+  {\Large wjr}\\
+  [1ex]\large 1.\+0.\+0 \\
+  \vspace*{1cm}
+  {\large 制作者 Doxygen 1.10.0}\\
+  \end{center}
+  \end{titlepage}
+  \clearemptydoublepage
+  \pagenumbering{roman}
+  \tableofcontents
+  \clearemptydoublepage
+  \pagenumbering{arabic}
+  % re-enable anchors again
+  \hypersetup{pageanchor=true}
+%--- Begin generated contents ---
+\input{todo}
+\chapter{命名空间索引}
+\input{namespaces}
+\chapter{继承关系索引}
+\input{hierarchy}
+\chapter{类索引}
+\input{annotated}
+\chapter{文件索引}
+\input{files}
+\chapter{命名空间文档}
+\input{namespacefmt}
+\input{namespacestd}
+\input{namespacewjr}
+\input{namespacewjr_1_1bar}
+\input{namespacewjr_1_1cctype}
+\input{namespacewjr_1_1constant}
+\input{namespacewjr_1_1dragonbox}
+\input{namespacewjr_1_1dragonbox_1_1policy}
+\input{namespacewjr_1_1dragonbox_1_1policy_1_1binary__to__decimal__rounding}
+\input{namespacewjr_1_1dragonbox_1_1policy_1_1cache}
+\input{namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding}
+\input{namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1interval__type}
+\input{namespacewjr_1_1dragonbox_1_1policy_1_1digit__generation}
+\input{namespacewjr_1_1dragonbox_1_1policy_1_1preferred__integer__types}
+\input{namespacewjr_1_1dragonbox_1_1policy_1_1sign}
+\input{namespacewjr_1_1dragonbox_1_1policy_1_1trailing__zero}
+\input{namespacewjr_1_1fastfloat}
+\input{namespacewjr_1_1huffman}
+\input{namespacewjr_1_1intrusive}
+\input{namespacewjr_1_1json}
+\input{namespacewjr_1_1math}
+\input{namespacewjr_1_1mem}
+\input{namespacewjr_1_1utf8}
+\chapter{类说明}
+\input{structwjr_1_1fastfloat_1_1adjusted__mantissa}
+\input{structwjr_1_1allocation__result}
+\input{structwjr_1_1append__fn}
+\input{structwjr_1_1append__fn__impl}
+\input{structwjr_1_1append__fn__impl_3_01std_1_1basic__string_3_01_char_00_01_traits_00_01_alloc_01_4_01_4}
+\input{structwjr_1_1append__fn__impl__base}
+\input{classwjr_1_1arena}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1interval__type_1_1asymmetric__boundary}
+\input{classwjr_1_1automatic__free__pool}
+\input{structwjr_1_1avx}
+\input{structwjr_1_1dragonbox_1_1policy_1_1binary__to__decimal__rounding_1_1away__from__zero__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1away__from__zero__t}
+\input{classwjr_1_1json_1_1bad__document__access}
+\input{classwjr_1_1bad__expected__access}
+\input{classwjr_1_1bad__expected__access_3_01void_01_4}
+\input{classwjr_1_1bad__optional__access}
+\input{classwjr_1_1json_1_1base__formatter}
+\input{classwjr_1_1basic__biginteger}
+\input{classwjr_1_1basic__btree}
+\input{structwjr_1_1basic__btree__searcher__impl}
+\input{structwjr_1_1basic__btree__searcher__impl_3_018_00_01void_01_4}
+\input{classwjr_1_1json_1_1basic__document}
+\input{classwjr_1_1basic__ring__buffer}
+\input{structwjr_1_1json_1_1basic__value}
+\input{classwjr_1_1basic__vector}
+\input{structwjr_1_1basic__vector__traits}
+\input{structwjr_1_1biginteger__data}
+\input{structwjr_1_1biginteger__dispatch__static__table}
+\input{structwjr_1_1biginteger__dispatch__table}
+\input{classwjr_1_1biginteger__dispatcher}
+\input{structwjr_1_1biginteger__uniform__random__bit__generator}
+\input{structwjr_1_1fastfloat_1_1binary__format}
+\input{classwjr_1_1bitset}
+\input{classwjr_1_1bitset__const__iterator}
+\input{classwjr_1_1bitset__iterator}
+\input{structwjr_1_1broadcast__fn}
+\input{structwjr_1_1broadcast__fn_3_01uint16__t_00_01uint16__t_01_4}
+\input{structwjr_1_1broadcast__fn_3_01uint16__t_00_01uint32__t_01_4}
+\input{structwjr_1_1broadcast__fn_3_01uint16__t_00_01uint64__t_01_4}
+\input{structwjr_1_1broadcast__fn_3_01uint32__t_00_01uint32__t_01_4}
+\input{structwjr_1_1broadcast__fn_3_01uint32__t_00_01uint64__t_01_4}
+\input{structwjr_1_1broadcast__fn_3_01uint64__t_00_01uint64__t_01_4}
+\input{structwjr_1_1broadcast__fn_3_01uint8__t_00_01uint16__t_01_4}
+\input{structwjr_1_1broadcast__fn_3_01uint8__t_00_01uint32__t_01_4}
+\input{structwjr_1_1broadcast__fn_3_01uint8__t_00_01uint64__t_01_4}
+\input{structwjr_1_1broadcast__fn_3_01uint8__t_00_01uint8__t_01_4}
+\input{classwjr_1_1btree__const__iterator}
+\input{structwjr_1_1btree__inner__node}
+\input{structwjr_1_1btree__inner__node_3_01_traits_00_01true_01_4}
+\input{classwjr_1_1btree__iterator}
+\input{structwjr_1_1btree__leaf__node}
+\input{structwjr_1_1btree__leaf__node_3_01_traits_00_01true_01_4}
+\input{classwjr_1_1btree__map}
+\input{classwjr_1_1btree__multiset}
+\input{structwjr_1_1btree__node}
+\input{structwjr_1_1btree__node__constructor__t}
+\input{structwjr_1_1btree__root__node}
+\input{classwjr_1_1btree__set}
+\input{structwjr_1_1btree__traits}
+\input{structwjr_1_1dragonbox_1_1cache__holder}
+\input{structwjr_1_1dragonbox_1_1cache__holder_3_01ieee754__binary32_00_01_dummy_01_4}
+\input{structwjr_1_1dragonbox_1_1cache__holder_3_01ieee754__binary64_00_01_dummy_01_4}
+\input{classwjr_1_1capture__leaf}
+\input{classwjr_1_1char__converter__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1interval__type_1_1closed}
+\input{structwjr_1_1dragonbox_1_1policy_1_1cache_1_1compact__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1digit__generation_1_1compact__t}
+\input{structwjr_1_1dragonbox_1_1compressed__cache__holder}
+\input{structwjr_1_1dragonbox_1_1compressed__cache__holder_3_01ieee754__binary32_00_01_dummy_01_4}
+\input{structwjr_1_1dragonbox_1_1compressed__cache__holder_3_01ieee754__binary64_00_01_dummy_01_4}
+\input{classwjr_1_1compressed__capture__leaf}
+\input{structwjr_1_1compressed__optional__value}
+\input{structwjr_1_1compressed__optional__value_3_01_t_01_5_00_01void_01_4}
+\input{classwjr_1_1compressed__pair}
+\input{classwjr_1_1compressed__value}
+\input{structwjr_1_1dragonbox_1_1multiplication__traits__base_1_1compute__mul__parity__result}
+\input{structwjr_1_1dragonbox_1_1multiplication__traits__base_1_1compute__mul__result}
+\input{classwjr_1_1container__fn}
+\input{classcontainer__fn_3_01_alloc_01_4}
+\input{structwjr_1_1container__of__fn}
+\input{structwjr_1_1container__of__fn_3_01basic__biginteger_3_01_s_01_4_00_01void_00_01std_1_1enable__ideae1e4533add37e2ce53e9fd6aac070}
+\input{structwjr_1_1container__of__fn_3_01basic__vector_3_01_s_01_4_00_01void_00_01std_1_1enable__if__t7f89315a239d50114ec1fbb6333d6c6d}
+\input{structwjr_1_1container__of__fn_3_01basic__vector_3_01_s_01_4_00_01void_00_01std_1_1enable__if__t8207109d8d9fe200811dd8beda74b88f}
+\input{structwjr_1_1container__of__fn_3_01capture__leaf_3_01_t_00_01_tag_t_01_4_00_01void_00_01std_1_1e3ac064eabd1ecb9ce894ae9aee60144e}
+\input{structwjr_1_1container__of__fn_3_01compressed__capture__leaf_3_01_t_00_01_tag_t_01_4_00_01void_01_4}
+\input{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_010_01_4_01_4}
+\input{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_011_01_4_01_4}
+\input{structwjr_1_1container__traits}
+\input{structwjr_1_1container__traits_3_01basic__vector_3_01_storage_01_4_01_4}
+\input{structwjr_1_1container__traits_3_01std_1_1array_3_01_t_00_01_n_01_4_01_4}
+\input{structwjr_1_1container__traits_3_01std_1_1basic__string_3_01_char_t_00_01_traits_00_01_alloc_01_4_01_4}
+\input{structwjr_1_1container__traits_3_01std_1_1vector_3_01_t_00_01_alloc_01_4_01_4}
+\input{classwjr_1_1contiguous__const__iterator__adapter}
+\input{classwjr_1_1contiguous__iterator__adapter}
+\input{structwjr_1_1control__copy__assign__base}
+\input{structwjr_1_1control__copy__ctor__base}
+\input{structwjr_1_1control__move__assign__base}
+\input{structwjr_1_1control__move__ctor__base}
+\input{structwjr_1_1count__digits__fn}
+\input{structwjr_1_1count__digits__fn_3_011_01_4}
+\input{structwjr_1_1dragonbox_1_1decimal__fp}
+\input{structwjr_1_1dragonbox_1_1decimal__fp_3_01_significand_type_00_01_exponent_type_00_01false_00_01false_01_4}
+\input{structwjr_1_1dragonbox_1_1decimal__fp_3_01_significand_type_00_01_exponent_type_00_01false_00_01true_01_4}
+\input{structwjr_1_1dragonbox_1_1decimal__fp_3_01_significand_type_00_01_exponent_type_00_01true_00_01false_01_4}
+\input{structwjr_1_1dragonbox_1_1decimal__fp_3_01_significand_type_00_01_exponent_type_00_01true_00_01true_01_4}
+\input{structdefault__biginteger__data}
+\input{classwjr_1_1default__biginteger__size__reference}
+\input{classwjr_1_1default__biginteger__vector__storage}
+\input{structwjr_1_1default__construct__t}
+\input{structwjr_1_1dragonbox_1_1default__float__bit__carrier__conversion__traits}
+\input{classwjr_1_1default__ring__buffer__size__reference}
+\input{classwjr_1_1default__ring__buffer__storage}
+\input{classwjr_1_1default__vector__size__reference}
+\input{classwjr_1_1default__vector__storage}
+\input{structwjr_1_1fastfloat_1_1default__writer}
+\input{classwjr_1_1div1by1__divider}
+\input{structwjr_1_1div1by1__shift__mask}
+\input{structwjr_1_1div1by1__uint__t}
+\input{classwjr_1_1div2by1__divider}
+\input{classwjr_1_1div2by1__divider__noshift}
+\input{classwjr_1_1div3by2__divider}
+\input{classwjr_1_1div3by2__divider__noshift}
+\input{classwjr_1_1divexact1__divider}
+\input{structwjr_1_1dragonbox_1_1policy_1_1binary__to__decimal__rounding_1_1do__not__care__t}
+\input{classwjr_1_1json_1_1document__serializer__auto__completion}
+\input{structwjr_1_1json_1_1document__serializer__impl}
+\input{structwjr_1_1json_1_1document__serializer__impl_3_01basic__vector_3_01_traits_01_4_01_4}
+\input{structwjr_1_1json_1_1document__serializer__impl_3_01bool_01_4}
+\input{structwjr_1_1json_1_1document__serializer__impl_3_01std_1_1basic__string_3_01char_00_01std_1_1che08e79f43dfd83ccc37f1df7c7c78b72}
+\input{structwjr_1_1json_1_1document__serializer__impl_3_01std_1_1map_3_01_key_00_01_value_00_01_pr_00_01_alloc_01_4_01_4}
+\input{structwjr_1_1json_1_1document__serializer__impl_3_01std_1_1multimap_3_01_key_00_01_value_00_01_pr_00_01_alloc_01_4_01_4}
+\input{structwjr_1_1json_1_1document__serializer__impl_3_01std_1_1nullptr__t_01_4}
+\input{structwjr_1_1json_1_1document__serializer__impl_3_01std_1_1string__view_01_4}
+\input{structwjr_1_1json_1_1document__serializer__impl_3_01std_1_1unordered__map_3_01_key_00_01_value_01e4c53243e6d8e915f0f4f3ed048ab9b}
+\input{structwjr_1_1json_1_1document__serializer__impl_3_01std_1_1unordered__multimap_3_01_key_00_01_vaa9d573b789466a1ab5d9681bbc840b0a}
+\input{structwjr_1_1json_1_1document__serializer__impl_3_01std_1_1vector_3_01_t_00_01_alloc_01_4_01_4}
+\input{classwjr_1_1dynamic__object__pool}
+\input{structwjr_1_1enable__base__identity__t}
+\input{structwjr_1_1enable__copy__assignment__base}
+\input{structwjr_1_1enable__copy__assignment__base_3_01false_00_01_tag_01_4}
+\input{structwjr_1_1enable__copy__constructor__base}
+\input{structwjr_1_1enable__copy__constructor__base_3_01false_00_01_tag_01_4}
+\input{structwjr_1_1enable__default__constructor__base}
+\input{structwjr_1_1enable__default__constructor__base_3_01false_00_01_tag_01_4}
+\input{structwjr_1_1enable__default__constructor__t}
+\input{structwjr_1_1enable__destructor__base}
+\input{structwjr_1_1enable__destructor__base_3_01false_00_01_tag_01_4}
+\input{structwjr_1_1enable__move__assignment__base}
+\input{structwjr_1_1enable__move__assignment__base_3_01false_00_01_tag_01_4}
+\input{structwjr_1_1enable__move__constructor__base}
+\input{structwjr_1_1enable__move__constructor__base_3_01false_00_01_tag_01_4}
+\input{structwjr_1_1enable__special__members__base}
+\input{classwjr_1_1expected}
+\input{classwjr_1_1expected_3_01void_00_01_e_01_4}
+\input{structwjr_1_1dragonbox_1_1policy_1_1digit__generation_1_1fast__t}
+\input{classwjr_1_1fixed__biginteger__vector__storage}
+\input{classwjr_1_1fixed__ring__buffer__storage}
+\input{classwjr_1_1fixed__vector__storage}
+\input{structwjr_1_1dragonbox_1_1float__bits}
+\input{structwjr_1_1dragonbox_1_1float__format__selecter}
+\input{structwjr_1_1dragonbox_1_1float__format__selecter_3_01double_01_4}
+\input{structwjr_1_1dragonbox_1_1float__format__selecter_3_01float_01_4}
+\input{structfmt_1_1formatter_3_01wjr_1_1basic__biginteger_3_01_s_01_4_01_4}
+\input{structfmt_1_1formatter_3_01wjr_1_1biginteger__data_01_4}
+\input{structfmt_1_1formatter_3_01wjr_1_1bitset_3_01_n_01_4_00_01_char_01_4}
+\input{structwjr_1_1from__chars__result}
+\input{structwjr_1_1dragonbox_1_1policy_1_1cache_1_1full__t}
+\input{structwjr_1_1get__relocate__mode_3_01basic__biginteger_3_01_s_01_4_01_4}
+\input{structwjr_1_1get__relocate__mode_3_01basic__ring__buffer_3_01_s_01_4_01_4}
+\input{structwjr_1_1get__relocate__mode_3_01basic__vector_3_01_s_01_4_01_4}
+\input{structwjr_1_1get__relocate__mode_3_01compressed__pair_3_01_t_00_01_u_01_4_01_4}
+\input{structwjr_1_1get__relocate__mode_3_01default__biginteger__vector__storage_3_01_alloc_01_4_01_4}
+\input{structwjr_1_1get__relocate__mode_3_01default__ring__buffer__storage_3_01_t_00_01_alloc_01_4_01_4}
+\input{structwjr_1_1get__relocate__mode_3_01default__vector__storage_3_01_t_00_01_alloc_01_4_01_4}
+\input{structwjr_1_1get__relocate__mode_3_01fixed__biginteger__vector__storage_3_01_alloc_01_4_01_4}
+\input{structwjr_1_1get__relocate__mode_3_01fixed__ring__buffer__storage_3_01_t_00_01_alloc_01_4_01_4}
+\input{structwjr_1_1get__relocate__mode_3_01fixed__vector__storage_3_01_t_00_01_alloc_01_4_01_4}
+\input{structwjr_1_1get__relocate__mode_3_01inplace__vector__storage_3_01_t_00_01_capacity_01_4_01_4}
+\input{structwjr_1_1get__relocate__mode_3_01json_1_1basic__document_3_01_traits_01_4_01_4}
+\input{structwjr_1_1get__relocate__mode_3_01small__vector__storage_3_01_t_00_01_capacity_00_01_alloc_01_4_01_4}
+\input{structwjr_1_1get__relocate__mode_3_01std_1_1basic__string_3_01_char_00_01_traits_00_01_alloc_01_4_01_4}
+\input{structwjr_1_1get__relocate__mode_3_01std_1_1pair_3_01_t_00_01_u_01_4_01_4}
+\input{structwjr_1_1get__relocate__mode_3_01std_1_1tuple_3_01_args_8_8_8_01_4_01_4}
+\input{structwjr_1_1get__relocate__mode_3_01std_1_1unique__ptr_3_01_t_00_01_d_01_4_01_4}
+\input{structwjr_1_1get__relocate__mode_3_01tuple_3_01_args_8_8_8_01_4_01_4}
+\input{structwjr_1_1intrusive_1_1hlist__node}
+\input{classwjr_1_1intrusive_1_1hlist__node__base}
+\input{classwjr_1_1intrusive_1_1hlist__node__const__iterator}
+\input{classwjr_1_1intrusive_1_1hlist__node__iterator}
+\input{classwjr_1_1huffman__leaf__node}
+\input{classwjr_1_1huffman__node}
+\input{classwjr_1_1huffman__tree}
+\input{structwjr_1_1dragonbox_1_1ieee754__binary32}
+\input{structwjr_1_1dragonbox_1_1ieee754__binary64}
+\input{structwjr_1_1dragonbox_1_1ieee754__binary__traits}
+\input{structwjr_1_1dragonbox_1_1policy_1_1sign_1_1ignore__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1trailing__zero_1_1ignore__t}
+\input{structwjr_1_1json_1_1in__place__document__serializer__from__t}
+\input{structwjr_1_1json_1_1in__place__document__serializer__object__copy__t}
+\input{structwjr_1_1json_1_1in__place__document__serializer__object__move__t}
+\input{structwjr_1_1json_1_1in__place__document__serializer__to__t}
+\input{structwjr_1_1in__place__empty__t}
+\input{structwjr_1_1in__place__reserve__t}
+\input{classwjr_1_1inline__arg}
+\input{classwjr_1_1inline__arg_3_01_t_00_01false_01_4}
+\input{classwjr_1_1inplace__vector__storage}
+\input{structwjr_1_1is__any__insert__iterator}
+\input{structwjr_1_1is__as__variant}
+\input{structwjr_1_1is__back__insert__iterator}
+\input{structwjr_1_1is__back__insert__iterator_3_01std_1_1back__insert__iterator_3_01_container_01_4_01_4}
+\input{structwjr_1_1is__bidirectional__iterator}
+\input{structwjr_1_1is__compressed}
+\input{structwjr_1_1is__contiguous__iterator}
+\input{structwjr_1_1json_1_1is__document}
+\input{structwjr_1_1json_1_1is__document_3_01basic__document_3_01_traits_01_4_01_4}
+\input{structwjr_1_1is__forward__iterator}
+\input{structwjr_1_1is__front__insert__iterator}
+\input{structwjr_1_1is__front__insert__iterator_3_01std_1_1front__insert__iterator_3_01_container_01_4_01_4}
+\input{structwjr_1_1is__input__iterator}
+\input{structwjr_1_1is__insert__iterator}
+\input{structwjr_1_1is__insert__iterator_3_01std_1_1insert__iterator_3_01_container_01_4_01_4}
+\input{structwjr_1_1is__iterator}
+\input{structwjr_1_1is__output__iterator}
+\input{structwjr_1_1is__possible__inline__arg}
+\input{structwjr_1_1is__random__access__iterator}
+\input{structwjr_1_1is__trivially__allocator}
+\input{structwjr_1_1is__trivially__allocator_3_01std_1_1allocator_3_01_t_01_4_01_4}
+\input{structwjr_1_1is__trivially__allocator__construct}
+\input{structwjr_1_1is__trivially__allocator__destroy}
+\input{classwjr_1_1lazy__initialized}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1interval__type_1_1left__closed__right__open}
+\input{classwjr_1_1json_1_1lexer}
+\input{structwjr_1_1intrusive_1_1list__node}
+\input{classwjr_1_1intrusive_1_1list__node__base}
+\input{classwjr_1_1intrusive_1_1list__node__const__iterator}
+\input{classwjr_1_1intrusive_1_1list__node__iterator}
+\input{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1match__t}
+\input{classwjr_1_1json_1_1minify__formatter}
+\input{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1minimal__t}
+\input{structwjr_1_1dragonbox_1_1multiplication__traits}
+\input{structwjr_1_1dragonbox_1_1multiplication__traits_3_01ieee754__binary__traits_3_01ieee754__binaryebf899e6e3dfe5a06803c580aab27a4e}
+\input{structwjr_1_1dragonbox_1_1multiplication__traits_3_01ieee754__binary__traits_3_01ieee754__binary3fb04a90b0569315370689f5aab818b3}
+\input{structwjr_1_1dragonbox_1_1multiplication__traits__base}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__away__from__zero__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__to__even__static__boundary__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__to__even__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__to__odd__static__boundary__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__to__odd__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__minus__infinity__static__boundary__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__minus__infinity__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__plus__infinity__static__boundary__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__plus__infinity__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__zero__t}
+\input{classwjr_1_1nonsendable}
+\input{structwjr_1_1nullopt__t}
+\input{classwjr_1_1object__pool}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1interval__type_1_1open}
+\input{classwjr_1_1optional}
+\input{classwjr_1_1optional_3_01void_01_4}
+\input{classwjr_1_1origin__converter__t}
+\input{structwjr_1_1fastfloat_1_1parsed__number__string}
+\input{structstd_1_1pointer__traits_3_01wjr_1_1contiguous__const__iterator__adapter_3_01_container_00_01_traits_01_4_01_4}
+\input{structstd_1_1pointer__traits_3_01wjr_1_1contiguous__iterator__adapter_3_01_container_00_01_traits_01_4_01_4}
+\input{structwjr_1_1fastfloat_1_1powers__template}
+\input{structwjr_1_1precompute__chars__convert__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t}
+\input{classwjr_1_1json_1_1pretty__formatter}
+\input{classwjr_1_1json_1_1reader}
+\input{structwjr_1_1dynamic__object__pool_1_1rebind}
+\input{structwjr_1_1weak__stack__allocator_1_1rebind}
+\input{classwjr_1_1bitset_1_1reference}
+\input{structwjr_1_1dragonbox_1_1policy_1_1trailing__zero_1_1remove__compact__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1trailing__zero_1_1remove__t}
+\input{structwjr_1_1dragonbox_1_1remove__trailing__zeros__traits}
+\input{structwjr_1_1dragonbox_1_1remove__trailing__zeros__traits_3_01policy_1_1trailing__zero_1_1remove568e696c79b85f8b621318d59477105a}
+\input{structwjr_1_1dragonbox_1_1remove__trailing__zeros__traits_3_01policy_1_1trailing__zero_1_1remove8fb59c058969d79973b0ebad0fad07f0}
+\input{structwjr_1_1dragonbox_1_1remove__trailing__zeros__traits_3_01policy_1_1trailing__zero_1_1remove39859f61c16059623e2b890a226477e3}
+\input{structwjr_1_1dragonbox_1_1remove__trailing__zeros__traits_3_01policy_1_1trailing__zero_1_1removedb2ff7ab63d16e311e48de234c9f77c0}
+\input{structwjr_1_1dragonbox_1_1policy_1_1trailing__zero_1_1report__t}
+\input{structwjr_1_1resize__fn}
+\input{structwjr_1_1resize__fn__impl}
+\input{structwjr_1_1resize__fn__impl_3_01std_1_1basic__string_3_01_char_00_01_traits_00_01_alloc_01_4_01_4}
+\input{structwjr_1_1resize__fn__impl__base}
+\input{classwjr_1_1json_1_1lexer_1_1result__type}
+\input{structwjr_1_1dragonbox_1_1policy_1_1sign_1_1return__sign__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1interval__type_1_1right__closed__left__open}
+\input{classwjr_1_1ring__buffer__storage__traits}
+\input{structwjr_1_1dragonbox_1_1signed__significand__bits}
+\input{structwjr_1_1simd__cast__fn}
+\input{structwjr_1_1siwtch__visitor__helper}
+\input{structwjr_1_1siwtch__visitor__sorted__helper}
+\input{classwjr_1_1small__vector__storage}
+\input{classwjr_1_1span}
+\input{structwjr_1_1sse}
+\input{classwjr_1_1stack__allocator__object}
+\input{classwjr_1_1stack__allocator__object_1_1stack__context}
+\input{classwjr_1_1constant_1_1string__map}
+\input{structwjr_1_1switch__default__t}
+\input{structwjr_1_1switch__visitor}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1interval__type_1_1symmetric__boundary}
+\input{classwjr_1_1temporary__value__allocator}
+\input{structwjr_1_1to__chars__result}
+\input{structwjr_1_1dragonbox_1_1policy_1_1binary__to__decimal__rounding_1_1to__even__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1binary__to__decimal__rounding_1_1to__odd__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1toward__minus__infinity__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1toward__plus__infinity__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1binary__to__decimal__rounding_1_1toward__zero__t}
+\input{structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1toward__zero__t}
+\input{structwjr_1_1tp__apply}
+\input{structwjr_1_1tp__arg}
+\input{structwjr_1_1tp__assign}
+\input{structwjr_1_1tp__assign_3_01_t1_3_01_args1_8_8_8_01_4_00_01_t2_3_01_args2_8_8_8_01_4_01_4}
+\input{structwjr_1_1tp__at}
+\input{structwjr_1_1tp__at_3_01_c_3_01_args_8_8_8_01_4_00_01index_01_4}
+\input{structwjr_1_1tp__back}
+\input{structwjr_1_1tp__bind}
+\input{structwjr_1_1tp__bind__back}
+\input{structwjr_1_1tp__bind__fn}
+\input{structwjr_1_1tp__bind__front}
+\input{structwjr_1_1tp__clear}
+\input{structwjr_1_1tp__clear_3_01_t_3_01_args_8_8_8_01_4_01_4}
+\input{structwjr_1_1tp__concat}
+\input{structwjr_1_1tp__concat_3_01_c1_3_01_args1_8_8_8_01_4_00_01_c2_3_01_args2_8_8_8_01_4_01_4}
+\input{structwjr_1_1tp__concat_3_01_t_01_4}
+\input{structwjr_1_1tp__concat_3_01_t_00_01_u_00_01_args3_8_8_8_01_4}
+\input{structwjr_1_1tp__conditional}
+\input{structwjr_1_1tp__conditional_3_01_v_00_01_t1_00_01_t2_01_4}
+\input{structwjr_1_1tp__contains}
+\input{structwjr_1_1tp__count}
+\input{structwjr_1_1tp__count__if}
+\input{structwjr_1_1tp__count__if_3_01_c_3_01_args_8_8_8_01_4_00_01_p_01_4}
+\input{structwjr_1_1tp__count__if_3_01_c_3_4_00_01_p_01_4}
+\input{structwjr_1_1tp__cstr}
+\input{structwjr_1_1tp__cut}
+\input{structwjr_1_1tp__cut_3_01_c_3_01_args_8_8_8_01_4_00_01_i_00_01_n_01_4}
+\input{structwjr_1_1tp__defer}
+\input{structwjr_1_1tp__equal__to}
+\input{structwjr_1_1tp__erase}
+\input{structwjr_1_1tp__exclude}
+\input{structwjr_1_1tp__fill}
+\input{structwjr_1_1tp__filter}
+\input{structwjr_1_1tp__find}
+\input{structwjr_1_1tp__find__if}
+\input{structwjr_1_1tp__front}
+\input{structwjr_1_1tp__greater}
+\input{structwjr_1_1tp__greater__equal}
+\input{structwjr_1_1tp__insert}
+\input{structwjr_1_1tp__iota}
+\input{structwjr_1_1tp__is__container}
+\input{structwjr_1_1tp__is__container_3_01_c_3_01_args_8_8_8_01_4_01_4}
+\input{structwjr_1_1tp__is__empty}
+\input{structwjr_1_1tp__is__fn}
+\input{structwjr_1_1tp__is__fn_3_01tp__arg_3_01idx_01_4_01_4}
+\input{structwjr_1_1tp__is__fn_3_01tp__bind_3_01_f_00_01_args_8_8_8_01_4_01_4}
+\input{structwjr_1_1tp__is__fn_3_01tp__bind__back_3_01_f_00_01_args_8_8_8_01_4_01_4}
+\input{structwjr_1_1tp__is__fn_3_01tp__bind__front_3_01_f_00_01_args_8_8_8_01_4_01_4}
+\input{structwjr_1_1tp__is__valid}
+\input{structwjr_1_1tp__left__fold}
+\input{structwjr_1_1tp__left__fold_3_01_c_3_01_t_00_01_args_8_8_8_01_4_00_01_e_00_01_f_01_4}
+\input{structwjr_1_1tp__left__fold_3_01_c_3_4_00_01_e_00_01_f_01_4}
+\input{structwjr_1_1tp__less}
+\input{structwjr_1_1tp__less_3_01tp__cstr_3_01_args0_8_8_8_01_4_00_01tp__cstr_3_01_args1_8_8_8_01_4_01_4}
+\input{structwjr_1_1tp__less__equal}
+\input{structwjr_1_1tp__lexicographical__compare}
+\input{structwjr_1_1tp__list}
+\input{structwjr_1_1tp__make__fn}
+\input{structwjr_1_1tp__map__construct}
+\input{structwjr_1_1tp__map__emplace}
+\input{structwjr_1_1tp__max__element}
+\input{structwjr_1_1tp__max__size}
+\input{structwjr_1_1tp__merge}
+\input{structwjr_1_1tp__min__element}
+\input{structwjr_1_1tp__not__equal__to}
+\input{structwjr_1_1tp__not__fn}
+\input{structwjr_1_1tp__pop__back}
+\input{structwjr_1_1tp__pop__front}
+\input{structwjr_1_1tp__prefix}
+\input{structwjr_1_1tp__product}
+\input{structwjr_1_1tp__push__back}
+\input{structwjr_1_1tp__push__back_3_01_c_3_01_args1_8_8_8_01_4_00_01_args2_8_8_8_01_4}
+\input{structwjr_1_1tp__push__front}
+\input{structwjr_1_1tp__push__front_3_01_c_3_01_args1_8_8_8_01_4_00_01_args2_8_8_8_01_4}
+\input{structwjr_1_1tp__remove}
+\input{structwjr_1_1tp__remove__if}
+\input{structwjr_1_1tp__remove__if_3_01_c_3_01_args_8_8_8_01_4_00_01_p_01_4}
+\input{structwjr_1_1tp__remove__prefix}
+\input{structwjr_1_1tp__remove__suffix}
+\input{structwjr_1_1tp__rename}
+\input{structwjr_1_1tp__rename_3_01_c_3_01_args_8_8_8_01_4_00_01_u_01_4}
+\input{structwjr_1_1tp__repeat}
+\input{structwjr_1_1tp__repeat_3_01_t_00_010_01_4}
+\input{structwjr_1_1tp__replace}
+\input{structwjr_1_1tp__replace__at}
+\input{structwjr_1_1tp__replace__at_3_01_t_00_010_00_01_u_01_4}
+\input{structwjr_1_1tp__replace__back__at}
+\input{structwjr_1_1tp__replace__front__at}
+\input{structwjr_1_1tp__replace__if}
+\input{structwjr_1_1tp__replace__if_3_01_c_3_01_args_8_8_8_01_4_00_01_p_00_01_u_01_4}
+\input{structwjr_1_1tp__resize}
+\input{structwjr_1_1tp__reverse}
+\input{structwjr_1_1tp__reverse_3_01_c_3_01_t_00_01_args_8_8_8_01_4_01_4}
+\input{structwjr_1_1tp__reverse_3_01_c_3_4_01_4}
+\input{structwjr_1_1tp__right__fold}
+\input{structwjr_1_1tp__right__fold_3_01_c_3_01_t_00_01_args_8_8_8_01_4_00_01_e_00_01_f_01_4}
+\input{structwjr_1_1tp__right__fold_3_01_c_3_4_00_01_e_00_01_f_01_4}
+\input{structwjr_1_1tp__size}
+\input{structwjr_1_1tp__size_3_01_c_3_01_args_8_8_8_01_4_01_4}
+\input{structwjr_1_1tp__sort}
+\input{structwjr_1_1tp__sort_3_01_c_3_01_args_8_8_8_01_4_00_01_p_01_4}
+\input{structwjr_1_1tp__suffix}
+\input{structwjr_1_1tp__transform}
+\input{structwjr_1_1tp__transform_3_01_c_3_01_args_8_8_8_01_4_00_01_f_01_4}
+\input{structwjr_1_1tp__type__identity}
+\input{structwjr_1_1tp__unique}
+\input{structwjr_1_1tp__unwrap}
+\input{structwjr_1_1tp__unwrap_3_01_c_3_01_t_01_4_01_4}
+\input{structwjr_1_1tp__zip}
+\input{structwjr_1_1tp__zip_3_01_c_01_4}
+\input{structwjr_1_1tp__zip_3_01_c_00_01_t_01_4}
+\input{structwjr_1_1tp__zip_3_01_c_00_01_t_00_01_args_8_8_8_01_4}
+\input{classwjr_1_1tuple}
+\input{classwjr_1_1tuple_3_01_this_00_01_args_8_8_8_01_4}
+\input{classwjr_1_1tuple_3_4}
+\input{structstd_1_1tuple__element_3_01_i_00_01wjr_1_1compressed__pair_3_01_t_00_01_u_01_4_01_4}
+\input{structstd_1_1tuple__element_3_01_i_00_01wjr_1_1tuple_3_01_args_8_8_8_01_4_01_4}
+\input{structstd_1_1tuple__element_3_01_i_00_01wjr_1_1uint128__t_01_4}
+\input{classwjr_1_1tuple__impl}
+\input{classwjr_1_1tuple__impl_3_01std_1_1index__sequence_3_01_indexs_8_8_8_01_4_00_01_args_8_8_8_01_4}
+\input{structstd_1_1tuple__size_3_01wjr_1_1compressed__pair_3_01_t_00_01_u_01_4_01_4}
+\input{structstd_1_1tuple__size_3_01wjr_1_1tuple_3_01_args_8_8_8_01_4_01_4}
+\input{structstd_1_1tuple__size_3_01wjr_1_1uint128__t_01_4}
+\input{classwjr_1_1uint128__t}
+\input{structwjr_1_1unexpect__t}
+\input{classwjr_1_1unexpected}
+\input{structwjr_1_1uniform__random__bit__generator}
+\input{classwjr_1_1uninitialized}
+\input{classwjr_1_1unique__stack__allocator}
+\input{structwjr_1_1value__construct__t}
+\input{classwjr_1_1vector__storage__traits}
+\input{structwjr_1_1voidopt__t}
+\input{classwjr_1_1weak__stack__allocator}
+\chapter{文件说明}
+\input{algorithm_8hpp}
+\input{algorithm_8hpp_source}
+\input{preprocessor_2queue_2algorithm_8hpp}
+\input{preprocessor_2queue_2algorithm_8hpp_source}
+\input{tp_2algorithm_8hpp}
+\input{tp_2algorithm_8hpp_source}
+\input{mutex-config_8hpp}
+\input{mutex-config_8hpp_source}
+\input{arch_2generic_2math_2bignum-config_8hpp}
+\input{arch_2generic_2math_2bignum-config_8hpp_source}
+\input{biginteger_2detail_2bignum-config_8hpp}
+\input{biginteger_2detail_2bignum-config_8hpp_source}
+\input{aligned__alloc__android_8hpp}
+\input{aligned__alloc__android_8hpp_source}
+\input{aligned__alloc__macos_8hpp}
+\input{aligned__alloc__macos_8hpp_source}
+\input{aligned__alloc__malloc_8hpp}
+\input{aligned__alloc__malloc_8hpp_source}
+\input{aligned__alloc__mingw_8hpp}
+\input{aligned__alloc__mingw_8hpp_source}
+\input{aligned__alloc__msvc_8hpp}
+\input{aligned__alloc__msvc_8hpp_source}
+\input{aligned__alloc__posix_8hpp}
+\input{aligned__alloc__posix_8hpp_source}
+\input{aligned__alloc__sunos_8hpp}
+\input{aligned__alloc__sunos_8hpp_source}
+\input{windows_8hpp}
+\input{windows_8hpp_source}
+\input{arch_2x86_2biginteger_2detail_2add_8hpp}
+\input{arch_2x86_2biginteger_2detail_2add_8hpp_source}
+\input{arch_2x86_2math_2add_8hpp}
+\input{arch_2x86_2math_2add_8hpp_source}
+\input{biginteger_2detail_2add_8hpp}
+\input{biginteger_2detail_2add_8hpp_source}
+\input{math_2add_8hpp}
+\input{math_2add_8hpp_source}
+\input{preprocessor_2arithmatic_2add_8hpp}
+\input{preprocessor_2arithmatic_2add_8hpp_source}
+\input{arch_2x86_2biginteger_2detail_2div_8hpp}
+\input{arch_2x86_2biginteger_2detail_2div_8hpp_source}
+\input{biginteger_2detail_2div_8hpp}
+\input{biginteger_2detail_2div_8hpp_source}
+\input{math_2div_8hpp}
+\input{math_2div_8hpp_source}
+\input{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp}
+\input{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_source}
+\input{src_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp}
+\input{src_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_source}
+\input{gen__addsub_8hpp}
+\input{gen__addsub_8hpp_source}
+\input{arch_2x86_2biginteger_2detail_2mul_8hpp}
+\input{arch_2x86_2biginteger_2detail_2mul_8hpp_source}
+\input{arch_2x86_2math_2mul_8hpp}
+\input{arch_2x86_2math_2mul_8hpp_source}
+\input{biginteger_2detail_2mul_8hpp}
+\input{biginteger_2detail_2mul_8hpp_source}
+\input{math_2mul_8hpp}
+\input{math_2mul_8hpp_source}
+\input{arch_2x86_2biginteger_2detail_2not_8hpp}
+\input{arch_2x86_2biginteger_2detail_2not_8hpp_source}
+\input{biginteger_2detail_2not_8hpp}
+\input{biginteger_2detail_2not_8hpp_source}
+\input{preprocessor_2arithmatic_2not_8hpp}
+\input{preprocessor_2arithmatic_2not_8hpp_source}
+\input{arch_2x86_2biginteger_2detail_2sub_8hpp}
+\input{arch_2x86_2biginteger_2detail_2sub_8hpp_source}
+\input{arch_2x86_2math_2sub_8hpp}
+\input{arch_2x86_2math_2sub_8hpp_source}
+\input{biginteger_2detail_2sub_8hpp}
+\input{biginteger_2detail_2sub_8hpp_source}
+\input{math_2sub_8hpp}
+\input{math_2sub_8hpp_source}
+\input{preprocessor_2arithmatic_2sub_8hpp}
+\input{preprocessor_2arithmatic_2sub_8hpp_source}
+\input{cpuinfo_8hpp}
+\input{cpuinfo_8hpp_source}
+\input{arch_2x86_2format_2charconv_8hpp}
+\input{arch_2x86_2format_2charconv_8hpp_source}
+\input{charconv_8hpp}
+\input{charconv_8hpp_source}
+\input{format_2charconv_8hpp}
+\input{format_2charconv_8hpp_source}
+\input{arch_2x86_2format_2utf8_2utf8_8hpp}
+\input{arch_2x86_2format_2utf8_2utf8_8hpp_source}
+\input{format_2utf8_2utf8_8hpp}
+\input{format_2utf8_2utf8_8hpp_source}
+\input{arch_2x86_2json_2lexer_8hpp}
+\input{arch_2x86_2json_2lexer_8hpp_source}
+\input{json_2lexer_8hpp}
+\input{json_2lexer_8hpp_source}
+\input{arch_2x86_2math_2compare_8hpp}
+\input{arch_2x86_2math_2compare_8hpp_source}
+\input{math_2compare_8hpp}
+\input{math_2compare_8hpp_source}
+\input{arch_2x86_2math_2divider_8hpp}
+\input{arch_2x86_2math_2divider_8hpp_source}
+\input{math_2divider_8hpp}
+\input{math_2divider_8hpp_source}
+\input{arch_2x86_2math_2find_8hpp}
+\input{arch_2x86_2math_2find_8hpp_source}
+\input{math_2find_8hpp}
+\input{math_2find_8hpp_source}
+\input{large-compare-impl_8hpp}
+\input{large-compare-impl_8hpp_source}
+\input{large-find-impl_8hpp}
+\input{large-find-impl_8hpp_source}
+\input{mul-impl_8hpp}
+\input{mul-impl_8hpp_source}
+\input{arch_2x86_2math_2prefix__xor_8hpp}
+\input{arch_2x86_2math_2prefix__xor_8hpp_source}
+\input{math_2prefix__xor_8hpp}
+\input{math_2prefix__xor_8hpp_source}
+\input{arch_2x86_2math_2set_8hpp}
+\input{arch_2x86_2math_2set_8hpp_source}
+\input{math_2set_8hpp}
+\input{math_2set_8hpp_source}
+\input{arch_2x86_2math_2shift_8hpp}
+\input{arch_2x86_2math_2shift_8hpp_source}
+\input{math_2shift_8hpp}
+\input{math_2shift_8hpp_source}
+\input{arch_2x86_2memory_2small__copy_8hpp}
+\input{arch_2x86_2memory_2small__copy_8hpp_source}
+\input{memory_2small__copy_8hpp}
+\input{memory_2small__copy_8hpp_source}
+\input{avx_8hpp}
+\input{avx_8hpp_source}
+\input{intrin_8hpp}
+\input{intrin_8hpp_source}
+\input{arch_2x86_2simd_2simd_8hpp}
+\input{arch_2x86_2simd_2simd_8hpp_source}
+\input{simd_2simd_8hpp}
+\input{simd_2simd_8hpp_source}
+\input{arch_2x86_2simd_2simd__cast_8hpp}
+\input{arch_2x86_2simd_2simd__cast_8hpp_source}
+\input{simd_2simd__cast_8hpp}
+\input{simd_2simd__cast_8hpp_source}
+\input{simd__unroll__macro_8hpp}
+\input{simd__unroll__macro_8hpp_source}
+\input{sse_8hpp}
+\input{sse_8hpp_source}
+\input{assert_8hpp}
+\input{assert_8hpp_source}
+\input{biginteger_8hpp}
+\input{biginteger_8hpp_source}
+\input{biginteger_2biginteger_8hpp}
+\input{biginteger_2biginteger_8hpp_source}
+\input{biginteger_2detail_8hpp}
+\input{biginteger_2detail_8hpp_source}
+\input{container_2detail_8hpp}
+\input{container_2detail_8hpp_source}
+\input{iterator_2detail_8hpp}
+\input{iterator_2detail_8hpp_source}
+\input{json_2detail_8hpp}
+\input{json_2detail_8hpp_source}
+\input{math_2detail_8hpp}
+\input{math_2detail_8hpp_source}
+\input{memory_2detail_8hpp}
+\input{memory_2detail_8hpp_source}
+\input{preprocessor_2detail_8hpp}
+\input{preprocessor_2detail_8hpp_source}
+\input{simd_2detail_8hpp}
+\input{simd_2detail_8hpp_source}
+\input{tp_2detail_8hpp}
+\input{tp_2detail_8hpp_source}
+\input{biginteger_2detail_2add-impl_8hpp}
+\input{biginteger_2detail_2add-impl_8hpp_source}
+\input{math_2add-impl_8hpp}
+\input{math_2add-impl_8hpp_source}
+\input{convert_8hpp}
+\input{convert_8hpp_source}
+\input{biginteger_2detail_2div-impl_8hpp}
+\input{biginteger_2detail_2div-impl_8hpp_source}
+\input{math_2div-impl_8hpp}
+\input{math_2div-impl_8hpp_source}
+\input{negate_8hpp}
+\input{negate_8hpp_source}
+\input{pow_8hpp}
+\input{pow_8hpp_source}
+\input{precompute-chars-convert_8hpp}
+\input{precompute-chars-convert_8hpp_source}
+\input{biginteger_2detail_2sub-impl_8hpp}
+\input{biginteger_2detail_2sub-impl_8hpp_source}
+\input{math_2sub-impl_8hpp}
+\input{math_2sub-impl_8hpp_source}
+\input{bitset_8hpp}
+\input{bitset_8hpp_source}
+\input{container_2bitset_8hpp}
+\input{container_2bitset_8hpp_source}
+\input{compressed__pair_8hpp}
+\input{compressed__pair_8hpp_source}
+\input{atomic_8hpp}
+\input{atomic_8hpp_source}
+\input{barrier_8hpp}
+\input{barrier_8hpp_source}
+\input{pause_8hpp}
+\input{pause_8hpp_source}
+\input{rdtsc_8hpp}
+\input{rdtsc_8hpp_source}
+\input{btree_8hpp}
+\input{btree_8hpp_source}
+\input{btree__map_8hpp}
+\input{btree__map_8hpp_source}
+\input{btree__set_8hpp}
+\input{btree__set_8hpp_source}
+\input{capture__leaf_8hpp}
+\input{capture__leaf_8hpp_source}
+\input{compressed__value_8hpp}
+\input{compressed__value_8hpp_source}
+\input{constant__map_8hpp}
+\input{constant__map_8hpp_source}
+\input{container__fn_8hpp}
+\input{container__fn_8hpp_source}
+\input{container__of_8hpp}
+\input{container__of_8hpp_source}
+\input{forward__list_8hpp}
+\input{forward__list_8hpp_source}
+\input{list_8hpp}
+\input{list_8hpp_source}
+\input{ring__buffer_8hpp}
+\input{ring__buffer_8hpp_source}
+\input{container_2type__traits_8hpp}
+\input{container_2type__traits_8hpp_source}
+\input{type__traits_8hpp}
+\input{type__traits_8hpp_source}
+\input{container_2vector_8hpp}
+\input{container_2vector_8hpp_source}
+\input{vector_8hpp}
+\input{vector_8hpp_source}
+\input{crtp_8hpp}
+\input{crtp_8hpp_source}
+\input{class__base_8hpp}
+\input{class__base_8hpp_source}
+\input{nonsendable_8hpp}
+\input{nonsendable_8hpp_source}
+\input{trivially__allocator__base_8hpp}
+\input{trivially__allocator__base_8hpp_source}
+\input{expected_8hpp}
+\input{expected_8hpp_source}
+\input{charconv-impl_8hpp}
+\input{charconv-impl_8hpp_source}
+\input{ctype_8hpp}
+\input{ctype_8hpp_source}
+\input{dragonbox_8hpp}
+\input{dragonbox_8hpp_source}
+\input{huffman_8hpp}
+\input{huffman_8hpp_source}
+\input{fastfloat_8hpp}
+\input{fastfloat_8hpp_source}
+\input{ostream__insert_8hpp}
+\input{ostream__insert_8hpp_source}
+\input{contiguous__iterator__adpater_8hpp}
+\input{contiguous__iterator__adpater_8hpp_source}
+\input{inserter_8hpp}
+\input{inserter_8hpp_source}
+\input{document_8hpp}
+\input{document_8hpp_source}
+\input{formatter_8hpp}
+\input{formatter_8hpp_source}
+\input{lexer-impl_8hpp}
+\input{lexer-impl_8hpp_source}
+\input{number_8hpp}
+\input{number_8hpp_source}
+\input{reader_8hpp}
+\input{reader_8hpp_source}
+\input{json_2string_8hpp}
+\input{json_2string_8hpp_source}
+\input{string_8hpp}
+\input{string_8hpp_source}
+\input{tp_2string_8hpp}
+\input{tp_2string_8hpp_source}
+\input{visitor_8hpp}
+\input{visitor_8hpp_source}
+\input{math_8hpp}
+\input{math_8hpp_source}
+\input{bit_8hpp}
+\input{bit_8hpp_source}
+\input{bitwise_8hpp}
+\input{bitwise_8hpp_source}
+\input{broadcast_8hpp}
+\input{broadcast_8hpp_source}
+\input{clz_8hpp}
+\input{clz_8hpp_source}
+\input{ctz_8hpp}
+\input{ctz_8hpp_source}
+\input{div1by1_8hpp}
+\input{div1by1_8hpp_source}
+\input{integral__constant_8hpp}
+\input{integral__constant_8hpp_source}
+\input{literals_8hpp}
+\input{literals_8hpp_source}
+\input{popcount_8hpp}
+\input{popcount_8hpp_source}
+\input{random_8hpp}
+\input{random_8hpp_source}
+\input{replace_8hpp}
+\input{replace_8hpp_source}
+\input{rotate_8hpp}
+\input{rotate_8hpp_source}
+\input{uint128__t_8hpp}
+\input{uint128__t_8hpp_source}
+\input{align_8hpp}
+\input{align_8hpp_source}
+\input{aligned__alloc_8hpp}
+\input{aligned__alloc_8hpp_source}
+\input{allocate__at__least_8hpp}
+\input{allocate__at__least_8hpp_source}
+\input{arena_8hpp}
+\input{arena_8hpp_source}
+\input{automatic__free__pool_8hpp}
+\input{automatic__free__pool_8hpp_source}
+\input{copy_8hpp}
+\input{copy_8hpp_source}
+\input{inline__arg_8hpp}
+\input{inline__arg_8hpp_source}
+\input{memory__pool_8hpp}
+\input{memory__pool_8hpp_source}
+\input{object__pool_8hpp}
+\input{object__pool_8hpp_source}
+\input{reallocate_8hpp}
+\input{reallocate_8hpp_source}
+\input{stack__allocator_8hpp}
+\input{stack__allocator_8hpp_source}
+\input{temporary__value__allocator_8hpp}
+\input{temporary__value__allocator_8hpp_source}
+\input{uninitialized_8hpp}
+\input{uninitialized_8hpp_source}
+\input{optional_8hpp}
+\input{optional_8hpp_source}
+\input{preprocessor_8hpp}
+\input{preprocessor_8hpp_source}
+\input{arithmatic_8hpp}
+\input{arithmatic_8hpp_source}
+\input{arithmatic_2basic_8hpp}
+\input{arithmatic_2basic_8hpp_source}
+\input{detail_2basic_8hpp}
+\input{detail_2basic_8hpp_source}
+\input{logical_2basic_8hpp}
+\input{logical_2basic_8hpp_source}
+\input{queue_2basic_8hpp}
+\input{queue_2basic_8hpp_source}
+\input{cmp_8hpp}
+\input{cmp_8hpp_source}
+\input{dec_8hpp}
+\input{dec_8hpp_source}
+\input{inc_8hpp}
+\input{inc_8hpp_source}
+\input{neg_8hpp}
+\input{neg_8hpp_source}
+\input{config_8hpp}
+\input{config_8hpp_source}
+\input{arch_8hpp}
+\input{arch_8hpp_source}
+\input{attribute_8hpp}
+\input{attribute_8hpp_source}
+\input{compiler_8hpp}
+\input{compiler_8hpp_source}
+\input{has_8hpp}
+\input{has_8hpp_source}
+\input{platform_8hpp}
+\input{platform_8hpp_source}
+\input{sizeof_8hpp}
+\input{sizeof_8hpp_source}
+\input{iota_8hpp}
+\input{iota_8hpp_source}
+\input{repeat_8hpp}
+\input{repeat_8hpp_source}
+\input{logical_8hpp}
+\input{logical_8hpp_source}
+\input{bool_8hpp}
+\input{bool_8hpp_source}
+\input{preview_8hpp}
+\input{preview_8hpp_source}
+\input{call_8hpp}
+\input{call_8hpp_source}
+\input{span_8hpp}
+\input{span_8hpp_source}
+\input{tag_8hpp}
+\input{tag_8hpp_source}
+\input{args_8hpp}
+\input{args_8hpp_source}
+\input{map_8hpp}
+\input{map_8hpp_source}
+\input{switch_8hpp}
+\input{switch_8hpp_source}
+\input{tuple_8hpp}
+\input{tuple_8hpp_source}
+\input{variant_8hpp}
+\input{variant_8hpp_source}
+\input{arch_2x86_2biginteger_2detail_2mul_8cpp}
+\input{biginteger_2detail_2mul_8cpp}
+\input{cpuinfo_8cpp}
+\input{utf8_8cpp}
+\input{arch_2x86_2json_2lexer_8cpp}
+\input{json_2lexer_8cpp}
+\input{large-compare-impl_8cpp}
+\input{large-find-impl_8cpp}
+\input{set_8cpp}
+\input{shift_8cpp}
+\input{assert_8cpp}
+\input{biginteger_8cpp}
+\input{convert_8cpp}
+\input{div_8cpp}
+\input{fft_8cpp}
+\input{gmp-helper_8hpp}
+\input{gmp-helper_8hpp_source}
+\input{mod__34lsub1_8cpp}
+\input{mulmod__bknp1_8cpp}
+\input{mulmod__bnm1_8cpp}
+\input{nussbaumer__mul_8cpp}
+\input{pow_8cpp}
+\input{precompute-chars-convert_8cpp}
+\input{sqrmod__bnm1_8cpp}
+\input{dragonbox_8cpp}
+\input{fastfloat_8cpp}
+\input{document_8cpp}
+\input{number_8cpp}
+\input{arena_8cpp}
+\input{stack__allocator_8cpp}
+%--- End generated contents ---
+% Index
+  \backmatter
+  \newpage
+  \phantomsection
+  \clearemptydoublepage
+  \addcontentsline{toc}{chapter}{\indexname}
+  \printindex
+% Required for some languages (in combination with latexdocumentpre from the header)
+\end{CJK}
+\end{document}

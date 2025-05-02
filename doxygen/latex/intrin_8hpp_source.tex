@@ -1,0 +1,20 @@
+\doxysection{intrin.\+hpp}
+\hypertarget{intrin_8hpp_source}{}\label{intrin_8hpp_source}\index{include/wjr/arch/x86/simd/intrin.hpp@{include/wjr/arch/x86/simd/intrin.hpp}}
+\mbox{\hyperlink{intrin_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_ARCH\_X86\_SIMD\_INTRIN\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_ARCH\_X86\_SIMD\_INTRIN\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{preprocessor_8hpp}{wjr/preprocessor.hpp}}>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#if\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00007\ \ \ \ \ \textcolor{comment}{/*\ Microsoft\ C/C++-\/compatible\ compiler\ */}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\ \ \ \ \#include\ <intrin.h>}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#elif\ defined(\_\_GNUC\_\_)}}
+\DoxyCodeLine{00010\ \ \ \ \ \textcolor{comment}{/*\ GCC-\/compatible\ compiler,\ targeting\ x86/x86-\/64\ */}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\ \ \ \ \#include\ <x86intrin.h>}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_ARCH\_X86\_SIMD\_INTRIN\_HPP\_\_}}
+
+\end{DoxyCode}

@@ -1,0 +1,230 @@
+\doxysection{gen\+\_\+addsub.\+hpp}
+\hypertarget{gen__addsub_8hpp_source}{}\label{gen__addsub_8hpp_source}\index{include/wjr/arch/x86/biginteger/detail/gen\_addsub.hpp@{include/wjr/arch/x86/biginteger/detail/gen\_addsub.hpp}}
+\mbox{\hyperlink{gen__addsub_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ WJR\_ADDSUB\_I\ :}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ 0\ :\ SUB}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ 1\ :\ ADD}}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{assert_8hpp}{wjr/assert.hpp}}>}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ WJR\_ADDSUB\_I}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\ \ \ \ \#error\ "{}abort"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#if\ WJR\_ADDSUB\_I\ ==\ 1}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_addcsubc\ addc}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_adcsbb\ adc}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\ \ \ \ \#define\ \_\_WJR\_TEST\_ASSEMBLY\ ASM\_ADDC\_N}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_addcsubc\ subc}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_adcsbb\ sbb}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\ \ \ \ \#define\ \_\_WJR\_TEST\_ASSEMBLY\ ASM\_SUBC\_N}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_BUILTIN(\_\_WJR\_TEST\_ASSEMBLY)\ ==\ 1}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ WJR\_ALL\_NONNULL\ \textcolor{keyword}{inline}\ uint64\_t\ \mbox{\hyperlink{gen__addsub_8hpp_aa5d72215a4a8b904db30864aaa1d1e96}{WJR\_PP\_CONCAT}}(\_\_wjr\_asm\_,\ \mbox{\hyperlink{gen__addsub_8hpp_aa5d72215a4a8b904db30864aaa1d1e96}{WJR\_PP\_CONCAT}}(WJR\_addcsubc,\ \_n\_impl))(}
+\DoxyCodeLine{00024\ \ \ \ \ uint64\_t\ *dst,\ \textcolor{keyword}{const}\ uint64\_t\ *\mbox{\hyperlink{gen__addsub_8hpp_aaa307afc1997bf2879086873f22ca784}{src0}},\ \textcolor{keyword}{const}\ uint64\_t\ *\mbox{\hyperlink{gen__addsub_8hpp_af6c417e495529293aa05880542b7ff0b}{src1}},\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{gen__addsub_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},\ uint64\_t\ \mbox{\hyperlink{gen__addsub_8hpp_a75fd2c2dfc85d1ed11adf0fc747c9ec3}{c\_in}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ rcx\ =\ \mbox{\hyperlink{gen__addsub_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}}\ /\ 8;}
+\DoxyCodeLine{00026\ \ \ \ \ uint64\_t\ \mbox{\hyperlink{gen__addsub_8hpp_a338c714a93a43aa16b7b45f969e22e31}{r8}}\ =\ \mbox{\hyperlink{gen__addsub_8hpp_a75fd2c2dfc85d1ed11adf0fc747c9ec3}{c\_in}},\ \mbox{\hyperlink{gen__addsub_8hpp_acd23bd73fa99ef0cc188e12082793a8d}{r9}},\ \mbox{\hyperlink{gen__addsub_8hpp_a672542f94403b54948dff9d8fa7cb0f1}{r10}}\ =\ \mbox{\hyperlink{gen__addsub_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}}\ \&\ 7,\ \mbox{\hyperlink{gen__addsub_8hpp_a70e44c46ce043102a19d3e826d1349d9}{r11}};}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}add\{b\ \$255,\ \%b[r8]|\ \%b[r8],\ 255\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q|\ \%[r9],\ [rip\ +\}\ .Llookup\%=\{(\%\%rip),\ \%[r9]|]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}movs\{lq\ (\%[r9],\ \%[r10],\ 4),\ \%[r10]|xd\ \%[r10],\ DWORD\ PTR\ [\%[r9]\ +\ \%[r10]\ *\ 4]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ (\%[r9],\ \%[r10],\ 1),\ \%[r10]|\ \%[r10],\ [\%[r9]\ +\ \%[r10]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jmp\{q\ *\%[r10]|\ \%[r10]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.align\ 8\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Llookup\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.long\ .Ll0\%=-\/.Llookup\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.long\ .Ll1\%=-\/.Llookup\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.long\ .Ll2\%=-\/.Llookup\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.long\ .Ll3\%=-\/.Llookup\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.long\ .Ll4\%=-\/.Llookup\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.long\ .Ll5\%=-\/.Llookup\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.long\ .Ll6\%=-\/.Llookup\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.long\ .Ll7\%=-\/.Llookup\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.align\ 16\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Ll0\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ (\%[src0]),\ \%[r9]|\ \%[r9],\ [\%[src0]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ 8(\%[src0]),\ \%[r11]|\ \%[r11],\ [\%[src0]\ +\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ (\%[src1]),\ \%[r9]|\ \%[r9],\ [\%[src1]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jmp\ .Lb0\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Ld1\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ (\%[src1]),\ \%[r10]|\ \%[r10],\ [\%[src1]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ \%[r10],\ (\%[dst])|\ [\%[dst]],\ \%[r10]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jmp\ .Ldone\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Ll1\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ (\%[src0]),\ \%[r10]|\ \%[r10],\ [\%[src0]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jrcxz\ .Ld1\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ 8(\%[src0]),\ \%[r9]|\ \%[r9],\ [\%[src0]\ +\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ (\%[src1]),\ \%[r10]|\ \%[r10],\ [\%[src1]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ 8(\%[src0]),\ \%[src0]|\ \%[src0],\ [\%[src0]\ +\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ 8(\%[src1]),\ \%[src1]|\ \%[src1],\ [\%[src1]\ +\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ 8(\%[dst]),\ \%[dst]|\ \%[dst],\ [\%[dst]\ +\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jmp\ .Lb1\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Ll3\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ (\%[src0]),\ \%[r11]|\ \%[r11],\ [\%[src0]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ 8(\%[src0]),\ \%[r8]|\ \%[r8],\ [\%[src0]\ +\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ (\%[src1]),\ \%[r11]|\ \%[r11],\ [\%[src1]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ -\/40(\%[src0]),\ \%[src0]|\ \%[src0],\ [\%[src0]\ -\/\ 40]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ -\/40(\%[src1]),\ \%[src1]|\ \%[src1],\ [\%[src1]\ -\/\ 40]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ -\/40(\%[dst]),\ \%[dst]|\ \%[dst],\ [\%[dst]\ -\/\ 40]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}inc\ \%[rcx]\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jmp\ .Lb3\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Ll4\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ (\%[src0]),\ \%[r9]|\ \%[r9],\ [\%[src0]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ 8(\%[src0]),\ \%[r11]|\ \%[r11],\ [\%[src0]\ +\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ (\%[src1]),\ \%[r9]|\ \%[r9],\ [\%[src1]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ -\/32(\%[src0]),\ \%[src0]|\ \%[src0],\ [\%[src0]\ -\/\ 32]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ -\/32(\%[src1]),\ \%[src1]|\ \%[src1],\ [\%[src1]\ -\/\ 32]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ -\/32(\%[dst]),\ \%[dst]|\ \%[dst],\ [\%[dst]\ -\/\ 32]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}inc\ \%[rcx]\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jmp\ .Lb4\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Ll5\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ (\%[src0]),\ \%[r10]|\ \%[r10],\ [\%[src0]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ 8(\%[src0]),\ \%[r9]|\ \%[r9],\ [\%[src0]\ +\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ (\%[src1]),\ \%[r10]|\ \%[r10],\ [\%[src1]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ -\/24(\%[src0]),\ \%[src0]|\ \%[src0],\ [\%[src0]\ -\/\ 24]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ -\/24(\%[src1]),\ \%[src1]|\ \%[src1],\ [\%[src1]\ -\/\ 24]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ -\/24(\%[dst]),\ \%[dst]|\ \%[dst],\ [\%[dst]\ -\/\ 24]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}inc\ \%[rcx]\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jmp\ .Lb5\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Ll6\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ (\%[src0]),\ \%[r8]|\ \%[r8],\ [\%[src0]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ 8(\%[src0]),\ \%[r10]|\ \%[r10],\ [\%[src0]\ +\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ (\%[src1]),\ \%[r8]|\ \%[r8],\ [\%[src1]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ -\/16(\%[src0]),\ \%[src0]|\ \%[src0],\ [\%[src0]\ -\/\ 16]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ -\/16(\%[src1]),\ \%[src1]|\ \%[src1],\ [\%[src1]\ -\/\ 16]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ -\/16(\%[dst]),\ \%[dst]|\ \%[dst],\ [\%[dst]\ -\/\ 16]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}inc\ \%[rcx]\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jmp\ .Lb6\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Ll7\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ (\%[src0]),\ \%[r11]|\ \%[r11],\ [\%[src0]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ 8(\%[src0]),\ \%[r8]|\ \%[r8],\ [\%[src0]\ +\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ (\%[src1]),\ \%[r11]|\ \%[r11],\ [\%[src1]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ -\/8(\%[src0]),\ \%[src0]|\ \%[src0],\ [\%[src0]\ -\/\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ -\/8(\%[src1]),\ \%[src1]|\ \%[src1],\ [\%[src1]\ -\/\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ -\/8(\%[dst]),\ \%[dst]|\ \%[dst],\ [\%[dst]\ -\/\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}inc\ \%[rcx]\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jmp\ .Lb7\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Ld2\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ 8(\%[src1]),\ \%[r10]|\ \%[r10],\ [\%[src1]\ +\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ \%[r8],\ (\%[dst])|\ [\%[dst]],\ \%[r8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ \%[r10],\ 8(\%[dst])|\ [\%[dst]\ +\ 8],\ \%[r10]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jmp\ .Ldone\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Ll2\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ (\%[src0]),\ \%[r8]|\ \%[r8],\ [\%[src0]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ 8(\%[src0]),\ \%[r10]|\ \%[r10],\ [\%[src0]\ +\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ (\%[src1]),\ \%[r8]|\ \%[r8],\ [\%[src1]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jrcxz\ .Ld2\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ 16(\%[src0]),\ \%[src0]|\ \%[src0],\ [\%[src0]\ +\ 16]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ 16(\%[src1]),\ \%[src1]|\ \%[src1],\ [\%[src1]\ +\ 16]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ 16(\%[dst]),\ \%[dst]|\ \%[dst],\ [\%[dst]\ +\ 16]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.align\ 16\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Lloop\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Lb2\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ (\%[src0]),\ \%[r9]|\ \%[r9],\ [\%[src0]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ -\/8(\%[src1]),\ \%[r10]|\ \%[r10],\ [\%[src1]\ -\/\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ \%[r8],\ -\/16(\%[dst])|\ [\%[dst]\ -\/\ 16],\ \%[r8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Lb1\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ 8(\%[src0]),\ \%[r11]|\ \%[r11],\ [\%[src0]\ +\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ (\%[src1]),\ \%[r9]|\ \%[r9],\ [\%[src1]]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ \%[r10],\ -\/8(\%[dst])|\ [\%[dst]\ -\/\ 8],\ \%[r10]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Lb0\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ 16(\%[src0]),\ \%[r8]|\ \%[r8],\ [\%[src0]\ +\ 16]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ 8(\%[src1]),\ \%[r11]|\ \%[r11],\ [\%[src1]\ +\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ \%[r9],\ (\%[dst])|\ [\%[dst]],\ \%[r9]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Lb7\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ 24(\%[src0]),\ \%[r10]|\ \%[r10],\ [\%[src0]\ +\ 24]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ 16(\%[src1]),\ \%[r8]|\ \%[r8],\ [\%[src1]\ +\ 16]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ \%[r11],\ 8(\%[dst])|\ [\%[dst]\ +\ 8],\ \%[r11]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Lb6\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ 32(\%[src0]),\ \%[r9]|\ \%[r9],\ [\%[src0]\ +\ 32]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ 24(\%[src1]),\ \%[r10]|\ \%[r10],\ [\%[src1]\ +\ 24]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ \%[r8],\ 16(\%[dst])|\ [\%[dst]\ +\ 16],\ \%[r8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Lb5\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ 40(\%[src0]),\ \%[r11]|\ \%[r11],\ [\%[src0]\ +\ 40]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ 32(\%[src1]),\ \%[r9]|\ \%[r9],\ [\%[src1]\ +\ 32]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ \%[r10],\ 24(\%[dst])|\ [\%[dst]\ +\ 24],\ \%[r10]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Lb4\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ 48(\%[src0]),\ \%[r8]|\ \%[r8],\ [\%[src0]\ +\ 48]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ 40(\%[src1]),\ \%[r11]|\ \%[r11],\ [\%[src1]\ +\ 40]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ \%[r9],\ 32(\%[dst])|\ [\%[dst]\ +\ 32],\ \%[r9]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00170\ }
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Lb3\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ 56(\%[src0]),\ \%[r10]|\ \%[r10],\ [\%[src0]\ +\ 56]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ 48(\%[src1]),\ \%[r8]|\ \%[r8],\ [\%[src1]\ +\ 48]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ \%[r11],\ 40(\%[dst])|\ [\%[dst]\ +\ 40],\ \%[r11]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ todo\ :\ optimize\ pipeline}}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ 64(\%[src0]),\ \%[src0]|\ \%[src0],\ [\%[src0]\ +\ 64]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ 64(\%[src1]),\ \%[src1]|\ \%[src1],\ [\%[src1]\ +\ 64]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\{q\ 64(\%[dst]),\ \%[dst]|\ \%[dst],\ [\%[dst]\ +\ 64]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}dec\ \%[rcx]\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jne\ .Lloop\%=\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00183\ }
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ WJR\_PP\_STR(WJR\_adcsbb)\ \textcolor{stringliteral}{"{}\{q\ -\/8(\%[src1]),\ \%[r10]|\ \%[r10],\ [\%[src1]\ -\/\ 8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ \%[r8],\ -\/16(\%[dst])|\ [\%[dst]\ -\/\ 16],\ \%[r8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{q\ \%[r10],\ -\/8(\%[dst])|\ [\%[dst]\ -\/\ 8],\ \%[r10]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00187\ }
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.Ldone\%=:\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\{l\ \%k[rcx],\ \%k[r9]|\ \%k[r9],\ \%k[rcx]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}adc\{l\ \%k[rcx],\ \%k[r9]|\ \%k[r9],\ \%k[rcx]\}"{}}}
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ :\ [dst]\ \textcolor{stringliteral}{"{}+r"{}}(dst),\ [\mbox{\hyperlink{gen__addsub_8hpp_aaa307afc1997bf2879086873f22ca784}{src0}}]\ \textcolor{stringliteral}{"{}+r"{}}(\mbox{\hyperlink{gen__addsub_8hpp_aaa307afc1997bf2879086873f22ca784}{src0}}),\ [\mbox{\hyperlink{gen__addsub_8hpp_af6c417e495529293aa05880542b7ff0b}{src1}}]\ \textcolor{stringliteral}{"{}+r"{}}(\mbox{\hyperlink{gen__addsub_8hpp_af6c417e495529293aa05880542b7ff0b}{src1}}),\ [rcx]\ \textcolor{stringliteral}{"{}+c"{}}(rcx),\ }
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ \ \ [\mbox{\hyperlink{gen__addsub_8hpp_a338c714a93a43aa16b7b45f969e22e31}{r8}}]\ \textcolor{stringliteral}{"{}+r"{}}(\mbox{\hyperlink{gen__addsub_8hpp_a338c714a93a43aa16b7b45f969e22e31}{r8}}),\ [\mbox{\hyperlink{gen__addsub_8hpp_acd23bd73fa99ef0cc188e12082793a8d}{r9}}]\ \textcolor{stringliteral}{"{}=\&r"{}}(\mbox{\hyperlink{gen__addsub_8hpp_acd23bd73fa99ef0cc188e12082793a8d}{r9}}),\ [\mbox{\hyperlink{gen__addsub_8hpp_a672542f94403b54948dff9d8fa7cb0f1}{r10}}]\ \textcolor{stringliteral}{"{}+r"{}}(\mbox{\hyperlink{gen__addsub_8hpp_a672542f94403b54948dff9d8fa7cb0f1}{r10}}),\ [\mbox{\hyperlink{gen__addsub_8hpp_a70e44c46ce043102a19d3e826d1349d9}{r11}}]\ \textcolor{stringliteral}{"{}=\&r"{}}(\mbox{\hyperlink{gen__addsub_8hpp_a70e44c46ce043102a19d3e826d1349d9}{r11}})}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \ \ :}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}cc"{}},\ \textcolor{stringliteral}{"{}memory"{}});}
+\DoxyCodeLine{00196\ }
+\DoxyCodeLine{00197\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{gen__addsub_8hpp_acd23bd73fa99ef0cc188e12082793a8d}{r9}};}
+\DoxyCodeLine{00198\ \}}
+\DoxyCodeLine{00199\ }
+\DoxyCodeLine{00200\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00201\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ WJR\_ALL\_NONNULL\ WJR\_MS\_ABI\ uint64\_t\ \mbox{\hyperlink{gen__addsub_8hpp_aa5d72215a4a8b904db30864aaa1d1e96}{WJR\_PP\_CONCAT}}(\_\_wjr\_asm\_,}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{gen__addsub_8hpp_aa5d72215a4a8b904db30864aaa1d1e96}{WJR\_PP\_CONCAT}}(WJR\_addcsubc,\ \_n\_impl))(}
+\DoxyCodeLine{00203\ \ \ \ \ uint64\_t\ *dst,\ \textcolor{keyword}{const}\ uint64\_t\ *\mbox{\hyperlink{gen__addsub_8hpp_aaa307afc1997bf2879086873f22ca784}{src0}},\ \textcolor{keyword}{const}\ uint64\_t\ *\mbox{\hyperlink{gen__addsub_8hpp_af6c417e495529293aa05880542b7ff0b}{src1}},\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{gen__addsub_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},\ uint64\_t\ \mbox{\hyperlink{gen__addsub_8hpp_a75fd2c2dfc85d1ed11adf0fc747c9ec3}{c\_in}})\ \textcolor{keyword}{noexcept};}
+\DoxyCodeLine{00204\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00205\ }
+\DoxyCodeLine{00206\ WJR\_INTRINSIC\_INLINE\ uint64\_t\ \mbox{\hyperlink{gen__addsub_8hpp_aa5d72215a4a8b904db30864aaa1d1e96}{WJR\_PP\_CONCAT}}(asm\_,\ \mbox{\hyperlink{gen__addsub_8hpp_aa5d72215a4a8b904db30864aaa1d1e96}{WJR\_PP\_CONCAT}}(WJR\_addcsubc,\ \_n))(}
+\DoxyCodeLine{00207\ \ \ \ \ uint64\_t\ *dst,\ \textcolor{keyword}{const}\ uint64\_t\ *\mbox{\hyperlink{gen__addsub_8hpp_aaa307afc1997bf2879086873f22ca784}{src0}},\ \textcolor{keyword}{const}\ uint64\_t\ *\mbox{\hyperlink{gen__addsub_8hpp_af6c417e495529293aa05880542b7ff0b}{src1}},\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{gen__addsub_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},\ uint64\_t\ \mbox{\hyperlink{gen__addsub_8hpp_a75fd2c2dfc85d1ed11adf0fc747c9ec3}{c\_in}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00208\ \ \ \ \ \textcolor{keywordflow}{if}\ (WJR\_BUILTIN\_CONSTANT\_P(\mbox{\hyperlink{gen__addsub_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}}))\ \{}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{gen__addsub_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}}\ ==\ 1)\ \{}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \ \ \ \ dst[0]\ =\ \mbox{\hyperlink{gen__addsub_8hpp_aa5d72215a4a8b904db30864aaa1d1e96}{WJR\_PP\_CONCAT}}(asm\_,\ WJR\_addcsubc)(\mbox{\hyperlink{gen__addsub_8hpp_aaa307afc1997bf2879086873f22ca784}{src0}}[0],\ \mbox{\hyperlink{gen__addsub_8hpp_af6c417e495529293aa05880542b7ff0b}{src1}}[0],\ \mbox{\hyperlink{gen__addsub_8hpp_a75fd2c2dfc85d1ed11adf0fc747c9ec3}{c\_in}},\ \mbox{\hyperlink{gen__addsub_8hpp_a75fd2c2dfc85d1ed11adf0fc747c9ec3}{c\_in}});}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{gen__addsub_8hpp_a75fd2c2dfc85d1ed11adf0fc747c9ec3}{c\_in}};}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00213\ \ \ \ \ \}}
+\DoxyCodeLine{00214\ }
+\DoxyCodeLine{00215\ \ \ \ \ \mbox{\hyperlink{gen__addsub_8hpp_a75fd2c2dfc85d1ed11adf0fc747c9ec3}{c\_in}}\ =}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{gen__addsub_8hpp_aa5d72215a4a8b904db30864aaa1d1e96}{WJR\_PP\_CONCAT}}(\_\_wjr\_asm\_,\ \mbox{\hyperlink{gen__addsub_8hpp_aa5d72215a4a8b904db30864aaa1d1e96}{WJR\_PP\_CONCAT}}(WJR\_addcsubc,\ \_n\_impl))(dst,\ \mbox{\hyperlink{gen__addsub_8hpp_aaa307afc1997bf2879086873f22ca784}{src0}},\ \mbox{\hyperlink{gen__addsub_8hpp_af6c417e495529293aa05880542b7ff0b}{src1}},\ \mbox{\hyperlink{gen__addsub_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},\ \mbox{\hyperlink{gen__addsub_8hpp_a75fd2c2dfc85d1ed11adf0fc747c9ec3}{c\_in}});}
+\DoxyCodeLine{00217\ \ \ \ \ \mbox{\hyperlink{gen__addsub_8hpp_a113247af32e9f0b3b691817dade4690f}{WJR\_ASSUME}}(\mbox{\hyperlink{gen__addsub_8hpp_a75fd2c2dfc85d1ed11adf0fc747c9ec3}{c\_in}}\ <=\ 1);}
+\DoxyCodeLine{00218\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{gen__addsub_8hpp_a75fd2c2dfc85d1ed11adf0fc747c9ec3}{c\_in}};}
+\DoxyCodeLine{00219\ \}}
+\DoxyCodeLine{00220\ }
+\DoxyCodeLine{00221\ \textcolor{preprocessor}{\#undef\ \_\_WJR\_TEST\_ASSEMBLY}}
+\DoxyCodeLine{00222\ \textcolor{preprocessor}{\#undef\ WJR\_adcsbb}}
+\DoxyCodeLine{00223\ \textcolor{preprocessor}{\#undef\ WJR\_addcsubc}}
+\DoxyCodeLine{00224\ \textcolor{preprocessor}{\#undef\ WJR\_ADDSUB\_I}}
+
+\end{DoxyCode}

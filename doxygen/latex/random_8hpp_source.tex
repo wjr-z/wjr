@@ -1,0 +1,56 @@
+\doxysection{random.\+hpp}
+\hypertarget{random_8hpp_source}{}\label{random_8hpp_source}\index{include/wjr/math/random.hpp@{include/wjr/math/random.hpp}}
+\mbox{\hyperlink{random_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_MATH\_RANDOM\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_MATH\_RANDOM\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <algorithm>}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ <random>}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{type__traits_8hpp}{wjr/type\_traits.hpp}}>}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Engine,\ \textcolor{keyword}{typename}\ =\ \textcolor{keywordtype}{void}>}
+\DoxyCodeLine{00012\ \textcolor{keyword}{struct\ }\_\_uniform\_random\_bit\_generator\_impl\ :\ std::false\_type\ \{\};}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Engine>}
+\DoxyCodeLine{00015\ \textcolor{keyword}{struct\ }\_\_uniform\_random\_bit\_generator\_impl<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Engine}},\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{enable\_if\_t}}<has\_invocable\_v<Engine\ \&>>>}
+\DoxyCodeLine{00016\ \ \ \ \ :\ std::conjunction<is\_nonbool\_unsigned\_integral<std::invoke\_result\_t<Engine\ \&>>,}
+\DoxyCodeLine{00017\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_same<decltype(Engine::min()),\ std::invoke\_result\_t<Engine\ \&>>,}
+\DoxyCodeLine{00018\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_same<decltype(Engine::max()),\ std::invoke\_result\_t<Engine\ \&>>>\ \{\};}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Engine>}
+\DoxyCodeLine{00021\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structwjr_1_1uniform__random__bit__generator}{uniform\_random\_bit\_generator}}\ :\ \_\_uniform\_random\_bit\_generator\_impl<Engine>\ \{\};}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Engine>}
+\DoxyCodeLine{00024\ \textcolor{keyword}{inline}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{namespacewjr_ab72639a0d05257aaad69d8122f107632}{uniform\_random\_bit\_generator\_v}}\ =\ \mbox{\hyperlink{structwjr_1_1uniform__random__bit__generator}{uniform\_random\_bit\_generator<Engine>::value}};}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Engine>}
+\DoxyCodeLine{00027\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structwjr_1_1biginteger__uniform__random__bit__generator}{biginteger\_uniform\_random\_bit\_generator}}}
+\DoxyCodeLine{00028\ \ \ \ \ :\ std::conjunction<\_\_uniform\_random\_bit\_generator\_impl<Engine>,}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_same<std::invoke\_result\_t<Engine\ \&>,\ uint64\_t>,}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::bool\_constant<Engine::min()\ ==\ std::numeric\_limits<uint64\_t>::min()>,}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::bool\_constant<Engine::max()\ ==\ std::numeric\_limits<uint64\_t>::max()>>\ \{}
+\DoxyCodeLine{00032\ \};}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Engine>}
+\DoxyCodeLine{00035\ \textcolor{keyword}{inline}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{namespacewjr_abc3b5b2f0ae6a4eacbb990f9ef5dc457}{biginteger\_uniform\_random\_bit\_generator\_v}}\ =}
+\DoxyCodeLine{00036\ \ \ \ \ \mbox{\hyperlink{structwjr_1_1biginteger__uniform__random__bit__generator}{biginteger\_uniform\_random\_bit\_generator<Engine>::value}};}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter,\ \textcolor{keyword}{typename}\ Rand>}
+\DoxyCodeLine{00039\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{namespacewjr_a84ce0af09301518e9e5c54697ba6bab2}{random}}(Iter\ first,\ Iter\ last,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Rand}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rd}})\ \{}
+\DoxyCodeLine{00040\ \ \ \ \ std::generate(first,\ last,\ std::ref(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rd}}));}
+\DoxyCodeLine{00041\ \}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter,\ \textcolor{keyword}{typename}\ Rand>}
+\DoxyCodeLine{00044\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{namespacewjr_a6f4f1383f86526b21b5b832c47e007cc}{random\_n}}(Iter\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{First}},\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Count}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Rand}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rd}})\ \{}
+\DoxyCodeLine{00045\ \ \ \ \ std::generate\_n(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{First}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Count}},\ std::ref(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rd}}));}
+\DoxyCodeLine{00046\ \}}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_MATH\_RANDOM\_HPP\_\_}}
+
+\end{DoxyCode}

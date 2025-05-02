@@ -1,0 +1,912 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: wjr::intrusive::list_node&lt; T, Tag &gt; 模板结构体 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('structwjr_1_1intrusive_1_1list__node.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Public 类型</a> &#124;
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="structwjr_1_1intrusive_1_1list__node-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">wjr::intrusive::list_node&lt; T, Tag &gt; 模板结构体 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="list_8hpp_source.html">list.hpp</a>&gt;</code></p>
+<div class="dynheader">
+类 wjr::intrusive::list_node&lt; T, Tag &gt; 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><img src="structwjr_1_1intrusive_1_1list__node__inherit__graph.png" border="0" usemap="#awjr_1_1intrusive_1_1list__node_3_01_t_00_01_tag_01_4_inherit__map" alt="Inheritance graph"/></div>
+<map name="awjr_1_1intrusive_1_1list__node_3_01_t_00_01_tag_01_4_inherit__map" id="awjr_1_1intrusive_1_1list__node_3_01_t_00_01_tag_01_4_inherit__map">
+<area shape="rect" title=" " alt="" coords="9,373,129,672"/>
+<area shape="rect" href="classwjr_1_1intrusive_1_1list__node__base.html" title=" " alt="" coords="5,5,132,325"/>
+<area shape="poly" title=" " alt="" coords="71,340,71,374,66,374,66,340"/>
+</map>
+</div>
+<div class="dynheader">
+wjr::intrusive::list_node&lt; T, Tag &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><img src="structwjr_1_1intrusive_1_1list__node__coll__graph.png" border="0" usemap="#awjr_1_1intrusive_1_1list__node_3_01_t_00_01_tag_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="awjr_1_1intrusive_1_1list__node_3_01_t_00_01_tag_01_4_coll__map" id="awjr_1_1intrusive_1_1list__node_3_01_t_00_01_tag_01_4_coll__map">
+<area shape="rect" title=" " alt="" coords="9,731,129,1029"/>
+<area shape="rect" href="classwjr_1_1intrusive_1_1list__node__base.html" title=" " alt="" coords="5,384,132,683"/>
+<area shape="poly" title=" " alt="" coords="71,698,71,731,66,731,66,698"/>
+<area shape="rect" href="classwjr_1_1intrusive_1_1list__node__base.html" title=" " alt="" coords="5,5,132,304"/>
+<area shape="poly" title=" " alt="" coords="71,304,71,367,66,367,66,304"/>
+<area shape="poly" title=" " alt="" coords="133,118,151,129,157,141,159,155,156,171,149,182,145,179,151,169,153,155,152,142,147,133,130,122"/>
+</map>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:a99a9edfed1218969a1263051542d9f13" id="r_a99a9edfed1218969a1263051542d9f13"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a99a9edfed1218969a1263051542d9f13">iterator</a> = <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">list_node_iterator</a>&lt;<a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>&gt;</td></tr>
+<tr class="separator:a99a9edfed1218969a1263051542d9f13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a206d82b27d1d10d3ce4acd8e9b9be733" id="r_a206d82b27d1d10d3ce4acd8e9b9be733"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a206d82b27d1d10d3ce4acd8e9b9be733">const_iterator</a> = <a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html">list_node_const_iterator</a>&lt;<a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>&gt;</td></tr>
+<tr class="separator:a206d82b27d1d10d3ce4acd8e9b9be733"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb5ce14e7123eaaa0c13a66b37689146" id="r_adb5ce14e7123eaaa0c13a66b37689146"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adb5ce14e7123eaaa0c13a66b37689146">reverse_iterator</a> = std::reverse_iterator&lt;<a class="el" href="#a99a9edfed1218969a1263051542d9f13">iterator</a>&gt;</td></tr>
+<tr class="separator:adb5ce14e7123eaaa0c13a66b37689146"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1cda04af06da6ebb452e686a268462ab" id="r_a1cda04af06da6ebb452e686a268462ab"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1cda04af06da6ebb452e686a268462ab">const_reverse_iterator</a> = std::reverse_iterator&lt;<a class="el" href="#a206d82b27d1d10d3ce4acd8e9b9be733">const_iterator</a>&gt;</td></tr>
+<tr class="separator:a1cda04af06da6ebb452e686a268462ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:aee117e35b075fdab81a5d7d699af424c" id="r_aee117e35b075fdab81a5d7d699af424c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aee117e35b075fdab81a5d7d699af424c">pop_front</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:aee117e35b075fdab81a5d7d699af424c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a134fc189f603918bf8a6d1a2c7cd9485" id="r_a134fc189f603918bf8a6d1a2c7cd9485"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a134fc189f603918bf8a6d1a2c7cd9485">pop_back</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a134fc189f603918bf8a6d1a2c7cd9485"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71c3ad02a6c907d4716f013af9111020" id="r_a71c3ad02a6c907d4716f013af9111020"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a71c3ad02a6c907d4716f013af9111020">next</a> ()</td></tr>
+<tr class="separator:a71c3ad02a6c907d4716f013af9111020"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa52bc8b9691753fa198087fd703c4550" id="r_aa52bc8b9691753fa198087fd703c4550"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa52bc8b9691753fa198087fd703c4550">next</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a></td></tr>
+<tr class="separator:aa52bc8b9691753fa198087fd703c4550"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca5ac156ba606cfdf7f9a39b48a85f8a" id="r_aca5ac156ba606cfdf7f9a39b48a85f8a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aca5ac156ba606cfdf7f9a39b48a85f8a">prev</a> ()</td></tr>
+<tr class="separator:aca5ac156ba606cfdf7f9a39b48a85f8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add7a6c5b0256227614cbcce12b5b743f" id="r_add7a6c5b0256227614cbcce12b5b743f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#add7a6c5b0256227614cbcce12b5b743f">prev</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a></td></tr>
+<tr class="separator:add7a6c5b0256227614cbcce12b5b743f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a16729257af709aac2077959f83ea7f18" id="r_a16729257af709aac2077959f83ea7f18"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a16729257af709aac2077959f83ea7f18">front</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a16729257af709aac2077959f83ea7f18"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7cf8b60c665bd3d0595af0c92c43b896" id="r_a7cf8b60c665bd3d0595af0c92c43b896"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7cf8b60c665bd3d0595af0c92c43b896">front</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a7cf8b60c665bd3d0595af0c92c43b896"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f0cf6c1888576b98347d5b7918baa43" id="r_a9f0cf6c1888576b98347d5b7918baa43"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9f0cf6c1888576b98347d5b7918baa43">back</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a9f0cf6c1888576b98347d5b7918baa43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a509ae4360ee486b38bb80ba8bc4c6e74" id="r_a509ae4360ee486b38bb80ba8bc4c6e74"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a509ae4360ee486b38bb80ba8bc4c6e74">back</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a509ae4360ee486b38bb80ba8bc4c6e74"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a733f71f9fe4660418a339439b65baaa6" id="r_a733f71f9fe4660418a339439b65baaa6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a99a9edfed1218969a1263051542d9f13">iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a733f71f9fe4660418a339439b65baaa6">begin</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a733f71f9fe4660418a339439b65baaa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a83bc52ad1c834479ad125f40bed48937" id="r_a83bc52ad1c834479ad125f40bed48937"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a206d82b27d1d10d3ce4acd8e9b9be733">const_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a83bc52ad1c834479ad125f40bed48937">begin</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a83bc52ad1c834479ad125f40bed48937"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4efc227b85f3141e408c914d6a129b1" id="r_af4efc227b85f3141e408c914d6a129b1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a206d82b27d1d10d3ce4acd8e9b9be733">const_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af4efc227b85f3141e408c914d6a129b1">cbegin</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:af4efc227b85f3141e408c914d6a129b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac4a4509f6a796b8280ed80bf8bcace81" id="r_ac4a4509f6a796b8280ed80bf8bcace81"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a99a9edfed1218969a1263051542d9f13">iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac4a4509f6a796b8280ed80bf8bcace81">end</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ac4a4509f6a796b8280ed80bf8bcace81"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a65be22ec153b364621107faafcce5b77" id="r_a65be22ec153b364621107faafcce5b77"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a206d82b27d1d10d3ce4acd8e9b9be733">const_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a65be22ec153b364621107faafcce5b77">end</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a65be22ec153b364621107faafcce5b77"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9dcc71d07c6fa496a0a18236e03ad4c1" id="r_a9dcc71d07c6fa496a0a18236e03ad4c1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a206d82b27d1d10d3ce4acd8e9b9be733">const_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9dcc71d07c6fa496a0a18236e03ad4c1">cend</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a9dcc71d07c6fa496a0a18236e03ad4c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a469849ee773cc7b5deb73946d92e9ddb" id="r_a469849ee773cc7b5deb73946d92e9ddb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#adb5ce14e7123eaaa0c13a66b37689146">reverse_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a469849ee773cc7b5deb73946d92e9ddb">rbegin</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a469849ee773cc7b5deb73946d92e9ddb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1be45889539e0757088f8de02f8ec230" id="r_a1be45889539e0757088f8de02f8ec230"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a1cda04af06da6ebb452e686a268462ab">const_reverse_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1be45889539e0757088f8de02f8ec230">crbegin</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a1be45889539e0757088f8de02f8ec230"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d5ab320b8d7910d17bbf95928eeea96" id="r_a8d5ab320b8d7910d17bbf95928eeea96"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a1cda04af06da6ebb452e686a268462ab">const_reverse_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8d5ab320b8d7910d17bbf95928eeea96">rbegin</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a8d5ab320b8d7910d17bbf95928eeea96"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a396b1877d307c1eaad0556aa557fb596" id="r_a396b1877d307c1eaad0556aa557fb596"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#adb5ce14e7123eaaa0c13a66b37689146">reverse_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a396b1877d307c1eaad0556aa557fb596">rend</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a396b1877d307c1eaad0556aa557fb596"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac8fb033f641e479976e0f1b0d1b35c3" id="r_aac8fb033f641e479976e0f1b0d1b35c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a1cda04af06da6ebb452e686a268462ab">const_reverse_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aac8fb033f641e479976e0f1b0d1b35c3">rend</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:aac8fb033f641e479976e0f1b0d1b35c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4503771883fac584262293efd6b79cc4" id="r_a4503771883fac584262293efd6b79cc4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a1cda04af06da6ebb452e686a268462ab">const_reverse_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4503771883fac584262293efd6b79cc4">crend</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a4503771883fac584262293efd6b79cc4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classwjr_1_1intrusive_1_1list__node__base')"><img src="closed.png" alt="-"/>&#160;Public 成员函数 继承自 <a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">wjr::intrusive::list_node_base&lt; T &gt;</a></td></tr>
+<tr class="memitem:a9fbf0541a9eb539ec0106d5a6810f3a4 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_a9fbf0541a9eb539ec0106d5a6810f3a4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#a9fbf0541a9eb539ec0106d5a6810f3a4">list_node_base</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a9fbf0541a9eb539ec0106d5a6810f3a4 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a373f681f4bea4bdb0c675047eb6521fa inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_a373f681f4bea4bdb0c675047eb6521fa"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#a373f681f4bea4bdb0c675047eb6521fa">list_node_base</a> (<a class="el" href="structwjr_1_1default__construct__t.html">default_construct_t</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a373f681f4bea4bdb0c675047eb6521fa inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2501825acbcd49a207481340589c3ed5 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_a2501825acbcd49a207481340589c3ed5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#a2501825acbcd49a207481340589c3ed5">list_node_base</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">list_node_base</a> &amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">delete</a></td></tr>
+<tr class="separator:a2501825acbcd49a207481340589c3ed5 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e3e0ff96b357921d81497eeb23f308d inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_a0e3e0ff96b357921d81497eeb23f308d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#a0e3e0ff96b357921d81497eeb23f308d">list_node_base</a> (<a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">list_node_base</a> &amp;&amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">delete</a></td></tr>
+<tr class="separator:a0e3e0ff96b357921d81497eeb23f308d inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5cb69f5dc8c6cf4651516eafb4ec2af6 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_a5cb69f5dc8c6cf4651516eafb4ec2af6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">list_node_base</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#a5cb69f5dc8c6cf4651516eafb4ec2af6">operator=</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">list_node_base</a> &amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">delete</a></td></tr>
+<tr class="separator:a5cb69f5dc8c6cf4651516eafb4ec2af6 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e12914d60e7435e41645922d32bf2ae inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_a1e12914d60e7435e41645922d32bf2ae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">list_node_base</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#a1e12914d60e7435e41645922d32bf2ae">operator=</a> (<a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">list_node_base</a> &amp;&amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">delete</a></td></tr>
+<tr class="separator:a1e12914d60e7435e41645922d32bf2ae inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6cfa830bee14f6837aa36ba38172c8b0 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_a6cfa830bee14f6837aa36ba38172c8b0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#a6cfa830bee14f6837aa36ba38172c8b0">~list_node_base</a> ()=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:a6cfa830bee14f6837aa36ba38172c8b0 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2e07fac506a7a9b4dcdc5c42e12efa4 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_ab2e07fac506a7a9b4dcdc5c42e12efa4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#ab2e07fac506a7a9b4dcdc5c42e12efa4">init_self</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ab2e07fac506a7a9b4dcdc5c42e12efa4 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b466201d46a039fb443cf556ccff00f inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_a7b466201d46a039fb443cf556ccff00f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#a7b466201d46a039fb443cf556ccff00f">empty</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a7b466201d46a039fb443cf556ccff00f inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed9c08fe5dddca2896da1896fa03ceea inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_aed9c08fe5dddca2896da1896fa03ceea"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#aed9c08fe5dddca2896da1896fa03ceea">push_back</a> (<a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">list_node_base</a> *<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">node</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:aed9c08fe5dddca2896da1896fa03ceea inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af0629fc5cf5690f2dab18f821b395070 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_af0629fc5cf5690f2dab18f821b395070"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#af0629fc5cf5690f2dab18f821b395070">push_front</a> (<a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">list_node_base</a> *<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">node</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:af0629fc5cf5690f2dab18f821b395070 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a27f0b0aadb090f49e157e947ab12452e inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_a27f0b0aadb090f49e157e947ab12452e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#a27f0b0aadb090f49e157e947ab12452e">remove</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a27f0b0aadb090f49e157e947ab12452e inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0837c475f268d6e89340f57cc659907e inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_a0837c475f268d6e89340f57cc659907e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#a0837c475f268d6e89340f57cc659907e">self</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a0837c475f268d6e89340f57cc659907e inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a417b63231ba9b1a0ef0b56e9e5b2fffa inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_a417b63231ba9b1a0ef0b56e9e5b2fffa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#a417b63231ba9b1a0ef0b56e9e5b2fffa">self</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a417b63231ba9b1a0ef0b56e9e5b2fffa inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e5cd38aa62833200f2cdf03cc3ca146 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_a6e5cd38aa62833200f2cdf03cc3ca146"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">list_node_base</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#a6e5cd38aa62833200f2cdf03cc3ca146">base</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a6e5cd38aa62833200f2cdf03cc3ca146 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7416db6184d2b94226d0c45ae4838821 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_a7416db6184d2b94226d0c45ae4838821"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">list_node_base</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#a7416db6184d2b94226d0c45ae4838821">base</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a7416db6184d2b94226d0c45ae4838821 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac160adf27a9941daa8cdc921fb2add87 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_ac160adf27a9941daa8cdc921fb2add87"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#ac160adf27a9941daa8cdc921fb2add87">set_next</a> (<a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">list_node_base</a> *<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">node</a>)</td></tr>
+<tr class="separator:ac160adf27a9941daa8cdc921fb2add87 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2662e849b2961b5d1ad4c6269e05b700 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_a2662e849b2961b5d1ad4c6269e05b700"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#a2662e849b2961b5d1ad4c6269e05b700">set_prev</a> (<a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">list_node_base</a> *<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">node</a>)</td></tr>
+<tr class="separator:a2662e849b2961b5d1ad4c6269e05b700 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a025f991267e4e989871f4f6a4b66e0 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base" id="r_a9a025f991267e4e989871f4f6a4b66e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#a9a025f991267e4e989871f4f6a4b66e0">copy_from</a> (<a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">list_node_base</a> *<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">node</a>)</td></tr>
+<tr class="separator:a9a025f991267e4e989871f4f6a4b66e0 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
+额外继承的成员函数</h2></td></tr>
+<tr class="inherit_header pro_attribs_classwjr_1_1intrusive_1_1list__node__base"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_attribs_classwjr_1_1intrusive_1_1list__node__base')"><img src="closed.png" alt="-"/>&#160;Protected 属性 继承自 <a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">wjr::intrusive::list_node_base&lt; T &gt;</a></td></tr>
+<tr class="memitem:a500985300fd0b1f820a5bc19df3c7f3b inherit pro_attribs_classwjr_1_1intrusive_1_1list__node__base" id="r_a500985300fd0b1f820a5bc19df3c7f3b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">list_node_base</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#a500985300fd0b1f820a5bc19df3c7f3b">m_next</a></td></tr>
+<tr class="separator:a500985300fd0b1f820a5bc19df3c7f3b inherit pro_attribs_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a081e9dbc16d0f7cc0cec28ad40f7ff30 inherit pro_attribs_classwjr_1_1intrusive_1_1list__node__base" id="r_a081e9dbc16d0f7cc0cec28ad40f7ff30"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">list_node_base</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html#a081e9dbc16d0f7cc0cec28ad40f7ff30">m_prev</a></td></tr>
+<tr class="separator:a081e9dbc16d0f7cc0cec28ad40f7ff30 inherit pro_attribs_classwjr_1_1intrusive_1_1list__node__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">成员类型定义说明</h2>
+<a id="a206d82b27d1d10d3ce4acd8e9b9be733" name="a206d82b27d1d10d3ce4acd8e9b9be733"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a206d82b27d1d10d3ce4acd8e9b9be733">&#9670;&#160;</a></span>const_iterator</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::const_iterator = <a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html">list_node_const_iterator</a>&lt;<a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1cda04af06da6ebb452e686a268462ab" name="a1cda04af06da6ebb452e686a268462ab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1cda04af06da6ebb452e686a268462ab">&#9670;&#160;</a></span>const_reverse_iterator</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::const_reverse_iterator = std::reverse_iterator&lt;<a class="el" href="#a206d82b27d1d10d3ce4acd8e9b9be733">const_iterator</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a99a9edfed1218969a1263051542d9f13" name="a99a9edfed1218969a1263051542d9f13"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99a9edfed1218969a1263051542d9f13">&#9670;&#160;</a></span>iterator</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::iterator = <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">list_node_iterator</a>&lt;<a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adb5ce14e7123eaaa0c13a66b37689146" name="adb5ce14e7123eaaa0c13a66b37689146"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb5ce14e7123eaaa0c13a66b37689146">&#9670;&#160;</a></span>reverse_iterator</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::reverse_iterator = std::reverse_iterator&lt;<a class="el" href="#a99a9edfed1218969a1263051542d9f13">iterator</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="a509ae4360ee486b38bb80ba8bc4c6e74" name="a509ae4360ee486b38bb80ba8bc4c6e74"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a509ae4360ee486b38bb80ba8bc4c6e74">&#9670;&#160;</a></span>back() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> * <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::back </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9f0cf6c1888576b98347d5b7918baa43" name="a9f0cf6c1888576b98347d5b7918baa43"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f0cf6c1888576b98347d5b7918baa43">&#9670;&#160;</a></span>back() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> * <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::back </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a83bc52ad1c834479ad125f40bed48937" name="a83bc52ad1c834479ad125f40bed48937"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a83bc52ad1c834479ad125f40bed48937">&#9670;&#160;</a></span>begin() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a206d82b27d1d10d3ce4acd8e9b9be733">const_iterator</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::begin </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a733f71f9fe4660418a339439b65baaa6" name="a733f71f9fe4660418a339439b65baaa6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a733f71f9fe4660418a339439b65baaa6">&#9670;&#160;</a></span>begin() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a99a9edfed1218969a1263051542d9f13">iterator</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::begin </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af4efc227b85f3141e408c914d6a129b1" name="af4efc227b85f3141e408c914d6a129b1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af4efc227b85f3141e408c914d6a129b1">&#9670;&#160;</a></span>cbegin()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a206d82b27d1d10d3ce4acd8e9b9be733">const_iterator</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::cbegin </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9dcc71d07c6fa496a0a18236e03ad4c1" name="a9dcc71d07c6fa496a0a18236e03ad4c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9dcc71d07c6fa496a0a18236e03ad4c1">&#9670;&#160;</a></span>cend()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a206d82b27d1d10d3ce4acd8e9b9be733">const_iterator</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::cend </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1be45889539e0757088f8de02f8ec230" name="a1be45889539e0757088f8de02f8ec230"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1be45889539e0757088f8de02f8ec230">&#9670;&#160;</a></span>crbegin()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a1cda04af06da6ebb452e686a268462ab">const_reverse_iterator</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::crbegin </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4503771883fac584262293efd6b79cc4" name="a4503771883fac584262293efd6b79cc4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4503771883fac584262293efd6b79cc4">&#9670;&#160;</a></span>crend()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a1cda04af06da6ebb452e686a268462ab">const_reverse_iterator</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::crend </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a65be22ec153b364621107faafcce5b77" name="a65be22ec153b364621107faafcce5b77"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a65be22ec153b364621107faafcce5b77">&#9670;&#160;</a></span>end() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a206d82b27d1d10d3ce4acd8e9b9be733">const_iterator</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::end </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac4a4509f6a796b8280ed80bf8bcace81" name="ac4a4509f6a796b8280ed80bf8bcace81"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac4a4509f6a796b8280ed80bf8bcace81">&#9670;&#160;</a></span>end() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a99a9edfed1218969a1263051542d9f13">iterator</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::end </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7cf8b60c665bd3d0595af0c92c43b896" name="a7cf8b60c665bd3d0595af0c92c43b896"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7cf8b60c665bd3d0595af0c92c43b896">&#9670;&#160;</a></span>front() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> * <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::front </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a16729257af709aac2077959f83ea7f18" name="a16729257af709aac2077959f83ea7f18"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a16729257af709aac2077959f83ea7f18">&#9670;&#160;</a></span>front() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> * <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::front </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a71c3ad02a6c907d4716f013af9111020" name="a71c3ad02a6c907d4716f013af9111020"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71c3ad02a6c907d4716f013af9111020">&#9670;&#160;</a></span>next() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> * <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::next </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa52bc8b9691753fa198087fd703c4550" name="aa52bc8b9691753fa198087fd703c4550"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa52bc8b9691753fa198087fd703c4550">&#9670;&#160;</a></span>next() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> * <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::next </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a134fc189f603918bf8a6d1a2c7cd9485" name="a134fc189f603918bf8a6d1a2c7cd9485"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a134fc189f603918bf8a6d1a2c7cd9485">&#9670;&#160;</a></span>pop_back()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> * <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::pop_back </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aee117e35b075fdab81a5d7d699af424c" name="aee117e35b075fdab81a5d7d699af424c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aee117e35b075fdab81a5d7d699af424c">&#9670;&#160;</a></span>pop_front()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> * <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::pop_front </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aca5ac156ba606cfdf7f9a39b48a85f8a" name="aca5ac156ba606cfdf7f9a39b48a85f8a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca5ac156ba606cfdf7f9a39b48a85f8a">&#9670;&#160;</a></span>prev() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> * <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::prev </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="add7a6c5b0256227614cbcce12b5b743f" name="add7a6c5b0256227614cbcce12b5b743f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add7a6c5b0256227614cbcce12b5b743f">&#9670;&#160;</a></span>prev() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a> * <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::prev </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8d5ab320b8d7910d17bbf95928eeea96" name="a8d5ab320b8d7910d17bbf95928eeea96"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8d5ab320b8d7910d17bbf95928eeea96">&#9670;&#160;</a></span>rbegin() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a1cda04af06da6ebb452e686a268462ab">const_reverse_iterator</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::rbegin </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a469849ee773cc7b5deb73946d92e9ddb" name="a469849ee773cc7b5deb73946d92e9ddb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a469849ee773cc7b5deb73946d92e9ddb">&#9670;&#160;</a></span>rbegin() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#adb5ce14e7123eaaa0c13a66b37689146">reverse_iterator</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::rbegin </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aac8fb033f641e479976e0f1b0d1b35c3" name="aac8fb033f641e479976e0f1b0d1b35c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac8fb033f641e479976e0f1b0d1b35c3">&#9670;&#160;</a></span>rend() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a1cda04af06da6ebb452e686a268462ab">const_reverse_iterator</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::rend </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a396b1877d307c1eaad0556aa557fb596" name="a396b1877d307c1eaad0556aa557fb596"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a396b1877d307c1eaad0556aa557fb596">&#9670;&#160;</a></span>rend() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>  = void, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a>  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#adb5ce14e7123eaaa0c13a66b37689146">reverse_iterator</a> <a class="el" href="structwjr_1_1intrusive_1_1list__node.html">wjr::intrusive::list_node</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Tag</a> &gt;::rend </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该结构体的文档由以下文件生成:<ul>
+<li>include/wjr/container/<a class="el" href="list_8hpp_source.html">list.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacewjr.html">wjr</a></li><li class="navelem"><a class="el" href="namespacewjr_1_1intrusive.html">intrusive</a></li><li class="navelem"><a class="el" href="structwjr_1_1intrusive_1_1list__node.html">list_node</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

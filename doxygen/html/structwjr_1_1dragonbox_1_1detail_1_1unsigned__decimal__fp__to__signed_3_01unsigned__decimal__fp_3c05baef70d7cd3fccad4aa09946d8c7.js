@@ -1,0 +1,4 @@
+var structwjr_1_1dragonbox_1_1detail_1_1unsigned__decimal__fp__to__signed_3_01unsigned__decimal__fp_3c05baef70d7cd3fccad4aa09946d8c7 =
+[
+    [ "type", "structwjr_1_1dragonbox_1_1detail_1_1unsigned__decimal__fp__to__signed_3_01unsigned__decimal__fp_3c05baef70d7cd3fccad4aa09946d8c7.html#a7e5737c451586a7e2602af0027f5aef9", null ]
+];

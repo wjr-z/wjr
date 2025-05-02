@@ -1,0 +1,56 @@
+\doxysection{arena.\+hpp}
+\hypertarget{arena_8hpp_source}{}\label{arena_8hpp_source}\index{include/wjr/memory/arena.hpp@{include/wjr/memory/arena.hpp}}
+\mbox{\hyperlink{arena_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_MEMORY\_ARENA\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_MEMORY\_ARENA\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{literals_8hpp}{wjr/math/literals.hpp}}>}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{automatic__free__pool_8hpp}{wjr/memory/automatic\_free\_pool.hpp}}>}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00014\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classwjr_1_1arena}{arena}}\ \{}
+\DoxyCodeLine{00015\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00016\ \ \ \ \ \textcolor{keyword}{enum}\ \mbox{\hyperlink{classwjr_1_1arena_a5153b06bc306c1698b97d9c5a2aed7de}{Rule}}\ :\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\_t}}\ \{}
+\DoxyCodeLine{00017\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1arena_a5153b06bc306c1698b97d9c5a2aed7deac71b336fab4005eabcf1149085a83732}{Expansion\_Constant}}\ =\ 0x00,}
+\DoxyCodeLine{00018\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1arena_a5153b06bc306c1698b97d9c5a2aed7dea6d33d4c9731df80da062b8b2dfe3aefa}{Expansion\_Factor1\_5}}\ =\ 0x01,}
+\DoxyCodeLine{00019\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1arena_a5153b06bc306c1698b97d9c5a2aed7dea88ebaada1c78927405aef9ae2ca26166}{Expansion\_Factor2}}\ =\ 0x02,}
+\DoxyCodeLine{00020\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1arena_a5153b06bc306c1698b97d9c5a2aed7dea99efd5e52e2c9f47fec777b4df2a96c5}{Expansion\_Mask}}\ =\ 0x03,}
+\DoxyCodeLine{00021\ \ \ \ \ \};}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\_t}}\ \mbox{\hyperlink{classwjr_1_1arena_a3ee2a50869d44c89c2ad980f96f92ec5}{default\_cache\_size}}\ =\ 4\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_KB}};}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1arena_ab672b84774ff5dcfe7834101a918d61f}{arena}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\_t}}\ cache\ =\ \mbox{\hyperlink{classwjr_1_1arena_a3ee2a50869d44c89c2ad980f96f92ec5}{default\_cache\_size}},\ \mbox{\hyperlink{classwjr_1_1arena_a5153b06bc306c1698b97d9c5a2aed7de}{Rule}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rule}}\ =\ \mbox{\hyperlink{classwjr_1_1arena_a5153b06bc306c1698b97d9c5a2aed7deac71b336fab4005eabcf1149085a83732}{Rule::Expansion\_Constant}})}
+\DoxyCodeLine{00026\ \ \ \ \ \ \ \ \ :\ m\_cache(cache),\ m\_rule(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rule}})\ \{\}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1arena_a8ad62c4709d82c48188fecec653cd6bd}{arena}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1arena}{arena}}\ \&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00029\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1arena_a0a481a242d9ef3e84facaebc595aa4d8}{arena}}(\mbox{\hyperlink{classwjr_1_1arena}{arena}}\ \&\&other)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00030\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1arena}{arena}}\ \&\mbox{\hyperlink{classwjr_1_1arena_aba2f03804cbb9c79ef1f63577b837754}{operator=}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1arena}{arena}}\ \&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00031\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1arena}{arena}}\ \&\mbox{\hyperlink{classwjr_1_1arena_aae1950de7bd7d5b9d704d32dbbe0f8a9}{operator=}}(\mbox{\hyperlink{classwjr_1_1arena}{arena}}\ \&\&other)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_MALLOC}}\ \textcolor{keywordtype}{void}\ *\mbox{\hyperlink{classwjr_1_1arena_afcf3d05ba57b242f028eb2399dcd86cf}{allocate}}(\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_UNLIKELY}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{to\_unsigned}}(m\_end\ -\/\ m\_start)\ <\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}}))\ \{}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \_\_allocate\_large(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}});}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *raw\ =\ m\_start;}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ m\_start\ +=\ \mbox{\hyperlink{namespacewjr_a0639d5380f909615f7ca58e6dc61edc3}{align\_up}}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},\ \mbox{\hyperlink{namespacewjr_1_1mem_a940d9c0863da02f641b02ec9ee02417a}{mem::default\_new\_alignment}});}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ raw;}
+\DoxyCodeLine{00041\ \ \ \ \ \}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keywordtype}{void}\ *\_\_allocate\_large(\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}})\ \textcolor{keyword}{noexcept};}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \ \ std::byte\ *m\_start\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00047\ \ \ \ \ std::byte\ *m\_end\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00048\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\_t}}\ m\_cache;}
+\DoxyCodeLine{00049\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1arena_a5153b06bc306c1698b97d9c5a2aed7de}{Rule}}\ m\_rule;}
+\DoxyCodeLine{00050\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1automatic__free__pool}{automatic\_free\_pool}}\ m\_pool;}
+\DoxyCodeLine{00051\ \};}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_MEMORY\_ARENA\_HPP\_\_}}
+
+\end{DoxyCode}

@@ -1,0 +1,37 @@
+var namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding =
+[
+    [ "interval_type", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1interval__type.html", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1interval__type" ],
+    [ "away_from_zero_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1away__from__zero__t.html", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1away__from__zero__t" ],
+    [ "nearest_away_from_zero_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__away__from__zero__t.html", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__away__from__zero__t" ],
+    [ "nearest_to_even_static_boundary_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__to__even__static__boundary__t.html", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__to__even__static__boundary__t" ],
+    [ "nearest_to_even_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__to__even__t.html", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__to__even__t" ],
+    [ "nearest_to_odd_static_boundary_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__to__odd__static__boundary__t.html", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__to__odd__static__boundary__t" ],
+    [ "nearest_to_odd_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__to__odd__t.html", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__to__odd__t" ],
+    [ "nearest_toward_minus_infinity_static_boundary_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__minus__infinity__static__boundary__t.html", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__minus__infinity__static__boundary__t" ],
+    [ "nearest_toward_minus_infinity_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__minus__infinity__t.html", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__minus__infinity__t" ],
+    [ "nearest_toward_plus_infinity_static_boundary_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__plus__infinity__static__boundary__t.html", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__plus__infinity__static__boundary__t" ],
+    [ "nearest_toward_plus_infinity_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__plus__infinity__t.html", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__plus__infinity__t" ],
+    [ "nearest_toward_zero_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__zero__t.html", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__zero__t" ],
+    [ "toward_minus_infinity_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1toward__minus__infinity__t.html", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1toward__minus__infinity__t" ],
+    [ "toward_plus_infinity_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1toward__plus__infinity__t.html", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1toward__plus__infinity__t" ],
+    [ "toward_zero_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1toward__zero__t.html", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1toward__zero__t" ],
+    [ "tag_t", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#a38a827fe25764ad334e705f84ee98c67", [
+      [ "to_nearest", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#a38a827fe25764ad334e705f84ee98c67a83673f3d954ee06cc0fff93cb9146b80", null ],
+      [ "left_closed_directed", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#a38a827fe25764ad334e705f84ee98c67a846a5ebfc49068c7cc597e227252f1b2", null ],
+      [ "right_closed_directed", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#a38a827fe25764ad334e705f84ee98c67a873f387f6c7018febfc369a22f066129", null ]
+    ] ],
+    [ "away_from_zero", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#a140b9291cb5e933e49f3e9019b27da9c", null ],
+    [ "nearest_away_from_zero", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#a99a80cc97f04d3e66dd55f3f364007e1", null ],
+    [ "nearest_to_even", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#afb2f46836b43082ad3e3b7bf7aa055be", null ],
+    [ "nearest_to_even_static_boundary", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#a194dc3ecae43e4c2b777930100639651", null ],
+    [ "nearest_to_odd", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#a3a444c2a23581de06d04618b06fe1f5f", null ],
+    [ "nearest_to_odd_static_boundary", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#af40691c0fe88a7d46cfcc1326d0a8161", null ],
+    [ "nearest_toward_minus_infinity", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#a7920c15fe5a564f90aa56787b25b1370", null ],
+    [ "nearest_toward_minus_infinity_static_boundary", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#a3ee8bd9e9dbe4fd8ad560cb8476fce43", null ],
+    [ "nearest_toward_plus_infinity", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#a9274c57a53ab1c3f55b46f82c3521e95", null ],
+    [ "nearest_toward_plus_infinity_static_boundary", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#ae9439e8c1d153ba7200b5161f41ef685", null ],
+    [ "nearest_toward_zero", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#a7358f0b57948126f123e91312b39667c", null ],
+    [ "toward_minus_infinity", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#a63f5313ccd9f346486f55026860213f2", null ],
+    [ "toward_plus_infinity", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#ab0fc651d9159e0258f20421d0a6314b4", null ],
+    [ "toward_zero", "namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding.html#a6685d40d950e5267af79771ae480dad8", null ]
+];

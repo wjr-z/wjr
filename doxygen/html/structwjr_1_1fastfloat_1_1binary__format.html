@@ -1,0 +1,1573 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: wjr::fastfloat::binary_format&lt; T &gt; 模板结构体 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('structwjr_1_1fastfloat_1_1binary__format.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Public 类型</a> &#124;
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="#pub-static-methods">静态 Public 成员函数</a> &#124;
+<a href="structwjr_1_1fastfloat_1_1binary__format-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">wjr::fastfloat::binary_format&lt; T &gt; 模板结构体 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="fastfloat_8hpp_source.html">fastfloat.hpp</a>&gt;</code></p>
+<div class="dynheader">
+wjr::fastfloat::binary_format&lt; T &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><img src="structwjr_1_1fastfloat_1_1binary__format__coll__graph.png" border="0" usemap="#awjr_1_1fastfloat_1_1binary__format_3_01_t_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="awjr_1_1fastfloat_1_1binary__format_3_01_t_01_4_coll__map" id="awjr_1_1fastfloat_1_1binary__format_3_01_t_01_4_coll__map">
+<area shape="rect" title=" " alt="" coords="5,5,181,635"/>
+</map>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:a5046e26d0dce2c6a0b2c0069ceaa83f2" id="r_a5046e26d0dce2c6a0b2c0069ceaa83f2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">equiv_uint</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint_t</a>&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">sizeof</a>(<a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>) * 8&gt;</td></tr>
+<tr class="separator:a5046e26d0dce2c6a0b2c0069ceaa83f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:a88935050e0cc44581524f932e317fa5c" id="r_a88935050e0cc44581524f932e317fa5c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a88935050e0cc44581524f932e317fa5c">min_exponent_fast_path</a> ()</td></tr>
+<tr class="separator:a88935050e0cc44581524f932e317fa5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b22539d49b8a3d35ad8dc511142b466" id="r_a5b22539d49b8a3d35ad8dc511142b466"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5b22539d49b8a3d35ad8dc511142b466">min_exponent_fast_path</a> ()</td></tr>
+<tr class="separator:a5b22539d49b8a3d35ad8dc511142b466"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b7238a32dbde28568928f0a67e93583" id="r_a8b7238a32dbde28568928f0a67e93583"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8b7238a32dbde28568928f0a67e93583">mantissa_explicit_bits</a> ()</td></tr>
+<tr class="separator:a8b7238a32dbde28568928f0a67e93583"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af62080be442a9cefec9119858545fc1a" id="r_af62080be442a9cefec9119858545fc1a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af62080be442a9cefec9119858545fc1a">mantissa_explicit_bits</a> ()</td></tr>
+<tr class="separator:af62080be442a9cefec9119858545fc1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a67c5b236138890a0e3ef30e06fbecf22" id="r_a67c5b236138890a0e3ef30e06fbecf22"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a67c5b236138890a0e3ef30e06fbecf22">max_exponent_round_to_even</a> ()</td></tr>
+<tr class="separator:a67c5b236138890a0e3ef30e06fbecf22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e5fe8465ab3e1b7084e1f9297e22766" id="r_a0e5fe8465ab3e1b7084e1f9297e22766"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0e5fe8465ab3e1b7084e1f9297e22766">max_exponent_round_to_even</a> ()</td></tr>
+<tr class="separator:a0e5fe8465ab3e1b7084e1f9297e22766"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7727291aea8229855bd9fbdd409ecbb5" id="r_a7727291aea8229855bd9fbdd409ecbb5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7727291aea8229855bd9fbdd409ecbb5">min_exponent_round_to_even</a> ()</td></tr>
+<tr class="separator:a7727291aea8229855bd9fbdd409ecbb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1695113cf0739d82f7001d15fb6979d4" id="r_a1695113cf0739d82f7001d15fb6979d4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1695113cf0739d82f7001d15fb6979d4">min_exponent_round_to_even</a> ()</td></tr>
+<tr class="separator:a1695113cf0739d82f7001d15fb6979d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af113830c06d2f41796443a4ef306349d" id="r_af113830c06d2f41796443a4ef306349d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af113830c06d2f41796443a4ef306349d">minimum_exponent</a> ()</td></tr>
+<tr class="separator:af113830c06d2f41796443a4ef306349d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8a3da4b9c4be37fa003433f3bb901fb" id="r_aa8a3da4b9c4be37fa003433f3bb901fb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa8a3da4b9c4be37fa003433f3bb901fb">minimum_exponent</a> ()</td></tr>
+<tr class="separator:aa8a3da4b9c4be37fa003433f3bb901fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab9e51e32377dd4a357140a35c12da541" id="r_ab9e51e32377dd4a357140a35c12da541"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab9e51e32377dd4a357140a35c12da541">infinite_power</a> ()</td></tr>
+<tr class="separator:ab9e51e32377dd4a357140a35c12da541"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a640157c4e50713e291b1c9361f46ae3f" id="r_a640157c4e50713e291b1c9361f46ae3f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a640157c4e50713e291b1c9361f46ae3f">infinite_power</a> ()</td></tr>
+<tr class="separator:a640157c4e50713e291b1c9361f46ae3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0a84911d008dfffca42657efec24cfe" id="r_ae0a84911d008dfffca42657efec24cfe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae0a84911d008dfffca42657efec24cfe">sign_index</a> ()</td></tr>
+<tr class="separator:ae0a84911d008dfffca42657efec24cfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa7be3174c4e6c3aa5e559a30d0aa9987" id="r_aa7be3174c4e6c3aa5e559a30d0aa9987"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa7be3174c4e6c3aa5e559a30d0aa9987">sign_index</a> ()</td></tr>
+<tr class="separator:aa7be3174c4e6c3aa5e559a30d0aa9987"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c6d0e3910721d0c173031a2247c1186" id="r_a3c6d0e3910721d0c173031a2247c1186"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3c6d0e3910721d0c173031a2247c1186">max_exponent_fast_path</a> ()</td></tr>
+<tr class="separator:a3c6d0e3910721d0c173031a2247c1186"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8cd0db468b889f7217219800885b5ca4" id="r_a8cd0db468b889f7217219800885b5ca4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8cd0db468b889f7217219800885b5ca4">max_exponent_fast_path</a> ()</td></tr>
+<tr class="separator:a8cd0db468b889f7217219800885b5ca4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12cf256f7d53fd5a0ab31934e529fbba" id="r_a12cf256f7d53fd5a0ab31934e529fbba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a12cf256f7d53fd5a0ab31934e529fbba">max_mantissa_fast_path</a> ()</td></tr>
+<tr class="separator:a12cf256f7d53fd5a0ab31934e529fbba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace19efd21000bd58a6ac7facbbba81c1" id="r_ace19efd21000bd58a6ac7facbbba81c1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ace19efd21000bd58a6ac7facbbba81c1">max_mantissa_fast_path</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int64_t</a> power)</td></tr>
+<tr class="separator:ace19efd21000bd58a6ac7facbbba81c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af50b5a12a15a56fa27eda3bb065ddd3e" id="r_af50b5a12a15a56fa27eda3bb065ddd3e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af50b5a12a15a56fa27eda3bb065ddd3e">max_mantissa_fast_path</a> ()</td></tr>
+<tr class="separator:af50b5a12a15a56fa27eda3bb065ddd3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abdd9daa33b9acc2cb6a421b56722baf2" id="r_abdd9daa33b9acc2cb6a421b56722baf2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abdd9daa33b9acc2cb6a421b56722baf2">max_mantissa_fast_path</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int64_t</a> power)</td></tr>
+<tr class="separator:abdd9daa33b9acc2cb6a421b56722baf2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4407c2936de8eec760df882279375920" id="r_a4407c2936de8eec760df882279375920"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4407c2936de8eec760df882279375920">exact_power_of_ten</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int64_t</a> power)</td></tr>
+<tr class="separator:a4407c2936de8eec760df882279375920"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0cbd26227755c2e7e5d9f13968439527" id="r_a0cbd26227755c2e7e5d9f13968439527"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0cbd26227755c2e7e5d9f13968439527">exact_power_of_ten</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int64_t</a> power)</td></tr>
+<tr class="separator:a0cbd26227755c2e7e5d9f13968439527"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a91f3def8fdb9bbeb339940db430f2b" id="r_a8a91f3def8fdb9bbeb339940db430f2b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8a91f3def8fdb9bbeb339940db430f2b">largest_power_of_ten</a> ()</td></tr>
+<tr class="separator:a8a91f3def8fdb9bbeb339940db430f2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3f6d288db40e85d2f8b332d4a885259" id="r_af3f6d288db40e85d2f8b332d4a885259"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af3f6d288db40e85d2f8b332d4a885259">largest_power_of_ten</a> ()</td></tr>
+<tr class="separator:af3f6d288db40e85d2f8b332d4a885259"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a586b0683d10459068bcc9b4ce69c586a" id="r_a586b0683d10459068bcc9b4ce69c586a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a586b0683d10459068bcc9b4ce69c586a">smallest_power_of_ten</a> ()</td></tr>
+<tr class="separator:a586b0683d10459068bcc9b4ce69c586a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac9126105d716e615c1c4d48238fa0162" id="r_ac9126105d716e615c1c4d48238fa0162"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac9126105d716e615c1c4d48238fa0162">smallest_power_of_ten</a> ()</td></tr>
+<tr class="separator:ac9126105d716e615c1c4d48238fa0162"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a78d5c2a9bf342a377457232a37191f08" id="r_a78d5c2a9bf342a377457232a37191f08"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a78d5c2a9bf342a377457232a37191f08">max_digits</a> ()</td></tr>
+<tr class="separator:a78d5c2a9bf342a377457232a37191f08"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba25afeb41998cd32eccbb4abfa93542" id="r_aba25afeb41998cd32eccbb4abfa93542"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aba25afeb41998cd32eccbb4abfa93542">max_digits</a> ()</td></tr>
+<tr class="separator:aba25afeb41998cd32eccbb4abfa93542"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af1c35dafc531f72eeeec0d585aa9ab88" id="r_af1c35dafc531f72eeeec0d585aa9ab88"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;<a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">::equiv_uint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af1c35dafc531f72eeeec0d585aa9ab88">exponent_mask</a> ()</td></tr>
+<tr class="separator:af1c35dafc531f72eeeec0d585aa9ab88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2175a37e6fa9b9df88d831e412f3de49" id="r_a2175a37e6fa9b9df88d831e412f3de49"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;<a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">::equiv_uint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2175a37e6fa9b9df88d831e412f3de49">exponent_mask</a> ()</td></tr>
+<tr class="separator:a2175a37e6fa9b9df88d831e412f3de49"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af24b92493fa3b56ede6e6340db36e88d" id="r_af24b92493fa3b56ede6e6340db36e88d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;<a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">::equiv_uint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af24b92493fa3b56ede6e6340db36e88d">mantissa_mask</a> ()</td></tr>
+<tr class="separator:af24b92493fa3b56ede6e6340db36e88d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a312a282dcd19bfdb53966ca1579ecf70" id="r_a312a282dcd19bfdb53966ca1579ecf70"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;<a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">::equiv_uint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a312a282dcd19bfdb53966ca1579ecf70">mantissa_mask</a> ()</td></tr>
+<tr class="separator:a312a282dcd19bfdb53966ca1579ecf70"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae418385e05a36e014a12bf825e5c617c" id="r_ae418385e05a36e014a12bf825e5c617c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;<a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">::equiv_uint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae418385e05a36e014a12bf825e5c617c">hidden_bit_mask</a> ()</td></tr>
+<tr class="separator:ae418385e05a36e014a12bf825e5c617c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acca20c81af10e613f8ab5e4d88262d76" id="r_acca20c81af10e613f8ab5e4d88262d76"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;<a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">::equiv_uint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acca20c81af10e613f8ab5e4d88262d76">hidden_bit_mask</a> ()</td></tr>
+<tr class="separator:acca20c81af10e613f8ab5e4d88262d76"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+静态 Public 成员函数</h2></td></tr>
+<tr class="memitem:aa4fbd6ba149a16cc2ee7bfb886d509cd" id="r_aa4fbd6ba149a16cc2ee7bfb886d509cd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa4fbd6ba149a16cc2ee7bfb886d509cd">mantissa_explicit_bits</a> ()</td></tr>
+<tr class="separator:aa4fbd6ba149a16cc2ee7bfb886d509cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33474a675a28c234963966b18df42915" id="r_a33474a675a28c234963966b18df42915"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a33474a675a28c234963966b18df42915">minimum_exponent</a> ()</td></tr>
+<tr class="separator:a33474a675a28c234963966b18df42915"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa0abad2112ed424d98d1558a37c99790" id="r_aa0abad2112ed424d98d1558a37c99790"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa0abad2112ed424d98d1558a37c99790">infinite_power</a> ()</td></tr>
+<tr class="separator:aa0abad2112ed424d98d1558a37c99790"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa84343687dd778d735a9101ef82ff15a" id="r_aa84343687dd778d735a9101ef82ff15a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa84343687dd778d735a9101ef82ff15a">sign_index</a> ()</td></tr>
+<tr class="separator:aa84343687dd778d735a9101ef82ff15a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add627dafd2b0d9d903511c18c53c31d7" id="r_add627dafd2b0d9d903511c18c53c31d7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#add627dafd2b0d9d903511c18c53c31d7">min_exponent_fast_path</a> ()</td></tr>
+<tr class="separator:add627dafd2b0d9d903511c18c53c31d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8e4c83f8462bc201eb664cf7343a1d54" id="r_a8e4c83f8462bc201eb664cf7343a1d54"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8e4c83f8462bc201eb664cf7343a1d54">max_exponent_fast_path</a> ()</td></tr>
+<tr class="separator:a8e4c83f8462bc201eb664cf7343a1d54"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad1684163c24a5116b7f28b78b14d4c53" id="r_ad1684163c24a5116b7f28b78b14d4c53"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad1684163c24a5116b7f28b78b14d4c53">max_exponent_round_to_even</a> ()</td></tr>
+<tr class="separator:ad1684163c24a5116b7f28b78b14d4c53"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a691f8c0ade219d84355bbc2903b97f64" id="r_a691f8c0ade219d84355bbc2903b97f64"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a691f8c0ade219d84355bbc2903b97f64">min_exponent_round_to_even</a> ()</td></tr>
+<tr class="separator:a691f8c0ade219d84355bbc2903b97f64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a88554c0d909d8aa4912fdb127f2c2a7a" id="r_a88554c0d909d8aa4912fdb127f2c2a7a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a88554c0d909d8aa4912fdb127f2c2a7a">max_mantissa_fast_path</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int64_t</a> power)</td></tr>
+<tr class="separator:a88554c0d909d8aa4912fdb127f2c2a7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac4c459d20c01236ebab6f5e7ccec6bf1" id="r_ac4c459d20c01236ebab6f5e7ccec6bf1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac4c459d20c01236ebab6f5e7ccec6bf1">max_mantissa_fast_path</a> ()</td></tr>
+<tr class="separator:ac4c459d20c01236ebab6f5e7ccec6bf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac35bd0c40831ce79ad7019449a9a0687" id="r_ac35bd0c40831ce79ad7019449a9a0687"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac35bd0c40831ce79ad7019449a9a0687">largest_power_of_ten</a> ()</td></tr>
+<tr class="separator:ac35bd0c40831ce79ad7019449a9a0687"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad0ea1d5d71476d02867b41446da9597d" id="r_ad0ea1d5d71476d02867b41446da9597d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad0ea1d5d71476d02867b41446da9597d">smallest_power_of_ten</a> ()</td></tr>
+<tr class="separator:ad0ea1d5d71476d02867b41446da9597d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af87df069d32ce6524fe239577cac88a0" id="r_af87df069d32ce6524fe239577cac88a0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af87df069d32ce6524fe239577cac88a0">exact_power_of_ten</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int64_t</a> power)</td></tr>
+<tr class="separator:af87df069d32ce6524fe239577cac88a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e55609047e556bba827009f0a82720a" id="r_a1e55609047e556bba827009f0a82720a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1e55609047e556bba827009f0a82720a">max_digits</a> ()</td></tr>
+<tr class="separator:a1e55609047e556bba827009f0a82720a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2059788777b37f811d4e3e1978c07b6f" id="r_a2059788777b37f811d4e3e1978c07b6f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">equiv_uint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2059788777b37f811d4e3e1978c07b6f">exponent_mask</a> ()</td></tr>
+<tr class="separator:a2059788777b37f811d4e3e1978c07b6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aef5cffbbb438a3f592ea5a9d5b8ea3b2" id="r_aef5cffbbb438a3f592ea5a9d5b8ea3b2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">equiv_uint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aef5cffbbb438a3f592ea5a9d5b8ea3b2">mantissa_mask</a> ()</td></tr>
+<tr class="separator:aef5cffbbb438a3f592ea5a9d5b8ea3b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7d3585367511addae3aa63e46f7666b" id="r_ae7d3585367511addae3aa63e46f7666b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">equiv_uint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae7d3585367511addae3aa63e46f7666b">hidden_bit_mask</a> ()</td></tr>
+<tr class="separator:ae7d3585367511addae3aa63e46f7666b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">成员类型定义说明</h2>
+<a id="a5046e26d0dce2c6a0b2c0069ceaa83f2" name="a5046e26d0dce2c6a0b2c0069ceaa83f2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">&#9670;&#160;</a></span>equiv_uint</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::equiv_uint = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint_t</a>&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">sizeof</a>(<a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>) * 8&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="af87df069d32ce6524fe239577cac88a0" name="af87df069d32ce6524fe239577cac88a0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af87df069d32ce6524fe239577cac88a0">&#9670;&#160;</a></span>exact_power_of_ten() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::exact_power_of_ten </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int64_t</a></td>          <td class="paramname"><span class="paramname"><em>power</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4407c2936de8eec760df882279375920" name="a4407c2936de8eec760df882279375920"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4407c2936de8eec760df882279375920">&#9670;&#160;</a></span>exact_power_of_ten() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;::exact_power_of_ten </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int64_t</a></td>          <td class="paramname"><span class="paramname"><em>power</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0cbd26227755c2e7e5d9f13968439527" name="a0cbd26227755c2e7e5d9f13968439527"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0cbd26227755c2e7e5d9f13968439527">&#9670;&#160;</a></span>exact_power_of_ten() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;::exact_power_of_ten </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int64_t</a></td>          <td class="paramname"><span class="paramname"><em>power</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2059788777b37f811d4e3e1978c07b6f" name="a2059788777b37f811d4e3e1978c07b6f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2059788777b37f811d4e3e1978c07b6f">&#9670;&#160;</a></span>exponent_mask() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">equiv_uint</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::exponent_mask </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af1c35dafc531f72eeeec0d585aa9ab88" name="af1c35dafc531f72eeeec0d585aa9ab88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af1c35dafc531f72eeeec0d585aa9ab88">&#9670;&#160;</a></span>exponent_mask() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;<a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">::equiv_uint</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;::exponent_mask </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2175a37e6fa9b9df88d831e412f3de49" name="a2175a37e6fa9b9df88d831e412f3de49"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2175a37e6fa9b9df88d831e412f3de49">&#9670;&#160;</a></span>exponent_mask() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;<a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">::equiv_uint</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;::exponent_mask </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae7d3585367511addae3aa63e46f7666b" name="ae7d3585367511addae3aa63e46f7666b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7d3585367511addae3aa63e46f7666b">&#9670;&#160;</a></span>hidden_bit_mask() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">equiv_uint</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::hidden_bit_mask </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae418385e05a36e014a12bf825e5c617c" name="ae418385e05a36e014a12bf825e5c617c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae418385e05a36e014a12bf825e5c617c">&#9670;&#160;</a></span>hidden_bit_mask() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;<a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">::equiv_uint</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;::hidden_bit_mask </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="acca20c81af10e613f8ab5e4d88262d76" name="acca20c81af10e613f8ab5e4d88262d76"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acca20c81af10e613f8ab5e4d88262d76">&#9670;&#160;</a></span>hidden_bit_mask() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;<a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">::equiv_uint</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;::hidden_bit_mask </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa0abad2112ed424d98d1558a37c99790" name="aa0abad2112ed424d98d1558a37c99790"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa0abad2112ed424d98d1558a37c99790">&#9670;&#160;</a></span>infinite_power() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::infinite_power </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab9e51e32377dd4a357140a35c12da541" name="ab9e51e32377dd4a357140a35c12da541"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab9e51e32377dd4a357140a35c12da541">&#9670;&#160;</a></span>infinite_power() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;::infinite_power </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a640157c4e50713e291b1c9361f46ae3f" name="a640157c4e50713e291b1c9361f46ae3f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a640157c4e50713e291b1c9361f46ae3f">&#9670;&#160;</a></span>infinite_power() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;::infinite_power </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac35bd0c40831ce79ad7019449a9a0687" name="ac35bd0c40831ce79ad7019449a9a0687"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac35bd0c40831ce79ad7019449a9a0687">&#9670;&#160;</a></span>largest_power_of_ten() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::largest_power_of_ten </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8a91f3def8fdb9bbeb339940db430f2b" name="a8a91f3def8fdb9bbeb339940db430f2b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a91f3def8fdb9bbeb339940db430f2b">&#9670;&#160;</a></span>largest_power_of_ten() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;::largest_power_of_ten </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af3f6d288db40e85d2f8b332d4a885259" name="af3f6d288db40e85d2f8b332d4a885259"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3f6d288db40e85d2f8b332d4a885259">&#9670;&#160;</a></span>largest_power_of_ten() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;::largest_power_of_ten </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa4fbd6ba149a16cc2ee7bfb886d509cd" name="aa4fbd6ba149a16cc2ee7bfb886d509cd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa4fbd6ba149a16cc2ee7bfb886d509cd">&#9670;&#160;</a></span>mantissa_explicit_bits() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::mantissa_explicit_bits </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8b7238a32dbde28568928f0a67e93583" name="a8b7238a32dbde28568928f0a67e93583"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b7238a32dbde28568928f0a67e93583">&#9670;&#160;</a></span>mantissa_explicit_bits() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;::mantissa_explicit_bits </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af62080be442a9cefec9119858545fc1a" name="af62080be442a9cefec9119858545fc1a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af62080be442a9cefec9119858545fc1a">&#9670;&#160;</a></span>mantissa_explicit_bits() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;::mantissa_explicit_bits </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aef5cffbbb438a3f592ea5a9d5b8ea3b2" name="aef5cffbbb438a3f592ea5a9d5b8ea3b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aef5cffbbb438a3f592ea5a9d5b8ea3b2">&#9670;&#160;</a></span>mantissa_mask() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">equiv_uint</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::mantissa_mask </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af24b92493fa3b56ede6e6340db36e88d" name="af24b92493fa3b56ede6e6340db36e88d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af24b92493fa3b56ede6e6340db36e88d">&#9670;&#160;</a></span>mantissa_mask() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;<a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">::equiv_uint</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;::mantissa_mask </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a312a282dcd19bfdb53966ca1579ecf70" name="a312a282dcd19bfdb53966ca1579ecf70"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a312a282dcd19bfdb53966ca1579ecf70">&#9670;&#160;</a></span>mantissa_mask() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;<a class="el" href="#a5046e26d0dce2c6a0b2c0069ceaa83f2">::equiv_uint</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;::mantissa_mask </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1e55609047e556bba827009f0a82720a" name="a1e55609047e556bba827009f0a82720a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1e55609047e556bba827009f0a82720a">&#9670;&#160;</a></span>max_digits() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::max_digits </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a78d5c2a9bf342a377457232a37191f08" name="a78d5c2a9bf342a377457232a37191f08"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a78d5c2a9bf342a377457232a37191f08">&#9670;&#160;</a></span>max_digits() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;::max_digits </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aba25afeb41998cd32eccbb4abfa93542" name="aba25afeb41998cd32eccbb4abfa93542"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aba25afeb41998cd32eccbb4abfa93542">&#9670;&#160;</a></span>max_digits() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;::max_digits </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8e4c83f8462bc201eb664cf7343a1d54" name="a8e4c83f8462bc201eb664cf7343a1d54"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8e4c83f8462bc201eb664cf7343a1d54">&#9670;&#160;</a></span>max_exponent_fast_path() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::max_exponent_fast_path </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3c6d0e3910721d0c173031a2247c1186" name="a3c6d0e3910721d0c173031a2247c1186"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3c6d0e3910721d0c173031a2247c1186">&#9670;&#160;</a></span>max_exponent_fast_path() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;::max_exponent_fast_path </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8cd0db468b889f7217219800885b5ca4" name="a8cd0db468b889f7217219800885b5ca4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8cd0db468b889f7217219800885b5ca4">&#9670;&#160;</a></span>max_exponent_fast_path() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;::max_exponent_fast_path </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad1684163c24a5116b7f28b78b14d4c53" name="ad1684163c24a5116b7f28b78b14d4c53"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1684163c24a5116b7f28b78b14d4c53">&#9670;&#160;</a></span>max_exponent_round_to_even() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::max_exponent_round_to_even </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a67c5b236138890a0e3ef30e06fbecf22" name="a67c5b236138890a0e3ef30e06fbecf22"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a67c5b236138890a0e3ef30e06fbecf22">&#9670;&#160;</a></span>max_exponent_round_to_even() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;::max_exponent_round_to_even </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0e5fe8465ab3e1b7084e1f9297e22766" name="a0e5fe8465ab3e1b7084e1f9297e22766"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0e5fe8465ab3e1b7084e1f9297e22766">&#9670;&#160;</a></span>max_exponent_round_to_even() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;::max_exponent_round_to_even </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac4c459d20c01236ebab6f5e7ccec6bf1" name="ac4c459d20c01236ebab6f5e7ccec6bf1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac4c459d20c01236ebab6f5e7ccec6bf1">&#9670;&#160;</a></span>max_mantissa_fast_path() <span class="overload">[1/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::max_mantissa_fast_path </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a12cf256f7d53fd5a0ab31934e529fbba" name="a12cf256f7d53fd5a0ab31934e529fbba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12cf256f7d53fd5a0ab31934e529fbba">&#9670;&#160;</a></span>max_mantissa_fast_path() <span class="overload">[2/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;::max_mantissa_fast_path </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af50b5a12a15a56fa27eda3bb065ddd3e" name="af50b5a12a15a56fa27eda3bb065ddd3e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af50b5a12a15a56fa27eda3bb065ddd3e">&#9670;&#160;</a></span>max_mantissa_fast_path() <span class="overload">[3/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;::max_mantissa_fast_path </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a88554c0d909d8aa4912fdb127f2c2a7a" name="a88554c0d909d8aa4912fdb127f2c2a7a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a88554c0d909d8aa4912fdb127f2c2a7a">&#9670;&#160;</a></span>max_mantissa_fast_path() <span class="overload">[4/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::max_mantissa_fast_path </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int64_t</a></td>          <td class="paramname"><span class="paramname"><em>power</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ace19efd21000bd58a6ac7facbbba81c1" name="ace19efd21000bd58a6ac7facbbba81c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ace19efd21000bd58a6ac7facbbba81c1">&#9670;&#160;</a></span>max_mantissa_fast_path() <span class="overload">[5/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;::max_mantissa_fast_path </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int64_t</a></td>          <td class="paramname"><span class="paramname"><em>power</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abdd9daa33b9acc2cb6a421b56722baf2" name="abdd9daa33b9acc2cb6a421b56722baf2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abdd9daa33b9acc2cb6a421b56722baf2">&#9670;&#160;</a></span>max_mantissa_fast_path() <span class="overload">[6/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;::max_mantissa_fast_path </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int64_t</a></td>          <td class="paramname"><span class="paramname"><em>power</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="add627dafd2b0d9d903511c18c53c31d7" name="add627dafd2b0d9d903511c18c53c31d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add627dafd2b0d9d903511c18c53c31d7">&#9670;&#160;</a></span>min_exponent_fast_path() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::min_exponent_fast_path </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a88935050e0cc44581524f932e317fa5c" name="a88935050e0cc44581524f932e317fa5c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a88935050e0cc44581524f932e317fa5c">&#9670;&#160;</a></span>min_exponent_fast_path() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;::min_exponent_fast_path </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5b22539d49b8a3d35ad8dc511142b466" name="a5b22539d49b8a3d35ad8dc511142b466"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b22539d49b8a3d35ad8dc511142b466">&#9670;&#160;</a></span>min_exponent_fast_path() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;::min_exponent_fast_path </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a691f8c0ade219d84355bbc2903b97f64" name="a691f8c0ade219d84355bbc2903b97f64"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a691f8c0ade219d84355bbc2903b97f64">&#9670;&#160;</a></span>min_exponent_round_to_even() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::min_exponent_round_to_even </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7727291aea8229855bd9fbdd409ecbb5" name="a7727291aea8229855bd9fbdd409ecbb5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7727291aea8229855bd9fbdd409ecbb5">&#9670;&#160;</a></span>min_exponent_round_to_even() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;::min_exponent_round_to_even </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1695113cf0739d82f7001d15fb6979d4" name="a1695113cf0739d82f7001d15fb6979d4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1695113cf0739d82f7001d15fb6979d4">&#9670;&#160;</a></span>min_exponent_round_to_even() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;::min_exponent_round_to_even </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a33474a675a28c234963966b18df42915" name="a33474a675a28c234963966b18df42915"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a33474a675a28c234963966b18df42915">&#9670;&#160;</a></span>minimum_exponent() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::minimum_exponent </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af113830c06d2f41796443a4ef306349d" name="af113830c06d2f41796443a4ef306349d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af113830c06d2f41796443a4ef306349d">&#9670;&#160;</a></span>minimum_exponent() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;::minimum_exponent </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa8a3da4b9c4be37fa003433f3bb901fb" name="aa8a3da4b9c4be37fa003433f3bb901fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa8a3da4b9c4be37fa003433f3bb901fb">&#9670;&#160;</a></span>minimum_exponent() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;::minimum_exponent </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa84343687dd778d735a9101ef82ff15a" name="aa84343687dd778d735a9101ef82ff15a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa84343687dd778d735a9101ef82ff15a">&#9670;&#160;</a></span>sign_index() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::sign_index </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae0a84911d008dfffca42657efec24cfe" name="ae0a84911d008dfffca42657efec24cfe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0a84911d008dfffca42657efec24cfe">&#9670;&#160;</a></span>sign_index() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;::sign_index </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa7be3174c4e6c3aa5e559a30d0aa9987" name="aa7be3174c4e6c3aa5e559a30d0aa9987"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa7be3174c4e6c3aa5e559a30d0aa9987">&#9670;&#160;</a></span>sign_index() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;::sign_index </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad0ea1d5d71476d02867b41446da9597d" name="ad0ea1d5d71476d02867b41446da9597d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad0ea1d5d71476d02867b41446da9597d">&#9670;&#160;</a></span>smallest_power_of_ten() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::smallest_power_of_ten </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a586b0683d10459068bcc9b4ce69c586a" name="a586b0683d10459068bcc9b4ce69c586a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a586b0683d10459068bcc9b4ce69c586a">&#9670;&#160;</a></span>smallest_power_of_ten() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> &gt;::smallest_power_of_ten </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac9126105d716e615c1c4d48238fa0162" name="ac9126105d716e615c1c4d48238fa0162"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac9126105d716e615c1c4d48238fa0162">&#9670;&#160;</a></span>smallest_power_of_ten() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">wjr::fastfloat::binary_format</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">float</a> &gt;::smallest_power_of_ten </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该结构体的文档由以下文件生成:<ul>
+<li>include/wjr/format/<a class="el" href="fastfloat_8hpp_source.html">fastfloat.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacewjr.html">wjr</a></li><li class="navelem"><a class="el" href="namespacewjr_1_1fastfloat.html">fastfloat</a></li><li class="navelem"><a class="el" href="structwjr_1_1fastfloat_1_1binary__format.html">binary_format</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

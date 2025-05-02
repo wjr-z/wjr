@@ -1,0 +1,46 @@
+\doxysection{wjr\+::fastfloat\+::detail 命名空间参考}
+\hypertarget{namespacewjr_1_1fastfloat_1_1detail}{}\label{namespacewjr_1_1fastfloat_1_1detail}\index{wjr::fastfloat::detail@{wjr::fastfloat::detail}}
+\doxysubsubsection*{函数}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int32\+\_\+t}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_1_1detail_ad57683adae7f2579a9fe989226986994}{power}} (\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int32\+\_\+t}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{q}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\begin{DoxyCompactList}\small\item\em For q in (0,350), we have that f = (((152170 + 65536) \texorpdfstring{$\ast$}{*} q ) \texorpdfstring{$>$}{>}\texorpdfstring{$>$}{>} 16); is equal to floor(p) + q where p = log(5\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}q)/log(2) = q \texorpdfstring{$\ast$}{*} log(5)/log(2) \end{DoxyCompactList}\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$ }\\\mbox{\hyperlink{structwjr_1_1from__chars__result}{from\+\_\+chars\+\_\+result}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_1_1detail_a5504b7877c71e083f120c6bd903eebc5}{parse\+\_\+infnan}} (\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{const}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{char}} \texorpdfstring{$\ast$}{*}first, \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{const}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{char}} \texorpdfstring{$\ast$}{*}last, \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \&value) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\begin{DoxyCompactList}\small\item\em Special case +inf, -\/inf, nan, infinity, -\/infinity. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{bool}} \mbox{\hyperlink{namespacewjr_1_1fastfloat_1_1detail_a5e2f2e0e5a0b7ae09e1b8c7b15d2d0d7}{rounds\+\_\+to\+\_\+nearest}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\begin{DoxyCompactList}\small\item\em Returns true if the floating-\/pointing rounding mode is to \textquotesingle{}nearest\textquotesingle{}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{函数说明}
+\Hypertarget{namespacewjr_1_1fastfloat_1_1detail_a5504b7877c71e083f120c6bd903eebc5}\label{namespacewjr_1_1fastfloat_1_1detail_a5504b7877c71e083f120c6bd903eebc5} 
+\index{wjr::fastfloat::detail@{wjr::fastfloat::detail}!parse\_infnan@{parse\_infnan}}
+\index{parse\_infnan@{parse\_infnan}!wjr::fastfloat::detail@{wjr::fastfloat::detail}}
+\doxysubsubsection{\texorpdfstring{parse\_infnan()}{parse\_infnan()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$ \\
+\mbox{\hyperlink{structwjr_1_1from__chars__result}{from\+\_\+chars\+\_\+result}} wjr\+::fastfloat\+::detail\+::parse\+\_\+infnan (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{const}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{char}} \texorpdfstring{$\ast$}{*}}]{first,  }\item[{\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{const}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{char}} \texorpdfstring{$\ast$}{*}}]{last,  }\item[{\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \&}]{value }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [noexcept]}}
+
+
+
+Special case +inf, -\/inf, nan, infinity, -\/infinity. 
+
+The case comparisons could be made much faster given that we know that the strings a null-\/free and fixed. \Hypertarget{namespacewjr_1_1fastfloat_1_1detail_ad57683adae7f2579a9fe989226986994}\label{namespacewjr_1_1fastfloat_1_1detail_ad57683adae7f2579a9fe989226986994} 
+\index{wjr::fastfloat::detail@{wjr::fastfloat::detail}!power@{power}}
+\index{power@{power}!wjr::fastfloat::detail@{wjr::fastfloat::detail}}
+\doxysubsubsection{\texorpdfstring{power()}{power()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int32\+\_\+t}} wjr\+::fastfloat\+::detail\+::power (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int32\+\_\+t}}}]{q }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+
+
+For q in (0,350), we have that f = (((152170 + 65536) \texorpdfstring{$\ast$}{*} q ) \texorpdfstring{$>$}{>}\texorpdfstring{$>$}{>} 16); is equal to floor(p) + q where p = log(5\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}q)/log(2) = q \texorpdfstring{$\ast$}{*} log(5)/log(2) 
+
+For negative values of q in (-\/400,0), we have that f = (((152170 + 65536) \texorpdfstring{$\ast$}{*} q ) \texorpdfstring{$>$}{>}\texorpdfstring{$>$}{>} 16); is equal to -\/ceil(p) + q where p = log(5\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}-\/q)/log(2) = -\/q \texorpdfstring{$\ast$}{*} log(5)/log(2) \Hypertarget{namespacewjr_1_1fastfloat_1_1detail_a5e2f2e0e5a0b7ae09e1b8c7b15d2d0d7}\label{namespacewjr_1_1fastfloat_1_1detail_a5e2f2e0e5a0b7ae09e1b8c7b15d2d0d7} 
+\index{wjr::fastfloat::detail@{wjr::fastfloat::detail}!rounds\_to\_nearest@{rounds\_to\_nearest}}
+\index{rounds\_to\_nearest@{rounds\_to\_nearest}!wjr::fastfloat::detail@{wjr::fastfloat::detail}}
+\doxysubsubsection{\texorpdfstring{rounds\_to\_nearest()}{rounds\_to\_nearest()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{bool}} wjr\+::fastfloat\+::detail\+::rounds\+\_\+to\+\_\+nearest (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [noexcept]}}
+
+
+
+Returns true if the floating-\/pointing rounding mode is to \textquotesingle{}nearest\textquotesingle{}. 
+
+It is the default on most system. This function is meant to be inexpensive. Credit \+: @mwalcott3 

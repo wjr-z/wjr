@@ -1,0 +1,103 @@
+\doxysection{btree\+\_\+set.\+hpp}
+\hypertarget{btree__set_8hpp_source}{}\label{btree__set_8hpp_source}\index{include/wjr/container/btree\_set.hpp@{include/wjr/container/btree\_set.hpp}}
+\mbox{\hyperlink{btree__set_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_CONTIANER\_GENERIC\_BTREE\_SET\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_CONTIANER\_GENERIC\_BTREE\_SET\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{btree_8hpp}{wjr/container/btree.hpp}}>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Key,\ \textcolor{keyword}{typename}\ Pr\ =\ std::less<Key>,\ \textcolor{keyword}{typename}\ Alloc\ =\ std::allocator<\textcolor{keywordtype}{char}>>}
+\DoxyCodeLine{00009\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classwjr_1_1btree__set}{btree\_set}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classwjr_1_1basic__btree}{basic\_btree}}<btree\_traits<Key,\ void,\ false,\ Pr,\ Alloc>>\ \{}
+\DoxyCodeLine{00010\ \ \ \ \ \textcolor{keyword}{using\ }Traits\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{btree\_traits<Key,\ void,\ false,\ Pr,\ Alloc>}};}
+\DoxyCodeLine{00011\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1basic__btree}{Mybase}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{basic\_btree<Traits>}};}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00014\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__set_a1e10223684c93e6e15b7169b87473f65}{key\_type}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_a6447f6be58f93ceb9d35c121322b725b}{Mybase::key\_type}};}
+\DoxyCodeLine{00015\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__set_a89dc0391e30d4ca2d6f58f5edf602a95}{value\_type}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_adb2455aeeb5d88a77030133ee781a6aa}{Mybase::value\_type}};}
+\DoxyCodeLine{00016\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__set_ae4c858fe21f87892979751956e238de3}{size\_type}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_ad4f753a8263adaa310202430d6054d65}{Mybase::size\_type}};}
+\DoxyCodeLine{00017\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__set_aac14022438ecdb42ca840a2aeb2679ab}{difference\_type}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_aea3e3713c2c1f370330c6a599fa04f89}{Mybase::difference\_type}};}
+\DoxyCodeLine{00018\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__set_af339b6fcc45f13488d09adefcd81964b}{key\_compare}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_ab91eaadbda7f2e6535d2695e29a0c368}{Mybase::key\_compare}};}
+\DoxyCodeLine{00019\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__set_ab5c6e4da8b2aa3c2850c28d1752b1e77}{allocator\_type}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_ad677c86469778849bcf197510ce97d85}{Mybase::allocator\_type}};}
+\DoxyCodeLine{00020\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__set_afb80bbf3177489957fbb309bab18f72a}{reference}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_ad68990e78eb7d73a081214b0ad5df531}{Mybase::reference}};}
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__set_ae7f6cc733c25d2eef7874382788f5218}{const\_reference}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_a7f5b2cfd1f78a9c82bd2927aaa9f0bc4}{Mybase::const\_reference}};}
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__set_a155abdf388adfb6d229bd4863ae390d7}{pointer}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_a9148b01329fb86010e305430c216d73c}{Mybase::pointer}};}
+\DoxyCodeLine{00023\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__set_ac9f6489e1142625630fde9b3fa89eee1}{const\_pointer}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_ab1b8806c0247c5ce267db49cf06b3e84}{Mybase::const\_pointer}};}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__set_aa3119780483f04550f21ec405419b546}{iterator}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_aafef4d2ea008021928d02f5a85e05012}{Mybase::iterator}};}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__set_a80181b319443e5d9f7445aa6b632fee7}{const\_iterator}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_a43de1bb9ff1225fd4ae91fe6553b287c}{Mybase::const\_iterator}};}
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__set_ae774b8cb7a1c7e8d1c4fd075b7cc9772}{reverse\_iterator}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_a723a743bbc9026b8cfcc1c10a14ad9da}{Mybase::reverse\_iterator}};}
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__set_a4086c7f8e8f7a98d013b15734dc65c6e}{const\_reverse\_iterator}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_a04a0295edd74916d02f1d7ec43c6c611}{Mybase::const\_reverse\_iterator}};}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{keyword}{using\ }Mybase::Mybase;}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00032\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_PURE}}\ \textcolor{keywordtype}{bool}\ \_\_is\_lower\_bound\_same(\mbox{\hyperlink{classwjr_1_1btree__set_a80181b319443e5d9f7445aa6b632fee7}{const\_iterator}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{iter}},\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1btree__set_a1e10223684c93e6e15b7169b87473f65}{key\_type}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{key}})\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{iter}}\ !=\ this-\/>\mbox{\hyperlink{classwjr_1_1basic__btree_accec2f58cb6e3b81bcecdfac8ba6cb74}{cend}}()\ \&\&\ !this-\/>\mbox{\hyperlink{classwjr_1_1basic__btree_a50543698423d4298e6387c7814531703}{key\_comp}}()(Traits::get\_key(*\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{iter}}),\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{key}});}
+\DoxyCodeLine{00034\ \ \ \ \ \}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_PURE}}\ \textcolor{keywordtype}{bool}\ \_\_count\_unique(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1btree__set_a1e10223684c93e6e15b7169b87473f65}{key\_type}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{key}})\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{iter}}\ =\ this-\/>\mbox{\hyperlink{classwjr_1_1basic__btree_ab53fa54459d1dfc87c6065316c5a7d1d}{lower\_bound}}(key);}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \_\_is\_lower\_bound\_same(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{iter}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{key}});}
+\DoxyCodeLine{00039\ \ \ \ \ \}}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00042\ \ \ \ \ std::pair<iterator,\ bool>\ \mbox{\hyperlink{classwjr_1_1btree__set_a0abd33666fc386db2fba185df191e959}{insert}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1btree__set_a89dc0391e30d4ca2d6f58f5edf602a95}{value\_type}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ this-\/>\_\_emplace\_unique(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}});}
+\DoxyCodeLine{00044\ \ \ \ \ \}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \ \ std::pair<iterator,\ bool>\ \mbox{\hyperlink{classwjr_1_1btree__set_a24af89508dbae7d14701f4bd343d2c0c}{insert}}(\mbox{\hyperlink{classwjr_1_1btree__set_a89dc0391e30d4ca2d6f58f5edf602a95}{value\_type}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ this-\/>\_\_emplace\_unique(std::move(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}}));}
+\DoxyCodeLine{00048\ \ \ \ \ \}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}>}
+\DoxyCodeLine{00051\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_INTRINSIC\_INLINE}}\ std::pair<iterator,\ bool>\ \mbox{\hyperlink{classwjr_1_1btree__set_aca886dba477e271d32a3edc71e0051f2}{emplace}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}\ \&\&...\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{args}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ this-\/>\_\_emplace\_unique(std::forward<Args>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{args}})...);}
+\DoxyCodeLine{00053\ \ \ \ \ \}}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1btree__set_ae4c858fe21f87892979751956e238de3}{size\_type}}\ \mbox{\hyperlink{classwjr_1_1btree__set_a10c740dce1bdfe743d24957abe7d7645}{count}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1btree__set_a1e10223684c93e6e15b7169b87473f65}{key\_type}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{key}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{\ \textcolor{keywordflow}{return}\ \_\_count\_unique(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{key}})\ ?\ 1\ :\ 0;\ \}}
+\DoxyCodeLine{00056\ \};}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Key,\ \textcolor{keyword}{typename}\ Pr\ =\ std::less<Key>>}
+\DoxyCodeLine{00059\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classwjr_1_1btree__multiset}{btree\_multiset}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classwjr_1_1basic__btree}{basic\_btree}}<btree\_traits<Key,\ void,\ true,\ Pr>>\ \{}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keyword}{using\ }Traits\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{btree\_traits<Key,\ void,\ true,\ Pr>}};}
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1basic__btree}{Mybase}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{basic\_btree<Traits>}};}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__multiset_ac8e3c71ba77e2d58bcbb0a0f00f20402}{key\_type}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_a6447f6be58f93ceb9d35c121322b725b}{Mybase::key\_type}};}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__multiset_ace33f353a7d1ec332753b3116025916c}{value\_type}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_adb2455aeeb5d88a77030133ee781a6aa}{Mybase::value\_type}};}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__multiset_af6ff69251f5bb9410942272483d5bd79}{size\_type}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_ad4f753a8263adaa310202430d6054d65}{Mybase::size\_type}};}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__multiset_a4563da6bfe90f7d4f88052acc4500dc3}{difference\_type}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_aea3e3713c2c1f370330c6a599fa04f89}{Mybase::difference\_type}};}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__multiset_a9052e5b29971edc7f79f2bfd7b42fb35}{key\_compare}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_ab91eaadbda7f2e6535d2695e29a0c368}{Mybase::key\_compare}};}
+\DoxyCodeLine{00069\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__multiset_ac208558a255eb3836bf36b4b54ba66e8}{allocator\_type}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_ad677c86469778849bcf197510ce97d85}{Mybase::allocator\_type}};}
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__multiset_a871991725ee63c5b0ec909ccd018e428}{reference}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_ad68990e78eb7d73a081214b0ad5df531}{Mybase::reference}};}
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__multiset_ae23f824ec80d942a08cc4a1be3d5d981}{const\_reference}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_a7f5b2cfd1f78a9c82bd2927aaa9f0bc4}{Mybase::const\_reference}};}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__multiset_a04a3e8eba82838fa3b63233399660c87}{pointer}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_a9148b01329fb86010e305430c216d73c}{Mybase::pointer}};}
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__multiset_a8ce6132b8a569db9b492bb94115cf988}{const\_pointer}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_ab1b8806c0247c5ce267db49cf06b3e84}{Mybase::const\_pointer}};}
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__multiset_a8fa2827c66f63493645a8323f38ce62a}{iterator}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_aafef4d2ea008021928d02f5a85e05012}{Mybase::iterator}};}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__multiset_a3f7cb77a0c0499791900783a3fc52c65}{const\_iterator}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_a43de1bb9ff1225fd4ae91fe6553b287c}{Mybase::const\_iterator}};}
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__multiset_a790f6dbae162cfdff736d9dc4260ea5a}{reverse\_iterator}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_a723a743bbc9026b8cfcc1c10a14ad9da}{Mybase::reverse\_iterator}};}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1btree__multiset_a755e9da9e559d67bb832cc658799e12d}{const\_reverse\_iterator}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1basic__btree_a04a0295edd74916d02f1d7ec43c6c611}{Mybase::const\_reverse\_iterator}};}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keyword}{using\ }Mybase::Mybase;}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ std::pair<iterator,\ bool>\ \mbox{\hyperlink{classwjr_1_1btree__multiset_a5549dbe6344ae9819763b8756b7d2c00}{insert}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1btree__multiset_ace33f353a7d1ec332753b3116025916c}{value\_type}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ this-\/>\_\_emplace\_multi(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}});}
+\DoxyCodeLine{00083\ \ \ \ \ \}}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \ \ \ \ std::pair<iterator,\ bool>\ \mbox{\hyperlink{classwjr_1_1btree__multiset_a746c99e1277dd0f82660ccd71bf80e43}{insert}}(\mbox{\hyperlink{classwjr_1_1btree__multiset_ace33f353a7d1ec332753b3116025916c}{value\_type}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ this-\/>\_\_emplace\_multi(std::move(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}}));}
+\DoxyCodeLine{00087\ \ \ \ \ \}}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}>}
+\DoxyCodeLine{00090\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_INTRINSIC\_INLINE}}\ std::pair<iterator,\ bool>\ \mbox{\hyperlink{classwjr_1_1btree__multiset_ada5c74e3bb09a5b06e36c22d01c212c2}{emplace}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}\ \&\&...\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{args}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ this-\/>\_\_emplace\_multi(std::forward<Args>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{args}})...);}
+\DoxyCodeLine{00092\ \ \ \ \ \}}
+\DoxyCodeLine{00093\ \};}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_CONTIANER\_GENERIC\_BTREE\_SET\_HPP\_\_}}
+
+\end{DoxyCode}

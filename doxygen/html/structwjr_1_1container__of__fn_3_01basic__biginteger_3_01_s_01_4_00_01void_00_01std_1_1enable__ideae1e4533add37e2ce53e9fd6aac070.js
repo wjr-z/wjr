@@ -1,0 +1,7 @@
+var structwjr_1_1container__of__fn_3_01basic__biginteger_3_01_s_01_4_00_01void_00_01std_1_1enable__ideae1e4533add37e2ce53e9fd6aac070 =
+[
+    [ "base_type", "structwjr_1_1container__of__fn_3_01basic__biginteger_3_01_s_01_4_00_01void_00_01std_1_1enable__ideae1e4533add37e2ce53e9fd6aac070.html#a9034eb548ed9bdb3f837ae306147bb51", null ],
+    [ "value_type", "structwjr_1_1container__of__fn_3_01basic__biginteger_3_01_s_01_4_00_01void_00_01std_1_1enable__ideae1e4533add37e2ce53e9fd6aac070.html#a303a9689c0ba7678a22424c637379daf", null ],
+    [ "operator()", "structwjr_1_1container__of__fn_3_01basic__biginteger_3_01_s_01_4_00_01void_00_01std_1_1enable__ideae1e4533add37e2ce53e9fd6aac070.html#a77400f75155db646d5b28751bad3e174", null ],
+    [ "operator()", "structwjr_1_1container__of__fn_3_01basic__biginteger_3_01_s_01_4_00_01void_00_01std_1_1enable__ideae1e4533add37e2ce53e9fd6aac070.html#aee6cd358b6d86706d17a1c1eca373616", null ]
+];

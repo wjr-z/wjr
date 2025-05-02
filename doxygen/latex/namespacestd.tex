@@ -1,0 +1,324 @@
+\doxysection{std 命名空间参考}
+\hypertarget{namespacestd}{}\label{namespacestd}\index{std@{std}}
+\doxysubsubsection*{类}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structstd_1_1pointer__traits_3_01wjr_1_1contiguous__const__iterator__adapter_3_01_container_00_01_traits_01_4_01_4}{pointer\+\_\+traits$<$ wjr\+::contiguous\+\_\+const\+\_\+iterator\+\_\+adapter$<$ Container, Traits $>$ $>$}}
+\item 
+struct \mbox{\hyperlink{structstd_1_1pointer__traits_3_01wjr_1_1contiguous__iterator__adapter_3_01_container_00_01_traits_01_4_01_4}{pointer\+\_\+traits$<$ wjr\+::contiguous\+\_\+iterator\+\_\+adapter$<$ Container, Traits $>$ $>$}}
+\item 
+struct \mbox{\hyperlink{structstd_1_1tuple__element_3_01_i_00_01wjr_1_1compressed__pair_3_01_t_00_01_u_01_4_01_4}{tuple\+\_\+element$<$ I, wjr\+::compressed\+\_\+pair$<$ T, U $>$ $>$}}
+\item 
+struct \mbox{\hyperlink{structstd_1_1tuple__element_3_01_i_00_01wjr_1_1tuple_3_01_args_8_8_8_01_4_01_4}{tuple\+\_\+element$<$ I, wjr\+::tuple$<$ Args... $>$ $>$}}
+\item 
+struct \mbox{\hyperlink{structstd_1_1tuple__element_3_01_i_00_01wjr_1_1uint128__t_01_4}{tuple\+\_\+element$<$ I, wjr\+::uint128\+\_\+t $>$}}
+\item 
+struct \mbox{\hyperlink{structstd_1_1tuple__size_3_01wjr_1_1compressed__pair_3_01_t_00_01_u_01_4_01_4}{tuple\+\_\+size$<$ wjr\+::compressed\+\_\+pair$<$ T, U $>$ $>$}}
+\item 
+struct \mbox{\hyperlink{structstd_1_1tuple__size_3_01wjr_1_1tuple_3_01_args_8_8_8_01_4_01_4}{tuple\+\_\+size$<$ wjr\+::tuple$<$ Args... $>$ $>$}}
+\item 
+struct \mbox{\hyperlink{structstd_1_1tuple__size_3_01wjr_1_1uint128__t_01_4}{tuple\+\_\+size$<$ wjr\+::uint128\+\_\+t $>$}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{函数}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$typename Storage $>$ }\\constexpr void \mbox{\hyperlink{namespacestd_a392c1c880d8a999bf92add30dd88b471}{swap}} (\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ Storage $>$ \&lhs, \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ Storage $>$ \&rhs) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(lhs.\+swap(rhs)))
+\item 
+{\footnotesize template$<$typename T , typename U , WJR\+\_\+\+REQUIRES(std\+::conjunction\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr\+::is\+\_\+swappable}}$<$ T $>$, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr\+::is\+\_\+swappable}}$<$ U $>$ $>$) $>$ }\\constexpr void \mbox{\hyperlink{namespacestd_a8c81869f796ac7300d155ab175cd193a}{swap}} (\mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&lhs, \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&rhs) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(lhs.\+swap(rhs)))
+\item 
+{\footnotesize template$<$size\+\_\+t I, typename T , typename U , WJR\+\_\+\+REQUIRES(I$<$ 2) $>$ }\\WJR\+\_\+\+NODISCARD constexpr tuple\+\_\+element\+\_\+t$<$ I, \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ $>$ \& \mbox{\hyperlink{namespacestd_a3767022618c3b96df1cb16ac67d9fc96}{get}} (\mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&pr) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$size\+\_\+t I, typename T , typename U , WJR\+\_\+\+REQUIRES(I$<$ 2) $>$ }\\WJR\+\_\+\+NODISCARD constexpr const tuple\+\_\+element\+\_\+t$<$ I, \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ $>$ \& \mbox{\hyperlink{namespacestd_a7d6301231a3bd721de80de4e6b0b7395}{get}} (const \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&pr) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$size\+\_\+t I, typename T , typename U , WJR\+\_\+\+REQUIRES(I$<$ 2) $>$ }\\WJR\+\_\+\+NODISCARD constexpr tuple\+\_\+element\+\_\+t$<$ I, \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ $>$ \&\& \mbox{\hyperlink{namespacestd_a2af1d235a8a0498dce6f28274b81465b}{get}} (\mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&\&pr) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$size\+\_\+t I, typename T , typename U , WJR\+\_\+\+REQUIRES(I$<$ 2) $>$ }\\WJR\+\_\+\+NODISCARD constexpr const tuple\+\_\+element\+\_\+t$<$ I, \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ $>$ \&\& \mbox{\hyperlink{namespacestd_a2e84aab8946fe688e0e3ef9793782906}{get}} (const \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&\&pr) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$typename T , typename U $>$ }\\WJR\+\_\+\+NODISCARD constexpr T \& \mbox{\hyperlink{namespacestd_ae71dc1d27d6e691b1ea7567b9e586d64}{get}} (\mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&pr) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$typename T , typename U $>$ }\\WJR\+\_\+\+NODISCARD constexpr const T \& \mbox{\hyperlink{namespacestd_ae1c702fc20bc43a0ed9a36855a8da780}{get}} (const \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&pr) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$typename T , typename U $>$ }\\WJR\+\_\+\+NODISCARD constexpr T \&\& \mbox{\hyperlink{namespacestd_a715e57d0aa6d39a6a84e436b40b3fd54}{get}} (\mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&\&pr) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$typename T , typename U $>$ }\\WJR\+\_\+\+NODISCARD constexpr const T \&\& \mbox{\hyperlink{namespacestd_a190c27771d4d4cba18d797fe12769beb}{get}} (const \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&\&pr) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$typename T , typename U $>$ }\\WJR\+\_\+\+NODISCARD constexpr T \& \mbox{\hyperlink{namespacestd_a1b6e647391124bff309115570788424b}{get}} (\mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ U, T $>$ \&pr) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$typename T , typename U $>$ }\\WJR\+\_\+\+NODISCARD constexpr const T \& \mbox{\hyperlink{namespacestd_a37556585ce6334954443e887ea9cf9db}{get}} (const \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ U, T $>$ \&pr) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$typename T , typename U $>$ }\\WJR\+\_\+\+NODISCARD constexpr T \&\& \mbox{\hyperlink{namespacestd_a68fcf6bcc077f55713c688771531eb4d}{get}} (\mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ U, T $>$ \&\&pr) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$typename T , typename U $>$ }\\WJR\+\_\+\+NODISCARD constexpr const T \&\& \mbox{\hyperlink{namespacestd_aca9b41cf1769e32ff9aeeb62f4687fbe}{get}} (const \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ U, T $>$ \&\&pr) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$typename Storage $>$ }\\constexpr void \mbox{\hyperlink{namespacestd_a41a897d744b3720d7624beb66f98033f}{swap}} (\mbox{\hyperlink{classwjr_1_1basic__ring__buffer}{wjr\+::basic\+\_\+ring\+\_\+buffer}}$<$ Storage $>$ \&lhs, \mbox{\hyperlink{classwjr_1_1basic__ring__buffer}{wjr\+::basic\+\_\+ring\+\_\+buffer}}$<$ Storage $>$ \&rhs) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(lhs.\+swap(rhs)))
+\item 
+{\footnotesize template$<$typename Storage $>$ }\\constexpr void \mbox{\hyperlink{namespacestd_a9be7e5bacb2a9533f5c736131be2fcd7}{swap}} (\mbox{\hyperlink{classwjr_1_1basic__vector}{wjr\+::basic\+\_\+vector}}$<$ Storage $>$ \&lhs, \mbox{\hyperlink{classwjr_1_1basic__vector}{wjr\+::basic\+\_\+vector}}$<$ Storage $>$ \&rhs) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(lhs.\+swap(rhs)))
+\item 
+{\footnotesize template$<$typename E $>$ }\\constexpr void \mbox{\hyperlink{namespacestd_a177a2e934edf094dfac4f64b247ced6e}{swap}} (\mbox{\hyperlink{classwjr_1_1unexpected}{wjr\+::unexpected}}$<$ E $>$ \&lhs, \mbox{\hyperlink{classwjr_1_1unexpected}{wjr\+::unexpected}}$<$ E $>$ \&rhs) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(lhs.\+swap(rhs)))
+\item 
+{\footnotesize template$<$typename T , typename E $>$ }\\constexpr void \mbox{\hyperlink{namespacestd_a1712693709f89cd3890d78b6d7f7bae2}{swap}} (\mbox{\hyperlink{classwjr_1_1expected}{wjr\+::expected}}$<$ T, E $>$ \&lhs, \mbox{\hyperlink{classwjr_1_1expected}{wjr\+::expected}}$<$ T, E $>$ \&rhs) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(lhs.\+swap(rhs)))
+\item 
+{\footnotesize template$<$typename Traits $>$ }\\constexpr void \mbox{\hyperlink{namespacestd_afc614b87a78207bfa099c010c79ae8d0}{swap}} (\mbox{\hyperlink{classwjr_1_1json_1_1basic__document}{wjr\+::json\+::basic\+\_\+document}}$<$ Traits $>$ \&lhs, \mbox{\hyperlink{classwjr_1_1json_1_1basic__document}{wjr\+::json\+::basic\+\_\+document}}$<$ Traits $>$ \&rhs) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(lhs.\+swap(rhs)))
+\item 
+{\footnotesize template$<$size\+\_\+t I$>$ }\\WJR\+\_\+\+NODISCARD constexpr uint64\+\_\+t \& \mbox{\hyperlink{namespacestd_a23094725a331bd45dfe3ea972879687b}{get}} (\mbox{\hyperlink{classwjr_1_1uint128__t}{wjr\+::uint128\+\_\+t}} \&u) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$size\+\_\+t I$>$ }\\WJR\+\_\+\+NODISCARD constexpr const uint64\+\_\+t \& \mbox{\hyperlink{namespacestd_a123d5718db6df556e6945c4d0269de0b}{get}} (const \mbox{\hyperlink{classwjr_1_1uint128__t}{wjr\+::uint128\+\_\+t}} \&u) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$size\+\_\+t I$>$ }\\WJR\+\_\+\+NODISCARD constexpr uint64\+\_\+t \&\& \mbox{\hyperlink{namespacestd_a227416cf305fe6ca2a38411942b14d28}{get}} (\mbox{\hyperlink{classwjr_1_1uint128__t}{wjr\+::uint128\+\_\+t}} \&\&u) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$size\+\_\+t I$>$ }\\WJR\+\_\+\+NODISCARD constexpr const uint64\+\_\+t \&\& \mbox{\hyperlink{namespacestd_ab856534063d669f12ce2f3c2a6c31f3d}{get}} (const \mbox{\hyperlink{classwjr_1_1uint128__t}{wjr\+::uint128\+\_\+t}} \&\&u) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$typename T $>$ }\\constexpr void \mbox{\hyperlink{namespacestd_afebcfea32a1aed3f5cc9d33bc0a682f3}{swap}} (\mbox{\hyperlink{classwjr_1_1optional}{wjr\+::optional}}$<$ T $>$ \&lhs, \mbox{\hyperlink{classwjr_1_1optional}{wjr\+::optional}}$<$ T $>$ \&rhs) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(lhs.\+swap(rhs)))
+\item 
+{\footnotesize template$<$typename... Args, WJR\+\_\+\+REQUIRES(std\+::conjunction\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr\+::is\+\_\+swappable}}$<$ Args $>$... $>$) $>$ }\\constexpr void \mbox{\hyperlink{namespacestd_a41bb24c0c9771ebf00e085118e051f0a}{swap}} (\mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&lhs, \mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&rhs) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(lhs.\+swap(rhs)))
+\item 
+{\footnotesize template$<$size\+\_\+t I, typename... Args$>$ }\\constexpr tuple\+\_\+element\+\_\+t$<$ I, \mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ $>$ \& \mbox{\hyperlink{namespacestd_a683a2bbf27729a3c6d67841b7433cda7}{get}} (\mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&t) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$size\+\_\+t I, typename... Args$>$ }\\constexpr tuple\+\_\+element\+\_\+t$<$ I, \mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ $>$ \& \mbox{\hyperlink{namespacestd_ad9a46bbf90cad5beab681d677a4abbdf}{get}} (const \mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&t) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$size\+\_\+t I, typename... Args$>$ }\\constexpr tuple\+\_\+element\+\_\+t$<$ I, \mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ $>$ \&\& \mbox{\hyperlink{namespacestd_a9e63b618da25a8568f1d995ca79aad80}{get}} (\mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&\&t) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$size\+\_\+t I, typename... Args$>$ }\\constexpr tuple\+\_\+element\+\_\+t$<$ I, \mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ $>$ \&\& \mbox{\hyperlink{namespacestd_a9cbdc2a0d62a686a64a21633e16ada5d}{get}} (const \mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&\&t) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$typename T , typename... Args$>$ }\\constexpr T \& \mbox{\hyperlink{namespacestd_a02a6161d8a3cabcac4311f86b1585fd1}{get}} (\mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&t) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$typename T , typename... Args$>$ }\\constexpr T \& \mbox{\hyperlink{namespacestd_a2aa6b8306ccac13a4298375ba468f3f5}{get}} (const \mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&t) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$typename T , typename... Args$>$ }\\constexpr T \&\& \mbox{\hyperlink{namespacestd_ac6f24dbfc52843920b10f1a59e79f2a9}{get}} (\mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&\&t) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+{\footnotesize template$<$typename T , typename... Args$>$ }\\constexpr T \&\& \mbox{\hyperlink{namespacestd_a6a9e188102a3bd49f2e66654f765c9f6}{get}} (const \mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&\&t) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{函数说明}
+\Hypertarget{namespacestd_a2e84aab8946fe688e0e3ef9793782906}\label{namespacestd_a2e84aab8946fe688e0e3ef9793782906} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [1/24]}}
+{\footnotesize\ttfamily template$<$size\+\_\+t I, typename T , typename U , WJR\+\_\+\+REQUIRES(I$<$ 2) $>$ \\
+WJR\+\_\+\+NODISCARD constexpr const tuple\+\_\+element\+\_\+t$<$ I, \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ $>$ \&\& std\+::get (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&\&}]{pr }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a190c27771d4d4cba18d797fe12769beb}\label{namespacestd_a190c27771d4d4cba18d797fe12769beb} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [2/24]}}
+{\footnotesize\ttfamily template$<$typename T , typename U $>$ \\
+WJR\+\_\+\+NODISCARD constexpr const T \&\& std\+::get (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&\&}]{pr }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a7d6301231a3bd721de80de4e6b0b7395}\label{namespacestd_a7d6301231a3bd721de80de4e6b0b7395} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [3/24]}}
+{\footnotesize\ttfamily template$<$size\+\_\+t I, typename T , typename U , WJR\+\_\+\+REQUIRES(I$<$ 2) $>$ \\
+WJR\+\_\+\+NODISCARD constexpr const tuple\+\_\+element\+\_\+t$<$ I, \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ $>$ \& std\+::get (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&}]{pr }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_ae1c702fc20bc43a0ed9a36855a8da780}\label{namespacestd_ae1c702fc20bc43a0ed9a36855a8da780} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [4/24]}}
+{\footnotesize\ttfamily template$<$typename T , typename U $>$ \\
+WJR\+\_\+\+NODISCARD constexpr const T \& std\+::get (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&}]{pr }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_aca9b41cf1769e32ff9aeeb62f4687fbe}\label{namespacestd_aca9b41cf1769e32ff9aeeb62f4687fbe} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [5/24]}}
+{\footnotesize\ttfamily template$<$typename T , typename U $>$ \\
+WJR\+\_\+\+NODISCARD constexpr const T \&\& std\+::get (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ U, T $>$ \&\&}]{pr }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a37556585ce6334954443e887ea9cf9db}\label{namespacestd_a37556585ce6334954443e887ea9cf9db} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [6/24]}}
+{\footnotesize\ttfamily template$<$typename T , typename U $>$ \\
+WJR\+\_\+\+NODISCARD constexpr const T \& std\+::get (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ U, T $>$ \&}]{pr }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a9cbdc2a0d62a686a64a21633e16ada5d}\label{namespacestd_a9cbdc2a0d62a686a64a21633e16ada5d} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [7/24]}}
+{\footnotesize\ttfamily template$<$size\+\_\+t I, typename... Args$>$ \\
+constexpr tuple\+\_\+element\+\_\+t$<$ I, \mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ $>$ \&\& std\+::get (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&\&}]{t }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a6a9e188102a3bd49f2e66654f765c9f6}\label{namespacestd_a6a9e188102a3bd49f2e66654f765c9f6} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [8/24]}}
+{\footnotesize\ttfamily template$<$typename T , typename... Args$>$ \\
+constexpr T \&\& std\+::get (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&\&}]{t }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_ad9a46bbf90cad5beab681d677a4abbdf}\label{namespacestd_ad9a46bbf90cad5beab681d677a4abbdf} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [9/24]}}
+{\footnotesize\ttfamily template$<$size\+\_\+t I, typename... Args$>$ \\
+constexpr tuple\+\_\+element\+\_\+t$<$ I, \mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ $>$ \& std\+::get (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&}]{t }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a2aa6b8306ccac13a4298375ba468f3f5}\label{namespacestd_a2aa6b8306ccac13a4298375ba468f3f5} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [10/24]}}
+{\footnotesize\ttfamily template$<$typename T , typename... Args$>$ \\
+constexpr T \& std\+::get (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&}]{t }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_ab856534063d669f12ce2f3c2a6c31f3d}\label{namespacestd_ab856534063d669f12ce2f3c2a6c31f3d} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [11/24]}}
+{\footnotesize\ttfamily template$<$size\+\_\+t I$>$ \\
+WJR\+\_\+\+NODISCARD constexpr const uint64\+\_\+t \&\& std\+::get (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classwjr_1_1uint128__t}{wjr\+::uint128\+\_\+t}} \&\&}]{u }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a123d5718db6df556e6945c4d0269de0b}\label{namespacestd_a123d5718db6df556e6945c4d0269de0b} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [12/24]}}
+{\footnotesize\ttfamily template$<$size\+\_\+t I$>$ \\
+WJR\+\_\+\+NODISCARD constexpr const uint64\+\_\+t \& std\+::get (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classwjr_1_1uint128__t}{wjr\+::uint128\+\_\+t}} \&}]{u }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a2af1d235a8a0498dce6f28274b81465b}\label{namespacestd_a2af1d235a8a0498dce6f28274b81465b} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [13/24]}}
+{\footnotesize\ttfamily template$<$size\+\_\+t I, typename T , typename U , WJR\+\_\+\+REQUIRES(I$<$ 2) $>$ \\
+WJR\+\_\+\+NODISCARD constexpr tuple\+\_\+element\+\_\+t$<$ I, \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ $>$ \&\& std\+::get (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&\&}]{pr }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a715e57d0aa6d39a6a84e436b40b3fd54}\label{namespacestd_a715e57d0aa6d39a6a84e436b40b3fd54} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [14/24]}}
+{\footnotesize\ttfamily template$<$typename T , typename U $>$ \\
+WJR\+\_\+\+NODISCARD constexpr T \&\& std\+::get (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&\&}]{pr }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a3767022618c3b96df1cb16ac67d9fc96}\label{namespacestd_a3767022618c3b96df1cb16ac67d9fc96} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [15/24]}}
+{\footnotesize\ttfamily template$<$size\+\_\+t I, typename T , typename U , WJR\+\_\+\+REQUIRES(I$<$ 2) $>$ \\
+WJR\+\_\+\+NODISCARD constexpr tuple\+\_\+element\+\_\+t$<$ I, \mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ $>$ \& std\+::get (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&}]{pr }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_ae71dc1d27d6e691b1ea7567b9e586d64}\label{namespacestd_ae71dc1d27d6e691b1ea7567b9e586d64} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [16/24]}}
+{\footnotesize\ttfamily template$<$typename T , typename U $>$ \\
+WJR\+\_\+\+NODISCARD constexpr T \& std\+::get (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&}]{pr }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a68fcf6bcc077f55713c688771531eb4d}\label{namespacestd_a68fcf6bcc077f55713c688771531eb4d} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [17/24]}}
+{\footnotesize\ttfamily template$<$typename T , typename U $>$ \\
+WJR\+\_\+\+NODISCARD constexpr T \&\& std\+::get (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ U, T $>$ \&\&}]{pr }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a1b6e647391124bff309115570788424b}\label{namespacestd_a1b6e647391124bff309115570788424b} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [18/24]}}
+{\footnotesize\ttfamily template$<$typename T , typename U $>$ \\
+WJR\+\_\+\+NODISCARD constexpr T \& std\+::get (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ U, T $>$ \&}]{pr }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a9e63b618da25a8568f1d995ca79aad80}\label{namespacestd_a9e63b618da25a8568f1d995ca79aad80} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [19/24]}}
+{\footnotesize\ttfamily template$<$size\+\_\+t I, typename... Args$>$ \\
+constexpr tuple\+\_\+element\+\_\+t$<$ I, \mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ $>$ \&\& std\+::get (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&\&}]{t }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_ac6f24dbfc52843920b10f1a59e79f2a9}\label{namespacestd_ac6f24dbfc52843920b10f1a59e79f2a9} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [20/24]}}
+{\footnotesize\ttfamily template$<$typename T , typename... Args$>$ \\
+constexpr T \&\& std\+::get (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&\&}]{t }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a683a2bbf27729a3c6d67841b7433cda7}\label{namespacestd_a683a2bbf27729a3c6d67841b7433cda7} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [21/24]}}
+{\footnotesize\ttfamily template$<$size\+\_\+t I, typename... Args$>$ \\
+constexpr tuple\+\_\+element\+\_\+t$<$ I, \mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ $>$ \& std\+::get (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&}]{t }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a02a6161d8a3cabcac4311f86b1585fd1}\label{namespacestd_a02a6161d8a3cabcac4311f86b1585fd1} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [22/24]}}
+{\footnotesize\ttfamily template$<$typename T , typename... Args$>$ \\
+constexpr T \& std\+::get (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&}]{t }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a227416cf305fe6ca2a38411942b14d28}\label{namespacestd_a227416cf305fe6ca2a38411942b14d28} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [23/24]}}
+{\footnotesize\ttfamily template$<$size\+\_\+t I$>$ \\
+WJR\+\_\+\+NODISCARD constexpr uint64\+\_\+t \&\& std\+::get (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1uint128__t}{wjr\+::uint128\+\_\+t}} \&\&}]{u }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a23094725a331bd45dfe3ea972879687b}\label{namespacestd_a23094725a331bd45dfe3ea972879687b} 
+\index{std@{std}!get@{get}}
+\index{get@{get}!std@{std}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [24/24]}}
+{\footnotesize\ttfamily template$<$size\+\_\+t I$>$ \\
+WJR\+\_\+\+NODISCARD constexpr uint64\+\_\+t \& std\+::get (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1uint128__t}{wjr\+::uint128\+\_\+t}} \&}]{u }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a392c1c880d8a999bf92add30dd88b471}\label{namespacestd_a392c1c880d8a999bf92add30dd88b471} 
+\index{std@{std}!swap@{swap}}
+\index{swap@{swap}!std@{std}}
+\doxysubsubsection{\texorpdfstring{swap()}{swap()}\hspace{0.1cm}{\footnotesize\ttfamily [1/9]}}
+{\footnotesize\ttfamily template$<$typename Storage $>$ \\
+constexpr void std\+::swap (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ Storage $>$ \&}]{lhs,  }\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ Storage $>$ \&}]{rhs }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a41a897d744b3720d7624beb66f98033f}\label{namespacestd_a41a897d744b3720d7624beb66f98033f} 
+\index{std@{std}!swap@{swap}}
+\index{swap@{swap}!std@{std}}
+\doxysubsubsection{\texorpdfstring{swap()}{swap()}\hspace{0.1cm}{\footnotesize\ttfamily [2/9]}}
+{\footnotesize\ttfamily template$<$typename Storage $>$ \\
+constexpr void std\+::swap (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1basic__ring__buffer}{wjr\+::basic\+\_\+ring\+\_\+buffer}}$<$ Storage $>$ \&}]{lhs,  }\item[{\mbox{\hyperlink{classwjr_1_1basic__ring__buffer}{wjr\+::basic\+\_\+ring\+\_\+buffer}}$<$ Storage $>$ \&}]{rhs }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a9be7e5bacb2a9533f5c736131be2fcd7}\label{namespacestd_a9be7e5bacb2a9533f5c736131be2fcd7} 
+\index{std@{std}!swap@{swap}}
+\index{swap@{swap}!std@{std}}
+\doxysubsubsection{\texorpdfstring{swap()}{swap()}\hspace{0.1cm}{\footnotesize\ttfamily [3/9]}}
+{\footnotesize\ttfamily template$<$typename Storage $>$ \\
+constexpr void std\+::swap (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1basic__vector}{wjr\+::basic\+\_\+vector}}$<$ Storage $>$ \&}]{lhs,  }\item[{\mbox{\hyperlink{classwjr_1_1basic__vector}{wjr\+::basic\+\_\+vector}}$<$ Storage $>$ \&}]{rhs }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a8c81869f796ac7300d155ab175cd193a}\label{namespacestd_a8c81869f796ac7300d155ab175cd193a} 
+\index{std@{std}!swap@{swap}}
+\index{swap@{swap}!std@{std}}
+\doxysubsubsection{\texorpdfstring{swap()}{swap()}\hspace{0.1cm}{\footnotesize\ttfamily [4/9]}}
+{\footnotesize\ttfamily template$<$typename T , typename U , WJR\+\_\+\+REQUIRES(std\+::conjunction\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr\+::is\+\_\+swappable}}$<$ T $>$, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr\+::is\+\_\+swappable}}$<$ U $>$ $>$) $>$ \\
+constexpr void std\+::swap (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&}]{lhs,  }\item[{\mbox{\hyperlink{classwjr_1_1compressed__pair}{wjr\+::compressed\+\_\+pair}}$<$ T, U $>$ \&}]{rhs }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a1712693709f89cd3890d78b6d7f7bae2}\label{namespacestd_a1712693709f89cd3890d78b6d7f7bae2} 
+\index{std@{std}!swap@{swap}}
+\index{swap@{swap}!std@{std}}
+\doxysubsubsection{\texorpdfstring{swap()}{swap()}\hspace{0.1cm}{\footnotesize\ttfamily [5/9]}}
+{\footnotesize\ttfamily template$<$typename T , typename E $>$ \\
+constexpr void std\+::swap (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1expected}{wjr\+::expected}}$<$ T, E $>$ \&}]{lhs,  }\item[{\mbox{\hyperlink{classwjr_1_1expected}{wjr\+::expected}}$<$ T, E $>$ \&}]{rhs }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_afc614b87a78207bfa099c010c79ae8d0}\label{namespacestd_afc614b87a78207bfa099c010c79ae8d0} 
+\index{std@{std}!swap@{swap}}
+\index{swap@{swap}!std@{std}}
+\doxysubsubsection{\texorpdfstring{swap()}{swap()}\hspace{0.1cm}{\footnotesize\ttfamily [6/9]}}
+{\footnotesize\ttfamily template$<$typename Traits $>$ \\
+constexpr void std\+::swap (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1json_1_1basic__document}{wjr\+::json\+::basic\+\_\+document}}$<$ Traits $>$ \&}]{lhs,  }\item[{\mbox{\hyperlink{classwjr_1_1json_1_1basic__document}{wjr\+::json\+::basic\+\_\+document}}$<$ Traits $>$ \&}]{rhs }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_afebcfea32a1aed3f5cc9d33bc0a682f3}\label{namespacestd_afebcfea32a1aed3f5cc9d33bc0a682f3} 
+\index{std@{std}!swap@{swap}}
+\index{swap@{swap}!std@{std}}
+\doxysubsubsection{\texorpdfstring{swap()}{swap()}\hspace{0.1cm}{\footnotesize\ttfamily [7/9]}}
+{\footnotesize\ttfamily template$<$typename T $>$ \\
+constexpr void std\+::swap (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1optional}{wjr\+::optional}}$<$ T $>$ \&}]{lhs,  }\item[{\mbox{\hyperlink{classwjr_1_1optional}{wjr\+::optional}}$<$ T $>$ \&}]{rhs }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a41bb24c0c9771ebf00e085118e051f0a}\label{namespacestd_a41bb24c0c9771ebf00e085118e051f0a} 
+\index{std@{std}!swap@{swap}}
+\index{swap@{swap}!std@{std}}
+\doxysubsubsection{\texorpdfstring{swap()}{swap()}\hspace{0.1cm}{\footnotesize\ttfamily [8/9]}}
+{\footnotesize\ttfamily template$<$typename... Args, WJR\+\_\+\+REQUIRES(std\+::conjunction\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr\+::is\+\_\+swappable}}$<$ Args $>$... $>$) $>$ \\
+constexpr void std\+::swap (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&}]{lhs,  }\item[{\mbox{\hyperlink{classwjr_1_1tuple}{wjr\+::tuple}}$<$ Args... $>$ \&}]{rhs }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{namespacestd_a177a2e934edf094dfac4f64b247ced6e}\label{namespacestd_a177a2e934edf094dfac4f64b247ced6e} 
+\index{std@{std}!swap@{swap}}
+\index{swap@{swap}!std@{std}}
+\doxysubsubsection{\texorpdfstring{swap()}{swap()}\hspace{0.1cm}{\footnotesize\ttfamily [9/9]}}
+{\footnotesize\ttfamily template$<$typename E $>$ \\
+constexpr void std\+::swap (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1unexpected}{wjr\+::unexpected}}$<$ E $>$ \&}]{lhs,  }\item[{\mbox{\hyperlink{classwjr_1_1unexpected}{wjr\+::unexpected}}$<$ E $>$ \&}]{rhs }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+

@@ -640,6 +640,7 @@ OutputIt uninitialized_relocate_n_restrict_using_allocator(InputIt first, Size n
 template <typename T, bool Constructor, bool Destructor>
 struct __uninitialized_base;
 
+/// @private
 template <typename T>
 struct __aligned_storage_t {
     alignas(T) std::byte buf[sizeof(T)];

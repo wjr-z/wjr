@@ -1,0 +1,382 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: wjr::dragonbox::multiplication_traits&lt; ieee754_binary_traits&lt; ieee754_binary64, uint64_t, ExponentInt &gt;, uint128_t, 128 &gt; 模板结构体 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('structwjr_1_1dragonbox_1_1multiplication__traits_3_01ieee754__binary__traits_3_01ieee754__binary3fb04a90b0569315370689f5aab818b3.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-static-methods">静态 Public 成员函数</a> &#124;
+<a href="structwjr_1_1dragonbox_1_1multiplication__traits_3_01ieee754__binary__traits_3_01ieee754__binary31e943f6c6f776f50d2dd21358dc8d3a.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">wjr::dragonbox::multiplication_traits&lt; ieee754_binary_traits&lt; ieee754_binary64, uint64_t, ExponentInt &gt;, uint128_t, 128 &gt; 模板结构体 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="dragonbox_8hpp_source.html">dragonbox.hpp</a>&gt;</code></p>
+<div class="dynheader">
+类 wjr::dragonbox::multiplication_traits&lt; ieee754_binary_traits&lt; ieee754_binary64, uint64_t, ExponentInt &gt;, uint128_t, 128 &gt; 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><img src="structwjr_1_1dragonbox_1_1multiplication__traits_3_01ieee754__binary__traits_3_01ieee754__binary9b18a82274a397a40ef5dd6866dc25cd.png" border="0" usemap="#awjr_1_1dragonbox_1_1multiplication__traits_3_01ieee754__binary__traits_3_01ieee754__binary64_00_01uint64__t_00_01_exponent_int_01_4_00_01uint128__t_00_01128_01_4_inherit__map" alt="Inheritance graph"/></div>
+<map name="awjr_1_1dragonbox_1_1multiplication__traits_3_01ieee754__binary__traits_3_01ieee754__binary64_00_01uint64__t_00_01_exponent_int_01_4_00_01uint128__t_00_01128_01_4_inherit__map" id="awjr_1_1dragonbox_1_1multiplication__traits_3_01ieee754__binary__traits_3_01ieee754__binary64_00_01uint64__t_00_01_exponent_int_01_4_00_01uint128__t_00_01128_01_4_inherit__map">
+<area shape="rect" title=" " alt="" coords="8,213,208,517"/>
+<area shape="rect" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html" title=" " alt="" coords="5,5,211,165"/>
+<area shape="poly" title=" " alt="" coords="111,180,111,214,105,214,105,180"/>
+</map>
+</div>
+<div class="dynheader">
+wjr::dragonbox::multiplication_traits&lt; ieee754_binary_traits&lt; ieee754_binary64, uint64_t, ExponentInt &gt;, uint128_t, 128 &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><img src="structwjr_1_1dragonbox_1_1multiplication__traits_3_01ieee754__binary__traits_3_01ieee754__binary10309266658de0c61182fe19c0017fd0.png" border="0" usemap="#awjr_1_1dragonbox_1_1multiplication__traits_3_01ieee754__binary__traits_3_01ieee754__binary64_00_01uint64__t_00_01_exponent_int_01_4_00_01uint128__t_00_01128_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="awjr_1_1dragonbox_1_1multiplication__traits_3_01ieee754__binary__traits_3_01ieee754__binary64_00_01uint64__t_00_01_exponent_int_01_4_00_01uint128__t_00_01128_01_4_coll__map" id="awjr_1_1dragonbox_1_1multiplication__traits_3_01ieee754__binary__traits_3_01ieee754__binary64_00_01uint64__t_00_01_exponent_int_01_4_00_01uint128__t_00_01128_01_4_coll__map">
+<area shape="rect" title=" " alt="" coords="8,213,208,517"/>
+<area shape="rect" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html" title=" " alt="" coords="5,5,211,165"/>
+<area shape="poly" title=" " alt="" coords="111,180,111,214,105,214,105,180"/>
+</map>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+静态 Public 成员函数</h2></td></tr>
+<tr class="memitem:a859108cf97d09b3b8cf604b82d0247ff" id="r_a859108cf97d09b3b8cf604b82d0247ff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_CONSTEXPR20</a> compute_mul_result&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a859108cf97d09b3b8cf604b82d0247ff">compute_mul</a> (<a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#ae12717e1775df396fd1ba9c7a13c84ee">carrier_uint</a> u, <a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#adb2ee77867e3db118e2a536d977e717f">cache_entry_type</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> &amp;cache) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a859108cf97d09b3b8cf604b82d0247ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af145b9ac20b5a631390f72f8f8f8f33d" id="r_af145b9ac20b5a631390f72f8f8f8f33d"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a> &gt; </td></tr>
+<tr class="memitem:af145b9ac20b5a631390f72f8f8f8f33d"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#af145b9ac20b5a631390f72f8f8f8f33d">compute_delta</a> (<a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#adb2ee77867e3db118e2a536d977e717f">cache_entry_type</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> &amp;cache, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">beta</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:af145b9ac20b5a631390f72f8f8f8f33d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa2f03ee2b731d5a32016312fe1ebd3a" id="r_afa2f03ee2b731d5a32016312fe1ebd3a"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a> &gt; </td></tr>
+<tr class="memitem:afa2f03ee2b731d5a32016312fe1ebd3a"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_CONSTEXPR20</a> compute_mul_parity_result&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#afa2f03ee2b731d5a32016312fe1ebd3a">compute_mul_parity</a> (<a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#ae12717e1775df396fd1ba9c7a13c84ee">carrier_uint</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">two_f</a>, <a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#adb2ee77867e3db118e2a536d977e717f">cache_entry_type</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> &amp;cache, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">beta</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:afa2f03ee2b731d5a32016312fe1ebd3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4356c3228bb5e2588e199149379574bb" id="r_a4356c3228bb5e2588e199149379574bb"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a> &gt; </td></tr>
+<tr class="memitem:a4356c3228bb5e2588e199149379574bb"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#ae12717e1775df396fd1ba9c7a13c84ee">carrier_uint</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a4356c3228bb5e2588e199149379574bb">compute_left_endpoint_for_shorter_interval_case</a> (<a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#adb2ee77867e3db118e2a536d977e717f">cache_entry_type</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> &amp;cache, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">beta</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a4356c3228bb5e2588e199149379574bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a532c25992968f6fef8564a8a4191e6b8" id="r_a532c25992968f6fef8564a8a4191e6b8"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a> &gt; </td></tr>
+<tr class="memitem:a532c25992968f6fef8564a8a4191e6b8"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#ae12717e1775df396fd1ba9c7a13c84ee">carrier_uint</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a532c25992968f6fef8564a8a4191e6b8">compute_right_endpoint_for_shorter_interval_case</a> (<a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#adb2ee77867e3db118e2a536d977e717f">cache_entry_type</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> &amp;cache, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">beta</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a532c25992968f6fef8564a8a4191e6b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8846d1a10457600eb9528fbfe7926450" id="r_a8846d1a10457600eb9528fbfe7926450"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a> &gt; </td></tr>
+<tr class="memitem:a8846d1a10457600eb9528fbfe7926450"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#ae12717e1775df396fd1ba9c7a13c84ee">carrier_uint</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a8846d1a10457600eb9528fbfe7926450">compute_round_up_for_shorter_interval_case</a> (<a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#adb2ee77867e3db118e2a536d977e717f">cache_entry_type</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> &amp;cache, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">beta</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a8846d1a10457600eb9528fbfe7926450"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
+额外继承的成员函数</h2></td></tr>
+<tr class="inherit_header pub_types_structwjr_1_1dragonbox_1_1multiplication__traits__base"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_types_structwjr_1_1dragonbox_1_1multiplication__traits__base')"><img src="closed.png" alt="-"/>&#160;Public 类型 继承自 <a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html">wjr::dragonbox::multiplication_traits_base&lt; ieee754_binary_traits&lt; ieee754_binary64, uint64_t &gt;, uint128_t, 128 &gt;</a></td></tr>
+<tr class="memitem:ad6cbd2654af63fe99f485be2b6606551 inherit pub_types_structwjr_1_1dragonbox_1_1multiplication__traits__base" id="r_ad6cbd2654af63fe99f485be2b6606551"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#ad6cbd2654af63fe99f485be2b6606551">format</a></td></tr>
+<tr class="separator:ad6cbd2654af63fe99f485be2b6606551 inherit pub_types_structwjr_1_1dragonbox_1_1multiplication__traits__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae12717e1775df396fd1ba9c7a13c84ee inherit pub_types_structwjr_1_1dragonbox_1_1multiplication__traits__base" id="r_ae12717e1775df396fd1ba9c7a13c84ee"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#ae12717e1775df396fd1ba9c7a13c84ee">carrier_uint</a></td></tr>
+<tr class="separator:ae12717e1775df396fd1ba9c7a13c84ee inherit pub_types_structwjr_1_1dragonbox_1_1multiplication__traits__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb2ee77867e3db118e2a536d977e717f inherit pub_types_structwjr_1_1dragonbox_1_1multiplication__traits__base" id="r_adb2ee77867e3db118e2a536d977e717f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#adb2ee77867e3db118e2a536d977e717f">cache_entry_type</a></td></tr>
+<tr class="separator:adb2ee77867e3db118e2a536d977e717f inherit pub_types_structwjr_1_1dragonbox_1_1multiplication__traits__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_static_attribs_structwjr_1_1dragonbox_1_1multiplication__traits__base"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_static_attribs_structwjr_1_1dragonbox_1_1multiplication__traits__base')"><img src="closed.png" alt="-"/>&#160;静态 Public 属性 继承自 <a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html">wjr::dragonbox::multiplication_traits_base&lt; ieee754_binary_traits&lt; ieee754_binary64, uint64_t &gt;, uint128_t, 128 &gt;</a></td></tr>
+<tr class="memitem:aed9cffa7727de7d4bd8503c58706200e inherit pub_static_attribs_structwjr_1_1dragonbox_1_1multiplication__traits__base" id="r_aed9cffa7727de7d4bd8503c58706200e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#aed9cffa7727de7d4bd8503c58706200e">significand_bits</a></td></tr>
+<tr class="separator:aed9cffa7727de7d4bd8503c58706200e inherit pub_static_attribs_structwjr_1_1dragonbox_1_1multiplication__traits__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a2bd3f1dd747c628f98ac0f6d4ec096 inherit pub_static_attribs_structwjr_1_1dragonbox_1_1multiplication__traits__base" id="r_a2a2bd3f1dd747c628f98ac0f6d4ec096"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#a2a2bd3f1dd747c628f98ac0f6d4ec096">total_bits</a></td></tr>
+<tr class="separator:a2a2bd3f1dd747c628f98ac0f6d4ec096 inherit pub_static_attribs_structwjr_1_1dragonbox_1_1multiplication__traits__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad97a3d224e72af82d1faa769fd001247 inherit pub_static_attribs_structwjr_1_1dragonbox_1_1multiplication__traits__base" id="r_ad97a3d224e72af82d1faa769fd001247"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#ad97a3d224e72af82d1faa769fd001247">cache_bits</a></td></tr>
+<tr class="separator:ad97a3d224e72af82d1faa769fd001247 inherit pub_static_attribs_structwjr_1_1dragonbox_1_1multiplication__traits__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="af145b9ac20b5a631390f72f8f8f8f33d" name="af145b9ac20b5a631390f72f8f8f8f33d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af145b9ac20b5a631390f72f8f8f8f33d">&#9670;&#160;</a></span>compute_delta()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a> <a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits.html">wjr::dragonbox::multiplication_traits</a>&lt; <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">ieee754_binary_traits</a>&lt; <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary64.html">ieee754_binary64</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;, <a class="el" href="classwjr_1_1uint128__t.html">uint128_t</a>, 128 &gt;::compute_delta </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#adb2ee77867e3db118e2a536d977e717f">cache_entry_type</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>cache</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a></td>          <td class="paramname"><span class="paramname"><em>beta</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4356c3228bb5e2588e199149379574bb" name="a4356c3228bb5e2588e199149379574bb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4356c3228bb5e2588e199149379574bb">&#9670;&#160;</a></span>compute_left_endpoint_for_shorter_interval_case()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#ae12717e1775df396fd1ba9c7a13c84ee">carrier_uint</a> <a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits.html">wjr::dragonbox::multiplication_traits</a>&lt; <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">ieee754_binary_traits</a>&lt; <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary64.html">ieee754_binary64</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;, <a class="el" href="classwjr_1_1uint128__t.html">uint128_t</a>, 128 &gt;::compute_left_endpoint_for_shorter_interval_case </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#adb2ee77867e3db118e2a536d977e717f">cache_entry_type</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>cache</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a></td>          <td class="paramname"><span class="paramname"><em>beta</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a859108cf97d09b3b8cf604b82d0247ff" name="a859108cf97d09b3b8cf604b82d0247ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a859108cf97d09b3b8cf604b82d0247ff">&#9670;&#160;</a></span>compute_mul()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_CONSTEXPR20</a> compute_mul_result <a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits.html">wjr::dragonbox::multiplication_traits</a>&lt; <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">ieee754_binary_traits</a>&lt; <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary64.html">ieee754_binary64</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;, <a class="el" href="classwjr_1_1uint128__t.html">uint128_t</a>, 128 &gt;::compute_mul </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#ae12717e1775df396fd1ba9c7a13c84ee">carrier_uint</a></td>          <td class="paramname"><span class="paramname"><em>u</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#adb2ee77867e3db118e2a536d977e717f">cache_entry_type</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>cache</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afa2f03ee2b731d5a32016312fe1ebd3a" name="afa2f03ee2b731d5a32016312fe1ebd3a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa2f03ee2b731d5a32016312fe1ebd3a">&#9670;&#160;</a></span>compute_mul_parity()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_CONSTEXPR20</a> compute_mul_parity_result <a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits.html">wjr::dragonbox::multiplication_traits</a>&lt; <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">ieee754_binary_traits</a>&lt; <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary64.html">ieee754_binary64</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;, <a class="el" href="classwjr_1_1uint128__t.html">uint128_t</a>, 128 &gt;::compute_mul_parity </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#ae12717e1775df396fd1ba9c7a13c84ee">carrier_uint</a></td>          <td class="paramname"><span class="paramname"><em>two_f</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#adb2ee77867e3db118e2a536d977e717f">cache_entry_type</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>cache</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a></td>          <td class="paramname"><span class="paramname"><em>beta</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a532c25992968f6fef8564a8a4191e6b8" name="a532c25992968f6fef8564a8a4191e6b8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a532c25992968f6fef8564a8a4191e6b8">&#9670;&#160;</a></span>compute_right_endpoint_for_shorter_interval_case()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#ae12717e1775df396fd1ba9c7a13c84ee">carrier_uint</a> <a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits.html">wjr::dragonbox::multiplication_traits</a>&lt; <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">ieee754_binary_traits</a>&lt; <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary64.html">ieee754_binary64</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;, <a class="el" href="classwjr_1_1uint128__t.html">uint128_t</a>, 128 &gt;::compute_right_endpoint_for_shorter_interval_case </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#adb2ee77867e3db118e2a536d977e717f">cache_entry_type</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>cache</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a></td>          <td class="paramname"><span class="paramname"><em>beta</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8846d1a10457600eb9528fbfe7926450" name="a8846d1a10457600eb9528fbfe7926450"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8846d1a10457600eb9528fbfe7926450">&#9670;&#160;</a></span>compute_round_up_for_shorter_interval_case()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#ae12717e1775df396fd1ba9c7a13c84ee">carrier_uint</a> <a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits.html">wjr::dragonbox::multiplication_traits</a>&lt; <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">ieee754_binary_traits</a>&lt; <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary64.html">ieee754_binary64</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;, <a class="el" href="classwjr_1_1uint128__t.html">uint128_t</a>, 128 &gt;::compute_round_up_for_shorter_interval_case </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits__base.html#adb2ee77867e3db118e2a536d977e717f">cache_entry_type</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>cache</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ShiftAmountType</a></td>          <td class="paramname"><span class="paramname"><em>beta</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该结构体的文档由以下文件生成:<ul>
+<li>include/wjr/format/<a class="el" href="dragonbox_8hpp_source.html">dragonbox.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacewjr.html">wjr</a></li><li class="navelem"><a class="el" href="namespacewjr_1_1dragonbox.html">dragonbox</a></li><li class="navelem"><a class="el" href="structwjr_1_1dragonbox_1_1multiplication__traits_3_01ieee754__binary__traits_3_01ieee754__binary3fb04a90b0569315370689f5aab818b3.html">multiplication_traits&lt; ieee754_binary_traits&lt; ieee754_binary64, uint64_t, ExponentInt &gt;, uint128_t, 128 &gt;</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,45 @@
+\doxysection{container\+\_\+fn\texorpdfstring{$<$}{<} Alloc \texorpdfstring{$>$}{>}类 参考}
+\hypertarget{classcontainer__fn_3_01_alloc_01_4}{}\label{classcontainer__fn_3_01_alloc_01_4}\index{container\_fn$<$ Alloc $>$@{container\_fn$<$ Alloc $>$}}
+
+
+The same characteristics and behavior of all allocator containers  
+
+
+
+
+{\ttfamily \#include $<$container\+\_\+fn.\+hpp$>$}
+
+
+
+container\+\_\+fn\texorpdfstring{$<$}{<} Alloc \texorpdfstring{$>$}{>} 的协作图\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=182pt]{classcontainer__fn_3_01_alloc_01_4__coll__graph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{详细描述}
+The same characteristics and behavior of all allocator containers 
+
+container must have the following member functions\+:
+\begin{DoxyEnumerate}
+\item auto\& \+\_\+\+\_\+get\+\_\+allocator() noexcept
+\item void \+\_\+\+\_\+destroy\+\_\+and\+\_\+deallocate() noexcept
+\item void \+\_\+\+\_\+release\+\_\+before\+\_\+copy()
+\item void \+\_\+\+\_\+copy\+\_\+element(const container\& other)
+\item void \+\_\+\+\_\+take\+\_\+storage(container\&\& other)
+\item void \+\_\+\+\_\+destroy\+\_\+and\+\_\+move\+\_\+element(container\&\& other)
+\item void \+\_\+\+\_\+swap\+\_\+storage(container\& other)
+\end{DoxyEnumerate}
+
+1 \+: Is used to manage the allocator of the container. ~\newline
+2 \+: Destroy element but not release memory. ~\newline
+worry about whether it is in an empty state. ~\newline
+3 \+: \+\_\+\+\_\+destroy\+\_\+and\+\_\+deallocate and clear, set to empty state. ~\newline
+4-\/7 \+: Is used to assign the container data. Shouldn\textquotesingle{}t change the allocator. 
+
+该类的文档由以下文件生成\+:\begin{DoxyCompactItemize}
+\item 
+include/wjr/container/\mbox{\hyperlink{container__fn_8hpp}{container\+\_\+fn.\+hpp}}\end{DoxyCompactItemize}

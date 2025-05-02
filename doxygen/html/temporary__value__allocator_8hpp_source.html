@@ -1,0 +1,186 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: include/wjr/memory/temporary_value_allocator.hpp 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('temporary__value__allocator_8hpp_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">temporary_value_allocator.hpp</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="temporary__value__allocator_8hpp.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;<a class="code" href="uninitialized_8hpp.html">wjr/memory/uninitialized.hpp</a>&gt;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacewjr.html">wjr</a> {</div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Alloc&gt;</div>
+<div class="foldopen" id="foldopen00009" data-start="{" data-end="};">
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno"><a class="line" href="classwjr_1_1temporary__value__allocator.html">    9</a></span><span class="keyword">class </span><a class="code hl_class" href="classwjr_1_1temporary__value__allocator.html">temporary_value_allocator</a> {</div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno"><a class="line" href="classwjr_1_1temporary__value__allocator.html#a68ad64e8e13b4c3e4e5b95a66834b445">   11</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classwjr_1_1temporary__value__allocator.html#a68ad64e8e13b4c3e4e5b95a66834b445">value_type</a> = <span class="keyword">typename</span> std::allocator_traits&lt;Alloc&gt;::value_type;</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno"><a class="line" href="classwjr_1_1temporary__value__allocator.html#a91df43c09f426ff66f5c74c4c160ca92">   12</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classwjr_1_1temporary__value__allocator.html#a91df43c09f426ff66f5c74c4c160ca92">pointer</a> = <a class="code hl_typedef" href="classwjr_1_1temporary__value__allocator.html#a68ad64e8e13b4c3e4e5b95a66834b445">value_type</a> *;</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno"><a class="line" href="classwjr_1_1temporary__value__allocator.html#a90d110acbcda2fcfb2ef92b847c05adf">   13</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classwjr_1_1temporary__value__allocator.html#a90d110acbcda2fcfb2ef92b847c05adf">const_pointer</a> = <span class="keyword">const</span> <a class="code hl_typedef" href="classwjr_1_1temporary__value__allocator.html#a68ad64e8e13b4c3e4e5b95a66834b445">value_type</a> *;</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span>... <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Args</a>&gt;</div>
+<div class="foldopen" id="foldopen00016" data-start="{" data-end="}">
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="classwjr_1_1temporary__value__allocator.html#a28eaf6740a27a46b3334de4f06f94d01">   16</a></span>    <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="code hl_function" href="classwjr_1_1temporary__value__allocator.html#a28eaf6740a27a46b3334de4f06f94d01">temporary_value_allocator</a>(Alloc &amp;<a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_al</a>, <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Args</a> &amp;&amp;...<a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">args</a>) <span class="keyword">noexcept</span>(</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>        std::is_nothrow_constructible_v&lt;<a class="code hl_typedef" href="classwjr_1_1temporary__value__allocator.html#a68ad64e8e13b4c3e4e5b95a66834b445">value_type</a>, <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Args</a>...&gt;)</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>        : m_al(<a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_al</a>) {</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>        <a class="code hl_function" href="namespacewjr.html#ab268bcadd36d0b01d98998697191fb05">uninitialized_construct_using_allocator</a>(<a class="code hl_function" href="classwjr_1_1temporary__value__allocator.html#a5c5c1b09b1392127ae6a7113c9865123">get</a>(), m_al, std::forward&lt;Args&gt;(<a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">args</a>)...);</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    }</div>
+</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno"><a class="line" href="classwjr_1_1temporary__value__allocator.html#a11968ca30207e904b5d03eac8a00151b">   22</a></span>    <a class="code hl_function" href="classwjr_1_1temporary__value__allocator.html#a11968ca30207e904b5d03eac8a00151b">temporary_value_allocator</a>(<span class="keyword">const</span> <a class="code hl_class" href="classwjr_1_1temporary__value__allocator.html">temporary_value_allocator</a> &amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="classwjr_1_1temporary__value__allocator.html#ad4c2fe4370687fc6007669f1254d080e">   23</a></span>    <a class="code hl_function" href="classwjr_1_1temporary__value__allocator.html#ad4c2fe4370687fc6007669f1254d080e">temporary_value_allocator</a>(<a class="code hl_class" href="classwjr_1_1temporary__value__allocator.html">temporary_value_allocator</a> &amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="classwjr_1_1temporary__value__allocator.html#a933f3f6007554705beec5e6acd778dae">   24</a></span>    <a class="code hl_class" href="classwjr_1_1temporary__value__allocator.html">temporary_value_allocator</a> &amp;<a class="code hl_function" href="classwjr_1_1temporary__value__allocator.html#a933f3f6007554705beec5e6acd778dae">operator=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classwjr_1_1temporary__value__allocator.html">temporary_value_allocator</a> &amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="classwjr_1_1temporary__value__allocator.html#a5c9713b69b93f3d9d71162ff8c40da48">   25</a></span>    <a class="code hl_class" href="classwjr_1_1temporary__value__allocator.html">temporary_value_allocator</a> &amp;<a class="code hl_function" href="classwjr_1_1temporary__value__allocator.html#a5c9713b69b93f3d9d71162ff8c40da48">operator=</a>(<a class="code hl_class" href="classwjr_1_1temporary__value__allocator.html">temporary_value_allocator</a> &amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
+<div class="foldopen" id="foldopen00027" data-start="{" data-end="}">
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="classwjr_1_1temporary__value__allocator.html#a30a9c8035eec6b2a3fb281ec54ea1040">   27</a></span>    <a class="code hl_function" href="classwjr_1_1temporary__value__allocator.html#a30a9c8035eec6b2a3fb281ec54ea1040">~temporary_value_allocator</a>() <a class="code hl_variable" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a>(</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>        <a class="code hl_variable" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a>(<a class="code hl_function" href="namespacewjr.html#a96eeb697d042aa71313dd6a4d2176a07">destroy_at_using_allocator</a>(<a class="code hl_namespace" href="namespacestd.html">std</a>::<a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">declval</a>&lt;<a class="code hl_typedef" href="classwjr_1_1temporary__value__allocator.html#a91df43c09f426ff66f5c74c4c160ca92">pointer</a>&gt;(), <a class="code hl_namespace" href="namespacestd.html">std</a>::<a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">declval</a>&lt;Alloc &amp;&gt;()))) {</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>        <a class="code hl_function" href="namespacewjr.html#a96eeb697d042aa71313dd6a4d2176a07">destroy_at_using_allocator</a>(<a class="code hl_function" href="classwjr_1_1temporary__value__allocator.html#a5c5c1b09b1392127ae6a7113c9865123">get</a>(), m_al);</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    }</div>
+</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="classwjr_1_1temporary__value__allocator.html#a5c5c1b09b1392127ae6a7113c9865123">   32</a></span>    <a class="code hl_typedef" href="classwjr_1_1temporary__value__allocator.html#a91df43c09f426ff66f5c74c4c160ca92">pointer</a> <a class="code hl_function" href="classwjr_1_1temporary__value__allocator.html#a5c5c1b09b1392127ae6a7113c9865123">get</a>() <a class="code hl_variable" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a> { <span class="keywordflow">return</span> m_storage.<a class="code hl_function" href="classwjr_1_1uninitialized.html#a428abded8f9f80d0899c1f22fad6da48">get</a>(); }</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="classwjr_1_1temporary__value__allocator.html#a58247bf112b9f96c7068b9af77c185f8">   33</a></span>    <a class="code hl_typedef" href="classwjr_1_1temporary__value__allocator.html#a90d110acbcda2fcfb2ef92b847c05adf">const_pointer</a> <a class="code hl_function" href="classwjr_1_1temporary__value__allocator.html#a58247bf112b9f96c7068b9af77c185f8">get</a>() <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="code hl_variable" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a> { <span class="keywordflow">return</span> m_storage.<a class="code hl_function" href="classwjr_1_1uninitialized.html#a428abded8f9f80d0899c1f22fad6da48">get</a>(); }</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    Alloc &amp;m_al;</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uninitialized&lt;value_type&gt;</a> m_storage;</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>};</div>
+</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Alloc, <span class="keyword">typename</span>... <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Args</a>&gt;</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="namespacewjr.html#a81bbdcb36a886e89ff0170371c70a377">   41</a></span><a class="code hl_function" href="namespacewjr.html#a81bbdcb36a886e89ff0170371c70a377">temporary_value_allocator</a>(Alloc &amp;, <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Args</a> &amp;&amp;...) -&gt; <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">temporary_value_allocator&lt;Alloc&gt;</a>;</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>} <span class="comment">// namespace wjr</span></div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="preprocessor">#endif </span><span class="comment">// WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__</span></div>
+<div class="ttc" id="aclasswjr_1_1temporary__value__allocator_html"><div class="ttname"><a href="classwjr_1_1temporary__value__allocator.html">wjr::temporary_value_allocator</a></div><div class="ttdef"><b>Definition</b> temporary_value_allocator.hpp:9</div></div>
+<div class="ttc" id="aclasswjr_1_1temporary__value__allocator_html_a11968ca30207e904b5d03eac8a00151b"><div class="ttname"><a href="classwjr_1_1temporary__value__allocator.html#a11968ca30207e904b5d03eac8a00151b">wjr::temporary_value_allocator::temporary_value_allocator</a></div><div class="ttdeci">temporary_value_allocator(const temporary_value_allocator &amp;)=delete</div></div>
+<div class="ttc" id="aclasswjr_1_1temporary__value__allocator_html_a28eaf6740a27a46b3334de4f06f94d01"><div class="ttname"><a href="classwjr_1_1temporary__value__allocator.html#a28eaf6740a27a46b3334de4f06f94d01">wjr::temporary_value_allocator::temporary_value_allocator</a></div><div class="ttdeci">WJR_CONSTEXPR20 temporary_value_allocator(Alloc &amp;_al, Args &amp;&amp;...args) noexcept(std::is_nothrow_constructible_v&lt; value_type, Args... &gt;)</div><div class="ttdef"><b>Definition</b> temporary_value_allocator.hpp:16</div></div>
+<div class="ttc" id="aclasswjr_1_1temporary__value__allocator_html_a30a9c8035eec6b2a3fb281ec54ea1040"><div class="ttname"><a href="classwjr_1_1temporary__value__allocator.html#a30a9c8035eec6b2a3fb281ec54ea1040">wjr::temporary_value_allocator::~temporary_value_allocator</a></div><div class="ttdeci">~temporary_value_allocator() noexcept(noexcept(destroy_at_using_allocator(std::declval&lt; pointer &gt;(), std::declval&lt; Alloc &amp; &gt;())))</div><div class="ttdef"><b>Definition</b> temporary_value_allocator.hpp:27</div></div>
+<div class="ttc" id="aclasswjr_1_1temporary__value__allocator_html_a58247bf112b9f96c7068b9af77c185f8"><div class="ttname"><a href="classwjr_1_1temporary__value__allocator.html#a58247bf112b9f96c7068b9af77c185f8">wjr::temporary_value_allocator::get</a></div><div class="ttdeci">const_pointer get() const noexcept</div><div class="ttdef"><b>Definition</b> temporary_value_allocator.hpp:33</div></div>
+<div class="ttc" id="aclasswjr_1_1temporary__value__allocator_html_a5c5c1b09b1392127ae6a7113c9865123"><div class="ttname"><a href="classwjr_1_1temporary__value__allocator.html#a5c5c1b09b1392127ae6a7113c9865123">wjr::temporary_value_allocator::get</a></div><div class="ttdeci">pointer get() noexcept</div><div class="ttdef"><b>Definition</b> temporary_value_allocator.hpp:32</div></div>
+<div class="ttc" id="aclasswjr_1_1temporary__value__allocator_html_a5c9713b69b93f3d9d71162ff8c40da48"><div class="ttname"><a href="classwjr_1_1temporary__value__allocator.html#a5c9713b69b93f3d9d71162ff8c40da48">wjr::temporary_value_allocator::operator=</a></div><div class="ttdeci">temporary_value_allocator &amp; operator=(temporary_value_allocator &amp;&amp;)=delete</div></div>
+<div class="ttc" id="aclasswjr_1_1temporary__value__allocator_html_a68ad64e8e13b4c3e4e5b95a66834b445"><div class="ttname"><a href="classwjr_1_1temporary__value__allocator.html#a68ad64e8e13b4c3e4e5b95a66834b445">wjr::temporary_value_allocator::value_type</a></div><div class="ttdeci">typename std::allocator_traits&lt; Alloc &gt;::value_type value_type</div><div class="ttdef"><b>Definition</b> temporary_value_allocator.hpp:11</div></div>
+<div class="ttc" id="aclasswjr_1_1temporary__value__allocator_html_a90d110acbcda2fcfb2ef92b847c05adf"><div class="ttname"><a href="classwjr_1_1temporary__value__allocator.html#a90d110acbcda2fcfb2ef92b847c05adf">wjr::temporary_value_allocator::const_pointer</a></div><div class="ttdeci">const value_type * const_pointer</div><div class="ttdef"><b>Definition</b> temporary_value_allocator.hpp:13</div></div>
+<div class="ttc" id="aclasswjr_1_1temporary__value__allocator_html_a91df43c09f426ff66f5c74c4c160ca92"><div class="ttname"><a href="classwjr_1_1temporary__value__allocator.html#a91df43c09f426ff66f5c74c4c160ca92">wjr::temporary_value_allocator::pointer</a></div><div class="ttdeci">value_type * pointer</div><div class="ttdef"><b>Definition</b> temporary_value_allocator.hpp:12</div></div>
+<div class="ttc" id="aclasswjr_1_1temporary__value__allocator_html_a933f3f6007554705beec5e6acd778dae"><div class="ttname"><a href="classwjr_1_1temporary__value__allocator.html#a933f3f6007554705beec5e6acd778dae">wjr::temporary_value_allocator::operator=</a></div><div class="ttdeci">temporary_value_allocator &amp; operator=(const temporary_value_allocator &amp;)=delete</div></div>
+<div class="ttc" id="aclasswjr_1_1temporary__value__allocator_html_ad4c2fe4370687fc6007669f1254d080e"><div class="ttname"><a href="classwjr_1_1temporary__value__allocator.html#ad4c2fe4370687fc6007669f1254d080e">wjr::temporary_value_allocator::temporary_value_allocator</a></div><div class="ttdeci">temporary_value_allocator(temporary_value_allocator &amp;&amp;)=delete</div></div>
+<div class="ttc" id="aclasswjr_1_1uninitialized_html_a428abded8f9f80d0899c1f22fad6da48"><div class="ttname"><a href="classwjr_1_1uninitialized.html#a428abded8f9f80d0899c1f22fad6da48">wjr::uninitialized::get</a></div><div class="ttdeci">constexpr T * get() noexcept</div><div class="ttdef"><b>Definition</b> uninitialized.hpp:757</div></div>
+<div class="ttc" id="anamespacestd_html"><div class="ttname"><a href="namespacestd.html">std</a></div><div class="ttdef"><b>Definition</b> biginteger.hpp:2891</div></div>
+<div class="ttc" id="anamespacewjr_html"><div class="ttname"><a href="namespacewjr.html">wjr</a></div><div class="ttdef"><b>Definition</b> algorithm.hpp:11</div></div>
+<div class="ttc" id="anamespacewjr_html_a1acbd863328d678d9e25f3a31ef82df0"><div class="ttname"><a href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">wjr::iterator_reference_t</a></div><div class="ttdeci">typename std::iterator_traits&lt; Iter &gt;::reference iterator_reference_t</div><div class="ttdef"><b>Definition</b> detail.hpp:17</div></div>
+<div class="ttc" id="anamespacewjr_html_a81bbdcb36a886e89ff0170371c70a377"><div class="ttname"><a href="namespacewjr.html#a81bbdcb36a886e89ff0170371c70a377">wjr::temporary_value_allocator</a></div><div class="ttdeci">temporary_value_allocator(Alloc &amp;, Args &amp;&amp;...) -&gt; temporary_value_allocator&lt; Alloc &gt;</div></div>
+<div class="ttc" id="anamespacewjr_html_a96eeb697d042aa71313dd6a4d2176a07"><div class="ttname"><a href="namespacewjr.html#a96eeb697d042aa71313dd6a4d2176a07">wjr::destroy_at_using_allocator</a></div><div class="ttdeci">WJR_CONSTEXPR20 void destroy_at_using_allocator(Iter iter, Alloc &amp;alloc)</div><div class="ttdef"><b>Definition</b> uninitialized.hpp:369</div></div>
+<div class="ttc" id="anamespacewjr_html_ab268bcadd36d0b01d98998697191fb05"><div class="ttname"><a href="namespacewjr.html#ab268bcadd36d0b01d98998697191fb05">wjr::uninitialized_construct_using_allocator</a></div><div class="ttdeci">WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &amp;alloc, Args &amp;&amp;...args)</div><div class="ttdef"><b>Definition</b> uninitialized.hpp:32</div></div>
+<div class="ttc" id="anamespacewjr_html_af89e8e658fd9c3a3b154c55677a3b528"><div class="ttname"><a href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">wjr::noexcept</a></div><div class="ttdeci">const biginteger_data T rhs noexcept</div><div class="ttdef"><b>Definition</b> biginteger.hpp:1055</div></div>
+<div class="ttc" id="auninitialized_8hpp_html"><div class="ttname"><a href="uninitialized_8hpp.html">uninitialized.hpp</a></div><div class="ttdoc">The header file for uninitialized memory operations using allocator.</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_1efa0e4d5c42031eef05b07d97cdbde6.html">wjr</a></li><li class="navelem"><a class="el" href="dir_b62404b9a39b149d372c36d30168af5c.html">memory</a></li><li class="navelem"><a class="el" href="temporary__value__allocator_8hpp.html">temporary_value_allocator.hpp</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

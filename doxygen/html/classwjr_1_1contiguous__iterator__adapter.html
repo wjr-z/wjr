@@ -1,0 +1,797 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: wjr::contiguous_iterator_adapter&lt; Container, Traits &gt; 模板类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('classwjr_1_1contiguous__iterator__adapter.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Public 类型</a> &#124;
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="#friends">友元</a> &#124;
+<a href="classwjr_1_1contiguous__iterator__adapter-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">wjr::contiguous_iterator_adapter&lt; Container, Traits &gt; 模板类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="contiguous__iterator__adpater_8hpp_source.html">contiguous_iterator_adpater.hpp</a>&gt;</code></p>
+<div class="dynheader">
+类 wjr::contiguous_iterator_adapter&lt; Container, Traits &gt; 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><img src="classwjr_1_1contiguous__iterator__adapter__inherit__graph.png" border="0" usemap="#awjr_1_1contiguous__iterator__adapter_3_01_container_00_01_traits_01_4_inherit__map" alt="Inheritance graph"/></div>
+<map name="awjr_1_1contiguous__iterator__adapter_3_01_container_00_01_traits_01_4_inherit__map" id="awjr_1_1contiguous__iterator__adapter_3_01_container_00_01_traits_01_4_inherit__map">
+<area shape="rect" title=" " alt="" coords="5,421,187,784"/>
+<area shape="rect" href="classwjr_1_1contiguous__const__iterator__adapter.html" title=" " alt="" coords="5,5,187,373"/>
+<area shape="poly" title=" " alt="" coords="99,388,99,422,93,422,93,388"/>
+</map>
+</div>
+<div class="dynheader">
+wjr::contiguous_iterator_adapter&lt; Container, Traits &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><img src="classwjr_1_1contiguous__iterator__adapter__coll__graph.png" border="0" usemap="#awjr_1_1contiguous__iterator__adapter_3_01_container_00_01_traits_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="awjr_1_1contiguous__iterator__adapter_3_01_container_00_01_traits_01_4_coll__map" id="awjr_1_1contiguous__iterator__adapter_3_01_container_00_01_traits_01_4_coll__map">
+<area shape="rect" title=" " alt="" coords="5,421,187,784"/>
+<area shape="rect" href="classwjr_1_1contiguous__const__iterator__adapter.html" title=" " alt="" coords="5,5,187,373"/>
+<area shape="poly" title=" " alt="" coords="99,388,99,422,93,422,93,388"/>
+</map>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:ababc63327e9e2ac19ef8fa543cd00408" id="r_ababc63327e9e2ac19ef8fa543cd00408"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ababc63327e9e2ac19ef8fa543cd00408">iterator_concept</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a25f3e8b042151daf73b174069c34569a">Mybase::iterator_concept</a></td></tr>
+<tr class="separator:ababc63327e9e2ac19ef8fa543cd00408"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aada7e032dddfccb791665c90f3911838" id="r_aada7e032dddfccb791665c90f3911838"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aada7e032dddfccb791665c90f3911838">iterator_category</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#aabb89f6f40d7fcc377dfc640f57e0444">Mybase::iterator_category</a></td></tr>
+<tr class="separator:aada7e032dddfccb791665c90f3911838"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59d797436f1422eeee86cc5357514ee2" id="r_a59d797436f1422eeee86cc5357514ee2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a59d797436f1422eeee86cc5357514ee2">value_type</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a826c7c45f0026ff24f5456ed6a92df73">Mybase::value_type</a></td></tr>
+<tr class="separator:a59d797436f1422eeee86cc5357514ee2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc8e7564d86cf934cba0e5c6c36b8824" id="r_afc8e7564d86cf934cba0e5c6c36b8824"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afc8e7564d86cf934cba0e5c6c36b8824">difference_type</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a599dcde148231b72004c7ec75d8656b5">Mybase::difference_type</a></td></tr>
+<tr class="separator:afc8e7564d86cf934cba0e5c6c36b8824"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad7115507ae59ece3bf9834b5ff837907" id="r_ad7115507ae59ece3bf9834b5ff837907"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad7115507ae59ece3bf9834b5ff837907">pointer</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits::pointer</td></tr>
+<tr class="separator:ad7115507ae59ece3bf9834b5ff837907"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a786f5e7c8202437cce8e376620cb9deb" id="r_a786f5e7c8202437cce8e376620cb9deb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a786f5e7c8202437cce8e376620cb9deb">reference</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits::reference</td></tr>
+<tr class="separator:a786f5e7c8202437cce8e376620cb9deb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_types_classwjr_1_1contiguous__const__iterator__adapter"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_types_classwjr_1_1contiguous__const__iterator__adapter')"><img src="closed.png" alt="-"/>&#160;Public 类型 继承自 <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">wjr::contiguous_const_iterator_adapter&lt; Container, Traits &gt;</a></td></tr>
+<tr class="memitem:a25f3e8b042151daf73b174069c34569a inherit pub_types_classwjr_1_1contiguous__const__iterator__adapter" id="r_a25f3e8b042151daf73b174069c34569a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a25f3e8b042151daf73b174069c34569a">iterator_concept</a> = std::contiguous_iterator_tag</td></tr>
+<tr class="separator:a25f3e8b042151daf73b174069c34569a inherit pub_types_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aabb89f6f40d7fcc377dfc640f57e0444 inherit pub_types_classwjr_1_1contiguous__const__iterator__adapter" id="r_aabb89f6f40d7fcc377dfc640f57e0444"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#aabb89f6f40d7fcc377dfc640f57e0444">iterator_category</a> = std::random_access_iterator_tag</td></tr>
+<tr class="separator:aabb89f6f40d7fcc377dfc640f57e0444 inherit pub_types_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a826c7c45f0026ff24f5456ed6a92df73 inherit pub_types_classwjr_1_1contiguous__const__iterator__adapter" id="r_a826c7c45f0026ff24f5456ed6a92df73"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a826c7c45f0026ff24f5456ed6a92df73">value_type</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits::value_type</td></tr>
+<tr class="separator:a826c7c45f0026ff24f5456ed6a92df73 inherit pub_types_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a599dcde148231b72004c7ec75d8656b5 inherit pub_types_classwjr_1_1contiguous__const__iterator__adapter" id="r_a599dcde148231b72004c7ec75d8656b5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a599dcde148231b72004c7ec75d8656b5">difference_type</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits::difference_type</td></tr>
+<tr class="separator:a599dcde148231b72004c7ec75d8656b5 inherit pub_types_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff5fc2b23666fd48eaec6f4b2c226825 inherit pub_types_classwjr_1_1contiguous__const__iterator__adapter" id="r_aff5fc2b23666fd48eaec6f4b2c226825"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#aff5fc2b23666fd48eaec6f4b2c226825">pointer</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits::const_pointer</td></tr>
+<tr class="separator:aff5fc2b23666fd48eaec6f4b2c226825 inherit pub_types_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9586c4c55d10d1b78909857e5783c8e inherit pub_types_classwjr_1_1contiguous__const__iterator__adapter" id="r_af9586c4c55d10d1b78909857e5783c8e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#af9586c4c55d10d1b78909857e5783c8e">reference</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits::const_reference</td></tr>
+<tr class="separator:af9586c4c55d10d1b78909857e5783c8e inherit pub_types_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:a2af43a5ccfd283478d6aac37cf5b1f0d" id="r_a2af43a5ccfd283478d6aac37cf5b1f0d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="#ad7115507ae59ece3bf9834b5ff837907">pointer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2af43a5ccfd283478d6aac37cf5b1f0d">operator-&gt;</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a2af43a5ccfd283478d6aac37cf5b1f0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeea84241697bab48f355b4953599576b" id="r_aeea84241697bab48f355b4953599576b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="#a786f5e7c8202437cce8e376620cb9deb">reference</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeea84241697bab48f355b4953599576b">operator*</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:aeea84241697bab48f355b4953599576b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4c83139cdb1e57791d333b1782c601a0" id="r_a4c83139cdb1e57791d333b1782c601a0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4c83139cdb1e57791d333b1782c601a0">operator++</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a4c83139cdb1e57791d333b1782c601a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adef774c002b490ea72d9c7919e3947b8" id="r_adef774c002b490ea72d9c7919e3947b8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adef774c002b490ea72d9c7919e3947b8">operator++</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:adef774c002b490ea72d9c7919e3947b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a36f67cb6c92d550cbafce2b2780211fe" id="r_a36f67cb6c92d550cbafce2b2780211fe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a36f67cb6c92d550cbafce2b2780211fe">operator--</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a36f67cb6c92d550cbafce2b2780211fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acc6800195e9f06705e4c614fbdf04293" id="r_acc6800195e9f06705e4c614fbdf04293"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acc6800195e9f06705e4c614fbdf04293">operator--</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:acc6800195e9f06705e4c614fbdf04293"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8cd0cd6005e6d654037cddf666acaf00" id="r_a8cd0cd6005e6d654037cddf666acaf00"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8cd0cd6005e6d654037cddf666acaf00">operator+=</a> (<a class="el" href="#afc8e7564d86cf934cba0e5c6c36b8824">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a8cd0cd6005e6d654037cddf666acaf00"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a13f2cdb76a031bbe150df957c3fc2985" id="r_a13f2cdb76a031bbe150df957c3fc2985"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a13f2cdb76a031bbe150df957c3fc2985">operator+</a> (<a class="el" href="#afc8e7564d86cf934cba0e5c6c36b8824">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a13f2cdb76a031bbe150df957c3fc2985"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3054349146b239d17e84a5db5a6e1e4d" id="r_a3054349146b239d17e84a5db5a6e1e4d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3054349146b239d17e84a5db5a6e1e4d">operator-=</a> (<a class="el" href="#afc8e7564d86cf934cba0e5c6c36b8824">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a3054349146b239d17e84a5db5a6e1e4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b21aa9cdfae3034470e58288a1813a1" id="r_a4b21aa9cdfae3034470e58288a1813a1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4b21aa9cdfae3034470e58288a1813a1">operator-</a> (<a class="el" href="#afc8e7564d86cf934cba0e5c6c36b8824">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a4b21aa9cdfae3034470e58288a1813a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6fd125537596f6cad28d13eebb7c6090" id="r_a6fd125537596f6cad28d13eebb7c6090"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="#a786f5e7c8202437cce8e376620cb9deb">reference</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6fd125537596f6cad28d13eebb7c6090">operator[]</a> (<a class="el" href="#afc8e7564d86cf934cba0e5c6c36b8824">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a6fd125537596f6cad28d13eebb7c6090"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a840c322f9725b15c49e20b628b2274c3" id="r_a840c322f9725b15c49e20b628b2274c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a840c322f9725b15c49e20b628b2274c3">operator-</a> (<a class="el" href="#afc8e7564d86cf934cba0e5c6c36b8824">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a840c322f9725b15c49e20b628b2274c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab130540c8e2cc6a898ff2b89cdf2216a" id="r_ab130540c8e2cc6a898ff2b89cdf2216a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_PURE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="#afc8e7564d86cf934cba0e5c6c36b8824">difference_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab130540c8e2cc6a898ff2b89cdf2216a">operator-</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ab130540c8e2cc6a898ff2b89cdf2216a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a63723fa00add6abee55941e187dad232" id="r_a63723fa00add6abee55941e187dad232"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a63723fa00add6abee55941e187dad232">check_same_container</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_MAYBE_UNUSED</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> *<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">cont</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a63723fa00add6abee55941e187dad232"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classwjr_1_1contiguous__const__iterator__adapter')"><img src="closed.png" alt="-"/>&#160;Public 成员函数 继承自 <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">wjr::contiguous_const_iterator_adapter&lt; Container, Traits &gt;</a></td></tr>
+<tr class="memitem:a0413f79217cc27e32b37de25edd1bf5c inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_a0413f79217cc27e32b37de25edd1bf5c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a0413f79217cc27e32b37de25edd1bf5c">WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS</a> (<a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a>)</td></tr>
+<tr class="separator:a0413f79217cc27e32b37de25edd1bf5c inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad0c0546fc36af3862ef7bf96250ff96f inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_ad0c0546fc36af3862ef7bf96250ff96f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#ad0c0546fc36af3862ef7bf96250ff96f">contiguous_const_iterator_adapter</a> (__pointer ptr, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> *<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">container</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a>(std::is_nothrow_copy_constructible_v&lt; __pointer &gt;)</td></tr>
+<tr class="separator:ad0c0546fc36af3862ef7bf96250ff96f inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a573ea83dedeb175ed74646653031e799 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_a573ea83dedeb175ed74646653031e799"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#aff5fc2b23666fd48eaec6f4b2c226825">pointer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a573ea83dedeb175ed74646653031e799">operator-&gt;</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a573ea83dedeb175ed74646653031e799 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a809817c2f60bcc806f2b225374484417 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_a809817c2f60bcc806f2b225374484417"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#af9586c4c55d10d1b78909857e5783c8e">reference</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a809817c2f60bcc806f2b225374484417">operator*</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a809817c2f60bcc806f2b225374484417 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af20ae593d0aa276bb7dc3b3dcd68c54c inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_af20ae593d0aa276bb7dc3b3dcd68c54c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#af20ae593d0aa276bb7dc3b3dcd68c54c">operator++</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:af20ae593d0aa276bb7dc3b3dcd68c54c inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c86f2f6d72dfe2ef44e374cf05249b0 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_a8c86f2f6d72dfe2ef44e374cf05249b0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a8c86f2f6d72dfe2ef44e374cf05249b0">operator++</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a8c86f2f6d72dfe2ef44e374cf05249b0 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac5038d95226f3f9581dd59b3de7c6001 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_ac5038d95226f3f9581dd59b3de7c6001"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#ac5038d95226f3f9581dd59b3de7c6001">operator--</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ac5038d95226f3f9581dd59b3de7c6001 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a785d33d9ae930f4e9c75111fd5c06824 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_a785d33d9ae930f4e9c75111fd5c06824"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a785d33d9ae930f4e9c75111fd5c06824">operator--</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a785d33d9ae930f4e9c75111fd5c06824 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b66b31ba8fbc7a66d16d0fec98eaedc inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_a9b66b31ba8fbc7a66d16d0fec98eaedc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a9b66b31ba8fbc7a66d16d0fec98eaedc">operator+=</a> (<a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a599dcde148231b72004c7ec75d8656b5">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a9b66b31ba8fbc7a66d16d0fec98eaedc inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbe90a690927b246804d050aa1569668 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_adbe90a690927b246804d050aa1569668"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#adbe90a690927b246804d050aa1569668">operator+</a> (<a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a599dcde148231b72004c7ec75d8656b5">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:adbe90a690927b246804d050aa1569668 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7eb536a9f841a39dd121072ff857cbd6 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_a7eb536a9f841a39dd121072ff857cbd6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a7eb536a9f841a39dd121072ff857cbd6">operator-=</a> (<a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a599dcde148231b72004c7ec75d8656b5">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a7eb536a9f841a39dd121072ff857cbd6 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a840c322f9725b15c49e20b628b2274c3 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_a840c322f9725b15c49e20b628b2274c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a840c322f9725b15c49e20b628b2274c3">operator-</a> (<a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a599dcde148231b72004c7ec75d8656b5">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a840c322f9725b15c49e20b628b2274c3 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab130540c8e2cc6a898ff2b89cdf2216a inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_ab130540c8e2cc6a898ff2b89cdf2216a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_PURE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a599dcde148231b72004c7ec75d8656b5">difference_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#ab130540c8e2cc6a898ff2b89cdf2216a">operator-</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ab130540c8e2cc6a898ff2b89cdf2216a inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf3ad7a8ce2f9500f51e18a0872a83a8 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_acf3ad7a8ce2f9500f51e18a0872a83a8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#af9586c4c55d10d1b78909857e5783c8e">reference</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#acf3ad7a8ce2f9500f51e18a0872a83a8">operator[]</a> (<a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a599dcde148231b72004c7ec75d8656b5">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:acf3ad7a8ce2f9500f51e18a0872a83a8 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adae3b38e8d3f4bb780da9d6d990a90f6 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_adae3b38e8d3f4bb780da9d6d990a90f6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_PURE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#adae3b38e8d3f4bb780da9d6d990a90f6">operator==</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:adae3b38e8d3f4bb780da9d6d990a90f6 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0063a1e59f55b428c0c98b80686fe6c9 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_a0063a1e59f55b428c0c98b80686fe6c9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_PURE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a0063a1e59f55b428c0c98b80686fe6c9">operator!=</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a0063a1e59f55b428c0c98b80686fe6c9 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd579b538b998f29d0c160bd36e9abb4 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_afd579b538b998f29d0c160bd36e9abb4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_PURE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#afd579b538b998f29d0c160bd36e9abb4">operator&lt;</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:afd579b538b998f29d0c160bd36e9abb4 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4051e00f583c718bd2aa2bc6423bce97 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_a4051e00f583c718bd2aa2bc6423bce97"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_PURE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a4051e00f583c718bd2aa2bc6423bce97">operator&gt;</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a4051e00f583c718bd2aa2bc6423bce97 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab54b1eda3ef9be54e37c38a55ef144c3 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_ab54b1eda3ef9be54e37c38a55ef144c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_PURE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#ab54b1eda3ef9be54e37c38a55ef144c3">operator&lt;=</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ab54b1eda3ef9be54e37c38a55ef144c3 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b4f77f5828302bf895575d27e983a9c inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_a8b4f77f5828302bf895575d27e983a9c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_PURE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a8b4f77f5828302bf895575d27e983a9c">operator&gt;=</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a8b4f77f5828302bf895575d27e983a9c inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a63723fa00add6abee55941e187dad232 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter" id="r_a63723fa00add6abee55941e187dad232"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a63723fa00add6abee55941e187dad232">check_same_container</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_MAYBE_UNUSED</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> *<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">cont</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a63723fa00add6abee55941e187dad232 inherit pub_methods_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
+友元</h2></td></tr>
+<tr class="memitem:ac731749f3c2d6094b50afa511c262d0f" id="r_ac731749f3c2d6094b50afa511c262d0f"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ptr</a> &gt; </td></tr>
+<tr class="memitem:ac731749f3c2d6094b50afa511c262d0f"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">struct</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ac731749f3c2d6094b50afa511c262d0f">std::pointer_traits</a></td></tr>
+<tr class="separator:ac731749f3c2d6094b50afa511c262d0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a18a693037eba14c9aa425f9703925216" id="r_a18a693037eba14c9aa425f9703925216"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">friend</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a18a693037eba14c9aa425f9703925216">operator+</a> (<a class="el" href="#afc8e7564d86cf934cba0e5c6c36b8824">difference_type</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a18a693037eba14c9aa425f9703925216"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
+额外继承的成员函数</h2></td></tr>
+<tr class="inherit_header pro_attribs_classwjr_1_1contiguous__const__iterator__adapter"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_attribs_classwjr_1_1contiguous__const__iterator__adapter')"><img src="closed.png" alt="-"/>&#160;Protected 属性 继承自 <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">wjr::contiguous_const_iterator_adapter&lt; Container, Traits &gt;</a></td></tr>
+<tr class="memitem:a9d8c84d5f84e84e6d3bf021b91b6b63c inherit pro_attribs_classwjr_1_1contiguous__const__iterator__adapter" id="r_a9d8c84d5f84e84e6d3bf021b91b6b63c"><td class="memItemLeft" align="right" valign="top">__pointer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a9d8c84d5f84e84e6d3bf021b91b6b63c">m_ptr</a></td></tr>
+<tr class="separator:a9d8c84d5f84e84e6d3bf021b91b6b63c inherit pro_attribs_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a627beb5e7eb782ecb167715dfd3c6ecb inherit pro_attribs_classwjr_1_1contiguous__const__iterator__adapter" id="r_a627beb5e7eb782ecb167715dfd3c6ecb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a627beb5e7eb782ecb167715dfd3c6ecb">m_container</a></td></tr>
+<tr class="separator:a627beb5e7eb782ecb167715dfd3c6ecb inherit pro_attribs_classwjr_1_1contiguous__const__iterator__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">成员类型定义说明</h2>
+<a id="afc8e7564d86cf934cba0e5c6c36b8824" name="afc8e7564d86cf934cba0e5c6c36b8824"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afc8e7564d86cf934cba0e5c6c36b8824">&#9670;&#160;</a></span>difference_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">wjr::contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;::difference_type = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a599dcde148231b72004c7ec75d8656b5">Mybase::difference_type</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aada7e032dddfccb791665c90f3911838" name="aada7e032dddfccb791665c90f3911838"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aada7e032dddfccb791665c90f3911838">&#9670;&#160;</a></span>iterator_category</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">wjr::contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;::iterator_category = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#aabb89f6f40d7fcc377dfc640f57e0444">Mybase::iterator_category</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ababc63327e9e2ac19ef8fa543cd00408" name="ababc63327e9e2ac19ef8fa543cd00408"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ababc63327e9e2ac19ef8fa543cd00408">&#9670;&#160;</a></span>iterator_concept</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">wjr::contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;::iterator_concept = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a25f3e8b042151daf73b174069c34569a">Mybase::iterator_concept</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad7115507ae59ece3bf9834b5ff837907" name="ad7115507ae59ece3bf9834b5ff837907"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad7115507ae59ece3bf9834b5ff837907">&#9670;&#160;</a></span>pointer</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">wjr::contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;::pointer = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits::pointer</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a786f5e7c8202437cce8e376620cb9deb" name="a786f5e7c8202437cce8e376620cb9deb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a786f5e7c8202437cce8e376620cb9deb">&#9670;&#160;</a></span>reference</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">wjr::contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;::reference = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits::reference</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a59d797436f1422eeee86cc5357514ee2" name="a59d797436f1422eeee86cc5357514ee2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a59d797436f1422eeee86cc5357514ee2">&#9670;&#160;</a></span>value_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">wjr::contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;::value_type = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html#a826c7c45f0026ff24f5456ed6a92df73">Mybase::value_type</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="a63723fa00add6abee55941e187dad232" name="a63723fa00add6abee55941e187dad232"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a63723fa00add6abee55941e187dad232">&#9670;&#160;</a></span>check_same_container()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">wjr::contiguous_const_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;::check_same_container </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_MAYBE_UNUSED</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> *</td>          <td class="paramname"><span class="paramname"><em>cont</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aeea84241697bab48f355b4953599576b" name="aeea84241697bab48f355b4953599576b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeea84241697bab48f355b4953599576b">&#9670;&#160;</a></span>operator*()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="#a786f5e7c8202437cce8e376620cb9deb">reference</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">wjr::contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>* </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a13f2cdb76a031bbe150df957c3fc2985" name="a13f2cdb76a031bbe150df957c3fc2985"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a13f2cdb76a031bbe150df957c3fc2985">&#9670;&#160;</a></span>operator+()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">wjr::contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>+ </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#afc8e7564d86cf934cba0e5c6c36b8824">difference_type</a></td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4c83139cdb1e57791d333b1782c601a0" name="a4c83139cdb1e57791d333b1782c601a0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4c83139cdb1e57791d333b1782c601a0">&#9670;&#160;</a></span>operator++() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a> &amp; <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">wjr::contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>++ </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adef774c002b490ea72d9c7919e3947b8" name="adef774c002b490ea72d9c7919e3947b8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adef774c002b490ea72d9c7919e3947b8">&#9670;&#160;</a></span>operator++() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">wjr::contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>++ </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a></td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8cd0cd6005e6d654037cddf666acaf00" name="a8cd0cd6005e6d654037cddf666acaf00"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8cd0cd6005e6d654037cddf666acaf00">&#9670;&#160;</a></span>operator+=()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a> &amp; <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">wjr::contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>+= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#afc8e7564d86cf934cba0e5c6c36b8824">difference_type</a></td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab130540c8e2cc6a898ff2b89cdf2216a" name="ab130540c8e2cc6a898ff2b89cdf2216a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab130540c8e2cc6a898ff2b89cdf2216a">&#9670;&#160;</a></span>operator-() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_PURE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="#afc8e7564d86cf934cba0e5c6c36b8824">difference_type</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">wjr::contiguous_const_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>- </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4b21aa9cdfae3034470e58288a1813a1" name="a4b21aa9cdfae3034470e58288a1813a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b21aa9cdfae3034470e58288a1813a1">&#9670;&#160;</a></span>operator-() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">wjr::contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>- </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#afc8e7564d86cf934cba0e5c6c36b8824">difference_type</a></td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a840c322f9725b15c49e20b628b2274c3" name="a840c322f9725b15c49e20b628b2274c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a840c322f9725b15c49e20b628b2274c3">&#9670;&#160;</a></span>operator-() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">contiguous_const_iterator_adapter</a> <a class="el" href="classwjr_1_1contiguous__const__iterator__adapter.html">wjr::contiguous_const_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>- </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#afc8e7564d86cf934cba0e5c6c36b8824">difference_type</a></td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a36f67cb6c92d550cbafce2b2780211fe" name="a36f67cb6c92d550cbafce2b2780211fe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a36f67cb6c92d550cbafce2b2780211fe">&#9670;&#160;</a></span>operator--() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a> &amp; <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">wjr::contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>-- </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="acc6800195e9f06705e4c614fbdf04293" name="acc6800195e9f06705e4c614fbdf04293"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acc6800195e9f06705e4c614fbdf04293">&#9670;&#160;</a></span>operator--() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">wjr::contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>-- </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a></td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3054349146b239d17e84a5db5a6e1e4d" name="a3054349146b239d17e84a5db5a6e1e4d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3054349146b239d17e84a5db5a6e1e4d">&#9670;&#160;</a></span>operator-=()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a> &amp; <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">wjr::contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>-= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#afc8e7564d86cf934cba0e5c6c36b8824">difference_type</a></td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2af43a5ccfd283478d6aac37cf5b1f0d" name="a2af43a5ccfd283478d6aac37cf5b1f0d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2af43a5ccfd283478d6aac37cf5b1f0d">&#9670;&#160;</a></span>operator-&gt;()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="#ad7115507ae59ece3bf9834b5ff837907">pointer</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">wjr::contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>-&gt; </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6fd125537596f6cad28d13eebb7c6090" name="a6fd125537596f6cad28d13eebb7c6090"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6fd125537596f6cad28d13eebb7c6090">&#9670;&#160;</a></span>operator[]()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="#a786f5e7c8202437cce8e376620cb9deb">reference</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">wjr::contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>[] </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#afc8e7564d86cf934cba0e5c6c36b8824">difference_type</a></td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">友元及相关函数文档</h2>
+<a id="a18a693037eba14c9aa425f9703925216" name="a18a693037eba14c9aa425f9703925216"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a18a693037eba14c9aa425f9703925216">&#9670;&#160;</a></span>operator+</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_NODISCARD</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">friend</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">operator</a>+ </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#afc8e7564d86cf934cba0e5c6c36b8824">difference_type</a></td>          <td class="paramname"><span class="paramname"><em>n</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a>, Traits &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac731749f3c2d6094b50afa511c262d0f" name="ac731749f3c2d6094b50afa511c262d0f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac731749f3c2d6094b50afa511c262d0f">&#9670;&#160;</a></span>std::pointer_traits</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Container</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> Traits &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ptr</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">friend</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">struct</a> std::pointer_traits</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/wjr/iterator/<a class="el" href="contiguous__iterator__adpater_8hpp_source.html">contiguous_iterator_adpater.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacewjr.html">wjr</a></li><li class="navelem"><a class="el" href="classwjr_1_1contiguous__iterator__adapter.html">contiguous_iterator_adapter</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

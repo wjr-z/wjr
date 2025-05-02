@@ -1,0 +1,35 @@
+\doxysection{aligned\+\_\+alloc\+\_\+macos.\+hpp}
+\hypertarget{aligned__alloc__macos_8hpp_source}{}\label{aligned__alloc__macos_8hpp_source}\index{include/wjr/arch/preview/memory/aligned\_alloc\_macos.hpp@{include/wjr/arch/preview/memory/aligned\_alloc\_macos.hpp}}
+\mbox{\hyperlink{aligned__alloc__macos_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_ARCH\_PREVIEW\_MEMORY\_ALIGNED\_ALLOC\_MACOS\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_ARCH\_PREVIEW\_MEMORY\_ALIGNED\_ALLOC\_MACOS\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <cstdlib>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{preprocessor_8hpp}{wjr/preprocessor.hpp}}>}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_MALLOC}}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ *\mbox{\hyperlink{namespacewjr_a22d89171add6af2fc79e40a3df5eb49a}{aligned\_alloc}}(\textcolor{keywordtype}{size\_t}\ size,\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{alignment}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00012\ \ \ \ \ \textcolor{keywordflow}{if}\ (size\ ==\ 0)\ \{}
+\DoxyCodeLine{00013\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00014\ \ \ \ \ \}}
+\DoxyCodeLine{00015\ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{alignment}}\ <\ \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{void}\ *))\ \{}
+\DoxyCodeLine{00016\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{alignment}}\ =\ \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{00017\ \ \ \ \ \}}
+\DoxyCodeLine{00018\ \ \ \ \ \textcolor{keywordtype}{void}\ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{p}};}
+\DoxyCodeLine{00019\ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{::posix\_memalign}}(\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{p}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{alignment}},\ size)\ !=\ 0)\ \{}
+\DoxyCodeLine{00020\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{p}}\ =\ 0;}
+\DoxyCodeLine{00021\ \ \ \ \ \}}
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{p}};}
+\DoxyCodeLine{00023\ \}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{namespacewjr_ae8a9e9ec3faf7f2db2a5f1287e89e77b}{aligned\_free}}(\textcolor{keywordtype}{void}\ *ptr)\ \textcolor{keyword}{noexcept}\ \{\ \mbox{\hyperlink{namespacewjr_a7878e7faf483fb99149d232743b64e77aaa2d6e4f578eb0cfaba23beef76c2194}{::free}}(ptr);\ \}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_ARCH\_PREVIEW\_MEMORY\_ALIGNED\_ALLOC\_MACOS\_HPP\_\_}}
+
+\end{DoxyCode}

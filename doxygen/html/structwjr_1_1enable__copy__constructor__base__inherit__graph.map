@@ -1,0 +1,26 @@
+<map id="wjr::enable_copy_constructor_base&lt; Enable, Tag &gt;" name="wjr::enable_copy_constructor_base&lt; Enable, Tag &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="583,5,765,261"/>
+<area shape="rect" id="Node000002" href="$structwjr_1_1enable__special__members__base.html" title=" " alt="" coords="571,309,777,597"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="677,276,677,309,671,309,671,276"/>
+<area shape="rect" id="Node000003" href="$classwjr_1_1capture__leaf.html" title=" " alt="" coords="5,715,183,933"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="558,481,472,505,377,540,282,587,238,615,197,647,167,679,143,716,138,713,163,676,194,643,235,611,280,582,375,535,470,500,556,476"/>
+<area shape="rect" id="Node000005" href="$classwjr_1_1uninitialized.html" title=" " alt="" coords="207,645,383,1003"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="560,519,476,577,435,611,397,647,385,661,381,658,393,644,431,607,473,572,557,515"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="407,765,565,883"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="588,612,511,767,506,765,583,609"/>
+<area shape="poly" id="edge6_Node000002_Node000006" title=" " alt="" coords="606,612,524,767,519,764,601,609"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="589,757,759,891"/>
+<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="668,612,670,758,664,758,662,612"/>
+<area shape="poly" id="edge8_Node000002_Node000007" title=" " alt="" coords="686,612,684,758,678,758,680,612"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="783,765,997,883"/>
+<area shape="poly" id="edge9_Node000002_Node000008" title=" " alt="" coords="759,609,852,764,848,767,754,612"/>
+<area shape="poly" id="edge10_Node000002_Node000008" title=" " alt="" coords="776,608,866,764,861,767,772,611"/>
+<area shape="rect" id="Node000009" href="$classwjr_1_1capture__leaf.html" title="Capture any type as a new type." alt="" coords="1022,739,1137,909"/>
+<area shape="poly" id="edge11_Node000002_Node000009" title=" " alt="" coords="792,495,848,522,906,555,963,596,1012,644,1042,689,1062,738,1057,740,1037,691,1008,647,959,600,904,560,845,526,789,500"/>
+<area shape="rect" id="Node000010" href="$classwjr_1_1unexpected.html" title=" " alt="" coords="1161,696,1337,952"/>
+<area shape="poly" id="edge12_Node000002_Node000010" title=" " alt="" coords="791,476,877,500,971,535,1065,582,1110,611,1150,643,1174,668,1194,695,1190,698,1170,671,1147,647,1106,615,1063,587,969,540,875,505,790,481"/>
+<area shape="rect" id="Node000011" href="$classwjr_1_1uninitialized.html" title=" " alt="" coords="1361,653,1537,995"/>
+<area shape="poly" id="edge13_Node000002_Node000011" title=" " alt="" coords="792,458,917,475,989,488,1063,507,1139,531,1214,561,1285,599,1350,643,1362,654,1359,658,1347,647,1282,603,1211,566,1137,536,1062,512,987,494,916,480,791,464"/>
+<area shape="rect" id="Node000004" href="$classwjr_1_1tuple__impl_3_01std_1_1index__sequence_3_01_indexs_8_8_8_01_4_00_01_args_8_8_8_01_4.html" title=" " alt="" coords="5,1051,183,1237"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="97,948,97,1051,91,1051,91,948"/>
+</map>

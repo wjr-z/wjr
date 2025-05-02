@@ -1,0 +1,205 @@
+\doxysection{rdtsc.\+hpp}
+\hypertarget{rdtsc_8hpp_source}{}\label{rdtsc_8hpp_source}\index{include/wjr/concurrency/rdtsc.hpp@{include/wjr/concurrency/rdtsc.hpp}}
+\mbox{\hyperlink{rdtsc_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_CONCURRENCY\_RDTSC\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_CONCURRENCY\_RDTSC\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <cstdint>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{preprocessor_8hpp}{wjr/preprocessor.hpp}}>}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#if\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\ \ \ \ \#include\ <intrin.h>}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ For\ MSVC,\ we\ want\ to\ use\ '\_asm\ rdtsc'\ when\ possible\ (since\ it\ works}}
+\DoxyCodeLine{00013\ \textcolor{comment}{//\ with\ even\ ancient\ MSVC\ compilers),\ and\ when\ not\ possible\ the}}
+\DoxyCodeLine{00014\ \textcolor{comment}{//\ \_\_rdtsc\ intrinsic,\ declared\ in\ <intrin.h>.\ \ Unfortunately,\ in\ some}}
+\DoxyCodeLine{00015\ \textcolor{comment}{//\ environments,\ <windows.h>\ and\ <intrin.h>\ have\ conflicting}}
+\DoxyCodeLine{00016\ \textcolor{comment}{//\ declarations\ of\ some\ other\ intrinsics,\ breaking\ compilation.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{//\ Therefore,\ we\ simply\ declare\ \_\_rdtsc\ ourselves.\ See\ also}}
+\DoxyCodeLine{00018\ \textcolor{comment}{//\ http://connect.microsoft.com/VisualStudio/feedback/details/262047}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#if\ defined(WJR\_COMPILER\_MSVC)\ \&\&\ !defined(\_M\_IX86)\ \&\&\ !defined(\_M\_ARM64)\ \&\&\ !defined(\_M\_ARM64EC)}}
+\DoxyCodeLine{00020\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ uint64\_t\ \_\_rdtsc();}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\ \ \ \ \#pragma\ intrinsic(\_\_rdtsc)}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#if\ !defined(WJR\_OS\_WINDOWS)\ ||\ defined(WJR\_OS\_MINGW)}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\ \ \ \ \#include\ <sys/time.h>}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\ \ \ \ \#include\ <time.h>}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#define\ WJR\_HAS\_FEATURE\_RDTSC\ WJR\_HAS\_DEF}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_INTRINSIC\_INLINE}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\_t}}\ \mbox{\hyperlink{namespacewjr_aacb775f7c08c53857714b20396c14e1b}{rdtsc}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#if\ defined(\_\_i386\_\_)}}
+\DoxyCodeLine{00035\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}};}
+\DoxyCodeLine{00036\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_asm\_\_}}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}rdtsc"{}}\ :\ \textcolor{stringliteral}{"{}=A"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}}));}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}};}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#elif\ defined(\_\_x86\_64\_\_)\ ||\ defined(\_\_amd64\_\_)}}
+\DoxyCodeLine{00039\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ low,\ high;}
+\DoxyCodeLine{00040\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_asm\_\_}}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}rdtsc"{}}\ :\ \textcolor{stringliteral}{"{}=a"{}}(low),\ \textcolor{stringliteral}{"{}=d"{}}(high));}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\_t}}\textcolor{keyword}{>}((high\ <<\ 32)\ |\ low);}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#elif\ defined(\_\_powerpc\_\_)\ ||\ defined(\_\_ppc\_\_)}}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ This\ returns\ a\ time-\/base,\ which\ is\ not\ always\ precisely\ a\ cycle-\/count.}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\ \ \ \ \#if\ defined(\_\_powerpc64\_\_)\ ||\ defined(\_\_ppc64\_\_)}}
+\DoxyCodeLine{00045\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tb}};}
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}mfspr\ \%0,\ 268"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tb}}));}
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tb}};}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00049\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tbl}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tbu0}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tbu1}};}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mftbu\ \%0\(\backslash\)n"{}}}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mftb\ \%1\(\backslash\)n"{}}}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mftbu\ \%2"{}}}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tbu0}}),\ \textcolor{stringliteral}{"{}=r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tbl}}),\ \textcolor{stringliteral}{"{}=r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tbu1}}));}
+\DoxyCodeLine{00055\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tbl}}\ \&=\ -\/\textcolor{keyword}{static\_cast<}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int32\_t}}\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tbu0}}\ ==\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tbu1}});}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{comment}{//\ high\ 32\ bits\ in\ tbu1;\ low\ 32\ bits\ in\ tbl\ \ (tbu0\ is\ no\ longer\ needed)}}
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keywordflow}{return}\ (\textcolor{keyword}{static\_cast<}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tbu1}})\ <<\ 32)\ |\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tbl}};}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#elif\ defined(\_\_sparc\_\_)}}
+\DoxyCodeLine{00060\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tick}};}
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}.byte\ 0x83,\ 0x41,\ 0x00,\ 0x00"{}});}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}mov\ \ \ \%\%g1,\ \%0"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tick}}));}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tick}};}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#elif\ defined(\_\_ia64\_\_)}}
+\DoxyCodeLine{00065\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{itc}};}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}mov\ \%0\ =\ ar.itc"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{itc}}));}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{itc}};}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\#elif\ defined(WJR\_COMPILER\_MSVC)\ \&\&\ defined(\_M\_IX86)}}
+\DoxyCodeLine{00069\ \ \ \ \ \textcolor{comment}{//\ Older\ MSVC\ compilers\ (like\ 7.x)\ don't\ seem\ to\ support\ the}}
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{comment}{//\ \_\_rdtsc\ intrinsic\ properly,\ so\ I\ prefer\ to\ use\ \_asm\ instead}}
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{comment}{//\ when\ I\ know\ it\ will\ work.\ \ Otherwise,\ I'll\ use\ \_\_rdtsc\ and\ hope}}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{comment}{//\ the\ code\ is\ being\ compiled\ with\ a\ non-\/ancient\ compiler.}}
+\DoxyCodeLine{00073\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_asm}}\ \mbox{\hyperlink{namespacewjr_aacb775f7c08c53857714b20396c14e1b}{rdtsc}}}
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#elif\ defined(WJR\_COMPILER\_MSVC)\ \&\&\ (defined(\_M\_ARM64)\ ||\ defined(\_M\_ARM64EC))}}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{comment}{//\ See\ //\ https://docs.microsoft.com/en-\/us/cpp/intrinsics/arm64-\/intrinsics}}
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{comment}{//\ and\ https://reviews.llvm.org/D53115}}
+\DoxyCodeLine{00077\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{virtual\_timer\_value}};}
+\DoxyCodeLine{00078\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{virtual\_timer\_value}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_ReadStatusReg}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ARM64\_CNTVCT}});}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{virtual\_timer\_value}};}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#elif\ defined(WJR\_COMPILER\_MSVC)}}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keywordflow}{return}\ \_\_rdtsc();}
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#elif\ defined(WJR\_OS\_NACL)}}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{comment}{//\ Native\ Client\ validator\ on\ x86/x86-\/64\ allows\ RDTSC\ instructions,}}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{comment}{//\ and\ this\ case\ is\ handled\ above.\ Native\ Client\ validator\ on\ ARM}}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{comment}{//\ rejects\ MRC\ instructions\ (used\ in\ the\ ARM-\/specific\ sequence\ below),}}
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{comment}{//\ so\ we\ handle\ it\ here.\ Portable\ Native\ Client\ compiles\ to}}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{comment}{//\ architecture-\/agnostic\ bytecode,\ which\ doesn't\ provide\ any}}
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{comment}{//\ cycle\ counter\ access\ mnemonics.}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{comment}{//\ Native\ Client\ does\ not\ provide\ any\ API\ to\ access\ cycle\ counter.}}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{comment}{//\ Use\ clock\_gettime(CLOCK\_MONOTONIC,\ ...)\ instead\ of\ gettimeofday}}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{comment}{//\ because\ is\ provides\ nanosecond\ resolution\ (which\ is\ noticeable\ at}}
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{comment}{//\ least\ for\ PNaCl\ modules\ running\ on\ x86\ Mac\ \&\ Linux).}}
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{comment}{//\ Initialize\ to\ always\ return\ 0\ if\ clock\_gettime\ fails.}}
+\DoxyCodeLine{00095\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{timespec}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ts}}\ =\ \{0,\ 0\};}
+\DoxyCodeLine{00096\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{clock\_gettime}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{CLOCK\_MONOTONIC}},\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ts}});}
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\_t}}\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ts}}.tv\_sec)\ *\ 1000000000\ +\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ts}}.tv\_nsec;}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\#elif\ defined(\_\_aarch64\_\_)}}
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{comment}{//\ System\ timer\ of\ ARMv8\ runs\ at\ a\ different\ frequency\ than\ the\ CPU's.}}
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{comment}{//\ The\ frequency\ is\ fixed,\ typically\ in\ the\ range\ 1-\/50MHz.\ \ It\ can\ be}}
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{comment}{//\ read\ at\ CNTFRQ\ special\ register.\ \ We\ assume\ the\ OS\ has\ set\ up}}
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{comment}{//\ the\ virtual\ timer\ properly.}}
+\DoxyCodeLine{00103\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{virtual\_timer\_value}};}
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}mrs\ \%0,\ cntvct\_el0"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{virtual\_timer\_value}}));}
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{virtual\_timer\_value}};}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\#elif\ defined(\_\_ARM\_ARCH)}}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ V6\ is\ the\ earliest\ arch\ that\ has\ a\ standard\ cyclecount}}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Native\ Client\ validator\ doesn't\ allow\ MRC\ instructions.}}
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\ \ \ \ \#if\ (\_\_ARM\_ARCH\ >=\ 6)}}
+\DoxyCodeLine{00110\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pmccntr}};}
+\DoxyCodeLine{00111\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pmuseren}};}
+\DoxyCodeLine{00112\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pmcntenset}};}
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{comment}{//\ Read\ the\ user\ mode\ perf\ monitor\ counter\ access\ permissions.}}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}mrc\ p15,\ 0,\ \%0,\ c9,\ c14,\ 0"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pmuseren}}));}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pmuseren}}\ \&\ 1)\ \{\ \textcolor{comment}{//\ Allows\ reading\ perfmon\ counters\ for\ user\ mode\ code.}}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}mrc\ p15,\ 0,\ \%0,\ c9,\ c12,\ 1"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pmcntenset}}));}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pmcntenset}}\ \&\ 0x80000000ul)\ \{\ \textcolor{comment}{//\ Is\ it\ counting?}}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}mrc\ p15,\ 0,\ \%0,\ c9,\ c13,\ 0"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pmccntr}}));}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ The\ counter\ is\ set\ up\ to\ count\ every\ 64th\ cycle}}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\_t}}\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pmccntr}})\ *\ 64;\ \textcolor{comment}{//\ Should\ optimize\ to\ <<\ 6}}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00122\ \ \ \ \ \}}
+\DoxyCodeLine{00123\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00124\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{timeval}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}};}
+\DoxyCodeLine{00125\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{gettimeofday}}(\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}},\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00126\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\_t}}\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}}.tv\_sec)\ *\ 1000000\ +\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}}.tv\_usec;}
+\DoxyCodeLine{00127\ \textcolor{preprocessor}{\#elif\ defined(\_\_mips\_\_)\ ||\ defined(\_\_m68k\_\_)}}
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{comment}{//\ mips\ apparently\ only\ allows\ rdtsc\ for\ superusers,\ so\ we\ fall}}
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{comment}{//\ back\ to\ gettimeofday.\ \ It's\ possible\ clock\_gettime\ would\ be\ better.}}
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{timeval}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}};}
+\DoxyCodeLine{00131\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{gettimeofday}}(\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}},\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\_t}}\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}}.tv\_sec)\ *\ 1000000\ +\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}}.tv\_usec;}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#elif\ defined(\_\_loongarch\_\_)\ ||\ defined(\_\_csky\_\_)}}
+\DoxyCodeLine{00134\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{timeval}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}};}
+\DoxyCodeLine{00135\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{gettimeofday}}(\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}},\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\_t}}\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}}.tv\_sec)\ *\ 1000000\ +\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}}.tv\_usec;}
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\#elif\ defined(\_\_s390\_\_)\ }\textcolor{comment}{//\ Covers\ both\ s390\ and\ s390x.}}
+\DoxyCodeLine{00138\ \ \ \ \ \textcolor{comment}{//\ Return\ the\ CPU\ clock.}}
+\DoxyCodeLine{00139\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tsc}};}
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\ \ \ \ \#if\ defined(WJR\_OS\_ZOS)\ \&\&\ defined(COMPILER\_IBMXL)}}
+\DoxyCodeLine{00141\ \ \ \ \ \textcolor{comment}{//\ z/OS\ XL\ compiler\ HLASM\ syntax.}}
+\DoxyCodeLine{00142\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}\ stck\ \%0"{}}\ :\ \textcolor{stringliteral}{"{}=m"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tsc}})\ :\ :\ \textcolor{stringliteral}{"{}cc"{}});}
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00144\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}stck\ \%0"{}}\ :\ \textcolor{stringliteral}{"{}=Q"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tsc}})\ :\ :\ \textcolor{stringliteral}{"{}cc"{}});}
+\DoxyCodeLine{00145\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00146\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tsc}};}
+\DoxyCodeLine{00147\ \textcolor{preprocessor}{\#elif\ defined(\_\_riscv)\ }\textcolor{comment}{//\ RISC-\/V}}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Use\ RDTIME\ (and\ RDTIMEH\ on\ riscv32).}}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ RDCYCLE\ is\ a\ privileged\ instruction\ since\ Linux\ 6.6.}}
+\DoxyCodeLine{00150\ \textcolor{preprocessor}{\ \ \ \ \#if\ \_\_riscv\_xlen\ ==\ 32}}
+\DoxyCodeLine{00151\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cycles\_lo}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cycles\_hi0}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cycles\_hi1}};}
+\DoxyCodeLine{00152\ \ \ \ \ \textcolor{comment}{//\ This\ asm\ also\ includes\ the\ PowerPC\ overflow\ handling\ strategy,\ as\ above.}}
+\DoxyCodeLine{00153\ \ \ \ \ \textcolor{comment}{//\ Implemented\ in\ assembly\ because\ Clang\ insisted\ on\ branching.}}
+\DoxyCodeLine{00154\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rdtimeh\ \%0\(\backslash\)n"{}}}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rdtime\ \%1\(\backslash\)n"{}}}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rdtimeh\ \%2\(\backslash\)n"{}}}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sub\ \%0,\ \%0,\ \%2\(\backslash\)n"{}}}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}seqz\ \%0,\ \%0\(\backslash\)n"{}}}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sub\ \%0,\ zero,\ \%0\(\backslash\)n"{}}}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}and\ \%1,\ \%1,\ \%0\(\backslash\)n"{}}}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cycles\_hi0}}),\ \textcolor{stringliteral}{"{}=r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cycles\_lo}}),\ \textcolor{stringliteral}{"{}=r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cycles\_hi1}}));}
+\DoxyCodeLine{00163\ \ \ \ \ \textcolor{keywordflow}{return}\ (\textcolor{keyword}{static\_cast<}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cycles\_hi1}})\ <<\ 32)\ |\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cycles\_lo}};}
+\DoxyCodeLine{00164\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00165\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cycles}};}
+\DoxyCodeLine{00166\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}rdtime\ \%0"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cycles}}));}
+\DoxyCodeLine{00167\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cycles}};}
+\DoxyCodeLine{00168\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00169\ \textcolor{preprocessor}{\#elif\ defined(\_\_e2k\_\_)\ ||\ defined(\_\_elbrus\_\_)}}
+\DoxyCodeLine{00170\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{timeval}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}};}
+\DoxyCodeLine{00171\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{gettimeofday}}(\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}},\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00172\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\_t}}\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}}.tv\_sec)\ *\ 1000000\ +\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}}.tv\_usec;}
+\DoxyCodeLine{00173\ \textcolor{preprocessor}{\#elif\ defined(\_\_hexagon\_\_)}}
+\DoxyCodeLine{00174\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pcycle}};}
+\DoxyCodeLine{00175\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}\%0\ =\ C15:14"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pcycle}}));}
+\DoxyCodeLine{00176\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{double}\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pcycle}});}
+\DoxyCodeLine{00177\ \textcolor{preprocessor}{\#elif\ defined(\_\_alpha\_\_)}}
+\DoxyCodeLine{00178\ \ \ \ \ \textcolor{comment}{//\ Alpha\ has\ a\ cycle\ counter,\ the\ PCC\ register,\ but\ it\ is\ an\ unsigned\ 32-\/bit}}
+\DoxyCodeLine{00179\ \ \ \ \ \textcolor{comment}{//\ integer\ and\ thus\ wraps\ every\ \string~4s,\ making\ using\ it\ for\ tick\ counts}}
+\DoxyCodeLine{00180\ \ \ \ \ \textcolor{comment}{//\ unreliable\ beyond\ this\ time\ range.\ \ The\ real-\/time\ clock\ is\ low-\/precision,}}
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{comment}{//\ roughtly\ \string~1ms,\ but\ it\ is\ the\ only\ option\ that\ can\ reasonable\ count}}
+\DoxyCodeLine{00182\ \ \ \ \ \textcolor{comment}{//\ indefinitely.}}
+\DoxyCodeLine{00183\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{timeval}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}};}
+\DoxyCodeLine{00184\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{gettimeofday}}(\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}},\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00185\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int64\_t}}\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}}.tv\_sec)\ *\ 1000000\ +\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tv}}.tv\_usec;}
+\DoxyCodeLine{00186\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00187\ \ \ \ \ \textcolor{comment}{//\ The\ soft\ failover\ to\ a\ generic\ implementation\ is\ automatic\ only\ for\ ARM.}}
+\DoxyCodeLine{00188\ \ \ \ \ \textcolor{comment}{//\ For\ other\ platforms\ the\ developer\ is\ expected\ to\ make\ an\ attempt\ to\ create}}
+\DoxyCodeLine{00189\ \ \ \ \ \textcolor{comment}{//\ a\ fast\ implementation\ and\ use\ generic\ version\ if\ nothing\ better\ is}}
+\DoxyCodeLine{00190\ \ \ \ \ \textcolor{comment}{//\ available.}}
+\DoxyCodeLine{00191\ \textcolor{preprocessor}{\ \ \ \ \#undef\ WJR\_HAS\_FEATURE\_RDTSC}}
+\DoxyCodeLine{00192\ \ \ \ \ \textcolor{comment}{//\ \#error\ You\ need\ to\ define\ CycleTimer\ for\ your\ OS\ and\ CPU}}
+\DoxyCodeLine{00193\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_UNREACHABLE}}();}
+\DoxyCodeLine{00194\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00195\ \}}
+\DoxyCodeLine{00196\ }
+\DoxyCodeLine{00197\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00199\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_CONCURRENCY\_RDTSC\_HPP\_\_}}
+
+\end{DoxyCode}

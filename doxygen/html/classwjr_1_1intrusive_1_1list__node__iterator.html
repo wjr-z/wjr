@@ -1,0 +1,500 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: wjr::intrusive::list_node_iterator&lt; T &gt; 模板类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('classwjr_1_1intrusive_1_1list__node__iterator.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Public 类型</a> &#124;
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="classwjr_1_1intrusive_1_1list__node__iterator-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">wjr::intrusive::list_node_iterator&lt; T &gt; 模板类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="list_8hpp_source.html">list.hpp</a>&gt;</code></p>
+<div class="dynheader">
+类 wjr::intrusive::list_node_iterator&lt; T &gt; 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><img src="classwjr_1_1intrusive_1_1list__node__iterator__inherit__graph.png" border="0" usemap="#awjr_1_1intrusive_1_1list__node__iterator_3_01_t_01_4_inherit__map" alt="Inheritance graph"/></div>
+<map name="awjr_1_1intrusive_1_1list__node__iterator_3_01_t_01_4_inherit__map" id="awjr_1_1intrusive_1_1list__node__iterator_3_01_t_01_4_inherit__map">
+<area shape="rect" title=" " alt="" coords="27,416,153,651"/>
+<area shape="rect" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html" title=" " alt="" coords="5,5,175,368"/>
+<area shape="poly" title=" " alt="" coords="93,383,93,416,87,416,87,383"/>
+</map>
+</div>
+<div class="dynheader">
+wjr::intrusive::list_node_iterator&lt; T &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><img src="classwjr_1_1intrusive_1_1list__node__iterator__coll__graph.png" border="0" usemap="#awjr_1_1intrusive_1_1list__node__iterator_3_01_t_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="awjr_1_1intrusive_1_1list__node__iterator_3_01_t_01_4_coll__map" id="awjr_1_1intrusive_1_1list__node__iterator_3_01_t_01_4_coll__map">
+<area shape="rect" title=" " alt="" coords="27,416,153,651"/>
+<area shape="rect" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html" title=" " alt="" coords="5,5,175,368"/>
+<area shape="poly" title=" " alt="" coords="93,383,93,416,87,416,87,383"/>
+</map>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:a98503e143aa4d1ff8aa82d7db5c5a593" id="r_a98503e143aa4d1ff8aa82d7db5c5a593"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a98503e143aa4d1ff8aa82d7db5c5a593">iterator_category</a> = std::bidirectional_iterator_tag</td></tr>
+<tr class="separator:a98503e143aa4d1ff8aa82d7db5c5a593"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adfcb1b2e87b92e036db069a7b17b18a8" id="r_adfcb1b2e87b92e036db069a7b17b18a8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adfcb1b2e87b92e036db069a7b17b18a8">value_type</a> = <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a></td></tr>
+<tr class="separator:adfcb1b2e87b92e036db069a7b17b18a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8299fd23a765517c22f8872848a33042" id="r_a8299fd23a765517c22f8872848a33042"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8299fd23a765517c22f8872848a33042">pointer</a> = <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> *</td></tr>
+<tr class="separator:a8299fd23a765517c22f8872848a33042"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae849614395797f66ec5b42f05357083a" id="r_ae849614395797f66ec5b42f05357083a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae849614395797f66ec5b42f05357083a">reference</a> = <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &amp;</td></tr>
+<tr class="separator:ae849614395797f66ec5b42f05357083a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_types_classwjr_1_1intrusive_1_1list__node__const__iterator"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_types_classwjr_1_1intrusive_1_1list__node__const__iterator')"><img src="closed.png" alt="-"/>&#160;Public 类型 继承自 <a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html">wjr::intrusive::list_node_const_iterator&lt; T &gt;</a></td></tr>
+<tr class="memitem:a454111b9181177d228e59983ebc33d9d inherit pub_types_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_a454111b9181177d228e59983ebc33d9d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#a454111b9181177d228e59983ebc33d9d">iterator_category</a> = std::bidirectional_iterator_tag</td></tr>
+<tr class="separator:a454111b9181177d228e59983ebc33d9d inherit pub_types_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf0ed053bc2f0ab3670d19be95093987 inherit pub_types_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_aaf0ed053bc2f0ab3670d19be95093987"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#aaf0ed053bc2f0ab3670d19be95093987">value_type</a> = <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a></td></tr>
+<tr class="separator:aaf0ed053bc2f0ab3670d19be95093987 inherit pub_types_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a226927c7e92b5119dbf0d78f316f7806 inherit pub_types_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_a226927c7e92b5119dbf0d78f316f7806"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#a226927c7e92b5119dbf0d78f316f7806">pointer</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> *</td></tr>
+<tr class="separator:a226927c7e92b5119dbf0d78f316f7806 inherit pub_types_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e6126210f93e051964164ce348cf7ff inherit pub_types_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_a4e6126210f93e051964164ce348cf7ff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#a4e6126210f93e051964164ce348cf7ff">reference</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &amp;</td></tr>
+<tr class="separator:a4e6126210f93e051964164ce348cf7ff inherit pub_types_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:a0208b9525f8b37d0e420506e63cfe141" id="r_a0208b9525f8b37d0e420506e63cfe141"><td class="memItemLeft" align="right" valign="top">std::enable_if_t&lt;!std::is_void_v&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;, <a class="el" href="#a8299fd23a765517c22f8872848a33042">pointer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0208b9525f8b37d0e420506e63cfe141">operator-&gt;</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a0208b9525f8b37d0e420506e63cfe141"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd9332b4ec515e82ef4f450b583dd2a4" id="r_abd9332b4ec515e82ef4f450b583dd2a4"><td class="memItemLeft" align="right" valign="top">std::enable_if_t&lt;!std::is_void_v&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;, <a class="el" href="#ae849614395797f66ec5b42f05357083a">reference</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abd9332b4ec515e82ef4f450b583dd2a4">operator*</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:abd9332b4ec515e82ef4f450b583dd2a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaaa92d99f7199e50e9b49ece6654d1d2" id="r_aaaa92d99f7199e50e9b49ece6654d1d2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">list_node_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaaa92d99f7199e50e9b49ece6654d1d2">operator++</a> ()</td></tr>
+<tr class="separator:aaaa92d99f7199e50e9b49ece6654d1d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e052c92733dc0516e4b74d6be9b17e2" id="r_a7e052c92733dc0516e4b74d6be9b17e2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">list_node_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7e052c92733dc0516e4b74d6be9b17e2">operator++</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>)</td></tr>
+<tr class="separator:a7e052c92733dc0516e4b74d6be9b17e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86852a6bfa1b485644c7f2d0d1bb3435" id="r_a86852a6bfa1b485644c7f2d0d1bb3435"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">list_node_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a86852a6bfa1b485644c7f2d0d1bb3435">operator--</a> ()</td></tr>
+<tr class="separator:a86852a6bfa1b485644c7f2d0d1bb3435"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1be410618d5b3537e356b5d76ab055df" id="r_a1be410618d5b3537e356b5d76ab055df"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">list_node_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1be410618d5b3537e356b5d76ab055df">operator--</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>)</td></tr>
+<tr class="separator:a1be410618d5b3537e356b5d76ab055df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad015b4f7dd4eca52689f7ae415f577bf" id="r_ad015b4f7dd4eca52689f7ae415f577bf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad015b4f7dd4eca52689f7ae415f577bf">operator==</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">list_node_iterator</a> &amp;other) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ad015b4f7dd4eca52689f7ae415f577bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a16aec1775b279aeb33c3d87be38f4672" id="r_a16aec1775b279aeb33c3d87be38f4672"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a16aec1775b279aeb33c3d87be38f4672">operator!=</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">list_node_iterator</a> &amp;other) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a16aec1775b279aeb33c3d87be38f4672"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator')"><img src="closed.png" alt="-"/>&#160;Public 成员函数 继承自 <a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html">wjr::intrusive::list_node_const_iterator&lt; T &gt;</a></td></tr>
+<tr class="memitem:a2aabe43efc280627e48e609eb28255bb inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_a2aabe43efc280627e48e609eb28255bb"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#a2aabe43efc280627e48e609eb28255bb">list_node_const_iterator</a> ()=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:a2aabe43efc280627e48e609eb28255bb inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6068c2f6df89047d9f6820c8d7bf9136 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_a6068c2f6df89047d9f6820c8d7bf9136"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#a6068c2f6df89047d9f6820c8d7bf9136">list_node_const_iterator</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html">list_node_const_iterator</a> &amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:a6068c2f6df89047d9f6820c8d7bf9136 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d84cd5d2d195d56112f9ad5589ebce4 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_a0d84cd5d2d195d56112f9ad5589ebce4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#a0d84cd5d2d195d56112f9ad5589ebce4">list_node_const_iterator</a> (<a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html">list_node_const_iterator</a> &amp;&amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:a0d84cd5d2d195d56112f9ad5589ebce4 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aae8d8f7b124967bb274fb83522513ab9 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_aae8d8f7b124967bb274fb83522513ab9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html">list_node_const_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#aae8d8f7b124967bb274fb83522513ab9">operator=</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html">list_node_const_iterator</a> &amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:aae8d8f7b124967bb274fb83522513ab9 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a12db8eb58e8cb897f716473cb0aab4 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_a0a12db8eb58e8cb897f716473cb0aab4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html">list_node_const_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#a0a12db8eb58e8cb897f716473cb0aab4">operator=</a> (<a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html">list_node_const_iterator</a> &amp;&amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:a0a12db8eb58e8cb897f716473cb0aab4 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3dcab969a21eccf3ff5cb6d13442a28 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_ae3dcab969a21eccf3ff5cb6d13442a28"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#ae3dcab969a21eccf3ff5cb6d13442a28">list_node_const_iterator</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">list_node_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; *<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">node</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ae3dcab969a21eccf3ff5cb6d13442a28 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa925b339a9a507dd3a1f53ad16661ee3 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_aa925b339a9a507dd3a1f53ad16661ee3"><td class="memItemLeft" align="right" valign="top">std::enable_if_t&lt;!std::is_void_v&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;, <a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#a226927c7e92b5119dbf0d78f316f7806">pointer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#aa925b339a9a507dd3a1f53ad16661ee3">operator-&gt;</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:aa925b339a9a507dd3a1f53ad16661ee3 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab906f9f6728d501ee5797dac2b4e92e0 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_ab906f9f6728d501ee5797dac2b4e92e0"><td class="memItemLeft" align="right" valign="top">std::enable_if_t&lt;!std::is_void_v&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;, <a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#a4e6126210f93e051964164ce348cf7ff">reference</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#ab906f9f6728d501ee5797dac2b4e92e0">operator*</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ab906f9f6728d501ee5797dac2b4e92e0 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24e01d05969f071a518e8694bf50fc9a inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_a24e01d05969f071a518e8694bf50fc9a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html">list_node_const_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#a24e01d05969f071a518e8694bf50fc9a">operator++</a> ()</td></tr>
+<tr class="separator:a24e01d05969f071a518e8694bf50fc9a inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82cfb5dba461daefdf7d09b9423390e8 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_a82cfb5dba461daefdf7d09b9423390e8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html">list_node_const_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#a82cfb5dba461daefdf7d09b9423390e8">operator++</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>)</td></tr>
+<tr class="separator:a82cfb5dba461daefdf7d09b9423390e8 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8037cff813069600c62ccb91453e3f33 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_a8037cff813069600c62ccb91453e3f33"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html">list_node_const_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#a8037cff813069600c62ccb91453e3f33">operator--</a> ()</td></tr>
+<tr class="separator:a8037cff813069600c62ccb91453e3f33 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71cdd8b69a395f827e992b88defe53f7 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_a71cdd8b69a395f827e992b88defe53f7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html">list_node_const_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#a71cdd8b69a395f827e992b88defe53f7">operator--</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>)</td></tr>
+<tr class="separator:a71cdd8b69a395f827e992b88defe53f7 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a95f7ae2e59637ac3494dc24dd0a433e1 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_a95f7ae2e59637ac3494dc24dd0a433e1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#a95f7ae2e59637ac3494dc24dd0a433e1">operator==</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html">list_node_const_iterator</a> &amp;other) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a95f7ae2e59637ac3494dc24dd0a433e1 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac518ed04f6a6024d36cd208532e74236 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_ac518ed04f6a6024d36cd208532e74236"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#ac518ed04f6a6024d36cd208532e74236">operator!=</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html">list_node_const_iterator</a> &amp;other) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ac518ed04f6a6024d36cd208532e74236 inherit pub_methods_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
+额外继承的成员函数</h2></td></tr>
+<tr class="inherit_header pro_attribs_classwjr_1_1intrusive_1_1list__node__const__iterator"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_attribs_classwjr_1_1intrusive_1_1list__node__const__iterator')"><img src="closed.png" alt="-"/>&#160;Protected 属性 继承自 <a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html">wjr::intrusive::list_node_const_iterator&lt; T &gt;</a></td></tr>
+<tr class="memitem:aa3d43ffa2e43f6be254fbc02a6a0fb64 inherit pro_attribs_classwjr_1_1intrusive_1_1list__node__const__iterator" id="r_aa3d43ffa2e43f6be254fbc02a6a0fb64"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1intrusive_1_1list__node__base.html">list_node_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwjr_1_1intrusive_1_1list__node__const__iterator.html#aa3d43ffa2e43f6be254fbc02a6a0fb64">m_node</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">nullptr</a></td></tr>
+<tr class="separator:aa3d43ffa2e43f6be254fbc02a6a0fb64 inherit pro_attribs_classwjr_1_1intrusive_1_1list__node__const__iterator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">成员类型定义说明</h2>
+<a id="a98503e143aa4d1ff8aa82d7db5c5a593" name="a98503e143aa4d1ff8aa82d7db5c5a593"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a98503e143aa4d1ff8aa82d7db5c5a593">&#9670;&#160;</a></span>iterator_category</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">wjr::intrusive::list_node_iterator</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::iterator_category = std::bidirectional_iterator_tag</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8299fd23a765517c22f8872848a33042" name="a8299fd23a765517c22f8872848a33042"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8299fd23a765517c22f8872848a33042">&#9670;&#160;</a></span>pointer</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">wjr::intrusive::list_node_iterator</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::pointer = <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> *</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae849614395797f66ec5b42f05357083a" name="ae849614395797f66ec5b42f05357083a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae849614395797f66ec5b42f05357083a">&#9670;&#160;</a></span>reference</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">wjr::intrusive::list_node_iterator</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::reference = <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &amp;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adfcb1b2e87b92e036db069a7b17b18a8" name="adfcb1b2e87b92e036db069a7b17b18a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adfcb1b2e87b92e036db069a7b17b18a8">&#9670;&#160;</a></span>value_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">wjr::intrusive::list_node_iterator</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;::value_type = <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="a16aec1775b279aeb33c3d87be38f4672" name="a16aec1775b279aeb33c3d87be38f4672"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a16aec1775b279aeb33c3d87be38f4672">&#9670;&#160;</a></span>operator!=()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">wjr::intrusive::list_node_iterator</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator!</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">list_node_iterator</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>other</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abd9332b4ec515e82ef4f450b583dd2a4" name="abd9332b4ec515e82ef4f450b583dd2a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd9332b4ec515e82ef4f450b583dd2a4">&#9670;&#160;</a></span>operator*()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::enable_if_t&lt;!std::is_void_v&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;, <a class="el" href="#ae849614395797f66ec5b42f05357083a">reference</a> &gt; <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">wjr::intrusive::list_node_iterator</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>* </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aaaa92d99f7199e50e9b49ece6654d1d2" name="aaaa92d99f7199e50e9b49ece6654d1d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaaa92d99f7199e50e9b49ece6654d1d2">&#9670;&#160;</a></span>operator++() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">list_node_iterator</a> &amp; <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">wjr::intrusive::list_node_iterator</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>++ </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7e052c92733dc0516e4b74d6be9b17e2" name="a7e052c92733dc0516e4b74d6be9b17e2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7e052c92733dc0516e4b74d6be9b17e2">&#9670;&#160;</a></span>operator++() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">list_node_iterator</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">wjr::intrusive::list_node_iterator</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>++ </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a></td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a86852a6bfa1b485644c7f2d0d1bb3435" name="a86852a6bfa1b485644c7f2d0d1bb3435"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a86852a6bfa1b485644c7f2d0d1bb3435">&#9670;&#160;</a></span>operator--() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">list_node_iterator</a> &amp; <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">wjr::intrusive::list_node_iterator</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>-- </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1be410618d5b3537e356b5d76ab055df" name="a1be410618d5b3537e356b5d76ab055df"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1be410618d5b3537e356b5d76ab055df">&#9670;&#160;</a></span>operator--() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">list_node_iterator</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">wjr::intrusive::list_node_iterator</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>-- </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a></td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0208b9525f8b37d0e420506e63cfe141" name="a0208b9525f8b37d0e420506e63cfe141"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0208b9525f8b37d0e420506e63cfe141">&#9670;&#160;</a></span>operator-&gt;()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::enable_if_t&lt;!std::is_void_v&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;, <a class="el" href="#a8299fd23a765517c22f8872848a33042">pointer</a> &gt; <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">wjr::intrusive::list_node_iterator</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>-&gt; </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad015b4f7dd4eca52689f7ae415f577bf" name="ad015b4f7dd4eca52689f7ae415f577bf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad015b4f7dd4eca52689f7ae415f577bf">&#9670;&#160;</a></span>operator==()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">wjr::intrusive::list_node_iterator</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>== </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">list_node_iterator</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>other</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/wjr/container/<a class="el" href="list_8hpp_source.html">list.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacewjr.html">wjr</a></li><li class="navelem"><a class="el" href="namespacewjr_1_1intrusive.html">intrusive</a></li><li class="navelem"><a class="el" href="classwjr_1_1intrusive_1_1list__node__iterator.html">list_node_iterator</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

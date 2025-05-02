@@ -1,0 +1,54 @@
+\doxysection{pause.\+hpp}
+\hypertarget{pause_8hpp_source}{}\label{pause_8hpp_source}\index{include/wjr/concurrency/pause.hpp@{include/wjr/concurrency/pause.hpp}}
+\mbox{\hyperlink{pause_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_CONCURRENCY\_PAUSE\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_CONCURRENCY\_PAUSE\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{preprocessor_8hpp}{wjr/preprocessor.hpp}}>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#if\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\ \ \ \ \#if\ defined(\_M\_AMD64)\ ||\ defined(\_M\_IX86)}}
+\DoxyCodeLine{00010\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{namespacewjr_ac8a59caebada4a45b18cf4d714fc67dc}{\_mm\_pause}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#if\ defined(WJR\_COMPILER\_MSVC)}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \#pragma\ intrinsic(\_mm\_pause)}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#endif}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\ \ \ \ \#elif\ defined(\_M\_ARM64)\ ||\ defined(\_M\_ARM)}}
+\DoxyCodeLine{00015\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \textcolor{keywordtype}{void}\ \_\_yield(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#if\ defined(WJR\_COMPILER\_MSVC)}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \#pragma\ intrinsic(\_\_yield)}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#endif}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00025\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_INTRINSIC\_INLINE}}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{namespacewjr_a31dd1037f6ac149a50ab85ad0beabe33}{pause\_intrinsic}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#if\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\ \ \ \ \#if\ defined(\_M\_AMD64)\ ||\ defined(\_M\_IX86)}}
+\DoxyCodeLine{00028\ \ \ \ \ \mbox{\hyperlink{namespacewjr_ac8a59caebada4a45b18cf4d714fc67dc}{\_mm\_pause}}();}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\ \ \ \ \#elif\ defined(\_M\_ARM64)\ ||\ defined(\_M\_ARM)}}
+\DoxyCodeLine{00030\ \ \ \ \ \_\_yield();}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#elif\ defined(\_\_GNUC\_\_)}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\ \ \ \ \#if\ defined(\_\_i386\_\_)\ ||\ defined(\_\_x86\_64\_\_)}}
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}pause\(\backslash\)n\(\backslash\)t"{}}\ :\ :\ :\ \textcolor{stringliteral}{"{}memory"{}});}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\ \ \ \ \#elif\ (defined(\_\_ARM\_ARCH)\ \&\&\ \_\_ARM\_ARCH\ >=\ 8)\ ||\ defined(\_\_ARM\_ARCH\_8A\_\_)\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ defined(\_\_aarch64\_\_)}}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}yield\(\backslash\)n\(\backslash\)t"{}}\ :\ :\ :\ \textcolor{stringliteral}{"{}memory"{}});}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\ \ \ \ \#elif\ defined(\_\_riscv)\ \&\&\ \_\_riscv\_xlen\ ==\ 64}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#if\ defined(\_\_riscv\_zihintpause)}}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}pause\(\backslash\)n\(\backslash\)t"{}}\ :\ :\ :\ \textcolor{stringliteral}{"{}memory"{}});}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#else}}
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{comment}{/*\ Encoding\ of\ the\ pause\ instruction\ */}}
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}.4byte\ 0x100000F\(\backslash\)n\(\backslash\)t"{}});}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#endif}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00047\ \}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_CONCURRENCY\_PAUSE\_HPP\_\_}}
+
+\end{DoxyCode}

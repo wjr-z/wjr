@@ -1,0 +1,4 @@
+var structwjr_1_1____tp__exclude__helper_3_01_enable_00_01_c0_3_4_00_01_c1_3_01_args1_8_8_8_01_4_00_01_p_01_4 =
+[
+    [ "type", "structwjr_1_1____tp__exclude__helper_3_01_enable_00_01_c0_3_4_00_01_c1_3_01_args1_8_8_8_01_4_00_01_p_01_4.html#a5aed320171c3d08a31d6e13d3172daae", null ]
+];

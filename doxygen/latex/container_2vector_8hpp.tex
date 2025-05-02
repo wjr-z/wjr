@@ -1,0 +1,138 @@
+\doxysection{include/wjr/container/vector.hpp 文件参考}
+\hypertarget{container_2vector_8hpp}{}\label{container_2vector_8hpp}\index{include/wjr/container/vector.hpp@{include/wjr/container/vector.hpp}}
+\doxysubsubsection*{类}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classwjr_1_1vector__storage__traits}{wjr\+::vector\+\_\+storage\+\_\+traits$<$ T, Alloc $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1default__vector__size__reference}{wjr\+::default\+\_\+vector\+\_\+size\+\_\+reference$<$ pointer, size\+\_\+type $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1default__vector__storage}{wjr\+::default\+\_\+vector\+\_\+storage$<$ T, Alloc $>$}}
+\begin{DoxyCompactList}\small\item\em Default vector storage \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structwjr_1_1get__relocate__mode_3_01default__vector__storage_3_01_t_00_01_alloc_01_4_01_4}{wjr\+::get\+\_\+relocate\+\_\+mode$<$ default\+\_\+vector\+\_\+storage$<$ T, Alloc $>$ $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1fixed__vector__storage}{wjr\+::fixed\+\_\+vector\+\_\+storage$<$ T, Alloc $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1get__relocate__mode_3_01fixed__vector__storage_3_01_t_00_01_alloc_01_4_01_4}{wjr\+::get\+\_\+relocate\+\_\+mode$<$ fixed\+\_\+vector\+\_\+storage$<$ T, Alloc $>$ $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1inplace__vector__storage}{wjr\+::inplace\+\_\+vector\+\_\+storage$<$ T, Capacity $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1get__relocate__mode_3_01inplace__vector__storage_3_01_t_00_01_capacity_01_4_01_4}{wjr\+::get\+\_\+relocate\+\_\+mode$<$ inplace\+\_\+vector\+\_\+storage$<$ T, Capacity $>$ $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1small__vector__storage}{wjr\+::small\+\_\+vector\+\_\+storage$<$ T, Capacity, Alloc $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1get__relocate__mode_3_01small__vector__storage_3_01_t_00_01_capacity_00_01_alloc_01_4_01_4}{wjr\+::get\+\_\+relocate\+\_\+mode$<$ small\+\_\+vector\+\_\+storage$<$ T, Capacity, Alloc $>$ $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1basic__vector__traits}{wjr\+::basic\+\_\+vector\+\_\+traits$<$ Storage $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1basic__vector}{wjr\+::basic\+\_\+vector$<$ Storage $>$}}
+\begin{DoxyCompactList}\small\item\em Customized vector by storage. \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structwjr_1_1get__relocate__mode_3_01basic__vector_3_01_s_01_4_01_4}{wjr\+::get\+\_\+relocate\+\_\+mode$<$ basic\+\_\+vector$<$ S $>$ $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1container__of__fn_3_01basic__vector_3_01_s_01_4_00_01void_00_01std_1_1enable__if__t7f89315a239d50114ec1fbb6333d6c6d}{wjr\+::container\+\_\+of\+\_\+fn$<$ basic\+\_\+vector$<$ S $>$, void, std\+::enable\+\_\+if\+\_\+t$<$ std\+::is\+\_\+standard\+\_\+layout\+\_\+v$<$ basic\+\_\+vector$<$ S $>$ $>$ $>$ $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1container__of__fn_3_01basic__vector_3_01_s_01_4_00_01void_00_01std_1_1enable__if__t8207109d8d9fe200811dd8beda74b88f}{wjr\+::container\+\_\+of\+\_\+fn$<$ basic\+\_\+vector$<$ S $>$, void, std\+::enable\+\_\+if\+\_\+t$<$!std\+::is\+\_\+standard\+\_\+layout\+\_\+v$<$ basic\+\_\+vector$<$ S $>$ $>$ \&\&sizeof(basic\+\_\+vector$<$ S $>$)==sizeof(\+S)$>$ $>$}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{命名空间}
+\begin{DoxyCompactItemize}
+\item 
+namespace \mbox{\hyperlink{namespacewjr}{wjr}}
+\item 
+namespace \mbox{\hyperlink{namespacestd}{std}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{类型定义}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Alloc  = std\+::allocator$<$\+T$>$$>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{namespacewjr_aac700cbff8d0c852dc2d5ca7c0742128}{wjr\+::vector}} = \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$\mbox{\hyperlink{classwjr_1_1default__vector__storage}{default\+\_\+vector\+\_\+storage}}$<$\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, Alloc$>$$>$
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Capacity$>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{namespacewjr_af5aa97f7c7254372cac2f7b053ea212f}{wjr\+::inplace\+\_\+vector}} = \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$\mbox{\hyperlink{classwjr_1_1inplace__vector__storage}{inplace\+\_\+vector\+\_\+storage}}$<$\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Capacity}}$>$$>$
+\begin{DoxyCompactList}\small\item\em A vector with elements stored on the stack. \end{DoxyCompactList}\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Capacity, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Alloc  = std\+::allocator$<$\+T$>$$>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{namespacewjr_a24549b1766972a116eb54db8be676f6b}{wjr\+::small\+\_\+vector}} = \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$\mbox{\hyperlink{classwjr_1_1small__vector__storage}{small\+\_\+vector\+\_\+storage}}$<$\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Capacity}}, Alloc$>$$>$
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Alloc  = std\+::allocator$<$\+T$>$$>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{namespacewjr_a7e5f04c36990e6f37b53042a9416688f}{wjr\+::fixed\+\_\+vector}} = \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$\mbox{\hyperlink{classwjr_1_1fixed__vector__storage}{fixed\+\_\+vector\+\_\+storage}}$<$\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, Alloc$>$$>$
+\begin{DoxyCompactList}\small\item\em A vector with fixed capacity by construction. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{函数}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a9aa00e75f5c6e3c78ce2d787c17d70a8}{wjr\+::\+WJR\+\_\+\+REGISTER\+\_\+\+HAS\+\_\+\+TYPE}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{vector\+\_\+storage\+\_\+deallocate\+\_\+nonnull}}, std\+::declval$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$().deallocate\+\_\+nonnull(std\+::declval$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Alty}} \& $>$()), \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Alty}})
+\item 
+\mbox{\hyperlink{namespacewjr_aaff0378c8f12103bc33139ff67d24a8c}{wjr\+::\+WJR\+\_\+\+REGISTER\+\_\+\+HAS\+\_\+\+TYPE}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{vector\+\_\+storage\+\_\+destroy\+\_\+and\+\_\+deallocate}}, std\+::declval$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$().destroy\+\_\+and\+\_\+deallocate(std\+::declval$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Alty}} \& $>$()), \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Alty}})
+\item 
+\mbox{\hyperlink{namespacewjr_a7c50a7040e6b4d2a6161b36f09c65e4f}{wjr\+::\+WJR\+\_\+\+REGISTER\+\_\+\+HAS\+\_\+\+TYPE}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{vector\+\_\+storage\+\_\+shrink\+\_\+to\+\_\+fit}}, std\+::declval$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$().shrink\+\_\+to\+\_\+fit(), \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}})
+\item 
+\mbox{\hyperlink{namespacewjr_a43c9d8bca08312b38af7f33fa0f0fb39}{wjr\+::\+WJR\+\_\+\+REGISTER\+\_\+\+HAS\+\_\+\+TYPE}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{vector\+\_\+storage\+\_\+empty}}, std\+::declval$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$().empty(), \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}})
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Iter , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}  = iterator\+\_\+value\+\_\+t$<$\+Iter$>$, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Alloc  = std\+::allocator$<$\+T$>$, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_aa21772255e23e34e728281fcfbfd741c}{is\+\_\+iterator\+\_\+v}}$<$ Iter $>$) $>$ }\\\mbox{\hyperlink{namespacewjr_a9854242d0b4fba0a2868ba76a61f3505}{wjr\+::basic\+\_\+vector}} (Iter, Iter, Alloc=Alloc()) -\/$>$ basic\+\_\+vector$<$ \mbox{\hyperlink{classwjr_1_1default__vector__storage}{default\+\_\+vector\+\_\+storage}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, Alloc $>$ $>$
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{namespacewjr_a247ea3371f66588a9a75280773232a83}{wjr\+::swap}} (\mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}, \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{namespacewjr_ad03dc0345f7f0bb4de0c5a9de9bb66bc}{wjr\+::operator==}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{namespacewjr_a7d2c6fb1129b08ff05ac2ad97cc4f0c2}{wjr\+::operator!=}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{namespacewjr_aa96c580ac5629fd811ae18ef297100ca}{wjr\+::operator$<$}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{namespacewjr_aaec0c319d3cfc1e42642778972d9fa9b}{wjr\+::operator$>$}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{namespacewjr_a1b1643995d19a767b267f591bd874e62}{wjr\+::operator$<$=}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{namespacewjr_af98da02b35b0c8ee1abfcb7b00d593f3}{wjr\+::operator$>$=}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})
+\item 
+{\footnotesize template$<$typename Storage $>$ }\\constexpr void \mbox{\hyperlink{namespacestd_a9be7e5bacb2a9533f5c736131be2fcd7}{std\+::swap}} (\mbox{\hyperlink{classwjr_1_1basic__vector}{wjr\+::basic\+\_\+vector}}$<$ Storage $>$ \&lhs, \mbox{\hyperlink{classwjr_1_1basic__vector}{wjr\+::basic\+\_\+vector}}$<$ Storage $>$ \&rhs) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(lhs.\+swap(rhs)))
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{详细描述}
+\begin{DoxyAuthor}{作者}
+wjr
+\end{DoxyAuthor}
+Functions that need to be implemented\+:
+\begin{DoxyItemize}
+\item storage() noexcept Should not allocate any memmory. By default, it is just trivial.
+\item \texorpdfstring{$\sim$}{\string~}storage() noexcept Don\textquotesingle{}t need to destroy/deallocate. By default, it is just trivial.
+\item void deallocate(\+\_\+\+Alty\& al) \doxylink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept(optional)} Use {\ttfamily al} to deallocate, don\textquotesingle{}t need to set {\ttfamily empty} state.
+\item \mbox{[}optional\mbox{]} void deallocate\+\_\+nonnul(\+\_\+\+Alty\& al) \doxylink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept(optional)} Similar to deallocate , but ensure that it is definitely not an {\ttfamily empty} state. If this function is not provided, it will be used by default\+: ~\newline
+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{deallocate();}
+
+\end{DoxyCode}
+ Low frequency of use, therefore it is an optional implementation
+\item \mbox{[}optional\mbox{]} void destroy\+\_\+and\+\_\+deallocate(\+\_\+\+Alty\& al) \doxylink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept(optional)} Use {\ttfamily al} to destroy and then deallocate, don\textquotesingle{}t need to set {\ttfamily empty} state. ~\newline
+ For some cases, perhaps destroy and dispose can be merged for optimization. ~\newline
+ If this function is not provided, it will be used by default\+: ~\newline
+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{destroy();\ deallocate();}
+
+\end{DoxyCode}
+
+\item \mbox{[}static\mbox{]} void uninitialized\+\_\+construct(storage\+\_\+type \&other, size\+\_\+type size, size\+\_\+type capacity, \+\_\+\+Alty\& al) noexcept Construct a storage of other from this storage, this function can be static. ~\newline
+ Ensure that the capacity is not zero.
+\item void take\+\_\+storage(storage\& other, \+\_\+\+Alty\& al) \doxylink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept(optional)} take the storage from other and set other to {\ttfamily empty} state. ~\newline
+ The {\ttfamily other} storage, it should be able to ensure the correct execution of destroy\+\_\+and\+\_\+deallocate! But it do not guarantee any other functions, such as destroy/deallocate/deallocate\+\_\+nonnull, size(), capacity() ...
+\item void swap\+\_\+storage(storage\& other, \+\_\+\+Alty\& al) \doxylink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept(optional)} Swap the storage with other. ~\newline
+ For most cases, it should comply with standards, such as not causing iterators to fail. ~\newline
+ But for more specialized containers like small-\/vector, it cannot be guaranteed!!!
+\item \mbox{[}optinal\mbox{]} void shrink\+\_\+to\+\_\+fit(storage\& other) \doxylink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept(optional)}
+\item \mbox{[}optinal\mbox{]} void empty(storage\& other) \doxylink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept(optional)}
+\end{DoxyItemize}
+
+Traits that need to be implemented\+:
+\begin{DoxyItemize}
+\item is\+\_\+reallocatable If false, then the capacity can only be modified in some special cases.
+
+\begin{DoxyRefDesc}{待办事项}
+\item[\mbox{\hyperlink{todo__todo000021}{待办事项}}]\end{DoxyRefDesc}
+
+\end{DoxyItemize}
+
+\begin{DoxyVersion}{版本}
+0.\+3 
+\end{DoxyVersion}
+\begin{DoxyDate}{日期}
+2025-\/03-\/09
+\end{DoxyDate}
+\begin{DoxyCopyright}{版权所有}
+Copyright (c) 2025 
+\end{DoxyCopyright}

@@ -1,0 +1,577 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: wjr::dragonbox::ieee754_binary_traits&lt; Format, CarrierUInt, ExponentInt &gt; 模板结构体 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('structwjr_1_1dragonbox_1_1ieee754__binary__traits.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Public 类型</a> &#124;
+<a href="#pub-static-methods">静态 Public 成员函数</a> &#124;
+<a href="#pub-static-attribs">静态 Public 属性</a> &#124;
+<a href="structwjr_1_1dragonbox_1_1ieee754__binary__traits-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">wjr::dragonbox::ieee754_binary_traits&lt; Format, CarrierUInt, ExponentInt &gt; 模板结构体 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="dragonbox_8hpp_source.html">dragonbox.hpp</a>&gt;</code></p>
+<div class="dynheader">
+wjr::dragonbox::ieee754_binary_traits&lt; Format, CarrierUInt, ExponentInt &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><img src="structwjr_1_1dragonbox_1_1ieee754__binary__traits__coll__graph.png" border="0" usemap="#awjr_1_1dragonbox_1_1ieee754__binary__traits_3_01_format_00_01_carrier_u_int_00_01_exponent_int_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="awjr_1_1dragonbox_1_1ieee754__binary__traits_3_01_format_00_01_carrier_u_int_00_01_exponent_int_01_4_coll__map" id="awjr_1_1dragonbox_1_1ieee754__binary__traits_3_01_format_00_01_carrier_u_int_00_01_exponent_int_01_4_coll__map">
+<area shape="rect" title=" " alt="" coords="5,5,172,405"/>
+</map>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:af3cda2d67d1f4c2c9e7a01af63dfd3c0" id="r_af3cda2d67d1f4c2c9e7a01af63dfd3c0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af3cda2d67d1f4c2c9e7a01af63dfd3c0">format</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a></td></tr>
+<tr class="separator:af3cda2d67d1f4c2c9e7a01af63dfd3c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf7f7601d04f2359095ca07371f9e206" id="r_aaf7f7601d04f2359095ca07371f9e206"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a></td></tr>
+<tr class="separator:aaf7f7601d04f2359095ca07371f9e206"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72a0374346ffa83e13673e3c36e1e3cb" id="r_a72a0374346ffa83e13673e3c36e1e3cb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a72a0374346ffa83e13673e3c36e1e3cb">exponent_int</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a></td></tr>
+<tr class="separator:a72a0374346ffa83e13673e3c36e1e3cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+静态 Public 成员函数</h2></td></tr>
+<tr class="memitem:a63fecf19cf90b5aef818fe01a70a2ee4" id="r_a63fecf19cf90b5aef818fe01a70a2ee4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a72a0374346ffa83e13673e3c36e1e3cb">exponent_int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a63fecf19cf90b5aef818fe01a70a2ee4">extract_exponent_bits</a> (<a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a> u) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a63fecf19cf90b5aef818fe01a70a2ee4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4bd5fc8419b58f5e6a7decfed0e65497" id="r_a4bd5fc8419b58f5e6a7decfed0e65497"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4bd5fc8419b58f5e6a7decfed0e65497">extract_significand_bits</a> (<a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a> u) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a4bd5fc8419b58f5e6a7decfed0e65497"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2639c8e4baebffeb41544ee4d38398aa" id="r_a2639c8e4baebffeb41544ee4d38398aa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2639c8e4baebffeb41544ee4d38398aa">remove_exponent_bits</a> (<a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a> u) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a2639c8e4baebffeb41544ee4d38398aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92778f44488c6fcdf6626ba164afdbd2" id="r_a92778f44488c6fcdf6626ba164afdbd2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a92778f44488c6fcdf6626ba164afdbd2">remove_sign_bit_and_shift</a> (<a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a> u) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a92778f44488c6fcdf6626ba164afdbd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a034a427fd6d26dde4a476394a0321c9d" id="r_a034a427fd6d26dde4a476394a0321c9d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a72a0374346ffa83e13673e3c36e1e3cb">exponent_int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a034a427fd6d26dde4a476394a0321c9d">binary_exponent</a> (<a class="el" href="#a72a0374346ffa83e13673e3c36e1e3cb">exponent_int</a> exponent_bits) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a034a427fd6d26dde4a476394a0321c9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a841c4b37942acdde29fa5c6d614e878c" id="r_a841c4b37942acdde29fa5c6d614e878c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a841c4b37942acdde29fa5c6d614e878c">binary_significand</a> (<a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a> significand_bits, <a class="el" href="#a72a0374346ffa83e13673e3c36e1e3cb">exponent_int</a> exponent_bits) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a841c4b37942acdde29fa5c6d614e878c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a13428973ebf7198a2c2677f15973eaa1" id="r_a13428973ebf7198a2c2677f15973eaa1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a13428973ebf7198a2c2677f15973eaa1">is_nonzero</a> (<a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a> u) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a13428973ebf7198a2c2677f15973eaa1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa86caefaecf44cbc2815232e8bbb3c5f" id="r_aa86caefaecf44cbc2815232e8bbb3c5f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa86caefaecf44cbc2815232e8bbb3c5f">is_positive</a> (<a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a> u) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:aa86caefaecf44cbc2815232e8bbb3c5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80415d3cf43bf0aac2b838df4f600709" id="r_a80415d3cf43bf0aac2b838df4f600709"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a80415d3cf43bf0aac2b838df4f600709">is_negative</a> (<a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a> u) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a80415d3cf43bf0aac2b838df4f600709"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5f1af680eb5d4528b0627b910a2c8ff" id="r_aa5f1af680eb5d4528b0627b910a2c8ff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa5f1af680eb5d4528b0627b910a2c8ff">is_finite</a> (<a class="el" href="#a72a0374346ffa83e13673e3c36e1e3cb">exponent_int</a> exponent_bits) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:aa5f1af680eb5d4528b0627b910a2c8ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aae790c9f32a70a397f9ad2ea681b2498" id="r_aae790c9f32a70a397f9ad2ea681b2498"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aae790c9f32a70a397f9ad2ea681b2498">has_all_zero_significand_bits</a> (<a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a> u) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:aae790c9f32a70a397f9ad2ea681b2498"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5145bd8bc0c4a5ccbb38205ea5924594" id="r_a5145bd8bc0c4a5ccbb38205ea5924594"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5145bd8bc0c4a5ccbb38205ea5924594">has_even_significand_bits</a> (<a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a> u) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a5145bd8bc0c4a5ccbb38205ea5924594"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+静态 Public 属性</h2></td></tr>
+<tr class="memitem:a3d4081895f1a86e8fca9eb03a21bb1ee" id="r_a3d4081895f1a86e8fca9eb03a21bb1ee"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3d4081895f1a86e8fca9eb03a21bb1ee">carrier_bits</a> = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>(detail::value_bits&lt;<a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a>&gt;::value)</td></tr>
+<tr class="separator:a3d4081895f1a86e8fca9eb03a21bb1ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">成员类型定义说明</h2>
+<a id="aaf7f7601d04f2359095ca07371f9e206" name="aaf7f7601d04f2359095ca07371f9e206"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaf7f7601d04f2359095ca07371f9e206">&#9670;&#160;</a></span>carrier_uint</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a>  = int&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">wjr::dragonbox::ieee754_binary_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;::carrier_uint = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a72a0374346ffa83e13673e3c36e1e3cb" name="a72a0374346ffa83e13673e3c36e1e3cb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72a0374346ffa83e13673e3c36e1e3cb">&#9670;&#160;</a></span>exponent_int</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a>  = int&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">wjr::dragonbox::ieee754_binary_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;::exponent_int = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af3cda2d67d1f4c2c9e7a01af63dfd3c0" name="af3cda2d67d1f4c2c9e7a01af63dfd3c0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3cda2d67d1f4c2c9e7a01af63dfd3c0">&#9670;&#160;</a></span>format</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a>  = int&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">wjr::dragonbox::ieee754_binary_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;::format = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="a034a427fd6d26dde4a476394a0321c9d" name="a034a427fd6d26dde4a476394a0321c9d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a034a427fd6d26dde4a476394a0321c9d">&#9670;&#160;</a></span>binary_exponent()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a>  = int&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a72a0374346ffa83e13673e3c36e1e3cb">exponent_int</a> <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">wjr::dragonbox::ieee754_binary_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;::binary_exponent </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#a72a0374346ffa83e13673e3c36e1e3cb">exponent_int</a></td>          <td class="paramname"><span class="paramname"><em>exponent_bits</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a841c4b37942acdde29fa5c6d614e878c" name="a841c4b37942acdde29fa5c6d614e878c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a841c4b37942acdde29fa5c6d614e878c">&#9670;&#160;</a></span>binary_significand()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a>  = int&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a> <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">wjr::dragonbox::ieee754_binary_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;::binary_significand </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a></td>          <td class="paramname"><span class="paramname"><em>significand_bits</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#a72a0374346ffa83e13673e3c36e1e3cb">exponent_int</a></td>          <td class="paramname"><span class="paramname"><em>exponent_bits</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a63fecf19cf90b5aef818fe01a70a2ee4" name="a63fecf19cf90b5aef818fe01a70a2ee4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a63fecf19cf90b5aef818fe01a70a2ee4">&#9670;&#160;</a></span>extract_exponent_bits()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a>  = int&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#a72a0374346ffa83e13673e3c36e1e3cb">exponent_int</a> <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">wjr::dragonbox::ieee754_binary_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;::extract_exponent_bits </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a></td>          <td class="paramname"><span class="paramname"><em>u</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4bd5fc8419b58f5e6a7decfed0e65497" name="a4bd5fc8419b58f5e6a7decfed0e65497"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4bd5fc8419b58f5e6a7decfed0e65497">&#9670;&#160;</a></span>extract_significand_bits()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a>  = int&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a> <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">wjr::dragonbox::ieee754_binary_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;::extract_significand_bits </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a></td>          <td class="paramname"><span class="paramname"><em>u</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aae790c9f32a70a397f9ad2ea681b2498" name="aae790c9f32a70a397f9ad2ea681b2498"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aae790c9f32a70a397f9ad2ea681b2498">&#9670;&#160;</a></span>has_all_zero_significand_bits()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a>  = int&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">wjr::dragonbox::ieee754_binary_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;::has_all_zero_significand_bits </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a></td>          <td class="paramname"><span class="paramname"><em>u</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5145bd8bc0c4a5ccbb38205ea5924594" name="a5145bd8bc0c4a5ccbb38205ea5924594"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5145bd8bc0c4a5ccbb38205ea5924594">&#9670;&#160;</a></span>has_even_significand_bits()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a>  = int&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">wjr::dragonbox::ieee754_binary_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;::has_even_significand_bits </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a></td>          <td class="paramname"><span class="paramname"><em>u</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa5f1af680eb5d4528b0627b910a2c8ff" name="aa5f1af680eb5d4528b0627b910a2c8ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5f1af680eb5d4528b0627b910a2c8ff">&#9670;&#160;</a></span>is_finite()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a>  = int&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">wjr::dragonbox::ieee754_binary_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;::is_finite </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#a72a0374346ffa83e13673e3c36e1e3cb">exponent_int</a></td>          <td class="paramname"><span class="paramname"><em>exponent_bits</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a80415d3cf43bf0aac2b838df4f600709" name="a80415d3cf43bf0aac2b838df4f600709"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a80415d3cf43bf0aac2b838df4f600709">&#9670;&#160;</a></span>is_negative()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a>  = int&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">wjr::dragonbox::ieee754_binary_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;::is_negative </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a></td>          <td class="paramname"><span class="paramname"><em>u</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a13428973ebf7198a2c2677f15973eaa1" name="a13428973ebf7198a2c2677f15973eaa1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a13428973ebf7198a2c2677f15973eaa1">&#9670;&#160;</a></span>is_nonzero()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a>  = int&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">wjr::dragonbox::ieee754_binary_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;::is_nonzero </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a></td>          <td class="paramname"><span class="paramname"><em>u</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa86caefaecf44cbc2815232e8bbb3c5f" name="aa86caefaecf44cbc2815232e8bbb3c5f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa86caefaecf44cbc2815232e8bbb3c5f">&#9670;&#160;</a></span>is_positive()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a>  = int&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">wjr::dragonbox::ieee754_binary_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;::is_positive </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a></td>          <td class="paramname"><span class="paramname"><em>u</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2639c8e4baebffeb41544ee4d38398aa" name="a2639c8e4baebffeb41544ee4d38398aa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2639c8e4baebffeb41544ee4d38398aa">&#9670;&#160;</a></span>remove_exponent_bits()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a>  = int&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a> <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">wjr::dragonbox::ieee754_binary_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;::remove_exponent_bits </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a></td>          <td class="paramname"><span class="paramname"><em>u</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a92778f44488c6fcdf6626ba164afdbd2" name="a92778f44488c6fcdf6626ba164afdbd2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92778f44488c6fcdf6626ba164afdbd2">&#9670;&#160;</a></span>remove_sign_bit_and_shift()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a>  = int&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">static</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a> <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">wjr::dragonbox::ieee754_binary_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;::remove_sign_bit_and_shift </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a></td>          <td class="paramname"><span class="paramname"><em>u</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">类成员变量说明</h2>
+<a id="a3d4081895f1a86e8fca9eb03a21bb1ee" name="a3d4081895f1a86e8fca9eb03a21bb1ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3d4081895f1a86e8fca9eb03a21bb1ee">&#9670;&#160;</a></span>carrier_bits</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">class</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a>  = int&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a> <a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">wjr::dragonbox::ieee754_binary_traits</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Format</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">CarrierUInt</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">ExponentInt</a> &gt;::carrier_bits = <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int</a>(detail::value_bits&lt;<a class="el" href="#aaf7f7601d04f2359095ca07371f9e206">carrier_uint</a>&gt;::value)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该结构体的文档由以下文件生成:<ul>
+<li>include/wjr/format/<a class="el" href="dragonbox_8hpp_source.html">dragonbox.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacewjr.html">wjr</a></li><li class="navelem"><a class="el" href="namespacewjr_1_1dragonbox.html">dragonbox</a></li><li class="navelem"><a class="el" href="structwjr_1_1dragonbox_1_1ieee754__binary__traits.html">ieee754_binary_traits</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

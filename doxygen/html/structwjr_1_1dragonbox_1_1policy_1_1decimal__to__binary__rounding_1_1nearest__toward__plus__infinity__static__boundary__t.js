@@ -1,0 +1,4 @@
+var structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__plus__infinity__static__boundary__t =
+[
+    [ "decimal_to_binary_rounding_policy", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__plus__infinity__static__boundary__t.html#ad8e9f282981227f1286933ad376c6fb7", null ]
+];

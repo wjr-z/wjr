@@ -1,0 +1,69 @@
+\doxysection{nonsendable.\+hpp}
+\hypertarget{nonsendable_8hpp_source}{}\label{nonsendable_8hpp_source}\index{include/wjr/crtp/nonsendable.hpp@{include/wjr/crtp/nonsendable.hpp}}
+\mbox{\hyperlink{nonsendable_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_CRTP\_NONSENDABLE\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_CRTP\_NONSENDABLE\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{assert_8hpp}{wjr/assert.hpp}}>}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#if\ WJR\_DEBUG\_LEVEL\ >=\ 3}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_DEBUG\_NONSENDABLE\_CHECKER\ WJR\_HAS\_DEF}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_DEBUG(NONSENDABLE\_CHECKER)}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\ \ \ \ \#include\ <thread>}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_DEBUG(NONSENDABLE\_CHECKER)}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00036\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Tag\ =\ \textcolor{keywordtype}{void}>}
+\DoxyCodeLine{00037\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classwjr_1_1nonsendable}{nonsendable}}\ \{}
+\DoxyCodeLine{00038\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classwjr_1_1nonsendable_a7c25ca57824832eccefb0a59590bbb13}{is\_nonsendable}}\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00042\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1nonsendable_a6e87600ac67b57f5f1bcc70964505822}{nonsendable}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ :\ m\_thread\_id(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{this\_thread}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{get\_id}}())\ \{\}}
+\DoxyCodeLine{00043\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1nonsendable_a58e41209d92f941f94c70d527d186acc}{nonsendable}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1nonsendable}{nonsendable}}\ \&other)\ \textcolor{keyword}{noexcept}\ \{\ check(other);\ \}}
+\DoxyCodeLine{00044\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1nonsendable_a5d1defcd9c7ea385d836827321fe1e22}{nonsendable}}(\mbox{\hyperlink{classwjr_1_1nonsendable}{nonsendable}}\ \&\&other)\ \textcolor{keyword}{noexcept}\ \{\ check(other);\ \}}
+\DoxyCodeLine{00045\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1nonsendable}{nonsendable}}\ \&\mbox{\hyperlink{classwjr_1_1nonsendable_ae59295254f54d8527de03a6ca638cfd7}{operator=}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1nonsendable}{nonsendable}}\ \&other)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ check(other);}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00048\ \ \ \ \ \}}
+\DoxyCodeLine{00049\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1nonsendable}{nonsendable}}\ \&\mbox{\hyperlink{classwjr_1_1nonsendable_a3cfd52007ed7e97ee35cca4c3e6d7382}{operator=}}(\mbox{\hyperlink{classwjr_1_1nonsendable}{nonsendable}}\ \&\&other)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ check(other);}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00052\ \ \ \ \ \}}
+\DoxyCodeLine{00053\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1nonsendable_a3ba8f726a0b5d598b06275094a152ebb}{\string~nonsendable}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keywordtype}{void}\ check(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1nonsendable}{nonsendable}}\ \&other)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_CHECK}}(m\_thread\_id\ ==\ other.m\_thread\_id,}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Cross-\/thread\ access\ detected\ when\ using\ a\ nonsendable\ object."{}});}
+\DoxyCodeLine{00059\ \ \ \ \ \}}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \ \ std::thread::id\ m\_thread\_id;}
+\DoxyCodeLine{00062\ \};}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00070\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Tag\ =\ \textcolor{keywordtype}{void}>}
+\DoxyCodeLine{00071\ \textcolor{keyword}{class\ }nonsendable\ \{}
+\DoxyCodeLine{00072\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classwjr_1_1nonsendable_a7c25ca57824832eccefb0a59590bbb13}{is\_nonsendable}}\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00076\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1nonsendable_a43c00a0fd9ad218df5f3c727ab90ab8c}{WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS}}(\mbox{\hyperlink{classwjr_1_1nonsendable}{nonsendable}});}
+\DoxyCodeLine{00077\ \};}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_CRTP\_NONSENDABLE\_HPP\_\_}}
+
+\end{DoxyCode}

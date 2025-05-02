@@ -147,20 +147,6 @@ struct __is_inline_key<Key, std::enable_if_t<is_complete_v<Key>>> {
 template <typename Key>
 inline constexpr bool __is_inline_key_v = __is_inline_key<Key>::value;
 
-} // namespace btree_detail
-
-template <typename Traits>
-struct btree_node;
-
-template <typename Traits, bool Inline = false>
-struct btree_inner_node;
-
-template <typename Traits, bool Inline = false>
-struct btree_leaf_node;
-
-template <typename Traits>
-struct btree_root_node;
-
 template <typename Key, typename Value>
 struct __btree_inline_traits {
     using key_type = Key;
@@ -192,11 +178,25 @@ struct __btree_inline_traits<Key, void> {
     }
 };
 
+} // namespace btree_detail
+
+template <typename Traits>
+struct btree_node;
+
+template <typename Traits, bool Inline = false>
+struct btree_inner_node;
+
+template <typename Traits, bool Inline = false>
+struct btree_leaf_node;
+
+template <typename Traits>
+struct btree_root_node;
+
 template <typename Key, typename Value, bool Multi, typename Compare = std::less<>,
           typename Alloc = std::allocator<char>>
-struct btree_traits : __btree_inline_traits<Key, Value> {
+struct btree_traits : btree_detail::__btree_inline_traits<Key, Value> {
 private:
-    using Mybase = __btree_inline_traits<Key, Value>;
+    using Mybase = btree_detail::__btree_inline_traits<Key, Value>;
 
 public:
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<char>;
@@ -337,7 +337,7 @@ public:
     static value_type &from_ivalue(ivalue_type &value) { return *value; }
     static const value_type &from_ivalue(const ivalue_type &value) { return *value; }
 
-#if WJR_HAS_GCC(6, 0, 0)
+#if !defined(__GNUC__) || WJR_HAS_GCC(6, 0, 0)
     alignas(16) ivalue_type m_values[];
 #else
     alignas(16) ivalue_type m_values[0];

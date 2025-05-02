@@ -1,0 +1,788 @@
+\doxysection{compressed\+\_\+pair.\+hpp}
+\hypertarget{compressed__pair_8hpp_source}{}\label{compressed__pair_8hpp_source}\index{include/wjr/compressed\_pair.hpp@{include/wjr/compressed\_pair.hpp}}
+\mbox{\hyperlink{compressed__pair_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_COMPRESSED\_PAIR\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_COMPRESSED\_PAIR\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{tuple_8hpp}{wjr/tuple.hpp}}>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00009\ \textcolor{keyword}{class\ }\mbox{\hyperlink{namespacewjr_ab911a3f95f654da74ca833929a2f45cb}{compressed\_pair}};}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacestd}{std}}\ \{}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00016\ \textcolor{keyword}{struct\ }tuple\_size<\mbox{\hyperlink{namespacewjr}{wjr}}::compressed\_pair<T,\ U>>\ :\ integral\_constant<size\_t,\ 2>\ \{\};}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ I,\ \textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00019\ \textcolor{keyword}{struct\ }tuple\_element<I,\ \mbox{\hyperlink{namespacewjr}{wjr}}::compressed\_pair<T,\ U>>\ \{}
+\DoxyCodeLine{00020\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{structstd_1_1tuple__element_3_01_i_00_01wjr_1_1compressed__pair_3_01_t_00_01_u_01_4_01_4_a8cabf0c342156b11ab53eb46c42347dc}{type}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::tp\_at\_t<wjr::compressed\_pair<T,\ U>}},\ I>;}
+\DoxyCodeLine{00021\ \};}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \}\ \textcolor{comment}{//\ namespace\ std}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00028\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00029\ \textcolor{keyword}{struct\ }\_\_compressed\_pair1\ \{\};}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00032\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00033\ \textcolor{keyword}{struct\ }\_\_compressed\_pair2\ \{\};}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00036\ \textcolor{keyword}{using\ }\_\_compressed\_pair\_base\_tag1\ =}
+\DoxyCodeLine{00037\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{enable\_special\_members\_of\_args\_base<enable\_base\_identity\_t<0,\ \_\_compressed\_pair1<T,\ U>}}>,\ T>;}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00040\ \textcolor{keyword}{using\ }\_\_compressed\_pair\_base\_tag2\ =}
+\DoxyCodeLine{00041\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{enable\_special\_members\_of\_args\_base<enable\_base\_identity\_t<1,\ \_\_compressed\_pair2<T,\ U>}}>,\ U>;}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U,\ \textcolor{keyword}{typename}\ Enable\ =\ \textcolor{keywordtype}{void}>}
+\DoxyCodeLine{00044\ \textcolor{keyword}{struct\ }\_\_compressed\_pair\_base;}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00047\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_EMPTY\_BASES}}}
+\DoxyCodeLine{00048\ \ \ \ \ \_\_compressed\_pair\_base<T,\ U,\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{enable\_if\_t}}<!is\_compressed\_v<T>\ \&\&\ !is\_compressed\_v<U>>>}
+\DoxyCodeLine{00049\ \ \ \ \ :\ \_\_compressed\_pair\_base\_tag1<T,\ U>,\ \_\_compressed\_pair\_base\_tag2<T,\ U>\ \{}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keyword}{using\ }Mybase1\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_compressed\_pair\_base\_tag1<T,\ U>}};}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keyword}{using\ }Mybase2\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_compressed\_pair\_base\_tag2<T,\ U>}};}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ =\ U,}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<std::is\_default\_constructible<Ty>,}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_default\_constructible<Uy>>)>}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keyword}{constexpr}\ \_\_compressed\_pair\_base()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}(}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{conjunction\_v}}<\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_nothrow\_constructible}}<T>,\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_nothrow\_constructible}}<U>>)}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ m\_first(),}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \ \ m\_second()\ \{\}}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}},}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_constructible<T,\ Ty>,\ std::is\_constructible<U,\ Uy>>)>}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \_\_compressed\_pair\_base(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{t}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ \&\&u)\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_nothrow\_constructible<T,\ Ty>,}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<U,\ Uy>>)}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \ \ m\_first(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{t}})),\ m\_second(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}>(u))\ \{\}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple1}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple2}},\ \textcolor{keywordtype}{size\_t}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N1}},\ \textcolor{keywordtype}{size\_t}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N2}}>}
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keyword}{constexpr}\ \_\_compressed\_pair\_base(}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple1}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp1}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple2}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp2}},\ std::index\_sequence<N1...>,}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ std::index\_sequence<N2...>)\ \textcolor{keyword}{noexcept}(std::}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ conjunction\_v<}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ std::tuple\_element\_t<N1,\ Tuple1>...>,}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ U,\ std::tuple\_element\_t<N2,\ Tuple2>...>>)}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \ \ m\_first(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacestd_a3767022618c3b96df1cb16ac67d9fc96}{get}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N1}}>(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_ac8b9458cb5a35829280ddca5138d56be}{move}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp1}}))...),\ m\_second(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacestd_a3767022618c3b96df1cb16ac67d9fc96}{get}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N2}}>(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_ac8b9458cb5a35829280ddca5138d56be}{move}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp2}}))...)\ \{\}}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ =\ U,}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<std::is\_default\_constructible<Ty>,}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_default\_constructible<Uy>>)>}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \_\_compressed\_pair\_base(default\_construct\_t,\ default\_construct\_t)\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_nothrow\_default\_constructible<T>,}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_default\_constructible<U>>)}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}})\ \{\}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}},}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<std::is\_default\_constructible<Ty>,}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_constructible<U,\ Uy>>)>}
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \_\_compressed\_pair\_base(default\_construct\_t,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ \&\&u)\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_nothrow\_default\_constructible<T>,}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<U,\ Uy>>)}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \ \ m\_second(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}>(u))\ \{\}}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ =\ U,}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<std::is\_constructible<T,\ Ty>,}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_default\_constructible<Uy>>)>}
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \_\_compressed\_pair\_base(T\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{t}},\ default\_construct\_t)\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_nothrow\_constructible<T,\ Ty>,}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_default\_constructible<U>>)}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \ \ m\_first(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{t}}))\ \{\}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{keyword}{constexpr}\ T\ \&first()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ m\_first;\ \}}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{const}\ T\ \&first()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ m\_first;\ \}}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{keyword}{constexpr}\ U\ \&second()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ m\_second;\ \}}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{const}\ U\ \&second()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ m\_second;\ \}}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \ \ \ \ T\ m\_first;}
+\DoxyCodeLine{00115\ \ \ \ \ U\ m\_second;}
+\DoxyCodeLine{00116\ \};}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00119\ \textcolor{keyword}{struct\ }container\_of\_fn<\_\_compressed\_pair\_base<T,\ U>,\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{in\_place\_index\_t}}<0>,}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::enable\_if\_t<!is\_compressed\_v<T>\ \&\&\ !is\_compressed\_v<U>\ \&\&}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_standard\_layout\_v<\_\_compressed\_pair\_base<T,\ U>>>>\ \{}
+\DoxyCodeLine{00122\ \ \ \ \ \textcolor{keyword}{using\ }base\_type\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_compressed\_pair\_base<T,\ U>}};}
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keyword}{using\ }value\_type\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}};}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \ \ \ \ base\_type\ \&operator()(value\_type\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{reinterpret\_cast<}base\_type\ *\textcolor{keyword}{>}(\textcolor{keyword}{reinterpret\_cast<}std::byte\ *\textcolor{keyword}{>}(std::addressof(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}}))\ -\/}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{offsetof}}(base\_type,\ m\_first));}
+\DoxyCodeLine{00128\ \ \ \ \ \}}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{keyword}{const}\ base\_type\ \&operator()(\textcolor{keyword}{const}\ value\_type\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{reinterpret\_cast<}\textcolor{keyword}{const\ }base\_type\ *\textcolor{keyword}{>}(}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{reinterpret\_cast<}\textcolor{keyword}{const\ }std::byte\ *\textcolor{keyword}{>}(std::addressof(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}}))\ -\/}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{offsetof}}(base\_type,\ m\_first));}
+\DoxyCodeLine{00134\ \ \ \ \ \}}
+\DoxyCodeLine{00135\ \};}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00138\ \textcolor{keyword}{struct\ }container\_of\_fn<\_\_compressed\_pair\_base<T,\ U>,\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{in\_place\_index\_t}}<1>,}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::enable\_if\_t<!is\_compressed\_v<T>\ \&\&\ !is\_compressed\_v<U>\ \&\&}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_standard\_layout\_v<\_\_compressed\_pair\_base<T,\ U>>>>\ \{}
+\DoxyCodeLine{00141\ \ \ \ \ \textcolor{keyword}{using\ }base\_type\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_compressed\_pair\_base<T,\ U>}};}
+\DoxyCodeLine{00142\ \ \ \ \ \textcolor{keyword}{using\ }value\_type\ =\ U;}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ \ \ \ \ base\_type\ \&operator()(value\_type\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{reinterpret\_cast<}base\_type\ *\textcolor{keyword}{>}(\textcolor{keyword}{reinterpret\_cast<}std::byte\ *\textcolor{keyword}{>}(std::addressof(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}}))\ -\/}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{offsetof}}(base\_type,\ m\_second));}
+\DoxyCodeLine{00147\ \ \ \ \ \}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \ \ \ \ \textcolor{keyword}{const}\ base\_type\ \&operator()(\textcolor{keyword}{const}\ value\_type\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{reinterpret\_cast<}\textcolor{keyword}{const\ }base\_type\ *\textcolor{keyword}{>}(}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{reinterpret\_cast<}\textcolor{keyword}{const\ }std::byte\ *\textcolor{keyword}{>}(std::addressof(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}}))\ -\/}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{offsetof}}(base\_type,\ m\_second));}
+\DoxyCodeLine{00153\ \ \ \ \ \}}
+\DoxyCodeLine{00154\ \};}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00157\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_EMPTY\_BASES}}\ \_\_compressed\_pair\_base<T,\ U,\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{enable\_if\_t}}<is\_compressed\_v<T>>>}
+\DoxyCodeLine{00158\ \ \ \ \ :\ \_\_compressed\_pair\_base\_tag1<T,\ U>,\ \_\_compressed\_pair\_base\_tag2<T,\ U>,\ T\ \{}
+\DoxyCodeLine{00159\ \ \ \ \ \textcolor{keyword}{using\ }Mybase1\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_compressed\_pair\_base\_tag1<T,\ U>}};}
+\DoxyCodeLine{00160\ \ \ \ \ \textcolor{keyword}{using\ }Mybase2\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_compressed\_pair\_base\_tag2<T,\ U>}};}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ =\ U,}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<std::is\_default\_constructible<Ty>,}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_default\_constructible<Uy>>)>}
+\DoxyCodeLine{00165\ \ \ \ \ \textcolor{keyword}{constexpr}\ \_\_compressed\_pair\_base()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}(}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{conjunction\_v}}<\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_nothrow\_constructible}}<T>,\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_nothrow\_constructible}}<U>>)}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ T(),}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ \ \ m\_second()\ \{\}}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}},}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_constructible<T,\ Ty>,\ std::is\_constructible<U,\ Uy>>)>}
+\DoxyCodeLine{00173\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \_\_compressed\_pair\_base(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{t}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ \&\&u)\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_nothrow\_constructible<T,\ Ty>,}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<U,\ Uy>>)}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ \ \ T(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{t}})),\ m\_second(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}>(u))\ \{\}}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple1}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple2}},\ \textcolor{keywordtype}{size\_t}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N1}},\ \textcolor{keywordtype}{size\_t}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N2}}>}
+\DoxyCodeLine{00180\ \ \ \ \ \textcolor{keyword}{constexpr}\ \_\_compressed\_pair\_base(}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple1}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp1}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple2}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp2}},\ std::index\_sequence<N1...>,}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ std::index\_sequence<N2...>)\ \textcolor{keyword}{noexcept}(std::}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ conjunction\_v<}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ std::tuple\_element\_t<N1,\ Tuple1>...>,}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ U,\ std::tuple\_element\_t<N2,\ Tuple2>...>>)}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ \ \ T(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacestd_a3767022618c3b96df1cb16ac67d9fc96}{get}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N1}}>(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_ac8b9458cb5a35829280ddca5138d56be}{move}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp1}}))...),\ m\_second(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacestd_a3767022618c3b96df1cb16ac67d9fc96}{get}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N2}}>(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_ac8b9458cb5a35829280ddca5138d56be}{move}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp2}}))...)\ \{\}}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ =\ U,}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<std::is\_default\_constructible<Ty>,}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_default\_constructible<Uy>>)>}
+\DoxyCodeLine{00194\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \_\_compressed\_pair\_base(default\_construct\_t,\ default\_construct\_t)\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_nothrow\_default\_constructible<T>,}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_default\_constructible<U>>)}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}})\ \{\}}
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00199\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}},}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<std::is\_default\_constructible<Ty>,}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_constructible<U,\ Uy>>)>}
+\DoxyCodeLine{00202\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \_\_compressed\_pair\_base(default\_construct\_t,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ \&\&u)\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_nothrow\_default\_constructible<T>,}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<U,\ Uy>>)}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \ \ m\_second(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}>(u))\ \{\}}
+\DoxyCodeLine{00207\ }
+\DoxyCodeLine{00208\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ =\ U,}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<std::is\_constructible<T,\ Ty>,}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_default\_constructible<Uy>>)>}
+\DoxyCodeLine{00211\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \_\_compressed\_pair\_base(T\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{t}},\ default\_construct\_t)\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_nothrow\_constructible<T,\ Ty>,}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_default\_constructible<U>>)}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ \ \ T(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{t}}))\ \{\}}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \ \ \ \ \textcolor{keyword}{constexpr}\ T\ \&first()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};\ \}}
+\DoxyCodeLine{00218\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{const}\ T\ \&first()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};\ \}}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \ \ \textcolor{keyword}{constexpr}\ U\ \&second()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ m\_second;\ \}}
+\DoxyCodeLine{00221\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{const}\ U\ \&second()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ m\_second;\ \}}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \ \ \ \ U\ m\_second;}
+\DoxyCodeLine{00224\ \};}
+\DoxyCodeLine{00225\ }
+\DoxyCodeLine{00226\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00227\ \textcolor{keyword}{struct\ }container\_of\_fn<\_\_compressed\_pair\_base<T,\ U>,\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{in\_place\_index\_t}}<0>,}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::enable\_if\_t<is\_compressed\_v<T>>>\ \{}
+\DoxyCodeLine{00229\ \ \ \ \ \textcolor{keyword}{using\ }base\_type\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_compressed\_pair\_base<T,\ U>}};}
+\DoxyCodeLine{00230\ \ \ \ \ \textcolor{keyword}{using\ }value\_type\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}};}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \ \ \ \ base\_type\ \&operator()(value\_type\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}base\_type\ \&\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}});\ \}}
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \ \ \ \ \textcolor{keyword}{const}\ base\_type\ \&operator()(\textcolor{keyword}{const}\ value\_type\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\textcolor{keyword}{const\ }base\_type\ \&\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}});}
+\DoxyCodeLine{00236\ \ \ \ \ \}}
+\DoxyCodeLine{00237\ \};}
+\DoxyCodeLine{00238\ }
+\DoxyCodeLine{00239\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00240\ \textcolor{keyword}{struct\ }container\_of\_fn<\_\_compressed\_pair\_base<T,\ U>,\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{in\_place\_index\_t}}<1>,}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::enable\_if\_t<is\_compressed\_v<T>\ \&\&}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_standard\_layout\_v<\_\_compressed\_pair\_base<T,\ U>>>>\ \{}
+\DoxyCodeLine{00243\ \ \ \ \ \textcolor{keyword}{using\ }base\_type\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_compressed\_pair\_base<T,\ U>}};}
+\DoxyCodeLine{00244\ \ \ \ \ \textcolor{keyword}{using\ }value\_type\ =\ U;}
+\DoxyCodeLine{00245\ }
+\DoxyCodeLine{00246\ \ \ \ \ base\_type\ \&operator()(value\_type\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{reinterpret\_cast<}base\_type\ *\textcolor{keyword}{>}(\textcolor{keyword}{reinterpret\_cast<}std::byte\ *\textcolor{keyword}{>}(std::addressof(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}}))\ -\/}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{offsetof}}(base\_type,\ m\_second));}
+\DoxyCodeLine{00249\ \ \ \ \ \}}
+\DoxyCodeLine{00250\ }
+\DoxyCodeLine{00251\ \ \ \ \ \textcolor{keyword}{const}\ base\_type\ \&operator()(\textcolor{keyword}{const}\ value\_type\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{reinterpret\_cast<}\textcolor{keyword}{const\ }base\_type\ *\textcolor{keyword}{>}(}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{reinterpret\_cast<}\textcolor{keyword}{const\ }std::byte\ *\textcolor{keyword}{>}(std::addressof(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}}))\ -\/}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{offsetof}}(base\_type,\ m\_second));}
+\DoxyCodeLine{00255\ \ \ \ \ \}}
+\DoxyCodeLine{00256\ \};}
+\DoxyCodeLine{00257\ }
+\DoxyCodeLine{00258\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00259\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_EMPTY\_BASES}}}
+\DoxyCodeLine{00260\ \ \ \ \ \_\_compressed\_pair\_base<T,\ U,\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{enable\_if\_t}}<!is\_compressed\_v<T>\ \&\&\ is\_compressed\_v<U>>>}
+\DoxyCodeLine{00261\ \ \ \ \ :\ \_\_compressed\_pair\_base\_tag1<T,\ U>,\ \_\_compressed\_pair\_base\_tag2<T,\ U>,\ U\ \{}
+\DoxyCodeLine{00262\ \ \ \ \ \textcolor{keyword}{using\ }Mybase1\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_compressed\_pair\_base\_tag1<T,\ U>}};}
+\DoxyCodeLine{00263\ \ \ \ \ \textcolor{keyword}{using\ }Mybase2\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_compressed\_pair\_base\_tag2<T,\ U>}};}
+\DoxyCodeLine{00264\ }
+\DoxyCodeLine{00265\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ =\ U,}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<std::is\_default\_constructible<Ty>,}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_default\_constructible<Uy>>)>}
+\DoxyCodeLine{00268\ \ \ \ \ \textcolor{keyword}{constexpr}\ \_\_compressed\_pair\_base()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}(}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{conjunction\_v}}<\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_nothrow\_constructible}}<T>,\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_nothrow\_constructible}}<U>>)}
+\DoxyCodeLine{00270\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ m\_first(),\ U()\ \{}
+\DoxyCodeLine{00271\ \ \ \ \ \}}
+\DoxyCodeLine{00272\ }
+\DoxyCodeLine{00273\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}},}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(}
+\DoxyCodeLine{00275\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_constructible<T,\ Ty>,\ std::is\_constructible<U,\ Uy>>)>}
+\DoxyCodeLine{00276\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \_\_compressed\_pair\_base(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{t}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ \&\&u)\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00277\ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_nothrow\_constructible<T,\ Ty>,}
+\DoxyCodeLine{00278\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<U,\ Uy>>)}
+\DoxyCodeLine{00279\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),}
+\DoxyCodeLine{00280\ \ \ \ \ \ \ \ \ \ \ m\_first(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{t}})),\ U(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}>(u))\ \{\}}
+\DoxyCodeLine{00281\ }
+\DoxyCodeLine{00282\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple1}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple2}},\ \textcolor{keywordtype}{size\_t}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N1}},\ \textcolor{keywordtype}{size\_t}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N2}}>}
+\DoxyCodeLine{00283\ \ \ \ \ \textcolor{keyword}{constexpr}\ \_\_compressed\_pair\_base(}
+\DoxyCodeLine{00284\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple1}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp1}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple2}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp2}},\ std::index\_sequence<N1...>,}
+\DoxyCodeLine{00285\ \ \ \ \ \ \ \ \ std::index\_sequence<N2...>)\ \textcolor{keyword}{noexcept}(std::}
+\DoxyCodeLine{00286\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ conjunction\_v<}
+\DoxyCodeLine{00287\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<}
+\DoxyCodeLine{00288\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ std::tuple\_element\_t<N1,\ Tuple1>...>,}
+\DoxyCodeLine{00289\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ U,\ std::tuple\_element\_t<N2,\ Tuple2>...>>)}
+\DoxyCodeLine{00291\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),}
+\DoxyCodeLine{00292\ \ \ \ \ \ \ \ \ \ \ m\_first(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacestd_a3767022618c3b96df1cb16ac67d9fc96}{get}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N1}}>(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_ac8b9458cb5a35829280ddca5138d56be}{move}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp1}}))...),\ U(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacestd_a3767022618c3b96df1cb16ac67d9fc96}{get}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N2}}>(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_ac8b9458cb5a35829280ddca5138d56be}{move}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp2}}))...)\ \{\}}
+\DoxyCodeLine{00293\ }
+\DoxyCodeLine{00294\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ =\ U,}
+\DoxyCodeLine{00295\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<std::is\_default\_constructible<Ty>,}
+\DoxyCodeLine{00296\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_default\_constructible<Uy>>)>}
+\DoxyCodeLine{00297\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \_\_compressed\_pair\_base(default\_construct\_t,\ default\_construct\_t)\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00298\ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_nothrow\_default\_constructible<T>,}
+\DoxyCodeLine{00299\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_default\_constructible<U>>)}
+\DoxyCodeLine{00300\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}})\ \{\}}
+\DoxyCodeLine{00301\ }
+\DoxyCodeLine{00302\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}},}
+\DoxyCodeLine{00303\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<std::is\_default\_constructible<Ty>,}
+\DoxyCodeLine{00304\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_constructible<U,\ Uy>>)>}
+\DoxyCodeLine{00305\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \_\_compressed\_pair\_base(default\_construct\_t,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ \&\&u)\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_nothrow\_default\_constructible<T>,}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<U,\ Uy>>)}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),}
+\DoxyCodeLine{00309\ \ \ \ \ \ \ \ \ \ \ U(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}>(u))\ \{\}}
+\DoxyCodeLine{00310\ }
+\DoxyCodeLine{00311\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ =\ U,}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<std::is\_constructible<T,\ Ty>,}
+\DoxyCodeLine{00313\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_default\_constructible<Uy>>)>}
+\DoxyCodeLine{00314\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \_\_compressed\_pair\_base(T\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{t}},\ default\_construct\_t)\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00315\ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_nothrow\_constructible<T,\ Ty>,}
+\DoxyCodeLine{00316\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_default\_constructible<U>>)}
+\DoxyCodeLine{00317\ \ \ \ \ \ \ \ \ :\ Mybase1(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),\ Mybase2(\mbox{\hyperlink{namespacewjr_a3a11cdbc4a8173a936d2a0721a23ad45}{enable\_default\_constructor}}),}
+\DoxyCodeLine{00318\ \ \ \ \ \ \ \ \ \ \ m\_first(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{t}}))\ \{\}}
+\DoxyCodeLine{00319\ }
+\DoxyCodeLine{00320\ \ \ \ \ \textcolor{keyword}{constexpr}\ T\ \&first()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ m\_first;\ \}}
+\DoxyCodeLine{00321\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{const}\ T\ \&first()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ m\_first;\ \}}
+\DoxyCodeLine{00322\ }
+\DoxyCodeLine{00323\ \ \ \ \ \textcolor{keyword}{constexpr}\ U\ \&second()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};\ \}}
+\DoxyCodeLine{00324\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{const}\ U\ \&second()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};\ \}}
+\DoxyCodeLine{00325\ }
+\DoxyCodeLine{00326\ \ \ \ \ T\ m\_first;}
+\DoxyCodeLine{00327\ \};}
+\DoxyCodeLine{00328\ }
+\DoxyCodeLine{00329\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00330\ \textcolor{keyword}{struct\ }container\_of\_fn<}
+\DoxyCodeLine{00331\ \ \ \ \ \_\_compressed\_pair\_base<T,\ U>,\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{in\_place\_index\_t}}<0>,}
+\DoxyCodeLine{00332\ \ \ \ \ std::enable\_if\_t<!is\_compressed\_v<T>\ \&\&\ is\_compressed\_v<U>\ \&\&\ std::is\_standard\_layout\_v<T>>>\ \{}
+\DoxyCodeLine{00333\ \ \ \ \ \textcolor{keyword}{using\ }base\_type\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_compressed\_pair\_base<T,\ U>}};}
+\DoxyCodeLine{00334\ \ \ \ \ \textcolor{keyword}{using\ }value\_type\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}};}
+\DoxyCodeLine{00335\ }
+\DoxyCodeLine{00336\ \ \ \ \ base\_type\ \&operator()(value\_type\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00337\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{reinterpret\_cast<}base\_type\ *\textcolor{keyword}{>}(\textcolor{keyword}{reinterpret\_cast<}std::byte\ *\textcolor{keyword}{>}(std::addressof(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}}))\ -\/}
+\DoxyCodeLine{00338\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{offsetof}}(base\_type,\ m\_first));}
+\DoxyCodeLine{00339\ \ \ \ \ \}}
+\DoxyCodeLine{00340\ }
+\DoxyCodeLine{00341\ \ \ \ \ \textcolor{keyword}{const}\ base\_type\ \&operator()(\textcolor{keyword}{const}\ value\_type\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00342\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{reinterpret\_cast<}\textcolor{keyword}{const\ }base\_type\ *\textcolor{keyword}{>}(}
+\DoxyCodeLine{00343\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{reinterpret\_cast<}\textcolor{keyword}{const\ }std::byte\ *\textcolor{keyword}{>}(std::addressof(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}}))\ -\/}
+\DoxyCodeLine{00344\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{offsetof}}(base\_type,\ m\_first));}
+\DoxyCodeLine{00345\ \ \ \ \ \}}
+\DoxyCodeLine{00346\ \};}
+\DoxyCodeLine{00347\ }
+\DoxyCodeLine{00348\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00349\ \textcolor{keyword}{struct\ }container\_of\_fn<\_\_compressed\_pair\_base<T,\ U>,\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{in\_place\_index\_t}}<1>,}
+\DoxyCodeLine{00350\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::enable\_if\_t<!is\_compressed\_v<T>\ \&\&\ is\_compressed\_v<U>>>\ \{}
+\DoxyCodeLine{00351\ \ \ \ \ \textcolor{keyword}{using\ }base\_type\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_compressed\_pair\_base<T,\ U>}};}
+\DoxyCodeLine{00352\ \ \ \ \ \textcolor{keyword}{using\ }value\_type\ =\ U;}
+\DoxyCodeLine{00353\ }
+\DoxyCodeLine{00354\ \ \ \ \ base\_type\ \&operator()(value\_type\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}base\_type\ \&\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}});\ \}}
+\DoxyCodeLine{00355\ }
+\DoxyCodeLine{00356\ \ \ \ \ \textcolor{keyword}{const}\ base\_type\ \&operator()(\textcolor{keyword}{const}\ value\_type\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00357\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\textcolor{keyword}{const\ }base\_type\ \&\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}});}
+\DoxyCodeLine{00358\ \ \ \ \ \}}
+\DoxyCodeLine{00359\ \};}
+\DoxyCodeLine{00360\ }
+\DoxyCodeLine{00368\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00369\ \textcolor{keyword}{class\ }\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_EMPTY\_BASES}}\ \mbox{\hyperlink{classwjr_1_1compressed__pair}{compressed\_pair}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{final}}\ :\ \textcolor{keyword}{private}\ \_\_compressed\_pair\_base<T,\ U>\ \{}
+\DoxyCodeLine{00370\ \ \ \ \ \textcolor{keyword}{using\ }Mybase\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_compressed\_pair\_base<T,\ U>}};}
+\DoxyCodeLine{00371\ }
+\DoxyCodeLine{00372\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Ty,\ \textcolor{keyword}{typename}\ Uy>}
+\DoxyCodeLine{00373\ \ \ \ \ \textcolor{keyword}{using\ }\_\_is\_all\_copy\_constructible\ =}
+\DoxyCodeLine{00374\ \ \ \ \ \ \ \ \ std::conjunction<std::is\_copy\_constructible<Ty>,\ std::is\_copy\_constructible<Uy>>;}
+\DoxyCodeLine{00375\ }
+\DoxyCodeLine{00376\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Vty,\ \textcolor{keyword}{typename}\ Wuy>}
+\DoxyCodeLine{00377\ \ \ \ \ \textcolor{keyword}{using\ }\_\_is\_all\_convertible\ =}
+\DoxyCodeLine{00378\ \ \ \ \ \ \ \ \ std::conjunction<std::is\_convertible<Vty,\ T>,\ std::is\_convertible<Wuy,\ U>>;}
+\DoxyCodeLine{00379\ }
+\DoxyCodeLine{00380\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Vty,\ \textcolor{keyword}{typename}\ Wuy>}
+\DoxyCodeLine{00381\ \ \ \ \ \textcolor{keyword}{using\ }\_\_is\_all\_constructible\ =\ std::is\_constructible<Mybase,\ Vty,\ Wuy>;}
+\DoxyCodeLine{00382\ }
+\DoxyCodeLine{00383\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \_Mybase,\ \textcolor{keyword}{typename}\ \_Tag,\ \textcolor{keyword}{typename}\ \_Enable>}
+\DoxyCodeLine{00384\ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structwjr_1_1container__of__fn}{container\_of\_fn}};}
+\DoxyCodeLine{00385\ }
+\DoxyCodeLine{00386\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00387\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1compressed__pair_aebb0d48490a67b8b65e3a3b6016c3799}{first\_type}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}};}
+\DoxyCodeLine{00388\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1compressed__pair_a0e4e4afa67b9fbd1da9f5a3838de065f}{second\_type}}\ =\ U;}
+\DoxyCodeLine{00389\ }
+\DoxyCodeLine{00390\ \textcolor{preprocessor}{\#if\ defined(\_\_cpp\_conditional\_explicit)}}
+\DoxyCodeLine{00391\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ =\ U,}
+\DoxyCodeLine{00392\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<std::is\_default\_constructible<Ty>,}
+\DoxyCodeLine{00393\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_default\_constructible<Uy>>)>}
+\DoxyCodeLine{00394\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}(!std::conjunction\_v<is\_default\_convertible<Ty>,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_default\_convertible<Uy>}}>)}
+\DoxyCodeLine{00395\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_ab911a3f95f654da74ca833929a2f45cb}{compressed\_pair}}()\ \textcolor{keyword}{noexcept}(std::conjunction\_v<std::is\_nothrow\_constructible<Ty>,}
+\DoxyCodeLine{00396\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<Uy>>)\ \{\}}
+\DoxyCodeLine{00397\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00398\ \ \ \ \ \textcolor{keyword}{template}\ <}
+\DoxyCodeLine{00399\ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ =\ U,}
+\DoxyCodeLine{00400\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(}
+\DoxyCodeLine{00401\ \ \ \ \ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_default\_constructible<Ty>,\ std::is\_default\_constructible<Uy>>}
+\DoxyCodeLine{00402\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&\&std::conjunction\_v<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_default\_convertible<Ty>}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_default\_convertible<Uy>}}>)>}
+\DoxyCodeLine{00403\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1compressed__pair_a7e41466e0b74356152ec12edfde06f51}{compressed\_pair}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}(}
+\DoxyCodeLine{00404\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{conjunction\_v}}<\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_nothrow\_constructible}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}>,\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_nothrow\_constructible}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}>>)\ \{\}}
+\DoxyCodeLine{00405\ }
+\DoxyCodeLine{00406\ \ \ \ \ \textcolor{keyword}{template}\ <}
+\DoxyCodeLine{00407\ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ =\ U,}
+\DoxyCodeLine{00408\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<std::is\_default\_constructible<Ty>,}
+\DoxyCodeLine{00409\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_default\_constructible<Uy>>\ \&\&}
+\DoxyCodeLine{00410\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ !std::conjunction\_v<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_default\_convertible<Ty>}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_default\_convertible<Uy>}}>)>}
+\DoxyCodeLine{00411\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classwjr_1_1compressed__pair_a7e41466e0b74356152ec12edfde06f51}{compressed\_pair}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}(}
+\DoxyCodeLine{00412\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{conjunction\_v}}<\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_nothrow\_constructible}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}>,\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_nothrow\_constructible}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}>>)\ \{\}}
+\DoxyCodeLine{00413\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00414\ }
+\DoxyCodeLine{00415\ \textcolor{preprocessor}{\#if\ defined(\_\_cpp\_conditional\_explicit)}}
+\DoxyCodeLine{00416\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ =\ U,}
+\DoxyCodeLine{00417\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(\_\_is\_all\_copy\_constructible<Ty,\ Uy>::value)>}
+\DoxyCodeLine{00418\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}(!\_\_is\_all\_convertible<const\ Ty\ \&,\ const\ Uy\ \&>::value)}
+\DoxyCodeLine{00419\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_ab911a3f95f654da74ca833929a2f45cb}{compressed\_pair}}(\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_First}},\ \textcolor{keyword}{const}\ U\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_Second}})\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00420\ \ \ \ \ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_nothrow\_copy\_constructible<Ty>,}
+\DoxyCodeLine{00421\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_copy\_constructible<Uy>>)}
+\DoxyCodeLine{00422\ \ \ \ \ \ \ \ \ :\ Mybase(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_First}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_Second}})\ \{\}}
+\DoxyCodeLine{00423\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00424\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ =\ U,}
+\DoxyCodeLine{00425\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_is\_all\_copy\_constructible<Ty,\ Uy>}},}
+\DoxyCodeLine{00426\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_is\_all\_convertible<const\ Ty\ \&,\ const\ Uy\ \&>}}>)>}
+\DoxyCodeLine{00427\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1compressed__pair_a2ee6e4ec48afcbc87301c01d944d8850}{compressed\_pair}}(\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_First}},\ \textcolor{keyword}{const}\ U\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_Second}})\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00428\ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_nothrow\_copy\_constructible<Ty>,}
+\DoxyCodeLine{00429\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_copy\_constructible<Uy>>)}
+\DoxyCodeLine{00430\ \ \ \ \ \ \ \ \ :\ Mybase(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_First}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_Second}})\ \{\}}
+\DoxyCodeLine{00431\ }
+\DoxyCodeLine{00432\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Uy}}\ =\ U,}
+\DoxyCodeLine{00433\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(}
+\DoxyCodeLine{00434\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::conjunction\_v<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_is\_all\_copy\_constructible<Ty,\ Uy>}},}
+\DoxyCodeLine{00435\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::negation<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_is\_all\_convertible<const\ Ty\ \&,\ const\ Uy\ \&>}}>>)>}
+\DoxyCodeLine{00436\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classwjr_1_1compressed__pair_a2ee6e4ec48afcbc87301c01d944d8850}{compressed\_pair}}(\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_First}},\ \textcolor{keyword}{const}\ U\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_Second}})\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00437\ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_nothrow\_copy\_constructible<Ty>,}
+\DoxyCodeLine{00438\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_copy\_constructible<Uy>>)}
+\DoxyCodeLine{00439\ \ \ \ \ \ \ \ \ :\ Mybase(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_First}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_Second}})\ \{\}}
+\DoxyCodeLine{00440\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00441\ }
+\DoxyCodeLine{00442\ \textcolor{preprocessor}{\#if\ defined(\_\_cpp\_conditional\_explicit)}}
+\DoxyCodeLine{00443\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other1}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other2}},}
+\DoxyCodeLine{00444\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(\_\_is\_all\_constructible<Other1\ \&\&,\ Other2\ \&\&>::value)>}
+\DoxyCodeLine{00445\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}(!\_\_is\_all\_convertible<Other1\ \&\&,\ Other2\ \&\&>::value)}
+\DoxyCodeLine{00446\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_ab911a3f95f654da74ca833929a2f45cb}{compressed\_pair}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other1}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_First}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other2}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_Second}})\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00447\ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible\_v<Mybase,\ Other1\ \&\&,\ Other2\ \&\&>)}
+\DoxyCodeLine{00448\ \ \ \ \ \ \ \ \ :\ Mybase(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other1}}>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_First}}),\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other2}}>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_Second}}))\ \{\}}
+\DoxyCodeLine{00449\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00450\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other1}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other2}},}
+\DoxyCodeLine{00451\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_is\_all\_constructible<Other1\ \&\&,\ Other2\ \&\&>}},}
+\DoxyCodeLine{00452\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_is\_all\_convertible<Other1\ \&\&,\ Other2\ \&\&>}}>)>}
+\DoxyCodeLine{00453\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1compressed__pair_ae3bd8c93978715c976b098bce7862cc1}{compressed\_pair}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other1}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_First}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other2}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_Second}})\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00454\ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible\_v<Mybase,\ Other1\ \&\&,\ Other2\ \&\&>)}
+\DoxyCodeLine{00455\ \ \ \ \ \ \ \ \ :\ Mybase(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other1}}>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_First}}),\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other2}}>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_Second}}))\ \{\}}
+\DoxyCodeLine{00456\ }
+\DoxyCodeLine{00457\ \ \ \ \ \textcolor{keyword}{template}\ <}
+\DoxyCodeLine{00458\ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other1}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other2}},}
+\DoxyCodeLine{00459\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_is\_all\_constructible<Other1\ \&\&,\ Other2\ \&\&>}},}
+\DoxyCodeLine{00460\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::negation<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_is\_all\_convertible<Other1\ \&\&,\ Other2\ \&\&>}}>>)>}
+\DoxyCodeLine{00461\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classwjr_1_1compressed__pair_ae3bd8c93978715c976b098bce7862cc1}{compressed\_pair}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other1}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_First}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other2}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_Second}})\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00462\ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible\_v<Mybase,\ Other1\ \&\&,\ Other2\ \&\&>)}
+\DoxyCodeLine{00463\ \ \ \ \ \ \ \ \ :\ Mybase(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other1}}>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_First}}),\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{forward}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Other2}}>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_Second}}))\ \{\}}
+\DoxyCodeLine{00464\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00465\ }
+\DoxyCodeLine{00466\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00467\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple1}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple2}},\ \textcolor{keywordtype}{size\_t}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N1}},\ \textcolor{keywordtype}{size\_t}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N2}}>}
+\DoxyCodeLine{00468\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_ab911a3f95f654da74ca833929a2f45cb}{compressed\_pair}}(}
+\DoxyCodeLine{00469\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple1}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp1}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple2}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp2}},\ std::index\_sequence<N1...>\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i1}},}
+\DoxyCodeLine{00470\ \ \ \ \ \ \ \ \ std::index\_sequence<N2...>}
+\DoxyCodeLine{00471\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i2}})\ \textcolor{keyword}{noexcept}(std::is\_nothrow\_constructible\_v<Mybase,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple1}}\ \&,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tuple2}}\ \&,}
+\DoxyCodeLine{00472\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::index\_sequence<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N1}}...>,}
+\DoxyCodeLine{00473\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::index\_sequence<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N2}}...>>)}
+\DoxyCodeLine{00474\ \ \ \ \ \ \ \ \ :\ Mybase(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp1}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp2}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i1}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i2}})\ \{\}}
+\DoxyCodeLine{00475\ }
+\DoxyCodeLine{00476\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00477\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args1}},\ \textcolor{keyword}{typename}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args2}}>}
+\DoxyCodeLine{00478\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1compressed__pair_a48735b56336547c40ed5db7a0521883b}{compressed\_pair}}(}
+\DoxyCodeLine{00479\ \ \ \ \ \ \ \ \ std::piecewise\_construct\_t,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tuple<Args1...>}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp1}},}
+\DoxyCodeLine{00480\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tuple<Args2...>}}}
+\DoxyCodeLine{00481\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp2}})\ \textcolor{keyword}{noexcept}(\textcolor{keyword}{noexcept}(\mbox{\hyperlink{namespacewjr_ab911a3f95f654da74ca833929a2f45cb}{compressed\_pair}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp1}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp2}},\ std::index\_sequence\_for<Args1...>\{\},}
+\DoxyCodeLine{00482\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::index\_sequence\_for<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args2}}...>\{\})))}
+\DoxyCodeLine{00483\ \ \ \ \ \ \ \ \ :\ \mbox{\hyperlink{namespacewjr_ab911a3f95f654da74ca833929a2f45cb}{compressed\_pair}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp1}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tp2}},\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{index\_sequence\_for}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args1}}...>\{\},}
+\DoxyCodeLine{00484\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::index\_sequence\_for<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args2}}...>\{\})\ \{\}}
+\DoxyCodeLine{00485\ }
+\DoxyCodeLine{00486\ \textcolor{preprocessor}{\#if\ defined(\_\_cpp\_conditional\_explicit)}}
+\DoxyCodeLine{00487\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{PairLike}},}
+\DoxyCodeLine{00488\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_is\_tuple\_test\_v<std::is\_constructible,\ compressed\_pair,\ PairLike\ \&\&>}})>}
+\DoxyCodeLine{00489\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}(!\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_is\_tuple\_test\_v<std::is\_convertible,\ compressed\_pair,\ PairLike\ \&\&>}})}
+\DoxyCodeLine{00490\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_ab911a3f95f654da74ca833929a2f45cb}{compressed\_pair}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{PairLike}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}})\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00491\ \ \ \ \ \ \ \ \ \ \ \ \ std::conjunction\_v<}
+\DoxyCodeLine{00492\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<T,\ decltype(std::get<0>(std::forward<PairLike>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}})))>,}
+\DoxyCodeLine{00493\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<U,}
+\DoxyCodeLine{00494\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{decltype}(std::get<1>(std::forward<PairLike>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}})))>>)}
+\DoxyCodeLine{00495\ \ \ \ \ \ \ \ \ :\ Mybase(std::get<0>(std::forward<PairLike>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}})),\ std::get<1>(std::forward<PairLike>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}})))\ \{}
+\DoxyCodeLine{00496\ \ \ \ \ \}}
+\DoxyCodeLine{00497\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00498\ \ \ \ \ \textcolor{keyword}{template}\ <}
+\DoxyCodeLine{00499\ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{PairLike}},}
+\DoxyCodeLine{00500\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_is\_tuple\_test\_v<std::is\_constructible,\ compressed\_pair,\ PairLike\ \&\&>}}}
+\DoxyCodeLine{00501\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_is\_tuple\_test\_v<std::is\_convertible,\ compressed\_pair,\ PairLike\ \&\&>}})>}
+\DoxyCodeLine{00502\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1compressed__pair_a147ab1d537736828d60fea400d690b64}{compressed\_pair}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{PairLike}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}})\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00503\ \ \ \ \ \ \ \ \ std::conjunction\_v<}
+\DoxyCodeLine{00504\ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<T,\ decltype(std::get<0>(std::forward<PairLike>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}})))>,}
+\DoxyCodeLine{00505\ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<U,\ \textcolor{keyword}{decltype}(std::get<1>(std::forward<PairLike>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}})))>>)}
+\DoxyCodeLine{00506\ \ \ \ \ \ \ \ \ :\ Mybase(std::get<0>(std::forward<PairLike>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}})),\ std::get<1>(std::forward<PairLike>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}})))\ \{}
+\DoxyCodeLine{00507\ \ \ \ \ \}}
+\DoxyCodeLine{00508\ }
+\DoxyCodeLine{00509\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{PairLike}},}
+\DoxyCodeLine{00510\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_is\_tuple\_test\_v<std::is\_constructible,\ compressed\_pair,\ PairLike\ \&\&>}}\ \&\&}
+\DoxyCodeLine{00511\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ !\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_is\_tuple\_test\_v<std::is\_convertible,\ compressed\_pair,\ PairLike\ \&\&>}})>}
+\DoxyCodeLine{00512\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classwjr_1_1compressed__pair_a147ab1d537736828d60fea400d690b64}{compressed\_pair}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{PairLike}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}})\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00513\ \ \ \ \ \ \ \ \ std::conjunction\_v<}
+\DoxyCodeLine{00514\ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<T,\ decltype(std::get<0>(std::forward<PairLike>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}})))>,}
+\DoxyCodeLine{00515\ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<U,\ \textcolor{keyword}{decltype}(std::get<1>(std::forward<PairLike>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}})))>>)}
+\DoxyCodeLine{00516\ \ \ \ \ \ \ \ \ :\ Mybase(std::get<0>(std::forward<PairLike>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}})),\ std::get<1>(std::forward<PairLike>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}})))\ \{}
+\DoxyCodeLine{00517\ \ \ \ \ \}}
+\DoxyCodeLine{00518\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00519\ }
+\DoxyCodeLine{00520\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{PairLike}},}
+\DoxyCodeLine{00521\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_is\_tuple\_test\_v<\_\_is\_tuple\_assignable,\ compressed\_pair,\ PairLike\ \&\&>}})>}
+\DoxyCodeLine{00522\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1compressed__pair}{compressed\_pair}}\ \&\mbox{\hyperlink{classwjr_1_1compressed__pair_af9fcf4ec3c42fc1561e52187a99b3475}{operator=}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{PairLike}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}})\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00523\ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_nothrow\_assignable<T,\ decltype(std::get<0>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}}))>,}
+\DoxyCodeLine{00524\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_assignable<U,\ \textcolor{keyword}{decltype}(std::get<1>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}}))>>)\ \{}
+\DoxyCodeLine{00525\ \ \ \ \ \ \ \ \ first()\ =\ std::get<0>(std::forward<PairLike>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}}));}
+\DoxyCodeLine{00526\ \ \ \ \ \ \ \ \ second()\ =\ std::get<1>(std::forward<PairLike>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pr}}));}
+\DoxyCodeLine{00527\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00528\ \ \ \ \ \}}
+\DoxyCodeLine{00529\ }
+\DoxyCodeLine{00530\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Myself}}\ =\ \mbox{\hyperlink{namespacewjr_ab911a3f95f654da74ca833929a2f45cb}{compressed\_pair}},\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_T}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}},}
+\DoxyCodeLine{00531\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_swappable<\_T>}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_swappable<U>}}>)>}
+\DoxyCodeLine{00532\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classwjr_1_1compressed__pair_a562070fb1df2285790eda7be36f2abfb}{swap}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{type\_identity\_t<compressed\_pair\ \&>}}\ other)\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00533\ \ \ \ \ \ \ \ \ std::conjunction\_v<std::is\_nothrow\_swappable<T>,\ std::is\_nothrow\_swappable<U>>)\ \{}
+\DoxyCodeLine{00534\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacestd_a392c1c880d8a999bf92add30dd88b471}{std::swap}}(first(),\ other.first());}
+\DoxyCodeLine{00535\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacestd_a392c1c880d8a999bf92add30dd88b471}{std::swap}}(second(),\ other.second());}
+\DoxyCodeLine{00536\ \ \ \ \ \}}
+\DoxyCodeLine{00537\ }
+\DoxyCodeLine{00538\ \ \ \ \ \textcolor{keyword}{constexpr}\ T\ \&\mbox{\hyperlink{classwjr_1_1compressed__pair_a96649a2a674e37bd010406e20213f21a}{first}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ Mybase::first();\ \}}
+\DoxyCodeLine{00539\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{classwjr_1_1compressed__pair_ac6db845fc22542f0304270fafef3cd35}{first}}()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ Mybase::first();\ \}}
+\DoxyCodeLine{00540\ \ \ \ \ \textcolor{keyword}{constexpr}\ U\ \&\mbox{\hyperlink{classwjr_1_1compressed__pair_a67b2b72b114fed7860fcbe289e38f8db}{second}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ Mybase::second();\ \}}
+\DoxyCodeLine{00541\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{const}\ U\ \&\mbox{\hyperlink{classwjr_1_1compressed__pair_a5aa90d5caa18477032e2240a288c4ca5}{second}}()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ Mybase::second();\ \}}
+\DoxyCodeLine{00542\ }
+\DoxyCodeLine{00543\ \ \ \ \ \textcolor{comment}{//\ extension}}
+\DoxyCodeLine{00544\ }
+\DoxyCodeLine{00545\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ I,\ WJR\_REQUIRES(I\ <\ 2)>}
+\DoxyCodeLine{00546\ \ \ \ \ constexpr\ std::tuple\_element\_t<I,\ compressed\_pair>\ \&get()\ \&\ noexcept\ \{}
+\DoxyCodeLine{00547\ \ \ \ \ \ \ \ \ if\ constexpr\ (I\ ==\ 0)\ \{}
+\DoxyCodeLine{00548\ \ \ \ \ \ \ \ \ \ \ \ \ return\ first();}
+\DoxyCodeLine{00549\ \ \ \ \ \ \ \ \ \}\ else\ \{}
+\DoxyCodeLine{00550\ \ \ \ \ \ \ \ \ \ \ \ \ return\ second();}
+\DoxyCodeLine{00551\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00552\ \ \ \ \ \}}
+\DoxyCodeLine{00553\ }
+\DoxyCodeLine{00554\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ I,\ WJR\_REQUIRES(I\ <\ 2)>}
+\DoxyCodeLine{00555\ \ \ \ \ constexpr\ const\ std::tuple\_element\_t<I,\ compressed\_pair>\ \&get()\ const\ \&\ noexcept\ \{}
+\DoxyCodeLine{00556\ \ \ \ \ \ \ \ \ if\ constexpr\ (I\ ==\ 0)\ \{}
+\DoxyCodeLine{00557\ \ \ \ \ \ \ \ \ \ \ \ \ return\ first();}
+\DoxyCodeLine{00558\ \ \ \ \ \ \ \ \ \}\ else\ \{}
+\DoxyCodeLine{00559\ \ \ \ \ \ \ \ \ \ \ \ \ return\ second();}
+\DoxyCodeLine{00560\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00561\ \ \ \ \ \}}
+\DoxyCodeLine{00562\ }
+\DoxyCodeLine{00563\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ I,\ WJR\_REQUIRES(I\ <\ 2)>}
+\DoxyCodeLine{00564\ \ \ \ \ constexpr\ std::tuple\_element\_t<I,\ compressed\_pair>\ \&\&get()\ \&\&\ noexcept\ \{}
+\DoxyCodeLine{00565\ \ \ \ \ \ \ \ \ return\ static\_cast<std::tuple\_element\_t<I,\ compressed\_pair>\ \&\&>(get());}
+\DoxyCodeLine{00566\ \ \ \ \ \}}
+\DoxyCodeLine{00567\ }
+\DoxyCodeLine{00568\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ I,\ WJR\_REQUIRES(I\ <\ 2)>}
+\DoxyCodeLine{00569\ \ \ \ \ constexpr\ const\ std::tuple\_element\_t<I,\ compressed\_pair>\ \&\&get()\ const\ \&\&\ noexcept\ \{}
+\DoxyCodeLine{00570\ \ \ \ \ \ \ \ \ return\ static\_cast<const\ std::tuple\_element\_t<I,\ compressed\_pair>\ \&\&>(get());}
+\DoxyCodeLine{00571\ \ \ \ \ \}}
+\DoxyCodeLine{00572\ }
+\DoxyCodeLine{00573\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Z,\ Z\ I>}
+\DoxyCodeLine{00574\ \ \ \ \ \textcolor{keyword}{constexpr}\ std::tuple\_element\_t<I,\ compressed\_pair>\ \&}
+\DoxyCodeLine{00575\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1compressed__pair_ae176e609956d2cad225e86f59d3a9245}{operator[]}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{integral\_constant<Z,\ I>}})\ \&\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00576\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{get<I>}}();}
+\DoxyCodeLine{00577\ \ \ \ \ \}}
+\DoxyCodeLine{00578\ }
+\DoxyCodeLine{00579\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Z,\ Z\ I>}
+\DoxyCodeLine{00580\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{const}\ std::tuple\_element\_t<I,\ compressed\_pair>\ \&}
+\DoxyCodeLine{00581\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1compressed__pair_a9d0dcfb1cd388fb7769d65441f8ab379}{operator[]}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{integral\_constant<Z,\ I>}})\ \textcolor{keyword}{const}\ \&\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00582\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{get<I>}}();}
+\DoxyCodeLine{00583\ \ \ \ \ \}}
+\DoxyCodeLine{00584\ }
+\DoxyCodeLine{00585\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Z,\ Z\ I>}
+\DoxyCodeLine{00586\ \ \ \ \ \textcolor{keyword}{constexpr}\ std::tuple\_element\_t<I,\ compressed\_pair>\ \&\&}
+\DoxyCodeLine{00587\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1compressed__pair_a9a25a29eb25329e08d215ca9f451950f}{operator[]}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{integral\_constant<Z,\ I>}})\ \&\&\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00588\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ std::move(*this).template\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{get<I>}}();}
+\DoxyCodeLine{00589\ \ \ \ \ \}}
+\DoxyCodeLine{00590\ }
+\DoxyCodeLine{00591\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Z,\ Z\ I>}
+\DoxyCodeLine{00592\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{const}\ std::tuple\_element\_t<I,\ compressed\_pair>\ \&\&}
+\DoxyCodeLine{00593\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1compressed__pair_ac7787f7fb22c67c756ae98850a75ec53}{operator[]}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{integral\_constant<Z,\ I>}})\ \textcolor{keyword}{const}\ \&\&\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00594\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ std::move(*this).template\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{get<I>}}();}
+\DoxyCodeLine{00595\ \ \ \ \ \}}
+\DoxyCodeLine{00596\ \};}
+\DoxyCodeLine{00597\ }
+\DoxyCodeLine{00598\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00599\ \mbox{\hyperlink{namespacewjr_ab911a3f95f654da74ca833929a2f45cb}{compressed\_pair}}(T,\ U)\ -\/>\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{compressed\_pair<T,\ U>}};}
+\DoxyCodeLine{00600\ }
+\DoxyCodeLine{00601\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00602\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{get\_relocate\_mode<compressed\_pair<T,\ U>}}>\ \{}
+\DoxyCodeLine{00603\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{relocate\_t}}\ value\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{get\_common\_relocate\_mode\_v<T,\ U>}};}
+\DoxyCodeLine{00604\ \};}
+\DoxyCodeLine{00605\ }
+\DoxyCodeLine{00606\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00607\ \textcolor{keyword}{struct\ }get\_relocate\_mode<\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{pair}}<T,\ U>>\ \{}
+\DoxyCodeLine{00608\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{relocate\_t}}\ value\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{get\_common\_relocate\_mode\_v<T,\ U>}};}
+\DoxyCodeLine{00609\ \};}
+\DoxyCodeLine{00610\ }
+\DoxyCodeLine{00611\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00612\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structwjr_1_1container__of__fn}{container\_of\_fn}}<\mbox{\hyperlink{classwjr_1_1compressed__pair}{compressed\_pair}}<T,\ U>,\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{in\_place\_index\_t}}<0>>\ \{}
+\DoxyCodeLine{00613\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_010_01_4_01_4_a434c5eeccfcd5336d43f18d701b7e838}{base\_type}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{compressed\_pair<T,\ U>}};}
+\DoxyCodeLine{00614\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_010_01_4_01_4_a378256d55a824894154b60394351342c}{value\_type}}\ =\ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}};}
+\DoxyCodeLine{00615\ }
+\DoxyCodeLine{00616\ \ \ \ \ \mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_010_01_4_01_4_a434c5eeccfcd5336d43f18d701b7e838}{base\_type}}\ \&\mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_010_01_4_01_4_a4fc4a2f536e59f6199dc828c3decd587}{operator()}}(\mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_010_01_4_01_4_a378256d55a824894154b60394351342c}{value\_type}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00617\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_010_01_4_01_4_a434c5eeccfcd5336d43f18d701b7e838}{base\_type}}\ \&\textcolor{keyword}{>}(}
+\DoxyCodeLine{00618\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{container\_of<typename\ base\_type::Mybase,\ std::in\_place\_index\_t<0>}}>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}}));}
+\DoxyCodeLine{00619\ \ \ \ \ \}}
+\DoxyCodeLine{00620\ }
+\DoxyCodeLine{00621\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_010_01_4_01_4_a434c5eeccfcd5336d43f18d701b7e838}{base\_type}}\ \&\mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_010_01_4_01_4_a82b5f8bf54b16a389f1825e99bc9767c}{operator()}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_010_01_4_01_4_a378256d55a824894154b60394351342c}{value\_type}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00622\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\textcolor{keyword}{const\ }\mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_010_01_4_01_4_a434c5eeccfcd5336d43f18d701b7e838}{base\_type}}\ \&\textcolor{keyword}{>}(}
+\DoxyCodeLine{00623\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{container\_of<typename\ base\_type::Mybase,\ std::in\_place\_index\_t<0>}}>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}}));}
+\DoxyCodeLine{00624\ \ \ \ \ \}}
+\DoxyCodeLine{00625\ \};}
+\DoxyCodeLine{00626\ }
+\DoxyCodeLine{00627\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00628\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structwjr_1_1container__of__fn}{container\_of\_fn}}<\mbox{\hyperlink{classwjr_1_1compressed__pair}{compressed\_pair}}<T,\ U>,\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{in\_place\_index\_t}}<1>>\ \{}
+\DoxyCodeLine{00629\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_011_01_4_01_4_abb2a13169b7740c10d4037b8685f7847}{base\_type}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{compressed\_pair<T,\ U>}};}
+\DoxyCodeLine{00630\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_011_01_4_01_4_a5b4bb7368719126ea82c2cc576414d0b}{value\_type}}\ =\ U;}
+\DoxyCodeLine{00631\ }
+\DoxyCodeLine{00632\ \ \ \ \ \mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_011_01_4_01_4_abb2a13169b7740c10d4037b8685f7847}{base\_type}}\ \&\mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_011_01_4_01_4_acb83d69110be488b9238cc26fc212105}{operator()}}(\mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_011_01_4_01_4_a5b4bb7368719126ea82c2cc576414d0b}{value\_type}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00633\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_011_01_4_01_4_abb2a13169b7740c10d4037b8685f7847}{base\_type}}\ \&\textcolor{keyword}{>}(}
+\DoxyCodeLine{00634\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{container\_of<typename\ base\_type::Mybase,\ std::in\_place\_index\_t<1>}}>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}}));}
+\DoxyCodeLine{00635\ \ \ \ \ \}}
+\DoxyCodeLine{00636\ }
+\DoxyCodeLine{00637\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_011_01_4_01_4_abb2a13169b7740c10d4037b8685f7847}{base\_type}}\ \&\mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_011_01_4_01_4_a9cda2592b5de454679c0f43b99082d00}{operator()}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_011_01_4_01_4_a5b4bb7368719126ea82c2cc576414d0b}{value\_type}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00638\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\textcolor{keyword}{const\ }\mbox{\hyperlink{structwjr_1_1container__of__fn_3_01compressed__pair_3_01_t_00_01_u_01_4_00_01std_1_1in__place__index__t_3_011_01_4_01_4_abb2a13169b7740c10d4037b8685f7847}{base\_type}}\ \&\textcolor{keyword}{>}(}
+\DoxyCodeLine{00639\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{container\_of<typename\ base\_type::Mybase,\ std::in\_place\_index\_t<1>}}>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ref}}));}
+\DoxyCodeLine{00640\ \ \ \ \ \}}
+\DoxyCodeLine{00641\ \};}
+\DoxyCodeLine{00642\ }
+\DoxyCodeLine{00643\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T1,\ \textcolor{keyword}{typename}\ U1,\ \textcolor{keyword}{typename}\ T2,\ \textcolor{keyword}{typename}\ U2>}
+\DoxyCodeLine{00644\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_CONST}}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00645\ \mbox{\hyperlink{namespacewjr_af6555a4deae25ee7cce4451c1f8bff14}{operator==}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{compressed\_pair<T1,\ U1>}}\ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}},\ \textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{compressed\_pair<T2,\ U2>}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00646\ \ \ \ \ std::conjunction\_v<has\_noexcept\_equal\_to<const\ T1\ \&,\ const\ T2\ \&>,}
+\DoxyCodeLine{00647\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{has\_noexcept\_equal\_to<const\ U1\ \&,\ const\ U2\ \&>}}>)\ \{}
+\DoxyCodeLine{00648\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}.first()\ ==\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}.first()\ \&\&\ \mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}.second()\ ==\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}.second();}
+\DoxyCodeLine{00649\ \}}
+\DoxyCodeLine{00650\ }
+\DoxyCodeLine{00651\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T1,\ \textcolor{keyword}{typename}\ U1,\ \textcolor{keyword}{typename}\ T2,\ \textcolor{keyword}{typename}\ U2>}
+\DoxyCodeLine{00652\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_CONST}}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00653\ \mbox{\hyperlink{namespacewjr_ab4e1064f31a9e468ddcb3b70f1a02d3a}{operator!=}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{compressed\_pair<T1,\ U1>}}\ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}},}
+\DoxyCodeLine{00654\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{compressed\_pair<T2,\ U2>}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{noexcept}(\textcolor{keyword}{noexcept}(\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}\ ==\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}))\ \{}
+\DoxyCodeLine{00655\ \ \ \ \ \textcolor{keywordflow}{return}\ !(\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}\ ==\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}});}
+\DoxyCodeLine{00656\ \}}
+\DoxyCodeLine{00657\ }
+\DoxyCodeLine{00658\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T1,\ \textcolor{keyword}{typename}\ U1,\ \textcolor{keyword}{typename}\ T2,\ \textcolor{keyword}{typename}\ U2>}
+\DoxyCodeLine{00659\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_CONST}}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00660\ \mbox{\hyperlink{namespacewjr_a920579a3ee417747a287a750516dcce0}{operator<}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{compressed\_pair<T1,\ U1>}}\ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}},\ \textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{compressed\_pair<T2,\ U2>}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00661\ \ \ \ \ std::conjunction\_v<has\_noexcept\_less<const\ T1\ \&,\ const\ T2\ \&>,}
+\DoxyCodeLine{00662\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{has\_noexcept\_less<const\ T2\ \&,\ const\ T1\ \&>}},}
+\DoxyCodeLine{00663\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{has\_noexcept\_less<const\ U1\ \&,\ const\ U2\ \&>}}>)\ \{}
+\DoxyCodeLine{00664\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}.first()\ <\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}.first()\ ||}
+\DoxyCodeLine{00665\ \ \ \ \ \ \ \ \ \ \ \ (!(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}.first()\ <\ \mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}.first())\ \&\&\ \mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}.second()\ <\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}.second());}
+\DoxyCodeLine{00666\ \}}
+\DoxyCodeLine{00667\ }
+\DoxyCodeLine{00668\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T1,\ \textcolor{keyword}{typename}\ U1,\ \textcolor{keyword}{typename}\ T2,\ \textcolor{keyword}{typename}\ U2>}
+\DoxyCodeLine{00669\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_CONST}}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00670\ \mbox{\hyperlink{namespacewjr_a7fd1eb2741522a69c6e9782cabea066b}{operator>}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{compressed\_pair<T1,\ U1>}}\ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}},}
+\DoxyCodeLine{00671\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{compressed\_pair<T2,\ U2>}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{noexcept}(\textcolor{keyword}{noexcept}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}\ <\ \mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}))\ \{}
+\DoxyCodeLine{00672\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}\ <\ \mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}};}
+\DoxyCodeLine{00673\ \}}
+\DoxyCodeLine{00674\ }
+\DoxyCodeLine{00675\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T1,\ \textcolor{keyword}{typename}\ U1,\ \textcolor{keyword}{typename}\ T2,\ \textcolor{keyword}{typename}\ U2>}
+\DoxyCodeLine{00676\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_CONST}}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00677\ \mbox{\hyperlink{namespacewjr_a1bfdf0ef56e5d5daf9826d50e758e1a8}{operator<=}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{compressed\_pair<T1,\ U1>}}\ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}},}
+\DoxyCodeLine{00678\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{compressed\_pair<T2,\ U2>}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{noexcept}(\textcolor{keyword}{noexcept}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}\ <\ \mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}))\ \{}
+\DoxyCodeLine{00679\ \ \ \ \ \textcolor{keywordflow}{return}\ !(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}\ <\ \mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}});}
+\DoxyCodeLine{00680\ \}}
+\DoxyCodeLine{00681\ }
+\DoxyCodeLine{00682\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T1,\ \textcolor{keyword}{typename}\ U1,\ \textcolor{keyword}{typename}\ T2,\ \textcolor{keyword}{typename}\ U2>}
+\DoxyCodeLine{00683\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_CONST}}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00684\ \mbox{\hyperlink{namespacewjr_ac48d11111685a39f3f5caf8ebcd92ef1}{operator>=}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{compressed\_pair<T1,\ U1>}}\ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}},}
+\DoxyCodeLine{00685\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{compressed\_pair<T2,\ U2>}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{noexcept}(\textcolor{keyword}{noexcept}(\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}\ <\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}))\ \{}
+\DoxyCodeLine{00686\ \ \ \ \ \textcolor{keywordflow}{return}\ !(\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}\ <\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}});}
+\DoxyCodeLine{00687\ \}}
+\DoxyCodeLine{00688\ }
+\DoxyCodeLine{00689\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00690\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{compressed\_pair<unref\_wrapper\_t<T>}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{unref\_wrapper\_t<U>}}>\ \mbox{\hyperlink{namespacewjr_a824b501ff681a48fac7378fc5fceb531}{make\_compressed\_pair}}(}
+\DoxyCodeLine{00691\ \ \ \ \ T\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{t}},}
+\DoxyCodeLine{00692\ \ \ \ \ U\ \&\&u)\ \textcolor{keyword}{noexcept}(std::conjunction\_v<std::is\_nothrow\_constructible<unref\_wrapper\_t<T>,\ T\ \&\&>,}
+\DoxyCodeLine{00693\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible<unref\_wrapper\_t<U>,\ U\ \&\&>>)\ \{}
+\DoxyCodeLine{00694\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{compressed\_pair<unref\_wrapper\_t<T>}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{unref\_wrapper\_t<U>}}>(std::forward<T>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{t}}),}
+\DoxyCodeLine{00695\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::forward<U>(u));}
+\DoxyCodeLine{00696\ \}}
+\DoxyCodeLine{00697\ }
+\DoxyCodeLine{00698\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00699\ }
+\DoxyCodeLine{00700\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacestd}{std}}\ \{}
+\DoxyCodeLine{00701\ }
+\DoxyCodeLine{00702\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U,}
+\DoxyCodeLine{00703\ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::is\_swappable<T>}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::is\_swappable<U>}}>)>}
+\DoxyCodeLine{00704\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{namespacestd_a392c1c880d8a999bf92add30dd88b471}{swap}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::compressed\_pair<T,\ U>}}\ \&lhs,}
+\DoxyCodeLine{00705\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::compressed\_pair<T,\ U>}}\ \&rhs)\ \textcolor{keyword}{noexcept}(\textcolor{keyword}{noexcept}(lhs.swap(rhs)))\ \{}
+\DoxyCodeLine{00706\ \ \ \ \ lhs.swap(rhs);}
+\DoxyCodeLine{00707\ \}}
+\DoxyCodeLine{00708\ }
+\DoxyCodeLine{00709\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ I,\ \textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U,\ WJR\_REQUIRES(I\ <\ 2)>}
+\DoxyCodeLine{00710\ WJR\_NODISCARD\ constexpr\ tuple\_element\_t<I,\ wjr::compressed\_pair<T,\ U>>\ \&}
+\DoxyCodeLine{00711\ get(wjr::compressed\_pair<T,\ U>\ \&pr)\ noexcept\ \{}
+\DoxyCodeLine{00712\ \ \ \ \ if\ constexpr\ (I\ ==\ 0)\ \{}
+\DoxyCodeLine{00713\ \ \ \ \ \ \ \ \ return\ pr.first();}
+\DoxyCodeLine{00714\ \ \ \ \ \}\ else\ \{}
+\DoxyCodeLine{00715\ \ \ \ \ \ \ \ \ return\ pr.second();}
+\DoxyCodeLine{00716\ \ \ \ \ \}}
+\DoxyCodeLine{00717\ \}}
+\DoxyCodeLine{00718\ }
+\DoxyCodeLine{00719\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ I,\ \textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U,\ WJR\_REQUIRES(I\ <\ 2)>}
+\DoxyCodeLine{00720\ WJR\_NODISCARD\ constexpr\ const\ tuple\_element\_t<I,\ wjr::compressed\_pair<T,\ U>>\ \&}
+\DoxyCodeLine{00721\ get(const\ wjr::compressed\_pair<T,\ U>\ \&pr)\ noexcept\ \{}
+\DoxyCodeLine{00722\ \ \ \ \ if\ constexpr\ (I\ ==\ 0)\ \{}
+\DoxyCodeLine{00723\ \ \ \ \ \ \ \ \ return\ pr.first();}
+\DoxyCodeLine{00724\ \ \ \ \ \}\ else\ \{}
+\DoxyCodeLine{00725\ \ \ \ \ \ \ \ \ return\ pr.second();}
+\DoxyCodeLine{00726\ \ \ \ \ \}}
+\DoxyCodeLine{00727\ \}}
+\DoxyCodeLine{00728\ }
+\DoxyCodeLine{00729\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ I,\ \textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U,\ WJR\_REQUIRES(I\ <\ 2)>}
+\DoxyCodeLine{00730\ WJR\_NODISCARD\ constexpr\ tuple\_element\_t<I,\ wjr::compressed\_pair<T,\ U>>\ \&\&}
+\DoxyCodeLine{00731\ get(wjr::compressed\_pair<T,\ U>\ \&\&pr)\ noexcept\ \{}
+\DoxyCodeLine{00732\ \ \ \ \ if\ constexpr\ (I\ ==\ 0)\ \{}
+\DoxyCodeLine{00733\ \ \ \ \ \ \ \ \ return\ std::forward<T>(pr.first());}
+\DoxyCodeLine{00734\ \ \ \ \ \}\ else\ \{}
+\DoxyCodeLine{00735\ \ \ \ \ \ \ \ \ return\ std::forward<U>(pr.second());}
+\DoxyCodeLine{00736\ \ \ \ \ \}}
+\DoxyCodeLine{00737\ \}}
+\DoxyCodeLine{00738\ }
+\DoxyCodeLine{00739\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ I,\ \textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U,\ WJR\_REQUIRES(I\ <\ 2)>}
+\DoxyCodeLine{00740\ WJR\_NODISCARD\ constexpr\ const\ tuple\_element\_t<I,\ wjr::compressed\_pair<T,\ U>>\ \&\&}
+\DoxyCodeLine{00741\ get(const\ wjr::compressed\_pair<T,\ U>\ \&\&pr)\ noexcept\ \{}
+\DoxyCodeLine{00742\ \ \ \ \ if\ constexpr\ (I\ ==\ 0)\ \{}
+\DoxyCodeLine{00743\ \ \ \ \ \ \ \ \ return\ std::forward<T>(pr.first());}
+\DoxyCodeLine{00744\ \ \ \ \ \}\ else\ \{}
+\DoxyCodeLine{00745\ \ \ \ \ \ \ \ \ return\ std::forward<U>(pr.second());}
+\DoxyCodeLine{00746\ \ \ \ \ \}}
+\DoxyCodeLine{00747\ \}}
+\DoxyCodeLine{00748\ }
+\DoxyCodeLine{00749\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00750\ WJR\_NODISCARD\ \textcolor{keyword}{constexpr}\ T\ \&\mbox{\hyperlink{namespacestd_a3767022618c3b96df1cb16ac67d9fc96}{get}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::compressed\_pair<T,\ U>}}\ \&pr)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00751\ \ \ \ \ \textcolor{keywordflow}{return}\ std::get<0>(pr);}
+\DoxyCodeLine{00752\ \}}
+\DoxyCodeLine{00753\ }
+\DoxyCodeLine{00754\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00755\ WJR\_NODISCARD\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{namespacestd_a3767022618c3b96df1cb16ac67d9fc96}{get}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::compressed\_pair<T,\ U>}}\ \&pr)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00756\ \ \ \ \ \textcolor{keywordflow}{return}\ get<0>(pr);}
+\DoxyCodeLine{00757\ \}}
+\DoxyCodeLine{00758\ }
+\DoxyCodeLine{00759\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00760\ WJR\_NODISCARD\ \textcolor{keyword}{constexpr}\ T\ \&\&\mbox{\hyperlink{namespacestd_a3767022618c3b96df1cb16ac67d9fc96}{get}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::compressed\_pair<T,\ U>}}\ \&\&pr)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00761\ \ \ \ \ \textcolor{keywordflow}{return}\ get<0>(std::move(pr));}
+\DoxyCodeLine{00762\ \}}
+\DoxyCodeLine{00763\ }
+\DoxyCodeLine{00764\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00765\ WJR\_NODISCARD\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{const}\ T\ \&\&\mbox{\hyperlink{namespacestd_a3767022618c3b96df1cb16ac67d9fc96}{get}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::compressed\_pair<T,\ U>}}\ \&\&pr)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00766\ \ \ \ \ \textcolor{keywordflow}{return}\ get<0>(std::move(pr));}
+\DoxyCodeLine{00767\ \}}
+\DoxyCodeLine{00768\ }
+\DoxyCodeLine{00769\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00770\ WJR\_NODISCARD\ \textcolor{keyword}{constexpr}\ T\ \&\mbox{\hyperlink{namespacestd_a3767022618c3b96df1cb16ac67d9fc96}{get}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::compressed\_pair<U,\ T>}}\ \&pr)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00771\ \ \ \ \ \textcolor{keywordflow}{return}\ get<1>(pr);}
+\DoxyCodeLine{00772\ \}}
+\DoxyCodeLine{00773\ }
+\DoxyCodeLine{00774\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00775\ WJR\_NODISCARD\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{namespacestd_a3767022618c3b96df1cb16ac67d9fc96}{get}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::compressed\_pair<U,\ T>}}\ \&pr)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00776\ \ \ \ \ \textcolor{keywordflow}{return}\ get<1>(pr);}
+\DoxyCodeLine{00777\ \}}
+\DoxyCodeLine{00778\ }
+\DoxyCodeLine{00779\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00780\ WJR\_NODISCARD\ \textcolor{keyword}{constexpr}\ T\ \&\&\mbox{\hyperlink{namespacestd_a3767022618c3b96df1cb16ac67d9fc96}{get}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::compressed\_pair<U,\ T>}}\ \&\&pr)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00781\ \ \ \ \ \textcolor{keywordflow}{return}\ get<1>(std::move(pr));}
+\DoxyCodeLine{00782\ \}}
+\DoxyCodeLine{00783\ }
+\DoxyCodeLine{00784\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00785\ WJR\_NODISCARD\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{const}\ T\ \&\&\mbox{\hyperlink{namespacestd_a3767022618c3b96df1cb16ac67d9fc96}{get}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::compressed\_pair<U,\ T>}}\ \&\&pr)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00786\ \ \ \ \ \textcolor{keywordflow}{return}\ get<1>(std::move(pr));}
+\DoxyCodeLine{00787\ \}}
+\DoxyCodeLine{00788\ }
+\DoxyCodeLine{00789\ \}\ \textcolor{comment}{//\ namespace\ std}}
+\DoxyCodeLine{00790\ }
+\DoxyCodeLine{00791\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_COMPRESSED\_PAIR\_HPP\_\_}}
+
+\end{DoxyCode}

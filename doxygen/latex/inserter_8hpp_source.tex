@@ -1,0 +1,99 @@
+\doxysection{inserter.\+hpp}
+\hypertarget{inserter_8hpp_source}{}\label{inserter_8hpp_source}\index{include/wjr/iterator/inserter.hpp@{include/wjr/iterator/inserter.hpp}}
+\mbox{\hyperlink{inserter_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_ITERATOR\_INSERTER\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_ITERATOR\_INSERTER\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{iterator_2detail_8hpp}{wjr/iterator/detail.hpp}}>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00009\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structwjr_1_1is__insert__iterator}{is\_insert\_iterator}}\ :\ std::false\_type\ \{\};}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Container>}
+\DoxyCodeLine{00012\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structwjr_1_1is__insert__iterator}{is\_insert\_iterator}}<\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{insert\_iterator}}<Container>>\ :\ std::true\_type\ \{\};}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00015\ \textcolor{keyword}{inline}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{namespacewjr_a7a61fbab186db4ec03a81029d8a55f77}{is\_insert\_iterator\_v}}\ =\ \mbox{\hyperlink{structwjr_1_1is__insert__iterator}{is\_insert\_iterator<T>::value}};}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00018\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structwjr_1_1is__back__insert__iterator}{is\_back\_insert\_iterator}}\ :\ std::false\_type\ \{\};}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Container>}
+\DoxyCodeLine{00021\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structwjr_1_1is__back__insert__iterator}{is\_back\_insert\_iterator}}<\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{back\_insert\_iterator}}<Container>>\ :\ std::true\_type\ \{\};}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00024\ \textcolor{keyword}{inline}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{namespacewjr_a16ca9891b8a6d1a797aa3b1dd4a1006f}{is\_back\_insert\_iterator\_v}}\ =\ \mbox{\hyperlink{structwjr_1_1is__back__insert__iterator}{is\_back\_insert\_iterator<T>::value}};}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00027\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structwjr_1_1is__front__insert__iterator}{is\_front\_insert\_iterator}}\ :\ std::false\_type\ \{\};}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Container>}
+\DoxyCodeLine{00030\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structwjr_1_1is__front__insert__iterator}{is\_front\_insert\_iterator}}<\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{front\_insert\_iterator}}<Container>>\ :\ std::true\_type\ \{\};}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00033\ \textcolor{keyword}{inline}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{namespacewjr_a89f0ee69673c2db2f703952a61c2d666}{is\_front\_insert\_iterator\_v}}\ =\ \mbox{\hyperlink{structwjr_1_1is__front__insert__iterator}{is\_front\_insert\_iterator<T>::value}};}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00036\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structwjr_1_1is__any__insert__iterator}{is\_any\_insert\_iterator}}}
+\DoxyCodeLine{00037\ \ \ \ \ :\ std::bool\_constant<is\_insert\_iterator\_v<T>\ ||\ is\_back\_insert\_iterator\_v<T>\ ||}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ is\_front\_insert\_iterator\_v<T>>\ \{\};}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00041\ \textcolor{keyword}{inline}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{namespacewjr_a71735f8727a50fc60bf3576bd73bc898}{is\_any\_insert\_iterator\_v}}\ =\ \mbox{\hyperlink{structwjr_1_1is__any__insert__iterator}{is\_any\_insert\_iterator<T>::value}};}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00044\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter>}
+\DoxyCodeLine{00045\ \textcolor{keyword}{struct\ }\_\_inserter\_container\_accessor\ :\ Iter\ \{}
+\DoxyCodeLine{00046\ \ \ \ \ \_\_inserter\_container\_accessor(Iter\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{it}})\ \textcolor{keyword}{noexcept}(std::is\_nothrow\_copy\_constructible\_v<Iter>)}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ :\ Iter(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{it}})\ \{\}}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keyword}{using\ }Iter::container;}
+\DoxyCodeLine{00049\ \};}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00052\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter>}
+\DoxyCodeLine{00053\ \_\_inserter\_container\_accessor(Iter)\ -\/>\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_inserter\_container\_accessor<Iter>}};}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00056\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter>}
+\DoxyCodeLine{00057\ \textcolor{keyword}{struct\ }\_\_inserter\_iterator\_accessor\ :\ Iter\ \{}
+\DoxyCodeLine{00058\ \ \ \ \ \_\_inserter\_iterator\_accessor(Iter\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{it}})\ \textcolor{keyword}{noexcept}(std::is\_nothrow\_copy\_constructible\_v<Iter>)}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ :\ Iter(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{it}})\ \{\}}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keyword}{using\ }Iter::iter;}
+\DoxyCodeLine{00061\ \};}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter>}
+\DoxyCodeLine{00064\ \_\_inserter\_iterator\_accessor(Iter)\ -\/>\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_\_inserter\_iterator\_accessor<Iter>}};}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Container>}
+\DoxyCodeLine{00067\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Container}}\ \&\mbox{\hyperlink{namespacewjr_ac02ea95ea4c50d46b72b5e7d3dd0eab7}{get\_inserter\_container}}(std::insert\_iterator<Container>\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{it}})\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00068\ \ \ \ \ std::is\_nothrow\_copy\_constructible\_v<std::insert\_iterator<Container>>)\ \{}
+\DoxyCodeLine{00069\ \ \ \ \ \_\_inserter\_container\_accessor\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{it}});}
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{keywordflow}{return}\ *(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}.container);}
+\DoxyCodeLine{00071\ \}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Container>}
+\DoxyCodeLine{00074\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Container}}\ \&\mbox{\hyperlink{namespacewjr_ac02ea95ea4c50d46b72b5e7d3dd0eab7}{get\_inserter\_container}}(std::back\_insert\_iterator<Container>\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{it}})\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00075\ \ \ \ \ std::is\_nothrow\_copy\_constructible\_v<std::back\_insert\_iterator<Container>>)\ \{}
+\DoxyCodeLine{00076\ \ \ \ \ \_\_inserter\_container\_accessor\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{it}});}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keywordflow}{return}\ *(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}.container);}
+\DoxyCodeLine{00078\ \}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Container>}
+\DoxyCodeLine{00081\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Container}}\ \&\mbox{\hyperlink{namespacewjr_ac02ea95ea4c50d46b72b5e7d3dd0eab7}{get\_inserter\_container}}(std::front\_insert\_iterator<Container>\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{it}})\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00082\ \ \ \ \ std::is\_nothrow\_copy\_constructible\_v<std::front\_insert\_iterator<Container>>)\ \{}
+\DoxyCodeLine{00083\ \ \ \ \ \_\_inserter\_container\_accessor\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{it}});}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keywordflow}{return}\ *(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}.container);}
+\DoxyCodeLine{00085\ \}}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Container>}
+\DoxyCodeLine{00088\ \textcolor{keyword}{typename}\ Container::iterator\ \mbox{\hyperlink{namespacewjr_a5f65ff49b113a2ea0db249973b9ca74b}{get\_inserter\_iterator}}(std::insert\_iterator<Container>\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{it}})\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00089\ \ \ \ \ std::is\_nothrow\_copy\_constructible\_v<std::insert\_iterator<Container>>)\ \{}
+\DoxyCodeLine{00090\ \ \ \ \ \_\_inserter\_iterator\_accessor\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{it}});}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{keywordflow}{return}\ *(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}.iter);}
+\DoxyCodeLine{00092\ \}}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_ITERATOR\_INSERTER\_HPP\_\_}}
+
+\end{DoxyCode}

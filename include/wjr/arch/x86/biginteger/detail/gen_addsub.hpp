@@ -194,9 +194,6 @@ WJR_ALL_NONNULL inline uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addc
         :
         : "cc", "memory");
 
-    WJR_ASSERT_ASSUME(rcx == 0);
-    WJR_ASSERT_ASSUME(r9 <= 1);
-
     return r9;
 }
 
@@ -215,8 +212,10 @@ WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n
         }
     }
 
-    return WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(dst, src0, src1, n,
-                                                                           c_in);
+    c_in =
+        WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(dst, src0, src1, n, c_in);
+    WJR_ASSUME(c_in <= 1);
+    return c_in;
 }
 
 #undef __WJR_TEST_ASSEMBLY

@@ -1,0 +1,75 @@
+\doxysection{include/wjr/container/btree.hpp 文件参考}
+\hypertarget{btree_8hpp}{}\label{btree_8hpp}\index{include/wjr/container/btree.hpp@{include/wjr/container/btree.hpp}}
+
+
+B+ tree implementation.  
+
+
+\doxysubsubsection*{类}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1btree__traits}{wjr\+::btree\+\_\+traits$<$ Key, Value, Multi, Compare, Alloc $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1btree__node__constructor__t}{wjr\+::btree\+\_\+node\+\_\+constructor\+\_\+t}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1btree__node}{wjr\+::btree\+\_\+node$<$ Traits $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1btree__inner__node}{wjr\+::btree\+\_\+inner\+\_\+node$<$ Traits, Inline $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1btree__inner__node_3_01_traits_00_01true_01_4}{wjr\+::btree\+\_\+inner\+\_\+node$<$ Traits, true $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1btree__leaf__node}{wjr\+::btree\+\_\+leaf\+\_\+node$<$ Traits, Inline $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1btree__leaf__node_3_01_traits_00_01true_01_4}{wjr\+::btree\+\_\+leaf\+\_\+node$<$ Traits, true $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1btree__root__node}{wjr\+::btree\+\_\+root\+\_\+node$<$ Traits $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1btree__const__iterator}{wjr\+::btree\+\_\+const\+\_\+iterator$<$ Traits $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1btree__iterator}{wjr\+::btree\+\_\+iterator$<$ Traits $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1basic__btree__searcher__impl_3_018_00_01void_01_4}{wjr\+::basic\+\_\+btree\+\_\+searcher\+\_\+impl$<$ 8, void $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1basic__btree}{wjr\+::basic\+\_\+btree$<$ Traits $>$}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{命名空间}
+\begin{DoxyCompactItemize}
+\item 
+namespace \mbox{\hyperlink{namespacewjr}{wjr}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{变量}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1btree__node__constructor__t}{btree\+\_\+node\+\_\+constructor\+\_\+t}} \mbox{\hyperlink{namespacewjr_a992d11dcb724d22b5aacea7d97cf589e}{wjr\+::btree\+\_\+node\+\_\+constructor}} \{\}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{详细描述}
+B+ tree implementation. 
+
+The multiset/multimap/set/map adapter has not been implemented yet. Only use when key is trivial. Otherwise, this maybe won\textquotesingle{}t faster than std\+::map because its search complexity is O((k -\/ 1) \texorpdfstring{$\ast$}{*} (log n / log k)). SSO optimization for tree node is enabled now!
+
+\begin{DoxyNote}{注解}
+Insertion and deletion may cause iterators to fail.
+\end{DoxyNote}
+\begin{DoxyRefDesc}{待办事项}
+\item[\mbox{\hyperlink{todo__todo000015}{待办事项}}]
+\begin{DoxyEnumerate}
+\item Erase a range with optimization.
+\item Construct with a range with optimization.
+\item Merge with optimization.
+\item \mbox{[}x\mbox{]} Code size optimization.
+\item GCC optimization on unpacked struct failed?
+\item Clang optimization on memcpy is so stupid.
+\item MSVC bug on memcpy order (\href{https://developercommunity.visualstudio.com/t/incorrect-memcpy-optimization/1151407}{\texttt{ https\+://developercommunity.\+visualstudio.\+com/t/incorrect-\/memcpy-\/optimization/1151407}}).
+\item \mbox{[}x\mbox{]} Optimization on small size.
+\item Use a simple GC-\/arena to optimiza memory usage.
+\end{DoxyEnumerate}\end{DoxyRefDesc}
+
+
+\begin{DoxyVersion}{版本}
+0.\+2 
+\end{DoxyVersion}
+\begin{DoxyDate}{日期}
+2024-\/12-\/15 
+\end{DoxyDate}

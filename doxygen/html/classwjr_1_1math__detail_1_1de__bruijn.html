@@ -1,0 +1,280 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: wjr::math_detail::de_bruijn&lt; T, seed &gt; 模板类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('classwjr_1_1math__detail_1_1de__bruijn.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="#pub-static-attribs">静态 Public 属性</a> &#124;
+<a href="classwjr_1_1math__detail_1_1de__bruijn-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">wjr::math_detail::de_bruijn&lt; T, seed &gt; 模板类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="popcount_8hpp_source.html">popcount.hpp</a>&gt;</code></p>
+<div class="dynheader">
+wjr::math_detail::de_bruijn&lt; T, seed &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><img src="classwjr_1_1math__detail_1_1de__bruijn__coll__graph.png" border="0" usemap="#awjr_1_1math__detail_1_1de__bruijn_3_01_t_00_01seed_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="awjr_1_1math__detail_1_1de__bruijn_3_01_t_00_01seed_01_4_coll__map" id="awjr_1_1math__detail_1_1de__bruijn_3_01_t_00_01seed_01_4_coll__map">
+<area shape="rect" title=" " alt="" coords="5,5,131,155"/>
+</map>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:afce1829b8dedd609943ff808cce52e1a" id="r_afce1829b8dedd609943ff808cce52e1a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afce1829b8dedd609943ff808cce52e1a">de_bruijn</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:afce1829b8dedd609943ff808cce52e1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8cd6ae7bd7436d7750fad972513b985" id="r_aa8cd6ae7bd7436d7750fad972513b985"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa8cd6ae7bd7436d7750fad972513b985">get</a> (<a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> idx) <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:aa8cd6ae7bd7436d7750fad972513b985"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af746c0a2bbb16d35829d812ef37abf91" id="r_af746c0a2bbb16d35829d812ef37abf91"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af746c0a2bbb16d35829d812ef37abf91">getr</a> (<a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> idx) <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:af746c0a2bbb16d35829d812ef37abf91"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+静态 Public 属性</h2></td></tr>
+<tr class="memitem:a0cbb275b032ebf665e401a4daf347ae4" id="r_a0cbb275b032ebf665e401a4daf347ae4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">static</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">uint8_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0cbb275b032ebf665e401a4daf347ae4">digits</a> = std::numeric_limits&lt;<a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>&gt;::digits</td></tr>
+<tr class="separator:a0cbb275b032ebf665e401a4daf347ae4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a86f6760636a0dd5382362bacaa3238" id="r_a9a86f6760636a0dd5382362bacaa3238"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">static</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">uint8_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9a86f6760636a0dd5382362bacaa3238">mv</a> = <a class="el" href="#a0cbb275b032ebf665e401a4daf347ae4">digits</a> == 32 ? 27 : 58</td></tr>
+<tr class="separator:a9a86f6760636a0dd5382362bacaa3238"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">构造及析构函数说明</h2>
+<a id="afce1829b8dedd609943ff808cce52e1a" name="afce1829b8dedd609943ff808cce52e1a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afce1829b8dedd609943ff808cce52e1a">&#9670;&#160;</a></span>de_bruijn()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> seed&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="classwjr_1_1math__detail_1_1de__bruijn.html">wjr::math_detail::de_bruijn</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">seed</a> &gt;::de_bruijn </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="aa8cd6ae7bd7436d7750fad972513b985" name="aa8cd6ae7bd7436d7750fad972513b985"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa8cd6ae7bd7436d7750fad972513b985">&#9670;&#160;</a></span>get()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> seed&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">int</a> <a class="el" href="classwjr_1_1math__detail_1_1de__bruijn.html">wjr::math_detail::de_bruijn</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">seed</a> &gt;::get </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a></td>          <td class="paramname"><span class="paramname"><em>idx</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af746c0a2bbb16d35829d812ef37abf91" name="af746c0a2bbb16d35829d812ef37abf91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af746c0a2bbb16d35829d812ef37abf91">&#9670;&#160;</a></span>getr()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> seed&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">int</a> <a class="el" href="classwjr_1_1math__detail_1_1de__bruijn.html">wjr::math_detail::de_bruijn</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">seed</a> &gt;::getr </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a></td>          <td class="paramname"><span class="paramname"><em>idx</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">类成员变量说明</h2>
+<a id="a0cbb275b032ebf665e401a4daf347ae4" name="a0cbb275b032ebf665e401a4daf347ae4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0cbb275b032ebf665e401a4daf347ae4">&#9670;&#160;</a></span>digits</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> seed&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">uint8_t</a> <a class="el" href="classwjr_1_1math__detail_1_1de__bruijn.html">wjr::math_detail::de_bruijn</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">seed</a> &gt;::digits = std::numeric_limits&lt;<a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>&gt;::digits</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9a86f6760636a0dd5382362bacaa3238" name="a9a86f6760636a0dd5382362bacaa3238"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a86f6760636a0dd5382362bacaa3238">&#9670;&#160;</a></span>mv</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> seed&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">uint8_t</a> <a class="el" href="classwjr_1_1math__detail_1_1de__bruijn.html">wjr::math_detail::de_bruijn</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">seed</a> &gt;::mv = <a class="el" href="#a0cbb275b032ebf665e401a4daf347ae4">digits</a> == 32 ? 27 : 58</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/wjr/math/<a class="el" href="popcount_8hpp_source.html">popcount.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacewjr.html">wjr</a></li><li class="navelem"><a class="el" href="namespacewjr_1_1math__detail.html">math_detail</a></li><li class="navelem"><a class="el" href="classwjr_1_1math__detail_1_1de__bruijn.html">de_bruijn</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

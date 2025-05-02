@@ -1,0 +1,298 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: wjr::dragonbox::detail::to_decimal_dispatcher&lt; FormatTraits, PolicyHolder &gt; 模板结构体 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('structwjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Public 类型</a> &#124;
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="structwjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">wjr::dragonbox::detail::to_decimal_dispatcher&lt; FormatTraits, PolicyHolder &gt; 模板结构体 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="dragonbox_8hpp_source.html">dragonbox.hpp</a>&gt;</code></p>
+<div class="dynheader">
+wjr::dragonbox::detail::to_decimal_dispatcher&lt; FormatTraits, PolicyHolder &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><img src="structwjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher__coll__graph.png" border="0" usemap="#awjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher_3_01_format_traits_00_01_policy_holder_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="awjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher_3_01_format_traits_00_01_policy_holder_01_4_coll__map" id="awjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher_3_01_format_traits_00_01_policy_holder_01_4_coll__map">
+<area shape="rect" title=" " alt="" coords="5,5,196,107"/>
+</map>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:a796d7b190a72bd72b713bb2e9fed0cd9" id="r_a796d7b190a72bd72b713bb2e9fed0cd9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a796d7b190a72bd72b713bb2e9fed0cd9">sign_policy</a> = <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> PolicyHolder::sign_policy</td></tr>
+<tr class="separator:a796d7b190a72bd72b713bb2e9fed0cd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b1998f9251611cee8abe904a9c015bd" id="r_a7b1998f9251611cee8abe904a9c015bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7b1998f9251611cee8abe904a9c015bd">trailing_zero_policy</a> = <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> PolicyHolder::trailing_zero_policy</td></tr>
+<tr class="separator:a7b1998f9251611cee8abe904a9c015bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a81bcc9a51aa5720b1427c7e5dd02a4b0" id="r_a81bcc9a51aa5720b1427c7e5dd02a4b0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a81bcc9a51aa5720b1427c7e5dd02a4b0">binary_to_decimal_rounding_policy</a></td></tr>
+<tr class="separator:a81bcc9a51aa5720b1427c7e5dd02a4b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73b4a03bde27435fbc3ecc244eac6259" id="r_a73b4a03bde27435fbc3ecc244eac6259"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a73b4a03bde27435fbc3ecc244eac6259">cache_policy</a> = <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> PolicyHolder::cache_policy</td></tr>
+<tr class="separator:a73b4a03bde27435fbc3ecc244eac6259"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac82191712b19e73868bf17050bf6dce9" id="r_ac82191712b19e73868bf17050bf6dce9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac82191712b19e73868bf17050bf6dce9">preferred_integer_types_policy</a> = <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> PolicyHolder::preferred_integer_types_policy</td></tr>
+<tr class="separator:ac82191712b19e73868bf17050bf6dce9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad66b645505fb1ddae0593efff5d5645a" id="r_ad66b645505fb1ddae0593efff5d5645a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad66b645505fb1ddae0593efff5d5645a">return_type</a></td></tr>
+<tr class="separator:ad66b645505fb1ddae0593efff5d5645a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:ac7a9becead54ce73692382ece73d37d0" id="r_ac7a9becead54ce73692382ece73d37d0"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">class</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">IntervalTypeProvider</a> &gt; </td></tr>
+<tr class="memitem:ac7a9becead54ce73692382ece73d37d0"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">WJR_SAFEBUFFERS</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">WJR_CONSTEXPR20</a> <a class="el" href="#ad66b645505fb1ddae0593efff5d5645a">return_type</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ac7a9becead54ce73692382ece73d37d0">operator()</a> (<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">IntervalTypeProvider</a>, <a class="el" href="structwjr_1_1dragonbox_1_1signed__significand__bits.html">signed_significand_bits</a>&lt; FormatTraits &gt; <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">s</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> FormatTraits::exponent_int exponent_bits) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ac7a9becead54ce73692382ece73d37d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">成员类型定义说明</h2>
+<a id="a81bcc9a51aa5720b1427c7e5dd02a4b0" name="a81bcc9a51aa5720b1427c7e5dd02a4b0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a81bcc9a51aa5720b1427c7e5dd02a4b0">&#9670;&#160;</a></span>binary_to_decimal_rounding_policy</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">class</a> FormatTraits , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">class</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">PolicyHolder</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">using</a> <a class="el" href="structwjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher.html">wjr::dragonbox::detail::to_decimal_dispatcher</a>&lt; FormatTraits, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">PolicyHolder</a> &gt;::binary_to_decimal_rounding_policy</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>初始值:</b><div class="fragment"><div class="line"> </div>
+<div class="line">        <span class="keyword">typename</span> PolicyHolder::binary_to_decimal_rounding_policy</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a73b4a03bde27435fbc3ecc244eac6259" name="a73b4a03bde27435fbc3ecc244eac6259"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a73b4a03bde27435fbc3ecc244eac6259">&#9670;&#160;</a></span>cache_policy</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">class</a> FormatTraits , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">class</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">PolicyHolder</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">using</a> <a class="el" href="structwjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher.html">wjr::dragonbox::detail::to_decimal_dispatcher</a>&lt; FormatTraits, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">PolicyHolder</a> &gt;::cache_policy = <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> PolicyHolder::cache_policy</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac82191712b19e73868bf17050bf6dce9" name="ac82191712b19e73868bf17050bf6dce9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac82191712b19e73868bf17050bf6dce9">&#9670;&#160;</a></span>preferred_integer_types_policy</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">class</a> FormatTraits , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">class</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">PolicyHolder</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">using</a> <a class="el" href="structwjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher.html">wjr::dragonbox::detail::to_decimal_dispatcher</a>&lt; FormatTraits, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">PolicyHolder</a> &gt;::preferred_integer_types_policy = <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> PolicyHolder::preferred_integer_types_policy</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad66b645505fb1ddae0593efff5d5645a" name="ad66b645505fb1ddae0593efff5d5645a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad66b645505fb1ddae0593efff5d5645a">&#9670;&#160;</a></span>return_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">class</a> FormatTraits , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">class</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">PolicyHolder</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">using</a> <a class="el" href="structwjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher.html">wjr::dragonbox::detail::to_decimal_dispatcher</a>&lt; FormatTraits, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">PolicyHolder</a> &gt;::return_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>初始值:</b><div class="fragment"><div class="line"> </div>
+<div class="line">        <span class="keyword">typename</span> impl&lt;FormatTraits&gt;::template <a class="code hl_typedef" href="#ad66b645505fb1ddae0593efff5d5645a">return_type</a>&lt;<a class="code hl_typedef" href="#a796d7b190a72bd72b713bb2e9fed0cd9">sign_policy</a>, <a class="code hl_typedef" href="#a7b1998f9251611cee8abe904a9c015bd">trailing_zero_policy</a>,</div>
+<div class="line">                                                          <a class="code hl_typedef" href="#ac82191712b19e73868bf17050bf6dce9">preferred_integer_types_policy</a>&gt;</div>
+<div class="ttc" id="astructwjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher_html_a796d7b190a72bd72b713bb2e9fed0cd9"><div class="ttname"><a href="#a796d7b190a72bd72b713bb2e9fed0cd9">wjr::dragonbox::detail::to_decimal_dispatcher::sign_policy</a></div><div class="ttdeci">typename PolicyHolder::sign_policy sign_policy</div><div class="ttdef"><b>Definition</b> dragonbox.hpp:3395</div></div>
+<div class="ttc" id="astructwjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher_html_a7b1998f9251611cee8abe904a9c015bd"><div class="ttname"><a href="#a7b1998f9251611cee8abe904a9c015bd">wjr::dragonbox::detail::to_decimal_dispatcher::trailing_zero_policy</a></div><div class="ttdeci">typename PolicyHolder::trailing_zero_policy trailing_zero_policy</div><div class="ttdef"><b>Definition</b> dragonbox.hpp:3396</div></div>
+<div class="ttc" id="astructwjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher_html_ac82191712b19e73868bf17050bf6dce9"><div class="ttname"><a href="#ac82191712b19e73868bf17050bf6dce9">wjr::dragonbox::detail::to_decimal_dispatcher::preferred_integer_types_policy</a></div><div class="ttdeci">typename PolicyHolder::preferred_integer_types_policy preferred_integer_types_policy</div><div class="ttdef"><b>Definition</b> dragonbox.hpp:3400</div></div>
+<div class="ttc" id="astructwjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher_html_ad66b645505fb1ddae0593efff5d5645a"><div class="ttname"><a href="#ad66b645505fb1ddae0593efff5d5645a">wjr::dragonbox::detail::to_decimal_dispatcher::return_type</a></div><div class="ttdeci">typename impl&lt; FormatTraits &gt;::template return_type&lt; sign_policy, trailing_zero_policy, preferred_integer_types_policy &gt; return_type</div><div class="ttdef"><b>Definition</b> dragonbox.hpp:3401</div></div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a796d7b190a72bd72b713bb2e9fed0cd9" name="a796d7b190a72bd72b713bb2e9fed0cd9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a796d7b190a72bd72b713bb2e9fed0cd9">&#9670;&#160;</a></span>sign_policy</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">class</a> FormatTraits , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">class</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">PolicyHolder</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">using</a> <a class="el" href="structwjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher.html">wjr::dragonbox::detail::to_decimal_dispatcher</a>&lt; FormatTraits, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">PolicyHolder</a> &gt;::sign_policy = <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> PolicyHolder::sign_policy</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7b1998f9251611cee8abe904a9c015bd" name="a7b1998f9251611cee8abe904a9c015bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7b1998f9251611cee8abe904a9c015bd">&#9670;&#160;</a></span>trailing_zero_policy</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">class</a> FormatTraits , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">class</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">PolicyHolder</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">using</a> <a class="el" href="structwjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher.html">wjr::dragonbox::detail::to_decimal_dispatcher</a>&lt; FormatTraits, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">PolicyHolder</a> &gt;::trailing_zero_policy = <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> PolicyHolder::trailing_zero_policy</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="ac7a9becead54ce73692382ece73d37d0" name="ac7a9becead54ce73692382ece73d37d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac7a9becead54ce73692382ece73d37d0">&#9670;&#160;</a></span>operator()()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">class</a> FormatTraits , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">class</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">PolicyHolder</a> &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">class</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">IntervalTypeProvider</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">WJR_SAFEBUFFERS</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">WJR_CONSTEXPR20</a> <a class="el" href="#ad66b645505fb1ddae0593efff5d5645a">return_type</a> <a class="el" href="structwjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher.html">wjr::dragonbox::detail::to_decimal_dispatcher</a>&lt; FormatTraits, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">PolicyHolder</a> &gt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">::operator</a>() </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">IntervalTypeProvider</a></td>          <td class="paramname"><span class="paramname">, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structwjr_1_1dragonbox_1_1signed__significand__bits.html">signed_significand_bits</a>&lt; FormatTraits &gt;</td>          <td class="paramname"><span class="paramname"><em>s</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> FormatTraits::exponent_int</td>          <td class="paramname"><span class="paramname"><em>exponent_bits</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该结构体的文档由以下文件生成:<ul>
+<li>include/wjr/format/<a class="el" href="dragonbox_8hpp_source.html">dragonbox.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacewjr.html">wjr</a></li><li class="navelem"><a class="el" href="namespacewjr_1_1dragonbox.html">dragonbox</a></li><li class="navelem"><a class="el" href="namespacewjr_1_1dragonbox_1_1detail.html">detail</a></li><li class="navelem"><a class="el" href="structwjr_1_1dragonbox_1_1detail_1_1to__decimal__dispatcher.html">to_decimal_dispatcher</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

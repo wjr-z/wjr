@@ -1,0 +1,49 @@
+\doxysection{divider.\+hpp}
+\hypertarget{arch_2x86_2math_2divider_8hpp_source}{}\label{arch_2x86_2math_2divider_8hpp_source}\index{include/wjr/arch/x86/math/divider.hpp@{include/wjr/arch/x86/math/divider.hpp}}
+\mbox{\hyperlink{arch_2x86_2math_2divider_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_ARCH\_X86\_MATH\_DIVIDER\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_ARCH\_X86\_MATH\_DIVIDER\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{type__traits_8hpp}{wjr/type\_traits.hpp}}>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_FEATURE(GCC\_STYLE\_INLINE\_ASM)}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_BUILTIN\_ASM\_DIV2BY1\_ADJUST\ WJR\_HAS\_DEF}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\ \ \ \ \#if\ defined(WJR\_COMPILER\_CLANG)\ \&\&\ !WJR\_HAS\_CLANG(13,\ 0,\ 0)}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ WJR\_HAS\_BUILTIN\_ASM\_DIV2BY1\_ADJUST\_BRANCH\ WJR\_HAS\_DEF}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_BUILTIN(ASM\_DIV2BY1\_ADJUST)}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ WJR\_REQUIRES(std::is\_same\_v<T,\ u\textcolor{keywordtype}{int}64\_t>)>}
+\DoxyCodeLine{00019\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_INTRINSIC\_INLINE}}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{namespacewjr_af767770dab749f75d952e02439de2f55}{asm\_div2by1\_adjust}}(T\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rax}},\ T\ div,\ T\ \&\mbox{\hyperlink{gen__addsub_8hpp_a338c714a93a43aa16b7b45f969e22e31}{r8}},\ T\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rdx}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00020\ \ \ \ \ T\ \mbox{\hyperlink{gen__addsub_8hpp_acd23bd73fa99ef0cc188e12082793a8d}{r9}}\ =\ \mbox{\hyperlink{gen__addsub_8hpp_a338c714a93a43aa16b7b45f969e22e31}{r8}}\ +\ div;}
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}cmp\{q\ \%[rax],\ \%[r8]|\ \%[r8],\ \%[rax]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00022\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}cmovb\{q\ \%[r8],\ \%[r9]|\ \%[r9],\ \%[r8]\}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00023\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}adc\{q\ \$-\/1,\ \%[rdx]|\ \%[rdx],\ -\/1\}"{}}}
+\DoxyCodeLine{00024\ \ \ \ \ \ \ \ \ :\ [\mbox{\hyperlink{gen__addsub_8hpp_acd23bd73fa99ef0cc188e12082793a8d}{r9}}]\ \textcolor{stringliteral}{"{}+r"{}}(\mbox{\hyperlink{gen__addsub_8hpp_acd23bd73fa99ef0cc188e12082793a8d}{r9}}),\ [\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rdx}}]\ \textcolor{stringliteral}{"{}+r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rdx}})}
+\DoxyCodeLine{00025\ \ \ \ \ \ \ \ \ :\ [\mbox{\hyperlink{gen__addsub_8hpp_a338c714a93a43aa16b7b45f969e22e31}{r8}}]\ \textcolor{stringliteral}{"{}r"{}}(\mbox{\hyperlink{gen__addsub_8hpp_a338c714a93a43aa16b7b45f969e22e31}{r8}}),\ [\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rax}}]\ \textcolor{stringliteral}{"{}r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rax}})}
+\DoxyCodeLine{00026\ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}cc"{}},\ \textcolor{stringliteral}{"{}memory"{}});}
+\DoxyCodeLine{00027\ \ \ \ \ \mbox{\hyperlink{gen__addsub_8hpp_a338c714a93a43aa16b7b45f969e22e31}{r8}}\ =\ \mbox{\hyperlink{gen__addsub_8hpp_acd23bd73fa99ef0cc188e12082793a8d}{r9}};}
+\DoxyCodeLine{00028\ \}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_BUILTIN(ASM\_DIV2BY1\_ADJUST\_BRANCH)}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ WJR\_REQUIRES(std::is\_same\_v<T,\ u\textcolor{keywordtype}{int}64\_t>)>}
+\DoxyCodeLine{00035\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_INTRINSIC\_INLINE}}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{namespacewjr_afcd845ef87474f8e5f0b2b43791fdd1d}{asm\_div2by1\_adjust\_branch}}(T\ div,\ T\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{lo}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}sub\ \%1,\ \%0"{}}\ :\ \textcolor{stringliteral}{"{}+r"{}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{lo}})\ :\ \textcolor{stringliteral}{"{}r"{}}(div));}
+\DoxyCodeLine{00037\ \}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_ARCH\_X86\_MATH\_DIVIDER\_HPP\_\_}}
+
+\end{DoxyCode}

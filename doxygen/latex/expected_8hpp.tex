@@ -1,0 +1,60 @@
+\doxysection{include/wjr/expected.hpp 文件参考}
+\hypertarget{expected_8hpp}{}\label{expected_8hpp}\index{include/wjr/expected.hpp@{include/wjr/expected.hpp}}
+\doxysubsubsection*{类}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1unexpect__t}{wjr\+::unexpect\+\_\+t}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1unexpected}{wjr\+::unexpected$<$ E $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1bad__expected__access_3_01void_01_4}{wjr\+::bad\+\_\+expected\+\_\+access$<$ void $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1bad__expected__access}{wjr\+::bad\+\_\+expected\+\_\+access$<$ E $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1expected}{wjr\+::expected$<$ T, E $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1expected_3_01void_00_01_e_01_4}{wjr\+::expected$<$ void, E $>$}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{命名空间}
+\begin{DoxyCompactItemize}
+\item 
+namespace \mbox{\hyperlink{namespacewjr}{wjr}}
+\item 
+namespace \mbox{\hyperlink{namespacestd}{std}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{类型定义}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tag}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{namespacewjr_a0dba6c61785bf0d7dca81c82a283d4e1}{wjr\+::unexpected\+\_\+base}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{函数}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Err}} $>$ }\\\mbox{\hyperlink{namespacewjr_a9953ad41e85ce3ae6a0d32480ae0d0fd}{wjr\+::unexpected}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Err}}) -\/$>$ unexpected$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Err}} $>$
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{New\+Type}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Old\+Type}} , typename... Args$>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{namespacewjr_a3d78c324cff29fa0a23a45e83e589fcb}{wjr\+::reinit\+\_\+expected}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{New\+Type}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{new\+\_\+val}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Old\+Type}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{old\+\_\+val}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}} \&\&...\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{args}})
+\item 
+{\footnotesize template$<$typename E $>$ }\\constexpr void \mbox{\hyperlink{namespacestd_a177a2e934edf094dfac4f64b247ced6e}{std\+::swap}} (\mbox{\hyperlink{classwjr_1_1unexpected}{wjr\+::unexpected}}$<$ E $>$ \&lhs, \mbox{\hyperlink{classwjr_1_1unexpected}{wjr\+::unexpected}}$<$ E $>$ \&rhs) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(lhs.\+swap(rhs)))
+\item 
+{\footnotesize template$<$typename T , typename E $>$ }\\constexpr void \mbox{\hyperlink{namespacestd_a1712693709f89cd3890d78b6d7f7bae2}{std\+::swap}} (\mbox{\hyperlink{classwjr_1_1expected}{wjr\+::expected}}$<$ T, E $>$ \&lhs, \mbox{\hyperlink{classwjr_1_1expected}{wjr\+::expected}}$<$ T, E $>$ \&rhs) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(lhs.\+swap(rhs)))
+\end{DoxyCompactItemize}
+\doxysubsubsection*{变量}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1unexpect__t}{unexpect\+\_\+t}} \mbox{\hyperlink{namespacewjr_a1097b74fbbc12a7d54eef4ab1bee2bdf}{wjr\+::unexpect}} = \{\}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{详细描述}
+\begin{DoxyAuthor}{作者}
+wjr
+\end{DoxyAuthor}
+\begin{DoxyVersion}{版本}
+0.\+2 
+\end{DoxyVersion}
+\begin{DoxyDate}{日期}
+2024-\/11-\/10
+\end{DoxyDate}
+\begin{DoxyCopyright}{版权所有}
+Copyright (c) 2024 
+\end{DoxyCopyright}

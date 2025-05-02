@@ -1,0 +1,5 @@
+var structwjr_1_1dragonbox_1_1decimal__fp_3_01_significand_type_00_01_exponent_type_00_01false_00_01false_01_4 =
+[
+    [ "exponent", "structwjr_1_1dragonbox_1_1decimal__fp_3_01_significand_type_00_01_exponent_type_00_01false_00_01false_01_4.html#ae49ad9af1581b303c0c1d224f0d5b1eb", null ],
+    [ "significand", "structwjr_1_1dragonbox_1_1decimal__fp_3_01_significand_type_00_01_exponent_type_00_01false_00_01false_01_4.html#a57193b5a3f5932935857fd38173286dc", null ]
+];

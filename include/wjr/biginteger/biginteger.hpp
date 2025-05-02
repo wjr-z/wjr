@@ -10,7 +10,7 @@
  * 2. Optimize reserve. For example, A = B + C, if A is restrict, then there's no need to memcpy if
  * A need to reserve.
  * 3. Optimization of constant value.
- * 4. Use dispatch to optimize compile and binary size.
+ * 4. [x] Use dispatch to optimize compile and binary size.
  *
  * @copyright Copyright (c) 2024
  *
@@ -360,6 +360,7 @@ void biginteger_dispatcher::reserve(uint32_t size) const {
     if (WJR_UNLIKELY(ptr->capacity() < size))
         v_table->__reserve_unchecked(ptr, size);
 }
+
 void biginteger_dispatcher::clear_if_reserved(uint32_t size) const {
     v_table->clear_if_reserved(ptr, size);
 }
@@ -370,9 +371,11 @@ biginteger_dispatcher biginteger_dispatcher::construct_reserve(uint32_t n,
 }
 
 void biginteger_dispatcher::destroy() const { v_table->destroy(ptr); }
+
 void biginteger_dispatcher::copy_assign(const biginteger_data *rhs) const {
     v_table->copy_assign(ptr, rhs);
 }
+
 void biginteger_dispatcher::move_assign(biginteger_data *rhs) const {
     v_table->move_assign(ptr, rhs);
 }

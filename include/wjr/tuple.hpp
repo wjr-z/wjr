@@ -249,9 +249,8 @@ public:
         return static_cast<const std::tuple_element_t<I, tuple> &&>(get<I>());
     }
 
-        template <typename Z, Z I>
-    constexpr std::tuple_element_t<I, tuple> &
-    operator[](integral_constant<Z, I>) & noexcept {
+    template <typename Z, Z I>
+    constexpr std::tuple_element_t<I, tuple> &operator[](integral_constant<Z, I>) & noexcept {
         return get<I>();
     }
 
@@ -262,8 +261,7 @@ public:
     }
 
     template <typename Z, Z I>
-    constexpr std::tuple_element_t<I, tuple> &&
-    operator[](integral_constant<Z, I>) && noexcept {
+    constexpr std::tuple_element_t<I, tuple> &&operator[](integral_constant<Z, I>) && noexcept {
         return std::move(*this).template get<I>();
     }
 
@@ -272,7 +270,6 @@ public:
     operator[](integral_constant<Z, I>) const && noexcept {
         return std::move(*this).template get<I>();
     }
-
 
 private:
     Impl m_impl;
@@ -426,6 +423,7 @@ constexpr bool operator>=(const tuple<TArgs...> &lhs,
     return !(lhs < rhs);
 }
 
+/// @private
 struct __ignore {
     template <typename Ty>
     constexpr const __ignore &operator=(const Ty &) const noexcept {

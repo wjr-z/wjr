@@ -1,0 +1,1165 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: wjr::compressed_pair&lt; T, U &gt; 模板类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('classwjr_1_1compressed__pair.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Public 类型</a> &#124;
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="#friends">友元</a> &#124;
+<a href="classwjr_1_1compressed__pair-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">wjr::compressed_pair&lt; T, U &gt; 模板类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>A pair used empty base optimization to reduce the size of the pair.  
+ <a href="#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="compressed__pair_8hpp_source.html">compressed_pair.hpp</a>&gt;</code></p>
+<div class="dynheader">
+类 wjr::compressed_pair&lt; T, U &gt; 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><img src="classwjr_1_1compressed__pair__inherit__graph.png" border="0" usemap="#awjr_1_1compressed__pair_3_01_t_00_01_u_01_4_inherit__map" alt="Inheritance graph"/></div>
+<map name="awjr_1_1compressed__pair_3_01_t_00_01_u_01_4_inherit__map" id="awjr_1_1compressed__pair_3_01_t_00_01_u_01_4_inherit__map">
+<area shape="rect" title="A pair used empty base optimization to reduce the size of the pair." alt="" coords="12,139,148,437"/>
+<area shape="rect" title=" " alt="" coords="5,5,155,91"/>
+<area shape="poly" title=" " alt="" coords="83,105,83,139,77,139,77,105"/>
+</map>
+</div>
+<div class="dynheader">
+wjr::compressed_pair&lt; T, U &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><img src="classwjr_1_1compressed__pair__coll__graph.png" border="0" usemap="#awjr_1_1compressed__pair_3_01_t_00_01_u_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="awjr_1_1compressed__pair_3_01_t_00_01_u_01_4_coll__map" id="awjr_1_1compressed__pair_3_01_t_00_01_u_01_4_coll__map">
+<area shape="rect" title="A pair used empty base optimization to reduce the size of the pair." alt="" coords="12,139,148,437"/>
+<area shape="rect" title=" " alt="" coords="5,5,155,91"/>
+<area shape="poly" title=" " alt="" coords="83,105,83,139,77,139,77,105"/>
+</map>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:aebb0d48490a67b8b65e3a3b6016c3799" id="r_aebb0d48490a67b8b65e3a3b6016c3799"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aebb0d48490a67b8b65e3a3b6016c3799">first_type</a> = <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a></td></tr>
+<tr class="separator:aebb0d48490a67b8b65e3a3b6016c3799"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e4e4afa67b9fbd1da9f5a3838de065f" id="r_a0e4e4afa67b9fbd1da9f5a3838de065f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0e4e4afa67b9fbd1da9f5a3838de065f">second_type</a> = U</td></tr>
+<tr class="separator:a0e4e4afa67b9fbd1da9f5a3838de065f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:a65d58355d8e113f22043fd4a7cfdfd68" id="r_a65d58355d8e113f22043fd4a7cfdfd68"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>  = T, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a>  = U, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::conjunction_v&lt; std::is_default_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, std::is_default_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt;) &gt; </td></tr>
+<tr class="memitem:a65d58355d8e113f22043fd4a7cfdfd68"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a65d58355d8e113f22043fd4a7cfdfd68">explicit</a> (!std::conjunction_v&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_default_convertible</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_default_convertible</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt;) <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>() <a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a>(std::conjunction_v&lt; std::is_nothrow_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, std::is_nothrow_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt;)</td></tr>
+<tr class="separator:a65d58355d8e113f22043fd4a7cfdfd68"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e41466e0b74356152ec12edfde06f51" id="r_a7e41466e0b74356152ec12edfde06f51"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>  = T, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a>  = U, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>( std::conjunction_v&lt; std::is_default_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, std::is_default_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt; &amp;&amp;std::conjunction_v&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_default_convertible</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_default_convertible</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt;) &gt; </td></tr>
+<tr class="memitem:a7e41466e0b74356152ec12edfde06f51"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a7e41466e0b74356152ec12edfde06f51">compressed_pair</a> () <a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a>(std::conjunction_v&lt; std::is_nothrow_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, std::is_nothrow_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt;)</td></tr>
+<tr class="separator:a7e41466e0b74356152ec12edfde06f51"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e41466e0b74356152ec12edfde06f51" id="r_a7e41466e0b74356152ec12edfde06f51"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>  = T, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a>  = U, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::conjunction_v&lt; std::is_default_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, std::is_default_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt; &amp;&amp; !std::conjunction_v&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_default_convertible</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_default_convertible</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt;) &gt; </td></tr>
+<tr class="memitem:a7e41466e0b74356152ec12edfde06f51"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a7e41466e0b74356152ec12edfde06f51">compressed_pair</a> () <a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a>(std::conjunction_v&lt; std::is_nothrow_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, std::is_nothrow_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt;)</td></tr>
+<tr class="separator:a7e41466e0b74356152ec12edfde06f51"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b994f9f619e7692f37294dc2773bd56" id="r_a2b994f9f619e7692f37294dc2773bd56"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>  = T, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a>  = U, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(__is_all_copy_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt;::value) &gt; </td></tr>
+<tr class="memitem:a2b994f9f619e7692f37294dc2773bd56"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a2b994f9f619e7692f37294dc2773bd56">explicit</a> (!__is_all_convertible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &amp; &gt;::value) <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_First</a></td></tr>
+<tr class="separator:a2b994f9f619e7692f37294dc2773bd56"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2d5a95fed3f3784116f7b9933c905ff" id="r_ad2d5a95fed3f3784116f7b9933c905ff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> U &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_Second</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a> (std::conjunction_v&lt; std::is_nothrow_copy_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, std::is_nothrow_copy_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt;)</td></tr>
+<tr class="separator:ad2d5a95fed3f3784116f7b9933c905ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ee6e4ec48afcbc87301c01d944d8850" id="r_a2ee6e4ec48afcbc87301c01d944d8850"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>  = T, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a>  = U, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::conjunction_v&lt; __is_all_copy_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt;, __is_all_convertible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &amp; &gt; &gt;) &gt; </td></tr>
+<tr class="memitem:a2ee6e4ec48afcbc87301c01d944d8850"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a2ee6e4ec48afcbc87301c01d944d8850">compressed_pair</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_First</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> U &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_Second</a>) <a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a>(std::conjunction_v&lt; std::is_nothrow_copy_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, std::is_nothrow_copy_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt;)</td></tr>
+<tr class="separator:a2ee6e4ec48afcbc87301c01d944d8850"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ee6e4ec48afcbc87301c01d944d8850" id="r_a2ee6e4ec48afcbc87301c01d944d8850"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>  = T, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a>  = U, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>( std::conjunction_v&lt; __is_all_copy_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt;, std::negation&lt; __is_all_convertible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &amp; &gt; &gt; &gt;) &gt; </td></tr>
+<tr class="memitem:a2ee6e4ec48afcbc87301c01d944d8850"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a2ee6e4ec48afcbc87301c01d944d8850">compressed_pair</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_First</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> U &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_Second</a>) <a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a>(std::conjunction_v&lt; std::is_nothrow_copy_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, std::is_nothrow_copy_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt;)</td></tr>
+<tr class="separator:a2ee6e4ec48afcbc87301c01d944d8850"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad42ac9e394992006864a6f7eac000076" id="r_ad42ac9e394992006864a6f7eac000076"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(__is_all_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp; &gt;::value) &gt; </td></tr>
+<tr class="memitem:ad42ac9e394992006864a6f7eac000076"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ad42ac9e394992006864a6f7eac000076">explicit</a> (!__is_all_convertible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp; &gt;::value) <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_First</a></td></tr>
+<tr class="separator:ad42ac9e394992006864a6f7eac000076"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba7fb7702549a43750051fefbbe80241" id="r_aba7fb7702549a43750051fefbbe80241"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_Second</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aba7fb7702549a43750051fefbbe80241">noexcept</a> (std::is_nothrow_constructible_v&lt; Mybase, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp; &gt;)</td></tr>
+<tr class="separator:aba7fb7702549a43750051fefbbe80241"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3bd8c93978715c976b098bce7862cc1" id="r_ae3bd8c93978715c976b098bce7862cc1"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::conjunction_v&lt; __is_all_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp; &gt;, __is_all_convertible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp; &gt; &gt;) &gt; </td></tr>
+<tr class="memitem:ae3bd8c93978715c976b098bce7862cc1"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ae3bd8c93978715c976b098bce7862cc1">compressed_pair</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_First</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_Second</a>) <a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a>(std::is_nothrow_constructible_v&lt; Mybase, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp; &gt;)</td></tr>
+<tr class="separator:ae3bd8c93978715c976b098bce7862cc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3bd8c93978715c976b098bce7862cc1" id="r_ae3bd8c93978715c976b098bce7862cc1"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::conjunction_v&lt; __is_all_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp; &gt;, std::negation&lt; __is_all_convertible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp; &gt; &gt; &gt;) &gt; </td></tr>
+<tr class="memitem:ae3bd8c93978715c976b098bce7862cc1"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ae3bd8c93978715c976b098bce7862cc1">compressed_pair</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_First</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_Second</a>) <a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a>(std::is_nothrow_constructible_v&lt; Mybase, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp; &gt;)</td></tr>
+<tr class="separator:ae3bd8c93978715c976b098bce7862cc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48735b56336547c40ed5db7a0521883b" id="r_a48735b56336547c40ed5db7a0521883b"><td class="memTemplParams" colspan="2">template&lt;typename... Args1, typename... Args2&gt; </td></tr>
+<tr class="memitem:a48735b56336547c40ed5db7a0521883b"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a48735b56336547c40ed5db7a0521883b">compressed_pair</a> (std::piecewise_construct_t, <a class="el" href="classwjr_1_1tuple.html">tuple</a>&lt; Args1... &gt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">tp1</a>, <a class="el" href="classwjr_1_1tuple.html">tuple</a>&lt; Args2... &gt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">tp2</a>) <a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a>(<a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a>(<a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">tp1</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">tp2</a>, std::index_sequence_for&lt; Args1... &gt;{}, std::index_sequence_for&lt; Args2... &gt;{})))</td></tr>
+<tr class="separator:a48735b56336547c40ed5db7a0521883b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adcd2905d9312551c07a1a47fd6af7482" id="r_adcd2905d9312551c07a1a47fd6af7482"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(__is_tuple_test_v&lt; std::is_constructible, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp; &gt;) &gt; </td></tr>
+<tr class="memitem:adcd2905d9312551c07a1a47fd6af7482"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#adcd2905d9312551c07a1a47fd6af7482">explicit</a> (!__is_tuple_test_v&lt; std::is_convertible, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp; &gt;) <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">pr</a>) <a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a>(std::conjunction_v&lt; std::is_nothrow_constructible&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">decltype</a>(<a class="el" href="namespacestd.html#a3767022618c3b96df1cb16ac67d9fc96">std::get</a>&lt; 0 &gt;(std::forward&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &gt;(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">pr</a>)))&gt;, std::is_nothrow_constructible&lt; U, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">decltype</a>(<a class="el" href="namespacestd.html#a3767022618c3b96df1cb16ac67d9fc96">std::get</a>&lt; 1 &gt;(std::forward&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &gt;(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">pr</a>)))&gt; &gt;)</td></tr>
+<tr class="separator:adcd2905d9312551c07a1a47fd6af7482"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a147ab1d537736828d60fea400d690b64" id="r_a147ab1d537736828d60fea400d690b64"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(__is_tuple_test_v&lt; std::is_constructible, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp; &gt; &amp;&amp;__is_tuple_test_v&lt; std::is_convertible, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp; &gt;) &gt; </td></tr>
+<tr class="memitem:a147ab1d537736828d60fea400d690b64"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a147ab1d537736828d60fea400d690b64">compressed_pair</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">pr</a>) <a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a>(std::conjunction_v&lt; std::is_nothrow_constructible&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">decltype</a>(<a class="el" href="namespacestd.html#a3767022618c3b96df1cb16ac67d9fc96">std::get</a>&lt; 0 &gt;(std::forward&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &gt;(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">pr</a>)))&gt;, std::is_nothrow_constructible&lt; U, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">decltype</a>(<a class="el" href="namespacestd.html#a3767022618c3b96df1cb16ac67d9fc96">std::get</a>&lt; 1 &gt;(std::forward&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &gt;(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">pr</a>)))&gt; &gt;)</td></tr>
+<tr class="separator:a147ab1d537736828d60fea400d690b64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a147ab1d537736828d60fea400d690b64" id="r_a147ab1d537736828d60fea400d690b64"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(__is_tuple_test_v&lt; std::is_constructible, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp; &gt; &amp;&amp; !__is_tuple_test_v&lt; std::is_convertible, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp; &gt;) &gt; </td></tr>
+<tr class="memitem:a147ab1d537736828d60fea400d690b64"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a147ab1d537736828d60fea400d690b64">compressed_pair</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">pr</a>) <a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a>(std::conjunction_v&lt; std::is_nothrow_constructible&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">decltype</a>(<a class="el" href="namespacestd.html#a3767022618c3b96df1cb16ac67d9fc96">std::get</a>&lt; 0 &gt;(std::forward&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &gt;(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">pr</a>)))&gt;, std::is_nothrow_constructible&lt; U, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">decltype</a>(<a class="el" href="namespacestd.html#a3767022618c3b96df1cb16ac67d9fc96">std::get</a>&lt; 1 &gt;(std::forward&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &gt;(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">pr</a>)))&gt; &gt;)</td></tr>
+<tr class="separator:a147ab1d537736828d60fea400d690b64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9fcf4ec3c42fc1561e52187a99b3475" id="r_af9fcf4ec3c42fc1561e52187a99b3475"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(__is_tuple_test_v&lt; __is_tuple_assignable, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp; &gt;) &gt; </td></tr>
+<tr class="memitem:af9fcf4ec3c42fc1561e52187a99b3475"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#af9fcf4ec3c42fc1561e52187a99b3475">operator=</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">pr</a>) <a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a>(std::conjunction_v&lt; std::is_nothrow_assignable&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">decltype</a>(<a class="el" href="namespacestd.html#a3767022618c3b96df1cb16ac67d9fc96">std::get</a>&lt; 0 &gt;(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">pr</a>))&gt;, std::is_nothrow_assignable&lt; U, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">decltype</a>(<a class="el" href="namespacestd.html#a3767022618c3b96df1cb16ac67d9fc96">std::get</a>&lt; 1 &gt;(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">pr</a>))&gt; &gt;)</td></tr>
+<tr class="separator:af9fcf4ec3c42fc1561e52187a99b3475"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a562070fb1df2285790eda7be36f2abfb" id="r_a562070fb1df2285790eda7be36f2abfb"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Myself</a>  = compressed_pair, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_T</a>  = T, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::conjunction_v&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_swappable</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_T</a> &gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_swappable</a>&lt; U &gt; &gt;) &gt; </td></tr>
+<tr class="memitem:a562070fb1df2285790eda7be36f2abfb"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a562070fb1df2285790eda7be36f2abfb">swap</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">type_identity_t</a>&lt; <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &amp; &gt; other) <a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a>(std::conjunction_v&lt; std::is_nothrow_swappable&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;, std::is_nothrow_swappable&lt; U &gt; &gt;)</td></tr>
+<tr class="separator:a562070fb1df2285790eda7be36f2abfb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96649a2a674e37bd010406e20213f21a" id="r_a96649a2a674e37bd010406e20213f21a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a96649a2a674e37bd010406e20213f21a">first</a> () <a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a></td></tr>
+<tr class="separator:a96649a2a674e37bd010406e20213f21a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac6db845fc22542f0304270fafef3cd35" id="r_ac6db845fc22542f0304270fafef3cd35"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac6db845fc22542f0304270fafef3cd35">first</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a></td></tr>
+<tr class="separator:ac6db845fc22542f0304270fafef3cd35"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a67b2b72b114fed7860fcbe289e38f8db" id="r_a67b2b72b114fed7860fcbe289e38f8db"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> U &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a67b2b72b114fed7860fcbe289e38f8db">second</a> () <a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a></td></tr>
+<tr class="separator:a67b2b72b114fed7860fcbe289e38f8db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5aa90d5caa18477032e2240a288c4ca5" id="r_a5aa90d5caa18477032e2240a288c4ca5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> U &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5aa90d5caa18477032e2240a288c4ca5">second</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a></td></tr>
+<tr class="separator:a5aa90d5caa18477032e2240a288c4ca5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa75595c19ae38e02c2dd8c6cd156e14d" id="r_aa75595c19ae38e02c2dd8c6cd156e14d"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a> I, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>&lt; 2) &gt; </td></tr>
+<tr class="memitem:aa75595c19ae38e02c2dd8c6cd156e14d"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> std::tuple_element_t&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &gt; &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#aa75595c19ae38e02c2dd8c6cd156e14d">get</a> () &amp;<a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a></td></tr>
+<tr class="separator:aa75595c19ae38e02c2dd8c6cd156e14d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1679442f82ef8bb8d919233de5d99ef7" id="r_a1679442f82ef8bb8d919233de5d99ef7"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a> I, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>&lt; 2) &gt; </td></tr>
+<tr class="memitem:a1679442f82ef8bb8d919233de5d99ef7"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> std::tuple_element_t&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &gt; &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a1679442f82ef8bb8d919233de5d99ef7">get</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> &amp;<a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a></td></tr>
+<tr class="separator:a1679442f82ef8bb8d919233de5d99ef7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a044614c93c64beeb77bd28d56e10a06d" id="r_a044614c93c64beeb77bd28d56e10a06d"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a> I, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>&lt; 2) &gt; </td></tr>
+<tr class="memitem:a044614c93c64beeb77bd28d56e10a06d"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> std::tuple_element_t&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &gt; &amp;&amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a044614c93c64beeb77bd28d56e10a06d">get</a> () &amp;&amp;<a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a></td></tr>
+<tr class="separator:a044614c93c64beeb77bd28d56e10a06d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af17f16597d11faf213584ba7e24a2ad3" id="r_af17f16597d11faf213584ba7e24a2ad3"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a> I, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>&lt; 2) &gt; </td></tr>
+<tr class="memitem:af17f16597d11faf213584ba7e24a2ad3"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> std::tuple_element_t&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &gt; &amp;&amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#af17f16597d11faf213584ba7e24a2ad3">get</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> &amp;&amp;<a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a></td></tr>
+<tr class="separator:af17f16597d11faf213584ba7e24a2ad3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae176e609956d2cad225e86f59d3a9245" id="r_ae176e609956d2cad225e86f59d3a9245"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a> I&gt; </td></tr>
+<tr class="memitem:ae176e609956d2cad225e86f59d3a9245"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> std::tuple_element_t&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &gt; &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ae176e609956d2cad225e86f59d3a9245">operator[]</a> (integral_constant&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a> &gt;) &amp;<a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a></td></tr>
+<tr class="separator:ae176e609956d2cad225e86f59d3a9245"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d0dcfb1cd388fb7769d65441f8ab379" id="r_a9d0dcfb1cd388fb7769d65441f8ab379"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a> I&gt; </td></tr>
+<tr class="memitem:a9d0dcfb1cd388fb7769d65441f8ab379"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> std::tuple_element_t&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &gt; &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a9d0dcfb1cd388fb7769d65441f8ab379">operator[]</a> (integral_constant&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a> &gt;) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> &amp;<a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a></td></tr>
+<tr class="separator:a9d0dcfb1cd388fb7769d65441f8ab379"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a25a29eb25329e08d215ca9f451950f" id="r_a9a25a29eb25329e08d215ca9f451950f"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a> I&gt; </td></tr>
+<tr class="memitem:a9a25a29eb25329e08d215ca9f451950f"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> std::tuple_element_t&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &gt; &amp;&amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a9a25a29eb25329e08d215ca9f451950f">operator[]</a> (integral_constant&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a> &gt;) &amp;&amp;<a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a></td></tr>
+<tr class="separator:a9a25a29eb25329e08d215ca9f451950f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac7787f7fb22c67c756ae98850a75ec53" id="r_ac7787f7fb22c67c756ae98850a75ec53"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a> I&gt; </td></tr>
+<tr class="memitem:ac7787f7fb22c67c756ae98850a75ec53"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> std::tuple_element_t&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &gt; &amp;&amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ac7787f7fb22c67c756ae98850a75ec53">operator[]</a> (integral_constant&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a> &gt;) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> &amp;&amp;<a class="el" href="#ad2d5a95fed3f3784116f7b9933c905ff">noexcept</a></td></tr>
+<tr class="separator:ac7787f7fb22c67c756ae98850a75ec53"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
+友元</h2></td></tr>
+<tr class="memitem:ab1a7cc1f62daaecd82012d41a8a025dd" id="r_ab1a7cc1f62daaecd82012d41a8a025dd"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> _Mybase , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_Tag</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_Enable</a> &gt; </td></tr>
+<tr class="memitem:ab1a7cc1f62daaecd82012d41a8a025dd"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">struct</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ab1a7cc1f62daaecd82012d41a8a025dd">container_of_fn</a></td></tr>
+<tr class="separator:ab1a7cc1f62daaecd82012d41a8a025dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U&gt;<br />
+class wjr::compressed_pair&lt; T, U &gt;</div><p>A pair used empty base optimization to reduce the size of the pair. </p>
+<p>Guaranteed to be standard-layout if &lsquo;T&rsquo; and &lsquo;U&rsquo; both are standard-layout. </p>
+</div><h2 class="groupheader">成员类型定义说明</h2>
+<a id="aebb0d48490a67b8b65e3a3b6016c3799" name="aebb0d48490a67b8b65e3a3b6016c3799"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aebb0d48490a67b8b65e3a3b6016c3799">&#9670;&#160;</a></span>first_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::first_type = <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0e4e4afa67b9fbd1da9f5a3838de065f" name="a0e4e4afa67b9fbd1da9f5a3838de065f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0e4e4afa67b9fbd1da9f5a3838de065f">&#9670;&#160;</a></span>second_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">using</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::second_type = U</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">构造及析构函数说明</h2>
+<a id="a7e41466e0b74356152ec12edfde06f51" name="a7e41466e0b74356152ec12edfde06f51"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7e41466e0b74356152ec12edfde06f51">&#9670;&#160;</a></span>compressed_pair() <span class="overload">[1/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>  = T, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a>  = U, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>( std::conjunction_v&lt; std::is_default_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, std::is_default_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt; &amp;&amp;std::conjunction_v&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_default_convertible</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_default_convertible</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt;) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::compressed_pair </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7e41466e0b74356152ec12edfde06f51" name="a7e41466e0b74356152ec12edfde06f51"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7e41466e0b74356152ec12edfde06f51">&#9670;&#160;</a></span>compressed_pair() <span class="overload">[2/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>  = T, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a>  = U, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::conjunction_v&lt; std::is_default_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, std::is_default_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt; &amp;&amp; !std::conjunction_v&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_default_convertible</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_default_convertible</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt;) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::compressed_pair </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2ee6e4ec48afcbc87301c01d944d8850" name="a2ee6e4ec48afcbc87301c01d944d8850"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2ee6e4ec48afcbc87301c01d944d8850">&#9670;&#160;</a></span>compressed_pair() <span class="overload">[3/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>  = T, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a>  = U, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::conjunction_v&lt; __is_all_copy_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt;, __is_all_convertible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &amp; &gt; &gt;) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::compressed_pair </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>_First</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> U &amp;</td>          <td class="paramname"><span class="paramname"><em>_Second</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2ee6e4ec48afcbc87301c01d944d8850" name="a2ee6e4ec48afcbc87301c01d944d8850"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2ee6e4ec48afcbc87301c01d944d8850">&#9670;&#160;</a></span>compressed_pair() <span class="overload">[4/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>  = T, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a>  = U, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>( std::conjunction_v&lt; __is_all_copy_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt;, std::negation&lt; __is_all_convertible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &amp; &gt; &gt; &gt;) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::compressed_pair </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>_First</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> U &amp;</td>          <td class="paramname"><span class="paramname"><em>_Second</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae3bd8c93978715c976b098bce7862cc1" name="ae3bd8c93978715c976b098bce7862cc1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae3bd8c93978715c976b098bce7862cc1">&#9670;&#160;</a></span>compressed_pair() <span class="overload">[5/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::conjunction_v&lt; __is_all_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp; &gt;, __is_all_convertible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp; &gt; &gt;) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::compressed_pair </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>_First</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>_Second</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae3bd8c93978715c976b098bce7862cc1" name="ae3bd8c93978715c976b098bce7862cc1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae3bd8c93978715c976b098bce7862cc1">&#9670;&#160;</a></span>compressed_pair() <span class="overload">[6/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::conjunction_v&lt; __is_all_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp; &gt;, std::negation&lt; __is_all_convertible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp; &gt; &gt; &gt;) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::compressed_pair </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>_First</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>_Second</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a48735b56336547c40ed5db7a0521883b" name="a48735b56336547c40ed5db7a0521883b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a48735b56336547c40ed5db7a0521883b">&#9670;&#160;</a></span>compressed_pair() <span class="overload">[7/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;typename... Args1, typename... Args2&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::compressed_pair </td>
+          <td>(</td>
+          <td class="paramtype">std::piecewise_construct_t</td>          <td class="paramname"><span class="paramname">, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classwjr_1_1tuple.html">tuple</a>&lt; Args1... &gt;</td>          <td class="paramname"><span class="paramname"><em>tp1</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classwjr_1_1tuple.html">tuple</a>&lt; Args2... &gt;</td>          <td class="paramname"><span class="paramname"><em>tp2</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a147ab1d537736828d60fea400d690b64" name="a147ab1d537736828d60fea400d690b64"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a147ab1d537736828d60fea400d690b64">&#9670;&#160;</a></span>compressed_pair() <span class="overload">[8/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(__is_tuple_test_v&lt; std::is_constructible, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp; &gt; &amp;&amp;__is_tuple_test_v&lt; std::is_convertible, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp; &gt;) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::compressed_pair </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>pr</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a147ab1d537736828d60fea400d690b64" name="a147ab1d537736828d60fea400d690b64"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a147ab1d537736828d60fea400d690b64">&#9670;&#160;</a></span>compressed_pair() <span class="overload">[9/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(__is_tuple_test_v&lt; std::is_constructible, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp; &gt; &amp;&amp; !__is_tuple_test_v&lt; std::is_convertible, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp; &gt;) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::compressed_pair </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>pr</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="a2b994f9f619e7692f37294dc2773bd56" name="a2b994f9f619e7692f37294dc2773bd56"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b994f9f619e7692f37294dc2773bd56">&#9670;&#160;</a></span>explicit() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>  = T, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a>  = U, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(__is_all_copy_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt;::value) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::explicit </td>
+          <td>(</td>
+          <td class="paramtype">!__is_all_convertible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &amp; &gt;::value</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const &amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad42ac9e394992006864a6f7eac000076" name="ad42ac9e394992006864a6f7eac000076"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad42ac9e394992006864a6f7eac000076">&#9670;&#160;</a></span>explicit() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(__is_all_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp; &gt;::value) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::explicit </td>
+          <td>(</td>
+          <td class="paramtype">!__is_all_convertible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp; &gt;::value</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> &amp;&amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adcd2905d9312551c07a1a47fd6af7482" name="adcd2905d9312551c07a1a47fd6af7482"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adcd2905d9312551c07a1a47fd6af7482">&#9670;&#160;</a></span>explicit() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(__is_tuple_test_v&lt; std::is_constructible, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp; &gt;) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::explicit </td>
+          <td>(</td>
+          <td class="paramtype">!__is_tuple_test_v&lt; std::is_convertible, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp; &gt;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> &amp;&amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a65d58355d8e113f22043fd4a7cfdfd68" name="a65d58355d8e113f22043fd4a7cfdfd68"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a65d58355d8e113f22043fd4a7cfdfd68">&#9670;&#160;</a></span>explicit() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a>  = T, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a>  = U, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::conjunction_v&lt; std::is_default_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, std::is_default_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt;) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::explicit </td>
+          <td>(</td>
+          <td class="paramtype">!std::conjunction_v&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_default_convertible</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_default_convertible</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac6db845fc22542f0304270fafef3cd35" name="ac6db845fc22542f0304270fafef3cd35"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac6db845fc22542f0304270fafef3cd35">&#9670;&#160;</a></span>first() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &amp; <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::first </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a96649a2a674e37bd010406e20213f21a" name="a96649a2a674e37bd010406e20213f21a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a96649a2a674e37bd010406e20213f21a">&#9670;&#160;</a></span>first() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &amp; <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::first </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a044614c93c64beeb77bd28d56e10a06d" name="a044614c93c64beeb77bd28d56e10a06d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a044614c93c64beeb77bd28d56e10a06d">&#9670;&#160;</a></span>get() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a> I, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>&lt; 2) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> std::tuple_element_t&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &gt; &amp;&amp; <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::get </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> &amp;&amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa75595c19ae38e02c2dd8c6cd156e14d" name="aa75595c19ae38e02c2dd8c6cd156e14d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa75595c19ae38e02c2dd8c6cd156e14d">&#9670;&#160;</a></span>get() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a> I, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>&lt; 2) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> std::tuple_element_t&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &gt; &amp; <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::get </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> &amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af17f16597d11faf213584ba7e24a2ad3" name="af17f16597d11faf213584ba7e24a2ad3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af17f16597d11faf213584ba7e24a2ad3">&#9670;&#160;</a></span>get() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a> I, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>&lt; 2) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> std::tuple_element_t&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &gt; &amp;&amp; <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::get </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const &amp;&amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1679442f82ef8bb8d919233de5d99ef7" name="a1679442f82ef8bb8d919233de5d99ef7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1679442f82ef8bb8d919233de5d99ef7">&#9670;&#160;</a></span>get() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a> I, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>&lt; 2) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> std::tuple_element_t&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &gt; &amp; <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::get </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const &amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad2d5a95fed3f3784116f7b9933c905ff" name="ad2d5a95fed3f3784116f7b9933c905ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad2d5a95fed3f3784116f7b9933c905ff">&#9670;&#160;</a></span>noexcept() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> U &amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_Second</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::noexcept </td>
+          <td>(</td>
+          <td class="paramtype">std::conjunction_v&lt; std::is_nothrow_copy_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Ty</a> &gt;, std::is_nothrow_copy_constructible&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Uy</a> &gt; &gt;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aba7fb7702549a43750051fefbbe80241" name="aba7fb7702549a43750051fefbbe80241"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aba7fb7702549a43750051fefbbe80241">&#9670;&#160;</a></span>noexcept() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_Second</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::noexcept </td>
+          <td>(</td>
+          <td class="paramtype">std::is_nothrow_constructible_v&lt; Mybase, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other1</a> &amp;&amp;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Other2</a> &amp;&amp; &gt;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af9fcf4ec3c42fc1561e52187a99b3475" name="af9fcf4ec3c42fc1561e52187a99b3475"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9fcf4ec3c42fc1561e52187a99b3475">&#9670;&#160;</a></span>operator=()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(__is_tuple_test_v&lt; __is_tuple_assignable, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp; &gt;) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &amp; <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">PairLike</a> &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>pr</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9a25a29eb25329e08d215ca9f451950f" name="a9a25a29eb25329e08d215ca9f451950f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a25a29eb25329e08d215ca9f451950f">&#9670;&#160;</a></span>operator[]() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a> I&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> std::tuple_element_t&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &gt; &amp;&amp; <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>[] </td>
+          <td>(</td>
+          <td class="paramtype">integral_constant&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a> &gt;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> &amp;&amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae176e609956d2cad225e86f59d3a9245" name="ae176e609956d2cad225e86f59d3a9245"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae176e609956d2cad225e86f59d3a9245">&#9670;&#160;</a></span>operator[]() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a> I&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> std::tuple_element_t&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &gt; &amp; <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>[] </td>
+          <td>(</td>
+          <td class="paramtype">integral_constant&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a> &gt;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> &amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac7787f7fb22c67c756ae98850a75ec53" name="ac7787f7fb22c67c756ae98850a75ec53"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac7787f7fb22c67c756ae98850a75ec53">&#9670;&#160;</a></span>operator[]() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a> I&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> std::tuple_element_t&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &gt; &amp;&amp; <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>[] </td>
+          <td>(</td>
+          <td class="paramtype">integral_constant&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a> &gt;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const &amp;&amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9d0dcfb1cd388fb7769d65441f8ab379" name="a9d0dcfb1cd388fb7769d65441f8ab379"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9d0dcfb1cd388fb7769d65441f8ab379">&#9670;&#160;</a></span>operator[]() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a> I&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> std::tuple_element_t&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a>, <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a> &gt; &amp; <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>[] </td>
+          <td>(</td>
+          <td class="paramtype">integral_constant&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Z</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">I</a> &gt;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const &amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5aa90d5caa18477032e2240a288c4ca5" name="a5aa90d5caa18477032e2240a288c4ca5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5aa90d5caa18477032e2240a288c4ca5">&#9670;&#160;</a></span>second() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> U &amp; <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::second </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a67b2b72b114fed7860fcbe289e38f8db" name="a67b2b72b114fed7860fcbe289e38f8db"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a67b2b72b114fed7860fcbe289e38f8db">&#9670;&#160;</a></span>second() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> U &amp; <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::second </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a562070fb1df2285790eda7be36f2abfb" name="a562070fb1df2285790eda7be36f2abfb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a562070fb1df2285790eda7be36f2abfb">&#9670;&#160;</a></span>swap()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Myself</a>  = compressed_pair, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_T</a>  = T, <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(std::conjunction_v&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_swappable</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_T</a> &gt;, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_swappable</a>&lt; U &gt; &gt;) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1compressed__pair.html">wjr::compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt;::swap </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">type_identity_t</a>&lt; <a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, U &gt; &amp; &gt;</td>          <td class="paramname"><span class="paramname"><em>other</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">友元及相关函数文档</h2>
+<a id="ab1a7cc1f62daaecd82012d41a8a025dd" name="ab1a7cc1f62daaecd82012d41a8a025dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab1a7cc1f62daaecd82012d41a8a025dd">&#9670;&#160;</a></span>container_of_fn</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> U &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> _Mybase , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_Tag</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">_Enable</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">friend</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">struct</a> <a class="el" href="structwjr_1_1container__of__fn.html">container_of_fn</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/wjr/<a class="el" href="compressed__pair_8hpp_source.html">compressed_pair.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacewjr.html">wjr</a></li><li class="navelem"><a class="el" href="classwjr_1_1compressed__pair.html">compressed_pair</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

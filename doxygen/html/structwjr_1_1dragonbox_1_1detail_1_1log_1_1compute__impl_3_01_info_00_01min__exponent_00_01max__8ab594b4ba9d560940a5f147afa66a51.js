@@ -1,0 +1,5 @@
+var structwjr_1_1dragonbox_1_1detail_1_1log_1_1compute__impl_3_01_info_00_01min__exponent_00_01max__8ab594b4ba9d560940a5f147afa66a51 =
+[
+    [ "default_return_type", "structwjr_1_1dragonbox_1_1detail_1_1log_1_1compute__impl_3_01_info_00_01min__exponent_00_01max__8ab594b4ba9d560940a5f147afa66a51.html#ab336f391d21daa87df69fa3d2aa23f69", null ],
+    [ "next_tier", "structwjr_1_1dragonbox_1_1detail_1_1log_1_1compute__impl_3_01_info_00_01min__exponent_00_01max__8ab594b4ba9d560940a5f147afa66a51.html#aa499fc319dd2ac0de2b832eab78a29bc", null ]
+];

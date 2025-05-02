@@ -1,0 +1,4 @@
+var structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1away__from__zero__t =
+[
+    [ "decimal_to_binary_rounding_policy", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1away__from__zero__t.html#a8a862fcee9053c666b7a3fa0afc6ee16", null ]
+];

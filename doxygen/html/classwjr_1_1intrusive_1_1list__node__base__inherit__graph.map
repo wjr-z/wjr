@@ -1,0 +1,15 @@
+<map id="wjr::intrusive::list_node_base&lt; T &gt;" name="wjr::intrusive::list_node_base&lt; T &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="249,5,375,325"/>
+<area shape="rect" id="Node000002" href="$structwjr_1_1intrusive_1_1list__node.html" title=" " alt="" coords="5,381,125,680"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="241,246,189,307,141,375,128,397,123,394,136,372,185,304,237,243"/>
+<area shape="rect" id="Node000003" href="$structwjr_1_1intrusive_1_1list__node.html" title=" " alt="" coords="150,373,301,688"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="273,341,265,374,260,373,268,339"/>
+<area shape="rect" id="Node000005" href="$structwjr_1_1intrusive_1_1list__node.html" title=" " alt="" coords="325,373,475,688"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="357,339,365,373,360,374,351,341"/>
+<area shape="rect" id="Node000007" href="$structwjr_1_1intrusive_1_1list__node.html" title=" " alt="" coords="500,381,620,680"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="388,241,440,303,490,372,502,392,498,395,486,375,436,306,383,244"/>
+<area shape="rect" id="Node000004" href="$structwjr_1_1btree__leaf__node.html" title=" " alt="" coords="124,736,300,901"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="220,703,218,736,213,736,215,703"/>
+<area shape="rect" id="Node000006" href="$structwjr_1_1btree__leaf__node_3_01_traits_00_01true_01_4.html" title=" " alt="" coords="324,736,500,901"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="410,703,411,736,406,736,405,703"/>
+</map>

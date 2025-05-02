@@ -1,0 +1,55 @@
+\doxysection{include/wjr/container/ring\+\_\+buffer.hpp 文件参考}
+\hypertarget{ring__buffer_8hpp}{}\label{ring__buffer_8hpp}\index{include/wjr/container/ring\_buffer.hpp@{include/wjr/container/ring\_buffer.hpp}}
+\doxysubsubsection*{类}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classwjr_1_1ring__buffer__storage__traits}{wjr\+::ring\+\_\+buffer\+\_\+storage\+\_\+traits$<$ T, Alloc $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1default__ring__buffer__size__reference}{wjr\+::default\+\_\+ring\+\_\+buffer\+\_\+size\+\_\+reference$<$ pointer, size\+\_\+type $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1default__ring__buffer__storage}{wjr\+::default\+\_\+ring\+\_\+buffer\+\_\+storage$<$ T, Alloc $>$}}
+\begin{DoxyCompactList}\small\item\em Default ring\+\_\+buffer storage \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structwjr_1_1get__relocate__mode_3_01default__ring__buffer__storage_3_01_t_00_01_alloc_01_4_01_4}{wjr\+::get\+\_\+relocate\+\_\+mode$<$ default\+\_\+ring\+\_\+buffer\+\_\+storage$<$ T, Alloc $>$ $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1fixed__ring__buffer__storage}{wjr\+::fixed\+\_\+ring\+\_\+buffer\+\_\+storage$<$ T, Alloc $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1get__relocate__mode_3_01fixed__ring__buffer__storage_3_01_t_00_01_alloc_01_4_01_4}{wjr\+::get\+\_\+relocate\+\_\+mode$<$ fixed\+\_\+ring\+\_\+buffer\+\_\+storage$<$ T, Alloc $>$ $>$}}
+\item 
+class \mbox{\hyperlink{classwjr_1_1basic__ring__buffer}{wjr\+::basic\+\_\+ring\+\_\+buffer$<$ Storage $>$}}
+\begin{DoxyCompactList}\small\item\em Customized ring\+\_\+buffer by storage. \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structwjr_1_1get__relocate__mode_3_01basic__ring__buffer_3_01_s_01_4_01_4}{wjr\+::get\+\_\+relocate\+\_\+mode$<$ basic\+\_\+ring\+\_\+buffer$<$ S $>$ $>$}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{命名空间}
+\begin{DoxyCompactItemize}
+\item 
+namespace \mbox{\hyperlink{namespacewjr}{wjr}}
+\item 
+namespace \mbox{\hyperlink{namespacestd}{std}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{类型定义}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Alloc  = std\+::allocator$<$\+T$>$$>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{namespacewjr_a82ab26fb4ebf994985a9ef95e3fcd00d}{wjr\+::ring\+\_\+buffer}} = \mbox{\hyperlink{classwjr_1_1basic__ring__buffer}{basic\+\_\+ring\+\_\+buffer}}$<$\mbox{\hyperlink{classwjr_1_1default__ring__buffer__storage}{default\+\_\+ring\+\_\+buffer\+\_\+storage}}$<$\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, Alloc$>$$>$
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Alloc  = std\+::allocator$<$\+T$>$$>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{namespacewjr_a14f649a9fe8efd94bbaf48ea8c1fb082}{wjr\+::fixed\+\_\+ring\+\_\+buffer}} = \mbox{\hyperlink{classwjr_1_1basic__ring__buffer}{basic\+\_\+ring\+\_\+buffer}}$<$\mbox{\hyperlink{classwjr_1_1fixed__ring__buffer__storage}{fixed\+\_\+ring\+\_\+buffer\+\_\+storage}}$<$\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, Alloc$>$$>$
+\begin{DoxyCompactList}\small\item\em A ring\+\_\+buffer with fixed capacity by construction. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{函数}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a468fec06e1fef5596cc64b905cf02765}{wjr\+::\+WJR\+\_\+\+REGISTER\+\_\+\+HAS\+\_\+\+TYPE}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ring\+\_\+buffer\+\_\+storage\+\_\+shrink\+\_\+to\+\_\+fit}}, std\+::declval$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$().shrink\+\_\+to\+\_\+fit(), \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}})
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Iter , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}  = iterator\+\_\+value\+\_\+t$<$\+Iter$>$, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Alloc  = std\+::allocator$<$\+T$>$, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_aa21772255e23e34e728281fcfbfd741c}{is\+\_\+iterator\+\_\+v}}$<$ Iter $>$) $>$ }\\\mbox{\hyperlink{namespacewjr_a7b7487cfc4969f9537dc5cc62038af6e}{wjr\+::basic\+\_\+ring\+\_\+buffer}} (Iter, Iter, Alloc=Alloc()) -\/$>$ basic\+\_\+ring\+\_\+buffer$<$ \mbox{\hyperlink{classwjr_1_1default__ring__buffer__storage}{default\+\_\+ring\+\_\+buffer\+\_\+storage}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, Alloc $>$ $>$
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{namespacewjr_ab889e1a04d4856812b81b3a9afd1fb89}{wjr\+::swap}} (\mbox{\hyperlink{classwjr_1_1basic__ring__buffer}{basic\+\_\+ring\+\_\+buffer}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}, \mbox{\hyperlink{classwjr_1_1basic__ring__buffer}{basic\+\_\+ring\+\_\+buffer}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+{\footnotesize template$<$typename Storage $>$ }\\constexpr void \mbox{\hyperlink{namespacestd_a41a897d744b3720d7624beb66f98033f}{std\+::swap}} (\mbox{\hyperlink{classwjr_1_1basic__ring__buffer}{wjr\+::basic\+\_\+ring\+\_\+buffer}}$<$ Storage $>$ \&lhs, \mbox{\hyperlink{classwjr_1_1basic__ring__buffer}{wjr\+::basic\+\_\+ring\+\_\+buffer}}$<$ Storage $>$ \&rhs) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}(lhs.\+swap(rhs)))
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{详细描述}
+\begin{DoxyVersion}{版本}
+0.\+1 
+\end{DoxyVersion}
+\begin{DoxyDate}{日期}
+2024-\/11-\/02 
+\end{DoxyDate}

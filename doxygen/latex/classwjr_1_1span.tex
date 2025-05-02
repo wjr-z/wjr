@@ -1,0 +1,559 @@
+\doxysection{wjr\+::span\texorpdfstring{$<$}{<} T, Extent \texorpdfstring{$>$}{>} 模板类 参考}
+\hypertarget{classwjr_1_1span}{}\label{classwjr_1_1span}\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+
+
+A view over a contiguous sequence of objectsd.  
+
+
+
+
+{\ttfamily \#include $<$span.\+hpp$>$}
+
+
+
+wjr\+::span\texorpdfstring{$<$}{<} T, Extent \texorpdfstring{$>$}{>} 的协作图\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=186pt]{classwjr_1_1span__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public 类型}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span_accbe07fd2a7230e27b43bb547faeac7f}{value\+\_\+type}} = std\+::remove\+\_\+cv\+\_\+t$<$\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}$>$
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span_a8d1e11c1c3d4e3b025dfe54ed7ca6b9f}{difference\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ptrdiff\+\_\+t}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span_a5f24ce169ecdc774e12e705c533024c2}{pointer}} = \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \texorpdfstring{$\ast$}{*}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span_a52014998405db7af1732a94854afe68e}{const\+\_\+pointer}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \texorpdfstring{$\ast$}{*}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span_a1a61d03f165054cedd7e2e052ca33d34}{reference}} = \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \&
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span_acb219e27bdab48600183e51fc7ddde97}{const\+\_\+reference}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \&
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span_a458b58980bc2b82bb3bb53ff71b45bc7}{iterator}} = \mbox{\hyperlink{classwjr_1_1contiguous__iterator__adapter}{contiguous\+\_\+iterator\+\_\+adapter}}$<$\mbox{\hyperlink{classwjr_1_1span}{span}}, Iterator\+Traits$>$
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span_a188181916e11d2f8e4bc2ef4ce4d9dac}{const\+\_\+iterator}} = \mbox{\hyperlink{classwjr_1_1contiguous__const__iterator__adapter}{contiguous\+\_\+const\+\_\+iterator\+\_\+adapter}}$<$\mbox{\hyperlink{classwjr_1_1span}{span}}, Iterator\+Traits$>$
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span_a17f13e04ea303c84cf78a3f284487ece}{reverse\+\_\+iterator}} = std\+::reverse\+\_\+iterator$<$\mbox{\hyperlink{classwjr_1_1span_a458b58980bc2b82bb3bb53ff71b45bc7}{iterator}}$>$
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span_a9099edab19187bba1b2669249334e1aa}{const\+\_\+reverse\+\_\+iterator}} = std\+::reverse\+\_\+iterator$<$\mbox{\hyperlink{classwjr_1_1span_a188181916e11d2f8e4bc2ef4ce4d9dac}{const\+\_\+iterator}}$>$
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public 成员函数}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Ex = Extent, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ex}}==\mbox{\hyperlink{namespacewjr_ae554f4fbe7974cfd732adb619bf26321}{dynamic\+\_\+extent}}\texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ex}}==0) $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_abada9f1019304627bfaa4703e8d46284}{span}} () \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{It}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\+\_\+\+\_\+is\+\_\+span\+\_\+iterator$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{It}}, \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}} $>$\+::value) $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a8e80ade8cc1e1f491578838c2e2ffb07}{explicit}} (!\+\_\+\+\_\+is\+\_\+dynamic) \mbox{\hyperlink{classwjr_1_1span}{span}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{It}} \mbox{\hyperlink{classwjr_1_1span_a95850f5d22dd4d5f2a117ae49aff5edf}{first}}
+\item 
+\mbox{\hyperlink{classwjr_1_1span_a8f84518adcb8e2e13ff4b034d3532ed0}{span}} (\mbox{\hyperlink{classwjr_1_1span}{span}} \&\&)=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{default}}
+\item 
+\mbox{\hyperlink{classwjr_1_1span}{span}} \& \mbox{\hyperlink{classwjr_1_1span_a70d5da387d794a0e32240b3cd4ecc326}{operator=}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span}{span}} \&)=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{default}}
+\item 
+\mbox{\hyperlink{classwjr_1_1span}{span}} \& \mbox{\hyperlink{classwjr_1_1span_aa6c607434d1efb309186aeb9ff224237}{operator=}} (\mbox{\hyperlink{classwjr_1_1span}{span}} \&\&)=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{default}}
+\item 
+\mbox{\hyperlink{classwjr_1_1span_afd05591cecbac947a17fc130eafbed6a}{\texorpdfstring{$\sim$}{\string~}span}} ()=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{default}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1span_a5f24ce169ecdc774e12e705c533024c2}{pointer}} \mbox{\hyperlink{classwjr_1_1span_a4cd642a65661fe924663d42080ba0cf1}{begin\+\_\+unsafe}} () \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1span_a52014998405db7af1732a94854afe68e}{const\+\_\+pointer}} \mbox{\hyperlink{classwjr_1_1span_a5ca8cfcd82de0f10ff7372a6221244a8}{begin\+\_\+unsafe}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1span_a52014998405db7af1732a94854afe68e}{const\+\_\+pointer}} \mbox{\hyperlink{classwjr_1_1span_a1736cdf642a90ebc72791e3471bda49b}{cbegin\+\_\+unsafe}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1span_a5f24ce169ecdc774e12e705c533024c2}{pointer}} \mbox{\hyperlink{classwjr_1_1span_a143dce2cdaae5a00a119d80509717e38}{end\+\_\+unsafe}} () \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1span_a52014998405db7af1732a94854afe68e}{const\+\_\+pointer}} \mbox{\hyperlink{classwjr_1_1span_a80d81154dfbe637a7289460faa17f225}{end\+\_\+unsafe}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1span_a52014998405db7af1732a94854afe68e}{const\+\_\+pointer}} \mbox{\hyperlink{classwjr_1_1span_a2037f097db6a4b11af7c7df0e29172e8}{cend\+\_\+unsafe}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a458b58980bc2b82bb3bb53ff71b45bc7}{iterator}} \mbox{\hyperlink{classwjr_1_1span_ae35949f318ca79d0fd801134aca0810d}{begin}} () \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a188181916e11d2f8e4bc2ef4ce4d9dac}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span_a2837592105fd5c46c2a803f20cc285f1}{begin}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a188181916e11d2f8e4bc2ef4ce4d9dac}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span_ad55de76079bcc82f112a31b44b1a23f1}{cbegin}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a458b58980bc2b82bb3bb53ff71b45bc7}{iterator}} \mbox{\hyperlink{classwjr_1_1span_aec14f8bcc512f8e240b351a6a9b32049}{end}} () \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a188181916e11d2f8e4bc2ef4ce4d9dac}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span_a820d721226601acc615bfb15b94f3399}{end}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a188181916e11d2f8e4bc2ef4ce4d9dac}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span_a5bea748d1d760e2ab80cd0e1085b781d}{cend}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a17f13e04ea303c84cf78a3f284487ece}{reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span_a61165df2f347343f0212be29058e91aa}{rbegin}} () \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a17f13e04ea303c84cf78a3f284487ece}{reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span_a0664d7ca29507e4071d20adc9068ef38}{rbegin}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a9099edab19187bba1b2669249334e1aa}{const\+\_\+reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span_a5395f66780a6882f3bd8da5e61df00f2}{crbegin}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a17f13e04ea303c84cf78a3f284487ece}{reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span_a8c8b98d4f7e9df11d234070801d234f1}{rend}} () \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a17f13e04ea303c84cf78a3f284487ece}{reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span_ad3610f6fd7ed6bba19f9930e58f3fdf9}{rend}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a9099edab19187bba1b2669249334e1aa}{const\+\_\+reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span_ab57f92b8d63b199e98bbae5ccdac2f83}{crend}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a1a61d03f165054cedd7e2e052ca33d34}{reference}} \mbox{\hyperlink{classwjr_1_1span_a9037a4791bd53a79d0bac4f445174a5f}{front}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a1a61d03f165054cedd7e2e052ca33d34}{reference}} \mbox{\hyperlink{classwjr_1_1span_a813829161beefed173dfeebb58521339}{back}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a1a61d03f165054cedd7e2e052ca33d34}{reference}} \mbox{\hyperlink{classwjr_1_1span_ae69c8ba25536bc9a4f4fc0bf603961d5}{at}} (\mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}} pos) \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a1a61d03f165054cedd7e2e052ca33d34}{reference}} \mbox{\hyperlink{classwjr_1_1span_af4e89ee7f72463a291ca3830145d326e}{operator\mbox{[}$\,$\mbox{]}}} (\mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}} pos) \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+PURE}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a5f24ce169ecdc774e12e705c533024c2}{pointer}} \mbox{\hyperlink{classwjr_1_1span_aebae38a77a5d545cf8bfe04e31584caa}{data}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+PURE}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1span_afa0bf663b408f3d732e076e5a5f4526d}{size}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+PURE}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1span_ac9b5366c3338f6376c587bfd2265e180}{size\+\_\+bytes}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+PURE}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{classwjr_1_1span_ab02f4e2f8d991e8a046f0b8463ff509c}{empty}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Count$>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Count}} $>$ \mbox{\hyperlink{classwjr_1_1span_a95850f5d22dd4d5f2a117ae49aff5edf}{first}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}}, \mbox{\hyperlink{namespacewjr_ae554f4fbe7974cfd732adb619bf26321}{dynamic\+\_\+extent}} $>$ \mbox{\hyperlink{classwjr_1_1span_a5c43e9e4f413bb3294a7a5916dea4369}{first}} (\mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Count}}) \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Count$>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Count}} $>$ \mbox{\hyperlink{classwjr_1_1span_af24744a25f60cfe49291c96c396432a2}{last}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}}, \mbox{\hyperlink{namespacewjr_ae554f4fbe7974cfd732adb619bf26321}{dynamic\+\_\+extent}} $>$ \mbox{\hyperlink{classwjr_1_1span_a3329b9aeafa56f993f2f6717a53eafe6}{last}} (\mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Count}}) \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Offset, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Count = dynamic\+\_\+extent$>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Count}} !=\mbox{\hyperlink{namespacewjr_ae554f4fbe7974cfd732adb619bf26321}{dynamic\+\_\+extent}} ? \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Count}} \+:\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} !=\mbox{\hyperlink{namespacewjr_ae554f4fbe7974cfd732adb619bf26321}{dynamic\+\_\+extent}} ? \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} -\/ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Offset}} \+:\mbox{\hyperlink{namespacewjr_ae554f4fbe7974cfd732adb619bf26321}{dynamic\+\_\+extent}} $>$ \mbox{\hyperlink{classwjr_1_1span_ad67af2881a6d05ac871b8ae6a5644e5e}{subspan}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}}, \mbox{\hyperlink{namespacewjr_ae554f4fbe7974cfd732adb619bf26321}{dynamic\+\_\+extent}} $>$ \mbox{\hyperlink{classwjr_1_1span_a05c2c58329a1625dcc6c615c62ddec26}{subspan}} (\mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Offset}}, \mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Count}}=\mbox{\hyperlink{namespacewjr_ae554f4fbe7974cfd732adb619bf26321}{dynamic\+\_\+extent}}) \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Container}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(span\+\_\+detail\+::\+\_\+\+\_\+is\+\_\+span\+\_\+like\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Container}}, \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}} $>$ \&\&\+\_\+\+\_\+is\+\_\+dynamic) $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a7ad7463244c30583a8dcdf994e99c9fd}{span}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Container}} \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{c}}) \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\begin{DoxyCompactList}\small\item\em Construct a span from a container. \end{DoxyCompactList}\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Container}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(span\+\_\+detail\+::\+\_\+\+\_\+is\+\_\+span\+\_\+like\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Container}}, \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}} $>$ \&\&!\+\_\+\+\_\+is\+\_\+dynamic) $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a7ad7463244c30583a8dcdf994e99c9fd}{span}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Container}} \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{c}}) \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}
+\begin{DoxyCompactList}\small\item\em Construct a span from a container. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Public 属性}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1span_a62dfd261be6d055e11cc3d3a9a7aa56c}{count}} \mbox{\hyperlink{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}{noexcept}}\+: storage(wjr\+::to\+\_\+address(\mbox{\hyperlink{classwjr_1_1span_a95850f5d22dd4d5f2a117ae49aff5edf}{first}})
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}} count \mbox{\hyperlink{classwjr_1_1span_a62dfd261be6d055e11cc3d3a9a7aa56c}{count}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{详细描述}
+\subsubsection*{template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$\newline
+class wjr\+::span$<$ T, Extent $>$}
+A view over a contiguous sequence of objectsd. 
+
+
+\begin{DoxyTemplParams}{模板参数}
+{\em Extent} & if Extent is {\ttfamily dynamic\+\_\+extent}, the span is a runtime-\/sized view. Otherwise, the span is a compile-\/time-\/sized view. \\
+\hline
+\end{DoxyTemplParams}
+
+
+\doxysubsection{成员类型定义说明}
+\Hypertarget{classwjr_1_1span_a188181916e11d2f8e4bc2ef4ce4d9dac}\label{classwjr_1_1span_a188181916e11d2f8e4bc2ef4ce4d9dac} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!const\_iterator@{const\_iterator}}
+\index{const\_iterator@{const\_iterator}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{const\_iterator}{const\_iterator}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::const\+\_\+iterator = \mbox{\hyperlink{classwjr_1_1contiguous__const__iterator__adapter}{contiguous\+\_\+const\+\_\+iterator\+\_\+adapter}}$<$\mbox{\hyperlink{classwjr_1_1span}{span}}, Iterator\+Traits$>$}
+
+\Hypertarget{classwjr_1_1span_a52014998405db7af1732a94854afe68e}\label{classwjr_1_1span_a52014998405db7af1732a94854afe68e} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!const\_pointer@{const\_pointer}}
+\index{const\_pointer@{const\_pointer}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{const\_pointer}{const\_pointer}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::const\+\_\+pointer = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \texorpdfstring{$\ast$}{*}}
+
+\Hypertarget{classwjr_1_1span_acb219e27bdab48600183e51fc7ddde97}\label{classwjr_1_1span_acb219e27bdab48600183e51fc7ddde97} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!const\_reference@{const\_reference}}
+\index{const\_reference@{const\_reference}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{const\_reference}{const\_reference}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::const\+\_\+reference = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \&}
+
+\Hypertarget{classwjr_1_1span_a9099edab19187bba1b2669249334e1aa}\label{classwjr_1_1span_a9099edab19187bba1b2669249334e1aa} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!const\_reverse\_iterator@{const\_reverse\_iterator}}
+\index{const\_reverse\_iterator@{const\_reverse\_iterator}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{const\_reverse\_iterator}{const\_reverse\_iterator}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::const\+\_\+reverse\+\_\+iterator = std\+::reverse\+\_\+iterator$<$\mbox{\hyperlink{classwjr_1_1span_a188181916e11d2f8e4bc2ef4ce4d9dac}{const\+\_\+iterator}}$>$}
+
+\Hypertarget{classwjr_1_1span_a8d1e11c1c3d4e3b025dfe54ed7ca6b9f}\label{classwjr_1_1span_a8d1e11c1c3d4e3b025dfe54ed7ca6b9f} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!difference\_type@{difference\_type}}
+\index{difference\_type@{difference\_type}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{difference\_type}{difference\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::difference\+\_\+type = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ptrdiff\+\_\+t}}}
+
+\Hypertarget{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}\label{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!element\_type@{element\_type}}
+\index{element\_type@{element\_type}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{element\_type}{element\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::element\+\_\+type = \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}}
+
+\Hypertarget{classwjr_1_1span_a458b58980bc2b82bb3bb53ff71b45bc7}\label{classwjr_1_1span_a458b58980bc2b82bb3bb53ff71b45bc7} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!iterator@{iterator}}
+\index{iterator@{iterator}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{iterator}{iterator}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::iterator = \mbox{\hyperlink{classwjr_1_1contiguous__iterator__adapter}{contiguous\+\_\+iterator\+\_\+adapter}}$<$\mbox{\hyperlink{classwjr_1_1span}{span}}, Iterator\+Traits$>$}
+
+\Hypertarget{classwjr_1_1span_a5f24ce169ecdc774e12e705c533024c2}\label{classwjr_1_1span_a5f24ce169ecdc774e12e705c533024c2} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!pointer@{pointer}}
+\index{pointer@{pointer}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{pointer}{pointer}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::pointer = \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \texorpdfstring{$\ast$}{*}}
+
+\Hypertarget{classwjr_1_1span_a1a61d03f165054cedd7e2e052ca33d34}\label{classwjr_1_1span_a1a61d03f165054cedd7e2e052ca33d34} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!reference@{reference}}
+\index{reference@{reference}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{reference}{reference}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::reference = \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \&}
+
+\Hypertarget{classwjr_1_1span_a17f13e04ea303c84cf78a3f284487ece}\label{classwjr_1_1span_a17f13e04ea303c84cf78a3f284487ece} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!reverse\_iterator@{reverse\_iterator}}
+\index{reverse\_iterator@{reverse\_iterator}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{reverse\_iterator}{reverse\_iterator}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::reverse\+\_\+iterator = std\+::reverse\+\_\+iterator$<$\mbox{\hyperlink{classwjr_1_1span_a458b58980bc2b82bb3bb53ff71b45bc7}{iterator}}$>$}
+
+\Hypertarget{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}\label{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!size\_type@{size\_type}}
+\index{size\_type@{size\_type}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{size\_type}{size\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::size\+\_\+type = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}}}
+
+\Hypertarget{classwjr_1_1span_accbe07fd2a7230e27b43bb547faeac7f}\label{classwjr_1_1span_accbe07fd2a7230e27b43bb547faeac7f} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!value\_type@{value\_type}}
+\index{value\_type@{value\_type}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{value\_type}{value\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::value\+\_\+type = std\+::remove\+\_\+cv\+\_\+t$<$\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}$>$}
+
+
+
+\doxysubsection{构造及析构函数说明}
+\Hypertarget{classwjr_1_1span_abada9f1019304627bfaa4703e8d46284}\label{classwjr_1_1span_abada9f1019304627bfaa4703e8d46284} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!span@{span}}
+\index{span@{span}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{span()}{span()}\hspace{0.1cm}{\footnotesize\ttfamily [1/4]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Ex = Extent, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ex}}==\mbox{\hyperlink{namespacewjr_ae554f4fbe7974cfd732adb619bf26321}{dynamic\+\_\+extent}}\texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ex}}==0) $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::span (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a8f84518adcb8e2e13ff4b034d3532ed0}\label{classwjr_1_1span_a8f84518adcb8e2e13ff4b034d3532ed0} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!span@{span}}
+\index{span@{span}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{span()}{span()}\hspace{0.1cm}{\footnotesize\ttfamily [2/4]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::span (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$ \&\&}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [default]}}
+
+\Hypertarget{classwjr_1_1span_afd05591cecbac947a17fc130eafbed6a}\label{classwjr_1_1span_afd05591cecbac947a17fc130eafbed6a} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!````~span@{\texorpdfstring{$\sim$}{\string~}span}}
+\index{````~span@{\texorpdfstring{$\sim$}{\string~}span}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}span()}{\string~span()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::\texorpdfstring{$\sim$}{\string~}\mbox{\hyperlink{classwjr_1_1span}{span}} (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [default]}}
+
+\Hypertarget{classwjr_1_1span_a7ad7463244c30583a8dcdf994e99c9fd}\label{classwjr_1_1span_a7ad7463244c30583a8dcdf994e99c9fd} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!span@{span}}
+\index{span@{span}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{span()}{span()}\hspace{0.1cm}{\footnotesize\ttfamily [3/4]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Container}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(span\+\_\+detail\+::\+\_\+\+\_\+is\+\_\+span\+\_\+like\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Container}}, \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}} $>$ \&\&\+\_\+\+\_\+is\+\_\+dynamic) $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::span (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Container}} \&\&}]{c }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+
+
+Construct a span from a container. 
+
+The container must have a {\ttfamily \doxylink{classwjr_1_1span_aebae38a77a5d545cf8bfe04e31584caa}{data()}} member function that returns a \+\_\+\+\_\+is\+\_\+span\+\_\+iterator. The container must also have a {\ttfamily \doxylink{classwjr_1_1span_afa0bf663b408f3d732e076e5a5f4526d}{size()}} member function that can be converted to {\ttfamily size\+\_\+type}. \Hypertarget{classwjr_1_1span_a7ad7463244c30583a8dcdf994e99c9fd}\label{classwjr_1_1span_a7ad7463244c30583a8dcdf994e99c9fd} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!span@{span}}
+\index{span@{span}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{span()}{span()}\hspace{0.1cm}{\footnotesize\ttfamily [4/4]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Container}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(span\+\_\+detail\+::\+\_\+\+\_\+is\+\_\+span\+\_\+like\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Container}}, \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}} $>$ \&\&!\+\_\+\+\_\+is\+\_\+dynamic) $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::span (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Container}} \&\&}]{c }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+
+
+Construct a span from a container. 
+
+Like \doxylink{classwjr_1_1span_a7ad7463244c30583a8dcdf994e99c9fd}{span(\+Container \&\&)}, but the span is not dynamic-\/sized, so the construct must be explicit. 
+
+\doxysubsection{成员函数说明}
+\Hypertarget{classwjr_1_1span_ae69c8ba25536bc9a4f4fc0bf603961d5}\label{classwjr_1_1span_ae69c8ba25536bc9a4f4fc0bf603961d5} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!at@{at}}
+\index{at@{at}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{at()}{at()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a1a61d03f165054cedd7e2e052ca33d34}{reference}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::at (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}}}]{pos }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a813829161beefed173dfeebb58521339}\label{classwjr_1_1span_a813829161beefed173dfeebb58521339} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!back@{back}}
+\index{back@{back}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{back()}{back()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a1a61d03f165054cedd7e2e052ca33d34}{reference}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::back (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a2837592105fd5c46c2a803f20cc285f1}\label{classwjr_1_1span_a2837592105fd5c46c2a803f20cc285f1} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!begin@{begin}}
+\index{begin@{begin}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{begin()}{begin()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a188181916e11d2f8e4bc2ef4ce4d9dac}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::begin (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_ae35949f318ca79d0fd801134aca0810d}\label{classwjr_1_1span_ae35949f318ca79d0fd801134aca0810d} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!begin@{begin}}
+\index{begin@{begin}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{begin()}{begin()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a458b58980bc2b82bb3bb53ff71b45bc7}{iterator}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::begin (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a5ca8cfcd82de0f10ff7372a6221244a8}\label{classwjr_1_1span_a5ca8cfcd82de0f10ff7372a6221244a8} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!begin\_unsafe@{begin\_unsafe}}
+\index{begin\_unsafe@{begin\_unsafe}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{begin\_unsafe()}{begin\_unsafe()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1span_a52014998405db7af1732a94854afe68e}{const\+\_\+pointer}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::begin\+\_\+unsafe (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a4cd642a65661fe924663d42080ba0cf1}\label{classwjr_1_1span_a4cd642a65661fe924663d42080ba0cf1} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!begin\_unsafe@{begin\_unsafe}}
+\index{begin\_unsafe@{begin\_unsafe}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{begin\_unsafe()}{begin\_unsafe()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1span_a5f24ce169ecdc774e12e705c533024c2}{pointer}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::begin\+\_\+unsafe (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_ad55de76079bcc82f112a31b44b1a23f1}\label{classwjr_1_1span_ad55de76079bcc82f112a31b44b1a23f1} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!cbegin@{cbegin}}
+\index{cbegin@{cbegin}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{cbegin()}{cbegin()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a188181916e11d2f8e4bc2ef4ce4d9dac}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::cbegin (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a1736cdf642a90ebc72791e3471bda49b}\label{classwjr_1_1span_a1736cdf642a90ebc72791e3471bda49b} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!cbegin\_unsafe@{cbegin\_unsafe}}
+\index{cbegin\_unsafe@{cbegin\_unsafe}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{cbegin\_unsafe()}{cbegin\_unsafe()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1span_a52014998405db7af1732a94854afe68e}{const\+\_\+pointer}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::cbegin\+\_\+unsafe (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a5bea748d1d760e2ab80cd0e1085b781d}\label{classwjr_1_1span_a5bea748d1d760e2ab80cd0e1085b781d} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!cend@{cend}}
+\index{cend@{cend}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{cend()}{cend()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a188181916e11d2f8e4bc2ef4ce4d9dac}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::cend (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a2037f097db6a4b11af7c7df0e29172e8}\label{classwjr_1_1span_a2037f097db6a4b11af7c7df0e29172e8} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!cend\_unsafe@{cend\_unsafe}}
+\index{cend\_unsafe@{cend\_unsafe}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{cend\_unsafe()}{cend\_unsafe()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1span_a52014998405db7af1732a94854afe68e}{const\+\_\+pointer}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::cend\+\_\+unsafe (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a5395f66780a6882f3bd8da5e61df00f2}\label{classwjr_1_1span_a5395f66780a6882f3bd8da5e61df00f2} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!crbegin@{crbegin}}
+\index{crbegin@{crbegin}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{crbegin()}{crbegin()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a9099edab19187bba1b2669249334e1aa}{const\+\_\+reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::crbegin (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_ab57f92b8d63b199e98bbae5ccdac2f83}\label{classwjr_1_1span_ab57f92b8d63b199e98bbae5ccdac2f83} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!crend@{crend}}
+\index{crend@{crend}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{crend()}{crend()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a9099edab19187bba1b2669249334e1aa}{const\+\_\+reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::crend (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_aebae38a77a5d545cf8bfe04e31584caa}\label{classwjr_1_1span_aebae38a77a5d545cf8bfe04e31584caa} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!data@{data}}
+\index{data@{data}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{data()}{data()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+PURE}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a5f24ce169ecdc774e12e705c533024c2}{pointer}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::data (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_ab02f4e2f8d991e8a046f0b8463ff509c}\label{classwjr_1_1span_ab02f4e2f8d991e8a046f0b8463ff509c} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!empty@{empty}}
+\index{empty@{empty}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{empty()}{empty()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+PURE}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::empty (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a820d721226601acc615bfb15b94f3399}\label{classwjr_1_1span_a820d721226601acc615bfb15b94f3399} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!end@{end}}
+\index{end@{end}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{end()}{end()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a188181916e11d2f8e4bc2ef4ce4d9dac}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::end (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_aec14f8bcc512f8e240b351a6a9b32049}\label{classwjr_1_1span_aec14f8bcc512f8e240b351a6a9b32049} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!end@{end}}
+\index{end@{end}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{end()}{end()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a458b58980bc2b82bb3bb53ff71b45bc7}{iterator}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::end (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a80d81154dfbe637a7289460faa17f225}\label{classwjr_1_1span_a80d81154dfbe637a7289460faa17f225} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!end\_unsafe@{end\_unsafe}}
+\index{end\_unsafe@{end\_unsafe}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{end\_unsafe()}{end\_unsafe()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1span_a52014998405db7af1732a94854afe68e}{const\+\_\+pointer}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::end\+\_\+unsafe (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a143dce2cdaae5a00a119d80509717e38}\label{classwjr_1_1span_a143dce2cdaae5a00a119d80509717e38} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!end\_unsafe@{end\_unsafe}}
+\index{end\_unsafe@{end\_unsafe}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{end\_unsafe()}{end\_unsafe()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1span_a5f24ce169ecdc774e12e705c533024c2}{pointer}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::end\+\_\+unsafe (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a8e80ade8cc1e1f491578838c2e2ffb07}\label{classwjr_1_1span_a8e80ade8cc1e1f491578838c2e2ffb07} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!explicit@{explicit}}
+\index{explicit@{explicit}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{explicit()}{explicit()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{It}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\+\_\+\+\_\+is\+\_\+span\+\_\+iterator$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{It}}, \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}} $>$\+::value) $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::explicit (\begin{DoxyParamCaption}\item[{!}]{\+\_\+\+\_\+is\+\_\+dynamic }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [constexpr]}}
+
+\Hypertarget{classwjr_1_1span_a95850f5d22dd4d5f2a117ae49aff5edf}\label{classwjr_1_1span_a95850f5d22dd4d5f2a117ae49aff5edf} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!first@{first}}
+\index{first@{first}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{first()}{first()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Count$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Count}} $>$ \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::first (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a5c43e9e4f413bb3294a7a5916dea4369}\label{classwjr_1_1span_a5c43e9e4f413bb3294a7a5916dea4369} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!first@{first}}
+\index{first@{first}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{first()}{first()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}}, \mbox{\hyperlink{namespacewjr_ae554f4fbe7974cfd732adb619bf26321}{dynamic\+\_\+extent}} $>$ \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::first (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}}}]{Count }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a9037a4791bd53a79d0bac4f445174a5f}\label{classwjr_1_1span_a9037a4791bd53a79d0bac4f445174a5f} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!front@{front}}
+\index{front@{front}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{front()}{front()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a1a61d03f165054cedd7e2e052ca33d34}{reference}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::front (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_af24744a25f60cfe49291c96c396432a2}\label{classwjr_1_1span_af24744a25f60cfe49291c96c396432a2} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!last@{last}}
+\index{last@{last}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{last()}{last()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Count$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Count}} $>$ \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::last (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a3329b9aeafa56f993f2f6717a53eafe6}\label{classwjr_1_1span_a3329b9aeafa56f993f2f6717a53eafe6} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!last@{last}}
+\index{last@{last}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{last()}{last()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}}, \mbox{\hyperlink{namespacewjr_ae554f4fbe7974cfd732adb619bf26321}{dynamic\+\_\+extent}} $>$ \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::last (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}}}]{Count }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a70d5da387d794a0e32240b3cd4ecc326}\label{classwjr_1_1span_a70d5da387d794a0e32240b3cd4ecc326} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!operator=@{operator=}}
+\index{operator=@{operator=}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{classwjr_1_1span}{span}} \& \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$ \&}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [default]}}
+
+\Hypertarget{classwjr_1_1span_aa6c607434d1efb309186aeb9ff224237}\label{classwjr_1_1span_aa6c607434d1efb309186aeb9ff224237} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!operator=@{operator=}}
+\index{operator=@{operator=}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{classwjr_1_1span}{span}} \& \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$ \&\&}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [default]}}
+
+\Hypertarget{classwjr_1_1span_af4e89ee7f72463a291ca3830145d326e}\label{classwjr_1_1span_af4e89ee7f72463a291ca3830145d326e} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!operator\mbox{[}\mbox{]}@{operator[]}}
+\index{operator\mbox{[}\mbox{]}@{operator[]}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{operator[]()}{operator[]()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a1a61d03f165054cedd7e2e052ca33d34}{reference}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}\mbox{[}$\,$\mbox{]} (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}}}]{pos }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a0664d7ca29507e4071d20adc9068ef38}\label{classwjr_1_1span_a0664d7ca29507e4071d20adc9068ef38} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!rbegin@{rbegin}}
+\index{rbegin@{rbegin}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{rbegin()}{rbegin()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a17f13e04ea303c84cf78a3f284487ece}{reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::rbegin (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a61165df2f347343f0212be29058e91aa}\label{classwjr_1_1span_a61165df2f347343f0212be29058e91aa} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!rbegin@{rbegin}}
+\index{rbegin@{rbegin}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{rbegin()}{rbegin()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a17f13e04ea303c84cf78a3f284487ece}{reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::rbegin (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_ad3610f6fd7ed6bba19f9930e58f3fdf9}\label{classwjr_1_1span_ad3610f6fd7ed6bba19f9930e58f3fdf9} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!rend@{rend}}
+\index{rend@{rend}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{rend()}{rend()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a17f13e04ea303c84cf78a3f284487ece}{reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::rend (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a8c8b98d4f7e9df11d234070801d234f1}\label{classwjr_1_1span_a8c8b98d4f7e9df11d234070801d234f1} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!rend@{rend}}
+\index{rend@{rend}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{rend()}{rend()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a17f13e04ea303c84cf78a3f284487ece}{reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::rend (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_afa0bf663b408f3d732e076e5a5f4526d}\label{classwjr_1_1span_afa0bf663b408f3d732e076e5a5f4526d} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!size@{size}}
+\index{size@{size}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{size()}{size()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+PURE}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::size (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_ac9b5366c3338f6376c587bfd2265e180}\label{classwjr_1_1span_ac9b5366c3338f6376c587bfd2265e180} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!size\_bytes@{size\_bytes}}
+\index{size\_bytes@{size\_bytes}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{size\_bytes()}{size\_bytes()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+PURE}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::size\+\_\+bytes (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_ad67af2881a6d05ac871b8ae6a5644e5e}\label{classwjr_1_1span_ad67af2881a6d05ac871b8ae6a5644e5e} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!subspan@{subspan}}
+\index{subspan@{subspan}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{subspan()}{subspan()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Offset, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Count = dynamic\+\_\+extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Count}} !=\mbox{\hyperlink{namespacewjr_ae554f4fbe7974cfd732adb619bf26321}{dynamic\+\_\+extent}} ? \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Count}} \+:\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} !=\mbox{\hyperlink{namespacewjr_ae554f4fbe7974cfd732adb619bf26321}{dynamic\+\_\+extent}} ? \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} -\/ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Offset}} \+:\mbox{\hyperlink{namespacewjr_ae554f4fbe7974cfd732adb619bf26321}{dynamic\+\_\+extent}} $>$ \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::subspan (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1span_a05c2c58329a1625dcc6c615c62ddec26}\label{classwjr_1_1span_a05c2c58329a1625dcc6c615c62ddec26} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!subspan@{subspan}}
+\index{subspan@{subspan}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{subspan()}{subspan()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{classwjr_1_1span_a41ded21e52cdf5312aa736e0469cf1b3}{element\+\_\+type}}, \mbox{\hyperlink{namespacewjr_ae554f4fbe7974cfd732adb619bf26321}{dynamic\+\_\+extent}} $>$ \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::subspan (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}}}]{Offset,  }\item[{\mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}}}]{Count = {\ttfamily \mbox{\hyperlink{namespacewjr_ae554f4fbe7974cfd732adb619bf26321}{dynamic\+\_\+extent}}} }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+
+
+\doxysubsection{类成员变量说明}
+\Hypertarget{classwjr_1_1span_a62dfd261be6d055e11cc3d3a9a7aa56c}\label{classwjr_1_1span_a62dfd261be6d055e11cc3d3a9a7aa56c} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!count@{count}}
+\index{count@{count}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{count}{count}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}} count \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::count}
+
+\Hypertarget{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b}\label{classwjr_1_1span_a3408c92fe80daa00d2a937296255d97b} 
+\index{wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}!noexcept@{noexcept}}
+\index{noexcept@{noexcept}!wjr::span$<$ T, Extent $>$@{wjr::span$<$ T, Extent $>$}}
+\doxysubsubsection{\texorpdfstring{noexcept}{noexcept}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} Extent$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1span_a396cb67d05d2825d44e88dea7a312044}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1span_a62dfd261be6d055e11cc3d3a9a7aa56c}{count}} \mbox{\hyperlink{classwjr_1_1span}{wjr\+::span}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Extent}} $>$\+::noexcept}
+
+
+
+该类的文档由以下文件生成\+:\begin{DoxyCompactItemize}
+\item 
+include/wjr/\mbox{\hyperlink{span_8hpp}{span.\+hpp}}\end{DoxyCompactItemize}

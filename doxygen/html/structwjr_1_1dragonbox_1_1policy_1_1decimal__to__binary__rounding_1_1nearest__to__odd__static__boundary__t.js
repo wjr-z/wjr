@@ -1,0 +1,4 @@
+var structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__to__odd__static__boundary__t =
+[
+    [ "decimal_to_binary_rounding_policy", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__to__odd__static__boundary__t.html#afa492be32fbecd7780f500e0b7c3453b", null ]
+];

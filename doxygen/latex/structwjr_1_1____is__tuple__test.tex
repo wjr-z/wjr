@@ -1,0 +1,42 @@
+\doxysection{wjr\+::\+\_\+\+\_\+is\+\_\+tuple\+\_\+test\texorpdfstring{$<$}{<} Test, LP, RP \texorpdfstring{$>$}{>} 模板结构体 参考}
+\hypertarget{structwjr_1_1____is__tuple__test}{}\label{structwjr_1_1____is__tuple__test}\index{wjr::\_\_is\_tuple\_test$<$ Test, LP, RP $>$@{wjr::\_\_is\_tuple\_test$<$ Test, LP, RP $>$}}
+
+
+Use template$<$...$>$typename Test to test all element of LP and RP.  
+
+
+
+
+{\ttfamily \#include $<$capture\+\_\+leaf.\+hpp$>$}
+
+
+
+类 wjr\+::\+\_\+\+\_\+is\+\_\+tuple\+\_\+test\texorpdfstring{$<$}{<} Test, LP, RP \texorpdfstring{$>$}{>} 继承关系图\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=185pt]{structwjr_1_1____is__tuple__test__inherit__graph}
+\end{center}
+\end{figure}
+
+
+wjr\+::\+\_\+\+\_\+is\+\_\+tuple\+\_\+test\texorpdfstring{$<$}{<} Test, LP, RP \texorpdfstring{$>$}{>} 的协作图\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=185pt]{structwjr_1_1____is__tuple__test__coll__graph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{详细描述}
+\subsubsection*{template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{template}}$<$ typename... $>$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Test, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{LP}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{RP}}$>$\newline
+struct wjr\+::\+\_\+\+\_\+is\+\_\+tuple\+\_\+test$<$ Test, LP, RP $>$}
+Use template$<$...$>$typename Test to test all element of LP and RP. 
+
+For example, Test is std\+::is\+\_\+assignable, LP is std\+::tuple$<$\+T0, U0$>$, RP is std\+::tuple$<$\+T1, U1$>$. ~\newline
+ Then \doxylink{structwjr_1_1____is__tuple__test}{\+\_\+\+\_\+is\+\_\+tuple\+\_\+test} = std\+::conjunction\texorpdfstring{$<$}{<}std\+::is\+\_\+assignable$<$\+T0, T1$>$, std\+::is\+\_\+assignable$<$\+U0, U1$>$\texorpdfstring{$>$}{>}. 
+
+该结构体的文档由以下文件生成\+:\begin{DoxyCompactItemize}
+\item 
+include/wjr/container/\mbox{\hyperlink{capture__leaf_8hpp}{capture\+\_\+leaf.\+hpp}}\end{DoxyCompactItemize}

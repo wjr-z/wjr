@@ -1,0 +1,129 @@
+\doxysection{wjr\+::capture\+\_\+leaf\texorpdfstring{$<$}{<} T, Tag \texorpdfstring{$>$}{>} 模板类 参考}
+\hypertarget{classwjr_1_1capture__leaf}{}\label{classwjr_1_1capture__leaf}\index{wjr::capture\_leaf$<$ T, Tag $>$@{wjr::capture\_leaf$<$ T, Tag $>$}}
+
+
+Capture any type as a new type.  
+
+
+
+
+{\ttfamily \#include $<$capture\+\_\+leaf.\+hpp$>$}
+
+
+
+类 wjr\+::capture\+\_\+leaf\texorpdfstring{$<$}{<} T, Tag \texorpdfstring{$>$}{>} 继承关系图\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classwjr_1_1capture__leaf__inherit__graph}
+\end{center}
+\end{figure}
+
+
+wjr\+::capture\+\_\+leaf\texorpdfstring{$<$}{<} T, Tag \texorpdfstring{$>$}{>} 的协作图\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classwjr_1_1capture__leaf__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public 类型}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1capture__leaf_a66b6fcc7cd124938d3e5cae70bfb1aa1}{value\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public 成员函数}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}  = T, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(std\+::is\+\_\+default\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}} $>$) $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1capture__leaf_ab67ee7f96e5ec0c410e0c6d95694f417}{capture\+\_\+leaf}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}(std\+::is\+\_\+nothrow\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$)
+\item 
+{\footnotesize template$<$typename... Args, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(std\+::is\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, Args... $>$) $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1capture__leaf_ad5cc73777f5256b02aaf79f83952315e}{capture\+\_\+leaf}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}} \&\&...\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{args}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}(std\+::is\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, Args... $>$)
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}  = T, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(std\+::is\+\_\+default\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}} $>$) $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1capture__leaf_a69fbab97f79363723ceca907bc0dfc77}{capture\+\_\+leaf}} (\mbox{\hyperlink{structwjr_1_1default__construct__t}{default\+\_\+construct\+\_\+t}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}(std\+::is\+\_\+nothrow\+\_\+default\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$)
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \& \mbox{\hyperlink{classwjr_1_1capture__leaf_abdfc29ec5b4d7989021173a000ec0ebd}{get}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \& \mbox{\hyperlink{classwjr_1_1capture__leaf_ac3bb223f39b471928dd050079c7a094b}{get}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{友元}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \+\_\+\+Mybase , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+\_\+\+Tag}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+\_\+\+Enable}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{struct}} \mbox{\hyperlink{classwjr_1_1capture__leaf_ab1a7cc1f62daaecd82012d41a8a025dd}{container\+\_\+of\+\_\+fn}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{详细描述}
+\subsubsection*{template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tag}} = void$>$\newline
+class wjr\+::capture\+\_\+leaf$<$ T, Tag $>$}
+Capture any type as a new type. 
+
+Can be used as a class base. 
+
+\doxysubsection{成员类型定义说明}
+\Hypertarget{classwjr_1_1capture__leaf_a66b6fcc7cd124938d3e5cae70bfb1aa1}\label{classwjr_1_1capture__leaf_a66b6fcc7cd124938d3e5cae70bfb1aa1} 
+\index{wjr::capture\_leaf$<$ T, Tag $>$@{wjr::capture\_leaf$<$ T, Tag $>$}!value\_type@{value\_type}}
+\index{value\_type@{value\_type}!wjr::capture\_leaf$<$ T, Tag $>$@{wjr::capture\_leaf$<$ T, Tag $>$}}
+\doxysubsubsection{\texorpdfstring{value\_type}{value\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tag}}  = void$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1capture__leaf}{wjr\+::capture\+\_\+leaf}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tag}} $>$\+::value\+\_\+type = \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}}
+
+
+
+\doxysubsection{构造及析构函数说明}
+\Hypertarget{classwjr_1_1capture__leaf_ab67ee7f96e5ec0c410e0c6d95694f417}\label{classwjr_1_1capture__leaf_ab67ee7f96e5ec0c410e0c6d95694f417} 
+\index{wjr::capture\_leaf$<$ T, Tag $>$@{wjr::capture\_leaf$<$ T, Tag $>$}!capture\_leaf@{capture\_leaf}}
+\index{capture\_leaf@{capture\_leaf}!wjr::capture\_leaf$<$ T, Tag $>$@{wjr::capture\_leaf$<$ T, Tag $>$}}
+\doxysubsubsection{\texorpdfstring{capture\_leaf()}{capture\_leaf()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tag}}  = void$>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}  = T, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(std\+::is\+\_\+default\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}} $>$) $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1capture__leaf}{wjr\+::capture\+\_\+leaf}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tag}} $>$\+::capture\+\_\+leaf (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1capture__leaf_ad5cc73777f5256b02aaf79f83952315e}\label{classwjr_1_1capture__leaf_ad5cc73777f5256b02aaf79f83952315e} 
+\index{wjr::capture\_leaf$<$ T, Tag $>$@{wjr::capture\_leaf$<$ T, Tag $>$}!capture\_leaf@{capture\_leaf}}
+\index{capture\_leaf@{capture\_leaf}!wjr::capture\_leaf$<$ T, Tag $>$@{wjr::capture\_leaf$<$ T, Tag $>$}}
+\doxysubsubsection{\texorpdfstring{capture\_leaf()}{capture\_leaf()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tag}}  = void$>$ \\
+template$<$typename... Args, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(std\+::is\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, Args... $>$) $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1capture__leaf}{wjr\+::capture\+\_\+leaf}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tag}} $>$\+::capture\+\_\+leaf (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}} \&\&...}]{args }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1capture__leaf_a69fbab97f79363723ceca907bc0dfc77}\label{classwjr_1_1capture__leaf_a69fbab97f79363723ceca907bc0dfc77} 
+\index{wjr::capture\_leaf$<$ T, Tag $>$@{wjr::capture\_leaf$<$ T, Tag $>$}!capture\_leaf@{capture\_leaf}}
+\index{capture\_leaf@{capture\_leaf}!wjr::capture\_leaf$<$ T, Tag $>$@{wjr::capture\_leaf$<$ T, Tag $>$}}
+\doxysubsubsection{\texorpdfstring{capture\_leaf()}{capture\_leaf()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tag}}  = void$>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}}  = T, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(std\+::is\+\_\+default\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Ty}} $>$) $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1capture__leaf}{wjr\+::capture\+\_\+leaf}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tag}} $>$\+::capture\+\_\+leaf (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structwjr_1_1default__construct__t}{default\+\_\+construct\+\_\+t}}}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+
+
+\doxysubsection{成员函数说明}
+\Hypertarget{classwjr_1_1capture__leaf_ac3bb223f39b471928dd050079c7a094b}\label{classwjr_1_1capture__leaf_ac3bb223f39b471928dd050079c7a094b} 
+\index{wjr::capture\_leaf$<$ T, Tag $>$@{wjr::capture\_leaf$<$ T, Tag $>$}!get@{get}}
+\index{get@{get}!wjr::capture\_leaf$<$ T, Tag $>$@{wjr::capture\_leaf$<$ T, Tag $>$}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tag}}  = void$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \& \mbox{\hyperlink{classwjr_1_1capture__leaf}{wjr\+::capture\+\_\+leaf}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tag}} $>$\+::get (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1capture__leaf_abdfc29ec5b4d7989021173a000ec0ebd}\label{classwjr_1_1capture__leaf_abdfc29ec5b4d7989021173a000ec0ebd} 
+\index{wjr::capture\_leaf$<$ T, Tag $>$@{wjr::capture\_leaf$<$ T, Tag $>$}!get@{get}}
+\index{get@{get}!wjr::capture\_leaf$<$ T, Tag $>$@{wjr::capture\_leaf$<$ T, Tag $>$}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tag}}  = void$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \& \mbox{\hyperlink{classwjr_1_1capture__leaf}{wjr\+::capture\+\_\+leaf}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tag}} $>$\+::get (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+
+
+\doxysubsection{友元及相关函数文档}
+\Hypertarget{classwjr_1_1capture__leaf_ab1a7cc1f62daaecd82012d41a8a025dd}\label{classwjr_1_1capture__leaf_ab1a7cc1f62daaecd82012d41a8a025dd} 
+\index{wjr::capture\_leaf$<$ T, Tag $>$@{wjr::capture\_leaf$<$ T, Tag $>$}!container\_of\_fn@{container\_of\_fn}}
+\index{container\_of\_fn@{container\_of\_fn}!wjr::capture\_leaf$<$ T, Tag $>$@{wjr::capture\_leaf$<$ T, Tag $>$}}
+\doxysubsubsection{\texorpdfstring{container\_of\_fn}{container\_of\_fn}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Tag}}  = void$>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \+\_\+\+Mybase , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+\_\+\+Tag}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+\_\+\+Enable}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{friend}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{struct}} \mbox{\hyperlink{structwjr_1_1container__of__fn}{container\+\_\+of\+\_\+fn}}\hspace{0.3cm}{\ttfamily [friend]}}
+
+
+
+该类的文档由以下文件生成\+:\begin{DoxyCompactItemize}
+\item 
+include/wjr/container/\mbox{\hyperlink{capture__leaf_8hpp}{capture\+\_\+leaf.\+hpp}}\end{DoxyCompactItemize}

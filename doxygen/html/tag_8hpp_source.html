@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: include/wjr/tag.hpp 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('tag_8hpp_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">tag.hpp</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="tag_8hpp.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef WJR_TAG_HPP__</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define WJR_TAG_HPP__</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;cstddef&gt;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacewjr.html">wjr</a> {</div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
+<div class="foldopen" id="foldopen00009" data-start="{" data-end="};">
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno"><a class="line" href="namespacewjr.html#a7878e7faf483fb99149d232743b64e77">    9</a></span><span class="keyword">enum class</span> <a class="code hl_enumeration" href="namespacewjr.html#a7878e7faf483fb99149d232743b64e77">branch</a> {</div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>    <a class="code hl_enumvalue" href="namespacewjr.html#a7878e7faf483fb99149d232743b64e77aaa2d6e4f578eb0cfaba23beef76c2194">free</a>,</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>    <a class="code hl_enumvalue" href="namespacewjr.html#a7878e7faf483fb99149d232743b64e77ae9dc924f238fa6cc29465942875fe8f0">full</a>,</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>};</div>
+</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="structwjr_1_1in__place__empty__t.html">   14</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structwjr_1_1in__place__empty__t.html">in_place_empty_t</a> {};</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="namespacewjr.html#ad7a3bb30c2cc49d2a3c594ca1261d498">   16</a></span><span class="keyword">inline</span> <span class="keyword">constexpr</span> <a class="code hl_struct" href="structwjr_1_1in__place__empty__t.html">in_place_empty_t</a> <a class="code hl_variable" href="namespacewjr.html#ad7a3bb30c2cc49d2a3c594ca1261d498">in_place_empty</a> = {};</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="structwjr_1_1default__construct__t.html">   34</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structwjr_1_1default__construct__t.html">default_construct_t</a> {};</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="namespacewjr.html#a1d23c863b7f2cee4674ceeacd52aee31">   39</a></span><span class="keyword">inline</span> <span class="keyword">constexpr</span> <a class="code hl_struct" href="structwjr_1_1default__construct__t.html">default_construct_t</a> <a class="code hl_variable" href="namespacewjr.html#a1d23c863b7f2cee4674ceeacd52aee31">default_construct</a> = {};</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno"><a class="line" href="structwjr_1_1value__construct__t.html">   45</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structwjr_1_1value__construct__t.html">value_construct_t</a> {};</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno"><a class="line" href="namespacewjr.html#a70b0d74efd590d0aff5e1e63a01476d3">   51</a></span><span class="keyword">inline</span> <span class="keyword">constexpr</span> <a class="code hl_struct" href="structwjr_1_1value__construct__t.html">value_construct_t</a> <a class="code hl_variable" href="namespacewjr.html#a70b0d74efd590d0aff5e1e63a01476d3">value_construct</a> = {};</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno"><a class="line" href="structwjr_1_1in__place__reserve__t.html">   53</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structwjr_1_1in__place__reserve__t.html">in_place_reserve_t</a> {};</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno"><a class="line" href="namespacewjr.html#a089c42edb39b85c7aa611fb272adcd22">   55</a></span><span class="keyword">inline</span> <span class="keyword">constexpr</span> <a class="code hl_struct" href="structwjr_1_1in__place__reserve__t.html">in_place_reserve_t</a> <a class="code hl_variable" href="namespacewjr.html#a089c42edb39b85c7aa611fb272adcd22">in_place_reserve</a> = {};</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno"><a class="line" href="namespacewjr.html#ae554f4fbe7974cfd732adb619bf26321">   57</a></span><span class="keyword">inline</span> <span class="keyword">constexpr</span> <span class="keywordtype">size_t</span> <a class="code hl_variable" href="namespacewjr.html#ae554f4fbe7974cfd732adb619bf26321">dynamic_extent</a> = <a class="code hl_typedef" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">SIZE_MAX</a>;</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>} <span class="comment">// namespace wjr</span></div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span><span class="preprocessor">#endif </span><span class="comment">// WJR_TAG_HPP__</span></div>
+<div class="ttc" id="anamespacewjr_html"><div class="ttname"><a href="namespacewjr.html">wjr</a></div><div class="ttdef"><b>Definition</b> algorithm.hpp:11</div></div>
+<div class="ttc" id="anamespacewjr_html_a089c42edb39b85c7aa611fb272adcd22"><div class="ttname"><a href="namespacewjr.html#a089c42edb39b85c7aa611fb272adcd22">wjr::in_place_reserve</a></div><div class="ttdeci">constexpr in_place_reserve_t in_place_reserve</div><div class="ttdef"><b>Definition</b> tag.hpp:55</div></div>
+<div class="ttc" id="anamespacewjr_html_a1acbd863328d678d9e25f3a31ef82df0"><div class="ttname"><a href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">wjr::iterator_reference_t</a></div><div class="ttdeci">typename std::iterator_traits&lt; Iter &gt;::reference iterator_reference_t</div><div class="ttdef"><b>Definition</b> detail.hpp:17</div></div>
+<div class="ttc" id="anamespacewjr_html_a1d23c863b7f2cee4674ceeacd52aee31"><div class="ttname"><a href="namespacewjr.html#a1d23c863b7f2cee4674ceeacd52aee31">wjr::default_construct</a></div><div class="ttdeci">constexpr default_construct_t default_construct</div><div class="ttdef"><b>Definition</b> tag.hpp:39</div></div>
+<div class="ttc" id="anamespacewjr_html_a70b0d74efd590d0aff5e1e63a01476d3"><div class="ttname"><a href="namespacewjr.html#a70b0d74efd590d0aff5e1e63a01476d3">wjr::value_construct</a></div><div class="ttdeci">constexpr value_construct_t value_construct</div><div class="ttdef"><b>Definition</b> tag.hpp:51</div></div>
+<div class="ttc" id="anamespacewjr_html_a7878e7faf483fb99149d232743b64e77"><div class="ttname"><a href="namespacewjr.html#a7878e7faf483fb99149d232743b64e77">wjr::branch</a></div><div class="ttdeci">branch</div><div class="ttdef"><b>Definition</b> tag.hpp:9</div></div>
+<div class="ttc" id="anamespacewjr_html_a7878e7faf483fb99149d232743b64e77aaa2d6e4f578eb0cfaba23beef76c2194"><div class="ttname"><a href="namespacewjr.html#a7878e7faf483fb99149d232743b64e77aaa2d6e4f578eb0cfaba23beef76c2194">wjr::branch::free</a></div><div class="ttdeci">@ free</div></div>
+<div class="ttc" id="anamespacewjr_html_a7878e7faf483fb99149d232743b64e77ae9dc924f238fa6cc29465942875fe8f0"><div class="ttname"><a href="namespacewjr.html#a7878e7faf483fb99149d232743b64e77ae9dc924f238fa6cc29465942875fe8f0">wjr::branch::full</a></div><div class="ttdeci">@ full</div></div>
+<div class="ttc" id="anamespacewjr_html_ad7a3bb30c2cc49d2a3c594ca1261d498"><div class="ttname"><a href="namespacewjr.html#ad7a3bb30c2cc49d2a3c594ca1261d498">wjr::in_place_empty</a></div><div class="ttdeci">constexpr in_place_empty_t in_place_empty</div><div class="ttdef"><b>Definition</b> tag.hpp:16</div></div>
+<div class="ttc" id="anamespacewjr_html_ae554f4fbe7974cfd732adb619bf26321"><div class="ttname"><a href="namespacewjr.html#ae554f4fbe7974cfd732adb619bf26321">wjr::dynamic_extent</a></div><div class="ttdeci">constexpr size_t dynamic_extent</div><div class="ttdef"><b>Definition</b> tag.hpp:57</div></div>
+<div class="ttc" id="astructwjr_1_1default__construct__t_html"><div class="ttname"><a href="structwjr_1_1default__construct__t.html">wjr::default_construct_t</a></div><div class="ttdoc">Tag of default construct.</div><div class="ttdef"><b>Definition</b> tag.hpp:34</div></div>
+<div class="ttc" id="astructwjr_1_1in__place__empty__t_html"><div class="ttname"><a href="structwjr_1_1in__place__empty__t.html">wjr::in_place_empty_t</a></div><div class="ttdef"><b>Definition</b> tag.hpp:14</div></div>
+<div class="ttc" id="astructwjr_1_1in__place__reserve__t_html"><div class="ttname"><a href="structwjr_1_1in__place__reserve__t.html">wjr::in_place_reserve_t</a></div><div class="ttdef"><b>Definition</b> tag.hpp:53</div></div>
+<div class="ttc" id="astructwjr_1_1value__construct__t_html"><div class="ttname"><a href="structwjr_1_1value__construct__t.html">wjr::value_construct_t</a></div><div class="ttdoc">Tag of value construct.</div><div class="ttdef"><b>Definition</b> tag.hpp:45</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_1efa0e4d5c42031eef05b07d97cdbde6.html">wjr</a></li><li class="navelem"><a class="el" href="tag_8hpp.html">tag.hpp</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

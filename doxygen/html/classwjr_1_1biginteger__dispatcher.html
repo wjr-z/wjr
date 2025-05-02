@@ -1,0 +1,932 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: wjr::biginteger_dispatcher类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('classwjr_1_1biginteger__dispatcher.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="classwjr_1_1biginteger__dispatcher-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">wjr::biginteger_dispatcher类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="biginteger_2biginteger_8hpp_source.html">biginteger.hpp</a>&gt;</code></p>
+<div class="dynheader">
+wjr::biginteger_dispatcher 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><img src="classwjr_1_1biginteger__dispatcher__coll__graph.png" border="0" usemap="#awjr_1_1biginteger__dispatcher_coll__map" alt="Collaboration graph"/></div>
+<map name="awjr_1_1biginteger__dispatcher_coll__map" id="awjr_1_1biginteger__dispatcher_coll__map">
+<area shape="rect" title=" " alt="" coords="5,5,165,288"/>
+</map>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:aa0d9f85b7417c912efdc4c7eca599599" id="r_aa0d9f85b7417c912efdc4c7eca599599"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </td></tr>
+<tr class="memitem:aa0d9f85b7417c912efdc4c7eca599599"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#aa0d9f85b7417c912efdc4c7eca599599">biginteger_dispatcher</a> (<a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> *<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">p</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:aa0d9f85b7417c912efdc4c7eca599599"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91bcb02e3aa8852e57e4cf8dc5eeab2d" id="r_a91bcb02e3aa8852e57e4cf8dc5eeab2d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a91bcb02e3aa8852e57e4cf8dc5eeab2d">biginteger_dispatcher</a> (<a class="el" href="structwjr_1_1enable__default__constructor__t.html">enable_default_constructor_t</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a91bcb02e3aa8852e57e4cf8dc5eeab2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a66738d68bbf95ce9cdf333a25ab7c51a" id="r_a66738d68bbf95ce9cdf333a25ab7c51a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a66738d68bbf95ce9cdf333a25ab7c51a">biginteger_dispatcher</a> ()=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">delete</a></td></tr>
+<tr class="separator:a66738d68bbf95ce9cdf333a25ab7c51a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12f1a90454cd7e6eff06ddc2dcfdafb8" id="r_a12f1a90454cd7e6eff06ddc2dcfdafb8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a12f1a90454cd7e6eff06ddc2dcfdafb8">biginteger_dispatcher</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a> &amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:a12f1a90454cd7e6eff06ddc2dcfdafb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9472cf59d7db5ee8e563506810a3e43" id="r_ae9472cf59d7db5ee8e563506810a3e43"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae9472cf59d7db5ee8e563506810a3e43">biginteger_dispatcher</a> (<a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a> &amp;&amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:ae9472cf59d7db5ee8e563506810a3e43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a530fceae9cd1a37faf7d67452a5a6b45" id="r_a530fceae9cd1a37faf7d67452a5a6b45"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a530fceae9cd1a37faf7d67452a5a6b45">operator=</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a> &amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:a530fceae9cd1a37faf7d67452a5a6b45"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e4d642cef83dd3be4d469eff730cc65" id="r_a4e4d642cef83dd3be4d469eff730cc65"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4e4d642cef83dd3be4d469eff730cc65">operator=</a> (<a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a> &amp;&amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:a4e4d642cef83dd3be4d469eff730cc65"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae29aa58bb0cc400239805de725910d24" id="r_ae29aa58bb0cc400239805de725910d24"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_PURE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1biginteger__data.html">biginteger_data</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae29aa58bb0cc400239805de725910d24">raw</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ae29aa58bb0cc400239805de725910d24"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1000f0394a5bd2f258534810673872a6" id="r_a1000f0394a5bd2f258534810673872a6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1000f0394a5bd2f258534810673872a6">has_value</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a1000f0394a5bd2f258534810673872a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b4a6c81b0a7b037d08e0e1aa323bbca" id="r_a4b4a6c81b0a7b037d08e0e1aa323bbca"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4b4a6c81b0a7b037d08e0e1aa323bbca">data</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a4b4a6c81b0a7b037d08e0e1aa323bbca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9722eaead038f63a72d9ef93b3b1c385" id="r_a9722eaead038f63a72d9ef93b3b1c385"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9722eaead038f63a72d9ef93b3b1c385">data</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a9722eaead038f63a72d9ef93b3b1c385"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad152fa0a14fb5b4e8eeb94c2dd5967e0" id="r_ad152fa0a14fb5b4e8eeb94c2dd5967e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad152fa0a14fb5b4e8eeb94c2dd5967e0">size</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ad152fa0a14fb5b4e8eeb94c2dd5967e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8643e719e3d972f69d7c3f044aad6ad" id="r_aa8643e719e3d972f69d7c3f044aad6ad"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa8643e719e3d972f69d7c3f044aad6ad">capacity</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:aa8643e719e3d972f69d7c3f044aad6ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a328685455fa85ad54f2a7069cefffc17" id="r_a328685455fa85ad54f2a7069cefffc17"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a328685455fa85ad54f2a7069cefffc17">empty</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a328685455fa85ad54f2a7069cefffc17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28505ea0de2fbed1317ce31f48fbfb11" id="r_a28505ea0de2fbed1317ce31f48fbfb11"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a28505ea0de2fbed1317ce31f48fbfb11">get_ssize</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a28505ea0de2fbed1317ce31f48fbfb11"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91096ee3f79ac18ec31a9e4565114903" id="r_a91096ee3f79ac18ec31a9e4565114903"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a91096ee3f79ac18ec31a9e4565114903">set_ssize</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int32_t</a> <a class="el" href="#ad152fa0a14fb5b4e8eeb94c2dd5967e0">size</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a91096ee3f79ac18ec31a9e4565114903"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2518c65fd38a7d5eb303f7720c5bb98b" id="r_a2518c65fd38a7d5eb303f7720c5bb98b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2518c65fd38a7d5eb303f7720c5bb98b">conditional_negate</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">condition</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a2518c65fd38a7d5eb303f7720c5bb98b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c9864819d9baf8cc7b7258e693a0b49" id="r_a6c9864819d9baf8cc7b7258e693a0b49"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6c9864819d9baf8cc7b7258e693a0b49">negate</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a6c9864819d9baf8cc7b7258e693a0b49"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a57e4b31122e4dbe9fa4d5fdce7eb8f6b" id="r_a57e4b31122e4dbe9fa4d5fdce7eb8f6b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a57e4b31122e4dbe9fa4d5fdce7eb8f6b">is_negate</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a57e4b31122e4dbe9fa4d5fdce7eb8f6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2ef47c6f7278233c0045b82be836b09" id="r_ab2ef47c6f7278233c0045b82be836b09"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab2ef47c6f7278233c0045b82be836b09">absolute</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ab2ef47c6f7278233c0045b82be836b09"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afe9a808e75536a841ec78cdce76cc1cb" id="r_afe9a808e75536a841ec78cdce76cc1cb"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">UnsignedValue</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_nonbool_unsigned_integral_v</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">UnsignedValue</a> &gt;) &gt; </td></tr>
+<tr class="memitem:afe9a808e75536a841ec78cdce76cc1cb"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#afe9a808e75536a841ec78cdce76cc1cb">operator=</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">UnsignedValue</a> value) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:afe9a808e75536a841ec78cdce76cc1cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae1c7a80c0ee94dc1e41b09605092a536" id="r_ae1c7a80c0ee94dc1e41b09605092a536"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">SignedValue</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_nonbool_signed_integral_v</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">SignedValue</a> &gt;) &gt; </td></tr>
+<tr class="memitem:ae1c7a80c0ee94dc1e41b09605092a536"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ae1c7a80c0ee94dc1e41b09605092a536">operator=</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">SignedValue</a> value) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ae1c7a80c0ee94dc1e41b09605092a536"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a253b98e637256195083e81c7fe21e4a6" id="r_a253b98e637256195083e81c7fe21e4a6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a253b98e637256195083e81c7fe21e4a6">reserve</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint32_t</a> <a class="el" href="#ad152fa0a14fb5b4e8eeb94c2dd5967e0">size</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a></td></tr>
+<tr class="separator:a253b98e637256195083e81c7fe21e4a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d449059db90eb7d1724c685f0526e66" id="r_a8d449059db90eb7d1724c685f0526e66"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8d449059db90eb7d1724c685f0526e66">clear_if_reserved</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint32_t</a> <a class="el" href="#ad152fa0a14fb5b4e8eeb94c2dd5967e0">size</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a></td></tr>
+<tr class="separator:a8d449059db90eb7d1724c685f0526e66"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf8a5124a89ad98c7e50f49c75a8c315" id="r_acf8a5124a89ad98c7e50f49c75a8c315"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acf8a5124a89ad98c7e50f49c75a8c315">clear</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a></td></tr>
+<tr class="separator:acf8a5124a89ad98c7e50f49c75a8c315"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5e1051253c1b370c0946f811a15911d" id="r_af5e1051253c1b370c0946f811a15911d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af5e1051253c1b370c0946f811a15911d">construct_reserve</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint32_t</a> <a class="el" href="include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp.html#a42a1da88df05bc933612820bb42db3a2">n</a>, <a class="el" href="classwjr_1_1unique__stack__allocator.html">unique_stack_allocator</a> *<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">al</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a></td></tr>
+<tr class="separator:af5e1051253c1b370c0946f811a15911d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aacfbad78808816513e0a3d740e51b461" id="r_aacfbad78808816513e0a3d740e51b461"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aacfbad78808816513e0a3d740e51b461">destroy</a> () <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a></td></tr>
+<tr class="separator:aacfbad78808816513e0a3d740e51b461"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeaf86e6fe94b1c34ea91973742ed630d" id="r_aeaf86e6fe94b1c34ea91973742ed630d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeaf86e6fe94b1c34ea91973742ed630d">copy_assign</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="structwjr_1_1biginteger__data.html">biginteger_data</a> *<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a></td></tr>
+<tr class="separator:aeaf86e6fe94b1c34ea91973742ed630d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8039d8cc4b31b7b34e8f68b77ccd8d8f" id="r_a8039d8cc4b31b7b34e8f68b77ccd8d8f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8039d8cc4b31b7b34e8f68b77ccd8d8f">move_assign</a> (<a class="el" href="structwjr_1_1biginteger__data.html">biginteger_data</a> *<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">rhs</a>) <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a></td></tr>
+<tr class="separator:a8039d8cc4b31b7b34e8f68b77ccd8d8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">构造及析构函数说明</h2>
+<a id="aa0d9f85b7417c912efdc4c7eca599599" name="aa0d9f85b7417c912efdc4c7eca599599"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa0d9f85b7417c912efdc4c7eca599599">&#9670;&#160;</a></span>biginteger_dispatcher() <span class="overload">[1/5]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> wjr::biginteger_dispatcher::biginteger_dispatcher </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> *</td>          <td class="paramname"><span class="paramname"><em>p</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a91bcb02e3aa8852e57e4cf8dc5eeab2d" name="a91bcb02e3aa8852e57e4cf8dc5eeab2d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a91bcb02e3aa8852e57e4cf8dc5eeab2d">&#9670;&#160;</a></span>biginteger_dispatcher() <span class="overload">[2/5]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_CONSTEXPR20</a> wjr::biginteger_dispatcher::biginteger_dispatcher </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structwjr_1_1enable__default__constructor__t.html">enable_default_constructor_t</a></td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a66738d68bbf95ce9cdf333a25ab7c51a" name="a66738d68bbf95ce9cdf333a25ab7c51a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a66738d68bbf95ce9cdf333a25ab7c51a">&#9670;&#160;</a></span>biginteger_dispatcher() <span class="overload">[3/5]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">wjr::biginteger_dispatcher::biginteger_dispatcher </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a12f1a90454cd7e6eff06ddc2dcfdafb8" name="a12f1a90454cd7e6eff06ddc2dcfdafb8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12f1a90454cd7e6eff06ddc2dcfdafb8">&#9670;&#160;</a></span>biginteger_dispatcher() <span class="overload">[4/5]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">wjr::biginteger_dispatcher::biginteger_dispatcher </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a> &amp;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae9472cf59d7db5ee8e563506810a3e43" name="ae9472cf59d7db5ee8e563506810a3e43"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae9472cf59d7db5ee8e563506810a3e43">&#9670;&#160;</a></span>biginteger_dispatcher() <span class="overload">[5/5]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">wjr::biginteger_dispatcher::biginteger_dispatcher </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a> &amp;&amp;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="ab2ef47c6f7278233c0045b82be836b09" name="ab2ef47c6f7278233c0045b82be836b09"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab2ef47c6f7278233c0045b82be836b09">&#9670;&#160;</a></span>absolute()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> wjr::biginteger_dispatcher::absolute </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa8643e719e3d972f69d7c3f044aad6ad" name="aa8643e719e3d972f69d7c3f044aad6ad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa8643e719e3d972f69d7c3f044aad6ad">&#9670;&#160;</a></span>capacity()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint32_t</a> wjr::biginteger_dispatcher::capacity </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="acf8a5124a89ad98c7e50f49c75a8c315" name="acf8a5124a89ad98c7e50f49c75a8c315"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acf8a5124a89ad98c7e50f49c75a8c315">&#9670;&#160;</a></span>clear()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> wjr::biginteger_dispatcher::clear </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8d449059db90eb7d1724c685f0526e66" name="a8d449059db90eb7d1724c685f0526e66"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8d449059db90eb7d1724c685f0526e66">&#9670;&#160;</a></span>clear_if_reserved()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> wjr::biginteger_dispatcher::clear_if_reserved </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint32_t</a></td>          <td class="paramname"><span class="paramname"><em>size</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2518c65fd38a7d5eb303f7720c5bb98b" name="a2518c65fd38a7d5eb303f7720c5bb98b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2518c65fd38a7d5eb303f7720c5bb98b">&#9670;&#160;</a></span>conditional_negate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> wjr::biginteger_dispatcher::conditional_negate </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a></td>          <td class="paramname"><span class="paramname"><em>condition</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af5e1051253c1b370c0946f811a15911d" name="af5e1051253c1b370c0946f811a15911d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5e1051253c1b370c0946f811a15911d">&#9670;&#160;</a></span>construct_reserve()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a> wjr::biginteger_dispatcher::construct_reserve </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint32_t</a></td>          <td class="paramname"><span class="paramname"><em>n</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classwjr_1_1unique__stack__allocator.html">unique_stack_allocator</a> *</td>          <td class="paramname"><span class="paramname"><em>al</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aeaf86e6fe94b1c34ea91973742ed630d" name="aeaf86e6fe94b1c34ea91973742ed630d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeaf86e6fe94b1c34ea91973742ed630d">&#9670;&#160;</a></span>copy_assign()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> wjr::biginteger_dispatcher::copy_assign </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="structwjr_1_1biginteger__data.html">biginteger_data</a> *</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9722eaead038f63a72d9ef93b3b1c385" name="a9722eaead038f63a72d9ef93b3b1c385"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9722eaead038f63a72d9ef93b3b1c385">&#9670;&#160;</a></span>data() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a> * wjr::biginteger_dispatcher::data </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4b4a6c81b0a7b037d08e0e1aa323bbca" name="a4b4a6c81b0a7b037d08e0e1aa323bbca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b4a6c81b0a7b037d08e0e1aa323bbca">&#9670;&#160;</a></span>data() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a> * wjr::biginteger_dispatcher::data </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aacfbad78808816513e0a3d740e51b461" name="aacfbad78808816513e0a3d740e51b461"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aacfbad78808816513e0a3d740e51b461">&#9670;&#160;</a></span>destroy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> wjr::biginteger_dispatcher::destroy </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a328685455fa85ad54f2a7069cefffc17" name="a328685455fa85ad54f2a7069cefffc17"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a328685455fa85ad54f2a7069cefffc17">&#9670;&#160;</a></span>empty()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> wjr::biginteger_dispatcher::empty </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a28505ea0de2fbed1317ce31f48fbfb11" name="a28505ea0de2fbed1317ce31f48fbfb11"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a28505ea0de2fbed1317ce31f48fbfb11">&#9670;&#160;</a></span>get_ssize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int32_t</a> wjr::biginteger_dispatcher::get_ssize </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1000f0394a5bd2f258534810673872a6" name="a1000f0394a5bd2f258534810673872a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1000f0394a5bd2f258534810673872a6">&#9670;&#160;</a></span>has_value()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> wjr::biginteger_dispatcher::has_value </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a57e4b31122e4dbe9fa4d5fdce7eb8f6b" name="a57e4b31122e4dbe9fa4d5fdce7eb8f6b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a57e4b31122e4dbe9fa4d5fdce7eb8f6b">&#9670;&#160;</a></span>is_negate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">bool</a> wjr::biginteger_dispatcher::is_negate </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8039d8cc4b31b7b34e8f68b77ccd8d8f" name="a8039d8cc4b31b7b34e8f68b77ccd8d8f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8039d8cc4b31b7b34e8f68b77ccd8d8f">&#9670;&#160;</a></span>move_assign()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> wjr::biginteger_dispatcher::move_assign </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structwjr_1_1biginteger__data.html">biginteger_data</a> *</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6c9864819d9baf8cc7b7258e693a0b49" name="a6c9864819d9baf8cc7b7258e693a0b49"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c9864819d9baf8cc7b7258e693a0b49">&#9670;&#160;</a></span>negate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> wjr::biginteger_dispatcher::negate </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4e4d642cef83dd3be4d469eff730cc65" name="a4e4d642cef83dd3be4d469eff730cc65"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e4d642cef83dd3be4d469eff730cc65">&#9670;&#160;</a></span>operator=() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a> &amp; wjr::biginteger_dispatcher::operator= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a> &amp;&amp;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a530fceae9cd1a37faf7d67452a5a6b45" name="a530fceae9cd1a37faf7d67452a5a6b45"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a530fceae9cd1a37faf7d67452a5a6b45">&#9670;&#160;</a></span>operator=() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a> &amp; wjr::biginteger_dispatcher::operator= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a> &amp;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae1c7a80c0ee94dc1e41b09605092a536" name="ae1c7a80c0ee94dc1e41b09605092a536"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae1c7a80c0ee94dc1e41b09605092a536">&#9670;&#160;</a></span>operator=() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">SignedValue</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_nonbool_signed_integral_v</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">SignedValue</a> &gt;) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a> &amp; wjr::biginteger_dispatcher::operator= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">SignedValue</a></td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afe9a808e75536a841ec78cdce76cc1cb" name="afe9a808e75536a841ec78cdce76cc1cb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afe9a808e75536a841ec78cdce76cc1cb">&#9670;&#160;</a></span>operator=() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">UnsignedValue</a> , <a class="el" href="namespacewjr.html#a348c7d0ec2ea5f8b8c855af9f41551f1">WJR_REQUIRES</a>(<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">is_nonbool_unsigned_integral_v</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">UnsignedValue</a> &gt;) &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a> &amp; wjr::biginteger_dispatcher::operator= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">UnsignedValue</a></td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae29aa58bb0cc400239805de725910d24" name="ae29aa58bb0cc400239805de725910d24"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae29aa58bb0cc400239805de725910d24">&#9670;&#160;</a></span>raw()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_PURE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="structwjr_1_1biginteger__data.html">biginteger_data</a> * wjr::biginteger_dispatcher::raw </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a253b98e637256195083e81c7fe21e4a6" name="a253b98e637256195083e81c7fe21e4a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a253b98e637256195083e81c7fe21e4a6">&#9670;&#160;</a></span>reserve()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> wjr::biginteger_dispatcher::reserve </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint32_t</a></td>          <td class="paramname"><span class="paramname"><em>size</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a91096ee3f79ac18ec31a9e4565114903" name="a91096ee3f79ac18ec31a9e4565114903"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a91096ee3f79ac18ec31a9e4565114903">&#9670;&#160;</a></span>set_ssize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> wjr::biginteger_dispatcher::set_ssize </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int32_t</a></td>          <td class="paramname"><span class="paramname"><em>size</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad152fa0a14fb5b4e8eeb94c2dd5967e0" name="ad152fa0a14fb5b4e8eeb94c2dd5967e0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad152fa0a14fb5b4e8eeb94c2dd5967e0">&#9670;&#160;</a></span>size()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">constexpr</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint32_t</a> wjr::biginteger_dispatcher::size </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/wjr/biginteger/<a class="el" href="biginteger_2biginteger_8hpp_source.html">biginteger.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacewjr.html">wjr</a></li><li class="navelem"><a class="el" href="classwjr_1_1biginteger__dispatcher.html">biginteger_dispatcher</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

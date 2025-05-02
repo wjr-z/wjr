@@ -1,0 +1,585 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: wjr::expected_detail::expected_storage_base&lt; T, E, Destructor &gt; 模板结构体 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('structwjr_1_1expected__detail_1_1expected__storage__base.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="#pub-attribs">Public 属性</a> &#124;
+<a href="structwjr_1_1expected__detail_1_1expected__storage__base-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">wjr::expected_detail::expected_storage_base&lt; T, E, Destructor &gt; 模板结构体 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="expected_8hpp_source.html">expected.hpp</a>&gt;</code></p>
+<div class="dynheader">
+类 wjr::expected_detail::expected_storage_base&lt; T, E, Destructor &gt; 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><img src="structwjr_1_1expected__detail_1_1expected__storage__base__inherit__graph.png" border="0" usemap="#awjr_1_1expected__detail_1_1expected__storage__base_3_01_t_00_01_e_00_01_destructor_01_4_inherit__map" alt="Inheritance graph"/></div>
+<map name="awjr_1_1expected__detail_1_1expected__storage__base_3_01_t_00_01_e_00_01_destructor_01_4_inherit__map" id="awjr_1_1expected__detail_1_1expected__storage__base_3_01_t_00_01_e_00_01_destructor_01_4_inherit__map">
+<area shape="rect" title=" " alt="" coords="5,5,183,405"/>
+<area shape="rect" href="structwjr_1_1expected__detail_1_1expected__operations__base.html" title=" " alt="" coords="23,453,165,704"/>
+<area shape="poly" title=" " alt="" coords="97,420,97,454,91,454,91,420"/>
+</map>
+</div>
+<div class="dynheader">
+wjr::expected_detail::expected_storage_base&lt; T, E, Destructor &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><img src="structwjr_1_1expected__detail_1_1expected__storage__base__coll__graph.png" border="0" usemap="#awjr_1_1expected__detail_1_1expected__storage__base_3_01_t_00_01_e_00_01_destructor_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="awjr_1_1expected__detail_1_1expected__storage__base_3_01_t_00_01_e_00_01_destructor_01_4_coll__map" id="awjr_1_1expected__detail_1_1expected__storage__base_3_01_t_00_01_e_00_01_destructor_01_4_coll__map">
+<area shape="rect" title=" " alt="" coords="5,5,183,405"/>
+</map>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:a43062876df0a3bb530a82eb8df3e67da" id="r_a43062876df0a3bb530a82eb8df3e67da"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a43062876df0a3bb530a82eb8df3e67da">expected_storage_base</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a>(std::is_nothrow_default_constructible_v&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> &gt;)</td></tr>
+<tr class="separator:a43062876df0a3bb530a82eb8df3e67da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac6df0d932dfce7bc904c7f88c227d94a" id="r_ac6df0d932dfce7bc904c7f88c227d94a"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
+<tr class="memitem:ac6df0d932dfce7bc904c7f88c227d94a"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ac6df0d932dfce7bc904c7f88c227d94a">expected_storage_base</a> (std::in_place_t, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Args</a> &amp;&amp;...<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">args</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a>(std::is_nothrow_constructible_v&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, Args... &gt;)</td></tr>
+<tr class="separator:ac6df0d932dfce7bc904c7f88c227d94a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9014f764ec52d9379da59314584fd91" id="r_af9014f764ec52d9379da59314584fd91"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
+<tr class="memitem:af9014f764ec52d9379da59314584fd91"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#af9014f764ec52d9379da59314584fd91">expected_storage_base</a> (<a class="el" href="structwjr_1_1unexpect__t.html">unexpect_t</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Args</a> &amp;&amp;...<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">args</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a>(std::is_nothrow_constructible_v&lt; <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, Args... &gt;)</td></tr>
+<tr class="separator:af9014f764ec52d9379da59314584fd91"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6cbb22a30ec73b35bf9220934bf31231" id="r_a6cbb22a30ec73b35bf9220934bf31231"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6cbb22a30ec73b35bf9220934bf31231">expected_storage_base</a> (<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">const</a> <a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">expected_storage_base</a> &amp;)=<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">default</a></td></tr>
+<tr class="separator:a6cbb22a30ec73b35bf9220934bf31231"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab9ac06ccdbbd4b97b8d1ba824a51549b" id="r_ab9ac06ccdbbd4b97b8d1ba824a51549b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab9ac06ccdbbd4b97b8d1ba824a51549b">expected_storage_base</a> (<a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">expected_storage_base</a> &amp;&amp;)=<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">default</a></td></tr>
+<tr class="separator:ab9ac06ccdbbd4b97b8d1ba824a51549b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9169c099e5dcc084be3348528f6ab821" id="r_a9169c099e5dcc084be3348528f6ab821"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">expected_storage_base</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9169c099e5dcc084be3348528f6ab821">operator=</a> (<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">const</a> <a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">expected_storage_base</a> &amp;)=<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">default</a></td></tr>
+<tr class="separator:a9169c099e5dcc084be3348528f6ab821"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeba73c11483be6d1dc4af11862f835e5" id="r_aeba73c11483be6d1dc4af11862f835e5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">expected_storage_base</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeba73c11483be6d1dc4af11862f835e5">operator=</a> (<a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">expected_storage_base</a> &amp;&amp;)=<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">default</a></td></tr>
+<tr class="separator:aeba73c11483be6d1dc4af11862f835e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a228b7a1766c93642e257c8bf1398813f" id="r_a228b7a1766c93642e257c8bf1398813f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">WJR_CONSTEXPR20</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a228b7a1766c93642e257c8bf1398813f">expected_storage_base</a> (<a class="el" href="structwjr_1_1enable__default__constructor__t.html">enable_default_constructor_t</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a228b7a1766c93642e257c8bf1398813f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af97c933bd278e6c71077dbbedc7273fc" id="r_af97c933bd278e6c71077dbbedc7273fc"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af97c933bd278e6c71077dbbedc7273fc">~expected_storage_base</a> ()=<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">default</a></td></tr>
+<tr class="separator:af97c933bd278e6c71077dbbedc7273fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6956957a27979ab03ccdc4d125112562" id="r_a6956957a27979ab03ccdc4d125112562"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">WJR_PURE</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6956957a27979ab03ccdc4d125112562">has_value</a> () <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">const</a> <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a6956957a27979ab03ccdc4d125112562"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c45c68b7f76bb341ec8dc3aecd470d0" id="r_a0c45c68b7f76bb341ec8dc3aecd470d0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0c45c68b7f76bb341ec8dc3aecd470d0">set_valid</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:a0c45c68b7f76bb341ec8dc3aecd470d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab577c095daaaab3df3a92cc9ca64a301" id="r_ab577c095daaaab3df3a92cc9ca64a301"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab577c095daaaab3df3a92cc9ca64a301">set_invalid</a> () <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:ab577c095daaaab3df3a92cc9ca64a301"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+Public 属性</h2></td></tr>
+<tr class="memitem:a8eaabd67a1305756f32de22d22caac4f" id="r_a8eaabd67a1305756f32de22d22caac4f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8eaabd67a1305756f32de22d22caac4f">m_has_val</a></td></tr>
+<tr class="separator:a8eaabd67a1305756f32de22d22caac4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72206add542c4a228a4f434bb78bc498" id="r_a72206add542c4a228a4f434bb78bc498"><td class="memItemLeft" >union {&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a363c65a5ebe39fbdd37e1cc8aeb114bf" id="r_a363c65a5ebe39fbdd37e1cc8aeb114bf"><td class="memItemLeft" >&#160;&#160;&#160;<a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>&#160;&#160;&#160;<a class="el" href="#ad89ad2b3b5044d2b13812bb8978694f7">m_val</a>&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
+<tr class="separator:a363c65a5ebe39fbdd37e1cc8aeb114bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac9590edc79c64daf8eedda2589f71b36" id="r_ac9590edc79c64daf8eedda2589f71b36"><td class="memItemLeft" >&#160;&#160;&#160;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>&#160;&#160;&#160;<a class="el" href="#a8473c252c2325d7c30de7ea8173f775e">m_err</a>&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
+<tr class="separator:ac9590edc79c64daf8eedda2589f71b36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72206add542c4a228a4f434bb78bc498" id="r_a72206add542c4a228a4f434bb78bc498"><td class="memItemLeft" valign="top">};&#160;</td><td class="memItemRight" valign="bottom">&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
+<tr class="separator:a72206add542c4a228a4f434bb78bc498"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">构造及析构函数说明</h2>
+<a id="a43062876df0a3bb530a82eb8df3e67da" name="a43062876df0a3bb530a82eb8df3e67da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a43062876df0a3bb530a82eb8df3e67da">&#9670;&#160;</a></span>expected_storage_base() <span class="overload">[1/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a> Destructor = is_void_or_v&lt;T, std::is_trivially_destructible&lt;T&gt;&gt; &amp;&amp; std::is_trivially_destructible_v&lt;E&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">wjr::expected_detail::expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt;::expected_storage_base </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac6df0d932dfce7bc904c7f88c227d94a" name="ac6df0d932dfce7bc904c7f88c227d94a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac6df0d932dfce7bc904c7f88c227d94a">&#9670;&#160;</a></span>expected_storage_base() <span class="overload">[2/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a> Destructor = is_void_or_v&lt;T, std::is_trivially_destructible&lt;T&gt;&gt; &amp;&amp; std::is_trivially_destructible_v&lt;E&gt;&gt; </div>
+<div class="memtemplate">
+template&lt;typename... Args&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">wjr::expected_detail::expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt;::expected_storage_base </td>
+          <td>(</td>
+          <td class="paramtype">std::in_place_t</td>          <td class="paramname"><span class="paramname">, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Args</a> &amp;&amp;...</td>          <td class="paramname"><span class="paramname"><em>args</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af9014f764ec52d9379da59314584fd91" name="af9014f764ec52d9379da59314584fd91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9014f764ec52d9379da59314584fd91">&#9670;&#160;</a></span>expected_storage_base() <span class="overload">[3/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a> Destructor = is_void_or_v&lt;T, std::is_trivially_destructible&lt;T&gt;&gt; &amp;&amp; std::is_trivially_destructible_v&lt;E&gt;&gt; </div>
+<div class="memtemplate">
+template&lt;typename... Args&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">wjr::expected_detail::expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt;::expected_storage_base </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structwjr_1_1unexpect__t.html">unexpect_t</a></td>          <td class="paramname"><span class="paramname">, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Args</a> &amp;&amp;...</td>          <td class="paramname"><span class="paramname"><em>args</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6cbb22a30ec73b35bf9220934bf31231" name="a6cbb22a30ec73b35bf9220934bf31231"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6cbb22a30ec73b35bf9220934bf31231">&#9670;&#160;</a></span>expected_storage_base() <span class="overload">[4/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a> Destructor = is_void_or_v&lt;T, std::is_trivially_destructible&lt;T&gt;&gt; &amp;&amp; std::is_trivially_destructible_v&lt;E&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">wjr::expected_detail::expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt;::expected_storage_base </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">const</a> <a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab9ac06ccdbbd4b97b8d1ba824a51549b" name="ab9ac06ccdbbd4b97b8d1ba824a51549b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab9ac06ccdbbd4b97b8d1ba824a51549b">&#9670;&#160;</a></span>expected_storage_base() <span class="overload">[5/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a> Destructor = is_void_or_v&lt;T, std::is_trivially_destructible&lt;T&gt;&gt; &amp;&amp; std::is_trivially_destructible_v&lt;E&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">wjr::expected_detail::expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt;::expected_storage_base </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a228b7a1766c93642e257c8bf1398813f" name="a228b7a1766c93642e257c8bf1398813f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a228b7a1766c93642e257c8bf1398813f">&#9670;&#160;</a></span>expected_storage_base() <span class="overload">[6/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a> Destructor = is_void_or_v&lt;T, std::is_trivially_destructible&lt;T&gt;&gt; &amp;&amp; std::is_trivially_destructible_v&lt;E&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">WJR_CONSTEXPR20</a> <a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">wjr::expected_detail::expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt;::expected_storage_base </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structwjr_1_1enable__default__constructor__t.html">enable_default_constructor_t</a></td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af97c933bd278e6c71077dbbedc7273fc" name="af97c933bd278e6c71077dbbedc7273fc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af97c933bd278e6c71077dbbedc7273fc">&#9670;&#160;</a></span>~expected_storage_base()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a> Destructor = is_void_or_v&lt;T, std::is_trivially_destructible&lt;T&gt;&gt; &amp;&amp; std::is_trivially_destructible_v&lt;E&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">wjr::expected_detail::expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt;::~<a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">expected_storage_base</a> </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="a6956957a27979ab03ccdc4d125112562" name="a6956957a27979ab03ccdc4d125112562"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6956957a27979ab03ccdc4d125112562">&#9670;&#160;</a></span>has_value()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a> Destructor = is_void_or_v&lt;T, std::is_trivially_destructible&lt;T&gt;&gt; &amp;&amp; std::is_trivially_destructible_v&lt;E&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">WJR_PURE</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a> <a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">wjr::expected_detail::expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt;::has_value </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9169c099e5dcc084be3348528f6ab821" name="a9169c099e5dcc084be3348528f6ab821"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9169c099e5dcc084be3348528f6ab821">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a> Destructor = is_void_or_v&lt;T, std::is_trivially_destructible&lt;T&gt;&gt; &amp;&amp; std::is_trivially_destructible_v&lt;E&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">expected_storage_base</a> &amp; <a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">wjr::expected_detail::expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">const</a> <a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aeba73c11483be6d1dc4af11862f835e5" name="aeba73c11483be6d1dc4af11862f835e5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeba73c11483be6d1dc4af11862f835e5">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a> Destructor = is_void_or_v&lt;T, std::is_trivially_destructible&lt;T&gt;&gt; &amp;&amp; std::is_trivially_destructible_v&lt;E&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">expected_storage_base</a> &amp; <a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">wjr::expected_detail::expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab577c095daaaab3df3a92cc9ca64a301" name="ab577c095daaaab3df3a92cc9ca64a301"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab577c095daaaab3df3a92cc9ca64a301">&#9670;&#160;</a></span>set_invalid()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a> Destructor = is_void_or_v&lt;T, std::is_trivially_destructible&lt;T&gt;&gt; &amp;&amp; std::is_trivially_destructible_v&lt;E&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">void</a> <a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">wjr::expected_detail::expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt;::set_invalid </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0c45c68b7f76bb341ec8dc3aecd470d0" name="a0c45c68b7f76bb341ec8dc3aecd470d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c45c68b7f76bb341ec8dc3aecd470d0">&#9670;&#160;</a></span>set_valid()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a> Destructor = is_void_or_v&lt;T, std::is_trivially_destructible&lt;T&gt;&gt; &amp;&amp; std::is_trivially_destructible_v&lt;E&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">constexpr</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">void</a> <a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">wjr::expected_detail::expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt;::set_valid </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">类成员变量说明</h2>
+<a id="a72206add542c4a228a4f434bb78bc498" name="a72206add542c4a228a4f434bb78bc498"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72206add542c4a228a4f434bb78bc498">&#9670;&#160;</a></span>[union]</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">union  { ... }  <a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">wjr::expected_detail::expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8473c252c2325d7c30de7ea8173f775e" name="a8473c252c2325d7c30de7ea8173f775e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8473c252c2325d7c30de7ea8173f775e">&#9670;&#160;</a></span>m_err</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a> Destructor = is_void_or_v&lt;T, std::is_trivially_destructible&lt;T&gt;&gt; &amp;&amp; std::is_trivially_destructible_v&lt;E&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a> <a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">wjr::expected_detail::expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt;::m_err</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8eaabd67a1305756f32de22d22caac4f" name="a8eaabd67a1305756f32de22d22caac4f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8eaabd67a1305756f32de22d22caac4f">&#9670;&#160;</a></span>m_has_val</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a> Destructor = is_void_or_v&lt;T, std::is_trivially_destructible&lt;T&gt;&gt; &amp;&amp; std::is_trivially_destructible_v&lt;E&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a> <a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">wjr::expected_detail::expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt;::m_has_val</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad89ad2b3b5044d2b13812bb8978694f7" name="ad89ad2b3b5044d2b13812bb8978694f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad89ad2b3b5044d2b13812bb8978694f7">&#9670;&#160;</a></span>m_val</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">typename</a> <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a> , <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">bool</a> Destructor = is_void_or_v&lt;T, std::is_trivially_destructible&lt;T&gt;&gt; &amp;&amp; std::is_trivially_destructible_v&lt;E&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a> <a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">wjr::expected_detail::expected_storage_base</a>&lt; <a class="el" href="namespacewjr.html#a69f5110cc164b4f5516e74717d11018b">T</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">E</a>, <a class="el" href="namespacewjr.html#aa8b3d721bc9df2aa0db8dc7e82366d48">Destructor</a> &gt;::m_val</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该结构体的文档由以下文件生成:<ul>
+<li>include/wjr/<a class="el" href="expected_8hpp_source.html">expected.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacewjr.html">wjr</a></li><li class="navelem"><a class="el" href="namespacewjr_1_1expected__detail.html">expected_detail</a></li><li class="navelem"><a class="el" href="structwjr_1_1expected__detail_1_1expected__storage__base.html">expected_storage_base</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

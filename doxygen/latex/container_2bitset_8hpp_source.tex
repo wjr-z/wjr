@@ -1,0 +1,665 @@
+\doxysection{bitset.\+hpp}
+\hypertarget{container_2bitset_8hpp_source}{}\label{container_2bitset_8hpp_source}\index{include/wjr/container/bitset.hpp@{include/wjr/container/bitset.hpp}}
+\mbox{\hyperlink{container_2bitset_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_CONTAINER\_BITSET\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_CONTAINER\_BITSET\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <cstring>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{bit_8hpp}{wjr/math/bit.hpp}}>}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{bitwise_8hpp}{wjr/math/bitwise.hpp}}>}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{math_2shift_8hpp}{wjr/math/shift.hpp}}>}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{type__traits_8hpp}{wjr/type\_traits.hpp}}>}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <fmt/format.h>}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ N>}
+\DoxyCodeLine{00016\ \textcolor{keyword}{class\ }bitset;}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Bitset>}
+\DoxyCodeLine{00019\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \{}
+\DoxyCodeLine{00020\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ \_N>}
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classwjr_1_1bitset}{bitset}};}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a0ac9ecb5a68dc8fcf03452c9a13bd360}{iterator\_category}}\ =\ std::random\_access\_iterator\_tag;}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a881b26fe37594ff664e79d7aac4ab239}{value\_type}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}};}
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a31a0a17b40e6e37cb6d469b3781f1b09}{difference\_type}}\ =\ std::ptrdiff\_t;}
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_aefce200ccf5f7ed151d5c34082c9359f}{pointer}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}};}
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a9dad383b3f6125769e7043d975b81b87}{reference}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}};}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a28d54ba703e37afda415f020cda8a9ee}{bitset\_const\_iterator}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00031\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a045888056ff3c2cccb8471dc6524457c}{bitset\_const\_iterator}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00032\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_abc4d6dd18bd52bfba7b806567fea7cfe}{bitset\_const\_iterator}}(\mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&\&)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00033\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_acff8a09879c09a14d683493f60ff74b5}{operator=}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00034\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_af56e6e1243514c44318ba93f79beaafd}{operator=}}(\mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&\&)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00035\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a22674a57e7785880a81246b00a772506}{\string~bitset\_const\_iterator}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a9dad383b3f6125769e7043d975b81b87}{reference}}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a152cdf60f2f81213710e1232209b19eb}{operator*}}()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a9261216ac4ab4a8adbd1630aaa3c98ff}{m\_bitset}}-\/>test(\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a372cc6075c69349a65cbe3fb723fafe4}{m\_pos}});\ \}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a4b790c6b993f1a7bb0b29796c8f35b0d}{operator++}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ ++\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a372cc6075c69349a65cbe3fb723fafe4}{m\_pos}};}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00042\ \ \ \ \ \}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_aad137a4a8a1dab82eec39c1bce34b569}{operator++}}(\textcolor{keywordtype}{int})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}\ =\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ ++*\textcolor{keyword}{this};}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}};}
+\DoxyCodeLine{00048\ \ \ \ \ \}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a461fe4f8644bfb2407ae573e23ac56ef}{operator-\/-\/}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ -\/-\/\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a372cc6075c69349a65cbe3fb723fafe4}{m\_pos}};}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00053\ \ \ \ \ \}}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_af2bd41dd42fe413559c12afa2d150f91}{operator-\/-\/}}(\textcolor{keywordtype}{int})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}\ =\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ -\/-\/*\textcolor{keyword}{this};}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}};}
+\DoxyCodeLine{00059\ \ \ \ \ \}}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_ad6c9e1a68ef80f45389424249351ae7a}{operator+=}}(\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a31a0a17b40e6e37cb6d469b3781f1b09}{difference\_type}}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a372cc6075c69349a65cbe3fb723fafe4}{m\_pos}}\ +=\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}};}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00064\ \ \ \ \ \}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a24fade1fe4e14c1764dc7aab6e212582}{operator+}}(\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a31a0a17b40e6e37cb6d469b3781f1b09}{difference\_type}}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}\ =\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}\ +=\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}};}
+\DoxyCodeLine{00069\ \ \ \ \ \}}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a3c04e8de4a79adeec75c81cc1e3b87fb}{operator+}}(\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a31a0a17b40e6e37cb6d469b3781f1b09}{difference\_type}}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}\ +\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}};}
+\DoxyCodeLine{00074\ \ \ \ \ \}}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a23386b2519b15b561e6d0bbdbd6efc6b}{operator-\/=}}(\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a31a0a17b40e6e37cb6d469b3781f1b09}{difference\_type}}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a372cc6075c69349a65cbe3fb723fafe4}{m\_pos}}\ -\/=\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}};}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00079\ \ \ \ \ \}}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a2798b85a110b8d37ac5f31f97d6951de}{operator-\/}}(\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a31a0a17b40e6e37cb6d469b3781f1b09}{difference\_type}}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}\ =\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}\ -\/=\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}};}
+\DoxyCodeLine{00084\ \ \ \ \ \}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a31a0a17b40e6e37cb6d469b3781f1b09}{difference\_type}}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a2115030e400c166cbda8f3f929bcca6a}{operator-\/}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a372cc6075c69349a65cbe3fb723fafe4}{m\_pos}}\ -\/\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}.m\_pos;}
+\DoxyCodeLine{00088\ \ \ \ \ \}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a9dad383b3f6125769e7043d975b81b87}{reference}}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_aa5e888fac7c5442acccac726c1632822}{operator[]}}(\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a31a0a17b40e6e37cb6d469b3781f1b09}{difference\_type}}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{\ \textcolor{keywordflow}{return}\ *(*\textcolor{keyword}{this}\ +\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}});\ \}}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a59294c2ab474c722ec327e38c8a719fd}{operator==}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a372cc6075c69349a65cbe3fb723fafe4}{m\_pos}}\ ==\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}.m\_pos;}
+\DoxyCodeLine{00094\ \ \ \ \ \}}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a2e4d97fa11d3b5a0a03bc94032189438}{operator!=}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ !(*\textcolor{keyword}{this}\ ==\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}});}
+\DoxyCodeLine{00098\ \ \ \ \ \}}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_ae68694de9ae9f2ed8bdfe3de9a234166}{operator<}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a372cc6075c69349a65cbe3fb723fafe4}{m\_pos}}\ <\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}.m\_pos;}
+\DoxyCodeLine{00102\ \ \ \ \ \}}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a0a2586155e7f2268cc09b7ea9dd7befb}{operator>}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}\ <\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00106\ \ \ \ \ \}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a3fe762143d03f70771e33a25cc4529cc}{operator<=}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ !(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}\ <\ *\textcolor{keyword}{this});}
+\DoxyCodeLine{00110\ \ \ \ \ \}}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a0aba87e056a2f0ba72a311ad397abc9f}{operator>=}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ !(*\textcolor{keyword}{this}\ <\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}});}
+\DoxyCodeLine{00114\ \ \ \ \ \}}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00117\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a56f770e3b827dff98f77eae327ae1d36}{bitset\_const\_iterator}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Bitset}}\ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_bitset}},\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_pos}})\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ :\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a9261216ac4ab4a8adbd1630aaa3c98ff}{m\_bitset}}(\textcolor{keyword}{const\_cast<}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Bitset}}\ *\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_bitset}})),\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a372cc6075c69349a65cbe3fb723fafe4}{m\_pos}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_pos}})\ \{\}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Bitset}}\ *\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a9261216ac4ab4a8adbd1630aaa3c98ff}{m\_bitset}};}
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a372cc6075c69349a65cbe3fb723fafe4}{m\_pos}};}
+\DoxyCodeLine{00122\ \};}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Bitset>}
+\DoxyCodeLine{00125\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classwjr_1_1bitset__iterator}{bitset\_iterator}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{bitset\_const\_iterator}}<Bitset>\ \{}
+\DoxyCodeLine{00126\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ \_N>}
+\DoxyCodeLine{00127\ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classwjr_1_1bitset}{bitset}};}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1bitset__const__iterator}{Mybase}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bitset\_const\_iterator<Bitset>}};}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1bitset__iterator_a96e7307165ac4ec18530842c49061149}{iterator\_category}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a0ac9ecb5a68dc8fcf03452c9a13bd360}{Mybase::iterator\_category}};}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1bitset__iterator_a5dcc5187022c83d751e10cc34181caa2}{value\_type}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a881b26fe37594ff664e79d7aac4ab239}{Mybase::value\_type}};}
+\DoxyCodeLine{00134\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1bitset__iterator_ad8c8943eadb0cb8a97c7baeb50d538e5}{difference\_type}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a31a0a17b40e6e37cb6d469b3781f1b09}{Mybase::difference\_type}};}
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1bitset__iterator_af48cc172dc1ee48fc1038eaac35321f3}{pointer}}\ =\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_aefce200ccf5f7ed151d5c34082c9359f}{Mybase::pointer}};}
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1bitset__iterator_a12209e7a7db1e0ca5bfcc48d80246fd0}{reference}}\ =\ \textcolor{keyword}{typename}\ Bitset::reference;}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \ \ \ \ \textcolor{keyword}{using\ }Mybase::Mybase;}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator_a12209e7a7db1e0ca5bfcc48d80246fd0}{reference}}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator_a1a476fcf163edb1d59dfd9a5d83db05b}{operator*}}()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator_a12209e7a7db1e0ca5bfcc48d80246fd0}{reference}}(this-\/>\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a9261216ac4ab4a8adbd1630aaa3c98ff}{m\_bitset}},\ this-\/>\mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a372cc6075c69349a65cbe3fb723fafe4}{m\_pos}});}
+\DoxyCodeLine{00142\ \ \ \ \ \}}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator}{bitset\_iterator}}\ \&\mbox{\hyperlink{classwjr_1_1bitset__iterator_a37bf46133df54aab412c363318d8e569}{operator++}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a4b790c6b993f1a7bb0b29796c8f35b0d}{Mybase::operator++}}();}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00147\ \ \ \ \ \}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator}{bitset\_iterator}}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator_a1ac5cffae2f4846764f2303449af3cbb}{operator++}}(\textcolor{keywordtype}{int})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}\ =\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ ++*\textcolor{keyword}{this};}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}};}
+\DoxyCodeLine{00153\ \ \ \ \ \}}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator}{bitset\_iterator}}\ \&\mbox{\hyperlink{classwjr_1_1bitset__iterator_abba1ba42eb4471dc7ff47e797cb2cc87}{operator-\/-\/}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a461fe4f8644bfb2407ae573e23ac56ef}{Mybase::operator-\/-\/}}();}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00158\ \ \ \ \ \}}
+\DoxyCodeLine{00159\ }
+\DoxyCodeLine{00160\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator}{bitset\_iterator}}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator_a1109039b9bdfbceb95b6ccc9f523ab1f}{operator-\/-\/}}(\textcolor{keywordtype}{int})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}\ =\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ -\/-\/*\textcolor{keyword}{this};}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}};}
+\DoxyCodeLine{00164\ \ \ \ \ \}}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator}{bitset\_iterator}}\ \&\mbox{\hyperlink{classwjr_1_1bitset__iterator_a2ce926d5dade5b186b84b0e7b5788c1f}{operator+=}}(\mbox{\hyperlink{classwjr_1_1bitset__iterator_ad8c8943eadb0cb8a97c7baeb50d538e5}{difference\_type}}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_ad6c9e1a68ef80f45389424249351ae7a}{Mybase::operator+=}}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}});}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00169\ \ \ \ \ \}}
+\DoxyCodeLine{00170\ }
+\DoxyCodeLine{00171\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator}{bitset\_iterator}}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator_a277363abcd564153ed72115c976cb6b8}{operator+}}(\mbox{\hyperlink{classwjr_1_1bitset__iterator_ad8c8943eadb0cb8a97c7baeb50d538e5}{difference\_type}}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}\ =\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}\ +=\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}};}
+\DoxyCodeLine{00174\ \ \ \ \ \}}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator}{bitset\_iterator}}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator_afc45852e0a493cce3c0378cfb8bfef00}{operator+}}(\mbox{\hyperlink{classwjr_1_1bitset__iterator_ad8c8943eadb0cb8a97c7baeb50d538e5}{difference\_type}}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator}{bitset\_iterator}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}\ +\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}};}
+\DoxyCodeLine{00179\ \ \ \ \ \}}
+\DoxyCodeLine{00180\ }
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator}{bitset\_iterator}}\ \&\mbox{\hyperlink{classwjr_1_1bitset__iterator_a338c5564265935a532eba700eb33bbae}{operator-\/=}}(\mbox{\hyperlink{classwjr_1_1bitset__iterator_ad8c8943eadb0cb8a97c7baeb50d538e5}{difference\_type}}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset__const__iterator_a23386b2519b15b561e6d0bbdbd6efc6b}{Mybase::operator-\/=}}(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}});}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00184\ \ \ \ \ \}}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator}{bitset\_iterator}}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator_aa6ab41a0ef559c7de2596a7cc48f455d}{operator-\/}}(\mbox{\hyperlink{classwjr_1_1bitset__iterator_ad8c8943eadb0cb8a97c7baeb50d538e5}{difference\_type}}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}\ =\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}\ -\/=\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}};}
+\DoxyCodeLine{00189\ \ \ \ \ \}}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator_a12209e7a7db1e0ca5bfcc48d80246fd0}{reference}}\ \mbox{\hyperlink{classwjr_1_1bitset__iterator_ac843c53fc73a3062968d82d3da2c5505}{operator[]}}(\mbox{\hyperlink{classwjr_1_1bitset__iterator_ad8c8943eadb0cb8a97c7baeb50d538e5}{difference\_type}}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{\ \textcolor{keywordflow}{return}\ *(*\textcolor{keyword}{this}\ +\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}});\ \}}
+\DoxyCodeLine{00192\ \};}
+\DoxyCodeLine{00193\ }
+\DoxyCodeLine{00194\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ N>}
+\DoxyCodeLine{00195\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \{}
+\DoxyCodeLine{00196\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{size\_t}\ bits\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N}}\ <=\ 32\ ?\ 32\ :\ 64;}
+\DoxyCodeLine{00197\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{size\_t}\ bytes\_size\ =\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N}}\ +\ bits\ -\/\ 1)\ /\ bits;}
+\DoxyCodeLine{00198\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ full\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N}}\ ==\ bytes\_size\ *\ bits;}
+\DoxyCodeLine{00199\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ fast\_memset\ =}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \ \ bytes\_size\ >=\ 4\ \&\&\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N}}\ <=\ 1024\ \&\&\ \mbox{\hyperlink{namespacewjr_a8a69436176a1356dd377f97ab9ed866f}{is\_zero\_or\_single\_bit}}(bytes\_size);}
+\DoxyCodeLine{00201\ \ \ \ \ \textcolor{keyword}{using\ }bit\_type\ =\ std::conditional\_t<N\ <=\ 32,\ uint32\_t,\ uint64\_t>;}
+\DoxyCodeLine{00202\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ bit\_type\ mask\ =}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ (\textcolor{keyword}{static\_cast<}bit\_type\textcolor{keyword}{>}(1)\ <<\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N}}\ \%\ bits))\ -\/\ \textcolor{keyword}{static\_cast<}bit\_type\textcolor{keyword}{>}(1);}
+\DoxyCodeLine{00204\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ bit\_type\ maxn\ =\ \textcolor{keyword}{static\_cast<}bit\_type\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{in\_place\_max}});}
+\DoxyCodeLine{00205\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{size\_t}\ rest\_bits\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N}}\ \%\ bits;}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00208\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset_a94cf7dd210b5dd92d59b578b5bc087d3}{bitset}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ :\ m\_data()\ \{\}}
+\DoxyCodeLine{00209\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classwjr_1_1bitset_a9abd3fed67672d0b81c12312d1499185}{bitset}}(\mbox{\hyperlink{structwjr_1_1default__construct__t}{default\_construct\_t}})\ \textcolor{keyword}{noexcept}\ \{\}}
+\DoxyCodeLine{00210\ }
+\DoxyCodeLine{00211\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset_aa11906f73940a275d6c4e21fe479c575}{bitset}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00212\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset_aabf71c41b446ca9e17ab7b2ff4b65564}{bitset}}(\mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\&)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00213\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_ad46492262fc23d903173b24d18f6de93}{operator=}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00214\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_a74ca088c7bc6cdcfc632e324888c5f3f}{operator=}}(\mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\&)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00215\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset_a4c0aa5bae19e1de754e5843b81c1e8f9}{\string~bitset}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset_a9bd669722c3e14b7b4ebc618535b8e95}{bitset}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N}}\ <\ 64)\ \{}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[0]\ =\ \textcolor{keyword}{static\_cast<}bit\_type\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}})\ \&\ mask;}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N}}\ ==\ 64)\ \{}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[0]\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}};}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (fast\_memset)\ \{}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::fill\_n(m\_data,\ bytes\_size,\ 0);}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[0]\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}};}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[0]\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}};}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::fill\_n(m\_data\ +\ 1,\ bytes\_size\ -\/\ 1,\ 0);}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00231\ \ \ \ \ \}}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Char,\ \textcolor{keyword}{typename}\ Traits>}
+\DoxyCodeLine{00234\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classwjr_1_1bitset_a94cf7dd210b5dd92d59b578b5bc087d3}{bitset}}(std::basic\_string\_view<Char,\ Traits>\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{str}},\ \textcolor{keywordtype}{size\_t}\ pos\ =\ 0,}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}}\ =\ \textcolor{keywordtype}{size\_t}(-\/1),\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Char}}\ zero\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Char}}(\textcolor{charliteral}{'0'}),\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Char}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{one}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Char}}(\textcolor{charliteral}{'1'}));}
+\DoxyCodeLine{00236\ }
+\DoxyCodeLine{00237\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Char>}
+\DoxyCodeLine{00238\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classwjr_1_1bitset_a2e214c1c0157d44bc4597efe6c05f406}{bitset}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Char}}\ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{str}},\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}}\ =\ \textcolor{keywordtype}{size\_t}(-\/1),\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Char}}\ zero\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Char}}(\textcolor{charliteral}{'0'}),}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Char}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{one}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Char}}(\textcolor{charliteral}{'1'}))}
+\DoxyCodeLine{00240\ \ \ \ \ \ \ \ \ :\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{string\_view}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{str}}),\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},\ zero,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{one}})\ \{\}}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classwjr_1_1bitset_a57c02fe053f8ad8bdab820632ec4a768}{operator==}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}},\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ std::equal(\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}.\mbox{\hyperlink{structwjr_1_1biginteger__data_a43e9010c876ee33e7ccd8d23ca51f85a}{m\_data}},\ \mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}.\mbox{\hyperlink{structwjr_1_1biginteger__data_a43e9010c876ee33e7ccd8d23ca51f85a}{m\_data}}\ +\ bytes\_size,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}.m\_data);}
+\DoxyCodeLine{00244\ \ \ \ \ \}}
+\DoxyCodeLine{00245\ }
+\DoxyCodeLine{00246\ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classwjr_1_1bitset_ac154fdb68f0de2dddfae481c7cbbfb42}{operator!=}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}},\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ !(\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}}\ ==\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}});}
+\DoxyCodeLine{00248\ \ \ \ \ \}}
+\DoxyCodeLine{00249\ }
+\DoxyCodeLine{00250\ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classwjr_1_1bitset_1_1reference}{reference}}\ \{}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classwjr_1_1bitset}{bitset}};}
+\DoxyCodeLine{00252\ }
+\DoxyCodeLine{00253\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset_1_1reference_ab9356da2a20a1d96b15d5286ca7b12f1}{reference}}()\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset_1_1reference_afa1a4b427c1e75e5aded690a5c94bdae}{reference}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset_1_1reference}{reference}}\ \&)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00256\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset_1_1reference_aaf19a74b42b8515c5c92ae682405d4b0}{reference}}(\mbox{\hyperlink{classwjr_1_1bitset_1_1reference}{reference}}\ \&\&)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset_1_1reference}{reference}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_1_1reference_a346b89980d498f961028f52cac6a549e}{operator=}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset_1_1reference}{reference}}\ \&)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset_1_1reference}{reference}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_1_1reference_a6c01ead654ee52ff9e11f7aabfefd3c0}{operator=}}(\mbox{\hyperlink{classwjr_1_1bitset_1_1reference}{reference}}\ \&\&)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00259\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset_1_1reference_a045d8790add879ef09f47746432cf9e0}{\string~reference}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00260\ }
+\DoxyCodeLine{00261\ \ \ \ \ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset_1_1reference}{reference}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_1_1reference_acbca81dd9b79cb9cb36619a469aac995}{operator=}}(\textcolor{keywordtype}{bool}\ value)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \ \ \ \ \ \ m\_bitset-\/>\mbox{\hyperlink{classwjr_1_1bitset_a55aea7b79816382b54a16196d453ae25}{set}}(m\_pos,\ value);}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00265\ }
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{operator}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}}()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ m\_bitset-\/>\mbox{\hyperlink{classwjr_1_1bitset_a7ef8ad3b1e2596688933657aae51339e}{test}}(m\_pos);\ \}}
+\DoxyCodeLine{00267\ }
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classwjr_1_1bitset_1_1reference_a41dbc46e9e24e36ac3f4f4ba18b0f21c}{operator\string~}}()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ !m\_bitset-\/>\mbox{\hyperlink{classwjr_1_1bitset_a7ef8ad3b1e2596688933657aae51339e}{test}}(m\_pos);\ \}}
+\DoxyCodeLine{00269\ }
+\DoxyCodeLine{00270\ \ \ \ \ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset_1_1reference}{reference}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_1_1reference_a1db4e944c2a7b6517c1dbd08a94aac23}{flip}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{}
+\DoxyCodeLine{00271\ \ \ \ \ \ \ \ \ \ \ \ \ m\_bitset-\/>\mbox{\hyperlink{classwjr_1_1bitset_a19e5403cef11c8632d829f24cb6481eb}{flip}}(m\_pos);}
+\DoxyCodeLine{00272\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00274\ }
+\DoxyCodeLine{00275\ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00276\ \ \ \ \ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset_1_1reference_ab9356da2a20a1d96b15d5286ca7b12f1}{reference}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_bitset}},\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_pos}})\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}}
+\DoxyCodeLine{00277\ \ \ \ \ \ \ \ \ \ \ \ \ :\ m\_bitset(\textcolor{keyword}{const\_cast<}\mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ *\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_bitset}})),\ m\_pos(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_pos}})\ \{\}}
+\DoxyCodeLine{00278\ }
+\DoxyCodeLine{00279\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ *m\_bitset;}
+\DoxyCodeLine{00280\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ m\_pos;}
+\DoxyCodeLine{00281\ \ \ \ \ \};}
+\DoxyCodeLine{00282\ }
+\DoxyCodeLine{00283\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classwjr_1_1bitset_ac5f045118bba9b34fafcfce3cf171c8e}{operator[]}}(\textcolor{keywordtype}{size\_t}\ pos)\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classwjr_1_1bitset_a7ef8ad3b1e2596688933657aae51339e}{test}}(pos);\ \}}
+\DoxyCodeLine{00284\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset_1_1reference}{reference}}\ \mbox{\hyperlink{classwjr_1_1bitset_a2bcc2dac94a47340298ca9b7e618bea3}{operator[]}}(\textcolor{keywordtype}{size\_t}\ pos)\ \textcolor{keyword}{noexcept}\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classwjr_1_1bitset_1_1reference}{reference}}(\textcolor{keyword}{this},\ pos);\ \}}
+\DoxyCodeLine{00285\ }
+\DoxyCodeLine{00286\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classwjr_1_1bitset_a7ef8ad3b1e2596688933657aae51339e}{test}}(\textcolor{keywordtype}{size\_t}\ pos)\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00287\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (bytes\_size\ ==\ 1)\ \{}
+\DoxyCodeLine{00288\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ((m\_data[0]\ >>\ pos)\ \&\ 1)\ !=\ 0;}
+\DoxyCodeLine{00289\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ((m\_data[pos\ /\ bits]\ >>\ (pos\ \%\ bits))\ \&\ 1)\ !=\ 0;}
+\DoxyCodeLine{00291\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00292\ \ \ \ \ \}}
+\DoxyCodeLine{00293\ }
+\DoxyCodeLine{00294\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{classwjr_1_1bitset_a567eaad60b7b0dc99570f84ce8b8f62c}{size}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N}};\ \}}
+\DoxyCodeLine{00295\ }
+\DoxyCodeLine{00296\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_a8dc774d4faa089078b6556e26cd1d032}{operator\&=}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&other)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00297\ \ \ \ \ \ \ \ \ and\_n(m\_data,\ m\_data,\ other.m\_data,\ bytes\_size);}
+\DoxyCodeLine{00298\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00299\ \ \ \ \ \}}
+\DoxyCodeLine{00300\ }
+\DoxyCodeLine{00301\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_a44cc15e32e02aad9d51ca5a17e0a1edd}{operator|=}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&other)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00302\ \ \ \ \ \ \ \ \ or\_n(m\_data,\ m\_data,\ other.m\_data,\ bytes\_size);}
+\DoxyCodeLine{00303\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00304\ \ \ \ \ \}}
+\DoxyCodeLine{00305\ }
+\DoxyCodeLine{00306\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_af437d5b886a1faea7dd06c1486a918f6}{operator\string^=}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&other)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ xor\_n(m\_data,\ m\_data,\ other.m\_data,\ bytes\_size);}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00309\ \ \ \ \ \}}
+\DoxyCodeLine{00310\ }
+\DoxyCodeLine{00311\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \mbox{\hyperlink{classwjr_1_1bitset_acac73ef768619901b88becad218bcd35}{operator\string~}}()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}};}
+\DoxyCodeLine{00313\ }
+\DoxyCodeLine{00314\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ =\ 0;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ <\ bytes\_size;\ ++\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}})\ \{}
+\DoxyCodeLine{00315\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}}.m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}]\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\string~m\_data}}[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}];}
+\DoxyCodeLine{00316\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00317\ }
+\DoxyCodeLine{00318\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (!full)\ \{}
+\DoxyCodeLine{00319\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}}.m\_data[bytes\_size\ -\/\ 1]\ \&=\ mask;}
+\DoxyCodeLine{00320\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00321\ }
+\DoxyCodeLine{00322\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}};}
+\DoxyCodeLine{00323\ \ \ \ \ \}}
+\DoxyCodeLine{00324\ }
+\DoxyCodeLine{00325\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_a55aea7b79816382b54a16196d453ae25}{set}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{}
+\DoxyCodeLine{00326\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (full)\ \{}
+\DoxyCodeLine{00327\ \ \ \ \ \ \ \ \ \ \ \ \ std::fill\_n(m\_data,\ bytes\_size,\ maxn);}
+\DoxyCodeLine{00328\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00329\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (fast\_memset)\ \{}
+\DoxyCodeLine{00330\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::fill\_n(m\_data,\ bytes\_size,\ maxn);}
+\DoxyCodeLine{00331\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00332\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::fill\_n(m\_data,\ bytes\_size\ -\/\ 1,\ maxn);}
+\DoxyCodeLine{00333\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00334\ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[bytes\_size\ -\/\ 1]\ =\ mask;}
+\DoxyCodeLine{00335\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00336\ \ \ \ \ \}}
+\DoxyCodeLine{00337\ }
+\DoxyCodeLine{00338\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_ad827f1133b4f3cc67866d0bb66224c8c}{set}}(\textcolor{keywordtype}{size\_t}\ pos,\ \textcolor{keywordtype}{bool}\ value\ =\ \textcolor{keyword}{true})\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{}
+\DoxyCodeLine{00339\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_ASSERT\_L2}}(pos\ <\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N}});}
+\DoxyCodeLine{00340\ }
+\DoxyCodeLine{00341\ \ \ \ \ \ \ \ \ bit\_type\ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{word}};}
+\DoxyCodeLine{00342\ \ \ \ \ \ \ \ \ bit\_type\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{set\_byte}};}
+\DoxyCodeLine{00343\ }
+\DoxyCodeLine{00344\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (bytes\_size\ ==\ 1)\ \{}
+\DoxyCodeLine{00345\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{word}}\ =\ std::addressof(m\_data[0]);}
+\DoxyCodeLine{00346\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{set\_byte}}\ =\ \textcolor{keyword}{static\_cast<}bit\_type\textcolor{keyword}{>}(1)\ <<\ pos;}
+\DoxyCodeLine{00347\ }
+\DoxyCodeLine{00348\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00349\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{word}}\ =\ std::addressof(m\_data[pos\ /\ bits]);}
+\DoxyCodeLine{00350\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{set\_byte}}\ =\ \textcolor{keyword}{static\_cast<}bit\_type\textcolor{keyword}{>}(1)\ <<\ (pos\ \%\ bits);}
+\DoxyCodeLine{00351\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00352\ }
+\DoxyCodeLine{00353\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (value)\ \{}
+\DoxyCodeLine{00354\ \ \ \ \ \ \ \ \ \ \ \ \ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{word}}\ |=\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{set\_byte}};}
+\DoxyCodeLine{00355\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00356\ \ \ \ \ \ \ \ \ \ \ \ \ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{word}}\ \&=\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\string~set\_byte}};}
+\DoxyCodeLine{00357\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00358\ }
+\DoxyCodeLine{00359\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00360\ \ \ \ \ \}}
+\DoxyCodeLine{00361\ }
+\DoxyCodeLine{00362\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_aca501865b29b42c7ad58a253e09857e6}{reset}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ std::fill\_n(m\_data,\ bytes\_size,\ 0);\ \}}
+\DoxyCodeLine{00363\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_a4dd1d06b3fa7a8da9a7c95d3ace6fa56}{reset}}(\textcolor{keywordtype}{size\_t}\ pos)\ \textcolor{keyword}{noexcept}\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classwjr_1_1bitset_a55aea7b79816382b54a16196d453ae25}{set}}(pos,\ \textcolor{keyword}{false});\ \}}
+\DoxyCodeLine{00364\ }
+\DoxyCodeLine{00365\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_a19e5403cef11c8632d829f24cb6481eb}{flip}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{}
+\DoxyCodeLine{00366\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ =\ 0;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ <\ bytes\_size;\ ++\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}})\ \{}
+\DoxyCodeLine{00367\ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}]\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\string~m\_data}}[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}];}
+\DoxyCodeLine{00368\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00369\ }
+\DoxyCodeLine{00370\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (!full)\ \{}
+\DoxyCodeLine{00371\ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[bytes\_size\ -\/\ 1]\ \&=\ mask;}
+\DoxyCodeLine{00372\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00373\ }
+\DoxyCodeLine{00374\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00375\ \ \ \ \ \}}
+\DoxyCodeLine{00376\ }
+\DoxyCodeLine{00377\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_a74f9dc591daf41a8f3dbd65ff105ca74}{flip}}(\textcolor{keywordtype}{size\_t}\ pos)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00378\ \ \ \ \ \ \ \ \ m\_data[pos\ /\ bits]\ \string^=\ \textcolor{keyword}{static\_cast<}bit\_type\textcolor{keyword}{>}(1)\ <<\ (pos\ \%\ bits);}
+\DoxyCodeLine{00379\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00380\ \ \ \ \ \}}
+\DoxyCodeLine{00381\ }
+\DoxyCodeLine{00382\ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \mbox{\hyperlink{classwjr_1_1bitset_a8b9d05d9da93845d9ffb74d62cec10fa}{operator|}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}},\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00383\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}}(\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}});}
+\DoxyCodeLine{00384\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}}\ |=\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}};}
+\DoxyCodeLine{00385\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}};}
+\DoxyCodeLine{00386\ \ \ \ \ \}}
+\DoxyCodeLine{00387\ }
+\DoxyCodeLine{00388\ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \mbox{\hyperlink{classwjr_1_1bitset_af06658295137035348e020fa333edbfd}{operator\&}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}},\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00389\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}}(\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}});}
+\DoxyCodeLine{00390\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}}\ \&=\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}};}
+\DoxyCodeLine{00391\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}};}
+\DoxyCodeLine{00392\ \ \ \ \ \}}
+\DoxyCodeLine{00393\ }
+\DoxyCodeLine{00394\ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \mbox{\hyperlink{classwjr_1_1bitset_ad5748762ae407086e98ba09e979cfffe}{operator\string^}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}},\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00395\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}}(\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}});}
+\DoxyCodeLine{00396\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}}\ \string^=\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}};}
+\DoxyCodeLine{00397\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}};}
+\DoxyCodeLine{00398\ \ \ \ \ \}}
+\DoxyCodeLine{00399\ }
+\DoxyCodeLine{00400\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_CONST}}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classwjr_1_1bitset_ac80733cee5143b90cf7359c041d1f0ff}{all}}()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{}
+\DoxyCodeLine{00401\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ =\ 0;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ <\ bytes\_size\ -\/\ 1;\ ++\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}})\ \{}
+\DoxyCodeLine{00402\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}]\ !=\ maxn)}
+\DoxyCodeLine{00403\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00404\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00405\ }
+\DoxyCodeLine{00406\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_data[bytes\_size\ -\/\ 1]\ ==\ mask;}
+\DoxyCodeLine{00407\ \ \ \ \ \}}
+\DoxyCodeLine{00408\ }
+\DoxyCodeLine{00409\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_CONST}}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classwjr_1_1bitset_a36921d68d858d4d0fd074bc6e6b1401d}{any}}()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{}
+\DoxyCodeLine{00410\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ =\ 0;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ <\ bytes\_size;\ ++\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}})\ \{}
+\DoxyCodeLine{00411\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}]\ !=\ 0)\ \{}
+\DoxyCodeLine{00412\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00413\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00414\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00415\ }
+\DoxyCodeLine{00416\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00417\ \ \ \ \ \}}
+\DoxyCodeLine{00418\ }
+\DoxyCodeLine{00419\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_CONST}}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classwjr_1_1bitset_a1bdf970258f3ea5ceffb4b0d9dd3860d}{none}}()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ !\mbox{\hyperlink{classwjr_1_1bitset_a36921d68d858d4d0fd074bc6e6b1401d}{any}}();\ \}}
+\DoxyCodeLine{00420\ }
+\DoxyCodeLine{00421\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_CONST}}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{classwjr_1_1bitset_a66827501aba0da2e852554faef15be08}{count}}()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{}
+\DoxyCodeLine{00422\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cnt}}\ =\ 0;}
+\DoxyCodeLine{00423\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ =\ 0;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ <\ bytes\_size;\ ++\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}})\ \{}
+\DoxyCodeLine{00424\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cnt}}\ +=\ \mbox{\hyperlink{namespacewjr_af57f0278391c353d1a8c2cb4cd70c7da}{popcount}}(m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}]);}
+\DoxyCodeLine{00425\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00426\ }
+\DoxyCodeLine{00427\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cnt}};}
+\DoxyCodeLine{00428\ \ \ \ \ \}}
+\DoxyCodeLine{00429\ }
+\DoxyCodeLine{00430\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_CONST}}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{classwjr_1_1bitset_acf6deaa9d7bdf8fa2e90fd6f4d7ee7ed}{countr\_one}}()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{}
+\DoxyCodeLine{00431\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ =\ 0;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ <\ bytes\_size\ -\/\ 1;\ ++\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}})\ \{}
+\DoxyCodeLine{00432\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ pos\ =\ \mbox{\hyperlink{namespacewjr_a30874d009545d71c088b7fd0c5bbfd97}{wjr::countr\_one}}(m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}]);}
+\DoxyCodeLine{00433\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (pos\ !=\ bits)\ \{}
+\DoxyCodeLine{00434\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ *\ bits\ +\ pos;}
+\DoxyCodeLine{00435\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00436\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00437\ }
+\DoxyCodeLine{00438\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (bytes\_size\ -\/\ 1)\ *\ bits\ +\ \mbox{\hyperlink{namespacewjr_a30874d009545d71c088b7fd0c5bbfd97}{wjr::countr\_one}}(m\_data[bytes\_size\ -\/\ 1]);}
+\DoxyCodeLine{00439\ \ \ \ \ \}}
+\DoxyCodeLine{00440\ }
+\DoxyCodeLine{00444\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_a5ed9849798bf559fa4be3b04286ef759}{operator<<=}}(\textcolor{keywordtype}{size\_t}\ offset)\ \textcolor{keyword}{noexcept};}
+\DoxyCodeLine{00445\ }
+\DoxyCodeLine{00449\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_a278bc1e65695785643c828f49a058fa8}{operator>>=}}(\textcolor{keywordtype}{size\_t}\ offset)\ \textcolor{keyword}{noexcept};}
+\DoxyCodeLine{00450\ }
+\DoxyCodeLine{00451\ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \mbox{\hyperlink{classwjr_1_1bitset_a0223fc81735a682ccf5bb3c99b5a289d}{operator<<}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&bs,\ \textcolor{keywordtype}{size\_t}\ offset)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00452\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}}(bs);}
+\DoxyCodeLine{00453\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}}\ <<=\ offset;}
+\DoxyCodeLine{00454\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}};}
+\DoxyCodeLine{00455\ \ \ \ \ \}}
+\DoxyCodeLine{00456\ }
+\DoxyCodeLine{00457\ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \mbox{\hyperlink{classwjr_1_1bitset_a2cfcc54c9d21030ac7fe831bddda0d26}{operator>>}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \&bs,\ \textcolor{keywordtype}{size\_t}\ offset)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00458\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset}{bitset}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}}(bs);}
+\DoxyCodeLine{00459\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}}\ >>=\ offset;}
+\DoxyCodeLine{00460\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ret}};}
+\DoxyCodeLine{00461\ \ \ \ \ \}}
+\DoxyCodeLine{00462\ }
+\DoxyCodeLine{00463\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Char\ =\ \textcolor{keywordtype}{char},\ \textcolor{keyword}{typename}\ Traits\ =\ std::\textcolor{keywordtype}{char}\_traits<Char>,}
+\DoxyCodeLine{00464\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ Alloc\ =\ std::allocator<Char>>}
+\DoxyCodeLine{00465\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_CONSTEXPR20}}\ std::basic\_string<Char,\ Traits,\ Alloc>}
+\DoxyCodeLine{00466\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1bitset_aa9bd7060598bc5e3090108be43a2eb32}{to\_string}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Char}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{elem0}}\ =\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Char}}\textcolor{keyword}{>}(\textcolor{charliteral}{'0'}),}
+\DoxyCodeLine{00467\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Char}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{elem1}}\ =\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Char}}\textcolor{keyword}{>}(\textcolor{charliteral}{'1'}))\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00468\ \ \ \ \ \ \ \ \ std::basic\_string<Char,\ Traits,\ Alloc>\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{str}};}
+\DoxyCodeLine{00469\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{str}}.reserve(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N}});}
+\DoxyCodeLine{00470\ }
+\DoxyCodeLine{00471\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ pos\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N}};\ pos\ >\ 0;)\ \{}
+\DoxyCodeLine{00472\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{str}}.push\_back(\mbox{\hyperlink{classwjr_1_1bitset_a7ef8ad3b1e2596688933657aae51339e}{test}}(-\/-\/pos)\ ?\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{elem1}}\ :\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{elem0}});}
+\DoxyCodeLine{00473\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00474\ }
+\DoxyCodeLine{00475\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{str}};}
+\DoxyCodeLine{00476\ \ \ \ \ \}}
+\DoxyCodeLine{00477\ }
+\DoxyCodeLine{00478\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00479\ \ \ \ \ bit\_type\ m\_data[bytes\_size];}
+\DoxyCodeLine{00480\ \};}
+\DoxyCodeLine{00481\ }
+\DoxyCodeLine{00482\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ N>}
+\DoxyCodeLine{00483\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Char,\ \textcolor{keyword}{typename}\ Traits>}
+\DoxyCodeLine{00484\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1bitset_a94cf7dd210b5dd92d59b578b5bc087d3}{bitset<N>::bitset}}(std::basic\_string\_view<Char,\ Traits>\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{str}},\ \textcolor{keywordtype}{size\_t}\ pos,\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},}
+\DoxyCodeLine{00485\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Char}}\ zero,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Char}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{one}})\ \{}
+\DoxyCodeLine{00486\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{str}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{str}}.substr(pos,\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}});}
+\DoxyCodeLine{00487\ \ \ \ \ \textcolor{keyword}{auto}\ count\ =\ std::min<size\_t>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{str}}.size());}
+\DoxyCodeLine{00488\ \ \ \ \ \mbox{\hyperlink{gen__addsub_8hpp_a113247af32e9f0b3b691817dade4690f}{WJR\_ASSUME}}(count\ <=\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{N}});}
+\DoxyCodeLine{00489\ }
+\DoxyCodeLine{00490\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{xpos}}\ =\ 0;}
+\DoxyCodeLine{00491\ }
+\DoxyCodeLine{00492\ \ \ \ \ \textcolor{keywordflow}{if}\ (count\ !=\ 0)\ \{}
+\DoxyCodeLine{00493\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ *ptr\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{str}}.data();}
+\DoxyCodeLine{00494\ \ \ \ \ \ \ \ \ ptr\ +=\ count;}
+\DoxyCodeLine{00495\ }
+\DoxyCodeLine{00496\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (count\ >=\ bits)\ \{}
+\DoxyCodeLine{00497\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}}\ =\ 0;}
+\DoxyCodeLine{00498\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ =\ 0;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ <\ bits;\ ++\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}})\ \{}
+\DoxyCodeLine{00499\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ch}}\ =\ ptr[-\/\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ -\/\ 1];}
+\DoxyCodeLine{00500\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (Traits::eq(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ch}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{one}}))\ \{}
+\DoxyCodeLine{00501\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}}\ |=\ \textcolor{keyword}{static\_cast<}bit\_type\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ch}})\ <<\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}};}
+\DoxyCodeLine{00502\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (!Traits::eq(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ch}},\ zero))\ \{}
+\DoxyCodeLine{00503\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_THROW}}(std::invalid\_argument(\textcolor{stringliteral}{"{}invalid\ bitset\ char"{}}));}
+\DoxyCodeLine{00504\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00505\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00506\ }
+\DoxyCodeLine{00507\ \ \ \ \ \ \ \ \ \ \ \ \ ptr\ -\/=\ bits;}
+\DoxyCodeLine{00508\ \ \ \ \ \ \ \ \ \ \ \ \ count\ -\/=\ bits;}
+\DoxyCodeLine{00509\ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{xpos}}++]\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}};}
+\DoxyCodeLine{00510\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00511\ }
+\DoxyCodeLine{00512\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (count\ !=\ 0)\ \{}
+\DoxyCodeLine{00513\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\_t}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}}\ =\ 0;}
+\DoxyCodeLine{00514\ }
+\DoxyCodeLine{00515\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ =\ 0;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ <\ count;\ ++\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}})\ \{}
+\DoxyCodeLine{00516\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ch}}\ =\ ptr[-\/\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ -\/\ 1];}
+\DoxyCodeLine{00517\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (Traits::eq(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ch}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{one}}))\ \{}
+\DoxyCodeLine{00518\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}}\ |=\ \textcolor{keyword}{static\_cast<}bit\_type\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ch}})\ <<\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}};}
+\DoxyCodeLine{00519\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (!Traits::eq(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{ch}},\ zero))\ \{}
+\DoxyCodeLine{00520\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_THROW}}(std::invalid\_argument(\textcolor{stringliteral}{"{}invalid\ bitset\ char"{}}));}
+\DoxyCodeLine{00521\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00522\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00523\ }
+\DoxyCodeLine{00524\ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{xpos}}++]\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{val}};}
+\DoxyCodeLine{00525\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00526\ \ \ \ \ \}}
+\DoxyCodeLine{00527\ }
+\DoxyCodeLine{00528\ \ \ \ \ \textcolor{keywordflow}{for}\ (;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{xpos}}\ <\ bytes\_size;\ ++\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{xpos}})\ \{}
+\DoxyCodeLine{00529\ \ \ \ \ \ \ \ \ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{xpos}}]\ =\ 0;}
+\DoxyCodeLine{00530\ \ \ \ \ \}}
+\DoxyCodeLine{00531\ \}}
+\DoxyCodeLine{00532\ }
+\DoxyCodeLine{00533\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ N>}
+\DoxyCodeLine{00534\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bitset<N>}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_a5ed9849798bf559fa4be3b04286ef759}{bitset<N>::operator<<=}}(\textcolor{keywordtype}{size\_t}\ offset)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00535\ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_UNLIKELY}}(offset\ ==\ 0))\ \{}
+\DoxyCodeLine{00536\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00537\ \ \ \ \ \}}
+\DoxyCodeLine{00538\ }
+\DoxyCodeLine{00539\ \ \ \ \ bit\_type\ low\ =\ m\_data[0];}
+\DoxyCodeLine{00540\ \ \ \ \ m\_data[0]\ <<=\ offset;}
+\DoxyCodeLine{00541\ }
+\DoxyCodeLine{00542\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (bytes\_size\ \&\ 1)\ \{}
+\DoxyCodeLine{00543\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (bytes\_size\ ==\ 1)\ \{}
+\DoxyCodeLine{00544\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (!\mbox{\hyperlink{namespacewjr_a7878e7faf483fb99149d232743b64e77ae9dc924f238fa6cc29465942875fe8f0}{full}})\ \{}
+\DoxyCodeLine{00545\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[0]\ \&=\ mask;}
+\DoxyCodeLine{00546\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00547\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00548\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (\mbox{\hyperlink{namespacewjr_a7878e7faf483fb99149d232743b64e77ae9dc924f238fa6cc29465942875fe8f0}{full}})\ \{}
+\DoxyCodeLine{00549\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ =\ 1;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ !=\ bytes\_size;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ +=\ 2)\ \{}
+\DoxyCodeLine{00550\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bit\_type\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}}\ =\ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}];}
+\DoxyCodeLine{00551\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}]\ =\ \mbox{\hyperlink{namespacewjr_a0e327a8f928f732db31d543451171659}{shld}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}},\ low,\ offset);}
+\DoxyCodeLine{00552\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ low\ =\ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ +\ 1];}
+\DoxyCodeLine{00553\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ +\ 1]\ =\ \mbox{\hyperlink{namespacewjr_a0e327a8f928f732db31d543451171659}{shld}}(low,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}},\ offset);}
+\DoxyCodeLine{00554\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00555\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00556\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ =\ 1;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ <\ bytes\_size\ -\/\ 2;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ +=\ 2)\ \{}
+\DoxyCodeLine{00557\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bit\_type\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}}\ =\ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}];}
+\DoxyCodeLine{00558\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}]\ =\ \mbox{\hyperlink{namespacewjr_a0e327a8f928f732db31d543451171659}{shld}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}},\ low,\ offset);}
+\DoxyCodeLine{00559\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ low\ =\ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ +\ 1];}
+\DoxyCodeLine{00560\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ +\ 1]\ =\ \mbox{\hyperlink{namespacewjr_a0e327a8f928f732db31d543451171659}{shld}}(low,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}},\ offset);}
+\DoxyCodeLine{00561\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00562\ }
+\DoxyCodeLine{00563\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bit\_type\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}}\ =\ m\_data[bytes\_size\ -\/\ 2];}
+\DoxyCodeLine{00564\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[bytes\_size\ -\/\ 2]\ =\ \mbox{\hyperlink{namespacewjr_a0e327a8f928f732db31d543451171659}{shld}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}},\ low,\ offset);}
+\DoxyCodeLine{00565\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ low\ =\ m\_data[bytes\_size\ -\/\ 1];}
+\DoxyCodeLine{00566\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[bytes\_size\ -\/\ 1]\ =\ \mbox{\hyperlink{namespacewjr_a0e327a8f928f732db31d543451171659}{shld}}(low,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}},\ offset)\ \&\ mask;}
+\DoxyCodeLine{00567\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00568\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00569\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00570\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ =\ 1;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ !=\ bytes\_size\ -\/\ 1;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ +=\ 2)\ \{}
+\DoxyCodeLine{00571\ \ \ \ \ \ \ \ \ \ \ \ \ bit\_type\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}}\ =\ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}];}
+\DoxyCodeLine{00572\ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}]\ =\ \mbox{\hyperlink{namespacewjr_a0e327a8f928f732db31d543451171659}{shld}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}},\ low,\ offset);}
+\DoxyCodeLine{00573\ \ \ \ \ \ \ \ \ \ \ \ \ low\ =\ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ +\ 1];}
+\DoxyCodeLine{00574\ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ +\ 1]\ =\ \mbox{\hyperlink{namespacewjr_a0e327a8f928f732db31d543451171659}{shld}}(low,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}},\ offset);}
+\DoxyCodeLine{00575\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00576\ }
+\DoxyCodeLine{00577\ \ \ \ \ \ \ \ \ m\_data[bytes\_size\ -\/\ 1]\ =\ \mbox{\hyperlink{namespacewjr_a0e327a8f928f732db31d543451171659}{shld}}(m\_data[bytes\_size\ -\/\ 1],\ low,\ offset)\ \&\ mask;}
+\DoxyCodeLine{00578\ \ \ \ \ \}}
+\DoxyCodeLine{00579\ }
+\DoxyCodeLine{00580\ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00581\ \}}
+\DoxyCodeLine{00582\ }
+\DoxyCodeLine{00583\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ N>}
+\DoxyCodeLine{00584\ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bitset<N>}}\ \&\mbox{\hyperlink{classwjr_1_1bitset_a278bc1e65695785643c828f49a058fa8}{bitset<N>::operator>>=}}(\textcolor{keywordtype}{size\_t}\ offset)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00585\ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_UNLIKELY}}(offset\ ==\ 0))\ \{}
+\DoxyCodeLine{00586\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00587\ \ \ \ \ \}}
+\DoxyCodeLine{00588\ }
+\DoxyCodeLine{00589\ \ \ \ \ bit\_type\ high\ =\ m\_data[bytes\_size\ -\/\ 1];}
+\DoxyCodeLine{00590\ \ \ \ \ m\_data[bytes\_size\ -\/\ 1]\ >>=\ offset;}
+\DoxyCodeLine{00591\ }
+\DoxyCodeLine{00592\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (bytes\_size\ \&\ 1)\ \{}
+\DoxyCodeLine{00593\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (bytes\_size\ !=\ 1)\ \{}
+\DoxyCodeLine{00594\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keyword}{constexpr}\ (\mbox{\hyperlink{namespacewjr_a7878e7faf483fb99149d232743b64e77ae9dc924f238fa6cc29465942875fe8f0}{full}})\ \{}
+\DoxyCodeLine{00595\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ =\ bytes\_size\ -\/\ 1;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ !=\ 0;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ -\/=\ 2)\ \{}
+\DoxyCodeLine{00596\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bit\_type\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}}\ =\ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ -\/\ 1];}
+\DoxyCodeLine{00597\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ -\/\ 1]\ =\ \mbox{\hyperlink{namespacewjr_aaea6d30edeec08a4910cfce869c5bc54}{shrd}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}},\ high,\ offset);}
+\DoxyCodeLine{00598\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ high\ =\ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ -\/\ 2];}
+\DoxyCodeLine{00599\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ -\/\ 2]\ =\ \mbox{\hyperlink{namespacewjr_aaea6d30edeec08a4910cfce869c5bc54}{shrd}}(high,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}},\ offset);}
+\DoxyCodeLine{00600\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00601\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00602\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ =\ bytes\_size\ -\/\ 1;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ !=\ 2;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ -\/=\ 2)\ \{}
+\DoxyCodeLine{00603\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bit\_type\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}}\ =\ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ -\/\ 1];}
+\DoxyCodeLine{00604\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ -\/\ 1]\ =\ \mbox{\hyperlink{namespacewjr_aaea6d30edeec08a4910cfce869c5bc54}{shrd}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}},\ high,\ offset);}
+\DoxyCodeLine{00605\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ high\ =\ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ -\/\ 2];}
+\DoxyCodeLine{00606\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ -\/\ 2]\ =\ \mbox{\hyperlink{namespacewjr_aaea6d30edeec08a4910cfce869c5bc54}{shrd}}(high,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}},\ offset);}
+\DoxyCodeLine{00607\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00608\ }
+\DoxyCodeLine{00609\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bit\_type\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}}\ =\ m\_data[1];}
+\DoxyCodeLine{00610\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[1]\ =\ \mbox{\hyperlink{namespacewjr_aaea6d30edeec08a4910cfce869c5bc54}{shrd}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}},\ high,\ offset);}
+\DoxyCodeLine{00611\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ high\ =\ m\_data[0];}
+\DoxyCodeLine{00612\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[0]\ =\ \mbox{\hyperlink{namespacewjr_aaea6d30edeec08a4910cfce869c5bc54}{shrd}}(high,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}},\ offset);}
+\DoxyCodeLine{00613\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00614\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00615\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00616\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ =\ bytes\_size\ -\/\ 1;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ !=\ 1;\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ -\/=\ 2)\ \{}
+\DoxyCodeLine{00617\ \ \ \ \ \ \ \ \ \ \ \ \ bit\_type\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}}\ =\ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ -\/\ 1];}
+\DoxyCodeLine{00618\ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ -\/\ 1]\ =\ \mbox{\hyperlink{namespacewjr_aaea6d30edeec08a4910cfce869c5bc54}{shrd}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}},\ high,\ offset);}
+\DoxyCodeLine{00619\ \ \ \ \ \ \ \ \ \ \ \ \ high\ =\ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ -\/\ 2];}
+\DoxyCodeLine{00620\ \ \ \ \ \ \ \ \ \ \ \ \ m\_data[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{i}}\ -\/\ 2]\ =\ \mbox{\hyperlink{namespacewjr_aaea6d30edeec08a4910cfce869c5bc54}{shrd}}(high,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{now}},\ offset);}
+\DoxyCodeLine{00621\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00622\ }
+\DoxyCodeLine{00623\ \ \ \ \ \ \ \ \ m\_data[0]\ =\ \mbox{\hyperlink{namespacewjr_aaea6d30edeec08a4910cfce869c5bc54}{shrd}}(m\_data[0],\ high,\ offset);}
+\DoxyCodeLine{00624\ \ \ \ \ \}}
+\DoxyCodeLine{00625\ }
+\DoxyCodeLine{00626\ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00627\ \}}
+\DoxyCodeLine{00628\ }
+\DoxyCodeLine{00629\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Char,\ \textcolor{keyword}{typename}\ Traits,\ \textcolor{keywordtype}{size\_t}\ N>}
+\DoxyCodeLine{00630\ std::basic\_ostream<Char,\ Traits>\ \&\mbox{\hyperlink{namespacewjr_ab43c09e98d02340fcecabead417ab051}{operator<<}}(std::basic\_ostream<Char,\ Traits>\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{os}},}
+\DoxyCodeLine{00631\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bitset<N>}}\ \&bs)\ \{}
+\DoxyCodeLine{00632\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{fac}}\ =\ std::use\_facet<std::ctype<Char>>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{os}}.getloc());}
+\DoxyCodeLine{00633\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{os}}\ <<\ bs.\mbox{\hyperlink{classwjr_1_1bitset_aa9bd7060598bc5e3090108be43a2eb32}{to\_string}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{fac}}.widen(\textcolor{charliteral}{'0'}),\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{fac}}.widen(\textcolor{charliteral}{'1'}));}
+\DoxyCodeLine{00634\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{os}};}
+\DoxyCodeLine{00635\ \}}
+\DoxyCodeLine{00636\ }
+\DoxyCodeLine{00637\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00638\ }
+\DoxyCodeLine{00639\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacefmt}{fmt}}\ \{}
+\DoxyCodeLine{00640\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ N,\ \textcolor{keyword}{typename}\ Char>}
+\DoxyCodeLine{00641\ \textcolor{keyword}{struct\ }formatter<\mbox{\hyperlink{namespacewjr}{wjr}}::bitset<N>,\ Char>\ :\ nested\_formatter<std::basic\_string\_view<Char>,\ Char>\ \{}
+\DoxyCodeLine{00642\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00643\ \ \ \ \ \textcolor{comment}{//\ Functor\ because\ C++11\ doesn't\ support\ generic\ lambdas.}}
+\DoxyCodeLine{00644\ \ \ \ \ \textcolor{keyword}{struct\ }writer\ \{}
+\DoxyCodeLine{00645\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::bitset<N>}}\ \&bs;}
+\DoxyCodeLine{00646\ }
+\DoxyCodeLine{00647\ \ \ \ \ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ OutputIt>}
+\DoxyCodeLine{00648\ \ \ \ \ \ \ \ \ FMT\_CONSTEXPR\ \textcolor{keyword}{auto}\ operator()(OutputIt\ out)\ -\/>\ OutputIt\ \{}
+\DoxyCodeLine{00649\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ pos\ =\ N;\ pos\ >\ 0;\ -\/-\/pos)\ \{}
+\DoxyCodeLine{00650\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ out\ =\ detail::write<Char>(out,\ bs[pos\ -\/\ 1]\ ?\ Char(\textcolor{charliteral}{'1'})\ :\ Char(\textcolor{charliteral}{'0'}));}
+\DoxyCodeLine{00651\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00652\ }
+\DoxyCodeLine{00653\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ out;}
+\DoxyCodeLine{00654\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00655\ \ \ \ \ \};}
+\DoxyCodeLine{00656\ }
+\DoxyCodeLine{00657\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00658\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ FormatContext>}
+\DoxyCodeLine{00659\ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{structfmt_1_1formatter_3_01wjr_1_1bitset_3_01_n_01_4_00_01_char_01_4_a34afd829d98e992ac89220e752e694bc}{format}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::bitset<N>}}\ \&bs,\ FormatContext\ \&ctx)\ \textcolor{keyword}{const}\ -\/>\ \textcolor{keyword}{decltype}(ctx.out())\ \{}
+\DoxyCodeLine{00660\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ this-\/>write\_padded(ctx,\ writer\{bs\});}
+\DoxyCodeLine{00661\ \ \ \ \ \}}
+\DoxyCodeLine{00662\ \};}
+\DoxyCodeLine{00663\ \}\ \textcolor{comment}{//\ namespace\ fmt}}
+\DoxyCodeLine{00664\ }
+\DoxyCodeLine{00665\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_CONTAINER\_BITSET\_HPP\_\_}}
+
+\end{DoxyCode}

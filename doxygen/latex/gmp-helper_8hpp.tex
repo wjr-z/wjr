@@ -1,0 +1,70 @@
+\doxysection{src/wjr/biginteger/detail/gmp-\/helper.hpp 文件参考}
+\hypertarget{gmp-helper_8hpp}{}\label{gmp-helper_8hpp}\index{src/wjr/biginteger/detail/gmp-\/helper.hpp@{src/wjr/biginteger/detail/gmp-\/helper.hpp}}
+\doxysubsubsection*{类型定义}
+\begin{DoxyCompactItemize}
+\item 
+using \mbox{\hyperlink{gmp-helper_8hpp_a57a56e466451c3d9e8d835422d4e929d}{mp\+\_\+ptr}} = uint64\+\_\+t \texorpdfstring{$\ast$}{*}
+\item 
+using \mbox{\hyperlink{gmp-helper_8hpp_a3972cd1d676773adcf3fa7e90d92b8dd}{mp\+\_\+size\+\_\+t}} = size\+\_\+t
+\item 
+using \mbox{\hyperlink{gmp-helper_8hpp_ae12b5b42de714f7ddf2af73efd023b05}{mp\+\_\+bitcnt\+\_\+t}} = size\+\_\+t
+\item 
+using \mbox{\hyperlink{gmp-helper_8hpp_ae9c1fdea866d53266027839058337015}{mp\+\_\+srcptr}} = const uint64\+\_\+t \texorpdfstring{$\ast$}{*}
+\item 
+using \mbox{\hyperlink{gmp-helper_8hpp_ada7523292661168bad8593e125527596}{mp\+\_\+limb\+\_\+t}} = uint64\+\_\+t
+\end{DoxyCompactItemize}
+\doxysubsubsection*{函数}
+\begin{DoxyCompactItemize}
+\item 
+WJR\+\_\+\+CONST WJR\+\_\+\+INTRINSIC\+\_\+\+CONSTEXPR bool \mbox{\hyperlink{gmp-helper_8hpp_a8d45e3b1b6ea5e4527ee432a51297c04}{mulmod\+\_\+bknp1\+\_\+usable}} (size\+\_\+t rn, unsigned \&k, size\+\_\+t mn) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\item 
+WJR\+\_\+\+CONST WJR\+\_\+\+INTRINSIC\+\_\+\+CONSTEXPR bool \mbox{\hyperlink{gmp-helper_8hpp_a0d5fba1c1fc978ddb399b47e3716c264}{sqrmod\+\_\+bknp1\+\_\+usable}} (size\+\_\+t rn, unsigned \&k, size\+\_\+t mn) \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_ad3341d13159b8b1b7905ff7e0a962d84}{noexcept}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{类型定义说明}
+\Hypertarget{gmp-helper_8hpp_ae12b5b42de714f7ddf2af73efd023b05}\label{gmp-helper_8hpp_ae12b5b42de714f7ddf2af73efd023b05} 
+\index{gmp-\/helper.hpp@{gmp-\/helper.hpp}!mp\_bitcnt\_t@{mp\_bitcnt\_t}}
+\index{mp\_bitcnt\_t@{mp\_bitcnt\_t}!gmp-\/helper.hpp@{gmp-\/helper.hpp}}
+\doxysubsubsection{\texorpdfstring{mp\_bitcnt\_t}{mp\_bitcnt\_t}}
+{\footnotesize\ttfamily using \mbox{\hyperlink{gmp-helper_8hpp_ae12b5b42de714f7ddf2af73efd023b05}{mp\+\_\+bitcnt\+\_\+t}} = size\+\_\+t}
+
+\Hypertarget{gmp-helper_8hpp_ada7523292661168bad8593e125527596}\label{gmp-helper_8hpp_ada7523292661168bad8593e125527596} 
+\index{gmp-\/helper.hpp@{gmp-\/helper.hpp}!mp\_limb\_t@{mp\_limb\_t}}
+\index{mp\_limb\_t@{mp\_limb\_t}!gmp-\/helper.hpp@{gmp-\/helper.hpp}}
+\doxysubsubsection{\texorpdfstring{mp\_limb\_t}{mp\_limb\_t}}
+{\footnotesize\ttfamily using \mbox{\hyperlink{gmp-helper_8hpp_ada7523292661168bad8593e125527596}{mp\+\_\+limb\+\_\+t}} = uint64\+\_\+t}
+
+\Hypertarget{gmp-helper_8hpp_a57a56e466451c3d9e8d835422d4e929d}\label{gmp-helper_8hpp_a57a56e466451c3d9e8d835422d4e929d} 
+\index{gmp-\/helper.hpp@{gmp-\/helper.hpp}!mp\_ptr@{mp\_ptr}}
+\index{mp\_ptr@{mp\_ptr}!gmp-\/helper.hpp@{gmp-\/helper.hpp}}
+\doxysubsubsection{\texorpdfstring{mp\_ptr}{mp\_ptr}}
+{\footnotesize\ttfamily using \mbox{\hyperlink{gmp-helper_8hpp_a57a56e466451c3d9e8d835422d4e929d}{mp\+\_\+ptr}} = uint64\+\_\+t \texorpdfstring{$\ast$}{*}}
+
+\Hypertarget{gmp-helper_8hpp_a3972cd1d676773adcf3fa7e90d92b8dd}\label{gmp-helper_8hpp_a3972cd1d676773adcf3fa7e90d92b8dd} 
+\index{gmp-\/helper.hpp@{gmp-\/helper.hpp}!mp\_size\_t@{mp\_size\_t}}
+\index{mp\_size\_t@{mp\_size\_t}!gmp-\/helper.hpp@{gmp-\/helper.hpp}}
+\doxysubsubsection{\texorpdfstring{mp\_size\_t}{mp\_size\_t}}
+{\footnotesize\ttfamily using \mbox{\hyperlink{gmp-helper_8hpp_a3972cd1d676773adcf3fa7e90d92b8dd}{mp\+\_\+size\+\_\+t}} = size\+\_\+t}
+
+\Hypertarget{gmp-helper_8hpp_ae9c1fdea866d53266027839058337015}\label{gmp-helper_8hpp_ae9c1fdea866d53266027839058337015} 
+\index{gmp-\/helper.hpp@{gmp-\/helper.hpp}!mp\_srcptr@{mp\_srcptr}}
+\index{mp\_srcptr@{mp\_srcptr}!gmp-\/helper.hpp@{gmp-\/helper.hpp}}
+\doxysubsubsection{\texorpdfstring{mp\_srcptr}{mp\_srcptr}}
+{\footnotesize\ttfamily using \mbox{\hyperlink{gmp-helper_8hpp_ae9c1fdea866d53266027839058337015}{mp\+\_\+srcptr}} = const uint64\+\_\+t \texorpdfstring{$\ast$}{*}}
+
+
+
+\doxysubsection{函数说明}
+\Hypertarget{gmp-helper_8hpp_a8d45e3b1b6ea5e4527ee432a51297c04}\label{gmp-helper_8hpp_a8d45e3b1b6ea5e4527ee432a51297c04} 
+\index{gmp-\/helper.hpp@{gmp-\/helper.hpp}!mulmod\_bknp1\_usable@{mulmod\_bknp1\_usable}}
+\index{mulmod\_bknp1\_usable@{mulmod\_bknp1\_usable}!gmp-\/helper.hpp@{gmp-\/helper.hpp}}
+\doxysubsubsection{\texorpdfstring{mulmod\_bknp1\_usable()}{mulmod\_bknp1\_usable()}}
+{\footnotesize\ttfamily WJR\+\_\+\+CONST WJR\+\_\+\+INTRINSIC\+\_\+\+CONSTEXPR bool mulmod\+\_\+bknp1\+\_\+usable (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{rn,  }\item[{unsigned \&}]{k,  }\item[{size\+\_\+t}]{mn }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [noexcept]}}
+
+\Hypertarget{gmp-helper_8hpp_a0d5fba1c1fc978ddb399b47e3716c264}\label{gmp-helper_8hpp_a0d5fba1c1fc978ddb399b47e3716c264} 
+\index{gmp-\/helper.hpp@{gmp-\/helper.hpp}!sqrmod\_bknp1\_usable@{sqrmod\_bknp1\_usable}}
+\index{sqrmod\_bknp1\_usable@{sqrmod\_bknp1\_usable}!gmp-\/helper.hpp@{gmp-\/helper.hpp}}
+\doxysubsubsection{\texorpdfstring{sqrmod\_bknp1\_usable()}{sqrmod\_bknp1\_usable()}}
+{\footnotesize\ttfamily WJR\+\_\+\+CONST WJR\+\_\+\+INTRINSIC\+\_\+\+CONSTEXPR bool sqrmod\+\_\+bknp1\+\_\+usable (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{rn,  }\item[{unsigned \&}]{k,  }\item[{size\+\_\+t}]{mn }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [noexcept]}}
+

@@ -1,0 +1,916 @@
+\doxysection{wjr\+::basic\+\_\+biginteger\texorpdfstring{$<$}{<} Storage \texorpdfstring{$>$}{>} 模板类 参考}
+\hypertarget{classwjr_1_1basic__biginteger}{}\label{classwjr_1_1basic__biginteger}\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+
+
+{\ttfamily \#include $<$biginteger.\+hpp$>$}
+
+
+
+wjr\+::basic\+\_\+biginteger\texorpdfstring{$<$}{<} Storage \texorpdfstring{$>$}{>} 的协作图\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=193pt]{classwjr_1_1basic__biginteger__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public 类型}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a43673118b6508daf7ad1f4b0d4c92dad}{storage\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_afc3a1bce490806ee186bb2a915f7febb}{vector\+\_\+type}} = \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$\mbox{\hyperlink{classwjr_1_1basic__biginteger_a43673118b6508daf7ad1f4b0d4c92dad}{storage\+\_\+type}}$>$
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_aae7b183c9b08b06201da62400f82012d}{value\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_af44a0ed41773a86f750c827d0afae058}{vector\+\_\+type\+::value\+\_\+type}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a698bf01bece51bfbc975bf134852fc98}{vector\+\_\+type\+::size\+\_\+type}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_aacfcb7ba002b2f172f5861f35c222afe}{difference\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a3d012eb76b3fe5b5b3063cc508175082}{vector\+\_\+type\+::difference\+\_\+type}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a8e7a8a29d32df70f56170c3a0f716e2b}{reference}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a2c59d8cc661739d77a0f272ab944253c}{vector\+\_\+type\+::reference}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_afc674027dd285695416691006ddad3c4}{const\+\_\+reference}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a793fd2fb01a261234903de65b401d410}{vector\+\_\+type\+::const\+\_\+reference}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a067a076435f702641d1d56d6613c23f4}{pointer}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a775d68a90bf7d2d8aca6663e8c0af247}{vector\+\_\+type\+::pointer}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_aa687d80c34ee6902659e8a19f2cc30b5}{const\+\_\+pointer}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a02a4aa687cb9d5555ec23c249a372a46}{vector\+\_\+type\+::const\+\_\+pointer}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a12bae9c5e9fe3b5d1c638af0647e3874}{iterator}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_ae4814b81241e558addad9a88e9267e15}{vector\+\_\+type\+::iterator}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_adc6794025fe6535af1e84d5c4b6f8f04}{const\+\_\+iterator}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a7094bdcb53373b1768874d25dc1d2010}{vector\+\_\+type\+::const\+\_\+iterator}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a075be9dc5703d378d19307d379077c94}{reverse\+\_\+iterator}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_ab9ed6a73a3c5f9ff17a53a79cadb0f56}{vector\+\_\+type\+::reverse\+\_\+iterator}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a8bfd06df6c64a9174ac0eb2913a4db9c}{const\+\_\+reverse\+\_\+iterator}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a72fe19a70bc57b21cfceab5d5912b956}{vector\+\_\+type\+::const\+\_\+reverse\+\_\+iterator}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a3136385a45e0f502a3b060d59acd9080}{vector\+\_\+type\+::allocator\+\_\+type}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a775b7c83f861cd50279a0b276e9c20c2}{is\+\_\+reallocatable}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} storage\+\_\+type\+::is\+\_\+reallocatable
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public 成员函数}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a2564e68d834537a58e1738d8842688d6}{basic\+\_\+biginteger}} ()=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{default}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_aca9193bbc1234fd13d43441642d10110}{basic\+\_\+biginteger}} (\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \&\&other)=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{default}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_a18b4a73e4d9ce1fd7f1d3774ae8023ed}{operator=}} (\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \&\&other)=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{default}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_afba8b8ae2eb8042d1b9d7cfac810107c}{\texorpdfstring{$\sim$}{\string~}basic\+\_\+biginteger}} ()=\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{default}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a23e5a001e048b8e43e04fa79a69bea7e}{basic\+\_\+biginteger}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \&other, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{al}}=\mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}}())
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_aa1cdcda329945d50b82c73ea423300ed}{basic\+\_\+biginteger}} (\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}}, \mbox{\hyperlink{structwjr_1_1in__place__reserve__t}{in\+\_\+place\+\_\+reserve\+\_\+t}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{al}}=\mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}}())
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a18e939000331648264cf14f2455c803b}{basic\+\_\+biginteger}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{al}})
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a50a1c6083e53c32e49d18f1cbcf0fdcb}{basic\+\_\+biginteger}} (\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \&\&other, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{al}})
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Unsigned\+Value}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+unsigned\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Unsigned\+Value}} $>$) $>$ }\\\mbox{\hyperlink{classwjr_1_1basic__biginteger_adfc1b4c0be945adf0cd66c7ce002b4c5}{basic\+\_\+biginteger}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Unsigned\+Value}} value, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{al}}=\mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}}())
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Signed\+Value}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+signed\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Signed\+Value}} $>$) $>$ }\\\mbox{\hyperlink{classwjr_1_1basic__biginteger_a212ccf44e76ddf3f51787b4d773330c3}{basic\+\_\+biginteger}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Signed\+Value}} value, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{al}}=\mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}}())
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_af304a07a601bec191878e8c7ed4abf31}{basic\+\_\+biginteger}} (std\+::string\+\_\+view \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{str}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{unsigned}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}} base=10, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{al}}=\mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}}())
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Othter\+Storage}} $>$ }\\\mbox{\hyperlink{classwjr_1_1basic__biginteger_af1d0f7a1f525e3765713b97ad4e67786}{basic\+\_\+biginteger}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Othter\+Storage}} $>$ \&other, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{al}}=\mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}}())
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a0ed350cf7ead724e597021386ad37465}{basic\+\_\+biginteger}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1biginteger__data}{biginteger\+\_\+data}} \&\mbox{\hyperlink{classwjr_1_1basic__biginteger_a7bd8842e6a5dcd5c80dccdcdb987a10a}{data}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{al}}=\mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}}())
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_a8c62f2fbaeadeb4b5239b1ab836bc024}{operator=}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \&other)
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Unsigned\+Value}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+unsigned\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Unsigned\+Value}} $>$) $>$ }\\\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_aa190b54decc1dfdea4c3de482f05a146}{operator=}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Unsigned\+Value}} value)
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Signed\+Value}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+signed\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Signed\+Value}} $>$) $>$ }\\\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_a0fd2f7bcd99b408c3bcd5f4d96a4de03}{operator=}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Signed\+Value}} value)
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_a1bca38657f52e566002081b4a69ffe38}{operator=}} (std\+::string\+\_\+view \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{str}})
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Othter\+Storage}} $>$ }\\\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_a777c5800f74f8f20c27c31017bc3ecff}{operator=}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Othter\+Storage}} $>$ \&other)
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_ad8e246fcafc9810c36e8fc3e0bae2dee}{operator=}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1biginteger__data}{biginteger\+\_\+data}} \&\mbox{\hyperlink{classwjr_1_1basic__biginteger_a7bd8842e6a5dcd5c80dccdcdb987a10a}{data}})
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$) $>$ }\\\mbox{\hyperlink{classwjr_1_1basic__biginteger_a9a8c9308ace4797112704d3bc9e24ce6}{operator T}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_a8c4282f26393f75bcc3c813b705b91ae}{from\+\_\+string}} (std\+::string\+\_\+view \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{str}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{unsigned}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}} base=10) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_aa41ad960ff5bf01b4534cd48cbe5b74e}{get\+\_\+allocator}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_a733777f2596747a2a1e06bdecd0a9581}{get\+\_\+allocator}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a067a076435f702641d1d56d6613c23f4}{pointer}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a7bd8842e6a5dcd5c80dccdcdb987a10a}{data}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_aa687d80c34ee6902659e8a19f2cc30b5}{const\+\_\+pointer}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a91d7ea5dd17317546145cc9b23876e22}{data}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a8dd86eee7ee9919c9fa512d1c2df53d5}{empty}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a4599bb9ef7107e6b9b23f36d8a4a84bb}{size}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_aa612f3df31bd607e4ddad4fb70ddc171}{capacity}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a372863f308ed15fc278bdd6b35130072}{zero}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_aa72342d1af0b7a79086de86cc316e110}{bit\+\_\+width}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_abe5a9b7765be6bab89c0d7c51d645412}{ctz}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a3a00c6621a733bac3fd202bc990a7b0b}{countr\+\_\+zero}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a9962ac213a17f4636d91b92e9bb17b99}{reserve}} (\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{new\+\_\+capacity}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a921ca45022acb2929bddb5540ec49ab1}{clear\+\_\+if\+\_\+reserved}} (\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{new\+\_\+capacity}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a11a567693e3a7241c0163f7caaca999a}{shrink\+\_\+to\+\_\+fit}} ()
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_aff368d90209487561ee93b122e670ffa}{clear}} ()
+\begin{DoxyCompactList}\small\item\em equal to set\+\_\+ssize(0) \end{DoxyCompactList}\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a203efce078db9ba28d12c2bdafc055ba}{swap}} (\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \&other) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ad9f902981143901fafa67361ae904d79}{conditional\+\_\+negate}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{condition}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a95ad4ce64d1258b20ee5a2187e15c97a}{negate}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a2db06aec676c641343af57c70aefed85}{is\+\_\+negate}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a0d0971dc2d3a59350b6660ae1c158cf8}{absolute}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_a7b782d43664f78c9526c1d443503e07d}{operator++}} ()
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_aa69d1f7f0fba2e98dddf28858307b592}{operator-\/-\/}} ()
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$) $>$ }\\\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_a60807ba41dfe70d8a26bd9c1906b84fb}{operator+=}} (\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_a63be0d72c84ac005fe2737ed51564459}{operator+=}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1biginteger__data}{biginteger\+\_\+data}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$) $>$ }\\\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_abcda9ca2fc146580d501fda2b7c4bb99}{operator-\/=}} (\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_a23a2b793906c319156418478796d9fb0}{operator-\/=}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1biginteger__data}{biginteger\+\_\+data}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$) $>$ }\\\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_ac81eef41672506a057ac72de8e81b19a}{operator\texorpdfstring{$\ast$}{*}=}} (\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_a3c4e69faa6627fa86f94d6b4c086ba56}{operator\texorpdfstring{$\ast$}{*}=}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1biginteger__data}{biginteger\+\_\+data}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_aec147c03e7289b93c3d40184dac1988c}{operator$<$$<$=}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\+\_\+t}} shift)
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a8e7a8a29d32df70f56170c3a0f716e2b}{reference}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_aada1ff7d2a3ba27bacabea7e1a3b5fb6}{at}} (\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} pos)
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_afc674027dd285695416691006ddad3c4}{const\+\_\+reference}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a783097414898fcd0cf068f1577fb7cf9}{at}} (\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} pos) \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a8e7a8a29d32df70f56170c3a0f716e2b}{reference}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_af06be92b08020eb35e26d014a8a17182}{operator\mbox{[}$\,$\mbox{]}}} (\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} pos) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_afc674027dd285695416691006ddad3c4}{const\+\_\+reference}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab0e2a15126d8b73438f6c2c3bc4f422a}{operator\mbox{[}$\,$\mbox{]}}} (\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} pos) \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a8e7a8a29d32df70f56170c3a0f716e2b}{reference}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a7bd91d20835c5d1b76a476f0509df47a}{front}} ()
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_afc674027dd285695416691006ddad3c4}{const\+\_\+reference}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a65d696b6aef8cafa811da7fa1f25b8c3}{front}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a8e7a8a29d32df70f56170c3a0f716e2b}{reference}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a897e0bec6e6574adb3eb554f6ef7ad2b}{back}} ()
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_afc674027dd285695416691006ddad3c4}{const\+\_\+reference}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ae8f4d125e477fe9d05f13f040521e271}{back}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a12bae9c5e9fe3b5d1c638af0647e3874}{iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab6b3b7272d8d15360bc3b60270815193}{begin}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_adc6794025fe6535af1e84d5c4b6f8f04}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a104dc27ad0e8d605a695aae34d98bc39}{begin}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a12bae9c5e9fe3b5d1c638af0647e3874}{iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ac91d60b841c2cf477b5f838fa24b67a9}{end}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_adc6794025fe6535af1e84d5c4b6f8f04}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a2f1ccf8c79e4e35a72cab0414526de0f}{end}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_adc6794025fe6535af1e84d5c4b6f8f04}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a33eb6ed92baf48a7fd2c9f0ace6cb5b7}{cbegin}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_adc6794025fe6535af1e84d5c4b6f8f04}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_afd90ee5a555556fe24fc682dad9c1860}{cend}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a075be9dc5703d378d19307d379077c94}{reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a024f9195c3d2676d05d68c72dad4cea6}{rbegin}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a8bfd06df6c64a9174ac0eb2913a4db9c}{const\+\_\+reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a63f71ec56204431085b151e3407b6499}{rbegin}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a075be9dc5703d378d19307d379077c94}{reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a0e074ccf3eddad961d492b44db8e5756}{rend}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a8bfd06df6c64a9174ac0eb2913a4db9c}{const\+\_\+reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a5698787396b351bc94b4c54de814455f}{rend}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a8bfd06df6c64a9174ac0eb2913a4db9c}{const\+\_\+reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a135ff5dcac40cee5a91178adc929dabe}{crbegin}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a8bfd06df6c64a9174ac0eb2913a4db9c}{const\+\_\+reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a644f5358d8814d3f2b4017be0a969d46}{crend}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int32\+\_\+t}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a7fe9b538b246d4db6b135bead5ade290}{get\+\_\+ssize}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$) $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a0fcee251e22401c317d5c9df6a87a942}{set\+\_\+ssize}} (\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{new\+\_\+size}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ad749d5c36f35c04236d635c6a978fd7e}{take\+\_\+storage}} (\mbox{\hyperlink{classwjr_1_1basic__biginteger_a43673118b6508daf7ad1f4b0d4c92dad}{storage\+\_\+type}} \&other) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a1a80f3d3a2ca224a7a81c2c80e390807}{uninitialized\+\_\+construct}} (\mbox{\hyperlink{classwjr_1_1basic__biginteger_a43673118b6508daf7ad1f4b0d4c92dad}{storage\+\_\+type}} \&other, \mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{siz}}, \mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cap}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a43673118b6508daf7ad1f4b0d4c92dad}{storage\+\_\+type}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_a209d6c412daa42ac39f0671956d8c931}{get\+\_\+storage}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a43673118b6508daf7ad1f4b0d4c92dad}{storage\+\_\+type}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger_a6c699be6e4e96ca1edee7036c61980d8}{get\+\_\+storage}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a9cbbee066400e477d28abb60a68ff178}{operator biginteger\+\_\+data \&}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_aa0b81542fdae2ec95a975a947e7d927c}{operator const biginteger\+\_\+data \&}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{静态 Public 成员函数}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{static}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONST}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a76d823b0504d52c9124012c2204a9c69}{get\+\_\+growth\+\_\+capacity}} (\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{old\+\_\+capacity}}, \mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{new\+\_\+size}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{友元}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \+\_\+\+Mybase , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+\_\+\+Tag}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+\_\+\+Enable}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{struct}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab1a7cc1f62daaecd82012d41a8a025dd}{container\+\_\+of\+\_\+fn}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{成员类型定义说明}
+\Hypertarget{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}\label{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!allocator\_type@{allocator\_type}}
+\index{allocator\_type@{allocator\_type}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{allocator\_type}{allocator\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::allocator\+\_\+type = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a3136385a45e0f502a3b060d59acd9080}{vector\+\_\+type\+::allocator\+\_\+type}}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_adc6794025fe6535af1e84d5c4b6f8f04}\label{classwjr_1_1basic__biginteger_adc6794025fe6535af1e84d5c4b6f8f04} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!const\_iterator@{const\_iterator}}
+\index{const\_iterator@{const\_iterator}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{const\_iterator}{const\_iterator}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::const\+\_\+iterator = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a7094bdcb53373b1768874d25dc1d2010}{vector\+\_\+type\+::const\+\_\+iterator}}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_aa687d80c34ee6902659e8a19f2cc30b5}\label{classwjr_1_1basic__biginteger_aa687d80c34ee6902659e8a19f2cc30b5} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!const\_pointer@{const\_pointer}}
+\index{const\_pointer@{const\_pointer}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{const\_pointer}{const\_pointer}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::const\+\_\+pointer = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a02a4aa687cb9d5555ec23c249a372a46}{vector\+\_\+type\+::const\+\_\+pointer}}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_afc674027dd285695416691006ddad3c4}\label{classwjr_1_1basic__biginteger_afc674027dd285695416691006ddad3c4} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!const\_reference@{const\_reference}}
+\index{const\_reference@{const\_reference}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{const\_reference}{const\_reference}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::const\+\_\+reference = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a793fd2fb01a261234903de65b401d410}{vector\+\_\+type\+::const\+\_\+reference}}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a8bfd06df6c64a9174ac0eb2913a4db9c}\label{classwjr_1_1basic__biginteger_a8bfd06df6c64a9174ac0eb2913a4db9c} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!const\_reverse\_iterator@{const\_reverse\_iterator}}
+\index{const\_reverse\_iterator@{const\_reverse\_iterator}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{const\_reverse\_iterator}{const\_reverse\_iterator}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::const\+\_\+reverse\+\_\+iterator = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a72fe19a70bc57b21cfceab5d5912b956}{vector\+\_\+type\+::const\+\_\+reverse\+\_\+iterator}}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_aacfcb7ba002b2f172f5861f35c222afe}\label{classwjr_1_1basic__biginteger_aacfcb7ba002b2f172f5861f35c222afe} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!difference\_type@{difference\_type}}
+\index{difference\_type@{difference\_type}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{difference\_type}{difference\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::difference\+\_\+type = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a3d012eb76b3fe5b5b3063cc508175082}{vector\+\_\+type\+::difference\+\_\+type}}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a775b7c83f861cd50279a0b276e9c20c2}\label{classwjr_1_1basic__biginteger_a775b7c83f861cd50279a0b276e9c20c2} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!is\_reallocatable@{is\_reallocatable}}
+\index{is\_reallocatable@{is\_reallocatable}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{is\_reallocatable}{is\_reallocatable}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::is\+\_\+reallocatable = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} storage\+\_\+type\+::is\+\_\+reallocatable}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a12bae9c5e9fe3b5d1c638af0647e3874}\label{classwjr_1_1basic__biginteger_a12bae9c5e9fe3b5d1c638af0647e3874} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!iterator@{iterator}}
+\index{iterator@{iterator}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{iterator}{iterator}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::iterator = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_ae4814b81241e558addad9a88e9267e15}{vector\+\_\+type\+::iterator}}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a067a076435f702641d1d56d6613c23f4}\label{classwjr_1_1basic__biginteger_a067a076435f702641d1d56d6613c23f4} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!pointer@{pointer}}
+\index{pointer@{pointer}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{pointer}{pointer}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::pointer = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a775d68a90bf7d2d8aca6663e8c0af247}{vector\+\_\+type\+::pointer}}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a8e7a8a29d32df70f56170c3a0f716e2b}\label{classwjr_1_1basic__biginteger_a8e7a8a29d32df70f56170c3a0f716e2b} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!reference@{reference}}
+\index{reference@{reference}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{reference}{reference}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::reference = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a2c59d8cc661739d77a0f272ab944253c}{vector\+\_\+type\+::reference}}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a075be9dc5703d378d19307d379077c94}\label{classwjr_1_1basic__biginteger_a075be9dc5703d378d19307d379077c94} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!reverse\_iterator@{reverse\_iterator}}
+\index{reverse\_iterator@{reverse\_iterator}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{reverse\_iterator}{reverse\_iterator}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::reverse\+\_\+iterator = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_ab9ed6a73a3c5f9ff17a53a79cadb0f56}{vector\+\_\+type\+::reverse\+\_\+iterator}}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}\label{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!size\_type@{size\_type}}
+\index{size\_type@{size\_type}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{size\_type}{size\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::size\+\_\+type = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a698bf01bece51bfbc975bf134852fc98}{vector\+\_\+type\+::size\+\_\+type}}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a43673118b6508daf7ad1f4b0d4c92dad}\label{classwjr_1_1basic__biginteger_a43673118b6508daf7ad1f4b0d4c92dad} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!storage\_type@{storage\_type}}
+\index{storage\_type@{storage\_type}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{storage\_type}{storage\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::storage\+\_\+type = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_aae7b183c9b08b06201da62400f82012d}\label{classwjr_1_1basic__biginteger_aae7b183c9b08b06201da62400f82012d} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!value\_type@{value\_type}}
+\index{value\_type@{value\_type}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{value\_type}{value\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::value\+\_\+type = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_af44a0ed41773a86f750c827d0afae058}{vector\+\_\+type\+::value\+\_\+type}}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_afc3a1bce490806ee186bb2a915f7febb}\label{classwjr_1_1basic__biginteger_afc3a1bce490806ee186bb2a915f7febb} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!vector\_type@{vector\_type}}
+\index{vector\_type@{vector\_type}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{vector\_type}{vector\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::vector\+\_\+type = \mbox{\hyperlink{classwjr_1_1basic__vector}{basic\+\_\+vector}}$<$\mbox{\hyperlink{classwjr_1_1basic__biginteger_a43673118b6508daf7ad1f4b0d4c92dad}{storage\+\_\+type}}$>$}
+
+
+
+\doxysubsection{构造及析构函数说明}
+\Hypertarget{classwjr_1_1basic__biginteger_a2564e68d834537a58e1738d8842688d6}\label{classwjr_1_1basic__biginteger_a2564e68d834537a58e1738d8842688d6} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!basic\_biginteger@{basic\_biginteger}}
+\index{basic\_biginteger@{basic\_biginteger}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{basic\_biginteger()}{basic\_biginteger()}\hspace{0.1cm}{\footnotesize\ttfamily [1/11]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::basic\+\_\+biginteger (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [default]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_aca9193bbc1234fd13d43441642d10110}\label{classwjr_1_1basic__biginteger_aca9193bbc1234fd13d43441642d10110} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!basic\_biginteger@{basic\_biginteger}}
+\index{basic\_biginteger@{basic\_biginteger}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{basic\_biginteger()}{basic\_biginteger()}\hspace{0.1cm}{\footnotesize\ttfamily [2/11]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::basic\+\_\+biginteger (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\&}]{other }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [default]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_afba8b8ae2eb8042d1b9d7cfac810107c}\label{classwjr_1_1basic__biginteger_afba8b8ae2eb8042d1b9d7cfac810107c} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!````~basic\_biginteger@{\texorpdfstring{$\sim$}{\string~}basic\_biginteger}}
+\index{````~basic\_biginteger@{\texorpdfstring{$\sim$}{\string~}basic\_biginteger}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}basic\_biginteger()}{\string~basic\_biginteger()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::\texorpdfstring{$\sim$}{\string~}\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [default]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a23e5a001e048b8e43e04fa79a69bea7e}\label{classwjr_1_1basic__biginteger_a23e5a001e048b8e43e04fa79a69bea7e} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!basic\_biginteger@{basic\_biginteger}}
+\index{basic\_biginteger@{basic\_biginteger}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{basic\_biginteger()}{basic\_biginteger()}\hspace{0.1cm}{\footnotesize\ttfamily [3/11]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::basic\+\_\+biginteger (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&}]{other,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&}]{al = {\ttfamily \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}}()} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_aa1cdcda329945d50b82c73ea423300ed}\label{classwjr_1_1basic__biginteger_aa1cdcda329945d50b82c73ea423300ed} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!basic\_biginteger@{basic\_biginteger}}
+\index{basic\_biginteger@{basic\_biginteger}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{basic\_biginteger()}{basic\_biginteger()}\hspace{0.1cm}{\footnotesize\ttfamily [4/11]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::basic\+\_\+biginteger (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}}}]{n,  }\item[{\mbox{\hyperlink{structwjr_1_1in__place__reserve__t}{in\+\_\+place\+\_\+reserve\+\_\+t}}}]{,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&}]{al = {\ttfamily \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}}()} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a18e939000331648264cf14f2455c803b}\label{classwjr_1_1basic__biginteger_a18e939000331648264cf14f2455c803b} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!basic\_biginteger@{basic\_biginteger}}
+\index{basic\_biginteger@{basic\_biginteger}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{basic\_biginteger()}{basic\_biginteger()}\hspace{0.1cm}{\footnotesize\ttfamily [5/11]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::basic\+\_\+biginteger (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&}]{al }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a50a1c6083e53c32e49d18f1cbcf0fdcb}\label{classwjr_1_1basic__biginteger_a50a1c6083e53c32e49d18f1cbcf0fdcb} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!basic\_biginteger@{basic\_biginteger}}
+\index{basic\_biginteger@{basic\_biginteger}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{basic\_biginteger()}{basic\_biginteger()}\hspace{0.1cm}{\footnotesize\ttfamily [6/11]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::basic\+\_\+biginteger (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\&}]{other,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&}]{al }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_adfc1b4c0be945adf0cd66c7ce002b4c5}\label{classwjr_1_1basic__biginteger_adfc1b4c0be945adf0cd66c7ce002b4c5} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!basic\_biginteger@{basic\_biginteger}}
+\index{basic\_biginteger@{basic\_biginteger}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{basic\_biginteger()}{basic\_biginteger()}\hspace{0.1cm}{\footnotesize\ttfamily [7/11]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Unsigned\+Value}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+unsigned\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Unsigned\+Value}} $>$) $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::basic\+\_\+biginteger (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Unsigned\+Value}}}]{value,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&}]{al = {\ttfamily \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}}()} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a212ccf44e76ddf3f51787b4d773330c3}\label{classwjr_1_1basic__biginteger_a212ccf44e76ddf3f51787b4d773330c3} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!basic\_biginteger@{basic\_biginteger}}
+\index{basic\_biginteger@{basic\_biginteger}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{basic\_biginteger()}{basic\_biginteger()}\hspace{0.1cm}{\footnotesize\ttfamily [8/11]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Signed\+Value}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+signed\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Signed\+Value}} $>$) $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::basic\+\_\+biginteger (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Signed\+Value}}}]{value,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&}]{al = {\ttfamily \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}}()} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_af304a07a601bec191878e8c7ed4abf31}\label{classwjr_1_1basic__biginteger_af304a07a601bec191878e8c7ed4abf31} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!basic\_biginteger@{basic\_biginteger}}
+\index{basic\_biginteger@{basic\_biginteger}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{basic\_biginteger()}{basic\_biginteger()}\hspace{0.1cm}{\footnotesize\ttfamily [9/11]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::basic\+\_\+biginteger (\begin{DoxyParamCaption}\item[{std\+::string\+\_\+view}]{str,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{unsigned}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}}}]{base = {\ttfamily 10},  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&}]{al = {\ttfamily \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}}()} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_af1d0f7a1f525e3765713b97ad4e67786}\label{classwjr_1_1basic__biginteger_af1d0f7a1f525e3765713b97ad4e67786} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!basic\_biginteger@{basic\_biginteger}}
+\index{basic\_biginteger@{basic\_biginteger}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{basic\_biginteger()}{basic\_biginteger()}\hspace{0.1cm}{\footnotesize\ttfamily [10/11]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Othter\+Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::basic\+\_\+biginteger (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Othter\+Storage}} $>$ \&}]{other,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&}]{al = {\ttfamily \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}}()} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a0ed350cf7ead724e597021386ad37465}\label{classwjr_1_1basic__biginteger_a0ed350cf7ead724e597021386ad37465} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!basic\_biginteger@{basic\_biginteger}}
+\index{basic\_biginteger@{basic\_biginteger}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{basic\_biginteger()}{basic\_biginteger()}\hspace{0.1cm}{\footnotesize\ttfamily [11/11]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::basic\+\_\+biginteger (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1biginteger__data}{biginteger\+\_\+data}} \&}]{data,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \&}]{al = {\ttfamily \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}}()} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}}
+
+
+
+\doxysubsection{成员函数说明}
+\Hypertarget{classwjr_1_1basic__biginteger_a0d0971dc2d3a59350b6660ae1c158cf8}\label{classwjr_1_1basic__biginteger_a0d0971dc2d3a59350b6660ae1c158cf8} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!absolute@{absolute}}
+\index{absolute@{absolute}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{absolute()}{absolute()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::absolute (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_aada1ff7d2a3ba27bacabea7e1a3b5fb6}\label{classwjr_1_1basic__biginteger_aada1ff7d2a3ba27bacabea7e1a3b5fb6} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!at@{at}}
+\index{at@{at}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{at()}{at()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a8e7a8a29d32df70f56170c3a0f716e2b}{reference}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::at (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}}}]{pos }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a783097414898fcd0cf068f1577fb7cf9}\label{classwjr_1_1basic__biginteger_a783097414898fcd0cf068f1577fb7cf9} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!at@{at}}
+\index{at@{at}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{at()}{at()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_afc674027dd285695416691006ddad3c4}{const\+\_\+reference}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::at (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}}}]{pos }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a897e0bec6e6574adb3eb554f6ef7ad2b}\label{classwjr_1_1basic__biginteger_a897e0bec6e6574adb3eb554f6ef7ad2b} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!back@{back}}
+\index{back@{back}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{back()}{back()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a8e7a8a29d32df70f56170c3a0f716e2b}{reference}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::back (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_ae8f4d125e477fe9d05f13f040521e271}\label{classwjr_1_1basic__biginteger_ae8f4d125e477fe9d05f13f040521e271} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!back@{back}}
+\index{back@{back}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{back()}{back()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_afc674027dd285695416691006ddad3c4}{const\+\_\+reference}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::back (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a104dc27ad0e8d605a695aae34d98bc39}\label{classwjr_1_1basic__biginteger_a104dc27ad0e8d605a695aae34d98bc39} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!begin@{begin}}
+\index{begin@{begin}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{begin()}{begin()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_adc6794025fe6535af1e84d5c4b6f8f04}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::begin (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_ab6b3b7272d8d15360bc3b60270815193}\label{classwjr_1_1basic__biginteger_ab6b3b7272d8d15360bc3b60270815193} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!begin@{begin}}
+\index{begin@{begin}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{begin()}{begin()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a12bae9c5e9fe3b5d1c638af0647e3874}{iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::begin (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_aa72342d1af0b7a79086de86cc316e110}\label{classwjr_1_1basic__biginteger_aa72342d1af0b7a79086de86cc316e110} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!bit\_width@{bit\_width}}
+\index{bit\_width@{bit\_width}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{bit\_width()}{bit\_width()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::bit\+\_\+width (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_aa612f3df31bd607e4ddad4fb70ddc171}\label{classwjr_1_1basic__biginteger_aa612f3df31bd607e4ddad4fb70ddc171} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!capacity@{capacity}}
+\index{capacity@{capacity}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{capacity()}{capacity()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::capacity (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a33eb6ed92baf48a7fd2c9f0ace6cb5b7}\label{classwjr_1_1basic__biginteger_a33eb6ed92baf48a7fd2c9f0ace6cb5b7} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!cbegin@{cbegin}}
+\index{cbegin@{cbegin}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{cbegin()}{cbegin()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_adc6794025fe6535af1e84d5c4b6f8f04}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::cbegin (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_afd90ee5a555556fe24fc682dad9c1860}\label{classwjr_1_1basic__biginteger_afd90ee5a555556fe24fc682dad9c1860} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!cend@{cend}}
+\index{cend@{cend}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{cend()}{cend()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_adc6794025fe6535af1e84d5c4b6f8f04}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::cend (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_aff368d90209487561ee93b122e670ffa}\label{classwjr_1_1basic__biginteger_aff368d90209487561ee93b122e670ffa} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!clear@{clear}}
+\index{clear@{clear}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{clear()}{clear()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::clear (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+equal to set\+\_\+ssize(0) 
+
+\Hypertarget{classwjr_1_1basic__biginteger_a921ca45022acb2929bddb5540ec49ab1}\label{classwjr_1_1basic__biginteger_a921ca45022acb2929bddb5540ec49ab1} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!clear\_if\_reserved@{clear\_if\_reserved}}
+\index{clear\_if\_reserved@{clear\_if\_reserved}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{clear\_if\_reserved()}{clear\_if\_reserved()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::clear\+\_\+if\+\_\+reserved (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}}}]{new\+\_\+capacity }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_ad9f902981143901fafa67361ae904d79}\label{classwjr_1_1basic__biginteger_ad9f902981143901fafa67361ae904d79} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!conditional\_negate@{conditional\_negate}}
+\index{conditional\_negate@{conditional\_negate}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{conditional\_negate()}{conditional\_negate()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::conditional\+\_\+negate (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}}}]{condition }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a3a00c6621a733bac3fd202bc990a7b0b}\label{classwjr_1_1basic__biginteger_a3a00c6621a733bac3fd202bc990a7b0b} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!countr\_zero@{countr\_zero}}
+\index{countr\_zero@{countr\_zero}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{countr\_zero()}{countr\_zero()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::countr\+\_\+zero (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a135ff5dcac40cee5a91178adc929dabe}\label{classwjr_1_1basic__biginteger_a135ff5dcac40cee5a91178adc929dabe} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!crbegin@{crbegin}}
+\index{crbegin@{crbegin}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{crbegin()}{crbegin()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a8bfd06df6c64a9174ac0eb2913a4db9c}{const\+\_\+reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::crbegin (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a644f5358d8814d3f2b4017be0a969d46}\label{classwjr_1_1basic__biginteger_a644f5358d8814d3f2b4017be0a969d46} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!crend@{crend}}
+\index{crend@{crend}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{crend()}{crend()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a8bfd06df6c64a9174ac0eb2913a4db9c}{const\+\_\+reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::crend (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_abe5a9b7765be6bab89c0d7c51d645412}\label{classwjr_1_1basic__biginteger_abe5a9b7765be6bab89c0d7c51d645412} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!ctz@{ctz}}
+\index{ctz@{ctz}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{ctz()}{ctz()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::ctz (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a91d7ea5dd17317546145cc9b23876e22}\label{classwjr_1_1basic__biginteger_a91d7ea5dd17317546145cc9b23876e22} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!data@{data}}
+\index{data@{data}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{data()}{data()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_aa687d80c34ee6902659e8a19f2cc30b5}{const\+\_\+pointer}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::data (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a7bd8842e6a5dcd5c80dccdcdb987a10a}\label{classwjr_1_1basic__biginteger_a7bd8842e6a5dcd5c80dccdcdb987a10a} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!data@{data}}
+\index{data@{data}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{data()}{data()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a067a076435f702641d1d56d6613c23f4}{pointer}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::data (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a8dd86eee7ee9919c9fa512d1c2df53d5}\label{classwjr_1_1basic__biginteger_a8dd86eee7ee9919c9fa512d1c2df53d5} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!empty@{empty}}
+\index{empty@{empty}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{empty()}{empty()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::empty (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a2f1ccf8c79e4e35a72cab0414526de0f}\label{classwjr_1_1basic__biginteger_a2f1ccf8c79e4e35a72cab0414526de0f} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!end@{end}}
+\index{end@{end}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{end()}{end()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_adc6794025fe6535af1e84d5c4b6f8f04}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::end (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_ac91d60b841c2cf477b5f838fa24b67a9}\label{classwjr_1_1basic__biginteger_ac91d60b841c2cf477b5f838fa24b67a9} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!end@{end}}
+\index{end@{end}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{end()}{end()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a12bae9c5e9fe3b5d1c638af0647e3874}{iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::end (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a8c4282f26393f75bcc3c813b705b91ae}\label{classwjr_1_1basic__biginteger_a8c4282f26393f75bcc3c813b705b91ae} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!from\_string@{from\_string}}
+\index{from\_string@{from\_string}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{from\_string()}{from\_string()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::from\+\_\+string (\begin{DoxyParamCaption}\item[{std\+::string\+\_\+view}]{str,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{unsigned}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}}}]{base = {\ttfamily 10} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a7bd91d20835c5d1b76a476f0509df47a}\label{classwjr_1_1basic__biginteger_a7bd91d20835c5d1b76a476f0509df47a} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!front@{front}}
+\index{front@{front}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{front()}{front()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a8e7a8a29d32df70f56170c3a0f716e2b}{reference}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::front (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a65d696b6aef8cafa811da7fa1f25b8c3}\label{classwjr_1_1basic__biginteger_a65d696b6aef8cafa811da7fa1f25b8c3} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!front@{front}}
+\index{front@{front}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{front()}{front()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_afc674027dd285695416691006ddad3c4}{const\+\_\+reference}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::front (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a733777f2596747a2a1e06bdecd0a9581}\label{classwjr_1_1basic__biginteger_a733777f2596747a2a1e06bdecd0a9581} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!get\_allocator@{get\_allocator}}
+\index{get\_allocator@{get\_allocator}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{get\_allocator()}{get\_allocator()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::get\+\_\+allocator (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_aa41ad960ff5bf01b4534cd48cbe5b74e}\label{classwjr_1_1basic__biginteger_aa41ad960ff5bf01b4534cd48cbe5b74e} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!get\_allocator@{get\_allocator}}
+\index{get\_allocator@{get\_allocator}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{get\_allocator()}{get\_allocator()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_ab13e4ac51518baa9630c7f94cab7f241}{allocator\+\_\+type}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::get\+\_\+allocator (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a76d823b0504d52c9124012c2204a9c69}\label{classwjr_1_1basic__biginteger_a76d823b0504d52c9124012c2204a9c69} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!get\_growth\_capacity@{get\_growth\_capacity}}
+\index{get\_growth\_capacity@{get\_growth\_capacity}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{get\_growth\_capacity()}{get\_growth\_capacity()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{static}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONST}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::get\+\_\+growth\+\_\+capacity (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}}}]{old\+\_\+capacity,  }\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}}}]{new\+\_\+size }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a7fe9b538b246d4db6b135bead5ade290}\label{classwjr_1_1basic__biginteger_a7fe9b538b246d4db6b135bead5ade290} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!get\_ssize@{get\_ssize}}
+\index{get\_ssize@{get\_ssize}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{get\_ssize()}{get\_ssize()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int32\+\_\+t}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::get\+\_\+ssize (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a6c699be6e4e96ca1edee7036c61980d8}\label{classwjr_1_1basic__biginteger_a6c699be6e4e96ca1edee7036c61980d8} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!get\_storage@{get\_storage}}
+\index{get\_storage@{get\_storage}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{get\_storage()}{get\_storage()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger_a43673118b6508daf7ad1f4b0d4c92dad}{storage\+\_\+type}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::get\+\_\+storage (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a209d6c412daa42ac39f0671956d8c931}\label{classwjr_1_1basic__biginteger_a209d6c412daa42ac39f0671956d8c931} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!get\_storage@{get\_storage}}
+\index{get\_storage@{get\_storage}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{get\_storage()}{get\_storage()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a43673118b6508daf7ad1f4b0d4c92dad}{storage\+\_\+type}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::get\+\_\+storage (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a2db06aec676c641343af57c70aefed85}\label{classwjr_1_1basic__biginteger_a2db06aec676c641343af57c70aefed85} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!is\_negate@{is\_negate}}
+\index{is\_negate@{is\_negate}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{is\_negate()}{is\_negate()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::is\+\_\+negate (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a95ad4ce64d1258b20ee5a2187e15c97a}\label{classwjr_1_1basic__biginteger_a95ad4ce64d1258b20ee5a2187e15c97a} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!negate@{negate}}
+\index{negate@{negate}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{negate()}{negate()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::negate (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a9cbbee066400e477d28abb60a68ff178}\label{classwjr_1_1basic__biginteger_a9cbbee066400e477d28abb60a68ff178} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator biginteger\_data \&@{operator biginteger\_data \&}}
+\index{operator biginteger\_data \&@{operator biginteger\_data \&}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator biginteger\_data \&()}{operator biginteger\_data \&()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}} \mbox{\hyperlink{structwjr_1_1biginteger__data}{biginteger\+\_\+data}} \& (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_aa0b81542fdae2ec95a975a947e7d927c}\label{classwjr_1_1basic__biginteger_aa0b81542fdae2ec95a975a947e7d927c} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator const biginteger\_data \&@{operator const biginteger\_data \&}}
+\index{operator const biginteger\_data \&@{operator const biginteger\_data \&}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator const biginteger\_data \&()}{operator const biginteger\_data \&()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1biginteger__data}{biginteger\+\_\+data}} \& (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a9a8c9308ace4797112704d3bc9e24ce6}\label{classwjr_1_1basic__biginteger_a9a8c9308ace4797112704d3bc9e24ce6} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator T@{operator T}}
+\index{operator T@{operator T}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator T()}{operator T()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$) $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a3c4e69faa6627fa86f94d6b4c086ba56}\label{classwjr_1_1basic__biginteger_a3c4e69faa6627fa86f94d6b4c086ba56} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator\texorpdfstring{$\ast$}{*}=@{operator\texorpdfstring{$\ast$}{*}=}}
+\index{operator\texorpdfstring{$\ast$}{*}=@{operator\texorpdfstring{$\ast$}{*}=}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator\texorpdfstring{$\ast$}{*}=()}{operator*=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}\texorpdfstring{$\ast$}{*}= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1biginteger__data}{biginteger\+\_\+data}} \&}]{rhs }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_ac81eef41672506a057ac72de8e81b19a}\label{classwjr_1_1basic__biginteger_ac81eef41672506a057ac72de8e81b19a} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator\texorpdfstring{$\ast$}{*}=@{operator\texorpdfstring{$\ast$}{*}=}}
+\index{operator\texorpdfstring{$\ast$}{*}=@{operator\texorpdfstring{$\ast$}{*}=}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator\texorpdfstring{$\ast$}{*}=()}{operator*=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$) $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}\texorpdfstring{$\ast$}{*}= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}}]{rhs }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a7b782d43664f78c9526c1d443503e07d}\label{classwjr_1_1basic__biginteger_a7b782d43664f78c9526c1d443503e07d} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator++@{operator++}}
+\index{operator++@{operator++}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator++()}{operator++()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}++ (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a63be0d72c84ac005fe2737ed51564459}\label{classwjr_1_1basic__biginteger_a63be0d72c84ac005fe2737ed51564459} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator+=@{operator+=}}
+\index{operator+=@{operator+=}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator+=()}{operator+=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}+= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1biginteger__data}{biginteger\+\_\+data}} \&}]{rhs }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a60807ba41dfe70d8a26bd9c1906b84fb}\label{classwjr_1_1basic__biginteger_a60807ba41dfe70d8a26bd9c1906b84fb} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator+=@{operator+=}}
+\index{operator+=@{operator+=}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator+=()}{operator+=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$) $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}+= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}}]{rhs }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_aa69d1f7f0fba2e98dddf28858307b592}\label{classwjr_1_1basic__biginteger_aa69d1f7f0fba2e98dddf28858307b592} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator-\/-\/@{operator-\/-\/}}
+\index{operator-\/-\/@{operator-\/-\/}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator-\/-\/()}{operator--()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}-\/-\/ (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a23a2b793906c319156418478796d9fb0}\label{classwjr_1_1basic__biginteger_a23a2b793906c319156418478796d9fb0} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator-\/=@{operator-\/=}}
+\index{operator-\/=@{operator-\/=}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator-\/=()}{operator-=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}-\/= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1biginteger__data}{biginteger\+\_\+data}} \&}]{rhs }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_abcda9ca2fc146580d501fda2b7c4bb99}\label{classwjr_1_1basic__biginteger_abcda9ca2fc146580d501fda2b7c4bb99} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator-\/=@{operator-\/=}}
+\index{operator-\/=@{operator-\/=}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator-\/=()}{operator-=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$) $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}-\/= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}}]{rhs }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_aec147c03e7289b93c3d40184dac1988c}\label{classwjr_1_1basic__biginteger_aec147c03e7289b93c3d40184dac1988c} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator$<$$<$=@{operator$<$$<$=}}
+\index{operator$<$$<$=@{operator$<$$<$=}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator$<$$<$=()}{operator<<=()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}$<$$<$= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\+\_\+t}}}]{shift }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a18b4a73e4d9ce1fd7f1d3774ae8023ed}\label{classwjr_1_1basic__biginteger_a18b4a73e4d9ce1fd7f1d3774ae8023ed} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator=@{operator=}}
+\index{operator=@{operator=}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/7]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&\&}]{other }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [default]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a8c62f2fbaeadeb4b5239b1ab836bc024}\label{classwjr_1_1basic__biginteger_a8c62f2fbaeadeb4b5239b1ab836bc024} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator=@{operator=}}
+\index{operator=@{operator=}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/7]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&}]{other }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a777c5800f74f8f20c27c31017bc3ecff}\label{classwjr_1_1basic__biginteger_a777c5800f74f8f20c27c31017bc3ecff} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator=@{operator=}}
+\index{operator=@{operator=}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [3/7]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Othter\+Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Othter\+Storage}} $>$ \&}]{other }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_ad8e246fcafc9810c36e8fc3e0bae2dee}\label{classwjr_1_1basic__biginteger_ad8e246fcafc9810c36e8fc3e0bae2dee} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator=@{operator=}}
+\index{operator=@{operator=}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [4/7]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{structwjr_1_1biginteger__data}{biginteger\+\_\+data}} \&}]{data }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a0fd2f7bcd99b408c3bcd5f4d96a4de03}\label{classwjr_1_1basic__biginteger_a0fd2f7bcd99b408c3bcd5f4d96a4de03} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator=@{operator=}}
+\index{operator=@{operator=}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [5/7]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Signed\+Value}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+signed\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Signed\+Value}} $>$) $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Signed\+Value}}}]{value }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a1bca38657f52e566002081b4a69ffe38}\label{classwjr_1_1basic__biginteger_a1bca38657f52e566002081b4a69ffe38} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator=@{operator=}}
+\index{operator=@{operator=}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [6/7]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}= (\begin{DoxyParamCaption}\item[{std\+::string\+\_\+view}]{str }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_aa190b54decc1dfdea4c3de482f05a146}\label{classwjr_1_1basic__biginteger_aa190b54decc1dfdea4c3de482f05a146} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator=@{operator=}}
+\index{operator=@{operator=}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [7/7]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Unsigned\+Value}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+unsigned\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Unsigned\+Value}} $>$) $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}} \& \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Unsigned\+Value}}}]{value }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_ab0e2a15126d8b73438f6c2c3bc4f422a}\label{classwjr_1_1basic__biginteger_ab0e2a15126d8b73438f6c2c3bc4f422a} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator\mbox{[}\mbox{]}@{operator[]}}
+\index{operator\mbox{[}\mbox{]}@{operator[]}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator[]()}{operator[]()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_afc674027dd285695416691006ddad3c4}{const\+\_\+reference}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}\mbox{[}$\,$\mbox{]} (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}}}]{pos }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_af06be92b08020eb35e26d014a8a17182}\label{classwjr_1_1basic__biginteger_af06be92b08020eb35e26d014a8a17182} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!operator\mbox{[}\mbox{]}@{operator[]}}
+\index{operator\mbox{[}\mbox{]}@{operator[]}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{operator[]()}{operator[]()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a8e7a8a29d32df70f56170c3a0f716e2b}{reference}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+::operator}}\mbox{[}$\,$\mbox{]} (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}}}]{pos }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a63f71ec56204431085b151e3407b6499}\label{classwjr_1_1basic__biginteger_a63f71ec56204431085b151e3407b6499} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!rbegin@{rbegin}}
+\index{rbegin@{rbegin}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{rbegin()}{rbegin()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a8bfd06df6c64a9174ac0eb2913a4db9c}{const\+\_\+reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::rbegin (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a024f9195c3d2676d05d68c72dad4cea6}\label{classwjr_1_1basic__biginteger_a024f9195c3d2676d05d68c72dad4cea6} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!rbegin@{rbegin}}
+\index{rbegin@{rbegin}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{rbegin()}{rbegin()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a075be9dc5703d378d19307d379077c94}{reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::rbegin (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a5698787396b351bc94b4c54de814455f}\label{classwjr_1_1basic__biginteger_a5698787396b351bc94b4c54de814455f} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!rend@{rend}}
+\index{rend@{rend}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{rend()}{rend()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a8bfd06df6c64a9174ac0eb2913a4db9c}{const\+\_\+reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::rend (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a0e074ccf3eddad961d492b44db8e5756}\label{classwjr_1_1basic__biginteger_a0e074ccf3eddad961d492b44db8e5756} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!rend@{rend}}
+\index{rend@{rend}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{rend()}{rend()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a075be9dc5703d378d19307d379077c94}{reverse\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::rend (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a9962ac213a17f4636d91b92e9bb17b99}\label{classwjr_1_1basic__biginteger_a9962ac213a17f4636d91b92e9bb17b99} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!reserve@{reserve}}
+\index{reserve@{reserve}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{reserve()}{reserve()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::reserve (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}}}]{new\+\_\+capacity }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a0fcee251e22401c317d5c9df6a87a942}\label{classwjr_1_1basic__biginteger_a0fcee251e22401c317d5c9df6a87a942} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!set\_ssize@{set\_ssize}}
+\index{set\_ssize@{set\_ssize}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{set\_ssize()}{set\_ssize()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} , \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+nonbool\+\_\+integral\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$) $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::set\+\_\+ssize (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}}]{new\+\_\+size }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a11a567693e3a7241c0163f7caaca999a}\label{classwjr_1_1basic__biginteger_a11a567693e3a7241c0163f7caaca999a} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!shrink\_to\_fit@{shrink\_to\_fit}}
+\index{shrink\_to\_fit@{shrink\_to\_fit}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{shrink\_to\_fit()}{shrink\_to\_fit()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::shrink\+\_\+to\+\_\+fit (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a4599bb9ef7107e6b9b23f36d8a4a84bb}\label{classwjr_1_1basic__biginteger_a4599bb9ef7107e6b9b23f36d8a4a84bb} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!size@{size}}
+\index{size@{size}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{size()}{size()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::size (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a203efce078db9ba28d12c2bdafc055ba}\label{classwjr_1_1basic__biginteger_a203efce078db9ba28d12c2bdafc055ba} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!swap@{swap}}
+\index{swap@{swap}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{swap()}{swap()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::swap (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger}{basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \&}]{other }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_ad749d5c36f35c04236d635c6a978fd7e}\label{classwjr_1_1basic__biginteger_ad749d5c36f35c04236d635c6a978fd7e} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!take\_storage@{take\_storage}}
+\index{take\_storage@{take\_storage}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{take\_storage()}{take\_storage()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::take\+\_\+storage (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger_a43673118b6508daf7ad1f4b0d4c92dad}{storage\+\_\+type}} \&}]{other }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a1a80f3d3a2ca224a7a81c2c80e390807}\label{classwjr_1_1basic__biginteger_a1a80f3d3a2ca224a7a81c2c80e390807} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!uninitialized\_construct@{uninitialized\_construct}}
+\index{uninitialized\_construct@{uninitialized\_construct}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{uninitialized\_construct()}{uninitialized\_construct()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::uninitialized\+\_\+construct (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger_a43673118b6508daf7ad1f4b0d4c92dad}{storage\+\_\+type}} \&}]{other,  }\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}}}]{siz,  }\item[{\mbox{\hyperlink{classwjr_1_1basic__biginteger_a420ecb3a50f9807641bdb3a296512cd9}{size\+\_\+type}}}]{cap }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1basic__biginteger_a372863f308ed15fc278bdd6b35130072}\label{classwjr_1_1basic__biginteger_a372863f308ed15fc278bdd6b35130072} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!zero@{zero}}
+\index{zero@{zero}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{zero()}{zero()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{classwjr_1_1basic__biginteger}{wjr\+::basic\+\_\+biginteger}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$\+::zero (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+
+
+\doxysubsection{友元及相关函数文档}
+\Hypertarget{classwjr_1_1basic__biginteger_ab1a7cc1f62daaecd82012d41a8a025dd}\label{classwjr_1_1basic__biginteger_ab1a7cc1f62daaecd82012d41a8a025dd} 
+\index{wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}!container\_of\_fn@{container\_of\_fn}}
+\index{container\_of\_fn@{container\_of\_fn}!wjr::basic\_biginteger$<$ Storage $>$@{wjr::basic\_biginteger$<$ Storage $>$}}
+\doxysubsubsection{\texorpdfstring{container\_of\_fn}{container\_of\_fn}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Storage}} $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \+\_\+\+Mybase , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+\_\+\+Tag}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\+\_\+\+Enable}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{friend}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{struct}} \mbox{\hyperlink{structwjr_1_1container__of__fn}{container\+\_\+of\+\_\+fn}}\hspace{0.3cm}{\ttfamily [friend]}}
+
+
+
+该类的文档由以下文件生成\+:\begin{DoxyCompactItemize}
+\item 
+include/wjr/biginteger/\mbox{\hyperlink{biginteger_2biginteger_8hpp}{biginteger.\+hpp}}\end{DoxyCompactItemize}

@@ -1,0 +1,46 @@
+\doxysection{gen\+\_\+addrsblsh\+\_\+n.\+hpp}
+\hypertarget{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_source}{}\label{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_source}\index{include/wjr/arch/x86/biginteger/detail/gen\_addrsblsh\_n.hpp@{include/wjr/arch/x86/biginteger/detail/gen\_addrsblsh\_n.hpp}}
+\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ WJR\_ADDSUB\_I\ :}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ 0\ :\ SUB}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ 1\ :\ ADD}}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#ifndef\ WJR\_ADDSUB\_I}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\ \ \ \ \#error\ "{}abort"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#if\ WJR\_ADDSUB\_I\ ==\ 1}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_addsub\ add}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_adcsbb\ adc}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\ \ \ \ \#define\ \_\_WJR\_TEST\_ASSEMBLY\ ASM\_ADDLSH\_N}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_addsub\ rsb}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_adcsbb\ sbb}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\ \ \ \ \#define\ \_\_WJR\_TEST\_ASSEMBLY\ ASM\_RSBLSH\_N}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_BUILTIN(\_\_WJR\_TEST\_ASSEMBLY)\ ==\ 1}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{keyword}{extern}\ WJR\_ALL\_NONNULL\ uint64\_t\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a46c1c75c902df62aed8d36a0b464af26}{WJR\_PP\_CONCAT}}(\_\_wjr\_asm\_,\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a46c1c75c902df62aed8d36a0b464af26}{WJR\_PP\_CONCAT}}(WJR\_addsub,\ lsh\_n))(}
+\DoxyCodeLine{00022\ \ \ \ \ uint64\_t\ *dst,\ \textcolor{keyword}{const}\ uint64\_t\ *\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a0fca2056caed0314a63528ff9860f682}{src0}},\ \textcolor{keyword}{const}\ uint64\_t\ *\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_aa8c9b0e61c9bdf659241cec9837ac1aa}{src1}},\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},\ uint64\_t\ cl)\ \textcolor{keyword}{noexcept};}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{keyword}{extern}\ WJR\_ALL\_NONNULL}
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{stringliteral}{"{}C"{}}\ WJR\_MS\_ABI\ uint64\_t\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a46c1c75c902df62aed8d36a0b464af26}{WJR\_PP\_CONCAT}}(\_\_wjr\_asm\_,\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a46c1c75c902df62aed8d36a0b464af26}{WJR\_PP\_CONCAT}}(WJR\_addsub,\ lsh\_n))(}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ uint64\_t\ *dst,\ \textcolor{keyword}{const}\ uint64\_t\ *\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a0fca2056caed0314a63528ff9860f682}{src0}},\ \textcolor{keyword}{const}\ uint64\_t\ *\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_aa8c9b0e61c9bdf659241cec9837ac1aa}{src1}},\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},\ uint64\_t\ cl)\ \textcolor{keyword}{noexcept};}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ WJR\_INTRINSIC\_INLINE\ uint64\_t\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a46c1c75c902df62aed8d36a0b464af26}{WJR\_PP\_CONCAT}}(asm\_,\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a46c1c75c902df62aed8d36a0b464af26}{WJR\_PP\_CONCAT}}(WJR\_addsub,\ lsh\_n))(}
+\DoxyCodeLine{00033\ \ \ \ \ uint64\_t\ *dst,\ \textcolor{keyword}{const}\ uint64\_t\ *\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a0fca2056caed0314a63528ff9860f682}{src0}},\ \textcolor{keyword}{const}\ uint64\_t\ *\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_aa8c9b0e61c9bdf659241cec9837ac1aa}{src1}},\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},\ uint64\_t\ cl)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a46c1c75c902df62aed8d36a0b464af26}{WJR\_PP\_CONCAT}}(\_\_wjr\_asm\_,\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a46c1c75c902df62aed8d36a0b464af26}{WJR\_PP\_CONCAT}}(WJR\_addsub,\ lsh\_n))(dst,\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a0fca2056caed0314a63528ff9860f682}{src0}},\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_aa8c9b0e61c9bdf659241cec9837ac1aa}{src1}},\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},\ cl);}
+\DoxyCodeLine{00035\ \}}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#undef\ \_\_WJR\_TEST\_ASSEMBLY}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#undef\ WJR\_adcsbb}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#undef\ WJR\_addsub}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#undef\ WJR\_ADDSUB\_I}}
+
+\end{DoxyCode}

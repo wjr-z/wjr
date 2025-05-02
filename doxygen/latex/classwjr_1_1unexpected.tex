@@ -1,0 +1,148 @@
+\doxysection{wjr\+::unexpected\texorpdfstring{$<$}{<} E \texorpdfstring{$>$}{>} 模板类 参考}
+\hypertarget{classwjr_1_1unexpected}{}\label{classwjr_1_1unexpected}\index{wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}}
+
+
+{\ttfamily \#include $<$expected.\+hpp$>$}
+
+
+
+类 wjr\+::unexpected\texorpdfstring{$<$}{<} E \texorpdfstring{$>$}{>} 继承关系图\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classwjr_1_1unexpected__inherit__graph}
+\end{center}
+\end{figure}
+
+
+wjr\+::unexpected\texorpdfstring{$<$}{<} E \texorpdfstring{$>$}{>} 的协作图\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classwjr_1_1unexpected__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public 成员函数}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classwjr_1_1unexpected_a3c44a7339170c08bf131571f691851b9}{WJR\+\_\+\+ENABLE\+\_\+\+DEFAULT\+\_\+\+SPECIAL\+\_\+\+MEMBERS}} (\mbox{\hyperlink{classwjr_1_1unexpected}{unexpected}})
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Err}}  = E, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(!std\+::is\+\_\+same\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{remove\+\_\+cvref\+\_\+t}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Err}} $>$, \mbox{\hyperlink{classwjr_1_1unexpected}{unexpected}} $>$ \&\& !std\+::is\+\_\+same\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{remove\+\_\+cvref\+\_\+t}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Err}} $>$, std\+::in\+\_\+place\+\_\+t $>$ \&\& std\+::is\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Err}} \&\& $>$) $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1unexpected_a1d8c132830316a8c05faedac61d78129}{unexpected}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Err}} \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{e}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}(std\+::is\+\_\+nothrow\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Err}} \&\& $>$)
+\item 
+{\footnotesize template$<$typename... Args, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(std\+::is\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}}, Args... $>$) $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1unexpected_aae4fbcdc8af1f840ede0c72f487ab1ee}{unexpected}} (std\+::in\+\_\+place\+\_\+t, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}} \&\&...\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{args}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}(std\+::is\+\_\+nothrow\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}}, Args... $>$)
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} U , typename... Args, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(std\+::is\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}}, std\+::initializer\+\_\+list$<$ U $>$ \&, Args... $>$) $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1unexpected_a8a44713ac5501a6aae7eea957afe93b1}{unexpected}} (std\+::in\+\_\+place\+\_\+t, std\+::initializer\+\_\+list$<$ U $>$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{il}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}} \&\&...\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{args}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}(std\+::is\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}}, std\+::initializer\+\_\+list$<$ U $>$ \&, Args... $>$)
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} \& \mbox{\hyperlink{classwjr_1_1unexpected_a7c055e463cbe6f770b487a8d67d18f0d}{error}} () \&\mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} \& \mbox{\hyperlink{classwjr_1_1unexpected_a63b609c28cc591edcf4866094e424675}{error}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \&\mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} \&\& \mbox{\hyperlink{classwjr_1_1unexpected_a2ff18418240aad5523c4a3a976d13df2}{error}} () \&\&\mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} \&\& \mbox{\hyperlink{classwjr_1_1unexpected_abd68d2f171f89548996fbfea85ba039f}{error}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \&\&\mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1unexpected_acce778f811c2a1da1fd436361610dbae}{swap}} (\mbox{\hyperlink{classwjr_1_1unexpected}{unexpected}} \&other) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}(std\+::is\+\_\+nothrow\+\_\+swappable\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{友元}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E2}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{classwjr_1_1unexpected_a00b1fd6f3efcff3fbda4af63f40af565}{operator==}} (\mbox{\hyperlink{classwjr_1_1unexpected}{unexpected}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{x}}, \mbox{\hyperlink{classwjr_1_1unexpected}{unexpected}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E2}} $>$ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{y}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{has\+\_\+noexcept\+\_\+equal\+\_\+to\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E2}} $>$)
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E2}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{classwjr_1_1unexpected_a9288c1c3cb0886785c8e5e814854cc42}{operator!=}} (\mbox{\hyperlink{classwjr_1_1unexpected}{unexpected}} \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{x}}, \mbox{\hyperlink{classwjr_1_1unexpected}{unexpected}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E2}} $>$ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{y}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{has\+\_\+noexcept\+\_\+not\+\_\+equal\+\_\+to\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E2}} $>$)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{构造及析构函数说明}
+\Hypertarget{classwjr_1_1unexpected_a1d8c132830316a8c05faedac61d78129}\label{classwjr_1_1unexpected_a1d8c132830316a8c05faedac61d78129} 
+\index{wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}!unexpected@{unexpected}}
+\index{unexpected@{unexpected}!wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}}
+\doxysubsubsection{\texorpdfstring{unexpected()}{unexpected()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Err}}  = E, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(!std\+::is\+\_\+same\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{remove\+\_\+cvref\+\_\+t}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Err}} $>$, \mbox{\hyperlink{classwjr_1_1unexpected}{unexpected}} $>$ \&\& !std\+::is\+\_\+same\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{remove\+\_\+cvref\+\_\+t}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Err}} $>$, std\+::in\+\_\+place\+\_\+t $>$ \&\& std\+::is\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Err}} \&\& $>$) $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1unexpected}{wjr\+::unexpected}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$\+::unexpected (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Err}} \&\&}]{e }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1unexpected_aae4fbcdc8af1f840ede0c72f487ab1ee}\label{classwjr_1_1unexpected_aae4fbcdc8af1f840ede0c72f487ab1ee} 
+\index{wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}!unexpected@{unexpected}}
+\index{unexpected@{unexpected}!wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}}
+\doxysubsubsection{\texorpdfstring{unexpected()}{unexpected()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$ \\
+template$<$typename... Args, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(std\+::is\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}}, Args... $>$) $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1unexpected}{wjr\+::unexpected}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$\+::unexpected (\begin{DoxyParamCaption}\item[{std\+::in\+\_\+place\+\_\+t}]{,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}} \&\&...}]{args }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1unexpected_a8a44713ac5501a6aae7eea957afe93b1}\label{classwjr_1_1unexpected_a8a44713ac5501a6aae7eea957afe93b1} 
+\index{wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}!unexpected@{unexpected}}
+\index{unexpected@{unexpected}!wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}}
+\doxysubsubsection{\texorpdfstring{unexpected()}{unexpected()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} U , typename... Args, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(std\+::is\+\_\+constructible\+\_\+v$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}}, std\+::initializer\+\_\+list$<$ U $>$ \&, Args... $>$) $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{classwjr_1_1unexpected}{wjr\+::unexpected}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$\+::unexpected (\begin{DoxyParamCaption}\item[{std\+::in\+\_\+place\+\_\+t}]{,  }\item[{std\+::initializer\+\_\+list$<$ U $>$}]{il,  }\item[{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}} \&\&...}]{args }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+
+
+\doxysubsection{成员函数说明}
+\Hypertarget{classwjr_1_1unexpected_a2ff18418240aad5523c4a3a976d13df2}\label{classwjr_1_1unexpected_a2ff18418240aad5523c4a3a976d13df2} 
+\index{wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}!error@{error}}
+\index{error@{error}!wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}}
+\doxysubsubsection{\texorpdfstring{error()}{error()}\hspace{0.1cm}{\footnotesize\ttfamily [1/4]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} \&\& \mbox{\hyperlink{classwjr_1_1unexpected}{wjr\+::unexpected}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$\+::error (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) \&\&\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1unexpected_a7c055e463cbe6f770b487a8d67d18f0d}\label{classwjr_1_1unexpected_a7c055e463cbe6f770b487a8d67d18f0d} 
+\index{wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}!error@{error}}
+\index{error@{error}!wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}}
+\doxysubsubsection{\texorpdfstring{error()}{error()}\hspace{0.1cm}{\footnotesize\ttfamily [2/4]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} \& \mbox{\hyperlink{classwjr_1_1unexpected}{wjr\+::unexpected}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$\+::error (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) \&\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1unexpected_abd68d2f171f89548996fbfea85ba039f}\label{classwjr_1_1unexpected_abd68d2f171f89548996fbfea85ba039f} 
+\index{wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}!error@{error}}
+\index{error@{error}!wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}}
+\doxysubsubsection{\texorpdfstring{error()}{error()}\hspace{0.1cm}{\footnotesize\ttfamily [3/4]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} \&\& \mbox{\hyperlink{classwjr_1_1unexpected}{wjr\+::unexpected}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$\+::error (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const \&\&\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1unexpected_a63b609c28cc591edcf4866094e424675}\label{classwjr_1_1unexpected_a63b609c28cc591edcf4866094e424675} 
+\index{wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}!error@{error}}
+\index{error@{error}!wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}}
+\doxysubsubsection{\texorpdfstring{error()}{error()}\hspace{0.1cm}{\footnotesize\ttfamily [4/4]}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} \& \mbox{\hyperlink{classwjr_1_1unexpected}{wjr\+::unexpected}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$\+::error (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const \&\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1unexpected_acce778f811c2a1da1fd436361610dbae}\label{classwjr_1_1unexpected_acce778f811c2a1da1fd436361610dbae} 
+\index{wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}!swap@{swap}}
+\index{swap@{swap}!wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}}
+\doxysubsubsection{\texorpdfstring{swap()}{swap()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1unexpected}{wjr\+::unexpected}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$\+::swap (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1unexpected}{unexpected}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$ \&}]{other }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1unexpected_a3c44a7339170c08bf131571f691851b9}\label{classwjr_1_1unexpected_a3c44a7339170c08bf131571f691851b9} 
+\index{wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}!WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS@{WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS}}
+\index{WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS@{WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS}!wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}}
+\doxysubsubsection{\texorpdfstring{WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS()}{WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$ \\
+\mbox{\hyperlink{classwjr_1_1unexpected}{wjr\+::unexpected}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$\+::\+WJR\+\_\+\+ENABLE\+\_\+\+DEFAULT\+\_\+\+SPECIAL\+\_\+\+MEMBERS (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1unexpected}{unexpected}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$}]{ }\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{友元及相关函数文档}
+\Hypertarget{classwjr_1_1unexpected_a9288c1c3cb0886785c8e5e814854cc42}\label{classwjr_1_1unexpected_a9288c1c3cb0886785c8e5e814854cc42} 
+\index{wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}!operator"!=@{operator"!=}}
+\index{operator"!=@{operator"!=}!wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}}
+\doxysubsubsection{\texorpdfstring{operator"!=}{operator!=}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E2}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{operator!}}= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1unexpected}{unexpected}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$ \&}]{x,  }\item[{\mbox{\hyperlink{classwjr_1_1unexpected}{unexpected}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E2}} $>$ \&}]{y }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [friend]}}
+
+\Hypertarget{classwjr_1_1unexpected_a00b1fd6f3efcff3fbda4af63f40af565}\label{classwjr_1_1unexpected_a00b1fd6f3efcff3fbda4af63f40af565} 
+\index{wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}!operator==@{operator==}}
+\index{operator==@{operator==}!wjr::unexpected$<$ E $>$@{wjr::unexpected$<$ E $>$}}
+\doxysubsubsection{\texorpdfstring{operator==}{operator==}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E2}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{operator}}== (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1unexpected}{unexpected}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E}} $>$ \&}]{x,  }\item[{\mbox{\hyperlink{classwjr_1_1unexpected}{unexpected}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{E2}} $>$ \&}]{y }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [friend]}}
+
+
+
+该类的文档由以下文件生成\+:\begin{DoxyCompactItemize}
+\item 
+include/wjr/\mbox{\hyperlink{expected_8hpp}{expected.\+hpp}}\end{DoxyCompactItemize}

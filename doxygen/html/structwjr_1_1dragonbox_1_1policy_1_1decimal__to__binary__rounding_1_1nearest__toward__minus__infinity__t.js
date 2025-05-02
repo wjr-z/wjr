@@ -1,0 +1,5 @@
+var structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__minus__infinity__t =
+[
+    [ "decimal_to_binary_rounding_policy", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__minus__infinity__t.html#a25b11dfd3a84003d8eb1779fca147791", null ],
+    [ "interval_type_provider", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__toward__minus__infinity__t.html#a53d1308b11027a5d13693217d51dbc34", null ]
+];

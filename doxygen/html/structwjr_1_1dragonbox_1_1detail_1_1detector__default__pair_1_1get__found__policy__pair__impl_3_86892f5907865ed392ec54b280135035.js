@@ -1,0 +1,4 @@
+var structwjr_1_1dragonbox_1_1detail_1_1detector__default__pair_1_1get__found__policy__pair__impl_3_86892f5907865ed392ec54b280135035 =
+[
+    [ "type", "structwjr_1_1dragonbox_1_1detail_1_1detector__default__pair_1_1get__found__policy__pair__impl_3_86892f5907865ed392ec54b280135035.html#a4ec345f78915ed5daee4ead91d8378bc", null ]
+];

@@ -1,0 +1,147 @@
+\doxysection{wjr\+::json\+::reader类 参考}
+\hypertarget{classwjr_1_1json_1_1reader}{}\label{classwjr_1_1json_1_1reader}\index{wjr::json::reader@{wjr::json::reader}}
+
+
+Save position of all tokens.  
+
+
+
+
+{\ttfamily \#include $<$reader.\+hpp$>$}
+
+
+
+wjr\+::json\+::reader 的协作图\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=212pt]{classwjr_1_1json_1_1reader__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public 类型}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_a1f7530c35237d2dfd98d3c288cd8dbc7}{value\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\+\_\+t}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_ad6e04b48080cff327b9dcb62cfcc2a76}{const\+\_\+pointer}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} \texorpdfstring{$\ast$}{*}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_a7b5df89acf79c17d5734d3952bd160fe}{size\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1json_1_1lexer_a73d693a11379253e6eb4d3efe421288c}{lexer\+::size\+\_\+type}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_a34bb865c1ed914ca68e62d868288a6b4}{const\+\_\+iterator}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a7094bdcb53373b1768874d25dc1d2010}{Vector\+::const\+\_\+iterator}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public 成员函数}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classwjr_1_1json_1_1reader_a3a24d9284a870d002ffac86cf5e779d7}{WJR\+\_\+\+ENABLE\+\_\+\+DEFAULT\+\_\+\+SPECIAL\+\_\+\+MEMBERS}} (\mbox{\hyperlink{classwjr_1_1json_1_1reader}{reader}})
+\item 
+\mbox{\hyperlink{classwjr_1_1json_1_1reader_a0bcdedfb26d845cd2890cbc15350e7e9}{reader}} (\mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} $>$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{sp}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_a34bb865c1ed914ca68e62d868288a6b4}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_ab96bcaa114fb96ab28de87a6d37702e8}{begin}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_a34bb865c1ed914ca68e62d868288a6b4}{const\+\_\+iterator}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_acedef70130fb40aee5c38389d7b8607d}{end}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_ad6e04b48080cff327b9dcb62cfcc2a76}{const\+\_\+pointer}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_a88b9b177ac02d3a66cd36fafa7fcf774}{data}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_a7b5df89acf79c17d5734d3952bd160fe}{size\+\_\+type}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_adea3ff835889720741717e795303f20a}{size}} () \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_a18635d54ce2e163d8225d188b7406e5d}{read}} (\mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} $>$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{sp}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_a16e2525876946f536b915e90eb4e5533}{clear}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_ac83d75d21f08c8e2b7ce80ee6e93a699}{shrink\+\_\+to\+\_\+fit}} () \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{详细描述}
+Save position of all tokens. 
+
+\doxysubsection{成员类型定义说明}
+\Hypertarget{classwjr_1_1json_1_1reader_a34bb865c1ed914ca68e62d868288a6b4}\label{classwjr_1_1json_1_1reader_a34bb865c1ed914ca68e62d868288a6b4} 
+\index{wjr::json::reader@{wjr::json::reader}!const\_iterator@{const\_iterator}}
+\index{const\_iterator@{const\_iterator}!wjr::json::reader@{wjr::json::reader}}
+\doxysubsubsection{\texorpdfstring{const\_iterator}{const\_iterator}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_a34bb865c1ed914ca68e62d868288a6b4}{wjr\+::json\+::reader\+::const\+\_\+iterator}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1basic__vector_a7094bdcb53373b1768874d25dc1d2010}{Vector\+::const\+\_\+iterator}}}
+
+\Hypertarget{classwjr_1_1json_1_1reader_ad6e04b48080cff327b9dcb62cfcc2a76}\label{classwjr_1_1json_1_1reader_ad6e04b48080cff327b9dcb62cfcc2a76} 
+\index{wjr::json::reader@{wjr::json::reader}!const\_pointer@{const\_pointer}}
+\index{const\_pointer@{const\_pointer}!wjr::json::reader@{wjr::json::reader}}
+\doxysubsubsection{\texorpdfstring{const\_pointer}{const\_pointer}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_ad6e04b48080cff327b9dcb62cfcc2a76}{wjr\+::json\+::reader\+::const\+\_\+pointer}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} \texorpdfstring{$\ast$}{*}}
+
+\Hypertarget{classwjr_1_1json_1_1reader_a7b5df89acf79c17d5734d3952bd160fe}\label{classwjr_1_1json_1_1reader_a7b5df89acf79c17d5734d3952bd160fe} 
+\index{wjr::json::reader@{wjr::json::reader}!size\_type@{size\_type}}
+\index{size\_type@{size\_type}!wjr::json::reader@{wjr::json::reader}}
+\doxysubsubsection{\texorpdfstring{size\_type}{size\_type}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_a7b5df89acf79c17d5734d3952bd160fe}{wjr\+::json\+::reader\+::size\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{classwjr_1_1json_1_1lexer_a73d693a11379253e6eb4d3efe421288c}{lexer\+::size\+\_\+type}}}
+
+\Hypertarget{classwjr_1_1json_1_1reader_a1f7530c35237d2dfd98d3c288cd8dbc7}\label{classwjr_1_1json_1_1reader_a1f7530c35237d2dfd98d3c288cd8dbc7} 
+\index{wjr::json::reader@{wjr::json::reader}!value\_type@{value\_type}}
+\index{value\_type@{value\_type}!wjr::json::reader@{wjr::json::reader}}
+\doxysubsubsection{\texorpdfstring{value\_type}{value\_type}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_a1f7530c35237d2dfd98d3c288cd8dbc7}{wjr\+::json\+::reader\+::value\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\+\_\+t}}}
+
+
+
+\doxysubsection{构造及析构函数说明}
+\Hypertarget{classwjr_1_1json_1_1reader_a0bcdedfb26d845cd2890cbc15350e7e9}\label{classwjr_1_1json_1_1reader_a0bcdedfb26d845cd2890cbc15350e7e9} 
+\index{wjr::json::reader@{wjr::json::reader}!reader@{reader}}
+\index{reader@{reader}!wjr::json::reader@{wjr::json::reader}}
+\doxysubsubsection{\texorpdfstring{reader()}{reader()}}
+{\footnotesize\ttfamily wjr\+::json\+::reader\+::reader (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} $>$}]{sp }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+
+
+\doxysubsection{成员函数说明}
+\Hypertarget{classwjr_1_1json_1_1reader_ab96bcaa114fb96ab28de87a6d37702e8}\label{classwjr_1_1json_1_1reader_ab96bcaa114fb96ab28de87a6d37702e8} 
+\index{wjr::json::reader@{wjr::json::reader}!begin@{begin}}
+\index{begin@{begin}!wjr::json::reader@{wjr::json::reader}}
+\doxysubsubsection{\texorpdfstring{begin()}{begin()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_a34bb865c1ed914ca68e62d868288a6b4}{const\+\_\+iterator}} wjr\+::json\+::reader\+::begin (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1json_1_1reader_a16e2525876946f536b915e90eb4e5533}\label{classwjr_1_1json_1_1reader_a16e2525876946f536b915e90eb4e5533} 
+\index{wjr::json::reader@{wjr::json::reader}!clear@{clear}}
+\index{clear@{clear}!wjr::json::reader@{wjr::json::reader}}
+\doxysubsubsection{\texorpdfstring{clear()}{clear()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} wjr\+::json\+::reader\+::clear (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1json_1_1reader_a88b9b177ac02d3a66cd36fafa7fcf774}\label{classwjr_1_1json_1_1reader_a88b9b177ac02d3a66cd36fafa7fcf774} 
+\index{wjr::json::reader@{wjr::json::reader}!data@{data}}
+\index{data@{data}!wjr::json::reader@{wjr::json::reader}}
+\doxysubsubsection{\texorpdfstring{data()}{data()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_ad6e04b48080cff327b9dcb62cfcc2a76}{const\+\_\+pointer}} wjr\+::json\+::reader\+::data (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1json_1_1reader_acedef70130fb40aee5c38389d7b8607d}\label{classwjr_1_1json_1_1reader_acedef70130fb40aee5c38389d7b8607d} 
+\index{wjr::json::reader@{wjr::json::reader}!end@{end}}
+\index{end@{end}!wjr::json::reader@{wjr::json::reader}}
+\doxysubsubsection{\texorpdfstring{end()}{end()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_a34bb865c1ed914ca68e62d868288a6b4}{const\+\_\+iterator}} wjr\+::json\+::reader\+::end (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1json_1_1reader_a18635d54ce2e163d8225d188b7406e5d}\label{classwjr_1_1json_1_1reader_a18635d54ce2e163d8225d188b7406e5d} 
+\index{wjr::json::reader@{wjr::json::reader}!read@{read}}
+\index{read@{read}!wjr::json::reader@{wjr::json::reader}}
+\doxysubsubsection{\texorpdfstring{read()}{read()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} wjr\+::json\+::reader\+::read (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1span}{span}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}} $>$}]{sp }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1json_1_1reader_ac83d75d21f08c8e2b7ce80ee6e93a699}\label{classwjr_1_1json_1_1reader_ac83d75d21f08c8e2b7ce80ee6e93a699} 
+\index{wjr::json::reader@{wjr::json::reader}!shrink\_to\_fit@{shrink\_to\_fit}}
+\index{shrink\_to\_fit@{shrink\_to\_fit}!wjr::json::reader@{wjr::json::reader}}
+\doxysubsubsection{\texorpdfstring{shrink\_to\_fit()}{shrink\_to\_fit()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void}} wjr\+::json\+::reader\+::shrink\+\_\+to\+\_\+fit (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1json_1_1reader_adea3ff835889720741717e795303f20a}\label{classwjr_1_1json_1_1reader_adea3ff835889720741717e795303f20a} 
+\index{wjr::json::reader@{wjr::json::reader}!size@{size}}
+\index{size@{size}!wjr::json::reader@{wjr::json::reader}}
+\doxysubsubsection{\texorpdfstring{size()}{size()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{classwjr_1_1json_1_1reader_a7b5df89acf79c17d5734d3952bd160fe}{size\+\_\+type}} wjr\+::json\+::reader\+::size (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{classwjr_1_1json_1_1reader_a3a24d9284a870d002ffac86cf5e779d7}\label{classwjr_1_1json_1_1reader_a3a24d9284a870d002ffac86cf5e779d7} 
+\index{wjr::json::reader@{wjr::json::reader}!WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS@{WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS}}
+\index{WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS@{WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS}!wjr::json::reader@{wjr::json::reader}}
+\doxysubsubsection{\texorpdfstring{WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS()}{WJR\_ENABLE\_DEFAULT\_SPECIAL\_MEMBERS()}}
+{\footnotesize\ttfamily wjr\+::json\+::reader\+::\+WJR\+\_\+\+ENABLE\+\_\+\+DEFAULT\+\_\+\+SPECIAL\+\_\+\+MEMBERS (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classwjr_1_1json_1_1reader}{reader}}}]{ }\end{DoxyParamCaption})}
+
+
+
+该类的文档由以下文件生成\+:\begin{DoxyCompactItemize}
+\item 
+include/wjr/json/\mbox{\hyperlink{reader_8hpp}{reader.\+hpp}}\end{DoxyCompactItemize}

@@ -1,0 +1,873 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.10.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>wjr: wjr::json::base_formatter&lt; Inserter, Formatter &gt; 模板类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">wjr<span id="projectnumber">&#160;1.0.0</span>
+   </div>
+   <div id="projectbrief">none</div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.10.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('classwjr_1_1json_1_1base__formatter.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="#pro-attribs">Protected 属性</a> &#124;
+<a href="classwjr_1_1json_1_1base__formatter-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">wjr::json::base_formatter&lt; Inserter, Formatter &gt; 模板类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="formatter_8hpp_source.html">formatter.hpp</a>&gt;</code></p>
+<div class="dynheader">
+wjr::json::base_formatter&lt; Inserter, Formatter &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><img src="classwjr_1_1json_1_1base__formatter__coll__graph.png" border="0" usemap="#awjr_1_1json_1_1base__formatter_3_01_inserter_00_01_formatter_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="awjr_1_1json_1_1base__formatter_3_01_inserter_00_01_formatter_01_4_coll__map" id="awjr_1_1json_1_1base__formatter_3_01_inserter_00_01_formatter_01_4_coll__map">
+<area shape="rect" title=" " alt="" coords="5,5,160,304"/>
+</map>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:aa7d76f8cee567044d8574ff029e762df" id="r_aa7d76f8cee567044d8574ff029e762df"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa7d76f8cee567044d8574ff029e762df">base_formatter</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">iter</a>) <a class="el" href="namespacewjr.html#af89e8e658fd9c3a3b154c55677a3b528">noexcept</a></td></tr>
+<tr class="separator:aa7d76f8cee567044d8574ff029e762df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa4cea2742962937cbd102e3f440fe236" id="r_aa4cea2742962937cbd102e3f440fe236"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa4cea2742962937cbd102e3f440fe236">base_formatter</a> ()=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">delete</a></td></tr>
+<tr class="separator:aa4cea2742962937cbd102e3f440fe236"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa1932d76c0a055fc667f033410bb67d" id="r_aaa1932d76c0a055fc667f033410bb67d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaa1932d76c0a055fc667f033410bb67d">base_formatter</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">base_formatter</a> &amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:aaa1932d76c0a055fc667f033410bb67d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a909f0d776fffebf526b6c7e25033e171" id="r_a909f0d776fffebf526b6c7e25033e171"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a909f0d776fffebf526b6c7e25033e171">base_formatter</a> (<a class="el" href="classwjr_1_1json_1_1base__formatter.html">base_formatter</a> &amp;&amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:a909f0d776fffebf526b6c7e25033e171"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ac9e5f7bb0a1bd3386af6143bfe8753" id="r_a2ac9e5f7bb0a1bd3386af6143bfe8753"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1json_1_1base__formatter.html">base_formatter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2ac9e5f7bb0a1bd3386af6143bfe8753">operator=</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">base_formatter</a> &amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:a2ac9e5f7bb0a1bd3386af6143bfe8753"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7766487e656d9fe9c91cb9694b32b885" id="r_a7766487e656d9fe9c91cb9694b32b885"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classwjr_1_1json_1_1base__formatter.html">base_formatter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7766487e656d9fe9c91cb9694b32b885">operator=</a> (<a class="el" href="classwjr_1_1json_1_1base__formatter.html">base_formatter</a> &amp;&amp;)=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:a7766487e656d9fe9c91cb9694b32b885"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc7e1c5dbbc8ba3dbaaddc40fcc48deb" id="r_adc7e1c5dbbc8ba3dbaaddc40fcc48deb"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adc7e1c5dbbc8ba3dbaaddc40fcc48deb">~base_formatter</a> ()=<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">default</a></td></tr>
+<tr class="separator:adc7e1c5dbbc8ba3dbaaddc40fcc48deb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a61f945aeea58518b37c84abd55404f50" id="r_a61f945aeea58518b37c84abd55404f50"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a61f945aeea58518b37c84abd55404f50">format_null</a> ()</td></tr>
+<tr class="memdesc:a61f945aeea58518b37c84abd55404f50"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prints a null  <br /></td></tr>
+<tr class="separator:a61f945aeea58518b37c84abd55404f50"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1984d299740ba2ec68e364bb4360c00a" id="r_a1984d299740ba2ec68e364bb4360c00a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1984d299740ba2ec68e364bb4360c00a">format_true</a> ()</td></tr>
+<tr class="memdesc:a1984d299740ba2ec68e364bb4360c00a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prints a true  <br /></td></tr>
+<tr class="separator:a1984d299740ba2ec68e364bb4360c00a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5626de92d8e3301247b1679645e9e975" id="r_a5626de92d8e3301247b1679645e9e975"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5626de92d8e3301247b1679645e9e975">format_false</a> ()</td></tr>
+<tr class="memdesc:a5626de92d8e3301247b1679645e9e975"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prints a false  <br /></td></tr>
+<tr class="separator:a5626de92d8e3301247b1679645e9e975"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adad4e1ac6934f3d1fe711262e8b1b4a5" id="r_adad4e1ac6934f3d1fe711262e8b1b4a5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adad4e1ac6934f3d1fe711262e8b1b4a5">format_start_object</a> ()</td></tr>
+<tr class="memdesc:adad4e1ac6934f3d1fe711262e8b1b4a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start an object  <br /></td></tr>
+<tr class="separator:adad4e1ac6934f3d1fe711262e8b1b4a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39d294be68d65d7e74c8a9ac70be164e" id="r_a39d294be68d65d7e74c8a9ac70be164e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a39d294be68d65d7e74c8a9ac70be164e">format_end_object</a> ()</td></tr>
+<tr class="memdesc:a39d294be68d65d7e74c8a9ac70be164e"><td class="mdescLeft">&#160;</td><td class="mdescRight">End an object  <br /></td></tr>
+<tr class="separator:a39d294be68d65d7e74c8a9ac70be164e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab84a9f9b12b3e99661b59526d3b58578" id="r_ab84a9f9b12b3e99661b59526d3b58578"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab84a9f9b12b3e99661b59526d3b58578">format_start_array</a> ()</td></tr>
+<tr class="memdesc:ab84a9f9b12b3e99661b59526d3b58578"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start an array  <br /></td></tr>
+<tr class="separator:ab84a9f9b12b3e99661b59526d3b58578"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad294584e369e0c8647ad3f8301d723a2" id="r_ad294584e369e0c8647ad3f8301d723a2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad294584e369e0c8647ad3f8301d723a2">format_end_array</a> ()</td></tr>
+<tr class="memdesc:ad294584e369e0c8647ad3f8301d723a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">End an array  <br /></td></tr>
+<tr class="separator:ad294584e369e0c8647ad3f8301d723a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2346ca479fc1b68280c9618a673db9d" id="r_ae2346ca479fc1b68280c9618a673db9d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae2346ca479fc1b68280c9618a673db9d">format_comma</a> ()</td></tr>
+<tr class="memdesc:ae2346ca479fc1b68280c9618a673db9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a comma  <br /></td></tr>
+<tr class="separator:ae2346ca479fc1b68280c9618a673db9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a14577651378c0e27f995c3d9306ac7f2" id="r_a14577651378c0e27f995c3d9306ac7f2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a14577651378c0e27f995c3d9306ac7f2">format_number_unsigned</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">x</a>)</td></tr>
+<tr class="memdesc:a14577651378c0e27f995c3d9306ac7f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prints a number  <br /></td></tr>
+<tr class="separator:a14577651378c0e27f995c3d9306ac7f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5e8db06face56bb5cba6e44aa133f36" id="r_aa5e8db06face56bb5cba6e44aa133f36"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa5e8db06face56bb5cba6e44aa133f36">format_number_signed</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int64_t</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">x</a>)</td></tr>
+<tr class="memdesc:aa5e8db06face56bb5cba6e44aa133f36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prints a number  <br /></td></tr>
+<tr class="separator:aa5e8db06face56bb5cba6e44aa133f36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c8f01336f1b7a449be6325bf7835693" id="r_a6c8f01336f1b7a449be6325bf7835693"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6c8f01336f1b7a449be6325bf7835693">format_number_float</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">x</a>)</td></tr>
+<tr class="memdesc:a6c8f01336f1b7a449be6325bf7835693"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prints a number  <br /></td></tr>
+<tr class="separator:a6c8f01336f1b7a449be6325bf7835693"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a98e7b8676d3bafb620fff1854c6103a9" id="r_a98e7b8676d3bafb620fff1854c6103a9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a98e7b8676d3bafb620fff1854c6103a9">format_key</a> (std::string_view <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">str</a>)</td></tr>
+<tr class="memdesc:a98e7b8676d3bafb620fff1854c6103a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prints a key (string + colon)  <br /></td></tr>
+<tr class="separator:a98e7b8676d3bafb620fff1854c6103a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aebaf6537569fc658dfc337c5ee2a5497" id="r_aebaf6537569fc658dfc337c5ee2a5497"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aebaf6537569fc658dfc337c5ee2a5497">format_string</a> (std::string_view <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">str</a>)</td></tr>
+<tr class="memdesc:aebaf6537569fc658dfc337c5ee2a5497"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prints a string. The string is escaped as needed.  <br /></td></tr>
+<tr class="separator:aebaf6537569fc658dfc337c5ee2a5497"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a34d9a12ff4ea00fc1047dc9ff6fbd063" id="r_a34d9a12ff4ea00fc1047dc9ff6fbd063"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a34d9a12ff4ea00fc1047dc9ff6fbd063">format_newline</a> ()</td></tr>
+<tr class="separator:a34d9a12ff4ea00fc1047dc9ff6fbd063"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a443a0dc3ff443528fa95e0b52378765d" id="r_a443a0dc3ff443528fa95e0b52378765d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a443a0dc3ff443528fa95e0b52378765d">format_indents</a> (<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">depth</a>)</td></tr>
+<tr class="separator:a443a0dc3ff443528fa95e0b52378765d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc51bbc01a10513445ed9ec17d26994e" id="r_abc51bbc01a10513445ed9ec17d26994e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abc51bbc01a10513445ed9ec17d26994e">format_space</a> ()</td></tr>
+<tr class="separator:abc51bbc01a10513445ed9ec17d26994e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
+Protected 属性</h2></td></tr>
+<tr class="memitem:a0ae0c9411b12fc821526ad3fa9d34ac3" id="r_a0ae0c9411b12fc821526ad3fa9d34ac3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0ae0c9411b12fc821526ad3fa9d34ac3">m_iter</a></td></tr>
+<tr class="separator:a0ae0c9411b12fc821526ad3fa9d34ac3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">构造及析构函数说明</h2>
+<a id="aa7d76f8cee567044d8574ff029e762df" name="aa7d76f8cee567044d8574ff029e762df"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa7d76f8cee567044d8574ff029e762df">&#9670;&#160;</a></span>base_formatter() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::base_formatter </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a></td>          <td class="paramname"><span class="paramname"><em>iter</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa4cea2742962937cbd102e3f440fe236" name="aa4cea2742962937cbd102e3f440fe236"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa4cea2742962937cbd102e3f440fe236">&#9670;&#160;</a></span>base_formatter() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::base_formatter </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aaa1932d76c0a055fc667f033410bb67d" name="aaa1932d76c0a055fc667f033410bb67d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa1932d76c0a055fc667f033410bb67d">&#9670;&#160;</a></span>base_formatter() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::base_formatter </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a909f0d776fffebf526b6c7e25033e171" name="a909f0d776fffebf526b6c7e25033e171"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a909f0d776fffebf526b6c7e25033e171">&#9670;&#160;</a></span>base_formatter() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::base_formatter </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classwjr_1_1json_1_1base__formatter.html">base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adc7e1c5dbbc8ba3dbaaddc40fcc48deb" name="adc7e1c5dbbc8ba3dbaaddc40fcc48deb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc7e1c5dbbc8ba3dbaaddc40fcc48deb">&#9670;&#160;</a></span>~base_formatter()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::~<a class="el" href="classwjr_1_1json_1_1base__formatter.html">base_formatter</a> </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="ae2346ca479fc1b68280c9618a673db9d" name="ae2346ca479fc1b68280c9618a673db9d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2346ca479fc1b68280c9618a673db9d">&#9670;&#160;</a></span>format_comma()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::format_comma </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Add a comma </p>
+
+</div>
+</div>
+<a id="ad294584e369e0c8647ad3f8301d723a2" name="ad294584e369e0c8647ad3f8301d723a2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad294584e369e0c8647ad3f8301d723a2">&#9670;&#160;</a></span>format_end_array()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::format_end_array </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>End an array </p>
+
+</div>
+</div>
+<a id="a39d294be68d65d7e74c8a9ac70be164e" name="a39d294be68d65d7e74c8a9ac70be164e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a39d294be68d65d7e74c8a9ac70be164e">&#9670;&#160;</a></span>format_end_object()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::format_end_object </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>End an object </p>
+
+</div>
+</div>
+<a id="a5626de92d8e3301247b1679645e9e975" name="a5626de92d8e3301247b1679645e9e975"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5626de92d8e3301247b1679645e9e975">&#9670;&#160;</a></span>format_false()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::format_false </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Prints a false </p>
+
+</div>
+</div>
+<a id="a443a0dc3ff443528fa95e0b52378765d" name="a443a0dc3ff443528fa95e0b52378765d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a443a0dc3ff443528fa95e0b52378765d">&#9670;&#160;</a></span>format_indents()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::format_indents </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">size_t</a></td>          <td class="paramname"><span class="paramname"><em>depth</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a98e7b8676d3bafb620fff1854c6103a9" name="a98e7b8676d3bafb620fff1854c6103a9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a98e7b8676d3bafb620fff1854c6103a9">&#9670;&#160;</a></span>format_key()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::format_key </td>
+          <td>(</td>
+          <td class="paramtype">std::string_view</td>          <td class="paramname"><span class="paramname"><em>str</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Prints a key (string + colon) </p>
+
+</div>
+</div>
+<a id="a34d9a12ff4ea00fc1047dc9ff6fbd063" name="a34d9a12ff4ea00fc1047dc9ff6fbd063"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a34d9a12ff4ea00fc1047dc9ff6fbd063">&#9670;&#160;</a></span>format_newline()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::format_newline </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a61f945aeea58518b37c84abd55404f50" name="a61f945aeea58518b37c84abd55404f50"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a61f945aeea58518b37c84abd55404f50">&#9670;&#160;</a></span>format_null()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::format_null </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Prints a null </p>
+
+</div>
+</div>
+<a id="a6c8f01336f1b7a449be6325bf7835693" name="a6c8f01336f1b7a449be6325bf7835693"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c8f01336f1b7a449be6325bf7835693">&#9670;&#160;</a></span>format_number_float()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::format_number_float </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">double</a></td>          <td class="paramname"><span class="paramname"><em>x</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Prints a number </p>
+
+</div>
+</div>
+<a id="aa5e8db06face56bb5cba6e44aa133f36" name="aa5e8db06face56bb5cba6e44aa133f36"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5e8db06face56bb5cba6e44aa133f36">&#9670;&#160;</a></span>format_number_signed()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::format_number_signed </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">int64_t</a></td>          <td class="paramname"><span class="paramname"><em>x</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Prints a number </p>
+
+</div>
+</div>
+<a id="a14577651378c0e27f995c3d9306ac7f2" name="a14577651378c0e27f995c3d9306ac7f2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a14577651378c0e27f995c3d9306ac7f2">&#9670;&#160;</a></span>format_number_unsigned()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::format_number_unsigned </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">uint64_t</a></td>          <td class="paramname"><span class="paramname"><em>x</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Prints a number </p>
+
+</div>
+</div>
+<a id="abc51bbc01a10513445ed9ec17d26994e" name="abc51bbc01a10513445ed9ec17d26994e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abc51bbc01a10513445ed9ec17d26994e">&#9670;&#160;</a></span>format_space()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::format_space </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab84a9f9b12b3e99661b59526d3b58578" name="ab84a9f9b12b3e99661b59526d3b58578"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab84a9f9b12b3e99661b59526d3b58578">&#9670;&#160;</a></span>format_start_array()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::format_start_array </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Start an array </p>
+
+</div>
+</div>
+<a id="adad4e1ac6934f3d1fe711262e8b1b4a5" name="adad4e1ac6934f3d1fe711262e8b1b4a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adad4e1ac6934f3d1fe711262e8b1b4a5">&#9670;&#160;</a></span>format_start_object()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::format_start_object </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Start an object </p>
+
+</div>
+</div>
+<a id="aebaf6537569fc658dfc337c5ee2a5497" name="aebaf6537569fc658dfc337c5ee2a5497"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aebaf6537569fc658dfc337c5ee2a5497">&#9670;&#160;</a></span>format_string()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::format_string </td>
+          <td>(</td>
+          <td class="paramtype">std::string_view</td>          <td class="paramname"><span class="paramname"><em>str</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Prints a string. The string is escaped as needed. </p>
+
+</div>
+</div>
+<a id="a1984d299740ba2ec68e364bb4360c00a" name="a1984d299740ba2ec68e364bb4360c00a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1984d299740ba2ec68e364bb4360c00a">&#9670;&#160;</a></span>format_true()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">WJR_INTRINSIC_INLINE</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">void</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::format_true </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Prints a true </p>
+
+</div>
+</div>
+<a id="a7766487e656d9fe9c91cb9694b32b885" name="a7766487e656d9fe9c91cb9694b32b885"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7766487e656d9fe9c91cb9694b32b885">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1json_1_1base__formatter.html">base_formatter</a> &amp; <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classwjr_1_1json_1_1base__formatter.html">base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2ac9e5f7bb0a1bd3386af6143bfe8753" name="a2ac9e5f7bb0a1bd3386af6143bfe8753"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2ac9e5f7bb0a1bd3386af6143bfe8753">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classwjr_1_1json_1_1base__formatter.html">base_formatter</a> &amp; <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">const</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">类成员变量说明</h2>
+<a id="a0ae0c9411b12fc821526ad3fa9d34ac3" name="a0ae0c9411b12fc821526ad3fa9d34ac3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0ae0c9411b12fc821526ad3fa9d34ac3">&#9670;&#160;</a></span>m_iter</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> , <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">typename</a> <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a> <a class="el" href="classwjr_1_1json_1_1base__formatter.html">wjr::json::base_formatter</a>&lt; <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Inserter</a>, <a class="el" href="namespacewjr.html#a1acbd863328d678d9e25f3a31ef82df0">Formatter</a> &gt;::m_iter</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/wjr/json/<a class="el" href="formatter_8hpp_source.html">formatter.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacewjr.html">wjr</a></li><li class="navelem"><a class="el" href="namespacewjr_1_1json.html">json</a></li><li class="navelem"><a class="el" href="classwjr_1_1json_1_1base__formatter.html">base_formatter</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+  </ul>
+</div>
+</body>
+</html>

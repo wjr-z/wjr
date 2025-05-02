@@ -1,0 +1,39 @@
+\doxysection{constant\+\_\+map.\+hpp}
+\hypertarget{constant__map_8hpp_source}{}\label{constant__map_8hpp_source}\index{include/wjr/container/constant\_map.hpp@{include/wjr/container/constant\_map.hpp}}
+\mbox{\hyperlink{constant__map_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_CONTAINER\_CONSTANT\_MAP\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_CONTAINER\_CONSTANT\_MAP\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <array>}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ <string\_view>}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{algorithm_8hpp}{wjr/algorithm.hpp}}>}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{keyword}{namespace\ }constant\ \{}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ KeySize>}
+\DoxyCodeLine{00014\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classwjr_1_1constant_1_1string__map}{string\_map}}\ \{}
+\DoxyCodeLine{00015\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00016\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1constant_1_1string__map_aafbe9214e75f7784967d0df0e3984dbb}{key\_type}}\ =\ std::string\_view;}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \ \ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{classwjr_1_1constant_1_1string__map_af4b368e40122c62915c99a94940d1e6d}{string\_map}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1constant_1_1string__map_aafbe9214e75f7784967d0df0e3984dbb}{key\_type}}\ (\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{keys}})[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{KeySize}}])\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ :\ m\_keys(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{keys}})\ \{}
+\DoxyCodeLine{00019\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_1_1constant_a76be3599673645166c966e9c5495a4ac}{constant::sort}}(m\_keys.begin(),\ m\_keys.end());}
+\DoxyCodeLine{00020\ \ \ \ \ \}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00023\ \ \ \ \ std::array<key\_type,\ KeySize>\ m\_keys;}
+\DoxyCodeLine{00024\ \};}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{size\_t}\ KeySize>}
+\DoxyCodeLine{00027\ \mbox{\hyperlink{namespacewjr_1_1constant_ade0f565c19c0344ae7ab5b31f786bdc9}{string\_map}}(\textcolor{keyword}{const}\ std::string\_view\ (\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{keys}})[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{KeySize}}])\ -\/>\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{string\_map<KeySize>}};}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \}\ \textcolor{comment}{//\ namespace\ constant}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_CONTAINER\_CONSTANT\_MAP\_HPP\_\_}}
+
+\end{DoxyCode}

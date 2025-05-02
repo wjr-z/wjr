@@ -1,0 +1,11 @@
+<map id="类继承关系图" name="类继承关系图">
+<area shape="rect" id="Node000000" href="$structwjr_1_1biginteger__data.html" title="data_type of biginteger" alt="" coords="5,79,139,105"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="189,5,414,80"/>
+<area shape="poly" id="edge109_Node000000_Node000001" title=" " alt="" coords="151,72,188,64,189,70,152,78"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="187,104,416,179"/>
+<area shape="poly" id="edge111_Node000000_Node000003" title=" " alt="" coords="152,106,187,114,185,119,151,112"/>
+<area shape="rect" id="Node000002" href="$classwjr_1_1default__biginteger__vector__storage.html" title=" " alt="" coords="464,21,629,64"/>
+<area shape="poly" id="edge110_Node000001_Node000002" title=" " alt="" coords="429,40,464,40,464,45,429,45"/>
+<area shape="rect" id="Node000004" href="$classwjr_1_1fixed__biginteger__vector__storage.html" title=" " alt="" coords="464,120,629,163"/>
+<area shape="poly" id="edge112_Node000003_Node000004" title=" " alt="" coords="432,139,464,139,464,144,432,144"/>
+</map>

@@ -1,0 +1,55 @@
+\doxysection{wjr\+::biginteger\+\_\+dispatch\+\_\+static\+\_\+table\texorpdfstring{$<$}{<} T \texorpdfstring{$>$}{>} 模板结构体 参考}
+\hypertarget{structwjr_1_1biginteger__dispatch__static__table}{}\label{structwjr_1_1biginteger__dispatch__static__table}\index{wjr::biginteger\_dispatch\_static\_table$<$ T $>$@{wjr::biginteger\_dispatch\_static\_table$<$ T $>$}}
+
+
+{\ttfamily \#include $<$biginteger.\+hpp$>$}
+
+
+
+wjr\+::biginteger\+\_\+dispatch\+\_\+static\+\_\+table\texorpdfstring{$<$}{<} T \texorpdfstring{$>$}{>} 的协作图\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=550pt]{structwjr_1_1biginteger__dispatch__static__table__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{静态 Public 属性}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{static}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1biginteger__dispatch__table}{biginteger\+\_\+dispatch\+\_\+table}} \mbox{\hyperlink{structwjr_1_1biginteger__dispatch__static__table_af9fb6442f7cbe7760748008a7941c2af}{table}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{类成员变量说明}
+\Hypertarget{structwjr_1_1biginteger__dispatch__static__table_af9fb6442f7cbe7760748008a7941c2af}\label{structwjr_1_1biginteger__dispatch__static__table_af9fb6442f7cbe7760748008a7941c2af} 
+\index{wjr::biginteger\_dispatch\_static\_table$<$ T $>$@{wjr::biginteger\_dispatch\_static\_table$<$ T $>$}!table@{table}}
+\index{table@{table}!wjr::biginteger\_dispatch\_static\_table$<$ T $>$@{wjr::biginteger\_dispatch\_static\_table$<$ T $>$}}
+\doxysubsubsection{\texorpdfstring{table}{table}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{structwjr_1_1biginteger__dispatch__table}{biginteger\+\_\+dispatch\+\_\+table}} \mbox{\hyperlink{structwjr_1_1biginteger__dispatch__static__table}{wjr\+::biginteger\+\_\+dispatch\+\_\+static\+\_\+table}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$\+::table\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [constexpr]}}
+
+{\bfseries 初始值\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ [](biginteger\_data\ *data,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\_t}}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}})\ \{\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{container\_of<T>}}(*data).\_\_reserve\_unchecked(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}});\ \},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ [](\mbox{\hyperlink{structwjr_1_1biginteger__data}{biginteger\_data}}\ *data,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\_t}}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}})\ \{\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{container\_of<T>}}(*data).clear\_if\_reserved(\mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}});\ \},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ [](\mbox{\hyperlink{structwjr_1_1biginteger__data}{biginteger\_data}}\ *data,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\_t}}\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}},\ \mbox{\hyperlink{classwjr_1_1unique__stack__allocator}{unique\_stack\_allocator}}\ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{al}})\ -\/>\ \mbox{\hyperlink{classwjr_1_1biginteger__dispatcher}{biginteger\_dispatcher}}\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{dst}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{container\_of<T>}}(*data);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ T\ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}}\ =\ \textcolor{keyword}{static\_cast<}T\ *\textcolor{keyword}{>}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{al}}-\/>allocate(\textcolor{keyword}{sizeof}(T)));}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_ac82a9c1998842560263e3c42bec78d56}{wjr::construct\_at}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{dst}}.get\_growth\_capacity(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{dst}}.capacity(),\ \mbox{\hyperlink{include_2wjr_2arch_2x86_2biginteger_2detail_2gen__addrsblsh__n_8hpp_a42a1da88df05bc933612820bb42db3a2}{n}}),\ \mbox{\hyperlink{namespacewjr_a089c42edb39b85c7aa611fb272adcd22}{in\_place\_reserve}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{dst}}.get\_allocator());}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classwjr_1_1biginteger__dispatcher}{biginteger\_dispatcher}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{tmp}});}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ [](biginteger\_data\ *data)\ \{\ std::destroy\_at(std::addressof(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{container\_of<T>}}(*data)));\ \},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ [](biginteger\_data\ *\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}},\ \textcolor{keyword}{const}\ biginteger\_data\ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \{\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{container\_of<T>}}(*\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}})\ =\ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}};\ \},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ [](biginteger\_data\ *\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}},\ biginteger\_data\ *\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}})\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{container\_of<T>}}(*\mbox{\hyperlink{namespacewjr_a56d0d668021d5c217629d1f16fc2fb98}{lhs}})\ =\ std::move(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{container\_of<T>}}(*\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{rhs}}));}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}\}}
+
+\end{DoxyCode}
+
+
+该结构体的文档由以下文件生成\+:\begin{DoxyCompactItemize}
+\item 
+include/wjr/biginteger/\mbox{\hyperlink{biginteger_2biginteger_8hpp}{biginteger.\+hpp}}\end{DoxyCompactItemize}

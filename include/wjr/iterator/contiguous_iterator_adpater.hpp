@@ -300,10 +300,12 @@ public:
     using Mybase::check_same_container;
 };
 
+/// @private
 template <typename Container, typename Traits>
 struct __is_contiguous_iterator_impl<contiguous_const_iterator_adapter<Container, Traits>>
     : std::true_type {};
 
+/// @private
 template <typename Container, typename Traits>
 struct __is_contiguous_iterator_impl<contiguous_iterator_adapter<Container, Traits>>
     : std::true_type {};

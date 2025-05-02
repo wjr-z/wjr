@@ -1,0 +1,321 @@
+\doxysection{attribute.\+hpp}
+\hypertarget{attribute_8hpp_source}{}\label{attribute_8hpp_source}\index{include/wjr/preprocessor/config/attribute.hpp@{include/wjr/preprocessor/config/attribute.hpp}}
+\mbox{\hyperlink{attribute_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_PREPROCESSOR\_CONFIG\_ATTRIBUTE\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_PREPROCESSOR\_CONFIG\_ATTRIBUTE\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{has_8hpp}{wjr/preprocessor/config/has.hpp}}>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#if\ defined(WJR\_CPP\_20)}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\ \ \ \ \#include\ <version>}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_CPP\_ATTRIBUTE(fallthrough)}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_FALLTHROUGH\ [[fallthrough]]}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#elif\ WJR\_HAS\_ATTRIBUTE(fallthrough)}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_FALLTHROUGH\ \_\_attribute\_\_((fallthrough))}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#elif\ defined(\_MSC\_VER)\ \&\&\ defined(\_\_fallthrough)}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_FALLTHROUGH\ \_\_fallthrough}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_FALLTHROUGH}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_CPP\_ATTRIBUTE(noreturn)}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_NORETURN\ [[noreturn]]}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#elif\ WJR\_HAS\_ATTRIBUTE(noreturn)}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_NORETURN\ \_\_attribute\_\_((noreturn))}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#elif\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_NORETURN\ \_\_declspec(noreturn)}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_NORETURN}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_CPP\_ATTRIBUTE(nodiscard)}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_NODISCARD\ [[nodiscard]]}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#elif\ WJR\_HAS\_ATTRIBUTE(nodiscard)}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_NODISCARD\ \_\_attribute\_\_((nodiscard))}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#elif\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_NODISCARD\ \_Check\_return\_}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_NODISCARD}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_CPP\_ATTRIBUTE(deprecated)}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_DEPRECATED\ [[deprecated]]}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#elif\ WJR\_HAS\_ATTRIBUTE(deprecated)}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_DEPRECATED\ \_\_attribute\_\_((deprecated))}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#elif\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_DEPRECATED\ \_\_declspec(deprecated)}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_DEPRECATED}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_CPP\_ATTRIBUTE(maybe\_unused)}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_MAYBE\_UNUSED\ [[maybe\_unused]]}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#elif\ WJR\_HAS\_ATTRIBUTE(maybe\_unused)}}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_MAYBE\_UNUSED\ \_\_attribute\_\_((maybe\_unused))}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#elif\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_MAYBE\_UNUSED}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_MAYBE\_UNUSED}}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_CPP\_ATTRIBUTE(likely)}}
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CPP\_LIKELY\ [[likely]]}}
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CPP\_LIKELY}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_CPP\_ATTRIBUTE(unlikely)}}
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CPP\_UNLIKELY\ [[unlikely]]}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CPP\_UNLIKELY}}
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_ATTRIBUTE(always\_inline)}}
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_FORCEINLINE\ \_\_attribute\_\_((always\_inline))}}
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#elif\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_FORCEINLINE\ \_\_forceinline}}
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_FORCEINLINE}}
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#if\ defined(\_MSV\_VER)}}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_SAFEBUFFERS\ \_\_declspec(safebuffers)}}
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_SAFEBUFFERS}}
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_ATTRIBUTE(flatten)}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_FLATTEN\ \_\_attribute\_\_((flatten))}}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\#elif\ WJR\_HAS\_MSVC(17,\ 00)}}
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_FLATTEN\ [[msvc::flatten]]}}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00091\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_FLATTEN}}
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_FEATURE(FORCEINLINE\_LAMBDA)}}
+\DoxyCodeLine{00095\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_FORCEINLINE\_LAMBDA\ WJR\_FORCEINLINE}}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_FORCEINLINE\_LAMBDA}}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \textcolor{comment}{//\ NOINLINE\ for\ MSVC/GCC/CLANG\ ...}}
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_ATTRIBUTE(noinline)}}
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_NOINLINE\ \_\_attribute\_\_((noinline))}}
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\#elif\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_NOINLINE\ \_\_declspec(noinline)}}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_NOINLINE}}
+\DoxyCodeLine{00107\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_ATTRIBUTE(hot)}}
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HOT\ \_\_attribute\_\_((hot))}}
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\#elif\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HOT}}
+\DoxyCodeLine{00113\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HOT}}
+\DoxyCodeLine{00115\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_ATTRIBUTE(cold)}}
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_COLD\ \_\_attribute\_\_((cold))}}
+\DoxyCodeLine{00119\ \textcolor{preprocessor}{\#elif\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_COLD}}
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_COLD}}
+\DoxyCodeLine{00123\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_ATTRIBUTE(aligned)}}
+\DoxyCodeLine{00126\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_ALIGNED(size)\ \_\_attribute\_\_((aligned(size)))}}
+\DoxyCodeLine{00127\ \textcolor{preprocessor}{\#elif\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_ALIGNED(size)}}
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00130\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_ALIGNED(size)}}
+\DoxyCodeLine{00131\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#if\ defined(\_\_cpp\_lib\_unreachable)}}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_UNREACHABLE()\ std::unreachable()}}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#elif\ WJR\_HAS\_BUILTIN(\_\_builtin\_unreachable)}}
+\DoxyCodeLine{00136\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_UNREACHABLE()\ \_\_builtin\_unreachable()}}
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\#elif\ defined(WJR\_COMPILER\_MSVC)}}
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_UNREACHABLE()\ \_\_assume(0)}}
+\DoxyCodeLine{00139\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_UNREACHABLE()}}
+\DoxyCodeLine{00141\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\#if\ defined(WJR\_COMPILER\_CLANG)\ ||\ defined(WJR\_COMPILER\_GCC)}}
+\DoxyCodeLine{00144\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_RESTRICT\ \_\_restrict}}
+\DoxyCodeLine{00145\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00146\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_RESTRICT}}
+\DoxyCodeLine{00147\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \textcolor{preprocessor}{\#if\ defined(WJR\_COMPILER\_MSVC)}}
+\DoxyCodeLine{00150\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_MS\_ABI}}
+\DoxyCodeLine{00151\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_FEATURE\_MS\_ABI\ WJR\_HAS\_DEF}}
+\DoxyCodeLine{00152\ \textcolor{preprocessor}{\#elif\ WJR\_HAS\_ATTRIBUTE(\_\_ms\_abi\_\_)}}
+\DoxyCodeLine{00153\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_MS\_ABI\ \_\_attribute\_\_((\_\_ms\_abi\_\_))}}
+\DoxyCodeLine{00154\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_FEATURE\_MS\_ABI\ WJR\_HAS\_DEF}}
+\DoxyCodeLine{00155\ \textcolor{preprocessor}{\#elif\ defined(WJR\_ENABLE\_ASSEMBLY)}}
+\DoxyCodeLine{00156\ \textcolor{preprocessor}{\ \ \ \ \#undef\ WJR\_ENABLE\_ASSEMBLY}}
+\DoxyCodeLine{00157\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \textcolor{preprocessor}{\#define\ WJR\_ASSUME\_MAY\_NOT\_PURE(expr)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00160\ \textcolor{preprocessor}{\ \ \ \ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00161\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (!(expr))\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00162\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ WJR\_UNREACHABLE();\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00163\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00164\ \textcolor{preprocessor}{\ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_BUILTIN(\_\_builtin\_assume)}}
+\DoxyCodeLine{00167\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_ASSUME(expr)\ \_\_builtin\_assume(expr)}}
+\DoxyCodeLine{00168\ \textcolor{preprocessor}{\#elif\ defined(WJR\_COMPILER\_MSVC)}}
+\DoxyCodeLine{00169\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_ASSUME(expr)\ \_\_assume(expr)}}
+\DoxyCodeLine{00170\ \textcolor{preprocessor}{\#elif\ WJR\_HAS\_CPP\_ATTRIBUTE(assume)}}
+\DoxyCodeLine{00171\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_ASSUME(expr)\ [[assume(expr)]]}}
+\DoxyCodeLine{00172\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00173\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_ASSUME(expr)\ WJR\_ASSUME\_MAY\_NOT\_PURE(expr)}}
+\DoxyCodeLine{00174\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\#define\ WJR\_BOOL\_EXPR(expr)\ (!!(expr))}}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_BUILTIN(\_\_builtin\_expect)}}
+\DoxyCodeLine{00179\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_EXPECT(expr,\ expect)\ \_\_builtin\_expect((expr),\ (expect))}}
+\DoxyCodeLine{00180\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00181\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_EXPECT(expr,\ expect)\ (expr)}}
+\DoxyCodeLine{00182\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00183\ }
+\DoxyCodeLine{00184\ \textcolor{preprocessor}{\#define\ WJR\_LIKELY(expr)\ WJR\_EXPECT(WJR\_BOOL\_EXPR(expr),\ true)}}
+\DoxyCodeLine{00185\ \textcolor{preprocessor}{\#define\ WJR\_UNLIKELY(expr)\ WJR\_EXPECT(WJR\_BOOL\_EXPR(expr),\ false)}}
+\DoxyCodeLine{00186\ }
+\DoxyCodeLine{00187\ \textcolor{preprocessor}{\#define\ WJR\_HAS\_FEATURE\_IS\_CONSTANT\_EVALUATED\ WJR\_HAS\_DEF}}
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_BUILTIN(\_\_builtin\_expect\_with\_probability)}}
+\DoxyCodeLine{00190\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_EXPECT\_WITH\_PROBABILITY(exp,\ c,\ probability)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00191\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \_\_builtin\_expect\_with\_probability(exp,\ c,\ probability)}}
+\DoxyCodeLine{00192\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00193\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_EXPECT\_WITH\_PROBABILITY(exp,\ c,\ probability)\ (expr)}}
+\DoxyCodeLine{00194\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_BUILTIN(\_\_builtin\_expect\_with\_probability)}}
+\DoxyCodeLine{00197\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_VERY\_LIKELY(exp,\ probability)\ WJR\_EXPECT\_WITH\_PROBABILITY(exp,\ true,\ probability)}}
+\DoxyCodeLine{00198\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_VERY\_UNLIKELY(exp,\ probability)\ WJR\_EXPECT\_WITH\_PROBABILITY(exp,\ false,\ probability)}}
+\DoxyCodeLine{00199\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00200\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_VERY\_LIKELY(exp,\ probability)\ WJR\_LIKELY(exp)}}
+\DoxyCodeLine{00201\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_VERY\_UNLIKELY(exp,\ probability)\ WJR\_UNLIKELY(exp)}}
+\DoxyCodeLine{00202\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00203\ }
+\DoxyCodeLine{00204\ \textcolor{preprocessor}{\#if\ defined(\_\_cpp\_lib\_is\_constant\_evaluated)}}
+\DoxyCodeLine{00205\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_IS\_CONSTANT\_EVALUATED()\ std::is\_constant\_evaluated()}}
+\DoxyCodeLine{00206\ \textcolor{preprocessor}{\#elif\ WJR\_HAS\_BUILTIN(\_\_builtin\_is\_constant\_evaluated)}}
+\DoxyCodeLine{00207\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_IS\_CONSTANT\_EVALUATED()\ \_\_builtin\_is\_constant\_evaluated()}}
+\DoxyCodeLine{00208\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00209\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_IS\_CONSTANT\_EVALUATED()\ false}}
+\DoxyCodeLine{00210\ \textcolor{preprocessor}{\ \ \ \ \#undef\ WJR\_HAS\_FEATURE\_IS\_CONSTANT\_EVALUATED}}
+\DoxyCodeLine{00211\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00221\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_BUILTIN(\_\_builtin\_constant\_p)}}
+\DoxyCodeLine{00222\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_BUILTIN\_CONSTANT\_P(expr)\ \_\_builtin\_constant\_p(expr)}}
+\DoxyCodeLine{00223\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_BUILTIN\_CONSTANT\_P\_TRUE(expr)\ (WJR\_BUILTIN\_CONSTANT\_P(expr)\ \&\&\ (expr))}}
+\DoxyCodeLine{00224\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_BUILTIN\_CONSTANT\_CONSTEXPR}}
+\DoxyCodeLine{00225\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00226\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_BUILTIN\_CONSTANT\_P(expr)\ false}}
+\DoxyCodeLine{00227\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_BUILTIN\_CONSTANT\_P\_TRUE(expr)\ false}}
+\DoxyCodeLine{00228\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_BUILTIN\_CONSTANT\_CONSTEXPR\ constexpr}}
+\DoxyCodeLine{00229\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00230\ }
+\DoxyCodeLine{00231\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_BUILTIN(\_\_builtin\_clear\_padding)}}
+\DoxyCodeLine{00232\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_BULTIN\_CLEAR\_PADDING\ WJR\_HAS\_DEF}}
+\DoxyCodeLine{00233\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_BUILTIN\_CLEAR\_PADDING(x)\ \_\_builtin\_clear\_padding(x)}}
+\DoxyCodeLine{00234\ \textcolor{preprocessor}{\#elif\ WJR\_HAS\_BUILTIN(\_\_builtin\_zero\_non\_value\_bits)\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00235\ \textcolor{preprocessor}{\ \ \ \ (defined(WJR\_COMPILER\_MSVC)\ \&\&\ WJR\_HAS\_MSVC(19,\ 27))}}
+\DoxyCodeLine{00236\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_BULTIN\_CLEAR\_PADDING\ WJR\_HAS\_DEF}}
+\DoxyCodeLine{00237\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_BUILTIN\_CLEAR\_PADDING(x)\ \_\_builtin\_zero\_non\_value\_bits(x)}}
+\DoxyCodeLine{00238\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00239\ }
+\DoxyCodeLine{00240\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_BUILTIN(\_\_builtin\_memcpy)}}
+\DoxyCodeLine{00241\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_BUILTIN\_MEMCPY\ WJR\_HAS\_DEF}}
+\DoxyCodeLine{00242\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_BUILTIN\_MEMCPY\_THRESHOLD\ 256}}
+\DoxyCodeLine{00243\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ \textcolor{preprocessor}{\#if\ defined(WJR\_FORCEINLINE)}}
+\DoxyCodeLine{00246\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_INTRINSIC\_INLINE\ inline\ WJR\_FORCEINLINE}}
+\DoxyCodeLine{00247\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00248\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_INTRINSIC\_INLINE\ inline}}
+\DoxyCodeLine{00249\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00250\ }
+\DoxyCodeLine{00251\ \textcolor{comment}{//\ pure\ attribute}}
+\DoxyCodeLine{00252\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_ATTRIBUTE(pure)}}
+\DoxyCodeLine{00253\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_PURE\ \_\_attribute\_\_((pure))}}
+\DoxyCodeLine{00254\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00255\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_PURE}}
+\DoxyCodeLine{00256\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00257\ }
+\DoxyCodeLine{00258\ \textcolor{comment}{//\ const\ attribute}}
+\DoxyCodeLine{00259\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_ATTRIBUTE(const)}}
+\DoxyCodeLine{00260\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CONST\ \_\_attribute\_\_((const))}}
+\DoxyCodeLine{00261\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00262\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CONST}}
+\DoxyCodeLine{00263\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00264\ }
+\DoxyCodeLine{00265\ \textcolor{preprocessor}{\#if\ defined(\_\_clang\_\_)\ ||\ defined(\_\_GNUC\_\_)}}
+\DoxyCodeLine{00266\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_ALLOCATOR}}
+\DoxyCodeLine{00267\ \textcolor{preprocessor}{\ \ \ \ \#if\ WJR\_HAS\_ATTRIBUTE(malloc)}}
+\DoxyCodeLine{00268\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ WJR\_MALLOC\ \_\_attribute\_\_((malloc))}}
+\DoxyCodeLine{00269\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00270\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ WJR\_MALLOC}}
+\DoxyCodeLine{00271\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00272\ \textcolor{preprocessor}{\#elif\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00273\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_ALLOCATOR\ \_\_declspec(allocator)\ \_\_declspec(restrict)}}
+\DoxyCodeLine{00274\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_MALLOC}}
+\DoxyCodeLine{00275\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00276\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_ALLOCATOR}}
+\DoxyCodeLine{00277\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_MALLOC}}
+\DoxyCodeLine{00278\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00279\ }
+\DoxyCodeLine{00280\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_ATTRIBUTE(nonnull)}}
+\DoxyCodeLine{00281\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_ALL\_NONNULL\ \_\_attribute\_\_((nonnull))}}
+\DoxyCodeLine{00282\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_NONNULL(...)\ \_\_attribute\_\_((nonnull(\_\_VA\_ARGS\_\_)))}}
+\DoxyCodeLine{00283\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00284\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_ALL\_NONNULL}}
+\DoxyCodeLine{00285\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_NONNULL(...)}}
+\DoxyCodeLine{00286\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00287\ }
+\DoxyCodeLine{00288\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_ATTRIBUTE(returns\_nonnull)}}
+\DoxyCodeLine{00289\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_RETURNS\_NONNULL\ \_\_attribute\_\_((returns\_nonnull))}}
+\DoxyCodeLine{00290\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00291\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_RETURNS\_NONNULL}}
+\DoxyCodeLine{00292\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00293\ }
+\DoxyCodeLine{00294\ \textcolor{preprocessor}{\#if\ WJR\_HAS\_ATTRIBUTE(\_\_may\_alias\_\_)}}
+\DoxyCodeLine{00295\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_MAY\_ALIAS\ \_\_attribute\_\_((\_\_may\_alias\_\_))}}
+\DoxyCodeLine{00296\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00297\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_MAY\_ALIAS}}
+\DoxyCodeLine{00298\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00299\ }
+\DoxyCodeLine{00300\ \textcolor{preprocessor}{\#define\ WJR\_INLINE\ inline}}
+\DoxyCodeLine{00301\ }
+\DoxyCodeLine{00302\ \textcolor{preprocessor}{\#if\ defined(WJR\_CPP\_20)}}
+\DoxyCodeLine{00303\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CONSTEXPR20\ constexpr}}
+\DoxyCodeLine{00304\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00305\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CONSTEXPR20}}
+\DoxyCodeLine{00306\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00307\ }
+\DoxyCodeLine{00308\ \textcolor{preprocessor}{\#define\ WJR\_INTRINSIC\_CONSTEXPR\ WJR\_INTRINSIC\_INLINE\ constexpr}}
+\DoxyCodeLine{00309\ \textcolor{preprocessor}{\#define\ WJR\_INTRINSIC\_CONSTEXPR20\ WJR\_INTRINSIC\_INLINE\ WJR\_CONSTEXPR20}}
+\DoxyCodeLine{00310\ }
+\DoxyCodeLine{00311\ \textcolor{preprocessor}{\#define\ WJR\_INLINE\_CONSTEXPR\ inline\ constexpr}}
+\DoxyCodeLine{00312\ \textcolor{preprocessor}{\#define\ WJR\_INLINE\_CONSTEXPR20\ inline\ WJR\_CONSTEXPR20}}
+\DoxyCodeLine{00313\ }
+\DoxyCodeLine{00314\ \textcolor{preprocessor}{\#define\ WJR\_ATTRIBUTE(attribute)\ WJR\_ATTRIBUTE\_I(attribute)}}
+\DoxyCodeLine{00315\ \textcolor{preprocessor}{\#define\ WJR\_ATTRIBUTE\_I(attribute)\ WJR\_\#\#attribute}}
+\DoxyCodeLine{00316\ }
+\DoxyCodeLine{00317\ \textcolor{preprocessor}{\#if\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00318\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_EMPTY\_BASES\ \_\_declspec(empty\_bases)}}
+\DoxyCodeLine{00319\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00320\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_EMPTY\_BASES}}
+\DoxyCodeLine{00321\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00322\ }
+\DoxyCodeLine{00323\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_PREPROCESSOR\_CONFIG\_ATTRIBUTE\_HPP\_\_}}
+
+\end{DoxyCode}

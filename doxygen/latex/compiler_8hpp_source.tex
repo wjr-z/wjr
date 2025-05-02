@@ -1,0 +1,118 @@
+\doxysection{compiler.\+hpp}
+\hypertarget{compiler_8hpp_source}{}\label{compiler_8hpp_source}\index{include/wjr/preprocessor/config/compiler.hpp@{include/wjr/preprocessor/config/compiler.hpp}}
+\mbox{\hyperlink{compiler_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_PREPROCESSOR\_CONFIG\_COMPILER\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_PREPROCESSOR\_CONFIG\_COMPILER\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#if\ defined(\_\_clang\_\_)}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_COMPILER\_CLANG}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#elif\ defined(\_\_GNUC\_\_)}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_COMPILER\_GCC}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#elif\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_COMPILER\_MSVC}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\ \ \ \ \#error\ "{}Not\ support"{}}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#if\ defined(\_\_GNUC\_\_)}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_GCC(major,\ minor,\ patchlevel)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ ((\_\_GNUC\_\_\ >\ (major))\ ||\ (\_\_GNUC\_\_\ ==\ (major)\ \&\&\ \_\_GNUC\_MINOR\_\_\ >\ (minor))\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ (\_\_GNUC\_\_\ ==\ (major)\ \&\&\ \_\_GNUC\_MINOR\_\_\ ==\ (minor)\ \&\&\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \_\_GNUC\_PATCHLEVEL\_\_\ >=\ (patchlevel)))}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_GCC(major,\ minor,\ patchlevel)\ 0}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ \_\_GNUC\_\_}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#if\ defined(\_\_clang\_\_)}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\ \ \ \ \#if\ defined(\_\_apple\_build\_version\_\_)}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#error\ "{}Not\ support"{}}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_CLANG(major,\ minor,\ patchlevel)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ ((\_\_clang\_major\_\_\ >\ (major))\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ (\_\_clang\_major\_\_\ ==\ (major)\ \&\&\ \_\_clang\_minor\_\_\ >\ (minor))\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ (\_\_clang\_major\_\_\ ==\ (major)\ \&\&\ \_\_clang\_minor\_\_\ ==\ (minor)\ \&\&\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \_\_clang\_patchlevel\_\_\ >=\ (patchlevel)))}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_CLANG(major,\ minor,\ patchlevel)\ 0}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#if\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_MSVC(minor,\ level)\ (\_MSC\_VER\ >=\ (minor)\ *\ 100\ +\ (level))}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_HAS\_MSVC(minor,\ level)\ 0}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#if\ (defined(WJR\_COMPILER\_GCC)\ \&\&\ !WJR\_HAS\_GCC(7,\ 1,\ 0))\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\ \ \ \ (defined(WJR\_COMPILER\_CLANG)\ \&\&\ !WJR\_HAS\_CLANG(5,\ 0,\ 0))}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\ \ \ \ \#error\ "{}GCC\ 7.1.0\ or\ Clang\ 5.0.0\ or\ later\ is\ required"{}}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#if\ defined(WJR\_COMPILER\_CLANG)\ ||\ defined(WJR\_COMPILER\_GCC)}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CPP\_STANDARD\ \_\_cplusplus}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#elif\ defined(WJR\_COMPILER\_MSVC)}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CPP\_STANDARD\ \_MSVC\_LANG}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#if\ WJR\_CPP\_STANDARD\ >=\ 199711L}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CPP\_03}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\#if\ WJR\_CPP\_STANDARD\ >=\ 201103L}}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CPP\_11}}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#if\ WJR\_CPP\_STANDARD\ >=\ 201402L}}
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CPP\_14}}
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\#if\ WJR\_CPP\_STANDARD\ >=\ 201703L}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CPP\_17}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#if\ WJR\_CPP\_STANDARD\ >=\ 202002L}}
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CPP\_20}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\#ifndef\ WJR\_CPP\_17}}
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\ \ \ \ \#error\ "{}required\ C++17\ or\ later"{}}}
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ c++17}}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#if\ defined(\_\_cpp\_char8\_t)}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CHAR8\_T}}
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ \_\_cpp\_char8\_t}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\#if\ defined(\_\_LINE\_\_)}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_LINE\ \_\_LINE\_\_}}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#elif\ defined(\_\_COUNTER\_\_)}}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_LINE\ \_\_COUNTER\_\_}}
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_LINE\ -\/1}}
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#ifdef\ \_\_FILE\_\_}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_FILE\ \_\_FILE\_\_}}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_FILE\ "{}"{}}}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\#if\ defined(\_\_GNUC\_\_)\ ||\ (defined(\_\_MWERKS\_\_)\ \&\&\ (\_\_MWERKS\_\_\ >=\ 0x3000))\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00093\ \textcolor{preprocessor}{\ \ \ \ (defined(\_\_ICC)\ \&\&\ (\_\_ICC\ >=\ 600))\ ||\ defined(\_\_ghs\_\_)}}
+\DoxyCodeLine{00094\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CURRENT\_FUNCTION\ \_\_PRETTY\_FUNCTION\_\_}}
+\DoxyCodeLine{00095\ \textcolor{preprocessor}{\#elif\ defined(\_\_DMC\_\_)\ \&\&\ (\_\_DMC\_\_\ >=\ 0x810)}}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CURRENT\_FUNCTION\ \_\_PRETTY\_FUNCTION\_\_}}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\#elif\ defined(\_\_FUNCSIG\_\_)}}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CURRENT\_FUNCTION\ \_\_FUNCSIG\_\_}}
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#elif\ (defined(\_\_INTEL\_COMPILER)\ \&\&\ (\_\_INTEL\_COMPILER\ >=\ 600))\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\ \ \ \ (defined(\_\_IBMCPP\_\_)\ \&\&\ (\_\_IBMCPP\_\_\ >=\ 500))}}
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CURRENT\_FUNCTION\ \_\_FUNCTION\_\_}}
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\#elif\ defined(\_\_BORLANDC\_\_)\ \&\&\ (\_\_BORLANDC\_\_\ >=\ 0x550)}}
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CURRENT\_FUNCTION\ \_\_FUNC\_\_}}
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\#elif\ defined(\_\_STDC\_VERSION\_\_)\ \&\&\ (\_\_STDC\_VERSION\_\_\ >=\ 199901)}}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CURRENT\_FUNCTION\ \_\_func\_\_}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\#elif\ defined(\_\_cplusplus)\ \&\&\ (\_\_cplusplus\ >=\ 201103)}}
+\DoxyCodeLine{00107\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CURRENT\_FUNCTION\ \_\_func\_\_}}
+\DoxyCodeLine{00108\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\ \ \ \ \#define\ WJR\_CURRENT\_FUNCTION\ "{}(unknown)"{}}}
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ !WJR\_PREPROCESSOR\_CONFIG\_COMPILER\_HPP\_\_}}
+
+\end{DoxyCode}

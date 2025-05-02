@@ -1,0 +1,4 @@
+var structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1detail_1_1nearest__always__closed__t =
+[
+    [ "interval_type_provider", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1detail_1_1nearest__always__closed__t.html#ac5434b2fc7565c3c3aa9e74980422609", null ]
+];

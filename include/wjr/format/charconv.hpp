@@ -182,15 +182,19 @@ public:
 template <uint64_t Base>
 class __to_chars_unroll_2_fast_fn_impl {};
 
+/// @private
 template <>
 class __to_chars_unroll_2_fast_fn_impl<2> : public __to_chars_unroll_2_fast_fn_impl_base<2> {};
 
+/// @private
 template <>
 class __to_chars_unroll_2_fast_fn_impl<8> : public __to_chars_unroll_2_fast_fn_impl_base<8> {};
 
+/// @private
 template <>
 class __to_chars_unroll_2_fast_fn_impl<10> : public __to_chars_unroll_2_fast_fn_impl_base<10> {};
 
+/// @private
 template <>
 class __to_chars_unroll_2_fast_fn_impl<16> : public __to_chars_unroll_2_fast_fn_impl_base<16> {};
 
@@ -218,15 +222,19 @@ public:
 template <uint64_t Base>
 class __to_chars_unroll_4_fast_fn_impl {};
 
+/// @private
 template <>
 class __to_chars_unroll_4_fast_fn_impl<2> : public __to_chars_unroll_4_fast_fn_impl_base<2> {};
 
+/// @private
 template <>
 class __to_chars_unroll_4_fast_fn_impl<8> : public __to_chars_unroll_4_fast_fn_impl_base<8> {};
 
+/// @private
 template <>
 class __to_chars_unroll_4_fast_fn_impl<10> : public __to_chars_unroll_4_fast_fn_impl_base<10> {};
 
+/// @private
 template <>
 class __to_chars_unroll_4_fast_fn_impl<16> : public __to_chars_unroll_4_fast_fn_impl_base<16> {};
 
@@ -246,6 +254,7 @@ public:
 template <uint64_t Base>
 class __to_chars_unroll_8_fast_fn_impl {};
 
+/// @private
 template <>
 class __to_chars_unroll_8_fast_fn_impl<10> : public __to_chars_unroll_8_fast_fn_impl_base<10> {};
 
@@ -263,6 +272,7 @@ public:
 template <uint64_t Base>
 class __to_chars_unroll_16_fast_fn_impl {};
 
+/// @private
 template <>
 class __to_chars_unroll_16_fast_fn_impl<10> : public __to_chars_unroll_16_fast_fn_impl_base<10> {};
 
@@ -427,12 +437,15 @@ class __from_chars_unroll_4_fast_fn_impl<10> : public __from_chars_unroll_4_fast
 template <uint64_t Base>
 class __from_chars_unroll_8_fast_fn_impl {};
 
+/// @private
 template <>
 class __from_chars_unroll_8_fast_fn_impl<2> : public __from_chars_unroll_8_fast_fn_impl_base<2> {};
 
+/// @private
 template <>
 class __from_chars_unroll_8_fast_fn_impl<8> : public __from_chars_unroll_8_fast_fn_impl_base<8> {};
 
+/// @private
 template <>
 class __from_chars_unroll_8_fast_fn_impl<10> : public __from_chars_unroll_8_fast_fn_impl_base<10> {
 };
@@ -440,18 +453,22 @@ class __from_chars_unroll_8_fast_fn_impl<10> : public __from_chars_unroll_8_fast
 template <uint64_t Base>
 class __from_chars_unroll_16_fast_fn_impl {};
 
+/// @private`
 template <>
 class __from_chars_unroll_16_fast_fn_impl<2> : public __from_chars_unroll_16_fast_fn_impl_base<2> {
 };
 
+/// @private
 template <>
 class __from_chars_unroll_16_fast_fn_impl<8> : public __from_chars_unroll_16_fast_fn_impl_base<8> {
 };
 
+/// @private
 template <>
 class __from_chars_unroll_16_fast_fn_impl<10>
     : public __from_chars_unroll_16_fast_fn_impl_base<10> {};
 
+/// @private
 template <uint64_t Base>
 class __from_chars_unroll_4_fn : public __from_chars_unroll_4_fast_fn_impl<Base> {
     using Mybase = __from_chars_unroll_4_fast_fn_impl<Base>;
@@ -609,6 +626,7 @@ struct count_digits_fn {};
 template <uint64_t Base>
 inline constexpr count_digits_fn<Base> count_digits{};
 
+/// @private
 template <>
 struct count_digits_fn<2> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
@@ -617,6 +635,7 @@ struct count_digits_fn<2> {
     }
 };
 
+/// @private
 template <>
 struct count_digits_fn<8> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
@@ -625,6 +644,7 @@ struct count_digits_fn<8> {
     }
 };
 
+/// @private
 template <>
 struct count_digits_fn<16> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
@@ -641,6 +661,7 @@ struct count_digits_fn<1> {
     }
 };
 
+/// @private
 template <>
 struct count_digits_fn<10> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
@@ -661,6 +682,7 @@ template <uint64_t Base>
 inline constexpr __unsigned_to_chars_backward_unchecked_fn<Base>
     __unsigned_to_chars_backward_unchecked{};
 
+/// @private
 template <>
 class __unsigned_to_chars_backward_unchecked_fn<2> {
 public:
@@ -709,6 +731,7 @@ public:
     }
 };
 
+/// @private
 template <>
 class __unsigned_to_chars_backward_unchecked_fn<8> {
 public:
@@ -759,6 +782,7 @@ public:
     }
 };
 
+/// @private
 template <>
 class __unsigned_to_chars_backward_unchecked_fn<16> {
 public:
@@ -830,6 +854,7 @@ public:
     }
 };
 
+/// @private
 template <>
 class __unsigned_to_chars_backward_unchecked_fn<10> {
 public:
