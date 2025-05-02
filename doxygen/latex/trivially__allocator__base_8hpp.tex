@@ -1,0 +1,36 @@
+\doxysection{include/wjr/crtp/trivially\+\_\+allocator\+\_\+base.hpp 文件参考}
+\hypertarget{trivially__allocator__base_8hpp}{}\label{trivially__allocator__base_8hpp}\index{include/wjr/crtp/trivially\_allocator\_base.hpp@{include/wjr/crtp/trivially\_allocator\_base.hpp}}
+\doxysubsubsection*{类}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1is__trivially__allocator}{wjr\+::is\+\_\+trivially\+\_\+allocator$<$ Alloc $>$}}
+\begin{DoxyCompactList}\small\item\em Default construct, destruct allocator. \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structwjr_1_1is__trivially__allocator_3_01std_1_1allocator_3_01_t_01_4_01_4}{wjr\+::is\+\_\+trivially\+\_\+allocator$<$ std\+::allocator$<$ T $>$ $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1is__trivially__allocator__construct}{wjr\+::is\+\_\+trivially\+\_\+allocator\+\_\+construct$<$ Alloc, Obj, Args $>$}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1is__trivially__allocator__destroy}{wjr\+::is\+\_\+trivially\+\_\+allocator\+\_\+destroy$<$ Alloc, Obj $>$}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{命名空间}
+\begin{DoxyCompactItemize}
+\item 
+namespace \mbox{\hyperlink{namespacewjr}{wjr}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{函数}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a8b4284a44f290424a37bcd2729748145}{wjr\+::\+WJR\+\_\+\+REGISTER\+\_\+\+HAS\+\_\+\+TYPE}} (\mbox{\hyperlink{structwjr_1_1is__trivially__allocator}{is\+\_\+trivially\+\_\+allocator}}, std\+::declval$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Alloc\+::is\+\_\+trivially\+\_\+allocator $>$(), Alloc)
+\item 
+\mbox{\hyperlink{namespacewjr_a7f1cd123b6f6bbec82955adbccca9fa4}{wjr\+::\+WJR\+\_\+\+REGISTER\+\_\+\+HAS\+\_\+\+TYPE}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+non\+\_\+trivially\+\_\+allocator\+\_\+construct}}, std\+::declval$<$ Alloc $>$().construct(std\+::declval$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Obj}} \texorpdfstring{$\ast$}{*} $>$(), std\+::declval$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}} $>$()...), Alloc, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Obj}})
+\item 
+\mbox{\hyperlink{namespacewjr_aac9f3d22b8a0fd44391a65613968ddfd}{wjr\+::\+WJR\+\_\+\+REGISTER\+\_\+\+HAS\+\_\+\+TYPE}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\+\_\+non\+\_\+trivially\+\_\+allocator\+\_\+destroy}}, std\+::declval$<$ Alloc $>$().destroy(std\+::declval$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Obj}} \texorpdfstring{$\ast$}{*} $>$()), Alloc, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Obj}})
+\end{DoxyCompactItemize}
+\doxysubsubsection*{变量}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Alloc $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{namespacewjr_ac46172f0c8d1edfa20d422483afeaf78}{wjr\+::is\+\_\+trivially\+\_\+allocator\+\_\+v}} = \mbox{\hyperlink{structwjr_1_1is__trivially__allocator}{is\+\_\+trivially\+\_\+allocator}}$<$Alloc$>$\+::value
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Alloc , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Obj}} , typename... Args$>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{namespacewjr_acc07baf6ffa935e84c9107a0b09a7bed}{wjr\+::is\+\_\+trivially\+\_\+allocator\+\_\+construct\+\_\+v}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Alloc , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Obj}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{namespacewjr_ae5f9f0b77fcd7dad149cd61b609da1e7}{wjr\+::is\+\_\+trivially\+\_\+allocator\+\_\+destroy\+\_\+v}}
+\end{DoxyCompactItemize}

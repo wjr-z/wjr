@@ -1,0 +1,93 @@
+\doxysection{wjr\+::dragonbox\+::multiplication\+\_\+traits\+\_\+base\texorpdfstring{$<$}{<} Format\+Traits, Cache\+Entry\+Type, cache\+\_\+bits\+\_\+ \texorpdfstring{$>$}{>} 模板结构体 参考}
+\hypertarget{structwjr_1_1dragonbox_1_1multiplication__traits__base}{}\label{structwjr_1_1dragonbox_1_1multiplication__traits__base}\index{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$@{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$}}
+
+
+{\ttfamily \#include $<$dragonbox.\+hpp$>$}
+
+
+
+wjr\+::dragonbox\+::multiplication\+\_\+traits\+\_\+base\texorpdfstring{$<$}{<} Format\+Traits, Cache\+Entry\+Type, cache\+\_\+bits\+\_\+ \texorpdfstring{$>$}{>} 的协作图\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=232pt]{structwjr_1_1dragonbox_1_1multiplication__traits__base__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{类}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1dragonbox_1_1multiplication__traits__base_1_1compute__mul__parity__result}{compute\+\_\+mul\+\_\+parity\+\_\+result}}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1dragonbox_1_1multiplication__traits__base_1_1compute__mul__result}{compute\+\_\+mul\+\_\+result}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public 类型}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1multiplication__traits__base_ad6cbd2654af63fe99f485be2b6606551}{format}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Format\+Traits\+::format
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1multiplication__traits__base_ae12717e1775df396fd1ba9c7a13c84ee}{carrier\+\_\+uint}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Format\+Traits\+::carrier\+\_\+uint
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1multiplication__traits__base_adb2ee77867e3db118e2a536d977e717f}{cache\+\_\+entry\+\_\+type}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Cache\+Entry\+Type}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{静态 Public 属性}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{static}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1multiplication__traits__base_aed9cffa7727de7d4bd8503c58706200e}{significand\+\_\+bits}} = format\+::significand\+\_\+bits
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{static}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1multiplication__traits__base_a2a2bd3f1dd747c628f98ac0f6d4ec096}{total\+\_\+bits}} = format\+::total\+\_\+bits
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{static}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1multiplication__traits__base_ad97a3d224e72af82d1faa769fd001247}{cache\+\_\+bits}} = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cache\+\_\+bits\+\_\+}})
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{成员类型定义说明}
+\Hypertarget{structwjr_1_1dragonbox_1_1multiplication__traits__base_adb2ee77867e3db118e2a536d977e717f}\label{structwjr_1_1dragonbox_1_1multiplication__traits__base_adb2ee77867e3db118e2a536d977e717f} 
+\index{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$@{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$}!cache\_entry\_type@{cache\_entry\_type}}
+\index{cache\_entry\_type@{cache\_entry\_type}!wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$@{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$}}
+\doxysubsubsection{\texorpdfstring{cache\_entry\_type}{cache\_entry\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} Format\+Traits , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Cache\+Entry\+Type}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} cache\+\_\+bits\+\_\+$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1multiplication__traits__base}{wjr\+::dragonbox\+::multiplication\+\_\+traits\+\_\+base}}$<$ Format\+Traits, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Cache\+Entry\+Type}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cache\+\_\+bits\+\_\+}} $>$\+::cache\+\_\+entry\+\_\+type = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Cache\+Entry\+Type}}}
+
+\Hypertarget{structwjr_1_1dragonbox_1_1multiplication__traits__base_ae12717e1775df396fd1ba9c7a13c84ee}\label{structwjr_1_1dragonbox_1_1multiplication__traits__base_ae12717e1775df396fd1ba9c7a13c84ee} 
+\index{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$@{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$}!carrier\_uint@{carrier\_uint}}
+\index{carrier\_uint@{carrier\_uint}!wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$@{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$}}
+\doxysubsubsection{\texorpdfstring{carrier\_uint}{carrier\_uint}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} Format\+Traits , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Cache\+Entry\+Type}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} cache\+\_\+bits\+\_\+$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1multiplication__traits__base}{wjr\+::dragonbox\+::multiplication\+\_\+traits\+\_\+base}}$<$ Format\+Traits, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Cache\+Entry\+Type}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cache\+\_\+bits\+\_\+}} $>$\+::carrier\+\_\+uint = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Format\+Traits\+::carrier\+\_\+uint}
+
+\Hypertarget{structwjr_1_1dragonbox_1_1multiplication__traits__base_ad6cbd2654af63fe99f485be2b6606551}\label{structwjr_1_1dragonbox_1_1multiplication__traits__base_ad6cbd2654af63fe99f485be2b6606551} 
+\index{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$@{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$}!format@{format}}
+\index{format@{format}!wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$@{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$}}
+\doxysubsubsection{\texorpdfstring{format}{format}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} Format\+Traits , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Cache\+Entry\+Type}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} cache\+\_\+bits\+\_\+$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1multiplication__traits__base}{wjr\+::dragonbox\+::multiplication\+\_\+traits\+\_\+base}}$<$ Format\+Traits, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Cache\+Entry\+Type}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cache\+\_\+bits\+\_\+}} $>$\+::format = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} Format\+Traits\+::format}
+
+
+
+\doxysubsection{类成员变量说明}
+\Hypertarget{structwjr_1_1dragonbox_1_1multiplication__traits__base_ad97a3d224e72af82d1faa769fd001247}\label{structwjr_1_1dragonbox_1_1multiplication__traits__base_ad97a3d224e72af82d1faa769fd001247} 
+\index{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$@{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$}!cache\_bits@{cache\_bits}}
+\index{cache\_bits@{cache\_bits}!wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$@{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$}}
+\doxysubsubsection{\texorpdfstring{cache\_bits}{cache\_bits}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} Format\+Traits , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Cache\+Entry\+Type}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} cache\+\_\+bits\+\_\+$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1multiplication__traits__base}{wjr\+::dragonbox\+::multiplication\+\_\+traits\+\_\+base}}$<$ Format\+Traits, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Cache\+Entry\+Type}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cache\+\_\+bits\+\_\+}} $>$\+::cache\+\_\+bits = \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cache\+\_\+bits\+\_\+}})\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [constexpr]}}
+
+\Hypertarget{structwjr_1_1dragonbox_1_1multiplication__traits__base_aed9cffa7727de7d4bd8503c58706200e}\label{structwjr_1_1dragonbox_1_1multiplication__traits__base_aed9cffa7727de7d4bd8503c58706200e} 
+\index{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$@{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$}!significand\_bits@{significand\_bits}}
+\index{significand\_bits@{significand\_bits}!wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$@{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$}}
+\doxysubsubsection{\texorpdfstring{significand\_bits}{significand\_bits}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} Format\+Traits , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Cache\+Entry\+Type}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} cache\+\_\+bits\+\_\+$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1multiplication__traits__base}{wjr\+::dragonbox\+::multiplication\+\_\+traits\+\_\+base}}$<$ Format\+Traits, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Cache\+Entry\+Type}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cache\+\_\+bits\+\_\+}} $>$\+::significand\+\_\+bits = format\+::significand\+\_\+bits\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [constexpr]}}
+
+\Hypertarget{structwjr_1_1dragonbox_1_1multiplication__traits__base_a2a2bd3f1dd747c628f98ac0f6d4ec096}\label{structwjr_1_1dragonbox_1_1multiplication__traits__base_a2a2bd3f1dd747c628f98ac0f6d4ec096} 
+\index{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$@{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$}!total\_bits@{total\_bits}}
+\index{total\_bits@{total\_bits}!wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$@{wjr::dragonbox::multiplication\_traits\_base$<$ FormatTraits, CacheEntryType, cache\_bits\_ $>$}}
+\doxysubsubsection{\texorpdfstring{total\_bits}{total\_bits}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} Format\+Traits , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Cache\+Entry\+Type}} , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{size\+\_\+t}} cache\+\_\+bits\+\_\+$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1multiplication__traits__base}{wjr\+::dragonbox\+::multiplication\+\_\+traits\+\_\+base}}$<$ Format\+Traits, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Cache\+Entry\+Type}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{cache\+\_\+bits\+\_\+}} $>$\+::total\+\_\+bits = format\+::total\+\_\+bits\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [constexpr]}}
+
+
+
+该结构体的文档由以下文件生成\+:\begin{DoxyCompactItemize}
+\item 
+include/wjr/format/\mbox{\hyperlink{dragonbox_8hpp}{dragonbox.\+hpp}}\end{DoxyCompactItemize}

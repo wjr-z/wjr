@@ -188,7 +188,7 @@ WJR_INTRINSIC_INLINE void parse_one_digit(const char *&p, uint64_t &value, size_
 }
 
 inline constexpr size_t max_limbs = 4000 / 64;
-using bigint = fixed_stack_biginteger;
+using bigint = inplace_biginteger<max_limbs>;
 
 // 1e0 to 1e19
 inline constexpr uint64_t powers_of_ten_uint64[] = {1UL,
@@ -446,8 +446,6 @@ adjusted_mantissa negative_digit_comp(bigint &bigmant, adjusted_mantissa am,
     bigint &real_digits = bigmant;
     int32_t real_exp = exponent;
 
-    // get the value of `b`, rounded down, and get a fixed_stack_biginteger
-    // representation of b+h
     adjusted_mantissa am_b = am;
     // gcc7 buf: use a lambda to remove the noexcept qualifier bug with
     // -Wnoexcept-type.
@@ -455,9 +453,7 @@ adjusted_mantissa negative_digit_comp(bigint &bigmant, adjusted_mantissa am,
     T b;
     to_float(false, am_b, b);
     adjusted_mantissa theor = to_extended_halfway(b);
-    unique_stack_allocator stkal;
-    bigint theor_digits(max_limbs, in_place_reserve, stkal);
-    theor_digits = theor.mantissa;
+    bigint theor_digits(theor.mantissa);
     int32_t theor_exp = theor.power2;
 
     // scale real digits and theor digits to be same power.
@@ -497,8 +493,7 @@ template <typename T>
 adjusted_mantissa digit_comp(adjusted_mantissa am, span<const char> integer,
                              span<const char> fraction, int32_t sci_exp) noexcept {
     size_t digits = 0;
-    unique_stack_allocator stkal;
-    bigint bigmant(max_limbs, in_place_reserve, stkal);
+    bigint bigmant;
     parse_mantissa<T>(bigmant, integer, fraction, digits);
     int32_t exponent = sci_exp + 1 - int32_t(digits);
     if (exponent >= 0) {

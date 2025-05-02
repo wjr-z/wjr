@@ -337,7 +337,7 @@ public:
     static value_type &from_ivalue(ivalue_type &value) { return *value; }
     static const value_type &from_ivalue(const ivalue_type &value) { return *value; }
 
-#if !defined(__GNUC__) || WJR_HAS_GCC(6, 0, 0)
+#if WJR_HAS_GCC(6, 0, 0)
     alignas(16) ivalue_type m_values[];
 #else
     alignas(16) ivalue_type m_values[0];

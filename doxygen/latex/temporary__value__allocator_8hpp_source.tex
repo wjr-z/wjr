@@ -1,0 +1,51 @@
+\doxysection{temporary\+\_\+value\+\_\+allocator.\+hpp}
+\hypertarget{temporary__value__allocator_8hpp_source}{}\label{temporary__value__allocator_8hpp_source}\index{include/wjr/memory/temporary\_value\_allocator.hpp@{include/wjr/memory/temporary\_value\_allocator.hpp}}
+\mbox{\hyperlink{temporary__value__allocator_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_MEMORY\_TEMPORARY\_VALUE\_ALLOCATOR\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_MEMORY\_TEMPORARY\_VALUE\_ALLOCATOR\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{uninitialized_8hpp}{wjr/memory/uninitialized.hpp}}>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Alloc>}
+\DoxyCodeLine{00009\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classwjr_1_1temporary__value__allocator}{temporary\_value\_allocator}}\ \{}
+\DoxyCodeLine{00010\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00011\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a68ad64e8e13b4c3e4e5b95a66834b445}{value\_type}}\ =\ \textcolor{keyword}{typename}\ std::allocator\_traits<Alloc>::value\_type;}
+\DoxyCodeLine{00012\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a91df43c09f426ff66f5c74c4c160ca92}{pointer}}\ =\ \mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a68ad64e8e13b4c3e4e5b95a66834b445}{value\_type}}\ *;}
+\DoxyCodeLine{00013\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a90d110acbcda2fcfb2ef92b847c05adf}{const\_pointer}}\ =\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a68ad64e8e13b4c3e4e5b95a66834b445}{value\_type}}\ *;}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}>}
+\DoxyCodeLine{00016\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_CONSTEXPR20}}\ \mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a28eaf6740a27a46b3334de4f06f94d01}{temporary\_value\_allocator}}(Alloc\ \&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_al}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}\ \&\&...\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{args}})\ \textcolor{keyword}{noexcept}(}
+\DoxyCodeLine{00017\ \ \ \ \ \ \ \ \ std::is\_nothrow\_constructible\_v<\mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a68ad64e8e13b4c3e4e5b95a66834b445}{value\_type}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}...>)}
+\DoxyCodeLine{00018\ \ \ \ \ \ \ \ \ :\ m\_al(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{\_al}})\ \{}
+\DoxyCodeLine{00019\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_ab268bcadd36d0b01d98998697191fb05}{uninitialized\_construct\_using\_allocator}}(\mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a5c5c1b09b1392127ae6a7113c9865123}{get}}(),\ m\_al,\ std::forward<Args>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{args}})...);}
+\DoxyCodeLine{00020\ \ \ \ \ \}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a11968ca30207e904b5d03eac8a00151b}{temporary\_value\_allocator}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1temporary__value__allocator}{temporary\_value\_allocator}}\ \&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00023\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1temporary__value__allocator_ad4c2fe4370687fc6007669f1254d080e}{temporary\_value\_allocator}}(\mbox{\hyperlink{classwjr_1_1temporary__value__allocator}{temporary\_value\_allocator}}\ \&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00024\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1temporary__value__allocator}{temporary\_value\_allocator}}\ \&\mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a933f3f6007554705beec5e6acd778dae}{operator=}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classwjr_1_1temporary__value__allocator}{temporary\_value\_allocator}}\ \&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00025\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1temporary__value__allocator}{temporary\_value\_allocator}}\ \&\mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a5c9713b69b93f3d9d71162ff8c40da48}{operator=}}(\mbox{\hyperlink{classwjr_1_1temporary__value__allocator}{temporary\_value\_allocator}}\ \&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a30a9c8035eec6b2a3fb281ec54ea1040}{\string~temporary\_value\_allocator}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}(}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}(\mbox{\hyperlink{namespacewjr_a96eeb697d042aa71313dd6a4d2176a07}{destroy\_at\_using\_allocator}}(\mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{declval}}<\mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a91df43c09f426ff66f5c74c4c160ca92}{pointer}}>(),\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{declval}}<Alloc\ \&>())))\ \{}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a96eeb697d042aa71313dd6a4d2176a07}{destroy\_at\_using\_allocator}}(\mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a5c5c1b09b1392127ae6a7113c9865123}{get}}(),\ m\_al);}
+\DoxyCodeLine{00030\ \ \ \ \ \}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a91df43c09f426ff66f5c74c4c160ca92}{pointer}}\ \mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a5c5c1b09b1392127ae6a7113c9865123}{get}}()\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ m\_storage.\mbox{\hyperlink{classwjr_1_1uninitialized_a428abded8f9f80d0899c1f22fad6da48}{get}}();\ \}}
+\DoxyCodeLine{00033\ \ \ \ \ \mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a90d110acbcda2fcfb2ef92b847c05adf}{const\_pointer}}\ \mbox{\hyperlink{classwjr_1_1temporary__value__allocator_a58247bf112b9f96c7068b9af77c185f8}{get}}()\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{const}}\ \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}\ \{\ \textcolor{keywordflow}{return}\ m\_storage.\mbox{\hyperlink{classwjr_1_1uninitialized_a428abded8f9f80d0899c1f22fad6da48}{get}}();\ \}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00036\ \ \ \ \ Alloc\ \&m\_al;}
+\DoxyCodeLine{00037\ \ \ \ \ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uninitialized<value\_type>}}\ m\_storage;}
+\DoxyCodeLine{00038\ \};}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Alloc,\ \textcolor{keyword}{typename}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}>}
+\DoxyCodeLine{00041\ \mbox{\hyperlink{namespacewjr_a81bbdcb36a886e89ff0170371c70a377}{temporary\_value\_allocator}}(Alloc\ \&,\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}\ \&\&...)\ -\/>\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{temporary\_value\_allocator<Alloc>}};}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_MEMORY\_TEMPORARY\_VALUE\_ALLOCATOR\_HPP\_\_}}
+
+\end{DoxyCode}

@@ -9,9 +9,9 @@
 using namespace wjr;
 
 static_assert(std::is_standard_layout_v<biginteger>, "bigintger must have standard layout");
-static_assert(std::is_standard_layout_v<stack_biginteger>, "bigintger must have standard layout");
+static_assert(std::is_standard_layout_v<weak_stack_biginteger>, "bigintger must have standard layout");
 static_assert(std::is_standard_layout_v<fixed_biginteger>, "bigintger must have standard layout");
-static_assert(std::is_standard_layout_v<fixed_stack_biginteger>,
+static_assert(std::is_standard_layout_v<fixed_weak_stack_biginteger>,
               "bigintger must have standard layout");
 
 namespace wjr {

@@ -1,0 +1,45 @@
+\doxysection{wjr\+::optional\+\_\+detail\+::\+\_\+\+\_\+enable\+\_\+optional\+\_\+storage\+\_\+impl\texorpdfstring{$<$}{<} T \texorpdfstring{$>$}{>} 模板结构体 参考}
+\hypertarget{structwjr_1_1optional__detail_1_1____enable__optional__storage__impl}{}\label{structwjr_1_1optional__detail_1_1____enable__optional__storage__impl}\index{wjr::optional\_detail::\_\_enable\_optional\_storage\_impl$<$ T $>$@{wjr::optional\_detail::\_\_enable\_optional\_storage\_impl$<$ T $>$}}
+
+
+{\ttfamily \#include $<$optional.\+hpp$>$}
+
+
+
+wjr\+::optional\+\_\+detail\+::\+\_\+\+\_\+enable\+\_\+optional\+\_\+storage\+\_\+impl\texorpdfstring{$<$}{<} T \texorpdfstring{$>$}{>} 的协作图\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=211pt]{structwjr_1_1optional__detail_1_1____enable__optional__storage__impl__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public 类型}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{using}} \mbox{\hyperlink{structwjr_1_1optional__detail_1_1____enable__optional__storage__impl_aa52ac61b1f5f6ee662cb02ef42a0435b}{type}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{成员类型定义说明}
+\Hypertarget{structwjr_1_1optional__detail_1_1____enable__optional__storage__impl_aa52ac61b1f5f6ee662cb02ef42a0435b}\label{structwjr_1_1optional__detail_1_1____enable__optional__storage__impl_aa52ac61b1f5f6ee662cb02ef42a0435b} 
+\index{wjr::optional\_detail::\_\_enable\_optional\_storage\_impl$<$ T $>$@{wjr::optional\_detail::\_\_enable\_optional\_storage\_impl$<$ T $>$}!type@{type}}
+\index{type@{type}!wjr::optional\_detail::\_\_enable\_optional\_storage\_impl$<$ T $>$@{wjr::optional\_detail::\_\_enable\_optional\_storage\_impl$<$ T $>$}}
+\doxysubsubsection{\texorpdfstring{type}{type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{using}} \mbox{\hyperlink{structwjr_1_1optional__detail_1_1____enable__optional__storage__impl}{wjr\+::optional\+\_\+detail\+::\+\_\+\+\_\+enable\+\_\+optional\+\_\+storage\+\_\+impl}}$<$ \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$\+::type}
+
+{\bfseries 初始值\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\ enable\_special\_members\_base<}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keyword}{true},\ \textcolor{keyword}{true},\ std::is\_copy\_constructible\_v<T>,\ std::is\_move\_constructible\_v<T>,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ std::is\_copy\_assignable\_v<T>\ \&\&\ std::is\_copy\_constructible\_v<T>\ \&\&}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_move\_constructible\_v<T>,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ std::is\_move\_assignable\_v<T>\ \&\&\ std::is\_move\_constructible\_v<T>\ \&\&}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ std::is\_nothrow\_move\_constructible\_v<T>>}
+
+\end{DoxyCode}
+
+
+该结构体的文档由以下文件生成\+:\begin{DoxyCompactItemize}
+\item 
+include/wjr/\mbox{\hyperlink{optional_8hpp}{optional.\+hpp}}\end{DoxyCompactItemize}

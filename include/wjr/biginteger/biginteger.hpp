@@ -129,11 +129,6 @@ struct biginteger_data {
     uint32_t m_capacity = 0;
 };
 
-/**
- * @struct default_biginteger_data
- * @brief The data structure for biginteger
- *
- */
 template <typename Alloc, typename Mybase, typename IsReallocatable>
 class __default_biginteger_vector_storage : private biginteger_data {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<uint64_t>;
@@ -203,15 +198,17 @@ public:
         return default_biginteger_size_reference(this->m_size);
     }
 
-    using biginteger_data::absolute;
     using biginteger_data::capacity;
-    using biginteger_data::conditional_negate;
     using biginteger_data::data;
-    using biginteger_data::get_ssize;
-    using biginteger_data::is_negate;
-    using biginteger_data::negate;
-    using biginteger_data::set_ssize;
     using biginteger_data::size;
+
+    constexpr biginteger_data *operator->() noexcept {
+        return static_cast<biginteger_data *>(this);
+    }
+
+    constexpr const biginteger_data *operator->() const noexcept {
+        return static_cast<const biginteger_data *>(this);
+    }
 
     constexpr biginteger_data *__get_data() noexcept {
         return static_cast<biginteger_data *>(this);
@@ -247,6 +244,176 @@ struct get_relocate_mode<fixed_biginteger_vector_storage<Alloc>> {
     static constexpr relocate_t value = relocate_t::trivial;
 };
 
+template <size_t Capacity>
+class inplace_biginteger_vector_storage {
+    using Alloc = std::allocator<uint64_t>;
+    using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<uint64_t>;
+    using _Alty_traits = std::allocator_traits<_Alty>;
+
+    template <typename _Mybase, typename _Tag, typename _Enable>
+    friend struct container_of_fn;
+
+    static constexpr bool __use_memcpy = sizeof(uint64_t) * Capacity <= 32;
+
+public:
+    static constexpr bool is_trivially_relocate_v = false;
+
+    using value_type = uint64_t;
+    using pointer = typename _Alty_traits::pointer;
+    using const_pointer = typename _Alty_traits::const_pointer;
+    using size_type = uint32_t;
+    using difference_type = int32_t;
+    using allocator_type = Alloc;
+    using storage_traits_type = vector_storage_traits<uint64_t, Alloc>;
+    using is_reallocatable = std::false_type;
+
+    inplace_biginteger_vector_storage() noexcept : m_bd({m_storage, 0, Capacity}) {}
+
+    inplace_biginteger_vector_storage(const inplace_biginteger_vector_storage &) = delete;
+    inplace_biginteger_vector_storage(inplace_biginteger_vector_storage &&) noexcept = delete;
+    inplace_biginteger_vector_storage &
+    operator=(const inplace_biginteger_vector_storage &) = delete;
+    inplace_biginteger_vector_storage &operator=(inplace_biginteger_vector_storage &&) = delete;
+
+    ~inplace_biginteger_vector_storage() = default;
+
+    void deallocate(_Alty &) noexcept {}
+
+    void uninitialized_construct(inplace_biginteger_vector_storage &other, size_type size,
+                                 size_type capacity, _Alty &) noexcept {
+        WJR_ASSERT_ASSUME(capacity <= Capacity, "capacity must be less than or equal to Capacity");
+        other.m_bd.m_data = m_storage;
+        other.m_bd.m_size = size;
+    }
+
+    void take_storage(inplace_biginteger_vector_storage &other, _Alty &al) noexcept {
+        const auto lhs = data();
+        const auto rhs = other.data();
+
+        m_bd.m_size = other.m_bd.m_size;
+
+        if constexpr (__use_memcpy) {
+            if (other.size()) {
+                builtin_memcpy(lhs, rhs, Capacity);
+            }
+        } else {
+            wjr::uninitialized_move_n_restrict_using_allocator(rhs, other.m_bd.m_size, lhs, al);
+        }
+
+        other.m_bd.m_size = 0;
+    }
+
+    void swap_storage(inplace_biginteger_vector_storage &other, _Alty &al) noexcept {
+        auto *lhs = data();
+        auto lsize = size();
+        auto *rhs = other.data();
+        auto rsize = other.size();
+
+        if (lsize && rsize) {
+            m_bd.m_size = rsize;
+            other.m_bd.m_size = lsize;
+
+            uint64_t tmp[Capacity];
+            if constexpr (__use_memcpy) {
+                builtin_memcpy(tmp, lhs, Capacity);
+                builtin_memcpy(lhs, rhs, Capacity);
+                builtin_memcpy(rhs, tmp, Capacity);
+            } else {
+                if (lsize > rsize) {
+                    std::swap(lhs, rhs);
+                    std::swap(lsize, rsize);
+                }
+
+                wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize, tmp, al);
+                wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs, al);
+                wjr::uninitialized_move_n_restrict_using_allocator(tmp, lsize, rhs, al);
+            }
+        } else if (rsize) {
+            if constexpr (__use_memcpy) {
+                builtin_memcpy(lhs, rhs, Capacity);
+            } else {
+                wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs, al);
+            }
+            m_bd.m_size = rsize;
+            other.m_bd.m_size = 0;
+        } else if (lsize) {
+            if constexpr (__use_memcpy) {
+                builtin_memcpy(rhs, lhs, Capacity);
+            } else {
+                wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize, rhs, al);
+            }
+
+            other.m_bd.m_size = lsize;
+            m_bd.m_size = 0;
+        }
+    }
+
+    WJR_PURE default_biginteger_size_reference size() noexcept {
+        return default_biginteger_size_reference(m_bd.m_size);
+    }
+
+    WJR_PURE constexpr uint64_t *data() noexcept { return m_bd.data(); }
+    WJR_PURE constexpr const uint64_t *data() const noexcept { return m_bd.data(); }
+
+    WJR_PURE constexpr uint32_t size() const noexcept { return m_bd.size(); }
+    WJR_PURE constexpr uint32_t capacity() const noexcept { return m_bd.capacity(); }
+
+    constexpr biginteger_data *operator->() noexcept { return std::addressof(m_bd); }
+    constexpr const biginteger_data *operator->() const noexcept { return std::addressof(m_bd); }
+
+    constexpr biginteger_data *__get_data() noexcept { return std::addressof(m_bd); }
+    constexpr const biginteger_data *__get_data() const noexcept { return std::addressof(m_bd); }
+
+private:
+    biginteger_data m_bd;
+    uint64_t m_storage[Capacity];
+};
+
+template <size_t Capacity>
+struct get_relocate_mode<inplace_biginteger_vector_storage<Capacity>> {
+    static constexpr relocate_t value =
+        inplace_biginteger_vector_storage<Capacity>::is_trivially_relocate_v
+            ? relocate_t::trivial
+            : relocate_t::maybe_trivial;
+};
+
+template <typename Alloc>
+struct container_of_fn<default_biginteger_vector_storage<Alloc>, void> {
+    using base_type = default_biginteger_vector_storage<Alloc>;
+    using value_type = biginteger_data;
+
+    base_type &operator()(value_type &ref) const noexcept { return static_cast<base_type &>(ref); }
+    const base_type &operator()(const value_type &ref) const noexcept {
+        return static_cast<base_type &>(ref);
+    }
+};
+
+template <typename Alloc>
+struct container_of_fn<fixed_biginteger_vector_storage<Alloc>, void> {
+    using base_type = fixed_biginteger_vector_storage<Alloc>;
+    using value_type = biginteger_data;
+
+    base_type &operator()(value_type &ref) const noexcept { return static_cast<base_type &>(ref); }
+    const base_type &operator()(const value_type &ref) const noexcept {
+        return static_cast<base_type &>(ref);
+    }
+};
+
+template <size_t Capacity>
+struct container_of_fn<inplace_biginteger_vector_storage<Capacity>, void> {
+    using base_type = inplace_biginteger_vector_storage<Capacity>;
+    using value_type = biginteger_data;
+
+    base_type &operator()(value_type &ref) const noexcept {
+        return *reinterpret_cast<base_type *>(reinterpret_cast<std::byte *>(std::addressof(ref)) -
+                                              offsetof(base_type, m_bd));
+    }
+    const base_type &operator()(const value_type &ref) const noexcept {
+        return *reinterpret_cast<const base_type *>(
+            reinterpret_cast<const std::byte *>(std::addressof(ref)) - offsetof(base_type, m_bd));
+    }
+};
+
 template <typename Storage>
 class basic_biginteger;
 
@@ -254,13 +421,16 @@ template <typename Alloc = std::allocator<uint64_t>>
 using default_biginteger = basic_biginteger<default_biginteger_vector_storage<Alloc>>;
 
 using biginteger = default_biginteger<>;
-using stack_biginteger = default_biginteger<weak_stack_allocator<uint64_t>>;
+using weak_stack_biginteger = default_biginteger<weak_stack_allocator<uint64_t>>;
 
 template <typename Alloc = std::allocator<uint64_t>>
 using default_fixed_biginteger = basic_biginteger<fixed_biginteger_vector_storage<Alloc>>;
 
 using fixed_biginteger = default_fixed_biginteger<>;
-using fixed_stack_biginteger = default_fixed_biginteger<weak_stack_allocator<uint64_t>>;
+using fixed_weak_stack_biginteger = default_fixed_biginteger<weak_stack_allocator<uint64_t>>;
+
+template <size_t Capacity>
+using inplace_biginteger = basic_biginteger<inplace_biginteger_vector_storage<Capacity>>;
 
 WJR_INTRINSIC_CONSTEXPR biginteger_data make_biginteger_data(span<const uint64_t> sp) noexcept {
     return biginteger_data{const_cast<uint64_t *>(sp.data()), static_cast<int32_t>(sp.size()), 0};
@@ -915,7 +1085,7 @@ WJR_PURE inline uint32_t __ctz_impl(const biginteger_data *num) noexcept;
 extern WJR_ALL_NONNULL void __pow_impl(biginteger_dispatcher dst, const biginteger_data *num,
                                        uint32_t exp) noexcept;
 
-/// @todo optimize
+/// @private
 template <typename S>
 void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint32_t exp) noexcept {
     __pow_impl(biginteger_dispatcher(dst), num, exp);
@@ -1514,12 +1684,12 @@ public:
     void swap(basic_biginteger &other) noexcept { m_vec.swap(other.m_vec); }
 
     void conditional_negate(bool condition) noexcept {
-        get_storage().conditional_negate(condition);
+        get_storage()->conditional_negate(condition);
     }
 
-    void negate() noexcept { get_storage().negate(); }
-    bool is_negate() const noexcept { return get_storage().is_negate(); }
-    void absolute() noexcept { get_storage().absolute(); }
+    void negate() noexcept { get_storage()->negate(); }
+    bool is_negate() const noexcept { return get_storage()->is_negate(); }
+    void absolute() noexcept { get_storage()->absolute(); }
 
     basic_biginteger &operator++() {
         increment(*this);
@@ -1602,11 +1772,11 @@ public:
     const_reverse_iterator crbegin() const noexcept { return m_vec.crbegin(); }
     const_reverse_iterator crend() const noexcept { return m_vec.crend(); }
 
-    int32_t get_ssize() const { return get_storage().get_ssize(); }
+    int32_t get_ssize() const { return get_storage()->get_ssize(); }
 
     template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     void set_ssize(T new_size) noexcept {
-        get_storage().set_ssize(new_size);
+        get_storage()->set_ssize(new_size);
     }
 
     WJR_CONST static size_type get_growth_capacity(size_type old_capacity,
@@ -1653,14 +1823,13 @@ struct container_of_fn<basic_biginteger<S>, void,
     using value_type = biginteger_data;
 
     base_type &operator()(value_type &ref) const noexcept {
-        auto &__vecctor = container_of<typename base_type::vector_type>(static_cast<S &>(ref));
+        auto &__vecctor = container_of<typename base_type::vector_type>(container_of<S>(ref));
         return *reinterpret_cast<base_type *>(
             reinterpret_cast<std::byte *>(std::addressof(__vecctor)) - offsetof(base_type, m_vec));
     }
 
     const base_type &operator()(const value_type &ref) const noexcept {
-        const auto &__vecctor =
-            container_of<typename base_type::vector_type>(static_cast<S &>(ref));
+        const auto &__vecctor = container_of<typename base_type::vector_type>(container_of<S>(ref));
         return *reinterpret_cast<const base_type *>(
             reinterpret_cast<const std::byte *>(std::addressof(__vecctor)) -
             offsetof(base_type, m_vec));
@@ -2001,7 +2170,7 @@ template <typename S>
 void __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
                    const biginteger_data *div) noexcept {
     unique_stack_allocator stkal;
-    stack_biginteger rem(stkal);
+    weak_stack_biginteger rem(stkal);
 
     const auto xsize = num->get_ssize() ^ div->get_ssize();
 
@@ -2190,7 +2359,7 @@ template <typename S>
 void __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
                    const biginteger_data *div) noexcept {
     unique_stack_allocator stkal;
-    stack_biginteger rem(stkal);
+    weak_stack_biginteger rem(stkal);
 
     const auto xsize = num->get_ssize() ^ div->get_ssize();
 

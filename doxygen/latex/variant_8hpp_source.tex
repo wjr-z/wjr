@@ -1,0 +1,64 @@
+\doxysection{variant.\+hpp}
+\hypertarget{variant_8hpp_source}{}\label{variant_8hpp_source}\index{include/wjr/variant.hpp@{include/wjr/variant.hpp}}
+\mbox{\hyperlink{variant_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_VARIANT\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_VARIANT\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <variant>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{preprocessor_8hpp}{wjr/preprocessor.hpp}}>}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{keyword}{namespace\ }variant\_detail\ \{}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ Ts>}
+\DoxyCodeLine{00013\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{WJR\_EMPTY\_BASES}}\ overloaded\ :\ Ts...\ \{}
+\DoxyCodeLine{00014\ \ \ \ \ \textcolor{keyword}{using\ }Ts::operator()...;}
+\DoxyCodeLine{00015\ \};}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ Ts>}
+\DoxyCodeLine{00018\ overloaded(Ts...)\ -\/>\ overloaded<Ts...>;}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \}\ \textcolor{comment}{//\ namespace\ variant\_detail}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}>}
+\DoxyCodeLine{00023\ std::variant<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}...>\ \&\_\_is\_as\_variant\_impl(std::variant<Args...>\ \&);}
+\DoxyCodeLine{00024\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}>}
+\DoxyCodeLine{00025\ \textcolor{keyword}{const}\ std::variant<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}...>\ \&\_\_is\_as\_variant\_impl(\textcolor{keyword}{const}\ std::variant<Args...>\ \&);}
+\DoxyCodeLine{00026\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}>}
+\DoxyCodeLine{00027\ std::variant<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}...>\ \&\&\_\_is\_as\_variant\_impl(std::variant<Args...>\ \&\&);}
+\DoxyCodeLine{00028\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}>}
+\DoxyCodeLine{00029\ \textcolor{keyword}{const}\ std::variant<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}...>\ \&\&\_\_is\_as\_variant\_impl(\textcolor{keyword}{const}\ std::variant<Args...>\ \&\&);}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00032\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ Enable>}
+\DoxyCodeLine{00033\ \textcolor{keyword}{struct\ }\_\_is\_as\_variant\_helper\ :\ std::false\_type\ \{\};}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00036\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00037\ \textcolor{keyword}{struct\ }\_\_is\_as\_variant\_helper<T,\ \mbox{\hyperlink{namespacestd}{std}}::\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{void\_t}}<decltype(\_\_is\_as\_variant\_impl(std::declval<T>()))>>}
+\DoxyCodeLine{00038\ \ \ \ \ :\ std::true\_type\ \{\};}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00041\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structwjr_1_1is__as__variant}{is\_as\_variant}}\ :\ \_\_is\_as\_variant\_helper<T,\ void>\ \{\};}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00044\ \textcolor{keyword}{inline}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{namespacewjr_a6a2d82a7873c851780f0ab3387b675e0}{is\_as\_variant\_v}}\ =\ \mbox{\hyperlink{structwjr_1_1is__as__variant}{is\_as\_variant<T>::value}};}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Callable}},\ \textcolor{keyword}{typename}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Variants}},}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(std::conjunction\_v<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_as\_variant<Variants>}}...>)>}
+\DoxyCodeLine{00048\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{decltype}(\textcolor{keyword}{auto})\ \mbox{\hyperlink{namespacewjr_a989de7961c856eba9d7f37a94acafdfb}{visit}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Callable}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{obj}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Variants}}\ \&\&...\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{vars}})\ \{}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keywordflow}{return}\ std::visit(std::forward<Callable>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{obj}}),\ std::forward<Variants>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{vars}})...);}
+\DoxyCodeLine{00050\ \}}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Var}},\ \textcolor{keyword}{typename}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}},\ \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\_REQUIRES}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{is\_as\_variant\_v<Var>}})>}
+\DoxyCodeLine{00053\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{decltype}(\textcolor{keyword}{auto})\ \mbox{\hyperlink{namespacewjr_add4a75b39b4e76ea8583b097074085a4}{match}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Var}}\ \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{var}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}}\ \&\&...\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{args}})\ \{}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keywordflow}{return}\ std::visit(variant\_detail::overloaded\{std::forward<Args>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{args}})...\},}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::forward<Var>(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{var}}));}
+\DoxyCodeLine{00056\ \}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_VARIANT\_HPP\_\_}}
+
+\end{DoxyCode}

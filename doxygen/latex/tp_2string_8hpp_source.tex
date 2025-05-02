@@ -1,0 +1,41 @@
+\doxysection{string.\+hpp}
+\hypertarget{tp_2string_8hpp_source}{}\label{tp_2string_8hpp_source}\index{include/wjr/tp/string.hpp@{include/wjr/tp/string.hpp}}
+\mbox{\hyperlink{tp_2string_8hpp}{浏览该文件的文档.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ WJR\_TP\_STRING\_HPP\_\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ WJR\_TP\_STRING\_HPP\_\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <\mbox{\hyperlink{tp_2algorithm_8hpp}{wjr/tp/algorithm.hpp}}>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespacewjr}{wjr}}\ \{}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Chars}}>}
+\DoxyCodeLine{00009\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structwjr_1_1tp__cstr}{tp\_cstr}}\ \{}
+\DoxyCodeLine{00010\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{structwjr_1_1tp__cstr_aa9f44ecbc69bdbc263ddc9a06fd08a33}{value\_type}}\ =\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}};}
+\DoxyCodeLine{00011\ \};}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{char}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Chars}}>}
+\DoxyCodeLine{00014\ \textcolor{keyword}{using\ }\_\_tp\_cstr\_t\ =\ \mbox{\hyperlink{namespacewjr_aa5e16904704c045473228561f06c515f}{tp\_rename\_t}}<\mbox{\hyperlink{namespacewjr_a0eb3f01d420e79f9117f18401b3035d4}{tp\_integers\_list\_t}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{char}},\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Chars}}...>,\ \mbox{\hyperlink{structwjr_1_1tp__cstr}{tp\_cstr}}>;}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args0}},\ \textcolor{keyword}{typename}...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args1}}>}
+\DoxyCodeLine{00017\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structwjr_1_1tp__less}{tp\_less}}<\mbox{\hyperlink{structwjr_1_1tp__cstr}{tp\_cstr}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args0}}...>,\ \mbox{\hyperlink{structwjr_1_1tp__cstr}{tp\_cstr}}<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args1}}...>>}
+\DoxyCodeLine{00018\ \ \ \ \ :\ \mbox{\hyperlink{namespacewjr_a5f6690811a28beb7aeb30327ffc9bb1c}{tp\_lexicographical\_compare\_t}}<tp\_cstr<Args0...>,\ tp\_cstr<Args1...>>\ \{\};}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Str}},\ std::size\_t...\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{indices}}>}
+\DoxyCodeLine{00021\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{decltype}(\textcolor{keyword}{auto})\ \_\_build\_tp\_cstr(std::index\_sequence<indices...>)\ \{}
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{keywordflow}{return}\ \_\_tp\_cstr\_t<\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Str}}().chars[\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{indices}}]...>();}
+\DoxyCodeLine{00023\ \}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#define\ WJR\_MAKE\_CSTR(str)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\ \ \ \ []\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ struct\ WJR\_VISIBILITY("{}hidden"{})\ Str\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ const\ char\ *chars\ =\ str;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ return\ \_\_build\_tp\_cstr<Str>(std::make\_index\_sequence<sizeof(str)>());\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\ \ \ \ \}()}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \}\ \textcolor{comment}{//\ namespace\ wjr}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WJR\_TP\_STRING\_HPP\_\_}}
+
+\end{DoxyCode}

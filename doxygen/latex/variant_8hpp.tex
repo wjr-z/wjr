@@ -1,0 +1,24 @@
+\doxysection{include/wjr/variant.hpp 文件参考}
+\hypertarget{variant_8hpp}{}\label{variant_8hpp}\index{include/wjr/variant.hpp@{include/wjr/variant.hpp}}
+\doxysubsubsection*{类}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structwjr_1_1is__as__variant}{wjr\+::is\+\_\+as\+\_\+variant$<$ T $>$}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{命名空间}
+\begin{DoxyCompactItemize}
+\item 
+namespace \mbox{\hyperlink{namespacewjr}{wjr}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{函数}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Callable}} , typename... Variants, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(std\+::conjunction\+\_\+v$<$ \mbox{\hyperlink{structwjr_1_1is__as__variant}{is\+\_\+as\+\_\+variant}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Variants}} $>$... $>$) $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{decltype}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{auto}}) \mbox{\hyperlink{namespacewjr_a989de7961c856eba9d7f37a94acafdfb}{wjr\+::visit}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Callable}} \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{obj}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Variants}} \&\&...\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{vars}})
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Var}} , typename... Args, \mbox{\hyperlink{namespacewjr_a348c7d0ec2ea5f8b8c855af9f41551f1}{WJR\+\_\+\+REQUIRES}}(\mbox{\hyperlink{namespacewjr_a6a2d82a7873c851780f0ab3387b675e0}{is\+\_\+as\+\_\+variant\+\_\+v}}$<$ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Var}} $>$) $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{decltype}}(\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{auto}}) \mbox{\hyperlink{namespacewjr_add4a75b39b4e76ea8583b097074085a4}{wjr\+::match}} (\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Var}} \&\&\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{var}}, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{Args}} \&\&...\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{args}})
+\end{DoxyCompactItemize}
+\doxysubsubsection*{变量}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{typename}} \mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}} $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{constexpr}} \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{bool}} \mbox{\hyperlink{namespacewjr_a6a2d82a7873c851780f0ab3387b675e0}{wjr\+::is\+\_\+as\+\_\+variant\+\_\+v}} = \mbox{\hyperlink{structwjr_1_1is__as__variant}{is\+\_\+as\+\_\+variant}}$<$\mbox{\hyperlink{namespacewjr_a69f5110cc164b4f5516e74717d11018b}{T}}$>$\+::value
+\end{DoxyCompactItemize}

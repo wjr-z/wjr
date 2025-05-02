@@ -1,0 +1,43 @@
+\doxysection{wjr\+::default\+\_\+construct\+\_\+t结构体 参考}
+\hypertarget{structwjr_1_1default__construct__t}{}\label{structwjr_1_1default__construct__t}\index{wjr::default\_construct\_t@{wjr::default\_construct\_t}}
+
+
+Tag of default construct.  
+
+
+
+
+{\ttfamily \#include $<$tag.\+hpp$>$}
+
+
+
+wjr\+::default\+\_\+construct\+\_\+t 的协作图\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=190pt]{structwjr_1_1default__construct__t__coll__graph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{详细描述}
+Tag of default construct. 
+
+Use default\+\_\+construct to indicate default construct. ~\newline
+Used to avoid value initialization. ~\newline
+For example \+: ~\newline
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::vector<int>}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{vec}}(10,\ \mbox{\hyperlink{namespacewjr_a1d23c863b7f2cee4674ceeacd52aee31}{default\_construct}});\ \textcolor{comment}{//\ default\ construct\ with\ 10}}
+\DoxyCodeLine{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{elements}}.\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::vector<int>}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{vec2}}(10);\ \textcolor{comment}{//\ value\ construct\ with\ 10\ elements.}}
+\DoxyCodeLine{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::vector<int>}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{vec3}}(10,\ 0);\ \textcolor{comment}{//\ value\ construct\ with\ 10\ elements.}}
+\DoxyCodeLine{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{wjr::vector<int>}}\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{vec4}}(10,\ \mbox{\hyperlink{namespacewjr_a70b0d74efd590d0aff5e1e63a01476d3}{value\_construct}});\ \textcolor{comment}{//\ value\ construct\ with\ 10}}
+\DoxyCodeLine{\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{elements}}.}
+
+\end{DoxyCode}
+ elements of vec are not initialized. ~\newline
+elements of vec2, vec3, vec4 are initialized with 0. 
+
+该结构体的文档由以下文件生成\+:\begin{DoxyCompactItemize}
+\item 
+include/wjr/\mbox{\hyperlink{tag_8hpp}{tag.\+hpp}}\end{DoxyCompactItemize}

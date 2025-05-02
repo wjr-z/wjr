@@ -1,0 +1,331 @@
+\doxysection{wjr\+::dragonbox\+::detail\+::impl\texorpdfstring{$<$}{<} Format\+Traits \texorpdfstring{$>$}{>} 模板结构体 参考}
+\hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl}{}\label{structwjr_1_1dragonbox_1_1detail_1_1impl}\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+
+
+{\ttfamily \#include $<$dragonbox.\+hpp$>$}
+
+
+
+类 wjr\+::dragonbox\+::detail\+::impl\texorpdfstring{$<$}{<} Format\+Traits \texorpdfstring{$>$}{>} 继承关系图\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=550pt]{structwjr_1_1dragonbox_1_1detail_1_1impl__inherit__graph}
+\end{center}
+\end{figure}
+
+
+wjr\+::dragonbox\+::detail\+::impl\texorpdfstring{$<$}{<} Format\+Traits \texorpdfstring{$>$}{>} 的协作图\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=550pt]{structwjr_1_1dragonbox_1_1detail_1_1impl__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public 类型}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a2f83fba81d362aff06bd4e4bc970a82f}{format}} = \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{typename}} Format\+Traits\+::format
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a01e865fd5461b4d8c3bf794e3c98cc49}{carrier\+\_\+uint}} = \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{typename}} Format\+Traits\+::carrier\+\_\+uint
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a7f4b67d5275de25d8885cd74f45e0b22}{exponent\+\_\+int}} = \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{typename}} Format\+Traits\+::exponent\+\_\+int
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ }\\\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a2e193c50a8f01a3d997e0b4e51481476}{remainder\+\_\+type}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ }\\\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_ad7dae049aa19d75a5bfd718b7b587932}{decimal\+\_\+exponent\+\_\+type}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Sign\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Trailing\+Zero\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ }\\\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a1e107e254a53082308dbb42be856ec91}{return\+\_\+type}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{静态 Public 成员函数}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_af1c77a0b33b0b09a4c7812c037cb8bb2}{min}} (\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{x}}, \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{y}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a6397ebacc212c9de97a83be6f0e7cba6}{max}} (\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{x}}, \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{y}}) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Sign\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Trailing\+Zero\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Interval\+Type\+Provider}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Binary\+To\+Decimal\+Rounding\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Cache\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ }\\\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+SAFEBUFFERS}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a1e107e254a53082308dbb42be856ec91}{return\+\_\+type}}$<$ \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Sign\+Policy}}, \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Trailing\+Zero\+Policy}}, \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a0ee590eee390ba1cac9bc4c2cc2019c7}{compute\+\_\+nearest}} (\mbox{\hyperlink{structwjr_1_1dragonbox_1_1signed__significand__bits}{signed\+\_\+significand\+\_\+bits}}$<$ Format\+Traits $>$ \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{s}}, \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a7f4b67d5275de25d8885cd74f45e0b22}{exponent\+\_\+int}} exponent\+\_\+bits) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\begin{DoxyCompactList}\small\item\em The main algorithm assumes the input is a normal/subnormal finite number. \end{DoxyCompactList}\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Sign\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Trailing\+Zero\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Cache\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ }\\\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+SAFEBUFFERS}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a1e107e254a53082308dbb42be856ec91}{return\+\_\+type}}$<$ \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Sign\+Policy}}, \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Trailing\+Zero\+Policy}}, \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_ace19b9d75b9a6ea416e7a86b55914711}{compute\+\_\+left\+\_\+closed\+\_\+directed}} (\mbox{\hyperlink{structwjr_1_1dragonbox_1_1signed__significand__bits}{signed\+\_\+significand\+\_\+bits}}$<$ Format\+Traits $>$ \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{s}}, \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a7f4b67d5275de25d8885cd74f45e0b22}{exponent\+\_\+int}} exponent\+\_\+bits) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Sign\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Trailing\+Zero\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Cache\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ }\\\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+SAFEBUFFERS}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a1e107e254a53082308dbb42be856ec91}{return\+\_\+type}}$<$ \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Sign\+Policy}}, \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Trailing\+Zero\+Policy}}, \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_af6ae9dd27a0cf177ad93c3c437d1b2d9}{compute\+\_\+right\+\_\+closed\+\_\+directed}} (\mbox{\hyperlink{structwjr_1_1dragonbox_1_1signed__significand__bits}{signed\+\_\+significand\+\_\+bits}}$<$ Format\+Traits $>$ \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{s}}, \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a7f4b67d5275de25d8885cd74f45e0b22}{exponent\+\_\+int}} exponent\+\_\+bits) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{bool}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_aff3b86f1bb864cb3dace39f7f1401fec}{is\+\_\+right\+\_\+endpoint\+\_\+integer\+\_\+shorter\+\_\+interval}} (\mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a7f4b67d5275de25d8885cd74f45e0b22}{exponent\+\_\+int}} binary\+\_\+exponent) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{bool}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a1a842fe56d1fcbe84a799a76297178de}{is\+\_\+left\+\_\+endpoint\+\_\+integer\+\_\+shorter\+\_\+interval}} (\mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a7f4b67d5275de25d8885cd74f45e0b22}{exponent\+\_\+int}} binary\+\_\+exponent) \mbox{\hyperlink{namespacewjr_af89e8e658fd9c3a3b154c55677a3b528}{noexcept}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{静态 Public 属性}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a06b5b2d735c3fef07ac67985791ec999}{carrier\+\_\+bits}} = Format\+Traits\+::carrier\+\_\+bits
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_ae09782499ac4a81c1f0cf6bc8189cb88}{kappa}} = \mbox{\hyperlink{namespacewjr_1_1dragonbox_1_1detail_1_1log_a08a26c113e9d4d75195fcf2ebcf0ab54}{log\+::floor\+\_\+log10\+\_\+pow2}}(\mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a06b5b2d735c3fef07ac67985791ec999}{carrier\+\_\+bits}} -\/ significand\+\_\+bits -\/ 2) -\/ 1
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a9ca4bb15e002dae66286853c3aabca22}{min\+\_\+k}}
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a3200a1c043768fde777d965af7bec06b}{max\+\_\+k}}
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a9d36fd4a0e2fb72bbfacc929f5615525}{case\+\_\+shorter\+\_\+interval\+\_\+left\+\_\+endpoint\+\_\+lower\+\_\+threshold}} = 2
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_ae3d9887b58d03c00c2212cb865b669d9}{case\+\_\+shorter\+\_\+interval\+\_\+left\+\_\+endpoint\+\_\+upper\+\_\+threshold}}
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a5b59be77e0d6a62efe1d056d806d61a1}{case\+\_\+shorter\+\_\+interval\+\_\+right\+\_\+endpoint\+\_\+lower\+\_\+threshold}} = 0
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a426ec36951ffa1e0170cca83492cb5d5}{case\+\_\+shorter\+\_\+interval\+\_\+right\+\_\+endpoint\+\_\+upper\+\_\+threshold}}
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_aa66e4e4e0f90aa9a6f0e6e25e4dfd43d}{shorter\+\_\+interval\+\_\+tie\+\_\+lower\+\_\+threshold}}
+\item 
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_ab3155c9b552576f4a52d8c1928544157}{shorter\+\_\+interval\+\_\+tie\+\_\+upper\+\_\+threshold}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{成员类型定义说明}
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_a01e865fd5461b4d8c3bf794e3c98cc49}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_a01e865fd5461b4d8c3bf794e3c98cc49} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!carrier\_uint@{carrier\_uint}}
+\index{carrier\_uint@{carrier\_uint}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{carrier\_uint}{carrier\_uint}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::carrier\+\_\+uint = \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{typename}} Format\+Traits\+::carrier\+\_\+uint}
+
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_ad7dae049aa19d75a5bfd718b7b587932}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_ad7dae049aa19d75a5bfd718b7b587932} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!decimal\_exponent\_type@{decimal\_exponent\_type}}
+\index{decimal\_exponent\_type@{decimal\_exponent\_type}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{decimal\_exponent\_type}{decimal\_exponent\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::decimal\+\_\+exponent\+\_\+type}
+
+{\bfseries 初始值\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ PreferredIntegerTypesPolicy::template\ \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_ad7dae049aa19d75a5bfd718b7b587932}{decimal\_exponent\_type}}<}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ FormatTraits,\ std::int32\_t(\mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_af1c77a0b33b0b09a4c7812c037cb8bb2}{min}}(-\/\mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a3200a1c043768fde777d965af7bec06b}{max\_k}},\ \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a9ca4bb15e002dae66286853c3aabca22}{min\_k}})),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ std::int32\_t(\mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a6397ebacc212c9de97a83be6f0e7cba6}{max}}(\mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a3200a1c043768fde777d965af7bec06b}{max\_k}},\ -\/\mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a9ca4bb15e002dae66286853c3aabca22}{min\_k}}\ +\ \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_ae09782499ac4a81c1f0cf6bc8189cb88}{kappa}}\ +\ 1))>}
+
+\end{DoxyCode}
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_a7f4b67d5275de25d8885cd74f45e0b22}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_a7f4b67d5275de25d8885cd74f45e0b22} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!exponent\_int@{exponent\_int}}
+\index{exponent\_int@{exponent\_int}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{exponent\_int}{exponent\_int}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::exponent\+\_\+int = \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{typename}} Format\+Traits\+::exponent\+\_\+int}
+
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_a2f83fba81d362aff06bd4e4bc970a82f}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_a2f83fba81d362aff06bd4e4bc970a82f} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!format@{format}}
+\index{format@{format}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{format}{format}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::format = \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{typename}} Format\+Traits\+::format}
+
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_a2e193c50a8f01a3d997e0b4e51481476}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_a2e193c50a8f01a3d997e0b4e51481476} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!remainder\_type@{remainder\_type}}
+\index{remainder\_type@{remainder\_type}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{remainder\_type}{remainder\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::remainder\+\_\+type}
+
+{\bfseries 初始值\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\ \textcolor{keyword}{typename}\ PreferredIntegerTypesPolicy::template\ \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a2e193c50a8f01a3d997e0b4e51481476}{remainder\_type}}<}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ FormatTraits,\ \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{compute\_power<kappa\ +\ 1>}}(\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{uint64\_t}}(10))>}
+
+\end{DoxyCode}
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_a1e107e254a53082308dbb42be856ec91}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_a1e107e254a53082308dbb42be856ec91} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!return\_type@{return\_type}}
+\index{return\_type@{return\_type}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{return\_type}{return\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Sign\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Trailing\+Zero\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::return\+\_\+type}
+
+{\bfseries 初始值\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{decimal\_fp<carrier\_uint,\ decimal\_exponent\_type<PreferredIntegerTypesPolicy>}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SignPolicy::return\_has\_sign,\ TrailingZeroPolicy::report\_trailing\_zeros>}
+
+\end{DoxyCode}
+
+
+\doxysubsection{成员函数说明}
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_ace19b9d75b9a6ea416e7a86b55914711}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_ace19b9d75b9a6ea416e7a86b55914711} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!compute\_left\_closed\_directed@{compute\_left\_closed\_directed}}
+\index{compute\_left\_closed\_directed@{compute\_left\_closed\_directed}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{compute\_left\_closed\_directed()}{compute\_left\_closed\_directed()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Sign\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Trailing\+Zero\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Cache\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+SAFEBUFFERS}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a1e107e254a53082308dbb42be856ec91}{return\+\_\+type}}$<$ \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Sign\+Policy}}, \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Trailing\+Zero\+Policy}}, \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::compute\+\_\+left\+\_\+closed\+\_\+directed (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structwjr_1_1dragonbox_1_1signed__significand__bits}{signed\+\_\+significand\+\_\+bits}}$<$ Format\+Traits $>$}]{s,  }\item[{\mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a7f4b67d5275de25d8885cd74f45e0b22}{exponent\+\_\+int}}}]{exponent\+\_\+bits }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_a0ee590eee390ba1cac9bc4c2cc2019c7}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_a0ee590eee390ba1cac9bc4c2cc2019c7} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!compute\_nearest@{compute\_nearest}}
+\index{compute\_nearest@{compute\_nearest}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{compute\_nearest()}{compute\_nearest()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Sign\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Trailing\+Zero\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Interval\+Type\+Provider}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Binary\+To\+Decimal\+Rounding\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Cache\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+SAFEBUFFERS}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a1e107e254a53082308dbb42be856ec91}{return\+\_\+type}}$<$ \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Sign\+Policy}}, \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Trailing\+Zero\+Policy}}, \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::compute\+\_\+nearest (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structwjr_1_1dragonbox_1_1signed__significand__bits}{signed\+\_\+significand\+\_\+bits}}$<$ Format\+Traits $>$}]{s,  }\item[{\mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a7f4b67d5275de25d8885cd74f45e0b22}{exponent\+\_\+int}}}]{exponent\+\_\+bits }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [noexcept]}}
+
+
+
+The main algorithm assumes the input is a normal/subnormal finite number. 
+
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_af6ae9dd27a0cf177ad93c3c437d1b2d9}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_af6ae9dd27a0cf177ad93c3c437d1b2d9} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!compute\_right\_closed\_directed@{compute\_right\_closed\_directed}}
+\index{compute\_right\_closed\_directed@{compute\_right\_closed\_directed}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{compute\_right\_closed\_directed()}{compute\_right\_closed\_directed()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Sign\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Trailing\+Zero\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Cache\+Policy}} , \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+INTRINSIC\+\_\+\+INLINE}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+SAFEBUFFERS}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{WJR\+\_\+\+CONSTEXPR20}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a1e107e254a53082308dbb42be856ec91}{return\+\_\+type}}$<$ \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Sign\+Policy}}, \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Trailing\+Zero\+Policy}}, \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{Preferred\+Integer\+Types\+Policy}} $>$ \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::compute\+\_\+right\+\_\+closed\+\_\+directed (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structwjr_1_1dragonbox_1_1signed__significand__bits}{signed\+\_\+significand\+\_\+bits}}$<$ Format\+Traits $>$}]{s,  }\item[{\mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a7f4b67d5275de25d8885cd74f45e0b22}{exponent\+\_\+int}}}]{exponent\+\_\+bits }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_a1a842fe56d1fcbe84a799a76297178de}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_a1a842fe56d1fcbe84a799a76297178de} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!is\_left\_endpoint\_integer\_shorter\_interval@{is\_left\_endpoint\_integer\_shorter\_interval}}
+\index{is\_left\_endpoint\_integer\_shorter\_interval@{is\_left\_endpoint\_integer\_shorter\_interval}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{is\_left\_endpoint\_integer\_shorter\_interval()}{is\_left\_endpoint\_integer\_shorter\_interval()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{bool}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::is\+\_\+left\+\_\+endpoint\+\_\+integer\+\_\+shorter\+\_\+interval (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a7f4b67d5275de25d8885cd74f45e0b22}{exponent\+\_\+int}}}]{binary\+\_\+exponent }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_aff3b86f1bb864cb3dace39f7f1401fec}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_aff3b86f1bb864cb3dace39f7f1401fec} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!is\_right\_endpoint\_integer\_shorter\_interval@{is\_right\_endpoint\_integer\_shorter\_interval}}
+\index{is\_right\_endpoint\_integer\_shorter\_interval@{is\_right\_endpoint\_integer\_shorter\_interval}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{is\_right\_endpoint\_integer\_shorter\_interval()}{is\_right\_endpoint\_integer\_shorter\_interval()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{bool}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::is\+\_\+right\+\_\+endpoint\+\_\+integer\+\_\+shorter\+\_\+interval (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a7f4b67d5275de25d8885cd74f45e0b22}{exponent\+\_\+int}}}]{binary\+\_\+exponent }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_a6397ebacc212c9de97a83be6f0e7cba6}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_a6397ebacc212c9de97a83be6f0e7cba6} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!max@{max}}
+\index{max@{max}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{max()}{max()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::max (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}}}]{x,  }\item[{\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}}}]{y }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_af1c77a0b33b0b09a4c7812c037cb8bb2}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_af1c77a0b33b0b09a4c7812c037cb8bb2} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!min@{min}}
+\index{min@{min}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{min()}{min()}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{static}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::min (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}}}]{x,  }\item[{\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}}}]{y }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [constexpr]}, {\ttfamily [noexcept]}}
+
+
+
+\doxysubsection{类成员变量说明}
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_a06b5b2d735c3fef07ac67985791ec999}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_a06b5b2d735c3fef07ac67985791ec999} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!carrier\_bits@{carrier\_bits}}
+\index{carrier\_bits@{carrier\_bits}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{carrier\_bits}{carrier\_bits}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::carrier\+\_\+bits = Format\+Traits\+::carrier\+\_\+bits\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [constexpr]}}
+
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_a9d36fd4a0e2fb72bbfacc929f5615525}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_a9d36fd4a0e2fb72bbfacc929f5615525} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!case\_shorter\_interval\_left\_endpoint\_lower\_threshold@{case\_shorter\_interval\_left\_endpoint\_lower\_threshold}}
+\index{case\_shorter\_interval\_left\_endpoint\_lower\_threshold@{case\_shorter\_interval\_left\_endpoint\_lower\_threshold}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{case\_shorter\_interval\_left\_endpoint\_lower\_threshold}{case\_shorter\_interval\_left\_endpoint\_lower\_threshold}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::case\+\_\+shorter\+\_\+interval\+\_\+left\+\_\+endpoint\+\_\+lower\+\_\+threshold = 2\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [constexpr]}}
+
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_ae3d9887b58d03c00c2212cb865b669d9}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_ae3d9887b58d03c00c2212cb865b669d9} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!case\_shorter\_interval\_left\_endpoint\_upper\_threshold@{case\_shorter\_interval\_left\_endpoint\_upper\_threshold}}
+\index{case\_shorter\_interval\_left\_endpoint\_upper\_threshold@{case\_shorter\_interval\_left\_endpoint\_upper\_threshold}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{case\_shorter\_interval\_left\_endpoint\_upper\_threshold}{case\_shorter\_interval\_left\_endpoint\_upper\_threshold}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::case\+\_\+shorter\+\_\+interval\+\_\+left\+\_\+endpoint\+\_\+upper\+\_\+threshold\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [constexpr]}}
+
+{\bfseries 初始值\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ 2\ +}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_1_1dragonbox_1_1detail_1_1log_aff0b1b1399ea9ba834268beb91d203a7}{log::floor\_log2}}(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_1_1dragonbox_1_1detail_a19f49bef10ba2da31f1a31697d218b71}{compute\_power}}<\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{count\_factors<5>}}((\mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a01e865fd5461b4d8c3bf794e3c98cc49}{carrier\_uint}}(1)\ <<\ (significand\_bits\ +\ 2))\ -\/\ 1)\ +\ 1>(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 10)\ /}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ 3)}
+
+\end{DoxyCode}
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_a5b59be77e0d6a62efe1d056d806d61a1}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_a5b59be77e0d6a62efe1d056d806d61a1} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!case\_shorter\_interval\_right\_endpoint\_lower\_threshold@{case\_shorter\_interval\_right\_endpoint\_lower\_threshold}}
+\index{case\_shorter\_interval\_right\_endpoint\_lower\_threshold@{case\_shorter\_interval\_right\_endpoint\_lower\_threshold}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{case\_shorter\_interval\_right\_endpoint\_lower\_threshold}{case\_shorter\_interval\_right\_endpoint\_lower\_threshold}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::case\+\_\+shorter\+\_\+interval\+\_\+right\+\_\+endpoint\+\_\+lower\+\_\+threshold = 0\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [constexpr]}}
+
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_a426ec36951ffa1e0170cca83492cb5d5}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_a426ec36951ffa1e0170cca83492cb5d5} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!case\_shorter\_interval\_right\_endpoint\_upper\_threshold@{case\_shorter\_interval\_right\_endpoint\_upper\_threshold}}
+\index{case\_shorter\_interval\_right\_endpoint\_upper\_threshold@{case\_shorter\_interval\_right\_endpoint\_upper\_threshold}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{case\_shorter\_interval\_right\_endpoint\_upper\_threshold}{case\_shorter\_interval\_right\_endpoint\_upper\_threshold}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::case\+\_\+shorter\+\_\+interval\+\_\+right\+\_\+endpoint\+\_\+upper\+\_\+threshold\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [constexpr]}}
+
+{\bfseries 初始值\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ 2\ +}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_1_1dragonbox_1_1detail_1_1log_aff0b1b1399ea9ba834268beb91d203a7}{log::floor\_log2}}(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacewjr_1_1dragonbox_1_1detail_a19f49bef10ba2da31f1a31697d218b71}{compute\_power}}<\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{count\_factors<5>}}((\mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a01e865fd5461b4d8c3bf794e3c98cc49}{carrier\_uint}}(1)\ <<\ (significand\_bits\ +\ 1))\ +\ 1)\ +\ 1>(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 10)\ /}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ 3)}
+
+\end{DoxyCode}
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_ae09782499ac4a81c1f0cf6bc8189cb88}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_ae09782499ac4a81c1f0cf6bc8189cb88} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!kappa@{kappa}}
+\index{kappa@{kappa}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{kappa}{kappa}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::kappa = \mbox{\hyperlink{namespacewjr_1_1dragonbox_1_1detail_1_1log_a08a26c113e9d4d75195fcf2ebcf0ab54}{log\+::floor\+\_\+log10\+\_\+pow2}}(\mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a06b5b2d735c3fef07ac67985791ec999}{carrier\+\_\+bits}} -\/ significand\+\_\+bits -\/ 2) -\/ 1\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [constexpr]}}
+
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_a3200a1c043768fde777d965af7bec06b}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_a3200a1c043768fde777d965af7bec06b} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!max\_k@{max\_k}}
+\index{max\_k@{max\_k}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{max\_k}{max\_k}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::max\+\_\+k\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [constexpr]}}
+
+{\bfseries 初始值\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_a6397ebacc212c9de97a83be6f0e7cba6}{max}}(-\/\mbox{\hyperlink{namespacewjr_1_1dragonbox_1_1detail_1_1log_aa2dca80b8b950a2095f041161e967367}{log::floor\_log10\_pow2\_minus\_log10\_4\_over\_3}}(min\_exponent\ -\/\ significand\_bits\ ),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ -\/\mbox{\hyperlink{namespacewjr_1_1dragonbox_1_1detail_1_1log_a08a26c113e9d4d75195fcf2ebcf0ab54}{log::floor\_log10\_pow2}}(min\_exponent\ -\/\ significand\_bits)\ +\ \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_ae09782499ac4a81c1f0cf6bc8189cb88}{kappa}})}
+
+\end{DoxyCode}
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_a9ca4bb15e002dae66286853c3aabca22}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_a9ca4bb15e002dae66286853c3aabca22} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!min\_k@{min\_k}}
+\index{min\_k@{min\_k}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{min\_k}{min\_k}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::min\+\_\+k\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [constexpr]}}
+
+{\bfseries 初始值\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_af1c77a0b33b0b09a4c7812c037cb8bb2}{min}}(-\/\mbox{\hyperlink{namespacewjr_1_1dragonbox_1_1detail_1_1log_aa2dca80b8b950a2095f041161e967367}{log::floor\_log10\_pow2\_minus\_log10\_4\_over\_3}}(max\_exponent\ -\/\ significand\_bits),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ -\/\mbox{\hyperlink{namespacewjr_1_1dragonbox_1_1detail_1_1log_a08a26c113e9d4d75195fcf2ebcf0ab54}{log::floor\_log10\_pow2}}(max\_exponent\ -\/\ significand\_bits)\ +\ \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl_ae09782499ac4a81c1f0cf6bc8189cb88}{kappa}})}
+
+\end{DoxyCode}
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_aa66e4e4e0f90aa9a6f0e6e25e4dfd43d}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_aa66e4e4e0f90aa9a6f0e6e25e4dfd43d} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!shorter\_interval\_tie\_lower\_threshold@{shorter\_interval\_tie\_lower\_threshold}}
+\index{shorter\_interval\_tie\_lower\_threshold@{shorter\_interval\_tie\_lower\_threshold}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{shorter\_interval\_tie\_lower\_threshold}{shorter\_interval\_tie\_lower\_threshold}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::shorter\+\_\+interval\+\_\+tie\+\_\+lower\+\_\+threshold\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [constexpr]}}
+
+{\bfseries 初始值\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ -\/\mbox{\hyperlink{namespacewjr_1_1dragonbox_1_1detail_1_1log_a1699458ffba3349e441918eea617409c}{log::floor\_log5\_pow2\_minus\_log5\_3}}(significand\_bits\ +\ 4)\ -\/\ 2\ -\/\ significand\_bits}
+
+\end{DoxyCode}
+\Hypertarget{structwjr_1_1dragonbox_1_1detail_1_1impl_ab3155c9b552576f4a52d8c1928544157}\label{structwjr_1_1dragonbox_1_1detail_1_1impl_ab3155c9b552576f4a52d8c1928544157} 
+\index{wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}!shorter\_interval\_tie\_upper\_threshold@{shorter\_interval\_tie\_upper\_threshold}}
+\index{shorter\_interval\_tie\_upper\_threshold@{shorter\_interval\_tie\_upper\_threshold}!wjr::dragonbox::detail::impl$<$ FormatTraits $>$@{wjr::dragonbox::detail::impl$<$ FormatTraits $>$}}
+\doxysubsubsection{\texorpdfstring{shorter\_interval\_tie\_upper\_threshold}{shorter\_interval\_tie\_upper\_threshold}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{constexpr}} \mbox{\hyperlink{namespacewjr_aa8b3d721bc9df2aa0db8dc7e82366d48}{int}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1detail_1_1impl}{wjr\+::dragonbox\+::detail\+::impl}}$<$ Format\+Traits $>$\+::shorter\+\_\+interval\+\_\+tie\+\_\+upper\+\_\+threshold\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [constexpr]}}
+
+{\bfseries 初始值\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ -\/\mbox{\hyperlink{namespacewjr_1_1dragonbox_1_1detail_1_1log_a48a2f73fd8786837f31a24146e71d7ec}{log::floor\_log5\_pow2}}(significand\_bits\ +\ 2)\ -\/\ 2\ -\/\ significand\_bits}
+
+\end{DoxyCode}
+
+
+该结构体的文档由以下文件生成\+:\begin{DoxyCompactItemize}
+\item 
+include/wjr/format/\mbox{\hyperlink{dragonbox_8hpp}{dragonbox.\+hpp}}\end{DoxyCompactItemize}

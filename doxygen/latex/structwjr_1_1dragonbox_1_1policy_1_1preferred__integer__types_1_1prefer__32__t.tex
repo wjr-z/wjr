@@ -1,0 +1,76 @@
+\doxysection{wjr\+::dragonbox\+::policy\+::preferred\+\_\+integer\+\_\+types\+::prefer\+\_\+32\+\_\+t结构体 参考}
+\hypertarget{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t}{}\label{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t}\index{wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t@{wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t}}
+
+
+{\ttfamily \#include $<$dragonbox.\+hpp$>$}
+
+
+
+wjr\+::dragonbox\+::policy\+::preferred\+\_\+integer\+\_\+types\+::prefer\+\_\+32\+\_\+t 的协作图\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=197pt]{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public 类型}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t_a4e31223279f86dd3476ba3f66d019b36}{preferred\+\_\+integer\+\_\+types\+\_\+policy}} = \mbox{\hyperlink{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t}{prefer\+\_\+32\+\_\+t}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} Format\+Traits , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}} upper\+\_\+bound$>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t_ad5e6dd0dd1b2f96961dfa0313f6405b1}{remainder\+\_\+type}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} Format\+Traits , std\+::int32\+\_\+t lower\+\_\+bound, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\+\_\+t}} upper\+\_\+bound$>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t_a99fffc296b14a8838d173483f35f91cd}{decimal\+\_\+exponent\+\_\+type}}
+\item 
+{\footnotesize template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} Format\+Traits $>$ }\\\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t_aa579a07781a3fe3d7c4005d43fca4490}{shift\+\_\+amount\+\_\+type}} = std\+::int32\+\_\+t
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{成员类型定义说明}
+\Hypertarget{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t_a99fffc296b14a8838d173483f35f91cd}\label{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t_a99fffc296b14a8838d173483f35f91cd} 
+\index{wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t@{wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t}!decimal\_exponent\_type@{decimal\_exponent\_type}}
+\index{decimal\_exponent\_type@{decimal\_exponent\_type}!wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t@{wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t}}
+\doxysubsubsection{\texorpdfstring{decimal\_exponent\_type}{decimal\_exponent\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} Format\+Traits , std\+::int32\+\_\+t lower\+\_\+bound, \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\+\_\+t}} upper\+\_\+bound$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t_a99fffc296b14a8838d173483f35f91cd}{wjr\+::dragonbox\+::policy\+::preferred\+\_\+integer\+\_\+types\+::prefer\+\_\+32\+\_\+t\+::decimal\+\_\+exponent\+\_\+type}}}
+
+{\bfseries 初始值\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ std::conditional<FormatTraits::format::exponent\_bits\ <=}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ detail::value\_bits<std::int32\_t>::value,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::int32\_t,\ \textcolor{keyword}{typename}\ FormatTraits::exponent\_int>::type}
+
+\end{DoxyCode}
+\Hypertarget{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t_a4e31223279f86dd3476ba3f66d019b36}\label{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t_a4e31223279f86dd3476ba3f66d019b36} 
+\index{wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t@{wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t}!preferred\_integer\_types\_policy@{preferred\_integer\_types\_policy}}
+\index{preferred\_integer\_types\_policy@{preferred\_integer\_types\_policy}!wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t@{wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t}}
+\doxysubsubsection{\texorpdfstring{preferred\_integer\_types\_policy}{preferred\_integer\_types\_policy}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t_a4e31223279f86dd3476ba3f66d019b36}{wjr\+::dragonbox\+::policy\+::preferred\+\_\+integer\+\_\+types\+::prefer\+\_\+32\+\_\+t\+::preferred\+\_\+integer\+\_\+types\+\_\+policy}} = \mbox{\hyperlink{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t}{prefer\+\_\+32\+\_\+t}}}
+
+\Hypertarget{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t_ad5e6dd0dd1b2f96961dfa0313f6405b1}\label{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t_ad5e6dd0dd1b2f96961dfa0313f6405b1} 
+\index{wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t@{wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t}!remainder\_type@{remainder\_type}}
+\index{remainder\_type@{remainder\_type}!wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t@{wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t}}
+\doxysubsubsection{\texorpdfstring{remainder\_type}{remainder\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} Format\+Traits , \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint64\+\_\+t}} upper\+\_\+bound$>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t_ad5e6dd0dd1b2f96961dfa0313f6405b1}{wjr\+::dragonbox\+::policy\+::preferred\+\_\+integer\+\_\+types\+::prefer\+\_\+32\+\_\+t\+::remainder\+\_\+type}}}
+
+{\bfseries 初始值\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ std::conditional<upper\_bound\ <=\ std::numeric\_limits<uint32\_t>::max(),\ \mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{uint32\_t}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ FormatTraits::carrier\_uint>::type}
+
+\end{DoxyCode}
+\Hypertarget{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t_aa579a07781a3fe3d7c4005d43fca4490}\label{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t_aa579a07781a3fe3d7c4005d43fca4490} 
+\index{wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t@{wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t}!shift\_amount\_type@{shift\_amount\_type}}
+\index{shift\_amount\_type@{shift\_amount\_type}!wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t@{wjr::dragonbox::policy::preferred\_integer\_types::prefer\_32\_t}}
+\doxysubsubsection{\texorpdfstring{shift\_amount\_type}{shift\_amount\_type}}
+{\footnotesize\ttfamily template$<$\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{class}} Format\+Traits $>$ \\
+\mbox{\hyperlink{namespacewjr_a1acbd863328d678d9e25f3a31ef82df0}{using}} \mbox{\hyperlink{structwjr_1_1dragonbox_1_1policy_1_1preferred__integer__types_1_1prefer__32__t_aa579a07781a3fe3d7c4005d43fca4490}{wjr\+::dragonbox\+::policy\+::preferred\+\_\+integer\+\_\+types\+::prefer\+\_\+32\+\_\+t\+::shift\+\_\+amount\+\_\+type}} = std\+::int32\+\_\+t}
+
+
+
+该结构体的文档由以下文件生成\+:\begin{DoxyCompactItemize}
+\item 
+include/wjr/format/\mbox{\hyperlink{dragonbox_8hpp}{dragonbox.\+hpp}}\end{DoxyCompactItemize}
