@@ -1073,7 +1073,9 @@ void __urandom_exact_impl(biginteger_dispatcher dst, const biginteger_data *limi
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
 void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
-                          Engine &engine) noexcept;
+                          Engine &engine) noexcept {
+    __urandom_exact_impl(biginteger_dispatcher(dst), limit, engine);
+}
 
 /// @private
 WJR_PURE inline uint32_t __bit_width_impl(const biginteger_data *num) noexcept;
@@ -1092,22 +1094,7 @@ void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint32_t e
 }
 
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void __pow_impl(basic_biginteger<S> *dst, T num, uint32_t exp) noexcept {
-    biginteger_data __num;
-    uint64_t u64;
-
-    if constexpr (std::is_unsigned_v<T>) {
-        u64 = num;
-        __num.m_data = &u64;
-        __num.m_size = 1;
-    } else {
-        u64 = __fast_abs(num);
-        __num.m_data = &u64;
-        __num.m_size = -1;
-    }
-
-    __pow_impl(dst, &__num, exp);
-}
+void __pow_impl(basic_biginteger<S> *dst, T num, uint32_t exp) noexcept;
 
 /// @private
 struct __powmod_iterator {
@@ -2832,13 +2819,6 @@ void __urandom_exact_impl(biginteger_dispatcher dst, const biginteger_data *limi
     dst.set_ssize(size);
 }
 
-template <typename S, typename Engine,
-          WJR_REQUIRES_I(biginteger_uniform_random_bit_generator_v<Engine>)>
-void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
-                          Engine &engine) noexcept {
-    __urandom_exact_impl(biginteger_dispatcher(dst), limit, engine);
-}
-
 /// @private
 inline uint32_t __bit_width_impl(const biginteger_data *num) noexcept {
     const uint32_t size = num->size();
@@ -2862,6 +2842,12 @@ inline uint32_t __ctz_impl(const biginteger_data *num) noexcept {
     const uint32_t idx = static_cast<uint32_t>(find_not_n(ptr, 0, size));
     WJR_ASSERT(idx != size);
     return idx * 64 + ctz(ptr[idx]);
+}
+
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+void __pow_impl(basic_biginteger<S> *dst, T num, uint32_t exp) noexcept {
+    inplace_biginteger<1> __num(num);
+    __pow_impl(dst, __num.__get_data(), exp);
 }
 
 /// @private
@@ -3010,9 +2996,6 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
 
     return os;
 }
-
-/// @brief Optimization for ostream
-extern std::ostream &operator<<(std::ostream &os, const biginteger_data &src) noexcept;
 
 } // namespace wjr
 

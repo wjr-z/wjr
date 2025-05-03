@@ -74,15 +74,6 @@ using tp_defer_t = typename tp_defer<F, Args...>::type;
 template <typename F, typename... Args>
 using tp_defer_f = tp_defer_t<F::template fn, Args...>;
 
-template <typename T>
-struct tp_type_identity {
-    using type = T;
-};
-
-/// @brief tp_type_identity_t<T> is T
-template <typename T>
-using tp_type_identity_t = typename tp_type_identity<T>::type;
-
 /// @brief F1<F2<Args...>>
 template <template <typename...> typename F1, template <typename...> typename F2>
 struct tp_bind_fn {
@@ -103,12 +94,6 @@ struct tp_not_fn {
     template <typename... Args>
     using fn = typename tp_bind_fn<std::negation, F>::template fn<Args...>;
 };
-
-template <typename... Args>
-using tp_true_type = std::true_type;
-
-template <typename... Args>
-using tp_false_type = std::false_type;
 
 template <typename T>
 struct tp_is_empty : std::bool_constant<tp_size_v<T> == 0> {};

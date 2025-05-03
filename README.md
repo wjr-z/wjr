@@ -74,8 +74,38 @@ enable_special_members_of_args_base可以方便的禁用特殊成员函数。\
 20. concurrency \
 pause，lock-free单向链表简单实现，spin_mutex    \
 todo : 
+21. visitor \
+任意类型的visitor实现。full_visit代表所有值有用，discrete_visit可自定义需要使用的case值。   
+```cpp
+template <typename T>
+struct accessor {};
+
+template <typename... Args>
+struct accessor<std::variant<Args...>> {
+    using type = std::variant<Args...>;
+    static constexpr size_t value = std::variant_size_v<type>;
+
+    static constexpr size_t get_index(const type &v) { return v.index(); }
+
+    template <typename Type, size_t I>
+    static constexpr decltype(auto) run(Type &&t, std::integral_constant<size_t, I>) {
+        return std::get<I>(std::forward<Type>(t));
+    }
+};
+
+int main() {
+    std::variant<int, float> a(3);
+    std::variant<int, float, double> b(4.3);
+    full_visit<accessor>([](auto a, auto b) { std::cout << a << ' ' << b << '\n'; }, a, b);
+    discrete_visit<accessor>(
+        tp_list<tp_indexs_list_t<0, 1>, tp_indexs_list_t<0, 2>>{},
+        [](auto a, auto b) { std::cout << a << ' ' << b << '\n'; }, a, b);
+    return 0;
+}
+```
+
 1. 无锁数据结构，RCU, scheduler等
-2. dispatch, 优化编译
+2. 优化编译
 
 ## todo
 1. 目前尚未适配需要使用GMP的测试。需要自行指定GMP Path。
