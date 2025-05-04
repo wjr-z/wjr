@@ -20,6 +20,8 @@ WJR_CONST WJR_INLINE_CONSTEXPR uint64_t calc_backslash(uint64_t B) noexcept {
 } // namespace lexer_detail
 
 class lexer {
+    constexpr static uint32_t big_mask = static_cast<uint32_t>(1) << 31;
+
 public:
     using size_type = uint32_t;
 
@@ -30,33 +32,16 @@ public:
     lexer &operator=(lexer &&) = default;
     ~lexer() = default;
 
-    constexpr lexer(span<const char> input) noexcept
+    constexpr lexer(std::string_view input) noexcept
         : first(input.data()), last(input.data() + input.size()) {}
-
-    class result_type {
-    public:
-        constexpr static uint32_t mask = static_cast<uint32_t>(1) << 31;
-
-        WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(result_type);
-
-        constexpr result_type(uint32_t result) noexcept : m_result(result) {}
-        constexpr uint32_t get() const noexcept { return m_result & (mask - 1); }
-        constexpr bool done() const noexcept { return (m_result & mask) != 0; }
-
-    private:
-        uint32_t m_result;
-    };
 
     /**
      * @brief read tokens
      *
-     * @details Read at least token_buf_size tokens from the input.
-     * token_buf' size must be at least token_buf_size * 2 - 1.
-     *
      * @return return the number of tokens read.
      *
      */
-    result_type read(uint32_t *token_buf, size_type token_buf_size) noexcept;
+    uint32_t read(uint32_t *token_buf, size_type token_buf_size) noexcept;
 
     constexpr const char *begin() const noexcept { return first; }
     constexpr const char *end() const noexcept { return last; }

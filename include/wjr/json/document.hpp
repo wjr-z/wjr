@@ -75,7 +75,7 @@ class check_parser;
 
 } // namespace detail
 
-WJR_INTRINSIC_INLINE result<void> check(const reader &rd) noexcept;
+WJR_INTRINSIC_INLINE result<void> check(ondemand_reader &rd) noexcept;
 
 template <typename T>
 struct __document_get_impl;
@@ -777,7 +777,7 @@ public:
 
     WJR_CONST static size_type max_depth_size() noexcept { return 256; }
 
-    static result<basic_document> parse(const reader &rd) noexcept;
+    static result<basic_document> parse(ondemand_reader &rd) noexcept;
 
     template <typename Container>
     void dump_impl(Container &cont, unsigned indents = -1) const noexcept {
@@ -1833,7 +1833,7 @@ namespace detail {
 template <typename Document>
 class basic_document_parser {
     template <typename Parser>
-    friend result<void> visitor_detail::parse(Parser &&par, const reader &rd) noexcept;
+    friend result<void> visitor_detail::parse(Parser &&par, ondemand_reader &rd) noexcept;
 
     using document_type = Document;
     using string_type = typename document_type::string_type;
@@ -1841,7 +1841,7 @@ class basic_document_parser {
     using array_type = typename document_type::array_type;
 
 public:
-    WJR_INTRINSIC_INLINE result<document_type> parse(const reader &rd) noexcept {
+    WJR_INTRINSIC_INLINE result<document_type> parse(ondemand_reader &rd) noexcept {
         document_type doc;
         current = std::addressof(doc);
         WJR_EXPECTED_TRY(visitor_detail::parse(*this, rd));
@@ -2055,10 +2055,10 @@ private:
 
 class check_parser {
     template <typename Parser>
-    friend result<void> visitor_detail::parse(Parser &&par, const reader &rd) noexcept;
+    friend result<void> visitor_detail::parse(Parser &&par, ondemand_reader &rd) noexcept;
 
 public:
-    WJR_INTRINSIC_INLINE static result<void> parse(const reader &rd) noexcept {
+    WJR_INTRINSIC_INLINE static result<void> parse(ondemand_reader &rd) noexcept {
         return visitor_detail::parse(check_parser(), rd);
     }
 
@@ -2187,19 +2187,19 @@ namespace visitor_detail {
 
 extern template result<void>
 parse<detail::basic_document_parser<document> &>(detail::basic_document_parser<document> &par,
-                                                 const reader &rd) noexcept;
+                                                 ondemand_reader &rd) noexcept;
 
 extern template result<void> parse<detail::check_parser>(detail::check_parser &&par,
-                                                         const reader &rd) noexcept;
+                                                         ondemand_reader &rd) noexcept;
 } // namespace visitor_detail
 
 template <typename Traits>
-result<basic_document<Traits>> basic_document<Traits>::parse(const reader &rd) noexcept {
+result<basic_document<Traits>> basic_document<Traits>::parse(ondemand_reader &rd) noexcept {
     detail::basic_document_parser<basic_document<Traits>> par;
     return par.parse(rd);
 }
 
-inline result<void> check(const reader &rd) noexcept { return detail::check_parser::parse(rd); }
+inline result<void> check(ondemand_reader &rd) noexcept { return detail::check_parser::parse(rd); }
 
 namespace detail {
 

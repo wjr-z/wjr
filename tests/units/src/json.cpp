@@ -34,8 +34,10 @@ TEST(json, parse) {
     using namespace json;
 
     {
-        reader rd(twitter_json);
+        ondemand_reader rd;
+        rd.read(twitter_json);
         WJR_CHECK(check(rd).has_value());
+        rd.read(twitter_json);
         auto ret = document::parse(rd);
         WJR_CHECK(ret.has_value());
         auto j = std::move(*ret);
@@ -161,7 +163,8 @@ TEST(json, constructor) {
 
         do {
             std::string str = R"({"name" : "wjr", "version" : "1.0.0", "age" : 22})";
-            reader rd(str);
+            ondemand_reader rd;
+            rd.read(str);
 
             test_struct0 it(document::parse(rd).value());
             WJR_CHECK(it.name == "wjr");

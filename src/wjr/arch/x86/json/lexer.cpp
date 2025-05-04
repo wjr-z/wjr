@@ -162,9 +162,9 @@ WJR_INTRINSIC_INLINE void compress(char *dst, __m256i x, uint32_t mask) noexcept
 #if WJR_HAS_BUILTIN(JSON_LEXER_READER_READ_BUF)
 
 /// @todo Unroll two times maybe faster on some platforms.
-typename lexer::result_type lexer::read(uint32_t *token_buf, size_type token_buf_size) noexcept {
+uint32_t lexer::read(uint32_t *token_buf, size_type token_buf_size) noexcept {
     if (WJR_UNLIKELY(first == last)) {
-        return result_type::mask;
+        return 0;
     }
 
     using namespace lexer_detail;
@@ -203,7 +203,7 @@ typename lexer::result_type lexer::read(uint32_t *token_buf, size_type token_buf
             }
 
             first = last;
-            count |= result_type::mask;
+            count |= big_mask;
         }
 
         uint64_t B = 0; // backslash
@@ -332,7 +332,7 @@ typename lexer::result_type lexer::read(uint32_t *token_buf, size_type token_buf
         idx += 64;
     } while (WJR_LIKELY(count <= token_buf_size));
 
-    return count;
+    return count & ~big_mask;
 }
 
 #endif

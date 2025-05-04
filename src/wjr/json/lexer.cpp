@@ -29,7 +29,7 @@ constexpr static std::array<uint8_t, 16 * 8> diff_table = {
 
 #if !WJR_HAS_BUILTIN(JSON_LEXER_READER_READ_BUF)
 
-typename lexer::result_type lexer::read(uint32_t *token_buf, size_type token_buf_size) noexcept {
+uint32_t lexer::read(uint32_t *token_buf, size_type token_buf_size) noexcept {
     if (WJR_UNLIKELY(first == last)) {
         return 0;
     }
@@ -57,7 +57,7 @@ typename lexer::result_type lexer::read(uint32_t *token_buf, size_type token_buf
             }
 
             first = last;
-            count |= result_type::mask;
+            count |= big_mask;
         }
 
         uint64_t MASK[4][5] = {{0}};
@@ -161,7 +161,7 @@ typename lexer::result_type lexer::read(uint32_t *token_buf, size_type token_buf
         idx += 64;
     } while (WJR_LIKELY(count <= token_buf_size));
 
-    return count;
+    return count & ~big_mask;
 }
 
 #endif

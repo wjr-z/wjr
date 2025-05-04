@@ -30,8 +30,9 @@
 #include <wjr/container/btree_set.hpp>
 
 #include <wjr/json/document.hpp>
-
-#include "simdjson.hpp"
+#include <wjr/tp/args.hpp>
+#include <wjr/tp/switch.hpp>
+#include <wjr/variant.hpp>
 
 #include <gmp.h>
 
@@ -87,71 +88,21 @@ struct trandom_fn<std::string, void> {
     }
 };
 
-struct table {
-    void (*clear_if_reserved)(biginteger_data *, uint32_t);
-};
-
-template <typename T>
-struct tt {
-    static constexpr table tc = {
-        [](biginteger_data *x, uint32_t n) { ((T *)x)->clear_if_reserved(n); }};
-};
-
-struct biginteger_dispatcher {
-
-    template <typename T>
-    biginteger_dispatcher(T *p) noexcept : ptr(p->__get_data()), table(&tt<T>::tc) {}
-
-    void clear_if_reserved(uint32_t n) { table->clear_if_reserved(ptr, n); }
-
-    uint64_t *data() const { return ptr->data(); }
-
-    void set_ssize(int32_t n) const { ptr->set_ssize(n); }
-
-    biginteger_data *ptr;
-    const table *table;
-};
-
 int main() {
-    {
-        capture_leaf<int> x;
-        auto &z = container_of<capture_leaf<int>>(x.get());
+    test([&]() {
+        std::ifstream t("twitter.json");
+        std::stringstream buffer;
+        buffer << t.rdbuf();
+        auto str = buffer.str();
 
-        compressed_pair<int, double> y;
-        auto &z2 = container_of<compressed_pair<int, double>, double>(y.second());
+        int n = 100;
+        for (int i = 0; i < n; ++i) {
+            json::ondemand_reader rd;
+            rd.read(str);
+            // json::document::parse(rd);
+            json::check(rd);
+        }
+    });
 
-        vector<int> vec;
-        auto& s = vec.get_storage();
-        
-        container_of<vector<int>>(s);
-        return 0;
-    }
-    // {
-    //     int T = 1e6;
-    //     test([&]() {
-    //         for (int i = 0; i < T; ++i) {
-    //             biginteger x;
-    //             biginteger_dispatcher dst(&x);
-    //             asm volatile("" : "+r"(dst.ptr)::"memory");
-    //             dst.clear_if_reserved(1);
-    //             dst.data()[0] = i;
-    //             dst.set_ssize(i == 0 ? 0 : 1);
-    //         }
-    //     });
-
-    //     test([&]() {
-    //         for (int i = 0; i < T; ++i) {
-    //             biginteger dst;
-    //             dst.clear_if_reserved(1);
-    //             dst.data()[0] = i;
-    //             dst.set_ssize(i == 0 ? 0 : 1);
-    //         }
-    //     });
-    // }
     return 0;
 }
-
-/*
-(( (x * 2 ^ 64) / 10 ^ 19 + 1) * 10 ^ k) / 2 ^ 64
-
-*/

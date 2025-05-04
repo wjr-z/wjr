@@ -60,27 +60,27 @@ WJR_PURE WJR_INTRINSIC_INLINE result<void> check_false(const char *first) noexce
 namespace visitor_detail {
 
 template <typename Parser>
-WJR_NOINLINE result<void> parse(Parser &&par, const reader &rd) noexcept {
+WJR_NOINLINE result<void> parse(Parser &&par, ondemand_reader &rd) noexcept {
+    if (WJR_UNLIKELY(!rd.valid())) {
+        return unexpected(error_code::EMPTY);
+    }
+
     constexpr unsigned int max_depth = 256;
 
     bitset<max_depth> stk(default_construct);
     unsigned int depth = 0;
     uint8_t type;
 
-    // token reader
-    auto read = [&rd]() {
-        auto __begin = rd.begin();
-        auto __end = rd.end();
-        return [__begin, __end](uint32_t &token,
-                                error_code err = error_code::TAPE_ERROR) mutable -> result<void> {
-            if (WJR_LIKELY(__begin != __end)) {
-                token = *__begin++;
-                return {};
-            }
+    // token ondemand_reader
+    auto read = [&rd](uint32_t &token,
+                      error_code err = error_code::TAPE_ERROR) mutable -> result<void> {
+        token = rd.get();
+        if (WJR_LIKELY(token != ondemand_reader::npos)) {
+            return {};
+        }
 
-            return unexpected(err);
-        };
-    }();
+        return unexpected(err);
+    };
 
     uint32_t token;
     uint32_t next_token;
