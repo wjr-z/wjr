@@ -142,9 +142,6 @@ public:
     constexpr T *self() noexcept { return static_cast<T *>(this); }
     constexpr const T *self() const noexcept { return static_cast<const T *>(this); }
 
-    constexpr hlist_node_base *base() noexcept { return this; }
-    constexpr const hlist_node_base *base() const noexcept { return this; }
-
     constexpr void set_next(hlist_node_base *node) { m_next = node; }
 
 protected:
@@ -185,6 +182,18 @@ public:
     constexpr iterator end() noexcept { return iterator(nullptr); }
     constexpr const_iterator end() const noexcept { return const_iterator(nullptr); }
     constexpr const_iterator cend() const noexcept { return const_iterator(nullptr); }
+
+    template <typename U = T, typename V = Tag,
+              WJR_REQUIRES(std::is_same_v<U, T> &&std::is_same_v<V, Tag>)>
+    constexpr hlist_node<U, V> *get_node() noexcept {
+        return this;
+    }
+
+    template <typename U = T, typename V = Tag,
+              WJR_REQUIRES(std::is_same_v<U, T> &&std::is_same_v<V, Tag>)>
+    constexpr const hlist_node<U, V> *get_node() const noexcept {
+        return this;
+    }
 };
 
 static_assert(std::is_standard_layout_v<hlist_node<>>);

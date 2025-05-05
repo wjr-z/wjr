@@ -170,9 +170,6 @@ public:
     constexpr T *self() noexcept { return static_cast<T *>(this); }
     constexpr const T *self() const noexcept { return static_cast<const T *>(this); }
 
-    constexpr list_node_base *base() noexcept { return this; }
-    constexpr const list_node_base *base() const noexcept { return this; }
-
     constexpr void set_next(list_node_base *node) { m_next = node; }
     constexpr void set_prev(list_node_base *node) { m_prev = node; }
 
@@ -217,11 +214,11 @@ public:
     constexpr list_node *prev() { return static_cast<list_node *>(this->m_prev); }
     constexpr const list_node *prev() const { return static_cast<const list_node *>(this->m_prev); }
 
-    constexpr list_node *front() noexcept { return this->m_next; }
-    constexpr const list_node *front() const noexcept { return this->m_next; }
+    constexpr list_node *front() noexcept { return next(); }
+    constexpr const list_node *front() const noexcept { return next(); }
 
-    constexpr list_node *back() noexcept { return this->m_prev; }
-    constexpr const list_node *back() const noexcept { return this->m_prev; }
+    constexpr list_node *back() noexcept { return prev(); }
+    constexpr const list_node *back() const noexcept { return prev(); }
 
     constexpr iterator begin() noexcept { return iterator(next()); }
     constexpr const_iterator begin() const noexcept { return const_iterator(next()); }
@@ -242,6 +239,18 @@ public:
         return const_reverse_iterator(begin());
     }
     constexpr const_reverse_iterator crend() const noexcept { return rend(); }
+
+    template <typename U = T, typename V = Tag,
+              WJR_REQUIRES(std::is_same_v<U, T> &&std::is_same_v<V, Tag>)>
+    constexpr list_node<U, V> *get_node() noexcept {
+        return this;
+    }
+
+    template <typename U = T, typename V = Tag,
+              WJR_REQUIRES(std::is_same_v<U, T> &&std::is_same_v<V, Tag>)>
+    constexpr const list_node<U, V> *get_node() const noexcept {
+        return this;
+    }
 };
 
 static_assert(std::is_standard_layout_v<list_node<>>);

@@ -1,8 +1,6 @@
 #ifndef WJR_MEMORY_OBJECT_POOL_HPP__
 #define WJR_MEMORY_OBJECT_POOL_HPP__
 
-#error "Do not use temporarily"
-
 #include <wjr/container/forward_list.hpp>
 #include <wjr/memory/arena.hpp>
 
@@ -42,12 +40,12 @@ private:
 };
 } // namespace mem::detail
 
-template <typename T, typename Traits>
+template <typename Traits>
 class dynamic_object_pool {
     static constexpr size_t tableSize = Traits::size;
 
 public:
-    using value_type = T;
+    using value_type = typename Traits::value_type;
     using size_type = size_t;
     using difference_type = ptrdiff_t;
     using propagate_on_container_copy_assignment = std::false_type;
@@ -58,7 +56,7 @@ public:
 
     template <typename Other>
     struct rebind {
-        using other = dynamic_object_pool<Other, Traits>;
+        using other = dynamic_object_pool<typename Traits::template rebind<Other>::other>;
     };
 
     dynamic_object_pool(uint32_t cache = arena::default_cache_size,
@@ -71,22 +69,20 @@ public:
     dynamic_object_pool &operator=(dynamic_object_pool &&) = default;
     ~dynamic_object_pool() = default;
 
-    WJR_NODISCARD WJR_MALLOC T *allocate(size_type n) noexcept {
+    WJR_NODISCARD WJR_MALLOC value_type *allocate(size_type n) noexcept {
         if (WJR_UNLIKELY(n == 0))
             return nullptr;
 
-        n *= sizeof(T);
-
+        n *= sizeof(value_type);
         if (auto [idx, size] = Traits::get(n); WJR_LIKELY(idx != tableSize)) {
-            return static_cast<T *>(m_pool[idx].allocate(m_arena, size));
+            return static_cast<value_type *>(m_pool[idx].allocate(m_arena, size));
         }
 
-        return static_cast<T *>(Traits::allocate_large(n));
+        return static_cast<value_type *>(Traits::allocate_large(n));
     }
 
-    void deallocate(T *ptr, size_type n) noexcept {
-        n *= sizeof(T);
-
+    void deallocate(value_type *ptr, size_type n) noexcept {
+        n *= sizeof(value_type);
         if (auto [idx, _] = Traits::get(n); WJR_LIKELY(idx != tableSize)) {
             return m_pool[idx].deallocate(ptr);
         }
@@ -109,33 +105,28 @@ private:
     mem::detail::__dynamic_object_pool_impl m_pool[tableSize];
 };
 
+namespace mem::detail {
 template <typename T>
-class object_pool {
-    using node_type = intrusive::hlist_node<>;
+struct single_object_pool_traits {
+    using value_type = T;
+    static constexpr size_t size = 1;
 
-public:
-    static constexpr size_t default_cache_size = arena::default_cache_size;
+    template <typename Other>
+    struct rebind {
+        using other = single_object_pool_traits<Other>;
+    };
 
-    object_pool(size_t cache = default_cache_size) : m_arena(cache) {}
-
-    WJR_MALLOC T *allocate() noexcept {
-        if (m_head.next() != nullptr) {
-            auto *ptr = m_head.pop_front();
-            return reinterpret_cast<T *>(ptr);
-        }
-
-        return static_cast<T *>(m_arena.allocate(sizeof(T)));
+    static constexpr size_t get(WJR_MAYBE_UNUSED size_t size) noexcept {
+        WJR_ASSERT_L2(size == sizeof(T));
+        return 0;
     }
-
-    void deallocate(T *ptr) noexcept {
-        auto *node = reinterpret_cast<node_type *>(ptr);
-        m_head.push_front(node);
-    }
-
-private:
-    node_type m_head;
-    arena m_arena;
+    static constexpr value_type *allocate_large(size_t) noexcept { WJR_UNREACHABLE(); }
+    static constexpr value_type *deallocate_large(size_t) noexcept { WJR_UNREACHABLE(); }
 };
+} // namespace mem::detail
+
+template <typename T>
+using object_pool = dynamic_object_pool<mem::detail::single_object_pool_traits<T>>;
 
 } // namespace wjr
 
