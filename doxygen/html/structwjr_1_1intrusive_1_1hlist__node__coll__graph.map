@@ -1,8 +1,0 @@
-<map id="wjr::intrusive::hlist_node&lt; T, Tag &gt;" name="wjr::intrusive::hlist_node&lt; T, Tag &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="14,715,130,1013"/>
-<area shape="rect" id="Node000002" href="$classwjr_1_1intrusive_1_1hlist__node__base.html" title=" " alt="" coords="5,368,139,667"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="75,682,75,715,69,715,69,682"/>
-<area shape="rect" id="Node000003" href="$classwjr_1_1intrusive_1_1hlist__node__base.html" title=" " alt="" coords="5,5,139,304"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="75,304,75,351,69,351,69,304"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="140,119,158,131,163,141,165,155,163,170,156,181,151,178,158,168,160,155,158,143,154,134,137,124"/>
-</map>

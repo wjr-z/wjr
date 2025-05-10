@@ -1,7 +1,0 @@
-<map id="类继承关系图" name="类继承关系图">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,47,115,73"/>
-<area shape="rect" id="Node000001" href="$structwjr_1_1is__trivially__allocator__construct.html" title=" " alt="" coords="163,5,361,48"/>
-<area shape="poly" id="edge44_Node000000_Node000001" title=" " alt="" coords="130,46,162,41,162,46,131,51"/>
-<area shape="rect" id="Node000002" href="$structwjr_1_1is__trivially__allocator__destroy.html" title=" " alt="" coords="183,72,341,115"/>
-<area shape="poly" id="edge45_Node000000_Node000002" title=" " alt="" coords="131,69,183,78,182,83,130,74"/>
-</map>

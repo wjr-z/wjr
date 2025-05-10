@@ -1,4 +1,0 @@
-var structwjr_1_1____tp__exclude__helper_3_01std_1_1enable__if__t_3_01_p_3_01_t_00_01_u_01_4_1_1valu78fa28117422fd248843ac337d1b46b6 =
-[
-    [ "type", "structwjr_1_1____tp__exclude__helper_3_01std_1_1enable__if__t_3_01_p_3_01_t_00_01_u_01_4_1_1valu78fa28117422fd248843ac337d1b46b6.html#a0fb0221ae1a3c5f5a4e38facb0469715", null ]
-];

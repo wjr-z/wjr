@@ -1,4 +1,0 @@
-var structwjr_1_1dragonbox_1_1detail_1_1convert__to__policy__holder__impl_3_01found__policy__pair__l2eb1ea40b0a18c5d551fcbb6d0af6a11 =
-[
-    [ "type", "structwjr_1_1dragonbox_1_1detail_1_1convert__to__policy__holder__impl_3_01found__policy__pair__l2eb1ea40b0a18c5d551fcbb6d0af6a11.html#a08efb0033094bf64ab8cf5c4a5cdd0ce", null ]
-];

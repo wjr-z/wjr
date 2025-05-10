@@ -1,6 +1,0 @@
-var structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1interval__type_1_1symmetric__boundary =
-[
-    [ "include_left_endpoint", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1interval__type_1_1symmetric__boundary.html#a7c0712922f405b4c5f6a8938b80f5096", null ],
-    [ "include_right_endpoint", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1interval__type_1_1symmetric__boundary.html#a4dd3101fc0e3e3769ab3df64db2760cd", null ],
-    [ "is_closed", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1interval__type_1_1symmetric__boundary.html#a666e38ce9d38226c526522f3c142def2", null ]
-];

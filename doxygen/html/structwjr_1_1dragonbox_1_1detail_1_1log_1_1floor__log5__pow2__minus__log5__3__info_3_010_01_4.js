@@ -1,4 +1,0 @@
-var structwjr_1_1dragonbox_1_1detail_1_1log_1_1floor__log5__pow2__minus__log5__3__info_3_010_01_4 =
-[
-    [ "default_return_type", "structwjr_1_1dragonbox_1_1detail_1_1log_1_1floor__log5__pow2__minus__log5__3__info_3_010_01_4.html#a60e47234a03c6209789f4ff362c99362", null ]
-];

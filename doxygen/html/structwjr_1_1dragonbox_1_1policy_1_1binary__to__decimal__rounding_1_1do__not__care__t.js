@@ -1,4 +1,0 @@
-var structwjr_1_1dragonbox_1_1policy_1_1binary__to__decimal__rounding_1_1do__not__care__t =
-[
-    [ "binary_to_decimal_rounding_policy", "structwjr_1_1dragonbox_1_1policy_1_1binary__to__decimal__rounding_1_1do__not__care__t.html#a044f26b784f4dd169a75a22345c1b654", null ]
-];

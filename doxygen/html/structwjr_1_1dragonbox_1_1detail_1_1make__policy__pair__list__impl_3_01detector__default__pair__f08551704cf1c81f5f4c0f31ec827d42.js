@@ -1,5 +1,0 @@
-var structwjr_1_1dragonbox_1_1detail_1_1make__policy__pair__list__impl_3_01detector__default__pair__f08551704cf1c81f5f4c0f31ec827d42 =
-[
-    [ "new_found_policy_pair", "structwjr_1_1dragonbox_1_1detail_1_1make__policy__pair__list__impl_3_01detector__default__pair__f08551704cf1c81f5f4c0f31ec827d42.html#aabd150fa00a3184972c8e03a0afd8274", null ],
-    [ "type", "structwjr_1_1dragonbox_1_1detail_1_1make__policy__pair__list__impl_3_01detector__default__pair__f08551704cf1c81f5f4c0f31ec827d42.html#ab2862a49021ec2ff04be0eba324d917a", null ]
-];

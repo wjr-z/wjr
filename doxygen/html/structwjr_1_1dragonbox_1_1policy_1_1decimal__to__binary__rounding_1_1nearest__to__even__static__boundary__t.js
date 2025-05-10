@@ -1,4 +1,0 @@
-var structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__to__even__static__boundary__t =
-[
-    [ "decimal_to_binary_rounding_policy", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__to__even__static__boundary__t.html#ab457dde743a2f77afc6165ab2a32dc23", null ]
-];

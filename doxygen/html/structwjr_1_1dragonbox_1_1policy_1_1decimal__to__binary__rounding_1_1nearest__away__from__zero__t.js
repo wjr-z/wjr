@@ -1,5 +1,0 @@
-var structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__away__from__zero__t =
-[
-    [ "decimal_to_binary_rounding_policy", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__away__from__zero__t.html#a254e5df6717a2410f6028317bf6e7d18", null ],
-    [ "interval_type_provider", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1nearest__away__from__zero__t.html#aad09ff5201c2d46a1fe87b68692f439b", null ]
-];

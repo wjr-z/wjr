@@ -1,7 +1,0 @@
-<map id="wjr::is_trivially_allocator&lt; Alloc &gt;" name="wjr::is_trivially_allocator&lt; Alloc &gt;">
-<area shape="rect" id="Node000001" title="Default construct, destruct allocator." alt="" coords="5,272,155,357"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="7,123,153,224"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,239,83,272,77,272,77,239"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="31,5,129,75"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="83,90,83,123,77,123,77,90"/>
-</map>

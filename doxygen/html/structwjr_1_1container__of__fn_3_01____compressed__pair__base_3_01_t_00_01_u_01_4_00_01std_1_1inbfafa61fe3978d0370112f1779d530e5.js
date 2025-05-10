@@ -1,7 +1,0 @@
-var structwjr_1_1container__of__fn_3_01____compressed__pair__base_3_01_t_00_01_u_01_4_00_01std_1_1inbfafa61fe3978d0370112f1779d530e5 =
-[
-    [ "base_type", "structwjr_1_1container__of__fn_3_01____compressed__pair__base_3_01_t_00_01_u_01_4_00_01std_1_1inbfafa61fe3978d0370112f1779d530e5.html#af5bbe8f53f032adfc60d2118191f830d", null ],
-    [ "value_type", "structwjr_1_1container__of__fn_3_01____compressed__pair__base_3_01_t_00_01_u_01_4_00_01std_1_1inbfafa61fe3978d0370112f1779d530e5.html#a6e77578c3d178cedcc2ae59932678cde", null ],
-    [ "operator()", "structwjr_1_1container__of__fn_3_01____compressed__pair__base_3_01_t_00_01_u_01_4_00_01std_1_1inbfafa61fe3978d0370112f1779d530e5.html#ab97352269ff70bff2ebe153746f08052", null ],
-    [ "operator()", "structwjr_1_1container__of__fn_3_01____compressed__pair__base_3_01_t_00_01_u_01_4_00_01std_1_1inbfafa61fe3978d0370112f1779d530e5.html#a3d3f3dfb2b86ca981539f5d2593466f2", null ]
-];

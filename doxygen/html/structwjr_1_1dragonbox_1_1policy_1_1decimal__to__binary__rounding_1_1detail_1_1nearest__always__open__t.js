@@ -1,4 +1,0 @@
-var structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1detail_1_1nearest__always__open__t =
-[
-    [ "interval_type_provider", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1detail_1_1nearest__always__open__t.html#a4515d9af58d2df5da347933f939e1f46", null ]
-];

@@ -1,7 +1,0 @@
-var namespacewjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1detail =
-[
-    [ "left_closed_directed_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1detail_1_1left__closed__directed__t.html", null ],
-    [ "nearest_always_closed_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1detail_1_1nearest__always__closed__t.html", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1detail_1_1nearest__always__closed__t" ],
-    [ "nearest_always_open_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1detail_1_1nearest__always__open__t.html", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1detail_1_1nearest__always__open__t" ],
-    [ "right_closed_directed_t", "structwjr_1_1dragonbox_1_1policy_1_1decimal__to__binary__rounding_1_1detail_1_1right__closed__directed__t.html", null ]
-];

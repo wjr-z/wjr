@@ -1,4 +1,0 @@
-var structwjr_1_1json_1_1document__serializer__impl_3_01std_1_1basic__string_3_01char_00_01std_1_1che08e79f43dfd83ccc37f1df7c7c78b72 =
-[
-    [ "value_type", "structwjr_1_1json_1_1document__serializer__impl_3_01std_1_1basic__string_3_01char_00_01std_1_1che08e79f43dfd83ccc37f1df7c7c78b72.html#a888e75c7b6e37209e65773118e2e3cbe", null ]
-];

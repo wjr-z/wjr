@@ -1,9 +1,0 @@
-<map id="类继承关系图" name="类继承关系图">
-<area shape="rect" id="Node000000" href="$classwjr_1_1basic__btree.html" title=" " alt="" coords="5,80,174,107"/>
-<area shape="rect" id="Node000001" href="$classwjr_1_1btree__map.html" title=" " alt="" coords="222,5,367,48"/>
-<area shape="poly" id="edge106_Node000000_Node000001" title=" " alt="" coords="147,72,226,46,227,51,148,77"/>
-<area shape="rect" id="Node000002" href="$classwjr_1_1btree__multiset.html" title=" " alt="" coords="231,72,358,115"/>
-<area shape="poly" id="edge107_Node000000_Node000002" title=" " alt="" coords="189,91,230,91,230,96,189,96"/>
-<area shape="rect" id="Node000003" href="$classwjr_1_1btree__set.html" title=" " alt="" coords="225,139,364,181"/>
-<area shape="poly" id="edge108_Node000000_Node000003" title=" " alt="" coords="148,109,227,136,226,141,147,115"/>
-</map>
