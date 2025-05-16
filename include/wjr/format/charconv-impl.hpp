@@ -5,6 +5,7 @@
 
 #include <wjr/format/ctype.hpp>
 #include <wjr/math/integral_constant.hpp>
+#include <wjr/container/bitmask_enum.hpp>
 
 namespace wjr {
 
@@ -73,6 +74,8 @@ enum class chars_format : uint8_t {
     __json_format = 0x08,
     json = general | __json_format,
 };
+
+WJR_DECLARE_ENUM_AS_BITMASK(chars_format);
 
 template <typename Iter>
 struct to_chars_result {

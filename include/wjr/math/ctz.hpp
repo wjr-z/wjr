@@ -22,8 +22,8 @@ namespace wjr {
 
 namespace constant {
 template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR int ctz(T x) noexcept {
-    return fallback_popcount<T>(lowbit(x) - 1);
+WJR_CONST constexpr int ctz(T x) noexcept {
+    return constant::popcount<T>(lowbit(x) - 1);
 }
 } // namespace constant
 

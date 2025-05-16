@@ -19,10 +19,9 @@
 #endif
 
 namespace wjr {
-
 namespace constant {
 template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR int clz(T x) noexcept {
+WJR_CONST constexpr int clz(T x) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
     x |= (x >> 1);
@@ -41,7 +40,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR int clz(T x) noexcept {
         x |= (x >> 32);
     }
 
-    return fallback_popcount(~x);
+    return constant::popcount(~x);
 }
 } // namespace constant
 

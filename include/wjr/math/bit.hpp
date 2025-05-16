@@ -7,6 +7,64 @@
 #include <wjr/memory/detail.hpp>
 
 namespace wjr {
+namespace constant {
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr int countl_zero(T x) noexcept {
+    if (WJR_UNLIKELY(x == 0)) {
+        return std::numeric_limits<T>::digits;
+    }
+
+    return constant::clz(x);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr int countr_zero(T x) noexcept {
+    if (WJR_UNLIKELY(x == 0)) {
+        return std::numeric_limits<T>::digits;
+    }
+
+    return constant::ctz(x);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr int countl_one(T x) noexcept {
+    return constant::countl_zero(static_cast<T>(~x));
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr int countr_one(T x) noexcept {
+    return constant::countr_zero(static_cast<T>(~x));
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr int bit_width(T x) noexcept {
+    return std::numeric_limits<T>::digits - constant::countl_zero(x);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr T bit_ceil(T x) noexcept {
+    if (x <= 1) {
+        return T(1);
+    }
+
+    if constexpr (std::is_same_v<T, decltype(+x)>) {
+        return T(1) << constant::bit_width(T(x - 1));
+    } else {
+        constexpr int offset_for_ub =
+            std::numeric_limits<unsigned>::digits - std::numeric_limits<T>::digits;
+        return T(1 << (constant::bit_width(T(x - 1)) + offset_for_ub) >> offset_for_ub);
+    }
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST constexpr T bit_floor(T x) noexcept {
+    if (x != 0) {
+        return T{1} << (constant::bit_width(x) - 1);
+    }
+
+    return 0;
+}
+} // namespace constant
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {

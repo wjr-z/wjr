@@ -311,6 +311,12 @@
 #define WJR_INLINE_CONSTEXPR inline constexpr
 #define WJR_INLINE_CONSTEXPR20 inline WJR_CONSTEXPR20
 
+#if defined(__cpp_consteval)
+    #define WJR_CONSTEVAL consteval
+#else
+    #define WJR_CONSTEVAL constexpr
+#endif
+
 #define WJR_ATTRIBUTE(attribute) WJR_ATTRIBUTE_I(attribute)
 #define WJR_ATTRIBUTE_I(attribute) WJR_##attribute
 

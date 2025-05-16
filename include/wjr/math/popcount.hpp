@@ -73,6 +73,13 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR int fallback_popcount(T x) noexcept {
     }
 }
 
+namespace constant {
+template <typename T>
+constexpr int popcount(T x) noexcept {
+    return fallback_popcount(x);
+}
+} // namespace constant
+
 #if WJR_HAS_BUILTIN(POPCOUNT)
 
 template <typename T>

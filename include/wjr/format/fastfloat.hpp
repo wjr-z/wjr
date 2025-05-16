@@ -59,17 +59,17 @@ struct default_writer {
 
 template <typename Writer, typename Op>
 WJR_ALL_NONNULL WJR_NOINLINE from_chars_result<>
-__from_chars_impl(const char *first, const char *last, Writer wr, Op options) noexcept;
+__from_chars_impl(const char *first, const char *last, Writer wr, Op fmt) noexcept;
 
 extern template from_chars_result<>
 __from_chars_impl<default_writer<float>, integral_constant<chars_format, chars_format::general>>(
     const char *first, const char *last, default_writer<float> wr,
-    integral_constant<chars_format, chars_format::general> options) noexcept;
+    integral_constant<chars_format, chars_format::general> fmt) noexcept;
 
 extern template from_chars_result<>
 __from_chars_impl<default_writer<double>, integral_constant<chars_format, chars_format::general>>(
     const char *first, const char *last, default_writer<double> wr,
-    integral_constant<chars_format, chars_format::general> options) noexcept;
+    integral_constant<chars_format, chars_format::general> fmt) noexcept;
 
 extern template from_chars_result<> __from_chars_impl<default_writer<float>, chars_format>(
     const char *first, const char *last, default_writer<float> wr, chars_format fmt) noexcept;
@@ -123,7 +123,7 @@ from_chars_result<> from_chars(const char *first, const char *last, T &value,
         }
     }
 
-    WJR_ASSERT(!(to_underlying(fmt) & to_underlying(chars_format::__json_format)));
+    WJR_ASSERT(!(fmt & chars_format::__json_format));
     return __from_chars_impl(first, last, default_writer<T>(value), fmt);
 }
 
@@ -1518,7 +1518,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
     }
 
     const char *p = first;
-    const auto fmt = to_underlying(static_cast<chars_format>(options));
+    const auto fmt = static_cast<chars_format>(options);
 
     parsed_number_string pns;
     pns.negative = (*p == '-');
@@ -1542,7 +1542,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
         if (ch >= 10) { // This situation rarely occurs
             if constexpr (is_constant_options) {
                 // digit_count is zero, this is an error in json.
-                if (fmt & to_underlying(chars_format::__json_format)) {
+                if (any(fmt & chars_format::__json_format)) {
                     return {first, std::errc::invalid_argument};
                 }
             }
@@ -1569,7 +1569,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
         pns.integer = span<const char>(start_digits, static_cast<size_t>(digit_count));
 
         if constexpr (is_constant_options) {
-            if (fmt & to_underlying(chars_format::__json_format)) {
+            if (any(fmt & chars_format::__json_format)) {
                 // at least 1 digit in integer part, without leading zeros
                 if (digit_count == 0 || (start_digits[0] == '0' && digit_count > 1)) {
                     return {first, std::errc::invalid_argument};
@@ -1628,7 +1628,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
 
         auto &float_v = wr.get_float();
         if constexpr (is_constant_options) {
-            if (fmt & to_underlying(chars_format::__json_format)) {
+            if (any(fmt & chars_format::__json_format)) {
                 if (WJR_UNLIKELY(exponent == 0)) {
                     return detail::parse_infnan(first, last, float_v);
                 }
@@ -1646,8 +1646,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
 
     exp_number = 0;
 
-    if (bool(fmt & to_underlying(chars_format::scientific)) && (p != last) &&
-        (('e' == *p) || ('E' == *p))) {
+    if (any(fmt & chars_format::scientific) && (p != last) && (('e' == *p) || ('E' == *p))) {
         const char *location_of_e = p;
         ++p;
         bool neg_exp = false;
@@ -1659,7 +1658,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
             ++p;
         }
         if ((p == last) || !is_integer(*p)) {
-            if (!bool(fmt & to_underlying(chars_format::fixed))) {
+            if (!(fmt & chars_format::fixed)) {
                 // We are in error.
                 return detail::parse_infnan(first, last, wr.get_float());
             }
@@ -1680,8 +1679,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
         }
     } else {
         // If it scientific and not fixed, we have to bail out.
-        if (bool(fmt & to_underlying(chars_format::scientific)) &&
-            !bool(fmt & to_underlying(chars_format::fixed))) {
+        if (any(fmt & chars_format::scientific) && !(fmt & chars_format::fixed)) {
             return detail::parse_infnan(first, last, wr.get_float());
         }
     }
@@ -1827,7 +1825,7 @@ INTEGER_AT_END:
     pns.integer = span<const char>(start_digits, static_cast<size_t>(digit_count));
 
     if constexpr (is_constant_options) {
-        if (fmt & to_underlying(chars_format::__json_format)) {
+        if (any(fmt & chars_format::__json_format)) {
             // at least 1 digit in integer part, without leading zeros
             if (digit_count == 0 || (start_digits[0] == '0' && digit_count > 1)) {
                 return {first, std::errc::invalid_argument};

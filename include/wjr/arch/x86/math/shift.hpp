@@ -42,7 +42,7 @@ WJR_ALL_NONNULL WJR_INTRINSIC_INLINE void builtin_lshift_n_impl(T *dst, const T 
     if (n <= shift_detail::small_shift_n_threshold) {
         if (WJR_LIKELY(--n)) {
     #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM) && defined(__BMI2__) &&                              \
-        !WJR_HAS_FEATURE(FORCE_NOVECTOR)
+        (!WJR_HAS_FEATURE(DISABLE_VECTORIZE) || !WJR_HAS_FEATURE(DISABLE_UNROLL))
             unsigned int tcl = 64 - cl;
             uint64_t __cl = cl;
             uint64_t __tcl = tcl;
@@ -60,7 +60,8 @@ WJR_ALL_NONNULL WJR_INTRINSIC_INLINE void builtin_lshift_n_impl(T *dst, const T 
                 : [cl] "r"(__cl), [tcl] "r"(__tcl)
                 : "cc", "memory");
     #else
-            WJR_NOVECTOR
+            WJR_DISABLE_VECTORIZE
+            WJR_DISABLE_UNROLL
             do {
                 dst[n] = shld(src[n], src[n - 1], cl);
             } while (WJR_LIKELY(--n));
@@ -109,7 +110,7 @@ WJR_ALL_NONNULL WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T 
     if (n <= shift_detail::small_shift_n_threshold) {
         if (WJR_LIKELY(--n)) {
     #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM) && defined(__BMI2__) &&                              \
-        !WJR_HAS_FEATURE(FORCE_NOVECTOR)
+        (!WJR_HAS_FEATURE(DISABLE_VECTORIZE) || !WJR_HAS_FEATURE(DISABLE_UNROLL))
             unsigned int tcl = 64 - cl;
             uint64_t __cl = cl;
             uint64_t __tcl = tcl;
@@ -128,7 +129,8 @@ WJR_ALL_NONNULL WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T 
                 : [cl] "r"(__cl), [tcl] "r"(__tcl), [n] "r"(n)
                 : "cc", "memory");
     #else
-            WJR_NOVECTOR
+            WJR_DISABLE_VECTORIZE
+            WJR_DISABLE_UNROLL
             do {
                 dst[0] = shrd(src[0], src[1], cl);
                 ++dst;

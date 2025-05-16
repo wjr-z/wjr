@@ -44,20 +44,27 @@
     #define WJR_UNROLL(loop)
 #endif
 
-#define WJR_HAS_FEATURE_FORCE_NOVECTOR WJR_HAS_DEF
+#define WJR_HAS_FEATURE_DISABLE_VECTORIZE WJR_HAS_DEF
+#define WJR_HAS_FEATURE_DISABLE_UNROLL WJR_HAS_DEF
 
 #if defined(WJR_COMPILER_CLANG)
-    #define WJR_NOVECTOR _Pragma("clang loop unroll(disable) vectorize(disable)")
+    #define WJR_DISABLE_VECTORIZE _Pragma("clang loop vectorize(disable)")
+    #define WJR_DISABLE_UNROLL _Pragma("clang loop unroll(disable)")
 #elif defined(WJR_COMPILER_GCC)
     #if WJR_HAS_GCC(14, 1, 0)
-        #define WJR_NOVECTOR _Pragma("GCC novector")
+        #define WJR_DISABLE_VECTORIZE _Pragma("GCC novector")
     #else
-        #define WJR_NOVECTOR _Pragma("GCC unroll(0)")
-        #undef WJR_HAS_FEATURE_FORCE_NOVECTOR
+        #define WJR_DISABLE_VECTORIZE
+        #undef WJR_HAS_FEATURE_DISABLE_VECTORIZE
     #endif
+
+    #define WJR_DISABLE_UNROLL _Pragma("GCC unroll(1)")
 #else
-    #define WJR_NOVECTOR WJR_UNROLL(1)
-    #undef WJR_HAS_FEATURE_FORCE_NOVECTOR
+    #define WJR_DISABLE_VECTORIZE
+    #define WJR_DISABLE_UNROLL WJR_UNROLL(1)
+
+    #undef WJR_HAS_FEATURE_DISABLE_VECTORIZE
+    #undef WJR_HAS_FEATURE_DISABLE_UNROLL
 #endif
 
 #define WJR_HAS_FEATURE_NO_UNIQUE_ADDRESS WJR_HAS_DEF
