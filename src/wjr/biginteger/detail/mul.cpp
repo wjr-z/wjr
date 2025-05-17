@@ -160,67 +160,6 @@ WJR_INTRINSIC_INLINE void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
 
 } // namespace
 
-/**
- * @details \n
- * l = max(ceil(n/3), ceil(m/2)) \n
- * stk usage : l * 4
- *
- */
-void toom32_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
-                  size_t m, uint64_t *stk) noexcept;
-
-/*
-l = max(ceil(n/4), ceil(m/2))
-stk usage : l * 4
-*/
-void toom42_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
-                  size_t m, uint64_t *stk) noexcept;
-
-/*
- l = max(ceil(n/4), ceil(m/3))
- stk usage : l * 6
-*/
-void toom43_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
-                  size_t m, uint64_t *stk) noexcept;
-
-/*
- l = max(ceil(n/5), ceil(m/3))
- stk usage : l * 6
-*/
-void toom53_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
-                  size_t m, uint64_t *stk) noexcept;
-
-/*
- l = ceil(n/4)
- stk usage : l * 6
-*/
-void toom44_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
-                  size_t m, uint64_t *stk) noexcept;
-
-void toom4_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n, uint64_t *stk) noexcept;
-
-/**
- * @details \n
- * l = max(ceil(n/6), ceil(m/3)) \n
- * stk usage : l * 10 \n
- *
- */
-void toom63_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
-                  size_t m, uint64_t *stk) noexcept;
-
-/*
- l = ceil(n/5)
- stk usage : l * 10
-*/
-void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
-                  size_t m, uint64_t *stk) noexcept;
-
-/*
- l = ceil(n/5)
- stk usage : l * 10
-*/
-void toom5_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n, uint64_t *stk) noexcept;
-
 namespace {
 void __toom22_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                          const uint64_t *src1, size_t m, uint64_t *mal) noexcept {
@@ -826,6 +765,7 @@ void toom32_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, co
     WJR_ASSERT(cf == 0);
 }
 
+namespace {
 void toom_interpolation_5p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l, size_t rn,
                              size_t rm, toom_interpolation_5p_struct &&flag) noexcept {
     /*
@@ -919,6 +859,1078 @@ void toom_interpolation_5p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l
     cf = addc_1(dst + l * 4, dst + l * 4, rn + rm, cf2, cf);
     WJR_ASSERT(cf == 0);
 }
+
+void toom_interpolation_6p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l, size_t rn,
+                             size_t rm, toom_interpolation_6p_struct &&flag) noexcept {
+    /*
+     W0 = f(0);
+     W1 = f(-1);
+     W2 = f(1);
+     W3 = f(-2);
+     W4 = f(2);
+     W5 = f(inf)
+    */
+
+    /*
+     11 add/sub + 4 shift + 2 divby3 + 1 submul
+
+     W3 = (W3 - W4) >> 1;
+     W4 = W4 + W3;
+     W4 = W4 - W0;
+     W1 = W2 - W1;
+     W2 = W2 - W0;
+     W3 = W3 + W1;
+     W1 >>= 1;
+     W3 = W3 / -6; => W3 = W3 / -2 / 3;
+     W2 = W2 - W1;
+     W3 = W3 - 4 * W5;
+     W1 = W1 - W3;
+     W4 = W4 >> 2;
+     W4 = W4 - W2;
+     W4 = W4 / 3;
+
+     W4 = W5 * x + W4;
+     W2 = W3 * x + W2;
+     W2 = W2 - W4;
+     W = W4 * x ^ 4 + W2 * x ^ 2 + W1 * x + W0;
+    */
+
+    WJR_ASSERT(0 < rn && rn <= l);
+    WJR_ASSERT_ASSUME(0 < rm && rm <= l);
+    WJR_ASSERT_ASSUME(rn + rm >= l);
+
+    const size_t maxr = std::max(rn, rm);
+
+    auto *const w0p = dst;
+    auto *const w2p = w0p + l * 2;
+    auto *const w3p = w1p + l * 2;
+    auto *const w4p = w1p + l * 4;
+    auto *const w5p = w0p + l * 5;
+
+    uint64_t cf;
+    auto [neg1, neg3, cf1, cf2, cf3, cf4] = flag;
+
+    // W3 = (W3 - W4) >> 1;
+    {
+        if (!neg3) {
+            cf3 = cf4 - cf3 - subc_n(w3p, w4p, w3p, l * 2);
+        } else {
+            cf3 += cf4 + addc_n(w3p, w3p, w4p, l * 2);
+        }
+
+        (void)rshift_n(w3p, w3p, l * 2, 1, cf3);
+        cf3 >>= 1;
+    }
+
+    // W4 = W4 + W3;
+    cf4 -= cf3 + subc_n(w4p, w4p, w3p, l * 2);
+
+    // W4 = W4 - W0;
+    cf4 -= subc_n(w4p, w4p, w0p, l * 2);
+
+    // W1 = W2 - W1;
+    if (!neg1) {
+        cf1 = cf2 - cf1 - subc_n(w1p, w2p, w1p, l * 2);
+    } else {
+        cf1 = cf2 + cf1 + addc_n(w1p, w2p, w1p, l * 2);
+    }
+
+    // W2 = W2 - W0;
+    cf2 -= subc_n(w2p, w2p, w0p, l * 2);
+
+    // W3 = W3 + W1;
+    cf3 -= cf1 + subc_n(w3p, w3p, w1p, l * 2);
+
+    // W1 >>= 1;
+    (void)rshift_n(w1p, w1p, l * 2, 1, cf1);
+    cf1 >>= 1;
+
+    // W3 = W3 / -6; = > W3 = W3 / -2 / 3;
+    {
+        divexact_byc(w3p, w3p, l * 2, 6_u64, cf3);
+        cf3 /= 6;
+    }
+
+    // W2 = W2 - W1;
+    cf2 -= cf1 + subc_n(w2p, w2p, w1p, l * 2);
+
+    // W3 = W3 - 4 * W5;
+    WJR_SUBMUL_1_S(w3p, l * 2, w5p, rn + rm, cf3, 0, 4, cf3);
+
+    // W1 = W1 - W3;
+    cf1 -= cf3 + subc_n(w1p, w1p, w3p, l * 2);
+
+    // W4 = W4 >> 2;
+    rshift_n(w4p, w4p, l * 2, 2, cf4);
+    cf4 >>= 2;
+
+    // W4 = W4 - W2;
+    cf4 -= cf2 + subc_n(w4p, w4p, w2p, l * 2);
+
+    // W4 = W4 / 3;
+    divexact_byc(w4p, w4p, l * 2, 3_u64, 0);
+    if (l != maxr) {
+        cf4 = w4p[l + maxr];
+    } else {
+        cf4 /= 3;
+    }
+
+    // W4 = W5 * x + W4;
+    cf = addc_n(w5p, w5p, w4p + l, maxr);
+    cf = addc_1(w5p + maxr, w5p + maxr, rn + rm - maxr, cf4, cf);
+    WJR_ASSERT(cf == 0);
+
+    // W2 = W3 * x + W2;
+    cf = addc_n(w3p, w3p, w2p + l, l);
+    cf3 += addc_1(w3p + l, w3p + l, l, cf2, cf);
+
+    // W2 = W2 - W4;
+    cf = subc_n(w2p, w2p, w4p, l);
+    cf3 -= subc_s(dst + l * 3, w3p, l * 2, w5p, rn + rm, cf);
+
+    // W = W4 * x ^ 4 + W2 * x ^ 2 + W1 * x + W0;
+    cf = addc_n(dst + l, dst + l, w1p, l * 2);
+    cf = addc_1(dst + l * 3, dst + l * 3, l, cf1, cf);
+    cf = addc_n(dst + l * 4, dst + l * 4, w4p, l, cf);
+    cf = addc_1(dst + l * 5, dst + l * 5, rn + rm, cf3, cf);
+    WJR_ASSERT(cf == 0);
+}
+
+void toom_interpolation_7p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l, size_t rn,
+                             size_t rm, toom_interpolation_7p_struct &&flag) noexcept {
+    /*
+     W0 = f(0);
+     W1 = f(-2);
+     W2 = f(1);
+     W3 = f(-1);
+     W4 = f(2);
+     W5 = 64 * f(1/2);
+     W6 = f(inf);
+    */
+
+    /*
+    [
+    W0   1,  0,  0,  0,  0,  0,  0
+    W1   1, -2,  4, -8, 16,-32, 64
+    W2   1,  1,  1,  1,  1,  1,  1
+    W3   1, -1,  1, -1,  1, -1,  1
+    W4   1,  2,  4,  8, 16, 32, 64
+    W5  64, 32, 16,  8,  4,  2,  1
+    W6   0,  0,  0,  0,  0,  0,  1
+    ]
+
+     W5 = W5 + W4
+     W1 =(W4 - W1)/2
+     W4 = W4 - W0
+     W4 =(W4 - W1)/4 - W6*16
+     W3 =(W2 - W3)/2
+     W2 = W2 - W3
+
+     [
+    W0   1,  0,  0,  0,  0,  0,  0
+    W1   0,  2,  0,  8,  0, 32,  0
+    W2   1,  0,  1,  0,  1,  0,  1
+    W3   0,  1,  0,  1,  0,  1,  0
+    W4   0,  0,  1,  0,  4,  0,  0
+    W5  65, 34, 20, 16, 20, 34, 65
+    W6   0,  0,  0,  0,  0,  0,  1
+    ]
+
+     W5 = W5 - W2*65      May be negative.
+     W2 = W2 - W6 - W0
+     W5 =(W5 + W2*45)/2   Now >= 0 again.
+     W4 =(W4 - W2)/3
+     W2 = W2 - W4
+
+     [
+    W0   1,  0,  0,  0,  0,  0,  0
+    W1   0,  2,  0,  8,  0, 32,  0
+    W2   0,  0,  1,  0,  0,  0,  0
+    W3   0,  1,  0,  1,  0,  1,  0
+    W4   0,  0,  0,  0,  1,  0,  0
+    W5   0, 17,  0,  8,  0, 17,  0
+    W6   0,  0,  0,  0,  0,  0,  1
+    ]
+
+     W1 = W5 - W1         May be negative.
+     W5 =(W5 - W3*8)/9
+     W3 = W3 - W5
+     W1 =(W1/15 + W5)/2   Now >= 0 again.
+     W5 = W5 - W1
+
+     [
+    W0   1,  0,  0,  0,  0,  0,  0
+    W1   0,  1,  0,  0,  0,  0,  0
+    W2   0,  0,  1,  0,  0,  0,  0
+    W3   0,  0,  0,  1,  0,  0,  0
+    W4   0,  0,  0,  0,  1,  0,  0
+    W5   0,  0,  0,  0,  0,  1,  0
+    W6   0,  0,  0,  0,  0,  0,  1
+    ]
+
+    */
+
+    WJR_ASSERT_ASSUME(0 < rn && rn <= l);
+    WJR_ASSERT_ASSUME(0 < rm && rm <= l);
+    WJR_ASSERT_ASSUME(rn + rm >= l);
+
+    const size_t maxr = std::max(rn, rm);
+
+    auto *const w0p = dst;
+    auto *const w2p = w0p + l * 2;
+    auto *const w3p = w1p + l * 2;
+    auto *const w4p = w0p + l * 4;
+    auto *const w5p = w1p + l * 4;
+    auto *const w6p = w0p + l * 6;
+
+    uint64_t cf = 0;
+    auto [neg1, neg3, cf1, cf2, cf3, cf4, cf5] = flag;
+
+    //  W5 = W5 + W4
+    cf5 += cf4 + addc_n(w5p, w5p, w4p, l * 2);
+
+    //  W1 =(W4 - W1)/2
+    if (!neg1) {
+        WJR_ASSERT(cf4 >= cf1);
+        cf1 = cf4 - cf1 - subc_n(w1p, w4p, w1p, l * 2);
+    } else {
+        cf1 += cf4 + addc_n(w1p, w4p, w1p, l * 2);
+    }
+    (void)rshift_n(w1p, w1p, l * 2, 1, cf1);
+    cf1 >>= 1;
+
+    //  W4 = W4 - W0
+    cf4 -= subc_n(w4p, w4p, w0p, l * 2);
+
+    //  W4 = (W4 - W1)/4 - W6*16
+    cf4 -= cf1 + subc_n(w4p, w4p, w1p, l * 2);
+    (void)rshift_n(w4p, w4p, l * 2, 2, cf4);
+    cf4 >>= 2;
+    WJR_SUBMUL_1_S(w4p, l * 2, w6p, rn + rm, cf4, 0, 16, cf4);
+
+    //  W3 =(W2 - W3)/2
+    if (!neg3) {
+        WJR_ASSERT(cf2 >= cf3);
+        cf3 = cf2 - cf3 - subc_n(w3p, w2p, w3p, l * 2);
+    } else {
+        cf3 += cf2 + addc_n(w3p, w2p, w3p, l * 2);
+    }
+    (void)rshift_n(w3p, w3p, l * 2, 1, cf3);
+    cf3 >>= 1;
+
+    //  W2 = W2 - W3
+    WJR_ASSERT(cf2 >= cf3);
+    cf2 -= cf3 + subc_n(w2p, w2p, w3p, l * 2);
+
+    //  W5 = W5 - W2*65      May be negative.
+    cf5 -= cf2 * 65 + submul_1(w5p, w2p, l * 2, 65);
+
+    //  W2 = W2 - W6 - W0
+    cf2 -= subc_n(w2p, w2p, w0p, l * 2);
+    cf2 -= subc_s(w2p, w2p, l * 2, w6p, rn + rm);
+
+    //  W5 =(W5 + W2*45)/2   Now >= 0 again.
+    cf5 += cf2 * 45 + addmul_1(w5p, w2p, l * 2, 45);
+    (void)rshift_n(w5p, w5p, l * 2, 1, cf5);
+    cf5 >>= 1;
+
+    //  W4 =(W4 - W2)/3
+    cf4 -= cf2 + subc_n(w4p, w4p, w2p, l * 2);
+    divexact_byc(w4p, w4p, l * 2, 3_u64, 0);
+    cf4 /= 3;
+
+    //  W2 = W2 - W4
+    cf2 -= cf4 + subc_n(w2p, w2p, w4p, l * 2);
+
+    //  W1 = W5 - W1         May be negative.
+    neg1 = abs_subc_n(w1p, w5p, w1p, l * 2, cf1, cf5, cf1) < 0;
+
+    //  W5 =(W5 - W3*8)/9
+    cf5 -= cf3 * 8 + submul_1(w5p, w3p, l * 2, 8);
+    divexact_byc(w5p, w5p, l * 2, 9_u64, cf5);
+    cf5 /= 9;
+
+    //  W3 = W3 - W5
+    cf3 -= cf5 + subc_n(w3p, w3p, w5p, l * 2);
+
+    //  W1 =(W1/15 + W5)/2   Now >= 0 again.
+    divexact_byc(w1p, w1p, l * 2, 15_u64, 0);
+    cf1 /= 15;
+    if (!neg1) {
+        cf1 += cf5 + addc_n(w1p, w1p, w5p, l * 2);
+    } else {
+        cf1 = cf5 - cf1 - subc_n(w1p, w5p, w1p, l * 2);
+    }
+    rshift_n(w1p, w1p, l * 2, 1, cf1);
+    cf1 >>= 1;
+
+    //  W5 = W5 - W1
+    cf5 -= cf1 + subc_n(w5p, w5p, w1p, l * 2);
+    if (l != maxr) {
+        cf5 = w5p[l + maxr];
+    }
+
+    cf = addc_n(dst + l, dst + l, w1p, l * 2);
+    cf = addc_n(dst + l * 3, dst + l * 3, w3p, l, cf);
+    cf2 += addc_1(dst + l * 3, dst + l * 3, l, cf1);
+    cf = addc_n(dst + l * 4, dst + l * 4, w3p + l, l, cf);
+    cf3 += addc_1(dst + l * 4, dst + l * 4, l, cf2);
+    cf = addc_n(dst + l * 5, dst + l * 5, w5p, l, cf);
+    cf4 += addc_1(dst + l * 5, dst + l * 5, l, cf3);
+    cf = addc_n(dst + l * 6, dst + l * 6, w5p + l, maxr, cf);
+    cf5 += addc_1(dst + l * 6, dst + l * 6, maxr, cf4);
+    cf = addc_1(dst + l * 6 + maxr, dst + l * 6 + maxr, (rn + rm) - maxr, cf5, cf);
+    WJR_ASSERT(cf == 0);
+}
+
+struct toom_eval_opposite_exp_args_k3 {
+    using tuple_type =
+        tuple<uint64_t *, uint64_t *, uint64_t *, const uint64_t *, size_t, size_t, unsigned int>;
+
+    toom_eval_opposite_exp_args_k3(uint64_t *t0p, uint64_t *t1p, uint64_t *stk, const uint64_t *wp,
+                                   size_t length, size_t rest, unsigned int exp) noexcept
+        : input(t0p, t1p, stk, wp, length, rest, exp), cf(default_construct, default_construct) {}
+
+    void set_exp(unsigned int exp) noexcept { input[6_zu] = exp; }
+
+    tuple_type input;
+    tuple<uint64_t, uint64_t> cf;
+};
+
+struct toom_eval_opposite_exp_args {
+    using tuple_type = tuple<uint64_t *, uint64_t *, uint64_t *, const uint64_t *, size_t, size_t,
+                             size_t, unsigned int>;
+
+    toom_eval_opposite_exp_args(uint64_t *t0p, uint64_t *t1p, uint64_t *stk, const uint64_t *wp,
+                                size_t length, size_t rest, size_t k, unsigned int exp) noexcept
+        : input(t0p, t1p, stk, wp, length, rest, k, exp), cf(default_construct, default_construct) {
+    }
+
+    void set_exp(unsigned int exp) noexcept { input[7_zu] = exp; }
+
+    tuple_type input;
+    tuple<uint64_t, uint64_t> cf;
+};
+
+void toom_eval_2_exp(toom_eval_opposite_exp_args &args) noexcept {
+    const auto [t0p, t1p, stk, wp, len, rest, k, exp] = args.input;
+    auto &[cf0, cf1] = args.cf;
+    WJR_ASSERT(k >= 4);
+    WJR_ASSERT(exp * (k - 1) <= 60);
+
+    cf0 = addlsh_n(t0p, wp, wp + len, len, exp);
+    for (size_t i = 2; i < k - 1; ++i) {
+        cf0 += addlsh_n(t0p, t0p, wp + len * i, len, exp * i);
+    }
+
+    WJR_ADDLSH_S(t0p, t0p, len, wp + len * (k - 1), rest, cf0, 0, exp * (k - 1), cf0);
+}
+
+WJR_NODISCARD bool toom_eval_opposite_2_exp(toom_eval_opposite_exp_args_k3 &args) noexcept {
+    const auto [t0p, t1p, stk, wp, len, rest, exp] = args.input;
+    auto &[cf0, cf1] = args.cf;
+    WJR_ASSERT(exp * 2 <= 60);
+
+    uint64_t cft1;
+
+    // deal with odd position
+    WJR_ADDLSH_S(t1p, wp, len, wp + len * 2, rest, 0, 0, exp * 2, cft1);
+
+    // deal with even position
+    uint64_t cfstk = lshift_n(stk, wp + len, len, exp);
+
+    cf0 = cft1 + cfstk + addc_n(t0p, t1p, stk, len);
+    return abs_subc_n(t1p, t1p, stk, len, cf1, cft1, cfstk) < 0;
+}
+
+WJR_NODISCARD bool toom_eval_opposite_half_exp(toom_eval_opposite_exp_args_k3 &args) noexcept {
+    const auto [t0p, t1p, stk, wp, len, rest, exp] = args.input;
+    auto &[cf0, cf1] = args.cf;
+    WJR_ASSERT(exp * 2 <= 60);
+
+    uint64_t cft1;
+
+    // deal with odd position
+    WJR_ADDLSH_NS(t1p, wp + len * 2, rest, wp, len, 0, 0, exp * 2, cft1);
+
+    // deal with even position
+    const uint64_t cfstk = lshift_n(stk, wp + len, len, exp);
+
+    cf0 = cft1 + cfstk + addc_n(t0p, t1p, stk, len);
+    return abs_subc_n(t1p, t1p, stk, len, cf1, cft1, cfstk) < 0;
+}
+
+WJR_NODISCARD bool toom_eval_opposite_2_exp(toom_eval_opposite_exp_args &args) noexcept {
+    const auto [t0p, t1p, stk, wp, len, rest, k, exp] = args.input;
+    auto &[cf0, cf1] = args.cf;
+    WJR_ASSERT(k >= 4);
+    WJR_ASSERT(exp * (k - 1) <= 60);
+
+    uint64_t cft1;
+
+    // deal with odd position
+    cft1 = addlsh_n(t1p, wp, wp + len * 2, len, exp * 2);
+    for (size_t i = 4; i < k - 1; i += 2) {
+        cft1 += addlsh_n(t1p, t1p, wp + len * i, len, exp * i);
+    }
+
+    // deal with even position
+    uint64_t cfstk = lshift_n(stk, wp + len, len, exp);
+    for (size_t i = 3; i < k - 1; i += 2) {
+        cfstk += addlsh_n(stk, stk, wp + len * i, len, exp * i);
+    }
+
+    if (k & 1) {
+        WJR_ADDLSH_S(t1p, t1p, len, wp + len * (k - 1), rest, cft1, 0, exp * (k - 1), cft1);
+    } else {
+        WJR_ADDLSH_S(stk, stk, len, wp + len * (k - 1), rest, cfstk, 0, exp * (k - 1), cfstk);
+    }
+
+    cf0 = cft1 + cfstk + addc_n(t0p, t1p, stk, len);
+    return abs_subc_n(t1p, t1p, stk, len, cf1, cft1, cfstk) < 0;
+}
+
+WJR_NODISCARD bool toom_eval_opposite_half_exp(toom_eval_opposite_exp_args &args) noexcept {
+    const auto [t0p, t1p, stk, wp, len, rest, k, exp] = args.input;
+    auto &[cf0, cf1] = args.cf;
+    WJR_ASSERT(k >= 4);
+    WJR_ASSERT(exp * (k - 1) <= 60);
+
+    uint64_t cft1;
+
+    // deal with odd position
+    cft1 = addlsh_n(t1p, wp + len * 2, wp, len, exp * 2);
+    for (size_t i = 4; i < k - 1; i += 2) {
+        cft1 = (cft1 << (exp * 2)) + addlsh_n(t1p, wp + len * i, t1p, len, exp * 2);
+    }
+
+    // deal with even position
+
+    uint64_t cfstk = addlsh_n(stk, wp + len * 3, wp + len, len, exp * 2);
+    for (size_t i = 5; i < k - 1; i += 2) {
+        cfstk = (cfstk << (exp * 2)) + addlsh_n(stk, wp + len * i, stk, len, exp * 2);
+    }
+
+    if (k & 1) {
+        WJR_ADDLSH_NS(t1p, wp + len * (k - 1), rest, t1p, len, 0, cft1, exp * 2, cft1);
+        cfstk = (cfstk << exp) + lshift_n(stk, stk, len, exp);
+    } else {
+        WJR_ADDLSH_NS(stk, wp + len * (k - 1), rest, stk, len, 0, cfstk, exp * 2, cfstk);
+        cft1 = (cft1 << exp) + lshift_n(t1p, t1p, len, exp);
+    }
+
+    cf0 = cft1 + cfstk + addc_n(t0p, t1p, stk, len);
+    return abs_subc_n(t1p, t1p, stk, len, cf1, cft1, cfstk) < 0;
+}
+
+/**
+ * @details \n
+ * A is postive, B's sign is `sign' \n
+ * abs(A) >= abs(B) \n
+ * A -> (A - B) / (2^sA) \n
+ * B -> (A + B) / 2 \n
+ *
+ */
+#define WJR_TOOM_EVAL_OPPOSITE_INTERPOLATION_ODD(A, B, n, sign, cfA, cfB, sA)                      \
+    do {                                                                                           \
+        if (!sign) {                                                                               \
+            cfB += cfA + addc_n(B, A, B, n);                                                       \
+        } else {                                                                                   \
+            cfB = cfA - cfB - subc_n(B, A, B, n);                                                  \
+        }                                                                                          \
+                                                                                                   \
+        (void)rshift_n(B, B, n, 1, cfB);                                                           \
+        cfB >>= 1;                                                                                 \
+                                                                                                   \
+        cfA -= cfB + subc_n(A, A, B, n);                                                           \
+        if constexpr (sA != 1) {                                                                   \
+            (void)rshift_n(A, A, n, sA - 1, cfA);                                                  \
+            cfA >>= sA - 1;                                                                        \
+        }                                                                                          \
+    } while (0)
+
+/**
+ * @details \n
+ * A is postive, B's sign is `sign' \n
+ * abs(A) >= abs(B) \n
+ * A -> (A - B) / 2 \n
+ * B -> (A + B) / (2^sB) \n
+ *
+ */
+#define WJR_TOOM_EVAL_OPPOSITE_INTERPOLATION_EVEN(A, B, n, sign, cfA, cfB, sB)                     \
+    do {                                                                                           \
+        if (!sign) {                                                                               \
+            cfB += cfA + addc_n(B, A, B, n);                                                       \
+        } else {                                                                                   \
+            cfB = cfA - cfB - subc_n(B, A, B, n);                                                  \
+        }                                                                                          \
+                                                                                                   \
+        (void)rshift_n(B, B, n, 1, cfB);                                                           \
+        cfB >>= 1;                                                                                 \
+                                                                                                   \
+        cfA -= cfB + subc_n(A, A, B, n);                                                           \
+        if constexpr (sB != 1) {                                                                   \
+            (void)rshift_n(B, B, n, sB - 1, cfB);                                                  \
+            cfB >>= sB - 1;                                                                        \
+        }                                                                                          \
+    } while (0)
+
+void toom_interpolation_even_4_solve(uint64_t *w0p, uint64_t *w2p, uint64_t *w4p, uint64_t *w6p,
+                                     size_t n, uint64_t *tp) noexcept {
+    /*
+        part 0 :
+        [
+            1,      0,      0,      0       W0
+            1,      1,      1,      1       W2
+            1,      4,      16,     64      W4
+            64,     16,     4,      1       W6
+        ]
+
+        W4 -= W2;
+        W6 = 64*W2-W6;
+        W2 -= W0;
+
+        [
+            1,      1,      1       W2
+            3,      15,     63      W4
+            48,     60,     63      W6
+        ]
+
+        W6 -= W4;
+        W6 /= 45;
+        W6 = W2 - W6;
+        W4 /= 3;
+        W4 -= W2;
+        W4 /= 4;
+        W4 -= 5*W6;
+        W2 -= W4 + W6;
+
+        [
+            1,      0,      0,      W2
+            0,      1,      0,      W4
+            0,      0,      1,      W6
+        ]
+    */
+
+    auto &cf2 = tp[1];
+    auto &cf4 = tp[3];
+    auto &cf6 = tp[5];
+
+    // W4 -= W2;
+    cf4 -= cf2 + subc_n(w4p, w4p, w2p, n);
+
+    // W6 = 64 * W2 - W6;
+    cf6 = rsblsh_n(w6p, w6p, w2p, n, 6) + 64 * cf2 - cf6;
+
+    // W2 -= W0;
+    cf2 -= subc_n(w2p, w2p, w0p, n);
+
+    // W6 -= W4;
+    cf6 -= cf4 + subc_n(w6p, w6p, w4p, n);
+
+    // W6 /= 45;
+    divexact_byc(w6p, w6p, n, 45_u64, cf6);
+    cf6 /= 45;
+
+    // W6 = W2 - W6;
+    cf6 = cf2 - cf6 - subc_n(w6p, w2p, w6p, n);
+
+    // W4 /= 3;
+    divexact_byc(w4p, w4p, n, 3_u64, cf4);
+    cf4 /= 3;
+
+    // W4 -= W2;
+    cf4 -= cf2 + subc_n(w4p, w4p, w2p, n);
+
+    // W4 /= 4;
+    (void)rshift_n(w4p, w4p, n, 2, cf4);
+    cf4 >>= 2;
+
+    // W4 -= 5 * W6;
+    cf4 -= cf6 * 5 + submul_1(w4p, w6p, n, 5);
+
+    // W2 -= W4 + W6;
+    cf2 -= cf4 + subc_n(w2p, w2p, w4p, n);
+    cf2 -= cf6 + subc_n(w2p, w2p, w6p, n);
+}
+
+// need to optimize
+void toom_interpolation_opposite_4_solve(uint64_t *w1p, uint64_t *w3p, uint64_t *w5p, uint64_t *w7p,
+                                         size_t n, uint64_t *tp) noexcept {
+    /*
+        [
+            1,      1,      1,      1       W1
+            0,      3,      15,     63      W3
+            0,      3,      51,     819     W5
+            0,      48,     60,     63      W7
+        ]
+
+        W5 = W5-W3;
+
+        [
+            1,      1,      1,      1       W1
+            0,      3,      15,     63      W3
+            0,      0,      36,     756     W5
+            0,      48,     60,     63      W7
+        ]
+
+        W7 = 16*W3-W7;
+        W7 -= W5;
+        W7 = 4*W5-W7;
+        W7 /= 2835;
+
+        [
+            1,      1,      1,      1       W1
+            0,      3,      15,     63      W3
+            0,      0,      36,     756     W5
+            0,      0,      0,      1       W7
+        ]
+
+        W3 /= 3;
+        W5 /= 36;
+        W3 -= W5;
+        W5 -= 21*W7;
+        W3 -= 4*W5;
+        W1 -= W3 + W5 + W7;
+
+        [
+            1,      0,      0,      0       W1
+            0,      1,      0,      0       W3
+            0,      0,      1,      0       W5
+            0,      0,      0,      1       W7
+        ]
+     */
+
+    auto &cf1 = tp[0];
+    auto &cf3 = tp[2];
+    auto &cf5 = tp[4];
+    auto &cf7 = tp[6];
+
+    // W5 = W5 - W3;
+    cf5 -= cf3 + subc_n(w5p, w5p, w3p, n);
+
+    // W7 = 16*W3-W7;
+    cf7 = rsblsh_n(w7p, w7p, w3p, n, 4) + 16 * cf3 - cf7;
+
+    // W7 -= W5;
+    cf7 -= cf5 + subc_n(w7p, w7p, w5p, n);
+
+    // W7 = 4 * W5 - W7;
+    cf7 = rsblsh_n(w7p, w7p, w5p, n, 2) + 4 * cf5 - cf7;
+
+    // W7 /= 2835;
+    divexact_byc(w7p, w7p, n, 2835_u64, cf7);
+    cf7 /= 2835;
+
+    // W3 /= 3;
+    divexact_byc(w3p, w3p, n, 3_u64, 0);
+    cf3 /= 3;
+
+    // W5 /= 36;
+    divexact_byc(w5p, w5p, n, 36_u64, cf5);
+    cf5 /= 36;
+
+    // W3 -= W5;
+    cf3 -= cf5 + subc_n(w3p, w3p, w5p, n);
+
+    // W5 -= 21*W7;
+    cf5 -= submul_1(w5p, w7p, n, 21) + 21 * cf7;
+
+    // W3 -= 4*W5;
+    cf3 -= submul_1(w3p, w5p, n, 4) + 4 * cf5;
+
+    // W1 -= W3+W5+W7;
+    cf1 -= cf3 + subc_n(w1p, w1p, w3p, n);
+    cf1 -= cf5 + subc_n(w1p, w1p, w5p, n);
+    cf1 -= cf7 + subc_n(w1p, w1p, w7p, n);
+}
+
+void toom_interpolation_8p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l, size_t rn,
+                             size_t rm, toom_interpolation_high_p_struct<8> &&flag) noexcept {
+    /*
+    W0 = f(0);
+    W1 = (f(1)-f(-1))/2;
+    W2 = (f(1)+f(-1))/2;
+    W3 = (f(2)-f(-2))/4;
+    W4 = (f(2)+(f-2))/2;
+    W5 = 128 * (f(1/2)-f(-1/2)) / 2;
+    W6 = 128 * (f(1/2)+f(-1/2)) / 4;
+    W7 = f(inf);
+    */
+
+    /*
+
+    [
+        1,      0,      0,      0,      0,      0,      0,      0
+        0,      1,      0,      1,      0,      1,      0,      1
+        1,      0,      1,      0,      1,      0,      1,      0
+        0,      1,      0,      4,      0,      16,     0,      64
+        1,      0,      4,      0,      16,     0,      64,     0
+        0,      64,     0,      16,     0,      4,      0,      1
+        64,     0,      16,     0,      4,      0,      1,      0
+        0,      0,      0,      0,      0,      0,      0,      1
+    ]
+
+    seprate to two part :
+
+    part 0 :
+    [
+        1,      0,      0,      0       W0
+        1,      1,      1,      1       W2
+        1,      4,      16,     64      W4
+        64,     16,     4,      1       W6
+    ]
+
+    part 1 :
+    [
+        1,      1,      1,      1       W1
+        1,      4,      16,     64      W3
+        64,     16,     4,      1       W5
+        0,      0,      0,      1       W7
+    ]
+
+    */
+
+    /*
+        part 0 :
+        [
+            1,      0,      0,      0       W0
+            1,      1,      1,      1       W2
+            1,      4,      16,     64      W4
+            64,     16,     4,      1       W6
+        ]
+
+        goto toom_interpolation_even_4_solve;
+
+        W4 -= W2;
+        W6 = 64*W2-W6;
+        W2 -= W0;
+
+        [
+            1,      1,      1       W2
+            3,      15,     63      W4
+            48,     60,     63      W6
+        ]
+
+        W6 -= W4;
+        W6 /= 45;
+        W6 = W2 - W6;
+        W4 /= 3;
+        W4 -= W2;
+        W4 /= 4;
+        W4 -= 5*W6;
+        W2 -= W4 + W6;
+
+        [
+            1,      0,      0,      W2
+            0,      1,      0,      W4
+            0,      0,      1,      W6
+        ]
+    */
+
+    /*
+        part 1 :
+        [
+            1,      1,      1,      1       W1
+            1,      4,      16,     64      W3
+            64,     16,     4,      1       W5
+            0,      0,      0,      1       W7
+        ]
+
+        W5 -= W1;
+        W3 = 64*W1-W3;
+        W1 -= W7;
+
+        [
+            1,      1,      1       W1
+            63,     60,     48      W3
+            63,     15,     3       W5
+        ]
+
+        W3 -= W5;
+        W3 /= 45;
+        W5 /= 3;
+        W5 -= W1;
+        W1 -= W3;
+        W5 /= 4;
+        W5 -= 5*W1;
+        W3 -= W5;
+        swap(W3, W5);
+
+        [
+            1,      0,      0       W1
+            0,      1,      0       W3
+            0,      0,      1       W5
+        ]
+
+     */
+
+    WJR_ASSERT_ASSUME(0 < rn && rn <= l);
+    WJR_ASSERT_ASSUME(0 < rm && rm <= l);
+    WJR_ASSERT_ASSUME(rn + rm >= l);
+
+    auto *const w0p = dst;
+    auto *const w2p = w0p + l * 2;
+    auto *const w3p = w1p + l * 2;
+    auto *const w4p = w0p + l * 4;
+    auto *const w5p = w1p + l * 4;
+    auto *const w6p = w1p + l * 6;
+    auto *const w7p = w0p + l * 7;
+
+    auto &[cf1, cf2, cf3, cf4, cf5, cf6] = flag;
+
+    // part 0 :
+
+    toom_interpolation_even_4_solve(w0p, w2p, w4p, w6p, l * 2, flag.data());
+
+    // part 1 :
+
+    // W5 -= W1;
+    cf5 -= cf1 + subc_n(w5p, w5p, w1p, l * 2);
+
+    // W3 = 64 * W1 - W3;
+    cf3 = rsblsh_n(w3p, w3p, w1p, l * 2, 6) + 64 * cf1 - cf3;
+
+    // W1 -= W7;
+    cf1 -= subc_s(w1p, w1p, l * 2, w7p, rn + rm);
+
+    // W3 -= W5;
+    cf3 -= cf5 + subc_n(w3p, w3p, w5p, l * 2);
+
+    // W3 /= 45;
+    divexact_byc(w3p, w3p, l * 2, 45_u64, cf3);
+    cf3 /= 45;
+
+    // W5 /= 3;
+    divexact_byc(w5p, w5p, l * 2, 3_u64, cf5);
+    cf5 /= 3;
+
+    // W5 -= W1;
+    cf5 -= cf1 + subc_n(w5p, w5p, w1p, l * 2);
+
+    // W1 -= W3;
+    cf1 -= cf3 + subc_n(w1p, w1p, w3p, l * 2);
+
+    // W5 /= 4;
+    (void)rshift_n(w5p, w5p, l * 2, 2, cf5);
+    cf5 >>= 2;
+
+    // W5 -= 5 * W1;
+    cf5 -= cf1 * 5 + submul_1(w5p, w1p, l * 2, 5);
+
+    // W3 -= W5;
+    cf3 -= cf5 + subc_n(w3p, w3p, w5p, l * 2);
+
+    // recombine :
+
+    uint64_t cf;
+    cf = addc_n(dst + l, dst + l, w1p, l * 2);
+    (void)addc_1(dst + l * 3, dst + l * 3, l, cf1, cf);
+
+    cf = addc_n(dst + l * 3, dst + l * 3, w5p, l);
+    (void)addc_1(dst + l * 4, dst + l * 4, l, cf2, cf);
+    cf = addc_n(dst + l * 4, dst + l * 4, w5p + l, l);
+    (void)addc_1(dst + l * 5, dst + l * 5, l, cf5, cf);
+
+    cf = addc_n(dst + l * 5, dst + l * 5, w3p, l);
+    (void)addc_1(dst + l * 6, w6p, l, cf4, cf);
+    cf = addc_n(dst + l * 6, dst + l * 6, w3p + l, l);
+    (void)addc_1(dst + l * 7, dst + l * 7, l, cf3, cf);
+
+    cf = addc_n(dst + l * 7, dst + l * 7, w6p + l, l);
+    if (rn + rm != l) {
+        cf = addc_1(dst + l * 8, dst + l * 8, (rn + rm) - l, cf6, cf);
+    } else {
+        cf += cf6;
+    }
+    WJR_ASSERT(cf == 0);
+}
+
+void toom_interpolation_9p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l, size_t rn,
+                             size_t rm, toom_interpolation_high_p_struct<9> &&flag) noexcept {
+    /*
+     W0 = f(0);
+     W1 = (f(1)-f(-1))/2;
+     W2 = (f(1)+f(-1))/2;
+     W3 = (f(2)-f(-2))/4;
+     W4 = (f(2)+(f-2))/2;
+     W5 = f(4);
+     W6 = 256 * (f(1/2)+f(-1/2)) / 2;
+     W7 = 256 * (f(1/2)-f(-1/2)) / 4;
+     W8 = f(inf);
+    */
+
+    /*
+
+    [
+        1,      0,      0,      0,      0,      0,      0,      0,      0
+        0,      1,      0,      1,      0,      1,      0,      1,      0
+        1,      0,      1,      0,      1,      0,      1,      0,      1
+        0,      1,      0,      4,      0,      16,     0,      64,     0
+        1,      0,      4,      0,      16,     0,      64,     0,      256
+        1,      4,      16,     64,     256,    1024,   4096,   16384,  65536
+        256,    0,      64,     0,      16,     0,      4,      0,      1
+        0,      64,     0,      16,     0,      4,      0,      1,      0
+        0,      0,      0,      0,      0,      0,      0,      0,      1
+    ]
+
+    seprate to two part :
+
+    part 0 :
+    [
+        1,      0,      0,      0,      0       W0
+        1,      1,      1,      1,      1       W2
+        1,      4,      16,     64,     256     W4
+        256,    64,     16,     4,      1       W6
+        0,      0,      0,      0,      1       W8
+    ]
+
+    part 1 :
+    [
+        1,      1,      1,      1       W1
+        1,      4,      16,     64      W3
+        1,      16,     256,    4096    W5
+        64,     16,     4,      1       W7
+    ]
+
+    */
+
+    /*
+         part 0 :
+         [
+             1,      0,      0,      0,      0       W0
+             1,      1,      1,      1,      1       W2
+             1,      4,      16,     64,     256     W4
+             256,    64,     16,     4,      1       W6
+             0,      0,      0,      0,      1       W8
+         ]
+
+         W2 -= W8;
+         W4 -= 256*W8;
+         W6 -= W8;
+         W6 /= 4;
+
+         goto toom_interpolation_even_4_solve
+     */
+
+    /*
+        part 1 :
+        [
+            1,      1,      1,      1       W1
+            1,      4,      16,     64      W3
+            1,      16,     256,    4096    W5
+            64,     16,     4,      1       W7
+        ]
+
+        W3 -= W1;
+        W5 = (W5-W1)/5;
+        W7 = (64*W1-W7)
+
+        [
+            1,      1,      1,      1       W1
+            0,      3,      15,     63      W3
+            0,      3,      51,     819     W5
+            0,      48,     60,     63      W7
+        ]
+
+        goto toom_interpolation_opposite_4_solve;
+     */
+
+    WJR_ASSERT_ASSUME(0 < rn && rn <= l);
+    WJR_ASSERT_ASSUME(0 < rm && rm <= l);
+    WJR_ASSERT_ASSUME(rn + rm >= l);
+
+    auto *const w0p = dst;
+    auto *const w2p = w0p + l * 2;
+    auto *const w3p = w1p + l * 2;
+    auto *const w4p = w0p + l * 4;
+    auto *const w5p = w1p + l * 4;
+    auto *const w6p = w0p + l * 6;
+    auto *const w7p = w1p + l * 6;
+    auto *const w8p = w0p + l * 8;
+
+    auto &[cf1, cf2, cf3, cf4, cf5, cf6, cf7] = flag;
+
+    // W2 -= W8
+    cf2 -= subc_s(w2p, w2p, l * 2, w8p, rn + rm);
+
+    // W4 -= 256*W8
+    WJR_SUBMUL_1_S(w4p, l * 2, w8p, rn + rm, cf4, 0, 256, cf4);
+
+    // W6 -= W8
+    cf6 -= subc_s(w6p, w6p, l * 2, w8p, rn + rm);
+
+    // W6 /= 4
+    (void)rshift_n(w6p, w6p, l * 2, 2u, cf6);
+    cf6 /= 4;
+
+    toom_interpolation_even_4_solve(w0p, w2p, w4p, w6p, l * 2, flag.data());
+
+    // W5 -= W0 + 16*W2 + 256*W4 + 4096*W6 + 65536*W8
+    do {
+        uint64_t *tmp = w1p + l * 8;
+        uint64_t cft = 0;
+
+        // tmp = 16*W8+W6;
+        WJR_ADDLSH_S(tmp, w6p, l * 2, w8p, rn + rm, cf6, 0, 4, cft);
+
+        // tmp = 16*tmp+W4;
+        cft = addlsh_n(tmp, w4p, tmp, l * 2, 4) + 16 * cft + cf4;
+
+        // tmp = 16*tmp+W2;
+        cft = addlsh_n(tmp, w2p, tmp, l * 2, 4) + 16 * cft + cf2;
+
+        // tmp = 16*tmp+W0;
+        cft = addlsh_n(tmp, w0p, tmp, l * 2, 4) + 16 * cft;
+
+        // W5 -= tmp
+        cf5 -= cft + subc_n(w5p, w5p, tmp, l * 2);
+    } while (0);
+
+    // W5 /= 4
+    (void)rshift_n(w5p, w5p, l * 2, 2, cf5);
+    cf5 >>= 2;
+
+    // W3 -= W1
+    cf3 -= cf1 + subc_n(w3p, w3p, w1p, l * 2);
+
+    // W5 = (W5-W1)/5
+    {
+        cf5 -= cf1 + subc_n(w5p, w5p, w1p, l * 2);
+        divexact_byc(w5p, w5p, l * 2, 5_u64, 0);
+        cf5 /= 5;
+    }
+
+    // W7 = (64*W1-W7)
+    cf7 = rsblsh_n(w7p, w7p, w1p, l * 2, 6) + 64 * cf1 - cf7;
+
+    toom_interpolation_opposite_4_solve(w1p, w3p, w5p, w7p, l * 2, flag.data());
+
+    uint64_t cf;
+    cf = addc_n(dst + l, dst + l, w1p, l * 2);
+    (void)addc_1(dst + l * 3, dst + l * 3, l, cf1, cf);
+
+    cf = addc_n(dst + l * 3, dst + l * 3, w3p, l);
+    (void)addc_1(dst + l * 4, dst + l * 4, l, cf2, cf);
+    cf = addc_n(dst + l * 4, dst + l * 4, w3p + l, l);
+    (void)addc_1(dst + l * 5, dst + l * 5, l, cf3, cf);
+
+    cf = addc_n(dst + l * 5, dst + l * 5, w5p, l);
+    (void)addc_1(dst + l * 6, dst + l * 6, l, cf4, cf);
+    cf = addc_n(dst + l * 6, dst + l * 6, w5p + l, l);
+    (void)addc_1(dst + l * 7, dst + l * 7, l, cf5, cf);
+
+    cf = addc_n(dst + l * 7, dst + l * 7, w7p, l);
+    (void)addc_1(dst + l * 8, dst + l * 8, l, cf6, cf);
+    cf = addc_n(dst + l * 8, dst + l * 8, w7p + l, l);
+    if (rn + rm != l) {
+        cf = addc_1(dst + l * 9, dst + l * 9, (rn + rm) - l, cf7, cf);
+    } else {
+        cf += cf7;
+    }
+    WJR_ASSERT(cf == 0);
+}
+} // namespace
 
 void toom42_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
                   size_t m, uint64_t *stk) noexcept {
@@ -1183,142 +2195,6 @@ void toom3_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n, uint64
                                    toom_interpolation_5p_struct{0, cf1, cf2, cf3});
 }
 
-void toom_interpolation_6p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l, size_t rn,
-                             size_t rm, toom_interpolation_6p_struct &&flag) noexcept {
-    /*
-     W0 = f(0);
-     W1 = f(-1);
-     W2 = f(1);
-     W3 = f(-2);
-     W4 = f(2);
-     W5 = f(inf)
-    */
-
-    /*
-     11 add/sub + 4 shift + 2 divby3 + 1 submul
-
-     W3 = (W3 - W4) >> 1;
-     W4 = W4 + W3;
-     W4 = W4 - W0;
-     W1 = W2 - W1;
-     W2 = W2 - W0;
-     W3 = W3 + W1;
-     W1 >>= 1;
-     W3 = W3 / -6; => W3 = W3 / -2 / 3;
-     W2 = W2 - W1;
-     W3 = W3 - 4 * W5;
-     W1 = W1 - W3;
-     W4 = W4 >> 2;
-     W4 = W4 - W2;
-     W4 = W4 / 3;
-
-     W4 = W5 * x + W4;
-     W2 = W3 * x + W2;
-     W2 = W2 - W4;
-     W = W4 * x ^ 4 + W2 * x ^ 2 + W1 * x + W0;
-    */
-
-    WJR_ASSERT(0 < rn && rn <= l);
-    WJR_ASSERT_ASSUME(0 < rm && rm <= l);
-    WJR_ASSERT_ASSUME(rn + rm >= l);
-
-    const size_t maxr = std::max(rn, rm);
-
-    auto *const w0p = dst;
-    auto *const w2p = w0p + l * 2;
-    auto *const w3p = w1p + l * 2;
-    auto *const w4p = w1p + l * 4;
-    auto *const w5p = w0p + l * 5;
-
-    uint64_t cf;
-    auto [neg1, neg3, cf1, cf2, cf3, cf4] = flag;
-
-    // W3 = (W3 - W4) >> 1;
-    {
-        if (!neg3) {
-            cf3 = cf4 - cf3 - subc_n(w3p, w4p, w3p, l * 2);
-        } else {
-            cf3 += cf4 + addc_n(w3p, w3p, w4p, l * 2);
-        }
-
-        (void)rshift_n(w3p, w3p, l * 2, 1, cf3);
-        cf3 >>= 1;
-    }
-
-    // W4 = W4 + W3;
-    cf4 -= cf3 + subc_n(w4p, w4p, w3p, l * 2);
-
-    // W4 = W4 - W0;
-    cf4 -= subc_n(w4p, w4p, w0p, l * 2);
-
-    // W1 = W2 - W1;
-    if (!neg1) {
-        cf1 = cf2 - cf1 - subc_n(w1p, w2p, w1p, l * 2);
-    } else {
-        cf1 = cf2 + cf1 + addc_n(w1p, w2p, w1p, l * 2);
-    }
-
-    // W2 = W2 - W0;
-    cf2 -= subc_n(w2p, w2p, w0p, l * 2);
-
-    // W3 = W3 + W1;
-    cf3 -= cf1 + subc_n(w3p, w3p, w1p, l * 2);
-
-    // W1 >>= 1;
-    (void)rshift_n(w1p, w1p, l * 2, 1, cf1);
-    cf1 >>= 1;
-
-    // W3 = W3 / -6; = > W3 = W3 / -2 / 3;
-    {
-        divexact_byc(w3p, w3p, l * 2, 6_u64, cf3);
-        cf3 /= 6;
-    }
-
-    // W2 = W2 - W1;
-    cf2 -= cf1 + subc_n(w2p, w2p, w1p, l * 2);
-
-    // W3 = W3 - 4 * W5;
-    WJR_SUBMUL_1_S(w3p, l * 2, w5p, rn + rm, cf3, 0, 4, cf3);
-
-    // W1 = W1 - W3;
-    cf1 -= cf3 + subc_n(w1p, w1p, w3p, l * 2);
-
-    // W4 = W4 >> 2;
-    rshift_n(w4p, w4p, l * 2, 2, cf4);
-    cf4 >>= 2;
-
-    // W4 = W4 - W2;
-    cf4 -= cf2 + subc_n(w4p, w4p, w2p, l * 2);
-
-    // W4 = W4 / 3;
-    divexact_byc(w4p, w4p, l * 2, 3_u64, 0);
-    if (l != maxr) {
-        cf4 = w4p[l + maxr];
-    } else {
-        cf4 /= 3;
-    }
-
-    // W4 = W5 * x + W4;
-    cf = addc_n(w5p, w5p, w4p + l, maxr);
-    cf = addc_1(w5p + maxr, w5p + maxr, rn + rm - maxr, cf4, cf);
-    WJR_ASSERT(cf == 0);
-
-    // W2 = W3 * x + W2;
-    cf = addc_n(w3p, w3p, w2p + l, l);
-    cf3 += addc_1(w3p + l, w3p + l, l, cf2, cf);
-
-    // W2 = W2 - W4;
-    cf = subc_n(w2p, w2p, w4p, l);
-    cf3 -= subc_s(dst + l * 3, w3p, l * 2, w5p, rn + rm, cf);
-
-    // W = W4 * x ^ 4 + W2 * x ^ 2 + W1 * x + W0;
-    cf = addc_n(dst + l, dst + l, w1p, l * 2);
-    cf = addc_1(dst + l * 3, dst + l * 3, l, cf1, cf);
-    cf = addc_n(dst + l * 4, dst + l * 4, w4p, l, cf);
-    cf = addc_1(dst + l * 5, dst + l * 5, rn + rm, cf3, cf);
-    WJR_ASSERT(cf == 0);
-}
-
 void toom43_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
                   size_t m, uint64_t *stk) noexcept {
     /*
@@ -1505,193 +2381,6 @@ void toom43_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, co
 
     toom_interpolation_6p_s(dst, w1p, l, rn, rm,
                             toom_interpolation_6p_struct{neg0, neg1, cf1, cf2, cf3, cf4});
-}
-
-void toom_interpolation_7p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l, size_t rn,
-                             size_t rm, toom_interpolation_7p_struct &&flag) noexcept {
-    /*
-     W0 = f(0);
-     W1 = f(-2);
-     W2 = f(1);
-     W3 = f(-1);
-     W4 = f(2);
-     W5 = 64 * f(1/2);
-     W6 = f(inf);
-    */
-
-    /*
-    [
-    W0   1,  0,  0,  0,  0,  0,  0
-    W1   1, -2,  4, -8, 16,-32, 64
-    W2   1,  1,  1,  1,  1,  1,  1
-    W3   1, -1,  1, -1,  1, -1,  1
-    W4   1,  2,  4,  8, 16, 32, 64
-    W5  64, 32, 16,  8,  4,  2,  1
-    W6   0,  0,  0,  0,  0,  0,  1
-    ]
-
-     W5 = W5 + W4
-     W1 =(W4 - W1)/2
-     W4 = W4 - W0
-     W4 =(W4 - W1)/4 - W6*16
-     W3 =(W2 - W3)/2
-     W2 = W2 - W3
-
-     [
-    W0   1,  0,  0,  0,  0,  0,  0
-    W1   0,  2,  0,  8,  0, 32,  0
-    W2   1,  0,  1,  0,  1,  0,  1
-    W3   0,  1,  0,  1,  0,  1,  0
-    W4   0,  0,  1,  0,  4,  0,  0
-    W5  65, 34, 20, 16, 20, 34, 65
-    W6   0,  0,  0,  0,  0,  0,  1
-    ]
-
-     W5 = W5 - W2*65      May be negative.
-     W2 = W2 - W6 - W0
-     W5 =(W5 + W2*45)/2   Now >= 0 again.
-     W4 =(W4 - W2)/3
-     W2 = W2 - W4
-
-     [
-    W0   1,  0,  0,  0,  0,  0,  0
-    W1   0,  2,  0,  8,  0, 32,  0
-    W2   0,  0,  1,  0,  0,  0,  0
-    W3   0,  1,  0,  1,  0,  1,  0
-    W4   0,  0,  0,  0,  1,  0,  0
-    W5   0, 17,  0,  8,  0, 17,  0
-    W6   0,  0,  0,  0,  0,  0,  1
-    ]
-
-     W1 = W5 - W1         May be negative.
-     W5 =(W5 - W3*8)/9
-     W3 = W3 - W5
-     W1 =(W1/15 + W5)/2   Now >= 0 again.
-     W5 = W5 - W1
-
-     [
-    W0   1,  0,  0,  0,  0,  0,  0
-    W1   0,  1,  0,  0,  0,  0,  0
-    W2   0,  0,  1,  0,  0,  0,  0
-    W3   0,  0,  0,  1,  0,  0,  0
-    W4   0,  0,  0,  0,  1,  0,  0
-    W5   0,  0,  0,  0,  0,  1,  0
-    W6   0,  0,  0,  0,  0,  0,  1
-    ]
-
-    */
-
-    WJR_ASSERT_ASSUME(0 < rn && rn <= l);
-    WJR_ASSERT_ASSUME(0 < rm && rm <= l);
-    WJR_ASSERT_ASSUME(rn + rm >= l);
-
-    const size_t maxr = std::max(rn, rm);
-
-    auto *const w0p = dst;
-    auto *const w2p = w0p + l * 2;
-    auto *const w3p = w1p + l * 2;
-    auto *const w4p = w0p + l * 4;
-    auto *const w5p = w1p + l * 4;
-    auto *const w6p = w0p + l * 6;
-
-    uint64_t cf = 0;
-    auto [neg1, neg3, cf1, cf2, cf3, cf4, cf5] = flag;
-
-    //  W5 = W5 + W4
-    cf5 += cf4 + addc_n(w5p, w5p, w4p, l * 2);
-
-    //  W1 =(W4 - W1)/2
-    if (!neg1) {
-        WJR_ASSERT(cf4 >= cf1);
-        cf1 = cf4 - cf1 - subc_n(w1p, w4p, w1p, l * 2);
-    } else {
-        cf1 += cf4 + addc_n(w1p, w4p, w1p, l * 2);
-    }
-    (void)rshift_n(w1p, w1p, l * 2, 1, cf1);
-    cf1 >>= 1;
-
-    //  W4 = W4 - W0
-    cf4 -= subc_n(w4p, w4p, w0p, l * 2);
-
-    //  W4 = (W4 - W1)/4 - W6*16
-    cf4 -= cf1 + subc_n(w4p, w4p, w1p, l * 2);
-    (void)rshift_n(w4p, w4p, l * 2, 2, cf4);
-    cf4 >>= 2;
-    WJR_SUBMUL_1_S(w4p, l * 2, w6p, rn + rm, cf4, 0, 16, cf4);
-
-    //  W3 =(W2 - W3)/2
-    if (!neg3) {
-        WJR_ASSERT(cf2 >= cf3);
-        cf3 = cf2 - cf3 - subc_n(w3p, w2p, w3p, l * 2);
-    } else {
-        cf3 += cf2 + addc_n(w3p, w2p, w3p, l * 2);
-    }
-    (void)rshift_n(w3p, w3p, l * 2, 1, cf3);
-    cf3 >>= 1;
-
-    //  W2 = W2 - W3
-    WJR_ASSERT(cf2 >= cf3);
-    cf2 -= cf3 + subc_n(w2p, w2p, w3p, l * 2);
-
-    //  W5 = W5 - W2*65      May be negative.
-    cf5 -= cf2 * 65 + submul_1(w5p, w2p, l * 2, 65);
-
-    //  W2 = W2 - W6 - W0
-    cf2 -= subc_n(w2p, w2p, w0p, l * 2);
-    cf2 -= subc_s(w2p, w2p, l * 2, w6p, rn + rm);
-
-    //  W5 =(W5 + W2*45)/2   Now >= 0 again.
-    cf5 += cf2 * 45 + addmul_1(w5p, w2p, l * 2, 45);
-    (void)rshift_n(w5p, w5p, l * 2, 1, cf5);
-    cf5 >>= 1;
-
-    //  W4 =(W4 - W2)/3
-    cf4 -= cf2 + subc_n(w4p, w4p, w2p, l * 2);
-    divexact_byc(w4p, w4p, l * 2, 3_u64, 0);
-    cf4 /= 3;
-
-    //  W2 = W2 - W4
-    cf2 -= cf4 + subc_n(w2p, w2p, w4p, l * 2);
-
-    //  W1 = W5 - W1         May be negative.
-    neg1 = abs_subc_n(w1p, w5p, w1p, l * 2, cf1, cf5, cf1) < 0;
-
-    //  W5 =(W5 - W3*8)/9
-    cf5 -= cf3 * 8 + submul_1(w5p, w3p, l * 2, 8);
-    divexact_byc(w5p, w5p, l * 2, 9_u64, cf5);
-    cf5 /= 9;
-
-    //  W3 = W3 - W5
-    cf3 -= cf5 + subc_n(w3p, w3p, w5p, l * 2);
-
-    //  W1 =(W1/15 + W5)/2   Now >= 0 again.
-    divexact_byc(w1p, w1p, l * 2, 15_u64, 0);
-    cf1 /= 15;
-    if (!neg1) {
-        cf1 += cf5 + addc_n(w1p, w1p, w5p, l * 2);
-    } else {
-        cf1 = cf5 - cf1 - subc_n(w1p, w5p, w1p, l * 2);
-    }
-    rshift_n(w1p, w1p, l * 2, 1, cf1);
-    cf1 >>= 1;
-
-    //  W5 = W5 - W1
-    cf5 -= cf1 + subc_n(w5p, w5p, w1p, l * 2);
-    if (l != maxr) {
-        cf5 = w5p[l + maxr];
-    }
-
-    cf = addc_n(dst + l, dst + l, w1p, l * 2);
-    cf = addc_n(dst + l * 3, dst + l * 3, w3p, l, cf);
-    cf2 += addc_1(dst + l * 3, dst + l * 3, l, cf1);
-    cf = addc_n(dst + l * 4, dst + l * 4, w3p + l, l, cf);
-    cf3 += addc_1(dst + l * 4, dst + l * 4, l, cf2);
-    cf = addc_n(dst + l * 5, dst + l * 5, w5p, l, cf);
-    cf4 += addc_1(dst + l * 5, dst + l * 5, l, cf3);
-    cf = addc_n(dst + l * 6, dst + l * 6, w5p + l, maxr, cf);
-    cf5 += addc_1(dst + l * 6, dst + l * 6, maxr, cf4);
-    cf = addc_1(dst + l * 6 + maxr, dst + l * 6 + maxr, (rn + rm) - maxr, cf5, cf);
-    WJR_ASSERT(cf == 0);
 }
 
 void toom53_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
@@ -2251,573 +2940,6 @@ void toom4_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n, uint64
                             toom_interpolation_7p_struct{0, 0, cf1, cf2, cf3, cf4, cf5});
 }
 
-namespace {
-
-struct toom_eval_opposite_exp_args_k3 {
-    using tuple_type =
-        tuple<uint64_t *, uint64_t *, uint64_t *, const uint64_t *, size_t, size_t, unsigned int>;
-
-    toom_eval_opposite_exp_args_k3(uint64_t *t0p, uint64_t *t1p, uint64_t *stk, const uint64_t *wp,
-                                   size_t length, size_t rest, unsigned int exp) noexcept
-        : input(t0p, t1p, stk, wp, length, rest, exp), cf(default_construct, default_construct) {}
-
-    void set_exp(unsigned int exp) noexcept { input[6_zu] = exp; }
-
-    tuple_type input;
-    tuple<uint64_t, uint64_t> cf;
-};
-
-struct toom_eval_opposite_exp_args {
-    using tuple_type = tuple<uint64_t *, uint64_t *, uint64_t *, const uint64_t *, size_t, size_t,
-                             size_t, unsigned int>;
-
-    toom_eval_opposite_exp_args(uint64_t *t0p, uint64_t *t1p, uint64_t *stk, const uint64_t *wp,
-                                size_t length, size_t rest, size_t k, unsigned int exp) noexcept
-        : input(t0p, t1p, stk, wp, length, rest, k, exp), cf(default_construct, default_construct) {
-    }
-
-    void set_exp(unsigned int exp) noexcept { input[7_zu] = exp; }
-
-    tuple_type input;
-    tuple<uint64_t, uint64_t> cf;
-};
-
-void toom_eval_2_exp(toom_eval_opposite_exp_args &args) noexcept {
-    const auto [t0p, t1p, stk, wp, len, rest, k, exp] = args.input;
-    auto &[cf0, cf1] = args.cf;
-    WJR_ASSERT(k >= 4);
-    WJR_ASSERT(exp * (k - 1) <= 60);
-
-    cf0 = addlsh_n(t0p, wp, wp + len, len, exp);
-    for (size_t i = 2; i < k - 1; ++i) {
-        cf0 += addlsh_n(t0p, t0p, wp + len * i, len, exp * i);
-    }
-
-    WJR_ADDLSH_S(t0p, t0p, len, wp + len * (k - 1), rest, cf0, 0, exp * (k - 1), cf0);
-}
-
-WJR_NODISCARD bool toom_eval_opposite_2_exp(toom_eval_opposite_exp_args_k3 &args) noexcept {
-    const auto [t0p, t1p, stk, wp, len, rest, exp] = args.input;
-    auto &[cf0, cf1] = args.cf;
-    WJR_ASSERT(exp * 2 <= 60);
-
-    uint64_t cft1;
-
-    // deal with odd position
-    WJR_ADDLSH_S(t1p, wp, len, wp + len * 2, rest, 0, 0, exp * 2, cft1);
-
-    // deal with even position
-    uint64_t cfstk = lshift_n(stk, wp + len, len, exp);
-
-    cf0 = cft1 + cfstk + addc_n(t0p, t1p, stk, len);
-    return abs_subc_n(t1p, t1p, stk, len, cf1, cft1, cfstk) < 0;
-}
-
-WJR_NODISCARD bool toom_eval_opposite_half_exp(toom_eval_opposite_exp_args_k3 &args) noexcept {
-    const auto [t0p, t1p, stk, wp, len, rest, exp] = args.input;
-    auto &[cf0, cf1] = args.cf;
-    WJR_ASSERT(exp * 2 <= 60);
-
-    uint64_t cft1;
-
-    // deal with odd position
-    WJR_ADDLSH_NS(t1p, wp + len * 2, rest, wp, len, 0, 0, exp * 2, cft1);
-
-    // deal with even position
-    const uint64_t cfstk = lshift_n(stk, wp + len, len, exp);
-
-    cf0 = cft1 + cfstk + addc_n(t0p, t1p, stk, len);
-    return abs_subc_n(t1p, t1p, stk, len, cf1, cft1, cfstk) < 0;
-}
-
-WJR_NODISCARD bool toom_eval_opposite_2_exp(toom_eval_opposite_exp_args &args) noexcept {
-    const auto [t0p, t1p, stk, wp, len, rest, k, exp] = args.input;
-    auto &[cf0, cf1] = args.cf;
-    WJR_ASSERT(k >= 4);
-    WJR_ASSERT(exp * (k - 1) <= 60);
-
-    uint64_t cft1;
-
-    // deal with odd position
-    cft1 = addlsh_n(t1p, wp, wp + len * 2, len, exp * 2);
-    for (size_t i = 4; i < k - 1; i += 2) {
-        cft1 += addlsh_n(t1p, t1p, wp + len * i, len, exp * i);
-    }
-
-    // deal with even position
-    uint64_t cfstk = lshift_n(stk, wp + len, len, exp);
-    for (size_t i = 3; i < k - 1; i += 2) {
-        cfstk += addlsh_n(stk, stk, wp + len * i, len, exp * i);
-    }
-
-    if (k & 1) {
-        WJR_ADDLSH_S(t1p, t1p, len, wp + len * (k - 1), rest, cft1, 0, exp * (k - 1), cft1);
-    } else {
-        WJR_ADDLSH_S(stk, stk, len, wp + len * (k - 1), rest, cfstk, 0, exp * (k - 1), cfstk);
-    }
-
-    cf0 = cft1 + cfstk + addc_n(t0p, t1p, stk, len);
-    return abs_subc_n(t1p, t1p, stk, len, cf1, cft1, cfstk) < 0;
-}
-
-WJR_NODISCARD bool toom_eval_opposite_half_exp(toom_eval_opposite_exp_args &args) noexcept {
-    const auto [t0p, t1p, stk, wp, len, rest, k, exp] = args.input;
-    auto &[cf0, cf1] = args.cf;
-    WJR_ASSERT(k >= 4);
-    WJR_ASSERT(exp * (k - 1) <= 60);
-
-    uint64_t cft1;
-
-    // deal with odd position
-    cft1 = addlsh_n(t1p, wp + len * 2, wp, len, exp * 2);
-    for (size_t i = 4; i < k - 1; i += 2) {
-        cft1 = (cft1 << (exp * 2)) + addlsh_n(t1p, wp + len * i, t1p, len, exp * 2);
-    }
-
-    // deal with even position
-
-    uint64_t cfstk = addlsh_n(stk, wp + len * 3, wp + len, len, exp * 2);
-    for (size_t i = 5; i < k - 1; i += 2) {
-        cfstk = (cfstk << (exp * 2)) + addlsh_n(stk, wp + len * i, stk, len, exp * 2);
-    }
-
-    if (k & 1) {
-        WJR_ADDLSH_NS(t1p, wp + len * (k - 1), rest, t1p, len, 0, cft1, exp * 2, cft1);
-        cfstk = (cfstk << exp) + lshift_n(stk, stk, len, exp);
-    } else {
-        WJR_ADDLSH_NS(stk, wp + len * (k - 1), rest, stk, len, 0, cfstk, exp * 2, cfstk);
-        cft1 = (cft1 << exp) + lshift_n(t1p, t1p, len, exp);
-    }
-
-    cf0 = cft1 + cfstk + addc_n(t0p, t1p, stk, len);
-    return abs_subc_n(t1p, t1p, stk, len, cf1, cft1, cfstk) < 0;
-}
-
-/**
- * @details \n
- * A is postive, B's sign is `sign' \n
- * abs(A) >= abs(B) \n
- * A -> (A - B) / (2^sA) \n
- * B -> (A + B) / 2 \n
- *
- */
-#define WJR_TOOM_EVAL_OPPOSITE_INTERPOLATION_ODD(A, B, n, sign, cfA, cfB, sA)                      \
-    do {                                                                                           \
-        if (!sign) {                                                                               \
-            cfB += cfA + addc_n(B, A, B, n);                                                       \
-        } else {                                                                                   \
-            cfB = cfA - cfB - subc_n(B, A, B, n);                                                  \
-        }                                                                                          \
-                                                                                                   \
-        (void)rshift_n(B, B, n, 1, cfB);                                                           \
-        cfB >>= 1;                                                                                 \
-                                                                                                   \
-        cfA -= cfB + subc_n(A, A, B, n);                                                           \
-        if constexpr (sA != 1) {                                                                   \
-            (void)rshift_n(A, A, n, sA - 1, cfA);                                                  \
-            cfA >>= sA - 1;                                                                        \
-        }                                                                                          \
-    } while (0)
-
-/**
- * @details \n
- * A is postive, B's sign is `sign' \n
- * abs(A) >= abs(B) \n
- * A -> (A - B) / 2 \n
- * B -> (A + B) / (2^sB) \n
- *
- */
-#define WJR_TOOM_EVAL_OPPOSITE_INTERPOLATION_EVEN(A, B, n, sign, cfA, cfB, sB)                     \
-    do {                                                                                           \
-        if (!sign) {                                                                               \
-            cfB += cfA + addc_n(B, A, B, n);                                                       \
-        } else {                                                                                   \
-            cfB = cfA - cfB - subc_n(B, A, B, n);                                                  \
-        }                                                                                          \
-                                                                                                   \
-        (void)rshift_n(B, B, n, 1, cfB);                                                           \
-        cfB >>= 1;                                                                                 \
-                                                                                                   \
-        cfA -= cfB + subc_n(A, A, B, n);                                                           \
-        if constexpr (sB != 1) {                                                                   \
-            (void)rshift_n(B, B, n, sB - 1, cfB);                                                  \
-            cfB >>= sB - 1;                                                                        \
-        }                                                                                          \
-    } while (0)
-
-void toom_interpolation_even_4_solve(uint64_t *w0p, uint64_t *w2p, uint64_t *w4p, uint64_t *w6p,
-                                     size_t n, uint64_t *tp) noexcept {
-    /*
-        part 0 :
-        [
-            1,      0,      0,      0       W0
-            1,      1,      1,      1       W2
-            1,      4,      16,     64      W4
-            64,     16,     4,      1       W6
-        ]
-
-        W4 -= W2;
-        W6 = 64*W2-W6;
-        W2 -= W0;
-
-        [
-            1,      1,      1       W2
-            3,      15,     63      W4
-            48,     60,     63      W6
-        ]
-
-        W6 -= W4;
-        W6 /= 45;
-        W6 = W2 - W6;
-        W4 /= 3;
-        W4 -= W2;
-        W4 /= 4;
-        W4 -= 5*W6;
-        W2 -= W4 + W6;
-
-        [
-            1,      0,      0,      W2
-            0,      1,      0,      W4
-            0,      0,      1,      W6
-        ]
-    */
-
-    auto &cf2 = tp[1];
-    auto &cf4 = tp[3];
-    auto &cf6 = tp[5];
-
-    // W4 -= W2;
-    cf4 -= cf2 + subc_n(w4p, w4p, w2p, n);
-
-    // W6 = 64 * W2 - W6;
-    cf6 = rsblsh_n(w6p, w6p, w2p, n, 6) + 64 * cf2 - cf6;
-
-    // W2 -= W0;
-    cf2 -= subc_n(w2p, w2p, w0p, n);
-
-    // W6 -= W4;
-    cf6 -= cf4 + subc_n(w6p, w6p, w4p, n);
-
-    // W6 /= 45;
-    divexact_byc(w6p, w6p, n, 45_u64, cf6);
-    cf6 /= 45;
-
-    // W6 = W2 - W6;
-    cf6 = cf2 - cf6 - subc_n(w6p, w2p, w6p, n);
-
-    // W4 /= 3;
-    divexact_byc(w4p, w4p, n, 3_u64, cf4);
-    cf4 /= 3;
-
-    // W4 -= W2;
-    cf4 -= cf2 + subc_n(w4p, w4p, w2p, n);
-
-    // W4 /= 4;
-    (void)rshift_n(w4p, w4p, n, 2, cf4);
-    cf4 >>= 2;
-
-    // W4 -= 5 * W6;
-    cf4 -= cf6 * 5 + submul_1(w4p, w6p, n, 5);
-
-    // W2 -= W4 + W6;
-    cf2 -= cf4 + subc_n(w2p, w2p, w4p, n);
-    cf2 -= cf6 + subc_n(w2p, w2p, w6p, n);
-}
-
-// need to optimize
-void toom_interpolation_opposite_4_solve(uint64_t *w1p, uint64_t *w3p, uint64_t *w5p, uint64_t *w7p,
-                                         size_t n, uint64_t *tp) noexcept {
-    /*
-        [
-            1,      1,      1,      1       W1
-            0,      3,      15,     63      W3
-            0,      3,      51,     819     W5
-            0,      48,     60,     63      W7
-        ]
-
-        W5 = W5-W3;
-
-        [
-            1,      1,      1,      1       W1
-            0,      3,      15,     63      W3
-            0,      0,      36,     756     W5
-            0,      48,     60,     63      W7
-        ]
-
-        W7 = 16*W3-W7;
-        W7 -= W5;
-        W7 = 4*W5-W7;
-        W7 /= 2835;
-
-        [
-            1,      1,      1,      1       W1
-            0,      3,      15,     63      W3
-            0,      0,      36,     756     W5
-            0,      0,      0,      1       W7
-        ]
-
-        W3 /= 3;
-        W5 /= 36;
-        W3 -= W5;
-        W5 -= 21*W7;
-        W3 -= 4*W5;
-        W1 -= W3 + W5 + W7;
-
-        [
-            1,      0,      0,      0       W1
-            0,      1,      0,      0       W3
-            0,      0,      1,      0       W5
-            0,      0,      0,      1       W7
-        ]
-     */
-
-    auto &cf1 = tp[0];
-    auto &cf3 = tp[2];
-    auto &cf5 = tp[4];
-    auto &cf7 = tp[6];
-
-    // W5 = W5 - W3;
-    cf5 -= cf3 + subc_n(w5p, w5p, w3p, n);
-
-    // W7 = 16*W3-W7;
-    cf7 = rsblsh_n(w7p, w7p, w3p, n, 4) + 16 * cf3 - cf7;
-
-    // W7 -= W5;
-    cf7 -= cf5 + subc_n(w7p, w7p, w5p, n);
-
-    // W7 = 4 * W5 - W7;
-    cf7 = rsblsh_n(w7p, w7p, w5p, n, 2) + 4 * cf5 - cf7;
-
-    // W7 /= 2835;
-    divexact_byc(w7p, w7p, n, 2835_u64, cf7);
-    cf7 /= 2835;
-
-    // W3 /= 3;
-    divexact_byc(w3p, w3p, n, 3_u64, 0);
-    cf3 /= 3;
-
-    // W5 /= 36;
-    divexact_byc(w5p, w5p, n, 36_u64, cf5);
-    cf5 /= 36;
-
-    // W3 -= W5;
-    cf3 -= cf5 + subc_n(w3p, w3p, w5p, n);
-
-    // W5 -= 21*W7;
-    cf5 -= submul_1(w5p, w7p, n, 21) + 21 * cf7;
-
-    // W3 -= 4*W5;
-    cf3 -= submul_1(w3p, w5p, n, 4) + 4 * cf5;
-
-    // W1 -= W3+W5+W7;
-    cf1 -= cf3 + subc_n(w1p, w1p, w3p, n);
-    cf1 -= cf5 + subc_n(w1p, w1p, w5p, n);
-    cf1 -= cf7 + subc_n(w1p, w1p, w7p, n);
-}
-
-} // namespace
-
-void toom_interpolation_8p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l, size_t rn,
-                             size_t rm, toom_interpolation_high_p_struct<8> &&flag) noexcept {
-    /*
-    W0 = f(0);
-    W1 = (f(1)-f(-1))/2;
-    W2 = (f(1)+f(-1))/2;
-    W3 = (f(2)-f(-2))/4;
-    W4 = (f(2)+(f-2))/2;
-    W5 = 128 * (f(1/2)-f(-1/2)) / 2;
-    W6 = 128 * (f(1/2)+f(-1/2)) / 4;
-    W7 = f(inf);
-    */
-
-    /*
-
-    [
-        1,      0,      0,      0,      0,      0,      0,      0
-        0,      1,      0,      1,      0,      1,      0,      1
-        1,      0,      1,      0,      1,      0,      1,      0
-        0,      1,      0,      4,      0,      16,     0,      64
-        1,      0,      4,      0,      16,     0,      64,     0
-        0,      64,     0,      16,     0,      4,      0,      1
-        64,     0,      16,     0,      4,      0,      1,      0
-        0,      0,      0,      0,      0,      0,      0,      1
-    ]
-
-    seprate to two part :
-
-    part 0 :
-    [
-        1,      0,      0,      0       W0
-        1,      1,      1,      1       W2
-        1,      4,      16,     64      W4
-        64,     16,     4,      1       W6
-    ]
-
-    part 1 :
-    [
-        1,      1,      1,      1       W1
-        1,      4,      16,     64      W3
-        64,     16,     4,      1       W5
-        0,      0,      0,      1       W7
-    ]
-
-    */
-
-    /*
-        part 0 :
-        [
-            1,      0,      0,      0       W0
-            1,      1,      1,      1       W2
-            1,      4,      16,     64      W4
-            64,     16,     4,      1       W6
-        ]
-
-        goto toom_interpolation_even_4_solve;
-
-        W4 -= W2;
-        W6 = 64*W2-W6;
-        W2 -= W0;
-
-        [
-            1,      1,      1       W2
-            3,      15,     63      W4
-            48,     60,     63      W6
-        ]
-
-        W6 -= W4;
-        W6 /= 45;
-        W6 = W2 - W6;
-        W4 /= 3;
-        W4 -= W2;
-        W4 /= 4;
-        W4 -= 5*W6;
-        W2 -= W4 + W6;
-
-        [
-            1,      0,      0,      W2
-            0,      1,      0,      W4
-            0,      0,      1,      W6
-        ]
-    */
-
-    /*
-        part 1 :
-        [
-            1,      1,      1,      1       W1
-            1,      4,      16,     64      W3
-            64,     16,     4,      1       W5
-            0,      0,      0,      1       W7
-        ]
-
-        W5 -= W1;
-        W3 = 64*W1-W3;
-        W1 -= W7;
-
-        [
-            1,      1,      1       W1
-            63,     60,     48      W3
-            63,     15,     3       W5
-        ]
-
-        W3 -= W5;
-        W3 /= 45;
-        W5 /= 3;
-        W5 -= W1;
-        W1 -= W3;
-        W5 /= 4;
-        W5 -= 5*W1;
-        W3 -= W5;
-        swap(W3, W5);
-
-        [
-            1,      0,      0       W1
-            0,      1,      0       W3
-            0,      0,      1       W5
-        ]
-
-     */
-
-    WJR_ASSERT_ASSUME(0 < rn && rn <= l);
-    WJR_ASSERT_ASSUME(0 < rm && rm <= l);
-    WJR_ASSERT_ASSUME(rn + rm >= l);
-
-    auto *const w0p = dst;
-    auto *const w2p = w0p + l * 2;
-    auto *const w3p = w1p + l * 2;
-    auto *const w4p = w0p + l * 4;
-    auto *const w5p = w1p + l * 4;
-    auto *const w6p = w1p + l * 6;
-    auto *const w7p = w0p + l * 7;
-
-    auto &[cf1, cf2, cf3, cf4, cf5, cf6] = flag;
-
-    // part 0 :
-
-    toom_interpolation_even_4_solve(w0p, w2p, w4p, w6p, l * 2, flag.data());
-
-    // part 1 :
-
-    // W5 -= W1;
-    cf5 -= cf1 + subc_n(w5p, w5p, w1p, l * 2);
-
-    // W3 = 64 * W1 - W3;
-    cf3 = rsblsh_n(w3p, w3p, w1p, l * 2, 6) + 64 * cf1 - cf3;
-
-    // W1 -= W7;
-    cf1 -= subc_s(w1p, w1p, l * 2, w7p, rn + rm);
-
-    // W3 -= W5;
-    cf3 -= cf5 + subc_n(w3p, w3p, w5p, l * 2);
-
-    // W3 /= 45;
-    divexact_byc(w3p, w3p, l * 2, 45_u64, cf3);
-    cf3 /= 45;
-
-    // W5 /= 3;
-    divexact_byc(w5p, w5p, l * 2, 3_u64, cf5);
-    cf5 /= 3;
-
-    // W5 -= W1;
-    cf5 -= cf1 + subc_n(w5p, w5p, w1p, l * 2);
-
-    // W1 -= W3;
-    cf1 -= cf3 + subc_n(w1p, w1p, w3p, l * 2);
-
-    // W5 /= 4;
-    (void)rshift_n(w5p, w5p, l * 2, 2, cf5);
-    cf5 >>= 2;
-
-    // W5 -= 5 * W1;
-    cf5 -= cf1 * 5 + submul_1(w5p, w1p, l * 2, 5);
-
-    // W3 -= W5;
-    cf3 -= cf5 + subc_n(w3p, w3p, w5p, l * 2);
-
-    // recombine :
-
-    uint64_t cf;
-    cf = addc_n(dst + l, dst + l, w1p, l * 2);
-    (void)addc_1(dst + l * 3, dst + l * 3, l, cf1, cf);
-
-    cf = addc_n(dst + l * 3, dst + l * 3, w5p, l);
-    (void)addc_1(dst + l * 4, dst + l * 4, l, cf2, cf);
-    cf = addc_n(dst + l * 4, dst + l * 4, w5p + l, l);
-    (void)addc_1(dst + l * 5, dst + l * 5, l, cf5, cf);
-
-    cf = addc_n(dst + l * 5, dst + l * 5, w3p, l);
-    (void)addc_1(dst + l * 6, w6p, l, cf4, cf);
-    cf = addc_n(dst + l * 6, dst + l * 6, w3p + l, l);
-    (void)addc_1(dst + l * 7, dst + l * 7, l, cf3, cf);
-
-    cf = addc_n(dst + l * 7, dst + l * 7, w6p + l, l);
-    if (rn + rm != l) {
-        cf = addc_1(dst + l * 8, dst + l * 8, (rn + rm) - l, cf6, cf);
-    } else {
-        cf += cf6;
-    }
-    WJR_ASSERT(cf == 0);
-}
-
 void toom63_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
                   size_t m, uint64_t *stk) noexcept {
     /*
@@ -2907,191 +3029,6 @@ void toom63_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, co
     }
 
     toom_interpolation_8p_s(dst, w1p, l, rn, rm, std::move(flag));
-}
-
-void toom_interpolation_9p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l, size_t rn,
-                             size_t rm, toom_interpolation_high_p_struct<9> &&flag) noexcept {
-    /*
-     W0 = f(0);
-     W1 = (f(1)-f(-1))/2;
-     W2 = (f(1)+f(-1))/2;
-     W3 = (f(2)-f(-2))/4;
-     W4 = (f(2)+(f-2))/2;
-     W5 = f(4);
-     W6 = 256 * (f(1/2)+f(-1/2)) / 2;
-     W7 = 256 * (f(1/2)-f(-1/2)) / 4;
-     W8 = f(inf);
-    */
-
-    /*
-
-    [
-        1,      0,      0,      0,      0,      0,      0,      0,      0
-        0,      1,      0,      1,      0,      1,      0,      1,      0
-        1,      0,      1,      0,      1,      0,      1,      0,      1
-        0,      1,      0,      4,      0,      16,     0,      64,     0
-        1,      0,      4,      0,      16,     0,      64,     0,      256
-        1,      4,      16,     64,     256,    1024,   4096,   16384,  65536
-        256,    0,      64,     0,      16,     0,      4,      0,      1
-        0,      64,     0,      16,     0,      4,      0,      1,      0
-        0,      0,      0,      0,      0,      0,      0,      0,      1
-    ]
-
-    seprate to two part :
-
-    part 0 :
-    [
-        1,      0,      0,      0,      0       W0
-        1,      1,      1,      1,      1       W2
-        1,      4,      16,     64,     256     W4
-        256,    64,     16,     4,      1       W6
-        0,      0,      0,      0,      1       W8
-    ]
-
-    part 1 :
-    [
-        1,      1,      1,      1       W1
-        1,      4,      16,     64      W3
-        1,      16,     256,    4096    W5
-        64,     16,     4,      1       W7
-    ]
-
-    */
-
-    /*
-         part 0 :
-         [
-             1,      0,      0,      0,      0       W0
-             1,      1,      1,      1,      1       W2
-             1,      4,      16,     64,     256     W4
-             256,    64,     16,     4,      1       W6
-             0,      0,      0,      0,      1       W8
-         ]
-
-         W2 -= W8;
-         W4 -= 256*W8;
-         W6 -= W8;
-         W6 /= 4;
-
-         goto toom_interpolation_even_4_solve
-     */
-
-    /*
-        part 1 :
-        [
-            1,      1,      1,      1       W1
-            1,      4,      16,     64      W3
-            1,      16,     256,    4096    W5
-            64,     16,     4,      1       W7
-        ]
-
-        W3 -= W1;
-        W5 = (W5-W1)/5;
-        W7 = (64*W1-W7)
-
-        [
-            1,      1,      1,      1       W1
-            0,      3,      15,     63      W3
-            0,      3,      51,     819     W5
-            0,      48,     60,     63      W7
-        ]
-
-        goto toom_interpolation_opposite_4_solve;
-     */
-
-    WJR_ASSERT_ASSUME(0 < rn && rn <= l);
-    WJR_ASSERT_ASSUME(0 < rm && rm <= l);
-    WJR_ASSERT_ASSUME(rn + rm >= l);
-
-    auto *const w0p = dst;
-    auto *const w2p = w0p + l * 2;
-    auto *const w3p = w1p + l * 2;
-    auto *const w4p = w0p + l * 4;
-    auto *const w5p = w1p + l * 4;
-    auto *const w6p = w0p + l * 6;
-    auto *const w7p = w1p + l * 6;
-    auto *const w8p = w0p + l * 8;
-
-    auto &[cf1, cf2, cf3, cf4, cf5, cf6, cf7] = flag;
-
-    // W2 -= W8
-    cf2 -= subc_s(w2p, w2p, l * 2, w8p, rn + rm);
-
-    // W4 -= 256*W8
-    WJR_SUBMUL_1_S(w4p, l * 2, w8p, rn + rm, cf4, 0, 256, cf4);
-
-    // W6 -= W8
-    cf6 -= subc_s(w6p, w6p, l * 2, w8p, rn + rm);
-
-    // W6 /= 4
-    (void)rshift_n(w6p, w6p, l * 2, 2u, cf6);
-    cf6 /= 4;
-
-    toom_interpolation_even_4_solve(w0p, w2p, w4p, w6p, l * 2, flag.data());
-
-    // W5 -= W0 + 16*W2 + 256*W4 + 4096*W6 + 65536*W8
-    do {
-        uint64_t *tmp = w1p + l * 8;
-        uint64_t cft = 0;
-
-        // tmp = 16*W8+W6;
-        WJR_ADDLSH_S(tmp, w6p, l * 2, w8p, rn + rm, cf6, 0, 4, cft);
-
-        // tmp = 16*tmp+W4;
-        cft = addlsh_n(tmp, w4p, tmp, l * 2, 4) + 16 * cft + cf4;
-
-        // tmp = 16*tmp+W2;
-        cft = addlsh_n(tmp, w2p, tmp, l * 2, 4) + 16 * cft + cf2;
-
-        // tmp = 16*tmp+W0;
-        cft = addlsh_n(tmp, w0p, tmp, l * 2, 4) + 16 * cft;
-
-        // W5 -= tmp
-        cf5 -= cft + subc_n(w5p, w5p, tmp, l * 2);
-    } while (0);
-
-    // W5 /= 4
-    (void)rshift_n(w5p, w5p, l * 2, 2, cf5);
-    cf5 >>= 2;
-
-    // W3 -= W1
-    cf3 -= cf1 + subc_n(w3p, w3p, w1p, l * 2);
-
-    // W5 = (W5-W1)/5
-    {
-        cf5 -= cf1 + subc_n(w5p, w5p, w1p, l * 2);
-        divexact_byc(w5p, w5p, l * 2, 5_u64, 0);
-        cf5 /= 5;
-    }
-
-    // W7 = (64*W1-W7)
-    cf7 = rsblsh_n(w7p, w7p, w1p, l * 2, 6) + 64 * cf1 - cf7;
-
-    toom_interpolation_opposite_4_solve(w1p, w3p, w5p, w7p, l * 2, flag.data());
-
-    uint64_t cf;
-    cf = addc_n(dst + l, dst + l, w1p, l * 2);
-    (void)addc_1(dst + l * 3, dst + l * 3, l, cf1, cf);
-
-    cf = addc_n(dst + l * 3, dst + l * 3, w3p, l);
-    (void)addc_1(dst + l * 4, dst + l * 4, l, cf2, cf);
-    cf = addc_n(dst + l * 4, dst + l * 4, w3p + l, l);
-    (void)addc_1(dst + l * 5, dst + l * 5, l, cf3, cf);
-
-    cf = addc_n(dst + l * 5, dst + l * 5, w5p, l);
-    (void)addc_1(dst + l * 6, dst + l * 6, l, cf4, cf);
-    cf = addc_n(dst + l * 6, dst + l * 6, w5p + l, l);
-    (void)addc_1(dst + l * 7, dst + l * 7, l, cf5, cf);
-
-    cf = addc_n(dst + l * 7, dst + l * 7, w7p, l);
-    (void)addc_1(dst + l * 8, dst + l * 8, l, cf6, cf);
-    cf = addc_n(dst + l * 8, dst + l * 8, w7p + l, l);
-    if (rn + rm != l) {
-        cf = addc_1(dst + l * 9, dst + l * 9, (rn + rm) - l, cf7, cf);
-    } else {
-        cf += cf7;
-    }
-    WJR_ASSERT(cf == 0);
 }
 
 void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,

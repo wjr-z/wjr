@@ -26,9 +26,9 @@
 #endif
 
 namespace wjr {
-
-WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_mul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                                                  uint64_t ml) noexcept {
+#if !WJR_HAS_BUILTIN(ASM_MUL_1)
+WJR_INTRINSIC_INLINE uint64_t fallback_mul_1(uint64_t *dst, const uint64_t *src, size_t n,
+                                             uint64_t ml) noexcept {
     uint64_t lo = 0, hi = 0;
     uint64_t c_in = 0;
 
@@ -40,14 +40,15 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_mul_1(uint64_t *dst, const uint64_t 
 
     return c_in;
 }
+#endif
 
 /*
 require :
 1. n >= 1
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
 */
-WJR_INTRINSIC_CONSTEXPR20 uint64_t mul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                                         uint64_t ml) noexcept {
+WJR_INTRINSIC_INLINE uint64_t mul_1(uint64_t *dst, const uint64_t *src, size_t n,
+                                    uint64_t ml) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
@@ -70,10 +71,6 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t mul_1(uint64_t *dst, const uint64_t *src, siz
     }
 
 #if WJR_HAS_BUILTIN(ASM_MUL_1)
-    if (is_constant_evaluated()) {
-        return fallback_mul_1(dst, src, n, ml);
-    }
-
     return asm_mul_1(dst, src, n, ml);
 #else
     return fallback_mul_1(dst, src, n, ml);
@@ -81,15 +78,16 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t mul_1(uint64_t *dst, const uint64_t *src, siz
 }
 
 // dst = src0 + (src1 << cl)
-WJR_INTRINSIC_CONSTEXPR20 uint64_t addlsh_n(uint64_t *dst, const uint64_t *src0,
-                                            const uint64_t *src1, size_t n, uint64_t cl) noexcept;
+WJR_INTRINSIC_INLINE uint64_t addlsh_n(uint64_t *dst, const uint64_t *src0, const uint64_t *src1,
+                                       size_t n, uint64_t cl) noexcept;
 
 // dst = (src1 << cl) - src0
-WJR_INTRINSIC_CONSTEXPR20 uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
-                                            const uint64_t *src1, size_t n, uint64_t cl) noexcept;
+WJR_INTRINSIC_INLINE uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0, const uint64_t *src1,
+                                       size_t n, uint64_t cl) noexcept;
 
-WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                                                     uint64_t ml) noexcept {
+#if !WJR_HAS_BUILTIN(ASM_ADDMUL_1)
+WJR_INTRINSIC_INLINE uint64_t fallback_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
+                                                uint64_t ml) noexcept {
     uint64_t lo = 0, hi = 0;
     uint64_t o_in = 0, c_in = 0;
 
@@ -102,14 +100,15 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_addmul_1(uint64_t *dst, const uint64
 
     return c_in;
 }
+#endif
 
 /*
 require :
 1. n >= 1
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
 */
-WJR_INTRINSIC_CONSTEXPR20 uint64_t addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                                            uint64_t ml) noexcept {
+WJR_INTRINSIC_INLINE uint64_t addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
+                                       uint64_t ml) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
@@ -127,18 +126,15 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t addmul_1(uint64_t *dst, const uint64_t *src, 
     }
 
 #if WJR_HAS_BUILTIN(ASM_ADDMUL_1)
-    if (is_constant_evaluated()) {
-        return fallback_addmul_1(dst, src, n, ml);
-    }
-
     return asm_addmul_1(dst, src, n, ml);
 #else
     return fallback_addmul_1(dst, src, n, ml);
 #endif
 }
 
-WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                                                     uint64_t ml) noexcept {
+#if !WJR_HAS_BUILTIN(ASM_SUBMUL_1)
+WJR_INTRINSIC_INLINE uint64_t fallback_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
+                                                uint64_t ml) noexcept {
     uint64_t lo = 0, hi = 0;
     uint64_t o_in = 0, c_in = 0;
 
@@ -151,14 +147,15 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_submul_1(uint64_t *dst, const uint64
 
     return c_in;
 }
+#endif
 
 /*
 require :
 1. n >= 1
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
 */
-WJR_INTRINSIC_CONSTEXPR20 uint64_t submul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                                            uint64_t ml) noexcept {
+WJR_INTRINSIC_INLINE uint64_t submul_1(uint64_t *dst, const uint64_t *src, size_t n,
+                                       uint64_t ml) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
@@ -171,19 +168,16 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t submul_1(uint64_t *dst, const uint64_t *src, 
     }
 
 #if WJR_HAS_BUILTIN(ASM_SUBMUL_1)
-    if (is_constant_evaluated()) {
-        return fallback_submul_1(dst, src, n, ml);
-    }
-
     return asm_submul_1(dst, src, n, ml);
 #else
     return fallback_submul_1(dst, src, n, ml);
 #endif
 }
 
-WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_addlsh_n(uint64_t *dst, const uint64_t *src0,
-                                                     const uint64_t *src1, size_t n,
-                                                     uint64_t cl) noexcept {
+#if !WJR_HAS_BUILTIN(ASM_ADDLSH_N)
+WJR_INTRINSIC_INLINE uint64_t fallback_addlsh_n(uint64_t *dst, const uint64_t *src0,
+                                                const uint64_t *src1, size_t n,
+                                                uint64_t cl) noexcept {
     uint64_t tcl = std::numeric_limits<uint64_t>::digits - cl;
     uint64_t lo = 0, hi = 0;
     uint64_t c_in = 0, x = 0;
@@ -199,6 +193,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_addlsh_n(uint64_t *dst, const uint64
 
     return x + c_in;
 }
+#endif
 
 /*
 dst = src0 + (src1 << cl);
@@ -208,8 +203,8 @@ require :
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
 3. WJR_IS_SAME_OR_INCR_P(sdt, n, src1, n)
 */
-WJR_INTRINSIC_CONSTEXPR20 uint64_t addlsh_n(uint64_t *dst, const uint64_t *src0,
-                                            const uint64_t *src1, size_t n, uint64_t cl) noexcept {
+WJR_INTRINSIC_INLINE uint64_t addlsh_n(uint64_t *dst, const uint64_t *src0, const uint64_t *src1,
+                                       size_t n, uint64_t cl) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_ASSUME(cl < std::numeric_limits<uint64_t>::digits);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
@@ -220,19 +215,16 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t addlsh_n(uint64_t *dst, const uint64_t *src0,
     }
 
 #if WJR_HAS_BUILTIN(ASM_ADDLSH_N)
-    if (is_constant_evaluated()) {
-        return fallback_addlsh_n(dst, src0, src1, n, cl);
-    }
-
     return asm_addlsh_n(dst, src0, src1, n, cl);
 #else
     return fallback_addlsh_n(dst, src0, src1, n, cl);
 #endif
 }
 
-WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_rsblsh_n(uint64_t *dst, const uint64_t *src0,
-                                                     const uint64_t *src1, size_t n,
-                                                     uint64_t cl) noexcept {
+#if !WJR_HAS_BUILTIN(ASM_RSBLSH_N)
+WJR_INTRINSIC_INLINE uint64_t fallback_rsblsh_n(uint64_t *dst, const uint64_t *src0,
+                                                const uint64_t *src1, size_t n,
+                                                uint64_t cl) noexcept {
     uint64_t tcl = std::numeric_limits<uint64_t>::digits - cl;
     uint64_t lo = 0, hi = 0;
     uint64_t c_in = 0, x = 0;
@@ -248,6 +240,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_rsblsh_n(uint64_t *dst, const uint64
 
     return x - c_in;
 }
+#endif
 
 /*
 dst = (src1 << cl) - src0;
@@ -257,8 +250,8 @@ require :
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
 3. WJR_IS_SAME_OR_INCR_P(sdt, n, src1, n)
 */
-WJR_INTRINSIC_CONSTEXPR20 uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
-                                            const uint64_t *src1, size_t n, uint64_t cl) noexcept {
+WJR_INTRINSIC_INLINE uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0, const uint64_t *src1,
+                                       size_t n, uint64_t cl) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_ASSUME(cl < std::numeric_limits<uint64_t>::digits);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
@@ -269,10 +262,6 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
     }
 
 #if WJR_HAS_BUILTIN(ASM_RSBLSH_N)
-    if (is_constant_evaluated()) {
-        return fallback_rsblsh_n(dst, src0, src1, n, cl);
-    }
-
     return asm_rsblsh_n(dst, src0, src1, n, cl);
 #else
     return fallback_rsblsh_n(dst, src0, src1, n, cl);
@@ -280,8 +269,8 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
 }
 
 template <uint64_t maxn = UINT64_MAX>
-WJR_INTRINSIC_CONSTEXPR20 uint64_t try_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                                                uint64_t ml) noexcept {
+WJR_INTRINSIC_INLINE uint64_t try_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
+                                           uint64_t ml) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
@@ -367,6 +356,69 @@ extern WJR_ALL_NONNULL void toom33_mul_s(uint64_t *WJR_RESTRICT dst, const uint6
                                          const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
 
 extern WJR_ALL_NONNULL void toom3_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
+                                      uint64_t *stk) noexcept;
+
+/**
+ * @details \n
+ * l = max(ceil(n/3), ceil(m/2)) \n
+ * stk usage : l * 4
+ *
+ */
+extern WJR_ALL_NONNULL void toom32_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
+                                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+
+/*
+l = max(ceil(n/4), ceil(m/2))
+stk usage : l * 4
+*/
+extern WJR_ALL_NONNULL void toom42_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
+                                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+
+/*
+ l = max(ceil(n/4), ceil(m/3))
+ stk usage : l * 6
+*/
+extern WJR_ALL_NONNULL void toom43_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
+                                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+
+/*
+ l = max(ceil(n/5), ceil(m/3))
+ stk usage : l * 6
+*/
+extern WJR_ALL_NONNULL void toom53_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
+                                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+
+/*
+ l = ceil(n/4)
+ stk usage : l * 6
+*/
+extern WJR_ALL_NONNULL void toom44_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
+                                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+
+extern WJR_ALL_NONNULL void toom4_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
+                                      uint64_t *stk) noexcept;
+
+/**
+ * @details \n
+ * l = max(ceil(n/6), ceil(m/3)) \n
+ * stk usage : l * 10 \n
+ *
+ */
+extern WJR_ALL_NONNULL void toom63_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
+                                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+
+/*
+ l = ceil(n/5)
+ stk usage : l * 10
+*/
+extern WJR_ALL_NONNULL void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
+                                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+
+/*
+ l = ceil(n/5)
+ stk usage : l * 10
+*/
+extern WJR_ALL_NONNULL void toom5_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
                                       uint64_t *stk) noexcept;
 
 extern WJR_ALL_NONNULL void nussbaumer_mul(uint64_t *pp, const uint64_t *ap, size_t an,

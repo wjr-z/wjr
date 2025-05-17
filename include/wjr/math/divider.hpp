@@ -196,6 +196,7 @@ WJR_CONST WJR_CONSTEXPR20 T div2by1_divider_noshift<T>::__reciprocal_impl(T d) n
     v2 = mulhi<uint64_t>(v1 << 17, (1ull << 61) - mullo<uint64_t>(v1, d40));
 
     t0 = 0 - mullo<uint64_t>(v2, d63);
+    // todo : branchless
     if (d & 1) {
         t0 += v2 >> 1;
     }

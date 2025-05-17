@@ -2997,6 +2997,8 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
     return os;
 }
 
+extern std::ostream &operator<<(std::ostream &os, const biginteger_data &src) noexcept;
+
 } // namespace wjr
 
 namespace fmt {
