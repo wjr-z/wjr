@@ -13,16 +13,8 @@
 #include <wjr/math/mul.hpp>
 #include <wjr/math/shift.hpp>
 
-#if defined(_MSC_VER) && defined(WJR_ARCH_X86)
-    #define WJR_HAS_BUILTIN_MSVC_MULH64 WJR_HAS_DEF
-#endif
-
 #if defined(WJR_ARCH_X86)
     #include <wjr/arch/x86/biginteger/detail/mul.hpp>
-#endif
-
-#if WJR_HAS_BUILTIN(MSVC_MULH64)
-    #include <wjr/arch/x86/simd/intrin.hpp>
 #endif
 
 namespace wjr {
@@ -268,59 +260,6 @@ WJR_INTRINSIC_INLINE uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0, cons
 #endif
 }
 
-template <uint64_t maxn = UINT64_MAX>
-WJR_INTRINSIC_INLINE uint64_t try_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                                           uint64_t ml) noexcept {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
-
-    WJR_ASSERT_ASSUME(ml <= maxn);
-
-    if constexpr (maxn == 0) {
-        return 0;
-    } else {
-        if constexpr (maxn <= 3) {
-            if (ml == 0) {
-                return 0;
-            }
-
-            if constexpr (maxn == 1) {
-                return addc_n(dst, dst, src, n);
-            } else {
-                if (ml == 1) {
-                    return addc_n(dst, dst, src, n);
-                }
-
-                if constexpr (maxn == 2) {
-                    return addlsh_n(dst, dst, src, n, 1);
-                } else {
-                    if (ml == 2) {
-                        return addlsh_n(dst, dst, src, n, 1);
-                    }
-
-                    return addmul_1(dst, src, n, ml);
-                }
-            }
-        } else {
-            if (WJR_UNLIKELY(ml <= 2)) {
-                switch (ml) {
-                case 0: {
-                    return 0;
-                }
-                case 1: {
-                    return addc_n(dst, dst, src, n);
-                }
-                default: {
-                    return addlsh_n(dst, dst, src, n, 1);
-                }
-                }
-            }
-
-            return addmul_1(dst, src, n, ml);
-        }
-    }
-}
-
 /*
  all toom-cook need to ensure rn + rm >= l to reserve memory
  for toom-cook-u-v
@@ -523,6 +462,7 @@ inline void sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n) noexc
     return __sqr_impl(dst, src, n);
 }
 
+#if !WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)
 WJR_INTRINSIC_INLINE void fallback_basecase_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                                   size_t n, const uint64_t *src1,
                                                   size_t m) noexcept {
@@ -532,6 +472,7 @@ WJR_INTRINSIC_INLINE void fallback_basecase_mul_s(uint64_t *WJR_RESTRICT dst, co
         dst[n] = addmul_1(dst, src0, n, src1[i]);
     }
 }
+#endif
 
 /*
 require :
