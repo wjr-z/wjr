@@ -261,7 +261,7 @@ WJR_INTRINSIC_INLINE void pow5(bigint &big, uint32_t exp) noexcept {
                                                     198276706040285095UL};
 
     constexpr uint32_t large_step = 135;
-    constexpr auto large = make_biginteger_data(span(large_power_of_5));
+    constexpr biginteger_view large{span(large_power_of_5)};
 
     while (exp >= large_step) {
         big *= large;

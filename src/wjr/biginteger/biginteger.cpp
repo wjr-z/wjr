@@ -231,7 +231,7 @@ template from_chars_result<const char *> __from_chars_impl<true>(const char *fir
                                                                  unsigned int base) noexcept;
 
 template <bool xsign>
-void __addsub_impl(biginteger_dispatcher dst, const biginteger_data *lhs, uint64_t rhs) noexcept {
+void __addsub_impl(biginteger_dispatcher dst, const biginteger_view *lhs, uint64_t rhs) noexcept {
     const int32_t lssize = lhs->get_ssize();
     if (lssize == 0) {
         dst.clear_if_reserved(1);
@@ -275,13 +275,13 @@ void __addsub_impl(biginteger_dispatcher dst, const biginteger_data *lhs, uint64
     dst.set_ssize(dssize);
 }
 
-template void __addsub_impl<false>(biginteger_dispatcher dst, const biginteger_data *lhs,
+template void __addsub_impl<false>(biginteger_dispatcher dst, const biginteger_view *lhs,
                                    uint64_t rhs) noexcept;
-template void __addsub_impl<true>(biginteger_dispatcher dst, const biginteger_data *lhs,
+template void __addsub_impl<true>(biginteger_dispatcher dst, const biginteger_view *lhs,
                                   uint64_t rhs) noexcept;
 
-void __addsub_impl(biginteger_dispatcher dst, const biginteger_data *lhs,
-                   const biginteger_data *rhs, bool xsign) noexcept {
+void __addsub_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
+                   const biginteger_view *rhs, bool xsign) noexcept {
     auto lssize = lhs->get_ssize();
     int32_t rssize = __fast_conditional_negate<int32_t>(xsign, rhs->get_ssize());
     uint32_t lusize = __fast_abs(lssize);
@@ -324,8 +324,8 @@ void __addsub_impl(biginteger_dispatcher dst, const biginteger_data *lhs,
     dst.set_ssize(dssize);
 }
 
-void __mul_impl(biginteger_dispatcher dst, const biginteger_data *lhs,
-                const biginteger_data *rhs) noexcept {
+void __mul_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
+                const biginteger_view *rhs) noexcept {
     int32_t lssize = lhs->get_ssize();
     int32_t rssize = rhs->get_ssize();
     uint32_t lusize = __fast_abs(lssize);
@@ -401,7 +401,7 @@ void __mul_impl(biginteger_dispatcher dst, const biginteger_data *lhs,
     dst.set_ssize(dssize);
 }
 
-void __sqr_impl(biginteger_dispatcher dst, const biginteger_data *src) noexcept {
+void __sqr_impl(biginteger_dispatcher dst, const biginteger_view *src) noexcept {
     int32_t sssize = src->get_ssize();
     uint32_t susize = __fast_abs(sssize);
 
@@ -459,7 +459,7 @@ void __sqr_impl(biginteger_dispatcher dst, const biginteger_data *src) noexcept 
     dst.set_ssize(dssize);
 }
 
-void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_data *lhs, uint64_t rhs,
+void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_view *lhs, uint64_t rhs,
                       int32_t xmask) noexcept {
     const int32_t lssize = lhs->get_ssize();
 
@@ -563,8 +563,8 @@ void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_data *lhs, uin
     dst.set_ssize(__fast_conditional_negate<int32_t>(dssize < 0, new_dusize));
 }
 
-void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_data *lhs,
-                      const biginteger_data *rhs, int32_t xmask) noexcept {
+void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
+                      const biginteger_view *rhs, int32_t xmask) noexcept {
     int32_t lssize = lhs->get_ssize();
     int32_t rssize = rhs->get_ssize();
 
@@ -647,7 +647,7 @@ void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_data *lhs,
 }
 
 void __tdiv_qr_impl(biginteger_dispatcher quot, biginteger_dispatcher rem,
-                    const biginteger_data *num, const biginteger_data *div) noexcept {
+                    const biginteger_view *num, const biginteger_view *div) noexcept {
     WJR_ASSERT_ASSUME(!__equal_pointer(quot.raw(), rem.raw()),
                       "quot should not be the same as rem");
 
@@ -705,8 +705,8 @@ void __tdiv_qr_impl(biginteger_dispatcher quot, biginteger_dispatcher rem,
     rem.set_ssize(__fast_conditional_negate<int32_t>(nssize < 0, dusize));
 }
 
-void __tdiv_q_impl(biginteger_dispatcher quot, const biginteger_data *num,
-                   const biginteger_data *div) noexcept {
+void __tdiv_q_impl(biginteger_dispatcher quot, const biginteger_view *num,
+                   const biginteger_view *div) noexcept {
     const auto nssize = num->get_ssize();
     const auto dssize = div->get_ssize();
     const auto nusize = __fast_abs(nssize);
@@ -751,8 +751,8 @@ void __tdiv_q_impl(biginteger_dispatcher quot, const biginteger_data *num,
     quot.set_ssize(__fast_conditional_negate<int32_t>((nssize ^ dssize) < 0, qssize));
 }
 
-void __tdiv_r_impl(biginteger_dispatcher rem, const biginteger_data *num,
-                   const biginteger_data *div) noexcept {
+void __tdiv_r_impl(biginteger_dispatcher rem, const biginteger_view *num,
+                   const biginteger_view *div) noexcept {
     const auto nssize = num->get_ssize();
     const auto dssize = div->get_ssize();
     const auto nusize = __fast_abs(nssize);
@@ -802,7 +802,7 @@ void __tdiv_r_impl(biginteger_dispatcher rem, const biginteger_data *num,
     rem.set_ssize(__fast_conditional_negate<int32_t>(nssize < 0, dusize));
 }
 
-void __cfdiv_r_2exp_impl(biginteger_dispatcher rem, const biginteger_data *num, uint32_t shift,
+void __cfdiv_r_2exp_impl(biginteger_dispatcher rem, const biginteger_view *num, uint32_t shift,
                          int32_t xdir) noexcept {
     int32_t nssize = num->get_ssize();
 
@@ -879,7 +879,7 @@ void __cfdiv_r_2exp_impl(biginteger_dispatcher rem, const biginteger_data *num, 
     rem.set_ssize(__fast_conditional_negate<int32_t>(nssize < 0, offset));
 }
 
-void __pow_impl(biginteger_dispatcher dst, const biginteger_data *num, uint32_t exp) noexcept {
+void __pow_impl(biginteger_dispatcher dst, const biginteger_view *num, uint32_t exp) noexcept {
     const int32_t nssize = num->get_ssize();
     if (WJR_UNLIKELY(nssize == 0)) {
         dst = exp == 0 ? 1u : 0u;
@@ -932,7 +932,7 @@ void __pow_impl(biginteger_dispatcher dst, const biginteger_data *num, uint32_t 
 
 } // namespace biginteger_detail
 
-std::ostream &operator<<(std::ostream &os, const biginteger_data &src) noexcept {
+std::ostream &operator<<(std::ostream &os, const biginteger_view &src) noexcept {
     if (const std::ostream::sentry ok(os); ok) {
         unique_stack_allocator stkal;
         vector<char, weak_stack_allocator<char>> buffer(stkal);
@@ -976,7 +976,7 @@ std::ostream &operator<<(std::ostream &os, const biginteger_data &src) noexcept 
 namespace fmt {
 
 void formatter<wjr::biginteger_data>::do_format(
-    const wjr::biginteger_data &value,
+    const wjr::biginteger_view &value,
     wjr::vector<char, wjr::weak_stack_allocator<char>> &buffer) const {
     buffer.clear_if_reserved(256);
 
