@@ -99,9 +99,10 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
     #endif
 
     string_set_length_hacker(str, sz);
-    WJR_ASSERT_L3(str.size() == sz);
-    // todo : This can be removed in some cases.
+    #if defined(__GLIBCXX__) || defined(_LIBCPP_VERSION)
+    #else
     str[sz] = '\0';
+    #endif
 }
 
 #else

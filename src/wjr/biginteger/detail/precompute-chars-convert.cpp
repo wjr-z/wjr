@@ -1,9 +1,7 @@
 #include <wjr/biginteger/detail/precompute-chars-convert.hpp>
 
 namespace wjr {
-
 namespace {
-
 inline constexpr std::array<uint64_t, 37> precompute_chars_convert_big_base = {
     UINT64_C(0x0000000000000000), UINT64_C(0x0000000000000000), UINT64_C(0x0000000000000000),
     UINT64_C(0xa8b8b452291fe821), UINT64_C(0x0000000000000000), UINT64_C(0x6765c793fa10079d),
