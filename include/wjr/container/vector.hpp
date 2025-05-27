@@ -441,7 +441,7 @@ public:
     ~small_vector_storage() = default;
 
     WJR_CONSTEXPR20 void deallocate(_Alty &al) noexcept(
-        noexcept(_Alty_traits::deallocate(al, data(), this->capacity()))) {
+        noexcept(_Alty_traits::deallocate(al, this->data(), this->capacity()))) {
         if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(__is_small())) {
             return;
         }

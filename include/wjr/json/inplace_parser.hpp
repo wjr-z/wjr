@@ -1,3 +1,16 @@
+/**
+ * @file inplace_parser.hpp
+ * @author your name (you@domain.com)
+ * @brief 
+ * @version 0.1
+ * @date 2025-05-25
+ * 
+ * @todo 
+ * 
+ * @copyright Copyright (c) 2025
+ * 
+ */
+
 #ifndef WJR_JSON_INPLACE_PARSER_HPP__
 #define WJR_JSON_INPLACE_PARSER_HPP__
 

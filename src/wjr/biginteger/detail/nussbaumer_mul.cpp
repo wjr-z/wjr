@@ -38,6 +38,21 @@ inline size_t mulmod_bnm1_next_size(size_t n) noexcept {
 
     return 2 * fft_next_size(nh, fft_best_k(nh, 0));
 }
+
+inline size_t mulmod_bnm1_itch(size_t rn, size_t an, size_t bn) {
+    size_t n, itch;
+    n = rn >> 1;
+    itch = rn + 4 + (an > n ? (bn > n ? rn : n) : 0);
+    return itch;
+}
+
+inline size_t sqrmod_bnm1_itch(size_t rn, size_t an) {
+    size_t n, itch;
+    n = rn >> 1;
+    itch = rn + 3 + (an > n ? an : 0);
+    return itch;
+}
+
 } // namespace
 
 /* Multiply {ap,an} by {bp,bn}, and put the result in {pp, an+bn} */

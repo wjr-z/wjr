@@ -2,7 +2,6 @@
 #define WJR_MATH_RANDOM_HPP__
 
 #include <algorithm>
-#include <random>
 
 #include <wjr/type_traits.hpp>
 

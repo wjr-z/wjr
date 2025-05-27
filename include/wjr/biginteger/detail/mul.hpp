@@ -394,22 +394,7 @@ extern WJR_ALL_NONNULL void sqrmod_bnm1(uint64_t *rp, size_t rn, const uint64_t 
 WJR_CONST constexpr size_t mulmod_bknp1_itch(size_t rn) noexcept { return rn << 2; }
 WJR_CONST constexpr size_t sqrmod_bknp1_itch(size_t rn) noexcept { return rn * 3; }
 
-WJR_CONST WJR_INLINE_CONSTEXPR20 size_t mulmod_bnm1_itch(size_t rn, size_t an, size_t bn) {
-    size_t n, itch;
-    n = rn >> 1;
-    itch = rn + 4 + (an > n ? (bn > n ? rn : n) : 0);
-    return itch;
-}
-
-WJR_CONST WJR_INLINE_CONSTEXPR20 size_t sqrmod_bnm1_itch(size_t rn, size_t an) {
-    size_t n, itch;
-    n = rn >> 1;
-    itch = rn + 3 + (an > n ? an : 0);
-    return itch;
-}
-
 WJR_CONST constexpr bool toom44_ok(size_t n, size_t m) noexcept { return 3 * n + 21 <= 4 * m; }
-
 WJR_CONST constexpr bool toom55_ok(size_t n, size_t m) noexcept { return 4 * n + 36 <= 5 * m; }
 
 /* Returns smallest possible number of limbs >= pl for a fft of size 2^k,

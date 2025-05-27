@@ -20,6 +20,7 @@
 #define WJR_BIGINTEGER_BIGINTEGER_HPP__
 
 #include <istream>
+#include <random>
 
 #include <wjr/biginteger/detail.hpp>
 #include <wjr/format/ostream_insert.hpp>
