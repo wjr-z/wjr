@@ -37,8 +37,8 @@ public:
         friend class stack_allocator_object;
 
     public:
-        inline stack_context(stack_allocator_object *object) noexcept;
-        inline ~stack_context() noexcept;
+        stack_context(stack_allocator_object *object) noexcept;
+        ~stack_context() noexcept;
 
         stack_context(const stack_context &) = delete;
         stack_context(stack_context &&) = delete;
@@ -142,10 +142,14 @@ private:
     alloc_node *m_ptr = nullptr;
 };
 
-stack_allocator_object::stack_context::stack_context(stack_allocator_object *object) noexcept
-    : m_object(object), m_ptr(object->m_cache.ptr), m_idx(object->m_idx), m_large(nullptr) {}
+inline stack_allocator_object::stack_context::stack_context(stack_allocator_object *object) noexcept
+    : m_object(object), m_ptr(object->m_cache.ptr), m_idx(object->m_idx), m_large(nullptr) {
+    WJR_ASSUME(m_object != nullptr);
+}
 
-stack_allocator_object::stack_context::~stack_context() noexcept { m_object->deallocate(*this); }
+inline stack_allocator_object::stack_context::~stack_context() noexcept {
+    m_object->deallocate(*this);
+}
 
 static_assert(std::is_trivially_destructible_v<stack_allocator_object>);
 

@@ -1753,7 +1753,6 @@ public:
 
         if constexpr (nd >= 8) {
             if (WJR_UNLIKELY(n >= 8)) {
-
                 if constexpr (nd >= 16) {
                     if (WJR_UNLIKELY(n >= 16)) {
                         val = __from_chars_unroll_16<10>(first, conv);
@@ -2251,19 +2250,12 @@ from_chars_result<const char *> from_chars(const char *first, const char *last, 
     return from_chars_dynamic(first, last, val, base, conv);
 }
 
-template <typename Converter>
-struct __check_digits_helper {
-    static constexpr uint8_t hi_expe8 = std::is_same_v<Converter, char_converter_t> ? 0x30 : 0x00;
-    static constexpr uint32_t hi_expe32 = broadcast<uint8_t, uint32_t>(hi_expe8);
-    static constexpr uint64_t hi_expe64 = broadcast<uint8_t, uint64_t>(hi_expe8);
-};
-
 template <unsigned int IBase = 10, WJR_REQUIRES(IBase <= 16)>
 WJR_PURE WJR_INTRINSIC_INLINE bool
 check_eight_digits(const char *ptr, integral_constant<unsigned int, IBase> = {}) noexcept {
     constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
+    constexpr uint64_t hi_expe64 = 0x30303030'30303030;
     constexpr uint64_t added = broadcast<uint8_t, uint64_t>(16 - IBase);
-    constexpr uint64_t hi_expe64 = __check_digits_helper<char_converter_t>::hi_expe64;
 
     const uint64_t memory = read_memory<uint64_t>(ptr);
 
@@ -2295,12 +2287,55 @@ WJR_PURE WJR_INTRINSIC_INLINE bool check_eight_digits(const char *ptr, IBase bas
     }
 
     constexpr uint64_t mask = 0xF0F0F0F0'F0F0F0F0;
-    constexpr uint64_t hi_expe64 = __check_digits_helper<char_converter_t>::hi_expe64;
+    constexpr uint64_t hi_expe64 = 0x30303030'30303030;
 
     const uint64_t added = broadcast<uint8_t, uint64_t>(16 - base);
     const uint64_t memory = read_memory<uint64_t>(ptr);
 
     return ((memory & mask) & (memory + added)) == hi_expe64;
+}
+
+template <unsigned int IBase = 10, WJR_REQUIRES(IBase <= 16)>
+WJR_PURE WJR_INTRINSIC_INLINE bool
+check_eight_origin_digits(const char *ptr, integral_constant<unsigned int, IBase> = {}) noexcept {
+    constexpr uint64_t mask = 0x80808080'80808080;
+    constexpr uint64_t subtraction = broadcast<uint8_t, uint64_t>(IBase);
+
+    const uint64_t memory = read_memory<uint64_t>(ptr);
+
+    return (((memory - subtraction) & ~memory) & mask) != 0;
+}
+
+template <typename IBase, WJR_REQUIRES(is_nonbool_integral_v<IBase>)>
+WJR_PURE WJR_INTRINSIC_INLINE bool check_eight_origin_digits(const char *ptr, IBase base) noexcept {
+    WJR_ASSERT_L2(base <= 16);
+
+    if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            return check_eight_origin_digits(ptr, 2_u);
+        }
+        case 8: {
+            return check_eight_origin_digits(ptr, 8_u);
+        }
+        case 10: {
+            return check_eight_origin_digits(ptr, 10_u);
+        }
+        case 16: {
+            return check_eight_origin_digits(ptr, 16_u);
+        }
+        default: {
+            break;
+        }
+        }
+    }
+
+    constexpr uint64_t mask = 0x80808080'80808080;
+
+    uint64_t subtraction = broadcast<uint8_t, uint64_t>(base);
+    const uint64_t memory = read_memory<uint64_t>(ptr);
+
+    return (((memory - subtraction) & ~memory) & mask) != 0;
 }
 
 inline bool is_made_of_eight_digits_fast(const char *src) noexcept {

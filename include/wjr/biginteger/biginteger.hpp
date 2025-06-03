@@ -507,15 +507,15 @@ public:
         return *this;
     }
 
-    inline void reserve(uint32_t size) const;
-    inline void clear_if_reserved(uint32_t size) const;
-    inline void clear() const { set_ssize(0); }
+    void reserve(uint32_t size) const;
+    void clear_if_reserved(uint32_t size) const;
+    void clear() const { set_ssize(0); }
 
-    inline biginteger_dispatcher construct_reserve(uint32_t n, unique_stack_allocator *al) const;
+    biginteger_dispatcher construct_reserve(uint32_t n, unique_stack_allocator *al) const;
 
-    inline void destroy() const;
-    inline void copy_assign(const biginteger_view *rhs) const;
-    inline void move_assign(biginteger_data *rhs) const;
+    void destroy() const;
+    void copy_assign(const biginteger_view *rhs) const;
+    void move_assign(biginteger_data *rhs) const;
 
 private:
     biginteger_data *ptr;
@@ -532,28 +532,28 @@ struct biginteger_dispatch_table {
     void (*move_assign)(biginteger_data *, biginteger_data *);
 };
 
-void biginteger_dispatcher::reserve(uint32_t size) const {
+inline void biginteger_dispatcher::reserve(uint32_t size) const {
     // fast-path
     if (WJR_UNLIKELY(ptr->capacity() < size))
         v_table->__reserve_unchecked(ptr, size);
 }
 
-void biginteger_dispatcher::clear_if_reserved(uint32_t size) const {
+inline void biginteger_dispatcher::clear_if_reserved(uint32_t size) const {
     v_table->clear_if_reserved(ptr, size);
 }
 
-biginteger_dispatcher biginteger_dispatcher::construct_reserve(uint32_t n,
-                                                               unique_stack_allocator *al) const {
+inline biginteger_dispatcher
+biginteger_dispatcher::construct_reserve(uint32_t n, unique_stack_allocator *al) const {
     return v_table->construct_reserve(ptr, n, al);
 }
 
-void biginteger_dispatcher::destroy() const { v_table->destroy(ptr); }
+inline void biginteger_dispatcher::destroy() const { v_table->destroy(ptr); }
 
-void biginteger_dispatcher::copy_assign(const biginteger_view *rhs) const {
+inline void biginteger_dispatcher::copy_assign(const biginteger_view *rhs) const {
     v_table->copy_assign(ptr, rhs);
 }
 
-void biginteger_dispatcher::move_assign(biginteger_data *rhs) const {
+inline void biginteger_dispatcher::move_assign(biginteger_data *rhs) const {
     v_table->move_assign(ptr, rhs);
 }
 

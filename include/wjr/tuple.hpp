@@ -99,14 +99,6 @@ public:
     }
 };
 
-template <typename Tuple>
-struct __tuple_like;
-
-template <template <typename...> typename Tuple, typename... Args>
-struct __tuple_like<Tuple<Args...>>
-    : std::disjunction<std::is_same<Tuple<Args...>, std::tuple<Args...>>,
-                       std::is_same<Tuple<Args...>, std::pair<Args...>>> {};
-
 template <>
 class tuple<> {
 public:
@@ -366,6 +358,12 @@ constexpr decltype(auto) tuple_cat(Tuples &&...tuples) {
     using Helper = __tuple_cat_helper<remove_cvref_t<Tuples>...>;
     return __tuple_cat_impl(typename Helper::type0{}, typename Helper::type1{},
                             wjr::forward_as_tuple(std::forward<Tuples>(tuples)...));
+}
+
+template <typename T, typename Tuple>
+constexpr T make_from_tuple(Tuple &&tuple) {
+    return apply([](auto &&...args) { return T(std::forward<decltype(args)>(args)...); },
+                 std::forward<Tuple>(tuple));
 }
 
 template <typename... TArgs, typename... UArgs>
