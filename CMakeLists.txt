@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
-project(wjr VERSION 0.1.1 LANGUAGES CXX)
+set(WJR_VERSION 0.1.1)
+project(wjr VERSION ${WJR_VERSION} LANGUAGES CXX)
 
 if(NOT(CMAKE_SIZEOF_VOID_P EQUAL 8))
    message(FATAL_ERROR "Not support non 64-bit currently, CMake will exit.")
@@ -22,8 +23,13 @@ option(WJR_DEBUG_LEVEL_DEBUG "Debug level in debug version(default = 3)." 3)
 #
 # third-party
 #
-add_subdirectory(third-party/cpu_features)
+
+set(FMT_TEST OFF CACHE BOOL "Disable fmt tests")
+set(FMT_INSTALL OFF)
 add_subdirectory(third-party/fmt)
+
+set(ENABLE_INSTALL ON)
+add_subdirectory(third-party/cpu_features)
 
 #
 # initialize flags
@@ -84,7 +90,10 @@ endif()
 # macro
 #
 macro(setup_cpp_include_and_definitions TARGET)
-   target_include_directories(${TARGET} PUBLIC ${WJR_INCLUDE_DIR})
+   target_include_directories(${TARGET} PUBLIC
+      $<BUILD_INTERFACE:${WJR_INCLUDE_DIR}>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/wjr>
+   )
 
    if(WJR_USE_CXX_20)
       target_compile_features(${TARGET} PUBLIC cxx_std_20)
@@ -240,3 +249,83 @@ target_link_libraries(wjr PUBLIC fmt::fmt PRIVATE CpuFeatures::cpu_features)
 add_library(wjr::wjr ALIAS wjr)
 
 target_precompile_headers(wjr PUBLIC ${WJR_PCH_COMMON})
+
+set(PackageName wjr)
+set(INCLUDE_INSTALL_DIR include)
+set(LIB_INSTALL_DIR lib)
+set(LIB_NAME ${PackageName})
+set(dest ${LIB_INSTALL_DIR}/cmake/${PackageName})
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+   cmake/${PackageName}Config.cmake.in
+   ${CMAKE_CURRENT_BINARY_DIR}/${PackageName}Config.cmake
+   INSTALL_DESTINATION ${dest}
+   PATH_VARS INCLUDE_INSTALL_DIR
+)
+
+write_basic_package_version_file(
+   ${CMAKE_CURRENT_BINARY_DIR}/${PackageName}ConfigVersion.cmake
+   VERSION 1.2.3
+   COMPATIBILITY AnyNewerVersion
+)
+
+function(add_headers VAR)
+  set(headers ${${VAR}})
+  foreach (header ${ARGN})
+    set(headers ${headers} ${PROJECT_SOURCE_DIR}/third-party/fmt/include/fmt/${header})
+  endforeach()
+  set(${VAR} ${headers} PARENT_SCOPE)
+endfunction()
+
+set(FMT_HEADERS)
+add_headers(FMT_HEADERS args.h base.h chrono.h color.h compile.h core.h format.h
+                        format-inl.h os.h ostream.h printf.h ranges.h std.h
+                        xchar.h)
+
+set_target_properties(fmt PROPERTIES PUBLIC_HEADER "${FMT_HEADERS}")
+
+install(
+   TARGETS fmt
+   EXPORT ${PackageName}Targets
+   RUNTIME DESTINATION bin
+   LIBRARY DESTINATION lib
+   ARCHIVE DESTINATION lib
+   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/fmt
+)
+
+install(
+   TARGETS cpu_features
+   EXPORT ${PackageName}Targets
+   RUNTIME DESTINATION bin
+   LIBRARY DESTINATION lib
+   ARCHIVE DESTINATION lib
+   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cpu_features
+)
+
+install(
+   TARGETS ${LIB_NAME}
+   EXPORT ${PackageName}Targets
+   RUNTIME DESTINATION bin
+   LIBRARY DESTINATION lib
+   ARCHIVE DESTINATION lib
+   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/wjr
+)
+
+install(
+  DIRECTORY ${CMAKE_SOURCE_DIR}/include/
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+   EXPORT ${PackageName}Targets
+   NAMESPACE wjr::
+   DESTINATION ${dest}
+)
+
+install(
+   FILES
+   ${CMAKE_CURRENT_BINARY_DIR}/${PackageName}Config.cmake
+   ${CMAKE_CURRENT_BINARY_DIR}/${PackageName}ConfigVersion.cmake
+   DESTINATION ${dest}
+)

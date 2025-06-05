@@ -1511,7 +1511,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
 
     using T = typename Writer::float_type;
     constexpr bool is_support_integral = Writer::support_integral::value;
-    constexpr bool is_constant_options = !std::is_same_v<Op, chars_format>;
+    constexpr bool is_constant_options = is_integral_constant_v<Op>;
 
     if (WJR_UNLIKELY(first == last)) {
         return {first, std::errc::invalid_argument};

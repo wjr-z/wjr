@@ -20,15 +20,17 @@ inline constexpr size_t toom3_sqr_threshold = WJR_TOOM3_SQR_THRESHOLD;
 inline constexpr size_t toom4_sqr_threshold = WJR_TOOM4_SQR_THRESHOLD;
 inline constexpr size_t toom5_sqr_threshold = WJR_TOOM5_SQR_THRESHOLD;
 
-WJR_CONST constexpr size_t toom22_s_itch(size_t m) noexcept { return m * 4 + (m / 2) + 64; }
-WJR_CONST constexpr size_t toom22_n_itch(size_t n) noexcept { return n * 2 + 64; }
+// todo: itch ...
 
-WJR_CONST constexpr size_t toom33_s_itch(size_t m) noexcept { return m * 4 + (m / 2) + 64; }
-WJR_CONST constexpr size_t toom33_n_itch(size_t m) noexcept { return m * 2 + 64; }
+constexpr size_t toom22_s_itch(size_t m) noexcept { return m * 4 + (m / 2) + 64; }
+constexpr size_t toom22_n_itch(size_t n) noexcept { return n * 2 + 64; }
 
-WJR_CONST constexpr size_t toom44_n_itch(size_t m) noexcept { return m * 2 + 64; }
+constexpr size_t toom33_s_itch(size_t m) noexcept { return m * 4 + (m / 2) + 64; }
+constexpr size_t toom33_n_itch(size_t m) noexcept { return m * 2 + 64; }
 
-WJR_CONST constexpr size_t toom55_n_itch(size_t m) noexcept { return m * 3 + (m / 2) + 32; }
+constexpr size_t toom44_n_itch(size_t m) noexcept { return m * 2 + 64; }
+
+constexpr size_t toom55_n_itch(size_t m) noexcept { return m * 3 + (m / 2) + 32; }
 
 template <typename T>
 WJR_INTRINSIC_INLINE uint64_t *__mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n) noexcept {

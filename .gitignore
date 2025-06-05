@@ -30,7 +30,6 @@ msvc_build
 *.vcxproj
 *.vcxproj.filters
 .VScodeCounter
-**/cmake
 *.txt
 *.sh
 .vs

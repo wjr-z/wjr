@@ -105,15 +105,13 @@ struct biginteger_view {
         return *this;
     }
 
-    constexpr const uint64_t *data() const noexcept { return m_data; }
-    constexpr uint32_t size() const noexcept { return __fast_abs(m_size); }
-    constexpr uint32_t capacity() const noexcept { return m_capacity; }
+    WJR_PURE constexpr const uint64_t *data() const noexcept { return m_data; }
+    WJR_PURE constexpr uint32_t size() const noexcept { return __fast_abs(m_size); }
+    WJR_PURE constexpr uint32_t capacity() const noexcept { return m_capacity; }
 
-    constexpr bool empty() const noexcept { return m_size == 0; }
-
-    constexpr int32_t get_ssize() const noexcept { return m_size; }
-
-    constexpr bool is_negate() const noexcept { return get_ssize() < 0; }
+    WJR_PURE constexpr bool empty() const noexcept { return m_size == 0; }
+    WJR_PURE constexpr int32_t get_ssize() const noexcept { return m_size; }
+    WJR_PURE constexpr bool is_negate() const noexcept { return get_ssize() < 0; }
 
     uint64_t *m_data = nullptr;
     int32_t m_size = 0;
@@ -125,7 +123,7 @@ struct biginteger_data : biginteger_view {
     using biginteger_view::biginteger_view;
     using biginteger_view::data;
 
-    constexpr uint64_t *data() noexcept { return this->m_data; }
+    WJR_PURE constexpr uint64_t *data() noexcept { return this->m_data; }
 
     template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     constexpr void set_ssize(T new_size) noexcept {

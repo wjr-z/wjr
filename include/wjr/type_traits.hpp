@@ -788,6 +788,15 @@ struct is_complete : is_complete_helper<T>::type {};
 template <typename T>
 inline constexpr bool is_complete_v = is_complete<T>::value;
 
+template <typename T>
+struct is_integral_constant : std::false_type {};
+
+template <typename T, T Value>
+struct is_integral_constant<std::integral_constant<T, Value>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_integral_constant_v = is_integral_constant<T>::value;
+
 } // namespace wjr
 
 #endif // ! WJR_TYPE_TRAITS_HPP__

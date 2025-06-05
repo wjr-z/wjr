@@ -898,7 +898,7 @@ void __pow_impl(biginteger_dispatcher dst, const biginteger_view *num, uint32_t 
     }
 
     const uint32_t nusize = __fast_abs(nssize);
-    const uint32_t max_dusize = (uint64_t(__bit_width_impl(num)) * exp + 63) / 64;
+    const uint32_t max_dusize = (uint64_t(__bit_width_impl(num)) * exp + 63) / 64 + 1;
 
     using pointer = uint64_t *;
 

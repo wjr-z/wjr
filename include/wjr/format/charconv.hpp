@@ -1327,8 +1327,6 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase, Conver
         }
     }
 
-    const unsigned int base = ibase;
-
 #define WJR_TO_CHARS_IMPL(BASE, TABLE, CALL)                                                       \
     constexpr auto __fast_container_inserter_v =                                                   \
         charconv_detail::is_fast_container_inserter_v<Iter>;                                       \
@@ -1368,6 +1366,7 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase, Conver
         return wjr::copy(__ptr, __end, ptr);                                                       \
     }
 
+    const unsigned int base = ibase;
     switch (base) {
     case 2: {
         const int n = count_digits<2>(uVal);
