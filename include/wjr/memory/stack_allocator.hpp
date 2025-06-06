@@ -154,7 +154,7 @@ inline stack_allocator_object::stack_context::~stack_context() noexcept {
 static_assert(std::is_trivially_destructible_v<stack_allocator_object>);
 
 namespace mem {
-static thread_local stack_allocator_object __stack_allocator_singleton_object;
+inline thread_local stack_allocator_object __stack_allocator_singleton_object;
 }
 
 /**
