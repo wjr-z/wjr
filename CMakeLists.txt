@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.20)
 set(WJR_VERSION 0.1.1)
 project(wjr VERSION ${WJR_VERSION} LANGUAGES CXX)
 

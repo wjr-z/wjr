@@ -654,6 +654,15 @@ private:
         noexcept(std::declval<storage_type &>().swap_storage(std::declval<storage_type &>(),
                                                              std::declval<_Alty &>()));
 
+    template <typename Ty>
+    WJR_CONSTEXPR20 void __construct_n(const size_type n, Ty &&val) {
+        if (WJR_LIKELY(n != 0)) {
+            auto &al = __get_allocator();
+            uninitialized_construct(n, n);
+            wjr::uninitialized_fill_n_using_allocator(data(), n, al, std::forward<Ty>(val));
+        }
+    }
+
 public:
     basic_vector() noexcept(std::is_nothrow_default_constructible_v<allocator_type>) = default;
 
@@ -1362,15 +1371,6 @@ private:
                       "storage is not reallocatable.\nnew_capacity = ",
                       new_capacity, ", capacity = ", capacity());
         WJR_UNREACHABLE();
-    }
-
-    template <typename Ty>
-    WJR_CONSTEXPR20 void __construct_n(const size_type n, Ty &&val) {
-        if (WJR_LIKELY(n != 0)) {
-            auto &al = __get_allocator();
-            uninitialized_construct(n, n);
-            wjr::uninitialized_fill_n_using_allocator(data(), n, al, std::forward<Ty>(val));
-        }
     }
 
     template <typename Iter>
