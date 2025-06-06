@@ -34,7 +34,7 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
     constexpr auto is_avx = set_detail::is_avx;
 
-    using simd = typename set_detail::simd;
+    using simd = set_detail::simd;
     constexpr auto type_width = simd::width() / nd;
 
     constexpr auto sse_width = sse::width();
