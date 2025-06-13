@@ -16,7 +16,7 @@ endif()
 
 option(WJR_ENABLE_ASSEMBLY "Link with assembly by using NASM." OFF)
 option(WJR_DISABLE_EXCEPTIONS "Disable exceptions." OFF)
-option(WJR_DISABLE_CXX_20 "Disable C++ 20 even if it's supported." OFF)
+option(WJR_DISABLE_CXX_20 "Disable C++ 20 even if it's supported." ON)
 option(WJR_DEBUG_LEVEL_RELEASE "Debug level in release version(default = 0)." 0)
 option(WJR_DEBUG_LEVEL_DEBUG "Debug level in debug version(default = 3)." 3)
 
