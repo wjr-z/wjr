@@ -5,6 +5,7 @@
 
 #include <wjr/assert.hpp>
 #include <wjr/container/type_traits.hpp>
+#include <wjr/crtp/trivially_allocator_base.hpp>
 #include <wjr/format/charconv-impl.hpp>
 #include <wjr/math/bit.hpp>
 #include <wjr/math/broadcast.hpp>

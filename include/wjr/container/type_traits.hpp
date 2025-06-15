@@ -1,12 +1,38 @@
 #ifndef WJR_CONTAINER_TYPE_TRAITS_HPP__
 #define WJR_CONTAINER_TYPE_TRAITS_HPP__
 
-#include <array>
-#include <vector>
+#include <initializer_list>
+#include <memory>
+#include <string>
 
-#include <wjr/vector.hpp>
+#include <wjr/container/detail.hpp>
+
+#ifdef _LIBCPP_BEGIN_NAMESPACE_STD
+_LIBCPP_BEGIN_NAMESPACE_STD
+#else
+namespace std {
+#endif
+
+#ifdef _WIN32
+template <typename T, size_t N>
+class array;
+#else
+template <typename T, size_t N>
+struct array;
+#endif
+template <typename T, typename Allocator>
+class vector;
+
+#ifdef _LIBCPP_END_NAMESPACE_STD
+_LIBCPP_END_NAMESPACE_STD
+#else
+} // namespace std
+#endif
 
 namespace wjr {
+
+template <typename Storage>
+class basic_vector;
 
 template <typename Container>
 struct container_traits : __container_traits_base<Container> {};

@@ -111,23 +111,10 @@ struct __container_traits_base_iterator_helper<T, std::void_t<typename T::iterat
 };
 
 /// @private
-template <typename T, typename = void>
-struct __container_traits_base_size_type_helper {
-    using size_type = size_t;
-};
-
-/// @private
-template <typename T>
-struct __container_traits_base_size_type_helper<T, std::void_t<typename T::size_type>> {
-    using size_type = typename T::size_type;
-};
-
-/// @private
 template <typename Container>
 struct __container_traits_base {
 private:
     using iterator = typename __container_traits_base_iterator_helper<Container>::iterator;
-    using size_type = typename __container_traits_base_size_type_helper<Container>::size_type;
 
 public:
     constexpr static bool is_contiguous_v = is_contiguous_iterator_v<iterator>;
@@ -143,7 +130,8 @@ public:
      * as using Traits::copy.
      *
      */
-    constexpr static bool is_trivially_contiguous_v = false;
+    constexpr static bool is_trivially_contiguous_v =
+        is_contiguous_v && __is_contiguous_iterator_impl<iterator>::value;
 };
 
 template <typename Container>
