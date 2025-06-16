@@ -19,7 +19,7 @@ jobs:
     # The type of runner that the job will run on
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -35,6 +35,10 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install -y libgmp-dev
 
+      - name: Install GMP (Windows)
+        if: matrix.os == 'windows-latest'
+        run: vcpkg install gmp:x64-windows
+
       - name: Configure CMake
         run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release
         working-directory: ./tests/units
@@ -44,5 +48,11 @@ jobs:
         working-directory: ./tests/units
 
       - name: run
+        if: matrix.os == 'ubuntu-latest'
         run: ./tests
+        working-directory: ./tests/units/build
+
+      - name: run
+        if: matrix.os == 'windows-latest'
+        run: ./tests.exe
         working-directory: ./tests/units/build
