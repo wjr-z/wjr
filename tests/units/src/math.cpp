@@ -9,6 +9,7 @@
 
 #include <wjr/biginteger/detail.hpp>
 #include <wjr/math.hpp>
+#include <wjr/vector.hpp>
 
 using namespace wjr;
 

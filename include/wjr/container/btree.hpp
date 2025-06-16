@@ -989,10 +989,13 @@ private:
 
                 auto *lhs = __get_base();
                 auto *rhs = other.__get_base();
-                btree_detail::copy<0, 2>(lhs->m_values, lhs->m_values + size(), __tmp_ptr);
-                btree_detail::copy<0, 2>(rhs->m_values, rhs->m_values + other.size(),
-                                         lhs->m_values);
-                btree_detail::copy<0, 2>(__tmp_ptr, __tmp_ptr + size(), rhs->m_values);
+
+                WJR_ASSUME(size() <= 2);
+                WJR_ASSUME(other.size() <= 2);
+
+                uninitialized_copy_n_restrict(lhs->m_values, size(), __tmp_ptr);
+                uninitialized_copy_n_restrict(rhs->m_values, other.size(), lhs->m_values);
+                uninitialized_copy_n_restrict(__tmp_ptr, size(), rhs->m_values);
                 std::swap(__get_size(), other.__get_size());
             } else {
                 __swap_small_impl(other);
