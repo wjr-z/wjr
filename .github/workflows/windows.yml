@@ -28,10 +28,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Cache vcpkg artifacts
+        uses: actions/cache@v3
+        id: cache-vcpkg
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg/downloads
+            ${{ github.workspace }}/vcpkg/installed
+            ${{ github.workspace }}/vcpkg/buildtrees
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}-${{ hashFiles('CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}-
+            ${{ runner.os }}-vcpkg-
+
       - name: Init submodule
         run: git submodule update --init --recursive
 
       - name: Install GMP
+        if: steps.cache-vcpkg.outputs.cache-hit != 'true'
         run: vcpkg install gmp:x64-windows
 
       - name: Configure CMake
