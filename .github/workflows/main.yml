@@ -44,5 +44,5 @@ jobs:
         working-directory: ./tests/units
 
       - name: run
-        run: ./build/tests
-        working-directory: ./tests/units
+        run: ./tests
+        working-directory: ./tests/units/build
