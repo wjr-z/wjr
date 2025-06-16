@@ -419,8 +419,6 @@ class small_vector_storage {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
-    static_assert(Capacity >= 1);
-
 public:
     using storage_traits_type = vector_storage_traits<T, Alloc>;
     using value_type = typename storage_traits_type::value_type;
@@ -560,10 +558,14 @@ private:
     };
 };
 
+template <typename T, typename Alloc>
+class small_vector_storage<T, 0, Alloc> : public default_vector_storage<T, Alloc> {};
+
 template <typename T, size_t Capacity, typename Alloc>
 struct get_relocate_mode<small_vector_storage<T, Capacity, Alloc>> {
     /// @todo May be trivial.
-    static constexpr relocate_t value = relocate_t::normal;
+    static constexpr relocate_t value =
+        Capacity == 0 ? relocate_t::normal : get_relocate_mode_v<default_vector_storage<T, Alloc>>;
 };
 
 WJR_REGISTER_HAS_TYPE(vector_storage_deallocate_nonnull,

@@ -3,8 +3,6 @@ project(tests LANGUAGES CXX)
 
 include(FetchContent)
 
-set(WJR_ENABLE_ASSEMBLY ON)
-
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -26,6 +24,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../wjr ${CMAKE_CURRENT_BINARY
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
+find_package(GMP REQUIRED)
 add_compile_definitions(WJR_USE_GMP)
 
 if(EXISTS googletest)
@@ -92,22 +91,14 @@ if(WJR_ENABLE_COVERAGE)
    )
 endif()
 
-if(MSVC)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /I \"D:\\msys\\home\\19663\\gmp-6.3.0\"")
-else()
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I \"D:\\msys\\home\\19663\\gmp-6.3.0\" ")
-endif()
-
-set(GMP_LIBS "D:\\msys\\home\\19663\\gmp-6.3.0\\.libs")
-link_directories(${GMP_LIBS})
+target_include_directories(tests PRIVATE ${GMP_INCLUDE_DIRS})
 
 target_link_libraries(tests
    PRIVATE
    wjr
-   ${GMP_LIBS}/libgmp.dll.a
-   ${GMP_LIBS}/libgmpxx.dll.a
    gtest_main
+   ${GMP_LIBRARIES}
 )
 
-# target_precompile_headers(tests REUSE_FROM wjr)
+target_precompile_headers(tests PRIVATE ${WJR_PCH_COMMON} ${WJR_PCH_SIMD})
 enable_testing()
