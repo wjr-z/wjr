@@ -267,7 +267,7 @@ struct WJR_EMPTY_BASES
                                               std::is_default_constructible<Uy>>)>
     constexpr __compressed_pair_base() noexcept(
         std::conjunction_v<std::is_nothrow_constructible<T>, std::is_nothrow_constructible<U>>)
-        : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor), m_first(), U() {
+        : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor), U(), m_first() {
     }
 
     template <typename Ty, typename Uy,
@@ -277,7 +277,7 @@ struct WJR_EMPTY_BASES
         std::conjunction_v<std::is_nothrow_constructible<T, Ty>,
                            std::is_nothrow_constructible<U, Uy>>)
         : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor),
-          m_first(std::forward<Ty>(t)), U(std::forward<Uy>(u)) {}
+          U(std::forward<Uy>(u)), m_first(std::forward<Ty>(t)) {}
 
     template <typename Tuple1, typename Tuple2, size_t... N1, size_t... N2>
     constexpr __compressed_pair_base(
@@ -289,7 +289,7 @@ struct WJR_EMPTY_BASES
                                                      std::is_nothrow_constructible<
                                                          U, std::tuple_element_t<N2, Tuple2>...>>)
         : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor),
-          m_first(std::get<N1>(std::move(tp1))...), U(std::get<N2>(std::move(tp2))...) {}
+          U(std::get<N2>(std::move(tp2))...), m_first(std::get<N1>(std::move(tp1))...) {}
 
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
