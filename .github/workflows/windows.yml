@@ -44,6 +44,10 @@ jobs:
       - name: Init submodule
         run: git submodule update --init --recursive
 
+      - name: Install pkg-config
+        if: steps.cache-vcpkg.outputs.cache-hit != 'true'
+        run: vcpkg install pkgconf
+
       - name: Install GMP
         if: steps.cache-vcpkg.outputs.cache-hit != 'true'
         run: vcpkg install gmp --triplet=x64-windows --binarysource='clear;default,readwrite' --no-debug
