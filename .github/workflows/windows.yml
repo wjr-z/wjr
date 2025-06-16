@@ -46,7 +46,7 @@ jobs:
 
       - name: Install GMP
         if: steps.cache-vcpkg.outputs.cache-hit != 'true'
-        run: vcpkg install gmp:x64-windows
+        run: vcpkg install gmp --triplet=x64-windows --binarysource='clear;default,readwrite' --no-debug
 
       - name: Configure CMake
         run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release
