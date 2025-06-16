@@ -113,9 +113,9 @@ TEST(btree_map, emplace) {
 
 TEST(btree_map, search) {
     {
-        auto test = [](auto key, auto value) {
-            using key_type = remove_cvref_t<decltype(key)>;
-            using value_type = remove_cvref_t<decltype(value)>;
+        auto test = [](auto K, auto V) {
+            using key_type = remove_cvref_t<decltype(K)>;
+            using value_type = remove_cvref_t<decltype(V)>;
             for (int n = 0; n < 1024; n = (n << 1) | 1) {
                 vector<std::pair<key_type, value_type>> vec;
                 for (int i = 0; i < n; ++i) {
