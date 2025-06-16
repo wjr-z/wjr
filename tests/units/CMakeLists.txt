@@ -24,7 +24,18 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../wjr ${CMAKE_CURRENT_BINARY
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-find_package(GMP REQUIRED)
+find_package(GMP QUIET)
+if(NOT GMP_FOUND)
+   find_package(PkgConfig)
+   pkg_check_modules(GMP REQUIRED gmp)
+   set(GMP_INCLUDE_DIRS ${GMP_INCLUDE_DIRS})
+   set(GMP_LIBRARIES ${GMP_LIBRARIES})
+else()
+   set(GMP_INCLUDE_DIRS)
+   set(GMP_LIBRARIES gmp libgmp)
+endif()
+
+
 add_compile_definitions(WJR_USE_GMP)
 
 if(EXISTS googletest)
