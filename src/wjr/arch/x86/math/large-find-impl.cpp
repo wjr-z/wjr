@@ -42,8 +42,8 @@ size_t large_builtin_find_not_n(const T *src0, const T *src1, size_t n) noexcept
     #endif
 
     #define WJR_REGISTER_FIND_NOT_N_ADVNCE(index)                                                  \
-        src0 += index;                                                                             \
-        src1 += index
+        src0 += (index);                                                                           \
+        src1 += (index)
 
     #define WJR_REGISTER_FIND_NOT_N_INIT8() const auto __src0 = src0
 
@@ -126,7 +126,7 @@ size_t large_builtin_find_not_n(const T *src, T val, size_t n) noexcept {
             WJR_REGISTER_FIND_NOT_N_2((index) + 2)
     #endif
 
-    #define WJR_REGISTER_FIND_NOT_N_ADVANCE(index) src += index
+    #define WJR_REGISTER_FIND_NOT_N_ADVANCE(index) src += (index)
 
     #if WJR_HAS_SIMD(AVX2)
         #define WJR_REGISTER_FIND_NOT_N_INIT4() const auto y4 = broadcast<__m128i_t, __m256i_t>(y2);
@@ -227,8 +227,8 @@ size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1, size_t n) 
     #endif
 
     #define WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE(index)                                         \
-        src0 += index;                                                                             \
-        src1 += index
+        src0 += (index);                                                                           \
+        src1 += (index)
 
     #define WJR_REGISTER_REVERSE_FIND_NOT_N_RET(index) 0
 
@@ -312,7 +312,7 @@ size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) noexcept 
             WJR_REGISTER_REVERSE_FIND_NOT_N_2(index)
     #endif
 
-    #define WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE(index) src += index
+    #define WJR_REGISTER_REVERSE_FIND_NOT_N_ADVANCE(index) src += (index)
 
     #if WJR_HAS_SIMD(AVX2)
         #define WJR_REGISTER_REVERSE_FIND_NOT_N_INIT4()                                            \

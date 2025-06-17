@@ -48,8 +48,8 @@ int large_builtin_compare_n(const T *src0, const T *src1, size_t n) noexcept {
     #endif
 
     #define WJR_REGISTER_COMPARE_NOT_N_ADVANCE(index)                                              \
-        src0 += index;                                                                             \
-        src1 += index
+        src0 += (index);                                                                           \
+        src1 += (index)
     #define WJR_REGISTER_COMPARE_NOT_N_RET(index) 0
 
     WJR_ASSUME(n > 2);
@@ -152,8 +152,8 @@ int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_t n) noex
     #endif
 
     #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_ADVANCE(index)                                      \
-        src0 += index;                                                                             \
-        src1 += index
+        src0 += (index);                                                                           \
+        src1 += (index)
 
     #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_RET(index) 0
 

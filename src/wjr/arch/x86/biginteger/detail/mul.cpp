@@ -1,5 +1,7 @@
 #include <wjr/arch/x86/biginteger/detail/mul.hpp>
 
+// NOLINTBEGIN
+
 namespace wjr {
 
 #if WJR_HAS_BUILTIN(ASM_MUL_1) == 1
@@ -1859,3 +1861,5 @@ void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx)
 #endif
 
 } // namespace wjr
+
+// NOLINTEND

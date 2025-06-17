@@ -17,6 +17,8 @@
 
 namespace wjr {
 
+// NOLINTBEGIN
+
 #if WJR_HAS_BUILTIN(SET_N)
 
     #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM) || defined(WJR_COMPILER_MSVC)
@@ -58,6 +60,8 @@ WJR_INTRINSIC_INLINE void rep_stos(uint64_t *s, uint64_t val, size_t n) {
 }
 
     #endif
+
+// NOLINTEND
 
 namespace {
 template <typename T>
