@@ -198,7 +198,8 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_find_n_iter_val(Iter src, T val, size_t 
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR size_t resolve_find_n_impl(const T *src, T val, size_t n) noexcept {
+WJR_INTRINSIC_CONSTEXPR size_t resolve_find_n_impl(const T *src, type_identity_t<T> val,
+                                                   size_t n) noexcept {
 #if WJR_HAS_BUILTIN(FIND_N)
     if constexpr (sizeof(T) == 8 && is_nonbool_integral_v<T>) {
         if (!is_constant_evaluated()) {
@@ -370,7 +371,8 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_find_not_n_iter_val(Iter src, T val, siz
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR size_t resolve_find_not_n_impl(const T *src, T val, size_t n) noexcept {
+WJR_INTRINSIC_CONSTEXPR size_t resolve_find_not_n_impl(const T *src, type_identity_t<T> val,
+                                                       size_t n) noexcept {
 #if WJR_HAS_BUILTIN(FIND_NOT_N)
     if constexpr (sizeof(T) == 8 && is_nonbool_integral_v<T>) {
         if (!is_constant_evaluated()) {
