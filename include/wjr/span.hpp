@@ -212,6 +212,31 @@ public:
         : storage(source.data(), source.size()) {}
 #endif
 
+#if WJR_HAS_GCC(9, 0, 0)
+    // Disable gcc's warning in this constructor as it generates an enormous amount
+    // of messages. Anyone using ArrayRef should already be aware of the fact that
+    // it does not do lifetime extension.
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Winit-list-lifetime"
+#endif
+
+#if defined(__cpp_conditional_explicit)
+    constexpr explicit(!__is_dynamic) span(std::initializer_list<value_type> il) noexcept
+        : storage(il.begin(), il.size()) {}
+#else
+    template <size_t E = Extent, WJR_REQUIRES(E == dynamic_extent)>
+    constexpr span(std::initializer_list<value_type> il) noexcept
+        : storage(il.begin(), il.size()) {}
+
+    template <size_t E = Extent, WJR_REQUIRES(E != dynamic_extent)>
+    constexpr explicit span(std::initializer_list<value_type> il) noexcept
+        : storage(il.begin(), il.size()) {}
+#endif
+
+#if WJR_HAS_GCC(9, 0, 0)
+    #pragma GCC diagnostic pop
+#endif
+
     span(const span &) = default;
     span(span &&) = default;
     span &operator=(const span &) = default;
