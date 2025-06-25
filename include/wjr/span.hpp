@@ -109,7 +109,7 @@ inline constexpr bool __is_span_like_v = __is_span_like<Container, Elem>::value;
 /// @private
 template <typename T>
 struct basic_span_traits {
-    using value_type = std::remove_cv_t<T>;
+    using value_type = T;
     using difference_type = ptrdiff_t;
     using pointer = T *;
     using const_pointer = const T *;
