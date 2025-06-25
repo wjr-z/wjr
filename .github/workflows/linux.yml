@@ -23,6 +23,7 @@ jobs:
       fail-fast: false
       matrix:
         sys:
+        - {compiler: clang, version: '15'}
         - {compiler: clang, version: '17'}
         - {compiler: clang, version: '18'}
         - {compiler: clang, version: '19'}
