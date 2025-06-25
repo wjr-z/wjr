@@ -95,6 +95,11 @@ constexpr auto __niter_wrap(const From &from, To res) {
     return from + (res - __niter_base(from));
 }
 
+template <typename Iter>
+constexpr add_restrict_t<Iter> __add_restrict(Iter iter) {
+    return iter;
+}
+
 /// @private
 class __is_little_endian_helper {
     constexpr static std::uint32_t u4 = 1;
