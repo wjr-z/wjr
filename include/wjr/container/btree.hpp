@@ -846,7 +846,7 @@ protected:
         if constexpr (Traits::is_inline_value) {
             destroy_at_using_allocator(std::addressof(node), al);
         } else {
-            destroy_at_using_allocator(std::addressof(node), al);
+            destroy_at_using_allocator(node, al);
             _Alty_traits::deallocate(al, reinterpret_cast<char *>(node), sizeof(value_type));
         }
     }
