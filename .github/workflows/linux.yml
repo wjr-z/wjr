@@ -27,12 +27,10 @@ jobs:
         - {compiler: clang, version: '18'}
         - {compiler: clang, version: '19'}
         - {compiler: clang, version: '20'}
-        - {compiler: gcc, version: '11'}
+        - {compiler: gcc, version: '9'}
         - {compiler: gcc, version: '11'}
         - {compiler: gcc, version: '12'}
         - {compiler: gcc, version: '13'}
-        - {compiler: gcc, version: '13'}
-        - {compiler: gcc, version: '14'}
         - {compiler: gcc, version: '14'}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
