@@ -5,7 +5,6 @@
 
 #include <wjr/preprocessor.hpp>
 
-
 namespace wjr {
 
 WJR_MALLOC inline void *aligned_alloc(size_t size, size_t alignment) noexcept {

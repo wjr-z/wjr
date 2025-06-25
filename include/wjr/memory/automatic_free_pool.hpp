@@ -17,7 +17,8 @@ class automatic_free_pool {
     struct chunk : intrusive::list_node<chunk> {};
 
 public:
-    static constexpr size_t aligned_header_size = align_up(sizeof(chunk), mem::default_new_alignment);
+    static constexpr size_t aligned_header_size =
+        align_up(sizeof(chunk), mem::default_new_alignment);
 
     automatic_free_pool() = default;
     ~automatic_free_pool() noexcept {

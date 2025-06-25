@@ -743,7 +743,8 @@ public:
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector(Iter first, Iter last, const allocator_type &al = allocator_type())
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
-        __range_construct(wjr::__iter_base(first), wjr::__iter_base(last), iterator_category_t<Iter>());
+        __range_construct(wjr::__iter_base(first), wjr::__iter_base(last),
+                          iterator_category_t<Iter>());
     }
 
     WJR_CONSTEXPR20 basic_vector(std::initializer_list<value_type> il,
@@ -781,7 +782,8 @@ public:
 
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &assign(Iter first, Iter last) {
-        __range_assign(wjr::__iter_base(first), wjr::__iter_base(last), iterator_category_t<Iter>());
+        __range_assign(wjr::__iter_base(first), wjr::__iter_base(last),
+                       iterator_category_t<Iter>());
         return *this;
     }
 
@@ -1219,7 +1221,8 @@ public:
 
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &append(Iter first, Iter last) {
-        __range_append(wjr::__iter_base(first), wjr::__iter_base(last), iterator_category_t<Iter>());
+        __range_append(wjr::__iter_base(first), wjr::__iter_base(last),
+                       iterator_category_t<Iter>());
         return *this;
     }
 

@@ -3,9 +3,9 @@
 
 #include <array>
 
+#include <wjr/container/bitmask_enum.hpp>
 #include <wjr/format/ctype.hpp>
 #include <wjr/math/integral_constant.hpp>
-#include <wjr/container/bitmask_enum.hpp>
 
 namespace wjr {
 

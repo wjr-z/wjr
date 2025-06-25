@@ -34,11 +34,10 @@ public:
 
     WJR_NODISCARD WJR_CONSTEXPR20 pointer operator->() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_CHECK(m_container != nullptr,
-                          "Can't dereference an value-initialized iterator.");
+        WJR_CHECK(m_container != nullptr, "Can't dereference an value-initialized iterator.");
         WJR_CHECK(m_ptr != nullptr, "Can't dereference an invalid iterator.");
         WJR_CHECK(m_ptr >= __begin() && m_ptr < __end(),
-                          "Can't dereference an out-of-range iterator.");
+                  "Can't dereference an out-of-range iterator.");
 #endif
         return const_cast<pointer>(m_ptr);
     }
@@ -49,8 +48,7 @@ public:
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_CHECK(m_container != nullptr, "Can't increment an value-initialized iterator.");
         WJR_CHECK(m_ptr != nullptr, "Can't increment an invalid iterator.");
-        WJR_CHECK(m_ptr < __end(),
-                          "Can't increment an iterator that is already at/after the end.");
+        WJR_CHECK(m_ptr < __end(), "Can't increment an iterator that is already at/after the end.");
 #endif
         ++m_ptr;
         return *this;
@@ -67,7 +65,7 @@ public:
         WJR_CHECK(m_container != nullptr, "Can't decrement an value-initialized iterator.");
         WJR_CHECK(m_ptr != nullptr, "Can't decrement an invalid iterator.");
         WJR_CHECK(m_ptr > __begin(),
-                          "Can't decrement an iterator that is already at/before the beginning.");
+                  "Can't decrement an iterator that is already at/before the beginning.");
 #endif
         --m_ptr;
         return *this;
@@ -153,8 +151,7 @@ public:
     WJR_CONSTEXPR20 void
     check_same_container(WJR_MAYBE_UNUSED const Container *cont) const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_CHECK(m_container == cont,
-                          "Can't compare iterators from different containers.");
+        WJR_CHECK(m_container == cont, "Can't compare iterators from different containers.");
 #else
         (void)(cont);
 #endif
@@ -176,10 +173,9 @@ private:
         WJR_CHECK(m_ptr != nullptr, "Can't seek an invalid iterator.");
         if (offset < 0) {
             WJR_CHECK(offset >= __begin() - m_ptr,
-                              "Can't seek an iterator that before the beginning.");
+                      "Can't seek an iterator that before the beginning.");
         } else {
-            WJR_CHECK(offset <= __end() - m_ptr,
-                              "Can't seek an iterator that after the end.");
+            WJR_CHECK(offset <= __end() - m_ptr, "Can't seek an iterator that after the end.");
         }
     }
 
@@ -187,7 +183,7 @@ private:
     WJR_CONSTEXPR20 void
     __check_same_container(const contiguous_const_iterator_adapter &rhs) const noexcept {
         WJR_CHECK(m_container == rhs.m_container,
-                          "Can't compare iterators from different containers.");
+                  "Can't compare iterators from different containers.");
     }
 
     /// @private
@@ -325,14 +321,13 @@ struct pointer_traits<wjr::contiguous_const_iterator_adapter<Container, Traits>>
         const auto cont = ptr.m_container;
         if (cont) {
             WJR_CHECK(ptr.m_ptr >= ptr.__begin() && ptr.m_ptr <= ptr.__end(),
-                              "can't convert out-of-range vector iterator to pointer");
+                      "can't convert out-of-range vector iterator to pointer");
         } else {
-            WJR_CHECK(ptr.m_ptr == nullptr,
-                              "can't convert invalid vector iterator to pointer");
+            WJR_CHECK(ptr.m_ptr == nullptr, "can't convert invalid vector iterator to pointer");
         }
 #endif
 
-        return const_cast<element_type*>(wjr::to_address(ptr.m_ptr));
+        return const_cast<element_type *>(wjr::to_address(ptr.m_ptr));
     }
 };
 
@@ -347,10 +342,9 @@ struct pointer_traits<wjr::contiguous_iterator_adapter<Container, Traits>> {
         const auto cont = ptr.m_container;
         if (cont) {
             WJR_CHECK(ptr.m_ptr >= ptr.__begin() && ptr.m_ptr <= ptr.__end(),
-                              "can't convert out-of-range vector iterator to pointer");
+                      "can't convert out-of-range vector iterator to pointer");
         } else {
-            WJR_CHECK(ptr.m_ptr == nullptr,
-                              "can't convert invalid vector iterator to pointer");
+            WJR_CHECK(ptr.m_ptr == nullptr, "can't convert invalid vector iterator to pointer");
         }
 #endif
 
