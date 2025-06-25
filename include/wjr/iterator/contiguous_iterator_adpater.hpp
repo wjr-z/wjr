@@ -332,7 +332,7 @@ struct pointer_traits<wjr::contiguous_const_iterator_adapter<Container, Traits>>
         }
 #endif
 
-        return wjr::to_address(ptr.m_ptr);
+        return const_cast<element_type*>(wjr::to_address(ptr.m_ptr));
     }
 };
 
