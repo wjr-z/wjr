@@ -51,8 +51,7 @@ WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &a
 
 template <typename InputIt, typename OutputIt>
 WJR_CONSTEXPR20 OutputIt uninitialized_copy(InputIt first, InputIt last, OutputIt d_first) {
-    return std::uninitialized_copy(to_contiguous_address(first), to_contiguous_address(last),
-                                   to_contiguous_address(d_first));
+    return std::uninitialized_copy(__niter_base(first), __niter_base(last), __niter_base(d_first));
 }
 
 template <typename InputIt, typename OutputIt>
@@ -71,8 +70,8 @@ WJR_CONSTEXPR20 OutputIt __uninitialized_copy_restrict_impl(InputIt first, Input
 template <typename InputIt, typename OutputIt>
 WJR_CONSTEXPR20 OutputIt uninitialized_copy_restrict(InputIt first, InputIt last,
                                                      OutputIt d_first) {
-    const auto __first = to_contiguous_address(first);
-    const auto __last = to_contiguous_address(last);
+    const auto __first = __niter_base(first);
+    const auto __last = __niter_base(last);
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
         const auto __d_first = wjr::to_address(d_first);
         const auto __d_last = __uninitialized_copy_restrict_impl(__first, __last, __d_first);
@@ -84,8 +83,7 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_restrict(InputIt first, InputIt last
 
 template <typename InputIt, typename Size, typename OutputIt>
 WJR_CONSTEXPR20 OutputIt uninitialized_copy_n(InputIt first, Size n, OutputIt d_first) {
-    return std::uninitialized_copy_n(to_contiguous_address(first), n,
-                                     to_contiguous_address(d_first));
+    return std::uninitialized_copy_n(__niter_base(first), n, __niter_base(d_first));
 }
 
 template <typename InputIt, typename Size, typename OutputIt>
@@ -102,7 +100,7 @@ WJR_CONSTEXPR20 OutputIt __uninitialized_copy_n_restrict_impl(InputIt first, Siz
 
 template <typename InputIt, typename Size, typename OutputIt>
 WJR_CONSTEXPR20 OutputIt uninitialized_copy_n_restrict(InputIt first, Size n, OutputIt d_first) {
-    const auto __first = to_contiguous_address(first);
+    const auto __first = __niter_base(first);
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
         const auto __d_first = wjr::to_address(d_first);
         const auto __d_last = __uninitialized_copy_n_restrict_impl(__first, n, __d_first);
@@ -148,8 +146,8 @@ template <typename InputIt, typename OutputIt, typename Alloc>
 WJR_CONSTEXPR20 OutputIt uninitialized_copy_restrict_using_allocator(InputIt first, InputIt last,
                                                                      OutputIt d_first,
                                                                      Alloc &alloc) {
-    const auto __first = to_contiguous_address(first);
-    const auto __last = to_contiguous_address(last);
+    const auto __first = __niter_base(first);
+    const auto __last = __niter_base(last);
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
         const auto __d_first = wjr::to_address(d_first);
         const auto __d_last =
@@ -194,7 +192,7 @@ template <typename InputIt, typename Size, typename OutputIt, typename Alloc>
 WJR_CONSTEXPR20 OutputIt uninitialized_copy_n_restrict_using_allocator(InputIt first, Size n,
                                                                        OutputIt d_first,
                                                                        Alloc &alloc) {
-    const auto __first = to_contiguous_address(first);
+    const auto __first = __niter_base(first);
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
         const auto __d_first = wjr::to_address(d_first);
         const auto __d_last =
@@ -262,8 +260,7 @@ WJR_CONSTEXPR20 void uninitialized_default_construct_using_allocator(Iter first,
                                                                      Alloc &alloc) {
     using value_type = iterator_value_t<Iter>;
     if constexpr (is_trivially_allocator_construct_v<Alloc, value_type>) {
-        std::uninitialized_default_construct(to_contiguous_address(first),
-                                             to_contiguous_address(last));
+        std::uninitialized_default_construct(__niter_base(first), __niter_base(last));
     } else {
         if constexpr (!std::is_trivially_default_constructible_v<value_type>) {
             for (; first != last; ++first) {
@@ -278,7 +275,7 @@ WJR_CONSTEXPR20 void uninitialized_default_construct_n_using_allocator(Iter firs
                                                                        Alloc &alloc) {
     using value_type = iterator_value_t<Iter>;
     if constexpr (is_trivially_allocator_construct_v<Alloc, value_type>) {
-        std::uninitialized_default_construct_n(to_contiguous_address(first), n);
+        std::uninitialized_default_construct_n(__niter_base(first), n);
     } else {
         if constexpr (!std::is_trivially_default_constructible_v<value_type>) {
             for (; n > 0; ++first, --n) {
@@ -293,8 +290,7 @@ template <typename Iter, typename Alloc>
 WJR_CONSTEXPR20 void uninitialized_value_construct_using_allocator(Iter first, Iter last,
                                                                    Alloc &alloc) {
     if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<Iter>>) {
-        std::uninitialized_value_construct(to_contiguous_address(first),
-                                           to_contiguous_address(last));
+        std::uninitialized_value_construct(__niter_base(first), __niter_base(last));
     } else {
         for (; first != last; ++first) {
             std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(first));
@@ -306,7 +302,7 @@ template <typename Iter, typename Size, typename Alloc>
 WJR_CONSTEXPR20 void uninitialized_value_construct_n_using_allocator(Iter first, Size n,
                                                                      Alloc &alloc) {
     if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<Iter>>) {
-        std::uninitialized_value_construct_n(to_contiguous_address(first), n);
+        std::uninitialized_value_construct_n(__niter_base(first), n);
     } else {
         for (; n > 0; ++first, --n) {
             std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(first));
@@ -330,8 +326,7 @@ WJR_CONSTEXPR20 void uninitialized_fill_using_allocator(Iter first, Iter last, A
     } else {
         if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<Iter>,
                                                          const T &>) {
-            std::uninitialized_fill(to_contiguous_address(first), to_contiguous_address(last),
-                                    value);
+            std::uninitialized_fill(__niter_base(first), __niter_base(last), value);
         } else {
             for (; first != last; ++first) {
                 std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(first), value);
@@ -356,7 +351,7 @@ WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n, Al
     } else {
         if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<Iter>,
                                                          const T &>) {
-            std::uninitialized_fill_n(to_contiguous_address(first), n, value);
+            std::uninitialized_fill_n(__niter_base(first), n, value);
         } else {
             for (; n > 0; ++first, --n) {
                 std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(first), value);
@@ -464,8 +459,8 @@ OutputIt __uninitialized_relocate_restrict_impl(InputIt first, InputIt last, Out
 
 template <typename InputIt, typename OutputIt>
 OutputIt uninitialized_relocate_restrict(InputIt first, InputIt last, OutputIt d_first) {
-    const auto __first = to_contiguous_address(first);
-    const auto __last = to_contiguous_address(last);
+    const auto __first = __niter_base(first);
+    const auto __last = __niter_base(last);
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
         const auto __d_first = wjr::to_address(d_first);
         const auto __d_last = __uninitialized_relocate_restrict_impl(__first, __last, __d_first);
@@ -519,8 +514,8 @@ OutputIt __uninitialized_relocate_restrict_using_allocator_impl(InputIt first, I
 template <typename InputIt, typename OutputIt, typename Alloc>
 OutputIt uninitialized_relocate_restrict_using_allocator(InputIt first, InputIt last,
                                                          OutputIt d_first, Alloc &alloc) {
-    const auto __first = to_contiguous_address(first);
-    const auto __last = to_contiguous_address(last);
+    const auto __first = __niter_base(first);
+    const auto __last = __niter_base(last);
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
         const auto __d_first = wjr::to_address(d_first);
         const auto __d_last = __uninitialized_relocate_restrict_using_allocator_impl(
@@ -572,7 +567,7 @@ OutputIt __uninitialized_relocate_n_restrict_impl(InputIt first, Size n, OutputI
 
 template <typename InputIt, typename Size, typename OutputIt>
 OutputIt uninitialized_relocate_n_restrict(InputIt first, Size n, OutputIt d_first) {
-    const auto __first = to_contiguous_address(first);
+    const auto __first = __niter_base(first);
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
         const auto __d_first = wjr::to_address(d_first);
         const auto __d_last = __uninitialized_relocate_n_restrict_impl(__first, n, __d_first);
@@ -626,7 +621,7 @@ OutputIt __uninitialized_relocate_n_restrict_using_allocator_impl(InputIt first,
 template <typename InputIt, typename Size, typename OutputIt, typename Alloc>
 OutputIt uninitialized_relocate_n_restrict_using_allocator(InputIt first, Size n, OutputIt d_first,
                                                            Alloc &alloc) {
-    const auto __first = to_contiguous_address(first);
+    const auto __first = __niter_base(first);
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
         const auto __d_first = wjr::to_address(d_first);
         const auto __d_last =

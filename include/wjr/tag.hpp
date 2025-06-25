@@ -54,6 +54,10 @@ struct in_place_reserve_t {};
 
 inline constexpr in_place_reserve_t in_place_reserve = {};
 
+struct from_range_t {};
+
+inline constexpr from_range_t from_range = {};
+
 inline constexpr size_t dynamic_extent = SIZE_MAX;
 
 } // namespace wjr

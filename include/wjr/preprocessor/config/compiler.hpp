@@ -60,11 +60,14 @@
 #if WJR_CPP_STANDARD >= 201402L
     #define WJR_CPP_14
 #endif
-#if WJR_CPP_STANDARD >= 201703L
+#if WJR_CPP_STANDARD > 201402L
     #define WJR_CPP_17
 #endif
-#if WJR_CPP_STANDARD >= 202002L
+#if WJR_CPP_STANDARD > 201703L
     #define WJR_CPP_20
+#endif
+#if WJR_CPP_STANDARD > 202002L
+    #define WJR_CPP_23
 #endif
 
 #ifndef WJR_CPP_17

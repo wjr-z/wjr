@@ -56,17 +56,43 @@ constexpr auto to_address(const std::move_iterator<Iter> &p) noexcept {
  * iterato check is disabled, otherwise return p.
  *
  */
-template <typename T>
-constexpr decltype(auto) to_contiguous_address(T &&t) noexcept {
+template <typename Iter>
+constexpr decltype(auto) to_contiguous_address(Iter &&t) noexcept {
 #if !WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-    if constexpr (is_contiguous_iterator_v<remove_cvref_t<T>>) {
-        return wjr::to_address(std::forward<T>(t));
+    if constexpr (is_contiguous_iterator_v<remove_cvref_t<Iter>>) {
+        return wjr::to_address(std::forward<Iter>(t));
     } else {
 #endif
-        return std::forward<T>(t);
+        return std::forward<Iter>(t);
 #if !WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
     }
 #endif
+}
+
+template <typename T>
+constexpr T *to_contiguous_address(T *ptr) noexcept {
+    return ptr;
+}
+
+template <typename Iter>
+constexpr auto __unwrap_iter(Iter iter) {
+    // todo: ...
+    return to_contiguous_address(iter);
+}
+
+template <typename Iter>
+constexpr auto __niter_base(Iter iter) {
+    return __unwrap_iter(iter);
+}
+
+template <typename Iter>
+constexpr auto __niter_wrap(const Iter &, Iter res) {
+    return res;
+}
+
+template <typename From, typename To>
+constexpr auto __niter_wrap(const From &from, To res) {
+    return from + (res - __niter_base(from));
 }
 
 /// @private
