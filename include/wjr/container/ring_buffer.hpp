@@ -362,7 +362,7 @@ public:
     WJR_CONSTEXPR20 basic_ring_buffer(Iter first, Iter last,
                                       const allocator_type &al = allocator_type())
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
-        __range_construct(__niter_base(first), __niter_base(last), iterator_category_t<Iter>());
+        __range_construct(wjr::__iter_base(first), wjr::__iter_base(last), iterator_category_t<Iter>());
     }
 
     WJR_CONSTEXPR20

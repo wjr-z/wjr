@@ -75,24 +75,19 @@ constexpr T *to_contiguous_address(T *ptr) noexcept {
 }
 
 template <typename Iter>
-constexpr auto __unwrap_iter(Iter iter) {
+constexpr auto __iter_base(Iter iter) {
     // todo: ...
     return to_contiguous_address(iter);
 }
 
 template <typename Iter>
-constexpr auto __niter_base(Iter iter) {
-    return __unwrap_iter(iter);
-}
-
-template <typename Iter>
-constexpr auto __niter_wrap(const Iter &, Iter res) {
+constexpr auto __iter_wrap(const Iter &, Iter res) {
     return res;
 }
 
 template <typename From, typename To>
-constexpr auto __niter_wrap(const From &from, To res) {
-    return from + (res - __niter_base(from));
+constexpr auto __iter_wrap(const From &from, To res) {
+    return from + (res - wjr::__iter_base(from));
 }
 
 template <typename Iter>

@@ -63,7 +63,7 @@ constexpr OutputIt __copy_impl(InputIt first, InputIt last, OutputIt d_first) {
  */
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
-    return __copy_impl(__niter_base(first), __niter_base(last), __niter_base(d_first));
+    return __copy_impl(wjr::__iter_base(first), wjr::__iter_base(last), wjr::__iter_base(d_first));
 }
 
 /// @private
@@ -88,8 +88,8 @@ constexpr OutputIt __copy_restrict_impl(InputIt first, InputIt last, OutputIt d_
  */
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt copy_restrict(InputIt first, InputIt last, OutputIt d_first) {
-    const auto __first = __niter_base(std::move(first));
-    const auto __last = __niter_base(std::move(last));
+    const auto __first = wjr::__iter_base(std::move(first));
+    const auto __last = wjr::__iter_base(std::move(last));
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
         const auto __d_first = wjr::to_address(d_first);
         const auto __d_last = __copy_restrict_impl(__first, __last, __d_first);
@@ -141,7 +141,7 @@ constexpr OutputIt __copy_n_impl(InputIt first, Size count, OutputIt d_first) {
  */
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
-    return __copy_n_impl(__niter_base(first), count, __niter_base(d_first));
+    return __copy_n_impl(wjr::__iter_base(first), count, wjr::__iter_base(d_first));
 }
 
 /// @private
@@ -165,7 +165,7 @@ constexpr OutputIt __copy_n_restrict_impl(InputIt first, Size count, OutputIt d_
  */
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt copy_n_restrict(InputIt first, Size count, OutputIt d_first) {
-    const auto __first = __niter_base(std::move(first));
+    const auto __first = wjr::__iter_base(std::move(first));
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
         const auto __d_first = wjr::to_address(d_first);
         const auto __d_last = __copy_n_restrict_impl(__first, count, __d_first);

@@ -743,7 +743,7 @@ public:
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector(Iter first, Iter last, const allocator_type &al = allocator_type())
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
-        __range_construct(__niter_base(first), __niter_base(last), iterator_category_t<Iter>());
+        __range_construct(wjr::__iter_base(first), wjr::__iter_base(last), iterator_category_t<Iter>());
     }
 
     WJR_CONSTEXPR20 basic_vector(std::initializer_list<value_type> il,
@@ -781,7 +781,7 @@ public:
 
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &assign(Iter first, Iter last) {
-        __range_assign(__niter_base(first), __niter_base(last), iterator_category_t<Iter>());
+        __range_assign(wjr::__iter_base(first), wjr::__iter_base(last), iterator_category_t<Iter>());
         return *this;
     }
 
@@ -1078,7 +1078,7 @@ public:
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 iterator insert(const_iterator pos, Iter first, Iter last) {
         const auto old_pos = static_cast<size_type>(pos - cbegin());
-        __range_insert(data() + old_pos, __niter_base(first), __niter_base(last),
+        __range_insert(data() + old_pos, wjr::__iter_base(first), wjr::__iter_base(last),
                        iterator_category_t<Iter>());
         return begin() + old_pos;
     }
@@ -1219,7 +1219,7 @@ public:
 
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &append(Iter first, Iter last) {
-        __range_append(__niter_base(first), __niter_base(last), iterator_category_t<Iter>());
+        __range_append(wjr::__iter_base(first), wjr::__iter_base(last), iterator_category_t<Iter>());
         return *this;
     }
 
@@ -1245,8 +1245,8 @@ public:
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &replace(const_iterator from, const_iterator to, Iter first,
                                           Iter last) {
-        __range_replace(__get_pointer(from), __get_pointer(to), __niter_base(first),
-                        __niter_base(last), iterator_category_t<Iter>());
+        __range_replace(__get_pointer(from), __get_pointer(to), wjr::__iter_base(first),
+                        wjr::__iter_base(last), iterator_category_t<Iter>());
         return *this;
     }
 

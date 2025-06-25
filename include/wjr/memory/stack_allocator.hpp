@@ -71,7 +71,7 @@ private:
 
         WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
 
-        auto *const ret = assume_aligned<mem::default_new_alignment>(m_cache.ptr);
+        auto *const ret = wjr::assume_aligned<mem::default_new_alignment>(m_cache.ptr);
         m_cache.ptr += align_up(n, mem::default_new_alignment);
         return ret;
     }
@@ -123,7 +123,7 @@ public:
 
         WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
 
-        auto *const ret = assume_aligned<mem::default_new_alignment>(m_cache.ptr);
+        auto *const ret = wjr::assume_aligned<mem::default_new_alignment>(m_cache.ptr);
         m_cache.ptr += align_up(n, mem::default_new_alignment);
         return ret;
     }
