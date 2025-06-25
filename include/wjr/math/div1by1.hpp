@@ -172,7 +172,7 @@ public:
     WJR_INTRINSIC_INLINE T divide(T n) const { return div1by1_uint_do<T, type>(n, div); }
 
     WJR_CONST bool operator==(const div1by1_divider<T, type> &other) const {
-        return div.magic == other.div.magic && div.more == other.more;
+        return div.magic == other.div.magic && div.more == other.div.more;
     }
 
     WJR_CONST bool operator!=(const div1by1_divider<T, type> &other) const {
