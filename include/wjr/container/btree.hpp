@@ -39,7 +39,6 @@
 #include <wjr/memory/uninitialized.hpp>
 
 namespace wjr {
-
 namespace btree_detail {
 
 /**

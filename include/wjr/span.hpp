@@ -300,7 +300,7 @@ public:
         return *(end_unsafe() - 1);
     }
 
-    constexpr reference at(size_type pos) const noexcept {
+    constexpr reference at(size_type pos) const {
         if (WJR_UNLIKELY(pos >= size())) {
             WJR_THROW(std::out_of_range("span at out of range"));
         }

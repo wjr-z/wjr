@@ -93,29 +93,18 @@
 #endif
 
 #if defined(WJR_DISABLE_EXCEPTIONS)
-    #define WJR_EXCEPTIONS_IF(ENABLE, DISABLE) DISABLE
+    #define WJR_TRY if constexpr (true)
+    #define WJR_CATCH(...) if constexpr (false)
+    #define WJR_THROW(X) std::exit(EXIT_FAILURE)
+    #define WJR_XTHROW std::exit(EXIT_FAILURE)
+    #define WJR_NOEXCEPT_X true
 #else
-    #define WJR_EXCEPTIONS_IF(ENABLE, DISABLE) ENABLE
+    #define WJR_TRY try
+    #define WJR_CATCH(...) catch (__VA_ARGS__)
+    #define WJR_THROW(X) throw X
+    #define WJR_XTHROW throw
+    #define WJR_NOEXCEPT_X false
 #endif
-
-#define WJR_ENABLE_EXCEPTIONS_TRY_I try
-#define WJR_ENABLE_EXCEPTIONS_CATCH_I(...) catch (__VA_ARGS__)
-#define WJR_ENABLE_EXCEPTIONS_THROW_I(X) throw X
-#define WJR_ENABLE_EXCEPTIONS_XTHROW_I throw
-
-#define WJR_DISABLE_EXCEPTIONS_TRY_I if constexpr (true)
-#define WJR_DISABLE_EXCEPTIONS_CATCH_I(...) if constexpr (false)
-#define WJR_DISABLE_EXCEPTIONS_THROW_I(X) std::exit(EXIT_FAILURE)
-#define WJR_DISABLE_EXCEPTIONS_XTHROW_I std::exit(EXIT_FAILURE)
-
-#define WJR_TRY WJR_EXCEPTIONS_IF(WJR_ENABLE_EXCEPTIONS_TRY_I, WJR_DISABLE_EXCEPTIONS_TRY_I)
-#define WJR_CATCH(...)                                                                             \
-    WJR_EXCEPTIONS_IF(WJR_ENABLE_EXCEPTIONS_CATCH_I(__VA_ARGS__),                                  \
-                      WJR_DISABLE_EXCEPTIONS_CATCH_I(__VA_ARGS__))
-#define WJR_THROW(X)                                                                               \
-    WJR_EXCEPTIONS_IF(WJR_ENABLE_EXCEPTIONS_THROW_I(X), WJR_DISABLE_EXCEPTIONS_THROW_I(X))
-#define WJR_XTHROW                                                                                 \
-    WJR_EXCEPTIONS_IF(WJR_ENABLE_EXCEPTIONS_XTHROW_I, WJR_DISABLE_EXCEPTIONS_XTHROW_I)
 
 #define WJR_REQUIRES(...) std::enable_if_t<(__VA_ARGS__), int> = 0
 #define WJR_REQUIRES_I(...) std::enable_if_t<(__VA_ARGS__), int>
