@@ -1156,7 +1156,7 @@ private:
     }
 
     template <bool Upper, bool Adjust>
-    WJR_NOINLINE WJR_HOT WJR_FLATTEN const_iterator __search(const key_type &key) const noexcept {
+    WJR_HOT WJR_FLATTEN const_iterator __search(const key_type &key) const noexcept {
         const_iterator iter = __search_impl<Upper>(key);
 
         if constexpr (Adjust) {

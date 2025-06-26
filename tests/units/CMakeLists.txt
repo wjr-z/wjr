@@ -111,5 +111,4 @@ target_link_libraries(tests
    ${GMP_LIBRARIES}
 )
 
-target_precompile_headers(tests PRIVATE ${WJR_PCH_COMMON} ${WJR_PCH_SIMD})
 enable_testing()
