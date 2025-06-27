@@ -41,12 +41,6 @@
 namespace wjr {
 namespace btree_detail {
 
-/**
- * @brief I have temporarily abandoned the number of dynamic nodes for optimization purposes
- *
- */
-inline constexpr size_t node_size = 8;
-
 template <size_t Min, size_t Max, typename T>
 WJR_INTRINSIC_INLINE void copy(const T *first, const T *last, T *dest) noexcept {
     if constexpr (Max <= 2) {
@@ -70,7 +64,11 @@ WJR_INTRINSIC_INLINE void copy(const T *first, const T *last, T *dest) noexcept 
             dest[1] = first[1];
         }
     } else {
-        small_copy<Min, Max>(first, last, dest);
+        if constexpr (Max > 8) {
+            std::copy(first, last, dest);
+        } else {
+            small_copy<Min, Max>(first, last, dest);
+        }
     }
 }
 
@@ -95,7 +93,11 @@ WJR_INTRINSIC_INLINE void copy_backward(const T *first, const T *last, T *dest) 
             dest[-2] = last[-2];
         }
     } else {
-        small_copy<Min, Max>(first, last, dest - (last - first));
+        if constexpr (Max > 8) {
+            std::copy_backward(first, last, dest);
+        } else {
+            small_copy<Min, Max>(first, last, dest - (last - first));
+        }
     }
 }
 
@@ -226,6 +228,8 @@ public:
     using slot_size_type = int;
     using slot_usize_type = unsigned int;
 
+    static constexpr size_t node_size = 8;
+
     static key_type &from_ikey(ikey_type &key) {
         if constexpr (is_inline_key) {
             return key;
@@ -320,15 +324,8 @@ public:
     using ikey_type = typename Traits::ikey_type;
     using slot_usize_type = typename Traits::slot_usize_type;
 
-    slot_usize_type search_pos(btree_node<Traits> *son) {
-        slot_usize_type i = 0;
-        while (m_sons[i] != son)
-            ++i;
-        return i;
-    }
-
-    alignas(16) ikey_type m_keys[btree_detail::node_size];
-    alignas(16) btree_node<Traits> *m_sons[btree_detail::node_size + 1];
+    alignas(16) ikey_type m_keys[Traits::node_size];
+    alignas(16) btree_node<Traits> *m_sons[Traits::node_size + 1];
 };
 
 template <typename Traits>
@@ -605,9 +602,9 @@ protected:
 template <size_t N, typename Enable = void>
 struct basic_btree_searcher_impl;
 
-template <>
-struct basic_btree_searcher_impl<8, void> {
-    static constexpr size_t node_size = 8;
+template <size_t N>
+struct basic_btree_searcher_impl<N, std::enable_if_t<(N <= 8)>> {
+    static constexpr size_t node_size = N;
 
 private:
     template <typename Compare>
@@ -639,6 +636,40 @@ public:
     }
 };
 
+template <size_t N>
+struct basic_btree_searcher_impl<N, std::enable_if_t<(N > 8)>> {
+    static constexpr size_t node_size = N;
+
+private:
+    template <typename Compare>
+    WJR_INTRINSIC_INLINE static unsigned int search_1_impl(unsigned int size,
+                                                           const Compare &comp) noexcept {
+        unsigned int L = 0, R = size;
+        while (L < R) {
+            unsigned int mid = (L +R ) >> 1;
+            if (comp(mid)) {
+                R = mid;
+            } else {
+                L = mid + 1;
+            }
+        }
+
+        return R;
+    }
+
+public:
+    template <size_t Min, typename Compare>
+    WJR_INTRINSIC_INLINE static unsigned int search(unsigned int size,
+                                                    const Compare &comp) noexcept {
+        static_assert(Min == 1);
+
+        WJR_ASSERT_ASSUME(size >= Min);
+        WJR_ASSERT_ASSUME(size <= node_size);
+
+        return search_1_impl(size, comp);
+    }
+};
+
 template <typename Traits>
 class basic_btree {
     using _Alty = typename Traits::_Alty;
@@ -647,7 +678,7 @@ class basic_btree {
 
     friend class container_fn<_Alty>;
 
-    static constexpr size_t node_size = 8;
+    static constexpr size_t node_size = Traits::node_size;
     static constexpr size_t floor_half = node_size / 2;
     static constexpr size_t ceil_half = node_size - floor_half;
     static constexpr size_t max_moved_elements = (ceil_half + 1) / 2;
@@ -681,8 +712,6 @@ public:
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 private:
-    static_assert(node_size == 8, "node_size must be equal to 8.");
-
     static key_type &from_ikey(ikey_type &key) { return Traits::from_ikey(key); }
     static const key_type &from_ikey(const ikey_type &key) { return Traits::from_ikey(key); }
     static ikey_type to_ikey(const key_type &key) { return Traits::to_ikey(key); }
@@ -789,7 +818,7 @@ protected:
     leaf_node_type *__create_leaf_node() noexcept {
         auto &al = __get_allocator();
         auto *const node = reinterpret_cast<leaf_node_type *>(_Alty_traits::allocate(
-            al, sizeof(leaf_node_type) + sizeof(value_type *) * btree_detail::node_size));
+            al, sizeof(leaf_node_type) + sizeof(value_type *) * Traits::node_size));
         uninitialized_construct_using_allocator(node, al, default_construct);
         return node;
     }
@@ -819,8 +848,7 @@ protected:
         auto &al = __get_allocator();
         destroy_at_using_allocator(node, al);
         _Alty_traits::deallocate(al, reinterpret_cast<char *>(node),
-                                 sizeof(leaf_node_type) +
-                                     sizeof(value_type *) * btree_detail::node_size);
+                                 sizeof(leaf_node_type) + sizeof(value_type *) * Traits::node_size);
     }
 
     void __drop_node(ivalue_type node) noexcept {
@@ -1100,7 +1128,8 @@ private:
     WJR_NODISCARD WJR_NOINLINE WJR_HOT WJR_FLATTEN iterator
     __insert_iter(const_iterator iter, ivalue_type xval) noexcept;
 
-    static constexpr slot_usize_type __search_mask = 1u << 7;
+    static constexpr slot_usize_type __search_mask =
+        (slot_usize_type)(1) << (std::numeric_limits<slot_usize_type>::digits - 1);
     static_assert(__search_mask > node_size);
 
     template <bool Upper>
