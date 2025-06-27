@@ -417,10 +417,7 @@ public:
 
     union {
         Mybase m_base;
-        struct {
-            __aligned_storage_t<Mybase> __storage;
-            typename Traits::ivalue_type __small_storage[2];
-        };
+        char m_buffer[sizeof(Mybase) + sizeof(typename Traits::ivalue_type) * 2];
     };
 
     /** @todo static_assert of offsetof */

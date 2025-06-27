@@ -52,6 +52,8 @@ else()
    set(WJR_USE_CXX_20 OFF)
 endif()
 
+include(cmake/AddFlags.cmake)
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
    list(APPEND WJR_CXX_FLAGS_PRIVATE /W3)
    list(APPEND WJR_CXX_FLAGS /Zc:preprocessor /Zc:lambda /EHsc /wd4146 /wd4309 /wd4244 /utf-8)
@@ -68,15 +70,10 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 else()
    list(APPEND WJR_CXX_FLAGS_PRIVATE
       -Wall -Wextra -Wshadow -Wformat=2 -Wunused
-      -Waddress-of-packed-member -Wpointer-arith -Wcast-align
-      -Wpacked -Wcast-qual -Waggregate-return
    )
-   
-   include(CheckCXXCompilerFlag)
-   check_cxx_compiler_flag("-Wmissing-prototypes" WJR_FLAGS_MISSING_PROTOTYPES)
-   if (WJR_FLAGS_MISSING_PROTOTYPES)
-      list(APPEND WJR_CXX_FLAGS_PRIVATE -Wmissing-prototypes)
-   endif()
+
+   AddFlagsIfExists(WJR_CXX_FLAGS_PRIVATE 
+      "-Waddress-of-packed-member -Wpointer-arith -Wcast-align -Wreorder -Wpacked -Wcast-qual")
 
    list(APPEND WJR_CXX_FLAGS -march=native)
    list(APPEND WJR_CXX_FLAGS_DEBUG -DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_DEBUG})

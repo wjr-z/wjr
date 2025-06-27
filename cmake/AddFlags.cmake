@@ -1,0 +1,17 @@
+include(CheckCXXCompilerFlag)
+
+function(AddSingleFlagsIfExists OUTPUT Flags)
+    check_cxx_compiler_flag("${Flags}" FlagsExist)
+    if (FlagsExist)
+        list(APPEND ${OUTPUT} ${Flags})
+        set(${OUTPUT} ${${OUTPUT}} PARENT_SCOPE)
+    endif()
+endfunction()
+
+function(AddFlagsIfExists OUTPUT Flags)
+    separate_arguments(Flags)
+    foreach(SingleFlags IN LISTS Flags)
+        AddSingleFlagsIfExists(${OUTPUT} ${SingleFlags})
+    endforeach()
+    set(${OUTPUT} ${${OUTPUT}} PARENT_SCOPE)
+endfunction()
