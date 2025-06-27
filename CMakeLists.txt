@@ -67,10 +67,17 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
    endif()
 else()
    list(APPEND WJR_CXX_FLAGS_PRIVATE
-      -Wall -Wextra -Wshadow -Wformat=2 -Wunused -Wundef
+      -Wall -Wextra -Wshadow -Wformat=2 -Wunused
       -Waddress-of-packed-member -Wpointer-arith -Wcast-align
-      -Wmissing-prototypes
+      -Wpacked -Wcast-qual -Waggregate-return
    )
+   
+   include(CheckCXXCompilerFlag)
+   check_cxx_compiler_flag("-Wmissing-prototypes" WJR_FLAGS_MISSING_PROTOTYPES)
+   if (WJR_FLAGS_MISSING_PROTOTYPES)
+      list(APPEND WJR_CXX_FLAGS_PRIVATE -Wmissing-prototypes)
+   endif()
+
    list(APPEND WJR_CXX_FLAGS -march=native)
    list(APPEND WJR_CXX_FLAGS_DEBUG -DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_DEBUG})
    list(APPEND WJR_CXX_FLAGS_RELEASE -DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_RELEASE})
