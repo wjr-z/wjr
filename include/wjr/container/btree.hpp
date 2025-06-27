@@ -380,6 +380,7 @@ template <typename Traits>
 class btree_root_node {
 private:
     using Mybase = typename Traits::leaf_node_type;
+    using ivalue_type = typename Traits::ivalue_type;
 
 public:
     btree_root_node() noexcept : m_base() {}
@@ -942,7 +943,7 @@ private:
         if (WJR_UNLIKELY(root == nullptr)) {
             __get_sentry()->init_self();
             auto &size = other.__get_size();
-            other.__get_base()->template copy<0, 2>(0, size, 0, __get_base());
+            copy_small_to(other.__get_base()->m_values, __get_base()->m_values);
             __get_size() = std::exchange(size, 0);
             return;
         }
@@ -955,7 +956,7 @@ private:
 
     void __swap_small_impl(basic_btree &other) noexcept {
         // this is small, other is not small
-        __get_base()->template copy<0, 2>(0, size(), 0, other.__get_base());
+        copy_small_to(__get_base()->m_values, other.__get_base()->m_values);
         std::swap(__get_root(), other.__get_root());
         std::swap(__get_size(), other.__get_size());
         replace(other.__get_sentry(), __get_sentry());
@@ -971,12 +972,10 @@ private:
                 auto *lhs = __get_base();
                 auto *rhs = other.__get_base();
 
-                WJR_ASSUME(size() <= 2);
-                WJR_ASSUME(other.size() <= 2);
+                copy_small_to(lhs->m_values, __tmp_ptr);
+                copy_small_to(rhs->m_values, lhs->m_values);
+                copy_small_to(__tmp_ptr, rhs->m_values);
 
-                uninitialized_copy_n_restrict(lhs->m_values, size(), __tmp_ptr);
-                uninitialized_copy_n_restrict(rhs->m_values, other.size(), lhs->m_values);
-                uninitialized_copy_n_restrict(__tmp_ptr, size(), rhs->m_values);
                 std::swap(__get_size(), other.__get_size());
             } else {
                 __swap_small_impl(other);
@@ -1270,6 +1269,10 @@ private:
 
     WJR_INTRINSIC_CONSTEXPR const size_type &__get_size() const noexcept {
         return __get_base()->m_root_size;
+    }
+
+    static void copy_small_to(const ivalue_type *from, ivalue_type *to) {
+        uninitialized_copy_n_restrict(from, 2, to);
     }
 
     compressed_pair<key_compare, compressed_pair<_Alty, btree_root_node<Traits>>> m_pair;
