@@ -19,6 +19,7 @@ option(WJR_DISABLE_EXCEPTIONS "Disable exceptions." OFF)
 option(WJR_DISABLE_CXX_20 "Disable C++ 20 even if it's supported." ON)
 option(WJR_DEBUG_LEVEL_RELEASE "Debug level in release version(default = 0)." 0)
 option(WJR_DEBUG_LEVEL_DEBUG "Debug level in debug version(default = 3)." 3)
+option(WJR_PUBLIC_FLAGS "Set compile flags as public. Useful in tests" OFF)
 
 #
 # third-party
@@ -52,8 +53,8 @@ else()
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-   list(APPEND WJR_CXX_FLAGS /Zc:preprocessor /Zc:lambda /EHsc /wd4146 /wd4309 /wd4244 /utf-8)
    list(APPEND WJR_CXX_FLAGS_PRIVATE /W3)
+   list(APPEND WJR_CXX_FLAGS /Zc:preprocessor /Zc:lambda /EHsc /wd4146 /wd4309 /wd4244 /utf-8)
    list(APPEND WJR_CXX_FLAGS_DEBUG /DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_DEBUG})
    list(APPEND WJR_CXX_FLAGS_RELEASE /DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_RELEASE})
 
@@ -65,8 +66,12 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
       list(APPEND WJR_CXX_FLAGS /DWJR_LIGHT_ASSERT)
    endif()
 else()
+   list(APPEND WJR_CXX_FLAGS_PRIVATE
+      -Wall -Wextra -Wshadow -Wformat=2 -Wunused -Wundef
+      -Waddress-of-packed-member -Wpointer-arith -Wcast-align
+      -Wmissing-prototypes
+   )
    list(APPEND WJR_CXX_FLAGS -march=native)
-   list(APPEND WJR_CXX_FLAGS_PRIVATE -Wall -Wextra -Wshadow -Wformat=2 -Wunused -Waddress-of-packed-member)
    list(APPEND WJR_CXX_FLAGS_DEBUG -DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_DEBUG})
    list(APPEND WJR_CXX_FLAGS_RELEASE -DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_RELEASE})
 
@@ -77,6 +82,10 @@ else()
    if(WJR_LIGHT_ASSERT)
       list(APPEND WJR_CXX_FLAGS -DWJR_LIGHT_ASSERT)
    endif()
+endif()
+
+if (WJR_PUBLIC_FLAGS)
+   list(APPEND WJR_CXX_FLAGS ${WJR_CXX_FLAGS_PRIVATE})
 endif()
 
 if(WJR_ENABLE_ASSEMBLY AND WJR_ARCH)

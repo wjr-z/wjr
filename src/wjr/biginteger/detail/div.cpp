@@ -205,8 +205,8 @@ uint64_t sb_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div
     return qh;
 }
 
-uint64_t dc_div4by2_qr(uint64_t *dst, uint64_t *src, const uint64_t *div, size_t m, uint64_t dinv,
-                       uint64_t *stk) noexcept {
+static uint64_t dc_div4by2_qr(uint64_t *dst, uint64_t *src, const uint64_t *div, size_t m,
+                              uint64_t dinv, uint64_t *stk) noexcept {
     size_t lo, hi;
     uint64_t cy, qh, ql;
 

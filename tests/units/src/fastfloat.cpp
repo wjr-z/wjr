@@ -13,13 +13,13 @@
 
 using namespace wjr;
 
-#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) ||               \
-    defined(sun) || defined(__sun)
-// Anything at all that is related to cygwin, msys and so forth will
-// always use this fallback because we cannot rely on it behaving as normal
-// gcc.
-#include <locale>
-#include <sstream>
+#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(sun) ||         \
+    defined(__sun)
+    // Anything at all that is related to cygwin, msys and so forth will
+    // always use this fallback because we cannot rely on it behaving as normal
+    // gcc.
+    #include <locale>
+    #include <sstream>
 // workaround for CYGWIN
 double cygwin_strtod_l(const char *start, char **end) {
     double d;
@@ -58,7 +58,7 @@ float cygwin_strtof_l(const char *start, char **end) {
 class RandomEngine {
 public:
     RandomEngine() = delete;
-    RandomEngine(uint64_t new_seed) : wyhash64_x_(new_seed){};
+    RandomEngine(uint64_t new_seed) : wyhash64_x_(new_seed) {};
     uint64_t next() {
         // Adapted from https://github.com/wangyi-fudan/wyhash/blob/master/wyhash.h
         // Inspired from
@@ -101,7 +101,7 @@ private:
     uint64_t wyhash64_x_;
 };
 
-size_t build_random_string(RandomEngine &rand, char *buffer) {
+static size_t build_random_string(RandomEngine &rand, char *buffer) {
     size_t pos{0};
     if (rand.next_bool()) {
         buffer[pos++] = '-';
@@ -119,8 +119,7 @@ size_t build_random_string(RandomEngine &rand, char *buffer) {
         }
         buffer[pos] = char(rand.next_digit() + '0');
         // We can have a leading zero only if location_of_decimal_separator = 1.
-        while (i == 0 && 1 != size_t(location_of_decimal_separator) &&
-               buffer[pos] == '0') {
+        while (i == 0 && 1 != size_t(location_of_decimal_separator) && buffer[pos] == '0') {
             buffer[pos] = char(rand.next_digit() + '0');
         }
         pos++;
@@ -147,11 +146,11 @@ size_t build_random_string(RandomEngine &rand, char *buffer) {
     return pos;
 }
 
-std::pair<double, bool> strtod_from_string(char *st) {
+static std::pair<double, bool> strtod_from_string(char *st) {
     double d;
     char *pr;
-#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) ||               \
-    defined(sun) || defined(__sun)
+#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(sun) ||         \
+    defined(__sun)
     d = cygwin_strtod_l(st, &pr);
 #elif defined(_WIN32)
     static _locale_t c_locale = _create_locale(LC_ALL, "C");
@@ -167,11 +166,11 @@ std::pair<double, bool> strtod_from_string(char *st) {
     return std::make_pair(d, true);
 }
 
-std::pair<float, bool> strtof_from_string(char *st) {
+static std::pair<float, bool> strtof_from_string(char *st) {
     float d;
     char *pr;
-#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) ||               \
-    defined(sun) || defined(__sun)
+#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(sun) ||         \
+    defined(__sun)
     d = cygwin_strtof_l(st, &pr);
 #elif defined(_WIN32)
     static _locale_t c_locale = _create_locale(LC_ALL, "C");
@@ -191,7 +190,7 @@ std::pair<float, bool> strtof_from_string(char *st) {
  * We generate random strings and we try to parse them with both strtod/strtof,
  * and we verify that we get the same answer with with fast_float::from_chars.
  */
-bool tester(uint64_t seed, size_t volume) {
+static bool tester(uint64_t seed, size_t volume) {
     char buffer[4096]; // large buffer (can't overflow)
     RandomEngine rand(seed);
     for (size_t i = 0; i < volume; i++) {

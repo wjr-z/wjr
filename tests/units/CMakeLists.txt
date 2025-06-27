@@ -11,6 +11,8 @@ if(NOT DEFINED WJR_DEBUG_LEVEL_RELEASE)
    set(WJR_DEBUG_LEVEL_RELEASE 3)
 endif()
 
+set(WJR_PUBLIC_FLAGS ON)
+
 if(MSVC)
    add_compile_definitions(__ADX__)
    add_compile_definitions(__BMI2__)
