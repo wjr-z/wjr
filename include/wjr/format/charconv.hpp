@@ -1310,8 +1310,8 @@ uint8_t *__fast_to_chars_unchecked_impl(uint8_t *ptr, Value val, IBase ibase,
 template <typename Iter, typename Value, typename IBase, typename Converter>
 Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase, Converter conv) noexcept {
     constexpr auto is_signed = std::is_signed_v<Value>;
-    constexpr auto base_2_table = std::numeric_limits<Value>::digits;
-    constexpr auto base_10_table = std::numeric_limits<Value>::digits10 + 1;
+    WJR_MAYBE_UNUSED constexpr auto base_2_table = std::numeric_limits<Value>::digits;
+    WJR_MAYBE_UNUSED constexpr auto base_10_table = std::numeric_limits<Value>::digits10 + 1;
 
     if (WJR_UNLIKELY(val == 0)) {
         *ptr++ = conv.template to<1>(0);
@@ -1340,7 +1340,7 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase, Conver
             append(cont, n + sign, default_construct);                                             \
         }                                                                                          \
         auto *const __end = cont.data() + cont.size();                                             \
-        auto __ptr =                                                                               \
+        WJR_MAYBE_UNUSED auto __ptr =                                                              \
             (charconv_detail::fast_buffer_t<Iter> *)__unsigned_to_chars_backward_unchecked<BASE>(  \
                 (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                                \
                                                                                                    \
