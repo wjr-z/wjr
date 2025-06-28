@@ -58,7 +58,7 @@ jobs:
       - name: Run tests (MSVC)
         if: matrix.sys.compiler == 'msvc'
         run: ./tests
-        working-directory: ./tests/units/build/Release
+        working-directory: ./tests/units/build
 
       - name: Run tests (Clang)
         if: matrix.sys.compiler == 'clang'
