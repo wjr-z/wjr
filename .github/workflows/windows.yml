@@ -23,13 +23,13 @@ jobs:
       fail-fast: false
       matrix:
         sys:
-        - {compiler: default}
+        - {compiler: msvc}
         - {compiler: clang}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Setup MSVC
-        if: matrix.sys.compiler == 'default'
+        if: matrix.sys.compiler == 'msvc'
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Setup clang
@@ -55,10 +55,10 @@ jobs:
         run: cmake --build build --config Release --parallel
         working-directory: ./tests/units
 
-      - name: Run tests (Clang)
-        if: matrix.sys.compiler == 'default'
+      - name: Run tests (MSVC)
+        if: matrix.sys.compiler == 'msvc'
         run: ./tests
-        working-directory: ./tests/units/Release/build
+        working-directory: ./tests/units/build/Release
 
       - name: Run tests (Clang)
         if: matrix.sys.compiler == 'clang'
