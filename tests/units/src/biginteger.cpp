@@ -1,6 +1,6 @@
 #include "detail.hpp"
 
-#if defined(WJR_USE_GMP)
+#ifdef WJR_USE_GMP
     #include <gmp.h>
 #endif
 
@@ -9,7 +9,8 @@
 using namespace wjr;
 
 static_assert(std::is_standard_layout_v<biginteger>, "bigintger must have standard layout");
-static_assert(std::is_standard_layout_v<weak_stack_biginteger>, "bigintger must have standard layout");
+static_assert(std::is_standard_layout_v<weak_stack_biginteger>,
+              "bigintger must have standard layout");
 static_assert(std::is_standard_layout_v<fixed_biginteger>, "bigintger must have standard layout");
 static_assert(std::is_standard_layout_v<fixed_weak_stack_biginteger>,
               "bigintger must have standard layout");
@@ -18,7 +19,7 @@ namespace wjr {
 template class basic_biginteger<default_biginteger_vector_storage<std::allocator<uint64_t>>>;
 }
 
-#if defined(WJR_USE_GMP)
+#ifdef WJR_USE_GMP
 
 inline void copy(mpz_t dst, const biginteger &src) {
     const auto n = src.size();
@@ -310,7 +311,7 @@ TEST(biginteger, addsub) {
         WJR_CHECK(c == 0);
     }
 
-#if defined(WJR_USE_GMP)
+#ifdef WJR_USE_GMP
 
     {
         biginteger a, b, c;
@@ -396,6 +397,7 @@ TEST(biginteger, addsub) {
 #endif
 }
 
+#ifdef WJR_USE_GMP
 TEST(biginteger, mul) {
     {
         biginteger a, b, c;
@@ -690,7 +692,6 @@ TEST(biginteger, div_2exp) {
 }
 
 TEST(biginteger, convert) {
-#if defined(WJR_USE_GMP)
     {
         biginteger a;
         mpz_t b;
@@ -716,8 +717,9 @@ TEST(biginteger, convert) {
             }
         }
     }
-#endif
 }
+
+#endif
 
 TEST(biginteger, pow) {
     {
@@ -727,7 +729,7 @@ TEST(biginteger, pow) {
         pow(a, -14348907, 3);
         WJR_CHECK(a == biginteger("-2954312706550833698643"));
     }
-#if defined(WJR_USE_GMP)
+#ifdef WJR_USE_GMP
     {
         biginteger a;
         mpz_t b;
@@ -752,7 +754,7 @@ TEST(biginteger, pow) {
 #endif
 }
 
-#if defined(WJR_USE_GMP)
+#ifdef WJR_USE_GMP
 
 TEST(biginteger, mul_1) {
 
@@ -1082,7 +1084,7 @@ TEST(biginteger, div_qr_s) {
     }
 }
 
-#if defined(WJR_USE_GMP)
+#ifdef WJR_USE_GMP
 
 TEST(biginteger, to_chars) {
 
