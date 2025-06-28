@@ -3,10 +3,6 @@
 #include <charconv>
 #include <list>
 
-#if defined(WJR_USE_GMP)
-    #include <gmp.h>
-#endif
-
 #include <wjr/biginteger/detail.hpp>
 #include <wjr/math.hpp>
 #include <wjr/vector.hpp>
