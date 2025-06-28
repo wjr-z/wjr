@@ -186,6 +186,17 @@ static std::pair<float, bool> strtof_from_string(char *st) {
     return std::make_pair(d, true);
 }
 
+static void ERROR() {
+#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(sun) ||         \
+    defined(__sun)
+    std::cerr << "ERROR 0" << std::endl;
+#elif defined(_WIN32)
+    std::cerr << "ERROR 1" << std::endl;
+#else
+    std::cerr << "ERROR 2" << std::endl;
+#endif
+}
+
 /**
  * We generate random strings and we try to parse them with both strtod/strtof,
  * and we verify that we get the same answer with with fast_float::from_chars.
@@ -214,6 +225,7 @@ static bool tester(uint64_t seed, size_t volume) {
                 std::cerr << std::hexfloat << result_value << std::endl;
                 std::cerr << std::hexfloat << expected_double.first << std::endl;
                 std::cerr << " Mismatch " << std::endl;
+                ERROR();
                 return false;
             }
         }
@@ -236,6 +248,7 @@ static bool tester(uint64_t seed, size_t volume) {
                 std::cerr << std::hexfloat << result_value << std::endl;
                 std::cerr << std::hexfloat << expected_float.first << std::endl;
                 std::cerr << " Mismatch " << std::endl;
+                ERROR();
                 return false;
             }
         }
