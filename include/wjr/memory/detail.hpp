@@ -205,14 +205,6 @@ WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x) noexcept {
     builtin_memcpy(ptr, std::addressof(x), sizeof(T));
 }
 
-template <typename T>
-struct __aligned_storage_t {
-    T *operator&() noexcept { return static_cast<T *>(static_cast<void *>(this)); }
-    const T *operator&() const noexcept { return static_cast<T *>(static_cast<void *>(this)); }
-
-    alignas(T) std::byte buf[sizeof(T)];
-};
-
 template <typename T, size_t N>
 struct __simd_storage_t {
     T *operator&() noexcept { return static_cast<T *>(static_cast<void *>(this)); }
@@ -221,7 +213,9 @@ struct __simd_storage_t {
     }
 
     static constexpr size_t simd_size = sizeof(T) * N;
-#if WJR_HAS_ATTRIBUTE(vector_size)
+
+    // only for Clang
+#if WJR_HAS_ATTRIBUTE(vector_size) && defined(WJR_COMPILER_CLANG)
     using simd_type = char __attribute__((vector_size(simd_size)));
     alignas(std::max(alignof(T), alignof(simd_type))) simd_type buf;
 #else
