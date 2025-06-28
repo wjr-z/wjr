@@ -193,12 +193,12 @@ uint32_t lexer::read(uint32_t *token_buf, size_type token_buf_size) noexcept {
                     stk[i] = simd::loadu(first + i * u8_width);
                 }
             } else {
-                char buf[64];
-                std::memset(buf, ' ', 64);
-                std::memcpy(buf, first, diff);
+                __simd_storage_t<std::byte, 64> buf;
+                std::memset(&buf, ' ', 64);
+                std::memcpy(&buf, first, diff);
 
                 for (size_t i = 0; i < u8_loop; ++i) {
-                    stk[i] = simd::loadu(buf + i * u8_width);
+                    stk[i] = simd::loadu(&buf + i * u8_width);
                 }
             }
 

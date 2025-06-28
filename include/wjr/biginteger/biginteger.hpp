@@ -322,20 +322,20 @@ public:
             m_bd.m_size = rsize;
             other.m_bd.m_size = lsize;
 
-            uint64_t tmp[Capacity];
+            __simd_storage_t<uint64_t, Capacity> tmp;
             if constexpr (__use_memcpy) {
-                builtin_memcpy(tmp, lhs, Capacity);
+                builtin_memcpy(&tmp, lhs, Capacity);
                 builtin_memcpy(lhs, rhs, Capacity);
-                builtin_memcpy(rhs, tmp, Capacity);
+                builtin_memcpy(rhs, &tmp, Capacity);
             } else {
                 if (lsize > rsize) {
                     std::swap(lhs, rhs);
                     std::swap(lsize, rsize);
                 }
 
-                wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize, tmp, al);
+                wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize, &tmp, al);
                 wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs, al);
-                wjr::uninitialized_move_n_restrict_using_allocator(tmp, lsize, rhs, al);
+                wjr::uninitialized_move_n_restrict_using_allocator(&tmp, lsize, rhs, al);
             }
         } else if (rsize) {
             if constexpr (__use_memcpy) {
