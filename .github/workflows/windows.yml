@@ -1,0 +1,66 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  tests:
+    # The type of runner that the job will run on
+    runs-on: windows-latest
+    name: ${{ matrix.sys.compiler }} ${{ matrix.sys.version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        sys:
+        - {compiler: default}
+        - {compiler: clang}
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Setup MSVC
+        if: matrix.sys.compiler == 'default'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Setup clang
+        if: matrix.sys.compiler == 'clang'
+        run: |
+            echo "CC=clang" >> $GITHUB_ENV
+            echo "CXX=clang++" >> $GITHUB_ENV
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Init submodule
+        run: git submodule update --init --recursive
+
+    #   - name: Install GMP
+
+      - name: Configure using CMake
+        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release
+        working-directory: ./tests/units
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+        working-directory: ./tests/units
+
+      - name: Run tests (Clang)
+        if: matrix.sys.compiler == 'default'
+        run: ./tests
+        working-directory: ./tests/units/Release/build
+
+      - name: Run tests (Clang)
+        if: matrix.sys.compiler == 'clang'
+        run: ./tests
+        working-directory: ./tests/units/build
