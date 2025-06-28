@@ -564,14 +564,16 @@ OutputIt uninitialized_relocate_n_restrict_using_allocator(InputIt first, Size n
                                       __add_restrict(wjr::__iter_base(dest)), alloc));
 }
 
-template <typename T, bool Constructor, bool Destructor>
-struct __uninitialized_base;
-
-/// @private
 template <typename T>
 struct __aligned_storage_t {
+    T *operator&() noexcept { return static_cast<T *>(static_cast<void *>(this)); }
+    const T *operator&() const noexcept { return static_cast<T *>(static_cast<void *>(this)); }
+
     alignas(T) std::byte buf[sizeof(T)];
 };
+
+template <typename T, bool Constructor, bool Destructor>
+struct __uninitialized_base;
 
 #define WJR_REGISTER_UNION_BASE(CON, DES)                                                          \
     template <typename T>                                                                          \

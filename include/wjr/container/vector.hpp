@@ -358,21 +358,20 @@ public:
             m_storage.m_size = rsize;
             other_storage.m_size = lsize;
 
-            alignas(sizeof(T)) std::byte __tmp_storage[sizeof(T) * Capacity];
-            T *tmp = reinterpret_cast<T *>(__tmp_storage);
+            __simd_storage_t<T, Capacity> tmp;
             if constexpr (__use_memcpy) {
-                builtin_memcpy(tmp, lhs, Capacity);
+                builtin_memcpy(&tmp, lhs, Capacity);
                 builtin_memcpy(lhs, rhs, Capacity);
-                builtin_memcpy(rhs, tmp, Capacity);
+                builtin_memcpy(rhs, &tmp, Capacity);
             } else {
                 if (lsize > rsize) {
                     std::swap(lhs, rhs);
                     std::swap(lsize, rsize);
                 }
 
-                wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize, tmp, al);
+                wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize, &tmp, al);
                 wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs, al);
-                wjr::uninitialized_move_n_restrict_using_allocator(tmp, lsize, rhs, al);
+                wjr::uninitialized_move_n_restrict_using_allocator(&tmp, lsize, rhs, al);
             }
         } else if (rsize) {
             if constexpr (__use_memcpy) {
@@ -484,8 +483,7 @@ public:
                  _Alty &al) noexcept(std::is_nothrow_move_constructible_v<value_type>) {
         if (__is_small()) {
             if (other.__is_small()) {
-                alignas(alignof(T)) std::byte __tmp_storage[Capacity * sizeof(T)];
-                T *tmp = reinterpret_cast<T *>(__tmp_storage);
+                __simd_storage_t<T, Capacity> tmp;
 
                 auto *lhs = data();
                 auto lsize = size();
@@ -497,9 +495,9 @@ public:
                     std::swap(lsize, rsize);
                 }
 
-                wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize, tmp, al);
+                wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize, &tmp, al);
                 wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs, al);
-                wjr::uninitialized_move_n_restrict_using_allocator(tmp, lsize, rhs, al);
+                wjr::uninitialized_move_n_restrict_using_allocator(&tmp, lsize, rhs, al);
             } else {
                 const size_type capacity = other.m_capacity;
                 wjr::uninitialized_move_n_restrict_using_allocator(data(), size(),

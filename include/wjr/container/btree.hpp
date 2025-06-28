@@ -9,6 +9,9 @@
  * Only use when key is trivial. Otherwise, this maybe won't faster than
  * std::map because its search complexity is O((k - 1) * (log n / log k)).
  * SSO optimization for tree node is enabled now!
+ * Default node_size is 8, because most optimizations have been made for size 8. But it is also
+ * possible to manually adjust the node_size during compilation. Currently, setting node_size
+ * through templates is not supported.
  *
  * @note Insertion and deletion may cause iterators to fail.
  *
@@ -17,15 +20,15 @@
  * 2. Construct with a range with optimization.
  * 3. Merge with optimization.
  * 4. [x] Code size optimization.
- * 5. GCC optimization on unpacked struct failed?
+ * 5. GCC(low version) optimization on unpacked struct failed?
  * 6. Clang optimization on memcpy is so stupid.
  * 7. MSVC bug on memcpy order
  * (https://developercommunity.visualstudio.com/t/incorrect-memcpy-optimization/1151407).
  * 8. [x] Optimization on small size.
  * 9. Use a simple GC-arena to optimiza memory usage.
  *
- * @version 0.2
- * @date 2024-12-15
+ * @version 0.3
+ * @date 2025-06-18
  *
  */
 
@@ -646,7 +649,7 @@ private:
                                                            const Compare &comp) noexcept {
         unsigned int L = 0, R = size;
         while (L < R) {
-            unsigned int mid = (L +R ) >> 1;
+            unsigned int mid = (L + R) >> 1;
             if (comp(mid)) {
                 R = mid;
             } else {
@@ -994,15 +997,14 @@ private:
     void __swap_tree(basic_btree &other) noexcept {
         if (__get_root() == nullptr) {
             if (other.__get_root() == nullptr) {
-                alignas(sizeof(ivalue_type)) std::byte __tmp_storage[sizeof(ivalue_type) * 2];
-                auto *__tmp_ptr = reinterpret_cast<ivalue_type *>(__tmp_storage);
+                __simd_storage_t<ivalue_type, 2> tmp;
 
                 auto *lhs = __get_base();
                 auto *rhs = other.__get_base();
 
-                copy_small_to(lhs->m_values, __tmp_ptr);
+                copy_small_to(lhs->m_values, &tmp);
                 copy_small_to(rhs->m_values, lhs->m_values);
-                copy_small_to(__tmp_ptr, rhs->m_values);
+                copy_small_to(&tmp, rhs->m_values);
 
                 std::swap(__get_size(), other.__get_size());
             } else {
@@ -1728,8 +1730,8 @@ void basic_btree<Traits>::__rec_erase_iter(node_type *parent, slot_usize_type pa
     const auto inner = current->as_inner();
 
     if (cur_size == 1) {
-        __drop_inner_node(inner);
         node_type *root = inner->m_sons[0];
+        __drop_inner_node(inner);
         __get_root() = root;
         root->m_parent = nullptr;
         return;
