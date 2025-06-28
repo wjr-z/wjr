@@ -13,13 +13,16 @@
 
 using namespace wjr;
 
-#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(sun) ||         \
-    defined(__sun)
-    // Anything at all that is related to cygwin, msys and so forth will
-    // always use this fallback because we cannot rely on it behaving as normal
-    // gcc.
-    #include <locale>
-    #include <sstream>
+#if !(defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(sun) ||       \
+      defined(__sun))
+
+    #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(sun) ||     \
+        defined(__sun)
+        // Anything at all that is related to cygwin, msys and so forth will
+        // always use this fallback because we cannot rely on it behaving as normal
+        // gcc.
+        #include <locale>
+        #include <sstream>
 // workaround for CYGWIN
 double cygwin_strtod_l(const char *start, char **end) {
     double d;
@@ -53,7 +56,7 @@ float cygwin_strtof_l(const char *start, char **end) {
     *end = const_cast<char *>(start) + nread;
     return d;
 }
-#endif
+    #endif
 
 class RandomEngine {
 public:
@@ -149,16 +152,16 @@ static size_t build_random_string(RandomEngine &rand, char *buffer) {
 static std::pair<double, bool> strtod_from_string(char *st) {
     double d;
     char *pr;
-#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(sun) ||         \
-    defined(__sun)
+    #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(sun) ||     \
+        defined(__sun)
     d = cygwin_strtod_l(st, &pr);
-#elif defined(_WIN32)
+    #elif defined(_WIN32)
     static _locale_t c_locale = _create_locale(LC_ALL, "C");
     d = _strtod_l(st, &pr, c_locale);
-#else
+    #else
     static locale_t c_locale = newlocale(LC_ALL_MASK, "C", NULL);
     d = strtod_l(st, &pr, c_locale);
-#endif
+    #endif
     if (st == pr) {
         std::cerr << "strtod_l could not parse '" << st << std::endl;
         return std::make_pair(0, false);
@@ -169,32 +172,21 @@ static std::pair<double, bool> strtod_from_string(char *st) {
 static std::pair<float, bool> strtof_from_string(char *st) {
     float d;
     char *pr;
-#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(sun) ||         \
-    defined(__sun)
+    #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(sun) ||     \
+        defined(__sun)
     d = cygwin_strtof_l(st, &pr);
-#elif defined(_WIN32)
+    #elif defined(_WIN32)
     static _locale_t c_locale = _create_locale(LC_ALL, "C");
     d = _strtof_l(st, &pr, c_locale);
-#else
+    #else
     static locale_t c_locale = newlocale(LC_ALL_MASK, "C", NULL);
     d = strtof_l(st, &pr, c_locale);
-#endif
+    #endif
     if (st == pr) {
         std::cerr << "strtof_l could not parse '" << st << std::endl;
         return std::make_pair(0.0f, false);
     }
     return std::make_pair(d, true);
-}
-
-static void ERROR() {
-#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(sun) ||         \
-    defined(__sun)
-    std::cerr << "ERROR 0" << std::endl;
-#elif defined(_WIN32)
-    std::cerr << "ERROR 1" << std::endl;
-#else
-    std::cerr << "ERROR 2" << std::endl;
-#endif
 }
 
 /**
@@ -225,7 +217,6 @@ static bool tester(uint64_t seed, size_t volume) {
                 std::cerr << std::hexfloat << result_value << std::endl;
                 std::cerr << std::hexfloat << expected_double.first << std::endl;
                 std::cerr << " Mismatch " << std::endl;
-                ERROR();
                 return false;
             }
         }
@@ -248,7 +239,6 @@ static bool tester(uint64_t seed, size_t volume) {
                 std::cerr << std::hexfloat << result_value << std::endl;
                 std::cerr << std::hexfloat << expected_float.first << std::endl;
                 std::cerr << " Mismatch " << std::endl;
-                ERROR();
                 return false;
             }
         }
@@ -257,3 +247,5 @@ static bool tester(uint64_t seed, size_t volume) {
 }
 
 TEST(fastfloat, random_string) { WJR_CHECK(tester(std::random_device{}(), 200000)); }
+
+#endif
