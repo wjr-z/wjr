@@ -224,6 +224,27 @@ struct __simd_storage_t {
 #endif
 };
 
+template <typename T>
+struct __simd_storage_t<T, 0> {
+    T *operator&() noexcept { return static_cast<T *>(static_cast<void *>(this)); }
+    const T *operator&() const noexcept {
+        return static_cast<const T *>(static_cast<const void *>(this));
+    }
+};
+
+template <size_t Size>
+WJR_INTRINSIC_INLINE __simd_storage_t<std::byte, Size> __simd_load(const void *src) noexcept {
+    __simd_storage_t<std::byte, Size> res;
+    builtin_memcpy(&res, src, Size);
+    return res;
+}
+
+template <size_t Size>
+WJR_INTRINSIC_INLINE void __simd_store(void *dst,
+                                       const __simd_storage_t<std::byte, Size> &x) noexcept {
+    builtin_memcpy(dst, &x, Size);
+}
+
 } // namespace wjr
 
 #endif // WJR_MEMORY_DETAIL_HPP__

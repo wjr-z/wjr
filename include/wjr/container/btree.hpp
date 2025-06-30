@@ -46,62 +46,12 @@ namespace btree_detail {
 
 template <size_t Min, size_t Max, typename T>
 WJR_INTRINSIC_INLINE void copy(const T *first, const T *last, T *dest) noexcept {
-    if constexpr (Max <= 2) {
-        static_assert(Max >= 1);
-
-        if constexpr (Min == 0) {
-            if (first == last) {
-                return;
-            }
-        }
-
-        dest[0] = first[0];
-
-        if constexpr (Max == 2) {
-            if constexpr (Min <= 1) {
-                if (first + 1 == last) {
-                    return;
-                }
-            }
-
-            dest[1] = first[1];
-        }
-    } else {
-        if constexpr (Max > 8) {
-            std::copy(first, last, dest);
-        } else {
-            small_copy<Min, Max>(first, last, dest);
-        }
-    }
+    small_copy<Min, Max>(first, last, dest);
 }
 
 template <size_t Min, size_t Max, typename T>
 WJR_INTRINSIC_INLINE void copy_backward(const T *first, const T *last, T *dest) noexcept {
-    if constexpr (Max <= 2) {
-        if constexpr (Min == 0) {
-            if (first == last) {
-                return;
-            }
-        }
-
-        dest[-1] = last[-1];
-
-        if constexpr (Max == 2) {
-            if constexpr (Min <= 1) {
-                if (first + 1 == last) {
-                    return;
-                }
-            }
-
-            dest[-2] = last[-2];
-        }
-    } else {
-        if constexpr (Max > 8) {
-            std::copy_backward(first, last, dest);
-        } else {
-            small_copy<Min, Max>(first, last, dest - (last - first));
-        }
-    }
+    small_copy<Min, Max>(first, last, dest - (last - first));
 }
 
 template <typename Key, typename... Args>
