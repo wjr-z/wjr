@@ -12,6 +12,13 @@
  * Default node_size is 8, because most optimizations have been made for size 8. But it is also
  * possible to manually adjust the node_size during compilation. Currently, setting node_size
  * through templates is not supported.
+ * For type:
+ * ```cpp
+ * struct node {
+ *     btree_set<node> set;
+ * };
+ * ```
+ * You need to specialization is_complete and inherited from std::false_type.
  *
  * @note Insertion and deletion may cause iterators to fail.
  *
@@ -89,20 +96,20 @@ struct inplace_key_extract_set<Key, Key> {
 };
 
 template <typename Key, typename = void>
-struct __is_inline_key {
+struct is_inline_key {
     static constexpr bool value = false;
 };
 
 template <typename Key>
-struct __is_inline_key<Key, std::enable_if_t<is_complete_v<Key>>> {
+struct is_inline_key<Key, std::enable_if_t<is_complete_v<Key>>> {
     static constexpr bool value = std::is_trivial_v<Key> && sizeof(Key) <= 8;
 };
 
 template <typename Key>
-inline constexpr bool __is_inline_key_v = __is_inline_key<Key>::value;
+inline constexpr bool is_inline_key_v = is_inline_key<Key>::value;
 
 template <typename Key, typename Value>
-struct __btree_inline_traits {
+struct btree_inline_traits {
     using key_type = Key;
     using mapped_type = Value;
     static constexpr bool is_map = true;
@@ -118,7 +125,7 @@ struct __btree_inline_traits {
 };
 
 template <typename Key>
-struct __btree_inline_traits<Key, void> {
+struct btree_inline_traits<Key, void> {
     using key_type = Key;
     using mapped_type = void;
     static constexpr bool is_map = false;
@@ -148,9 +155,9 @@ class btree_root_node;
 
 template <typename Key, typename Value, bool Multi, typename Compare = std::less<>,
           typename Alloc = std::allocator<char>>
-struct btree_traits : btree_detail::__btree_inline_traits<Key, Value> {
+struct btree_traits : btree_detail::btree_inline_traits<Key, Value> {
 private:
-    using Mybase = btree_detail::__btree_inline_traits<Key, Value>;
+    using Mybase = btree_detail::btree_inline_traits<Key, Value>;
 
 public:
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<char>;
@@ -165,8 +172,8 @@ public:
     using value_type = typename Mybase::value_type;
     using key_compare = Compare;
 
-    static constexpr bool is_inline_key = btree_detail::__is_inline_key_v<key_type>;
-    static constexpr bool is_inline_value = btree_detail::__is_inline_key_v<value_type>;
+    static constexpr bool is_inline_key = btree_detail::is_inline_key_v<key_type>;
+    static constexpr bool is_inline_value = btree_detail::is_inline_key_v<value_type>;
 
     using ikey_type = std::conditional_t<is_inline_key, key_type, const key_type *>;
     using ivalue_type = std::conditional_t<is_inline_value, value_type, value_type *>;
@@ -305,13 +312,13 @@ public:
         m_values[idx] = value;
     }
 
-    template <size_t Min, size_t Max>
+    template <size_t Min = 0, size_t Max = SIZE_MAX>
     WJR_INTRINSIC_INLINE void copy(slot_usize_type start, slot_usize_type end,
                                    slot_usize_type dst_start, btree_leaf_node *dst) const noexcept {
         btree_detail::copy<Min, Max>(m_values + start, m_values + end, dst->m_values + dst_start);
     }
 
-    template <size_t Min, size_t Max>
+    template <size_t Min = 0, size_t Max = SIZE_MAX>
     WJR_INTRINSIC_INLINE void copy_backward(slot_usize_type start, slot_usize_type end,
                                             slot_usize_type dst_end,
                                             btree_leaf_node *dst) const noexcept {
@@ -1089,7 +1096,8 @@ private:
     __search_impl(const key_type &key) const noexcept {
         const auto &comp = key_comp();
         const node_type *current = __get_root();
-        if (current == nullptr) {
+
+        if (WJR_UNLIKELY(current == nullptr)) {
             slot_usize_type size = __get_size();
             if (size == 0 || __compare<Upper>(__get_base()->get_key(0), key, comp)) {
                 return const_iterator(__get_sentry(), 0);
@@ -1165,7 +1173,7 @@ private:
 
     template <typename T>
     WJR_INTRINSIC_INLINE static slot_usize_type
-    __init_remove_rotate(const inner_node_type *parent, slot_usize_type pos,
+    __init_remove_select(const inner_node_type *parent, slot_usize_type pos,
                          slot_usize_type par_size, T *&lhs, T *&rhs) noexcept {
         slot_usize_type size;
 
@@ -1220,8 +1228,8 @@ private:
      * @todo use <Min, Max> to optimize
      *
      */
-    WJR_INTRINSIC_INLINE void __rec_erase_iter(node_type *parent, slot_usize_type par_pos,
-                                               slot_usize_type par_size) noexcept;
+    void __erase_iter_reblance(node_type *parent, slot_usize_type par_pos,
+                               slot_usize_type par_size) noexcept;
 
     WJR_NODISCARD WJR_NOINLINE WJR_HOT WJR_FLATTEN iterator
     __erase_iter(const_iterator iter) noexcept;
@@ -1494,8 +1502,8 @@ basic_btree<Traits>::__insert_iter(const_iterator iter, ivalue_type xval) noexce
 }
 
 template <typename Traits>
-void basic_btree<Traits>::__rec_erase_iter(node_type *parent, slot_usize_type par_pos,
-                                           slot_usize_type par_size) noexcept {
+void basic_btree<Traits>::__erase_iter_reblance(node_type *parent, slot_usize_type par_pos,
+                                                slot_usize_type par_size) noexcept {
     constexpr slot_usize_type merge_size = floor_half * 2;
 
     slot_usize_type pos;
@@ -1535,7 +1543,8 @@ void basic_btree<Traits>::__rec_erase_iter(node_type *parent, slot_usize_type pa
         inner_node_type *lhs;
         inner_node_type *rhs;
 
-        slot_usize_type next_size = __init_remove_rotate(par_inner, par_pos, par_size, lhs, rhs);
+        const slot_usize_type next_size =
+            __init_remove_select(par_inner, par_pos, par_size, lhs, rhs);
 
         do {
             if (lhs != nullptr) {
@@ -1759,7 +1768,7 @@ basic_btree<Traits>::__erase_iter(const_iterator iter) noexcept {
     leaf_node_type *lhs;
     leaf_node_type *rhs;
 
-    const slot_usize_type next_size = __init_remove_rotate(inner, par_pos, cur_size, lhs, rhs);
+    const slot_usize_type next_size = __init_remove_select(inner, par_pos, cur_size, lhs, rhs);
 
     do {
         if (lhs != nullptr) {
@@ -1846,7 +1855,7 @@ basic_btree<Traits>::__erase_iter(const_iterator iter) noexcept {
     rhs->remove();
     __drop_leaf_node(rhs);
 
-    __rec_erase_iter(parent, par_pos, cur_size);
+    __erase_iter_reblance(parent, par_pos, cur_size);
     return iterator(leaf, pos).__adjust_next();
 }
 

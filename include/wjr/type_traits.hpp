@@ -774,16 +774,17 @@ constexpr std::array<std::remove_cv_t<T>, N> to_array(T (&a)[N]) {
     return detail::to_array_impl(a, std::make_index_sequence<N>{});
 }
 
+template <typename, typename = void>
+struct is_complete_helper : std::false_type {};
+
 template <typename T>
-struct is_complete_helper {
-    template <typename U>
-    static auto test(U *) -> std::integral_constant<bool, sizeof(U) == sizeof(U)>;
-    static auto test(...) -> std::false_type;
-    using type = decltype(test((T *)0));
-};
+struct is_complete_helper<T, std::void_t<decltype(std::declval<T>())>> : std::true_type {};
 
 template <typename T>
 struct is_complete : is_complete_helper<T>::type {};
+
+template <typename T, typename U>
+struct is_complete<std::pair<T, U>> : std::conjunction<is_complete<T>, is_complete<U>> {};
 
 template <typename T>
 inline constexpr bool is_complete_v = is_complete<T>::value;
