@@ -3,10 +3,6 @@ project(tests LANGUAGES CXX)
 
 include(FetchContent)
 
-if(NOT CMAKE_BUILD_TYPE)
-   set(CMAKE_BUILD_TYPE Release)
-endif()
-
 if(NOT DEFINED WJR_DEBUG_LEVEL_RELEASE)
    set(WJR_DEBUG_LEVEL_RELEASE 3)
 endif()
