@@ -1,8 +1,7 @@
 #ifndef WJR_ARCH_X86_MATH_LARGE_COMPARE_IMPL_HPP__
 #define WJR_ARCH_X86_MATH_LARGE_COMPARE_IMPL_HPP__
 
-#include <wjr/math/clz.hpp>
-#include <wjr/math/ctz.hpp>
+#include <wjr/preprocessor.hpp>
 
 namespace wjr {
 

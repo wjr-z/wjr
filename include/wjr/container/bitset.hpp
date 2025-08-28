@@ -475,6 +475,9 @@ public:
         return str;
     }
 
+    constexpr bit_type *data() noexcept { return m_data; }
+    constexpr const bit_type *data() const noexcept { return m_data; }
+
 private:
     bit_type m_data[bytes_size];
 };

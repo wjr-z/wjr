@@ -3,6 +3,7 @@
 
 #include <wjr/format/charconv.hpp>
 
+#include <wjr/biginteger/detail/bignum-config.hpp>
 #include <wjr/biginteger/detail/div.hpp>
 #include <wjr/biginteger/detail/precompute-chars-convert.hpp>
 #include <wjr/memory/stack_allocator.hpp>

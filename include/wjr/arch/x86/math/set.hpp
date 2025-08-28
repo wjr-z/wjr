@@ -4,7 +4,6 @@
 #include <cstring>
 
 #include <wjr/arch/x86/simd/simd.hpp>
-#include <wjr/math/rotate.hpp>
 
 namespace wjr {
 

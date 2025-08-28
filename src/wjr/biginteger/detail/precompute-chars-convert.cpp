@@ -1,3 +1,4 @@
+#include <wjr/biginteger/detail/mul.hpp>
 #include <wjr/biginteger/detail/precompute-chars-convert.hpp>
 
 namespace wjr {

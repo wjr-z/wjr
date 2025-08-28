@@ -1,7 +1,10 @@
 #ifndef WJR_BIGINTEGER_DETAIL_PRECOMPUTE_CHARS_CONVERT_HPP__
 #define WJR_BIGINTEGER_DETAIL_PRECOMPUTE_CHARS_CONVERT_HPP__
 
-#include <wjr/biginteger/detail/mul.hpp>
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <wjr/preprocessor.hpp>
 
 namespace wjr {
 

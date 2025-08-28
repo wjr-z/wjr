@@ -2,8 +2,6 @@
 #define WJR_ARCH_X86_MATH_LARGE_FIND_IMPL_HPP__
 
 #include <wjr/arch/x86/simd/simd.hpp>
-#include <wjr/math/clz.hpp>
-#include <wjr/math/ctz.hpp>
 
 namespace wjr {
 

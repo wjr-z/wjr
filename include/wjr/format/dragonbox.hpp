@@ -18,7 +18,13 @@
 // is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
 // KIND, either express or implied.
 
-#include <wjr/math.hpp>
+#include <wjr/assert.hpp>
+#include <wjr/math/bit.hpp>
+#include <wjr/math/mul.hpp>
+#include <wjr/math/rotate.hpp>
+#include <wjr/math/uint128_t.hpp>
+#include <wjr/memory/detail.hpp>
+#include <wjr/type_traits.hpp>
 
 // Attribute for storing static data into a dedicated place, e.g. flash memory.
 // Every ODR-used static data declaration will be decorated with this macro. The

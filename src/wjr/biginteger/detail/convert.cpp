@@ -1,4 +1,5 @@
 #include <wjr/biginteger/detail/convert.hpp>
+#include <wjr/biginteger/detail/mul.hpp>
 
 namespace wjr {
 

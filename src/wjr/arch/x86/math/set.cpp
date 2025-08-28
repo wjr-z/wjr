@@ -14,6 +14,7 @@
 
 #include <wjr/arch/x86/cpuinfo.hpp>
 #include <wjr/arch/x86/math/set.hpp>
+#include <wjr/math/rotate.hpp>
 
 namespace wjr {
 
