@@ -317,6 +317,14 @@
     #define WJR_CONSTEVAL constexpr
 #endif
 
+#if defined(__cpp_static_call_operator)
+    #define WJR_STATIC_CALL_OPERATOR static
+    #define WJR_CONST_CALL_OPERATOR
+#else
+    #define WJR_STATIC_CALL_OPERATOR
+    #define WJR_CONST_CALL_OPERATOR const
+#endif
+
 #define WJR_ATTRIBUTE(attribute) WJR_ATTRIBUTE_I(attribute)
 #define WJR_ATTRIBUTE_I(attribute) WJR_##attribute
 

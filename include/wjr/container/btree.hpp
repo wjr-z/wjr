@@ -1314,8 +1314,9 @@ basic_btree<Traits>::__insert_iter(const_iterator iter, ivalue_type xval) noexce
     ++__get_size();
     slot_usize_type pos = iter.pos();
     leaf_node_type *leaf;
+
     // empty
-    if (__get_root() == nullptr) {
+    if (WJR_UNLIKELY(__get_root() == nullptr)) {
         // size has incresed before __insert_iter
         slot_usize_type size = __get_size();
         if (size <= 2) {
@@ -1727,7 +1728,7 @@ basic_btree<Traits>::__erase_iter(const_iterator iter) noexcept {
         leaf->size() = -(cur_size - 1);
 
         // first key in leaf is changed
-        if (pos == 0 && parent != nullptr) {
+        if (pos == 0 && parent != nullptr && leaf != __get_sentry()->next()->self()) {
             node_type *current = leaf;
             slot_usize_type tmp_pos;
 
@@ -1735,13 +1736,9 @@ basic_btree<Traits>::__erase_iter(const_iterator iter) noexcept {
                 tmp_pos = current->pos();
                 current = parent;
                 parent = current->m_parent;
+            } while (tmp_pos != 0);
 
-                if (tmp_pos != 0) {
-                    current->as_inner()->m_keys[tmp_pos - 1] = to_ikey(leaf->get_key(0));
-                    break;
-                }
-
-            } while (parent != nullptr);
+            current->as_inner()->m_keys[tmp_pos - 1] = to_ikey(leaf->get_key(0));
         }
 
         return iterator(leaf, pos).__adjust_next();

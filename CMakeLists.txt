@@ -26,7 +26,7 @@ option(WJR_PUBLIC_FLAGS "Set compile flags as public. Useful in tests" OFF)
 #
 
 set(FMT_TEST OFF CACHE BOOL "Disable fmt tests")
-set(FMT_INSTALL OFF)
+set(FMT_INSTALL ON)
 add_subdirectory(third-party/fmt)
 
 set(ENABLE_INSTALL ON)
@@ -285,39 +285,6 @@ write_basic_package_version_file(
    ${CMAKE_CURRENT_BINARY_DIR}/${PackageName}ConfigVersion.cmake
    VERSION 1.2.3
    COMPATIBILITY AnyNewerVersion
-)
-
-function(add_headers VAR)
-  set(headers ${${VAR}})
-  foreach (header ${ARGN})
-    set(headers ${headers} ${PROJECT_SOURCE_DIR}/third-party/fmt/include/fmt/${header})
-  endforeach()
-  set(${VAR} ${headers} PARENT_SCOPE)
-endfunction()
-
-set(FMT_HEADERS)
-add_headers(FMT_HEADERS args.h base.h chrono.h color.h compile.h core.h format.h
-                        format-inl.h os.h ostream.h printf.h ranges.h std.h
-                        xchar.h)
-
-set_target_properties(fmt PROPERTIES PUBLIC_HEADER "${FMT_HEADERS}")
-
-install(
-   TARGETS fmt
-   EXPORT ${PackageName}Targets
-   RUNTIME DESTINATION bin
-   LIBRARY DESTINATION lib
-   ARCHIVE DESTINATION lib
-   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/fmt
-)
-
-install(
-   TARGETS cpu_features
-   EXPORT ${PackageName}Targets
-   RUNTIME DESTINATION bin
-   LIBRARY DESTINATION lib
-   ARCHIVE DESTINATION lib
-   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cpu_features
 )
 
 install(
