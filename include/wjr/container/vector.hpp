@@ -901,7 +901,7 @@ public:
     }
 
 private:
-    WJR_CONSTEXPR20 void __reserve_checked_impl(size_type n) {
+    WJR_CONSTEXPR20 void __reserve_checked_impl(WJR_MAYBE_UNUSED size_type n) {
         if constexpr (is_reallocatable::value) {
             const size_type old_capacity = capacity();
             WJR_ASSERT_ASSUME_L2(old_capacity < n);
