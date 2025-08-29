@@ -44,7 +44,8 @@ namespace wjr {
 /// helper functions
 
 template <uint64_t maxn = UINT64_MAX>
-WJR_INTRINSIC_INLINE uint64_t try_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
+WJR_INTRINSIC_INLINE uint64_t try_addmul_1(WJR_MAYBE_UNUSED uint64_t *dst,
+                                           WJR_MAYBE_UNUSED const uint64_t *src, size_t n,
                                            uint64_t ml) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
