@@ -27,7 +27,7 @@ else()
    set(WJR_ENABLE_ASSEMBLY_DEFAULT OFF)
 endif()
 
-option(WJR_ENABLE_ASSEMBLY "Link with assembly by using NASM." WJR_ENABLE_ASSEMBLY_DEFAULT)
+option(WJR_ENABLE_ASSEMBLY "Link with assembly by using NASM." ${WJR_ENABLE_ASSEMBLY_DEFAULT})
 option(WJR_DISABLE_EXCEPTIONS "Disable exceptions." OFF)
 option(WJR_DISABLE_CXX_20 "Disable C++ 20 even if it's supported." ON)
 option(WJR_PUBLIC_FLAGS "Set compile flags as public. Useful in tests" OFF)
