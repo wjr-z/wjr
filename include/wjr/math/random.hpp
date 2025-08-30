@@ -11,7 +11,7 @@ template <typename Engine, typename = void>
 struct __uniform_random_bit_generator_impl : std::false_type {};
 
 template <typename Engine>
-struct __uniform_random_bit_generator_impl<Engine, std::enable_if_t<has_invocable_v<Engine &>>>
+struct __uniform_random_bit_generator_impl<Engine, std::enable_if_t<std::is_invocable_v<Engine &>>>
     : std::conjunction<is_nonbool_unsigned_integral<std::invoke_result_t<Engine &>>,
                        std::is_same<decltype(Engine::min()), std::invoke_result_t<Engine &>>,
                        std::is_same<decltype(Engine::max()), std::invoke_result_t<Engine &>>> {};

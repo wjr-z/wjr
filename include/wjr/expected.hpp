@@ -684,13 +684,12 @@ struct is_not_expected : std::true_type {};
 template <typename T, typename E>
 struct is_not_expected<expected<T, E>> : std::false_type {};
 
-template <typename T, typename E, typename U>
+template <typename T, typename E, typename U, typename VU = remove_cvref_t<U>>
 struct expected_construct_with_arg
-    : std::conjunction<std::negation<std::is_same<remove_cvref_t<U>, std::in_place_t>>,
-                       std::negation<std::is_same<remove_cvref_t<U>, expected<T, E>>>,
-                       std::is_constructible<T, U>, is_not_unexpected<remove_cvref_t<U>>,
-                       std::disjunction<std::is_same<remove_cvref_t<U>, bool>,
-                                        is_not_expected<remove_cvref_t<U>>>> {};
+    : std::conjunction<std::negation<std::is_same<VU, std::in_place_t>>,
+                       std::negation<std::is_same<VU, expected<T, E>>>, std::is_constructible<T, U>,
+                       is_not_unexpected<VU>,
+                       std::disjunction<std::is_same<VU, bool>, is_not_expected<VU>>> {};
 
 template <typename T, typename E, typename U>
 inline constexpr bool expected_construct_with_arg_v = expected_construct_with_arg<T, E, U>::value;

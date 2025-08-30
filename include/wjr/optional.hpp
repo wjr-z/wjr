@@ -330,13 +330,12 @@ struct is_not_optional : std::true_type {};
 template <typename T>
 struct is_not_optional<optional<T>> : std::false_type {};
 
-template <typename T, typename U>
+template <typename T, typename U, typename VU = remove_cvref_t<U>>
 struct optional_construct_with_arg
-    : std::conjunction<std::negation<std::is_same<remove_cvref_t<U>, std::in_place_t>>,
-                       std::negation<std::is_same<remove_cvref_t<U>, optional<T>>>,
-                       std::is_constructible<T, U>, is_not_nullopt_t<remove_cvref_t<U>>,
-                       std::disjunction<std::is_same<remove_cvref_t<U>, bool>,
-                                        is_not_optional<remove_cvref_t<U>>>> {};
+    : std::conjunction<std::negation<std::is_same<VU, std::in_place_t>>,
+                       std::negation<std::is_same<VU, optional<T>>>, std::is_constructible<T, U>,
+                       is_not_nullopt_t<VU>,
+                       std::disjunction<std::is_same<VU, bool>, is_not_optional<VU>>> {};
 
 template <typename T, typename U>
 inline constexpr bool optional_construct_with_arg_v = optional_construct_with_arg<T, U>::value;

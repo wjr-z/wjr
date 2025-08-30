@@ -477,8 +477,6 @@ WJR_REGISTER_HAS_COMPARE(greater_equal, std::greater_equal<>);
 
 #undef WJR_REGISTER_HAS_COMPARE
 
-WJR_REGISTER_HAS_TYPE(invocable, std::invoke(std::declval<Func>(), std::declval<Args>()...), Func);
-
 WJR_REGISTER_HAS_TYPE(compare_is_transparent, std::declval<typename Compare::is_transparent>(),
                       Compare);
 

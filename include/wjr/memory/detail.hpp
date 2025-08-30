@@ -17,7 +17,6 @@ struct get_relocate_mode<std::unique_ptr<T, D>> {
 #if defined(WJR_CPP_20)
 using std::to_address;
 #else
-
 WJR_REGISTER_HAS_TYPE(pointer_traits_to_address,
                       std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()), Ptr);
 

@@ -59,12 +59,14 @@ else()
    FetchContent_MakeAvailable(googletest)
 endif()
 
-aux_source_directory(src TEST_SRCS)
+file(GLOB_RECURSE TEST_SRCS CONFIGURE_DEPENDS src/*.cpp)
 
 add_executable(
    tests
    ${TEST_SRCS}
 )
+
+target_include_directories(tests PRIVATE src)
 
 if(WJR_ENABLE_COVERAGE)
    set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -O3 -std=c++17 -march=native -DWJR_DEBUG_LEVEL=3 -Wall -Wextra -g")
