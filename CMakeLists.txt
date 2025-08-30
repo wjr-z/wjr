@@ -8,6 +8,9 @@ endif()
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
    set(WJR_ARCH x86)
+   message(STATUS "Target architecture: x86")
+else()
+   message(WARNING "Target architecture: ${CMAKE_SYSTEM_PROCESSOR} is not tested.")
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -16,13 +19,25 @@ if(NOT CMAKE_BUILD_TYPE)
       FORCE)
 endif()
 
-option(WJR_ENABLE_ASSEMBLY "Link with assembly by using NASM." OFF)
+include(CheckLanguage)
+check_language(ASM_NASM)
+if (CMAKE_ASM_NASM_COMPILER)
+   set(WJR_ENABLE_ASSEMBLY_DEFAULT ON)
+else()
+   set(WJR_ENABLE_ASSEMBLY_DEFAULT OFF)
+endif()
+
+option(WJR_ENABLE_ASSEMBLY "Link with assembly by using NASM." WJR_ENABLE_ASSEMBLY_DEFAULT)
 option(WJR_DISABLE_EXCEPTIONS "Disable exceptions." OFF)
 option(WJR_DISABLE_CXX_20 "Disable C++ 20 even if it's supported." ON)
 option(WJR_PUBLIC_FLAGS "Set compile flags as public. Useful in tests" OFF)
 
 set(WJR_DEBUG_LEVEL_DEBUG "3" CACHE STRING "Debug level in debug mode(default = 3).")
 set(WJR_DEBUG_LEVEL_RELEASE "0" CACHE STRING "Debug level in release mode(default = 0).")
+
+if (WJR_DISABLE_EXCEPTIONS)
+   message(STATUS "Disable exceptions.")
+endif()
 
 #
 # third-party
@@ -49,7 +64,7 @@ set(WJR_CXX_FLAGS_RELEASE)
 set(WJR_COMPILE_DEFINITIONS)
 
 if(NOT WJR_DISABLE_CXX_20 AND "cxx_std_20" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
-   message("Enable C++ 20.")
+   message(STATUS "Enable C++ 20.")
    set(WJR_USE_CXX_20 ON)
 else()
    set(WJR_USE_CXX_20 OFF)
@@ -96,13 +111,14 @@ if (WJR_PUBLIC_FLAGS)
 endif()
 
 if(WJR_ENABLE_ASSEMBLY AND WJR_ARCH)
-   set(CMAKE_ASM_NASM_SOURCE_FILE_EXTENSIONS asm)
    enable_language(ASM_NASM)
+
+   set(CMAKE_ASM_NASM_SOURCE_FILE_EXTENSIONS asm)
    set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -x assembler-with-cpp")
 
    set(WJR_ENABLE_ARCH_ASSEMBLY ON)
    list(APPEND WJR_COMPILE_DEFINITIONS WJR_ENABLE_ASSEMBLY)
-   message("Enable ${WJR_ARCH} assembly.")
+   message(STATUS "Enable assembly : ASM_NASM")
 endif()
 
 #
@@ -269,6 +285,8 @@ target_link_libraries(wjr PUBLIC fmt::fmt PRIVATE CpuFeatures::cpu_features)
 add_library(wjr::wjr ALIAS wjr)
 
 target_precompile_headers(wjr PUBLIC ${WJR_PCH_COMMON})
+
+# install
 
 set(PackageName wjr)
 set(INCLUDE_INSTALL_DIR include)

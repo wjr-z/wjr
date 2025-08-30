@@ -125,10 +125,11 @@
 
 #if defined(WJR_OS_WINDOWS)
     #if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG)
-        #define WJR_HAS_DECLSPEC
         #define WJR_SYMBOL_EXPORT __attribute__((__dllexport__))
         #define WJR_SYMBOL_IMPORT __attribute__((__dllimport__))
     #elif defined(WJR_COMPILER_MSVC)
+        #define WJR_SYMBOL_EXPORT __declspec(dllexport)
+        #define WJR_SYMBOL_IMPORT __declspec(dllimport)
     #else
         #error "Not support"
     #endif
