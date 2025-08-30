@@ -76,8 +76,20 @@ class function_ref;
 
 } // namespace wjr
 
+#define WJR_FUNCREF_CV
+#define WJR_FUNCREF_NOEXCEPT false
 #include "funcref_impl.hpp"
+
+#define WJR_FUNCREF_CV
+#define WJR_FUNCREF_NOEXCEPT true
+#include "funcref_impl.hpp"
+
 #define WJR_FUNCREF_CV const
+#define WJR_FUNCREF_NOEXCEPT false
+#include "funcref_impl.hpp"
+
+#define WJR_FUNCREF_CV const
+#define WJR_FUNCREF_NOEXCEPT true
 #include "funcref_impl.hpp"
 
 #endif // WJR_UTILITY_FUNCTIONAL_HPP__

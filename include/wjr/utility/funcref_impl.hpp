@@ -1,16 +1,20 @@
 #ifndef WJR_FUNCREF_CV
-    #define WJR_FUNCREF_CV
+    #error "WJR_FUNCREF_CV must be defined"
+#endif
+
+#ifndef WJR_FUNCREF_NOEXCEPT
+    #error "WJR_FUNCREF_NOEXCEPT must be defined"
 #endif
 
 namespace wjr {
-template <typename Ret, typename... Args, bool Noex>
-class function_ref<Ret(Args...) WJR_FUNCREF_CV noexcept(Noex)> {
-    using Invoker = func_detail::invoker<Noex, Ret, Args...>;
+template <typename Ret, typename... Args>
+class function_ref<Ret(Args...) WJR_FUNCREF_CV noexcept(WJR_FUNCREF_NOEXCEPT)> {
+    using Invoker = func_detail::invoker<WJR_FUNCREF_NOEXCEPT, Ret, Args...>;
     using func_ptr_t = typename Invoker::func_ptr_t;
 
     template <typename... Tps>
     static constexpr bool __is_invocable_using =
-        std::conditional_t<Noex, std::is_nothrow_invocable_r<Ret, Tps..., Args...>,
+        std::conditional_t<WJR_FUNCREF_NOEXCEPT, std::is_nothrow_invocable_r<Ret, Tps..., Args...>,
                            std::is_invocable_r<Ret, Tps..., Args...>>::value;
 
 public:
@@ -33,7 +37,7 @@ public:
               WJR_REQUIRES(!std::is_same_v<Tp, function_ref> && !std::is_pointer_v<Tp>)>
     function_ref &operator=(Tp) = delete;
 
-    Ret operator()(Args... args) const noexcept(Noex) {
+    Ret operator()(Args... args) const noexcept(WJR_FUNCREF_NOEXCEPT) {
         return m_func(m_ptr, std::forward<Args>(args)...);
     }
 
@@ -44,3 +48,4 @@ private:
 } // namespace wjr
 
 #undef WJR_FUNCREF_CV
+#undef WJR_FUNCREF_NOEXCEPT
