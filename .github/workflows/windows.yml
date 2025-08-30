@@ -45,6 +45,9 @@ jobs:
       - name: Init submodule
         run: git submodule update --init --recursive
 
+      - name: Install NASM
+        uses: ilammy/setup-nasm@v1
+
     #   - name: Install GMP
 
       - name: Configure using CMake
