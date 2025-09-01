@@ -639,33 +639,44 @@ using __uninitialized_control_selector = control_special_members_base<
     std::is_trivially_copy_constructible_v<T> || !std::is_copy_constructible_v<T>,
     std::is_trivially_move_constructible_v<T> || !std::is_move_constructible_v<T>, true, true>;
 
-template <typename T>
-using __uninitialized_enabler =
-    enable_special_members_base<true, true, std::is_copy_constructible_v<T>,
-                                std::is_move_constructible_v<T>, false, false>;
+template <typename T, bool Enable>
+struct __uninitialized_enabler {
+    using type = enable_special_members_base<true, true, false, false, false, false>;
+};
 
-/**
- * @class uninitialized
- *
- * @details Uninitialized object. Make trivially constructible and destructible
- * of any type. At present, the detector for detecting the legality of states
- * under DEBUG has been removed.
- *
- */
 template <typename T>
-class WJR_EMPTY_BASES uninitialized : __uninitialized_control_selector<T>,
-                                      __uninitialized_enabler<T> {
+struct __uninitialized_enabler<T, true> {
+    using type =
+        enable_special_members_base<true, true, std::is_copy_constructible_v<T>,
+                                    std::is_move_constructible_v<T>, std::is_copy_assignable_v<T>,
+                                    std::is_move_assignable_v<T>>;
+};
+
+template <typename T, bool Enable>
+using __uninitialized_enabler_t = typename __uninitialized_enabler<T, Enable>::type;
+
+template <typename T, bool Enable>
+class WJR_EMPTY_BASES __uninitialized : __uninitialized_control_selector<T>,
+                                        __uninitialized_enabler_t<T, Enable> {
     using Mybase = __uninitialized_control_selector<T>;
 
 public:
-    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(uninitialized);
+    using value_type = T;
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Mybase, Args...>)>
-    constexpr uninitialized(Args &&...args) noexcept(
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(__uninitialized);
+
+    template <typename U, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<U>, __uninitialized> &&
+                                       std::is_constructible_v<T, U>)>
+    constexpr __uninitialized(U &&u) noexcept(std::is_nothrow_constructible_v<T, U>)
+        : Mybase(std::forward<U>(u)) {}
+
+    template <typename... Args,
+              WJR_REQUIRES(sizeof...(Args) > 1 && std::is_constructible_v<Mybase, Args...>)>
+    constexpr __uninitialized(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<Mybase, Args...>)
         : Mybase(std::forward<Args>(args)...) {}
 
-    constexpr uninitialized(default_construct_t) noexcept : Mybase() {}
+    constexpr __uninitialized(default_construct_t) noexcept : Mybase() {}
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr T &
@@ -690,10 +701,26 @@ public:
     constexpr const T *operator->() const noexcept { return get(); }
 };
 
+/**
+ * @class uninitialized
+ *
+ * @details Uninitialized object. Make trivially constructible and destructible
+ * of any type. At present, the detector for detecting the legality of states
+ * under DEBUG has been removed.
+ *
+ */
+template <typename T>
+class uninitialized : public __uninitialized<T, false> {
+    using Mybase = __uninitialized<T, false>;
+
+public:
+    using Mybase::Mybase;
+};
+
 /// @private
 template <typename T, bool = true>
-class __lazy_initialized_base : public uninitialized<T> {
-    using Mybase = uninitialized<T>;
+class __lazy_initialized_base : public __uninitialized<T, true> {
+    using Mybase = __uninitialized<T, true>;
 
 public:
     using Mybase::Mybase;
@@ -701,8 +728,8 @@ public:
 
 /// @private
 template <typename T>
-class __lazy_initialized_base<T, false> : public uninitialized<T> {
-    using Mybase = uninitialized<T>;
+class __lazy_initialized_base<T, false> : public __uninitialized<T, true> {
+    using Mybase = __uninitialized<T, true>;
 
 public:
     using Mybase::Mybase;
@@ -712,7 +739,7 @@ public:
 
 /// @private
 template <typename T>
-using lazy_initialized_base = __lazy_initialized_base<T, false>;
+using lazy_initialized_base = __lazy_initialized_base<T, std::is_trivially_destructible_v<T>>;
 
 template <typename T>
 class lazy_initialized : public lazy_initialized_base<T> {
