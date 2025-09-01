@@ -4,6 +4,10 @@
 
 using namespace wjr;
 
+namespace {
+void __set4(int &x) { x = 4; }
+} // namespace
+
 TEST(functional, function_ref) {
     int a = 0;
 
@@ -26,6 +30,12 @@ TEST(functional, function_ref) {
         function_ref<void(int &)> f = func;
         f(a);
         EXPECT_EQ(a, 3);
+    }
+
+    {
+        function_ref<void(int &)> f = nontype<&__set4>;
+        f(a);
+        EXPECT_EQ(a, 4);
     }
 
     static_assert(std::is_constructible_v<function_ref<void()>, void (*)() noexcept>);
