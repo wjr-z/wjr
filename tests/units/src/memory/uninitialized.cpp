@@ -21,6 +21,39 @@ void verify_uninitialized() {
     static_assert(std::is_trivially_destructible_v<type> == std::is_trivially_destructible_v<T>,
                   "trivially destructible test error");
 }
+
+template <typename T>
+void verify_lazy_initialized() {
+    using type = lazy_initialized<T>;
+    static_assert(std::is_constructible_v<type>, "constructible test error");
+    static_assert(std::is_copy_constructible_v<type> == std::is_copy_constructible_v<T>,
+                  "copy constructible test error");
+    static_assert(std::is_move_constructible_v<type> == std::is_move_constructible_v<T>,
+                  "move constructible test error");
+    static_assert(std::is_copy_assignable_v<type> == std::is_copy_assignable_v<T>,
+                  "copy assignable test error");
+    static_assert(std::is_move_assignable_v<type> == std::is_move_assignable_v<T>,
+                  "move assignable test error");
+    static_assert(std::is_destructible_v<type>, "destructible test error");
+
+    static_assert(std::is_trivially_default_constructible_v<type> ==
+                      std::is_trivially_default_constructible_v<T>,
+                  "trivially default constructible test error");
+    static_assert(std::is_trivially_copy_constructible_v<type> ==
+                      std::is_trivially_copy_constructible_v<T>,
+                  "trivially copy constructible test error");
+    static_assert(std::is_trivially_move_constructible_v<type> ==
+                      std::is_trivially_move_constructible_v<T>,
+                  "trivially move constructible test error");
+    static_assert(std::is_trivially_copy_assignable_v<type> ==
+                      std::is_trivially_copy_assignable_v<T>,
+                  "trivially copy assignable test error");
+    static_assert(std::is_trivially_move_assignable_v<type> ==
+                      std::is_trivially_move_assignable_v<T>,
+                  "trivially move assignable test error");
+    static_assert(std::is_trivially_destructible_v<type> == std::is_trivially_destructible_v<T>,
+                  "trivially destructible test error");
+}
 } // namespace
 
 TEST(memory, uninitialized) {
@@ -28,5 +61,13 @@ TEST(memory, uninitialized) {
         verify_uninitialized<int>();
         verify_uninitialized<std::string>();
         verify_uninitialized<std::pair<int, std::string>>();
+    }
+}
+
+TEST(memory, lazy_initialized) {
+    {
+        verify_lazy_initialized<int>();
+        verify_lazy_initialized<std::string>();
+        verify_lazy_initialized<std::pair<int, std::string>>();
     }
 }

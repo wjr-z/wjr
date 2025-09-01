@@ -631,13 +631,27 @@ public:
         std::is_nothrow_move_constructible_v<T>) {
         wjr::construct_at(std::addressof(this->m_value), std::move(other.m_value));
     }
+
+    template <typename U = T, WJR_REQUIRES(std::is_copy_assignable_v<U>)>
+    WJR_CONSTEXPR20 void __copy_assign(const __uninitialized_control_base &other) noexcept(
+        std::is_nothrow_copy_assignable_v<T>) {
+        this->m_value = other.m_value;
+    }
+
+    template <typename U = T, WJR_REQUIRES(std::is_move_assignable_v<U>)>
+    WJR_CONSTEXPR20 void __move_assign(__uninitialized_control_base &&other) noexcept(
+        std::is_nothrow_move_assignable_v<T>) {
+        this->m_value = std::move(other.m_value);
+    }
 };
 
 template <typename T>
 using __uninitialized_control_selector = control_special_members_base<
     __uninitialized_control_base<T>,
     std::is_trivially_copy_constructible_v<T> || !std::is_copy_constructible_v<T>,
-    std::is_trivially_move_constructible_v<T> || !std::is_move_constructible_v<T>, true, true>;
+    std::is_trivially_move_constructible_v<T> || !std::is_move_constructible_v<T>,
+    std::is_trivially_copy_assignable_v<T> || !std::is_copy_assignable_v<T>,
+    std::is_trivially_move_assignable_v<T> || !std::is_move_assignable_v<T>>;
 
 template <typename T, bool Enable>
 struct __uninitialized_enabler {
