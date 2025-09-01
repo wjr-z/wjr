@@ -33,6 +33,16 @@ public:
         func_detail::init_ptr(m_ptr, std::addressof(f));
     }
 
+    template <auto __fn, WJR_REQUIRES(__is_invocable_using<decltype(__fn)>)>
+    function_ref(nontype_t<__fn>) noexcept {
+        using Fn = remove_cvref_t<decltype(__fn)>;
+        if constexpr (std::is_pointer_v<Fn> || std::is_member_function_pointer_v<Fn>)
+            static_assert(__fn != nullptr, "function pointer cannot be null");
+
+        m_func = Invoker::template _S_nt_ptr<__fn>();
+        // m_ptr is unused in this case
+    }
+
     template <typename Tp,
               WJR_REQUIRES(!std::is_same_v<Tp, function_ref> && !std::is_pointer_v<Tp>)>
     function_ref &operator=(Tp) = delete;

@@ -45,6 +45,11 @@ WJR_INTRINSIC_INLINE static Ret _S_call_ptrs(Ptr ptr, Args... args) noexcept(Noe
     }
 }
 
+template <auto __fn, bool Noex, typename Ret, typename... Args>
+static Ret _S_nt_ptrs(Ptr, Args... args) noexcept(Noex) {
+    return invoke_r<Ret>(__fn, std::forward<Args>(args)...);
+}
+
 template <bool Noex, typename Ret, typename... Args>
 struct invoker {
     using func_ptr_t = Ret (*)(Ptr, Args...) noexcept(Noex);
@@ -52,6 +57,11 @@ struct invoker {
     template <typename Tp>
     static constexpr func_ptr_t __s_ptr() {
         return &_S_call_ptrs<Tp, Noex, Ret, Args...>;
+    }
+
+    template <auto __fn>
+    static constexpr auto _S_nt_ptr() {
+        return &_S_nt_ptrs<__fn, Noex, Ret, Args...>;
     }
 
 private:
@@ -70,6 +80,19 @@ constexpr void init_ptr(Ptr &ptr, Tp *p) noexcept {
 }
 
 } // namespace func_detail
+
+#ifndef WJR_CPP_26
+template <auto V>
+struct nontype_t {
+    explicit nontype_t() = default;
+};
+
+template <auto V>
+constexpr nontype_t<V> nontype{};
+#else
+using std::nontype;
+using std::nontype_t;
+#endif
 
 template <typename F>
 class function_ref;

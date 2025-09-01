@@ -69,6 +69,9 @@
 #if WJR_CPP_STANDARD > 202002L
     #define WJR_CPP_23
 #endif
+#if WJR_CPP_STANDARD > 202302L
+    #define WJR_CPP_26
+#endif
 
 #ifndef WJR_CPP_17
     #error "required C++17 or later"
