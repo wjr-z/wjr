@@ -1,4 +1,5 @@
 #include "detail.hpp"
+#include "type.hpp"
 
 #include <wjr/memory/uninitialized.hpp>
 
@@ -54,6 +55,7 @@ void verify_lazy_initialized() {
     static_assert(std::is_trivially_destructible_v<type> == std::is_trivially_destructible_v<T>,
                   "trivially destructible test error");
 }
+
 } // namespace
 
 TEST(memory, uninitialized) {
@@ -61,6 +63,13 @@ TEST(memory, uninitialized) {
         verify_uninitialized<int>();
         verify_uninitialized<std::string>();
         verify_uninitialized<std::pair<int, std::string>>();
+
+        verify_uninitialized<disable_copy>();
+        verify_uninitialized<disable_move>();
+        verify_uninitialized<disable_copy_construct>();
+        verify_uninitialized<disable_move_construct>();
+        verify_uninitialized<disable_copy_assign>();
+        verify_uninitialized<disable_move_assign>();
     }
 }
 
@@ -69,5 +78,12 @@ TEST(memory, lazy_initialized) {
         verify_lazy_initialized<int>();
         verify_lazy_initialized<std::string>();
         verify_lazy_initialized<std::pair<int, std::string>>();
+
+        verify_lazy_initialized<disable_copy>();
+        // verify_lazy_initialized<disable_move>();
+        verify_lazy_initialized<disable_copy_construct>();
+        // verify_lazy_initialized<disable_move_construct>();
+        verify_lazy_initialized<disable_copy_assign>();
+        // verify_lazy_initialized<disable_move_assign>();
     }
 }

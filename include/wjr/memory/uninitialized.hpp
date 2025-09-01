@@ -748,7 +748,7 @@ class __lazy_initialized_base<T, false> : public __uninitialized<T, true> {
 public:
     using Mybase::Mybase;
 
-    ~__lazy_initialized_base() noexcept(noexcept(Mybase::reset())) { Mybase::reset(); }
+    ~__lazy_initialized_base() noexcept(noexcept(this->reset())) { this->reset(); }
 };
 
 /// @private
