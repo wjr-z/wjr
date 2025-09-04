@@ -80,10 +80,10 @@ TEST(memory, lazy_initialized) {
         verify_lazy_initialized<std::pair<int, std::string>>();
 
         verify_lazy_initialized<disable_copy>();
-        // verify_lazy_initialized<disable_move>();
+        verify_lazy_initialized<disable_move>();
         verify_lazy_initialized<disable_copy_construct>();
-        // verify_lazy_initialized<disable_move_construct>();
+        verify_lazy_initialized<disable_move_construct>();
         verify_lazy_initialized<disable_copy_assign>();
-        // verify_lazy_initialized<disable_move_assign>();
+        verify_lazy_initialized<disable_move_assign>();
     }
 }

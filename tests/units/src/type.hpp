@@ -22,9 +22,9 @@ struct disable_copy {
 
 struct disable_move {
     disable_move() = default;
-    disable_move(const disable_move &) = default;
+    disable_move(const disable_move &) = delete;
     disable_move(disable_move &&) = delete;
-    disable_move &operator=(const disable_move &) = default;
+    disable_move &operator=(const disable_move &) = delete;
     disable_move &operator=(disable_move &&) = delete;
     ~disable_move() = default;
 };
@@ -40,7 +40,7 @@ struct disable_copy_construct {
 
 struct disable_move_construct {
     disable_move_construct() = default;
-    disable_move_construct(const disable_move_construct &) = default;
+    disable_move_construct(const disable_move_construct &) = delete;
     disable_move_construct(disable_move_construct &&) = delete;
     disable_move_construct &operator=(const disable_move_construct &) = default;
     disable_move_construct &operator=(disable_move_construct &&) = default;
@@ -60,7 +60,7 @@ struct disable_move_assign {
     disable_move_assign() = default;
     disable_move_assign(const disable_move_assign &) = default;
     disable_move_assign(disable_move_assign &&) = default;
-    disable_move_assign &operator=(const disable_move_assign &) = default;
+    disable_move_assign &operator=(const disable_move_assign &) = delete;
     disable_move_assign &operator=(disable_move_assign &&) = delete;
     ~disable_move_assign() = default;
 };

@@ -25,7 +25,6 @@
 #include <wjr/biginteger/detail.hpp>
 #include <wjr/format/ostream_insert.hpp>
 #include <wjr/math.hpp>
-#include <wjr/optional.hpp>
 #include <wjr/span.hpp>
 #include <wjr/vector.hpp>
 
