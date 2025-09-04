@@ -4,12 +4,17 @@
 #include <wjr/assert.hpp>
 
 namespace wjr {
-struct sentinel_trait : std::false_type {
+struct sentinel_trait {
+    using self_type = sentinel_trait;
+    static constexpr bool is_compressed = false;
     using sentinel_type = bool;
 
+    static constexpr void construct_sentinel(sentinel_type *has_value) noexcept {
+        set_sentinel(*has_value);
+    }
     static constexpr void set_sentinel(sentinel_type &has_value) noexcept { has_value = false; }
     static constexpr void unset_sentinel(sentinel_type &has_value) noexcept { has_value = true; }
-    static constexpr bool is_sentinel(const sentinel_type &has_value) noexcept {
+    WJR_PURE static constexpr bool is_sentinel(const sentinel_type &has_value) noexcept {
         return !has_value;
     }
 };
@@ -18,7 +23,9 @@ template <typename T>
 struct typed_sentinel_trait : sentinel_trait {};
 
 template <typename Mybase, typename S>
-struct compressed_sentinel_trait_base : std::true_type {
+struct compressed_sentinel_trait_base {
+    using self_type = Mybase;
+    static constexpr bool is_compressed = true;
     using sentinel_type = S;
 
     static constexpr void unset_sentinel(WJR_MAYBE_UNUSED sentinel_type &val) noexcept {
@@ -33,8 +40,11 @@ struct __compressed_trivial_sentinel_trait_base
                                      T> {
     using sentinel_type = T;
 
+    static constexpr void construct_sentinel(sentinel_type *has_value) noexcept {
+        set_sentinel(*has_value);
+    }
     static constexpr void set_sentinel(sentinel_type &val) noexcept { val = uniq_sentinel; }
-    static constexpr bool is_sentinel(const sentinel_type &val) noexcept {
+    WJR_PURE static constexpr bool is_sentinel(const sentinel_type &val) noexcept {
         return val == uniq_sentinel;
     }
 };
@@ -46,6 +56,27 @@ struct compressed_sentinel_trait : sentinel_trait {};
 template <typename T>
 struct compressed_sentinel_trait<T *, void>
     : detail::__compressed_trivial_sentinel_trait_base<T *, nullptr> {};
+
+template <typename T, typename SentinelTrait = sentinel_trait>
+struct sentinel_tag {};
+
+template <typename T>
+struct sentinel_tag_tarit {
+    using value_type = T;
+    using trait_type = sentinel_trait;
+};
+
+template <typename T, typename SentinelTrait>
+struct sentinel_tag_tarit<sentinel_tag<T, SentinelTrait>> {
+    using value_type = T;
+    using trait_type = typename SentinelTrait::self_type;
+};
+
+template <typename T>
+using sentinel_tag_value_t = typename sentinel_tag_tarit<T>::value_type;
+
+template <typename T>
+using sentinel_tag_trait_t = typename sentinel_tag_tarit<T>::trait_type;
 
 } // namespace wjr
 
