@@ -24,7 +24,7 @@ public:
     ~automatic_free_pool() noexcept {
         chunk *node, *next;
         WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) {
-            mem::__default_deallocate<>(node, std::nothrow);
+            mem::__default_deallocate(node, std::nothrow);
         }
     }
 
@@ -38,7 +38,7 @@ public:
     automatic_free_pool &operator=(automatic_free_pool &&other) {
         chunk *node, *next;
         WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) {
-            mem::__default_deallocate<>(node, std::nothrow);
+            mem::__default_deallocate(node, std::nothrow);
         }
         replace(&other.head, &head);
         other.head.init_self();
@@ -46,7 +46,7 @@ public:
     }
 
     WJR_MALLOC void *allocate(size_t n) noexcept {
-        auto *const raw = mem::__default_allocate<>(n + aligned_header_size, std::nothrow);
+        auto *const raw = mem::__default_allocate(n + aligned_header_size, std::nothrow);
         head.push_back(static_cast<chunk *>(raw));
         return static_cast<void *>(static_cast<std::byte *>(raw) + aligned_header_size);
     }
@@ -54,7 +54,7 @@ public:
     void deallocate(void *ptr) noexcept {
         auto *const node = static_cast<std::byte *>(ptr) - aligned_header_size;
         reinterpret_cast<chunk *>(node)->remove();
-        mem::__default_deallocate<>(node, std::nothrow);
+        mem::__default_deallocate(node, std::nothrow);
     }
 
 private:

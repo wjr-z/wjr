@@ -54,7 +54,7 @@ public:
 
 private:
     static void *__large_allocate(size_t n, large_memory *&mem) noexcept {
-        auto *const raw = mem::__default_allocate<>(n + aligned_header_size, std::nothrow);
+        auto *const raw = mem::__default_allocate(n + aligned_header_size, std::nothrow);
         auto *const buffer = static_cast<large_memory *>(raw);
         buffer->prev = mem;
         mem = buffer;

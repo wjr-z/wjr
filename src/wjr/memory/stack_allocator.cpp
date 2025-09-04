@@ -21,7 +21,7 @@ void stack_allocator_object::__large_deallocate(large_memory *buffer) noexcept {
     WJR_ASSERT(buffer != nullptr);
     do {
         auto *const prev = buffer->prev;
-        mem::__default_deallocate<>(buffer, std::nothrow);
+        mem::__default_deallocate(buffer, std::nothrow);
         buffer = prev;
     } while (buffer != nullptr);
 }
