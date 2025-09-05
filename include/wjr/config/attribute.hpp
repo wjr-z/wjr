@@ -1,7 +1,7 @@
-#ifndef WJR_PREPROCESSOR_CONFIG_ATTRIBUTE_HPP__
-#define WJR_PREPROCESSOR_CONFIG_ATTRIBUTE_HPP__
+#ifndef WJR_CONFIG_ATTRIBUTE_HPP__
+#define WJR_CONFIG_ATTRIBUTE_HPP__
 
-#include <wjr/preprocessor/config/has.hpp>
+#include <wjr/config/has.hpp>
 
 #if defined(WJR_CPP_20)
     #include <version>
@@ -334,4 +334,80 @@
     #define WJR_EMPTY_BASES
 #endif
 
-#endif // WJR_PREPROCESSOR_CONFIG_ATTRIBUTE_HPP__
+#if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_MSVC)
+    #define WJR_PRAGMA_I(expr) _Pragma(#expr)
+    #define WJR_PRAGMA(expr) WJR_PRAGMA_I(expr)
+#else
+    #define WJR_PRAGMA(expr)
+#endif
+
+#if WJR_HAS_FEATURE(PRAGMA_UNROLL)
+    #if defined(WJR_COMPILER_GCC)
+        #define WJR_UNROLL(loop) WJR_PRAGMA(GCC unroll(loop))
+    #else
+        #define WJR_UNROLL(loop) WJR_PRAGMA(unroll(loop))
+    #endif
+#else
+    #define WJR_UNROLL(loop)
+#endif
+
+#define WJR_HAS_FEATURE_DISABLE_VECTORIZE WJR_HAS_DEF
+#define WJR_HAS_FEATURE_DISABLE_UNROLL WJR_HAS_DEF
+
+#if defined(WJR_COMPILER_CLANG)
+    #define WJR_DISABLE_VECTORIZE _Pragma("clang loop vectorize(disable)")
+    #define WJR_DISABLE_UNROLL _Pragma("clang loop unroll(disable)")
+#elif defined(WJR_COMPILER_GCC)
+    #if WJR_HAS_GCC(14, 1, 0)
+        #define WJR_DISABLE_VECTORIZE _Pragma("GCC novector")
+    #else
+        #define WJR_DISABLE_VECTORIZE
+        #undef WJR_HAS_FEATURE_DISABLE_VECTORIZE
+    #endif
+
+    #define WJR_DISABLE_UNROLL _Pragma("GCC unroll(1)")
+#else
+    #define WJR_DISABLE_VECTORIZE
+    #define WJR_DISABLE_UNROLL WJR_UNROLL(1)
+
+    #undef WJR_HAS_FEATURE_DISABLE_VECTORIZE
+    #undef WJR_HAS_FEATURE_DISABLE_UNROLL
+#endif
+
+#if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG)
+    #define WJR_VISIBILITY(value) __attribute__((__visibility__(value)))
+#else
+    #define WJR_VISIBILITY(value)
+#endif
+
+#if defined(WJR_OS_WINDOWS)
+    #if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG)
+        #define WJR_SYMBOL_EXPORT __attribute__((__dllexport__))
+        #define WJR_SYMBOL_IMPORT __attribute__((__dllimport__))
+    #elif defined(WJR_COMPILER_MSVC)
+        #define WJR_SYMBOL_EXPORT __declspec(dllexport)
+        #define WJR_SYMBOL_IMPORT __declspec(dllimport)
+    #else
+        #error "Not support"
+    #endif
+#else
+    #if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG)
+        #define WJR_SYMBOL_EXPORT __attribute__((__visibility__("default")))
+        #define WJR_SYMBOL_IMPORT
+    #elif defined(WJR_COMPILER_MSVC)
+        #error "Not support"
+    #else
+        #define WJR_SYMBOL_EXPORT
+        #define WJR_SYMBOL_IMPORT
+    #endif
+#endif
+
+#define WJR_HAS_FEATURE_NO_UNIQUE_ADDRESS WJR_HAS_DEF
+#if WJR_HAS_CPP_ATTRIBUTE(no_unique_address)
+    #define WJR_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#else
+    #define WJR_NO_UNIQUE_ADDRESS
+    #undef WJR_HAS_FEATURE_NO_UNIQUE_ADDRESS
+#endif
+
+#endif // WJR_CONFIG_ATTRIBUTE_HPP__

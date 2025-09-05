@@ -30,7 +30,7 @@
 #include <iostream> // for operator<<, cerr, basic_ostream, ostream
 #include <utility>  // for forward
 
-#include <wjr/preprocessor/config/attribute.hpp>
+#include <wjr/config/attribute.hpp>
 
 #ifndef WJR_DEBUG_LEVEL
     #if defined(NDEBUG)

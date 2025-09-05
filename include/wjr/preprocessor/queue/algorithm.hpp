@@ -123,4 +123,11 @@
     WJR_PP_QUEUE_ZIP_IOTA_I((WJR_PP_IOTA(WJR_PP_QUEUE_SIZE(queue))), queue)
 #define WJR_PP_QUEUE_ZIP_IOTA_I(ID, queue) WJR_PP_QUEUE_ZIP_2(ID, queue)
 
+// (a, b, c) -> f(a) f(b) f(c)
+#define WJR_PP_TRANSFORM_PUT(queue, op) WJR_PP_QUEUE_PUT(WJR_PP_QUEUE_TRANSFORM(queue, op))
+
+// (a, b, c) -> (f(a), f(b), f(c)) (note : f(x) = (g(x))) -> g(a) g(b) g(c)
+#define WJR_PP_TRANSFORM_UNWRAP_PUT(queue, op)                                                     \
+    WJR_PP_QUEUE_UNWRAP_PUT(WJR_PP_QUEUE_TRANSFORM(queue, op))
+
 #endif // WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP__

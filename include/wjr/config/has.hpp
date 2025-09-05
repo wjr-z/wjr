@@ -1,9 +1,9 @@
-#ifndef WJR_PREPROCESSOR_CONFIG_HAS_HPP__
-#define WJR_PREPROCESSOR_CONFIG_HAS_HPP__
+#ifndef WJR_CONFIG_HAS_HPP__
+#define WJR_CONFIG_HAS_HPP__
 
-#include <wjr/preprocessor/config/arch.hpp>
-#include <wjr/preprocessor/config/compiler.hpp>
-#include <wjr/preprocessor/config/sizeof.hpp>
+#include <wjr/config/arch.hpp>
+#include <wjr/config/compiler.hpp>
+#include <wjr/config/sizeof.hpp>
 #include <wjr/preprocessor/detail/basic.hpp>
 #include <wjr/preprocessor/logical.hpp>
 
@@ -225,4 +225,4 @@
     #define WJR_ARCH x86
 #endif
 
-#endif // WJR_PREPROCESSOR_CONFIG_HAS_HPP__
+#endif // WJR_CONFIG_HAS_HPP__

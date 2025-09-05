@@ -21,10 +21,16 @@
     #include <wjr/arch/preview/memory/aligned_alloc_posix.hpp>
 #elif defined(sun) || defined(__sun)
     #include <wjr/arch/preview/memory/aligned_alloc_sunos.hpp>
-#elif defined(_POSIX_VERSION)
-    #include <wjr/arch/preview/memory/aligned_alloc_posix.hpp>
 #else
-    #include <wjr/arch/preview/memory/aligned_alloc_malloc.hpp>
+    #if defined(WJR_HAS_UNISTD_H)
+        #include <unistd.h>
+    #endif
+
+    #if defined(_POSIX_VERSION)
+        #include <wjr/arch/preview/memory/aligned_alloc_posix.hpp>
+    #else
+        #include <wjr/arch/preview/memory/aligned_alloc_malloc.hpp>
+    #endif
 #endif
 
 #include <wjr/memory/align.hpp>

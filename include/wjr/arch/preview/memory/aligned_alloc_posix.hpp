@@ -3,7 +3,7 @@
 
 #include <cstdlib>
 
-#include <wjr/preprocessor.hpp>
+#include <wjr/config/attribute.hpp>
 
 namespace wjr {
 

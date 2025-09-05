@@ -5,7 +5,7 @@
 #include <memory>
 #include <type_traits>
 
-#include <wjr/preprocessor.hpp>
+#include <wjr/config/attribute.hpp>
 
 namespace wjr {
 

@@ -1,5 +1,5 @@
-#ifndef WJR_PREPROCESSOR_CONFIG_SIZEOF_HPP__
-#define WJR_PREPROCESSOR_CONFIG_SIZEOF_HPP__
+#ifndef WJR_CONFIG_SIZEOF_HPP__
+#define WJR_CONFIG_SIZEOF_HPP__
 
 // GCC and compatible compilers define internal macros with builtin type traits
 
@@ -372,4 +372,4 @@
     #error "Not support"
 #endif
 
-#endif // WJR_PREPROCESSOR_CONFIG_SIZEOF_HPP__
+#endif // WJR_CONFIG_SIZEOF_HPP__

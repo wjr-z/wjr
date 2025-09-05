@@ -1,5 +1,5 @@
-#ifndef WJR_PREPROCESSOR_CONFIG_ARCH_HPP__
-#define WJR_PREPROCESSOR_CONFIG_ARCH_HPP__
+#ifndef WJR_CONFIG_ARCH_HPP__
+#define WJR_CONFIG_ARCH_HPP__
 
 ////////////////////////////////////////////////////////////////////////////////
 // Architectures
@@ -77,4 +77,4 @@
     #define WJR_ARCH_LOONGARCH
 #endif
 
-#endif // !WJR_PREPROCESSOR_CONFIG_ARCH_HPP__
+#endif // WJR_CONFIG_ARCH_HPP__
