@@ -32,7 +32,7 @@ option(WJR_DISABLE_EXCEPTIONS "Disable exceptions." OFF)
 option(WJR_DISABLE_CXX_20 "Disable C++ 20 even if it's supported." ON)
 option(WJR_PUBLIC_FLAGS "Set compile flags as public. Useful in tests" OFF)
 
-set(WJR_DEBUG_LEVEL_DEBUG "3" CACHE STRING "Debug level in debug mode(default = 3).")
+set(WJR_DEBUG_LEVEL_DEBUG "1" CACHE STRING "Debug level in debug mode(default = 1).")
 set(WJR_DEBUG_LEVEL_RELEASE "0" CACHE STRING "Debug level in release mode(default = 0).")
 
 if (WJR_DISABLE_EXCEPTIONS)
