@@ -45,17 +45,10 @@ jobs:
 
       - name: Install LLVM and Clang
         if: matrix.sys.compiler == 'clang'
-        run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh ${{matrix.sys.version}}
-          sudo apt-get install -y clang-tools-${{matrix.sys.version}}
-          sudo update-alternatives --install /usr/bin/clang++         clang++         /usr/bin/clang++-${{matrix.sys.version}} 200
-          sudo update-alternatives --install /usr/bin/clang           clang           /usr/bin/clang-${{matrix.sys.version}} 200
-          sudo update-alternatives --install /usr/bin/clang-scan-deps clang-scan-deps /usr/bin/clang-scan-deps-${{matrix.sys.version}} 200
-          sudo update-alternatives --set clang /usr/bin/clang-${{matrix.sys.version}}
-          sudo update-alternatives --set clang++ /usr/bin/clang++-${{matrix.sys.version}}
-          sudo update-alternatives --set clang-scan-deps /usr/bin/clang-scan-deps-${{matrix.sys.version}}
+        uses: egor-tensin/setup-clang@v1
+        with:
+          version: ${{matrix.sys.version}}
+          platform: x64
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout code
