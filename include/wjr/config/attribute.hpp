@@ -2,6 +2,7 @@
 #define WJR_CONFIG_ATTRIBUTE_HPP__
 
 #include <wjr/config/has.hpp>
+#include <wjr/config/platform.hpp>
 
 #if defined(WJR_CPP_20)
     #include <version>

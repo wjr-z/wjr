@@ -3,6 +3,5 @@
 
 #include <wjr/config/attribute.hpp>
 #include <wjr/config/builtin.hpp>
-#include <wjr/config/platform.hpp>
 
 #endif // WJR_CONFIG_HPP__
