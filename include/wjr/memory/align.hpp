@@ -35,7 +35,6 @@ WJR_CONST constexpr T align_up_offset(T n, type_identity_t<T> alignment) noexcep
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST constexpr bool is_aligned(T n, type_identity_t<T> alignment) noexcept {
-    WJR_ASSERT_ASSUME_L2(has_single_bit(alignment));
     return align_down_offset(n, alignment) == 0;
 }
 
@@ -47,6 +46,7 @@ constexpr T *assume_aligned(T *ptr) noexcept {
     #if WJR_HAS_BUILTIN(__builtin_assume_aligned)
     return static_cast<T *>(__builtin_assume_aligned(ptr, N));
     #else
+    WJR_ASSUME(is_aligned(bit_cast<uintptr_t>(ptr), N));
     return ptr;
     #endif
 }
