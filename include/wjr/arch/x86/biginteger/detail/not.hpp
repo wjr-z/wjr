@@ -5,7 +5,8 @@
  * @version 0.1
  * @date 2025-01-20
  *
- * @todo Optimize... and move large builtin to .cpp.
+ * @todo Optimize... and move large builtin to .cpp.    \
+ *  This is not a bottleneck now, so just leave it.
  *
  * @copyright Copyright (c) 2025
  *
