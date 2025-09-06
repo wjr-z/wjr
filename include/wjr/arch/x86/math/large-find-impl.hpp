@@ -12,6 +12,23 @@ namespace wjr {
     #define WJR_HAS_BUILTIN_REVERSE_FIND_NOT_N WJR_HAS_DEF
 #endif
 
+#if WJR_HAS_BUILTIN(FIND_N)
+
+template <typename T>
+WJR_ALL_NONNULL WJR_PURE size_t large_builtin_find_n(const T *src0, const T *src1,
+                                                     size_t n) noexcept;
+
+extern template size_t large_builtin_find_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
+                                                      size_t n) noexcept;
+
+template <typename T>
+WJR_ALL_NONNULL WJR_PURE size_t large_builtin_find_n(const T *src, T val, size_t n) noexcept;
+
+extern template size_t large_builtin_find_n<uint64_t>(const uint64_t *src, uint64_t val,
+                                                      size_t n) noexcept;
+
+#endif
+
 #if WJR_HAS_BUILTIN(FIND_NOT_N)
 
 template <typename T>
@@ -28,6 +45,25 @@ extern template size_t large_builtin_find_not_n<uint64_t>(const uint64_t *src, u
                                                           size_t n) noexcept;
 
 #endif // WJR_HAS_BUILTIN(FIND_NOT_N)
+
+#if WJR_HAS_BUILTIN(REVERSE_FIND_N)
+
+template <typename T>
+WJR_ALL_NONNULL WJR_PURE size_t large_builtin_reverse_find_n(const T *src0, const T *src1,
+                                                             size_t n) noexcept;
+
+extern template size_t large_builtin_reverse_find_n<uint64_t>(const uint64_t *src0,
+                                                              const uint64_t *src1,
+                                                              size_t n) noexcept;
+
+template <typename T>
+WJR_ALL_NONNULL WJR_PURE size_t large_builtin_reverse_find_n(const T *src, T val,
+                                                             size_t n) noexcept;
+
+extern template size_t large_builtin_reverse_find_n<uint64_t>(const uint64_t *src, uint64_t val,
+                                                              size_t n) noexcept;
+
+#endif
 
 #if WJR_HAS_BUILTIN(REVERSE_FIND_NOT_N)
 
