@@ -51,7 +51,10 @@ jobs:
     #   - name: Install GMP
 
       - name: Configure using CMake
-        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON
+        shell: bash
+        run: |
+          cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON \
+            -DWJR_DEBUG_LEVEL_RELEASE=3 -DWJR_PUBLIC_FLAGS=ON
 
       - name: Build
         run: cmake --build build --config Release --parallel

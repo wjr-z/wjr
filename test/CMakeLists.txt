@@ -1,16 +1,11 @@
 include(FetchContent)
 
-set(WJR_DEBUG_LEVEL_DEBUG 3 PARENT_SCOPE)
-set(WJR_DEBUG_LEVEL_RELEASE 3 PARENT_SCOPE)
-
-set(WJR_PUBLIC_FLAGS ON PARENT_SCOPE)
-
 # todo: These options should be set in the parent project
-if(MSVC)
-   target_compile_definitions(wjr
-      PUBLIC __ADX__ PUBLIC __BMI2__ PUBLIC __AVX2__ PUBLIC __POPCNT__)
-   target_compile_options(wjr PUBLIC /arch:AVX2)
-endif()
+# if(MSVC)
+#    target_compile_definitions(wjr
+#       PUBLIC __ADX__ PUBLIC __BMI2__ PUBLIC __AVX2__ PUBLIC __POPCNT__)
+#    target_compile_options(wjr PUBLIC /arch:AVX2)
+# endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)

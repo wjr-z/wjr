@@ -881,8 +881,8 @@ __m128i sse::alignr(__m128i a, __m128i b) noexcept {
     }
     if constexpr (s < 16) {
         if constexpr (s == 8) {
-            return simd_cast<__m128i_t, __m128_t>(
-                shuffle_ps<_MM_SHUFFLE(1, 0, 3, 2)>((__m128)b, (__m128)a));
+            return _mm_castps_si128(
+                shuffle_ps<_MM_SHUFFLE(1, 0, 3, 2)>(_mm_castsi128_ps(b), _mm_castsi128_ps(a)));
         } else {
             return Or(slli<16 - s>(a), srli<s>(b));
         }
