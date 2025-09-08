@@ -221,7 +221,7 @@ add_library(wjr::format ALIAS wjr-format)
 setup_cpp_include_and_definitions(wjr-format)
 
 target_include_directories(wjr-format PUBLIC $<TARGET_PROPERTY:wjr-biginteger,INTERFACE_INCLUDE_DIRECTORIES>)
-target_link_directories(wjr-format INTERFACE wjr-biginteger)
+target_link_directories(wjr-format PUBLIC wjr-biginteger)
 target_precompile_headers(wjr-format PRIVATE ${WJR_PCH_COMMON} ${WJR_PCH_SIMD})
 
 list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-format>)
@@ -267,7 +267,7 @@ add_library(wjr::biginteger ALIAS wjr-biginteger)
 setup_cpp_include_and_definitions(wjr-biginteger)
 
 target_include_directories(wjr-biginteger PUBLIC $<TARGET_PROPERTY:fmt::fmt,INTERFACE_INCLUDE_DIRECTORIES>)
-target_link_directories(wjr-biginteger INTERFACE fmt::fmt)
+target_link_directories(wjr-biginteger PUBLIC wjr-format fmt::fmt)
 target_precompile_headers(wjr-biginteger PRIVATE ${WJR_PCH_COMMON} ${WJR_PCH_SIMD})
 
 list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-biginteger>)
@@ -301,10 +301,12 @@ target_link_libraries(wjr PUBLIC fmt::fmt PRIVATE CpuFeatures::cpu_features)
 
 target_precompile_headers(wjr PUBLIC ${WJR_PCH_COMMON})
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
+
 # Build tests
 if(WJR_BUILD_TESTS)
    enable_testing()
-   add_subdirectory(test/units)
+   add_subdirectory(test)
 endif()
 
 # install

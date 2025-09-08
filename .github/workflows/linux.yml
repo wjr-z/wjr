@@ -68,4 +68,4 @@ jobs:
         run: cmake --build build --config Release --parallel
 
       - name: Run tests
-        run: ./build/test/units/tests
+        run: ./build/bin/tests
