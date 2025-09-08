@@ -24,7 +24,8 @@ static_assert(has_construct_to_document_v<document, document &&>);
 
 const auto current_path = std::filesystem::current_path();
 const auto twitter_json = []() {
-    std::ifstream input(current_path / "../src/data/success/twitter.json");
+    // todo: use executable path
+    std::ifstream input(current_path / "build/test/units/data/success/twitter.json");
     std::stringstream buffer;
     buffer << input.rdbuf();
     return std::move(buffer).str();

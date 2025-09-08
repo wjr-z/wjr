@@ -1,14 +1,11 @@
-cmake_minimum_required(VERSION 3.14)
-project(tests LANGUAGES CXX)
-
 include(FetchContent)
 
-if(NOT DEFINED WJR_DEBUG_LEVEL_RELEASE)
-   set(WJR_DEBUG_LEVEL_RELEASE 3)
-endif()
+set(WJR_DEBUG_LEVEL_DEBUG 3)
+set(WJR_DEBUG_LEVEL_RELEASE 3)
 
 set(WJR_PUBLIC_FLAGS ON)
 
+# todo: These options should be set in the parent project
 if(MSVC)
    add_compile_definitions(__ADX__)
    add_compile_definitions(__BMI2__)
@@ -16,8 +13,6 @@ if(MSVC)
    add_compile_definitions(__POPCNT__)
    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/arch:AVX2>)
 endif()
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../wjr ${CMAKE_CURRENT_BINARY_DIR}/wjr)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
@@ -59,14 +54,14 @@ else()
    FetchContent_MakeAvailable(googletest)
 endif()
 
-file(GLOB_RECURSE TEST_SRCS CONFIGURE_DEPENDS src/*.cpp)
+file(GLOB_RECURSE TEST_SRCS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 add_executable(
    tests
    ${TEST_SRCS}
 )
 
-target_include_directories(tests PRIVATE src)
+target_include_directories(tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 if(WJR_ENABLE_COVERAGE)
    set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -O3 -std=c++17 -march=native -DWJR_DEBUG_LEVEL=3 -Wall -Wextra -g")
@@ -113,9 +108,9 @@ target_include_directories(tests PRIVATE ${GMP_INCLUDE_DIRS})
 
 target_link_libraries(tests
    PRIVATE
-   wjr
+   wjr::wjr
    gtest_main
    ${GMP_LIBRARIES}
 )
 
-enable_testing()
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

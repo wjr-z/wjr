@@ -10,6 +10,27 @@
 #endif
 
 namespace wjr::math {
+namespace detail {
+template <typename T>
+constexpr int __is_constant_or_zero(T x) noexcept {
+    return WJR_BUILTIN_CONSTANT_P_TRUE(x == 0) ? 2 : WJR_BUILTIN_CONSTANT_P(x) ? 1 : 0;
+}
+
+template <typename... Args>
+constexpr int __count_constant_or_zero_impl(Args... args) noexcept {
+    return (... + __is_constant_or_zero(args));
+}
+
+template <typename... Args>
+constexpr int __count_constant_or_zero(Args... args) noexcept {
+#if WJR_HAS_BUILTIN(__builtin_constant_p)
+    int ret = __count_constant_or_zero_impl(args...);
+    return WJR_BUILTIN_CONSTANT_P(ret) ? ret : 0;
+#else
+    return 0;
+#endif
+}
+} // namespace detail
 
 template <typename T, typename U>
 WJR_INTRINSIC_CONSTEXPR T fallback_addc(T a, T b, U c_in, U &c_out) noexcept {
@@ -80,16 +101,7 @@ WJR_INTRINSIC_CONSTEXPR20 T addc(T a, T b, type_identity_t<U> c_in, U &c_out) no
 #if !WJR_HAS_BUILTIN(ADDC) && !WJR_HAS_BUILTIN(ASM_ADDC)
     return fallback_addc(a, b, c_in, c_out);
 #else
-    constexpr auto is_constant_or_zero = [](auto x) -> int {
-        return WJR_BUILTIN_CONSTANT_P_TRUE(x == 0) ? 2 : WJR_BUILTIN_CONSTANT_P(x) ? 1 : 0;
-    };
-
-    // The compiler should be able to optimize the judgment condition of if when
-    // enabling optimization. If it doesn't work, then there should be a issue
-    if (is_constant_evaluated() ||
-        // constant value is zero or constant value number greater or equal than
-        // 2
-        (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >= 2)) {
+    if (is_constant_evaluated() || detail::__count_constant_or_zero(a, b, c_in) >= 2) {
         return fallback_addc(a, b, c_in, c_out);
     }
 
@@ -125,16 +137,7 @@ WJR_INTRINSIC_CONSTEXPR20 T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noex
     WJR_ASSERT_ASSUME_L2(c_in <= 1);
 
 #if WJR_HAS_BUILTIN(ASM_ADDC_CC)
-    constexpr auto is_constant_or_zero = [](auto x) -> int {
-        return WJR_BUILTIN_CONSTANT_P_TRUE(x == 0) ? 2 : WJR_BUILTIN_CONSTANT_P(x) ? 1 : 0;
-    };
-
-    // The compiler should be able to optimize the judgment condition of if when
-    // enabling optimization. If it doesn't work, then there should be a issue
-    if (is_constant_evaluated() ||
-        // constant value is zero or constant value number greater or equal than
-        // 2
-        (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >= 2)) {
+    if (is_constant_evaluated() || detail::__count_constant_or_zero(a, b, c_in) >= 2) {
         return fallback_addc(a, b, c_in, c_out);
     }
 
