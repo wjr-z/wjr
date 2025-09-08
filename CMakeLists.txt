@@ -14,14 +14,15 @@ else()
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release" CACHE STRING
+   set(CMAKE_BUILD_TYPE "Release" CACHE STRING
       "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
       FORCE)
 endif()
 
 include(CheckLanguage)
 check_language(ASM_NASM)
-if (CMAKE_ASM_NASM_COMPILER)
+
+if(CMAKE_ASM_NASM_COMPILER)
    set(WJR_ENABLE_ASSEMBLY_DEFAULT ON)
 else()
    set(WJR_ENABLE_ASSEMBLY_DEFAULT OFF)
@@ -31,18 +32,18 @@ option(WJR_ENABLE_ASSEMBLY "Link with assembly by using NASM." ${WJR_ENABLE_ASSE
 option(WJR_DISABLE_EXCEPTIONS "Disable exceptions." OFF)
 option(WJR_DISABLE_CXX_20 "Disable C++ 20 even if it's supported." ON)
 option(WJR_PUBLIC_FLAGS "Set compile flags as public. Useful in tests" OFF)
+option(WJR_BUILD_TESTS "Build tests." OFF)
 
 set(WJR_DEBUG_LEVEL_DEBUG "1" CACHE STRING "Debug level in debug mode(default = 1).")
 set(WJR_DEBUG_LEVEL_RELEASE "0" CACHE STRING "Debug level in release mode(default = 0).")
 
-if (WJR_DISABLE_EXCEPTIONS)
+if(WJR_DISABLE_EXCEPTIONS)
    message(STATUS "Disable exceptions.")
 endif()
 
 #
 # third-party
 #
-
 set(FMT_TEST OFF CACHE BOOL "Disable fmt tests")
 set(FMT_INSTALL ON)
 add_subdirectory(third-party/fmt)
@@ -90,7 +91,7 @@ else()
       -Wall -Wextra -Wshadow -Wformat=2 -Wunused
    )
 
-   AddFlagsIfExists(WJR_CXX_FLAGS_PRIVATE 
+   AddFlagsIfExists(WJR_CXX_FLAGS_PRIVATE
       "-Waddress-of-packed-member -Wpointer-arith -Wcast-align -Wreorder -Wpacked -Wcast-qual")
 
    list(APPEND WJR_CXX_FLAGS -march=native)
@@ -106,7 +107,7 @@ else()
    endif()
 endif()
 
-if (WJR_PUBLIC_FLAGS)
+if(WJR_PUBLIC_FLAGS)
    list(APPEND WJR_CXX_FLAGS ${WJR_CXX_FLAGS_PRIVATE})
 endif()
 
@@ -170,7 +171,63 @@ endif()
 #
 
 #
-# library : assembly
+# library : config
+#
+
+#
+# library : arch
+#
+if(WJR_ARCH)
+   set(WJR_ARCH_SRCS)
+   add_cpp_source(WJR_ARCH_SRCS arch/${WJR_ARCH})
+
+   add_library(wjr-arch OBJECT ${WJR_ARCH_SRCS})
+
+   target_include_directories(wjr-arch PRIVATE $<TARGET_PROPERTY:CpuFeatures::cpu_features,INTERFACE_INCLUDE_DIRECTORIES>)
+   target_link_libraries(wjr-arch INTERFACE CpuFeatures::cpu_features)
+   target_precompile_headers(wjr-arch PUBLIC ${WJR_PCH_COMMON} ${WJR_PCH_SIMD})
+
+   list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-arch>)
+else()
+   message(WARNING "No architecture is specified, so arch library is disabled.")
+   add_library(wjr-arch INTERFACE)
+endif()
+
+add_library(wjr::arch ALIAS wjr-arch)
+setup_cpp_include_and_definitions(wjr-arch)
+
+#
+# library : memory
+#
+set(WJR_SRCS)
+add_cpp_source(WJR_SRCS memory)
+
+add_library(wjr-memory OBJECT ${WJR_SRCS})
+add_library(wjr::memory ALIAS wjr-memory)
+setup_cpp_include_and_definitions(wjr-memory)
+
+target_precompile_headers(wjr-memory PRIVATE ${WJR_PCH_COMMON})
+
+list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-memory>)
+
+#
+# library : format
+#
+set(WJR_SRCS)
+add_cpp_source(WJR_SRCS format)
+
+add_library(wjr-format OBJECT ${WJR_SRCS})
+add_library(wjr::format ALIAS wjr-format)
+setup_cpp_include_and_definitions(wjr-format)
+
+target_include_directories(wjr-format PUBLIC $<TARGET_PROPERTY:wjr-biginteger,INTERFACE_INCLUDE_DIRECTORIES>)
+target_link_directories(wjr-format INTERFACE wjr-biginteger)
+target_precompile_headers(wjr-format PRIVATE ${WJR_PCH_COMMON} ${WJR_PCH_SIMD})
+
+list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-format>)
+
+#
+# library : biginteger-assembly
 #
 if(WJR_ENABLE_ARCH_ASSEMBLY)
    set(WJR_ADDSUB_SRCS
@@ -194,42 +251,10 @@ if(WJR_ENABLE_ARCH_ASSEMBLY)
       ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/submul_1.asm
    )
 
-   add_library(wjr-assembly OBJECT ${WJR_ASSEMBLY_SRCS})
-   add_library(wjr::asembly ALIAS wjr-assembly)
-   list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-assembly> $<TARGET_OBJECTS:wjr-add_n> $<TARGET_OBJECTS:wjr-sub_n>)
+   add_library(wjr-biginteger-assembly OBJECT ${WJR_ASSEMBLY_SRCS})
+   add_library(wjr::biginteger-assembly ALIAS wjr-biginteger-assembly)
+   list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-biginteger-assembly> $<TARGET_OBJECTS:wjr-add_n> $<TARGET_OBJECTS:wjr-sub_n>)
 endif()
-
-#
-# library : arch
-#
-if(WJR_ARCH)
-   set(WJR_ARCH_SRCS)
-   add_cpp_source(WJR_ARCH_SRCS arch/${WJR_ARCH})
-
-   add_library(wjr-arch OBJECT ${WJR_ARCH_SRCS})
-   add_library(wjr::arch ALIAS wjr-arch)
-   setup_cpp_include_and_definitions(wjr-arch)
-
-   target_include_directories(wjr-arch PRIVATE $<TARGET_PROPERTY:CpuFeatures::cpu_features,INTERFACE_INCLUDE_DIRECTORIES>)
-   target_link_libraries(wjr-arch INTERFACE CpuFeatures::cpu_features)
-   target_precompile_headers(wjr-arch PUBLIC ${WJR_PCH_COMMON} ${WJR_PCH_SIMD})
-
-   list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-arch>)
-endif()
-
-#
-# library : memory
-#
-set(WJR_SRCS)
-add_cpp_source(WJR_SRCS memory)
-
-add_library(wjr-memory OBJECT ${WJR_SRCS})
-add_library(wjr::memory ALIAS wjr-memory)
-setup_cpp_include_and_definitions(wjr-memory)
-
-target_precompile_headers(wjr-memory PRIVATE ${WJR_PCH_COMMON})
-
-list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-memory>)
 
 #
 # library : biginteger
@@ -246,22 +271,6 @@ target_link_directories(wjr-biginteger INTERFACE fmt::fmt)
 target_precompile_headers(wjr-biginteger PRIVATE ${WJR_PCH_COMMON} ${WJR_PCH_SIMD})
 
 list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-biginteger>)
-
-#
-# library : format
-#
-set(WJR_SRCS)
-add_cpp_source(WJR_SRCS format)
-
-add_library(wjr-format OBJECT ${WJR_SRCS})
-add_library(wjr::format ALIAS wjr-format)
-setup_cpp_include_and_definitions(wjr-format)
-
-target_include_directories(wjr-format PUBLIC $<TARGET_PROPERTY:wjr-biginteger,INTERFACE_INCLUDE_DIRECTORIES>)
-target_link_directories(wjr-format INTERFACE wjr-biginteger)
-target_precompile_headers(wjr-format PRIVATE ${WJR_PCH_COMMON} ${WJR_PCH_SIMD})
-
-list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-format>)
 
 #
 # library : json
@@ -292,8 +301,13 @@ target_link_libraries(wjr PUBLIC fmt::fmt PRIVATE CpuFeatures::cpu_features)
 
 target_precompile_headers(wjr PUBLIC ${WJR_PCH_COMMON})
 
-# install
+# Build tests
+if(WJR_BUILD_TESTS)
+   enable_testing()
+   add_subdirectory(test/units)
+endif()
 
+# install
 set(PackageName wjr)
 set(INCLUDE_INSTALL_DIR include)
 set(LIB_INSTALL_DIR lib)
@@ -324,8 +338,8 @@ install(
 )
 
 install(
-  DIRECTORY ${CMAKE_SOURCE_DIR}/include/
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+   DIRECTORY ${CMAKE_SOURCE_DIR}/include/
+   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 install(

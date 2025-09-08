@@ -51,19 +51,10 @@ jobs:
     #   - name: Install GMP
 
       - name: Configure using CMake
-        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release
-        working-directory: ./tests/units
+        run: cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON
 
       - name: Build
         run: cmake --build build --config Release --parallel
-        working-directory: ./tests/units
 
-      - name: Run tests (MSVC)
-        if: matrix.sys.compiler == 'msvc'
-        run: ./tests
-        working-directory: ./tests/units/build
-
-      - name: Run tests (Clang)
-        if: matrix.sys.compiler == 'clang'
-        run: ./tests
-        working-directory: ./tests/units/build
+      - name: Run tests
+        run: ./build/tests/units/tests
