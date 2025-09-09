@@ -59,31 +59,27 @@ void verify_lazy_initialized() {
 } // namespace
 
 TEST(memory, uninitialized) {
-    {
-        verify_uninitialized<int>();
-        verify_uninitialized<std::string>();
-        verify_uninitialized<std::pair<int, std::string>>();
+    verify_uninitialized<int>();
+    verify_uninitialized<std::string>();
+    verify_uninitialized<std::pair<int, std::string>>();
 
-        verify_uninitialized<disable_copy>();
-        verify_uninitialized<disable_move>();
-        verify_uninitialized<disable_copy_construct>();
-        verify_uninitialized<disable_move_construct>();
-        verify_uninitialized<disable_copy_assign>();
-        verify_uninitialized<disable_move_assign>();
-    }
+    verify_uninitialized<disable_copy>();
+    verify_uninitialized<disable_move>();
+    verify_uninitialized<disable_copy_construct>();
+    verify_uninitialized<disable_move_construct>();
+    verify_uninitialized<disable_copy_assign>();
+    verify_uninitialized<disable_move_assign>();
 }
 
 TEST(memory, lazy_initialized) {
-    {
-        verify_lazy_initialized<int>();
-        verify_lazy_initialized<std::string>();
-        verify_lazy_initialized<std::pair<int, std::string>>();
+    verify_lazy_initialized<int>();
+    verify_lazy_initialized<std::string>();
+    verify_lazy_initialized<std::pair<int, std::string>>();
 
-        verify_lazy_initialized<disable_copy>();
-        verify_lazy_initialized<disable_move>();
-        verify_lazy_initialized<disable_copy_construct>();
-        verify_lazy_initialized<disable_move_construct>();
-        verify_lazy_initialized<disable_copy_assign>();
-        verify_lazy_initialized<disable_move_assign>();
-    }
+    verify_lazy_initialized<disable_copy>();
+    verify_lazy_initialized<disable_move>();
+    verify_lazy_initialized<disable_copy_construct>();
+    verify_lazy_initialized<disable_move_construct>();
+    verify_lazy_initialized<disable_copy_assign>();
+    verify_lazy_initialized<disable_move_assign>();
 }

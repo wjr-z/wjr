@@ -305,6 +305,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 # Build tests
 if(WJR_BUILD_TESTS)
+   message(STATUS "Build tests.")
+
    enable_testing()
    add_subdirectory(test)
 endif()

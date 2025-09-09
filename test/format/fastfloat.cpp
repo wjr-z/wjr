@@ -16,6 +16,8 @@ using namespace wjr;
 #if !(defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(sun) ||       \
       defined(__sun))
 
+namespace {
+
     #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(sun) ||     \
         defined(__sun)
         // Anything at all that is related to cygwin, msys and so forth will
@@ -245,7 +247,11 @@ static bool tester(uint64_t seed, size_t volume) {
     }
     return true;
 }
+} // namespace
 
-TEST(fastfloat, random_string) { WJR_CHECK(tester(std::random_device{}(), 200000)); }
+TEST(fastfloat, random_string) {
+    WJR_CHECK(tester(0xDEADBEEF, 100000));
+    WJR_CHECK(tester(0x12345678, 100000));
+}
 
 #endif
