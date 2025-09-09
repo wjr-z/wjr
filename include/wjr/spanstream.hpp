@@ -27,7 +27,6 @@
 
 #include <istream>
 #include <ostream>
-#include <span>
 #include <streambuf>
 
 #include <wjr/math/add.hpp>
