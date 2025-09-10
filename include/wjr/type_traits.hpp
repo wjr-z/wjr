@@ -7,6 +7,7 @@
 #include <type_traits>
 #include <utility>
 
+#include <wjr/macros/register.hpp>
 #include <wjr/preprocessor.hpp>
 #include <wjr/tag.hpp>
 
@@ -414,49 +415,13 @@ struct is_value_preserving_or_int
 template <typename From, typename To>
 inline constexpr bool is_value_preserving_or_int_v = is_value_preserving_or_int<From, To>::value;
 
-#define __WJR_REGISTER_TYPENAMES(...)                                                              \
-    WJR_PP_QUEUE_TRANSFORM((__VA_ARGS__), __WJR_REGISTER_TYPENAMES_CALLER)
-#define __WJR_REGISTER_TYPENAMES_CALLER(x) typename x
-
-#define WJR_REGISTER_HAS_TYPE_0(NAME, HAS_EXPR)                                                    \
-    template <typename Enable, typename... Args>                                                   \
-    struct __has_##NAME : std::false_type {};                                                      \
-    template <typename... Args>                                                                    \
-    struct __has_##NAME<std::void_t<decltype(HAS_EXPR)>, Args...> : std::true_type {};             \
-    template <typename... Args>                                                                    \
-    struct has_##NAME : __has_##NAME<void, Args...> {};                                            \
-    template <typename... Args>                                                                    \
-    constexpr bool has_##NAME##_v = has_##NAME<Args...>::value
-
-#define WJR_REGISTER_HAS_TYPE_MORE(NAME, HAS_EXPR, ...)                                            \
-    WJR_REGISTER_HAS_TYPE_MORE_I(NAME, HAS_EXPR, __WJR_REGISTER_TYPENAMES(__VA_ARGS__), __VA_ARGS__)
-#define WJR_REGISTER_HAS_TYPE_MORE_I(NAME, HAS_EXPR, TYPES, ...)                                   \
-    template <typename Enable, WJR_PP_QUEUE_EXPAND(TYPES), typename... Args>                       \
-    struct __has_##NAME : std::false_type {};                                                      \
-    template <WJR_PP_QUEUE_EXPAND(TYPES), typename... Args>                                        \
-    struct __has_##NAME<std::void_t<decltype(HAS_EXPR)>, __VA_ARGS__, Args...> : std::true_type {  \
-    };                                                                                             \
-    template <WJR_PP_QUEUE_EXPAND(TYPES), typename... Args>                                        \
-    struct has_##NAME : __has_##NAME<void, __VA_ARGS__, Args...> {};                               \
-    template <WJR_PP_QUEUE_EXPAND(TYPES), typename... Args>                                        \
-    constexpr bool has_##NAME##_v = has_##NAME<__VA_ARGS__, Args...>::value
-
-#define WJR_REGISTER_HAS_TYPE(NAME, ...)                                                           \
-    WJR_REGISTER_HAS_TYPE_N(WJR_PP_ARGS_LEN(__VA_ARGS__), NAME, __VA_ARGS__)
-#define WJR_REGISTER_HAS_TYPE_N(N, ...)                                                            \
-    WJR_PP_BOOL_IF(WJR_PP_EQ(N, 1), WJR_REGISTER_HAS_TYPE_0, WJR_REGISTER_HAS_TYPE_MORE)           \
-    (__VA_ARGS__)
-
-// used for SFINAE
-constexpr static void allow_true_type(std::true_type) noexcept {}
-constexpr static void allow_false_type(std::false_type) noexcept {}
-
 WJR_REGISTER_HAS_TYPE(compare, std::declval<Comp>()(std::declval<T>(), std::declval<U>()), Comp, T,
                       U);
-WJR_REGISTER_HAS_TYPE(noexcept_compare,
-                      allow_true_type(std::declval<std::bool_constant<noexcept(std::declval<Comp>()(
-                                          std::declval<T>(), std::declval<U>()))>>()),
-                      Comp, T, U);
+WJR_REGISTER_HAS_TYPE(
+    noexcept_compare,
+    detail::allow_true_type(std::declval<std::bool_constant<noexcept(
+                                std::declval<Comp>()(std::declval<T>(), std::declval<U>()))>>()),
+    Comp, T, U);
 
 #define WJR_REGISTER_HAS_COMPARE(NAME, STD)                                                        \
     template <typename T, typename U>                                                              \
@@ -723,16 +688,6 @@ struct get_common_relocate_mode : __get_common_relocate_mode_impl<relocate_t::tr
 
 template <typename... Args>
 inline constexpr relocate_t get_common_relocate_mode_v = get_common_relocate_mode<Args...>::value;
-
-#define __WJR_INDEXS_RANGE_I(START, END) WJR_PP_QUEUE_POP_FRONT_N((WJR_PP_IOTA(END)), START)
-
-#define WJR__INDEXS_RANGE(START, END) WJR_PP_QUEUE_EXPAND(__WJR_INDEXS_RANGE_I(START, END))
-
-#define __WJR_CASES_RANGE_CALLBACK(x) case (x):
-
-#define WJR_CASES_RANGE(START, END)                                                                \
-    WJR_PP_QUEUE_PUT(                                                                              \
-        WJR_PP_QUEUE_TRANSFORM(__WJR_INDEXS_RANGE_I(START, END), __WJR_CASES_RANGE_CALLBACK))
 
 namespace detail {
 template <typename>
