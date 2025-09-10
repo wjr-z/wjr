@@ -9,7 +9,7 @@ namespace wjr {
 namespace detail {
 namespace __scopy_detail {
 
-#if !defined(WJR_X86) || WJR_HAS_SIMD(SSE)
+#if WJR_HAS_SIMD(SSE)
     #define WJR_ENABLE_SCOPY
 #endif
 
@@ -39,7 +39,7 @@ WJR_INTRINSIC_INLINE void __small_copy_dispatch_impl(const uint_t<Size> *first,
     const auto n = to_unsigned(last - first);
     WJR_ASSUME(n >= Min && n <= Max);
 
-#ifdef WJR_ENABLE_SCOPY
+#if defined(WJR_ENABLE_SCOPY)
     if constexpr (Max > 8) {
         if (WJR_UNLIKELY(n > 8)) {
             std::memmove(dst, first, n * (Size / 8));

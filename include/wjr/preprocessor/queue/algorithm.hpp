@@ -96,7 +96,7 @@
 
 #define WJR_PP_QUEUE_UNWRAP_PUT_CALLER(x, y) (WJR_PP_QUEUE_EXPAND(x) WJR_PP_QUEUE_EXPAND(y))
 
-// todo: zip variadic
+// todo: zip variadic queues
 
 // (A, B, C) (x, y, z) -> ((A, x), (B, y), (C, z))
 #define WJR_PP_QUEUE_ZIP_2(queue1, queue2)                                                         \

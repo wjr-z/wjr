@@ -1,7 +1,9 @@
 #ifndef WJR_ARCH_X86_FORMAT_UTF8_UTF8_HPP__
 #define WJR_ARCH_X86_FORMAT_UTF8_UTF8_HPP__
 
-#include <wjr/preprocessor.hpp>
+#include <wjr/config.hpp>
+
+WJR_ENSURE_CONFIG()
 
 #if WJR_HAS_SIMD(SSE2)
     #define WJR_HAS_BUILTIN_UTF8_CHECK_UNICODE WJR_HAS_DEF
