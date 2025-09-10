@@ -63,10 +63,13 @@
 #define WJR_PP_QUEUE_POP_BACK_N_HEADER_CALLER(x, y) WJR_PP_QUEUE_PUSH_BACK(x, y)
 #define WJR_PP_QUEUE_POP_BACK_N_TAILER_CALLER(x, y) x
 
+// (1, 2, 3, 4, 5) -> (1, 2, 3, 4)
 #define WJR_PP_QUEUE_POP_BACK(queue) WJR_PP_QUEUE_POP_BACK_N(queue, 1)
 
+// (1, 2, 3, 4, 5), 2 -> 3
 #define WJR_PP_QUEUE_AT(queue, N) WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT_N(queue, N))
 
+// (a, b, c) -> (c, b, a)
 #define WJR_PP_QUEUE_REVERSE(queue)                                                                \
     WJR_PP_QUEUE_POP_BACK(WJR_PP_QUEUE_FRONT(                                                      \
         WJR_PP_QUEUE_CALL_N_SAME(WJR_PP_QUEUE_PUSH_FRONT(queue, (0)), WJR_PP_QUEUE_REVERSE_CALLER, \
@@ -93,16 +96,16 @@
 
 #define WJR_PP_QUEUE_UNWRAP_PUT_CALLER(x, y) (WJR_PP_QUEUE_EXPAND(x) WJR_PP_QUEUE_EXPAND(y))
 
+// todo: zip variadic
+
 // (A, B, C) (x, y, z) -> ((A, x), (B, y), (C, z))
 #define WJR_PP_QUEUE_ZIP_2(queue1, queue2)                                                         \
-    WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_CALL_N_SAME(                            \
-        ((queue1), queue2), WJR_PP_QUEUE_ZIP_2_CALLER, WJR_PP_QUEUE_SIZE(queue1))))
+    WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_CALL_N_SAME((queue1, queue2), WJR_PP_QUEUE_ZIP_2_CALLER,       \
+                                                WJR_PP_QUEUE_SIZE(queue1)))
 
 #define WJR_PP_QUEUE_ZIP_2_CALLER(x, y)                                                            \
-    WJR_PP_QUEUE_PUSH_FRONT(                                                                       \
-        WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_PUSH_BACK(                                             \
-            x, (WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_FRONT(x)), WJR_PP_QUEUE_FRONT(y)))),               \
-        WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_FRONT(x))),                                            \
+    WJR_PP_QUEUE_POP_FRONT(                                                                        \
+        WJR_PP_QUEUE_PUSH_BACK(x, (WJR_PP_QUEUE_FRONT(x), WJR_PP_QUEUE_FRONT(y)))),                \
         WJR_PP_QUEUE_POP_FRONT(y)
 
 // ((A), (B), (C)) (x, y, z) -> ((A, x), (B, y), (C, z))

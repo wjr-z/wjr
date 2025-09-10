@@ -1,7 +1,7 @@
 #ifndef WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__
 #define WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__
 
-#include <wjr/preprocessor/arithmatic/basic.hpp>
+#include <wjr/preprocessor/arithmatic/detail/number.hpp>
 #include <wjr/preprocessor/arithmatic/neg.hpp>
 #include <wjr/preprocessor/arithmatic/sub.hpp>
 #include <wjr/preprocessor/detail/basic.hpp>
