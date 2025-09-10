@@ -50,10 +50,11 @@
 
 namespace wjr {
 
-WJR_NORETURN WJR_COLD extern void __assert_failed(const char *expr, const char *file,
-                                                  const char *func, int line) noexcept;
+WJR_NORETURN WJR_COLD WJR_SYMBOL_EXPORT extern void
+__assert_failed(const char *expr, const char *file, const char *func, int line) noexcept;
 
-WJR_NORETURN WJR_COLD extern void __assert_light_failed(const char *expr) noexcept;
+WJR_NORETURN WJR_COLD WJR_SYMBOL_EXPORT extern void
+__assert_light_failed(const char *expr) noexcept;
 
 // LCOV_EXCL_START
 
