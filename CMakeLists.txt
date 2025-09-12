@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.21)
 set(WJR_VERSION 0.1.1)
 project(wjr VERSION ${WJR_VERSION} LANGUAGES CXX)
 
@@ -71,7 +71,11 @@ else()
    set(WJR_USE_CXX_20 OFF)
 endif()
 
-include(cmake/AddFlags.cmake)
+list(APPEND CMAKE_MODULE_PATH
+   ${CMAKE_CURRENT_SOURCE_DIR}/cmake
+)
+
+include(AddFlags)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
    list(APPEND WJR_CXX_FLAGS_PRIVATE /W3)
@@ -150,7 +154,7 @@ macro(setup_cpp_include_and_definitions TARGET)
 endmacro()
 
 macro(add_cpp_source TARGET PATH)
-   file(GLOB_RECURSE TMP_SRCS ${WJR_LIB_DIR}/wjr/${PATH}/*.cpp ${WJR_LIB_DIR}/wjr/${PATH}/**/*.cpp)
+   file(GLOB_RECURSE TMP_SRCS ${WJR_LIB_DIR}/${PATH}/*.cpp ${WJR_LIB_DIR}/${PATH}/**/*.cpp)
    list(APPEND ${TARGET} ${TMP_SRCS})
 endmacro()
 
@@ -166,6 +170,12 @@ if(WJR_ARCH)
    list(APPEND WJR_PCH_SIMD ${WJR_INCLUDE_DIR}/wjr/arch/${WJR_ARCH}/simd/simd.hpp)
 endif()
 
+include(wjrHelpers)
+
+set(WJR_COMMON_INCLUDE_DIRS ${WJR_INCLUDE_DIR})
+set(WJR_COMMON_CXX_FLAGS ${WJR_CXX_FLAGS})
+set(WJR_COMMON_DEFINES ${WJR_COMPILE_DEFINITIONS})
+
 #
 # library : preprocessor
 #
@@ -173,133 +183,50 @@ endif()
 #
 # library : config
 #
+add_subdirectory(src/config)
+
+#
+# library : utility
+#
+add_subdirectory(src/utility)
 
 #
 # library : arch
 #
-if(WJR_ARCH)
-   set(WJR_ARCH_SRCS)
-   add_cpp_source(WJR_ARCH_SRCS arch/${WJR_ARCH})
-
-   add_library(wjr-arch OBJECT ${WJR_ARCH_SRCS})
-
-   target_include_directories(wjr-arch PRIVATE $<TARGET_PROPERTY:CpuFeatures::cpu_features,INTERFACE_INCLUDE_DIRECTORIES>)
-   target_link_libraries(wjr-arch INTERFACE CpuFeatures::cpu_features)
-   target_precompile_headers(wjr-arch PUBLIC ${WJR_PCH_COMMON} ${WJR_PCH_SIMD})
-
-   list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-arch>)
-else()
-   message(WARNING "No architecture is specified, so arch library is disabled.")
-   add_library(wjr-arch INTERFACE)
-endif()
-
-add_library(wjr::arch ALIAS wjr-arch)
-setup_cpp_include_and_definitions(wjr-arch)
+add_subdirectory(src/arch)
 
 #
 # library : memory
 #
-set(WJR_SRCS)
-add_cpp_source(WJR_SRCS memory)
-
-add_library(wjr-memory OBJECT ${WJR_SRCS})
-add_library(wjr::memory ALIAS wjr-memory)
-setup_cpp_include_and_definitions(wjr-memory)
-
-target_precompile_headers(wjr-memory PRIVATE ${WJR_PCH_COMMON})
-
-list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-memory>)
+add_subdirectory(src/memory)
 
 #
-# library : format
+# library : format-internal
 #
-set(WJR_SRCS)
-add_cpp_source(WJR_SRCS format)
-
-add_library(wjr-format OBJECT ${WJR_SRCS})
-add_library(wjr::format ALIAS wjr-format)
-setup_cpp_include_and_definitions(wjr-format)
-
-target_include_directories(wjr-format PUBLIC $<TARGET_PROPERTY:wjr-biginteger,INTERFACE_INCLUDE_DIRECTORIES>)
-target_link_directories(wjr-format PUBLIC wjr-biginteger)
-target_precompile_headers(wjr-format PRIVATE ${WJR_PCH_COMMON} ${WJR_PCH_SIMD})
-
-list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-format>)
-
-#
-# library : biginteger-assembly
-#
-if(WJR_ENABLE_ARCH_ASSEMBLY)
-   set(WJR_ADDSUB_SRCS
-      ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/addsub_n.asm
-      ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/addrsblsh_n.asm
-   )
-
-   add_library(wjr-add_n OBJECT ${WJR_ADDSUB_SRCS})
-   add_library(wjr-sub_n OBJECT ${WJR_ADDSUB_SRCS})
-
-   target_compile_options(wjr-sub_n
-      PRIVATE $<$<COMPILE_LANGUAGE:ASM_NASM>: -dWJR_ASM_SUB>
-   )
-
-   set(WJR_ASSEMBLY_SRCS
-      ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/basecase_mul_s.asm
-      ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/basecase_sqr.asm
-      ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/divexact_dbm1c.asm
-      ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/mul_1.asm
-      ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/addmul_1.asm
-      ${WJR_LIB_DIR}/wjr/arch/${WJR_ARCH}/biginteger/detail/submul_1.asm
-   )
-
-   add_library(wjr-biginteger-assembly OBJECT ${WJR_ASSEMBLY_SRCS})
-   add_library(wjr::biginteger-assembly ALIAS wjr-biginteger-assembly)
-   list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-biginteger-assembly> $<TARGET_OBJECTS:wjr-add_n> $<TARGET_OBJECTS:wjr-sub_n>)
-endif()
+add_subdirectory(src/format-internal)
 
 #
 # library : biginteger
 #
-set(WJR_SRCS)
-add_cpp_source(WJR_SRCS biginteger)
-
-add_library(wjr-biginteger OBJECT ${WJR_SRCS})
-add_library(wjr::biginteger ALIAS wjr-biginteger)
-setup_cpp_include_and_definitions(wjr-biginteger)
-
-target_include_directories(wjr-biginteger PUBLIC $<TARGET_PROPERTY:fmt::fmt,INTERFACE_INCLUDE_DIRECTORIES>)
-target_link_directories(wjr-biginteger PUBLIC wjr-format fmt::fmt)
-target_precompile_headers(wjr-biginteger PRIVATE ${WJR_PCH_COMMON} ${WJR_PCH_SIMD})
-
-list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-biginteger>)
+add_subdirectory(src/biginteger)
 
 #
 # library : json
 #
-set(WJR_SRCS)
-add_cpp_source(WJR_SRCS json)
-
-add_library(wjr-json OBJECT ${WJR_SRCS})
-add_library(wjr::json ALIAS wjr-json)
-setup_cpp_include_and_definitions(wjr-json)
-
-target_include_directories(wjr-json PUBLIC $<TARGET_PROPERTY:wjr-format,INTERFACE_INCLUDE_DIRECTORIES>)
-target_link_directories(wjr-json INTERFACE wjr-format)
-target_precompile_headers(wjr-json PRIVATE ${WJR_PCH_COMMON} ${WJR_PCH_SIMD})
-
-list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-json>)
+add_subdirectory(src/json)
 
 #
 # library : wjr
 #
-set(WJR_SRCS ${WJR_LIB_DIR}/wjr/assert.cpp)
-list(APPEND WJR_LIBS ${WJR_SRCS})
+wjr_cc_library(
+   NAME
+   wjr
 
-add_library(wjr STATIC ${WJR_LIBS})
-add_library(wjr::wjr ALIAS wjr)
-setup_cpp_include_and_definitions(wjr)
-target_link_libraries(wjr PUBLIC fmt::fmt PRIVATE CpuFeatures::cpu_features)
+   DEPS
+   $<BUILD_INTERFACE:wjr-json>
 
-target_precompile_headers(wjr PUBLIC ${WJR_PCH_COMMON})
+   FINAL
+)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
