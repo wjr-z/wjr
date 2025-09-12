@@ -1,5 +1,11 @@
 include(CMakeParseArguments)
 
+function(wjr_add_propagate_object_library object_name interface_name)
+    add_library(wjr-${interface_name} INTERFACE)
+    add_library(wjr::${interface_name} ALIAS wjr-${interface_name})
+    target_link_libraries(wjr-${interface_name} INTERFACE ${object_name} $<TARGET_OBJECTS:${object_name}>)
+endfunction()
+
 # todo: support pch
 function(wjr_cc_library)
     cmake_parse_arguments(WJR_CC_LIB
@@ -89,8 +95,6 @@ function(wjr_cc_library)
     if(NOT WJR_CC_LIB_OBJECT)
         add_library(wjr::${WJR_CC_LIB_NAME} ALIAS ${WJR_TARGET})
     else()
-        add_library(wjr-${WJR_CC_LIB_NAME} INTERFACE)
-        add_library(wjr::${WJR_CC_LIB_NAME} ALIAS wjr-${WJR_CC_LIB_NAME})
-        target_link_libraries(wjr-${WJR_CC_LIB_NAME} INTERFACE ${WJR_TARGET} $<TARGET_OBJECTS:${WJR_TARGET}>)
+        wjr_add_propagate_object_library(${WJR_TARGET} ${WJR_CC_LIB_NAME})
     endif()
 endfunction()

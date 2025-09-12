@@ -21,8 +21,6 @@ if(WJR_ENABLE_ARCH_ASSEMBLY)
    )
 
    add_library(wjr-biginteger-assembly OBJECT ${WJR_ASSEMBLY_SRCS})
-   add_library(wjr::biginteger-assembly ALIAS wjr-biginteger-assembly)
-   list(APPEND WJR_LIBS $<TARGET_OBJECTS:wjr-biginteger-assembly> $<TARGET_OBJECTS:wjr-add_n> $<TARGET_OBJECTS:wjr-sub_n>)
 endif()
 
 #
@@ -30,6 +28,20 @@ endif()
 #
 set(WJR_SRCS)
 add_cpp_source(WJR_SRCS biginteger)
+
+set(WJR_DEPS
+   wjr::arch
+   wjr::memory
+   wjr::format-internal
+)
+
+if(WJR_ENABLE_ASSEMBLY)
+   list(APPEND WJR_DEPS
+      wjr-add_n
+      wjr-sub_n
+      wjr-biginteger-assembly
+   )
+endif()
 
 wjr_cc_library(
    NAME
@@ -39,7 +51,5 @@ wjr_cc_library(
    ${WJR_SRCS}
 
    DEPS
-   wjr::arch
-   wjr::memory
-   wjr::format-internal
+   ${WJR_DEPS}
 )
