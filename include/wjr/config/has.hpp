@@ -3,7 +3,6 @@
 
 #include <wjr/config/arch.hpp>
 #include <wjr/config/compiler.hpp>
-#include <wjr/config/sizeof.hpp>
 #include <wjr/preprocessor/detail/basic.hpp>
 #include <wjr/preprocessor/logical.hpp>
 
