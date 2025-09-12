@@ -2,34 +2,39 @@ include(FetchContent)
 
 # todo: These options should be set in the parent project
 # if(MSVC)
-#    target_compile_definitions(wjr
-#       PUBLIC __ADX__ PUBLIC __BMI2__ PUBLIC __AVX2__ PUBLIC __POPCNT__)
-#    target_compile_options(wjr PUBLIC /arch:AVX2)
+# target_compile_definitions(wjr
+# PUBLIC __ADX__ PUBLIC __BMI2__ PUBLIC __AVX2__ PUBLIC __POPCNT__)
+# target_compile_options(wjr PUBLIC /arch:AVX2)
 # endif()
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-set(WJR_USE_GMP ON)
-
-find_package(GMP QUIET)
-
-if(NOT GMP_FOUND)
-   find_package(PkgConfig)
-   pkg_check_modules(GMP QUIET gmp)
-
-   if(NOT GMP_FOUND)
-      set(WJR_USE_GMP OFF)
-   else()
-      set(GMP_INCLUDE_DIRS ${GMP_INCLUDE_DIRS})
-      set(GMP_LIBRARIES ${GMP_LIBRARIES})
-   endif()
-else()
-   set(GMP_INCLUDE_DIRS)
-   set(GMP_LIBRARIES gmp libgmp)
-endif()
+set(WJR_USE_GMP_DEFAULT ON)
 
 if(WJR_USE_GMP)
+   set(WJR_USE_GMP_DEFAULT ${WJR_USE_GMP})
+else()
+   find_package(GMP QUIET)
+
+   if(NOT GMP_FOUND)
+      find_package(PkgConfig)
+      pkg_check_modules(GMP QUIET gmp)
+
+      if(NOT GMP_FOUND)
+         set(WJR_USE_GMP_DEFAULT OFF)
+      else()
+         set(GMP_INCLUDE_DIRS ${GMP_INCLUDE_DIRS})
+         set(GMP_LIBRARIES ${GMP_LIBRARIES})
+      endif()
+   else()
+      set(GMP_INCLUDE_DIRS)
+      set(GMP_LIBRARIES gmp libgmp)
+   endif()
+endif()
+
+option(WJR_USE_GMP_TESTS "Use GMP library for tests" ${WJR_USE_GMP_DEFAULT})
+
+if(WJR_USE_GMP_TESTS)
    add_compile_definitions(WJR_USE_GMP)
 endif()
 

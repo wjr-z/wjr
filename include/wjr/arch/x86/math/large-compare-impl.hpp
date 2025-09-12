@@ -1,12 +1,11 @@
 #ifndef WJR_ARCH_X86_MATH_LARGE_COMPARE_IMPL_HPP__
 #define WJR_ARCH_X86_MATH_LARGE_COMPARE_IMPL_HPP__
 
+#include <cstddef>
 #include <cstdint>
 
 #include <wjr/config.hpp>
 #include <wjr/macros.hpp>
-
-WJR_ENSURE_CONFIG()
 
 namespace wjr {
 

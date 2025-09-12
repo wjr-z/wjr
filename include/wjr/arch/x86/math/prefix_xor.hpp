@@ -5,8 +5,6 @@
 #include <wjr/config.hpp>
 #include <wjr/macros.hpp>
 
-WJR_ENSURE_CONFIG()
-
 namespace wjr {
 
 #if WJR_HAS_SIMD(PCLMUL)
