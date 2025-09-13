@@ -10,3 +10,8 @@ wjr_cc_library(
 
     OBJECT
 )
+
+WJR_CC_LIBRARY(
+    NAME
+    header-only
+)

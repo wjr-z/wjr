@@ -27,6 +27,10 @@ function(wjr_cc_library)
         message(FATAL_ERROR "Cannot set both OBJECT and FINAL for the same library.")
     endif()
 
+    if(WJR_CC_LIB_OBJECT AND WJR_CC_LIB_IS_INTERFACE)
+        message(FATAL_ERROR "Cannot create an OBJECT library without source files.")
+    endif()
+
     if(WJR_CC_LIB_OBJECT)
         set(WJR_TARGET "wjr-${WJR_CC_LIB_NAME}-object")
     elseif(WJR_CC_LIB_FINAL)
@@ -34,6 +38,8 @@ function(wjr_cc_library)
     else()
         set(WJR_TARGET "wjr-${WJR_CC_LIB_NAME}")
     endif()
+
+    set(WJR_CC_COPTS ${WJR_CC_LIB_COPTS} ${WJR_COMMON_CXX_FLAGS})
 
     if(NOT WJR_CC_LIB_IS_INTERFACE)
         if(NOT WJR_CC_LIB_OBJECT)
@@ -57,7 +63,7 @@ function(wjr_cc_library)
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
         )
         target_compile_options(${WJR_TARGET}
-            PUBLIC $<$<COMPILE_LANGUAGE:CXX>: ${WJR_CC_LIB_COPTS} ${WJR_COMMON_CXX_FLAGS}$<SEMICOLON>>
+            PUBLIC $<$<COMPILE_LANGUAGE:CXX>: ${WJR_CC_COPTS}$<SEMICOLON>>
             PRIVATE $<$<COMPILE_LANGUAGE:CXX>: ${WJR_CXX_FLAGS_PRIVATE}$<SEMICOLON>>
             PUBLIC $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:DEBUG>>: ${WJR_CXX_FLAGS_DEBUG}$<SEMICOLON>>
             PUBLIC $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELEASE>>: ${WJR_CXX_FLAGS_RELEASE}$<SEMICOLON>>

@@ -1207,11 +1207,10 @@ public:
     }
 
 private:
-    WJR_CONSTEXPR20 void
-    __swap_impl(expected &other) noexcept(std::is_nothrow_move_constructible_v<T> &&
-                                          std::is_nothrow_swappable_v<T> &&
-                                          std::is_nothrow_move_constructible_v<error_type> &&
-                                          std::is_nothrow_swappable_v<error_type>) {
+    WJR_CONSTEXPR20 void __swap_impl(expected &other) noexcept(
+        std::is_nothrow_move_constructible_v<T> && std::is_nothrow_swappable_v<T> &&
+        std::is_nothrow_destructible_v<T> && std::is_nothrow_move_constructible_v<error_type> &&
+        std::is_nothrow_swappable_v<error_type> && std::is_nothrow_destructible_v<error_type>) {
         if constexpr (std::is_nothrow_move_constructible_v<error_type>) {
             error_type temp(std::move(other.m_err));
             std::destroy_at(std::addressof(other.m_err));
