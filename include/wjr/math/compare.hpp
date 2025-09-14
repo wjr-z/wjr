@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_CMP_HPP__
-#define WJR_MATH_CMP_HPP__
+#ifndef WJR_MATH_COMPARE_HPP__
+#define WJR_MATH_COMPARE_HPP__
 
 #include <wjr/math/sub.hpp>
 
@@ -200,4 +200,4 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 bool __greater_equal_128(uint64_t lo0, uint6
 
 } // namespace wjr
 
-#endif // WJR_MATH_CMP_HPP__
+#endif // WJR_MATH_COMPARE_HPP__

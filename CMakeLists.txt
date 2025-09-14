@@ -135,40 +135,6 @@ if(WJR_ENABLE_ASSEMBLY AND WJR_ARCH)
 endif()
 
 #
-# macro
-#
-macro(setup_cpp_include_and_definitions TARGET)
-   target_include_directories(${TARGET} PUBLIC
-      $<BUILD_INTERFACE:${WJR_INCLUDE_DIR}>
-      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/wjr>
-   )
-
-   if(WJR_USE_CXX_20)
-      target_compile_features(${TARGET} PUBLIC cxx_std_20)
-   else()
-      target_compile_features(${TARGET} PUBLIC cxx_std_17)
-   endif()
-
-   target_compile_options(${TARGET}
-      PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${WJR_CXX_FLAGS}$<SEMICOLON>>
-      PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${WJR_CXX_FLAGS_PRIVATE}$<SEMICOLON>>
-      PUBLIC $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:DEBUG>>:${WJR_CXX_FLAGS_DEBUG}$<SEMICOLON>>
-      PUBLIC $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELEASE>>:${WJR_CXX_FLAGS_RELEASE}$<SEMICOLON>>
-   )
-
-   target_compile_definitions(${TARGET}
-      PUBLIC $<$<COMPILE_LANGUAGE:CXX>: ${WJR_COMPILE_DEFINITIONS}$<SEMICOLON>>
-   )
-endmacro()
-
-macro(add_cpp_source TARGET PATH)
-   file(GLOB_RECURSE TMP_SRCS ${WJR_LIB_DIR}/${PATH}/*.cpp ${WJR_LIB_DIR}/${PATH}/**/*.cpp)
-   list(APPEND ${TARGET} ${TMP_SRCS})
-endmacro()
-
-set(WJR_LIBS)
-
-#
 # precompile headers
 #
 set(WJR_PCH_COMMON ${WJR_INCLUDE_DIR}/wjr/type_traits.hpp ${WJR_INCLUDE_DIR}/wjr/assert.hpp)

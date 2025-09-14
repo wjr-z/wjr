@@ -1,5 +1,5 @@
-#ifndef WJR_STACK_ALLOCATOR_HPP__
-#define WJR_STACK_ALLOCATOR_HPP__
+#ifndef WJR_MEMORY_STACK_ALLOCATOR_HPP__
+#define WJR_MEMORY_STACK_ALLOCATOR_HPP__
 
 #include <algorithm>
 
@@ -296,4 +296,4 @@ WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(weak_stack_allocator_string,
 
 } // namespace wjr
 
-#endif // WJR_STACK_ALLOCATOR_HPP__
+#endif // WJR_MEMORY_STACK_ALLOCATOR_HPP__

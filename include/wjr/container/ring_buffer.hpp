@@ -1,5 +1,5 @@
-#ifndef WJR_CONTAINER_CONTAINER_RING_BUFFER_HPP__
-#define WJR_CONTAINER_CONTAINER_RING_BUFFER_HPP__
+#ifndef WJR_CONTAINER_RING_BUFFER_HPP__
+#define WJR_CONTAINER_RING_BUFFER_HPP__
 
 /**
  * @file ring_buffer.hpp
@@ -10,7 +10,7 @@
 
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/container_fn.hpp>
-#include <wjr/iterator/contiguous_iterator_adpater.hpp>
+#include <wjr/iterator/contiguous_iterator_adapter.hpp>
 #include <wjr/math/detail.hpp>
 #include <wjr/memory/allocate_at_least.hpp>
 #include <wjr/memory/copy.hpp>
@@ -921,4 +921,4 @@ constexpr void swap(wjr::basic_ring_buffer<Storage> &lhs,
 
 } // namespace std
 
-#endif // WJR_CONTAINER_CONTAINER_RING_BUFFER_HPP__
+#endif // WJR_CONTAINER_RING_BUFFER_HPP__

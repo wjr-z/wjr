@@ -1,5 +1,13 @@
 include(CMakeParseArguments)
 
+#
+# macro
+#
+macro(add_cpp_source TARGET PATH)
+   file(GLOB_RECURSE TMP_SRCS ${WJR_LIB_DIR}/${PATH}/*.cpp ${WJR_LIB_DIR}/${PATH}/**/*.cpp)
+   list(APPEND ${TARGET} ${TMP_SRCS})
+endmacro()
+
 function(wjr_add_propagate_object_library object_name interface_name)
     add_library(wjr-${interface_name} INTERFACE)
     add_library(wjr::${interface_name} ALIAS wjr-${interface_name})

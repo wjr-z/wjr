@@ -1,5 +1,5 @@
-#ifndef WJR_FORMAT_UTF8_HPP__
-#define WJR_FORMAT_UTF8_HPP__
+#ifndef WJR_FORMAT_UTF8_UTF8_HPP__
+#define WJR_FORMAT_UTF8_UTF8_HPP__
 
 #include <array>
 
@@ -427,4 +427,4 @@ WJR_ALL_NONNULL inline compressed_optional<char *> unicode_to_utf8(char *dst, co
 
 } // namespace wjr::utf8
 
-#endif // WJR_FORMAT_UTF8_HPP__
+#endif // WJR_FORMAT_UTF8_UTF8_HPP__

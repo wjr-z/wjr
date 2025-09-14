@@ -1,5 +1,5 @@
-#ifndef inline_kWJR_INLINE_ARG_HPP__ey
-#define inline_kWJR_INLINE_ARG_HPP__ey
+#ifndef WJR_MEMORY_INLINE_ARG_HPP__
+#define WJR_MEMORY_INLINE_ARG_HPP__
 
 /**
  * @file inline_arg.hpp
@@ -95,4 +95,4 @@ using auto_arg = inline_arg<T, is_possible_inline_arg_v<T> && sizeof(T) <= Thres
 
 } // namespace wjr
 
-#endif // inline_kWJR_INLINE_ARG_HPP__ey
+#endif // WJR_MEMORY_INLINE_ARG_HPP__

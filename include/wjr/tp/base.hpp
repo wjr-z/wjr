@@ -1,5 +1,5 @@
-#ifndef WJR_TP_DETAIL_HPP__
-#define WJR_TP_DETAIL_HPP__
+#ifndef WJR_TP_BASE_HPP__
+#define WJR_TP_BASE_HPP__
 
 #include <wjr/type_traits.hpp>
 
@@ -683,4 +683,4 @@ using tp_index_sequence_for = tp_make_indexs_list_t<sizeof...(Args)>;
 
 } // namespace wjr
 
-#endif // WJR_TP_DETAIL_HPP__
+#endif // WJR_TP_BASE_HPP__

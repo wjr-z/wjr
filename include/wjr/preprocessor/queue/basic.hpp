@@ -1,5 +1,5 @@
-#ifndef WJR_PREPROCCESSOR_QUEUE_BASIC_HPP__
-#define WJR_PREPROCCESSOR_QUEUE_BASIC_HPP__
+#ifndef WJR_PREPROCESSOR_QUEUE_BASIC_HPP__
+#define WJR_PREPROCESSOR_QUEUE_BASIC_HPP__
 
 #include <wjr/preprocessor/detail/basic.hpp>
 
@@ -118,4 +118,4 @@
 #define WJR_PP_QUEUE_POP_FRONT_I64(x0, x1, x2, x3, x4, x5, x6, x7, ...)                            \
     WJR_PP_QUEUE_POP_FRONT_I56((__VA_ARGS__))
 
-#endif // ! WJR_PREPROCCESSOR_QUEUE_BASIC_HPP__
+#endif // WJR_PREPROCESSOR_QUEUE_BASIC_HPP__

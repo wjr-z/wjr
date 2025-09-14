@@ -10,8 +10,8 @@
  *
  */
 
-#ifndef WJR_CONTAINER_CONTAINER_TRAITS_HPP__
-#define WJR_CONTAINER_CONTAINER_TRAITS_HPP__
+#ifndef WJR_CONTAINER_CONTAINER_FN_HPP__
+#define WJR_CONTAINER_CONTAINER_FN_HPP__
 
 #include <memory>
 #include <type_traits>
@@ -123,4 +123,4 @@ public:
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_CONTAINER_TRAITS_HPP__
+#endif // WJR_CONTAINER_CONTAINER_FN_HPP__

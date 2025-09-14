@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_LITERAL_HPP__
-#define WJR_MATH_LITERAL_HPP__
+#ifndef WJR_MATH_LITERALS_HPP__
+#define WJR_MATH_LITERALS_HPP__
 
 namespace wjr {
 
@@ -9,4 +9,4 @@ constexpr unsigned long long operator""_GB(unsigned long long n) noexcept { retu
 
 } // namespace wjr
 
-#endif // WJR_MATH_LITERAL_HPP__
+#endif // WJR_MATH_LITERALS_HPP__

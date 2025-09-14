@@ -1,5 +1,5 @@
-#ifndef WJR_CONTIANER_GENERIC_BTREE_SET_HPP__
-#define WJR_CONTIANER_GENERIC_BTREE_SET_HPP__
+#ifndef WJR_CONTAINER_BTREE_SET_HPP__
+#define WJR_CONTAINER_BTREE_SET_HPP__
 
 #include <wjr/container/btree.hpp>
 
@@ -94,4 +94,4 @@ public:
 
 } // namespace wjr
 
-#endif // WJR_CONTIANER_GENERIC_BTREE_SET_HPP__
+#endif // WJR_CONTAINER_BTREE_SET_HPP__

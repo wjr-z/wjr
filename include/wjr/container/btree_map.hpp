@@ -1,5 +1,5 @@
-#ifndef WJR_CONTIANER_GENERIC_BTREE_MAP_HPP__
-#define WJR_CONTIANER_GENERIC_BTREE_MAP_HPP__
+#ifndef WJR_CONTAINER_BTREE_MAP_HPP__
+#define WJR_CONTAINER_BTREE_MAP_HPP__
 
 #include <wjr/container/btree.hpp>
 
@@ -134,4 +134,4 @@ WJR_NODISCARD bool operator>=(const btree_map<Key, Value, Pr> &lhs,
 
 } // namespace wjr
 
-#endif // WJR_CONTIANER_GENERIC_BTREE_MAP_HPP__
+#endif // WJR_CONTAINER_BTREE_MAP_HPP__

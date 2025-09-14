@@ -1,5 +1,5 @@
-#ifndef WJR_ASSERT_HPP__
-#define WJR_ASSERT_HPP__
+#ifndef WJR_UTILITY_ASSERT_HPP__
+#define WJR_UTILITY_ASSERT_HPP__
 
 /**
  * @file assert.hpp
@@ -154,4 +154,4 @@ WJR_NORETURN inline void __assert_light_failed_handler(const char *expr) noexcep
 
 } // namespace wjr
 
-#endif // WJR_ASSERT_HPP__
+#endif // WJR_UTILITY_ASSERT_HPP__

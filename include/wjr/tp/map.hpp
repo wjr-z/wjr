@@ -1,7 +1,7 @@
 #ifndef WJR_TP_MAP_HPP__
 #define WJR_TP_MAP_HPP__
 
-#include <wjr/tp/detail.hpp>
+#include <wjr/tp/base.hpp>
 
 namespace wjr {
 

@@ -1,5 +1,5 @@
-#ifndef WJR_PREPROCESSOR_CONFIG_PLATFORM_HPP__
-#define WJR_PREPROCESSOR_CONFIG_PLATFORM_HPP__
+#ifndef WJR_CONFIG_PLATFORM_HPP__
+#define WJR_CONFIG_PLATFORM_HPP__
 
 ////////////////////////////////////////////////////////////////////////////////
 // Os
@@ -22,4 +22,4 @@
     #error "Unknown platform!"
 #endif
 
-#endif // WJR_PREPROCESSOR_CONFIG_PLATFORM_HPP__
+#endif // WJR_CONFIG_PLATFORM_HPP__

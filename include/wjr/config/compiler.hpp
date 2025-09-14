@@ -49,6 +49,8 @@
     #define WJR_CPP_STANDARD __cplusplus
 #elif defined(WJR_COMPILER_MSVC)
     #define WJR_CPP_STANDARD _MSVC_LANG
+#else
+    #error "GCC, Clang or MSVC is required"
 #endif
 
 #if WJR_CPP_STANDARD >= 199711L
@@ -76,5 +78,9 @@
 #ifndef WJR_CPP_17
     #error "required C++17 or later"
 #endif // c++17
+
+#if defined(WJR_CPP_20)
+    #include <version>
+#endif
 
 #endif // !WJR_CONFIG_COMPILER_HPP__

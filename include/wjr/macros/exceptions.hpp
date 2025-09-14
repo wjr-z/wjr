@@ -1,5 +1,5 @@
-#ifndef WJR_MACRO_EXCEPTIONS_HPP__
-#define WJR_MACRO_EXCEPTIONS_HPP__
+#ifndef WJR_MACROS_EXCEPTIONS_HPP__
+#define WJR_MACROS_EXCEPTIONS_HPP__
 
 #if defined(WJR_DISABLE_EXCEPTIONS)
     #include <cstdlib>
@@ -17,4 +17,4 @@
     #define WJR_NOEXCEPT_X false
 #endif
 
-#endif // WJR_MACRO_EXCEPTIONS_HPP__
+#endif // WJR_MACROS_EXCEPTIONS_HPP__

@@ -1,5 +1,5 @@
-#ifndef WJR_ARCH_X86_SUB_HPP__
-#define WJR_ARCH_X86_SUB_HPP__
+#ifndef WJR_ARCH_X86_MATH_SUB_HPP__
+#define WJR_ARCH_X86_MATH_SUB_HPP__
 
 #include <wjr/type_traits.hpp>
 
@@ -214,4 +214,4 @@ WJR_INTRINSIC_INLINE uint8_t __asm_subc_cc_128(uint64_t &al, uint64_t &ah, uint6
 
 } // namespace wjr::math
 
-#endif // WJR_ARCH_X86_SUB_HPP__
+#endif // WJR_ARCH_X86_MATH_SUB_HPP__

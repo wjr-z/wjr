@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_XOR_HPP__
-#define WJR_MATH_XOR_HPP__
+#ifndef WJR_MATH_BITWISE_HPP__
+#define WJR_MATH_BITWISE_HPP__
 
 #include <wjr/assert.hpp>
 #include <wjr/type_traits.hpp>
@@ -47,4 +47,4 @@ WJR_INTRINSIC_CONSTEXPR void not_n(T *dst, const T *src, size_t n) noexcept {
 
 } // namespace wjr::math
 
-#endif // WJR_MATH_XOR_HPP__
+#endif // WJR_MATH_BITWISE_HPP__

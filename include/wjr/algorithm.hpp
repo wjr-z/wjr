@@ -1,5 +1,5 @@
-#ifndef WJR_FORMAT_ALGORITHM_HPP__
-#define WJR_FORMAT_ALGORITHM_HPP__
+#ifndef WJR_ALGORITHM_HPP__
+#define WJR_ALGORITHM_HPP__
 
 #include <algorithm>
 
@@ -147,4 +147,4 @@ constexpr void sort(Iter first, Iter last) {
 
 } // namespace wjr
 
-#endif // WJR_FORMAT_ALGORITHM_HPP__
+#endif // WJR_ALGORITHM_HPP__

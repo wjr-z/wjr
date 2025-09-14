@@ -1,5 +1,5 @@
-#ifndef WJR_FORMAT_CCTYPE_HPP__
-#define WJR_FORMAT_CCTYPE_HPP__
+#ifndef WJR_FORMAT_CTYPE_HPP__
+#define WJR_FORMAT_CTYPE_HPP__
 
 #include <array>
 
@@ -67,4 +67,4 @@ constexpr bool isSpace(char C) { return cctype::get_code(C) == 64; }
 
 } // namespace wjr
 
-#endif // WJR_FORMAT_CCTYPE_HPP__
+#endif // WJR_FORMAT_CTYPE_HPP__

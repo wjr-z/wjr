@@ -1,5 +1,5 @@
-#ifndef WJR_FORMATTER_HPP__
-#define WJR_FORMATTER_HPP__
+#ifndef WJR_JSON_FORMATTER_HPP__
+#define WJR_JSON_FORMATTER_HPP__
 
 #include <wjr/container/bitset.hpp>
 #include <wjr/format/charconv.hpp>
@@ -340,4 +340,4 @@ pretty_formatter(Inserter iter) -> pretty_formatter<Inserter>;
 
 } // namespace wjr::json
 
-#endif // WJR_FORMATTER_HPP__
+#endif // WJR_JSON_FORMATTER_HPP__

@@ -1,5 +1,5 @@
-#ifndef WJR_MEMORY_COPY_SMALL_COPY_HPP__
-#define WJR_MEMORY_COPY_SMALL_COPY_HPP__
+#ifndef WJR_MEMORY_SMALL_COPY_HPP__
+#define WJR_MEMORY_SMALL_COPY_HPP__
 
 #include <cstring>
 
@@ -94,4 +94,4 @@ WJR_INTRINSIC_INLINE void small_copy(T const *first, T const *last, T *dst) noex
 }
 } // namespace wjr
 
-#endif // WJR_MEMORY_COPY_SMALL_COPY_HPP__
+#endif // WJR_MEMORY_SMALL_COPY_HPP__

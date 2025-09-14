@@ -1,5 +1,5 @@
-#ifndef WJR_PLATFORM_WINDOWS_HPP__
-#define WJR_PLATFORM_WINDOWS_HPP__
+#ifndef WJR_ARCH_WINDOWS_WINDOWS_HPP__
+#define WJR_ARCH_WINDOWS_WINDOWS_HPP__
 
 #ifndef NOMINMAX
     #define NOMINMAX
@@ -7,4 +7,4 @@
 
 #include <windows.h>
 
-#endif // WJR_PLATFORM_WINDOWS_HPP__
+#endif // WJR_ARCH_WINDOWS_WINDOWS_HPP__

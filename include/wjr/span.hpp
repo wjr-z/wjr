@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 #include <wjr/assert.hpp>
-#include <wjr/iterator/contiguous_iterator_adpater.hpp>
+#include <wjr/iterator/contiguous_iterator_adapter.hpp>
 
 namespace wjr {
 

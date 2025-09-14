@@ -1,5 +1,5 @@
-#ifndef WJR_MACROS_TYPES_HPP__
-#define WJR_MACROS_TYPES_HPP__
+#ifndef WJR_MACROS_REGISTER_HPP__
+#define WJR_MACROS_REGISTER_HPP__
 
 #include <type_traits>
 
@@ -45,4 +45,4 @@ constexpr static void allow_true_type(std::true_type) noexcept {}
 constexpr static void allow_false_type(std::false_type) noexcept {}
 } // namespace wjr::detail
 
-#endif // WJR_MACROS_TYPES_HPP__
+#endif // WJR_MACROS_REGISTER_HPP__
