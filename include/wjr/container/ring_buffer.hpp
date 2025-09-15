@@ -105,7 +105,11 @@ public:
         return *(*this + n);
     }
 
-    // todo: operator-(const ring_buffer_const_iterator &rhs)
+    WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 difference_type
+    operator-(const ring_buffer_const_iterator &rhs) const noexcept {
+        WJR_ASSERT_L2(m_rb == rhs.m_rb, "can't subtract iterators from different ring_buffer");
+        return linearize_pointer(m_ptr) - linearize_pointer(rhs.m_ptr);
+    }
 
     WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 bool
     operator==(const ring_buffer_const_iterator &rhs) const noexcept {
@@ -127,6 +131,13 @@ private:
 
     void __prev(difference_type n) noexcept {
         m_ptr = m_rb->__prev(m_ptr == nullptr ? m_rb->__get_tail() : m_ptr, n);
+    }
+
+    __pointer linearize_pointer(__pointer it) const {
+        return it == nullptr
+                   ? m_rb->data() + m_rb->size()
+                   : (it < m_rb->__get_head() ? it + (m_rb->__get_buf_end() - m_rb->__get_head())
+                                              : m_rb->data() + (it - m_rb->__get_head()));
     }
 
     RB *m_rb = nullptr;
@@ -202,6 +213,8 @@ public:
         auto tmp = *this;
         return tmp -= n;
     }
+
+    using Mybase::operator-;
 
     WJR_NODISCARD WJR_CONSTEXPR20 reference operator[](difference_type n) const noexcept {
         return *(*this + n);
