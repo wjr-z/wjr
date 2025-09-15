@@ -4,7 +4,7 @@
 #include <string_view>
 #include <vector>
 
-#include "random.hpp"
+#include "../random.hpp"
 
 #include <wjr/math.hpp>
 #include <wjr/vector.hpp>

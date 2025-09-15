@@ -71,6 +71,8 @@
 
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/container_fn.hpp>
+#include <wjr/container/detail/vector_size_reference.hpp>
+#include <wjr/container/detail/storage_traits.hpp>
 #include <wjr/iterator/contiguous_iterator_adapter.hpp>
 #include <wjr/math/detail.hpp>
 #include <wjr/memory/allocate_at_least.hpp>
@@ -92,57 +94,6 @@ public:
     using difference_type = typename _Alty_traits::difference_type;
     using allocator_type = Alloc;
     using is_trivially_contiguous = std::true_type;
-};
-
-template <typename pointer, typename size_type>
-class default_vector_size_reference {
-public:
-    default_vector_size_reference() = delete;
-    default_vector_size_reference(const default_vector_size_reference &) = delete;
-    default_vector_size_reference(default_vector_size_reference &&) = default;
-    default_vector_size_reference &operator=(const default_vector_size_reference &) = delete;
-    default_vector_size_reference &operator=(default_vector_size_reference &&) = default;
-    ~default_vector_size_reference() = default;
-
-    constexpr explicit default_vector_size_reference(pointer ptr, pointer &pos) noexcept
-        : m_ptr(ptr), m_pos(pos) {}
-
-    constexpr default_vector_size_reference &operator=(size_type size) noexcept {
-        m_pos = m_ptr + size;
-        return *this;
-    }
-
-    constexpr operator size_type() const noexcept { return static_cast<size_type>(m_pos - m_ptr); }
-
-    constexpr default_vector_size_reference &operator++() noexcept {
-        ++m_pos;
-        return *this;
-    }
-
-    constexpr default_vector_size_reference &operator--() noexcept {
-        --m_pos;
-        return *this;
-    }
-
-    constexpr default_vector_size_reference &operator+=(size_type size) noexcept {
-        m_pos += size;
-        return *this;
-    }
-
-    constexpr default_vector_size_reference &operator-=(size_type size) noexcept {
-        m_pos -= size;
-        return *this;
-    }
-
-private:
-    pointer m_ptr;
-    pointer &m_pos;
-};
-
-/// @private
-template <typename pointer, typename size_type>
-struct __unref_wrapper_helper<default_vector_size_reference<pointer, size_type>> {
-    using type = size_type &;
 };
 
 template <typename T, typename Alloc, typename Mybase, typename IsReallocatable>
@@ -576,16 +527,6 @@ WJR_REGISTER_HAS_TYPE(vector_storage_shrink_to_fit, std::declval<Storage>().shri
                       Storage);
 WJR_REGISTER_HAS_TYPE(vector_storage_empty, std::declval<Storage>().empty(), Storage);
 
-template <typename Storage>
-struct basic_vector_traits {
-    using value_type = typename Storage::value_type;
-    using difference_type = typename Storage::difference_type;
-    using pointer = typename Storage::pointer;
-    using const_pointer = typename Storage::const_pointer;
-    using reference = value_type &;
-    using const_reference = const value_type &;
-};
-
 /**
  * @brief Customized vector by storage.
  *
@@ -604,7 +545,7 @@ private:
     using _Alty_traits = std::allocator_traits<_Alty>;
 
     using __get_size_t = decltype(std::declval<storage_type>().size());
-    using IteratorTraits = basic_vector_traits<storage_type>;
+    using IteratorTraits = storage_traits<storage_type>;
 
     using storage_fn_type = container_fn<_Alty>;
     friend class container_fn<_Alty>;
@@ -1638,6 +1579,8 @@ private:
 
             const pointer __new_begin = new_storage.data();
             const pointer new_pos = __new_begin + old_pos_size;
+
+            // todo: this can be optimize by using relocate.
 
             wjr::uninitialized_construct_using_allocator(new_pos, al, std::forward<Args>(args)...);
             wjr::uninitialized_move_n_restrict_using_allocator(__begin, old_pos_size, __new_begin,

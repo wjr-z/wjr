@@ -10,6 +10,8 @@
 
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/container_fn.hpp>
+#include <wjr/container/detail/storage_traits.hpp>
+#include <wjr/container/detail/vector_size_reference.hpp>
 #include <wjr/iterator/contiguous_iterator_adapter.hpp>
 #include <wjr/math/detail.hpp>
 #include <wjr/memory/allocate_at_least.hpp>
@@ -18,6 +20,193 @@
 #include <wjr/memory/temporary_value_allocator.hpp>
 
 namespace wjr {
+
+template <typename RB, typename Traits>
+class ring_buffer_const_iterator {
+    using __pointer = typename Traits::pointer;
+
+    template <typename Ptr>
+    friend struct std::pointer_traits;
+
+public:
+    using iterator_category = std::random_access_iterator_tag;
+    using value_type = typename Traits::value_type;
+    using difference_type = typename Traits::difference_type;
+    using pointer = typename Traits::const_pointer;
+    using reference = typename Traits::const_reference;
+
+    ring_buffer_const_iterator(RB *rb, __pointer ptr) noexcept : m_rb(rb), m_ptr(ptr) {}
+
+    WJR_NODISCARD WJR_CONSTEXPR20 pointer operator->() const noexcept {
+        return const_cast<pointer>(m_ptr);
+    }
+
+    WJR_NODISCARD WJR_CONSTEXPR20 reference operator*() const noexcept { return *operator->(); }
+
+    WJR_CONSTEXPR20 ring_buffer_const_iterator &operator++() noexcept {
+        m_rb->increment(m_ptr);
+        if (m_ptr == m_rb->__get_tail())
+            m_ptr = nullptr;
+        return *this;
+    }
+
+    WJR_CONSTEXPR20 ring_buffer_const_iterator operator++(int) noexcept {
+        auto tmp = *this;
+        ++*this;
+        return tmp;
+    }
+
+    WJR_CONSTEXPR20 ring_buffer_const_iterator &operator--() noexcept {
+        if (m_ptr == nullptr)
+            m_ptr = m_rb->__get_tail();
+        m_rb->decrement(m_ptr);
+        return *this;
+    }
+
+    WJR_CONSTEXPR20 ring_buffer_const_iterator operator--(int) noexcept {
+        auto tmp = *this;
+        --*this;
+        return tmp;
+    }
+
+    WJR_CONSTEXPR20 ring_buffer_const_iterator &operator+=(difference_type n) noexcept {
+        if (n > 0)
+            __next(n);
+        else if (n < 0)
+            __prev(-n);
+        return *this;
+    }
+
+    WJR_CONSTEXPR20 ring_buffer_const_iterator operator+(difference_type n) const noexcept {
+        auto tmp = *this;
+        return tmp += n;
+    }
+
+    WJR_NODISCARD friend WJR_CONSTEXPR20 ring_buffer_const_iterator
+    operator+(difference_type n, const ring_buffer_const_iterator &rhs) noexcept {
+        return rhs + n;
+    }
+
+    WJR_CONSTEXPR20 ring_buffer_const_iterator &operator-=(difference_type n) noexcept {
+        if (n > 0)
+            __prev(n);
+        else if (n < 0)
+            __next(-n);
+        return *this;
+    }
+
+    WJR_NODISCARD WJR_CONSTEXPR20 ring_buffer_const_iterator
+    operator-(difference_type n) const noexcept {
+        auto tmp = *this;
+        return tmp -= n;
+    }
+
+    WJR_NODISCARD WJR_CONSTEXPR20 reference operator[](difference_type n) const noexcept {
+        return *(*this + n);
+    }
+
+    // todo: operator-(const ring_buffer_const_iterator &rhs)
+
+    WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 bool
+    operator==(const ring_buffer_const_iterator &rhs) const noexcept {
+        WJR_ASSERT_L2(m_rb == rhs.m_rb, "can't compare iterators from different ring_buffer");
+        return m_ptr == rhs.m_ptr;
+    }
+
+    WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 bool
+    operator!=(const ring_buffer_const_iterator &rhs) const noexcept {
+        return !(*this == rhs);
+    }
+
+private:
+    void __next(difference_type n) noexcept {
+        m_ptr = m_rb->__next(m_ptr, n);
+        if (m_ptr == m_rb->__get_tail())
+            m_ptr = nullptr;
+    }
+
+    void __prev(difference_type n) noexcept {
+        m_ptr = m_rb->__prev(m_ptr == nullptr ? m_rb->__get_tail() : m_ptr, n);
+    }
+
+    RB *m_rb = nullptr;
+    __pointer m_ptr = nullptr;
+};
+
+template <typename RB, typename Traits>
+class ring_buffer_iterator : public ring_buffer_const_iterator<RB, Traits> {
+    using Mybase = ring_buffer_const_iterator<RB, Traits>;
+    using __pointer = typename Traits::pointer;
+
+    template <typename Ptr>
+    friend struct std::pointer_traits;
+
+public:
+    using iterator_category = typename Mybase::iterator_category;
+    using value_type = typename Mybase::value_type;
+    using difference_type = typename Mybase::difference_type;
+    using pointer = typename Traits::pointer;
+    using reference = typename Traits::reference;
+
+    using Mybase::Mybase;
+
+    WJR_NODISCARD WJR_CONSTEXPR20 pointer operator->() const noexcept {
+        return const_cast<pointer>(Mybase::operator->());
+    }
+
+    WJR_NODISCARD WJR_CONSTEXPR20 reference operator*() const noexcept { return *operator->(); }
+
+    WJR_CONSTEXPR20 ring_buffer_iterator &operator++() noexcept {
+        Mybase::operator++();
+        return *this;
+    }
+
+    WJR_CONSTEXPR20 ring_buffer_iterator operator++(int) noexcept {
+        auto tmp = *this;
+        ++*this;
+        return tmp;
+    }
+
+    WJR_CONSTEXPR20 ring_buffer_iterator &operator--() noexcept {
+        Mybase::operator--();
+        return *this;
+    }
+
+    WJR_CONSTEXPR20 ring_buffer_iterator operator--(int) noexcept {
+        auto tmp = *this;
+        --*this;
+        return tmp;
+    }
+
+    WJR_CONSTEXPR20 ring_buffer_iterator &operator+=(difference_type n) noexcept {
+        Mybase::operator+=(n);
+        return *this;
+    }
+
+    WJR_NODISCARD WJR_CONSTEXPR20 ring_buffer_iterator operator+(difference_type n) const noexcept {
+        auto tmp = *this;
+        return tmp += n;
+    }
+
+    WJR_NODISCARD friend WJR_CONSTEXPR20 ring_buffer_iterator
+    operator+(difference_type n, const ring_buffer_iterator &rhs) noexcept {
+        return rhs + n;
+    }
+
+    WJR_CONSTEXPR20 ring_buffer_iterator &operator-=(difference_type n) noexcept {
+        Mybase::operator-=(n);
+        return *this;
+    }
+
+    WJR_NODISCARD WJR_CONSTEXPR20 ring_buffer_iterator operator-(difference_type n) const noexcept {
+        auto tmp = *this;
+        return tmp -= n;
+    }
+
+    WJR_NODISCARD WJR_CONSTEXPR20 reference operator[](difference_type n) const noexcept {
+        return *(*this + n);
+    }
+};
 
 template <typename T, typename Alloc>
 class ring_buffer_storage_traits {
@@ -32,58 +221,6 @@ public:
     using difference_type = typename _Alty_traits::difference_type;
     using allocator_type = Alloc;
     using is_trivially_contiguous = std::false_type;
-};
-
-template <typename pointer, typename size_type>
-class default_ring_buffer_size_reference {
-public:
-    default_ring_buffer_size_reference() = delete;
-    default_ring_buffer_size_reference(const default_ring_buffer_size_reference &) = delete;
-    default_ring_buffer_size_reference(default_ring_buffer_size_reference &&) = default;
-    default_ring_buffer_size_reference &
-    operator=(const default_ring_buffer_size_reference &) = delete;
-    default_ring_buffer_size_reference &operator=(default_ring_buffer_size_reference &&) = default;
-    ~default_ring_buffer_size_reference() = default;
-
-    constexpr explicit default_ring_buffer_size_reference(pointer ptr, pointer &pos) noexcept
-        : m_ptr(ptr), m_pos(pos) {}
-
-    constexpr default_ring_buffer_size_reference &operator=(size_type size) noexcept {
-        m_pos = m_ptr + size;
-        return *this;
-    }
-
-    constexpr operator size_type() const noexcept { return static_cast<size_type>(m_pos - m_ptr); }
-
-    constexpr default_ring_buffer_size_reference &operator++() noexcept {
-        ++m_pos;
-        return *this;
-    }
-
-    constexpr default_ring_buffer_size_reference &operator--() noexcept {
-        --m_pos;
-        return *this;
-    }
-
-    constexpr default_ring_buffer_size_reference &operator+=(size_type size) noexcept {
-        m_pos += size;
-        return *this;
-    }
-
-    constexpr default_ring_buffer_size_reference &operator-=(size_type size) noexcept {
-        m_pos -= size;
-        return *this;
-    }
-
-private:
-    pointer m_ptr;
-    pointer &m_pos;
-};
-
-/// @private
-template <typename pointer, typename size_type>
-struct __unref_wrapper_helper<default_ring_buffer_size_reference<pointer, size_type>> {
-    using type = size_type &;
 };
 
 template <typename T, typename Alloc, typename Mybase, typename IsReallocatable>
@@ -111,7 +248,7 @@ protected:
     };
 
     using data_type = Data;
-    using size_ref = default_ring_buffer_size_reference<pointer, size_type>;
+    using size_ref = default_vector_size_reference<pointer, size_type>;
 
 public:
     __default_ring_buffer_storage() = default;
@@ -142,11 +279,10 @@ public:
     }
 
     WJR_INTRINSIC_CONSTEXPR20 static void
-    uninitialized_construct(Mybase &other, size_type head, size_type tail, size_type size,
-                            size_type capacity,
+    uninitialized_construct(Mybase &other, size_type size, size_type capacity,
                             _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
         const auto ptr = _Alty_traits::allocate(al, capacity);
-        other.m_storage = {ptr, ptr + head, ptr + tail, size, ptr + capacity};
+        other.m_storage = {ptr, ptr, ptr + (size == capacity ? 0 : size), size, ptr + capacity};
     }
 
     WJR_CONSTEXPR20 void take_storage(Mybase &other, _Alty &) noexcept {
@@ -218,6 +354,12 @@ WJR_REGISTER_HAS_TYPE(ring_buffer_storage_shrink_to_fit, std::declval<Storage>()
  */
 template <typename Storage>
 class basic_ring_buffer {
+    template <typename RB, typename Traits>
+    friend class ring_buffer_const_iterator;
+
+    template <typename RB, typename Traits>
+    friend class ring_buffer_iterator;
+
 public:
     using value_type = typename Storage::value_type;
     using allocator_type = typename Storage::allocator_type;
@@ -235,6 +377,8 @@ private:
 
     static constexpr relocate_t relocate_mode = get_common_relocate_mode_v<storage_type, _Alty>;
 
+    using IteratorTraits = storage_traits<storage_type>;
+
 public:
     static_assert(std::is_same_v<typename _Alty_traits::value_type, value_type>,
                   "allocator_type::value_type must be the same as value_type");
@@ -245,6 +389,10 @@ public:
     using const_reference = const value_type &;
     using pointer = typename Storage::pointer;
     using const_pointer = typename Storage::const_pointer;
+    using iterator = ring_buffer_iterator<basic_ring_buffer, IteratorTraits>;
+    using const_iterator = ring_buffer_const_iterator<basic_ring_buffer, IteratorTraits>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     using storage_traits_type = typename storage_type::storage_traits_type;
     using is_trivially_contiguous = typename storage_traits_type::is_trivially_contiguous;
@@ -262,7 +410,7 @@ private:
     static constexpr bool __is_nothrow_uninitialized_construct =
         noexcept(std::declval<storage_type &>().uninitialized_construct(
             std::declval<storage_type &>(), std::declval<size_type>(), std::declval<size_type>(),
-            std::declval<size_type>(), std::declval<size_type>(), std::declval<_Alty &>()));
+            std::declval<_Alty &>()));
     static constexpr bool __is_nothrow_take_storage =
         noexcept(std::declval<storage_type &>().take_storage(std::declval<storage_type &>(),
                                                              std::declval<_Alty &>()));
@@ -307,7 +455,8 @@ private:
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
         const size_type __size = other.size();
         if (WJR_LIKELY(__size != 0)) {
-            uninitialized_construct(0, 0, __size, __size);
+            uninitialized_construct(__size, __size);
+
             pointer dst = data();
             const const_pointer __head = other.__get_head();
             const const_pointer __tail = other.__get_tail();
@@ -395,7 +544,7 @@ public:
                 __take_storage(new_storage);
             } else if (__size < capacity()) {
                 storage_type new_storage;
-                uninitialized_construct(new_storage, 0, 0, __size, __size);
+                uninitialized_construct(new_storage, __size, __size);
 
                 pointer dst = data();
                 const const_pointer __head = __get_head();
@@ -424,6 +573,7 @@ public:
     }
 
     WJR_PURE WJR_CONSTEXPR20 bool empty() const noexcept { return size() == 0; }
+    WJR_PURE WJR_CONSTEXPR20 bool full() const noexcept { return size() == capacity(); }
 
     WJR_CONST WJR_CONSTEXPR20 static size_type get_growth_capacity(size_type old_capacity,
                                                                    size_type new_size) noexcept {
@@ -440,7 +590,8 @@ private:
                 const size_type new_capacity = get_growth_capacity(old_capacity, n);
 
                 storage_type new_storage;
-                uninitialized_construct(new_storage, 0, old_size, old_size, new_capacity);
+                WJR_ASSUME(old_size != new_capacity);
+                uninitialized_construct(new_storage, old_size, new_capacity);
 
                 const pointer __head = __get_head();
                 const pointer __tail = __get_tail();
@@ -475,7 +626,7 @@ private:
                 const size_type new_capacity = get_growth_capacity(old_capacity, n);
 
                 storage_type new_storage;
-                uninitialized_construct(new_storage, 0, 0, 0, new_capacity);
+                uninitialized_construct(new_storage, 0, new_capacity);
 
                 __deallocate();
                 __take_storage(new_storage);
@@ -494,6 +645,36 @@ public:
 
         __reserve_impl(n);
     }
+
+    WJR_CONSTEXPR20 iterator begin() noexcept {
+        return iterator(this, empty() ? nullptr : __get_head());
+    }
+
+    WJR_CONSTEXPR20 const_iterator begin() const noexcept {
+        return const_iterator(this, empty() ? nullptr : __get_head());
+    }
+
+    WJR_CONSTEXPR20 const_iterator cbegin() const noexcept { return begin(); }
+
+    WJR_CONSTEXPR20 iterator end() noexcept { return iterator(this, nullptr); }
+    WJR_CONSTEXPR20 const_iterator end() const noexcept { return const_iterator(this, nullptr); }
+    WJR_CONSTEXPR20 const_iterator cend() const noexcept { return end(); }
+
+    WJR_CONSTEXPR20 reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+    WJR_CONSTEXPR20 const_reverse_iterator rbegin() const noexcept {
+        return const_reverse_iterator(end());
+    }
+
+    WJR_CONSTEXPR20 const_reverse_iterator rcbegin() const noexcept { return rbegin(); }
+
+    WJR_CONSTEXPR20 reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+    WJR_CONSTEXPR20 const_reverse_iterator rend() const noexcept {
+        return const_reverse_iterator(begin());
+    }
+
+    WJR_CONSTEXPR20 const_reverse_iterator rcend() const noexcept { return rend(); }
+
+    WJR_CONSTEXPR20 reference operator[](size_type n) noexcept { return *__next(__get_head(), n); }
 
     WJR_CONSTEXPR20 reference front() noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
@@ -533,15 +714,12 @@ public:
 
     template <typename... Args>
     WJR_CONSTEXPR20 void emplace_back(Args &&...args) {
-        pointer __tail = __get_tail();
-        const pointer __data = data();
-        const pointer __buf_end = __get_buf_end();
-        auto &al = __get_allocator();
+        if (WJR_LIKELY(!full())) {
+            pointer &__tail = __get_tail();
+            auto &al = __get_allocator();
 
-        if (WJR_LIKELY(__data + size() != __buf_end)) {
             wjr::uninitialized_construct_using_allocator(__tail, al, std::forward<Args>(args)...);
-            ++__tail;
-            __get_tail() = __tail == __buf_end ? __data : __tail;
+            increment(__tail);
             ++__get_size();
         } else {
             __realloc_insert_at_end(std::forward<Args>(args)...);
@@ -553,21 +731,17 @@ public:
 
     void pop_front() {
         WJR_ASSERT(!empty());
-        pointer __head = __get_head();
+        pointer &__head = __get_head();
         destroy_at_using_allocator(__head, __get_allocator());
-        const pointer __buf_end = __get_buf_end();
-        ++__head;
-        __get_head() = __head == __buf_end ? data() : __head;
+        increment(__head);
         --__get_size();
     }
 
     WJR_CONSTEXPR20 void pop_back() noexcept {
         WJR_ASSERT(!empty());
-        pointer __tail = __get_tail();
-        __tail = __tail == data() ? __get_buf_end() : __tail;
-        --__tail;
+        pointer &__tail = __get_tail();
+        decrement(__tail);
         destroy_at_using_allocator(__tail, __get_allocator());
-        __get_tail() = __tail;
         --__get_size();
     }
 
@@ -619,7 +793,7 @@ public:
     basic_ring_buffer(size_type n, in_place_reserve_t, const allocator_type &al = allocator_type())
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
         if (WJR_LIKELY(n != 0)) {
-            uninitialized_construct(0, 0, 0, n);
+            uninitialized_construct(0, n);
         }
     }
 
@@ -647,7 +821,8 @@ private:
                 const size_type new_capacity = get_growth_capacity(old_capacity, n);
 
                 storage_type new_storage;
-                uninitialized_construct(new_storage, 0, old_size, old_size, new_capacity);
+                WJR_ASSUME(old_size != new_capacity);
+                uninitialized_construct(new_storage, old_size, new_capacity);
 
                 __destroy_and_deallocate();
                 __take_storage(new_storage);
@@ -700,17 +875,17 @@ public:
     }
 
     WJR_INTRINSIC_CONSTEXPR20 void
-    uninitialized_construct(storage_type &other, size_type head, size_type tail, size_type size,
+    uninitialized_construct(storage_type &other, size_type size,
                             size_type cap) noexcept(__is_nothrow_uninitialized_construct) {
         WJR_ASSERT_ASSUME(cap != 0);
-        get_storage().uninitialized_construct(other, head, tail, size, cap, __get_allocator());
+        get_storage().uninitialized_construct(other, size, cap, __get_allocator());
     }
 
     WJR_INTRINSIC_CONSTEXPR20 void
-    uninitialized_construct(size_type head, size_type tail, size_type size,
+    uninitialized_construct(size_type size,
                             size_type cap) noexcept(__is_nothrow_uninitialized_construct) {
         WJR_ASSERT_ASSUME(cap != 0);
-        uninitialized_construct(get_storage(), head, tail, size, cap);
+        uninitialized_construct(get_storage(), size, cap);
     }
 
 private:
@@ -783,6 +958,38 @@ private:
         get_storage().deallocate_nonnull(__get_allocator());
     }
 
+    template <typename Ptr>
+    WJR_INTRINSIC_CONSTEXPR20 void increment(Ptr &it) const noexcept {
+        if (WJR_LIKELY(++it != __get_buf_end())) {
+            return;
+        }
+
+        it = const_cast<Ptr>(data());
+    }
+
+    template <typename Ptr>
+    WJR_INTRINSIC_CONSTEXPR20 void decrement(Ptr &it) const noexcept {
+        if (WJR_UNLIKELY(it == data())) {
+            it = const_cast<Ptr>(__get_buf_end());
+        }
+
+        --it;
+    }
+
+    template <typename Ptr>
+    WJR_INTRINSIC_CONSTEXPR20 Ptr __next(Ptr it, difference_type n) const noexcept {
+        WJR_ASSUME(n >= 0);
+        const auto dist = __get_buf_end() - it;
+        return n < dist ? (it + n) : (const_cast<Ptr>(data()) + (n - dist));
+    }
+
+    template <typename Ptr>
+    WJR_INTRINSIC_CONSTEXPR20 Ptr __prev(Ptr it, difference_type n) const noexcept {
+        WJR_ASSUME(n > 0);
+        const auto dist = it - data();
+        return n <= dist ? (it - n) : (const_cast<Ptr>(__get_buf_end()) - (n - dist));
+    }
+
     WJR_PURE WJR_CONSTEXPR20 pointer __get_data() noexcept { return get_storage().data(); }
     WJR_PURE WJR_CONSTEXPR20 const_pointer __get_data() const noexcept {
         return get_storage().data();
@@ -820,7 +1027,7 @@ private:
     WJR_CONSTEXPR20 void __construct_n(const size_type n, Ty &&val) {
         if (WJR_LIKELY(n != 0)) {
             auto &al = __get_allocator();
-            uninitialized_construct(0, 0, n, n);
+            uninitialized_construct(n, n);
             wjr::uninitialized_fill_n_using_allocator(__get_data(), n, al, std::forward<Ty>(val));
         }
     }
@@ -829,7 +1036,7 @@ private:
     WJR_CONSTEXPR20 void __construct_n(const size_type n, Iter first, Iter last) {
         if (WJR_LIKELY(n != 0)) {
             auto &al = __get_allocator();
-            uninitialized_construct(0, 0, n, n);
+            uninitialized_construct(n, n);
             wjr::uninitialized_copy_restrict_using_allocator(first, last, __get_data(), al);
         }
     }
@@ -859,7 +1066,7 @@ private:
             const size_type new_capacity = get_growth_capacity(old_size, new_size);
 
             storage_type new_storage;
-            uninitialized_construct(new_storage, 0, 1, new_size, new_capacity);
+            uninitialized_construct(new_storage, new_size, new_capacity);
             const pointer __new_begin = new_storage.data();
 
             const pointer new_pos = __new_begin + old_size;
