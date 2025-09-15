@@ -9,7 +9,7 @@
 
 #include <wjr/macros/register.hpp>
 #include <wjr/preprocessor.hpp>
-#include <wjr/tag.hpp>
+#include <wjr/utility/tag.hpp>
 
 static_assert(CHAR_BIT == 8, "Only support 8-bite char.");
 

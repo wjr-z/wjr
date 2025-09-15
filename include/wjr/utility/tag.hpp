@@ -1,5 +1,5 @@
-#ifndef WJR_TAG_HPP__
-#define WJR_TAG_HPP__
+#ifndef WJR_UTILITY_TAG_HPP__
+#define WJR_UTILITY_TAG_HPP__
 
 #include <cstddef>
 #include <cstdint>
@@ -62,4 +62,4 @@ inline constexpr size_t dynamic_extent = SIZE_MAX;
 
 } // namespace wjr
 
-#endif // WJR_TAG_HPP__
+#endif // WJR_UTILITY_TAG_HPP__

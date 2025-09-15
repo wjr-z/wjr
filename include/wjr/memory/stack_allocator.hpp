@@ -154,8 +154,15 @@ inline stack_allocator_object::stack_context::~stack_context() noexcept {
 static_assert(std::is_trivially_destructible_v<stack_allocator_object>);
 
 namespace mem {
+/**
+ * @note Shared library may use different stack_allocator_object instance. If applied for and
+ * released from the same library, there is generally no problem.
+ *
+ * @todo Fix.
+ *
+ */
 inline thread_local stack_allocator_object __stack_allocator_singleton_object;
-}
+} // namespace mem
 
 /**
  * @details Used for container. This allocator won't deallocate memory allocated
