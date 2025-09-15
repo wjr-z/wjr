@@ -7,6 +7,4 @@ wjr_cc_library(
 
     DEPS
     wjr::config
-
-    OBJECT
 )

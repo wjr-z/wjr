@@ -159,8 +159,7 @@ inline thread_local stack_allocator_object __stack_allocator_singleton_object;
 
 /**
  * @details Used for container. This allocator won't deallocate memory allocated
- * by
- * __small_allocate until container is destroyed.
+ * by __small_allocate until container is destroyed.
  *
  */
 template <typename T>
