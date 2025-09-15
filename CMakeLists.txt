@@ -185,9 +185,9 @@ add_subdirectory(src/arch)
 add_subdirectory(src/memory)
 
 #
-# library : format-internal
+# library : format
 #
-add_subdirectory(src/format-internal)
+add_subdirectory(src/format)
 
 #
 # library : biginteger
