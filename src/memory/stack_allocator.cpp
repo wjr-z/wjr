@@ -9,9 +9,8 @@ static thread_local automatic_free_pool __stack_free_pool;
 
 void stack_allocator_object::__small_redeallocate() noexcept {
     const uint_fast32_t new_size = m_idx + bufsize - 1;
-    auto &pool = __stack_free_pool;
     for (uint_fast32_t i = new_size; i < m_size; ++i) {
-        pool.deallocate(m_ptr[i].ptr);
+        __stack_free_pool.deallocate(m_ptr[i].ptr);
     }
 
     m_size = new_size;

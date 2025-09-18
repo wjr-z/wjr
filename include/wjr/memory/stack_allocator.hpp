@@ -49,7 +49,7 @@ public:
         stack_allocator_object *m_object;
         std::byte *m_ptr;
         uint_fast32_t m_idx;
-        large_memory *m_large;
+        large_memory *m_prev;
     };
 
 private:
@@ -69,7 +69,7 @@ private:
                 context.m_ptr = static_cast<std::byte *>(ptr);
         }
 
-        WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
+        WJR_ASSUME(m_cache.ptr != nullptr);
 
         auto *const ret = wjr::assume_aligned<mem::default_new_alignment>(m_cache.ptr);
         m_cache.ptr += align_up(n, mem::default_new_alignment);
@@ -77,22 +77,21 @@ private:
     }
 
     void __small_deallocate(const stack_context &context) noexcept {
-        const auto curr = m_idx;
-        m_idx = context.m_idx;
+        const auto prev = context.m_idx;
         m_cache.ptr = context.m_ptr;
         // Fast path.
-        if (WJR_LIKELY(m_idx == curr)) {
+        if (WJR_LIKELY(m_idx == prev)) {
             return;
         }
 
+        m_idx = prev;
         m_cache.end = m_ptr[m_idx].end;
         if (WJR_UNLIKELY(m_size - m_idx >= bufsize))
             __small_redeallocate();
     }
 
     void *__small_reallocate() noexcept;
-
-    WJR_NOINLINE void __small_redeallocate() noexcept;
+    void __small_redeallocate() noexcept;
 
 public:
     using value_type = void;
@@ -109,19 +108,19 @@ public:
 
     WJR_NODISCARD WJR_MALLOC void *allocate(size_t n, stack_context &context) noexcept {
         if (WJR_BUILTIN_CONSTANT_P_TRUE(n >= stack_allocator_threshold)) {
-            return __large_allocate(n, context.m_large);
+            return __large_allocate(n, context.m_prev);
         }
 
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
             if (n >= stack_allocator_threshold) {
-                return __large_allocate(n, context.m_large);
+                return __large_allocate(n, context.m_prev);
             }
 
             if (auto ptr = __small_reallocate(); ptr)
                 context.m_ptr = static_cast<std::byte *>(ptr);
         }
 
-        WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
+        WJR_ASSUME(m_cache.ptr != nullptr);
 
         auto *const ret = wjr::assume_aligned<mem::default_new_alignment>(m_cache.ptr);
         m_cache.ptr += align_up(n, mem::default_new_alignment);
@@ -130,7 +129,7 @@ public:
 
     void deallocate(const stack_context &context) noexcept {
         __small_deallocate(context);
-        if (auto *buffer = context.m_large; buffer != nullptr)
+        if (auto *buffer = context.m_prev; buffer != nullptr)
             __large_deallocate(buffer);
     }
 
@@ -143,7 +142,7 @@ private:
 };
 
 inline stack_allocator_object::stack_context::stack_context(stack_allocator_object *object) noexcept
-    : m_object(object), m_ptr(object->m_cache.ptr), m_idx(object->m_idx), m_large(nullptr) {
+    : m_object(object), m_ptr(object->m_cache.ptr), m_idx(object->m_idx), m_prev(nullptr) {
     WJR_ASSUME(m_object != nullptr);
 }
 
