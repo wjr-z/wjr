@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include <wjr/preprocessor.hpp>
+#include <wjr/config.hpp>
 
 namespace wjr {
 extern WJR_ALL_NONNULL size_t pow_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t exp,

@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <type_traits>
 
-#include <wjr/preprocessor.hpp>
+#include <wjr/config.hpp>
 
 namespace wjr {
 

@@ -53,12 +53,13 @@ public:
     };
 
 private:
-    static void *__large_allocate(size_t n, large_memory *&mem) noexcept {
+    WJR_MALLOC static void *__large_allocate(size_t n, large_memory *&mem) noexcept {
         auto *const raw = mem::__default_allocate(n + aligned_header_size, std::nothrow);
         auto *const buffer = static_cast<large_memory *>(raw);
         buffer->prev = mem;
         mem = buffer;
-        return static_cast<void *>(static_cast<std::byte *>(raw) + aligned_header_size);
+        return wjr::assume_aligned<mem::default_new_alignment>(
+            static_cast<void *>(static_cast<std::byte *>(raw) + aligned_header_size));
     }
 
     static void __large_deallocate(large_memory *buffer) noexcept;

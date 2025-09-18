@@ -1,6 +1,8 @@
 #ifndef WJR_ARCH_X86_MATH_MUL_HPP__
 #define WJR_ARCH_X86_MATH_MUL_HPP__
 
+#include <cstdint>
+
 #include <wjr/arch/x86/math/mul-impl.hpp>
 #include <wjr/assert.hpp>
 

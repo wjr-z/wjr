@@ -17,7 +17,7 @@
 #include <type_traits>
 
 #include <wjr/assert.hpp>
-#include <wjr/preprocessor.hpp>
+#include <wjr/config.hpp>
 
 namespace wjr {
 

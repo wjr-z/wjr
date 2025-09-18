@@ -1,7 +1,7 @@
 #ifndef WJR_ARCH_X86_MATH_MUL_IMPL_HPP__
 #define WJR_ARCH_X86_MATH_MUL_IMPL_HPP__
 
-#include <wjr/type_traits.hpp>
+#include <wjr/config.hpp>
 
 namespace wjr {
 
