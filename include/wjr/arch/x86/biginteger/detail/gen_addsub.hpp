@@ -22,10 +22,16 @@
 
 // clang-format off
 
+/**
+ * @todo
+ * 1. Move this function into src.
+ * 2. Optimize if c_in is zero (Only needed if not inlined).
+ * 
+ */
 WJR_ALL_NONNULL inline uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
-    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, uint64_t c_in) noexcept {
+    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, uint32_t c_in) noexcept {
     size_t rcx = n / 8;
-    uint64_t r8 = c_in, r9, r10 = n & 7, r11;
+    uint64_t r8, r9, r10 = n & 7, r11;
 
     asm volatile(
         "add{b $255, %b[r8]| %b[r8], 255}\n\t"
@@ -175,7 +181,6 @@ WJR_ALL_NONNULL inline uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addc
         WJR_ADCSBB "{q 48(%[src1]), %[r8]| %[r8], [%[src1] + 48]}\n\t"
         "mov{q %[r11], 40(%[dst])| [%[dst] + 40], %[r11]}\n\t"
 
-        // todo : optimize pipeline
         "lea{q 64(%[src0]), %[src0]| %[src0], [%[src0] + 64]}\n\t"
         "lea{q 64(%[src1]), %[src1]| %[src1], [%[src1] + 64]}\n\t"
         "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
@@ -192,8 +197,8 @@ WJR_ALL_NONNULL inline uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addc
         "adc{l %k[rcx], %k[r9]| %k[r9], %k[rcx]}"
 
         : [dst] "+r"(dst), [src0] "+r"(src0), [src1] "+r"(src1), [rcx] "+c"(rcx), 
-          [r8] "+r"(r8), [r9] "=&r"(r9), [r10] "+r"(r10), [r11] "=&r"(r11)
-        :
+          [r8] "=&r"(r8), [r9] "=&r"(r9), [r10] "+r"(r10), [r11] "=&r"(r11)
+        : "4"(c_in)
         : "cc", "memory");
 
     return r9;
@@ -204,7 +209,7 @@ WJR_ALL_NONNULL inline uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addc
 #else
 extern "C" WJR_ALL_NONNULL WJR_MS_ABI uint64_t WJR_PP_CONCAT(__wjr_asm_,
                                                              WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
-    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, uint64_t c_in) noexcept;
+    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, uint32_t c_in) noexcept;
 #endif
 
 WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(
