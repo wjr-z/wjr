@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include <wjr/preprocessor.hpp>
+#include <wjr/config.hpp>
 
 #if defined(_MSC_VER)
     #include <intrin.h>
