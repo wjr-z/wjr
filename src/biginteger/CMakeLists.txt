@@ -4,11 +4,15 @@ if(WJR_ENABLE_ARCH_ASSEMBLY)
       ${WJR_LIB_DIR}/arch/${WJR_ARCH}/biginteger/detail/addrsblsh_n.asm
    )
 
-   add_library(wjr-add_n-asm OBJECT ${WJR_ADDSUB_SRCS})
-   add_library(wjr-sub_n-asm OBJECT ${WJR_ADDSUB_SRCS})
+   wjr_asm_library(
+      NAME
+      asm-biginteger-sub_n
 
-   target_compile_options(wjr-sub_n-asm
-      PRIVATE $<$<COMPILE_LANGUAGE:ASM_NASM>: -dWJR_ASM_SUB>
+      SRCS
+      ${WJR_ADDSUB_SRCS}
+
+      PRIVATE_COPTS
+      -dWJR_ASM_SUB
    )
 
    set(WJR_ASSEMBLY_SRCS
@@ -20,7 +24,14 @@ if(WJR_ENABLE_ARCH_ASSEMBLY)
       ${WJR_LIB_DIR}/arch/${WJR_ARCH}/biginteger/detail/submul_1.asm
    )
 
-   add_library(wjr-biginteger-asm OBJECT ${WJR_ASSEMBLY_SRCS})
+   wjr_asm_library(
+      NAME
+      asm-biginteger-internal
+
+      SRCS
+      ${WJR_ADDSUB_SRCS}
+      ${WJR_ASSEMBLY_SRCS}
+   )
 endif()
 
 #
@@ -37,9 +48,8 @@ set(WJR_DEPS
 
 if(WJR_ENABLE_ASSEMBLY)
    list(APPEND WJR_DEPS
-      wjr-add_n-asm
-      wjr-sub_n-asm
-      wjr-biginteger-asm
+      wjr::asm-biginteger-sub_n
+      wjr::asm-biginteger-internal
    )
 endif()
 

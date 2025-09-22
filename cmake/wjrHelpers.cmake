@@ -13,7 +13,7 @@ function(wjr_cc_library)
     cmake_parse_arguments(WJR_CC_LIB
         "DISABLE_INSTALL;PUBLIC;TESTONLY;OBJECT;FINAL"
         "NAME"
-        "HDRS;SRCS;COPTS;DEFINES;LINKOPTS;DEPS"
+        "HDRS;SRCS;COPTS;PRIVATE_COPTS;DEFINES;LINKOPTS;DEPS"
         ${ARGN}
     )
 
@@ -40,6 +40,13 @@ function(wjr_cc_library)
     endif()
 
     set(WJR_CC_COPTS ${WJR_CC_LIB_COPTS} ${WJR_COMMON_CXX_FLAGS})
+    set(WJR_CC_PRIVATE_COPTS ${WJR_CC_LIB_PRIVATE_COPTS} ${WJR_CXX_FLAGS_PRIVATE})
+
+    if(WJR_ENABLE_INSTALL)
+        set(WJR_NEED_INSTALL ON)
+    else()
+        set(WJR_NEED_INSTALL OFF)
+    endif()
 
     if(NOT WJR_CC_LIB_IS_INTERFACE)
         if(NOT WJR_CC_LIB_OBJECT)
@@ -64,7 +71,7 @@ function(wjr_cc_library)
         )
         target_compile_options(${WJR_TARGET}
             PUBLIC $<$<COMPILE_LANGUAGE:CXX>: ${WJR_CC_COPTS}$<SEMICOLON>>
-            PRIVATE $<$<COMPILE_LANGUAGE:CXX>: ${WJR_CXX_FLAGS_PRIVATE}$<SEMICOLON>>
+            PRIVATE $<$<COMPILE_LANGUAGE:CXX>: ${WJR_CC_PRIVATE_COPTS}$<SEMICOLON>>
             PUBLIC $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:DEBUG>>: ${WJR_CXX_FLAGS_DEBUG}$<SEMICOLON>>
             PUBLIC $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELEASE>>: ${WJR_CXX_FLAGS_RELEASE}$<SEMICOLON>>
         )
@@ -104,5 +111,51 @@ function(wjr_cc_library)
         endif()
     endif()
 
+    if(WJR_NEED_INSTALL)
+        install(TARGETS ${WJR_TARGET} EXPORT ${PROJECT_NAME}Targets
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        )
+    endif()
+
     add_library(wjr::${WJR_CC_LIB_NAME} ALIAS ${WJR_TARGET})
+endfunction()
+
+function(wjr_asm_library)
+    cmake_parse_arguments(WJR_ASM_LIB
+        ""
+        "NAME"
+        "SRCS;COPTS;PRIVATE_COPTS"
+        ${ARGN}
+    )
+
+    set(WJR_ASM_SRCS "${WJR_ASM_LIB_SRCS}")
+    set(WJR_TARGET "wjr-${WJR_ASM_LIB_NAME}")
+    set(WJR_ASM_COPTS ${WJR_ASM_LIB_COPTS})
+    set(WJR_ASM_PRIVATE_COPTS ${WJR_ASM_LIB_PRIVATE_COPTS})
+
+    if(WJR_ENABLE_INSTALL)
+        set(WJR_NEED_INSTALL ON)
+    else()
+        set(WJR_NEED_INSTALL OFF)
+    endif()
+
+    add_library(${WJR_TARGET} OBJECT)
+    target_sources(${WJR_TARGET} PRIVATE ${WJR_ASM_LIB_SRCS})
+
+    target_compile_options(${WJR_TARGET}
+        PUBLIC $<$<COMPILE_LANGUAGE:ASM_NASM>: ${WJR_ASM_COPTS}$<SEMICOLON>>
+        PRIVATE $<$<COMPILE_LANGUAGE:ASM_NASM>: ${WJR_ASM_PRIVATE_COPTS}$<SEMICOLON>>
+    )
+
+    if(WJR_NEED_INSTALL)
+        install(TARGETS ${WJR_TARGET} EXPORT ${PROJECT_NAME}Targets
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        )
+    endif()
+
+    add_library(wjr::${WJR_ASM_LIB_NAME} ALIAS ${WJR_TARGET})
 endfunction()

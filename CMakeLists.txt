@@ -51,12 +51,19 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 #
 # third-party
 #
-set(FMT_TEST OFF CACHE BOOL "Disable fmt tests")
-set(FMT_INSTALL ON)
-add_subdirectory(third-party/fmt)
+if(WJR_ENABLE_INSTALL)
+   set(FMT_INSTALL ON)
+   set(ENABLE_INSTALL ON)
+endif()
 
-set(ENABLE_INSTALL ON)
-add_subdirectory(third-party/cpu_features)
+if(NOT TARGET fmt)
+   set(FMT_TEST OFF CACHE BOOL "Disable fmt tests")
+   add_subdirectory(third-party/fmt)
+endif()
+
+if(NOT TARGET CpuFeatures)
+   add_subdirectory(third-party/cpu_features)
+endif()
 
 #
 # initialize flags
@@ -79,7 +86,7 @@ else()
 endif()
 
 list(APPEND CMAKE_MODULE_PATH
-   ${CMAKE_CURRENT_SOURCE_DIR}/cmake
+   ${CMAKE_CURRENT_LIST_DIR}/cmake
 )
 
 include(AddFlags)
@@ -208,49 +215,45 @@ if(WJR_BUILD_TESTS)
 endif()
 
 # install
-set(PackageName wjr)
-set(INCLUDE_INSTALL_DIR include)
-set(LIB_INSTALL_DIR lib)
-set(LIB_NAME ${PackageName})
-set(dest ${LIB_INSTALL_DIR}/cmake/${PackageName})
+if(WJR_ENABLE_INSTALL)
+   list(APPEND SYSTEM_INSTALL_DIRS "/usr/local" "/usr" "/opt/" "/opt/local" "c:/Program Files/${PROJECT_NAME}")
 
-include(CMakePackageConfigHelpers)
-configure_package_config_file(
-   cmake/${PackageName}Config.cmake.in
-   ${CMAKE_CURRENT_BINARY_DIR}/${PackageName}Config.cmake
-   INSTALL_DESTINATION ${dest}
-   PATH_VARS INCLUDE_INSTALL_DIR
-)
+   if(NOT DEFINED CMAKE_INSTALL_PREFIX OR CMAKE_INSTALL_PREFIX IN_LIST SYSTEM_INSTALL_DIRS)
+      message(WARNING "\
+  The default and system-level install directories are unsupported except in LTS \
+  releases of wjr.  Please set CMAKE_INSTALL_PREFIX to install WJR in your \
+  source or build tree directly.\
+    ")
+   endif()
 
-write_basic_package_version_file(
-   ${CMAKE_CURRENT_BINARY_DIR}/${PackageName}ConfigVersion.cmake
-   VERSION 1.2.3
-   COMPATIBILITY AnyNewerVersion
-)
+   install(EXPORT ${PROJECT_NAME}Targets
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+   )
 
-install(
-   TARGETS ${LIB_NAME}
-   EXPORT ${PackageName}Targets
-   RUNTIME DESTINATION bin
-   LIBRARY DESTINATION lib
-   ARCHIVE DESTINATION lib
-   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/wjr
-)
+   configure_package_config_file(
+      cmake/wjrConfig.cmake.in
+      "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+      INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+   )
 
-install(
-   DIRECTORY ${CMAKE_SOURCE_DIR}/include/
-   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-)
+   install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+   )
 
-install(
-   EXPORT ${PackageName}Targets
-   NAMESPACE wjr::
-   DESTINATION ${dest}
-)
+   if(WJR_VERSION)
+      write_basic_package_version_file(
+         "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+         COMPATIBILITY ExactVersion
+      )
 
-install(
-   FILES
-   ${CMAKE_CURRENT_BINARY_DIR}/${PackageName}Config.cmake
-   ${CMAKE_CURRENT_BINARY_DIR}/${PackageName}ConfigVersion.cmake
-   DESTINATION ${dest}
-)
+      install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+         DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+      )
+   endif() # wjr_VERSION
+
+   install(DIRECTORY wjr
+      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+      FILES_MATCHING
+      PATTERN "*.hpp"
+   )
+endif() # WJR_ENABLE_INSTALL

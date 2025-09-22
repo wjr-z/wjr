@@ -1,15 +1,18 @@
-set(PackageName @PackageName@)
-set(LIB_NAME @LIB_NAME@)
-set(${PackageName}_VERSION ${PACKAGE_VERSION})
-message(STATUS "PackageName = ${PackageName}")
+# wjr CMake configuration file.
+
 @PACKAGE_INIT@
 
-include(${CMAKE_CURRENT_LIST_DIR}/${PackageName}Targets.cmake)
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/../fmt")
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/../CpuFeatures")
 
-set_and_check ( ${PackageName}_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@" )
+if (NOT TARGET fmt)
+    find_package(fmt REQUIRED)
+endif()
 
-set(${PackageName}_LIBRARIES)
+if (NOT TARGET CpuFeatures)
+    find_package(CpuFeatures REQUIRED)
+endif()
 
-list(APPEND ${PackageName}_LIBRARIES wjr::${LIB_NAME})
+include ("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
 
-check_required_components(${PackageName})
+add_library(wjr::wjr ALIAS wjr)
