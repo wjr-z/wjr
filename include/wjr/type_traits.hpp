@@ -663,7 +663,17 @@ enum class relocate_t {
 template <typename T>
 struct get_relocate_mode {
     static constexpr relocate_t value =
-        std::is_trivially_copyable_v<T> ? relocate_t::trivial : relocate_t::normal;
+#if WJR_HAS_BUILTIN(__builtin_is_cpp_trivially_relocatable)
+        __builtin_is_cpp_trivially_relocatable(T)
+#elif WJR_HAS_BUILTIN(__is_trivially_relocatable) && defined(__clang__) &&                         \
+    !(defined(_WIN32) || defined(_WIN64)) && !defined(__APPLE__) && !defined(__NVCC__)
+        std::is_trivially_copyable_v<T> ||
+                (__is_trivially_relocatable(T) && std::is_trivially_move_assignable_v<T>)
+#else
+        std::is_trivially_copyable_v<T>
+#endif
+            ? relocate_t::trivial
+            : relocate_t::normal;
 };
 
 template <typename T>

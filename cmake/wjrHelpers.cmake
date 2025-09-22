@@ -83,6 +83,12 @@ function(wjr_cc_library)
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
         )
 
+        target_compile_options(${WJR_TARGET}
+            INTERFACE $<$<COMPILE_LANGUAGE:CXX>: ${WJR_CC_COPTS}$<SEMICOLON>>
+            INTERFACE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:DEBUG>>: ${WJR_CXX_FLAGS_DEBUG}$<SEMICOLON>>
+            INTERFACE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELEASE>>: ${WJR_CXX_FLAGS_RELEASE}$<SEMICOLON>>
+        )
+
         target_link_libraries(${WJR_TARGET}
             INTERFACE
             ${WJR_CC_LIB_DEPS}

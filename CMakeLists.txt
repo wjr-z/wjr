@@ -40,13 +40,13 @@ if(WJR_DISABLE_EXCEPTIONS)
    message(STATUS "Disable exceptions.")
 endif()
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
-
 if(NOT CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
    option(WJR_ENABLE_INSTALL "Enable install rule" OFF)
 else()
    option(WJR_ENABLE_INSTALL "Enable install rule" ON)
 endif()
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 #
 # third-party
@@ -156,8 +156,6 @@ if(WJR_USE_CXX_20)
 else()
    set(WJR_INTERNAL_CXX_STD_FEATURE cxx_std_17)
 endif()
-
-set(WJR_VERSION "0.0.6")
 
 #
 # library : preprocessor
