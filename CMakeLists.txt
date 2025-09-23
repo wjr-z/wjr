@@ -133,16 +133,6 @@ if(WJR_ENABLE_ASSEMBLY AND WJR_ARCH)
    message(STATUS "Enable assembly : ASM_NASM")
 endif()
 
-#
-# precompile headers
-#
-set(WJR_PCH_COMMON ${WJR_INCLUDE_DIR}/wjr/type_traits.hpp ${WJR_INCLUDE_DIR}/wjr/assert.hpp)
-set(WJR_PCH_SIMD)
-
-if(WJR_ARCH)
-   list(APPEND WJR_PCH_SIMD ${WJR_INCLUDE_DIR}/wjr/arch/${WJR_ARCH}/simd/simd.hpp)
-endif()
-
 include(wjrHelpers)
 
 set(WJR_COMMON_INCLUDE_DIRS ${WJR_INCLUDE_DIR})
