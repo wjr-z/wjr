@@ -20,24 +20,6 @@ class uint128_t {
 public:
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(uint128_t);
 
-    template <size_t I>
-    constexpr uint64_t &get() & noexcept {
-        if constexpr (I == 0) {
-            return low;
-        } else {
-            return high;
-        }
-    }
-
-    template <size_t I>
-    constexpr const uint64_t &get() const & noexcept {
-        if constexpr (I == 0) {
-            return low;
-        } else {
-            return high;
-        }
-    }
-
     constexpr uint128_t(uint64_t lo_, uint64_t hi_) noexcept : low(lo_), high(hi_) {}
 
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
@@ -46,6 +28,27 @@ public:
     template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
     explicit constexpr uint128_t(T value) noexcept
         : low(static_cast<T>(value)), high(static_cast<T>(value >= 0 ? 0 : -1)) {}
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    constexpr uint128_t &operator=(T value) noexcept {
+        return *this = uint128_t(value);
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    explicit constexpr operator T() const noexcept {
+        return static_cast<T>(low);
+    }
+
+#if WJR_HAS_FEATURE(INT128)
+    explicit constexpr uint128_t(__uint128_t value) noexcept
+        : low(static_cast<uint64_t>(value)), high(static_cast<uint64_t>(value >> 64)) {}
+
+    constexpr uint128_t &operator=(__uint128_t value) noexcept { return *this = uint128_t(value); }
+
+    explicit constexpr operator __uint128_t() const noexcept {
+        return (static_cast<__uint128_t>(high) << 64) | low;
+    }
+#endif
 
     WJR_CONSTEXPR20 uint128_t &operator+=(uint128_t other) noexcept {
         add_128(low, high, low, high, other.low, other.high);
@@ -160,6 +163,24 @@ public:
 
     friend WJR_CONST WJR_CONSTEXPR20 bool operator!=(uint128_t lhs, uint128_t rhs) noexcept {
         return !(lhs == rhs);
+    }
+
+    template <size_t I>
+    constexpr uint64_t &get() & noexcept {
+        if constexpr (I == 0) {
+            return low;
+        } else {
+            return high;
+        }
+    }
+
+    template <size_t I>
+    constexpr const uint64_t &get() const & noexcept {
+        if constexpr (I == 0) {
+            return low;
+        } else {
+            return high;
+        }
     }
 
     uint64_t low;

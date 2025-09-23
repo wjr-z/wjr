@@ -558,7 +558,7 @@ private:
     template <typename _Mybase, typename _Tag, typename _Enable>
     friend struct container_of_fn;
 
-    using __pair_type = compressed_pair<_Alty, storage_type>;
+    using __pair_type = cpair<_Alty, storage_type>;
 
 public:
     static_assert(std::is_same_v<typename _Alty_traits::value_type, value_type>,

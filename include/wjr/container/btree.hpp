@@ -1264,7 +1264,7 @@ private:
         uninitialized_copy_n_restrict(from, 2, to);
     }
 
-    compressed_pair<key_compare, compressed_pair<_Alty, btree_root_node<Traits>>> m_pair;
+    cpair<key_compare, cpair<_Alty, btree_root_node<Traits>>> m_pair;
 };
 
 template <typename Traits>

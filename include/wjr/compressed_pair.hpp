@@ -8,6 +8,9 @@ namespace wjr {
 template <typename T, typename U>
 class compressed_pair;
 
+template <typename T, typename U>
+using cpair = compressed_pair<T, U>;
+
 } // namespace wjr
 
 namespace std {

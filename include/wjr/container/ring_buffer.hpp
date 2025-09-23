@@ -1097,7 +1097,7 @@ private:
     }
 
 private:
-    compressed_pair<_Alty, storage_type> m_pair;
+    cpair<_Alty, storage_type> m_pair;
 };
 
 template <typename Iter, typename T = iterator_value_t<Iter>, typename Alloc = std::allocator<T>,
