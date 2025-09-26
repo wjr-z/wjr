@@ -225,7 +225,7 @@ endif()
 if(WJR_ENABLE_INSTALL)
    list(APPEND SYSTEM_INSTALL_DIRS "/usr/local" "/usr" "/opt/" "/opt/local" "c:/Program Files/${PROJECT_NAME}")
 
-   if(NOT DEFINED CMAKE_INSTALL_PREFIX OR CMAKE_INSTALL_PREFIX IN_LIST SYSTEM_INSTALL_DIRS)
+   if(NOT(DEFINED CMAKE_INSTALL_PREFIX OR CMAKE_INSTALL_PREFIX IN_LIST SYSTEM_INSTALL_DIRS))
       message(WARNING "\
   The default and system-level install directories are unsupported except in LTS \
   releases of wjr.  Please set CMAKE_INSTALL_PREFIX to install WJR in your \

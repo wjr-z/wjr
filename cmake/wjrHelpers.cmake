@@ -73,16 +73,16 @@ function(wjr_cc_library)
     endif()
 
     foreach(deps ${WJR_CC_LIB_DEPS})
-        get_target_property(type ${deps} TYPE)
-
-        if(type STREQUAL "OBJECT_LIBRARY")
-            list(APPEND WJR_CC_TARGET_OBJECTS "$<TARGET_OBJECTS:${deps}>")
-        endif()
-
         get_target_property(target_objects ${deps} TARGET_OBJECTS)
 
         if(target_objects)
             list(APPEND WJR_CC_TARGET_OBJECTS ${target_objects})
+        else()
+            get_target_property(type ${deps} TYPE)
+
+            if(type STREQUAL "OBJECT_LIBRARY")
+                list(APPEND WJR_CC_TARGET_OBJECTS "$<TARGET_OBJECTS:${deps}>")
+            endif()
         endif()
     endforeach()
 
@@ -183,6 +183,9 @@ function(wjr_asm_library)
 
     add_library(${WJR_TARGET} OBJECT)
     target_sources(${WJR_TARGET} PRIVATE ${WJR_ASM_LIB_SRCS})
+    set_target_properties(${WJR_TARGET} PROPERTIES
+        LINKER_LANGUAGE ASM_NASM
+    )
 
     target_compile_options(${WJR_TARGET}
         PUBLIC $<$<COMPILE_LANGUAGE:ASM_NASM>: ${WJR_ASM_COPTS}$<SEMICOLON>>
