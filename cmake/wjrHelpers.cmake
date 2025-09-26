@@ -66,6 +66,26 @@ function(wjr_cc_library)
         set(WJR_NEED_INSTALL OFF)
     endif()
 
+    set(WJR_CC_TARGET_OBJECTS)
+
+    if(WJR_CC_LIB_OBJECT)
+        list(APPEND WJR_CC_TARGET_OBJECTS "$<TARGET_OBJECTS:${WJR_TARGET}>")
+    endif()
+
+    foreach(deps ${WJR_CC_LIB_DEPS})
+        get_target_property(type ${deps} TYPE)
+
+        if(type STREQUAL "OBJECT_LIBRARY")
+            list(APPEND WJR_CC_TARGET_OBJECTS "$<TARGET_OBJECTS:${deps}>")
+        endif()
+
+        get_target_property(target_objects ${deps} TARGET_OBJECTS)
+
+        if(target_objects)
+            list(APPEND WJR_CC_TARGET_OBJECTS ${target_objects})
+        endif()
+    endforeach()
+
     if(NOT WJR_CC_LIB_IS_INTERFACE)
         if(NOT WJR_CC_LIB_OBJECT)
             add_library(${WJR_TARGET} "")
@@ -127,6 +147,12 @@ function(wjr_cc_library)
         if(WJR_PROPAGATE_CXX_STD)
             target_compile_features(${WJR_TARGET} INTERFACE ${WJR_INTERNAL_CXX_STD_FEATURE})
         endif()
+    endif()
+
+    if(WJR_CC_LIB_IS_INTERFACE OR WJR_CC_LIB_OBJECT)
+        set_target_properties(${WJR_TARGET} PROPERTIES TARGET_OBJECTS "${WJR_CC_TARGET_OBJECTS}")
+    else()
+        target_sources(${WJR_TARGET} PRIVATE ${WJR_CC_TARGET_OBJECTS})
     endif()
 
     if(WJR_NEED_INSTALL)

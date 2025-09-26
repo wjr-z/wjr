@@ -11,4 +11,6 @@ wjr_cc_library(
    DEPS
    fmt::fmt
    wjr::arch-format
+
+   OBJECT
 )

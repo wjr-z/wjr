@@ -33,7 +33,11 @@ if(WJR_ENABLE_ARCH_ASSEMBLY)
       ${WJR_ASSEMBLY_SRCS}
    )
 
-   set(WJR_ASM_BIGINTEGER_DEPS
+   wjr_cc_library(
+      NAME
+      asm-biginteger
+
+      DEPS
       wjr::asm-biginteger-sub_n
       wjr::asm-biginteger-internal
    )
@@ -54,7 +58,7 @@ set(WJR_DEPS
 
 if(WJR_ENABLE_ASSEMBLY)
    list(APPEND WJR_DEPS
-      ${WJR_ASM_BIGINTEGER_DEPS}
+      wjr::asm-biginteger
    )
 endif()
 

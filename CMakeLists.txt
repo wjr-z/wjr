@@ -208,7 +208,7 @@ wjr_cc_library(
    wjr
 
    DEPS
-   $<BUILD_INTERFACE:wjr-json>
+   wjr::json
 
    FINAL
 )
