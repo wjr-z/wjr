@@ -43,11 +43,12 @@ endif()
 # library : biginteger
 #
 set(WJR_SRCS)
-wjr_add_cpp_source(WJR_SRCS biginteger)
+wjr_glob_cpp_source(WJR_SRCS biginteger)
 
 set(WJR_DEPS
-   wjr::arch
+   wjr::arch-biginteger
    wjr::memory
+   wjr::math
    wjr::format-internal
 )
 

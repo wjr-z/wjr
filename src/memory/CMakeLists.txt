@@ -1,5 +1,5 @@
 set(WJR_SRCS)
-wjr_add_cpp_source(WJR_SRCS memory)
+wjr_glob_cpp_source(WJR_SRCS memory)
 
 wjr_cc_library(
    NAME

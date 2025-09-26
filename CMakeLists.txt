@@ -181,6 +181,11 @@ add_subdirectory(src/arch)
 add_subdirectory(src/memory)
 
 #
+# library : math
+#
+add_subdirectory(src/math)
+
+#
 # library : format
 #
 add_subdirectory(src/format)

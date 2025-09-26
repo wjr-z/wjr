@@ -3,10 +3,10 @@ include(CMakeParseArguments)
 #
 # macro
 #
-macro(wjr_add_cpp_source TARGET PATH)
+function(wjr_glob_cpp_source TARGET PATH)
     file(GLOB_RECURSE TMP_SRCS ${WJR_LIB_DIR}/${PATH}/*.cpp ${WJR_LIB_DIR}/${PATH}/**/*.cpp)
-    list(APPEND ${TARGET} ${TMP_SRCS})
-endmacro()
+    set(${TARGET} ${TMP_SRCS} PARENT_SCOPE)
+endfunction()
 
 function(wjr_append_library NAME)
     get_property(WJR_ALL_TARGETS GLOBAL PROPERTY WJR_ALL_TARGETS)
@@ -25,7 +25,7 @@ endfunction()
 # todo: support pch
 function(wjr_cc_library)
     cmake_parse_arguments(WJR_CC_LIB
-        "DISABLE_INSTALL;PUBLIC;TESTONLY;OBJECT;FINAL"
+        "DISABLE_INSTALL;PUBLIC;OBJECT;FINAL"
         "NAME"
         "HDRS;SRCS;COPTS;PRIVATE_COPTS;DEFINES;LINKOPTS;DEPS"
         ${ARGN}
@@ -60,7 +60,7 @@ function(wjr_cc_library)
     set(WJR_CC_COPTS ${WJR_CC_LIB_COPTS} ${WJR_COMMON_CXX_FLAGS})
     set(WJR_CC_PRIVATE_COPTS ${WJR_CC_LIB_PRIVATE_COPTS} ${WJR_CXX_FLAGS_PRIVATE})
 
-    if(WJR_ENABLE_INSTALL)
+    if(WJR_ENABLE_INSTALL AND NOT WJR_CC_LIB_DISABLE_INSTALL)
         set(WJR_NEED_INSTALL ON)
     else()
         set(WJR_NEED_INSTALL OFF)

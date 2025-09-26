@@ -1,5 +1,5 @@
 set(WJR_SRCS)
-wjr_add_cpp_source(WJR_SRCS json)
+wjr_glob_cpp_source(WJR_SRCS json)
 
 wjr_cc_library(
    NAME
@@ -10,4 +10,5 @@ wjr_cc_library(
 
    DEPS
    wjr::biginteger
+   wjr::arch-json
 )
