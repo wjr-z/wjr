@@ -8,6 +8,12 @@ macro(wjr_add_cpp_source TARGET PATH)
     list(APPEND ${TARGET} ${TMP_SRCS})
 endmacro()
 
+function(wjr_append_library NAME)
+    get_property(WJR_ALL_TARGETS GLOBAL PROPERTY WJR_ALL_TARGETS)
+    list(APPEND WJR_ALL_TARGETS ${NAME})
+    set_property(GLOBAL PROPERTY WJR_ALL_TARGETS "${WJR_ALL_TARGETS}")
+endfunction()
+
 function(wjr_install_library TARGET)
     install(TARGETS ${TARGET} EXPORT ${PROJECT_NAME}Targets
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -45,6 +51,10 @@ function(wjr_cc_library)
         set(WJR_TARGET "wjr")
     else()
         set(WJR_TARGET "wjr-${WJR_CC_LIB_NAME}")
+    endif()
+
+    if(NOT WJR_CC_LIB_OBJECT)
+        wjr_append_library(${WJR_CC_LIB_NAME})
     endif()
 
     set(WJR_CC_COPTS ${WJR_CC_LIB_COPTS} ${WJR_COMMON_CXX_FLAGS})
