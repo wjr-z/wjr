@@ -32,13 +32,18 @@ if(WJR_ENABLE_ARCH_ASSEMBLY)
       ${WJR_ADDSUB_SRCS}
       ${WJR_ASSEMBLY_SRCS}
    )
+
+   set(WJR_ASM_BIGINTEGER_DEPS
+      wjr::asm-biginteger-sub_n
+      wjr::asm-biginteger-internal
+   )
 endif()
 
 #
 # library : biginteger
 #
 set(WJR_SRCS)
-add_cpp_source(WJR_SRCS biginteger)
+wjr_add_cpp_source(WJR_SRCS biginteger)
 
 set(WJR_DEPS
    wjr::arch
@@ -48,8 +53,7 @@ set(WJR_DEPS
 
 if(WJR_ENABLE_ASSEMBLY)
    list(APPEND WJR_DEPS
-      wjr::asm-biginteger-sub_n
-      wjr::asm-biginteger-internal
+      ${WJR_ASM_BIGINTEGER_DEPS}
    )
 endif()
 

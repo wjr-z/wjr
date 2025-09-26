@@ -1,5 +1,5 @@
 set(WJR_SRCS)
-add_cpp_source(WJR_SRCS arch/x86)
+wjr_add_cpp_source(WJR_SRCS arch/x86)
 
 wjr_cc_library(
     NAME

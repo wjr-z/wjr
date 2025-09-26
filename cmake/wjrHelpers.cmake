@@ -3,10 +3,18 @@ include(CMakeParseArguments)
 #
 # macro
 #
-macro(add_cpp_source TARGET PATH)
+macro(wjr_add_cpp_source TARGET PATH)
     file(GLOB_RECURSE TMP_SRCS ${WJR_LIB_DIR}/${PATH}/*.cpp ${WJR_LIB_DIR}/${PATH}/**/*.cpp)
     list(APPEND ${TARGET} ${TMP_SRCS})
 endmacro()
+
+function(wjr_install_library TARGET)
+    install(TARGETS ${TARGET} EXPORT ${PROJECT_NAME}Targets
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+endfunction()
 
 # todo: support pch
 function(wjr_cc_library)
@@ -112,11 +120,7 @@ function(wjr_cc_library)
     endif()
 
     if(WJR_NEED_INSTALL)
-        install(TARGETS ${WJR_TARGET} EXPORT ${PROJECT_NAME}Targets
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        )
+        wjr_install_library(${WJR_TARGET})
     endif()
 
     add_library(wjr::${WJR_CC_LIB_NAME} ALIAS ${WJR_TARGET})
@@ -150,11 +154,7 @@ function(wjr_asm_library)
     )
 
     if(WJR_NEED_INSTALL)
-        install(TARGETS ${WJR_TARGET} EXPORT ${PROJECT_NAME}Targets
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        )
+        wjr_install_library(${WJR_TARGET})
     endif()
 
     add_library(wjr::${WJR_ASM_LIB_NAME} ALIAS ${WJR_TARGET})
