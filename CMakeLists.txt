@@ -70,6 +70,8 @@ else()
    option(WJR_ENABLE_INSTALL "Enable install rule" ON)
 endif()
 
+option(WJR_ENABLE_COVERAGE "Enable coverage for tests." OFF)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 #
@@ -152,6 +154,11 @@ else()
 
    if(WJR_LIGHT_ASSERT)
       list(APPEND WJR_CXX_FLAGS -DWJR_LIGHT_ASSERT)
+   endif()
+
+   if(WJR_ENABLE_COVERAGE)
+      list(APPEND WJR_CXX_FLAGS_PRIVATE -fprofile-instr-generate -fcoverage-mapping -fno-inline)
+      set(WJR_DEFAULT_LINKOPTS "-fprofile-instr-generate -fcoverage-mapping")
    endif()
 endif()
 

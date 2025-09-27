@@ -450,7 +450,7 @@ public:
         const allocator_type &al =
             allocator_type()) noexcept(std::is_nothrow_constructible_v<_Alty,
                                                                        const allocator_type &> &&
-                                       noexcept(__construct_n(n, value_construct)))
+                                       noexcept(this->__construct_n(n, value_construct)))
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
         __construct_n(n, value_construct);
     }
@@ -461,7 +461,7 @@ public:
         const allocator_type &al =
             allocator_type()) noexcept(std::is_nothrow_constructible_v<_Alty,
                                                                        const allocator_type &> &&
-                                       noexcept(__construct_n(n, val)))
+                                       noexcept(this->__construct_n(n, val)))
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
         __construct_n(n, val);
     }

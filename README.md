@@ -15,3 +15,11 @@ C++17，64位系统，CMake。  \
 10. malloc库替换
 11. ranges支持
 12. 模块（优先级低）
+
+# coverage
+```
+cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON -DWJR_ENABLE_COVERAGE=ON \
+-DWJR_DEBUG_LEVEL_RELEASE=3
+
+cmake --build build --target coverage
+```

@@ -1,14 +1,5 @@
 include(FetchContent)
 
-# todo: These options should be set in the parent project
-# if(MSVC)
-# target_compile_definitions(wjr
-# PUBLIC __ADX__ PUBLIC __BMI2__ PUBLIC __AVX2__ PUBLIC __POPCNT__)
-# target_compile_options(wjr PUBLIC /arch:AVX2)
-# endif()
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-
 set(WJR_USE_GMP_DEFAULT ON)
 
 if(WJR_USE_GMP)
@@ -36,6 +27,8 @@ option(WJR_USE_GMP_TESTS "Use GMP library for tests" ${WJR_USE_GMP_DEFAULT})
 
 if(WJR_USE_GMP_TESTS)
    add_compile_definitions(WJR_USE_GMP)
+else()
+   message(STATUS "GMP library not found, tests will be built without GMP support.")
 endif()
 
 if(EXISTS googletest)
@@ -64,43 +57,48 @@ add_executable(
 target_include_directories(tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(WJR_ENABLE_COVERAGE)
-   set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -O3 -std=c++17 -march=native -DWJR_DEBUG_LEVEL=3 -Wall -Wextra -g")
-
    # find required tools
-   # find_program(LCOV lcov REQUIRED)
-   # find_program(GENHTML genhtml REQUIRED)
-   set(target tests)
-
-   target_compile_options(${target}
-      PRIVATE -fprofile-instr-generate -fcoverage-mapping -fno-inline)
-   target_link_options(${target}
-      PUBLIC -fprofile-instr-generate -fcoverage-mapping)
-
-   # add coverage target
    find_program(LLVM_COV_PATH llvm-cov REQUIRED)
    find_program(LLVM_PROFDATA_PATH llvm-profdata REQUIRED)
-   add_custom_target(coverage-${target}
-      COMMAND $<TARGET_FILE:${target}>
 
-      # COMMAND del coverage /S /Q
+   set(COVERAGE_IGNORE
+      "(test|third-party|benchmark|build|_deps|simd.*(sse|avx|simd_cast))"
+   )
+
+   # add coverage target
+   add_custom_target(coverage
+
+      # Clean previous coverage data
+      COMMAND ${CMAKE_COMMAND} -E remove -f default.profraw default.profdata
+      COMMAND ${CMAKE_COMMAND} -E remove_directory coverage
+
+      # Run tests to generate coverage data
+      COMMAND $<TARGET_FILE:tests>
+
+      # Merge profile data
       COMMAND ${LLVM_PROFDATA_PATH} merge
       -sparse default.profraw -o default.profdata
-      COMMAND ${LLVM_COV_PATH} show $<TARGET_FILE:${target}>
+
+      # Generate HTML coverage report (only for include and src directories)
+      COMMAND ${LLVM_COV_PATH} show $<TARGET_FILE:tests>
       -instr-profile=default.profdata
       -show-line-counts-or-regions
       -use-color
       -show-instantiation-summary
       -show-branches=count
       -format=html
-      -output-dir=coverage-${target}
-      --ignore-filename-regex="\(tests\|gmp\)"
-      COMMAND ${LLVM_COV_PATH} report $<TARGET_FILE:${target}>
+      -output-dir=coverage
+      -ignore-filename-regex="${COVERAGE_IGNORE}"
+
+      # Generate text summary report (only for include and src directories)
+      COMMAND ${LLVM_COV_PATH} report $<TARGET_FILE:tests>
       -instr-profile=default.profdata
-      -show-region-summary=false
-      -show-branch-summary=false
-      -show-branch-summary=false
-      --ignore-filename-regex="\(tests\|gmp\)"
+      -show-region-summary=true
+      -show-branch-summary=true
+      -ignore-filename-regex="${COVERAGE_IGNORE}"
+
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+      COMMENT "Generating coverage report for include and src directories..."
    )
 endif()
 

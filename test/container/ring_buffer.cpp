@@ -193,7 +193,6 @@ TEST(ring_buffer, iterator) {
 
 TEST(ring_buffer, capacity) {
     ring_buffer<int> rb;
-    size_t initial_capacity = rb.capacity();
 
     // Test reserve
     rb.reserve(100);
