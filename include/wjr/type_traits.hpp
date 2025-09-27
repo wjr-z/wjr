@@ -371,7 +371,7 @@ WJR_CONST constexpr bool cmp_greater_equal(T t, U u) noexcept {
 }
 
 template <typename T, typename U>
-WJR_CONST constexpr bool in_range(U value) noexcept {
+WJR_CONST constexpr bool in_range(WJR_MAYBE_UNUSED U value) noexcept {
     if constexpr (std::is_same_v<T, U>) {
         return true;
     } else {
