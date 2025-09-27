@@ -1503,7 +1503,7 @@ private:
 
     template <typename Iter>
     WJR_CONSTEXPR20 void __range_assign(Iter first, Iter last, std::forward_iterator_tag) {
-        auto n = static_cast<size_type>(std::distance(first, last));
+        const auto n = static_cast<size_type>(std::distance(first, last));
         auto &al = __get_allocator();
         const pointer __begin = data();
         const pointer __end = end_unsafe();

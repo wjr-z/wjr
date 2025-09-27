@@ -22,6 +22,30 @@ endif()
 include(CheckLanguage)
 check_language(ASM_NASM)
 
+include(FetchContent)
+
+# Fetch range-v3
+FetchContent_Declare(
+   range-v3
+   GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
+   GIT_TAG 0.12.0
+   GIT_SHALLOW ON
+   FIND_PACKAGE_ARGS 0.10.0
+)
+
+set(RANGES_NATIVE OFF CACHE BOOL "" FORCE)
+set(RANGES_TEST OFF CACHE BOOL "" FORCE)
+set(RANGES_EXAMPLE OFF CACHE BOOL "" FORCE)
+set(RANGES_PERF OFF CACHE BOOL "" FORCE)
+
+if(WJR_ENABLE_INSTALL)
+   set(RANGES_ENABLE_INSTALL ON CACHE BOOL "" FORCE)
+else()
+   set(RANGES_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+endif()
+
+FetchContent_MakeAvailable(range-v3)
+
 if(CMAKE_ASM_NASM_COMPILER)
    option(WJR_ENABLE_ASSEMBLY "Link with assembly by using NASM." ON)
 else()
@@ -64,6 +88,12 @@ endif()
 if(NOT TARGET CpuFeatures)
    add_subdirectory(third-party/cpu_features)
 endif()
+
+include(FetchContent)
+
+FetchContent_Declare(
+   range
+)
 
 #
 # initialize flags
@@ -201,6 +231,11 @@ add_subdirectory(src/biginteger)
 add_subdirectory(src/json)
 
 #
+# library : container
+#
+add_subdirectory(src/container)
+
+#
 # library : wjr
 #
 wjr_cc_library(
@@ -209,6 +244,7 @@ wjr_cc_library(
 
    DEPS
    wjr::json
+   wjr::ring_buffer
 
    FINAL
 )
