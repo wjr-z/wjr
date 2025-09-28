@@ -71,13 +71,14 @@
 
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/container_fn.hpp>
-#include <wjr/container/detail/vector_size_reference.hpp>
 #include <wjr/container/detail/storage_traits.hpp>
+#include <wjr/container/detail/vector_size_reference.hpp>
 #include <wjr/iterator/contiguous_iterator_adapter.hpp>
 #include <wjr/math/detail.hpp>
 #include <wjr/memory/allocate_at_least.hpp>
 #include <wjr/memory/copy.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
+
 
 namespace wjr {
 
@@ -1202,7 +1203,7 @@ public:
 
     WJR_CONSTEXPR20 const storage_type &get_storage() const noexcept { return m_pair.second(); }
 
-    WJR_CONSTEXPR20 void take_storage(storage_type &other) noexcept {
+    WJR_CONSTEXPR20 void take_storage(storage_type &other) noexcept(__is_nothrow_take_storage) {
         get_storage().take_storage(other, __get_allocator());
     }
 
@@ -1814,7 +1815,7 @@ private:
 
             const auto __rest = static_cast<size_type>(__buf_end - __end);
 
-            if (WJR_LIKLELY(__rest >= __delta)) {
+            if (WJR_LIKELY(__rest >= __delta)) {
                 const auto __elements_after = static_cast<size_type>(__end - old_first);
                 if (__elements_after > m) {
                     wjr::uninitialized_move_using_allocator(__end - __delta, __end, __end, al);

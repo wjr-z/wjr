@@ -1212,31 +1212,43 @@ private:
         std::is_nothrow_move_constructible_v<error_type> && std::is_nothrow_swappable_v<error_type>;
 
     WJR_CONSTEXPR20 void __swap_impl(expected &other) noexcept(__is_nothrow_swappable) {
-        if constexpr (std::is_nothrow_move_constructible_v<error_type>) {
+#if !defined(WJR_DISABLE_EXCEPTIONS)
+        if constexpr (__is_nothrow_swappable) {
+#endif
             error_type temp(std::move(other.m_err));
             std::destroy_at(std::addressof(other.m_err));
-            WJR_TRY {
-                wjr::construct_at(std::addressof(other.m_val), std::move(this->m_val));
-                std::destroy_at(std::addressof(this->m_val));
-                wjr::construct_at(std::addressof(this->m_err), std::move(temp));
-            }
-            WJR_CATCH(...) {
-                wjr::construct_at(std::addressof(other.m_err), std::move(temp));
-                WJR_XTHROW;
-            }
-        } else {
-            T temp(std::move(this->m_val));
+            wjr::construct_at(std::addressof(other.m_val), std::move(this->m_val));
             std::destroy_at(std::addressof(this->m_val));
-            WJR_TRY {
-                wjr::construct_at(std::addressof(this->m_err), std::move(other.m_err));
+            wjr::construct_at(std::addressof(this->m_err), std::move(temp));
+#if !defined(WJR_DISABLE_EXCEPTIONS)
+        } else {
+            if constexpr (std::is_nothrow_move_constructible_v<error_type>) {
+                error_type temp(std::move(other.m_err));
                 std::destroy_at(std::addressof(other.m_err));
-                wjr::construct_at(std::addressof(other.m_val), std::move(temp));
-            }
-            WJR_CATCH(...) {
-                wjr::construct_at(std::addressof(this->m_val), std::move(temp));
-                WJR_XTHROW;
+                WJR_TRY {
+                    wjr::construct_at(std::addressof(other.m_val), std::move(this->m_val));
+                    std::destroy_at(std::addressof(this->m_val));
+                    wjr::construct_at(std::addressof(this->m_err), std::move(temp));
+                }
+                WJR_CATCH(...) {
+                    wjr::construct_at(std::addressof(other.m_err), std::move(temp));
+                    WJR_XTHROW;
+                }
+            } else {
+                T temp(std::move(this->m_val));
+                std::destroy_at(std::addressof(this->m_val));
+                WJR_TRY {
+                    wjr::construct_at(std::addressof(this->m_err), std::move(other.m_err));
+                    std::destroy_at(std::addressof(other.m_err));
+                    wjr::construct_at(std::addressof(other.m_val), std::move(temp));
+                }
+                WJR_CATCH(...) {
+                    wjr::construct_at(std::addressof(this->m_val), std::move(temp));
+                    WJR_XTHROW;
+                }
             }
         }
+#endif
 
         this->set_invalid();
         other.set_valid();
