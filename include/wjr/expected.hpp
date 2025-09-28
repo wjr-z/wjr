@@ -688,8 +688,7 @@ template <typename T, typename E, typename U, typename VU = remove_cvref_t<U>>
 struct expected_construct_with_arg
     : std::conjunction<std::negation<std::is_same<VU, std::in_place_t>>,
                        std::negation<std::is_same<VU, expected<T, E>>>, std::is_constructible<T, U>,
-                       is_not_unexpected<VU>,
-                       std::disjunction<std::is_same<VU, bool>, is_not_expected<VU>>> {};
+                       is_not_unexpected<VU>> {};
 
 template <typename T, typename E, typename U>
 inline constexpr bool expected_construct_with_arg_v = expected_construct_with_arg<T, E, U>::value;
@@ -851,16 +850,17 @@ public:
 #endif
 
 #if defined(__cpp_conditional_explicit)
-    template <typename U = T,
+    template <typename U = std::remove_cv_t<T>,
               WJR_REQUIRES(expected_detail::expected_construct_with_arg_v<T, error_type, U>)>
     constexpr explicit(!std::is_convertible_v<U, T>) expected(U &&v)
         : Mybase(std::in_place, std::forward<U>(v)) {}
 #else
-    template <typename U = T, WJR_REQUIRES(expected_detail::expected_construct_with_arg_v<
-                                           T, error_type, U> &&std::is_convertible_v<U, T>)>
+    template <typename U = std::remove_cv_t<T>,
+              WJR_REQUIRES(expected_detail::expected_construct_with_arg_v<T, error_type, U>
+                               &&std::is_convertible_v<U, T>)>
     constexpr expected(U &&v) : Mybase(std::in_place, std::forward<U>(v)) {}
 
-    template <typename U = T,
+    template <typename U = std::remove_cv_t<T>,
               WJR_REQUIRES(expected_detail::expected_construct_with_arg_v<T, error_type, U> &&
                            !std::is_convertible_v<U, T>)>
     constexpr explicit expected(U &&v) : Mybase(std::in_place, std::forward<U>(v)) {}
@@ -1207,10 +1207,11 @@ public:
     }
 
 private:
-    WJR_CONSTEXPR20 void __swap_impl(expected &other) noexcept(
+    static constexpr bool __is_nothrow_swappable =
         std::is_nothrow_move_constructible_v<T> && std::is_nothrow_swappable_v<T> &&
-        std::is_nothrow_destructible_v<T> && std::is_nothrow_move_constructible_v<error_type> &&
-        std::is_nothrow_swappable_v<error_type> && std::is_nothrow_destructible_v<error_type>) {
+        std::is_nothrow_move_constructible_v<error_type> && std::is_nothrow_swappable_v<error_type>;
+
+    WJR_CONSTEXPR20 void __swap_impl(expected &other) noexcept(__is_nothrow_swappable) {
         if constexpr (std::is_nothrow_move_constructible_v<error_type>) {
             error_type temp(std::move(other.m_err));
             std::destroy_at(std::addressof(other.m_err));
@@ -1236,6 +1237,9 @@ private:
                 WJR_XTHROW;
             }
         }
+
+        this->set_invalid();
+        other.set_valid();
     }
 
 public:
@@ -1244,11 +1248,7 @@ public:
                                                 &&std::is_move_constructible_v<error_type> &&
                                             (std::is_nothrow_move_constructible_v<_T> ||
                                              std::is_nothrow_move_constructible_v<error_type>))>
-    WJR_CONSTEXPR20 void
-    swap(expected &other) noexcept(std::is_nothrow_move_constructible_v<T> &&
-                                   std::is_nothrow_swappable_v<T> &&
-                                   std::is_nothrow_move_constructible_v<error_type> &&
-                                   std::is_nothrow_swappable_v<error_type>) {
+    WJR_CONSTEXPR20 void swap(expected &other) noexcept(__is_nothrow_swappable) {
         using std::swap;
         if (has_value()) {
             if (other.has_value()) {
@@ -1703,6 +1703,9 @@ private:
             }
             WJR_CATCH(...) { WJR_XTHROW; }
         }
+
+        this->set_invalid();
+        other.set_valid();
     }
 
 public:

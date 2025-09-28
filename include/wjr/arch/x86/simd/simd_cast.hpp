@@ -8,6 +8,8 @@
 
 namespace wjr {
 
+// LCOV_EXCL_START
+
 #if WJR_HAS_SIMD(SSE)
 
 struct __m128_t {
@@ -365,6 +367,8 @@ struct simd_cast_fn<__m256i_t, uint64_t> {
 };
 
 #endif // AVX
+
+// LCOV_EXCL_STOP
 
 } // namespace wjr
 

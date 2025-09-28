@@ -11,6 +11,8 @@
 
 namespace wjr {
 
+// LCOV_EXCL_START
+
 struct sse {
     using mask_type = uint16_t;
 
@@ -2040,6 +2042,8 @@ int sse::testnzc(__m128i a, __m128i b) noexcept { return _mm_testnzc_si128(a, b)
 int sse::testz(__m128i a, __m128i b) noexcept { return _mm_testz_si128(a, b); }
 
 #endif
+
+// LCOV_EXCL_STOP
 
 } // namespace wjr
 

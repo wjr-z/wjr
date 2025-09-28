@@ -5,6 +5,8 @@
 
 namespace wjr {
 
+// LCOV_EXCL_START
+
 struct avx {
     using mask_type = uint32_t;
 
@@ -1671,6 +1673,8 @@ __m256i avx::unpacklo(__m256i a, __m256i b, uint16_t) noexcept { return unpacklo
 __m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) noexcept { return unpacklo_epi32(a, b); }
 
 #endif
+
+// LCOV_EXCL_STOP
 
 } // namespace wjr
 
