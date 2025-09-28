@@ -22,30 +22,6 @@ endif()
 include(CheckLanguage)
 check_language(ASM_NASM)
 
-include(FetchContent)
-
-# Fetch range-v3
-FetchContent_Declare(
-   range-v3
-   GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
-   GIT_TAG 0.12.0
-   GIT_SHALLOW ON
-   FIND_PACKAGE_ARGS 0.10.0
-)
-
-set(RANGES_NATIVE OFF CACHE BOOL "" FORCE)
-set(RANGES_TEST OFF CACHE BOOL "" FORCE)
-set(RANGES_EXAMPLE OFF CACHE BOOL "" FORCE)
-set(RANGES_PERF OFF CACHE BOOL "" FORCE)
-
-if(WJR_ENABLE_INSTALL)
-   set(RANGES_ENABLE_INSTALL ON CACHE BOOL "" FORCE)
-else()
-   set(RANGES_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
-endif()
-
-FetchContent_MakeAvailable(range-v3)
-
 if(CMAKE_ASM_NASM_COMPILER)
    option(WJR_ENABLE_ASSEMBLY "Link with assembly by using NASM." ON)
 else()
@@ -93,9 +69,27 @@ endif()
 
 include(FetchContent)
 
+# Fetch range-v3
 FetchContent_Declare(
-   range
+   range-v3
+   GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
+   GIT_TAG 0.12.0
+   GIT_SHALLOW ON
+   FIND_PACKAGE_ARGS 0.10.0
 )
+
+set(RANGES_NATIVE OFF CACHE BOOL "" FORCE)
+set(RANGES_TEST OFF CACHE BOOL "" FORCE)
+set(RANGES_EXAMPLE OFF CACHE BOOL "" FORCE)
+set(RANGES_PERF OFF CACHE BOOL "" FORCE)
+
+if(WJR_ENABLE_INSTALL)
+   set(RANGES_ENABLE_INSTALL ON CACHE BOOL "" FORCE)
+else()
+   set(RANGES_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+endif()
+
+FetchContent_MakeAvailable(range-v3)
 
 #
 # initialize flags
