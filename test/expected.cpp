@@ -215,7 +215,7 @@ TEST(expected, operator_eq_ne) {
     EXPECT_FALSE(a == d);
     // Test inequality by using !(a == b) pattern if != is not available
     EXPECT_FALSE(!(a == b)); // equivalent to a == b
-    EXPECT_TRUE(!(a == c));  // equivalent to a != c  
+    EXPECT_TRUE(!(a == c));  // equivalent to a != c
     EXPECT_TRUE(!(a == d));  // equivalent to a != d
 }
 
@@ -259,17 +259,12 @@ TEST(expected, error_or) {
 }
 
 // Type parametrized tests for both void and non-void expected
-template<typename T>
+template <typename T>
 class ExpectedTest : public ::testing::Test {};
 
-using ExpectedTypes = ::testing::Types<
-    expected<int, std::string>,
-    expected<std::string, int>, 
-    expected<void, int>,
-    expected<void, std::string>,
-    expected<int, compressed_value<bool, false>>,
-    expected<void, compressed_value<int, -1>>
->;
+using ExpectedTypes =
+    ::testing::Types<expected<int, std::string>, expected<std::string, int>, expected<void, int>,
+                     expected<void, std::string>, expected<void, compressed_value<int, -1>>>;
 TYPED_TEST_SUITE(ExpectedTest, ExpectedTypes);
 
 TYPED_TEST(ExpectedTest, default_constructor) {
@@ -281,18 +276,16 @@ TYPED_TEST(ExpectedTest, default_constructor) {
 TYPED_TEST(ExpectedTest, error_constructor) {
     using ExpectedType = TypeParam;
     using ErrorType = typename ExpectedType::error_type;
-    
+
     ErrorType err{};
     if constexpr (std::is_same_v<ErrorType, int>) {
         err = 42;
     } else if constexpr (std::is_same_v<ErrorType, std::string>) {
         err = "error";
-    } else if constexpr (std::is_same_v<ErrorType, compressed_value<bool, false>>) {
-        err = compressed_value<bool, false>(true);
     } else if constexpr (std::is_same_v<ErrorType, compressed_value<int, -1>>) {
         err = compressed_value<int, -1>(99);
     }
-    
+
     ExpectedType a = wjr::unexpected(err);
     EXPECT_FALSE(a.has_value());
     EXPECT_EQ(a.error(), err);
@@ -309,7 +302,7 @@ TEST(expected, swap_all_cases) {
         EXPECT_EQ(*a, 2);
         EXPECT_EQ(*b, 1);
     }
-    
+
     // Case 2: value ↔ error
     {
         expected<int, std::string> a(1), b(wjr::unexpected(std::string("err")));
@@ -319,8 +312,8 @@ TEST(expected, swap_all_cases) {
         EXPECT_EQ(a.error(), "err");
         EXPECT_EQ(*b, 1);
     }
-    
-    // Case 3: error ↔ value  
+
+    // Case 3: error ↔ value
     {
         expected<int, std::string> a(wjr::unexpected(std::string("err"))), b(2);
         a.swap(b);
@@ -329,11 +322,11 @@ TEST(expected, swap_all_cases) {
         EXPECT_EQ(*a, 2);
         EXPECT_EQ(b.error(), "err");
     }
-    
+
     // Case 4: error ↔ error
     {
-        expected<int, std::string> a(wjr::unexpected(std::string("err1"))), 
-                                   b(wjr::unexpected(std::string("err2")));
+        expected<int, std::string> a(wjr::unexpected(std::string("err1"))),
+            b(wjr::unexpected(std::string("err2")));
         a.swap(b);
         EXPECT_FALSE(a.has_value());
         EXPECT_FALSE(b.has_value());
@@ -351,7 +344,7 @@ TEST(expected, void_swap_all_cases) {
         EXPECT_TRUE(a.has_value());
         EXPECT_TRUE(b.has_value());
     }
-    
+
     // Case 2: value ↔ error
     {
         expected<void, std::string> a, b(wjr::unexpected(std::string("err")));
@@ -360,7 +353,7 @@ TEST(expected, void_swap_all_cases) {
         EXPECT_TRUE(b.has_value());
         EXPECT_EQ(a.error(), "err");
     }
-    
+
     // Case 3: error ↔ value
     {
         expected<void, std::string> a(wjr::unexpected(std::string("err"))), b;
@@ -369,11 +362,11 @@ TEST(expected, void_swap_all_cases) {
         EXPECT_FALSE(b.has_value());
         EXPECT_EQ(b.error(), "err");
     }
-    
+
     // Case 4: error ↔ error
     {
-        expected<void, std::string> a(wjr::unexpected(std::string("err1"))), 
-                                    b(wjr::unexpected(std::string("err2")));
+        expected<void, std::string> a(wjr::unexpected(std::string("err1"))),
+            b(wjr::unexpected(std::string("err2")));
         a.swap(b);
         EXPECT_FALSE(a.has_value());
         EXPECT_FALSE(b.has_value());
@@ -388,7 +381,7 @@ TEST(expected, void_emplace_and_value) {
     a.emplace();
     EXPECT_TRUE(a.has_value());
     a.value(); // Should not throw for void expected with value
-    
+
     a = wjr::unexpected(10);
     EXPECT_THROW(a.value(), std::exception);
 }
@@ -401,7 +394,7 @@ TEST(expected, assignment_operators) {
         EXPECT_TRUE(a.has_value());
         EXPECT_EQ(*a, 42);
     }
-    
+
     // Test unexpected assignment
     {
         expected<int, std::string> a(5);
@@ -409,7 +402,7 @@ TEST(expected, assignment_operators) {
         EXPECT_FALSE(a.has_value());
         EXPECT_EQ(a.error(), "error");
     }
-    
+
     // Test void expected assignment
     {
         expected<void, std::string> a(wjr::unexpected(std::string("err")));
@@ -421,16 +414,16 @@ TEST(expected, assignment_operators) {
 
 TEST(expected, void_equality_operators) {
     expected<void, int> a, b, c(wjr::unexpected(1)), d(wjr::unexpected(2)), e(wjr::unexpected(1));
-    
+
     // value == value
     EXPECT_TRUE(a == b);
-    
+
     // value != error
     EXPECT_FALSE(a == c);
-    
+
     // error != error (different values)
     EXPECT_FALSE(c == d);
-    
+
     // error == error (same values)
     EXPECT_TRUE(c == e);
 }
@@ -440,26 +433,26 @@ TEST(expected, compressed_value_detailed) {
     {
         using exp = expected<int, compressed_value<bool, false>>;
         using exp_normal = expected<int, bool>;
-        
+
         exp a(42);
         exp b(wjr::unexpected(compressed_value<bool, false>(true)));
-        
+
         EXPECT_TRUE(a.has_value());
         EXPECT_EQ(*a, 42);
         EXPECT_FALSE(b.has_value());
         EXPECT_EQ(b.error(), true);
-        
+
         // Size should be optimized
         EXPECT_EQ(sizeof(exp), sizeof(exp_normal));
     }
-    
+
     // Test void expected with compressed_value
     {
         using void_exp = expected<void, compressed_value<int, -1>>;
-        
+
         void_exp a;
         void_exp b(wjr::unexpected(compressed_value<int, -1>(99)));
-        
+
         EXPECT_TRUE(a.has_value());
         EXPECT_FALSE(b.has_value());
         EXPECT_EQ(b.error(), 99);

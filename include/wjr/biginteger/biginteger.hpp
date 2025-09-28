@@ -2941,6 +2941,12 @@ from_chars_result<const char *> from_chars_characters_unchecked(const char *firs
 }
 
 template <typename S>
+from_chars_result<const char *> from_chars(std::string_view str, basic_biginteger<S> &dst,
+                                           unsigned int base = 10) noexcept {
+    return from_chars(str.data(), str.data() + str.size(), dst, base);
+}
+
+template <typename S>
 void negate(basic_biginteger<S> &dst) noexcept {
     dst.negate();
 }
@@ -2954,16 +2960,48 @@ void absolute(basic_biginteger<S> &dst) noexcept {
 template <typename Traits, typename S>
 std::basic_istream<char, Traits> &operator>>(std::basic_istream<char, Traits> &is,
                                              basic_biginteger<S> &dst) noexcept {
-    std::basic_string<char, Traits, std::allocator<char>> str;
-    is >> str;
-    from_chars(str.data(), str.data() + str.size(), dst, 0);
+    using istream_type = std::basic_istream<char, Traits>;
+
+    if (typename istream_type::sentry ok(is); ok) {
+        // Use weak_stack_allocator for better performance
+        unique_stack_allocator stkal;
+        std::basic_string<char, Traits, weak_stack_allocator<char>> str(stkal);
+        str.reserve(256);
+
+        // Determine base from stream format flags
+        unsigned int base = 10;
+        const auto basefield = is.flags() & std::ios_base::basefield;
+        if (basefield == std::ios_base::hex) {
+            base = 16;
+        } else if (basefield == std::ios_base::oct) {
+            base = 8;
+        } else if (basefield == 0) {
+            base = 0; // Auto-detect base
+        }
+
+        is >> str;
+        if (is.fail()) {
+            return is;
+        }
+
+        const auto result = from_chars(str.data(), str.data() + str.size(), dst, base);
+
+        // Set failbit if parsing failed
+        if (result.ec != std::errc{}) {
+            is.setstate(std::ios_base::failbit);
+        }
+    } else {
+        is.setstate(std::ios::badbit);
+    }
+
     return is;
 }
 
 template <typename Traits>
 std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &os,
                                              const biginteger_view &src) noexcept {
-    if (const std::ostream::sentry ok(os); ok) {
+    using ostream_type = std::basic_ostream<char, Traits>;
+    if (typename ostream_type::sentry ok(os); ok) {
         unique_stack_allocator stkal;
         std::basic_string<char, Traits, weak_stack_allocator<char>> buffer(stkal);
         buffer.reserve(256);
