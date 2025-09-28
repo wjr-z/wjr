@@ -634,12 +634,7 @@ public:
     template <typename Func, typename U = __optional_result<Func, value_type &>>
     constexpr optional<U> transform(Func &&func) & {
         if (has_value()) {
-            if constexpr (!std::is_void_v<U>) {
-                return std::invoke(std::forward<Func>(func), this->m_val);
-            } else {
-                std::invoke(std::forward<Func>(func), this->m_val);
-                return {};
-            }
+            return std::invoke(std::forward<Func>(func), this->m_val);
         }
 
         return optional<U>{};
@@ -648,12 +643,7 @@ public:
     template <typename Func, typename U = __optional_result<Func, const value_type &>>
     constexpr optional<U> transform(Func &&func) const & {
         if (has_value()) {
-            if constexpr (!std::is_void_v<U>) {
-                return std::invoke(std::forward<Func>(func), this->m_val);
-            } else {
-                std::invoke(std::forward<Func>(func), this->m_val);
-                return {};
-            }
+            return std::invoke(std::forward<Func>(func), this->m_val);
         }
 
         return optional<U>{};
@@ -662,12 +652,7 @@ public:
     template <typename Func, typename U = __optional_result<Func, value_type &&>>
     constexpr optional<U> transform(Func &&func) && {
         if (has_value()) {
-            if constexpr (!std::is_void_v<U>) {
-                return std::invoke(std::forward<Func>(func), std::move(this->m_val));
-            } else {
-                std::invoke(std::forward<Func>(func), std::move(this->m_val));
-                return {};
-            }
+            return std::invoke(std::forward<Func>(func), std::move(this->m_val));
         }
 
         return optional<U>{};
@@ -676,12 +661,7 @@ public:
     template <typename Func, typename U = __optional_result<Func, const value_type &&>>
     constexpr optional<U> transform(Func &&func) const && {
         if (has_value()) {
-            if constexpr (!std::is_void_v<U>) {
-                return std::invoke(std::forward<Func>(func), std::move(this->m_val));
-            } else {
-                std::invoke(std::forward<Func>(func), std::move(this->m_val));
-                return {};
-            }
+            return std::invoke(std::forward<Func>(func), std::move(this->m_val));
         }
 
         return optional<U>{};
@@ -830,12 +810,7 @@ public:
     template <typename Func, typename U = __optional_result<Func>>
     constexpr optional<U> transform(Func &&func) const {
         if (has_value()) {
-            if constexpr (!std::is_void_v<U>) {
-                return std::invoke(std::forward<Func>(func));
-            } else {
-                std::invoke(std::forward<Func>(func));
-                return {};
-            }
+            return std::invoke(std::forward<Func>(func));
         }
 
         return optional<U>{};
