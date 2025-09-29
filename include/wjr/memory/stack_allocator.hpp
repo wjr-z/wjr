@@ -226,6 +226,12 @@ private:
  * allocating memory, unique_stack_allocator should be avoided from being reused
  * in the current function.
  *
+ * @note It is almost only applicable to exponential growth allocation and does not frequently
+ * involve shrink_to_fit in between. If these conditions are not met, it may lead to a large number
+ * of memory leaks. If you are using it in this uncertain situation, you may need to customize a new
+ * memory allocator that limits the maximum amount of allocated memory. When the allocated amount
+ * exceeds this limit, it will revert to using regular malloc/free for allocation and deallocation.
+ *
  */
 template <typename T>
 class weak_stack_allocator {
@@ -249,7 +255,7 @@ public:
         using other = weak_stack_allocator<Other>;
     };
 
-    weak_stack_allocator() = default;
+    weak_stack_allocator() = delete;
     weak_stack_allocator(const weak_stack_allocator &) = default;
     weak_stack_allocator(weak_stack_allocator &&) = default;
     weak_stack_allocator &operator=(const weak_stack_allocator &) = delete;
@@ -271,7 +277,7 @@ public:
         return static_cast<T *>(m_alloc->__small_allocate(size));
     }
 
-    void deallocate(WJR_MAYBE_UNUSED T *ptr, WJR_MAYBE_UNUSED size_type n) noexcept {
+    void deallocate(T *ptr, size_type n) noexcept {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
             mem::__default_deallocate<mem::__new_alignof<T>>(ptr, std::nothrow);
@@ -291,6 +297,15 @@ public:
 private:
     UniqueStackAllocator *m_alloc = nullptr;
 };
+
+template <typename T>
+struct is_weak_stack_allocator : std::false_type {};
+
+template <typename T>
+struct is_weak_stack_allocator<weak_stack_allocator<T>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_weak_stack_allocator_v = is_weak_stack_allocator<T>::value;
 
 namespace string_detail {
 using weak_stack_allocator_string =

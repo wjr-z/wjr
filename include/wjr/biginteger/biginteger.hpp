@@ -561,7 +561,14 @@ struct biginteger_dispatch_static_table {
         [](biginteger_data *data, uint32_t n) { container_of<T>(*data).clear_if_reserved(n); },
         [](biginteger_data *data, uint32_t n, unique_stack_allocator *al) -> biginteger_dispatcher {
             auto &dst = container_of<T>(*data);
-            T *tmp = static_cast<T *>(al->allocate(sizeof(T)));
+            T *tmp;
+            if constexpr (is_weak_stack_allocator_v<typename T::allocator_type>) {
+                weak_stack_allocator<T> rebind_allocator(dst.get_allocator());
+                tmp = rebind_allocator.allocate(1);
+            } else {
+                tmp = static_cast<T *>(al->allocate(sizeof(T)));
+            }
+
             wjr::construct_at(tmp, dst.get_growth_capacity(dst.capacity(), n), in_place_reserve,
                               dst.get_allocator());
             return biginteger_dispatcher(tmp);
