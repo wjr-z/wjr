@@ -365,21 +365,22 @@ void __mul_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
     auto *lp = const_cast<pointer>(lhs->data());
     auto *rp = const_cast<pointer>(rhs->data());
 
-    unique_stack_allocator stkal;
+    lazy_initialized<unique_stack_allocator> stkal;
     biginteger_dispatcher tmp(enable_default_constructor);
 
     if (dst.capacity() < dusize) {
-        tmp = dst.construct_reserve(dusize, &stkal);
+        tmp = dst.construct_reserve(dusize, stkal);
         dp = tmp.data();
     } else {
+        stkal.emplace();
         if (dp == lp) {
-            lp = stkal.template allocate<uint64_t>(lusize);
+            lp = stkal->template allocate<uint64_t>(lusize);
             if (dp == rp) {
                 rp = lp;
             }
             copy_n_restrict(dp, lusize, lp);
         } else if (dp == rp) {
-            rp = stkal.template allocate<uint64_t>(rusize);
+            rp = stkal->template allocate<uint64_t>(rusize);
             copy_n_restrict(dp, rusize, rp);
         }
     }
@@ -433,15 +434,16 @@ void __sqr_impl(biginteger_dispatcher dst, const biginteger_view *src) noexcept 
     auto *dp = dst.data();
     auto *sp = const_cast<pointer>(src->data());
 
-    unique_stack_allocator stkal;
+    lazy_initialized<unique_stack_allocator> stkal;
     biginteger_dispatcher tmp(enable_default_constructor);
 
     if (dst.capacity() < dusize) {
-        tmp = dst.construct_reserve(dusize, &stkal);
+        tmp = dst.construct_reserve(dusize, stkal);
         dp = tmp.data();
     } else {
+        stkal.emplace();
         if (dp == sp) {
-            sp = stkal.template allocate<uint64_t>(susize);
+            sp = stkal->template allocate<uint64_t>(susize);
             copy_n_restrict(dp, susize, sp);
         }
     }
@@ -905,21 +907,22 @@ void __pow_impl(biginteger_dispatcher dst, const biginteger_view *num, uint32_t 
     auto *dp = dst.data();
     auto *np = const_cast<pointer>(num->data());
 
-    unique_stack_allocator stkal;
+    lazy_initialized<unique_stack_allocator> stkal;
     biginteger_dispatcher tmp(enable_default_constructor);
 
     if (dst.capacity() < max_dusize) {
-        tmp = dst.construct_reserve(max_dusize, &stkal);
+        tmp = dst.construct_reserve(max_dusize, stkal);
         dp = tmp.data();
     } else {
+        stkal.emplace();
         if (dp == np) {
-            np = stkal.template allocate<uint64_t>(max_dusize);
+            np = stkal->template allocate<uint64_t>(max_dusize);
             copy_n_restrict(dp, nusize, np);
         }
     }
 
     // todo : optimize this size.
-    uint64_t *const tp = stkal.template allocate<uint64_t>(max_dusize);
+    uint64_t *const tp = stkal->template allocate<uint64_t>(max_dusize);
     uint32_t dusize = pow_1(dp, np, nusize, exp, tp);
 
     if (tmp.has_value()) {

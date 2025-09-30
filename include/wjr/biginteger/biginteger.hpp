@@ -508,7 +508,8 @@ public:
     void clear_if_reserved(uint32_t size) const;
     void clear() const { set_ssize(0); }
 
-    biginteger_dispatcher construct_reserve(uint32_t n, unique_stack_allocator *al) const;
+    biginteger_dispatcher construct_reserve(uint32_t n,
+                                            lazy_initialized<unique_stack_allocator> &al) const;
 
     void destroy() const;
     void copy_assign(const biginteger_view *rhs) const;
@@ -523,7 +524,7 @@ struct biginteger_dispatch_table {
     void (*__reserve_unchecked)(biginteger_data *, uint32_t);
     void (*clear_if_reserved)(biginteger_data *, uint32_t);
     biginteger_dispatcher (*construct_reserve)(biginteger_data *, uint32_t,
-                                               unique_stack_allocator *);
+                                               lazy_initialized<unique_stack_allocator> &);
     void (*destroy)(biginteger_data *);
     void (*copy_assign)(biginteger_data *, const biginteger_view *);
     void (*move_assign)(biginteger_data *, biginteger_data *);
@@ -540,7 +541,8 @@ inline void biginteger_dispatcher::clear_if_reserved(uint32_t size) const {
 }
 
 inline biginteger_dispatcher
-biginteger_dispatcher::construct_reserve(uint32_t n, unique_stack_allocator *al) const {
+biginteger_dispatcher::construct_reserve(uint32_t n,
+                                         lazy_initialized<unique_stack_allocator> &al) const {
     return v_table->construct_reserve(ptr, n, al);
 }
 
@@ -559,18 +561,28 @@ struct biginteger_dispatch_static_table {
     static constexpr biginteger_dispatch_table table = {
         [](biginteger_data *data, uint32_t n) { container_of<T>(*data).__reserve_unchecked(n); },
         [](biginteger_data *data, uint32_t n) { container_of<T>(*data).clear_if_reserved(n); },
-        [](biginteger_data *data, uint32_t n, unique_stack_allocator *al) -> biginteger_dispatcher {
+        [](biginteger_data *data, uint32_t n,
+           lazy_initialized<unique_stack_allocator> &al) -> biginteger_dispatcher {
             auto &dst = container_of<T>(*data);
+
+            constexpr auto is_weak = is_weak_stack_allocator_v<typename T::allocator_type>;
+
             T *tmp;
-            if constexpr (is_weak_stack_allocator_v<typename T::allocator_type>) {
+            if constexpr (is_weak) {
                 weak_stack_allocator<T> rebind_allocator(dst.get_allocator());
                 tmp = rebind_allocator.allocate(1);
             } else {
+                al.emplace();
                 tmp = static_cast<T *>(al->allocate(sizeof(T)));
             }
 
             wjr::construct_at(tmp, dst.get_growth_capacity(dst.capacity(), n), in_place_reserve,
                               dst.get_allocator());
+
+            if constexpr (is_weak) {
+                al.emplace();
+            }
+
             return biginteger_dispatcher(tmp);
         },
         [](biginteger_data *data) { std::destroy_at(std::addressof(container_of<T>(*data))); },
