@@ -9,11 +9,31 @@ namespace wjr {
 
 namespace biginteger_expression_detail {
 
-/**
- * @brief Forward declaration for expression evaluation.
- */
+// Forward declarations for all evaluate_expr overloads
+// This ensures MSVC can find the correct overload during template instantiation
+
+template <typename S, typename T>
+void evaluate_expr(basic_biginteger<S> &dst, const biginteger_detail::ref_expr<T> &expr) noexcept;
+
+template <typename S, typename LeftExpr, typename RightExpr>
+void evaluate_expr(basic_biginteger<S> &dst,
+                   const biginteger_detail::binary_expr<biginteger_detail::add_tag, LeftExpr,
+                                                        RightExpr> &expr) noexcept;
+
+template <typename S, typename LeftExpr, typename RightExpr>
+void evaluate_expr(basic_biginteger<S> &dst,
+                   const biginteger_detail::binary_expr<biginteger_detail::sub_tag, LeftExpr,
+                                                        RightExpr> &expr) noexcept;
+
+template <typename S, typename LeftExpr, typename RightExpr>
+void evaluate_expr(basic_biginteger<S> &dst,
+                   const biginteger_detail::binary_expr<biginteger_detail::mul_tag, LeftExpr,
+                                                        RightExpr> &expr) noexcept;
+
 template <typename S, typename Expr>
-void evaluate_expr(basic_biginteger<S> &dst, const Expr &expr) noexcept;
+void evaluate_expr(basic_biginteger<S> &dst,
+                   const biginteger_detail::unary_expr<biginteger_detail::shift_left_tag,
+                                                       Expr> &expr) noexcept;
 
 /**
  * @brief Evaluate leaf expression (ref_expr).
