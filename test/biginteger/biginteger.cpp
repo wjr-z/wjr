@@ -58,30 +58,6 @@ biginteger operator<<(const biginteger_view &bv, size_t shift) {
     return result;
 }
 
-biginteger operator-(const biginteger_view &lhs, const biginteger_view &rhs) {
-    biginteger result(lhs);
-    result -= rhs;
-    return result;
-}
-
-biginteger operator-(const biginteger_view &lhs, uint64_t rhs) {
-    biginteger result(lhs);
-    result -= rhs;
-    return result;
-}
-
-biginteger operator+(const biginteger_view &lhs, const biginteger_view &rhs) {
-    biginteger result(lhs);
-    result += rhs;
-    return result;
-}
-
-biginteger operator+(const biginteger_view &lhs, uint64_t rhs) {
-    biginteger result(lhs);
-    result += rhs;
-    return result;
-}
-
 biginteger operator-(const biginteger_view &bv) {
     biginteger result(bv);
     result.negate();
@@ -1467,7 +1443,7 @@ TEST(biginteger, stream_input) {
         WJR_CHECK(!iss.fail());
         iss.clear();
     }
-    
+
     // Test stream already in error state
     {
         iss.str("123");
@@ -1475,43 +1451,45 @@ TEST(biginteger, stream_input) {
         biginteger a_before(999);
         a = a_before;
         iss >> a;
-        WJR_CHECK(iss.fail()); // Should remain in error state
+        WJR_CHECK(iss.fail());    // Should remain in error state
         WJR_CHECK(a == a_before); // Value should be unchanged
         iss.clear();
     }
-    
+
     // Test auto-detect base (base 0)
     {
         iss.str("0x1a");
-        iss.setf(std::ios_base::fmtflags(0), std::ios_base::basefield); // Set base to 0 for auto-detect
+        iss.setf(std::ios_base::fmtflags(0),
+                 std::ios_base::basefield); // Set base to 0 for auto-detect
         iss >> a;
         WJR_CHECK(a == 26); // 0x1a = 26
         WJR_CHECK(!iss.fail());
         iss.clear();
-        
+
         iss.str("077");
-        iss.setf(std::ios_base::fmtflags(0), std::ios_base::basefield); // Set base to 0 for auto-detect
+        iss.setf(std::ios_base::fmtflags(0),
+                 std::ios_base::basefield); // Set base to 0 for auto-detect
         iss >> a;
         WJR_CHECK(a == 63); // 077 octal = 63
         WJR_CHECK(!iss.fail());
         iss.clear();
-        
+
         // Reset to decimal
         iss >> std::dec;
     }
-    
+
     // Test invalid input with different bases
     {
         iss.str("gg");
         iss >> std::hex >> a;
         WJR_CHECK(iss.fail()); // Should fail for invalid hex
         iss.clear();
-        
+
         iss.str("999");
         iss >> std::oct >> a;
         WJR_CHECK(iss.fail()); // Should fail for invalid octal
         iss.clear();
-        
+
         // Reset format
         iss >> std::dec;
     }

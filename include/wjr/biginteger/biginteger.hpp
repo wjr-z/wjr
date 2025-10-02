@@ -23,6 +23,7 @@
 #include <random>
 
 #include <wjr/biginteger/detail.hpp>
+#include <wjr/biginteger/expression/expression.hpp>
 #include <wjr/format/ostream_insert.hpp>
 #include <wjr/math.hpp>
 #include <wjr/span.hpp>
@@ -1644,6 +1645,15 @@ public:
         return *this;
     }
 
+    // Expression template support
+    template <typename Expr,
+              WJR_REQUIRES(biginteger_detail::is_biginteger_expression_v<std::decay_t<Expr>>)>
+    basic_biginteger(Expr &&expr);
+
+    template <typename Expr,
+              WJR_REQUIRES(biginteger_detail::is_biginteger_expression_v<std::decay_t<Expr>>)>
+    basic_biginteger &operator=(Expr &&expr) noexcept;
+
     template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     explicit operator T() const noexcept {
         if (empty()) {
@@ -3112,5 +3122,9 @@ constexpr void swap(wjr::basic_biginteger<Storage> &lhs,
 }
 
 } // namespace std
+
+// Expression template system (optional feature)
+#include <wjr/biginteger/expression/expression.hpp>
+#include <wjr/biginteger/expression/integration.hpp>
 
 #endif
