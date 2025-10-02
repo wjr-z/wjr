@@ -35,6 +35,11 @@ void evaluate_expr(basic_biginteger<S> &dst,
                    const biginteger_detail::unary_expr<biginteger_detail::shift_left_tag,
                                                        Expr> &expr) noexcept;
 
+template <typename S, typename Expr>
+void evaluate_expr(basic_biginteger<S> &dst,
+                   const biginteger_detail::negate_unary_expr<biginteger_detail::negate_tag,
+                                                              Expr> &expr) noexcept;
+
 /**
  * @brief Evaluate leaf expression (ref_expr).
  *
@@ -114,6 +119,31 @@ void evaluate_expr(basic_biginteger<S> &dst,
         biginteger temp;
         evaluate_expr(temp, expr.operand());
         mul_2exp(dst, temp, expr.param());
+    }
+}
+
+/**
+ * @brief Evaluate unary negation expression.
+ *
+ * Computes the negation of the operand.
+ */
+template <typename S, typename Expr>
+void evaluate_expr(basic_biginteger<S> &dst,
+                   const biginteger_detail::negate_unary_expr<biginteger_detail::negate_tag,
+                                                              Expr> &expr) noexcept {
+    using namespace biginteger_detail;
+
+    constexpr bool operand_is_leaf = is_leaf_expr_v<Expr>;
+
+    if constexpr (operand_is_leaf) {
+        // Direct evaluation: dst = -operand
+        const auto &operand_val = expr.operand().value();
+        dst = operand_val;
+        dst.negate();
+    } else {
+        // Evaluate sub-expression first, then negate
+        evaluate_expr(dst, expr.operand());
+        dst.negate();
     }
 }
 

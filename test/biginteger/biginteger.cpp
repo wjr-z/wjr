@@ -52,12 +52,6 @@ inline void random(biginteger &a, size_t n) {
     urandom_exact_bit(a, (n - 1) * 64 + mt_rand() % 64, __mt_rand);
 }
 
-biginteger operator<<(const biginteger_view &bv, size_t shift) {
-    biginteger result;
-    mul_2exp(result, bv, shift);
-    return result;
-}
-
 biginteger operator-(const biginteger_view &bv) {
     biginteger result(bv);
     result.negate();

@@ -273,3 +273,64 @@ TEST(BigintegerExpression, ShiftLeft) {
     result7 = a7 << 4u; // 15 << 4 = 240
     EXPECT_EQ(result7, biginteger(240));
 }
+
+TEST(BigintegerExpression, UnaryNegate) {
+    // Test unary negation expression construction
+    biginteger a(100);
+    auto expr = -a;
+    static_assert(is_biginteger_expression_v<decltype(expr)>, "-a should be an expression");
+
+    // Test basic negation: -100 = -100
+    biginteger result1 = -a;
+    EXPECT_EQ(result1, biginteger(-100));
+
+    // Test double negation: -(-100) = 100
+    biginteger result2 = -(-a);
+    EXPECT_EQ(result2, biginteger(100));
+
+    // Test negation with zero
+    biginteger zero(0);
+    biginteger result3 = -zero;
+    EXPECT_EQ(result3, biginteger(0));
+
+    // Test negation with negative number
+    biginteger negative(-50);
+    biginteger result4 = -negative;
+    EXPECT_EQ(result4, biginteger(50));
+
+    // Test negation in addition: -a + b
+    biginteger b(150);
+    biginteger result5 = -a + b; // -100 + 150 = 50
+    EXPECT_EQ(result5, biginteger(50));
+
+    // Test negation in subtraction: a - (-b)
+    biginteger result6 = a - (-b); // 100 - (-150) = 100 + 150 = 250
+    EXPECT_EQ(result6, biginteger(250));
+
+    // Test negation with multiplication: -(a * b)
+    biginteger c(2);
+    biginteger result7 = -(a * c); // -(100 * 2) = -200
+    EXPECT_EQ(result7, biginteger(-200));
+
+    // Test complex expression: -(a + b) * c
+    biginteger result8 = -(a + b) * c; // -(100 + 150) * 2 = -250 * 2 = -500
+    EXPECT_EQ(result8, biginteger(-500));
+
+    // Test negation with shift: -(a << 2)
+    biginteger d(10);
+    biginteger result9 = -(d << 2u); // -(10 << 2) = -40
+    EXPECT_EQ(result9, biginteger(-40));
+
+    // Test multiple negations in expression: -a + -b
+    biginteger result10 = -a + (-b); // -100 + (-150) = -250
+    EXPECT_EQ(result10, biginteger(-250));
+
+    // Test assignment with negation expression
+    biginteger result11;
+    result11 = -a;
+    EXPECT_EQ(result11, biginteger(-100));
+
+    // Test negation with rvalue: -(biginteger(42))
+    biginteger result12 = -(biginteger(42));
+    EXPECT_EQ(result12, biginteger(-42));
+}

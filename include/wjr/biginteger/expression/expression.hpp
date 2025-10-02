@@ -222,6 +222,11 @@ struct mul_tag {};
 struct shift_left_tag {};
 
 /**
+ * @brief Operation tag for unary negation operation.
+ */
+struct negate_tag {};
+
+/**
  * @brief Check if an expression type is a leaf node.
  */
 template <typename T>
@@ -298,12 +303,43 @@ private:
 };
 
 /**
+ * @brief Unary expression node for operations without parameters (e.g., negation).
+ *
+ * Stores one sub-expression without additional parameters.
+ */
+template <typename OpTag, typename Expr>
+class negate_unary_expr : public biginteger_expression<negate_unary_expr<OpTag, Expr>> {
+public:
+    static constexpr bool is_leaf = false;
+    using expr_type = Expr;
+    using op_tag = OpTag;
+
+    constexpr explicit negate_unary_expr(Expr expr) noexcept
+        : m_expr(std::move(expr)) {}
+
+    constexpr const Expr &operand() const noexcept { return m_expr; }
+    constexpr Expr &operand() noexcept { return m_expr; }
+
+private:
+    Expr m_expr;
+};
+
+/**
  * @brief Helper to create unary expression with automatic operand wrapping.
  */
 template <typename OpTag, typename E>
 constexpr auto make_unary_expr(E &&operand, uint32_t param) noexcept {
     using expr_t = to_expr_t<E>;
     return unary_expr<OpTag, expr_t>(make_expr(std::forward<E>(operand)), param);
+}
+
+/**
+ * @brief Helper to create unary expression without parameters.
+ */
+template <typename OpTag, typename E>
+constexpr auto make_negate_unary_expr(E &&operand) noexcept {
+    using expr_t = to_expr_t<E>;
+    return negate_unary_expr<OpTag, expr_t>(make_expr(std::forward<E>(operand)));
 }
 
 } // namespace biginteger_detail
@@ -348,18 +384,31 @@ constexpr auto operator*(L &&lhs, R &&rhs) noexcept {
 }
 
 /**
+ * @brief Unary negation operator for expression templates.
+ *
+ * Creates a lazy negation expression that computes -operand when evaluated.
+ * This is the unary minus operator, not binary subtraction.
+ */
+template <typename E,
+          WJR_REQUIRES(biginteger_detail::is_expr_operand_v<E>)>
+constexpr auto operator-(E &&operand) noexcept {
+    return biginteger_detail::make_negate_unary_expr<biginteger_detail::negate_tag>(
+        std::forward<E>(operand));
+}
+
+/**
  * @brief Left shift operator for expression templates.
  *
  * Creates a lazy shift left expression that calls mul_2exp when evaluated.
- * The shift amount must be an unsigned integral type.
- * 
- * Note: For uint64_t shifts, the value is cast to uint32_t, which may truncate
- * large shift values. This matches the behavior of mul_2exp.
+ * The shift amount must be an integral type.
  */
 template <typename L, typename ShiftType,
-          WJR_REQUIRES(biginteger_detail::is_expr_operand_v<L> &&
-                       is_nonbool_unsigned_integral_v<ShiftType>)>
+          WJR_REQUIRES(biginteger_detail::is_expr_operand_v<L> &&is_nonbool_integral_v<ShiftType>)>
 constexpr auto operator<<(L &&lhs, ShiftType shift) noexcept {
+    if constexpr (std::is_signed_v<ShiftType>) {
+        WJR_ASSERT(shift >= 0, "Shift amount must be non-negative");
+    }
+
     return biginteger_detail::make_unary_expr<biginteger_detail::shift_left_tag>(
         std::forward<L>(lhs), static_cast<uint32_t>(shift));
 }
