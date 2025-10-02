@@ -294,6 +294,8 @@ public:
         return !(lhs == rhs);
     }
 
+    UniqueStackAllocator *alloc() const noexcept { return m_alloc; }
+
 private:
     UniqueStackAllocator *m_alloc = nullptr;
 };
@@ -314,6 +316,55 @@ using weak_stack_allocator_string =
 
 WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(weak_stack_allocator_string,
                                          string_detail::weak_stack_allocator_string);
+
+class unique_stack_allocator_wrapper {
+public:
+    template <typename... Args>
+    unique_stack_allocator_wrapper(Args *...) noexcept {}
+
+    unique_stack_allocator *operator->() noexcept { return &stkal; }
+    unique_stack_allocator &operator*() noexcept { return stkal; }
+
+private:
+    unique_stack_allocator stkal;
+};
+
+/**
+ * @brief Reuse the first weak_stack_biginteger's allocator in Args as the allocator for
+ * unique_stack_allocator_ref.
+ * 
+ */
+class unique_stack_allocator_ref {
+    struct tag {};
+
+    template <typename T, typename... Args,
+              WJR_REQUIRES(!is_weak_stack_allocator_v<typename T::allocator_type>)>
+    unique_stack_allocator_ref(tag, T *, Args *...args)
+        : unique_stack_allocator_ref(tag{}, args...) {}
+
+    template <typename T, typename... Args,
+              WJR_REQUIRES(is_weak_stack_allocator_v<typename T::allocator_type>)>
+    unique_stack_allocator_ref(tag, T *arg, Args *...) noexcept
+        : stkal(*arg->get_allocator().alloc()) {}
+
+public:
+    // find first weak_stack_biginteger in arguments and bind its allocator
+    template <typename... Args>
+    unique_stack_allocator_ref(Args *...args) noexcept
+        : unique_stack_allocator_ref(tag{}, args...) {}
+
+    unique_stack_allocator *operator->() noexcept { return &stkal; }
+    unique_stack_allocator &operator*() noexcept { return stkal; }
+
+private:
+    unique_stack_allocator &stkal;
+};
+
+
+template <typename... Args>
+using unique_stack_allocator_selector = std::conditional_t<
+    std::disjunction_v<is_weak_stack_allocator<typename Args::allocator_type>...>,
+    unique_stack_allocator_ref, unique_stack_allocator_wrapper>;
 
 } // namespace wjr
 

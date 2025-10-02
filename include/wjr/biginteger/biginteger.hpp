@@ -2163,14 +2163,14 @@ void __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
 
     WJR_ASSERT_ASSUME(!__equal_pointer(quot, rem), "quot should not be the same as rem");
 
-    unique_stack_allocator stkal;
+    unique_stack_allocator_selector<S0, S1> stkal(quot, rem);
     biginteger_view tmp_div;
 
     const auto dssize = div->get_ssize();
 
     if (__equal_pointer(div, quot) || __equal_pointer(div, rem)) {
         const auto dusize = __fast_abs(dssize);
-        auto *const ptr = stkal.template allocate<uint64_t>(dusize);
+        auto *const ptr = stkal->template allocate<uint64_t>(dusize);
         tmp_div = span(ptr, dssize);
         copy_n_restrict(div->data(), dusize, ptr);
         div = &tmp_div;
@@ -2189,8 +2189,8 @@ void __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
 template <typename S>
 void __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_view *num,
                    const biginteger_view *div) noexcept {
-    unique_stack_allocator stkal;
-    weak_stack_biginteger rem(stkal);
+    unique_stack_allocator_selector<S> stkal(quot);
+    weak_stack_biginteger rem(*stkal);
 
     const auto xsize = num->get_ssize() ^ div->get_ssize();
 
@@ -2204,14 +2204,14 @@ void __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_view *num,
 template <typename S>
 void __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_view *num,
                    const biginteger_view *div) noexcept {
-    unique_stack_allocator stkal;
+    unique_stack_allocator_selector<S> stkal(rem);
     biginteger_view tmp_div;
 
     const auto dssize = div->get_ssize();
 
     if (__equal_pointer(div, rem)) {
         const auto dusize = __fast_abs(dssize);
-        auto *const ptr = stkal.template allocate<uint64_t>(dusize);
+        auto *const ptr = stkal->template allocate<uint64_t>(dusize);
         tmp_div = span(ptr, dssize);
         copy_n_restrict(div->data(), dusize, ptr);
         div = &tmp_div;
@@ -2352,14 +2352,14 @@ void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
                     const biginteger_view *num, const biginteger_view *div) noexcept {
     WJR_ASSERT_ASSUME(!__equal_pointer(quot, rem), "quot should not be the same as rem");
 
-    unique_stack_allocator stkal;
+    unique_stack_allocator_selector<S0, S1> stkal(quot, rem);
     biginteger_view tmp_div;
 
     const auto dssize = div->get_ssize();
 
     if (__equal_pointer(div, quot) || __equal_pointer(div, rem)) {
         const auto dusize = __fast_abs(dssize);
-        auto *const ptr = stkal.template allocate<uint64_t>(dusize);
+        auto *const ptr = stkal->template allocate<uint64_t>(dusize);
         tmp_div = span(ptr, dssize);
         copy_n_restrict(div->data(), dusize, ptr);
         div = &tmp_div;
@@ -2378,8 +2378,8 @@ void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
 template <typename S>
 void __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_view *num,
                    const biginteger_view *div) noexcept {
-    unique_stack_allocator stkal;
-    weak_stack_biginteger rem(stkal);
+    unique_stack_allocator_selector<S> stkal(quot);
+    weak_stack_biginteger rem(*stkal);
 
     const auto xsize = num->get_ssize() ^ div->get_ssize();
 
@@ -2393,14 +2393,14 @@ void __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_view *num,
 template <typename S>
 void __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_view *num,
                    const biginteger_view *div) noexcept {
-    unique_stack_allocator stkal;
+    unique_stack_allocator_selector<S> stkal(rem);
     biginteger_view tmp_div;
 
     const auto dssize = div->get_ssize();
 
     if (__equal_pointer(div, rem)) {
         const auto dusize = __fast_abs(dssize);
-        auto *const ptr = stkal.template allocate<uint64_t>(dusize);
+        auto *const ptr = stkal->template allocate<uint64_t>(dusize);
         tmp_div = span(ptr, dssize);
         copy_n_restrict(div->data(), dusize, ptr);
 
