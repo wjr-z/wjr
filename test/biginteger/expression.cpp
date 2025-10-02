@@ -12,12 +12,9 @@
 #include <wjr/biginteger/expression/integration.hpp>
 
 using namespace wjr;
-
 using namespace biginteger_detail;
 
 TEST(BigintegerExpression, TypeTraits) {
-    using namespace biginteger_detail;
-
     // Test is_biginteger_expression
     static_assert(!is_biginteger_expression_v<int>, "int should not be expression");
     static_assert(!is_biginteger_expression_v<biginteger>,
@@ -46,8 +43,6 @@ TEST(BigintegerExpression, TypeTraits) {
 }
 
 TEST(BigintegerExpression, ValueCategory) {
-    using namespace biginteger_detail;
-
     // Test integral types
     static_assert(std::is_same_v<expr_value_category_t<int>, int>, "int should be stored by value");
     static_assert(std::is_same_v<expr_value_category_t<int64_t>, int64_t>,
@@ -69,8 +64,6 @@ TEST(BigintegerExpression, ValueCategory) {
 }
 
 TEST(BigintegerExpression, RefExpr) {
-    using namespace biginteger_detail;
-
     // Test with integer
     int value = 42;
     ref_expr<int> expr(value);
@@ -89,8 +82,6 @@ TEST(BigintegerExpression, RefExpr) {
 }
 
 TEST(BigintegerExpression, BinaryExpr) {
-    using namespace biginteger_detail;
-
     // Test expression construction
     {
         int a = 10, b(20);
@@ -106,8 +97,6 @@ TEST(BigintegerExpression, BinaryExpr) {
 }
 
 TEST(BigintegerExpression, MakeExpr) {
-    using namespace biginteger_detail;
-
     // Test with integer
     int value = 42;
     auto expr = make_expr(value);
@@ -230,8 +219,6 @@ TEST(BigintegerExpression, Evaluation) {
 }
 
 TEST(BigintegerExpression, IsLeaf) {
-    using namespace biginteger_detail;
-
     // ref_expr is leaf
     static_assert(is_leaf_expr_v<ref_expr<int>>, "ref_expr should be leaf");
     static_assert(is_leaf_expr_v<ref_expr<biginteger>>, "ref_expr should be leaf");
@@ -239,4 +226,50 @@ TEST(BigintegerExpression, IsLeaf) {
     // binary_expr is not leaf
     using binary_t = binary_expr<add_tag, ref_expr<int>, ref_expr<int>>;
     static_assert(!is_leaf_expr_v<binary_t>, "binary_expr should not be leaf");
+
+    // unary_expr is not leaf
+    using unary_t = unary_expr<shift_left_tag, ref_expr<biginteger>>;
+    static_assert(!is_leaf_expr_v<unary_t>, "unary_expr should not be leaf");
+}
+
+TEST(BigintegerExpression, ShiftLeft) {
+    // Test shift left expression construction
+    biginteger a(5);
+    auto expr = a << 2u;
+    static_assert(is_biginteger_expression_v<decltype(expr)>, "a << 2 should be an expression");
+
+    // Test shift left evaluation: 5 << 2 = 20
+    biginteger result1 = a << 2u;
+    EXPECT_EQ(result1, biginteger(20));
+
+    // Test shift left with uint64_t: 7 << 3 = 56
+    biginteger b(7);
+    biginteger result2 = b << 3ull;
+    EXPECT_EQ(result2, biginteger(56));
+
+    // Test shift left with larger values: 100 << 10 = 102400
+    biginteger c(100);
+    biginteger result3 = c << 10u;
+    EXPECT_EQ(result3, biginteger(102400));
+
+    // Test complex expression with shift: (a + b) << 2
+    biginteger a4(10), b4(20);
+    biginteger result4 = (a4 + b4) << 2u;
+    EXPECT_EQ(result4, biginteger(120)); // (10 + 20) << 2 = 30 * 4 = 120
+
+    // Test chained operations: a * 2 + 10 with shift
+    biginteger a5(5);
+    biginteger result5 = (a5 << 1u) + 10; // (5 << 1) + 10 = 10 + 10 = 20
+    EXPECT_EQ(result5, biginteger(20));
+
+    // Test shift with expression: (a * b) << shift
+    biginteger a6(3), b6(4);
+    biginteger result6 = (a6 * b6) << 2u; // (3 * 4) << 2 = 12 * 4 = 48
+    EXPECT_EQ(result6, biginteger(48));
+
+    // Test assignment with shift expression
+    biginteger result7;
+    biginteger a7(15);
+    result7 = a7 << 4u; // 15 << 4 = 240
+    EXPECT_EQ(result7, biginteger(240));
 }

@@ -72,6 +72,31 @@ WJR_DEFINE_BINARY_EVAL_OP(mul_tag, mul)
 
 #undef WJR_DEFINE_BINARY_EVAL_OP
 
+/**
+ * @brief Evaluate unary shift left expression.
+ *
+ * Calls mul_2exp with the shift amount.
+ */
+template <typename S, typename Expr>
+void evaluate_expr(basic_biginteger<S> &dst,
+                   const biginteger_detail::unary_expr<biginteger_detail::shift_left_tag,
+                                                       Expr> &expr) noexcept {
+    using namespace biginteger_detail;
+
+    constexpr bool operand_is_leaf = is_leaf_expr_v<Expr>;
+
+    if constexpr (operand_is_leaf) {
+        // Direct evaluation: dst = operand << shift
+        const auto &operand_val = expr.operand().value();
+        mul_2exp(dst, operand_val, expr.param());
+    } else {
+        // Evaluate sub-expression first, then shift
+        biginteger temp;
+        evaluate_expr(temp, expr.operand());
+        mul_2exp(dst, temp, expr.param());
+    }
+}
+
 } // namespace biginteger_expression_detail
 
 /**

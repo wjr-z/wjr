@@ -217,6 +217,11 @@ struct sub_tag {};
 struct mul_tag {};
 
 /**
+ * @brief Operation tag for unary shift left operation.
+ */
+struct shift_left_tag {};
+
+/**
  * @brief Check if an expression type is a leaf node.
  */
 template <typename T>
@@ -268,6 +273,39 @@ constexpr auto make_binary_expr(L &&left, R &&right) noexcept {
                                                          make_expr(std::forward<R>(right)));
 }
 
+/**
+ * @brief Unary expression node for operations like left shift.
+ *
+ * Stores one sub-expression and an operation parameter (e.g., shift amount).
+ */
+template <typename OpTag, typename Expr>
+class unary_expr : public biginteger_expression<unary_expr<OpTag, Expr>> {
+public:
+    static constexpr bool is_leaf = false;
+    using expr_type = Expr;
+    using op_tag = OpTag;
+
+    constexpr unary_expr(Expr expr, uint32_t param) noexcept
+        : m_expr(std::move(expr)), m_param(param) {}
+
+    constexpr const Expr &operand() const noexcept { return m_expr; }
+    constexpr Expr &operand() noexcept { return m_expr; }
+    constexpr uint32_t param() const noexcept { return m_param; }
+
+private:
+    Expr m_expr;
+    uint32_t m_param;
+};
+
+/**
+ * @brief Helper to create unary expression with automatic operand wrapping.
+ */
+template <typename OpTag, typename E>
+constexpr auto make_unary_expr(E &&operand, uint32_t param) noexcept {
+    using expr_t = to_expr_t<E>;
+    return unary_expr<OpTag, expr_t>(make_expr(std::forward<E>(operand)), param);
+}
+
 } // namespace biginteger_detail
 
 // ============================================================================
@@ -307,6 +345,23 @@ template <
 constexpr auto operator*(L &&lhs, R &&rhs) noexcept {
     return biginteger_detail::make_binary_expr<biginteger_detail::mul_tag>(std::forward<L>(lhs),
                                                                            std::forward<R>(rhs));
+}
+
+/**
+ * @brief Left shift operator for expression templates.
+ *
+ * Creates a lazy shift left expression that calls mul_2exp when evaluated.
+ * The shift amount must be an unsigned integral type.
+ * 
+ * Note: For uint64_t shifts, the value is cast to uint32_t, which may truncate
+ * large shift values. This matches the behavior of mul_2exp.
+ */
+template <typename L, typename ShiftType,
+          WJR_REQUIRES(biginteger_detail::is_expr_operand_v<L> &&
+                       is_nonbool_unsigned_integral_v<ShiftType>)>
+constexpr auto operator<<(L &&lhs, ShiftType shift) noexcept {
+    return biginteger_detail::make_unary_expr<biginteger_detail::shift_left_tag>(
+        std::forward<L>(lhs), static_cast<uint32_t>(shift));
 }
 
 } // namespace wjr
