@@ -1,8 +1,7 @@
 #ifndef WJR_UTILITY_TAG_HPP__
 #define WJR_UTILITY_TAG_HPP__
 
-#include <cstddef>
-#include <cstdint>
+// Lightweight tag types - no standard library dependencies needed
 
 namespace wjr {
 
