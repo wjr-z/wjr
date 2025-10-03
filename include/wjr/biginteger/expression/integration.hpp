@@ -31,14 +31,14 @@ void evaluate_expr(basic_biginteger<S> &dst,
                                                         RightExpr> &expr) noexcept;
 
 template <typename S, typename Expr>
-void evaluate_expr(basic_biginteger<S> &dst,
-                   const biginteger_detail::unary_expr<biginteger_detail::shift_left_tag,
-                                                       Expr> &expr) noexcept;
+void evaluate_expr(
+    basic_biginteger<S> &dst,
+    const biginteger_detail::unary_expr<biginteger_detail::shift_left_tag, Expr> &expr) noexcept;
 
 template <typename S, typename Expr>
-void evaluate_expr(basic_biginteger<S> &dst,
-                   const biginteger_detail::negate_unary_expr<biginteger_detail::negate_tag,
-                                                              Expr> &expr) noexcept;
+void evaluate_expr(
+    basic_biginteger<S> &dst,
+    const biginteger_detail::negate_unary_expr<biginteger_detail::negate_tag, Expr> &expr) noexcept;
 
 /**
  * @brief Evaluate leaf expression (ref_expr).
@@ -63,21 +63,24 @@ void evaluate_binary_expr(basic_biginteger<S> &dst,
         const auto &left_val = expr.left().value();
         const auto &right_val = expr.right().value();
         op(dst, left_val, right_val);
-    } else if constexpr (left_is_leaf && !right_is_leaf) {
-        biginteger temp;
-        evaluate_expr(temp, expr.right());
-        const auto &left_val = expr.left().value();
-        op(dst, left_val, temp);
-    } else if constexpr (!left_is_leaf && right_is_leaf) {
-        biginteger temp;
-        evaluate_expr(temp, expr.left());
-        const auto &right_val = expr.right().value();
-        op(dst, temp, right_val);
     } else {
-        biginteger temp_left, temp_right;
-        evaluate_expr(temp_left, expr.left());
-        evaluate_expr(temp_right, expr.right());
-        op(dst, temp_left, temp_right);
+        unique_stack_allocator_selector<S> stkal(&dst);
+        if constexpr (left_is_leaf && !right_is_leaf) {
+            weak_stack_biginteger temp(*stkal);
+            evaluate_expr(temp, expr.right());
+            const auto &left_val = expr.left().value();
+            op(dst, left_val, temp);
+        } else if constexpr (!left_is_leaf && right_is_leaf) {
+            weak_stack_biginteger temp(*stkal);
+            evaluate_expr(temp, expr.left());
+            const auto &right_val = expr.right().value();
+            op(dst, temp, right_val);
+        } else {
+            weak_stack_biginteger temp_left(*stkal), temp_right(*stkal);
+            evaluate_expr(temp_left, expr.left());
+            evaluate_expr(temp_right, expr.right());
+            op(dst, temp_left, temp_right);
+        }
     }
 }
 
@@ -103,9 +106,9 @@ WJR_DEFINE_BINARY_EVAL_OP(mul_tag, mul)
  * Calls mul_2exp with the shift amount.
  */
 template <typename S, typename Expr>
-void evaluate_expr(basic_biginteger<S> &dst,
-                   const biginteger_detail::unary_expr<biginteger_detail::shift_left_tag,
-                                                       Expr> &expr) noexcept {
+void evaluate_expr(
+    basic_biginteger<S> &dst,
+    const biginteger_detail::unary_expr<biginteger_detail::shift_left_tag, Expr> &expr) noexcept {
     using namespace biginteger_detail;
 
     constexpr bool operand_is_leaf = is_leaf_expr_v<Expr>;
@@ -115,8 +118,9 @@ void evaluate_expr(basic_biginteger<S> &dst,
         const auto &operand_val = expr.operand().value();
         mul_2exp(dst, operand_val, expr.param());
     } else {
+        unique_stack_allocator_selector<S> stkal(&dst);
         // Evaluate sub-expression first, then shift
-        biginteger temp;
+        weak_stack_biginteger temp(*stkal);
         evaluate_expr(temp, expr.operand());
         mul_2exp(dst, temp, expr.param());
     }
@@ -129,8 +133,8 @@ void evaluate_expr(basic_biginteger<S> &dst,
  */
 template <typename S, typename Expr>
 void evaluate_expr(basic_biginteger<S> &dst,
-                   const biginteger_detail::negate_unary_expr<biginteger_detail::negate_tag,
-                                                              Expr> &expr) noexcept {
+                   const biginteger_detail::negate_unary_expr<biginteger_detail::negate_tag, Expr>
+                       &expr) noexcept {
     using namespace biginteger_detail;
 
     constexpr bool operand_is_leaf = is_leaf_expr_v<Expr>;
