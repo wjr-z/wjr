@@ -74,7 +74,7 @@
     #define WJR_FORCEINLINE
 #endif
 
-#if defined(_MSV_VER)
+#if defined(_MSC_VER)
     #define WJR_SAFEBUFFERS __declspec(safebuffers)
 #else
     #define WJR_SAFEBUFFERS
@@ -226,11 +226,11 @@
 #endif
 
 #if WJR_HAS_BUILTIN(__builtin_clear_padding)
-    #define WJR_HAS_BULTIN_CLEAR_PADDING WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_CLEAR_PADDING WJR_HAS_DEF
     #define WJR_BUILTIN_CLEAR_PADDING(x) __builtin_clear_padding(x)
 #elif WJR_HAS_BUILTIN(__builtin_zero_non_value_bits) ||                                            \
     (defined(WJR_COMPILER_MSVC) && WJR_HAS_MSVC(19, 27))
-    #define WJR_HAS_BULTIN_CLEAR_PADDING WJR_HAS_DEF
+    #define WJR_HAS_BUILTIN_CLEAR_PADDING WJR_HAS_DEF
     #define WJR_BUILTIN_CLEAR_PADDING(x) __builtin_zero_non_value_bits(x)
 #endif
 
@@ -405,6 +405,61 @@
 #else
     #define WJR_NO_UNIQUE_ADDRESS
     #undef WJR_HAS_FEATURE_NO_UNIQUE_ADDRESS
+#endif
+
+// Packed attribute for tight memory layout
+#if WJR_HAS_ATTRIBUTE(packed)
+    #define WJR_PACKED __attribute__((packed))
+#else
+    #define WJR_PACKED
+#endif
+
+// Warn if return value is unused
+#if WJR_HAS_ATTRIBUTE(warn_unused_result)
+    #define WJR_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
+#else
+    #define WJR_WARN_UNUSED_RESULT
+#endif
+
+// Used attribute - prevent stripping of unused symbols
+#if WJR_HAS_ATTRIBUTE(used)
+    #define WJR_USED __attribute__((used))
+#else
+    #define WJR_USED
+#endif
+
+// Optimize attribute
+#if WJR_HAS_ATTRIBUTE(optimize)
+    #define WJR_OPTIMIZE(opts) __attribute__((optimize(opts)))
+#else
+    #define WJR_OPTIMIZE(opts)
+#endif
+
+// Prefetch hint constants
+#define WJR_PREFETCH_HINT_T0 3  // Temporal locality, all levels
+#define WJR_PREFETCH_HINT_T1 2  // Temporal locality, L2 and higher
+#define WJR_PREFETCH_HINT_T2 1  // Temporal locality, L3 and higher
+#define WJR_PREFETCH_HINT_NTA 0 // Non-temporal, no cache pollution
+
+// Prefetch for read/write
+#define WJR_PREFETCH_READ 0
+#define WJR_PREFETCH_WRITE 1
+
+// Prefetch macro
+#if WJR_HAS_BUILTIN(__builtin_prefetch)
+    #define WJR_PREFETCH(addr) __builtin_prefetch(addr)
+    #define WJR_PREFETCH_EX(addr, rw, locality) __builtin_prefetch(addr, rw, locality)
+#elif defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64))
+    #include <xmmintrin.h>
+    #define WJR_PREFETCH(addr) _mm_prefetch((const char *)(addr), _MM_HINT_T0)
+    #define WJR_PREFETCH_EX(addr, rw, locality)                                                    \
+        _mm_prefetch((const char *)(addr), (locality) == 3   ? _MM_HINT_T0                         \
+                                           : (locality) == 2 ? _MM_HINT_T1                         \
+                                           : (locality) == 1 ? _MM_HINT_T2                         \
+                                                             : _MM_HINT_NTA)
+#else
+    #define WJR_PREFETCH(addr) ((void)0)
+    #define WJR_PREFETCH_EX(addr, rw, locality) ((void)0)
 #endif
 
 #endif // WJR_CONFIG_ATTRIBUTE_HPP__
