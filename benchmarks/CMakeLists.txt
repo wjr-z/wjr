@@ -1,59 +1,82 @@
 cmake_minimum_required(VERSION 3.14)
-project(tests LANGUAGES CXX)
+project(benchmarks LANGUAGES CXX)
 
-include(FetchContent)
+set(WJR_USE_GMP_DEFAULT ON)
 
-set(WJR_ENABLE_ASSEMBLY ON)
-
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release)
-endif()
-
-if(NOT DEFINED WJR_DEBUG_LEVEL_RELEASE)
-    set(WJR_DEBUG_LEVEL_RELEASE 3)
-endif()
-
-if(MSVC)
-    add_compile_definitions(__ADX__)
-    add_compile_definitions(__BMI2__)
-    add_compile_definitions(__AVX2__)
-    add_compile_definitions(__POPCNT__)
-    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/arch:AVX2>)
-endif()
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../wjr ${CMAKE_CURRENT_BINARY_DIR}/wjr)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-
-add_compile_definitions(WJR_USE_GMP)
-
-add_subdirectory(googletest)
-add_subdirectory(benchmark)
-
-set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
-
-if(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /I \"D:\\msys\\home\\19663\\gmp-6.3.0\"")
+if(WJR_USE_GMP)
+    set(WJR_USE_GMP_DEFAULT ${WJR_USE_GMP})
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I \"D:\\msys\\home\\19663\\gmp-6.3.0\" ")
+    find_package(GMP QUIET)
+
+    if(NOT GMP_FOUND)
+        find_package(PkgConfig)
+        pkg_check_modules(GMP QUIET gmp)
+
+        if(NOT GMP_FOUND)
+            set(WJR_USE_GMP_DEFAULT OFF)
+        else()
+            set(GMP_INCLUDE_DIRS ${GMP_INCLUDE_DIRS})
+            set(GMP_LIBRARIES ${GMP_LIBRARIES})
+        endif()
+    else()
+        set(GMP_INCLUDE_DIRS)
+        set(GMP_LIBRARIES gmp libgmp)
+    endif()
 endif()
+
+option(WJR_USE_GMP_TESTS "Use GMP library for tests" ${WJR_USE_GMP_DEFAULT})
+
+if(WJR_USE_GMP_TESTS)
+    add_compile_definitions(WJR_USE_GMP)
+else()
+    message(STATUS "GMP library not found, tests will be built without GMP support.")
+endif()
+
+if(EXISTS googletest)
+    add_subdirectory(googletest)
+else()
+    FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG v1.17.0
+        GIT_SHALLOW ON
+    )
+
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+    set(BUILD_GTEST ON CACHE BOOL "" FORCE)
+
+    FetchContent_MakeAvailable(googletest)
+endif()
+
+if(EXISTS benchmark)
+    add_subdirectory(benchmark)
+else()
+    FetchContent_Declare(
+        benchmark
+        GIT_REPOSITORY https://github.com/google/benchmark.git
+        GIT_TAG v1.9.0
+        GIT_SHALLOW ON
+    )
+    set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
+    set(BENCHMARK_ENABLE_WERROR OFF CACHE BOOL "Suppressing warnings as errors" FORCE)
+    FetchContent_MakeAvailable(benchmark)
+endif()
+
+file(GLOB_RECURSE TEST_SRCS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 add_executable(
-    tests
-    src/main.cpp
-    src/math.cpp
-    src/biginteger.cpp
-    src/memory.cpp
+    benchmarks
+    ${TEST_SRCS}
 )
 
-set(GMP_LIBS "D:\\msys\\home\\19663\\gmp-6.3.0\\.libs")
-link_directories(${GMP_LIBS})
+target_include_directories(benchmarks PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(
-    tests
+target_include_directories(benchmarks PRIVATE ${GMP_INCLUDE_DIRS})
+
+target_link_libraries(benchmarks
     PRIVATE
-    wjr
-    ${GMP_LIBS}/libgmp.dll.a
+    wjr::wjr
     benchmark::benchmark
+    ${GMP_LIBRARIES}
 )

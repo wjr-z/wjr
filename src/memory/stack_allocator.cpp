@@ -4,8 +4,11 @@
 namespace wjr {
 
 namespace {
+inline constexpr size_t stack_allocator_cache_size =
+    align_up(std::max<size_t>(16_KB, stack_allocator_threshold), mem::default_new_alignment);
+
 static thread_local automatic_free_pool __stack_free_pool;
-}
+} // namespace
 
 void stack_allocator_object::__small_redeallocate() noexcept {
     const uint_fast32_t new_size = m_idx + bufsize - 1;
@@ -39,7 +42,7 @@ void *stack_allocator_object::__small_reallocate() noexcept {
         }
 
         {
-            const size_t capacity = cache_size;
+            const size_t capacity = stack_allocator_cache_size;
             auto *const buffer = static_cast<std::byte *>(__stack_free_pool.allocate(capacity));
             m_cache = m_ptr[0] = {buffer, buffer + capacity};
         }
@@ -63,7 +66,7 @@ void *stack_allocator_object::__small_reallocate() noexcept {
 
         ++m_size;
 
-        const size_t capacity = cache_size << ((2 * m_idx + 3) / 5);
+        const size_t capacity = stack_allocator_cache_size << ((2 * m_idx + 3) / 5);
         auto *const buffer = static_cast<std::byte *>(__stack_free_pool.allocate(capacity));
         m_ptr[m_idx] = {buffer, buffer + capacity};
     }

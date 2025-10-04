@@ -13,13 +13,16 @@ namespace __scopy_detail {
     #define WJR_ENABLE_SCOPY
 #endif
 
-template <size_t Size, size_t N, size_t Max>
+template <size_t Size, size_t N, size_t MaxN>
 WJR_INTRINSIC_INLINE void copy(const uint_t<Size> *first, const uint_t<Size> *last,
                                uint_t<Size> *ds, uint_t<Size> *de) noexcept {
-    constexpr size_t rest = constant::bit_ceil(std::min(N, Max - N));
+    constexpr size_t Max = std::min(N * 2, MaxN);
+    constexpr size_t rest = N == Max ? 0 : constant::bit_ceil(std::min(N, Max - N));
 
+    // Load all data first - this pattern is safe for overlapping regions
     auto x0 = __simd_load<(Size / 8) * N>(first);
     auto x1 = __simd_load<(Size / 8) * rest>(last - rest);
+    // Now store the data
     __simd_store(ds, x0);
     __simd_store(de - rest, x1);
 }
@@ -27,9 +30,8 @@ WJR_INTRINSIC_INLINE void copy(const uint_t<Size> *first, const uint_t<Size> *la
 } // namespace __scopy_detail
 
 template <size_t Size, size_t Min, size_t Max>
-WJR_INTRINSIC_INLINE void __small_copy_dispatch_impl(const uint_t<Size> *first,
-                                                     const uint_t<Size> *last,
-                                                     uint_t<Size> *dst) noexcept {
+WJR_INTRINSIC_INLINE void __small_copy_impl(const uint_t<Size> *first, const uint_t<Size> *last,
+                                            uint_t<Size> *dst) noexcept {
     if constexpr (Min == 0) {
         if (WJR_UNLIKELY(first == last)) {
             return;
@@ -37,7 +39,7 @@ WJR_INTRINSIC_INLINE void __small_copy_dispatch_impl(const uint_t<Size> *first,
     }
 
     const auto n = to_unsigned(last - first);
-    WJR_ASSUME(n >= Min && n <= Max);
+    WJR_ASSERT_ASSUME_L3(n >= Min && n <= Max);
 
 #if defined(WJR_ENABLE_SCOPY)
     if constexpr (Max > 8) {
@@ -75,12 +77,6 @@ WJR_INTRINSIC_INLINE void __small_copy_dispatch_impl(const uint_t<Size> *first,
 #endif
 
     dst[0] = first[0];
-}
-
-template <size_t Size, size_t Min, size_t Max>
-WJR_INTRINSIC_INLINE void __small_copy_impl(const uint_t<Size> *first, const uint_t<Size> *last,
-                                            uint_t<Size> *dst) noexcept {
-    __small_copy_dispatch_impl<Size, Min, Max>(first, last, dst);
 }
 } // namespace detail
 

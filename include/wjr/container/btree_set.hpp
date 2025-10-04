@@ -5,9 +5,10 @@
 
 namespace wjr {
 
-template <typename Key, typename Pr = std::less<Key>, typename Alloc = std::allocator<char>>
-class btree_set : public basic_btree<btree_traits<Key, void, false, Pr, Alloc>> {
-    using Traits = btree_traits<Key, void, false, Pr, Alloc>;
+template <typename Key, typename Pr = std::less<Key>, typename Alloc = std::allocator<char>,
+          size_t NodeSize = 0>
+class btree_set : public basic_btree<btree_traits<Key, void, false, Pr, Alloc, NodeSize>> {
+    using Traits = btree_traits<Key, void, false, Pr, Alloc, NodeSize>;
     using Mybase = basic_btree<Traits>;
 
 public:
@@ -55,9 +56,10 @@ public:
     size_type count(const key_type &key) const noexcept { return __count_unique(key) ? 1 : 0; }
 };
 
-template <typename Key, typename Pr = std::less<Key>>
-class btree_multiset : public basic_btree<btree_traits<Key, void, true, Pr>> {
-    using Traits = btree_traits<Key, void, true, Pr>;
+template <typename Key, typename Pr = std::less<Key>, typename Alloc = std::allocator<char>,
+          size_t NodeSize = 0>
+class btree_multiset : public basic_btree<btree_traits<Key, void, true, Pr, Alloc, NodeSize>> {
+    using Traits = btree_traits<Key, void, true, Pr, Alloc, NodeSize>;
     using Mybase = basic_btree<Traits>;
 
 public:

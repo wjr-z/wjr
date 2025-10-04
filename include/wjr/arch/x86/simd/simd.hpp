@@ -5,8 +5,6 @@
  * @version 0.1
  * @date 2025-01-18
  *
- * @todo
- *
  * @copyright Copyright (c) 2025
  *
  */

@@ -10,6 +10,7 @@
 
 namespace wjr {
 
+/// @todo Make it configurable.
 inline constexpr size_t stack_allocator_threshold = 16_KB;
 
 class unique_stack_allocator;
@@ -17,7 +18,6 @@ class unique_stack_allocator;
 class stack_allocator_object {
     friend class unique_stack_allocator;
 
-    constexpr static size_t cache_size = align_up(16_KB, mem::default_new_alignment);
     constexpr static uint_fast32_t bufsize = 3;
 
     struct alloc_node {
@@ -332,7 +332,7 @@ private:
 /**
  * @brief Reuse the first weak_stack_biginteger's allocator in Args as the allocator for
  * unique_stack_allocator_ref.
- * 
+ *
  */
 class unique_stack_allocator_ref {
     struct tag {};
@@ -359,7 +359,6 @@ public:
 private:
     unique_stack_allocator &stkal;
 };
-
 
 template <typename... Args>
 using unique_stack_allocator_selector = std::conditional_t<

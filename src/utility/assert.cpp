@@ -15,12 +15,12 @@ void __assert_failed(const char *expr, const char *file, const char *func, int l
         std::cerr << line << ':';
     }
 
-    std::cerr << func << ": Assertion `" << expr << "' failed.\n";
+    std::cerr << func << ": Assertion `" << expr << "' failed." << std::endl;
     std::terminate();
 }
 
 WJR_NORETURN extern void __assert_light_failed(const char *expr) noexcept {
-    std::cerr << "Assertion `" << expr << "' failed.\n";
+    std::cerr << "Assertion `" << expr << "' failed." << std::endl;
     std::terminate();
 }
 
