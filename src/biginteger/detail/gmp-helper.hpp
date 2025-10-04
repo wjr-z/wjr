@@ -112,8 +112,7 @@ using mp_limb_t = uint64_t;
 #define mpn_fft_best_k wjr::fft_best_k
 #define mpn_zero_p(src, n) (wjr::find_not_n(src, 0, n) == n)
 
-WJR_CONST WJR_INTRINSIC_CONSTEXPR bool mulmod_bknp1_usable(size_t rn, unsigned &k,
-                                                           size_t mn) noexcept {
+WJR_INTRINSIC_CONSTEXPR bool mulmod_bknp1_usable(size_t rn, unsigned &k, size_t mn) noexcept {
     return ((mn) >= 18) && ((rn) > 16) &&
            (((rn) % ((k) = 3) == 0) ||
             (((((mn) >= 35) && ((rn) >= 32))) &&
@@ -124,8 +123,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool mulmod_bknp1_usable(size_t rn, unsigned &
                                                                ((rn) % ((k) = 17) == 0)))))))));
 }
 
-WJR_CONST WJR_INTRINSIC_CONSTEXPR bool sqrmod_bknp1_usable(size_t rn, unsigned &k,
-                                                           size_t mn) noexcept {
+WJR_INTRINSIC_CONSTEXPR bool sqrmod_bknp1_usable(size_t rn, unsigned &k, size_t mn) noexcept {
     return (mn >= 27) && (rn > 24) &&
            ((rn % (k = 3) == 0) ||
             ((((mn >= 55) && (rn > 50))) &&

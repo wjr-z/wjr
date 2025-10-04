@@ -644,7 +644,7 @@ struct container_of_fn<compressed_pair<T, U>, std::in_place_index_t<1>> {
 };
 
 template <typename T1, typename U1, typename T2, typename U2>
-WJR_CONST constexpr bool
+WJR_PURE constexpr bool
 operator==(const compressed_pair<T1, U1> &lhs, const compressed_pair<T2, U2> &rhs) noexcept(
     std::conjunction_v<has_noexcept_equal_to<const T1 &, const T2 &>,
                        has_noexcept_equal_to<const U1 &, const U2 &>>) {
@@ -652,14 +652,14 @@ operator==(const compressed_pair<T1, U1> &lhs, const compressed_pair<T2, U2> &rh
 }
 
 template <typename T1, typename U1, typename T2, typename U2>
-WJR_CONST constexpr bool
+WJR_PURE constexpr bool
 operator!=(const compressed_pair<T1, U1> &lhs,
            const compressed_pair<T2, U2> &rhs) noexcept(noexcept(lhs == rhs)) {
     return !(lhs == rhs);
 }
 
 template <typename T1, typename U1, typename T2, typename U2>
-WJR_CONST constexpr bool
+WJR_PURE constexpr bool
 operator<(const compressed_pair<T1, U1> &lhs, const compressed_pair<T2, U2> &rhs) noexcept(
     std::conjunction_v<has_noexcept_less<const T1 &, const T2 &>,
                        has_noexcept_less<const T2 &, const T1 &>,
@@ -669,21 +669,21 @@ operator<(const compressed_pair<T1, U1> &lhs, const compressed_pair<T2, U2> &rhs
 }
 
 template <typename T1, typename U1, typename T2, typename U2>
-WJR_CONST constexpr bool
+WJR_PURE constexpr bool
 operator>(const compressed_pair<T1, U1> &lhs,
           const compressed_pair<T2, U2> &rhs) noexcept(noexcept(rhs < lhs)) {
     return rhs < lhs;
 }
 
 template <typename T1, typename U1, typename T2, typename U2>
-WJR_CONST constexpr bool
+WJR_PURE constexpr bool
 operator<=(const compressed_pair<T1, U1> &lhs,
            const compressed_pair<T2, U2> &rhs) noexcept(noexcept(rhs < lhs)) {
     return !(rhs < lhs);
 }
 
 template <typename T1, typename U1, typename T2, typename U2>
-WJR_CONST constexpr bool
+WJR_PURE constexpr bool
 operator>=(const compressed_pair<T1, U1> &lhs,
            const compressed_pair<T2, U2> &rhs) noexcept(noexcept(lhs < rhs)) {
     return !(lhs < rhs);

@@ -31,7 +31,7 @@ template <typename T, branch type>
 WJR_CONST WJR_INTRINSIC_INLINE div1by1_uint_t<T> div1by1_uint_gen(T d) noexcept;
 
 template <typename T, branch type>
-WJR_CONST WJR_INTRINSIC_INLINE T div1by1_uint_do(T d, const div1by1_uint_t<T> &denom) noexcept;
+WJR_PURE WJR_INTRINSIC_INLINE T div1by1_uint_do(T d, const div1by1_uint_t<T> &denom) noexcept;
 
 template <typename T>
 WJR_INTRINSIC_INLINE T div1by1_div_half(T hi, T lo, T den, T &rem) noexcept {
@@ -151,7 +151,7 @@ div1by1_uint_branchfree_do_impl(T d, const div1by1_uint_t<T> &denom) noexcept {
 }
 
 template <typename T, branch type>
-WJR_CONST WJR_INTRINSIC_INLINE T div1by1_uint_do(T d, const div1by1_uint_t<T> &denom) noexcept {
+WJR_PURE WJR_INTRINSIC_INLINE T div1by1_uint_do(T d, const div1by1_uint_t<T> &denom) noexcept {
     if constexpr (type == branch::full) {
         return div1by1_uint_branchfull_do_impl(d, denom);
     } else {
@@ -171,11 +171,11 @@ public:
 
     WJR_INTRINSIC_INLINE T divide(T n) const { return div1by1_uint_do<T, type>(n, div); }
 
-    WJR_CONST bool operator==(const div1by1_divider<T, type> &other) const {
+    WJR_PURE bool operator==(const div1by1_divider<T, type> &other) const {
         return div.magic == other.div.magic && div.more == other.div.more;
     }
 
-    WJR_CONST bool operator!=(const div1by1_divider<T, type> &other) const {
+    WJR_PURE bool operator!=(const div1by1_divider<T, type> &other) const {
         return !(*this == other);
     }
 

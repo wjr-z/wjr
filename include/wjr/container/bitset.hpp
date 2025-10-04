@@ -199,9 +199,9 @@ class bitset {
     static constexpr bool fast_memset =
         bytes_size >= 4 && N <= 1024 && is_zero_or_single_bit(bytes_size);
     using bit_type = std::conditional_t<N <= 32, uint32_t, uint64_t>;
-    static constexpr bit_type mask =
-        (static_cast<bit_type>(1) << (N % bits)) - static_cast<bit_type>(1);
     static constexpr bit_type maxn = static_cast<bit_type>(in_place_max);
+    static constexpr bit_type mask =
+        full ? maxn : ((static_cast<bit_type>(1) << (N % bits)) - static_cast<bit_type>(1));
     static constexpr size_t rest_bits = N % bits;
 
 public:
@@ -237,7 +237,7 @@ public:
     template <typename Char>
     constexpr explicit bitset(Char *str, size_t n = size_t(-1), Char zero = Char('0'),
                               Char one = Char('1'))
-        : bitset(std::string_view(str), n, zero, one) {}
+        : bitset(std::string_view(str), 0, n, zero, one) {}
 
     friend constexpr bool operator==(const bitset &lhs, const bitset &rhs) noexcept {
         return std::equal(lhs.m_data, lhs.m_data + bytes_size, rhs.m_data);
@@ -294,17 +294,17 @@ public:
     constexpr static size_t size() noexcept { return N; }
 
     constexpr bitset &operator&=(const bitset &other) noexcept {
-        and_n(m_data, m_data, other.m_data, bytes_size);
+        math::and_n(m_data, m_data, other.m_data, bytes_size);
         return *this;
     }
 
     constexpr bitset &operator|=(const bitset &other) noexcept {
-        or_n(m_data, m_data, other.m_data, bytes_size);
+        math::or_n(m_data, m_data, other.m_data, bytes_size);
         return *this;
     }
 
     constexpr bitset &operator^=(const bitset &other) noexcept {
-        xor_n(m_data, m_data, other.m_data, bytes_size);
+        math::xor_n(m_data, m_data, other.m_data, bytes_size);
         return *this;
     }
 
@@ -333,6 +333,7 @@ public:
             }
             m_data[bytes_size - 1] = mask;
         }
+        return *this;
     }
 
     constexpr bitset &set(size_t pos, bool value = true) noexcept {
@@ -359,7 +360,10 @@ public:
         return *this;
     }
 
-    constexpr bitset &reset() noexcept { std::fill_n(m_data, bytes_size, 0); }
+    constexpr bitset &reset() noexcept {
+        std::fill_n(m_data, bytes_size, 0);
+        return *this;
+    }
     constexpr bitset &reset(size_t pos) noexcept { return set(pos, false); }
 
     constexpr bitset &flip() noexcept {
@@ -397,7 +401,7 @@ public:
         return ret;
     }
 
-    WJR_CONST constexpr bool all() const noexcept {
+    WJR_PURE constexpr bool all() const noexcept {
         for (size_t i = 0; i < bytes_size - 1; ++i) {
             if (m_data[i] != maxn)
                 return false;
@@ -406,7 +410,7 @@ public:
         return m_data[bytes_size - 1] == mask;
     }
 
-    WJR_CONST constexpr bool any() const noexcept {
+    WJR_PURE constexpr bool any() const noexcept {
         for (size_t i = 0; i < bytes_size; ++i) {
             if (m_data[i] != 0) {
                 return true;
@@ -416,9 +420,9 @@ public:
         return false;
     }
 
-    WJR_CONST constexpr bool none() const noexcept { return !any(); }
+    WJR_PURE constexpr bool none() const noexcept { return !any(); }
 
-    WJR_CONST constexpr size_t count() const noexcept {
+    WJR_PURE constexpr size_t count() const noexcept {
         size_t cnt = 0;
         for (size_t i = 0; i < bytes_size; ++i) {
             cnt += popcount(m_data[i]);
@@ -427,7 +431,7 @@ public:
         return cnt;
     }
 
-    WJR_CONST constexpr size_t countr_one() const noexcept {
+    WJR_PURE constexpr size_t countr_one() const noexcept {
         for (size_t i = 0; i < bytes_size - 1; ++i) {
             int pos = wjr::countr_one(m_data[i]);
             if (pos != bits) {
@@ -501,7 +505,7 @@ constexpr bitset<N>::bitset(std::basic_string_view<Char, Traits> str, size_t pos
             for (size_t i = 0; i < bits; ++i) {
                 const auto ch = ptr[-i - 1];
                 if (Traits::eq(ch, one)) {
-                    val |= static_cast<bit_type>(ch) << i;
+                    val |= static_cast<bit_type>(1) << i;
                 } else if (!Traits::eq(ch, zero)) {
                     WJR_THROW(std::invalid_argument("invalid bitset char"));
                 }
@@ -518,7 +522,7 @@ constexpr bitset<N>::bitset(std::basic_string_view<Char, Traits> str, size_t pos
             for (size_t i = 0; i < count; ++i) {
                 const auto ch = ptr[-i - 1];
                 if (Traits::eq(ch, one)) {
-                    val |= static_cast<bit_type>(ch) << i;
+                    val |= static_cast<bit_type>(1) << i;
                 } else if (!Traits::eq(ch, zero)) {
                     WJR_THROW(std::invalid_argument("invalid bitset char"));
                 }
