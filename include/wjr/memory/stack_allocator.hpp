@@ -78,8 +78,11 @@ private:
     }
 
     void __small_deallocate(const stack_context &context) noexcept {
-        const auto prev = context.m_idx;
+        if (context.m_ptr == nullptr)
+            return;
         m_cache.ptr = context.m_ptr;
+
+        const auto prev = context.m_idx;
         // Fast path.
         if (WJR_LIKELY(m_idx == prev)) {
             return;
@@ -158,7 +161,7 @@ namespace mem {
  * @note Shared library may use different stack_allocator_object instance. If applied for and
  * released from the same library, there is generally no problem.
  *
- * @todo Fix.
+ * @todo Fix!!! This is an important issue.
  *
  */
 inline thread_local stack_allocator_object __stack_allocator_singleton_object;

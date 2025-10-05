@@ -1,11 +1,11 @@
 #include "detail.hpp"
 
-#include <wjr/memory/stack_allocator.hpp>
 #include <wjr/crtp/trivially_allocator_base.hpp>
+#include <wjr/memory/stack_allocator.hpp>
 
 using namespace wjr;
 
-TEST(memory, stack_allocator) {
+TEST(stack_allocator, simple_test) {
     static_assert(is_trivially_allocator_v<weak_stack_allocator<char>>, "error");
 
     do {
@@ -25,4 +25,3 @@ TEST(memory, stack_allocator) {
         (void)stkal.allocate(16);
     } while (false);
 }
-
