@@ -56,9 +56,9 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t subc_1(uint64_t *dst, const uint64_t *src0, s
     return __subc_1_impl(dst, src0, n, src1, c_in);
 }
 
-WJR_INTRINSIC_CONSTEXPR uint64_t fallback_subc_n(uint64_t *dst, const uint64_t *src0,
-                                                 const uint64_t *src1, size_t n,
-                                                 uint64_t c_in) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_subc_n(uint64_t *dst, const uint64_t *src0,
+                                                   const uint64_t *src1, size_t n,
+                                                   uint64_t c_in) noexcept {
     size_t m = n / 4;
 
     for (size_t i = 0; i < m; ++i) {

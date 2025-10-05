@@ -74,8 +74,7 @@ class RandomSeq {
     using iterator = typename vector_type::iterator;
 
 public:
-    RandomSeq(uint64_t Min = 0, uint64_t Max = UINT64_MAX, int len = N)
-        : vec(len) {
+    RandomSeq(uint64_t Min = 0, uint64_t Max = UINT64_MAX, int len = N) : vec(len) {
         std::uniform_int_distribution<uint64_t> dis(Min, Max);
         for (auto &x : vec) {
             x = dis(__mt_rand);
@@ -84,6 +83,8 @@ public:
         now = vec.begin();
         WJR_CHECK(now != vec.end());
     }
+
+    RandomSeq(const RandomSeq &) = delete;
 
     uint64_t operator()() {
         auto x = *now++;

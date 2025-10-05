@@ -247,7 +247,7 @@ static void wjr_div_qr_2(benchmark::State &state) {
     std::vector<uint64_t> a(n), b(N + 1), q(n), r(2);
 
     RandomSeq seq(1);
-    std::generate(b.begin(), b.end(), seq);
+    std::generate(b.begin(), b.end(), std::ref(seq));
 
     int64_t i = 0;
 
@@ -271,7 +271,7 @@ static void wjr_div_qr_s(benchmark::State &state) {
         state,
         [&]() {
             std::generate(a.begin(), a.end(), mt_rand);
-            std::generate(b.begin(), b.end(), seq);
+            std::generate(b.begin(), b.end(), std::ref(seq));
         },
         [&]() { wjr::div_qr_s(q.data(), r.data(), a.data(), n, b.data(), m); });
 }
@@ -606,7 +606,7 @@ static void gmp_div_qr_2(benchmark::State &state) {
     std::vector<uint64_t> a(n), b(N + 1), q(n), r(2);
 
     RandomSeq seq(1);
-    std::generate(b.begin(), b.end(), seq);
+    std::generate(b.begin(), b.end(), std::ref(seq));
 
     int64_t i = 0;
 
@@ -630,7 +630,7 @@ static void gmp_div_qr_s(benchmark::State &state) {
         state,
         [&]() {
             std::generate(a.begin(), a.end(), mt_rand);
-            std::generate(b.begin(), b.end(), seq);
+            std::generate(b.begin(), b.end(), std::ref(seq));
         },
         [&]() { mpn_tdiv_qr(q.data(), r.data(), 0, a.data(), n, b.data(), m); });
 }

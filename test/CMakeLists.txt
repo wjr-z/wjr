@@ -31,6 +31,10 @@ else()
    message(STATUS "GMP library not found, tests will be built without GMP support.")
 endif()
 
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+set(BUILD_GTEST ON CACHE BOOL "" FORCE)
+
 if(EXISTS googletest)
    add_subdirectory(googletest)
 else()
@@ -39,10 +43,6 @@ else()
       GIT_REPOSITORY https://github.com/google/googletest.git
       GIT_TAG v1.17.0
    )
-
-   set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-   set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
-   set(BUILD_GTEST ON CACHE BOOL "" FORCE)
 
    FetchContent_MakeAvailable(googletest)
 endif()

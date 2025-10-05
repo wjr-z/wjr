@@ -32,6 +32,10 @@ else()
     message(STATUS "GMP library not found, tests will be built without GMP support.")
 endif()
 
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+set(BUILD_GTEST ON CACHE BOOL "" FORCE)
+
 if(EXISTS googletest)
     add_subdirectory(googletest)
 else()
@@ -42,12 +46,11 @@ else()
         GIT_SHALLOW ON
     )
 
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
-    set(BUILD_GTEST ON CACHE BOOL "" FORCE)
-
     FetchContent_MakeAvailable(googletest)
 endif()
+
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
+set(BENCHMARK_ENABLE_WERROR OFF CACHE BOOL "Suppressing warnings as errors" FORCE)
 
 if(EXISTS benchmark)
     add_subdirectory(benchmark)
@@ -58,8 +61,6 @@ else()
         GIT_TAG v1.9.0
         GIT_SHALLOW ON
     )
-    set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
-    set(BENCHMARK_ENABLE_WERROR OFF CACHE BOOL "Suppressing warnings as errors" FORCE)
     FetchContent_MakeAvailable(benchmark)
 endif()
 
