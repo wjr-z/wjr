@@ -13,6 +13,10 @@ namespace __scopy_detail {
     #define WJR_ENABLE_SCOPY
 #endif
 
+#if WJR_HAS_SIMD(AVX2)
+    #define WJR_ENABLE_SCOPY_16
+#endif
+
 template <size_t Size, size_t N, size_t MaxN>
 WJR_INTRINSIC_INLINE void copy(const uint_t<Size> *first, const uint_t<Size> *last,
                                uint_t<Size> *ds, uint_t<Size> *de) noexcept {
@@ -42,12 +46,32 @@ WJR_INTRINSIC_INLINE void __small_copy_impl(const uint_t<Size> *first, const uin
     WJR_ASSERT_ASSUME_L3(n >= Min && n <= Max);
 
 #if defined(WJR_ENABLE_SCOPY)
-    if constexpr (Max > 8) {
-        if (WJR_UNLIKELY(n > 8)) {
-            std::memmove(dst, first, n * (Size / 8));
-            return;
+    #if defined(WJR_ENABLE_SCOPY_16)
+    if constexpr (Size <= 32) {
+        if constexpr (Max > 16) {
+            if (WJR_UNLIKELY(n > 16)) {
+                std::memmove(dst, first, n * (Size / 8));
+                return;
+            }
         }
+
+        if constexpr (Max > 8) {
+            if (WJR_UNLIKELY(n > 8)) {
+                __scopy_detail::copy<Size, 8, Max>(first, last, dst, dst + n);
+                return;
+            }
+        }
+    } else {
+    #endif
+        if constexpr (Max > 8) {
+            if (WJR_UNLIKELY(n > 8)) {
+                std::memmove(dst, first, n * (Size / 8));
+                return;
+            }
+        }
+    #if defined(WJR_ENABLE_SCOPY_16)
     }
+    #endif
 
     if constexpr (Max > 4) {
         if (WJR_UNLIKELY(n > 4)) {
