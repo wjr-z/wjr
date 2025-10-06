@@ -42,6 +42,7 @@ struct compressed_sentinel_trait_base {
     }
 };
 
+/// @private Base implementation for compressed trivial sentinel trait
 namespace detail {
 template <typename T, T uniq_sentinel>
 struct __compressed_trivial_sentinel_trait_base

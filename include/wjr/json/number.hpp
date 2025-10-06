@@ -57,6 +57,7 @@ WJR_INTRINSIC_INLINE from_chars_result<> from_chars_json(const char *first, cons
 
 } // namespace number_detail
 
+/// @private Number parsing implementation
 namespace detail {
 WJR_PURE WJR_INTRINSIC_INLINE result<void> parse_number(const char *first, const char *last,
                                                         basic_value &value) noexcept {

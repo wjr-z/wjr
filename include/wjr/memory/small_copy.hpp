@@ -6,7 +6,9 @@
 #include <wjr/math/bit.hpp>
 
 namespace wjr {
+/// @private Internal implementation details for memory operations
 namespace detail {
+/// @private Small copy optimization details using SIMD instructions
 namespace __scopy_detail {
 
 #if WJR_HAS_SIMD(SSE)
@@ -17,6 +19,7 @@ namespace __scopy_detail {
     #define WJR_ENABLE_SCOPY_16
 #endif
 
+/// @private SIMD-based copy for small fixed-size ranges
 template <size_t Size, size_t N, size_t MaxN>
 WJR_INTRINSIC_INLINE void copy(const uint_t<Size> *first, const uint_t<Size> *last,
                                uint_t<Size> *ds, uint_t<Size> *de) noexcept {
@@ -33,6 +36,7 @@ WJR_INTRINSIC_INLINE void copy(const uint_t<Size> *first, const uint_t<Size> *la
 
 } // namespace __scopy_detail
 
+/// @private Implementation for small copy optimization based on size range
 template <size_t Size, size_t Min, size_t Max>
 WJR_INTRINSIC_INLINE void __small_copy_impl(const uint_t<Size> *first, const uint_t<Size> *last,
                                             uint_t<Size> *dst) noexcept {

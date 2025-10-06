@@ -30,6 +30,7 @@ inline constexpr std::array<uint8_t, 256> escape_table = {
 
 } // namespace string_detail
 
+/// @private String parsing implementation
 namespace detail {
 
 inline result<char *> parse_string(char *dst, const char *first, const char *last) noexcept {

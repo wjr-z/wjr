@@ -82,22 +82,26 @@ constexpr T *to_contiguous_address(T *ptr) noexcept {
     return ptr;
 }
 
+/// @private Get base pointer from iterator (unwrap)
 template <typename Iter>
 constexpr auto __iter_base(Iter iter) {
     // todo: ...
     return to_contiguous_address(iter);
 }
 
+/// @private Wrap result iterator (identity case)
 template <typename Iter>
 constexpr auto __iter_wrap(const Iter &, Iter res) {
     return res;
 }
 
+/// @private Wrap result iterator based on original iterator offset
 template <typename From, typename To>
 constexpr auto __iter_wrap(const From &from, To res) {
     return from + (res - wjr::__iter_base(from));
 }
 
+/// @private Add restrict qualifier to iterator
 template <typename Iter>
 constexpr add_restrict_t<Iter> __add_restrict(Iter iter) {
     return iter;

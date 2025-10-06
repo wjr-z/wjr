@@ -390,12 +390,15 @@ struct unref_wrapper {
 template <typename T>
 using unref_wrapper_t = typename unref_wrapper<T>::type;
 
+/// @private Internal implementation helper for default convertibility check
 template <typename T, typename = void>
 struct __is_default_convertible : std::false_type {};
 
+/// @private Test function for default convertibility
 template <typename T>
 void __test_default_convertible(const T &);
 
+/// @private Specialization for types that are default convertible
 template <typename T>
 struct __is_default_convertible<T, std::void_t<decltype(__test_default_convertible<T>({}))>>
     : std::true_type {};
@@ -517,9 +520,11 @@ WJR_CONST constexpr bool in_range(WJR_MAYBE_UNUSED U value) noexcept {
     }
 }
 
+/// @private Internal implementation for checking if From can be converted to To without value loss
 template <typename From, typename To, typename Enable = void>
 struct __is_value_preserving_impl : std::false_type {};
 
+/// @private Specialization for integral types
 template <typename From, typename To>
 struct __is_value_preserving_impl<From, To, std::enable_if_t<std::is_integral_v<From>>>
     : std::bool_constant<in_range<To>(std::numeric_limits<From>::min()) &&
@@ -623,33 +628,36 @@ public:
     using __type = typename __match::__type;
 };
 
+/// @private Helper for copying cv-qualifiers from one type to another
 template <typename From, typename To>
 using __copy_cv = typename __match_cv_qualifiers<From, To>::__type;
 
+/// @private COND-RES operation for common reference computation
 template <typename Xp, typename Yp>
 using __cond_res = decltype(false ? std::declval<Xp (&)()>()() : std::declval<Yp (&)()>()());
 
+/// @private Base implementation for COMMON-REF computation
 template <typename _Ap, typename _Bp, typename = void>
 struct __common_ref_impl {};
 
-// [meta.trans.other], COMMON-REF(A, B)
+/// @private Type alias for COMMON-REF(A, B)
 template <typename _Ap, typename _Bp>
 using __common_ref = typename __common_ref_impl<_Ap, _Bp>::type;
 
-// COND-RES(COPYCV(X, Y) &, COPYCV(Y, X) &)
+/// @private COND-RES with cv-qualifiers copied
 template <typename _Xp, typename _Yp>
 using __condres_cvref = __cond_res<__copy_cv<_Xp, _Yp> &, __copy_cv<_Yp, _Xp> &>;
 
-// If A and B are both lvalue reference types, ...
+/// @private Specialization for both lvalue reference types
 template <typename _Xp, typename _Yp>
 struct __common_ref_impl<_Xp &, _Yp &, std::void_t<__condres_cvref<_Xp, _Yp>>>
     : std::enable_if<std::is_reference_v<__condres_cvref<_Xp, _Yp>>, __condres_cvref<_Xp, _Yp>> {};
 
-// let C be remove_reference_t<COMMON-REF(X&, Y&)>&&
+/// @private Helper C for rvalue reference case
 template <typename _Xp, typename _Yp>
 using __common_ref_C = std::remove_reference_t<__common_ref<_Xp &, _Yp &>> &&;
 
-// If A and B are both rvalue reference types, ...
+/// @private Specialization for both rvalue reference types
 template <typename _Xp, typename _Yp>
 struct __common_ref_impl<
     _Xp &&, _Yp &&,
@@ -658,21 +666,22 @@ struct __common_ref_impl<
     using type = __common_ref_C<_Xp, _Yp>;
 };
 
-// let D be COMMON-REF(const X&, Y&)
+/// @private Helper D for mixed reference case
 template <typename _Xp, typename _Yp>
 using __common_ref_D = __common_ref<const _Xp &, _Yp &>;
 
-// If A is an rvalue reference and B is an lvalue reference, ...
+/// @private Specialization for rvalue and lvalue reference
 template <typename _Xp, typename _Yp>
 struct __common_ref_impl<
     _Xp &&, _Yp &, std::enable_if_t<std::is_convertible_v<_Xp &&, __common_ref_D<_Xp, _Yp>>>> {
     using type = __common_ref_D<_Xp, _Yp>;
 };
 
-// If A is an lvalue reference and B is an rvalue reference, ...
+/// @private Specialization for lvalue and rvalue reference (symmetric case)
 template <typename _Xp, typename _Yp>
 struct __common_ref_impl<_Xp &, _Yp &&> : __common_ref_impl<_Yp &&, _Xp &> {};
 
+/// @private Base for basic_common_reference customization point
 template <typename Tp, typename Up, template <typename> typename TQual,
           template <typename> typename UQual, typename Enable = void>
 struct __basic_common_reference_impl {};
@@ -721,6 +730,7 @@ struct common_reference<Tp0> {
     using type = Tp0;
 };
 
+/// @private Internal implementation for common_reference computation following C++20 rules
 template <typename Tp1, typename Tp2, int _Bullet = 1, typename = void>
 struct __common_reference_impl : __common_reference_impl<Tp1, Tp2, _Bullet + 1> {};
 
@@ -728,46 +738,49 @@ struct __common_reference_impl : __common_reference_impl<Tp1, Tp2, _Bullet + 1> 
 template <typename Tp1, typename Tp2>
 struct common_reference<Tp1, Tp2> : __common_reference_impl<Tp1, Tp2> {};
 
-// If T1 and T2 are reference types and COMMON-REF(T1, T2) is well-formed, ...
+/// @private Bullet 1: Both are lvalue references
 template <typename Tp1, typename Tp2>
 struct __common_reference_impl<Tp1 &, Tp2 &, 1, std::void_t<__common_ref<Tp1 &, Tp2 &>>> {
     using type = __common_ref<Tp1 &, Tp2 &>;
 };
 
+/// @private Bullet 1: Both are rvalue references
 template <typename Tp1, typename Tp2>
 struct __common_reference_impl<Tp1 &&, Tp2 &&, 1, std::void_t<__common_ref<Tp1 &&, Tp2 &&>>> {
     using type = __common_ref<Tp1 &&, Tp2 &&>;
 };
 
+/// @private Bullet 1: Lvalue and rvalue reference
 template <typename Tp1, typename Tp2>
 struct __common_reference_impl<Tp1 &, Tp2 &&, 1, std::void_t<__common_ref<Tp1 &, Tp2 &&>>> {
     using type = __common_ref<Tp1 &, Tp2 &&>;
 };
 
+/// @private Bullet 1: Rvalue and lvalue reference
 template <typename Tp1, typename Tp2>
 struct __common_reference_impl<Tp1 &&, Tp2 &, 1, std::void_t<__common_ref<Tp1 &&, Tp2 &>>> {
     using type = __common_ref<Tp1 &&, Tp2 &>;
 };
 
-// Otherwise, if basic_common_reference<...>::type is well-formed, ...
+/// @private Bullet 2: basic_common_reference customization point
 template <typename Tp1, typename Tp2>
 struct __common_reference_impl<Tp1, Tp2, 2, std::void_t<__basic_common_ref<Tp1, Tp2>>> {
     using type = __basic_common_ref<Tp1, Tp2>;
 };
 
-// Otherwise, if COND-RES(T1, T2) is well-formed, ...
+/// @private Bullet 3: COND-RES conditional result
 template <typename Tp1, typename Tp2>
 struct __common_reference_impl<Tp1, Tp2, 3, std::void_t<__cond_res<Tp1, Tp2>>> {
     using type = __cond_res<Tp1, Tp2>;
 };
 
-// Otherwise, if common_type_t<T1, T2> is well-formed, ...
+/// @private Bullet 4: common_type fallback
 template <typename Tp1, typename Tp2>
 struct __common_reference_impl<Tp1, Tp2, 4, std::void_t<std::common_type_t<Tp1, Tp2>>> {
     using type = std::common_type_t<Tp1, Tp2>;
 };
 
-// Otherwise, there shall be no member type.
+/// @private Bullet 5: No common reference found
 template <typename Tp1, typename Tp2>
 struct __common_reference_impl<Tp1, Tp2, 5, void> {};
 
@@ -806,14 +819,17 @@ struct get_relocate_mode {
 template <typename T>
 inline constexpr relocate_t get_relocate_mode_v = get_relocate_mode<T>::value;
 
+/// @private Internal implementation for computing common relocate mode
 template <relocate_t Mode, typename... Args>
 struct __get_common_relocate_mode_impl;
 
+/// @private Base case: no more types to check
 template <relocate_t Mode>
 struct __get_common_relocate_mode_impl<Mode> {
     static constexpr relocate_t value = Mode;
 };
 
+/// @private Recursive case: combine current mode with remaining types
 template <relocate_t Mode, typename T, typename... Args>
 struct __get_common_relocate_mode_impl<Mode, T, Args...> {
     static constexpr relocate_t value = static_cast<relocate_t>(
@@ -826,15 +842,19 @@ struct get_common_relocate_mode : __get_common_relocate_mode_impl<relocate_t::tr
 template <typename... Args>
 inline constexpr relocate_t get_common_relocate_mode_v = get_common_relocate_mode<Args...>::value;
 
+/// @private Helpers for invoke and reference wrapper handling
 namespace detail {
+/// @private Check if type is std::reference_wrapper
 template <typename>
 struct is_ref_wrapper : std::false_type {};
 template <typename T>
 struct is_ref_wrapper<std::reference_wrapper<T>> : std::true_type {};
 
+/// @private Negation of is_ref_wrapper
 template <typename T>
 using not_ref_wrapper = std::negation<is_ref_wrapper<std::decay_t<T>>>;
 
+/// @private Helper for determining invoke result type
 template <typename D, typename...>
 struct return_type_helper {
     using type = D;

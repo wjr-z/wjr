@@ -52,6 +52,7 @@ namespace dragonbox {
 ////////////////////////////////////////////////////////////////////////////////////////
 // Some basic features for encoding/decoding IEEE-754 formats.
 ////////////////////////////////////////////////////////////////////////////////////////
+/// @private Internal implementation details for Dragonbox algorithm
 namespace detail {
 template <class T>
 struct physical_bits {
@@ -324,6 +325,7 @@ WJR_CONSTEXPR20 float_bits<FormatTraits> make_float_bits(Float x) noexcept {
     return float_bits<FormatTraits>(ConversionTraits::float_to_carrier(x));
 }
 
+/// @private Internal implementation details for wide unsigned integer arithmetic
 namespace detail {
 ////////////////////////////////////////////////////////////////////////////////////////
 // Utilities for wide unsigned integer arithmetic.

@@ -122,6 +122,7 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
 
 #if WJR_HAS_FEATURE(STRING_UNINITIALIZED_RESIZE)
 
+/// @private Implementation for uninitialized resize operation
 template <typename Container>
 struct __uninitialized_resize_fn_impl : resize_fn_impl_base<Container> {
     using resize_fn_impl_base<Container>::resize;
@@ -131,6 +132,7 @@ struct __uninitialized_resize_fn_impl : resize_fn_impl_base<Container> {
     }
 };
 
+/// @private Implementation for uninitialized append operation
 template <typename Container>
 struct __uninitialized_append_fn_impl : append_fn_impl_base<Container> {
     using append_fn_impl_base<Container>::append;

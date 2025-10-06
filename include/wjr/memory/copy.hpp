@@ -22,6 +22,7 @@
 
 namespace wjr {
 
+/// @private Internal implementation for optimized copy operation
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt __copy_impl(InputIt first, InputIt last, OutputIt d_first) {
     using Out = remove_cvref_t<OutputIt>;
@@ -99,6 +100,7 @@ constexpr OutputIt copy_restrict(InputIt first, InputIt last, OutputIt d_first) 
     }
 }
 
+/// @private Internal implementation for optimized copy_n operation
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt __copy_n_impl(InputIt first, Size count, OutputIt d_first) {
     using Out = remove_cvref_t<OutputIt>;

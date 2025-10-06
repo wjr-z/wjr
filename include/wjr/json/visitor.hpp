@@ -23,6 +23,7 @@
 
 namespace wjr::json {
 
+/// @private Internal implementation details for JSON visitor operations
 namespace detail {
 
 WJR_PURE WJR_INTRINSIC_INLINE bool is_invalid_token(const char *ptr, uint32_t start, uint32_t end,

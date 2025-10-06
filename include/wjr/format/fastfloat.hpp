@@ -196,6 +196,7 @@ WJR_INTRINSIC_INLINE uint128_t compute_product_approximation(int64_t q, uint64_t
     return firstproduct;
 }
 
+/// @private Internal implementation details for fast float parsing
 namespace detail {
 /**
  * For q in (0,350), we have that
@@ -458,6 +459,7 @@ extern template adjusted_mantissa digit_comp<double>(adjusted_mantissa am, span<
                                                      span<const char> fraction,
                                                      int32_t sci_exp) noexcept;
 
+/// @private Special case handling for infinity and NaN
 namespace detail {
 /**
  * Special case +inf, -inf, nan, infinity, -infinity.

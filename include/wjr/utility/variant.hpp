@@ -55,19 +55,24 @@ constexpr decltype(auto) match(Var &&var, Args &&...args) {
                       std::forward<Var>(var));
 }
 
+/// @private Internal implementation details for variant visitation
 namespace visit_detail {
+/// @private Helper for computing total index from multi-dimensional variant access
 template <typename Sizes, typename T>
 struct __tp_list_total;
 
+/// @private Type alias for computed total
 template <typename Sizes, typename T>
 inline constexpr size_t __tp_list_multiply_v = __tp_list_total<Sizes, T>::value;
 
+/// @private Base case for single-dimensional access
 template <size_t Size, size_t Idx>
 struct __tp_list_total<tp_list<integral_constant<size_t, Size>>, tp_indexs_list_t<Idx>> {
     static constexpr size_t value = Idx;
     static constexpr size_t total = Size;
 };
 
+/// @private Recursive case for multi-dimensional access
 template <size_t Size, typename... Sizes, size_t Idx, size_t... Rest>
 struct __tp_list_total<tp_list<integral_constant<size_t, Size>, Sizes...>,
                        tp_indexs_list_t<Idx, Rest...>> {
@@ -76,17 +81,20 @@ struct __tp_list_total<tp_list<integral_constant<size_t, Size>, Sizes...>,
     static constexpr size_t total = Size * __Rest::total;
 };
 
+/// @private Access a specific index in the variant index pack
 template <typename PIndexs, size_t Idx, typename = void>
 struct __tp_indexs_access {
     static constexpr size_t value =
         __tp_list_total<tp_front_t<PIndexs>, tp_at_t<tp_back_t<PIndexs>, Idx>>::value;
 };
 
+/// @private Specialization for out-of-bounds index access
 template <typename PIndexs, size_t Idx>
 struct __tp_indexs_access<PIndexs, Idx, std::enable_if_t<(Idx >= tp_size_v<PIndexs>)>> {
     static constexpr size_t value = __tp_indexs_access<PIndexs, Idx - 1>::value + 1;
 };
 
+/// @private Execute visitor with expanded index pack
 template <size_t... Idxs, typename Callable, typename... Getter>
 constexpr decltype(auto) __execute(tp_indexs_list_t<Idxs...>, Callable &&func, Getter &&...getter) {
     return std::forward<Callable>(func)(
@@ -148,6 +156,7 @@ default: {                                                                      
         }                                                                                          \
     }
 
+/// @private Switch-based visitor helper for efficient variant visitation
 template <size_t SZ>
 struct __siwtch_visitor_helper;
 
@@ -168,20 +177,24 @@ WJR_REGISTER_SWITCH_VISITOR(256);
 #undef WJR_REGISTER_SWITCH_CASE_2
 #undef WJR_REGISTER_SWITCH_CASE
 
+/// @private Determine appropriate switch case size based on variant size
 constexpr size_t __switch_visitor_SZ(size_t size) {
     return size <= 2 ? 2 : size <= 4 ? 4 : size <= 8 ? 8 : size <= 16 ? 16 ? size <= 64 : 64 : 256;
 }
 
+/// @private Result structure for multi-variant index calculation
 struct __Index_result {
     size_t acc;
     size_t total;
 };
 
+/// @private Base case for index computation
 template <template <typename> typename Accessor>
 constexpr __Index_result __get_index() {
     return {0, 1};
 }
 
+/// @private Recursive index computation for multiple variants
 template <template <typename> typename Accessor, typename T, typename... Getter>
 constexpr decltype(auto) __get_index(const T &first, const Getter &...getter) {
     auto __result = __get_index<Accessor>(getter...);
@@ -190,6 +203,7 @@ constexpr decltype(auto) __get_index(const T &first, const Getter &...getter) {
     return __result;
 }
 
+/// @private Wrap accessor for delayed execution
 template <template <typename> typename Accessor, typename T>
 constexpr decltype(auto) __accessor_wrapper(T &&t) {
     return [_t = std::forward<T>(t)](auto ic) mutable {
@@ -197,6 +211,7 @@ constexpr decltype(auto) __accessor_wrapper(T &&t) {
     };
 }
 
+/// @private Main visit implementation dispatcher
 template <typename PIndexs, typename Callable, typename... Getter>
 constexpr decltype(auto) __visit_impl(size_t index, PIndexs, Callable &&func, Getter &&...getter) {
     constexpr size_t SZ = visit_detail::__switch_visitor_SZ(tp_size_v<tp_back_t<PIndexs>>);

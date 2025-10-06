@@ -99,8 +99,10 @@ constexpr OutputIt merge(InputIt1 first1, InputIt1 last1, InputIt2 first2, Input
     return dst;
 }
 
+/// @private Internal implementation details for sorting algorithms
 namespace algorithm_detail {
 
+/// @private Insertion sort implementation for small ranges
 template <typename Iter, typename Pred>
 constexpr void __insertion_sort(Iter first, Iter last, Pred pred) {
     if (first != last) {
@@ -130,8 +132,10 @@ constexpr void __insertion_sort(Iter first, Iter last, Pred pred) {
     }
 }
 
+/// @private Threshold for switching to insertion sort
 inline constexpr size_t __insertion_sort_threshold = in_place_max;
 
+/// @private Main sort implementation dispatcher
 template <typename Iter, typename Pred>
 constexpr void __sort_impl(Iter first, Iter last, Pred pred) {
     __insertion_sort(first, last, pred);

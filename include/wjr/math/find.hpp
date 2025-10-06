@@ -19,7 +19,9 @@
 #endif
 
 namespace wjr {
+/// @private Internal helpers for find operations
 namespace detail {
+/// @private Check if iterator is reverse iterator
 template <typename Iter>
 struct __find_is_reverse_iter : std::false_type {};
 
@@ -29,6 +31,7 @@ struct __find_is_reverse_iter<std::reverse_iterator<Iter>> : std::true_type {};
 template <typename Iter>
 inline constexpr bool __find_is_reverse_iter_v = __find_is_reverse_iter<Iter>::value;
 
+/// @private Get offset for find operation considering direction
 template <bool reverse>
 WJR_INTRINSIC_CONSTEXPR size_t __find_get_offset(WJR_MAYBE_UNUSED size_t block,
                                                  size_t offset) noexcept {
@@ -57,6 +60,7 @@ WJR_INTRINSIC_CONSTEXPR auto __find_address(Iter iter) noexcept {
     }
 }
 
+/// @private Cast pointer to appropriate type for find operations
 template <typename T>
 constexpr auto __find_cast_ptr(const T *ptr) {
     if constexpr (std::is_integral_v<T>) {
@@ -132,6 +136,7 @@ WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_n(const T *src0, const T *sr
     return resolve_reverse_find_n_impl(__find_cast_ptr(src0), __find_cast_ptr(src1), n);
 }
 
+/// @private Large fallback implementation for finding value in iterator range
 template <typename Iter, typename T>
 constexpr size_t __large_fallback_find_n_iter_val_impl(Iter src, T val, size_t n) noexcept {
     constexpr bool reverse = __find_is_reverse_iter_v<Iter>;
@@ -308,6 +313,7 @@ WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_not_n(const T *src0, const T
     return resolve_reverse_find_not_n_impl(__find_cast_ptr(src0), __find_cast_ptr(src1), n);
 }
 
+/// @private Large fallback implementation for finding non-matching value in iterator range
 template <typename Iter, typename T>
 constexpr size_t __large_fallback_find_not_n_iter_val_impl(Iter src, T val, size_t n) noexcept {
     constexpr bool reverse = __find_is_reverse_iter_v<Iter>;

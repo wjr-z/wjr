@@ -19,17 +19,21 @@
 #endif
 
 namespace wjr::math {
+/// @private Internal implementation details for add/sub operations
 namespace detail {
+/// @private Check if value is constant or zero at compile time
 template <typename T>
 constexpr int __is_constant_or_zero(T x) noexcept {
     return WJR_BUILTIN_CONSTANT_P_TRUE(x == 0) ? 2 : WJR_BUILTIN_CONSTANT_P(x) ? 1 : 0;
 }
 
+/// @private Count number of constant or zero arguments
 template <typename... Args>
 constexpr int __count_constant_or_zero_impl(Args... args) noexcept {
     return (... + __is_constant_or_zero(args));
 }
 
+/// @private Wrapper for counting constant/zero arguments with compiler check
 template <typename... Args>
 constexpr int __count_constant_or_zero(Args... args) noexcept {
 #if WJR_HAS_BUILTIN(__builtin_constant_p)

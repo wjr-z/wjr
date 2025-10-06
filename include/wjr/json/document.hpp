@@ -36,6 +36,7 @@ struct is_document<basic_document<Traits>> : std::true_type {};
 template <typename T>
 inline constexpr bool is_document_v = is_document<T>::value;
 
+/// @private Internal implementation details for JSON document
 namespace detail {
 
 template <template <typename Char, typename Traits, typename Alloc> typename String,
@@ -477,6 +478,7 @@ void __document_destroy(T *ptr) noexcept(
     al.deallocate(ptr, 1);
 }
 
+/// @private Format implementation helper
 namespace detail {
 template <typename Formatter, typename Traits>
 void format_impl(Formatter fmt, const basic_document<Traits> &doc, unsigned int depth) noexcept;
@@ -1828,6 +1830,7 @@ template <typename Key, typename Value, typename Hash, typename Eq, typename All
 struct document_serializer_impl<std::unordered_multimap<Key, Value, Hash, Eq, Alloc>>
     : __document_serializer_array<std::unordered_multimap<Key, Value, Hash, Eq, Alloc>> {};
 
+/// @private Document parser implementation
 namespace detail {
 
 template <typename Document>
@@ -2201,6 +2204,7 @@ result<basic_document<Traits>> basic_document<Traits>::parse(ondemand_reader &rd
 
 inline result<void> check(ondemand_reader &rd) noexcept { return detail::check_parser::parse(rd); }
 
+/// @private Format implementation for document output
 namespace detail {
 
 template <typename Formatter, typename Traits>

@@ -11,6 +11,7 @@
 
 namespace wjr::utf8 {
 
+/// @private UTF-8 encoding/decoding lookup tables and helpers
 namespace detail {
 inline constexpr std::array<uint32_t, 886> digit_to_val32 = {
     0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,

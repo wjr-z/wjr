@@ -30,6 +30,7 @@ namespace wjr {
 
 static_assert(sizeof(char) == sizeof(uint8_t), "Not support currently.");
 
+/// @private Internal implementation details for character conversion
 namespace charconv_detail {
 
 WJR_CONST constexpr bool isspace(uint8_t ch) noexcept { return isSpace(ch); }
@@ -145,7 +146,8 @@ inline constexpr int is_fast_container_inserter_v = __is_fast_container_inserter
 
 } // namespace charconv_detail
 
-// require operator() of Converter is constexpr
+/// @private Precomputed conversion table for fast digit to character conversion
+/// @details Requires operator() of Converter to be constexpr
 template <typename Converter, uint32_t Base, int Unroll>
 class __char_converter_table_t {
     static constexpr uint32_t pw2 = Unroll == 2 ? Base * Base : Base * Base * Base * Base;
@@ -170,9 +172,11 @@ private:
     std::array<char, pw2 * Unroll> table;
 };
 
+/// @private Global instance of conversion table
 template <typename Converter, uint32_t Base, int Unroll>
 inline constexpr __char_converter_table_t<Converter, Base, Unroll> __char_converter_table{};
 
+/// @private Base class for 2-digit unroll conversion optimization
 template <uint64_t Base>
 class __to_chars_unroll_2_fast_fn_impl_base {
 public:
@@ -189,6 +193,7 @@ public:
     }
 };
 
+/// @private Specialization dispatcher for 2-digit unroll
 template <uint64_t Base>
 class __to_chars_unroll_2_fast_fn_impl {};
 
@@ -208,6 +213,7 @@ class __to_chars_unroll_2_fast_fn_impl<10> : public __to_chars_unroll_2_fast_fn_
 template <>
 class __to_chars_unroll_2_fast_fn_impl<16> : public __to_chars_unroll_2_fast_fn_impl_base<16> {};
 
+/// @private Base class for 4-digit unroll conversion optimization
 template <uint64_t Base>
 class __to_chars_unroll_4_fast_fn_impl_base {
 public:
@@ -229,6 +235,7 @@ public:
     }
 };
 
+/// @private Specialization dispatcher for 4-digit unroll
 template <uint64_t Base>
 class __to_chars_unroll_4_fast_fn_impl {};
 
@@ -248,6 +255,7 @@ class __to_chars_unroll_4_fast_fn_impl<10> : public __to_chars_unroll_4_fast_fn_
 template <>
 class __to_chars_unroll_4_fast_fn_impl<16> : public __to_chars_unroll_4_fast_fn_impl_base<16> {};
 
+/// @private Base class for 8-digit unroll conversion optimization (decimal only)
 template <uint64_t Base>
 class __to_chars_unroll_8_fast_fn_impl_base {
     static_assert(Base == 10);
@@ -261,6 +269,7 @@ public:
 #endif
 };
 
+/// @private Specialization dispatcher for 8-digit unroll
 template <uint64_t Base>
 class __to_chars_unroll_8_fast_fn_impl {};
 
@@ -268,6 +277,7 @@ class __to_chars_unroll_8_fast_fn_impl {};
 template <>
 class __to_chars_unroll_8_fast_fn_impl<10> : public __to_chars_unroll_8_fast_fn_impl_base<10> {};
 
+/// @private Base class for 16-digit unroll conversion optimization
 template <uint64_t Base>
 class __to_chars_unroll_16_fast_fn_impl_base {
 public:
@@ -279,6 +289,7 @@ public:
 #endif
 };
 
+/// @private Specialization dispatcher for 16-digit unroll
 template <uint64_t Base>
 class __to_chars_unroll_16_fast_fn_impl {};
 
@@ -286,6 +297,7 @@ class __to_chars_unroll_16_fast_fn_impl {};
 template <>
 class __to_chars_unroll_16_fast_fn_impl<10> : public __to_chars_unroll_16_fast_fn_impl_base<10> {};
 
+/// @private Functor for 2-digit unroll conversion
 template <uint64_t Base>
 class __to_chars_unroll_2_fn : public __to_chars_unroll_2_fast_fn_impl<Base> {
     using Mybase = __to_chars_unroll_2_fast_fn_impl<Base>;
@@ -307,6 +319,7 @@ public:
 template <uint64_t Base>
 inline constexpr __to_chars_unroll_2_fn<Base> __to_chars_unroll_2{};
 
+/// @private Functor for 4-digit unroll conversion
 template <uint64_t Base>
 class __to_chars_unroll_4_fn_impl : public __to_chars_unroll_4_fast_fn_impl<Base> {
     using Mybase = __to_chars_unroll_4_fast_fn_impl<Base>;
@@ -329,6 +342,7 @@ public:
 template <uint64_t Base>
 inline constexpr __to_chars_unroll_4_fn_impl<Base> __to_chars_unroll_4{};
 
+/// @private Functor for 8-digit unroll conversion
 template <uint64_t Base>
 class __to_chars_unroll_8_fn_impl : public __to_chars_unroll_8_fast_fn_impl<Base> {
     using Mybase = __to_chars_unroll_8_fast_fn_impl<Base>;
@@ -351,6 +365,7 @@ public:
 template <uint64_t Base>
 inline constexpr __to_chars_unroll_8_fn_impl<Base> __to_chars_unroll_8{};
 
+/// @private Functor for 16-digit unroll conversion
 template <uint64_t Base>
 class __to_chars_unroll_16_fn_impl : public __to_chars_unroll_16_fast_fn_impl<Base> {
     using Mybase = __to_chars_unroll_16_fast_fn_impl<Base>;
@@ -373,6 +388,7 @@ public:
 template <uint64_t Base>
 inline constexpr __to_chars_unroll_16_fn_impl<Base> __to_chars_unroll_16{};
 
+/// @private Base class for 4-digit from_chars fast conversion
 template <uint64_t Base>
 class __from_chars_unroll_4_fast_fn_impl_base {
 protected:
@@ -392,6 +408,7 @@ public:
     }
 };
 
+/// @private Base class for 8-digit from_chars fast conversion
 template <uint64_t Base>
 class __from_chars_unroll_8_fast_fn_impl_base {
 protected:
@@ -682,12 +699,15 @@ struct count_digits_fn<10> {
     }
 };
 
-// Base :
-// 0 : dynamic base
-// 1 : base is power of two
+/// @private Functor for backward (right-to-left) unsigned to_chars conversion
+/// @details Base encoding:
+/// - 0: dynamic base
+/// - 1: base is power of two
+/// - Other: specific base value
 template <uint64_t Base>
 class __unsigned_to_chars_backward_unchecked_fn {};
 
+/// @private Global instance for backward conversion
 template <uint64_t Base>
 inline constexpr __unsigned_to_chars_backward_unchecked_fn<Base>
     __unsigned_to_chars_backward_unchecked{};
@@ -1017,6 +1037,7 @@ Iter to_chars_backward_unchecked(Iter first, Value val, IBase base, Converter co
     return to_chars_backward_unchecked_dynamic(first, val, static_cast<unsigned int>(base), conv);
 }
 
+/// @private Fast to_chars implementation for contiguous bytes
 template <typename Value, typename IBase, typename Converter>
 to_chars_result<uint8_t *> __fast_to_chars_impl(uint8_t *first, uint8_t *last, Value val,
                                                 IBase ibase, Converter conv) noexcept {
@@ -1107,6 +1128,7 @@ to_chars_result<uint8_t *> __fast_to_chars_impl(uint8_t *first, uint8_t *last, V
     return {last, std::errc::value_too_large};
 }
 
+/// @private Fallback to_chars implementation for non-contiguous iterators
 template <typename Iter, typename Value, typename IBase, typename Converter>
 to_chars_result<Iter> __fallback_to_chars_impl(Iter first, Iter last, Value val, IBase ibase,
                                                Converter conv) noexcept {
@@ -1244,6 +1266,7 @@ to_chars_result<Iter> __fallback_to_chars_impl(Iter first, Iter last, Value val,
 #undef WJR_TO_CHARS_VALIDATE_IMPL
 }
 
+/// @private Internal to_chars implementation dispatcher
 template <typename Iter, typename Value, typename IBase, typename Converter>
 to_chars_result<Iter> __to_chars_impl(Iter first, Iter last, Value val, IBase ibase,
                                       Converter conv) noexcept {
@@ -1408,6 +1431,7 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase, Conver
 #undef WJR_TO_CHARS_IMPL
 }
 
+/// @private Internal to_chars_unchecked implementation dispatcher
 template <typename Iter, typename Value, typename IBase, typename Converter>
 Iter __to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase, Converter conv) noexcept {
     if constexpr (charconv_detail::__is_fast_convert_iterator_v<Iter>) {
@@ -1419,12 +1443,22 @@ Iter __to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase, Converter conv)
     }
 }
 /**
- * @brief Convert an unsigned integer to a string with checking buf size.
+ * @brief Convert unsigned integer to string with buffer size checking
  *
+ * @tparam Iter Output iterator type
+ * @tparam Value Unsigned integer type to convert
+ * @tparam IBase Numeric base (compile-time constant), default 10
+ * @tparam Converter Character converter type, default char_converter_t
+ * @param ptr Iterator to start of output buffer
+ * @param last Iterator to end of output buffer
+ * @param val Value to convert
+ * @param ic Base as integral_constant (default 10_u)
+ * @param conv Converter instance
+ * @return to_chars_result<Iter> Result with ptr past last written char, or {last,
+ * errc::value_too_large} on overflow
  *
- * @return to_chars_result<Iter> If the conversion is successful, return {ans,
- * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
- *
+ * @details Converts integer to string representation in specified base.
+ * Uses optimized paths for common bases (2, 8, 10, 16).
  */
 template <typename Iter, typename Value, unsigned int IBase = 10,
           typename Converter = char_converter_t,
@@ -1435,6 +1469,7 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val,
     return __to_chars_impl(ptr, last, val, ic, conv);
 }
 
+/// @private Runtime dispatch for to_chars with dynamic base
 template <typename Iter, typename Value, typename Converter>
 to_chars_result<Iter> to_chars_dynamic(Iter ptr, Iter last, Value val, unsigned int base,
                                        Converter conv) noexcept {
@@ -1462,11 +1497,22 @@ to_chars_result<Iter> to_chars_dynamic(Iter ptr, Iter last, Value val, unsigned 
 }
 
 /**
- * @brief Convert an unsigned integer to a string with checking buf size.
+ * @brief Convert unsigned integer to string with runtime base
  *
- * @return to_chars_result<Iter> If the conversion is successful, return {ans,
- * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
+ * @tparam Iter Output iterator type
+ * @tparam Value Unsigned integer type to convert
+ * @tparam IBase Integer type for base (runtime value)
+ * @tparam Converter Character converter type, default char_converter_t
+ * @param ptr Iterator to start of output buffer
+ * @param last Iterator to end of output buffer
+ * @param val Value to convert
+ * @param base Numeric base (2-36, runtime value)
+ * @param conv Converter instance
+ * @return to_chars_result<Iter> Result with ptr past last written char, or {last,
+ * errc::value_too_large} on overflow
  *
+ * @details Runtime version of to_chars. Dispatches to optimized compile-time paths for common
+ * bases.
  */
 template <typename Iter, typename Value, typename IBase, typename Converter = char_converter_t,
           WJR_REQUIRES(charconv_detail::__is_valid_converter_v<Value, Converter>
@@ -1477,15 +1523,22 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, IBase base,
 }
 
 /**
- * @brief Convert an unsigned integer to a string without checking buf size.
+ * @brief Convert unsigned integer to string without buffer size checking
  *
- * @details Iter can be any output iterator. Support fast_convert mode and
- * fallback mode. \n fast_convert mode : \n fast_convert mode is used when
- * __is_fast_convert_iterator_v<Iter> is true. \n caclulate the number of digits
- * and convert the integer to a string in reverse order. \n fallback mode : \n
- * use buffer to store the result and use @ref wjr::copy to copy the result to
- * the output iterator. \n
+ * @tparam Iter Output iterator type
+ * @tparam Value Unsigned integer type to convert
+ * @tparam IBase Numeric base (compile-time constant), default 10
+ * @tparam Converter Character converter type, default char_converter_t
+ * @param ptr Iterator to start of output buffer (must have sufficient space)
+ * @param val Value to convert
+ * @param ic Base as integral_constant (default 10_u)
+ * @param conv Converter instance
+ * @return Iter Iterator past last written character
  *
+ * @details Assumes buffer has sufficient space. Uses fast paths:
+ * - Fast mode: Direct pointer manipulation for contiguous iterators
+ * - Fallback mode: Uses temporary buffer then copies result
+ * @warning Undefined behavior if buffer is too small
  */
 template <typename Iter, typename Value, unsigned int IBase = 10,
           typename Converter = char_converter_t,
@@ -1495,6 +1548,7 @@ Iter to_chars_unchecked(Iter ptr, Value val, integral_constant<unsigned int, IBa
     return __to_chars_unchecked_impl(ptr, val, ic, conv);
 }
 
+/// @private Runtime dispatch for to_chars_unchecked with dynamic base
 template <typename Iter, typename Value, typename Converter>
 Iter to_chars_unchecked_dynamic(Iter ptr, Value val, unsigned int base, Converter conv) noexcept {
     if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(base)) {
@@ -1521,13 +1575,20 @@ Iter to_chars_unchecked_dynamic(Iter ptr, Value val, unsigned int base, Converte
 }
 
 /**
- * @brief Convert an unsigned integer to a string without checking buf size.
+ * @brief Convert unsigned integer to string without checking (runtime base)
  *
- * @tparam Iter The iterator type. Must be random access iterator.
- * @tparam Value The value type. If Converter is origin_converter_t, Value must
- * be non-bool unsigned integral type. Otherwise, Value must be non-bool
- * integral type.
+ * @tparam Iter Output iterator type
+ * @tparam Value Unsigned integer type to convert
+ * @tparam IBase Integer type for base (runtime value)
+ * @tparam Converter Character converter type, default char_converter_t
+ * @param ptr Iterator to start of output buffer (must have sufficient space)
+ * @param val Value to convert
+ * @param base Numeric base (2-36, runtime value)
+ * @param conv Converter instance
+ * @return Iter Iterator past last written character
  *
+ * @details Runtime base version. Dispatches to optimized paths for common bases.
+ * @warning Undefined behavior if buffer is too small
  */
 template <typename Iter, typename Value, typename IBase, typename Converter = char_converter_t,
           WJR_REQUIRES(charconv_detail::__is_valid_converter_v<Value, Converter>
@@ -1536,6 +1597,7 @@ Iter to_chars_unchecked(Iter ptr, Value val, IBase base, Converter conv = {}) no
     return to_chars_unchecked_dynamic(ptr, val, static_cast<unsigned int>(base), conv);
 }
 
+/// @private Functor for unchecked unsigned from_chars conversion
 template <uint64_t Base>
 class __unsigned_from_chars_unchecked_fn {};
 
@@ -2140,6 +2202,7 @@ struct __unsigned_from_chars_fn<10> {
     }
 };
 
+/// @private Fast from_chars implementation for contiguous bytes
 template <typename Value, typename IBase, typename Converter>
 WJR_INTRINSIC_INLINE from_chars_result<const uint8_t *>
 __fast_from_chars_impl(const uint8_t *first, const uint8_t *last, Value &val, IBase ibase,
@@ -2207,6 +2270,7 @@ __fast_from_chars_impl(const uint8_t *first, const uint8_t *last, Value &val, IB
     return ret;
 }
 
+/// @private Internal from_chars implementation dispatcher
 template <typename Value, typename IBase, typename Converter>
 WJR_INTRINSIC_INLINE from_chars_result<const char *>
 __from_chars_impl(const char *first, const char *last, Value &val, IBase ibase,
@@ -2222,6 +2286,22 @@ __from_chars_impl(const char *first, const char *last, Value &val, IBase ibase,
     return {reinterpret_cast<const char *>(ret.ptr), ret.ec};
 }
 
+/**
+ * @brief Parse string to integer with compile-time base
+ *
+ * @tparam Value Integer type (signed or unsigned)
+ * @tparam IBase Numeric base (compile-time constant), default 10
+ * @tparam Converter Character converter type, default char_converter_t
+ * @param first Pointer to start of string
+ * @param last Pointer to end of string
+ * @param val Reference to store parsed value
+ * @param ic Base as integral_constant (default 10_u)
+ * @param conv Converter instance
+ * @return from_chars_result Result with ptr past last parsed char and error code
+ *
+ * @details Parses integer from string. Handles signed/unsigned types and optional leading sign.
+ * Returns {ptr_past_last, errc{}} on success, or appropriate error code on failure.
+ */
 template <typename Value, unsigned int IBase = 10, typename Converter = char_converter_t,
           WJR_REQUIRES(charconv_detail::__is_valid_converter_v<Value, Converter>)>
 WJR_INTRINSIC_INLINE from_chars_result<const char *>
@@ -2230,6 +2310,7 @@ from_chars(const char *first, const char *last, Value &val,
     return __from_chars_impl(first, last, val, ic, conv);
 }
 
+/// @private Runtime dispatch for from_chars with dynamic base
 template <typename Value, typename Converter,
           WJR_REQUIRES(charconv_detail::__is_valid_converter_v<Value, Converter>)>
 from_chars_result<const char *> from_chars_dynamic(const char *first, const char *last, Value &val,
@@ -2251,6 +2332,21 @@ from_chars_result<const char *> from_chars_dynamic(const char *first, const char
     return __from_chars_impl(first, last, val, base, conv);
 }
 
+/**
+ * @brief Parse string to integer with runtime base
+ *
+ * @tparam Value Integer type (signed or unsigned)
+ * @tparam IBase Integer type for base (runtime value)
+ * @tparam Converter Character converter type, default char_converter_t
+ * @param first Pointer to start of string
+ * @param last Pointer to end of string
+ * @param val Reference to store parsed value
+ * @param base Numeric base (2-36, runtime value)
+ * @param conv Converter instance
+ * @return from_chars_result Result with ptr past last parsed char and error code
+ *
+ * @details Runtime base version. Dispatches to optimized paths for common bases (2, 10).
+ */
 template <typename Value, typename IBase, typename Converter = char_converter_t,
           WJR_REQUIRES(charconv_detail::__is_valid_converter_v<Value, Converter>
                            &&is_nonbool_integral_v<IBase>)>
@@ -2259,6 +2355,15 @@ from_chars_result<const char *> from_chars(const char *first, const char *last, 
     return from_chars_dynamic(first, last, val, base, conv);
 }
 
+/**
+ * @brief Fast check if 8 consecutive characters are valid digits for given base
+ *
+ * @tparam IBase Numeric base (compile-time constant, 2-16), default 10
+ * @param ptr Pointer to 8 characters
+ * @return true if all 8 characters are valid digits in the given base
+ *
+ * @details Uses SIMD-like bitwise operations for fast validation without branches.
+ */
 template <unsigned int IBase = 10, WJR_REQUIRES(IBase <= 16)>
 WJR_PURE WJR_INTRINSIC_INLINE bool
 check_eight_digits(const char *ptr, integral_constant<unsigned int, IBase> = {}) noexcept {
