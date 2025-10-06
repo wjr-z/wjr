@@ -14,6 +14,7 @@
 #include <wjr/math/bit.hpp>
 #include <wjr/math/bitwise.hpp>
 #include <wjr/math/broadcast.hpp>
+#include <wjr/math/count_digits.hpp>
 #include <wjr/math/div.hpp>
 #include <wjr/math/div1by1.hpp>
 #include <wjr/math/find.hpp>

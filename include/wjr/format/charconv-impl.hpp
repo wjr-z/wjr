@@ -11,6 +11,7 @@
 #define WJR_FORMAT_CHARCONV_IMPL_HPP__
 
 #include <array>
+#include <system_error>
 
 #include <wjr/format/ctype.hpp>
 #include <wjr/math/integral_constant.hpp>
