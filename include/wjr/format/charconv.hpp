@@ -1,3 +1,12 @@
+/**
+ * @file charconv.hpp
+ * @brief High-performance character conversion utilities
+ * @author wjr
+ *
+ * Provides optimized functions for converting between integers and strings.
+ * Similar to C++17 <charconv> but with additional optimizations and features.
+ */
+
 #ifndef WJR_FORMAT_CHARCONV_HPP__
 #define WJR_FORMAT_CHARCONV_HPP__
 

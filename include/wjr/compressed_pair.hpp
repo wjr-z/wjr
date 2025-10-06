@@ -1,3 +1,12 @@
+/**
+ * @file compressed_pair.hpp
+ * @brief Space-optimized pair using empty base optimization
+ * @author wjr
+ *
+ * Provides compressed_pair, a pair-like container that uses empty base
+ * optimization to reduce memory footprint when one or both types are empty.
+ */
+
 #ifndef WJR_COMPRESSED_PAIR_HPP__
 #define WJR_COMPRESSED_PAIR_HPP__
 
@@ -5,6 +14,15 @@
 
 namespace wjr {
 
+/**
+ * @brief Space-optimized pair container
+ *
+ * Similar to std::pair but uses empty base optimization to avoid wasting
+ * space when storing empty types (e.g., stateless allocators).
+ *
+ * @tparam T First element type
+ * @tparam U Second element type
+ */
 template <typename T, typename U>
 class compressed_pair;
 

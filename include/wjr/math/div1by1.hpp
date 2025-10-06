@@ -1,3 +1,12 @@
+/**
+ * @file math/div1by1.hpp
+ * @brief Single-precision division optimization
+ * @author wjr
+ *
+ * Implements optimized 1-by-1 division using precomputed magic numbers
+ * to avoid expensive division operations.
+ */
+
 #ifndef WJR_MATH_DIV1BY1_HPP__
 #define WJR_MATH_DIV1BY1_HPP__
 

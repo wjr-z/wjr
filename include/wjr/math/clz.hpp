@@ -1,3 +1,12 @@
+/**
+ * @file clz.hpp
+ * @brief Count leading zeros operations
+ * @author wjr
+ *
+ * Provides functions to count the number of leading zero bits in integers.
+ * Uses compiler intrinsics when available for optimal performance.
+ */
+
 #ifndef WJR_MATH_CLZ_HPP__
 #define WJR_MATH_CLZ_HPP__
 

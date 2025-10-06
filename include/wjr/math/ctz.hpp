@@ -1,3 +1,12 @@
+/**
+ * @file ctz.hpp
+ * @brief Count trailing zeros operations
+ * @author wjr
+ *
+ * Provides functions to count the number of trailing zero bits in integers.
+ * Uses compiler intrinsics when available for optimal performance.
+ */
+
 #ifndef WJR_MATH_CTZ_HPP__
 #define WJR_MATH_CTZ_HPP__
 

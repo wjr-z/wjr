@@ -1,3 +1,12 @@
+/**
+ * @file popcount.hpp
+ * @brief Population count (count set bits) operations
+ * @author wjr
+ *
+ * Provides functions to count the number of set bits in integers.
+ * Uses compiler intrinsics or optimized fallback implementations.
+ */
+
 #ifndef WJR_MATH_POPCOUNT_HPP__
 #define WJR_MATH_POPCOUNT_HPP__
 
@@ -134,6 +143,16 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount_impl(T x) noexcept {
 #endif
 }
 
+/**
+ * @brief Count the number of set bits (population count)
+ *
+ * Returns the number of bits that are set to 1 in the binary representation
+ * of x. Equivalent to C++20 std::popcount.
+ *
+ * @tparam T Unsigned integral type
+ * @param[in] x Value to count bits
+ * @return int Number of set bits (0 to digits)
+ */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount(T x) noexcept {
     const int ret = popcount_impl(x);

@@ -1,3 +1,12 @@
+/**
+ * @file tuple.hpp
+ * @brief Extended tuple implementation
+ * @author wjr
+ *
+ * Provides an optimized tuple implementation with better compilation performance
+ * and additional functionality beyond std::tuple.
+ */
+
 #ifndef WJR_TUPLE_HPP__
 #define WJR_TUPLE_HPP__
 
@@ -8,6 +17,14 @@
 
 namespace wjr {
 
+/**
+ * @brief Extended tuple implementation
+ *
+ * A tuple implementation that provides better compilation performance and
+ * additional features compared to std::tuple.
+ *
+ * @tparam Args Types of elements in the tuple
+ */
 template <typename... Args>
 class tuple;
 

@@ -1,3 +1,12 @@
+/**
+ * @file biginteger/detail.hpp
+ * @brief Biginteger implementation details aggregate header
+ * @author wjr
+ *
+ * Aggregates internal implementation headers for biginteger operations
+ * including conversion, multiplication, negation, and power functions.
+ */
+
 #ifndef WJR_BIGINTEGER_DETAIL_HPP__
 #define WJR_BIGINTEGER_DETAIL_HPP__
 

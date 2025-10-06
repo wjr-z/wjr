@@ -1,3 +1,12 @@
+/**
+ * @file container/detail.hpp
+ * @brief Container operation function objects
+ * @author wjr
+ *
+ * Provides generic function objects for container operations like
+ * resize, append, reserve, and insert with customization point support.
+ */
+
 #ifndef WJR_CONTAINER_DETAIL_HPP__
 #define WJR_CONTAINER_DETAIL_HPP__
 

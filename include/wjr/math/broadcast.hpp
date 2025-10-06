@@ -1,3 +1,12 @@
+/**
+ * @file math/broadcast.hpp
+ * @brief Type broadcasting utilities
+ * @author wjr
+ *
+ * Provides functions to broadcast smaller integer types to wider types
+ * by replicating the bit pattern (e.g., 0xAB -> 0xABAB for uint8_t to uint16_t).
+ */
+
 #ifndef WJR_MATH_BROADCAST_HPP__
 #define WJR_MATH_BROADCAST_HPP__
 

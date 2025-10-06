@@ -1,3 +1,13 @@
+/**
+ * @file math.hpp
+ * @brief Main header for mathematical operations
+ * @author wjr
+ *
+ * This header aggregates all mathematical utilities including bit operations,
+ * division, searching, and random number generation. Include this header to
+ * access the complete math library.
+ */
+
 #ifndef WJR_MATH_HPP__
 #define WJR_MATH_HPP__
 

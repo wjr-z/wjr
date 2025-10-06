@@ -1,3 +1,15 @@
+/**
+ * @file format/dragonbox.hpp
+ * @brief Dragonbox algorithm for floating-point to string conversion
+ * @author Junekey Jeon (adapted by wjr)
+ *
+ * Provides fast and accurate float-to-string conversion using the Dragonbox algorithm.
+ * Guarantees shortest round-trip representation for IEEE 754 floating-point numbers.
+ *
+ * Based on the Dragonbox library by Junekey Jeon.
+ * Licensed under Apache License v2.0 with LLVM Exceptions or Boost Software License 1.0.
+ */
+
 #ifndef WJR_FORMAT_DRAGONBOX_HPP__
 #define WJR_FORMAT_DRAGONBOX_HPP__
 

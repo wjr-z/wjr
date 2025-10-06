@@ -1,3 +1,12 @@
+/**
+ * @file crtp/class_base.hpp
+ * @brief CRTP base classes for controlling special member functions
+ * @author wjr
+ *
+ * Provides base classes to selectively enable/disable default constructor,
+ * copy/move constructors, and copy/move assignment operators using CRTP pattern.
+ */
+
 #ifndef WJR_CRTP_CLASS_BASE_HPP__
 #define WJR_CRTP_CLASS_BASE_HPP__
 

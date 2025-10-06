@@ -1,3 +1,11 @@
+/**
+ * @file format/ostream_insert.hpp
+ * @brief Optimized ostream insertion utilities
+ * @author wjr
+ *
+ * Provides fast string insertion to output streams with proper padding support.
+ */
+
 #ifndef WJR_FORMAT_OSTREAM_INSERT_HPP__
 #define WJR_FORMAT_OSTREAM_INSERT_HPP__
 
@@ -54,8 +62,16 @@ void __ostream_insert_unchecked(std::basic_ostream<CharT, Traits> &os, const Cha
 }
 
 /**
- * @brief Fast output a string to the output stream.
+ * @brief Optimized string insertion to output stream
  *
+ * Fast output with padding support respecting stream width and alignment flags.
+ *
+ * @tparam CharT Character type
+ * @tparam Traits Character traits
+ * @param[in,out] os Output stream
+ * @param[in] str String to insert
+ * @param[in] n String length
+ * @return Reference to the output stream
  */
 template <typename CharT, typename Traits>
 std::basic_ostream<CharT, Traits> &__ostream_insert(std::basic_ostream<CharT, Traits> &os,

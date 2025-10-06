@@ -1,3 +1,12 @@
+/**
+ * @file sub.hpp
+ * @brief Subtraction operations with borrow support
+ * @author wjr
+ *
+ * Provides optimized subtraction functions with borrow propagation for
+ * multi-precision arithmetic. Uses compiler intrinsics when available.
+ */
+
 #ifndef WJR_MATH_SUB_HPP__
 #define WJR_MATH_SUB_HPP__
 

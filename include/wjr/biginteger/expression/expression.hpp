@@ -314,8 +314,7 @@ public:
     using expr_type = Expr;
     using op_tag = OpTag;
 
-    constexpr explicit negate_unary_expr(Expr expr) noexcept
-        : m_expr(std::move(expr)) {}
+    constexpr explicit negate_unary_expr(Expr expr) noexcept : m_expr(std::move(expr)) {}
 
     constexpr const Expr &operand() const noexcept { return m_expr; }
     constexpr Expr &operand() noexcept { return m_expr; }
@@ -389,8 +388,7 @@ constexpr auto operator*(L &&lhs, R &&rhs) noexcept {
  * Creates a lazy negation expression that computes -operand when evaluated.
  * This is the unary minus operator, not binary subtraction.
  */
-template <typename E,
-          WJR_REQUIRES(biginteger_detail::is_expr_operand_v<E>)>
+template <typename E, WJR_REQUIRES(biginteger_detail::is_expr_operand_v<E>)>
 constexpr auto operator-(E &&operand) noexcept {
     return biginteger_detail::make_negate_unary_expr<biginteger_detail::negate_tag>(
         std::forward<E>(operand));

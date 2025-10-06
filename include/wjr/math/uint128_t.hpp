@@ -1,3 +1,14 @@
+/**
+ * @file math/uint128_t.hpp
+ * @brief 128-bit unsigned integer type
+ * @author wjr
+ *
+ * Provides a portable uint128_t implementation with arithmetic operations.
+ * Used primarily for 128-bit division operations.
+ *
+ * @todo Implement more functions
+ */
+
 #ifndef WJR_MATH_UINT128_T_HPP__
 #define WJR_MATH_UINT128_T_HPP__
 

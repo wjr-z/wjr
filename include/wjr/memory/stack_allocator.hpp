@@ -1,3 +1,14 @@
+/**
+ * @file memory/stack_allocator.hpp
+ * @brief Stack-based memory allocator
+ * @author wjr
+ *
+ * Provides fast stack-based allocation with automatic cleanup via RAII.
+ * Uses small buffer optimization with fallback to heap for large allocations.
+ *
+ * @todo Make threshold configurable
+ */
+
 #ifndef WJR_MEMORY_STACK_ALLOCATOR_HPP__
 #define WJR_MEMORY_STACK_ALLOCATOR_HPP__
 

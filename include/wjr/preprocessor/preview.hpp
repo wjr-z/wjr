@@ -1,3 +1,12 @@
+/**
+ * @file preprocessor/preview.hpp
+ * @brief Preprocessor metaprogramming aggregate header
+ * @author wjr
+ *
+ * Aggregates preprocessor utilities for arithmetic, logical operations,
+ * and queue algorithms.
+ */
+
 #ifndef WJR_PREPROCESSOR_PREVIEW_HPP__
 #define WJR_PREPROCESSOR_PREVIEW_HPP__
 

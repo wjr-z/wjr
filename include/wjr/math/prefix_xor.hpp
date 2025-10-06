@@ -1,3 +1,12 @@
+/**
+ * @file math/prefix_xor.hpp
+ * @brief Prefix XOR operation
+ * @author wjr
+ *
+ * Computes the prefix XOR (parallel prefix) of bit patterns.
+ * Also known as the "parity prefix" operation.
+ */
+
 #ifndef WJR_MATH_PREFIX_XOR_HPP__
 #define WJR_MATH_PREFIX_XOR_HPP__
 
@@ -9,6 +18,7 @@
 
 namespace wjr {
 
+/// @private
 template <typename T>
 constexpr T fallback_prefix_xor(T x) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
@@ -30,6 +40,17 @@ constexpr T fallback_prefix_xor(T x) noexcept {
     return x;
 }
 
+/**
+ * @brief Compute prefix XOR
+ *
+ * Computes the prefix XOR (parallel prefix) where each bit in the result
+ * is the XOR of all bits at and to the left of that position.
+ * Example: 0b00001111 -> 0b00011110
+ *
+ * @tparam T Unsigned integral type
+ * @param[in] x Input value
+ * @return Prefix XOR result
+ */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T prefix_xor(T x) noexcept {
 #if WJR_HAS_BUILTIN(PREFIX_XOR)

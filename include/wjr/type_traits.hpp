@@ -1,3 +1,15 @@
+/**
+ * @file type_traits.hpp
+ * @brief Extended type traits and metaprogramming utilities
+ * @author wjr
+ * @version 0.3
+ * @date 2025-10-06
+ *
+ * This file provides extended type traits beyond the standard library,
+ * including integral type selectors, conditional types, and various
+ * compile-time utilities for template metaprogramming.
+ */
+
 #ifndef WJR_TYPE_TRAITS_HPP__
 #define WJR_TYPE_TRAITS_HPP__
 
@@ -15,6 +27,13 @@ static_assert(CHAR_BIT == 8, "Only support 8-bite char.");
 
 namespace wjr {
 
+/**
+ * @brief Tag type for in-place maximum value initialization
+ *
+ * Provides implicit conversion to the maximum value of any numeric type.
+ * Useful for generic code that needs maximum values without knowing the
+ * specific type at compile time.
+ */
 struct in_place_max_t {
     template <typename T>
     WJR_CONST constexpr operator T() const noexcept {
@@ -24,6 +43,13 @@ struct in_place_max_t {
 
 inline constexpr in_place_max_t in_place_max = {};
 
+/**
+ * @brief Tag type for in-place minimum value initialization
+ *
+ * Provides implicit conversion to the minimum value of any numeric type.
+ * Useful for generic code that needs minimum values without knowing the
+ * specific type at compile time.
+ */
 struct in_place_min_t {
     template <typename T>
     WJR_CONST constexpr operator T() const noexcept {
@@ -35,6 +61,14 @@ inline constexpr in_place_min_t in_place_min = {};
 
 using std::integral_constant;
 
+/**
+ * @brief Check if type is void or satisfies a condition
+ *
+ * Evaluates to U if T is not void, or true_type if T is void.
+ *
+ * @tparam T Type to check
+ * @tparam U Fallback type trait when T is not void
+ */
 template <typename T, typename U>
 struct is_void_or : U {};
 
@@ -44,6 +78,15 @@ struct is_void_or<void, U> : std::true_type {};
 template <typename T, typename U>
 inline constexpr bool is_void_or_v = is_void_or<T, U>::value;
 
+/**
+ * @brief Multi-way compile-time conditional type selection
+ *
+ * Extends std::conditional to support multiple conditions. Evaluates
+ * conditions in order and returns the type associated with the first
+ * true condition.
+ *
+ * @tparam Args Sequence of (condition, type) pairs
+ */
 template <typename... Args>
 struct multi_conditional;
 
@@ -70,12 +113,28 @@ struct multi_conditional<F, T, U, V, Args...> {
     using type = typename multi_conditional_impl<F::value, T, U, V, Args...>::type;
 };
 
+/**
+ * @brief Check if type T matches any of the provided types
+ *
+ * Evaluates to true if T is the same as any of the types in Args.
+ *
+ * @tparam T Type to check
+ * @tparam Args Types to match against
+ */
 template <typename T, typename... Args>
 struct is_any_of : std::disjunction<std::is_same<T, Args>...> {};
 
 template <typename T, typename... Args>
 inline constexpr bool is_any_of_v = is_any_of<T, Args...>::value;
 
+/**
+ * @brief Remove const, volatile, and reference qualifiers from type
+ *
+ * Equivalent to C++20 std::remove_cvref. Removes cv-qualifiers and
+ * reference qualifiers in one step.
+ *
+ * @tparam T Type to transform
+ */
 template <typename T>
 struct remove_cvref {
     using type = std::remove_cv_t<std::remove_reference_t<T>>;
@@ -132,17 +191,35 @@ struct __int_selector<128> {
 };
 #endif
 
+/**
+ * @brief Select unsigned integer type by bit width
+ * @tparam n Bit width (8, 16, 32, 64, or 128 if available)
+ */
 template <size_t n>
 using uint_t = typename __uint_selector<n>::type;
 
+/**
+ * @brief Select signed integer type by bit width
+ * @tparam n Bit width (8, 16, 32, 64, or 128 if available)
+ */
 template <size_t n>
 using int_t = typename __int_selector<n>::type;
 
+/**
+ * @brief Select signed or unsigned integer type by bit width
+ * @tparam n Bit width
+ * @tparam __s true for signed, false for unsigned
+ */
 template <size_t n, bool __s>
 using usint_t = std::conditional_t<__s, int_t<n>, uint_t<n>>;
 
+/// Signed version of size_t
 using ssize_t = std::make_signed_t<size_t>;
 
+/**
+ * @brief Check if type is an integral type excluding bool
+ * @tparam T Type to check
+ */
 template <typename T>
 struct is_nonbool_integral
     : std::conjunction<std::is_integral<T>, std::negation<std::is_same<T, bool>>> {};
@@ -150,18 +227,30 @@ struct is_nonbool_integral
 template <typename T>
 inline constexpr bool is_nonbool_integral_v = is_nonbool_integral<T>::value;
 
+/**
+ * @brief Check if type is an unsigned integral type
+ * @tparam T Type to check
+ */
 template <typename T>
 struct is_unsigned_integral : std::conjunction<std::is_integral<T>, std::is_unsigned<T>> {};
 
 template <typename T>
 inline constexpr bool is_unsigned_integral_v = is_unsigned_integral<T>::value;
 
+/**
+ * @brief Check if type is a signed integral type
+ * @tparam T Type to check
+ */
 template <typename T>
 struct is_signed_integral : std::conjunction<std::is_integral<T>, std::is_signed<T>> {};
 
 template <typename T>
 inline constexpr bool is_signed_integral_v = is_signed_integral<T>::value;
 
+/**
+ * @brief Check if type is an unsigned integral type excluding bool
+ * @tparam T Type to check
+ */
 template <typename T>
 struct is_nonbool_unsigned_integral
     : std::conjunction<is_unsigned_integral<T>, std::negation<std::is_same<T, bool>>> {};
@@ -169,6 +258,10 @@ struct is_nonbool_unsigned_integral
 template <typename T>
 inline constexpr bool is_nonbool_unsigned_integral_v = is_nonbool_unsigned_integral<T>::value;
 
+/**
+ * @brief Check if type is a signed integral type excluding bool
+ * @tparam T Type to check
+ */
 template <typename T>
 struct is_nonbool_signed_integral
     : std::conjunction<is_signed_integral<T>, std::negation<std::is_same<T, bool>>> {};
@@ -176,17 +269,36 @@ struct is_nonbool_signed_integral
 template <typename T>
 inline constexpr bool is_nonbool_signed_integral_v = is_nonbool_signed_integral<T>::value;
 
+/**
+ * @brief Convert single-byte integral type to uint8_t
+ * @tparam T Single-byte integral type
+ * @param[in] value Value to convert
+ * @return uint8_t Converted value
+ */
 template <typename T, WJR_REQUIRES(sizeof(T) == 1 && is_nonbool_integral_v<T>)>
 WJR_CONST constexpr uint8_t to_u8(T value) noexcept {
     return value;
 }
 
+/**
+ * @brief Convert single-byte integral type to char
+ * @tparam T Single-byte integral type
+ * @param[in] value Value to convert
+ * @return char Converted value
+ */
 template <typename T, WJR_REQUIRES(sizeof(T) == 1 && is_nonbool_integral_v<T>)>
 WJR_CONST constexpr char to_char(T value) noexcept {
     return value;
 }
 
-// type identity
+/**
+ * @brief Type identity metafunction
+ *
+ * Returns the type unchanged. Useful for preventing template argument deduction.
+ * Equivalent to C++20 std::type_identity.
+ *
+ * @tparam T Type to preserve
+ */
 template <typename T>
 struct type_identity {
     using type = T;
@@ -195,6 +307,14 @@ struct type_identity {
 template <typename T>
 using type_identity_t = typename type_identity<T>::type;
 
+/**
+ * @brief Add restrict qualifier to pointer types
+ *
+ * Adds the restrict qualifier to pointer types for optimization hints.
+ * Non-pointer types are unchanged.
+ *
+ * @tparam T Type to add restrict qualifier to
+ */
 template <typename T>
 struct add_restrict {
     using type = T;
@@ -236,6 +356,13 @@ struct is_swappable_with : std::conjunction<__is_swappable_with<T, U>, __is_swap
 template <typename T, typename U>
 inline constexpr bool is_swappable_with_v = is_swappable_with<T, U>::value;
 
+/**
+ * @brief Check if type is swappable
+ *
+ * Checks if values of type T can be swapped using std::swap.
+ *
+ * @tparam T Type to check
+ */
 template <typename T>
 struct is_swappable
     : is_swappable_with<std::add_lvalue_reference_t<T>, std::add_lvalue_reference_t<T>> {};

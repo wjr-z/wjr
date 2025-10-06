@@ -1,3 +1,12 @@
+/**
+ * @file algorithm.hpp
+ * @brief Algorithm utilities and constexpr-friendly wrappers
+ * @author wjr
+ *
+ * Provides constexpr algorithm implementations and optimized wrappers
+ * for standard algorithms including sort, merge, and searching.
+ */
+
 #ifndef WJR_ALGORITHM_HPP__
 #define WJR_ALGORITHM_HPP__
 

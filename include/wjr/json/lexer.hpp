@@ -1,3 +1,12 @@
+/**
+ * @file json/lexer.hpp
+ * @brief JSON lexer with architecture-specific optimizations
+ * @author wjr
+ *
+ * Provides JSON lexical analysis with SIMD-optimized implementations
+ * for supported architectures.
+ */
+
 #ifndef WJR_JSON_LEXER_HPP__
 #define WJR_JSON_LEXER_HPP__
 

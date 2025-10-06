@@ -1,3 +1,13 @@
+/**
+ * @file compare.hpp
+ * @brief Array comparison operations
+ * @author wjr
+ *
+ * Provides optimized comparison functions for arrays of integers,
+ * including forward and reverse comparisons. Returns -1, 0, or 1
+ * similar to memcmp.
+ */
+
 #ifndef WJR_MATH_COMPARE_HPP__
 #define WJR_MATH_COMPARE_HPP__
 
@@ -9,6 +19,7 @@
 
 namespace wjr {
 
+/// @private
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR int fallback_compare_n(const T *src0, const T *src1, size_t n) noexcept {
     for (size_t idx = 0; idx < n; ++idx) {
@@ -20,6 +31,18 @@ WJR_INTRINSIC_CONSTEXPR int fallback_compare_n(const T *src0, const T *src1, siz
     return 0;
 }
 
+/**
+ * @brief Compare two arrays of integers
+ *
+ * Compares n elements from src0 and src1 in forward order (low to high).
+ * Returns -1 if src0 < src1, 0 if equal, 1 if src0 > src1.
+ *
+ * @tparam T Integral type
+ * @param[in] src0 First array to compare
+ * @param[in] src1 Second array to compare
+ * @param[in] n Number of elements to compare
+ * @return int -1, 0, or 1 indicating comparison result
+ */
 template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR20 int compare_n(const T *src0, const T *src1, size_t n) noexcept {
     if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
@@ -56,6 +79,18 @@ WJR_INTRINSIC_CONSTEXPR int fallback_reverse_compare_n(const T *src0, const T *s
     return 0;
 }
 
+/**
+ * @brief Compare two arrays in reverse order
+ *
+ * Compares n elements from src0 and src1 in reverse order (high to low).
+ * Useful for big-endian comparisons. Returns -1 if src0 < src1, 0 if equal, 1 if src0 > src1.
+ *
+ * @tparam T Integral type
+ * @param[in] src0 First array to compare
+ * @param[in] src1 Second array to compare
+ * @param[in] n Number of elements to compare
+ * @return int -1, 0, or 1 indicating comparison result
+ */
 template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR20 int reverse_compare_n(const T *src0, const T *src1,
                                                          size_t n) noexcept {

@@ -1,3 +1,12 @@
+/**
+ * @file utility/bitmask_enum.hpp
+ * @brief Bitmask operations for enum types
+ * @author wjr
+ *
+ * Provides bitwise operators for enums marked as bitmask types.
+ * Use WJR_DECLARE_ENUM_AS_BITMASK to enable bitmask operations for an enum.
+ */
+
 #ifndef WJR_UTILITY_BITMASK_ENUM_HPP__
 #define WJR_UTILITY_BITMASK_ENUM_HPP__
 

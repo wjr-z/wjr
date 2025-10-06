@@ -1,3 +1,12 @@
+/**
+ * @file string.hpp
+ * @brief String utilities and optimizations
+ * @author wjr
+ *
+ * Provides string manipulation utilities and optimizations for std::basic_string,
+ * including uninitialized resize operations and character type conversions.
+ */
+
 #ifndef WJR_STRING_HPP__
 #define WJR_STRING_HPP__
 

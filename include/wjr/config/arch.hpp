@@ -1,3 +1,12 @@
+/**
+ * @file config/arch.hpp
+ * @brief CPU architecture detection
+ * @author wjr
+ *
+ * Detects target CPU architecture (x86, ARM, MIPS, RISC-V, PowerPC, etc.)
+ * and provides architecture-specific macros.
+ */
+
 #ifndef WJR_CONFIG_ARCH_HPP__
 #define WJR_CONFIG_ARCH_HPP__
 

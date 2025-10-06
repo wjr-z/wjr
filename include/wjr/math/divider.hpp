@@ -1,3 +1,12 @@
+/**
+ * @file math/divider.hpp
+ * @brief Optimized division classes with precomputed reciprocals
+ * @author wjr
+ *
+ * Provides div2by1_divider classes for fast division operations using
+ * precomputed reciprocals and lookup tables. Includes noshift and shift variants.
+ */
+
 #ifndef WJR_MATH_DIVIDER_HPP__
 #define WJR_MATH_DIVIDER_HPP__
 

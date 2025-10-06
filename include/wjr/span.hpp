@@ -1,3 +1,12 @@
+/**
+ * @file span.hpp
+ * @brief Non-owning view over a contiguous sequence of objects
+ * @author wjr
+ *
+ * Provides span, a lightweight view similar to C++20 std::span. Can be used
+ * with both static and dynamic extent for compile-time or runtime sizing.
+ */
+
 #ifndef WJR_SPAN_HPP__
 #define WJR_SPAN_HPP__
 
@@ -8,11 +17,7 @@
 
 namespace wjr {
 
-/**
- * @brief A type representing a static-sized span.
- *
- * @tparam Extent The number of elements in the span.
- */
+/// @private Internal storage for static-sized span
 template <typename T, size_t Extent>
 struct __span_static_storage {
 
@@ -26,9 +31,7 @@ struct __span_static_storage {
     static constexpr size_t size = Extent;
 };
 
-/**
- * @brief A type representing a dynamic-sized span.
- */
+/// @private Internal storage for dynamic-sized span
 template <typename T>
 struct __span_dynamic_storage {
 

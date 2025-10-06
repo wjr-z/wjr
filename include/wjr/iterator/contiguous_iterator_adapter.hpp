@@ -1,3 +1,12 @@
+/**
+ * @file iterator/contiguous_iterator_adapter.hpp
+ * @brief Contiguous iterator adapter with bounds checking
+ * @author wjr
+ *
+ * Provides iterator adapters that wrap pointers with optional runtime
+ * bounds checking in debug builds.
+ */
+
 #ifndef WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP__
 #define WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP__
 

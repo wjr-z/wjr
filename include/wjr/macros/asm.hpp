@@ -1,3 +1,11 @@
+/**
+ * @file macros/asm.hpp
+ * @brief Assembly language macro utilities
+ * @author wjr
+ *
+ * Provides macros for inline assembly code with compiler-specific adaptations.
+ */
+
 #ifndef WJR_MACROS_ASM_HPP__
 #define WJR_MACROS_ASM_HPP__
 

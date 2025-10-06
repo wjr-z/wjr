@@ -1,3 +1,13 @@
+/**
+ * @file shift.hpp
+ * @brief Bit shift operations for multi-precision arithmetic
+ * @author wjr
+ *
+ * Provides optimized shift operations including double-precision shifts (shld/shrd)
+ * and array shift operations. These are fundamental for implementing arbitrary
+ * precision arithmetic.
+ */
+
 #ifndef WJR_MATH_SHIFT_HPP__
 #define WJR_MATH_SHIFT_HPP__
 
@@ -10,12 +20,36 @@
 
 namespace wjr {
 
+/**
+ * @brief Shift left double-precision
+ *
+ * Shifts hi left by c bits and fills with the high c bits from lo.
+ * Equivalent to x86's SHLD instruction.
+ *
+ * @tparam T Unsigned integral type
+ * @param[in] hi High part
+ * @param[in] lo Low part
+ * @param[in] c Shift count (must be < digits)
+ * @return T Result of (hi << c) | (lo >> (digits - c))
+ */
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T shld(T hi, T lo, unsigned int c) noexcept {
     constexpr auto digits = std::numeric_limits<T>::digits;
     return hi << c | lo >> (digits - c);
 }
 
+/**
+ * @brief Shift right double-precision
+ *
+ * Shifts lo right by c bits and fills with the low c bits from hi.
+ * Equivalent to x86's SHRD instruction.
+ *
+ * @tparam T Unsigned integral type
+ * @param[in] lo Low part
+ * @param[in] hi High part
+ * @param[in] c Shift count (must be < digits)
+ * @return T Result of (lo >> c) | (hi << (digits - c))
+ */
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T shrd(T lo, T hi, unsigned int c) noexcept {
     constexpr auto digits = std::numeric_limits<T>::digits;
@@ -35,9 +69,21 @@ WJR_INTRINSIC_CONSTEXPR T fallback_lshift_n(T *dst, const T *src, size_t n, unsi
 }
 
 /**
- * @pre  \n
- * 1. n >= 1
- * 2. WJR_IS_SAME_OR_DECR_P(dst, n, src, n)
+ * @brief Left shift an array of integers
+ *
+ * Shifts n elements left by c bits. Returns the bits shifted out from the
+ * most significant element. Can optionally shift in lo from the right.
+ *
+ * @tparam T Unsigned integral type
+ * @param[out] dst Destination array
+ * @param[in] src Source array
+ * @param[in] n Number of elements (must be >= 1)
+ * @param[in] c Shift count in bits (must be < digits)
+ * @param[in] lo Value to shift in from the right (default 0)
+ * @return T Bits shifted out from the high end
+ *
+ * @pre n >= 1
+ * @pre dst and src must be the same or dst must come after src
  */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T lshift_n(T *dst, const T *src, size_t n, unsigned int c,
@@ -82,9 +128,21 @@ WJR_INTRINSIC_CONSTEXPR T fallback_rshift_n(T *dst, const T *src, size_t n, unsi
 }
 
 /**
- * @pre  \n
- * 1. n >= 1
- * 2. WJR_IS_SAME_OR_DECR_P(dst, n, src, n)
+ * @brief Right shift an array of integers
+ *
+ * Shifts n elements right by c bits. Returns the bits shifted out from the
+ * least significant element. Can optionally shift in hi from the left.
+ *
+ * @tparam T Unsigned integral type
+ * @param[out] dst Destination array
+ * @param[in] src Source array
+ * @param[in] n Number of elements (must be >= 1)
+ * @param[in] c Shift count in bits (must be < digits)
+ * @param[in] hi Value to shift in from the left (default 0)
+ * @return T Bits shifted out from the low end
+ *
+ * @pre n >= 1
+ * @pre dst and src must be the same or dst must come before src
  */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 T rshift_n(T *dst, const T *src, size_t n, unsigned int c,

@@ -1,3 +1,12 @@
+/**
+ * @file utility/sentinel_trait.hpp
+ * @brief Sentinel value traits for optional-like types
+ * @author wjr
+ *
+ * Provides traits for managing sentinel values that indicate empty/invalid state.
+ * Supports both boolean sentinels and compressed sentinels using unique values.
+ */
+
 #ifndef WJR_UTILITY_SENTINEL_TRAIT_HPP__
 #define WJR_UTILITY_SENTINEL_TRAIT_HPP__
 

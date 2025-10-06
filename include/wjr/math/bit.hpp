@@ -1,3 +1,12 @@
+/**
+ * @file bit.hpp
+ * @brief Bit manipulation utilities
+ * @author wjr
+ *
+ * Provides bit-level operations including counting leading/trailing zeros,
+ * bit width calculation, and power-of-two operations. Similar to C++20 <bit>.
+ */
+
 #ifndef WJR_MATH_BIT_HPP__
 #define WJR_MATH_BIT_HPP__
 
@@ -66,11 +75,32 @@ WJR_CONST constexpr T bit_floor(T x) noexcept {
 }
 } // namespace constant
 
+/**
+ * @brief Check if value is a power of two
+ *
+ * Returns true if n is a power of two (has exactly one bit set).
+ * Equivalent to C++20 std::has_single_bit.
+ *
+ * @tparam T Unsigned integral type
+ * @param[in] n Value to check
+ * @return bool True if n is a power of two, false otherwise
+ */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {
     return (n != 0) && is_zero_or_single_bit(n);
 }
 
+/**
+ * @brief Count leading zero bits
+ *
+ * Returns the number of consecutive zero bits starting from the most
+ * significant bit. If x is 0, returns the number of bits in T.
+ * Equivalent to C++20 std::countl_zero.
+ *
+ * @tparam T Unsigned integral type
+ * @param[in] x Value to count leading zeros
+ * @return int Number of leading zero bits
+ */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
     // If not use __builtin_clz and use popcount, then don't need to handle
@@ -84,6 +114,17 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
     return clz(x);
 }
 
+/**
+ * @brief Count trailing zero bits
+ *
+ * Returns the number of consecutive zero bits starting from the least
+ * significant bit. If x is 0, returns the number of bits in T.
+ * Equivalent to C++20 std::countr_zero.
+ *
+ * @tparam T Unsigned integral type
+ * @param[in] x Value to count trailing zeros
+ * @return int Number of trailing zero bits
+ */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_zero(T x) noexcept {
     // If not use __builtin_ctz and use popcount, then don't need to handle
@@ -107,11 +148,31 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_one(T x) noexcept {
     return countr_zero(static_cast<T>(~x));
 }
 
+/**
+ * @brief Calculate bit width of value
+ *
+ * Returns the number of bits needed to represent x. For x=0, returns 0.
+ * Equivalent to C++20 std::bit_width.
+ *
+ * @tparam T Unsigned integral type
+ * @param[in] x Value to calculate bit width
+ * @return int Number of bits needed (0 to digits)
+ */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int bit_width(T x) noexcept {
     return std::numeric_limits<T>::digits - countl_zero(x);
 }
 
+/**
+ * @brief Round up to next power of two
+ *
+ * Returns the smallest power of two that is not less than x.
+ * If x is 0 or 1, returns 1. Equivalent to C++20 std::bit_ceil.
+ *
+ * @tparam T Unsigned integral type
+ * @param[in] x Value to round up
+ * @return T Next power of two >= x
+ */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_ceil(T x) noexcept {
     if (x <= 1) {
@@ -127,6 +188,16 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_ceil(T x) noexcept {
     }
 }
 
+/**
+ * @brief Round down to previous power of two
+ *
+ * Returns the largest power of two that is not greater than x.
+ * If x is 0, returns 0. Equivalent to C++20 std::bit_floor.
+ *
+ * @tparam T Unsigned integral type
+ * @param[in] x Value to round down
+ * @return T Previous power of two <= x
+ */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_floor(T x) noexcept {
     if (x != 0) {

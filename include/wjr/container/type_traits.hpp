@@ -1,3 +1,12 @@
+/**
+ * @file container/type_traits.hpp
+ * @brief Container type traits and characteristics
+ * @author wjr
+ *
+ * Provides type traits for standard and custom containers,
+ * including contiguity checks for optimization.
+ */
+
 #ifndef WJR_CONTAINER_TYPE_TRAITS_HPP__
 #define WJR_CONTAINER_TYPE_TRAITS_HPP__
 

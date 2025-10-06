@@ -1,10 +1,16 @@
+/**
+ * @file mul.hpp
+ * @brief Multiplication operations for multi-precision arithmetic
+ * @author wjr
+ *
+ * Provides optimized multiplication functions including full-precision multiply
+ * that returns both the low and high parts of the product.
+ *
+ * @todo Optimize temporary memory usage of mul_s, mul_n, sqr
+ */
+
 #ifndef WJR_MATH_MUL_HPP__
 #define WJR_MATH_MUL_HPP__
-
-/**
- * @todo optimize temporary memory usage of mul_s, mul_n, sqr
- *
- */
 
 #include <wjr/math/add.hpp>
 #include <wjr/math/ctz.hpp>
@@ -100,6 +106,18 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t __mul_u64(uint64_t a, uint64_t b, uint64_t &h
 #endif
 }
 
+/**
+ * @brief Full-precision multiplication returning both low and high parts
+ *
+ * Multiplies two unsigned integers and returns the full double-width product.
+ * The low part is returned, while the high part is stored in the hi parameter.
+ *
+ * @tparam T Unsigned integral type
+ * @param[in] a First multiplicand
+ * @param[in] b Second multiplicand
+ * @param[out] hi Reference to store the high part of the product
+ * @return T The low part of the product
+ */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 T mul(T a, T b, T &hi) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
@@ -111,6 +129,17 @@ WJR_INTRINSIC_CONSTEXPR20 T mul(T a, T b, T &hi) noexcept {
     }
 }
 
+/**
+ * @brief Get the high part of a full-precision multiplication
+ *
+ * Returns only the high part of the double-width product of two integers.
+ * Optimized to avoid computing the low part when not needed.
+ *
+ * @tparam T Unsigned integral type
+ * @param[in] a First multiplicand
+ * @param[in] b Second multiplicand
+ * @return T The high part of the product
+ */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T mulhi(T a, T b) noexcept {
 #if WJR_HAS_BUILTIN(MSVC_MULH64)
@@ -127,6 +156,17 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T mulhi(T a, T b) noexcept {
 #endif
 }
 
+/**
+ * @brief Get the low part of a multiplication
+ *
+ * Returns only the low part of the product. This is equivalent to
+ * standard multiplication but provided for API consistency.
+ *
+ * @tparam T Unsigned integral type
+ * @param[in] a First multiplicand
+ * @param[in] b Second multiplicand
+ * @return T The low part of the product
+ */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T mullo(T a, T b) noexcept {
     return a * b;
@@ -143,6 +183,18 @@ WJR_INTRINSIC_CONSTEXPR20 bool fallback_mul_overflow(T a, T b, T &ret) noexcept 
     return hi != 0;
 }
 
+/**
+ * @brief Multiply with overflow detection
+ *
+ * Multiplies two integers and detects if the result overflows the type.
+ * Returns true if overflow occurred, false otherwise.
+ *
+ * @tparam T Unsigned integral type
+ * @param[in] a First multiplicand
+ * @param[in] b Second multiplicand
+ * @param[out] ret Reference to store the product (low part if overflow)
+ * @return bool True if overflow occurred, false otherwise
+ */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 bool mul_overflow(type_identity_t<T> a, type_identity_t<T> b,
                                             T &ret) noexcept {

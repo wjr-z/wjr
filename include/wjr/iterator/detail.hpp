@@ -1,3 +1,12 @@
+/**
+ * @file iterator/detail.hpp
+ * @brief Iterator type traits and utilities
+ * @author wjr
+ *
+ * Provides type traits for detecting and classifying iterators,
+ * including category detection and contiguous iterator support.
+ */
+
 #ifndef WJR_ITERATOR_DETAIL_HPP__
 #define WJR_ITERATOR_DETAIL_HPP__
 
@@ -7,18 +16,23 @@
 
 namespace wjr {
 
+/// Extract difference_type from iterator traits
 template <typename Iter>
 using iterator_difference_t = typename std::iterator_traits<Iter>::difference_type;
 
+/// Extract value_type from iterator traits
 template <typename Iter>
 using iterator_value_t = typename std::iterator_traits<Iter>::value_type;
 
+/// Extract reference type from iterator traits
 template <typename Iter>
 using iterator_reference_t = typename std::iterator_traits<Iter>::reference;
 
+/// Extract pointer type from iterator traits
 template <typename Iter>
 using iterator_pointer_t = typename std::iterator_traits<Iter>::pointer;
 
+/// Extract iterator_category from iterator traits
 template <typename Iter>
 using iterator_category_t = typename std::iterator_traits<Iter>::iterator_category;
 
@@ -33,6 +47,10 @@ template <typename Iter>
 struct __is_iterator_impl<Iter, std::void_t<typename std::iterator_traits<Iter>::iterator_category>>
     : std::true_type {};
 
+/**
+ * @brief Check if type is an iterator
+ * @tparam Iter Type to check
+ */
 template <typename Iter>
 struct is_iterator : __is_iterator_impl<Iter> {};
 
@@ -49,24 +67,40 @@ struct __is_category_iterator_impl<
     Iter, Category, std::void_t<typename std::iterator_traits<Iter>::iterator_category>>
     : std::is_base_of<Category, iterator_category_t<Iter>> {};
 
+/**
+ * @brief Check if iterator is an input iterator
+ * @tparam Iter Iterator type to check
+ */
 template <typename Iter>
 struct is_input_iterator : __is_category_iterator_impl<Iter, std::input_iterator_tag> {};
 
 template <typename Iter>
 inline constexpr bool is_input_iterator_v = is_input_iterator<Iter>::value;
 
+/**
+ * @brief Check if iterator is an output iterator
+ * @tparam Iter Iterator type to check
+ */
 template <typename Iter>
 struct is_output_iterator : __is_category_iterator_impl<Iter, std::output_iterator_tag> {};
 
 template <typename Iter>
 inline constexpr bool is_output_iterator_v = is_output_iterator<Iter>::value;
 
+/**
+ * @brief Check if iterator is a forward iterator
+ * @tparam Iter Iterator type to check
+ */
 template <typename Iter>
 struct is_forward_iterator : __is_category_iterator_impl<Iter, std::forward_iterator_tag> {};
 
 template <typename Iter>
 inline constexpr bool is_forward_iterator_v = is_forward_iterator<Iter>::value;
 
+/**
+ * @brief Check if iterator is a bidirectional iterator
+ * @tparam Iter Iterator type to check
+ */
 template <typename Iter>
 struct is_bidirectional_iterator
     : __is_category_iterator_impl<Iter, std::bidirectional_iterator_tag> {};
@@ -74,6 +108,10 @@ struct is_bidirectional_iterator
 template <typename Iter>
 inline constexpr bool is_bidirectional_iterator_v = is_bidirectional_iterator<Iter>::value;
 
+/**
+ * @brief Check if iterator is a random access iterator
+ * @tparam Iter Iterator type to check
+ */
 template <typename Iter>
 struct is_random_access_iterator
     : __is_category_iterator_impl<Iter, std::random_access_iterator_tag> {};

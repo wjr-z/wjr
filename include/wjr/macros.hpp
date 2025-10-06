@@ -1,3 +1,12 @@
+/**
+ * @file macros.hpp
+ * @brief Macro definitions aggregate header
+ * @author wjr
+ *
+ * Aggregates utility macros for assembly, class definitions,
+ * exception handling, memory overlap checking, and SFINAE helpers.
+ */
+
 #ifndef WJR_MACROS_HPP__
 #define WJR_MACROS_HPP__
 

@@ -79,7 +79,6 @@
 #include <wjr/memory/copy.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
 
-
 namespace wjr {
 
 template <typename T, typename Alloc>

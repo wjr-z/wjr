@@ -1,3 +1,12 @@
+/**
+ * @file replace.hpp
+ * @brief Array find-and-replace operations
+ * @author wjr
+ *
+ * Provides optimized operations that find and replace patterns in arrays.
+ * Useful for implementing increment/decrement with carry propagation.
+ */
+
 #ifndef WJR_MATH_REPLACE_HPP__
 #define WJR_MATH_REPLACE_HPP__
 
@@ -7,12 +16,20 @@
 namespace wjr {
 
 /**
- * @details Find the first position(ret) that is not equal to number "from" and replace [0, ret) to
- * number "to" For example, inc replaces a continuous segment of -1 with 0. And dec replaces a
- * continuous segment of 0 with -1
+ * @brief Find first non-matching element and replace preceding elements
  *
- * @todo Optimization, merge builtin_find_not_n and builtin_set_n.
+ * Finds the first position not equal to 'from' and replaces [0, ret) with 'to'.
+ * Useful for carry/borrow propagation (e.g., increment replaces segment of -1 with 0).
  *
+ * @tparam T Integral type
+ * @param[out] dst Destination array
+ * @param[in] src Source array
+ * @param[in] n Array size
+ * @param[in] from Value to search for
+ * @param[in] to Replacement value
+ * @return size_t Index of first non-matching element
+ *
+ * @todo Optimization: merge builtin_find_not_n and builtin_set_n
  */
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 size_t replace_find_not(T *dst, const T *src, size_t n,
@@ -27,7 +44,18 @@ WJR_INTRINSIC_CONSTEXPR20 size_t replace_find_not(T *dst, const T *src, size_t n
 }
 
 /**
- * @details Reverse order of @ref replace_find_not.
+ * @brief Reverse-order find and replace operation
+ *
+ * Like replace_find_not but searches from high to low. Finds the last position
+ * not equal to 'from' and replaces [ret, n) with 'to'.
+ *
+ * @tparam T Integral type
+ * @param[out] dst Destination array
+ * @param[in] src Source array
+ * @param[in] n Array size
+ * @param[in] from Value to search for
+ * @param[in] to Replacement value
+ * @return size_t Index of last non-matching element
  */
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 size_t reverse_replace_find_not(T *dst, const T *src, size_t n,

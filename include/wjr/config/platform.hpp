@@ -1,3 +1,12 @@
+/**
+ * @file config/platform.hpp
+ * @brief Operating system detection
+ * @author wjr
+ *
+ * Detects the target operating system (Windows, Linux, FreeBSD, Android, etc.)
+ * and includes platform-specific configuration headers.
+ */
+
 #ifndef WJR_CONFIG_PLATFORM_HPP__
 #define WJR_CONFIG_PLATFORM_HPP__
 

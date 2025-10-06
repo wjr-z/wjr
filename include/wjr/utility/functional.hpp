@@ -1,3 +1,12 @@
+/**
+ * @file functional.hpp
+ * @brief Functional programming utilities
+ * @author wjr
+ *
+ * Provides function wrappers and utilities including function_ref,
+ * invoke_r, and related helpers for functional programming.
+ */
+
 #ifndef WJR_UTILITY_FUNCTIONAL_HPP__
 #define WJR_UTILITY_FUNCTIONAL_HPP__
 

@@ -1,3 +1,11 @@
+/**
+ * @file container/bitset.hpp
+ * @brief Fixed-size bitset container
+ * @author wjr
+ *
+ * Provides a std::bitset-like container with optimized operations.
+ */
+
 #ifndef WJR_CONTAINER_BITSET_HPP__
 #define WJR_CONTAINER_BITSET_HPP__
 

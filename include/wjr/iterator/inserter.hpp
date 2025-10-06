@@ -1,3 +1,12 @@
+/**
+ * @file iterator/inserter.hpp
+ * @brief Insert iterator type traits and utilities
+ * @author wjr
+ *
+ * Provides type traits to detect insert iterators and functions
+ * to extract container and position from insert iterators.
+ */
+
 #ifndef WJR_ITERATOR_INSERTER_HPP__
 #define WJR_ITERATOR_INSERTER_HPP__
 

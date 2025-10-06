@@ -1,3 +1,12 @@
+/**
+ * @file utility/tag.hpp
+ * @brief Tag types for construction and initialization control
+ * @author wjr
+ *
+ * Provides tag types to control constructor selection and initialization behavior,
+ * including default_construct, value_construct, in_place_reserve, and from_range.
+ */
+
 #ifndef WJR_UTILITY_TAG_HPP__
 #define WJR_UTILITY_TAG_HPP__
 

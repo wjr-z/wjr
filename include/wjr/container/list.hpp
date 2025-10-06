@@ -1,3 +1,13 @@
+/**
+ * @file list.hpp
+ * @brief Intrusive doubly-linked list implementation
+ * @author wjr
+ *
+ * Provides intrusive list nodes and iterators. Unlike standard containers,
+ * intrusive containers don't manage memory and require elements to contain
+ * the link pointers.
+ */
+
 #ifndef WJR_CONTAINER_LIST_HPP__
 #define WJR_CONTAINER_LIST_HPP__
 

@@ -38,9 +38,17 @@ WJR_INTRINSIC_CONSTEXPR void fallback_set_n(T *dst, T val, size_t n) noexcept {
 }
 
 /**
- * @brief Support fast memset for uint16_t/uint32_t/uint64_t
- * @details Such as val = 0x01020304 wich can't be optimized to std::memset
- * @todo Tests for T = uint16_t/uint32_t when using builtin_set_n.
+ * @brief Fill array with value (optimized memset)
+ *
+ * Fills n elements of dst with val. Supports non-byte values like 0x01020304
+ * that can't be optimized by std::memset. Optimized for uint16_t/uint32_t/uint64_t.
+ *
+ * @tparam T Unsigned integral type
+ * @param[out] dst Destination array
+ * @param[in] val Value to fill
+ * @param[in] n Number of elements to fill
+ *
+ * @todo Test for T = uint16_t/uint32_t when using builtin_set_n
  */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 void set_n(T *dst, type_identity_t<T> val, size_t n) noexcept {

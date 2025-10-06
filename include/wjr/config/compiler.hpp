@@ -1,3 +1,12 @@
+/**
+ * @file config/compiler.hpp
+ * @brief Compiler detection and version checking
+ * @author wjr
+ *
+ * Detects compiler (GCC, Clang, MSVC) and C++ standard version.
+ * Provides macros for compiler-specific version checks.
+ */
+
 #ifndef WJR_CONFIG_COMPILER_HPP__
 #define WJR_CONFIG_COMPILER_HPP__
 

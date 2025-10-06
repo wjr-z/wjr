@@ -1,3 +1,12 @@
+/**
+ * @file find.hpp
+ * @brief Array search and comparison operations
+ * @author wjr
+ *
+ * Provides optimized functions to find differences between arrays.
+ * Supports both forward and reverse iteration for flexible searching.
+ */
+
 #ifndef WJR_MATH_FIND_HPP__
 #define WJR_MATH_FIND_HPP__
 

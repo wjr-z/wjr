@@ -1,3 +1,12 @@
+/**
+ * @file add.hpp
+ * @brief Addition operations with carry support
+ * @author wjr
+ *
+ * Provides optimized addition functions with carry propagation for
+ * multi-precision arithmetic. Uses compiler intrinsics when available.
+ */
+
 #ifndef WJR_MATH_ADD_HPP__
 #define WJR_MATH_ADD_HPP__
 

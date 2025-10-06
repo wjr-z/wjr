@@ -1,3 +1,12 @@
+/**
+ * @file json/detail.hpp
+ * @brief JSON parsing core types and error codes
+ * @author wjr
+ *
+ * Provides error codes, result types, value type enumerations,
+ * and basic JSON value structures for the JSON parsing library.
+ */
+
 #ifndef WJR_JSON_DETAIL_HPP__
 #define WJR_JSON_DETAIL_HPP__
 

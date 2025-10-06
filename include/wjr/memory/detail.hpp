@@ -1,3 +1,12 @@
+/**
+ * @file memory/detail.hpp
+ * @brief Memory utilities and pointer manipulation
+ * @author wjr
+ *
+ * Provides pointer address extraction, iterator base unwrapping,
+ * and endianness detection utilities.
+ */
+
 #ifndef WJR_MEMORY_DETAIL_HPP__
 #define WJR_MEMORY_DETAIL_HPP__
 

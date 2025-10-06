@@ -1,3 +1,12 @@
+/**
+ * @file simd.hpp
+ * @brief SIMD (Single Instruction Multiple Data) operations
+ * @author wjr
+ *
+ * Provides portable SIMD abstractions for x86 SSE/AVX and other architectures.
+ * Enables vectorized operations for performance-critical code.
+ */
+
 #ifndef WJR_SIMD_SIMD_HPP__
 #define WJR_SIMD_SIMD_HPP__
 

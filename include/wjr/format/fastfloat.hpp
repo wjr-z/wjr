@@ -26,6 +26,17 @@
 // IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
+/**
+ * @file format/fastfloat.hpp
+ * @brief Fast floating-point parsing from strings
+ * @author The fast_float authors (adapted by wjr)
+ *
+ * Provides high-performance string-to-float conversion using the fast_float algorithm.
+ * Supports IEEE 754 compliant parsing with round-to-nearest for float and double types.
+ *
+ * Based on the fast_float library (MIT License).
+ */
+
 #ifndef WJR_FORMAT_FASTFLOAT_HPP__
 #define WJR_FORMAT_FASTFLOAT_HPP__
 

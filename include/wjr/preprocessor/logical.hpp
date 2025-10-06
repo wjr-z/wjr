@@ -1,3 +1,11 @@
+/**
+ * @file preprocessor/logical.hpp
+ * @brief Preprocessor logical operations
+ * @author wjr
+ *
+ * Provides preprocessor macros for boolean and conditional logic.
+ */
+
 #ifndef WJR_PREPROCESSOR_LOGICAL_HPP__
 #define WJR_PREPROCESSOR_LOGICAL_HPP__
 
