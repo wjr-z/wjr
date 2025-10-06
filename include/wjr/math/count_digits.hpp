@@ -13,7 +13,6 @@
 #define WJR_MATH_COUNT_DIGITS_HPP__
 
 #include <wjr/math/bit.hpp>
-#include <wjr/math/clz.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
@@ -129,7 +128,7 @@ struct count_digits_fn {};
 /**
  * @brief Global constant for counting digits in a specific base
  * @tparam Base The numeric base to count in
- * 
+ *
  * @code
  * int digits = count_digits<10>(12345);  // Returns 5
  * int bits = count_digits<2>(255);       // Returns 8
@@ -173,7 +172,7 @@ template <>
 struct count_digits_fn<1> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n, int bits) const noexcept {
-        return (bit_width(n) + bits - 1) / bits;
+        return __ceil_div(to_unsigned(bit_width(n)), bits);
     }
 };
 
