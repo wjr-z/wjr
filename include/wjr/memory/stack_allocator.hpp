@@ -64,9 +64,10 @@ private:
 
     static void __large_deallocate(large_memory *buffer) noexcept;
 
-    WJR_MALLOC void *__small_allocate(size_t n) noexcept {
+    WJR_MALLOC void *__small_allocate(size_t n, stack_context &context) noexcept {
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
-            __small_reallocate();
+            if (auto ptr = __small_reallocate(); ptr)
+                context.m_ptr = static_cast<std::byte *>(ptr);
         }
 
         WJR_ASSUME(m_cache.ptr != nullptr);
@@ -77,10 +78,9 @@ private:
     }
 
     void __small_deallocate(const stack_context &context) noexcept {
-        if (WJR_UNLIKELY(context.m_ptr == nullptr))
-            m_cache.ptr = m_first;
-        else
-            m_cache.ptr = context.m_ptr;
+        if (context.m_ptr == nullptr)
+            return;
+        m_cache.ptr = context.m_ptr;
 
         const auto prev = context.m_idx;
         // Fast path.
@@ -94,7 +94,7 @@ private:
             __small_redeallocate();
     }
 
-    void __small_reallocate() noexcept;
+    void *__small_reallocate() noexcept;
     void __small_redeallocate() noexcept;
 
 public:
@@ -120,7 +120,8 @@ public:
                 return __large_allocate(n, context.m_prev);
             }
 
-            __small_reallocate();
+            if (auto ptr = __small_reallocate(); ptr)
+                context.m_ptr = static_cast<std::byte *>(ptr);
         }
 
         WJR_ASSUME(m_cache.ptr != nullptr);
@@ -142,9 +143,6 @@ private:
     uint_fast32_t m_size = 0;
     uint_fast32_t m_capacity = 0;
     alloc_node *m_ptr = nullptr;
-
-    /// @brief The first allocated buffer, used to reset m_cache.ptr in __small_deallocate.
-    std::byte *m_first = nullptr;
 };
 
 inline stack_allocator_object::stack_context::stack_context(stack_allocator_object *object) noexcept
@@ -217,7 +215,7 @@ public:
 
 private:
     WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *__small_allocate(size_t n) noexcept {
-        return m_context.object()->__small_allocate(n);
+        return m_context.object()->__small_allocate(n, m_context);
     }
 
     stack_context m_context;

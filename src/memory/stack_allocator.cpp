@@ -28,7 +28,7 @@ void stack_allocator_object::__large_deallocate(large_memory *buffer) noexcept {
     } while (buffer != nullptr);
 }
 
-void stack_allocator_object::__small_reallocate() noexcept {
+void *stack_allocator_object::__small_reallocate() noexcept {
     static constexpr uint_fast32_t capacity_grow = 16;
 
     // This is the initial state
@@ -47,8 +47,7 @@ void stack_allocator_object::__small_reallocate() noexcept {
             m_cache = m_ptr[0] = {buffer, buffer + capacity};
         }
 
-        m_first = m_cache.ptr;
-        return;
+        return m_cache.ptr;
     }
 
     ++m_idx;
@@ -73,6 +72,7 @@ void stack_allocator_object::__small_reallocate() noexcept {
     }
 
     m_cache = m_ptr[m_idx];
+    return nullptr;
 }
 
 } // namespace wjr
