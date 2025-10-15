@@ -908,6 +908,10 @@ struct is_integral_constant<std::integral_constant<T, Value>> : std::true_type {
 template <typename T>
 inline constexpr bool is_integral_constant_v = is_integral_constant<T>::value;
 
+// helper trait for unique_ptr<T[]>, shared_ptr<T[]>, and span<T, N>
+template <typename ToElementType, typename FromElementType>
+using __is_array_convertible = std::is_convertible<FromElementType (*)[], ToElementType (*)[]>;
+
 } // namespace wjr
 
 #endif // ! WJR_TYPE_TRAITS_HPP__

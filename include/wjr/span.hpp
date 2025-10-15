@@ -15,6 +15,8 @@
 #include <wjr/assert.hpp>
 #include <wjr/iterator/contiguous_iterator_adapter.hpp>
 
+#include <range/v3/range/concepts.hpp>
+
 namespace wjr {
 
 /// @private Internal storage for static-sized span
@@ -79,35 +81,19 @@ struct __is_span<span<T, Extent>> : std::true_type {};
 template <typename T>
 inline constexpr bool __is_span_v = __is_span<T>::value;
 
-/// @private
-template <typename Container, typename = void>
-struct __is_container_like : std::false_type {};
+template <typename Elem, typename Ref>
+using __is_compatible_ref = __is_array_convertible<Elem, std::remove_reference_t<Ref>>;
 
-/// @private
-template <typename Container>
-struct __is_container_like<Container,
-                           std::enable_if_t<has_data_v<Container> && has_size_v<Container>>>
-    : std::conjunction<std::negation<std::is_array<remove_cvref_t<Container>>>,
-                       std::negation<__is_std_array<remove_cvref_t<Container>>>,
-                       std::negation<__is_span<remove_cvref_t<Container>>>,
-                       std::is_pointer<decltype(std::data(std::declval<Container &>()))>> {};
+CPP_template(typename Range,
+             typename Elem)(concept(__is_range_compatible_ref_)(Range, Elem),
+                            __is_compatible_ref<Elem, ranges::range_reference_t<Range>>::value);
 
-/// @private
-template <typename Container>
-inline constexpr bool __is_container_like_v = __is_container_like<Container>::value;
-
-template <typename Container, typename Elem, typename = void>
-struct __is_span_like : std::false_type {};
-
-template <typename Container, typename Elem>
-struct __is_span_like<Container, Elem,
-                      std::enable_if_t<has_data_v<Container> && has_size_v<Container>>>
-    : std::conjunction<
-          __is_container_like<Container>,
-          std::is_convertible<decltype(std::data(std::declval<Container &>())), Elem *>> {};
-
-template <typename Container, typename Elem>
-inline constexpr bool __is_span_like_v = __is_span_like<Container, Elem>::value;
+template <typename Range, typename Elem>
+CPP_concept __is_range_like_v =
+    (!__is_span_v<remove_cvref_t<Range>>) && (!__is_std_array_v<remove_cvref_t<Range>>) &&
+    (!__is_std_array_v<remove_cvref_t<Range>>) && ranges::contiguous_range<Range> &&
+    ranges::sized_range<Range> && (ranges::borrowed_range<Range> || std::is_const_v<Elem>) &&
+    CPP_concept_ref(__is_range_compatible_ref_, Range, Elem);
 
 /// @private
 template <typename T>
@@ -380,29 +366,13 @@ public:
 
     // extension :
 
-    /**
-     * @brief Construct a span from a container.
-     *
-     * @details The container must have a `data()` member function that returns
-     * a @ref
-     * __is_span_iterator. The container must also have a `size()` member
-     * function that can be converted to `size_type`.
-     *
-     */
-    template <typename Container,
-              WJR_REQUIRES(span_detail::__is_span_like_v<Container, element_type> &&__is_dynamic)>
-    constexpr span(Container &&c) noexcept : storage(std::data(c), std::size(c)) {}
+    template <typename Range,
+              WJR_REQUIRES(span_detail::__is_range_like_v<Range, element_type> &&__is_dynamic)>
+    constexpr span(Range &&rg) noexcept : storage(ranges::data(rg), ranges::size(rg)) {}
 
-    /**
-     * @brief Construct a span from a container.
-     *
-     * @details Like @ref span(Container &&), but the span is not dynamic-sized,
-     * so the construct must be explicit.
-     *
-     */
-    template <typename Container,
-              WJR_REQUIRES(span_detail::__is_span_like_v<Container, element_type> && !__is_dynamic)>
-    constexpr explicit span(Container &&c) noexcept : storage(std::data(c), std::size(c)) {}
+    template <typename Range,
+              WJR_REQUIRES(span_detail::__is_range_like_v<Range, element_type> && !__is_dynamic)>
+    constexpr explicit span(Range &&rg) noexcept : storage(ranges::data(rg), ranges::size(rg)) {}
 
 private:
     __storage storage;
@@ -420,9 +390,8 @@ span(const std::array<T, Size> &) -> span<const T, Size>;
 template <typename It, typename End, WJR_REQUIRES(is_contiguous_iterator_v<It>)>
 span(It, End) -> span<iterator_contiguous_value_t<It>>;
 
-template <typename Container, WJR_REQUIRES(span_detail::__is_container_like_v<Container>)>
-span(Container &&)
-    -> span<iterator_contiguous_value_t<decltype(std::data(std::declval<Container &>()))>>;
+template <typename Range, WJR_REQUIRES(ranges::contiguous_range<Range>)>
+span(Range &&) -> span<std::remove_reference_t<ranges::range_reference_t<Range &>>>;
 
 } // namespace wjr
 

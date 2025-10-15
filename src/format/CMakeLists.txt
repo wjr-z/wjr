@@ -9,8 +9,9 @@ wjr_cc_library(
    ${WJR_SRCS}
 
    DEPS
-   fmt::fmt
    wjr::arch-format
+   fmt::fmt
+   range-v3::range-v3
 
    OBJECT
 )

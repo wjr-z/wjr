@@ -122,7 +122,7 @@
 #if WJR_HAS_ATTRIBUTE(aligned)
     #define WJR_ALIGNED(size) __attribute__((aligned(size)))
 #elif defined(_MSC_VER)
-    #define WJR_ALIGNED(size)
+    #define WJR_ALIGNED(size) __declspec(align(size))
 #else
     #define WJR_ALIGNED(size)
 #endif
@@ -138,6 +138,8 @@
 #endif
 
 #if defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC)
+    #define WJR_RESTRICT __restrict
+#elif defined(WJR_COMPILER_MSVC)
     #define WJR_RESTRICT __restrict
 #else
     #define WJR_RESTRICT
@@ -417,6 +419,8 @@
 // Warn if return value is unused
 #if WJR_HAS_ATTRIBUTE(warn_unused_result)
     #define WJR_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
+#elif defined(WJR_COMPILER_MSVC)
+    #define WJR_WARN_UNUSED_RESULT _Check_return_
 #else
     #define WJR_WARN_UNUSED_RESULT
 #endif

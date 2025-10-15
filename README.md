@@ -15,6 +15,7 @@ C++17，64位系统，CMake。  \
 - [ ] malloc库替换
 - [ ] ranges支持
 - [ ] 模块（优先级低）
+- [ ] MSVC 编译flag
 
 # coverage
 ```

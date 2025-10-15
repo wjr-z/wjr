@@ -70,6 +70,7 @@
 #define WJR_CONTAINER_VECTOR_HPP__
 
 #include <wjr/compressed_pair.hpp>
+#include <wjr/concept/ranges_base.hpp>
 #include <wjr/container/container_fn.hpp>
 #include <wjr/container/detail/storage_traits.hpp>
 #include <wjr/container/detail/vector_size_reference.hpp>
@@ -78,6 +79,8 @@
 #include <wjr/memory/allocate_at_least.hpp>
 #include <wjr/memory/copy.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
+
+#include <range/v3/iterator/operations.hpp>
 
 namespace wjr {
 
@@ -617,7 +620,7 @@ public:
             allocator_type()) noexcept(std::is_nothrow_constructible_v<_Alty,
                                                                        const allocator_type &> &&
                                        noexcept(__construct_n(n, value_construct)))
-        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
+        : basic_vector(al) {
         __construct_n(n, value_construct);
     }
 
@@ -628,7 +631,7 @@ public:
             allocator_type()) noexcept(std::is_nothrow_constructible_v<_Alty,
                                                                        const allocator_type &> &&
                                        noexcept(__construct_n(n, val)))
-        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
+        : basic_vector(al) {
         __construct_n(n, val);
     }
 
@@ -637,7 +640,7 @@ private:
     WJR_CONSTEXPR20 basic_vector(const basic_vector &other, _Alloc &&al, in_place_empty_t) noexcept(
         std::is_nothrow_constructible_v<_Alty, _Alloc &&> && __is_nothrow_uninitialized_construct &&
         std::is_nothrow_copy_constructible_v<value_type>)
-        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
+        : basic_vector(al) {
         const auto size = other.size();
         if (WJR_LIKELY(size != 0)) {
             uninitialized_construct(size, size);
@@ -649,7 +652,7 @@ private:
     template <typename _Alloc>
     WJR_CONSTEXPR20 basic_vector(basic_vector &&other, _Alloc &&al, in_place_empty_t) noexcept(
         std::is_nothrow_constructible_v<_Alty, _Alloc &&> && __is_nothrow_take_storage)
-        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
+        : basic_vector(al) {
         __take_storage(std::move(other));
     }
 
@@ -681,7 +684,7 @@ public:
 
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector(Iter first, Iter last, const allocator_type &al = allocator_type())
-        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
+        : basic_vector(al) {
         __range_construct(wjr::__iter_base(first), wjr::__iter_base(last),
                           iterator_category_t<Iter>());
     }
@@ -1057,21 +1060,36 @@ public:
 
     WJR_CONSTEXPR20 basic_vector(size_type n, default_construct_t,
                                  const allocator_type &al = allocator_type())
-        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
+        : basic_vector(al) {
         __construct_n(n, default_construct);
     }
 
     WJR_CONSTEXPR20 basic_vector(size_type n, in_place_reserve_t,
                                  const allocator_type &al = allocator_type())
-        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
+        : basic_vector(al) {
         if (WJR_LIKELY(n != 0)) {
             uninitialized_construct(0, n);
         }
     }
 
     WJR_CONSTEXPR20 basic_vector(storage_type &&other, const allocator_type &al = allocator_type())
-        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
+        : basic_vector(al) {
         take_storage(other);
+    }
+
+    template <typename Range, WJR_REQUIRES(detail::__container_compatible_range<Range, value_type>)>
+    WJR_CONSTEXPR20 basic_vector(wjr::from_range_t, Range &&rg,
+                                 const allocator_type &al = allocator_type())
+        : basic_vector(al) {
+        if constexpr (ranges::sized_range<Range> || ranges::forward_range<Range>) {
+            const auto n = static_cast<size_type>(ranges::distance(rg));
+            __construct_n(n, ranges::begin(rg), ranges::end(rg));
+        } else {
+            auto __first = ranges::begin(rg);
+            const auto __last = ranges::end(rg);
+            for (; __first != __last; ++__first)
+                emplace_back(*__first);
+        }
     }
 
     WJR_CONSTEXPR20 basic_vector &operator=(storage_type &&other) {
