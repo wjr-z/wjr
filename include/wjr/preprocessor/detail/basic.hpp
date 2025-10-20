@@ -19,7 +19,7 @@
 #define WJR_PP_ESC_(M, x) M x
 #define WJR_PP_ESC_I(...) __VA_ARGS__
 
-// don't support 0 agument
+// don't support 0 argument
 #define WJR_PP_ARGS_LEN(...) WJR_PP_ARGS_LEN_I(__VA_ARGS__)
 
 #define WJR_PP_ARGS_LEN_I(...)                                                                     \
