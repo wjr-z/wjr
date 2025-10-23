@@ -155,18 +155,9 @@ using iterator_contiguous_pointer_t = std::add_pointer_t<iterator_contiguous_val
 
 /**
  * @brief Contiguous iterator tag
- * @details Inherits from \c ranges::contiguous_iterator_tag and
- * \c std::contiguous_iterator_tag (if C++20 is available).
- * range-v3's contiguous iterator tag does not inherit from std's tag, so this
- * tag bridges that gap.
+ * @todo Support C++20 std::contiguous_iterator_tag
  */
-struct contiguous_iterator_tag : ranges::contiguous_iterator_tag
-#if defined(WJR_CPP_20)
-    ,
-                                 std::contiguous_iterator_tag
-#endif
-{
-};
+using contiguous_iterator_tag = ranges::contiguous_iterator_tag;
 
 } // namespace wjr
 
