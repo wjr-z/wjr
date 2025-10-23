@@ -286,13 +286,13 @@ public:
         return *this;
     }
 
+    using Mybase::operator-;
+
     WJR_NODISCARD WJR_CONSTEXPR20 contiguous_iterator_adapter
     operator-(difference_type n) const noexcept {
         auto tmp = *this;
         return tmp -= n;
     }
-
-    using Mybase::operator-;
 
     WJR_NODISCARD WJR_CONSTEXPR20 reference operator[](difference_type n) const noexcept {
         return *(*this + n);
