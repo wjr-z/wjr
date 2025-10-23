@@ -55,11 +55,6 @@ class span;
 
 namespace span_detail {
 
-WJR_REGISTER_HAS_TYPE(data, std::data(std::declval<std::add_lvalue_reference_t<Container>>()),
-                      Container);
-WJR_REGISTER_HAS_TYPE(size, std::size(std::declval<std::add_lvalue_reference_t<Container>>()),
-                      Container);
-
 /// @private
 template <typename T>
 struct __is_std_array : std::false_type {};

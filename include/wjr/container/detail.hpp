@@ -126,6 +126,7 @@ private:
     using iterator = typename __container_traits_base_iterator_helper<Container>::iterator;
 
 public:
+    /// @todo Use ranges::contiguous_range to check if the container is contiguous
     constexpr static bool is_contiguous_v = is_contiguous_iterator_v<iterator>;
 
     /**
@@ -139,8 +140,7 @@ public:
      * as using Traits::copy.
      *
      */
-    constexpr static bool is_trivially_contiguous_v =
-        is_contiguous_v && __is_contiguous_iterator_impl<iterator>::value;
+    constexpr static bool is_trivially_contiguous_v = is_contiguous_v;
 };
 
 template <typename Container>

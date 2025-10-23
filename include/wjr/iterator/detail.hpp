@@ -14,6 +14,8 @@
 
 #include <wjr/type_traits.hpp>
 
+#include <range/v3/iterator/concepts.hpp>
+
 namespace wjr {
 
 /// Extract difference_type from iterator traits
@@ -119,6 +121,7 @@ struct is_random_access_iterator
 template <typename Iter>
 inline constexpr bool is_random_access_iterator_v = is_random_access_iterator<Iter>::value;
 
+namespace detail {
 /// @private
 template <typename Iter>
 struct __is_contiguous_iterator_impl
@@ -130,14 +133,15 @@ struct __is_contiguous_iterator_impl<std::move_iterator<Iter>>
     : std::conjunction<__is_contiguous_iterator_impl<Iter>,
                        std::is_trivially_copyable<iterator_value_t<Iter>>> {};
 
-#if defined(WJR_CPP_20)
+/// @todo Is std::contiguous_iterator needed here?
 template <typename Iter>
-struct is_contiguous_iterator : std::bool_constant<std::contiguous_iterator<Iter> ||
-                                                   __is_contiguous_iterator_impl<Iter>::value> {};
-#else
+inline constexpr bool __is_contiguous_iterator_impl_v =
+    __is_contiguous_iterator_impl<Iter>::value || ranges::contiguous_iterator<Iter>;
+} // namespace detail
+
 template <typename Iter>
-struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
-#endif
+struct is_contiguous_iterator : std::bool_constant<detail::__is_contiguous_iterator_impl_v<Iter>> {
+};
 
 template <typename Iter>
 inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
@@ -151,6 +155,21 @@ using iterator_contiguous_pointer_t = std::add_pointer_t<iterator_contiguous_val
 #if WJR_DEBUG_LEVEL >= 3
     #define WJR_HAS_DEBUG_CONTIGUOUS_ITERATOR_CHECKER WJR_HAS_DEF
 #endif
+
+/**
+ * @brief Contiguous iterator tag
+ * @details Inherits from \c ranges::contiguous_iterator_tag and
+ * \c std::contiguous_iterator_tag (if C++20 is available).
+ * range-v3's contiguous iterator tag does not inherit from std's tag, so this
+ * tag bridges that gap.
+ */
+struct contiguous_iterator_tag : ranges::contiguous_iterator_tag
+#if defined(WJR_CPP_20)
+    ,
+                                 std::contiguous_iterator_tag
+#endif
+{
+};
 
 } // namespace wjr
 

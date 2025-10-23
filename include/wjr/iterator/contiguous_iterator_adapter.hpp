@@ -23,9 +23,7 @@ class contiguous_const_iterator_adapter {
     friend struct std::pointer_traits;
 
 public:
-#if defined(WJR_CPP_20)
-    using iterator_concept = std::contiguous_iterator_tag;
-#endif
+    using iterator_concept = wjr::contiguous_iterator_tag;
     using iterator_category = std::random_access_iterator_tag;
     using value_type = typename Traits::value_type;
     using difference_type = typename Traits::difference_type;
@@ -230,9 +228,7 @@ class contiguous_iterator_adapter : public contiguous_const_iterator_adapter<Con
     friend struct std::pointer_traits;
 
 public:
-#if defined(WJR_CPP_20)
     using iterator_concept = typename Mybase::iterator_concept;
-#endif
     using iterator_category = typename Mybase::iterator_category;
     using value_type = typename Mybase::value_type;
     using difference_type = typename Mybase::difference_type;
@@ -304,16 +300,6 @@ public:
 
     using Mybase::check_same_container;
 };
-
-/// @private
-template <typename Container, typename Traits>
-struct __is_contiguous_iterator_impl<contiguous_const_iterator_adapter<Container, Traits>>
-    : std::true_type {};
-
-/// @private
-template <typename Container, typename Traits>
-struct __is_contiguous_iterator_impl<contiguous_iterator_adapter<Container, Traits>>
-    : std::true_type {};
 
 } // namespace wjr
 
