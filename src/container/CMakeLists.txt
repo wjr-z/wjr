@@ -4,5 +4,5 @@ wjr_cc_library(
 
     DEPS
     wjr::assert
-    range-v3::range-v3
+    wjr::iterator
 )

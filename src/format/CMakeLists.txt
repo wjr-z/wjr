@@ -10,8 +10,8 @@ wjr_cc_library(
 
    DEPS
    wjr::arch-format
+   wjr::iterator
    fmt::fmt
-   range-v3::range-v3
 
    OBJECT
 )

@@ -10,7 +10,6 @@
 #ifndef WJR_MATH_FIND_HPP__
 #define WJR_MATH_FIND_HPP__
 
-#include <wjr/iterator/detail.hpp>
 #include <wjr/math/broadcast.hpp>
 #include <wjr/math/clz.hpp>
 

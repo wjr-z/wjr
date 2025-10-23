@@ -13,7 +13,6 @@
 #include <algorithm>
 
 #include <wjr/iterator/detail.hpp>
-#include <wjr/math/broadcast.hpp>
 #include <wjr/memory/detail.hpp>
 #include <wjr/type_traits.hpp>
 

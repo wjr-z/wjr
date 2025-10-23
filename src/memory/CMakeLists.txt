@@ -10,4 +10,5 @@ wjr_cc_library(
 
    DEPS
    wjr::assert
+   wjr::iterator
 )

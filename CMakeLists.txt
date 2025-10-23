@@ -204,6 +204,11 @@ add_subdirectory(src/config)
 add_subdirectory(src/utility)
 
 #
+# library : iterator
+#
+add_subdirectory(src/iterator)
+
+#
 # library : arch
 #
 add_subdirectory(src/arch)

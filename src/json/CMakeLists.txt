@@ -11,5 +11,4 @@ wjr_cc_library(
    DEPS
    wjr::biginteger
    wjr::arch-json
-   range-v3::range-v3
 )

@@ -4,4 +4,5 @@ wjr_cc_library(
 
     DEPS
     wjr::arch-math
+    wjr::iterator
 )
