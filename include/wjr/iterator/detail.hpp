@@ -121,7 +121,6 @@ struct is_random_access_iterator
 template <typename Iter>
 inline constexpr bool is_random_access_iterator_v = is_random_access_iterator<Iter>::value;
 
-namespace detail {
 /// @private
 template <typename Iter>
 struct __is_contiguous_iterator_impl
@@ -137,11 +136,9 @@ struct __is_contiguous_iterator_impl<std::move_iterator<Iter>>
 template <typename Iter>
 inline constexpr bool __is_contiguous_iterator_impl_v =
     __is_contiguous_iterator_impl<Iter>::value || ranges::contiguous_iterator<Iter>;
-} // namespace detail
 
 template <typename Iter>
-struct is_contiguous_iterator : std::bool_constant<detail::__is_contiguous_iterator_impl_v<Iter>> {
-};
+struct is_contiguous_iterator : std::bool_constant<__is_contiguous_iterator_impl_v<Iter>> {};
 
 template <typename Iter>
 inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
