@@ -7,10 +7,6 @@
 #ifdef _WIN32
     #define NOMINMAX
     #include <windows.h>
-
-    #ifdef __deallocate
-        #undef __deallocate
-    #endif
 #endif
 
 #ifdef WJR_HAS_UNISTD_H
