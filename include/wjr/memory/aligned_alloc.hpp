@@ -38,7 +38,7 @@
 namespace wjr {
 namespace mem {
 template <size_t _Align = default_new_alignment>
-WJR_MALLOC void *__default_allocate(size_t size) {
+WJR_MALLOC void *_default_allocate(size_t size) {
     if constexpr (default_new_alignment <= stdcpp_default_new_alignment &&
                   _Align <= stdcpp_default_new_alignment) {
         return ::operator new[](size);
@@ -49,7 +49,7 @@ WJR_MALLOC void *__default_allocate(size_t size) {
 }
 
 template <size_t _Align = default_new_alignment>
-WJR_MALLOC void *__default_allocate(size_t size, std::nothrow_t) {
+WJR_MALLOC void *_default_allocate(size_t size, std::nothrow_t) {
     if constexpr (default_new_alignment <= stdcpp_default_new_alignment &&
                   _Align <= stdcpp_default_new_alignment) {
         return ::operator new[](size, std::nothrow);
@@ -60,7 +60,7 @@ WJR_MALLOC void *__default_allocate(size_t size, std::nothrow_t) {
 }
 
 template <size_t _Align = default_new_alignment>
-void __default_deallocate(void *ptr) {
+void _default_deallocate(void *ptr) {
     if constexpr (default_new_alignment <= stdcpp_default_new_alignment &&
                   _Align <= stdcpp_default_new_alignment) {
         ::operator delete[](ptr);
@@ -70,7 +70,7 @@ void __default_deallocate(void *ptr) {
 }
 
 template <size_t _Align = default_new_alignment>
-void __default_deallocate(void *ptr, std::nothrow_t) {
+void _default_deallocate(void *ptr, std::nothrow_t) {
     if constexpr (default_new_alignment <= stdcpp_default_new_alignment &&
                   _Align <= stdcpp_default_new_alignment) {
         ::operator delete[](ptr, std::nothrow);

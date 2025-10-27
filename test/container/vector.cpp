@@ -648,7 +648,7 @@ TEST(vector, insert) {
         auto test = [](auto _Val, auto _Val2, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
             auto __test = [&](size_t pos) {
-                if (__has_high_bit(pos) || pos > s) {
+                if (_has_high_bit(pos) || pos > s) {
                     return;
                 }
                 wvector<T> v(c, _Val);

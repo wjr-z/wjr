@@ -13,7 +13,7 @@ case 10:
 case 11:
 case 12: {
     WJRX_UNROLL4(4);
-    goto __rem4;
+    goto _rem4;
 }
 case 13:
 case 14:
@@ -21,7 +21,7 @@ case 15:
 case 16: {
     WJRX_UNROLL4(4);
     WJRX_UNROLL4(8);
-    goto __rem4;
+    goto _rem4;
 }
 case 17:
 case 18:
@@ -34,7 +34,7 @@ case 20: {
 }
 case 7:
 case 8: {
-__rem4:
+_rem4:
     WJRX_UNROLL4(rem16 - 4);
     break;
 }

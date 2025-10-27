@@ -11,8 +11,8 @@
 
 namespace wjr::math {
 
-WJR_INTRINSIC_CONSTEXPR20 uint64_t __subc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
-                                                 uint64_t src1, uint64_t c_in) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t _subc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
+                                                uint64_t src1, uint64_t c_in) noexcept {
     uint8_t overflow;
     dst[0] = subc_cc(src0[0], src1, static_cast<uint8_t>(c_in), overflow);
     if (overflow) {
@@ -53,7 +53,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t subc_1(uint64_t *dst, const uint64_t *src0, s
         return overflow;
     }
 
-    return __subc_1_impl(dst, src0, n, src1, c_in);
+    return _subc_1_impl(dst, src0, n, src1, c_in);
 }
 
 WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_subc_n(uint64_t *dst, const uint64_t *src0,
@@ -251,7 +251,7 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n_pos(uint64_t *dst, const uint64_t *
         hi = -hi;
     }
 
-    ssize_t ret = __fast_from_unsigned(idx);
+    ssize_t ret = _fast_from_unsigned(idx);
     WJR_ASSUME(ret >= 1);
 
     do {
@@ -345,7 +345,7 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s_pos(uint64_t *dst, const uint64_t *
 
             uint64_t hi = src0[m];
             hi -= subc_n(dst, src0, src1, m);
-            ssize_t ret = __fast_from_unsigned(m + 1);
+            ssize_t ret = _fast_from_unsigned(m + 1);
 
             if (WJR_LIKELY(hi != 0)) {
                 dst[m] = hi;
@@ -367,7 +367,7 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_s_pos(uint64_t *dst, const uint64_t *
     }
 
     (void)subc_s(dst, src0, m + idx, src1, m);
-    ssize_t ret = __fast_from_unsigned(m + idx);
+    ssize_t ret = _fast_from_unsigned(m + idx);
     WJR_ASSUME(ret >= 2);
     ret -= dst[m + idx - 1] == 0;
     WJR_ASSUME(ret >= 1);
@@ -380,11 +380,11 @@ WJR_INTRINSIC_CONSTEXPR20 ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0
                                              uint64_t cf0, uint64_t cf1) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     if (WJR_LIKELY(cf0 != cf1)) {
-        ssize_t ret = __fast_from_unsigned(n);
+        ssize_t ret = _fast_from_unsigned(n);
         uint64_t cf;
         if (cf0 < cf1) {
             std::swap(src0, src1);
-            ret = __fast_negate(ret);
+            ret = _fast_negate(ret);
             cf = cf1 - cf0;
         } else {
             cf = cf0 - cf1;

@@ -228,11 +228,11 @@ SLOW_PATH: {
 template <typename Inserter, typename Formatter>
 class base_formatter {
 protected:
-    WJR_INTRINSIC_INLINE void __append_str(const char *str, size_t length) {
+    WJR_INTRINSIC_INLINE void _append_str(const char *str, size_t length) {
         formatter_detail::append_string(get_inserter_container(m_iter), str, length);
     }
 
-    WJR_INTRINSIC_INLINE void __append_char(char ch) { *m_iter++ = ch; }
+    WJR_INTRINSIC_INLINE void _append_char(char ch) { *m_iter++ = ch; }
 
 public:
     base_formatter(Inserter iter) noexcept : m_iter(iter) {}
@@ -245,21 +245,21 @@ public:
     ~base_formatter() = default;
 
     /// @brief Prints a null
-    WJR_INTRINSIC_INLINE void format_null() { __append_str("null", 4); }
+    WJR_INTRINSIC_INLINE void format_null() { _append_str("null", 4); }
     /// @brief Prints a true
-    WJR_INTRINSIC_INLINE void format_true() { __append_str("true", 4); }
+    WJR_INTRINSIC_INLINE void format_true() { _append_str("true", 4); }
     /// @brief Prints a false
-    WJR_INTRINSIC_INLINE void format_false() { __append_str("false", 5); }
+    WJR_INTRINSIC_INLINE void format_false() { _append_str("false", 5); }
     /// @brief Start an object
-    WJR_INTRINSIC_INLINE void format_start_object() { __append_char('{'); }
+    WJR_INTRINSIC_INLINE void format_start_object() { _append_char('{'); }
     /// @brief End an object
-    WJR_INTRINSIC_INLINE void format_end_object() { __append_char('}'); }
+    WJR_INTRINSIC_INLINE void format_end_object() { _append_char('}'); }
     /// @brief Start an array
-    WJR_INTRINSIC_INLINE void format_start_array() { __append_char('['); }
+    WJR_INTRINSIC_INLINE void format_start_array() { _append_char('['); }
     /// @brief End an array
-    WJR_INTRINSIC_INLINE void format_end_array() { __append_char(']'); }
+    WJR_INTRINSIC_INLINE void format_end_array() { _append_char(']'); }
     /// @brief Add a comma
-    WJR_INTRINSIC_INLINE void format_comma() { __append_char(','); }
+    WJR_INTRINSIC_INLINE void format_comma() { _append_char(','); }
     /// @brief Prints a number
     WJR_INTRINSIC_INLINE void format_number_unsigned(uint64_t x) { to_chars_unchecked(m_iter, x); }
     /// @brief Prints a number
@@ -275,7 +275,7 @@ public:
     /// @brief Prints a key (string + colon)
     WJR_INTRINSIC_INLINE void format_key(std::string_view str) {
         format_string(str);
-        __append_char(':');
+        _append_char(':');
     }
 
     /// @brief Prints a string. The string is escaped as needed.
@@ -322,14 +322,14 @@ public:
     pretty_formatter(Inserter iter, unsigned indent_step)
         : Mybase(iter), m_indent_step(indent_step) {}
 
-    WJR_INTRINSIC_INLINE void print_newline() { this->__append_char('\n'); }
+    WJR_INTRINSIC_INLINE void print_newline() { this->_append_char('\n'); }
 
     WJR_INTRINSIC_INLINE void print_indents(size_t depth) {
         formatter_detail::append_indents(get_inserter_container(*this->m_iter),
                                          depth * m_indent_step);
     }
 
-    WJR_INTRINSIC_INLINE void print_space() { this->__append_char(' '); }
+    WJR_INTRINSIC_INLINE void print_space() { this->_append_char(' '); }
 
 private:
     unsigned m_indent_step = 4;

@@ -64,8 +64,8 @@ public:
     };
 
 private:
-    WJR_MALLOC static void *__large_allocate(size_t n, large_memory *&mem) noexcept {
-        auto *const raw = mem::__default_allocate(n + aligned_header_size, std::nothrow);
+    WJR_MALLOC static void *_large_allocate(size_t n, large_memory *&mem) noexcept {
+        auto *const raw = mem::_default_allocate(n + aligned_header_size, std::nothrow);
         auto *const buffer = static_cast<large_memory *>(raw);
         buffer->prev = mem;
         mem = buffer;
@@ -73,11 +73,11 @@ private:
             static_cast<void *>(static_cast<std::byte *>(raw) + aligned_header_size));
     }
 
-    static void __large_deallocate(large_memory *buffer) noexcept;
+    static void _large_deallocate(large_memory *buffer) noexcept;
 
-    WJR_MALLOC void *__small_allocate(size_t n) noexcept {
+    WJR_MALLOC void *_small_allocate(size_t n) noexcept {
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
-            __small_reallocate();
+            _small_reallocate();
         }
 
         WJR_ASSUME(m_cache.ptr != nullptr);
@@ -87,7 +87,7 @@ private:
         return ret;
     }
 
-    void __small_deallocate(const stack_context &context) noexcept {
+    void _small_deallocate(const stack_context &context) noexcept {
         if (WJR_UNLIKELY(context.m_ptr == nullptr))
             m_cache.ptr = m_first;
         else
@@ -102,11 +102,11 @@ private:
         m_idx = prev;
         m_cache.end = m_ptr[m_idx].end;
         if (WJR_UNLIKELY(m_size - m_idx >= bufsize))
-            __small_redeallocate();
+            _small_redeallocate();
     }
 
-    void __small_reallocate() noexcept;
-    void __small_redeallocate() noexcept;
+    void _small_reallocate() noexcept;
+    void _small_redeallocate() noexcept;
 
 public:
     using value_type = void;
@@ -123,15 +123,15 @@ public:
 
     WJR_NODISCARD WJR_MALLOC void *allocate(size_t n, stack_context &context) noexcept {
         if (WJR_BUILTIN_CONSTANT_P_TRUE(n >= stack_allocator_threshold)) {
-            return __large_allocate(n, context.m_prev);
+            return _large_allocate(n, context.m_prev);
         }
 
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
             if (n >= stack_allocator_threshold) {
-                return __large_allocate(n, context.m_prev);
+                return _large_allocate(n, context.m_prev);
             }
 
-            __small_reallocate();
+            _small_reallocate();
         }
 
         WJR_ASSUME(m_cache.ptr != nullptr);
@@ -142,9 +142,9 @@ public:
     }
 
     void deallocate(const stack_context &context) noexcept {
-        __small_deallocate(context);
+        _small_deallocate(context);
         if (auto *buffer = context.m_prev; buffer != nullptr)
-            __large_deallocate(buffer);
+            _large_deallocate(buffer);
     }
 
 private:
@@ -154,7 +154,7 @@ private:
     uint_fast32_t m_capacity = 0;
     alloc_node *m_ptr = nullptr;
 
-    /// @brief The first allocated buffer, used to reset m_cache.ptr in __small_deallocate.
+    /// @brief The first allocated buffer, used to reset m_cache.ptr in _small_deallocate.
     std::byte *m_first = nullptr;
 };
 
@@ -177,12 +177,12 @@ namespace mem {
  * @todo Fix!!! This is an important issue.
  *
  */
-inline thread_local stack_allocator_object __stack_allocator_singleton_object;
+inline thread_local stack_allocator_object _stack_allocator_singleton_object;
 } // namespace mem
 
 /**
  * @details Used for container. This allocator won't deallocate memory allocated
- * by __small_allocate until container is destroyed.
+ * by _small_allocate until container is destroyed.
  *
  */
 template <typename T>
@@ -208,7 +208,7 @@ class unique_stack_allocator {
 public:
     WJR_INTRINSIC_INLINE
     unique_stack_allocator() noexcept
-        : m_context(std::addressof(mem::__stack_allocator_singleton_object)) {}
+        : m_context(std::addressof(mem::_stack_allocator_singleton_object)) {}
 
     unique_stack_allocator(const unique_stack_allocator &) = delete;
     unique_stack_allocator(unique_stack_allocator &&) = delete;
@@ -227,8 +227,8 @@ public:
     }
 
 private:
-    WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *__small_allocate(size_t n) noexcept {
-        return m_context.object()->__small_allocate(n);
+    WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *_small_allocate(size_t n) noexcept {
+        return m_context.object()->_small_allocate(n);
     }
 
     stack_context m_context;
@@ -287,16 +287,16 @@ public:
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
             return static_cast<T *>(
-                mem::__default_allocate<mem::__new_alignof<T>>(size, std::nothrow));
+                mem::_default_allocate<mem::__new_alignof<T>>(size, std::nothrow));
         }
 
-        return static_cast<T *>(m_alloc->__small_allocate(size));
+        return static_cast<T *>(m_alloc->_small_allocate(size));
     }
 
     void deallocate(T *ptr, size_type n) noexcept {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
-            mem::__default_deallocate<mem::__new_alignof<T>>(ptr, std::nothrow);
+            mem::_default_deallocate<mem::__new_alignof<T>>(ptr, std::nothrow);
         }
     }
 

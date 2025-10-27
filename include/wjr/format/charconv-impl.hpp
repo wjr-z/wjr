@@ -134,8 +134,8 @@ enum class chars_format : uint8_t {
     hex = 0x04,                   ///< Hexadecimal notation
     general = fixed | scientific, ///< Allow either fixed or scientific
     /// @private Internal flag for JSON format
-    __json_format = 0x08,
-    json = general | __json_format, ///< JSON-compatible number format
+    _json_format = 0x08,
+    json = general | _json_format, ///< JSON-compatible number format
 };
 
 WJR_DECLARE_ENUM_AS_BITMASK(chars_format);

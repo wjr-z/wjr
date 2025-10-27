@@ -33,7 +33,7 @@ union Ptr {
 };
 
 template <typename Tp>
-WJR_INTRINSIC_INLINE constexpr auto *__cast_to(Ptr ptr) noexcept {
+WJR_INTRINSIC_INLINE constexpr auto *_cast_to(Ptr ptr) noexcept {
     using Td = std::remove_reference_t<Tp>;
     if constexpr (std::is_function_v<Td>)
         return reinterpret_cast<Td *>(ptr.func);
@@ -49,14 +49,14 @@ WJR_INTRINSIC_INLINE static Ret _S_call_ptrs(Ptr ptr, Args... args) noexcept(Noe
     if constexpr (std::is_function_v<std::remove_pointer_t<Tp>>)
         return invoke_r<Ret>(reinterpret_cast<Tp>(ptr.func), std::forward<Args>(args)...);
     else {
-        auto *__p = __cast_to<Tp>(ptr);
-        return invoke_r<Ret>(static_cast<Tp>(*__p), std::forward<Args>(args)...);
+        auto *_p = _cast_to<Tp>(ptr);
+        return invoke_r<Ret>(static_cast<Tp>(*_p), std::forward<Args>(args)...);
     }
 }
 
-template <auto __fn, bool Noex, typename Ret, typename... Args>
+template <auto _fn, bool Noex, typename Ret, typename... Args>
 static Ret _S_nt_ptrs(Ptr, Args... args) noexcept(Noex) {
-    return invoke_r<Ret>(__fn, std::forward<Args>(args)...);
+    return invoke_r<Ret>(_fn, std::forward<Args>(args)...);
 }
 
 template <bool Noex, typename Ret, typename... Args>
@@ -64,18 +64,18 @@ struct invoker {
     using func_ptr_t = Ret (*)(Ptr, Args...) noexcept(Noex);
 
     template <typename Tp>
-    static constexpr func_ptr_t __s_ptr() {
+    static constexpr func_ptr_t _s_ptr() {
         return &_S_call_ptrs<Tp, Noex, Ret, Args...>;
     }
 
-    template <auto __fn>
+    template <auto _fn>
     static constexpr auto _S_nt_ptr() {
-        return &_S_nt_ptrs<__fn, Noex, Ret, Args...>;
+        return &_S_nt_ptrs<_fn, Noex, Ret, Args...>;
     }
 
 private:
     template <typename Tp, typename Td = remove_cvref_t<Tp>>
-    using __adjust_target =
+    using _adjust_target =
         std::conditional_t<std::is_pointer_v<Td> || std::is_member_pointer_v<Td>, Td, Tp>;
 };
 

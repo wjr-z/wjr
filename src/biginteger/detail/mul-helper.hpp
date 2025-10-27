@@ -8,37 +8,37 @@ namespace wjr {
     do {                                                                                           \
         WJR_ASSERT_ASSUME(n >= m);                                                                 \
                                                                                                    \
-        uint64_t __cf = submul_1(A, B, m, ml) + cfB * ml;                                          \
+        uint64_t _cf = submul_1(A, B, m, ml) + cfB * ml;                                           \
         if (n != m) {                                                                              \
-            __cf = subc_1(A + m, A + m, n - m, __cf);                                              \
+            _cf = subc_1(A + m, A + m, n - m, _cf);                                                \
         }                                                                                          \
                                                                                                    \
-        ret = cfA - __cf;                                                                          \
+        ret = cfA - _cf;                                                                           \
     } while (0)
 
 #define WJR_ADDLSH_S(dst, A, n, B, m, cfA, cfB, cl, ret)                                           \
     do {                                                                                           \
         WJR_ASSERT_ASSUME(n >= m);                                                                 \
                                                                                                    \
-        uint64_t __cf = addlsh_n(dst, A, B, m, cl) + (cfB << (cl));                                \
+        uint64_t _cf = addlsh_n(dst, A, B, m, cl) + (cfB << (cl));                                 \
         if (n != m) {                                                                              \
-            __cf = addc_1(dst + m, A + m, n - m, __cf);                                            \
+            _cf = addc_1(dst + m, A + m, n - m, _cf);                                              \
         }                                                                                          \
                                                                                                    \
-        ret = cfA + __cf;                                                                          \
+        ret = cfA + _cf;                                                                           \
     } while (0)
 
 #define WJR_ADDLSH_NS(dst, A, m, B, n, cfA, cfB, cl, ret)                                          \
     do {                                                                                           \
         WJR_ASSERT_ASSUME(n >= m);                                                                 \
                                                                                                    \
-        uint64_t __cf = addlsh_n(dst, A, B, m, cl) + cfA;                                          \
+        uint64_t _cf = addlsh_n(dst, A, B, m, cl) + cfA;                                           \
         if (n != m) {                                                                              \
-            const uint64_t __tmp = lshift_n(dst + m, B + m, n - m, cl);                            \
-            __cf = __tmp + addc_1(dst + m, dst + m, n - m, __cf);                                  \
+            const uint64_t _tmp = lshift_n(dst + m, B + m, n - m, cl);                             \
+            _cf = _tmp + addc_1(dst + m, dst + m, n - m, _cf);                                     \
         }                                                                                          \
                                                                                                    \
-        ret = (cfB << (cl)) + __cf;                                                                \
+        ret = (cfB << (cl)) + _cf;                                                                 \
     } while (0)
 
 /// helper functions
@@ -97,20 +97,20 @@ WJR_INTRINSIC_INLINE uint64_t try_addmul_1(WJR_MAYBE_UNUSED uint64_t *dst,
     }
 }
 
-WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                  const uint64_t *src1, size_t n,
-                                  WJR_MAYBE_UNUSED uint64_t *stk) noexcept {
+WJR_INTRINSIC_INLINE void _mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                 const uint64_t *src1, size_t n,
+                                 WJR_MAYBE_UNUSED uint64_t *stk) noexcept {
     mul_n(dst, src0, src1, n);
 }
 
 template <uint64_t m0 = UINT64_MAX, uint64_t m1 = UINT64_MAX>
-WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                  const uint64_t *src1, size_t n, uint64_t *stk, uint64_t &c_out,
-                                  uint64_t cf0, uint64_t cf1) noexcept {
+WJR_INTRINSIC_INLINE void _mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                 const uint64_t *src1, size_t n, uint64_t *stk, uint64_t &c_out,
+                                 uint64_t cf0, uint64_t cf1) noexcept {
     WJR_ASSERT_ASSUME(cf0 <= m0);
     WJR_ASSERT_ASSUME(cf1 <= m1);
 
-    __mul_n(dst, src0, src1, n, stk);
+    _mul_n(dst, src0, src1, n, stk);
 
     if constexpr (m0 == 0 || m1 == 0) {
         c_out = 0;

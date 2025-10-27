@@ -100,7 +100,7 @@ public:
 };
 
 template <typename T, typename Alloc, typename Mybase, typename IsReallocatable>
-class __default_vector_storage {
+class _default_vector_storage {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
@@ -124,14 +124,14 @@ protected:
     using size_ref = default_vector_size_reference<pointer, size_type>;
 
 public:
-    __default_vector_storage() = default;
+    _default_vector_storage() = default;
 
-    __default_vector_storage(__default_vector_storage &&) = delete;
-    __default_vector_storage(const __default_vector_storage &) = delete;
-    __default_vector_storage &operator=(const __default_vector_storage &) = delete;
-    __default_vector_storage &operator=(__default_vector_storage &&) = delete;
+    _default_vector_storage(_default_vector_storage &&) = delete;
+    _default_vector_storage(const _default_vector_storage &) = delete;
+    _default_vector_storage &operator=(const _default_vector_storage &) = delete;
+    _default_vector_storage &operator=(_default_vector_storage &&) = delete;
 
-    ~__default_vector_storage() = default;
+    ~_default_vector_storage() = default;
 
     WJR_CONSTEXPR20 void deallocate_nonnull(_Alty &al) noexcept(
         noexcept(_Alty_traits::deallocate(al, this->data(), this->capacity()))) {
@@ -212,8 +212,7 @@ protected:
  */
 template <typename T, typename Alloc>
 class default_vector_storage
-    : public __default_vector_storage<T, Alloc, default_vector_storage<T, Alloc>, std::true_type> {
-};
+    : public _default_vector_storage<T, Alloc, default_vector_storage<T, Alloc>, std::true_type> {};
 
 template <typename T, typename Alloc>
 struct get_relocate_mode<default_vector_storage<T, Alloc>> {
@@ -222,7 +221,7 @@ struct get_relocate_mode<default_vector_storage<T, Alloc>> {
 
 template <typename T, typename Alloc>
 class fixed_vector_storage
-    : public __default_vector_storage<T, Alloc, fixed_vector_storage<T, Alloc>, std::false_type> {};
+    : public _default_vector_storage<T, Alloc, fixed_vector_storage<T, Alloc>, std::false_type> {};
 
 template <typename T, typename Alloc>
 struct get_relocate_mode<fixed_vector_storage<T, Alloc>> {
@@ -253,12 +252,12 @@ private:
         alignas(max_alignment) std::byte m_data[Capacity * sizeof(T)];
     };
 
-    static constexpr bool __use_memcpy = is_trivially_allocator_construct_v<Alloc, T, T &&> &&
-                                         std::is_trivially_copyable_v<Data> &&
-                                         (Capacity == 1 || sizeof(Data) <= 32);
+    static constexpr bool _use_memcpy = is_trivially_allocator_construct_v<Alloc, T, T &&> &&
+                                        std::is_trivially_copyable_v<Data> &&
+                                        (Capacity == 1 || sizeof(Data) <= 32);
 
 public:
-    static constexpr bool is_trivially_relocate_v = __use_memcpy;
+    static constexpr bool is_trivially_relocate_v = _use_memcpy;
 
     inplace_vector_storage() = default;
 
@@ -288,7 +287,7 @@ public:
 
         m_storage.m_size = other_storage.m_size;
 
-        if constexpr (__use_memcpy) {
+        if constexpr (_use_memcpy) {
             if (other.size()) {
                 builtin_memcpy(lhs, rhs, Capacity);
             }
@@ -312,8 +311,8 @@ public:
             m_storage.m_size = rsize;
             other_storage.m_size = lsize;
 
-            __simd_storage_t<T, Capacity> tmp;
-            if constexpr (__use_memcpy) {
+            _simd_storage_t<T, Capacity> tmp;
+            if constexpr (_use_memcpy) {
                 builtin_memcpy(&tmp, lhs, Capacity);
                 builtin_memcpy(lhs, rhs, Capacity);
                 builtin_memcpy(rhs, &tmp, Capacity);
@@ -328,7 +327,7 @@ public:
                 wjr::uninitialized_move_n_restrict_using_allocator(&tmp, lsize, rhs, al);
             }
         } else if (rsize) {
-            if constexpr (__use_memcpy) {
+            if constexpr (_use_memcpy) {
                 builtin_memcpy(lhs, rhs, Capacity);
             } else {
                 wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs, al);
@@ -336,7 +335,7 @@ public:
             m_storage.m_size = rsize;
             other_storage.m_size = 0;
         } else if (lsize) {
-            if constexpr (__use_memcpy) {
+            if constexpr (_use_memcpy) {
                 builtin_memcpy(rhs, lhs, Capacity);
             } else {
                 wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize, rhs, al);
@@ -393,11 +392,11 @@ public:
 
     WJR_CONSTEXPR20 void deallocate(_Alty &al) noexcept(
         noexcept(_Alty_traits::deallocate(al, this->data(), this->capacity()))) {
-        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(__is_small())) {
+        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(_is_small())) {
             return;
         }
 
-        if (__is_large()) {
+        if (_is_large()) {
             _Alty_traits::deallocate(al, data(), capacity());
         }
     }
@@ -406,7 +405,7 @@ public:
     uninitialized_construct(small_vector_storage &other, size_type size, size_type capacity,
                             _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
         other.m_size = size;
-        if (__is_small_capacity(capacity)) {
+        if (_is_small_capacity(capacity)) {
             return;
         }
 
@@ -419,8 +418,8 @@ public:
     take_storage(small_vector_storage &other,
                  _Alty &al) noexcept(std::is_nothrow_move_constructible_v<value_type>) {
         m_size = other.size();
-        if (other.__is_small()) {
-            __reset_data();
+        if (other._is_small()) {
+            _reset_data();
             wjr::uninitialized_move_n_restrict_using_allocator(other.data(), other.size(), data(),
                                                                al);
         } else {
@@ -429,15 +428,15 @@ public:
         }
 
         other.m_size = 0;
-        other.__reset_data();
+        other._reset_data();
     }
 
     WJR_CONSTEXPR20 void
     swap_storage(small_vector_storage &other,
                  _Alty &al) noexcept(std::is_nothrow_move_constructible_v<value_type>) {
-        if (__is_small()) {
-            if (other.__is_small()) {
-                __simd_storage_t<T, Capacity> tmp;
+        if (_is_small()) {
+            if (other._is_small()) {
+                _simd_storage_t<T, Capacity> tmp;
 
                 auto *lhs = data();
                 auto lsize = size();
@@ -455,19 +454,19 @@ public:
             } else {
                 const size_type capacity = other.m_capacity;
                 wjr::uninitialized_move_n_restrict_using_allocator(data(), size(),
-                                                                   other.__get_storage(), al);
+                                                                   other._get_storage(), al);
                 m_data = other.m_data;
                 m_capacity = capacity;
-                other.__reset_data();
+                other._reset_data();
             }
         } else {
-            if (other.__is_small()) {
+            if (other._is_small()) {
                 const size_type capacity = m_capacity;
                 wjr::uninitialized_move_n_restrict_using_allocator(other.data(), other.size(),
-                                                                   __get_storage(), al);
+                                                                   _get_storage(), al);
                 other.m_data = m_data;
                 other.m_capacity = capacity;
-                __reset_data();
+                _reset_data();
             } else {
                 std::swap(m_data, other.m_data);
                 std::swap(m_capacity, other.m_capacity);
@@ -479,26 +478,26 @@ public:
 
     WJR_CONSTEXPR20 size_type &size() noexcept { return m_size; }
     WJR_CONSTEXPR20 size_type size() const noexcept { return m_size; }
-    constexpr size_type capacity() const noexcept { return __is_small() ? Capacity : m_capacity; }
+    constexpr size_type capacity() const noexcept { return _is_small() ? Capacity : m_capacity; }
 
     WJR_CONSTEXPR20 pointer data() noexcept { return m_data; }
     WJR_CONSTEXPR20 const_pointer data() const noexcept { return m_data; }
 
 private:
-    constexpr bool __is_small() const noexcept { return m_data == __get_storage(); }
-    constexpr bool __is_large() const noexcept { return !__is_small(); }
-    constexpr void __reset_data() noexcept { m_data = __get_storage(); }
+    constexpr bool _is_small() const noexcept { return m_data == _get_storage(); }
+    constexpr bool _is_large() const noexcept { return !_is_small(); }
+    constexpr void _reset_data() noexcept { m_data = _get_storage(); }
 
-    static constexpr bool __is_small_capacity(size_type capacity) noexcept {
+    static constexpr bool _is_small_capacity(size_type capacity) noexcept {
         return capacity <= Capacity;
     }
 
-    static constexpr bool __is_large_capacity(size_type capacity) noexcept {
-        return !__is_small_capacity(capacity);
+    static constexpr bool _is_large_capacity(size_type capacity) noexcept {
+        return !_is_small_capacity(capacity);
     }
 
-    constexpr pointer __get_storage() noexcept { return reinterpret_cast<pointer>(m_storage); }
-    constexpr const_pointer __get_storage() const noexcept {
+    constexpr pointer _get_storage() noexcept { return reinterpret_cast<pointer>(m_storage); }
+    constexpr const_pointer _get_storage() const noexcept {
         return reinterpret_cast<const_pointer>(m_storage);
     }
 
@@ -547,7 +546,7 @@ private:
     using _Alty = typename std::allocator_traits<allocator_type>::template rebind_alloc<value_type>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
-    using __get_size_t = decltype(std::declval<storage_type>().size());
+    using _get_size_t = decltype(std::declval<storage_type>().size());
     using IteratorTraits = storage_traits<storage_type>;
 
     using storage_fn_type = container_fn<_Alty>;
@@ -561,7 +560,7 @@ private:
     template <typename _Mybase, typename _Tag, typename _Enable>
     friend struct container_of_fn;
 
-    using __pair_type = cpair<_Alty, storage_type>;
+    using _pair_type = cpair<_Alty, storage_type>;
 
 public:
     static_assert(std::is_same_v<typename _Alty_traits::value_type, value_type>,
@@ -587,21 +586,21 @@ private:
 
     static_assert(std::is_nothrow_default_constructible_v<storage_type>);
 
-    static constexpr bool __is_nothrow_uninitialized_construct =
+    static constexpr bool _is_nothrow_uninitialized_construct =
         noexcept(std::declval<storage_type &>().uninitialized_construct(
             std::declval<storage_type &>(), std::declval<size_type>(), std::declval<size_type>(),
             std::declval<_Alty &>()));
-    static constexpr bool __is_nothrow_take_storage =
+    static constexpr bool _is_nothrow_take_storage =
         noexcept(std::declval<storage_type &>().take_storage(std::declval<storage_type &>(),
                                                              std::declval<_Alty &>()));
-    static constexpr bool __is_nothrow_swap_storage =
+    static constexpr bool _is_nothrow_swap_storage =
         noexcept(std::declval<storage_type &>().swap_storage(std::declval<storage_type &>(),
                                                              std::declval<_Alty &>()));
 
     template <typename Ty>
-    WJR_CONSTEXPR20 void __construct_n(const size_type n, Ty &&val) {
+    WJR_CONSTEXPR20 void _construct_n(const size_type n, Ty &&val) {
         if (WJR_LIKELY(n != 0)) {
-            auto &al = __get_allocator();
+            auto &al = _get_allocator();
             uninitialized_construct(n, n);
             wjr::uninitialized_fill_n_using_allocator(data(), n, al, std::forward<Ty>(val));
         }
@@ -619,9 +618,9 @@ public:
         const allocator_type &al =
             allocator_type()) noexcept(std::is_nothrow_constructible_v<_Alty,
                                                                        const allocator_type &> &&
-                                       noexcept(__construct_n(n, value_construct)))
+                                       noexcept(_construct_n(n, value_construct)))
         : basic_vector(al) {
-        __construct_n(n, value_construct);
+        _construct_n(n, value_construct);
     }
 
     WJR_CONSTEXPR20
@@ -630,39 +629,39 @@ public:
         const allocator_type &al =
             allocator_type()) noexcept(std::is_nothrow_constructible_v<_Alty,
                                                                        const allocator_type &> &&
-                                       noexcept(__construct_n(n, val)))
+                                       noexcept(_construct_n(n, val)))
         : basic_vector(al) {
-        __construct_n(n, val);
+        _construct_n(n, val);
     }
 
 private:
     template <typename _Alloc>
     WJR_CONSTEXPR20 basic_vector(const basic_vector &other, _Alloc &&al, in_place_empty_t) noexcept(
-        std::is_nothrow_constructible_v<_Alty, _Alloc &&> && __is_nothrow_uninitialized_construct &&
+        std::is_nothrow_constructible_v<_Alty, _Alloc &&> && _is_nothrow_uninitialized_construct &&
         std::is_nothrow_copy_constructible_v<value_type>)
         : basic_vector(al) {
         const auto size = other.size();
         if (WJR_LIKELY(size != 0)) {
             uninitialized_construct(size, size);
             wjr::uninitialized_copy_n_restrict_using_allocator(other.data(), size, data(),
-                                                               __get_allocator());
+                                                               _get_allocator());
         }
     }
 
     template <typename _Alloc>
     WJR_CONSTEXPR20 basic_vector(basic_vector &&other, _Alloc &&al, in_place_empty_t) noexcept(
-        std::is_nothrow_constructible_v<_Alty, _Alloc &&> && __is_nothrow_take_storage)
+        std::is_nothrow_constructible_v<_Alty, _Alloc &&> && _is_nothrow_take_storage)
         : basic_vector(al) {
-        __take_storage(std::move(other));
+        _take_storage(std::move(other));
     }
 
 public:
     WJR_CONSTEXPR20
     basic_vector(const basic_vector &other) noexcept(noexcept(basic_vector(
-        other, _Alty_traits::select_on_container_copy_construction(other.__get_allocator()),
+        other, _Alty_traits::select_on_container_copy_construction(other._get_allocator()),
         in_place_empty)))
         : basic_vector(other,
-                       _Alty_traits::select_on_container_copy_construction(other.__get_allocator()),
+                       _Alty_traits::select_on_container_copy_construction(other._get_allocator()),
                        in_place_empty) {}
 
     WJR_CONSTEXPR20
@@ -672,9 +671,9 @@ public:
         : basic_vector(other, al, in_place_empty) {}
 
     WJR_CONSTEXPR20
-    basic_vector(basic_vector &&other) noexcept(noexcept(
-        basic_vector(std::move(other), std::move(other.__get_allocator()), in_place_empty)))
-        : basic_vector(std::move(other), std::move(other.__get_allocator()), in_place_empty) {}
+    basic_vector(basic_vector &&other) noexcept(
+        noexcept(basic_vector(std::move(other), std::move(other._get_allocator()), in_place_empty)))
+        : basic_vector(std::move(other), std::move(other._get_allocator()), in_place_empty) {}
 
     WJR_CONSTEXPR20
     basic_vector(basic_vector &&other,
@@ -685,15 +684,15 @@ public:
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector(Iter first, Iter last, const allocator_type &al = allocator_type())
         : basic_vector(al) {
-        __range_construct(wjr::__iter_base(first), wjr::__iter_base(last),
-                          iterator_category_t<Iter>());
+        _range_construct(wjr::_iter_base(first), wjr::_iter_base(last),
+                         iterator_category_t<Iter>());
     }
 
     WJR_CONSTEXPR20 basic_vector(std::initializer_list<value_type> il,
                                  const allocator_type &al = allocator_type())
         : basic_vector(il.begin(), il.end(), al) {}
 
-    WJR_CONSTEXPR20 ~basic_vector() noexcept { __destroy_and_deallocate(); }
+    WJR_CONSTEXPR20 ~basic_vector() noexcept { _destroy_and_deallocate(); }
 
     WJR_CONSTEXPR20 basic_vector &operator=(const basic_vector &other) noexcept(
         noexcept(storage_fn_type::copy_assign(std::declval<basic_vector &>(),
@@ -718,14 +717,13 @@ public:
     }
 
     WJR_CONSTEXPR20 basic_vector &assign(size_type n, const value_type &val) {
-        __fill_assign(n, val);
+        _fill_assign(n, val);
         return *this;
     }
 
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &assign(Iter first, Iter last) {
-        __range_assign(wjr::__iter_base(first), wjr::__iter_base(last),
-                       iterator_category_t<Iter>());
+        _range_assign(wjr::_iter_base(first), wjr::_iter_base(last), iterator_category_t<Iter>());
         return *this;
     }
 
@@ -746,32 +744,30 @@ public:
     WJR_CONSTEXPR20 const_pointer cbuf_end_unsafe() const noexcept { return buf_end_unsafe(); }
 
 private:
-    WJR_PURE WJR_CONSTEXPR20 iterator __make_iterator(const_pointer ptr) const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 iterator _make_iterator(const_pointer ptr) const noexcept {
         return iterator(const_cast<pointer>(ptr), this);
     }
 
-    WJR_PURE WJR_CONSTEXPR20 pointer __get_pointer(iterator ptr) const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 pointer _get_pointer(iterator ptr) const noexcept {
         ptr.check_same_container(this);
         return wjr::to_address(ptr);
     }
 
-    WJR_PURE WJR_CONSTEXPR20 pointer __get_pointer(const_iterator ptr) const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 pointer _get_pointer(const_iterator ptr) const noexcept {
         ptr.check_same_container(this);
         return const_cast<pointer>(wjr::to_address(ptr));
     }
 
 public:
-    WJR_CONSTEXPR20 iterator begin() noexcept { return __make_iterator(begin_unsafe()); }
+    WJR_CONSTEXPR20 iterator begin() noexcept { return _make_iterator(begin_unsafe()); }
 
-    WJR_CONSTEXPR20 const_iterator begin() const noexcept {
-        return __make_iterator(begin_unsafe());
-    }
+    WJR_CONSTEXPR20 const_iterator begin() const noexcept { return _make_iterator(begin_unsafe()); }
 
     WJR_CONSTEXPR20 const_iterator cbegin() const noexcept { return begin(); }
 
-    WJR_CONSTEXPR20 iterator end() noexcept { return __make_iterator(end_unsafe()); }
+    WJR_CONSTEXPR20 iterator end() noexcept { return _make_iterator(end_unsafe()); }
 
-    WJR_CONSTEXPR20 const_iterator end() const noexcept { return __make_iterator(end_unsafe()); }
+    WJR_CONSTEXPR20 const_iterator end() const noexcept { return _make_iterator(end_unsafe()); }
 
     WJR_CONSTEXPR20 const_iterator cend() const noexcept { return end(); }
 
@@ -793,10 +789,10 @@ public:
 
     WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept { return get_storage().size(); }
 
-    WJR_CONSTEXPR20 void resize(const size_type new_size) { __resize(new_size, value_construct); }
+    WJR_CONSTEXPR20 void resize(const size_type new_size) { _resize(new_size, value_construct); }
 
     WJR_CONSTEXPR20 void resize(const size_type new_size, const value_type &val) {
-        __resize(new_size, val);
+        _resize(new_size, val);
     }
 
     /**
@@ -806,23 +802,23 @@ public:
         if constexpr (has_vector_storage_shrink_to_fit_v<storage_type>) {
             get_storage().shrink_to_fit();
         } else if constexpr (is_reallocatable::value) {
-            const size_type __size = size();
-            if (__size == 0) {
-                __deallocate();
+            const size_type _size = size();
+            if (_size == 0) {
+                _deallocate();
                 storage_type new_storage;
-                __take_storage(new_storage);
-            } else if (__size < capacity()) {
-                auto &al = __get_allocator();
+                _take_storage(new_storage);
+            } else if (_size < capacity()) {
+                auto &al = _get_allocator();
 
                 storage_type new_storage;
-                uninitialized_construct(new_storage, __size, __size);
+                uninitialized_construct(new_storage, _size, _size);
 
                 WJR_ASSUME(data() != nullptr);
-                WJR_ASSUME(__size != 0);
-                uninitialized_relocate_n_restrict_using_allocator(data(), __size,
-                                                                  new_storage.data(), al);
-                __deallocate_nonnull();
-                __take_storage(new_storage);
+                WJR_ASSUME(_size != 0);
+                uninitialized_relocate_n_restrict_using_allocator(data(), _size, new_storage.data(),
+                                                                  al);
+                _deallocate_nonnull();
+                _take_storage(new_storage);
             }
         }
     }
@@ -845,11 +841,11 @@ public:
     }
 
 private:
-    WJR_CONSTEXPR20 void __reserve_checked_impl(WJR_MAYBE_UNUSED size_type n) {
+    WJR_CONSTEXPR20 void _reserve_checked_impl(WJR_MAYBE_UNUSED size_type n) {
         if constexpr (is_reallocatable::value) {
             const size_type old_capacity = capacity();
             WJR_ASSERT_ASSUME_L2(old_capacity < n);
-            auto &al = __get_allocator();
+            auto &al = _get_allocator();
             const size_type old_size = size();
             const size_type new_capacity = get_growth_capacity(old_capacity, n);
 
@@ -859,23 +855,23 @@ private:
             uninitialized_relocate_n_restrict_using_allocator(data(), old_size, new_storage.data(),
                                                               al);
 
-            __deallocate();
-            __take_storage(new_storage);
+            _deallocate();
+            _take_storage(new_storage);
         }
     }
 
-    WJR_CONSTEXPR20 void __reserve_impl(size_type n) {
+    WJR_CONSTEXPR20 void _reserve_impl(size_type n) {
         if constexpr (is_reallocatable::value) {
             const size_type old_capacity = capacity();
             if (WJR_UNLIKELY(old_capacity < n)) {
-                __reserve_checked_impl(n);
+                _reserve_checked_impl(n);
             }
         } else {
             WJR_ASSERT_ASSUME(n <= capacity());
         }
     }
 
-    WJR_CONSTEXPR20 void __empty_reserve_checked_impl(size_type n) {
+    WJR_CONSTEXPR20 void _empty_reserve_checked_impl(size_type n) {
         if constexpr (is_reallocatable::value) {
             const size_type old_capacity = capacity();
             WJR_ASSERT_ASSUME_L2(old_capacity < n);
@@ -884,16 +880,16 @@ private:
             storage_type new_storage;
             uninitialized_construct(new_storage, 0, new_capacity);
 
-            __deallocate();
-            __take_storage(new_storage);
+            _deallocate();
+            _take_storage(new_storage);
         }
     }
 
-    WJR_CONSTEXPR20 void __empty_reserve_impl(size_type n) {
+    WJR_CONSTEXPR20 void _empty_reserve_impl(size_type n) {
         if constexpr (is_reallocatable::value) {
             const size_type old_capacity = capacity();
             if (WJR_UNLIKELY(old_capacity < n)) {
-                __empty_reserve_checked_impl(n);
+                _empty_reserve_checked_impl(n);
             }
         } else {
             WJR_ASSERT_ASSUME(n <= capacity());
@@ -903,11 +899,11 @@ private:
 public:
     WJR_CONSTEXPR20 void reserve(size_type n) {
         if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(empty())) {
-            __empty_reserve_impl(n);
+            _empty_reserve_impl(n);
             return;
         }
 
-        __reserve_impl(n);
+        _reserve_impl(n);
     }
 
     WJR_CONSTEXPR20 reference operator[](size_type pos) noexcept {
@@ -974,15 +970,15 @@ public:
 
     template <typename... Args>
     WJR_CONSTEXPR20 reference emplace_back(Args &&...args) {
-        const pointer __end = end_unsafe();
-        const pointer __buf_end = buf_end_unsafe();
+        const pointer _end = end_unsafe();
+        const pointer _buf_end = buf_end_unsafe();
 
-        if (WJR_LIKELY(__end != __buf_end)) {
-            wjr::uninitialized_construct_using_allocator(__end, __get_allocator(),
+        if (WJR_LIKELY(_end != _buf_end)) {
+            wjr::uninitialized_construct_using_allocator(_end, _get_allocator(),
                                                          std::forward<Args>(args)...);
-            ++__get_size();
+            ++_get_size();
         } else {
-            __realloc_insert_at_end(std::forward<Args>(args)...);
+            _realloc_insert_at_end(std::forward<Args>(args)...);
         }
 
         return back();
@@ -992,13 +988,13 @@ public:
     WJR_CONSTEXPR20 void push_back(value_type &&val) { emplace_back(std::move(val)); }
 
     WJR_CONSTEXPR20 void pop_back() noexcept {
-        const size_type __size = --__get_size();
-        destroy_at_using_allocator(data() + __size, __get_allocator());
+        const size_type _size = --_get_size();
+        destroy_at_using_allocator(data() + _size, _get_allocator());
     }
 
     template <typename... Args>
     WJR_CONSTEXPR20 iterator emplace(const_iterator pos, Args &&...args) {
-        return __emplace_aux(__get_pointer(pos), std::forward<Args>(args)...);
+        return _emplace_aux(_get_pointer(pos), std::forward<Args>(args)...);
     }
 
     WJR_CONSTEXPR20 iterator insert(const_iterator pos, const value_type &val) {
@@ -1015,26 +1011,26 @@ public:
 
     WJR_CONSTEXPR20 iterator insert(const_iterator pos, size_type n, const value_type &val) {
         const auto old_pos = static_cast<size_type>(pos - cbegin());
-        __fill_insert(data() + old_pos, n, val);
+        _fill_insert(data() + old_pos, n, val);
         return begin() + old_pos;
     }
 
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 iterator insert(const_iterator pos, Iter first, Iter last) {
         const auto old_pos = static_cast<size_type>(pos - cbegin());
-        __range_insert(data() + old_pos, wjr::__iter_base(first), wjr::__iter_base(last),
-                       iterator_category_t<Iter>());
+        _range_insert(data() + old_pos, wjr::_iter_base(first), wjr::_iter_base(last),
+                      iterator_category_t<Iter>());
         return begin() + old_pos;
     }
 
     WJR_CONSTEXPR20 iterator erase(const_iterator pos) noexcept(
         std::is_nothrow_move_assignable_v<value_type>) /* strengthened */ {
-        return __erase(__get_pointer(pos));
+        return _erase(_get_pointer(pos));
     }
 
     WJR_CONSTEXPR20 iterator erase(const_iterator first, const_iterator last) noexcept(
         std::is_nothrow_move_assignable_v<value_type>) /* strengthened */ {
-        return __erase(__get_pointer(first), __get_pointer(last));
+        return _erase(_get_pointer(first), _get_pointer(last));
     }
 
     WJR_CONSTEXPR20 void
@@ -1045,13 +1041,13 @@ public:
     }
 
     WJR_CONSTEXPR20 void clear() noexcept {
-        __erase_at_end(data());
+        _erase_at_end(data());
         WJR_ASSUME(empty());
     }
 
-    WJR_CONSTEXPR20 allocator_type &get_allocator() noexcept { return __get_allocator(); }
+    WJR_CONSTEXPR20 allocator_type &get_allocator() noexcept { return _get_allocator(); }
     WJR_CONSTEXPR20 const allocator_type &get_allocator() const noexcept {
-        return __get_allocator();
+        return _get_allocator();
     }
 
     WJR_CONST static size_type max_size() noexcept { return std::numeric_limits<size_type>::max(); }
@@ -1061,7 +1057,7 @@ public:
     WJR_CONSTEXPR20 basic_vector(size_type n, default_construct_t,
                                  const allocator_type &al = allocator_type())
         : basic_vector(al) {
-        __construct_n(n, default_construct);
+        _construct_n(n, default_construct);
     }
 
     WJR_CONSTEXPR20 basic_vector(size_type n, in_place_reserve_t,
@@ -1077,18 +1073,18 @@ public:
         take_storage(other);
     }
 
-    template <typename Range, WJR_REQUIRES(detail::__container_compatible_range<Range, value_type>)>
+    template <typename Range, WJR_REQUIRES(detail::_container_compatible_range<Range, value_type>)>
     WJR_CONSTEXPR20 basic_vector(wjr::from_range_t, Range &&rg,
                                  const allocator_type &al = allocator_type())
         : basic_vector(al) {
         if constexpr (ranges::sized_range<Range> || ranges::forward_range<Range>) {
             const auto n = static_cast<size_type>(ranges::distance(rg));
-            __construct_n(n, ranges::begin(rg), ranges::end(rg));
+            _construct_n(n, ranges::begin(rg), ranges::end(rg));
         } else {
-            auto __first = ranges::begin(rg);
-            const auto __last = ranges::end(rg);
-            for (; __first != __last; ++__first)
-                emplace_back(*__first);
+            auto _first = ranges::begin(rg);
+            const auto _last = ranges::end(rg);
+            for (; _first != _last; ++_first)
+                emplace_back(*_first);
         }
     }
 
@@ -1102,7 +1098,7 @@ public:
     }
 
 private:
-    WJR_CONSTEXPR20 void __clear_if_reserved_impl(size_type n) {
+    WJR_CONSTEXPR20 void _clear_if_reserved_impl(size_type n) {
         if constexpr (is_reallocatable::value) {
             const size_type old_capacity = capacity();
             if (WJR_UNLIKELY(old_capacity < n)) {
@@ -1111,8 +1107,8 @@ private:
                 storage_type new_storage;
                 uninitialized_construct(new_storage, 0, new_capacity);
 
-                __destroy_and_deallocate();
-                __take_storage(new_storage);
+                _destroy_and_deallocate();
+                _take_storage(new_storage);
 
                 WJR_ASSUME(empty());
             }
@@ -1131,11 +1127,11 @@ public:
      */
     WJR_CONSTEXPR20 void clear_if_reserved(size_type n) {
         if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(empty())) {
-            __empty_reserve_impl(n);
+            _empty_reserve_impl(n);
             return;
         }
 
-        __clear_if_reserved_impl(n);
+        _clear_if_reserved_impl(n);
     }
 
     /**
@@ -1143,10 +1139,10 @@ public:
      * @details Fast-path check capacity and then reserve.
      *
      */
-    WJR_CONSTEXPR20 void __reserve_unchecked(size_type n) { __reserve_checked_impl(n); }
+    WJR_CONSTEXPR20 void _reserve_unchecked(size_type n) { _reserve_checked_impl(n); }
 
     WJR_CONSTEXPR20 void resize(const size_type new_size, default_construct_t) {
-        __resize(new_size, default_construct);
+        _resize(new_size, default_construct);
     }
 
     WJR_CONSTEXPR20 void push_back(default_construct_t) { emplace_back(default_construct); }
@@ -1167,19 +1163,18 @@ public:
     }
 
     WJR_CONSTEXPR20 basic_vector &append(const size_type n, const value_type &val) {
-        __append(n, val);
+        _append(n, val);
         return *this;
     }
 
     WJR_CONSTEXPR20 basic_vector &append(const size_type n, default_construct_t) {
-        __append(n, default_construct);
+        _append(n, default_construct);
         return *this;
     }
 
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &append(Iter first, Iter last) {
-        __range_append(wjr::__iter_base(first), wjr::__iter_base(last),
-                       iterator_category_t<Iter>());
+        _range_append(wjr::_iter_base(first), wjr::_iter_base(last), iterator_category_t<Iter>());
         return *this;
     }
 
@@ -1192,7 +1187,7 @@ public:
      *
      */
     WJR_CONSTEXPR20 basic_vector &chop(const size_type n) {
-        __erase_at_end(end_unsafe() - n);
+        _erase_at_end(end_unsafe() - n);
         return *this;
     }
 
@@ -1205,14 +1200,14 @@ public:
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &replace(const_iterator from, const_iterator to, Iter first,
                                           Iter last) {
-        __range_replace(__get_pointer(from), __get_pointer(to), wjr::__iter_base(first),
-                        wjr::__iter_base(last), iterator_category_t<Iter>());
+        _range_replace(_get_pointer(from), _get_pointer(to), wjr::_iter_base(first),
+                       wjr::_iter_base(last), iterator_category_t<Iter>());
         return *this;
     }
 
     WJR_CONSTEXPR20 basic_vector &replace(const_iterator from, const_iterator to, const size_type n,
                                           const value_type &val) {
-        __fill_replace(__get_pointer(from), __get_pointer(to), n, val);
+        _fill_replace(_get_pointer(from), _get_pointer(to), n, val);
         return *this;
     }
 
@@ -1220,111 +1215,111 @@ public:
 
     WJR_CONSTEXPR20 const storage_type &get_storage() const noexcept { return m_pair.second(); }
 
-    WJR_CONSTEXPR20 void take_storage(storage_type &other) noexcept(__is_nothrow_take_storage) {
-        get_storage().take_storage(other, __get_allocator());
+    WJR_CONSTEXPR20 void take_storage(storage_type &other) noexcept(_is_nothrow_take_storage) {
+        get_storage().take_storage(other, _get_allocator());
     }
 
     WJR_CONSTEXPR20 void
     uninitialized_construct(storage_type &other, size_type siz,
-                            size_type cap) noexcept(__is_nothrow_uninitialized_construct) {
+                            size_type cap) noexcept(_is_nothrow_uninitialized_construct) {
         WJR_ASSERT_ASSUME(cap != 0);
-        get_storage().uninitialized_construct(other, siz, cap, __get_allocator());
+        get_storage().uninitialized_construct(other, siz, cap, _get_allocator());
     }
 
     WJR_CONSTEXPR20 void
     uninitialized_construct(size_type siz,
-                            size_type cap) noexcept(__is_nothrow_uninitialized_construct) {
+                            size_type cap) noexcept(_is_nothrow_uninitialized_construct) {
         uninitialized_construct(get_storage(), siz, cap);
     }
 
 private:
     WJR_CONSTEXPR20 void
-    __deallocate() noexcept(noexcept(get_storage().deallocate(this->__get_allocator()))) {
-        get_storage().deallocate(__get_allocator());
+    _deallocate() noexcept(noexcept(get_storage().deallocate(this->_get_allocator()))) {
+        get_storage().deallocate(_get_allocator());
     }
 
-    WJR_CONSTEXPR20 void __destroy() noexcept(std::is_nothrow_destructible_v<value_type>) {
+    WJR_CONSTEXPR20 void _destroy() noexcept(std::is_nothrow_destructible_v<value_type>) {
         if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(empty())) {
             return;
         }
 
-        destroy_using_allocator(begin_unsafe(), end_unsafe(), __get_allocator());
+        destroy_using_allocator(begin_unsafe(), end_unsafe(), _get_allocator());
     }
 
     template <typename S, WJR_REQUIRES(has_vector_storage_destroy_and_deallocate_v<S, _Alty>)>
-    WJR_CONSTEXPR20 void __destroy_and_deallocate_impl() noexcept(
-        noexcept(get_storage().destroy_and_deallocate(this->__get_allocator()))) {
-        get_storage().destroy_and_deallocate(__get_allocator());
+    WJR_CONSTEXPR20 void _destroy_and_deallocate_impl() noexcept(
+        noexcept(get_storage().destroy_and_deallocate(this->_get_allocator()))) {
+        get_storage().destroy_and_deallocate(_get_allocator());
     }
 
     template <typename S, WJR_REQUIRES(!has_vector_storage_destroy_and_deallocate_v<S, _Alty>)>
-    WJR_CONSTEXPR20 void __destroy_and_deallocate_impl() noexcept(noexcept(this->__destroy()) &&
-                                                                  noexcept(this->__deallocate())) {
-        __destroy();
-        __deallocate();
+    WJR_CONSTEXPR20 void _destroy_and_deallocate_impl() noexcept(noexcept(this->_destroy()) &&
+                                                                 noexcept(this->_deallocate())) {
+        _destroy();
+        _deallocate();
     }
 
     // member function for container_fn (START)
 
-    WJR_CONSTEXPR20 _Alty &__get_allocator() noexcept { return m_pair.first(); }
-    WJR_CONSTEXPR20 const _Alty &__get_allocator() const noexcept { return m_pair.first(); }
+    WJR_CONSTEXPR20 _Alty &_get_allocator() noexcept { return m_pair.first(); }
+    WJR_CONSTEXPR20 const _Alty &_get_allocator() const noexcept { return m_pair.first(); }
 
     WJR_CONSTEXPR20 void
-    __destroy_and_deallocate() noexcept(noexcept(__destroy_and_deallocate_impl<storage_type>())) {
-        __destroy_and_deallocate_impl<storage_type>();
+    _destroy_and_deallocate() noexcept(noexcept(_destroy_and_deallocate_impl<storage_type>())) {
+        _destroy_and_deallocate_impl<storage_type>();
     }
 
-    WJR_CONSTEXPR20 void __release_before_copy() noexcept(noexcept(__destroy_and_deallocate())) {
-        __destroy_and_deallocate();
+    WJR_CONSTEXPR20 void _release_before_copy() noexcept(noexcept(_destroy_and_deallocate())) {
+        _destroy_and_deallocate();
         storage_type new_storage;
-        __take_storage(new_storage);
+        _take_storage(new_storage);
     }
 
-    WJR_CONSTEXPR20 void __copy_element(const basic_vector &other) {
+    WJR_CONSTEXPR20 void _copy_element(const basic_vector &other) {
         assign(other.begin_unsafe(), other.end_unsafe());
     }
 
-    WJR_CONSTEXPR20 void __take_storage(basic_vector &&other) noexcept(__is_nothrow_take_storage) {
-        __take_storage(other.get_storage());
+    WJR_CONSTEXPR20 void _take_storage(basic_vector &&other) noexcept(_is_nothrow_take_storage) {
+        _take_storage(other.get_storage());
     }
 
-    WJR_CONSTEXPR20 void __destroy_and_move_element(basic_vector &&other) {
+    WJR_CONSTEXPR20 void _destroy_and_move_element(basic_vector &&other) {
         // clear but not deallocate
         clear();
         assign(std::make_move_iterator(other.begin_unsafe()),
                std::make_move_iterator(other.end_unsafe()));
     }
 
-    WJR_CONSTEXPR20 void __swap_storage(basic_vector &other) noexcept(__is_nothrow_swap_storage) {
-        get_storage().swap_storage(other.get_storage(), __get_allocator());
+    WJR_CONSTEXPR20 void _swap_storage(basic_vector &other) noexcept(_is_nothrow_swap_storage) {
+        get_storage().swap_storage(other.get_storage(), _get_allocator());
     }
 
     // member function for container_fn (END)
 
     template <typename S, WJR_REQUIRES(has_vector_storage_deallocate_nonnull_v<S, _Alty>)>
-    WJR_CONSTEXPR20 void __deallocate_nonnull_impl() noexcept(
-        noexcept(get_storage().deallocate_nonnull(__get_allocator()))) {
-        get_storage().deallocate_nonnull(__get_allocator());
+    WJR_CONSTEXPR20 void _deallocate_nonnull_impl() noexcept(
+        noexcept(get_storage().deallocate_nonnull(_get_allocator()))) {
+        get_storage().deallocate_nonnull(_get_allocator());
     }
 
     template <typename S, WJR_REQUIRES(!has_vector_storage_deallocate_nonnull_v<S, _Alty>)>
-    WJR_CONSTEXPR20 void __deallocate_nonnull_impl() noexcept(noexcept(__deallocate())) {
-        __deallocate();
+    WJR_CONSTEXPR20 void _deallocate_nonnull_impl() noexcept(noexcept(_deallocate())) {
+        _deallocate();
     }
 
     WJR_CONSTEXPR20 void
-    __deallocate_nonnull() noexcept(noexcept(__deallocate_nonnull_impl<storage_type>())) {
-        __deallocate_nonnull_impl<storage_type>();
+    _deallocate_nonnull() noexcept(noexcept(_deallocate_nonnull_impl<storage_type>())) {
+        _deallocate_nonnull_impl<storage_type>();
     }
 
-    WJR_PURE WJR_CONSTEXPR20 __get_size_t __get_size() noexcept { return get_storage().size(); }
+    WJR_PURE WJR_CONSTEXPR20 _get_size_t _get_size() noexcept { return get_storage().size(); }
 
-    WJR_CONSTEXPR20 void __take_storage(storage_type &other) noexcept(__is_nothrow_take_storage) {
+    WJR_CONSTEXPR20 void _take_storage(storage_type &other) noexcept(_is_nothrow_take_storage) {
         take_storage(other);
     }
 
     WJR_NORETURN WJR_CONSTEXPR20 void
-    __unreallocatable_unreachable(WJR_MAYBE_UNUSED size_type new_capacity) const {
+    _unreallocatable_unreachable(WJR_MAYBE_UNUSED size_type new_capacity) const {
         WJR_ASSERT_L1(new_capacity <= capacity(),
                       "new_capacity must be less than or equal to capacity if the "
                       "storage is not reallocatable.\nnew_capacity = ",
@@ -1333,208 +1328,207 @@ private:
     }
 
     template <typename Iter>
-    WJR_CONSTEXPR20 void __construct_n(const size_type n, Iter first, Iter last) {
+    WJR_CONSTEXPR20 void _construct_n(const size_type n, Iter first, Iter last) {
         if (WJR_LIKELY(n != 0)) {
-            auto &al = __get_allocator();
+            auto &al = _get_allocator();
             uninitialized_construct(n, n);
             wjr::uninitialized_copy_restrict_using_allocator(first, last, data(), al);
         }
     }
 
     template <typename Iter>
-    WJR_CONSTEXPR20 void __range_construct(Iter first, Iter last, std::input_iterator_tag) {
+    WJR_CONSTEXPR20 void _range_construct(Iter first, Iter last, std::input_iterator_tag) {
         for (; first != last; ++first) {
             emplace_back(*first);
         }
     }
 
     template <typename Iter>
-    WJR_CONSTEXPR20 void __range_construct(Iter first, Iter last, std::forward_iterator_tag) {
+    WJR_CONSTEXPR20 void _range_construct(Iter first, Iter last, std::forward_iterator_tag) {
         const auto n = static_cast<size_type>(std::distance(first, last));
-        __construct_n(n, first, last);
+        _construct_n(n, first, last);
     }
 
-    WJR_CONSTEXPR20 void __erase_at_end(pointer pos) noexcept {
-        const pointer __begin = data();
-        const pointer __end = end_unsafe();
-        WJR_ASSERT_L2(pos >= __begin && pos <= __end,
-                      "pos must be in the range of [begin(), end()]");
-        const auto new_size = static_cast<size_type>(pos - __begin);
-        destroy_using_allocator(__begin + new_size, __end, __get_allocator());
-        __get_size() = new_size;
+    WJR_CONSTEXPR20 void _erase_at_end(pointer pos) noexcept {
+        const pointer _begin = data();
+        const pointer _end = end_unsafe();
+        WJR_ASSERT_L2(pos >= _begin && pos <= _end, "pos must be in the range of [begin(), end()]");
+        const auto new_size = static_cast<size_type>(pos - _begin);
+        destroy_using_allocator(_begin + new_size, _end, _get_allocator());
+        _get_size() = new_size;
     }
 
-    WJR_CONSTEXPR20 iterator __erase(pointer pos) noexcept {
-        const pointer __end = end_unsafe();
-        if (pos + 1 != __end) {
-            std::move(pos + 1, __end, pos);
+    WJR_CONSTEXPR20 iterator _erase(pointer pos) noexcept {
+        const pointer _end = end_unsafe();
+        if (pos + 1 != _end) {
+            std::move(pos + 1, _end, pos);
         }
 
-        destroy_at_using_allocator(__end - 1, __get_allocator());
-        --__get_size();
-        return __make_iterator(pos);
+        destroy_at_using_allocator(_end - 1, _get_allocator());
+        --_get_size();
+        return _make_iterator(pos);
     }
 
-    WJR_CONSTEXPR20 iterator __erase(pointer first, pointer last) noexcept {
-        const pointer __end = end_unsafe();
+    WJR_CONSTEXPR20 iterator _erase(pointer first, pointer last) noexcept {
+        const pointer _end = end_unsafe();
         if (WJR_LIKELY(first != last)) {
-            if (last != __end) {
-                std::move(last, __end, first);
+            if (last != _end) {
+                std::move(last, _end, first);
             }
 
-            __erase_at_end(__end - (last - first));
+            _erase_at_end(_end - (last - first));
         }
 
-        return __make_iterator(first);
+        return _make_iterator(first);
     }
 
     template <typename Iter>
-    WJR_CONSTEXPR20 void __range_insert(pointer pos, Iter first, Iter last,
-                                        std::input_iterator_tag) {
+    WJR_CONSTEXPR20 void _range_insert(pointer pos, Iter first, Iter last,
+                                       std::input_iterator_tag) {
         if (pos == end_unsafe()) {
-            __range_append(first, last, std::input_iterator_tag());
+            _range_append(first, last, std::input_iterator_tag());
         } else if (first != last) {
-            basic_vector tmp(first, last, __get_allocator());
-            __range_insert(pos, tmp.begin_unsafe(), tmp.end_unsafe(), std::forward_iterator_tag());
+            basic_vector tmp(first, last, _get_allocator());
+            _range_insert(pos, tmp.begin_unsafe(), tmp.end_unsafe(), std::forward_iterator_tag());
         }
     }
 
     template <typename Iter>
-    WJR_CONSTEXPR20 void __range_insert(pointer pos, Iter first, Iter last,
-                                        std::forward_iterator_tag) {
+    WJR_CONSTEXPR20 void _range_insert(pointer pos, Iter first, Iter last,
+                                       std::forward_iterator_tag) {
         if (WJR_UNLIKELY(first == last)) {
             return;
         }
 
-        auto &al = __get_allocator();
-        const pointer __begin = data();
-        const pointer __end = end_unsafe();
-        const pointer __buf_end = buf_end_unsafe();
+        auto &al = _get_allocator();
+        const pointer _begin = data();
+        const pointer _end = end_unsafe();
+        const pointer _buf_end = buf_end_unsafe();
 
         const auto n = static_cast<size_type>(std::distance(first, last));
-        const auto __rest = static_cast<size_type>(__buf_end - __end);
+        const auto _rest = static_cast<size_type>(_buf_end - _end);
 
-        if (WJR_LIKELY(__rest >= n)) {
-            const auto __elements_after = static_cast<size_type>(__end - pos);
-            if (__elements_after > n) {
-                wjr::uninitialized_move_n_restrict_using_allocator(__end - n, n, __end, al);
-                std::move_backward(pos, __end - n, __end);
+        if (WJR_LIKELY(_rest >= n)) {
+            const auto _elements_after = static_cast<size_type>(_end - pos);
+            if (_elements_after > n) {
+                wjr::uninitialized_move_n_restrict_using_allocator(_end - n, n, _end, al);
+                std::move_backward(pos, _end - n, _end);
                 wjr::copy_restrict(first, last, pos);
             } else {
-                const auto mid = std::next(first, __elements_after);
+                const auto mid = std::next(first, _elements_after);
 
-                wjr::uninitialized_copy_restrict_using_allocator(mid, last, __end, al);
-                wjr::uninitialized_move_restrict_using_allocator(pos, __end, pos + n, al);
+                wjr::uninitialized_copy_restrict_using_allocator(mid, last, _end, al);
+                wjr::uninitialized_move_restrict_using_allocator(pos, _end, pos + n, al);
                 wjr::copy_restrict(first, mid, pos);
             }
 
-            __get_size() += n;
+            _get_size() += n;
         } else {
             if constexpr (is_reallocatable::value) {
-                const auto old_size = static_cast<size_type>(__end - __begin);
-                const auto old_pos = static_cast<size_type>(pos - __begin);
+                const auto old_size = static_cast<size_type>(_end - _begin);
+                const auto old_pos = static_cast<size_type>(pos - _begin);
                 const size_type new_capacity = get_growth_capacity(capacity(), old_size + n);
 
                 storage_type new_storage;
                 uninitialized_construct(new_storage, old_size + n, new_capacity);
 
-                const pointer __new_begin = new_storage.data();
+                const pointer _new_begin = new_storage.data();
 
                 /// @todo this can be optimize by using relocate.
 
-                wjr::uninitialized_copy_restrict_using_allocator(first, last, __new_begin + old_pos,
+                wjr::uninitialized_copy_restrict_using_allocator(first, last, _new_begin + old_pos,
                                                                  al);
-                wjr::uninitialized_move_restrict_using_allocator(__begin, pos, __new_begin, al);
-                wjr::uninitialized_move_restrict_using_allocator(pos, __end,
-                                                                 __new_begin + old_pos + n, al);
+                wjr::uninitialized_move_restrict_using_allocator(_begin, pos, _new_begin, al);
+                wjr::uninitialized_move_restrict_using_allocator(pos, _end,
+                                                                 _new_begin + old_pos + n, al);
 
-                __destroy_and_deallocate();
-                __take_storage(new_storage);
+                _destroy_and_deallocate();
+                _take_storage(new_storage);
             } else {
-                __unreallocatable_unreachable(size() + n);
+                _unreallocatable_unreachable(size() + n);
             }
         }
     }
 
     template <typename Iter>
-    WJR_CONSTEXPR20 void __range_append(Iter first, Iter last, std::input_iterator_tag) {
+    WJR_CONSTEXPR20 void _range_append(Iter first, Iter last, std::input_iterator_tag) {
         for (; first != last; ++first) {
             emplace_back(*first);
         }
     }
 
     template <typename Iter>
-    WJR_CONSTEXPR20 void __range_append(Iter first, Iter last, std::forward_iterator_tag) {
+    WJR_CONSTEXPR20 void _range_append(Iter first, Iter last, std::forward_iterator_tag) {
         if (WJR_UNLIKELY(first == last)) {
             return;
         }
 
-        auto &al = __get_allocator();
-        const pointer __begin = data();
-        const pointer __end = end_unsafe();
-        const pointer __buf_end = buf_end_unsafe();
+        auto &al = _get_allocator();
+        const pointer _begin = data();
+        const pointer _end = end_unsafe();
+        const pointer _buf_end = buf_end_unsafe();
 
         const auto n = static_cast<size_type>(std::distance(first, last));
-        const auto __rest = static_cast<size_type>(__buf_end - __end);
+        const auto _rest = static_cast<size_type>(_buf_end - _end);
 
-        if (WJR_LIKELY(__rest >= n)) {
-            wjr::uninitialized_copy_n_restrict_using_allocator(first, n, __end, al);
-            __get_size() += n;
+        if (WJR_LIKELY(_rest >= n)) {
+            wjr::uninitialized_copy_n_restrict_using_allocator(first, n, _end, al);
+            _get_size() += n;
         } else {
             if constexpr (is_reallocatable::value) {
-                const auto old_size = static_cast<size_type>(__end - __begin);
+                const auto old_size = static_cast<size_type>(_end - _begin);
                 const size_type new_capacity = get_growth_capacity(capacity(), old_size + n);
 
                 storage_type new_storage;
                 uninitialized_construct(new_storage, old_size + n, new_capacity);
 
-                const pointer __new_begin = new_storage.data();
+                const pointer _new_begin = new_storage.data();
 
-                wjr::uninitialized_copy_restrict_using_allocator(first, last,
-                                                                 __new_begin + old_size, al);
+                wjr::uninitialized_copy_restrict_using_allocator(first, last, _new_begin + old_size,
+                                                                 al);
 
-                uninitialized_relocate_restrict_using_allocator(__begin, __end, __new_begin, al);
-                __deallocate();
+                uninitialized_relocate_restrict_using_allocator(_begin, _end, _new_begin, al);
+                _deallocate();
 
-                __take_storage(new_storage);
+                _take_storage(new_storage);
             } else {
-                __unreallocatable_unreachable(size() + n);
+                _unreallocatable_unreachable(size() + n);
             }
         }
     }
 
     template <typename Iter>
-    WJR_CONSTEXPR20 void __range_assign(Iter first, Iter last, std::input_iterator_tag) {
+    WJR_CONSTEXPR20 void _range_assign(Iter first, Iter last, std::input_iterator_tag) {
         pointer cur = data();
-        const pointer __end = end_unsafe();
+        const pointer _end = end_unsafe();
 
-        for (; first != last && cur != __end; ++first, ++cur) {
+        for (; first != last && cur != _end; ++first, ++cur) {
             *cur = *first;
         }
 
         if (first == last) {
-            __erase_at_end(cur);
+            _erase_at_end(cur);
         } else {
-            __range_append(first, last, std::input_iterator_tag());
+            _range_append(first, last, std::input_iterator_tag());
         }
     }
 
     template <typename Iter>
-    WJR_CONSTEXPR20 void __range_assign(Iter first, Iter last, std::forward_iterator_tag) {
+    WJR_CONSTEXPR20 void _range_assign(Iter first, Iter last, std::forward_iterator_tag) {
         const auto n = static_cast<size_type>(std::distance(first, last));
-        auto &al = __get_allocator();
-        const pointer __begin = data();
-        const pointer __end = end_unsafe();
+        auto &al = _get_allocator();
+        const pointer _begin = data();
+        const pointer _end = end_unsafe();
 
         if (n <= size()) {
-            wjr::copy_restrict(first, last, __begin);
-            __erase_at_end(__begin + n);
+            wjr::copy_restrict(first, last, _begin);
+            _erase_at_end(_begin + n);
         } else if (WJR_LIKELY(n <= capacity())) {
             auto mid = first;
             std::advance(mid, size());
             wjr::copy_restrict(first, mid, data());
-            wjr::uninitialized_copy_restrict_using_allocator(mid, last, __end, al);
-            __get_size() = n;
+            wjr::uninitialized_copy_restrict_using_allocator(mid, last, _end, al);
+            _get_size() = n;
         } else {
             if constexpr (is_reallocatable::value) {
                 size_type new_capacity = get_growth_capacity(capacity(), n);
@@ -1542,206 +1536,205 @@ private:
                 storage_type new_storage;
                 uninitialized_construct(new_storage, n, new_capacity);
 
-                const pointer __new_begin = new_storage.data();
-                wjr::uninitialized_copy_n_restrict_using_allocator(first, n, __new_begin, al);
+                const pointer _new_begin = new_storage.data();
+                wjr::uninitialized_copy_n_restrict_using_allocator(first, n, _new_begin, al);
 
-                __destroy_and_deallocate();
-                __take_storage(new_storage);
+                _destroy_and_deallocate();
+                _take_storage(new_storage);
             } else {
-                __unreallocatable_unreachable(n);
+                _unreallocatable_unreachable(n);
             }
         }
     }
 
-    WJR_CONSTEXPR20 void __fill_assign(size_type n, const value_type &val) {
-        auto &al = __get_allocator();
+    WJR_CONSTEXPR20 void _fill_assign(size_type n, const value_type &val) {
+        auto &al = _get_allocator();
 
         if (WJR_UNLIKELY(n > capacity())) {
             if constexpr (is_reallocatable::value) {
-                __destroy_and_deallocate();
+                _destroy_and_deallocate();
 
                 storage_type new_storage;
                 uninitialized_construct(new_storage, n, n);
 
                 wjr::uninitialized_fill_n_using_allocator(new_storage.data(), n, al, val);
-                __take_storage(new_storage);
+                _take_storage(new_storage);
                 return;
             } else {
-                __unreallocatable_unreachable(n);
+                _unreallocatable_unreachable(n);
             }
         }
 
         if (n > size()) {
             std::fill(begin_unsafe(), end_unsafe(), val);
             wjr::uninitialized_fill_n_using_allocator(end_unsafe(), n - size(), al, val);
-            __get_size() = n;
+            _get_size() = n;
         } else {
-            __erase_at_end(std::fill_n(begin_unsafe(), n, val));
+            _erase_at_end(std::fill_n(begin_unsafe(), n, val));
         }
     }
 
     template <typename... Args>
-    WJR_CONSTEXPR20 void __realloc_insert(pointer pos, Args &&...args) {
+    WJR_CONSTEXPR20 void _realloc_insert(pointer pos, Args &&...args) {
         if constexpr (is_reallocatable::value) {
-            auto &al = __get_allocator();
-            const pointer __begin = data();
-            const pointer __end = end_unsafe();
+            auto &al = _get_allocator();
+            const pointer _begin = data();
+            const pointer _end = end_unsafe();
 
-            const auto old_pos_size = static_cast<size_type>(pos - __begin);
-            const auto old_size = static_cast<size_type>(__end - __begin);
+            const auto old_pos_size = static_cast<size_type>(pos - _begin);
+            const auto old_size = static_cast<size_type>(_end - _begin);
             const size_type new_size = old_size + 1;
             const size_type new_capacity = get_growth_capacity(old_size, new_size);
 
             storage_type new_storage;
             uninitialized_construct(new_storage, new_size, new_capacity);
 
-            const pointer __new_begin = new_storage.data();
-            const pointer new_pos = __new_begin + old_pos_size;
+            const pointer _new_begin = new_storage.data();
+            const pointer new_pos = _new_begin + old_pos_size;
 
             // todo: this can be optimize by using relocate.
 
             wjr::uninitialized_construct_using_allocator(new_pos, al, std::forward<Args>(args)...);
-            wjr::uninitialized_move_n_restrict_using_allocator(__begin, old_pos_size, __new_begin,
+            wjr::uninitialized_move_n_restrict_using_allocator(_begin, old_pos_size, _new_begin,
                                                                al);
-            wjr::uninitialized_move_restrict_using_allocator(pos, __end, new_pos + 1, al);
+            wjr::uninitialized_move_restrict_using_allocator(pos, _end, new_pos + 1, al);
 
-            __destroy_and_deallocate();
+            _destroy_and_deallocate();
 
-            __take_storage(new_storage);
+            _take_storage(new_storage);
         } else {
-            __unreallocatable_unreachable(size() + 1);
+            _unreallocatable_unreachable(size() + 1);
         }
     }
 
     template <typename... Args>
-    WJR_CONSTEXPR20 void __realloc_insert_at_end(Args &&...args) {
+    WJR_CONSTEXPR20 void _realloc_insert_at_end(Args &&...args) {
         if constexpr (is_reallocatable::value) {
-            auto &al = __get_allocator();
-            const pointer __begin = data();
-            const pointer __end = end_unsafe();
+            auto &al = _get_allocator();
+            const pointer _begin = data();
+            const pointer _end = end_unsafe();
 
-            const auto old_size = static_cast<size_type>(__end - __begin);
+            const auto old_size = static_cast<size_type>(_end - _begin);
             const auto new_size = old_size + 1;
             const size_type new_capacity = get_growth_capacity(old_size, new_size);
 
             storage_type new_storage;
             uninitialized_construct(new_storage, new_size, new_capacity);
 
-            const pointer __new_begin = new_storage.data();
+            const pointer _new_begin = new_storage.data();
 
-            const pointer new_pos = __new_begin + old_size;
+            const pointer new_pos = _new_begin + old_size;
             wjr::uninitialized_construct_using_allocator(new_pos, al, std::forward<Args>(args)...);
 
-            uninitialized_relocate_restrict_using_allocator(__begin, __end, __new_begin, al);
-            __deallocate();
+            uninitialized_relocate_restrict_using_allocator(_begin, _end, _new_begin, al);
+            _deallocate();
 
-            __take_storage(new_storage);
+            _take_storage(new_storage);
         } else {
-            __unreallocatable_unreachable(size() + 1);
+            _unreallocatable_unreachable(size() + 1);
         }
     }
 
-    WJR_CONSTEXPR20 void __fill_insert(pointer pos, size_type n, const value_type &val) {
+    WJR_CONSTEXPR20 void _fill_insert(pointer pos, size_type n, const value_type &val) {
         if (WJR_UNLIKELY(n == 0)) {
             return;
         }
 
-        auto &al = __get_allocator();
-        const pointer __begin = data();
-        const pointer __end = end_unsafe();
-        const pointer __buf_end = buf_end_unsafe();
+        auto &al = _get_allocator();
+        const pointer _begin = data();
+        const pointer _end = end_unsafe();
+        const pointer _buf_end = buf_end_unsafe();
 
-        const auto __rest = static_cast<size_type>(__buf_end - __end);
+        const auto _rest = static_cast<size_type>(_buf_end - _end);
 
-        if (WJR_LIKELY(__rest >= n)) {
+        if (WJR_LIKELY(_rest >= n)) {
             const temporary_value_allocator tmp(al, val);
             const auto &real_val = *tmp.get();
 
-            const auto __elements_after = static_cast<size_type>(__end - pos);
-            if (__elements_after > n) {
-                wjr::uninitialized_move_n_restrict_using_allocator(__end - n, n, __end, al);
-                std::move_backward(pos, __end - n, __end);
+            const auto _elements_after = static_cast<size_type>(_end - pos);
+            if (_elements_after > n) {
+                wjr::uninitialized_move_n_restrict_using_allocator(_end - n, n, _end, al);
+                std::move_backward(pos, _end - n, _end);
                 std::fill_n(pos, n, real_val);
             } else {
-                wjr::uninitialized_fill_n_using_allocator(__end, n - __elements_after, al,
-                                                          real_val);
-                wjr::uninitialized_move_restrict_using_allocator(pos, __end, pos + n, al);
-                std::fill(pos, __end, real_val);
+                wjr::uninitialized_fill_n_using_allocator(_end, n - _elements_after, al, real_val);
+                wjr::uninitialized_move_restrict_using_allocator(pos, _end, pos + n, al);
+                std::fill(pos, _end, real_val);
             }
 
-            __get_size() += n;
+            _get_size() += n;
         } else {
-            const auto old_size = static_cast<size_type>(__end - __begin);
+            const auto old_size = static_cast<size_type>(_end - _begin);
             if constexpr (is_reallocatable::value) {
                 const auto new_capacity = get_growth_capacity(capacity(), old_size + n);
 
                 storage_type new_storage;
                 uninitialized_construct(new_storage, old_size + n, new_capacity);
 
-                const pointer __new_begin = new_storage.data();
+                const pointer _new_begin = new_storage.data();
 
-                const auto old_pos = static_cast<size_type>(pos - __begin);
+                const auto old_pos = static_cast<size_type>(pos - _begin);
 
-                wjr::uninitialized_fill_n_using_allocator(__new_begin + old_pos, n, al, val);
-                wjr::uninitialized_move_restrict_using_allocator(__begin, pos, __new_begin, al);
-                wjr::uninitialized_move_restrict_using_allocator(pos, __end,
-                                                                 __new_begin + old_pos + n, al);
+                wjr::uninitialized_fill_n_using_allocator(_new_begin + old_pos, n, al, val);
+                wjr::uninitialized_move_restrict_using_allocator(_begin, pos, _new_begin, al);
+                wjr::uninitialized_move_restrict_using_allocator(pos, _end,
+                                                                 _new_begin + old_pos + n, al);
 
-                __destroy_and_deallocate();
+                _destroy_and_deallocate();
 
-                __take_storage(new_storage);
+                _take_storage(new_storage);
             } else {
-                __unreallocatable_unreachable(old_size + n);
+                _unreallocatable_unreachable(old_size + n);
             }
         }
     }
 
     template <typename Ty>
-    WJR_CONSTEXPR20 void __resize(const size_type new_size, const Ty &val) {
+    WJR_CONSTEXPR20 void _resize(const size_type new_size, const Ty &val) {
         const auto old_size = size();
 
         if constexpr (is_reallocatable::value) {
             if (new_size > old_size) {
-                __append(new_size - old_size, val);
+                _append(new_size - old_size, val);
             } else if (new_size < old_size) {
-                __erase_at_end(data() + new_size);
+                _erase_at_end(data() + new_size);
             }
         } else {
-            auto &al = __get_allocator();
+            auto &al = _get_allocator();
 
-            const pointer __begin = data();
-            const pointer __end = data() + old_size;
+            const pointer _begin = data();
+            const pointer _end = data() + old_size;
 
             if (WJR_UNLIKELY(new_size > capacity())) {
-                __unreallocatable_unreachable(new_size);
+                _unreallocatable_unreachable(new_size);
             }
 
             if (new_size > old_size) {
-                wjr::uninitialized_fill_n_using_allocator(__end, new_size - old_size, al, val);
+                wjr::uninitialized_fill_n_using_allocator(_end, new_size - old_size, al, val);
             } else if (new_size < old_size) {
-                destroy_using_allocator(__begin + new_size, __end, al);
+                destroy_using_allocator(_begin + new_size, _end, al);
             }
 
-            __get_size() = new_size;
+            _get_size() = new_size;
         }
     }
 
     template <typename Ty>
-    WJR_CONSTEXPR20 void __append(size_type n, const Ty &val) {
-        auto &al = __get_allocator();
+    WJR_CONSTEXPR20 void _append(size_type n, const Ty &val) {
+        auto &al = _get_allocator();
 
         const auto old_size = size();
         const auto old_capacity = capacity();
 
-        const pointer __begin = data();
-        const pointer __end = __begin + old_size;
+        const pointer _begin = data();
+        const pointer _end = _begin + old_size;
 
-        const auto __rest = old_capacity - old_size;
+        const auto _rest = old_capacity - old_size;
         const auto new_size = old_size + n;
 
-        if (WJR_LIKELY(__rest >= n)) {
-            wjr::uninitialized_fill_n_using_allocator(__end, n, al, val);
-            __get_size() = new_size;
+        if (WJR_LIKELY(_rest >= n)) {
+            wjr::uninitialized_fill_n_using_allocator(_end, n, al, val);
+            _get_size() = new_size;
         } else {
             if constexpr (is_reallocatable::value) {
                 auto new_capacity = get_growth_capacity(old_capacity, new_size);
@@ -1749,189 +1742,188 @@ private:
                 storage_type new_storage;
                 uninitialized_construct(new_storage, new_size, new_capacity);
 
-                const pointer __new_begin = new_storage.data();
+                const pointer _new_begin = new_storage.data();
 
-                wjr::uninitialized_fill_n_using_allocator(__new_begin + old_size, n, al, val);
+                wjr::uninitialized_fill_n_using_allocator(_new_begin + old_size, n, al, val);
 
-                uninitialized_relocate_restrict_using_allocator(__begin, __end, __new_begin, al);
-                __deallocate();
+                uninitialized_relocate_restrict_using_allocator(_begin, _end, _new_begin, al);
+                _deallocate();
 
-                __take_storage(new_storage);
+                _take_storage(new_storage);
             } else {
-                __unreallocatable_unreachable(new_size);
+                _unreallocatable_unreachable(new_size);
             }
         }
     }
 
     template <typename Args>
-    WJR_CONSTEXPR20 void __insert_aux(pointer pos, Args &&args) {
-        auto &al = __get_allocator();
-        const pointer __end = end_unsafe();
+    WJR_CONSTEXPR20 void _insert_aux(pointer pos, Args &&args) {
+        auto &al = _get_allocator();
+        const pointer _end = end_unsafe();
 
-        wjr::uninitialized_construct_using_allocator(__end, al, std::move(*(__end - 1)));
+        wjr::uninitialized_construct_using_allocator(_end, al, std::move(*(_end - 1)));
 
-        std::move_backward(pos, __end - 1, __end);
+        std::move_backward(pos, _end - 1, _end);
         *pos = std::forward<Args>(args);
 
-        ++__get_size();
+        ++_get_size();
     }
 
     template <typename... Args>
-    WJR_CONSTEXPR20 iterator __emplace_aux(pointer pos, Args &&...args) {
-        auto &al = __get_allocator();
-        const pointer __end = end_unsafe();
-        const pointer __buf_end = buf_end_unsafe();
+    WJR_CONSTEXPR20 iterator _emplace_aux(pointer pos, Args &&...args) {
+        auto &al = _get_allocator();
+        const pointer _end = end_unsafe();
+        const pointer _buf_end = buf_end_unsafe();
 
-        if (WJR_LIKELY(__end != __buf_end)) {
-            if (pos == __end) {
-                wjr::uninitialized_construct_using_allocator(__end, al,
-                                                             std::forward<Args>(args)...);
-                ++__get_size();
+        if (WJR_LIKELY(_end != _buf_end)) {
+            if (pos == _end) {
+                wjr::uninitialized_construct_using_allocator(_end, al, std::forward<Args>(args)...);
+                ++_get_size();
             } else {
                 temporary_value_allocator tmp(al, std::forward<Args>(args)...);
-                __insert_aux(pos, std::move(*tmp.get()));
+                _insert_aux(pos, std::move(*tmp.get()));
             }
 
-            return __make_iterator(pos);
+            return _make_iterator(pos);
         }
 
         const size_type offset = static_cast<size_type>(pos - data());
-        __realloc_insert(pos, std::forward<Args>(args)...);
+        _realloc_insert(pos, std::forward<Args>(args)...);
         return begin() + offset;
     }
 
     template <typename Iter>
-    WJR_CONSTEXPR20 void __range_replace(pointer old_first, pointer old_last, Iter new_begin,
-                                         Iter new_last, std::input_iterator_tag) {
+    WJR_CONSTEXPR20 void _range_replace(pointer old_first, pointer old_last, Iter new_begin,
+                                        Iter new_last, std::input_iterator_tag) {
         for (; old_first != old_last && new_begin != new_last; ++old_first, ++new_begin) {
             *old_first = *new_begin;
         }
 
         if (new_begin == new_last) {
-            __erase_at_end(old_first, old_last);
+            _erase_at_end(old_first, old_last);
         } else {
-            __range_insert(old_last, new_begin, new_last, std::input_iterator_tag());
+            _range_insert(old_last, new_begin, new_last, std::input_iterator_tag());
         }
     }
 
     template <typename Iter>
-    WJR_CONSTEXPR20 void __range_replace(pointer old_first, pointer old_last, Iter new_begin,
-                                         Iter new_last, std::forward_iterator_tag) {
+    WJR_CONSTEXPR20 void _range_replace(pointer old_first, pointer old_last, Iter new_begin,
+                                        Iter new_last, std::forward_iterator_tag) {
         const auto n = static_cast<size_type>(old_last - old_first);
         const auto m = static_cast<size_type>(std::distance(new_begin, new_last));
 
         if (m <= n) {
             erase(std::copy_n(new_begin, m, old_first), old_last);
         } else {
-            const auto __delta = m - n;
+            const auto _delta = m - n;
 
-            auto &al = __get_allocator();
-            const auto __begin = data();
-            const auto __end = end_unsafe();
-            const auto __buf_end = buf_end_unsafe();
+            auto &al = _get_allocator();
+            const auto _begin = data();
+            const auto _end = end_unsafe();
+            const auto _buf_end = buf_end_unsafe();
 
-            const auto __rest = static_cast<size_type>(__buf_end - __end);
+            const auto _rest = static_cast<size_type>(_buf_end - _end);
 
-            if (WJR_LIKELY(__rest >= __delta)) {
-                const auto __elements_after = static_cast<size_type>(__end - old_first);
-                if (__elements_after > m) {
-                    wjr::uninitialized_move_using_allocator(__end - __delta, __end, __end, al);
-                    std::move_backward(old_last, __end - __delta, __end);
+            if (WJR_LIKELY(_rest >= _delta)) {
+                const auto _elements_after = static_cast<size_type>(_end - old_first);
+                if (_elements_after > m) {
+                    wjr::uninitialized_move_using_allocator(_end - _delta, _end, _end, al);
+                    std::move_backward(old_last, _end - _delta, _end);
                     std::copy(new_begin, new_last, old_first);
                 } else {
                     auto mid = new_begin;
-                    std::advance(mid, __elements_after);
-                    wjr::uninitialized_copy_using_allocator(mid, new_last, __end, al);
-                    wjr::uninitialized_move_using_allocator(old_last, __end, old_first + m, al);
+                    std::advance(mid, _elements_after);
+                    wjr::uninitialized_copy_using_allocator(mid, new_last, _end, al);
+                    wjr::uninitialized_move_using_allocator(old_last, _end, old_first + m, al);
                     std::copy(new_begin, mid, old_first);
                 }
-                __get_size() += __delta;
+                _get_size() += _delta;
             } else {
                 if constexpr (is_reallocatable::value) {
-                    const auto old_size = static_cast<size_type>(__end - __begin);
-                    const auto old_pos = static_cast<size_type>(old_first - __begin);
-                    const auto new_capacity = get_growth_capacity(capacity(), old_size + __delta);
+                    const auto old_size = static_cast<size_type>(_end - _begin);
+                    const auto old_pos = static_cast<size_type>(old_first - _begin);
+                    const auto new_capacity = get_growth_capacity(capacity(), old_size + _delta);
 
                     storage_type new_storage;
-                    uninitialized_construct(new_storage, old_size + __delta, new_capacity);
+                    uninitialized_construct(new_storage, old_size + _delta, new_capacity);
 
-                    const pointer __new_begin = new_storage.data();
+                    const pointer _new_begin = new_storage.data();
 
                     wjr::uninitialized_copy_restrict_using_allocator(new_begin, new_last,
-                                                                     __new_begin + old_pos, al);
-                    wjr::uninitialized_move_restrict_using_allocator(__begin, old_first,
-                                                                     __new_begin, al);
-                    wjr::uninitialized_move_restrict_using_allocator(old_last, __end,
-                                                                     __new_begin + old_pos + m, al);
+                                                                     _new_begin + old_pos, al);
+                    wjr::uninitialized_move_restrict_using_allocator(_begin, old_first, _new_begin,
+                                                                     al);
+                    wjr::uninitialized_move_restrict_using_allocator(old_last, _end,
+                                                                     _new_begin + old_pos + m, al);
 
-                    __destroy_and_deallocate();
-                    __take_storage(new_storage);
+                    _destroy_and_deallocate();
+                    _take_storage(new_storage);
                 } else {
-                    __unreallocatable_unreachable(size() + __delta);
+                    _unreallocatable_unreachable(size() + _delta);
                 }
             }
         }
     }
 
-    WJR_CONSTEXPR20 void __fill_replace(pointer old_first, pointer old_last, size_type m,
-                                        const value_type &val) {
+    WJR_CONSTEXPR20 void _fill_replace(pointer old_first, pointer old_last, size_type m,
+                                       const value_type &val) {
         const auto n = static_cast<size_type>(old_last - old_first);
 
         if (m <= n) {
-            __erase(std::fill_n(old_first, m, val), old_last);
+            _erase(std::fill_n(old_first, m, val), old_last);
         } else {
-            const auto __delta = m - n;
+            const auto _delta = m - n;
 
-            auto &al = __get_allocator();
-            const auto __begin = data();
-            const auto __end = end_unsafe();
-            const auto __buf_end = buf_end_unsafe();
+            auto &al = _get_allocator();
+            const auto _begin = data();
+            const auto _end = end_unsafe();
+            const auto _buf_end = buf_end_unsafe();
 
-            const auto __rest = static_cast<size_type>(__buf_end - __end);
+            const auto _rest = static_cast<size_type>(_buf_end - _end);
 
-            if (WJR_LIKELY(__rest >= __delta)) {
+            if (WJR_LIKELY(_rest >= _delta)) {
                 const temporary_value_allocator tmp(al, val);
                 const auto &real_value = *tmp.get();
 
-                const auto __elements_after = static_cast<size_type>(__end - old_first);
-                if (__elements_after > m) {
-                    wjr::uninitialized_move_using_allocator(__end - __delta, __end, __end, al);
-                    std::move_backward(old_last, __end - __delta, __end);
+                const auto _elements_after = static_cast<size_type>(_end - old_first);
+                if (_elements_after > m) {
+                    wjr::uninitialized_move_using_allocator(_end - _delta, _end, _end, al);
+                    std::move_backward(old_last, _end - _delta, _end);
                     std::fill_n(old_first, m, real_value);
                 } else {
-                    wjr::uninitialized_fill_n_using_allocator(__end, m - __elements_after, al,
+                    wjr::uninitialized_fill_n_using_allocator(_end, m - _elements_after, al,
                                                               real_value);
-                    wjr::uninitialized_move_using_allocator(old_last, __end, old_first + m, al);
-                    std::fill(old_first, __end, real_value);
+                    wjr::uninitialized_move_using_allocator(old_last, _end, old_first + m, al);
+                    std::fill(old_first, _end, real_value);
                 }
-                __get_size() += __delta;
+                _get_size() += _delta;
             } else {
                 if constexpr (is_reallocatable::value) {
-                    const auto old_size = static_cast<size_type>(__end - __begin);
-                    const auto old_pos = static_cast<size_type>(old_first - __begin);
-                    const auto new_capacity = get_growth_capacity(capacity(), old_size + __delta);
+                    const auto old_size = static_cast<size_type>(_end - _begin);
+                    const auto old_pos = static_cast<size_type>(old_first - _begin);
+                    const auto new_capacity = get_growth_capacity(capacity(), old_size + _delta);
 
                     storage_type new_storage;
-                    uninitialized_construct(new_storage, old_size + __delta, new_capacity);
+                    uninitialized_construct(new_storage, old_size + _delta, new_capacity);
 
-                    const pointer __ptr = new_storage.data();
+                    const pointer _ptr = new_storage.data();
 
-                    wjr::uninitialized_fill_n_using_allocator(__ptr + old_pos, m, al, val);
-                    wjr::uninitialized_move_restrict_using_allocator(__begin, old_first, __ptr, al);
-                    wjr::uninitialized_move_restrict_using_allocator(old_last, __end,
-                                                                     __ptr + old_pos + m, al);
+                    wjr::uninitialized_fill_n_using_allocator(_ptr + old_pos, m, al, val);
+                    wjr::uninitialized_move_restrict_using_allocator(_begin, old_first, _ptr, al);
+                    wjr::uninitialized_move_restrict_using_allocator(old_last, _end,
+                                                                     _ptr + old_pos + m, al);
 
-                    __destroy_and_deallocate();
-                    __take_storage(new_storage);
+                    _destroy_and_deallocate();
+                    _take_storage(new_storage);
                 } else {
-                    __unreallocatable_unreachable(size() + __delta);
+                    _unreallocatable_unreachable(size() + _delta);
                 }
             }
         }
     }
 
 private:
-    __pair_type m_pair;
+    _pair_type m_pair;
 };
 
 template <typename Iter, typename T = iterator_value_t<Iter>, typename Alloc = std::allocator<T>,
@@ -1950,16 +1942,16 @@ struct container_of_fn<basic_vector<S>, void,
     using value_type = S;
 
     base_type &operator()(value_type &ref) const noexcept {
-        auto &__pair = container_of<typename base_type::__pair_type, std::in_place_index_t<1>>(ref);
-        return *reinterpret_cast<base_type *>(
-            reinterpret_cast<std::byte *>(std::addressof(__pair)) - offsetof(base_type, m_pair));
+        auto &_pair = container_of<typename base_type::_pair_type, std::in_place_index_t<1>>(ref);
+        return *reinterpret_cast<base_type *>(reinterpret_cast<std::byte *>(std::addressof(_pair)) -
+                                              offsetof(base_type, m_pair));
     }
 
     const base_type &operator()(const value_type &ref) const noexcept {
-        const auto &__pair =
-            container_of<typename base_type::__pair_type, std::in_place_index_t<1>>(ref);
+        const auto &_pair =
+            container_of<typename base_type::_pair_type, std::in_place_index_t<1>>(ref);
         return *reinterpret_cast<const base_type *>(
-            reinterpret_cast<const std::byte *>(std::addressof(__pair)) -
+            reinterpret_cast<const std::byte *>(std::addressof(_pair)) -
             offsetof(base_type, m_pair));
     }
 };
@@ -1972,15 +1964,15 @@ struct container_of_fn<basic_vector<S>, void,
     using value_type = S;
 
     base_type &operator()(value_type &ref) const noexcept {
-        auto &__pair = container_of<typename base_type::__pair_type, value_type>(ref);
-        return *reinterpret_cast<base_type *>(
-            reinterpret_cast<std::byte *>(std::addressof(__pair)) - offsetof(base_type, m_pair));
+        auto &_pair = container_of<typename base_type::_pair_type, value_type>(ref);
+        return *reinterpret_cast<base_type *>(reinterpret_cast<std::byte *>(std::addressof(_pair)) -
+                                              offsetof(base_type, m_pair));
     }
 
     const base_type &operator()(const value_type &ref) const noexcept {
-        const auto &__pair = container_of<typename base_type::__pair_type, value_type>(ref);
+        const auto &_pair = container_of<typename base_type::_pair_type, value_type>(ref);
         return *reinterpret_cast<const base_type *>(
-            reinterpret_cast<const std::byte *>(std::addressof(__pair)) -
+            reinterpret_cast<const std::byte *>(std::addressof(_pair)) -
             offsetof(base_type, m_pair));
     }
 };

@@ -45,9 +45,8 @@ struct compressed_sentinel_trait_base {
 /// @private Base implementation for compressed trivial sentinel trait
 namespace detail {
 template <typename T, T uniq_sentinel>
-struct __compressed_trivial_sentinel_trait_base
-    : compressed_sentinel_trait_base<__compressed_trivial_sentinel_trait_base<T, uniq_sentinel>,
-                                     T> {
+struct _compressed_trivial_sentinel_trait_base
+    : compressed_sentinel_trait_base<_compressed_trivial_sentinel_trait_base<T, uniq_sentinel>, T> {
     using sentinel_type = T;
 
     static constexpr void construct_sentinel(sentinel_type *has_value) noexcept {
@@ -65,7 +64,7 @@ struct compressed_sentinel_trait : sentinel_trait {};
 
 template <typename T>
 struct compressed_sentinel_trait<T *, void>
-    : detail::__compressed_trivial_sentinel_trait_base<T *, nullptr> {};
+    : detail::_compressed_trivial_sentinel_trait_base<T *, nullptr> {};
 
 template <typename T, typename SentinelTrait = sentinel_trait>
 struct sentinel_tag {};

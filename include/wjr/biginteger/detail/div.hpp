@@ -99,7 +99,7 @@ WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t 
     if (WJR_UNLIKELY(n == 1)) {
         const uint64_t tmp = src[0];
 
-        if (__has_high_bit(div)) {
+        if (_has_high_bit(div)) {
             if (tmp >= div) {
                 rem = tmp - div;
                 dst[0] = 1;
@@ -173,8 +173,8 @@ extern WJR_ALL_NONNULL uint64_t sb_div_qr_s(uint64_t *dst, uint64_t *src, size_t
 extern WJR_ALL_NONNULL uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n,
                                             const uint64_t *div, size_t m, uint64_t dinv) noexcept;
 
-extern WJR_ALL_NONNULL void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                            size_t n, const uint64_t *div, size_t m) noexcept;
+extern WJR_ALL_NONNULL void _div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                           size_t n, const uint64_t *div, size_t m) noexcept;
 
 WJR_INTRINSIC_INLINE void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
                                    const uint64_t *div, size_t m) noexcept {
@@ -199,7 +199,7 @@ WJR_INTRINSIC_INLINE void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t 
         }
     }
 
-    return __div_qr_s_impl(dst, rem, src, n, div, m);
+    return _div_qr_s_impl(dst, rem, src, n, div, m);
 }
 
 WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_divexact_dbm1c(uint64_t *dst, const uint64_t *src,
@@ -300,13 +300,13 @@ WJR_INLINE_CONSTEXPR20 void fallback_divexact_1_shift(uint64_t *dst, const uint6
 }
 
 template <uint64_t c>
-WJR_INTRINSIC_CONSTEXPR uint64_t __divexact_get_impl() noexcept {
+WJR_INTRINSIC_CONSTEXPR uint64_t _divexact_get_impl() noexcept {
     return 1;
 }
 
 template <uint64_t c, uint64_t p, uint64_t... ps>
-WJR_INTRINSIC_CONSTEXPR uint64_t __divexact_get_impl() noexcept {
-    constexpr auto ret = __divexact_get_impl<c, ps...>();
+WJR_INTRINSIC_CONSTEXPR uint64_t _divexact_get_impl() noexcept {
+    constexpr auto ret = _divexact_get_impl<c, ps...>();
     if constexpr (c % p == 0) {
         return ret * p;
     } else {
@@ -315,22 +315,22 @@ WJR_INTRINSIC_CONSTEXPR uint64_t __divexact_get_impl() noexcept {
 }
 
 template <uint64_t c>
-WJR_INTRINSIC_CONSTEXPR uint64_t __divexact_get() noexcept {
-    return __divexact_get_impl<c, 3, 5, 17>();
+WJR_INTRINSIC_CONSTEXPR uint64_t _divexact_get() noexcept {
+    return _divexact_get_impl<c, 3, 5, 17>();
 }
 
-struct __divexact_get_struct {
+struct _divexact_get_struct {
     int mode;
     int cl;
     uint64_t p0, p1;
 };
 
 template <uint64_t c>
-constexpr __divexact_get_struct __divexact_init() noexcept {
+constexpr _divexact_get_struct _divexact_init() noexcept {
     if constexpr (is_zero_or_single_bit(c)) {
         return {0, constant::ctz(c), 0, 0};
     } else {
-        constexpr auto p0 = __divexact_get<c>();
+        constexpr auto p0 = _divexact_get<c>();
         if constexpr (p0 == 1) {
             return {1, 0, 0, 0};
         } else {
@@ -338,7 +338,7 @@ constexpr __divexact_get_struct __divexact_init() noexcept {
             if constexpr (is_zero_or_single_bit(c0)) {
                 return {2, constant::ctz(c), p0, 0};
             } else {
-                constexpr auto p1 = __divexact_get<c0>();
+                constexpr auto p1 = _divexact_get<c0>();
                 if constexpr (p1 == 1) {
                     return {1, 0, 0, 0};
                 } else {
@@ -360,7 +360,7 @@ WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, 
                                             WJR_MAYBE_UNUSED uint64_t cf) noexcept {
     // cost : divexact_dbm1c * 2 + shift * 1 <= divexact_1
     static_assert(c != 0);
-    constexpr auto ss = __divexact_init<c>();
+    constexpr auto ss = _divexact_init<c>();
 
     if constexpr (ss.mode == 0) {
         (void)rshift_n(dst, src, n, ss.cl, cf);
@@ -548,7 +548,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t mod_1(const uint64_t *src, size_t n, uint64_t
     if (WJR_UNLIKELY(n == 1)) {
         const uint64_t tmp = src[0];
 
-        if (__has_high_bit(div)) {
+        if (_has_high_bit(div)) {
             if (tmp >= div) {
                 return tmp - div;
             }

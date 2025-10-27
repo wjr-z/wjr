@@ -8,8 +8,8 @@ inline constexpr size_t bignum_to_chars_div_qr_2_threshold = 6;
 }
 
 template <typename Converter>
-size_t __biginteger_to_chars_2_impl(uint8_t *first, const uint64_t *up, size_t n,
-                                    Converter conv) noexcept {
+size_t _biginteger_to_chars_2_impl(uint8_t *first, const uint64_t *up, size_t n,
+                                   Converter conv) noexcept {
     WJR_ASSERT_L2(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
@@ -26,7 +26,7 @@ size_t __biginteger_to_chars_2_impl(uint8_t *first, const uint64_t *up, size_t n
         x = *up;
 
         for (int i = 0; i < 8; ++i) {
-            __to_chars_unroll_8<2>(first - 8, x & 0xff, conv);
+            _to_chars_unroll_8<2>(first - 8, x & 0xff, conv);
             first -= 8;
             x >>= 8;
         }
@@ -36,21 +36,21 @@ size_t __biginteger_to_chars_2_impl(uint8_t *first, const uint64_t *up, size_t n
     } while (n != 0);
     x = *up;
 
-    (void)__unsigned_to_chars_backward_unchecked<2>(first, hbits, x, conv);
+    (void)_unsigned_to_chars_backward_unchecked<2>(first, hbits, x, conv);
     return len;
 }
 
-template size_t __biginteger_to_chars_2_impl<char_converter_t>(uint8_t *first, const uint64_t *up,
-                                                               size_t n,
-                                                               char_converter_t conv) noexcept;
+template size_t _biginteger_to_chars_2_impl<char_converter_t>(uint8_t *first, const uint64_t *up,
+                                                              size_t n,
+                                                              char_converter_t conv) noexcept;
 
-template size_t __biginteger_to_chars_2_impl<origin_converter_t>(uint8_t *first, const uint64_t *up,
-                                                                 size_t n,
-                                                                 origin_converter_t conv) noexcept;
+template size_t _biginteger_to_chars_2_impl<origin_converter_t>(uint8_t *first, const uint64_t *up,
+                                                                size_t n,
+                                                                origin_converter_t conv) noexcept;
 
 template <typename Converter>
-size_t __biginteger_to_chars_8_impl(uint8_t *first, const uint64_t *up, size_t n,
-                                    Converter conv) noexcept {
+size_t _biginteger_to_chars_8_impl(uint8_t *first, const uint64_t *up, size_t n,
+                                   Converter conv) noexcept {
     WJR_ASSERT_L2(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
@@ -75,14 +75,14 @@ size_t __biginteger_to_chars_8_impl(uint8_t *first, const uint64_t *up, size_t n
             break;
         }
         case 2: {
-            __to_chars_unroll_2<8>(first - 2, last | ((x & 0x03) << 4), conv);
+            _to_chars_unroll_2<8>(first - 2, last | ((x & 0x03) << 4), conv);
             first -= 2;
             x >>= 2;
             rest = 4;
             break;
         }
         case 4: {
-            __to_chars_unroll_2<8>(first - 2, last | ((x & 0x0f) << 2), conv);
+            _to_chars_unroll_2<8>(first - 2, last | ((x & 0x0f) << 2), conv);
             first -= 2;
             x >>= 4;
             rest = 0;
@@ -94,11 +94,11 @@ size_t __biginteger_to_chars_8_impl(uint8_t *first, const uint64_t *up, size_t n
         }
         }
 
-        __to_chars_unroll_8<8>(first - 8, x & 0xff'ffff, conv);
+        _to_chars_unroll_8<8>(first - 8, x & 0xff'ffff, conv);
         x >>= 24;
-        __to_chars_unroll_8<8>(first - 16, x & 0xff'ffff, conv);
+        _to_chars_unroll_8<8>(first - 16, x & 0xff'ffff, conv);
         x >>= 24;
-        __to_chars_unroll_4<8>(first - 20, x & 0x0fff, conv);
+        _to_chars_unroll_4<8>(first - 20, x & 0x0fff, conv);
         x >>= 12;
         first -= 20;
 
@@ -114,7 +114,7 @@ size_t __biginteger_to_chars_8_impl(uint8_t *first, const uint64_t *up, size_t n
         break;
     }
     case 2: {
-        __to_chars_unroll_2<8>(first - 2, last | ((x & 0x03) << 4), conv);
+        _to_chars_unroll_2<8>(first - 2, last | ((x & 0x03) << 4), conv);
         first -= 2;
         if (hbits <= 2) {
             goto DONE;
@@ -129,7 +129,7 @@ size_t __biginteger_to_chars_8_impl(uint8_t *first, const uint64_t *up, size_t n
             goto DONE;
         }
 
-        __to_chars_unroll_2<8>(first - 2, last | ((x & 0x0f) << 2), conv);
+        _to_chars_unroll_2<8>(first - 2, last | ((x & 0x0f) << 2), conv);
         first -= 2;
         if (hbits <= 4) {
             goto DONE;
@@ -146,7 +146,7 @@ size_t __biginteger_to_chars_8_impl(uint8_t *first, const uint64_t *up, size_t n
 
     if (WJR_LIKELY(hbits + 2 >= 12)) {
         do {
-            __to_chars_unroll_4<8>(first - 4, x & 0x0fff, conv);
+            _to_chars_unroll_4<8>(first - 4, x & 0x0fff, conv);
             first -= 4;
             x >>= 12;
             hbits -= 12;
@@ -160,7 +160,7 @@ size_t __biginteger_to_chars_8_impl(uint8_t *first, const uint64_t *up, size_t n
         WJR_FALLTHROUGH;
     }
     case 2: {
-        __to_chars_unroll_2<8>(first - 2, x, conv);
+        _to_chars_unroll_2<8>(first - 2, x, conv);
         break;
     }
     case 1: {
@@ -180,17 +180,17 @@ DONE:
     return len;
 }
 
-template size_t __biginteger_to_chars_8_impl<char_converter_t>(uint8_t *first, const uint64_t *up,
-                                                               size_t n,
-                                                               char_converter_t conv) noexcept;
+template size_t _biginteger_to_chars_8_impl<char_converter_t>(uint8_t *first, const uint64_t *up,
+                                                              size_t n,
+                                                              char_converter_t conv) noexcept;
 
-template size_t __biginteger_to_chars_8_impl<origin_converter_t>(uint8_t *first, const uint64_t *up,
-                                                                 size_t n,
-                                                                 origin_converter_t conv) noexcept;
+template size_t _biginteger_to_chars_8_impl<origin_converter_t>(uint8_t *first, const uint64_t *up,
+                                                                size_t n,
+                                                                origin_converter_t conv) noexcept;
 
 template <typename Converter>
-size_t __biginteger_to_chars_16_impl(uint8_t *first, const uint64_t *up, size_t n,
-                                     Converter conv) noexcept {
+size_t _biginteger_to_chars_16_impl(uint8_t *first, const uint64_t *up, size_t n,
+                                    Converter conv) noexcept {
     WJR_ASSERT_L2(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
@@ -207,8 +207,8 @@ size_t __biginteger_to_chars_16_impl(uint8_t *first, const uint64_t *up, size_t 
     do {
         x = *up;
 
-        __to_chars_unroll_8<16>(first - 8, x & 0xffff'ffff, conv);
-        __to_chars_unroll_8<16>(first - 16, x >> 32, conv);
+        _to_chars_unroll_8<16>(first - 8, x & 0xffff'ffff, conv);
+        _to_chars_unroll_8<16>(first - 16, x >> 32, conv);
         first -= 16;
 
         ++up;
@@ -216,22 +216,22 @@ size_t __biginteger_to_chars_16_impl(uint8_t *first, const uint64_t *up, size_t 
     } while (n);
     x = *up;
 
-    (void)__unsigned_to_chars_backward_unchecked<16>(first, hbits, x, conv);
+    (void)_unsigned_to_chars_backward_unchecked<16>(first, hbits, x, conv);
 
     return len;
 }
 
-template size_t __biginteger_to_chars_16_impl<char_converter_t>(uint8_t *first, const uint64_t *up,
-                                                                size_t n,
-                                                                char_converter_t conv) noexcept;
+template size_t _biginteger_to_chars_16_impl<char_converter_t>(uint8_t *first, const uint64_t *up,
+                                                               size_t n,
+                                                               char_converter_t conv) noexcept;
 
-template size_t __biginteger_to_chars_16_impl<origin_converter_t>(uint8_t *first,
-                                                                  const uint64_t *up, size_t n,
-                                                                  origin_converter_t conv) noexcept;
+template size_t _biginteger_to_chars_16_impl<origin_converter_t>(uint8_t *first, const uint64_t *up,
+                                                                 size_t n,
+                                                                 origin_converter_t conv) noexcept;
 
 template <typename Converter>
-size_t __biginteger_to_chars_power_of_two_impl(uint8_t *first, const uint64_t *up, size_t n,
-                                               unsigned int base, Converter conv) noexcept {
+size_t _biginteger_to_chars_power_of_two_impl(uint8_t *first, const uint64_t *up, size_t n,
+                                              unsigned int base, Converter conv) noexcept {
     WJR_ASSERT_L2(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
@@ -302,13 +302,13 @@ DONE:
 }
 
 template size_t
-__biginteger_to_chars_power_of_two_impl<char_converter_t>(uint8_t *first, const uint64_t *up,
-                                                          size_t n, unsigned int base,
-                                                          char_converter_t conv) noexcept;
+_biginteger_to_chars_power_of_two_impl<char_converter_t>(uint8_t *first, const uint64_t *up,
+                                                         size_t n, unsigned int base,
+                                                         char_converter_t conv) noexcept;
 template size_t
-__biginteger_to_chars_power_of_two_impl<origin_converter_t>(uint8_t *first, const uint64_t *up,
-                                                            size_t n, unsigned int base,
-                                                            origin_converter_t conv) noexcept;
+_biginteger_to_chars_power_of_two_impl<origin_converter_t>(uint8_t *first, const uint64_t *up,
+                                                           size_t n, unsigned int base,
+                                                           origin_converter_t conv) noexcept;
 
 template <typename Converter>
 uint8_t *basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n, Converter conv) noexcept {
@@ -326,16 +326,16 @@ uint8_t *basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n, Converter co
         uint64_t lo, hi;
         hi = div128by64to64_noshift(lo, rem[0], rem[1], div2by1_divider_noshift_of_big_base_10);
 
-        __to_chars_unroll_16<10>(buf - 16, lo % 1'0000'0000'0000'0000, conv);
+        _to_chars_unroll_16<10>(buf - 16, lo % 1'0000'0000'0000'0000, conv);
         lo /= 1'0000'0000'0000'0000;
-        __to_chars_unroll_2<10>(buf - 18, lo % 100, conv);
+        _to_chars_unroll_2<10>(buf - 18, lo % 100, conv);
         lo /= 100;
         buf[-19] = conv.template to<10>(lo);
         buf -= 19;
 
-        __to_chars_unroll_16<10>(buf - 16, hi % 1'0000'0000'0000'0000, conv);
+        _to_chars_unroll_16<10>(buf - 16, hi % 1'0000'0000'0000'0000, conv);
         hi /= 1'0000'0000'0000'0000;
-        __to_chars_unroll_2<10>(buf - 18, hi % 100, conv);
+        _to_chars_unroll_2<10>(buf - 18, hi % 100, conv);
         hi /= 100;
         buf[-19] = conv.template to<10>(hi);
         buf -= 19;
@@ -350,16 +350,16 @@ uint8_t *basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n, Converter co
             up[n - 1] = q;
         }
 
-        __to_chars_unroll_16<10>(buf - 16, rem % 1'0000'0000'0000'0000, conv);
+        _to_chars_unroll_16<10>(buf - 16, rem % 1'0000'0000'0000'0000, conv);
         rem /= 1'0000'0000'0000'0000;
-        __to_chars_unroll_2<10>(buf - 18, rem % 100, conv);
+        _to_chars_unroll_2<10>(buf - 18, rem % 100, conv);
         rem /= 100;
         buf[-19] = conv.template to<10>(rem);
 
         buf -= 19;
     }
 
-    return __unsigned_to_chars_backward_unchecked<10>(buf, up[0], conv);
+    return _unsigned_to_chars_backward_unchecked<10>(buf, up[0], conv);
 }
 
 template uint8_t *basecase_to_chars_10<char_converter_t>(uint8_t *buf, uint64_t *up, size_t n,
@@ -368,8 +368,8 @@ template uint8_t *basecase_to_chars_10<origin_converter_t>(uint8_t *buf, uint64_
                                                            origin_converter_t conv) noexcept;
 
 template <typename Converter>
-uint8_t *__biginteger_basecase_to_chars(uint8_t *first, const uint64_t *up, size_t n,
-                                        unsigned int base, Converter conv) noexcept {
+uint8_t *_biginteger_basecase_to_chars(uint8_t *first, const uint64_t *up, size_t n,
+                                       unsigned int base, Converter conv) noexcept {
     if (WJR_LIKELY(n < dc_bignum_to_chars_precompute_threshold)) {
         uint64_t upbuf[dc_bignum_to_chars_precompute_threshold];
         std::copy_n(up, n, upbuf);
@@ -380,26 +380,26 @@ uint8_t *__biginteger_basecase_to_chars(uint8_t *first, const uint64_t *up, size
 
     unique_stack_allocator stkal;
     auto *stk = stkal.template allocate<uint64_t>(n * 18 / 5 + 192);
-    auto *const __up = stk;
-    std::copy_n(up, n, __up);
+    auto *const _up = stk;
+    std::copy_n(up, n, _up);
     stk += n;
     auto *const first_pre = precompute_chars_convert(pre, n, base, stk);
     stk += n * 8 / 5 + 128;
-    return dc_to_chars(first, 0, __up, n, first_pre, stk, conv);
+    return dc_to_chars(first, 0, _up, n, first_pre, stk, conv);
 }
 
-template uint8_t *__biginteger_basecase_to_chars<char_converter_t>(uint8_t *first,
-                                                                   const uint64_t *up, size_t n,
-                                                                   unsigned int base,
-                                                                   char_converter_t conv) noexcept;
+template uint8_t *_biginteger_basecase_to_chars<char_converter_t>(uint8_t *first,
+                                                                  const uint64_t *up, size_t n,
+                                                                  unsigned int base,
+                                                                  char_converter_t conv) noexcept;
 template uint8_t *
-__biginteger_basecase_to_chars<origin_converter_t>(uint8_t *first, const uint64_t *up, size_t n,
-                                                   unsigned int base,
-                                                   origin_converter_t conv) noexcept;
+_biginteger_basecase_to_chars<origin_converter_t>(uint8_t *first, const uint64_t *up, size_t n,
+                                                  unsigned int base,
+                                                  origin_converter_t conv) noexcept;
 
 template <typename Converter>
-size_t __biginteger_from_chars_8_impl(const uint8_t *first, size_t n, uint64_t *up,
-                                      Converter conv) noexcept {
+size_t _biginteger_from_chars_8_impl(const uint8_t *first, size_t n, uint64_t *up,
+                                     Converter conv) noexcept {
     size_t len = (n * 3 + 63) / 64;
     const size_t lbits = (64 * (len - 1)) / 3;
     size_t rest = (64 * (len - 1)) % 3;
@@ -411,7 +411,7 @@ size_t __biginteger_from_chars_8_impl(const uint8_t *first, size_t n, uint64_t *
 
     if (WJR_UNLIKELY(hbits == 0)) {
     } else {
-        __unsigned_from_chars_unchecked<8>(first, first + hbits, x, conv);
+        _unsigned_from_chars_unchecked<8>(first, first + hbits, x, conv);
         first += hbits;
     }
 
@@ -496,13 +496,13 @@ size_t __biginteger_from_chars_8_impl(const uint8_t *first, size_t n, uint64_t *
     return len;
 }
 
-template size_t __biginteger_from_chars_8_impl<char_converter_t>(const uint8_t *first, size_t n,
-                                                                 uint64_t *up,
-                                                                 char_converter_t conv) noexcept;
+template size_t _biginteger_from_chars_8_impl<char_converter_t>(const uint8_t *first, size_t n,
+                                                                uint64_t *up,
+                                                                char_converter_t conv) noexcept;
 
-template size_t
-__biginteger_from_chars_8_impl<origin_converter_t>(const uint8_t *first, size_t n, uint64_t *up,
-                                                   origin_converter_t conv) noexcept;
+template size_t _biginteger_from_chars_8_impl<origin_converter_t>(const uint8_t *first, size_t n,
+                                                                  uint64_t *up,
+                                                                  origin_converter_t conv) noexcept;
 
 template <typename Converter>
 size_t dc_from_chars(const uint8_t *first, size_t n, uint64_t *up, precompute_chars_convert_t *pre,
@@ -578,14 +578,14 @@ size_t basecase_from_chars_10(const uint8_t *first, size_t n, uint64_t *up,
     uint64_t x = 0;
 
     if (n <= 19) {
-        __unsigned_from_chars_unchecked<10>(first, first + n, x, conv);
+        _unsigned_from_chars_unchecked<10>(first, first + n, x, conv);
         up[0] = x;
         return up[0] != 0;
     }
 
     size_t m = (n - 1) % 19 + 1;
 
-    __unsigned_from_chars_unchecked<10>(first, first + m, x, conv);
+    _unsigned_from_chars_unchecked<10>(first, first + m, x, conv);
     up[0] = x;
 
     first += m;
@@ -596,7 +596,7 @@ size_t basecase_from_chars_10(const uint8_t *first, size_t n, uint64_t *up,
     do {
         x = 0;
 
-        x = __from_chars_unroll_16<10>(first, conv);
+        x = _from_chars_unroll_16<10>(first, conv);
         first += 16;
 
         x = x * 10 + conv.template from<10>(*first++);
@@ -627,7 +627,7 @@ template WJR_ALL_NONNULL size_t basecase_from_chars_10<char_converter_t>(
 template WJR_ALL_NONNULL size_t basecase_from_chars_10<origin_converter_t>(
     const uint8_t *first, size_t n, uint64_t *up, origin_converter_t conv) noexcept;
 
-template uint64_t *__basecase_basecase_from_chars<char_converter_t>(const uint8_t *first, size_t n,
-                                                                    uint64_t *up, unsigned int base,
-                                                                    char_converter_t) noexcept;
+template uint64_t *_basecase_basecase_from_chars<char_converter_t>(const uint8_t *first, size_t n,
+                                                                   uint64_t *up, unsigned int base,
+                                                                   char_converter_t) noexcept;
 } // namespace wjr

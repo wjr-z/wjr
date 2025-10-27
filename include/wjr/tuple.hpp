@@ -132,9 +132,9 @@ class tuple<This, Args...> {
     // MSVC always has strange bugs...
     template <typename Other, typename... _Args>
 #if !WJR_HAS_MSVC(19, 37)
-    using __is_all_convertible =
+    using _is_all_convertible =
 #else
-    struct __is_all_convertible :
+    struct _is_all_convertible :
 #endif
         std::conjunction<std::is_convertible<Other, This>, std::is_convertible<_Args, Args>...>
 #if !WJR_HAS_MSVC(19, 37)
@@ -172,21 +172,21 @@ public:
 #if defined(__cpp_conditional_explicit)
     template <typename Other = This,
               WJR_REQUIRES(std::is_constructible_v<Impl, const Other &, const Args &...>)>
-    constexpr explicit(!__is_all_convertible<Other, Args...>::value)
+    constexpr explicit(!_is_all_convertible<Other, Args...>::value)
         tuple(const Other &first, const Args &...rest) noexcept(
             std::is_nothrow_constructible_v<Impl, const Other &, const Args &...>)
         : m_impl(first, rest...) {}
 #else
     template <typename Other = This,
               WJR_REQUIRES(std::is_constructible_v<Impl, const Other &, const Args &...>
-                               &&__is_all_convertible<const Other &, const Args &...>::value)>
+                               &&_is_all_convertible<const Other &, const Args &...>::value)>
     constexpr tuple(const Other &first, const Args &...rest) noexcept(
         std::is_nothrow_constructible_v<Impl, const Other &, const Args &...>)
         : m_impl(first, rest...) {}
 
     template <typename Other = This,
               WJR_REQUIRES(std::is_constructible_v<Impl, const Other &, const Args &...> &&
-                           !__is_all_convertible<const Other &, const Args &...>::value)>
+                           !_is_all_convertible<const Other &, const Args &...>::value)>
     constexpr explicit tuple(const Other &first, const Args &...rest) noexcept(
         std::is_nothrow_constructible_v<Impl, const Other &, const Args &...>)
         : m_impl(first, rest...) {}
@@ -204,14 +204,14 @@ public:
         : m_impl(std::forward<Other>(other), std::forward<_Args>(args)...) {}
 
     template <typename TupleLike,
-              WJR_REQUIRES(__is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>)>
+              WJR_REQUIRES(_is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>)>
     constexpr tuple(TupleLike &&other) noexcept(
         std::is_nothrow_constructible_v<Impl, in_place_empty_t, TupleLike &&>)
         : m_impl(in_place_empty, std::forward<TupleLike>(other)) {}
 
 private:
     template <size_t... _Indexs, typename Container>
-    constexpr void __assign(std::index_sequence<_Indexs...>, Container &&other) noexcept(noexcept(
+    constexpr void _assign(std::index_sequence<_Indexs...>, Container &&other) noexcept(noexcept(
         ((this->template get<_Indexs>() = std::get<_Indexs>(std::forward<Container>(other))),
          ...))) {
         ((this->template get<_Indexs>() = std::get<_Indexs>(std::forward<Container>(other))), ...);
@@ -219,23 +219,23 @@ private:
 
 public:
     template <typename TupleLike,
-              WJR_REQUIRES(__is_tuple_test_v<__is_tuple_assignable, tuple, TupleLike &&>)>
+              WJR_REQUIRES(_is_tuple_test_v<_is_tuple_assignable, tuple, TupleLike &&>)>
     constexpr tuple &operator=(TupleLike &&other) noexcept(
-        noexcept(__assign(Sequence(), std::forward<TupleLike>(other)))) {
-        __assign(Sequence(), std::forward<TupleLike>(other));
+        noexcept(_assign(Sequence(), std::forward<TupleLike>(other)))) {
+        _assign(Sequence(), std::forward<TupleLike>(other));
         return *this;
     }
 
 private:
     template <size_t... _Indexs>
-    constexpr void __swap(std::index_sequence<_Indexs...>, tuple &other) noexcept(noexcept(
+    constexpr void _swap(std::index_sequence<_Indexs...>, tuple &other) noexcept(noexcept(
         ((std::swap(this->template get<_Indexs>(), other.template get<_Indexs>()), ...)))) {
         ((std::swap(this->template get<_Indexs>(), other.template get<_Indexs>()), ...));
     }
 
 public:
-    constexpr void swap(tuple &other) noexcept(noexcept(__swap(Sequence(), other))) {
-        __swap(Sequence(), other);
+    constexpr void swap(tuple &other) noexcept(noexcept(_swap(Sequence(), other))) {
+        _swap(Sequence(), other);
     }
 
     template <size_t I, WJR_REQUIRES(I < Size)>
@@ -337,7 +337,7 @@ constexpr decltype(auto) apply(Func &&fn, Tuple &&tp) noexcept(
 
 /// @private
 template <size_t I, typename Tuple>
-struct __tuple_cat_single_helper {
+struct _tuple_cat_single_helper {
     static constexpr size_t Size = std::tuple_size_v<Tuple>;
     using type0 = tp_repeat_t<tp_list<integral_constant<size_t, I>>, Size>;
     using type1 = tp_make_indexs_list_t<Size>;
@@ -345,36 +345,36 @@ struct __tuple_cat_single_helper {
 
 /// @private
 template <typename S, typename... Tuples>
-struct __tuple_cat_helper_impl;
+struct _tuple_cat_helper_impl;
 
 /// @private
 template <size_t... Indexs, typename... Tuples>
-struct __tuple_cat_helper_impl<std::index_sequence<Indexs...>, Tuples...> {
-    using type0 = tp_concat_t<typename __tuple_cat_single_helper<Indexs, Tuples>::type0...>;
-    using type1 = tp_concat_t<typename __tuple_cat_single_helper<Indexs, Tuples>::type1...>;
+struct _tuple_cat_helper_impl<std::index_sequence<Indexs...>, Tuples...> {
+    using type0 = tp_concat_t<typename _tuple_cat_single_helper<Indexs, Tuples>::type0...>;
+    using type1 = tp_concat_t<typename _tuple_cat_single_helper<Indexs, Tuples>::type1...>;
 };
 
 /// @private
 template <typename... Tuples>
-struct __tuple_cat_helper {
+struct _tuple_cat_helper {
     using Sequence = std::index_sequence_for<Tuples...>;
-    using Impl = __tuple_cat_helper_impl<Sequence, Tuples...>;
+    using Impl = _tuple_cat_helper_impl<Sequence, Tuples...>;
     using type0 = typename Impl::type0;
     using type1 = typename Impl::type1;
 };
 
 /// @private
 template <size_t... I0, size_t... I1, typename... Tuples>
-constexpr decltype(auto) __tuple_cat_impl(tp_indexs_list_t<I0...>, tp_indexs_list_t<I1...>,
-                                          tuple<Tuples...> &&tuples) {
+constexpr decltype(auto) _tuple_cat_impl(tp_indexs_list_t<I0...>, tp_indexs_list_t<I1...>,
+                                         tuple<Tuples...> &&tuples) {
     return tuple(std::get<I1>(std::get<I0>(std::move(tuples)))...);
 }
 
 template <typename... Tuples>
 constexpr decltype(auto) tuple_cat(Tuples &&...tuples) {
-    using Helper = __tuple_cat_helper<remove_cvref_t<Tuples>...>;
-    return __tuple_cat_impl(typename Helper::type0{}, typename Helper::type1{},
-                            wjr::forward_as_tuple(std::forward<Tuples>(tuples)...));
+    using Helper = _tuple_cat_helper<remove_cvref_t<Tuples>...>;
+    return _tuple_cat_impl(typename Helper::type0{}, typename Helper::type1{},
+                           wjr::forward_as_tuple(std::forward<Tuples>(tuples)...));
 }
 
 template <typename T, typename Tuple>
@@ -439,14 +439,14 @@ constexpr bool operator>=(const tuple<TArgs...> &lhs,
 }
 
 /// @private
-struct __ignore {
+struct _ignore {
     template <typename Ty>
-    constexpr const __ignore &operator=(const Ty &) const noexcept {
+    constexpr const _ignore &operator=(const Ty &) const noexcept {
         return *this;
     }
 };
 
-inline constexpr __ignore ignore{};
+inline constexpr _ignore ignore{};
 
 } // namespace wjr
 

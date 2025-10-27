@@ -24,7 +24,7 @@ namespace wjr {
 
 /// @private Internal implementation for optimized copy operation
 template <typename InputIt, typename OutputIt>
-constexpr OutputIt __copy_impl(InputIt first, InputIt last, OutputIt d_first) {
+constexpr OutputIt _copy_impl(InputIt first, InputIt last, OutputIt d_first) {
     using Out = remove_cvref_t<OutputIt>;
 
     if constexpr (is_back_insert_iterator_v<Out> || is_insert_iterator_v<Out>) {
@@ -64,20 +64,20 @@ constexpr OutputIt __copy_impl(InputIt first, InputIt last, OutputIt d_first) {
  */
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
-    return __copy_impl(wjr::__iter_base(first), wjr::__iter_base(last), wjr::__iter_base(d_first));
+    return _copy_impl(wjr::_iter_base(first), wjr::_iter_base(last), wjr::_iter_base(d_first));
 }
 
 /// @private
 template <typename InputIt, typename OutputIt>
-constexpr OutputIt __copy_restrict_aux(add_restrict_t<InputIt> first, InputIt last,
-                                       add_restrict_t<OutputIt> d_first) noexcept {
+constexpr OutputIt _copy_restrict_aux(add_restrict_t<InputIt> first, InputIt last,
+                                      add_restrict_t<OutputIt> d_first) noexcept {
     return wjr::copy(first, last, d_first);
 }
 
 /// @private
 template <typename InputIt, typename OutputIt>
-constexpr OutputIt __copy_restrict_impl(InputIt first, InputIt last, OutputIt d_first) noexcept {
-    return __copy_restrict_aux<InputIt, OutputIt>(first, last, d_first);
+constexpr OutputIt _copy_restrict_impl(InputIt first, InputIt last, OutputIt d_first) noexcept {
+    return _copy_restrict_aux<InputIt, OutputIt>(first, last, d_first);
 }
 
 /**
@@ -89,20 +89,20 @@ constexpr OutputIt __copy_restrict_impl(InputIt first, InputIt last, OutputIt d_
  */
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt copy_restrict(InputIt first, InputIt last, OutputIt d_first) {
-    const auto __first = wjr::__iter_base(std::move(first));
-    const auto __last = wjr::__iter_base(std::move(last));
+    const auto _first = wjr::_iter_base(std::move(first));
+    const auto _last = wjr::_iter_base(std::move(last));
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
-        const auto __d_first = wjr::to_address(d_first);
-        const auto __d_last = __copy_restrict_impl(__first, __last, __d_first);
-        return std::next(d_first, std::distance(__d_first, __d_last));
+        const auto _d_first = wjr::to_address(d_first);
+        const auto _d_last = _copy_restrict_impl(_first, _last, _d_first);
+        return std::next(d_first, std::distance(_d_first, _d_last));
     } else {
-        return __copy_restrict_impl(__first, __last, d_first);
+        return _copy_restrict_impl(_first, _last, d_first);
     }
 }
 
 /// @private Internal implementation for optimized copy_n operation
 template <typename InputIt, typename Size, typename OutputIt>
-constexpr OutputIt __copy_n_impl(InputIt first, Size count, OutputIt d_first) {
+constexpr OutputIt _copy_n_impl(InputIt first, Size count, OutputIt d_first) {
     using Out = remove_cvref_t<OutputIt>;
 
     if constexpr (is_random_access_iterator_v<InputIt> &&
@@ -143,20 +143,20 @@ constexpr OutputIt __copy_n_impl(InputIt first, Size count, OutputIt d_first) {
  */
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
-    return __copy_n_impl(wjr::__iter_base(first), count, wjr::__iter_base(d_first));
+    return _copy_n_impl(wjr::_iter_base(first), count, wjr::_iter_base(d_first));
 }
 
 /// @private
 template <typename InputIt, typename Size, typename OutputIt>
-constexpr OutputIt __copy_n_restrict_aux(add_restrict_t<InputIt> first, Size count,
-                                         add_restrict_t<OutputIt> d_first) {
+constexpr OutputIt _copy_n_restrict_aux(add_restrict_t<InputIt> first, Size count,
+                                        add_restrict_t<OutputIt> d_first) {
     return wjr::copy_n(first, count, d_first);
 }
 
 /// @private
 template <typename InputIt, typename Size, typename OutputIt>
-constexpr OutputIt __copy_n_restrict_impl(InputIt first, Size count, OutputIt d_first) {
-    return __copy_n_restrict_aux<InputIt, Size, OutputIt>(first, count, d_first);
+constexpr OutputIt _copy_n_restrict_impl(InputIt first, Size count, OutputIt d_first) {
+    return _copy_n_restrict_aux<InputIt, Size, OutputIt>(first, count, d_first);
 }
 
 /**
@@ -167,13 +167,13 @@ constexpr OutputIt __copy_n_restrict_impl(InputIt first, Size count, OutputIt d_
  */
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt copy_n_restrict(InputIt first, Size count, OutputIt d_first) {
-    const auto __first = wjr::__iter_base(std::move(first));
+    const auto _first = wjr::_iter_base(std::move(first));
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
-        const auto __d_first = wjr::to_address(d_first);
-        const auto __d_last = __copy_n_restrict_impl(__first, count, __d_first);
-        return std::next(d_first, std::distance(__d_first, __d_last));
+        const auto _d_first = wjr::to_address(d_first);
+        const auto _d_last = _copy_n_restrict_impl(_first, count, _d_first);
+        return std::next(d_first, std::distance(_d_first, _d_last));
     } else {
-        return __copy_n_restrict_impl(__first, count, d_first);
+        return _copy_n_restrict_impl(_first, count, d_first);
     }
 }
 

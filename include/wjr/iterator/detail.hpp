@@ -43,10 +43,10 @@ using iterator_common_reference_t =
     common_reference_t<iterator_reference_t<T>, iterator_value_t<T> &>;
 
 template <typename Iter, typename = void>
-struct __is_iterator_impl : std::false_type {};
+struct _is_iterator_impl : std::false_type {};
 
 template <typename Iter>
-struct __is_iterator_impl<Iter, std::void_t<typename std::iterator_traits<Iter>::iterator_category>>
+struct _is_iterator_impl<Iter, std::void_t<typename std::iterator_traits<Iter>::iterator_category>>
     : std::true_type {};
 
 /**
@@ -54,18 +54,18 @@ struct __is_iterator_impl<Iter, std::void_t<typename std::iterator_traits<Iter>:
  * @tparam Iter Type to check
  */
 template <typename Iter>
-struct is_iterator : __is_iterator_impl<Iter> {};
+struct is_iterator : _is_iterator_impl<Iter> {};
 
 template <typename Iter>
 inline constexpr bool is_iterator_v = is_iterator<Iter>::value;
 
 /// @private
 template <typename Iter, typename Category, typename = void>
-struct __is_category_iterator_impl : std::false_type {};
+struct _is_category_iterator_impl : std::false_type {};
 
 /// @private
 template <typename Iter, typename Category>
-struct __is_category_iterator_impl<
+struct _is_category_iterator_impl<
     Iter, Category, std::void_t<typename std::iterator_traits<Iter>::iterator_category>>
     : std::is_base_of<Category, iterator_category_t<Iter>> {};
 
@@ -74,7 +74,7 @@ struct __is_category_iterator_impl<
  * @tparam Iter Iterator type to check
  */
 template <typename Iter>
-struct is_input_iterator : __is_category_iterator_impl<Iter, std::input_iterator_tag> {};
+struct is_input_iterator : _is_category_iterator_impl<Iter, std::input_iterator_tag> {};
 
 template <typename Iter>
 inline constexpr bool is_input_iterator_v = is_input_iterator<Iter>::value;
@@ -84,7 +84,7 @@ inline constexpr bool is_input_iterator_v = is_input_iterator<Iter>::value;
  * @tparam Iter Iterator type to check
  */
 template <typename Iter>
-struct is_output_iterator : __is_category_iterator_impl<Iter, std::output_iterator_tag> {};
+struct is_output_iterator : _is_category_iterator_impl<Iter, std::output_iterator_tag> {};
 
 template <typename Iter>
 inline constexpr bool is_output_iterator_v = is_output_iterator<Iter>::value;
@@ -94,7 +94,7 @@ inline constexpr bool is_output_iterator_v = is_output_iterator<Iter>::value;
  * @tparam Iter Iterator type to check
  */
 template <typename Iter>
-struct is_forward_iterator : __is_category_iterator_impl<Iter, std::forward_iterator_tag> {};
+struct is_forward_iterator : _is_category_iterator_impl<Iter, std::forward_iterator_tag> {};
 
 template <typename Iter>
 inline constexpr bool is_forward_iterator_v = is_forward_iterator<Iter>::value;
@@ -105,7 +105,7 @@ inline constexpr bool is_forward_iterator_v = is_forward_iterator<Iter>::value;
  */
 template <typename Iter>
 struct is_bidirectional_iterator
-    : __is_category_iterator_impl<Iter, std::bidirectional_iterator_tag> {};
+    : _is_category_iterator_impl<Iter, std::bidirectional_iterator_tag> {};
 
 template <typename Iter>
 inline constexpr bool is_bidirectional_iterator_v = is_bidirectional_iterator<Iter>::value;
@@ -116,29 +116,29 @@ inline constexpr bool is_bidirectional_iterator_v = is_bidirectional_iterator<It
  */
 template <typename Iter>
 struct is_random_access_iterator
-    : __is_category_iterator_impl<Iter, std::random_access_iterator_tag> {};
+    : _is_category_iterator_impl<Iter, std::random_access_iterator_tag> {};
 
 template <typename Iter>
 inline constexpr bool is_random_access_iterator_v = is_random_access_iterator<Iter>::value;
 
 /// @private
 template <typename Iter>
-struct __is_contiguous_iterator_impl
-    : std::disjunction<std::is_pointer<Iter>, std::is_array<Iter>> {};
+struct _is_contiguous_iterator_impl : std::disjunction<std::is_pointer<Iter>, std::is_array<Iter>> {
+};
 
 /// @private
 template <typename Iter>
-struct __is_contiguous_iterator_impl<std::move_iterator<Iter>>
-    : std::conjunction<__is_contiguous_iterator_impl<Iter>,
+struct _is_contiguous_iterator_impl<std::move_iterator<Iter>>
+    : std::conjunction<_is_contiguous_iterator_impl<Iter>,
                        std::is_trivially_copyable<iterator_value_t<Iter>>> {};
 
 /// @todo Is std::contiguous_iterator needed here?
 template <typename Iter>
-inline constexpr bool __is_contiguous_iterator_impl_v =
-    __is_contiguous_iterator_impl<Iter>::value || ranges::contiguous_iterator<Iter>;
+inline constexpr bool _is_contiguous_iterator_impl_v =
+    _is_contiguous_iterator_impl<Iter>::value || ranges::contiguous_iterator<Iter>;
 
 template <typename Iter>
-struct is_contiguous_iterator : std::bool_constant<__is_contiguous_iterator_impl_v<Iter>> {};
+struct is_contiguous_iterator : std::bool_constant<_is_contiguous_iterator_impl_v<Iter>> {};
 
 template <typename Iter>
 inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;

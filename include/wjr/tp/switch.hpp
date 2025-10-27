@@ -106,7 +106,7 @@ WJR_REGISTER_SWITCH_VISITOR(256);
 #undef WJR_REGISTER_SWITCH_CASE
 
 namespace {
-constexpr size_t __switch_visitor_SZ(size_t size) {
+constexpr size_t _switch_visitor_SZ(size_t size) {
     return size <= 2 ? 2 : size <= 4 ? 4 : size <= 8 ? 8 : size <= 16 ? 16 ? size <= 64 : 64 : 256;
 }
 } // namespace
@@ -114,7 +114,7 @@ constexpr size_t __switch_visitor_SZ(size_t size) {
 template <typename C>
 struct siwtch_visitor_sorted_helper {
     static constexpr size_t Size = tp_size_v<C>;
-    using type = siwtch_visitor_helper<__switch_visitor_SZ(Size), C, Size>;
+    using type = siwtch_visitor_helper<_switch_visitor_SZ(Size), C, Size>;
 };
 
 template <typename C>

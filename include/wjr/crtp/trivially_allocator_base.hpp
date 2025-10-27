@@ -18,11 +18,11 @@ WJR_REGISTER_HAS_TYPE(is_non_trivially_allocator_destroy,
 
 /// @private
 template <typename Alloc, typename = void>
-struct __is_trivially_allocator_impl : std::false_type {};
+struct _is_trivially_allocator_impl : std::false_type {};
 
 /// @private
 template <typename Alloc>
-struct __is_trivially_allocator_impl<Alloc, std::enable_if_t<has_is_trivially_allocator_v<Alloc>>>
+struct _is_trivially_allocator_impl<Alloc, std::enable_if_t<has_is_trivially_allocator_v<Alloc>>>
     : Alloc::is_trivially_allocator {};
 
 /**
@@ -36,7 +36,7 @@ struct __is_trivially_allocator_impl<Alloc, std::enable_if_t<has_is_trivially_al
  *
  */
 template <typename Alloc>
-struct is_trivially_allocator : __is_trivially_allocator_impl<Alloc> {};
+struct is_trivially_allocator : _is_trivially_allocator_impl<Alloc> {};
 
 template <typename T>
 struct is_trivially_allocator<std::allocator<T>> : std::true_type {};
@@ -46,17 +46,17 @@ inline constexpr bool is_trivially_allocator_v = is_trivially_allocator<Alloc>::
 
 /// @private
 template <typename Enable, typename Alloc, typename Obj, typename... Args>
-struct __is_trivially_allocator_construct_impl : std::false_type {};
+struct _is_trivially_allocator_construct_impl : std::false_type {};
 
 /// @private
 template <typename Alloc, typename Obj, typename... Args>
-struct __is_trivially_allocator_construct_impl<
+struct _is_trivially_allocator_construct_impl<
     std::enable_if_t<!has_is_non_trivially_allocator_construct_v<Alloc, Obj, Args...>>, Alloc, Obj,
     Args...> : std::true_type {};
 
 template <typename Alloc, typename Obj, typename... Args>
 struct is_trivially_allocator_construct
-    : std::disjunction<__is_trivially_allocator_construct_impl<void, Alloc, Obj, Args...>,
+    : std::disjunction<_is_trivially_allocator_construct_impl<void, Alloc, Obj, Args...>,
                        is_trivially_allocator<Alloc>> {};
 
 template <typename Alloc, typename Obj, typename... Args>
@@ -65,17 +65,17 @@ inline constexpr bool is_trivially_allocator_construct_v =
 
 /// @private
 template <typename Alloc, typename Obj, typename = void>
-struct __is_trivially_allocator_destroy_impl : std::false_type {};
+struct _is_trivially_allocator_destroy_impl : std::false_type {};
 
 /// @private
 template <typename Alloc, typename Obj>
-struct __is_trivially_allocator_destroy_impl<
+struct _is_trivially_allocator_destroy_impl<
     Alloc, Obj, std::enable_if_t<!has_is_non_trivially_allocator_destroy_v<Alloc, Obj>>>
     : std::true_type {};
 
 template <typename Alloc, typename Obj>
 struct is_trivially_allocator_destroy
-    : std::disjunction<__is_trivially_allocator_destroy_impl<Alloc, Obj>,
+    : std::disjunction<_is_trivially_allocator_destroy_impl<Alloc, Obj>,
                        is_trivially_allocator<Alloc>> {};
 
 template <typename Alloc, typename Obj>

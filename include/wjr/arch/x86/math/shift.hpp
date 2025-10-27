@@ -44,8 +44,8 @@ WJR_ALL_NONNULL WJR_INTRINSIC_INLINE void builtin_lshift_n_impl(T *dst, const T 
     #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM) && defined(__BMI2__) &&                              \
         (!WJR_HAS_FEATURE(DISABLE_VECTORIZE) || !WJR_HAS_FEATURE(DISABLE_UNROLL))
             unsigned int tcl = 64 - cl;
-            uint64_t __cl = cl;
-            uint64_t __tcl = tcl;
+            uint64_t _cl = cl;
+            uint64_t _tcl = tcl;
             uint64_t t0, t1;
             asm volatile(
                 ".Lloop%=:\n\t"
@@ -57,7 +57,7 @@ WJR_ALL_NONNULL WJR_INTRINSIC_INLINE void builtin_lshift_n_impl(T *dst, const T 
                 "dec %[n]\n\t"
                 "jne .Lloop%=\n\t"
                 : [dst] "+r"(dst), [src] "+r"(src), [n] "+&r"(n), [t0] "=&r"(t0), [t1] "=&r"(t1)
-                : [cl] "r"(__cl), [tcl] "r"(__tcl)
+                : [cl] "r"(_cl), [tcl] "r"(_tcl)
                 : "cc", "memory");
     #else
             WJR_DISABLE_VECTORIZE
@@ -112,8 +112,8 @@ WJR_ALL_NONNULL WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T 
     #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM) && defined(__BMI2__) &&                              \
         (!WJR_HAS_FEATURE(DISABLE_VECTORIZE) || !WJR_HAS_FEATURE(DISABLE_UNROLL))
             unsigned int tcl = 64 - cl;
-            uint64_t __cl = cl;
-            uint64_t __tcl = tcl;
+            uint64_t _cl = cl;
+            uint64_t _tcl = tcl;
             uint64_t t0, t1;
             size_t i = 0;
             asm volatile(
@@ -126,7 +126,7 @@ WJR_ALL_NONNULL WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T 
                 "cmp{q %[i], %[n]| %[n], %[i]}\n\t"
                 "jne .Lloop%=\n\t"
                 : [dst] "+r"(dst), [src] "+r"(src), [i] "+&r"(i), [t0] "=&r"(t0), [t1] "=&r"(t1)
-                : [cl] "r"(__cl), [tcl] "r"(__tcl), [n] "r"(n)
+                : [cl] "r"(_cl), [tcl] "r"(_tcl), [n] "r"(n)
                 : "cc", "memory");
     #else
             WJR_DISABLE_VECTORIZE

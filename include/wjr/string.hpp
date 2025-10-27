@@ -31,8 +31,8 @@ namespace wjr {
 #if WJR_STRINF_RESIZE_AND_OVERWRITE >= 202110L
 template <typename CharT, typename Traits, typename Alloc>
 WJR_INTRINSIC_INLINE void
-__uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
-                       typename std::basic_string<CharT, Traits, Alloc>::size_type sz) {
+_uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
+                      typename std::basic_string<CharT, Traits, Alloc>::size_type sz) {
     using Size = typename std::basic_string<CharT, Traits, Alloc>::size_type;
     str.resize_and_overwrite(sz, [](char *, Size _sz) { return _sz; });
 }
@@ -87,8 +87,8 @@ void string_set_length_hacker(Container &bank, typename Container::size_type sz)
                 string_thief_of_, Name)<void(Container::size_type), &Container::_M_set_length>
     #elif defined(_LIBCPP_VERSION)
         #define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container)               \
-            template struct WJR_PP_CONCAT(                                                         \
-                string_thief_of_, Name)<void(Container::size_type), &Container::__set_size>
+            template struct WJR_PP_CONCAT(string_thief_of_,                                        \
+                                          Name)<void(Container::size_type), &Container::_set_size>
     #else
         #define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container)               \
             template struct WJR_PP_CONCAT(string_thief_of_,                                        \
@@ -97,8 +97,8 @@ void string_set_length_hacker(Container &bank, typename Container::size_type sz)
 
 template <typename CharT, typename Traits, typename Alloc>
 WJR_INTRINSIC_INLINE void
-__uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
-                       typename std::basic_string<CharT, Traits, Alloc>::size_type sz) {
+_uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
+                      typename std::basic_string<CharT, Traits, Alloc>::size_type sz) {
         // Before C++20, reserve may shrink capacity, so only reserve when sz > capacity()
     #if !defined(WJR_CPP_20)
     if (sz > str.capacity()) {
@@ -124,31 +124,31 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
 
 /// @private Implementation for uninitialized resize operation
 template <typename Container>
-struct __uninitialized_resize_fn_impl : resize_fn_impl_base<Container> {
+struct _uninitialized_resize_fn_impl : resize_fn_impl_base<Container> {
     using resize_fn_impl_base<Container>::resize;
     WJR_INTRINSIC_INLINE static void resize(Container &cont, typename Container::size_type sz,
                                             default_construct_t) {
-        __uninitialized_resize(cont, sz);
+        _uninitialized_resize(cont, sz);
     }
 };
 
 /// @private Implementation for uninitialized append operation
 template <typename Container>
-struct __uninitialized_append_fn_impl : append_fn_impl_base<Container> {
+struct _uninitialized_append_fn_impl : append_fn_impl_base<Container> {
     using append_fn_impl_base<Container>::append;
     WJR_INTRINSIC_INLINE static void append(Container &cont, typename Container::size_type sz,
                                             default_construct_t) {
-        __uninitialized_resize(cont, cont.size() + sz);
+        _uninitialized_resize(cont, cont.size() + sz);
     }
 };
 
     #if WJR_STRINF_RESIZE_AND_OVERWRITE >= 202110L
 template <typename Char, typename Traits, typename Alloc>
 struct resize_fn_impl<std::basic_string<Char, Traits, Alloc>>
-    : __uninitialized_resize_fn_impl<std::basic_string<Char, Traits, Alloc>> {};
+    : _uninitialized_resize_fn_impl<std::basic_string<Char, Traits, Alloc>> {};
 template <typename Char, typename Traits, typename Alloc>
 struct append_fn_impl<std::basic_string<Char, Traits, Alloc>>
-    : __uninitialized_append_fn_impl<std::basic_string<Char, Traits, Alloc>> {};
+    : _uninitialized_append_fn_impl<std::basic_string<Char, Traits, Alloc>> {};
 
         #define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Name, Container)
     #else
@@ -158,9 +158,9 @@ struct append_fn_impl<std::basic_string<Char, Traits, Alloc>>
             __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container);                  \
             __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_HACKER(Name, Container);                    \
             template <>                                                                            \
-            struct resize_fn_impl<Container> : __uninitialized_resize_fn_impl<Container> {};       \
+            struct resize_fn_impl<Container> : _uninitialized_resize_fn_impl<Container> {};        \
             template <>                                                                            \
-            struct append_fn_impl<Container> : __uninitialized_append_fn_impl<Container> {}
+            struct append_fn_impl<Container> : _uninitialized_append_fn_impl<Container> {}
 
     #endif
 

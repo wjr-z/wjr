@@ -366,14 +366,14 @@ extern WJR_ALL_NONNULL void nussbaumer_mul(uint64_t *pp, const uint64_t *ap, siz
 extern WJR_ALL_NONNULL uint64_t mul_fft(uint64_t *op, size_t pl, const uint64_t *n, size_t nl,
                                         const uint64_t *m, size_t ml, int k) noexcept;
 
-extern WJR_ALL_NONNULL void __mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                                         const uint64_t *src1, size_t m) noexcept;
+extern WJR_ALL_NONNULL void _mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
+                                        const uint64_t *src1, size_t m) noexcept;
 
-extern WJR_ALL_NONNULL void __mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                         const uint64_t *src1, size_t n) noexcept;
+extern WJR_ALL_NONNULL void _mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                        const uint64_t *src1, size_t n) noexcept;
 
-extern WJR_ALL_NONNULL void __sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
-                                       size_t n) noexcept;
+extern WJR_ALL_NONNULL void _sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
+                                      size_t n) noexcept;
 
 extern WJR_CONST int fft_best_k(size_t n, int sqr) noexcept;
 
@@ -431,7 +431,7 @@ inline void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, co
         return mul_n(dst, src0, src1, n);
     }
 
-    return __mul_s_impl(dst, src0, n, src1, m);
+    return _mul_s_impl(dst, src0, n, src1, m);
 }
 
 inline void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
@@ -440,11 +440,11 @@ inline void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64
         return sqr(dst, src0, n);
     }
 
-    return __mul_n_impl(dst, src0, src1, n);
+    return _mul_n_impl(dst, src0, src1, n);
 }
 
 inline void sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n) noexcept {
-    return __sqr_impl(dst, src, n);
+    return _sqr_impl(dst, src, n);
 }
 
 #if !WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)

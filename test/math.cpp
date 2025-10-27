@@ -865,7 +865,7 @@ TEST(math, add_128) {
 TEST(math, __addc_128) {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t c,
                     uint64_t anslo, uint64_t anshi, uint64_t ansc) {
-        auto cf = math::__addc_128(lo0, hi0, lo0, hi0, lo1, hi1, c);
+        auto cf = math::_addc_128(lo0, hi0, lo0, hi0, lo1, hi1, c);
         WJR_CHECK(lo0 == anslo);
         WJR_CHECK(hi0 == anshi);
         WJR_CHECK(cf == ansc);
@@ -931,7 +931,7 @@ TEST(math, __sub_128) {
 TEST(math, __subc_128) {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t c,
                     uint64_t anslo, uint64_t anshi, uint64_t ansc) {
-        auto cf = math::__subc_128(lo0, hi0, lo0, hi0, lo1, hi1, c);
+        auto cf = math::_subc_128(lo0, hi0, lo0, hi0, lo1, hi1, c);
         WJR_CHECK(lo0 == anslo);
         WJR_CHECK(hi0 == anshi);
         WJR_CHECK(cf == ansc);

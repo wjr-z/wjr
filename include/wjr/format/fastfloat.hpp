@@ -71,22 +71,22 @@ struct default_writer {
 
 template <typename Writer, typename Op>
 WJR_ALL_NONNULL WJR_NOINLINE from_chars_result<>
-__from_chars_impl(const char *first, const char *last, Writer wr, Op fmt) noexcept;
+_from_chars_impl(const char *first, const char *last, Writer wr, Op fmt) noexcept;
 
 extern template from_chars_result<>
-__from_chars_impl<default_writer<float>, integral_constant<chars_format, chars_format::general>>(
+_from_chars_impl<default_writer<float>, integral_constant<chars_format, chars_format::general>>(
     const char *first, const char *last, default_writer<float> wr,
     integral_constant<chars_format, chars_format::general> fmt) noexcept;
 
 extern template from_chars_result<>
-__from_chars_impl<default_writer<double>, integral_constant<chars_format, chars_format::general>>(
+_from_chars_impl<default_writer<double>, integral_constant<chars_format, chars_format::general>>(
     const char *first, const char *last, default_writer<double> wr,
     integral_constant<chars_format, chars_format::general> fmt) noexcept;
 
-extern template from_chars_result<> __from_chars_impl<default_writer<float>, chars_format>(
+extern template from_chars_result<> _from_chars_impl<default_writer<float>, chars_format>(
     const char *first, const char *last, default_writer<float> wr, chars_format fmt) noexcept;
 
-extern template from_chars_result<> __from_chars_impl<default_writer<double>, chars_format>(
+extern template from_chars_result<> _from_chars_impl<default_writer<double>, chars_format>(
     const char *first, const char *last, default_writer<double> wr, chars_format fmt) noexcept;
 
 /**
@@ -117,13 +117,13 @@ extern template from_chars_result<> __from_chars_impl<default_writer<double>, ch
 template <chars_format Fmt = chars_format::general>
 from_chars_result<> from_chars(const char *first, const char *last, float &value,
                                integral_constant<chars_format, Fmt> fmt = {}) noexcept {
-    return __from_chars_impl(first, last, default_writer<float>(value), fmt);
+    return _from_chars_impl(first, last, default_writer<float>(value), fmt);
 }
 
 template <chars_format Fmt = chars_format::general>
 from_chars_result<> from_chars(const char *first, const char *last, double &value,
                                integral_constant<chars_format, Fmt> fmt = {}) noexcept {
-    return __from_chars_impl(first, last, default_writer<double>(value), fmt);
+    return _from_chars_impl(first, last, default_writer<double>(value), fmt);
 }
 
 template <typename T, WJR_REQUIRES(is_any_of_v<T, float, double>)>
@@ -135,8 +135,8 @@ from_chars_result<> from_chars(const char *first, const char *last, T &value,
         }
     }
 
-    WJR_ASSERT(!(fmt & chars_format::__json_format));
-    return __from_chars_impl(first, last, default_writer<T>(value), fmt);
+    WJR_ASSERT(!(fmt & chars_format::_json_format));
+    return _from_chars_impl(first, last, default_writer<T>(value), fmt);
 }
 
 struct adjusted_mantissa {
@@ -587,8 +587,8 @@ struct parsed_number_string {
 };
 
 template <typename Writer, typename Op>
-from_chars_result<> __from_chars_impl(const char *first, const char *last, Writer wr,
-                                      Op options) noexcept {
+from_chars_result<> _from_chars_impl(const char *first, const char *last, Writer wr,
+                                     Op options) noexcept {
     static_assert(!std::is_reference_v<Writer>);
 
     using T = typename Writer::float_type;
@@ -624,7 +624,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
         if (ch >= 10) { // This situation rarely occurs
             if constexpr (is_constant_options) {
                 // digit_count is zero, this is an error in json.
-                if (any(fmt & chars_format::__json_format)) {
+                if (any(fmt & chars_format::_json_format)) {
                     return {first, std::errc::invalid_argument};
                 }
             }
@@ -651,7 +651,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
         pns.integer = span<const char>(start_digits, static_cast<size_t>(digit_count));
 
         if constexpr (is_constant_options) {
-            if (any(fmt & chars_format::__json_format)) {
+            if (any(fmt & chars_format::_json_format)) {
                 // at least 1 digit in integer part, without leading zeros
                 if (digit_count == 0 || (start_digits[0] == '0' && digit_count > 1)) {
                     return {first, std::errc::invalid_argument};
@@ -710,7 +710,7 @@ from_chars_result<> __from_chars_impl(const char *first, const char *last, Write
 
         auto &float_v = wr.get_float();
         if constexpr (is_constant_options) {
-            if (any(fmt & chars_format::__json_format)) {
+            if (any(fmt & chars_format::_json_format)) {
                 if (WJR_UNLIKELY(exponent == 0)) {
                     return detail::parse_infnan(first, last, float_v);
                 }
@@ -907,7 +907,7 @@ INTEGER_AT_END:
     pns.integer = span<const char>(start_digits, static_cast<size_t>(digit_count));
 
     if constexpr (is_constant_options) {
-        if (any(fmt & chars_format::__json_format)) {
+        if (any(fmt & chars_format::_json_format)) {
             // at least 1 digit in integer part, without leading zeros
             if (digit_count == 0 || (start_digits[0] == '0' && digit_count > 1)) {
                 return {first, std::errc::invalid_argument};
@@ -940,7 +940,7 @@ INTEGER:
         if (digit_count > 19) {
             p = start;
 
-            uval = __from_chars_unroll_16<10>(reinterpret_cast<const uint8_t *>(p), char_converter);
+            uval = _from_chars_unroll_16<10>(reinterpret_cast<const uint8_t *>(p), char_converter);
             p += 16;
             uval = uval * 10 + char_converter.template from<10>(*p++);
             uval = uval * 10 + char_converter.template from<10>(*p++);

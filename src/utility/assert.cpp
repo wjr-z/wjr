@@ -18,7 +18,7 @@ void print_backtrace() {
 }
 } // namespace
 
-void __assert_failed(const char *expr, const char *file, const char *func, int line) noexcept {
+void _assert_failed(const char *expr, const char *file, const char *func, int line) noexcept {
     if (file[0] != '\0') {
         std::cerr << file << ':';
     }
@@ -32,7 +32,7 @@ void __assert_failed(const char *expr, const char *file, const char *func, int l
     std::terminate();
 }
 
-WJR_NORETURN extern void __assert_light_failed(const char *expr) noexcept {
+WJR_NORETURN extern void _assert_light_failed(const char *expr) noexcept {
     std::cerr << "Assertion `" << expr << "' failed." << std::endl;
     print_backtrace();
     std::terminate();

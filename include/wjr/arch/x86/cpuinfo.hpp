@@ -8,9 +8,9 @@
 namespace wjr {
 extern cpu_features::X86Info x86_cpu_info;
 
-extern size_t __x86_rep_stosb_threshold_u16;
-extern size_t __x86_rep_stosb_threshold_u32;
-extern size_t __x86_rep_stosb_threshold_u64;
+extern size_t _x86_rep_stosb_threshold_u16;
+extern size_t _x86_rep_stosb_threshold_u32;
+extern size_t _x86_rep_stosb_threshold_u64;
 
 } // namespace wjr
 

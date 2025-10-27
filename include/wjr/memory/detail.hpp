@@ -84,31 +84,31 @@ constexpr T *to_contiguous_address(T *ptr) noexcept {
 
 /// @private Get base pointer from iterator (unwrap)
 template <typename Iter>
-constexpr auto __iter_base(Iter iter) {
+constexpr auto _iter_base(Iter iter) {
     // todo: ...
     return to_contiguous_address(iter);
 }
 
 /// @private Wrap result iterator (identity case)
 template <typename Iter>
-constexpr auto __iter_wrap(const Iter &, Iter res) {
+constexpr auto _iter_wrap(const Iter &, Iter res) {
     return res;
 }
 
 /// @private Wrap result iterator based on original iterator offset
 template <typename From, typename To>
-constexpr auto __iter_wrap(const From &from, To res) {
-    return from + (res - wjr::__iter_base(from));
+constexpr auto _iter_wrap(const From &from, To res) {
+    return from + (res - wjr::_iter_base(from));
 }
 
 /// @private Add restrict qualifier to iterator
 template <typename Iter>
-constexpr add_restrict_t<Iter> __add_restrict(Iter iter) {
+constexpr add_restrict_t<Iter> _add_restrict(Iter iter) {
     return iter;
 }
 
 /// @private
-class __is_little_endian_helper {
+class _is_little_endian_helper {
     constexpr static std::uint32_t u4 = 1;
     constexpr static std::uint8_t u1 = static_cast<const std::uint8_t &>(u4);
 
@@ -120,7 +120,7 @@ public:
 enum class endian {
     little = 0,
     big = 1,
-    native = __is_little_endian_helper::value ? little : big,
+    native = _is_little_endian_helper::value ? little : big,
 };
 
 inline constexpr bool is_little_endian = endian::native == endian::little;
@@ -218,7 +218,7 @@ WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x) noexcept {
 }
 
 template <typename T, size_t N>
-struct __simd_storage_t {
+struct _simd_storage_t {
     T *operator&() noexcept { return static_cast<T *>(static_cast<void *>(this)); }
     const T *operator&() const noexcept {
         return static_cast<const T *>(static_cast<const void *>(this));
@@ -237,7 +237,7 @@ struct __simd_storage_t {
 };
 
 template <typename T>
-struct __simd_storage_t<T, 0> {
+struct _simd_storage_t<T, 0> {
     T *operator&() noexcept { return static_cast<T *>(static_cast<void *>(this)); }
     const T *operator&() const noexcept {
         return static_cast<const T *>(static_cast<const void *>(this));
@@ -245,15 +245,15 @@ struct __simd_storage_t<T, 0> {
 };
 
 template <size_t Size>
-WJR_INTRINSIC_INLINE __simd_storage_t<std::byte, Size> __simd_load(const void *src) noexcept {
-    __simd_storage_t<std::byte, Size> res;
+WJR_INTRINSIC_INLINE _simd_storage_t<std::byte, Size> _simd_load(const void *src) noexcept {
+    _simd_storage_t<std::byte, Size> res;
     builtin_memcpy(&res, src, Size);
     return res;
 }
 
 template <size_t Size>
-WJR_INTRINSIC_INLINE void __simd_store(void *dst,
-                                       const __simd_storage_t<std::byte, Size> &x) noexcept {
+WJR_INTRINSIC_INLINE void _simd_store(void *dst,
+                                      const _simd_storage_t<std::byte, Size> &x) noexcept {
     builtin_memcpy(dst, &x, Size);
 }
 

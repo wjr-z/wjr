@@ -20,14 +20,13 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool add_overflow(type_identity_t<T> a,
 WJR_INTRINSIC_CONSTEXPR void add_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
                                      uint64_t lo1, uint64_t hi1) noexcept;
 
-WJR_INTRINSIC_CONSTEXPR20 uint64_t __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                              uint64_t c_in) noexcept;
+WJR_INTRINSIC_CONSTEXPR20 uint64_t _addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
+                                             uint64_t lo1, uint64_t hi1, uint64_t c_in) noexcept;
 
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah,
-                                                              uint64_t lo0, uint64_t hi0,
-                                                              uint64_t lo1, uint64_t hi1,
-                                                              uint8_t c_in) noexcept;
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 uint8_t _addc_cc_128(uint64_t &al, uint64_t &ah,
+                                                             uint64_t lo0, uint64_t hi0,
+                                                             uint64_t lo1, uint64_t hi1,
+                                                             uint8_t c_in) noexcept;
 } // namespace math
 
 using math::add_128;

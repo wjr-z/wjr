@@ -21,11 +21,11 @@ namespace wjr {
 
 /// @private Internal storage for static-sized span
 template <typename T, size_t Extent>
-struct __span_static_storage {
+struct _span_static_storage {
 
-    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(__span_static_storage);
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(_span_static_storage);
 
-    constexpr __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) noexcept : ptr(p) {
+    constexpr _span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) noexcept : ptr(p) {
         WJR_ASSERT_L2(s == size);
     }
 
@@ -35,18 +35,18 @@ struct __span_static_storage {
 
 /// @private Internal storage for dynamic-sized span
 template <typename T>
-struct __span_dynamic_storage {
+struct _span_dynamic_storage {
 
-    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(__span_dynamic_storage);
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(_span_dynamic_storage);
 
-    constexpr __span_dynamic_storage(T *p, size_t s) noexcept : ptr(p), size(s) {}
+    constexpr _span_dynamic_storage(T *p, size_t s) noexcept : ptr(p), size(s) {}
 
     T *ptr = nullptr;
     size_t size = 0;
 };
 
 template <typename Iter, typename Elem>
-struct __is_span_iterator
+struct _is_span_iterator
     : std::conjunction<is_contiguous_iterator<Iter>,
                        std::is_convertible<iterator_contiguous_pointer_t<Iter>, Elem *>> {};
 
@@ -57,38 +57,38 @@ namespace span_detail {
 
 /// @private
 template <typename T>
-struct __is_std_array : std::false_type {};
+struct _is_std_array : std::false_type {};
 
 /// @private
 template <typename T, size_t N>
-struct __is_std_array<std::array<T, N>> : std::true_type {};
+struct _is_std_array<std::array<T, N>> : std::true_type {};
 
 /// @private
 template <typename T>
-inline constexpr bool __is_std_array_v = __is_std_array<T>::value;
+inline constexpr bool _is_std_array_v = _is_std_array<T>::value;
 
 template <typename T>
-struct __is_span : std::false_type {};
+struct _is_span : std::false_type {};
 
 template <typename T, size_t Extent>
-struct __is_span<span<T, Extent>> : std::true_type {};
+struct _is_span<span<T, Extent>> : std::true_type {};
 
 template <typename T>
-inline constexpr bool __is_span_v = __is_span<T>::value;
+inline constexpr bool _is_span_v = _is_span<T>::value;
 
 template <typename Elem, typename Ref>
-using __is_compatible_ref = __is_array_convertible<Elem, std::remove_reference_t<Ref>>;
+using _is_compatible_ref = _is_array_convertible<Elem, std::remove_reference_t<Ref>>;
 
 CPP_template(typename Range,
-             typename Elem)(concept(__is_range_compatible_ref_)(Range, Elem),
-                            __is_compatible_ref<Elem, ranges::range_reference_t<Range>>::value);
+             typename Elem)(concept(_is_range_compatible_ref_)(Range, Elem),
+                            _is_compatible_ref<Elem, ranges::range_reference_t<Range>>::value);
 
 template <typename Range, typename Elem>
-CPP_concept __is_range_like_v =
-    (!__is_span_v<remove_cvref_t<Range>>) && (!__is_std_array_v<remove_cvref_t<Range>>) &&
-    (!__is_std_array_v<remove_cvref_t<Range>>) && ranges::contiguous_range<Range> &&
+CPP_concept _is_range_like_v =
+    (!_is_span_v<remove_cvref_t<Range>>) && (!_is_std_array_v<remove_cvref_t<Range>>) &&
+    (!_is_std_array_v<remove_cvref_t<Range>>) && ranges::contiguous_range<Range> &&
     ranges::sized_range<Range> && (ranges::borrowed_range<Range> || std::is_const_v<Elem>) &&
-    CPP_concept_ref(__is_range_compatible_ref_, Range, Elem);
+    CPP_concept_ref(_is_range_compatible_ref_, Range, Elem);
 
 /// @private
 template <typename T>
@@ -113,9 +113,9 @@ struct basic_span_traits {
  */
 template <typename T, size_t Extent>
 class span {
-    static constexpr bool __is_dynamic = Extent == dynamic_extent;
-    using __storage = std::conditional_t<__is_dynamic, __span_dynamic_storage<T>,
-                                         __span_static_storage<T, Extent>>;
+    static constexpr bool _is_dynamic = Extent == dynamic_extent;
+    using _storage =
+        std::conditional_t<_is_dynamic, _span_dynamic_storage<T>, _span_static_storage<T, Extent>>;
 
     using IteratorTraits = span_detail::basic_span_traits<T>;
 
@@ -137,61 +137,59 @@ public:
     constexpr span() noexcept : storage() {}
 
 #if defined(__cpp_conditional_explicit)
-    template <typename It, WJR_REQUIRES(__is_span_iterator<It, element_type>::value)>
-    constexpr explicit(!__is_dynamic) span(It first, size_type count) noexcept
+    template <typename It, WJR_REQUIRES(_is_span_iterator<It, element_type>::value)>
+    constexpr explicit(!_is_dynamic) span(It first, size_type count) noexcept
         : storage(wjr::to_address(first), count) {}
 #else
-    template <typename It, WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
+    template <typename It, WJR_REQUIRES(_is_span_iterator<It, element_type>::value &&_is_dynamic)>
     constexpr span(It first, size_type count) noexcept : storage(wjr::to_address(first), count) {}
 
-    template <typename It,
-              WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
+    template <typename It, WJR_REQUIRES(_is_span_iterator<It, element_type>::value && !_is_dynamic)>
     constexpr explicit span(It first, size_type count) noexcept
         : storage(wjr::to_address(first), count) {}
 #endif
 
 #if defined(__cpp_conditional_explicit)
-    template <typename It, WJR_REQUIRES(__is_span_iterator<It, element_type>::value)>
-    constexpr explicit(!__is_dynamic) span(It first, It last) noexcept
+    template <typename It, WJR_REQUIRES(_is_span_iterator<It, element_type>::value)>
+    constexpr explicit(!_is_dynamic) span(It first, It last) noexcept
         : storage(wjr::to_address(first), static_cast<size_type>(last - first)) {}
 #else
-    template <typename It, WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
+    template <typename It, WJR_REQUIRES(_is_span_iterator<It, element_type>::value &&_is_dynamic)>
     constexpr span(It first, It last) noexcept
         : storage(wjr::to_address(first), static_cast<size_type>(last - first)) {}
 
-    template <typename It,
-              WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
+    template <typename It, WJR_REQUIRES(_is_span_iterator<It, element_type>::value && !_is_dynamic)>
     constexpr explicit span(It first, It last) noexcept
         : storage(wjr::to_address(first), static_cast<size_type>(last - first)) {}
 #endif
 
-    template <size_t N, WJR_REQUIRES((__is_dynamic || N == Extent))>
+    template <size_t N, WJR_REQUIRES((_is_dynamic || N == Extent))>
     constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept : storage(std::data(arr), N) {}
 
     template <typename U, size_t N,
-              WJR_REQUIRES((__is_dynamic || N == Extent) && std::is_convertible_v<U *, T *>)>
+              WJR_REQUIRES((_is_dynamic || N == Extent) && std::is_convertible_v<U *, T *>)>
     constexpr span(std::array<U, N> &arr) noexcept : storage(std::data(arr), std::size(arr)) {}
 
     template <typename U, size_t N,
-              WJR_REQUIRES((__is_dynamic || N == Extent) && std::is_convertible_v<const U *, T *>)>
+              WJR_REQUIRES((_is_dynamic || N == Extent) && std::is_convertible_v<const U *, T *>)>
     constexpr span(const std::array<U, N> &arr) noexcept
         : storage(std::data(arr), std::size(arr)) {}
 
 #if defined(__cpp_conditional_explicit)
     template <typename U, size_t N,
-              WJR_REQUIRES((__is_dynamic || N == dynamic_extent || N == Extent) &&
+              WJR_REQUIRES((_is_dynamic || N == dynamic_extent || N == Extent) &&
                            std::is_convertible_v<U *, T *>)>
-    constexpr explicit(!__is_dynamic) span(const span<U, N> &source) noexcept
+    constexpr explicit(!_is_dynamic) span(const span<U, N> &source) noexcept
         : storage(source.data(), source.size()) {}
 #else
     template <typename U, size_t N,
-              WJR_REQUIRES((__is_dynamic || N == dynamic_extent || N == Extent) &&
-                           std::is_convertible_v<U *, T *> && __is_dynamic)>
+              WJR_REQUIRES((_is_dynamic || N == dynamic_extent || N == Extent) &&
+                           std::is_convertible_v<U *, T *> && _is_dynamic)>
     constexpr span(const span<U, N> &source) noexcept : storage(source.data(), source.size()) {}
 
     template <typename U, size_t N,
-              WJR_REQUIRES((__is_dynamic || N == dynamic_extent || N == Extent) &&
-                           std::is_convertible_v<U *, T *> && !__is_dynamic)>
+              WJR_REQUIRES((_is_dynamic || N == dynamic_extent || N == Extent) &&
+                           std::is_convertible_v<U *, T *> && !_is_dynamic)>
     constexpr explicit span(const span<U, N> &source) noexcept
         : storage(source.data(), source.size()) {}
 #endif
@@ -205,7 +203,7 @@ public:
 #endif
 
 #if defined(__cpp_conditional_explicit)
-    constexpr explicit(!__is_dynamic) span(std::initializer_list<value_type> il) noexcept
+    constexpr explicit(!_is_dynamic) span(std::initializer_list<value_type> il) noexcept
         : storage(il.begin(), il.size()) {}
 #else
     template <size_t E = Extent, WJR_REQUIRES(E == dynamic_extent)>
@@ -236,28 +234,28 @@ public:
     WJR_CONSTEXPR20 const_pointer cend_unsafe() const noexcept { return end_unsafe(); }
 
 private:
-    WJR_PURE WJR_CONSTEXPR20 iterator __make_iterator(const_pointer ptr) const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 iterator _make_iterator(const_pointer ptr) const noexcept {
         return iterator(const_cast<pointer>(ptr), this);
     }
 
-    WJR_PURE WJR_CONSTEXPR20 pointer __get_pointer(iterator ptr) const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 pointer _get_pointer(iterator ptr) const noexcept {
         ptr.check_same_container(this);
         return wjr::to_address(ptr);
     }
 
-    WJR_PURE WJR_CONSTEXPR20 pointer __get_pointer(const_iterator ptr) const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 pointer _get_pointer(const_iterator ptr) const noexcept {
         ptr.check_same_container(this);
         return const_cast<pointer>(wjr::to_address(ptr));
     }
 
 public:
-    constexpr iterator begin() noexcept { return __make_iterator(begin_unsafe()); }
-    constexpr const_iterator begin() const noexcept { return __make_iterator(begin_unsafe()); }
-    constexpr const_iterator cbegin() const noexcept { return __make_iterator(begin_unsafe()); }
+    constexpr iterator begin() noexcept { return _make_iterator(begin_unsafe()); }
+    constexpr const_iterator begin() const noexcept { return _make_iterator(begin_unsafe()); }
+    constexpr const_iterator cbegin() const noexcept { return _make_iterator(begin_unsafe()); }
 
-    constexpr iterator end() noexcept { return __make_iterator(end_unsafe()); }
-    constexpr const_iterator end() const noexcept { return __make_iterator(end_unsafe()); }
-    constexpr const_iterator cend() const noexcept { return __make_iterator(end_unsafe()); }
+    constexpr iterator end() noexcept { return _make_iterator(end_unsafe()); }
+    constexpr const_iterator end() const noexcept { return _make_iterator(end_unsafe()); }
+    constexpr const_iterator cend() const noexcept { return _make_iterator(end_unsafe()); }
 
     constexpr reverse_iterator rbegin() noexcept { return std::make_reverse_iterator(end()); }
     constexpr reverse_iterator rbegin() const noexcept { return std::make_reverse_iterator(end()); }
@@ -362,15 +360,15 @@ public:
     // extension :
 
     template <typename Range,
-              WJR_REQUIRES(span_detail::__is_range_like_v<Range, element_type> &&__is_dynamic)>
+              WJR_REQUIRES(span_detail::_is_range_like_v<Range, element_type> &&_is_dynamic)>
     constexpr span(Range &&rg) noexcept : storage(ranges::data(rg), ranges::size(rg)) {}
 
     template <typename Range,
-              WJR_REQUIRES(span_detail::__is_range_like_v<Range, element_type> && !__is_dynamic)>
+              WJR_REQUIRES(span_detail::_is_range_like_v<Range, element_type> && !_is_dynamic)>
     constexpr explicit span(Range &&rg) noexcept : storage(ranges::data(rg), ranges::size(rg)) {}
 
 private:
-    __storage storage;
+    _storage storage;
 };
 
 template <typename T, size_t Extent>

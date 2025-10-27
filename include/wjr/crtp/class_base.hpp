@@ -234,9 +234,9 @@ public:
 
     control_copy_ctor_base() = default;
     constexpr control_copy_ctor_base(const control_copy_ctor_base &other) noexcept(
-        noexcept(std::declval<Mybase>().__copy_construct(std::declval<const Mybase &>())))
+        noexcept(std::declval<Mybase>()._copy_construct(std::declval<const Mybase &>())))
         : Mybase(enable_default_constructor) {
-        Mybase::__copy_construct(static_cast<const Mybase &>(other));
+        Mybase::_copy_construct(static_cast<const Mybase &>(other));
     }
     control_copy_ctor_base(control_copy_ctor_base &&) = default;
     control_copy_ctor_base &operator=(const control_copy_ctor_base &) = default;
@@ -258,9 +258,9 @@ public:
     control_move_ctor_base() = default;
     control_move_ctor_base(const control_move_ctor_base &) = default;
     constexpr control_move_ctor_base(control_move_ctor_base &&other) noexcept(
-        noexcept(std::declval<Mybase>().__move_construct(std::declval<Mybase &&>())))
+        noexcept(std::declval<Mybase>()._move_construct(std::declval<Mybase &&>())))
         : Mybase(enable_default_constructor) {
-        Mybase::__move_construct(static_cast<Mybase &&>(other));
+        Mybase::_move_construct(static_cast<Mybase &&>(other));
     }
     control_move_ctor_base &operator=(const control_move_ctor_base &) = default;
     control_move_ctor_base &operator=(control_move_ctor_base &&) = default;
@@ -282,8 +282,8 @@ public:
     control_copy_assign_base(const control_copy_assign_base &) = default;
     control_copy_assign_base(control_copy_assign_base &&) = default;
     constexpr control_copy_assign_base &operator=(const control_copy_assign_base &other) noexcept(
-        noexcept(std::declval<Mybase>().__copy_assign(std::declval<const Mybase &>()))) {
-        Mybase::__copy_assign(static_cast<const Mybase &>(other));
+        noexcept(std::declval<Mybase>()._copy_assign(std::declval<const Mybase &>()))) {
+        Mybase::_copy_assign(static_cast<const Mybase &>(other));
         return *this;
     }
     control_copy_assign_base &operator=(control_copy_assign_base &&) = default;
@@ -306,8 +306,8 @@ public:
     control_move_assign_base(control_move_assign_base &&) = default;
     control_move_assign_base &operator=(const control_move_assign_base &) = default;
     constexpr control_move_assign_base &operator=(control_move_assign_base &&other) noexcept(
-        noexcept(std::declval<Mybase>().__move_assign(std::declval<Mybase &&>()))) {
-        Mybase::__move_assign(static_cast<Mybase &&>(other));
+        noexcept(std::declval<Mybase>()._move_assign(std::declval<Mybase &&>()))) {
+        Mybase::_move_assign(static_cast<Mybase &&>(other));
         return *this;
     }
 
@@ -317,16 +317,16 @@ protected:
 };
 
 template <bool F, template <typename> typename Control, typename Mybase>
-using __control_base_selector = std::conditional_t<F, Mybase, Control<Mybase>>;
+using _control_base_selector = std::conditional_t<F, Mybase, Control<Mybase>>;
 
 template <typename Mybase, bool Copy, bool Move, bool CopyAssign, bool MoveAssign>
-using control_special_members_base = __control_base_selector<
+using control_special_members_base = _control_base_selector<
     Copy, control_copy_ctor_base,
-    __control_base_selector<
+    _control_base_selector<
         Move, control_move_ctor_base,
-        __control_base_selector<
+        _control_base_selector<
             CopyAssign, control_copy_assign_base,
-            __control_base_selector<MoveAssign, control_move_assign_base, Mybase>>>>;
+            _control_base_selector<MoveAssign, control_move_assign_base, Mybase>>>>;
 
 } // namespace wjr
 

@@ -13,11 +13,11 @@ struct avx {
 #if WJR_HAS_SIMD(AVX)
 
     using float_type = __m256;
-    using float_tag_type = __m256_t;
+    using float_tag_type = _m256_t;
     using int_type = __m256i;
-    using int_tag_type = __m256i_t;
+    using int_tag_type = _m256i_t;
     using double_type = __m256d;
-    using double_tag_type = __m256d_t;
+    using double_tag_type = _m256d_t;
 
 #endif // AVX
 
@@ -662,40 +662,40 @@ static const __m256i srli_epi8_mask[8] = {
 #if WJR_HAS_SIMD(AVX)
 
 template <>
-struct broadcast_fn<uint8_t, __m256i_t> {
+struct broadcast_fn<uint8_t, _m256i_t> {
     WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint8_t v) const noexcept {
         return _mm256_set1_epi8(v);
     }
 };
 
 template <>
-struct broadcast_fn<uint16_t, __m256i_t> {
+struct broadcast_fn<uint16_t, _m256i_t> {
     WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint16_t v) const noexcept {
         return _mm256_set1_epi16(v);
     }
 };
 
 template <>
-struct broadcast_fn<uint32_t, __m256i_t> {
+struct broadcast_fn<uint32_t, _m256i_t> {
     WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint32_t v) const noexcept {
         return _mm256_set1_epi32(v);
     }
 };
 
 template <>
-struct broadcast_fn<uint64_t, __m256i_t> {
+struct broadcast_fn<uint64_t, _m256i_t> {
     WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(uint64_t v) const noexcept {
         return _mm256_set1_epi64x(v);
     }
 };
 
 template <>
-struct broadcast_fn<__m256i_t, __m256i_t> {
+struct broadcast_fn<_m256i_t, _m256i_t> {
     WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(__m256i v) const noexcept { return v; }
 };
 
 template <>
-struct broadcast_fn<__m128i_t, __m256i_t> {
+struct broadcast_fn<_m128i_t, _m256i_t> {
     WJR_CONST WJR_INTRINSIC_INLINE __m256i operator()(__m128i v) const noexcept {
     #if WJR_HAS_SIMD(AVX2)
         return _mm256_broadcastsi128_si256(v);
@@ -722,7 +722,7 @@ int avx::ctz_nz(mask_type mask, uint64_t) noexcept { return ctz_nz_epu64(mask); 
 #if WJR_HAS_SIMD(AVX)
 
 __m256i avx::concat(__m128i a, __m128i b) noexcept {
-    return insert_si128<1>(simd_cast<__m128i_t, __m256i_t>(a), b);
+    return insert_si128<1>(simd_cast<_m128i_t, _m256i_t>(a), b);
 }
 
 template <int imm8>
@@ -754,7 +754,7 @@ __m128i avx::extract_si128(__m256i v) noexcept {
     #endif
 }
 
-__m128i avx::getlow(__m256i a) noexcept { return simd_cast<__m256i_t, __m128i_t>(a); }
+__m128i avx::getlow(__m256i a) noexcept { return simd_cast<_m256i_t, _m128i_t>(a); }
 
 __m128i avx::gethigh(__m256i a) noexcept { return extract_si128<1>(a); }
 
@@ -797,35 +797,35 @@ __m256i avx::loadu(const void *p) noexcept {
 __m256i avx::ones() noexcept { return _mm256_set1_epi32(-1); }
 
 __m256i avx::loadu_si16(const void *ptr) noexcept {
-    return simd_cast<__m128i_t, __m256i_t>(sse::loadu_si16(ptr));
+    return simd_cast<_m128i_t, _m256i_t>(sse::loadu_si16(ptr));
 }
 
 __m256i avx::loadu_si32(const void *ptr) noexcept {
-    return simd_cast<__m128i_t, __m256i_t>(sse::loadu_si32(ptr));
+    return simd_cast<_m128i_t, _m256i_t>(sse::loadu_si32(ptr));
 }
 
 __m256i avx::loadu_si48(const void *ptr) noexcept {
-    return simd_cast<__m128i_t, __m256i_t>(sse::loadu_si48(ptr));
+    return simd_cast<_m128i_t, _m256i_t>(sse::loadu_si48(ptr));
 }
 
 __m256i avx::loadu_si64(const void *ptr) noexcept {
-    return simd_cast<__m128i_t, __m256i_t>(sse::loadu_si64(ptr));
+    return simd_cast<_m128i_t, _m256i_t>(sse::loadu_si64(ptr));
 }
 
 __m256i avx::loadu_si80(const void *ptr) noexcept {
-    return simd_cast<__m128i_t, __m256i_t>(sse::loadu_si80(ptr));
+    return simd_cast<_m128i_t, _m256i_t>(sse::loadu_si80(ptr));
 }
 
 __m256i avx::loadu_si96(const void *ptr) noexcept {
-    return simd_cast<__m128i_t, __m256i_t>(sse::loadu_si96(ptr));
+    return simd_cast<_m128i_t, _m256i_t>(sse::loadu_si96(ptr));
 }
 
 __m256i avx::loadu_si112(const void *ptr) noexcept {
-    return simd_cast<__m128i_t, __m256i_t>(sse::loadu_si112(ptr));
+    return simd_cast<_m128i_t, _m256i_t>(sse::loadu_si112(ptr));
 }
 
 __m256i avx::loadu_si128(const void *ptr) noexcept {
-    return simd_cast<__m128i_t, __m256i_t>(sse::loadu_si128(ptr));
+    return simd_cast<_m128i_t, _m256i_t>(sse::loadu_si128(ptr));
 }
 
 __m256i avx::loadu_si144(const void *ptr) noexcept {

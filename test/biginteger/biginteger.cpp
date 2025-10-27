@@ -915,7 +915,7 @@ TEST(biginteger, rsblsh_n) {
 
 template <uint64_t c>
 constexpr bool __test_divexact_fast() {
-    constexpr auto ss = __divexact_init<c>();
+    constexpr auto ss = _divexact_init<c>();
     return ss.mode == 2 && ss.cl == 0;
 }
 

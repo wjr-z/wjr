@@ -7,23 +7,23 @@
 namespace wjr {
 
 namespace mem::detail {
-class __dynamic_object_pool_impl {
+class _dynamic_object_pool_impl {
     using node_type = intrusive::hlist_node<>;
 
 public:
-    __dynamic_object_pool_impl() = default;
-    __dynamic_object_pool_impl(const __dynamic_object_pool_impl &) = delete;
-    __dynamic_object_pool_impl(__dynamic_object_pool_impl &&other) {
+    _dynamic_object_pool_impl() = default;
+    _dynamic_object_pool_impl(const _dynamic_object_pool_impl &) = delete;
+    _dynamic_object_pool_impl(_dynamic_object_pool_impl &&other) {
         replace(&other.m_head, &m_head);
     }
 
-    __dynamic_object_pool_impl &operator=(const __dynamic_object_pool_impl &) = delete;
-    __dynamic_object_pool_impl &operator=(__dynamic_object_pool_impl &&other) {
+    _dynamic_object_pool_impl &operator=(const _dynamic_object_pool_impl &) = delete;
+    _dynamic_object_pool_impl &operator=(_dynamic_object_pool_impl &&other) {
         replace(&other.m_head, &m_head);
         return *this;
     }
 
-    ~__dynamic_object_pool_impl() = default;
+    ~_dynamic_object_pool_impl() = default;
 
     WJR_MALLOC void *allocate(arena &m_arena, size_t n) noexcept {
         if (m_head.next() != nullptr) {
@@ -102,7 +102,7 @@ public:
 
 private:
     arena m_arena;
-    mem::detail::__dynamic_object_pool_impl m_pool[tableSize];
+    mem::detail::_dynamic_object_pool_impl m_pool[tableSize];
 };
 
 namespace mem::detail {

@@ -1,7 +1,7 @@
 #include <wjr/memory/arena.hpp>
 
 namespace wjr {
-void *arena::__allocate_large(size_t n) noexcept {
+void *arena::_allocate_large(size_t n) noexcept {
     switch (m_rule & Rule::Expansion_Mask) {
     case Rule::Expansion_Constant: {
         break;

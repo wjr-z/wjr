@@ -71,7 +71,7 @@ struct set_threshold {};
     #define WJR_REGISTER_SET_HELPER(type)                                                          \
         template <>                                                                                \
         struct set_threshold<uint##type##_t> {                                                     \
-            static size_t get() noexcept { return __x86_rep_stosb_threshold_u##type; }             \
+            static size_t get() noexcept { return _x86_rep_stosb_threshold_u##type; }              \
         }
 
 WJR_REGISTER_SET_HELPER(16);

@@ -193,7 +193,7 @@ uint32_t lexer::read(uint32_t *token_buf, size_type token_buf_size) noexcept {
                     stk[i] = simd::loadu(first + i * u8_width);
                 }
             } else {
-                __simd_storage_t<std::byte, 64> buf;
+                _simd_storage_t<std::byte, 64> buf;
                 std::memset(&buf, ' ', 64);
                 std::memcpy(&buf, first, diff);
 
@@ -270,16 +270,16 @@ uint32_t lexer::read(uint32_t *token_buf, size_type token_buf_size) noexcept {
             const auto num = popcount(S);
 
             do {
-                const auto __idx = idx;
-                WJR_ASSUME(!(__idx & 0x3F));
+                const auto _idx = idx;
+                WJR_ASSUME(!(_idx & 0x3F));
 
-                token_buf[0] = __idx + ctz(S);
+                token_buf[0] = _idx + ctz(S);
                 S &= S - 1;
-                token_buf[1] = __idx + ctz(S);
+                token_buf[1] = _idx + ctz(S);
                 S &= S - 1;
-                token_buf[2] = __idx + ctz(S);
+                token_buf[2] = _idx + ctz(S);
                 S &= S - 1;
-                token_buf[3] = __idx + ctz(S);
+                token_buf[3] = _idx + ctz(S);
 
                 if (WJR_UNLIKELY(num <= 4)) {
                     break;
@@ -287,13 +287,13 @@ uint32_t lexer::read(uint32_t *token_buf, size_type token_buf_size) noexcept {
 
                 S &= S - 1;
 
-                token_buf[4] = __idx + ctz(S);
+                token_buf[4] = _idx + ctz(S);
                 S &= S - 1;
-                token_buf[5] = __idx + ctz(S);
+                token_buf[5] = _idx + ctz(S);
                 S &= S - 1;
-                token_buf[6] = __idx + ctz(S);
+                token_buf[6] = _idx + ctz(S);
                 S &= S - 1;
-                token_buf[7] = __idx + ctz(S);
+                token_buf[7] = _idx + ctz(S);
 
                 if (WJR_LIKELY(num <= 8)) {
                     break;
@@ -302,7 +302,7 @@ uint32_t lexer::read(uint32_t *token_buf, size_type token_buf_size) noexcept {
                 S &= S - 1;
 
                 for (int i = 8; i < 12; ++i) {
-                    token_buf[i] = __idx + ctz(S);
+                    token_buf[i] = _idx + ctz(S);
                     S &= S - 1;
                 }
 
@@ -311,7 +311,7 @@ uint32_t lexer::read(uint32_t *token_buf, size_type token_buf_size) noexcept {
                 }
 
                 for (int i = 12; i < 16; ++i) {
-                    token_buf[i] = __idx + ctz(S);
+                    token_buf[i] = _idx + ctz(S);
                     S &= S - 1;
                 }
 
@@ -320,7 +320,7 @@ uint32_t lexer::read(uint32_t *token_buf, size_type token_buf_size) noexcept {
                 }
 
                 for (int i = 16; i < num; ++i) {
-                    token_buf[i] = __idx + ctz(S);
+                    token_buf[i] = _idx + ctz(S);
                     S &= S - 1;
                 }
             } while (0);

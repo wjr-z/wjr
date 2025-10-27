@@ -32,7 +32,7 @@ public:
 
     WJR_MALLOC void *allocate(size_t n) noexcept {
         if (WJR_UNLIKELY(to_unsigned(m_end - m_start) < n)) {
-            return __allocate_large(n);
+            return _allocate_large(n);
         }
 
         void *raw = m_start;
@@ -41,7 +41,7 @@ public:
     }
 
 private:
-    void *__allocate_large(size_t n) noexcept;
+    void *_allocate_large(size_t n) noexcept;
 
     std::byte *m_start = nullptr;
     std::byte *m_end = nullptr;

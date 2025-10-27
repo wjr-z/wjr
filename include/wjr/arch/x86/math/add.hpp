@@ -181,13 +181,13 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
  * @brief Use inline assembly to add two 64-bit integers and return the
  * carry-out.
  *
- * @details Optimzation for __asm_addc_cc_128 and __asm_addc_128 when the
+ * @details Optimzation for _asm_addc_cc_128 and _asm_addc_128 when the
  * carry-in is 0.
  *
  */
-WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_zero_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                                    uint64_t hi0, uint64_t lo1,
-                                                    uint64_t hi1) noexcept {
+WJR_INTRINSIC_INLINE uint8_t _asm_addc_cc_zero_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                                   uint64_t hi0, uint64_t lo1,
+                                                   uint64_t hi1) noexcept {
     uint8_t c_out;
     if (WJR_BUILTIN_CONSTANT_P(hi0) && hi0 <= UINT32_MAX) {
         asm("add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
@@ -228,10 +228,10 @@ WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_zero_128(uint64_t &al, uint64_t &ah, 
  * return the carry-out.
  *
  */
-WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
-                                             uint64_t lo1, uint64_t hi1, uint64_t c_in) noexcept {
+WJR_INTRINSIC_INLINE uint64_t _asm_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
+                                            uint64_t lo1, uint64_t hi1, uint64_t c_in) noexcept {
     if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 0)) {
-        return __asm_addc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
+        return _asm_addc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
     }
 
     if (WJR_BUILTIN_CONSTANT_P(hi0) && hi0 <= UINT32_MAX) {
@@ -278,16 +278,16 @@ WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_
  * @brief Use inline assembly to add two 64-bit integers with carry-in and
  * return the carry-out.
  *
- * @details Similar to __asm_addc_128, but the carry-out flag is set by using
+ * @details Similar to _asm_addc_128, but the carry-out flag is set by using
  * constraint
  * "=@cccond" instead of "setb".
  *
  */
-WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                               uint8_t c_in) noexcept {
+WJR_INTRINSIC_INLINE uint8_t _asm_addc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                              uint8_t c_in) noexcept {
     if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 0)) {
-        return __asm_addc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
+        return _asm_addc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
     }
 
     uint8_t c_out;

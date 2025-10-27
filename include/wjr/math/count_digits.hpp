@@ -52,7 +52,7 @@ namespace charconv_detail {
 
 #define WJR_INC(T) (((sizeof(#T) - 1ull) << 32) - T)
 
-inline constexpr uint64_t __count_digits10_u32_table[] = {
+inline constexpr uint64_t _count_digits10_u32_table[] = {
     WJR_INC(0),          WJR_INC(0),          WJR_INC(0),          // 8
     WJR_INC(10),         WJR_INC(10),         WJR_INC(10),         // 64
     WJR_INC(100),        WJR_INC(100),        WJR_INC(100),        // 512
@@ -72,12 +72,12 @@ inline constexpr uint64_t __count_digits10_u32_table[] = {
     factor * 10, (factor) * 100, (factor) * 1000, (factor) * 10000, (factor) * 100000,             \
         (factor) * 1000000, (factor) * 10000000, (factor) * 100000000, (factor) * 1000000000
 
-inline constexpr uint8_t __count_digits10_u64_bsr2log10[] = {
+inline constexpr uint8_t _count_digits10_u64_bsr2log10[] = {
     1,  1,  1,  2,  2,  2,  3,  3,  3,  4,  4,  4,  4,  5,  5,  5,  6,  6,  6,  7,  7,  7,
     7,  8,  8,  8,  9,  9,  9,  10, 10, 10, 10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 13, 14,
     14, 14, 15, 15, 15, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 19, 20};
 
-inline constexpr uint64_t __count_digits10_u64_zero_or_powers_of_10[] = {
+inline constexpr uint64_t _count_digits10_u64_zero_or_powers_of_10[] = {
     0, 0, WJR_POWERS_OF_10(1U), WJR_POWERS_OF_10(1000000000ull), 10000000000000000000ull};
 
 #undef WJR_POWERS_OF_10
@@ -89,7 +89,7 @@ inline constexpr uint64_t __count_digits10_u64_zero_or_powers_of_10[] = {
  * @details Uses lookup table and CLZ (count leading zeros) for O(1) performance
  */
 WJR_INTRINSIC_CONSTEXPR20 int builtin_count_digits10_u32(uint32_t n) noexcept {
-    const auto inc = charconv_detail::__count_digits10_u32_table[clz(n | 1) ^ 31];
+    const auto inc = charconv_detail::_count_digits10_u32_table[clz(n | 1) ^ 31];
     return static_cast<int>((n + inc) >> 32);
 }
 
@@ -98,8 +98,8 @@ WJR_INTRINSIC_CONSTEXPR20 int builtin_count_digits10_u32(uint32_t n) noexcept {
  * @details Uses lookup table and CLZ for O(1) performance
  */
 WJR_INTRINSIC_CONSTEXPR20 int builtin_count_digits10_u64(uint64_t n) noexcept {
-    const auto t = charconv_detail::__count_digits10_u64_bsr2log10[clz(n | 1) ^ 63];
-    return t - (n < charconv_detail::__count_digits10_u64_zero_or_powers_of_10[t]);
+    const auto t = charconv_detail::_count_digits10_u64_bsr2log10[clz(n | 1) ^ 63];
+    return t - (n < charconv_detail::_count_digits10_u64_zero_or_powers_of_10[t]);
 }
 
 /**
@@ -151,7 +151,7 @@ template <>
 struct count_digits_fn<8> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
-        return __ceil_div(to_unsigned(bit_width(n)), 3);
+        return _ceil_div(to_unsigned(bit_width(n)), 3);
     }
 };
 
@@ -160,7 +160,7 @@ template <>
 struct count_digits_fn<16> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
-        return __ceil_div(to_unsigned(bit_width(n)), 4);
+        return _ceil_div(to_unsigned(bit_width(n)), 4);
     }
 };
 
@@ -172,7 +172,7 @@ template <>
 struct count_digits_fn<1> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n, int bits) const noexcept {
-        return __ceil_div(to_unsigned(bit_width(n)), bits);
+        return _ceil_div(to_unsigned(bit_width(n)), bits);
     }
 };
 

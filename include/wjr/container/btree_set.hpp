@@ -30,30 +30,30 @@ public:
     using Mybase::Mybase;
 
 private:
-    WJR_PURE bool __is_lower_bound_same(const_iterator iter, const key_type &key) const {
+    WJR_PURE bool _is_lower_bound_same(const_iterator iter, const key_type &key) const {
         return iter != this->cend() && !this->key_comp()(Traits::get_key(*iter), key);
     }
 
-    WJR_PURE bool __count_unique(const key_type &key) const {
+    WJR_PURE bool _count_unique(const key_type &key) const {
         auto iter = this->lower_bound(key);
-        return __is_lower_bound_same(iter, key);
+        return _is_lower_bound_same(iter, key);
     }
 
 public:
     std::pair<iterator, bool> insert(const value_type &val) noexcept {
-        return this->__emplace_unique(val);
+        return this->_emplace_unique(val);
     }
 
     std::pair<iterator, bool> insert(value_type &&val) noexcept {
-        return this->__emplace_unique(std::move(val));
+        return this->_emplace_unique(std::move(val));
     }
 
     template <typename... Args>
     WJR_INTRINSIC_INLINE std::pair<iterator, bool> emplace(Args &&...args) noexcept {
-        return this->__emplace_unique(std::forward<Args>(args)...);
+        return this->_emplace_unique(std::forward<Args>(args)...);
     }
 
-    size_type count(const key_type &key) const noexcept { return __count_unique(key) ? 1 : 0; }
+    size_type count(const key_type &key) const noexcept { return _count_unique(key) ? 1 : 0; }
 };
 
 template <typename Key, typename Pr = std::less<Key>, typename Alloc = std::allocator<char>,
@@ -81,16 +81,16 @@ public:
     using Mybase::Mybase;
 
     std::pair<iterator, bool> insert(const value_type &val) noexcept {
-        return this->__emplace_multi(val);
+        return this->_emplace_multi(val);
     }
 
     std::pair<iterator, bool> insert(value_type &&val) noexcept {
-        return this->__emplace_multi(std::move(val));
+        return this->_emplace_multi(std::move(val));
     }
 
     template <typename... Args>
     WJR_INTRINSIC_INLINE std::pair<iterator, bool> emplace(Args &&...args) noexcept {
-        return this->__emplace_multi(std::forward<Args>(args)...);
+        return this->_emplace_multi(std::forward<Args>(args)...);
     }
 };
 

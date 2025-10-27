@@ -16,16 +16,16 @@
 
 namespace wjr {
 
-WJR_REGISTER_HAS_TYPE(__container_resize,
+WJR_REGISTER_HAS_TYPE(_container_resize,
                       std::declval<std::add_lvalue_reference_t<Container>>().resize(
                           std::declval<Size>(), std::declval<Args>()...),
                       Container, Size);
-WJR_REGISTER_HAS_TYPE(__container_append, std::declval<Container>().append(std::declval<Args>()...),
+WJR_REGISTER_HAS_TYPE(_container_append, std::declval<Container>().append(std::declval<Args>()...),
                       Container);
 
 template <typename Container>
 struct resize_fn_impl_base {
-    template <typename... Args, WJR_REQUIRES(has___container_resize_v<Container, Args...>)>
+    template <typename... Args, WJR_REQUIRES(has__container_resize_v<Container, Args...>)>
     WJR_INTRINSIC_INLINE static void
     resize(Container &cont,
            Args &&...args) noexcept(noexcept(cont.resize(std::forward<Args>(args)...))) {
@@ -48,7 +48,7 @@ inline constexpr resize_fn resize{};
 
 template <typename Container>
 struct append_fn_impl_base {
-    template <typename... Args, WJR_REQUIRES(has___container_append_v<Container, Args...>)>
+    template <typename... Args, WJR_REQUIRES(has__container_append_v<Container, Args...>)>
     WJR_INTRINSIC_INLINE static void
     append(Container &cont,
            Args &&...args) noexcept(noexcept(cont.append(std::forward<Args>(args)...))) {
@@ -109,21 +109,21 @@ WJR_INTRINSIC_INLINE void try_uninitialized_append(Container &cont, Size sz) {
 
 /// @private
 template <typename T, typename = void>
-struct __container_traits_base_iterator_helper {
+struct _container_traits_base_iterator_helper {
     using iterator = T;
 };
 
 /// @private
 template <typename T>
-struct __container_traits_base_iterator_helper<T, std::void_t<typename T::iterator>> {
+struct _container_traits_base_iterator_helper<T, std::void_t<typename T::iterator>> {
     using iterator = typename T::iterator;
 };
 
 /// @private
 template <typename Container>
-struct __container_traits_base {
+struct _container_traits_base {
 private:
-    using iterator = typename __container_traits_base_iterator_helper<Container>::iterator;
+    using iterator = typename _container_traits_base_iterator_helper<Container>::iterator;
 
 public:
     /// @todo Use ranges::contiguous_range to check if the container is contiguous

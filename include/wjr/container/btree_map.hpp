@@ -31,13 +31,13 @@ public:
     using Mybase::Mybase;
 
 private:
-    WJR_PURE bool __is_lower_bound_same(const_iterator iter, const key_type &key) const {
+    WJR_PURE bool _is_lower_bound_same(const_iterator iter, const key_type &key) const {
         return iter != this->cend() && !this->key_comp()(Traits::get_key(*iter), key);
     }
 
-    WJR_PURE bool __count_unique(const key_type &key) const {
+    WJR_PURE bool _count_unique(const key_type &key) const {
         auto iter = this->lower_bound(key);
-        return __is_lower_bound_same(iter, key);
+        return _is_lower_bound_same(iter, key);
     }
 
 public:
@@ -57,7 +57,7 @@ public:
 
     mapped_type &at(const key_type &key) {
         auto iter = this->lower_bound(key);
-        if (!__is_lower_bound_same(iter, key)) {
+        if (!_is_lower_bound_same(iter, key)) {
             WJR_THROW(std::out_of_range("invalid map key"));
         }
 
@@ -71,29 +71,29 @@ public:
     mapped_type &operator[](const key_type &key) { return try_emplace(key).first->second; }
 
     std::pair<iterator, bool> insert(const value_type &val) noexcept {
-        return this->__emplace_unique(val);
+        return this->_emplace_unique(val);
     }
 
     std::pair<iterator, bool> insert(value_type &&val) noexcept {
-        return this->__emplace_unique(std::move(val));
+        return this->_emplace_unique(std::move(val));
     }
 
     template <typename... Args>
     std::pair<iterator, bool> emplace(Args &&...args) noexcept {
-        return this->__emplace_unique(std::forward<Args>(args)...);
+        return this->_emplace_unique(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     std::pair<iterator, bool> try_emplace(const key_type &k, Args &&...args) {
-        return this->__try_emplace_unique(k, std::forward<Args>(args)...);
+        return this->_try_emplace_unique(k, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     std::pair<iterator, bool> try_emplace(key_type &&k, Args &&...args) {
-        return this->__try_emplace_unique(std::move(k), std::forward<Args>(args)...);
+        return this->_try_emplace_unique(std::move(k), std::forward<Args>(args)...);
     }
 
-    size_type count(const key_type &key) const noexcept { return __count_unique(key) ? 1 : 0; }
+    size_type count(const key_type &key) const noexcept { return _count_unique(key) ? 1 : 0; }
 };
 
 template <typename Key, typename Value, typename Pr>

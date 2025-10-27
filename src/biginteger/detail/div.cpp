@@ -70,7 +70,7 @@ uint64_t div_qr_2_noshift(uint64_t *dst, uint64_t *rem, const uint64_t *src, siz
     u2 = src[n - 1];
     u1 = src[n - 2];
 
-    if (__less_equal_128(divisor0, divisor1, u1, u2)) {
+    if (_less_equal_128(divisor0, divisor1, u1, u2)) {
         sub_128(u1, u2, u1, u2, divisor0, divisor1);
         qh = 1;
     }
@@ -153,7 +153,7 @@ uint64_t sb_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div
 
     WJR_ASSERT_ASSUME(m > 2);
     WJR_ASSERT_ASSUME(n >= m);
-    WJR_ASSERT(__has_high_bit(div[m - 1]));
+    WJR_ASSERT(_has_high_bit(div[m - 1]));
 
     uint64_t n1, n0;
     uint64_t d1, d0;
@@ -188,7 +188,7 @@ uint64_t sb_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div
             q = divider::divide(d0, d1, dinv, src[0], n0, n1);
 
             cy = submul_1(src - m, div, m, q);
-            cy = math::__subc_cc_128(n0, n1, n0, n1, cy, 0, 0);
+            cy = math::_subc_cc_128(n0, n1, n0, n1, cy, 0, 0);
             src[0] = n0;
 
             if (WJR_UNLIKELY(cy != 0)) {
@@ -256,7 +256,7 @@ uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div
                      uint64_t dinv) noexcept {
     WJR_ASSERT(m >= 6);
     WJR_ASSERT(n - m >= 3);
-    WJR_ASSERT(__has_high_bit(div[m - 1]));
+    WJR_ASSERT(_has_high_bit(div[m - 1]));
 
     size_t qn;
     uint64_t qh, cy;
@@ -312,7 +312,7 @@ uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div
 
                 if (m > 2) {
                     cy = submul_1(src - m, div - m, m - 2, q);
-                    cy = math::__subc_cc_128(n0, n1, n0, n1, cy, 0, 0);
+                    cy = math::_subc_cc_128(n0, n1, n0, n1, cy, 0, 0);
                     src[-2] = n0;
 
                     if (WJR_UNLIKELY(cy != 0)) {
@@ -396,8 +396,8 @@ uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div
     return qh;
 }
 
-void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
-                     const uint64_t *div, size_t m) noexcept {
+void _div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
+                    const uint64_t *div, size_t m) noexcept {
     switch (m) {
     case 0: {
         WJR_UNREACHABLE();

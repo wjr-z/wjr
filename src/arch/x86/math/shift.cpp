@@ -30,7 +30,7 @@ struct simd_shift<sse> {
         if constexpr (is_constant) {
             return cl;
         } else {
-            return simd_cast<unsigned int, __m128i_t>(cl);
+            return simd_cast<unsigned int, _m128i_t>(cl);
         }
     }
 
@@ -72,7 +72,7 @@ struct simd_shift<avx> {
         if constexpr (is_constant) {
             return cl;
         } else {
-            return broadcast<uint64_t, __m256i_t>(cl);
+            return broadcast<uint64_t, _m256i_t>(cl);
         }
     }
 

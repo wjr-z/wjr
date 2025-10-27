@@ -48,9 +48,9 @@ WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) noexcept {
 
     #define WJR_REGISTER_BUILTIN_SUBC(suffix, type)                                                \
         if constexpr (nd <= std::numeric_limits<type>::digits) {                                   \
-            type __c_out;                                                                          \
-            T ret = __builtin_subc##suffix(a, b, static_cast<type>(c_in), &__c_out);               \
-            c_out = static_cast<U>(__c_out);                                                       \
+            type _c_out;                                                                           \
+            T ret = __builtin_subc##suffix(a, b, static_cast<type>(c_in), &_c_out);                \
+            c_out = static_cast<U>(_c_out);                                                        \
             return ret;                                                                            \
         } else
 
@@ -158,45 +158,44 @@ WJR_INTRINSIC_CONSTEXPR20 bool sub_overflow(type_identity_t<T> a, type_identity_
 // <ah, al> = <hi0, lo0> - <hi1, lo1>
 WJR_INTRINSIC_CONSTEXPR void sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
                                      uint64_t lo1, uint64_t hi1) noexcept {
-    const uint64_t __al = lo0 - lo1;
-    ah = hi0 - hi1 - (__al > lo0);
-    al = __al;
+    const uint64_t _al = lo0 - lo1;
+    ah = hi0 - hi1 - (_al > lo0);
+    al = _al;
 }
 
-WJR_INTRINSIC_CONSTEXPR20 uint64_t __fallback_subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                                       uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                                       uint64_t c_in) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t _fallback_subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                                      uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                                      uint64_t c_in) noexcept {
     al = subc(lo0, lo1, c_in, c_in);
     ah = subc(hi0, hi1, c_in, c_in);
     return c_in;
 }
 
 // return c_out
-WJR_INTRINSIC_CONSTEXPR20 uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                              uint64_t c_in) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t _subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
+                                             uint64_t lo1, uint64_t hi1, uint64_t c_in) noexcept {
 #if WJR_HAS_BUILTIN(__ASM_SUBC_128)
     if (is_constant_evaluated()) {
-        return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+        return _fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
     }
 
-    return __asm_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+    return _asm_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
 #else
-    return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+    return _fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
 #endif
 }
 
-WJR_INTRINSIC_CONSTEXPR20 uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                                uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                                uint8_t c_in) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint8_t _subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                               uint8_t c_in) noexcept {
 #if WJR_HAS_BUILTIN(__ASM_SUBC_CC_128)
     if (is_constant_evaluated()) {
-        return truncate_cast<uint8_t>(__fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in));
+        return truncate_cast<uint8_t>(_fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in));
     }
 
-    return __asm_subc_cc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+    return _asm_subc_cc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
 #else
-    return truncate_cast<uint8_t>(__subc_128(al, ah, lo0, hi0, lo1, hi1, c_in));
+    return truncate_cast<uint8_t>(_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in));
 #endif
 }
 

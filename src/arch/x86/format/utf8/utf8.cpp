@@ -60,11 +60,11 @@ optional<void> builtin_check_unicode(const char *first, const char *last) noexce
                 const uint8_t ch = first[pos + 1];
 
                 if (WJR_UNLIKELY(ch == 'u')) {
-                    const char *__first;
-                    WJR_OPTIONAL_SET(__first, check_unicode_codepoint(first + pos + 2, last));
+                    const char *_first;
+                    WJR_OPTIONAL_SET(_first, check_unicode_codepoint(first + pos + 2, last));
 
-                    if (to_unsigned(__first - first) >= u8_width) {
-                        first = __first;
+                    if (to_unsigned(_first - first) >= u8_width) {
+                        first = _first;
                         if (first + u8_width <= last) {
                             goto LOOP;
                         }
@@ -73,7 +73,7 @@ optional<void> builtin_check_unicode(const char *first, const char *last) noexce
                     }
 
                     // two backslash
-                    if ((__first - first) - pos != 6) {
+                    if ((_first - first) - pos != 6) {
                         B &= B - 1;
                     }
                 } else {
@@ -192,15 +192,15 @@ SMALL:
         const uint8_t ch = first[pos + 1];
 
         if (WJR_UNLIKELY(ch == 'u')) {
-            const char *__first = first;
-            WJR_OPTIONAL_SET(__first, check_unicode_codepoint(first + pos + 2, last));
+            const char *_first = first;
+            WJR_OPTIONAL_SET(_first, check_unicode_codepoint(first + pos + 2, last));
 
-            if (__first == last) {
+            if (_first == last) {
                 return voidopt;
             }
 
             // two backslash
-            if ((__first - first) - pos != 6) {
+            if ((_first - first) - pos != 6) {
                 B &= B - 1;
             }
         } else {
@@ -321,12 +321,11 @@ compressed_optional<char *> builtin_unicode_to_utf8(char *dst, const char *first
                 const uint8_t ch = first[pos + 1];
 
                 if (WJR_UNLIKELY(ch == 'u')) {
-                    const char *__first;
-                    WJR_OPTIONAL_SET(__first,
-                                     unicode_codepoint_to_utf8(dst, first + pos + 2, last));
+                    const char *_first;
+                    WJR_OPTIONAL_SET(_first, unicode_codepoint_to_utf8(dst, first + pos + 2, last));
 
-                    if (to_unsigned(__first - first) >= u8_width) {
-                        first = __first;
+                    if (to_unsigned(_first - first) >= u8_width) {
+                        first = _first;
                         if (first + u8_width <= last) {
                             goto LOOP;
                         }
@@ -334,7 +333,7 @@ compressed_optional<char *> builtin_unicode_to_utf8(char *dst, const char *first
                         goto SMALL;
                     }
 
-                    last_pos = __first - first;
+                    last_pos = _first - first;
                     // two backslash
                     if (last_pos - pos != 6) {
                         B &= B - 1;
@@ -474,14 +473,14 @@ SMALL:
         const uint8_t ch = first[pos + 1];
 
         if (WJR_UNLIKELY(ch == 'u')) {
-            const char *__first = first;
-            WJR_OPTIONAL_SET(__first, unicode_codepoint_to_utf8(dst, first + pos + 2, last));
+            const char *_first = first;
+            WJR_OPTIONAL_SET(_first, unicode_codepoint_to_utf8(dst, first + pos + 2, last));
 
-            if (__first == last) {
+            if (_first == last) {
                 return dst;
             }
 
-            last_pos = __first - first;
+            last_pos = _first - first;
             // two backslash
             if (last_pos - pos != 6) {
                 B &= B - 1;

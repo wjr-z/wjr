@@ -14,7 +14,7 @@ CPP_template(typename Range,
                          ranges::convertible_to<ranges::range_reference_t<Range>, T>);
 
 template <typename Range, typename T>
-CPP_concept __container_compatible_range =
+CPP_concept _container_compatible_range =
     ranges::input_range<Range> && CPP_concept_ref(range_convertible_to_, Range, T);
 } // namespace detail
 } // namespace wjr

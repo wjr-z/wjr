@@ -1,8 +1,8 @@
 #include "detail.hpp"
 
-#include <wjr/optional.hpp>
 #include <string>
 #include <vector>
+#include <wjr/optional.hpp>
 
 using namespace wjr;
 
@@ -151,7 +151,7 @@ TEST(optional, assignment) {
         a = 42;
         WJR_CHECK(a.has_value());
         WJR_CHECK(*a == 42);
-        
+
         a = 99;
         WJR_CHECK(a.has_value());
         WJR_CHECK(*a == 99);
@@ -161,11 +161,11 @@ TEST(optional, assignment) {
     {
         optional<int> a(42);
         optional<int> b;
-        
+
         b = a;
         WJR_CHECK(b.has_value());
         WJR_CHECK(*b == 42);
-        
+
         optional<int> c;
         b = std::move(c);
         WJR_CHECK(!b.has_value());
@@ -177,7 +177,7 @@ TEST(optional, assignment) {
         a = std::string("hello");
         WJR_CHECK(a.has_value());
         WJR_CHECK(*a == "hello");
-        
+
         a = "world";
         WJR_CHECK(a.has_value());
         WJR_CHECK(*a == "world");
@@ -215,7 +215,7 @@ TEST(optional, value_method) {
     {
         optional<int> a(42);
         WJR_CHECK(a.value() == 42);
-        
+
         const optional<int> b(99);
         WJR_CHECK(b.value() == 99);
     }
@@ -226,7 +226,7 @@ TEST(optional, value_method) {
         bool caught = false;
         try {
             a.value();
-        } catch (const bad_optional_access&) {
+        } catch (const bad_optional_access &) {
             caught = true;
         }
         WJR_CHECK(caught);
@@ -257,7 +257,7 @@ TEST(optional, value_or_method) {
     {
         optional<std::string> a;
         WJR_CHECK(a.value_or("default") == "default");
-        
+
         a = "hello";
         WJR_CHECK(a.value_or("default") == "hello");
     }
@@ -353,9 +353,8 @@ TEST(optional, and_then) {
     // Test and_then with move
     {
         optional<std::string> a("hello");
-        auto result = std::move(a).and_then([](std::string s) { 
-            return optional<std::string>(s + " world"); 
-        });
+        auto result = std::move(a).and_then(
+            [](std::string s) { return optional<std::string>(s + " world"); });
         WJR_CHECK(result.has_value());
         WJR_CHECK(*result == "hello world");
     }
@@ -440,7 +439,7 @@ TEST(optional, emplace) {
     {
         optional<int> a;
         WJR_CHECK(!a.has_value());
-        auto& ref = a.emplace(42);
+        auto &ref = a.emplace(42);
         WJR_CHECK(a.has_value());
         WJR_CHECK(*a == 42);
         WJR_CHECK(&ref == &(*a));
@@ -451,7 +450,7 @@ TEST(optional, emplace) {
         optional<int> a(99);
         WJR_CHECK(a.has_value());
         WJR_CHECK(*a == 99);
-        auto& ref = a.emplace(42);
+        auto &ref = a.emplace(42);
         WJR_CHECK(a.has_value());
         WJR_CHECK(*a == 42);
         WJR_CHECK(&ref == &(*a));
@@ -460,7 +459,7 @@ TEST(optional, emplace) {
     // Test emplace with multiple arguments
     {
         optional<std::string> a;
-        auto& ref = a.emplace(5, 'x');
+        auto &ref = a.emplace(5, 'x');
         WJR_CHECK(a.has_value());
         WJR_CHECK(*a == "xxxxx");
         WJR_CHECK(&ref == &(*a));
@@ -469,7 +468,7 @@ TEST(optional, emplace) {
     // Test emplace with initializer list
     {
         optional<std::vector<int>> a;
-        auto& ref = a.emplace({1, 2, 3, 4});
+        auto &ref = a.emplace({1, 2, 3, 4});
         WJR_CHECK(a.has_value());
         WJR_CHECK(a->size() == 4);
         WJR_CHECK((*a)[0] == 1);
@@ -517,13 +516,13 @@ TEST(optional, void_specialization) {
     {
         optional<void> a;
         WJR_CHECK(!a.has_value());
-        
+
         optional<void> b(std::in_place);
         WJR_CHECK(b.has_value());
-        
+
         optional<void> c(voidopt);
         WJR_CHECK(c.has_value());
-        
+
         optional<void> d(nullopt);
         WJR_CHECK(!d.has_value());
     }
@@ -533,7 +532,7 @@ TEST(optional, void_specialization) {
         optional<void> a;
         a = nullopt;
         WJR_CHECK(!a.has_value());
-        
+
         a.emplace();
         WJR_CHECK(a.has_value());
     }
@@ -542,11 +541,11 @@ TEST(optional, void_specialization) {
     {
         optional<void> a, b;
         optional<void> c(std::in_place), d(std::in_place);
-        
+
         WJR_CHECK(a == b);
         WJR_CHECK(c == d);
         WJR_CHECK(!(a == c));
-        
+
         WJR_CHECK(a == nullopt);
         WJR_CHECK(!(c == nullopt));
     }
@@ -555,19 +554,19 @@ TEST(optional, void_specialization) {
     {
         optional<void> a(std::in_place);
         bool called = false;
-        auto result = a.and_then([&]() { 
-            called = true; 
-            return optional<int>(42); 
+        auto result = a.and_then([&]() {
+            called = true;
+            return optional<int>(42);
         });
         WJR_CHECK(called);
         WJR_CHECK(result.has_value());
         WJR_CHECK(*result == 42);
-        
+
         optional<void> b;
         called = false;
-        auto result2 = b.and_then([&]() { 
-            called = true; 
-            return optional<int>(42); 
+        auto result2 = b.and_then([&]() {
+            called = true;
+            return optional<int>(42);
         });
         WJR_CHECK(!called);
         WJR_CHECK(!result2.has_value());
@@ -578,7 +577,7 @@ TEST(optional, void_specialization) {
         optional<void> a;
         auto result = a.or_else([]() { return optional<void>(std::in_place); });
         WJR_CHECK(result.has_value());
-        
+
         optional<void> b(std::in_place);
         auto result2 = b.or_else([]() { return optional<void>(); });
         WJR_CHECK(result2.has_value());
@@ -590,7 +589,7 @@ TEST(optional, void_specialization) {
         auto result = a.transform([]() { return 42; });
         WJR_CHECK(result.has_value());
         WJR_CHECK(*result == 42);
-        
+
         optional<void> b;
         auto result2 = b.transform([]() { return 42; });
         WJR_CHECK(!result2.has_value());
@@ -601,10 +600,10 @@ TEST(optional, compressed_value) {
     // Test compressed_value<int, 0>
     {
         using type = optional<compressed_value<int, 0>>;
-        
+
         type a;
         WJR_CHECK(!a.has_value());
-        
+
         type b(42);
         WJR_CHECK(b.has_value());
         WJR_CHECK(*b == 42);
@@ -613,11 +612,11 @@ TEST(optional, compressed_value) {
     // Test compressed_value<pointer, nullptr>
     {
         int value = 42;
-        using type = optional<compressed_value<int*, nullptr>>;
-        
+        using type = optional<compressed_value<int *, nullptr>>;
+
         type a;
         WJR_CHECK(!a.has_value());
-        
+
         type b(&value);
         WJR_CHECK(b.has_value());
         WJR_CHECK(**b == 42);
@@ -626,9 +625,9 @@ TEST(optional, compressed_value) {
     // Test compressed_optional typedef
     {
         int value = 99;
-        compressed_optional<int*> a;
+        compressed_optional<int *> a;
         WJR_CHECK(!a.has_value());
-        
+
         a = &value;
         WJR_CHECK(a.has_value());
         WJR_CHECK(**a == 99);
@@ -642,11 +641,11 @@ TEST(optional, macros) {
             WJR_OPTIONAL_TRY(success ? optional<void>(std::in_place) : optional<void>());
             return 42;
         };
-        
+
         auto result1 = test_func(true);
         WJR_CHECK(result1.has_value());
         WJR_CHECK(*result1 == 42);
-        
+
         auto result2 = test_func(false);
         WJR_CHECK(!result2.has_value());
     }
@@ -657,11 +656,11 @@ TEST(optional, macros) {
             WJR_OPTIONAL_INIT(value, success ? optional<int>(99) : optional<int>());
             return *value * 2;
         };
-        
+
         auto result1 = test_func(true);
         WJR_CHECK(result1.has_value());
         WJR_CHECK(*result1 == 198);
-        
+
         auto result2 = test_func(false);
         WJR_CHECK(!result2.has_value());
     }
@@ -673,13 +672,12 @@ TEST(optional, macros) {
             WJR_OPTIONAL_SET(result, success ? optional<int>(99) : optional<int>());
             return result * 2;
         };
-        
+
         auto result1 = test_func(true);
         WJR_CHECK(result1.has_value());
         WJR_CHECK(*result1 == 198);
-        
+
         auto result2 = test_func(false);
         WJR_CHECK(!result2.has_value());
     }
 }
-    

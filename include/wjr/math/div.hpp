@@ -10,9 +10,9 @@
  * arbitrary-precision arithmetic.
  *
  * @todo
- * - Implement __div_constant_128 for constant division optimization
- * - Implement __mod_constant_128 for constant modulo optimization
- * - Implement __div_qr_constant_128 for combined quotient and remainder
+ * - Implement _div_constant_128 for constant division optimization
+ * - Implement _mod_constant_128 for constant modulo optimization
+ * - Implement _div_qr_constant_128 for combined quotient and remainder
  * - Optimize constant divisor of div_qr_1 for edge cases
  * - Handle constant numbers divisible by (uint64_t)(-1)
  */
@@ -221,7 +221,7 @@ inline uint64_t div128by128to64_noshift(uint128_t &rem, uint64_t lo, uint64_t hi
     const uint64_t divisor1 = divider.get_divisor1();
 
     uint64_t qh = 0;
-    if (__less_equal_128(divisor0, divisor1, lo, hi)) {
+    if (_less_equal_128(divisor0, divisor1, lo, hi)) {
         sub_128(lo, hi, lo, hi, divisor0, divisor1);
         qh = 1;
     }

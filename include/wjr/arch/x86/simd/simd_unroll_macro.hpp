@@ -8,25 +8,25 @@
 #define WJR_X86_SIMD_UNROLL_FAST_4_OVERLAPABLE(N, UNROLL2, UNROLL4, ADVANCE, INIT4, INIT8, RET)    \
     WJR_ASSUME(N >= 5);                                                                            \
     INIT4();                                                                                       \
-    const size_t __rem = (N - 1) % 16 + 1;                                                         \
+    const size_t _rem = (N - 1) % 16 + 1;                                                          \
     /* probability : 75% */                                                                        \
-    if (WJR_LIKELY(__rem > 4)) {                                                                   \
+    if (WJR_LIKELY(_rem > 4)) {                                                                    \
         /* probability : 66.7% */                                                                  \
-        if (WJR_LIKELY(__rem > 8)) {                                                               \
+        if (WJR_LIKELY(_rem > 8)) {                                                                \
             UNROLL4(4);                                                                            \
-            if (__rem > 12) {                                                                      \
+            if (_rem > 12) {                                                                       \
                 UNROLL4(8);                                                                        \
             }                                                                                      \
         }                                                                                          \
-        UNROLL4(__rem - 4);                                                                        \
-        if (WJR_UNLIKELY(__rem == N)) {                                                            \
+        UNROLL4(_rem - 4);                                                                         \
+        if (WJR_UNLIKELY(_rem == N)) {                                                             \
             return RET(N);                                                                         \
         }                                                                                          \
     }                                                                                              \
                                                                                                    \
     INIT8();                                                                                       \
-    ADVANCE(__rem);                                                                                \
-    N -= __rem;
+    ADVANCE(_rem);                                                                                 \
+    N -= _rem;
 
 #define WJR_X86_SIMD_UNROLL_FAST_2_OVERLAPABLE(N, UNROLL2, UNROLL4, ADVANCE, INIT4, INIT8, RET)    \
     WJR_ASSUME(N >= 3);                                                                            \
@@ -41,22 +41,22 @@
                                                        RET)                                        \
     WJR_ASSUME(N >= 5);                                                                            \
     INIT4();                                                                                       \
-    const size_t __rem = (N - 1) % 16 + 1;                                                         \
-    if (WJR_LIKELY(__rem > 4)) {                                                                   \
-        if (WJR_LIKELY(__rem > 8)) {                                                               \
+    const size_t _rem = (N - 1) % 16 + 1;                                                          \
+    if (WJR_LIKELY(_rem > 4)) {                                                                    \
+        if (WJR_LIKELY(_rem > 8)) {                                                                \
             UNROLL4(N - 8);                                                                        \
-            if (__rem > 12) {                                                                      \
+            if (_rem > 12) {                                                                       \
                 UNROLL4(N - 12);                                                                   \
             }                                                                                      \
         }                                                                                          \
-        UNROLL4(N - __rem);                                                                        \
-        if (WJR_UNLIKELY(__rem == N)) {                                                            \
+        UNROLL4(N - _rem);                                                                         \
+        if (WJR_UNLIKELY(_rem == N)) {                                                             \
             return RET(0);                                                                         \
         }                                                                                          \
     }                                                                                              \
     INIT8();                                                                                       \
-    ADVANCE(N - __rem);                                                                            \
-    N -= __rem;
+    ADVANCE(N - _rem);                                                                             \
+    N -= _rem;
 
 #define WJR_X86_SIMD_UNROLL_REVERSE_FAST_2_OVERLAPABLE(N, UNROLL2, UNROLL4, ADVANCE, INIT4, INIT8, \
                                                        RET)                                        \

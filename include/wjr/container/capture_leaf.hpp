@@ -131,11 +131,11 @@ inline constexpr bool is_compressed_v = is_compressed<T>::value;
 
 /// @private
 template <typename LP, typename RP, typename = void>
-struct __is_tuple_like_impl : std::false_type {};
+struct _is_tuple_like_impl : std::false_type {};
 
 /// @private
 template <typename LP, typename RP>
-struct __is_tuple_like_impl<
+struct _is_tuple_like_impl<
     LP, RP,
     std::enable_if_t<!std::is_same_v<LP, RP> &&
                      std::tuple_size_v<LP> == tp_defer_t<std::tuple_size, RP>::value>>
@@ -145,29 +145,29 @@ struct __is_tuple_like_impl<
  * @brief Use template<...>typename like to like all element of LP and RP.
  *
  * @details For example, like is std::is_assignable, LP is std::tuple<T0, U0>,
- * RP is std::tuple<T1, U1>. \n Then __is_tuple_like =
+ * RP is std::tuple<T1, U1>. \n Then _is_tuple_like =
  * std::conjunction<std::is_assignable<T0, T1>, std::is_assignable<U0, U1>>.
  *
  */
 template <typename LP, typename RP>
-struct __is_tuple_like : __is_tuple_like_impl<LP, remove_cvref_t<RP>> {};
+struct _is_tuple_like : _is_tuple_like_impl<LP, remove_cvref_t<RP>> {};
 
 /**
- * @brief Value of @ref __is_tuple_like.
+ * @brief Value of @ref _is_tuple_like.
  *
  */
 template <typename LP, typename RP>
-inline constexpr bool __is_tuple_like_v = __is_tuple_like<LP, RP>::value;
+inline constexpr bool _is_tuple_like_v = _is_tuple_like<LP, RP>::value;
 
 /// @private
 template <template <typename...> typename Test, typename Seq, typename LP, typename RP,
           typename = void>
-struct __is_tuple_test_impl : std::false_type {};
+struct _is_tuple_test_impl : std::false_type {};
 
 /// @private
 template <template <typename...> typename Test, size_t... Idxs, typename LP, typename RP>
-struct __is_tuple_test_impl<Test, std::index_sequence<Idxs...>, LP, RP,
-                            std::enable_if_t<__is_tuple_like_v<LP, RP>>>
+struct _is_tuple_test_impl<Test, std::index_sequence<Idxs...>, LP, RP,
+                           std::enable_if_t<_is_tuple_like_v<LP, RP>>>
     : std::conjunction<
           Test<std::tuple_element_t<Idxs, LP>, decltype(std::get<Idxs>(std::declval<RP>()))>...> {};
 
@@ -175,24 +175,24 @@ struct __is_tuple_test_impl<Test, std::index_sequence<Idxs...>, LP, RP,
  * @brief Use template<...>typename Test to test all element of LP and RP.
  *
  * @details For example, Test is std::is_assignable, LP is std::tuple<T0, U0>,
- * RP is std::tuple<T1, U1>. \n Then __is_tuple_test =
+ * RP is std::tuple<T1, U1>. \n Then _is_tuple_test =
  * std::conjunction<std::is_assignable<T0, T1>, std::is_assignable<U0, U1>>.
  *
  */
 template <template <typename...> typename Test, typename LP, typename RP>
-struct __is_tuple_test
-    : __is_tuple_test_impl<Test, std::make_index_sequence<std::tuple_size_v<LP>>, LP, RP> {};
+struct _is_tuple_test
+    : _is_tuple_test_impl<Test, std::make_index_sequence<std::tuple_size_v<LP>>, LP, RP> {};
 
 /**
- * @brief Value of @ref __is_tuple_test.
+ * @brief Value of @ref _is_tuple_test.
  *
  */
 template <template <typename...> typename Test, typename LP, typename RP>
-inline constexpr bool __is_tuple_test_v = __is_tuple_test<Test, LP, RP>::value;
+inline constexpr bool _is_tuple_test_v = _is_tuple_test<Test, LP, RP>::value;
 
 /// @private
 template <typename T, typename U>
-struct __is_tuple_assignable : std::is_assignable<T &, U> {};
+struct _is_tuple_assignable : std::is_assignable<T &, U> {};
 
 } // namespace wjr
 

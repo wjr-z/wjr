@@ -11,8 +11,8 @@
 
 namespace wjr::math {
 
-WJR_INTRINSIC_CONSTEXPR20 uint64_t __addc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
-                                                 uint64_t src1, uint64_t c_in) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t _addc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
+                                                uint64_t src1, uint64_t c_in) noexcept {
     uint8_t overflow;
     dst[0] = addc_cc(src0[0], src1, static_cast<uint8_t>(c_in), overflow);
     if (overflow) {
@@ -64,7 +64,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t addc_1(uint64_t *dst, const uint64_t *src0, s
         return overflow;
     }
 
-    return __addc_1_impl(dst, src0, n, src1, c_in);
+    return _addc_1_impl(dst, src0, n, src1, c_in);
 }
 
 WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_addc_n(uint64_t *dst, const uint64_t *src0,

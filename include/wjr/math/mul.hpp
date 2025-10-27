@@ -57,7 +57,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_mul64(uint64_t a, uint64_t b, uint64
     return rl;
 }
 
-WJR_INTRINSIC_CONSTEXPR20 uint64_t __mul_u64(uint64_t a, uint64_t b, uint64_t &hi) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t _mul_u64(uint64_t a, uint64_t b, uint64_t &hi) noexcept {
     if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(a)) {
         if (a == 0) {
             hi = 0;
@@ -125,7 +125,7 @@ WJR_INTRINSIC_CONSTEXPR20 T mul(T a, T b, T &hi) noexcept {
     if constexpr (nd < 64) {
         return fallback_mul(a, b, hi);
     } else {
-        return __mul_u64(a, b, hi);
+        return _mul_u64(a, b, hi);
     }
 }
 

@@ -36,7 +36,7 @@ static const __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 1
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
 
 WJR_CONST WJR_INTRINSIC_INLINE __m128i builtin_to_chars_unroll_8_fast_10(uint32_t in) noexcept {
-    __m128i x = simd_cast<uint32_t, __m128i_t>(in);
+    __m128i x = simd_cast<uint32_t, _m128i_t>(in);
     __m128i q, r;
 
     q = _mm_mul_epu32(x, to_chars_detail::mul10p4);
@@ -69,9 +69,9 @@ WJR_CONST WJR_INTRINSIC_INLINE __m128i builtin_to_chars_unroll_8_fast(uint32_t i
 template <uint64_t Base>
 WJR_INTRINSIC_INLINE void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in,
                                                          char_converter_t) noexcept {
-    write_memory<uint64_t>(
-        ptr, simd_cast<__m128i_t, uint64_t>(builtin_to_chars_unroll_8_fast<Base>(in)) +
-                 0x3030303030303030ull);
+    write_memory<uint64_t>(ptr,
+                           simd_cast<_m128i_t, uint64_t>(builtin_to_chars_unroll_8_fast<Base>(in)) +
+                               0x3030303030303030ull);
 }
 
 template <uint64_t Base>
@@ -143,15 +143,15 @@ namespace {
 
 /// @private
 template <uint64_t Base>
-inline constexpr uint64_t __base2 = Base * Base;
+inline constexpr uint64_t _base2 = Base * Base;
 
 /// @private
 template <uint64_t Base>
-inline constexpr uint64_t __base4 = __base2<Base> * __base2<Base>;
+inline constexpr uint64_t _base4 = _base2<Base> * _base2<Base>;
 
 /// @private
 template <uint64_t Base>
-inline constexpr uint64_t __base8 = __base4<Base> * __base4<Base>;
+inline constexpr uint64_t _base8 = _base4<Base> * _base4<Base>;
 
 /// @private
 template <uint64_t Base>
@@ -161,12 +161,12 @@ static const __m128i mulp1x =
 /// @private
 template <uint64_t Base>
 static const __m128i mulp2x =
-    sse::setr_epi16(__base2<Base>, 1, __base2<Base>, 1, __base2<Base>, 1, __base2<Base>, 1);
+    sse::setr_epi16(_base2<Base>, 1, _base2<Base>, 1, _base2<Base>, 1, _base2<Base>, 1);
 
 /// @private
 template <uint64_t Base>
 static const __m128i mulp4x =
-    sse::setr_epi16(__base4<Base>, 1, __base4<Base>, 1, __base4<Base>, 1, __base4<Base>, 1);
+    sse::setr_epi16(_base4<Base>, 1, _base4<Base>, 1, _base4<Base>, 1, _base4<Base>, 1);
 
 /// @private
 template <uint64_t Base>
@@ -187,7 +187,7 @@ WJR_CONST WJR_INTRINSIC_INLINE uint32_t builtin_from_chars_unroll_8_fast(__m128i
     const __m128i t3 = _mm_packus_epi32(t2, t2);
     const __m128i t4 = _mm_madd_epi16(t3, from_chars_detail::mulp4x<Base>);
 
-    return simd_cast<__m128i_t, uint32_t>(t4);
+    return simd_cast<_m128i_t, uint32_t>(t4);
 }
 
 template <uint64_t Base>
@@ -217,11 +217,11 @@ WJR_CONST WJR_INTRINSIC_INLINE uint64_t builtin_from_chars_unroll_16_fast(__m128
     const __m128i t3 = _mm_packus_epi32(t2, t2);
     const __m128i t4 = _mm_madd_epi16(t3, from_chars_detail::mulp4x<Base>);
 
-    const uint64_t val = simd_cast<__m128i_t, uint64_t>(t4);
+    const uint64_t val = simd_cast<_m128i_t, uint64_t>(t4);
     const auto lo = static_cast<uint32_t>(val);
     const auto hi = static_cast<uint32_t>(val >> 32);
 
-    return lo * from_chars_detail::__base8<Base> + hi;
+    return lo * from_chars_detail::_base8<Base> + hi;
 }
 
 template <uint64_t Base>

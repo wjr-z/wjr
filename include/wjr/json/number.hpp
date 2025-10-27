@@ -39,8 +39,8 @@ struct number_writer {
 
 namespace wjr::fastfloat {
 extern template from_chars_result<>
-__from_chars_impl<json::number_detail::number_writer,
-                  integral_constant<chars_format, chars_format::json>>(
+_from_chars_impl<json::number_detail::number_writer,
+                 integral_constant<chars_format, chars_format::json>>(
     const char *first, const char *last, json::number_detail::number_writer wr,
     integral_constant<chars_format, chars_format::json> options) noexcept;
 }
@@ -51,8 +51,8 @@ namespace number_detail {
 
 WJR_INTRINSIC_INLINE from_chars_result<> from_chars_json(const char *first, const char *last,
                                                          basic_value &value) noexcept {
-    return fastfloat::__from_chars_impl(first, last, number_writer(value),
-                                        integral_constant<chars_format, chars_format::json>());
+    return fastfloat::_from_chars_impl(first, last, number_writer(value),
+                                       integral_constant<chars_format, chars_format::json>());
 }
 
 } // namespace number_detail

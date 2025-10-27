@@ -53,7 +53,7 @@ size_t pow_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t exp, uint64_
 
         for (i = 64 - cnt - 1;;) {
             exp <<= 1;
-            if (__has_high_bit(exp)) {
+            if (_has_high_bit(exp)) {
                 dst[dn] = rh = mul_1(dst, dst, dn, bl);
                 dn += rh != 0;
             }
@@ -76,7 +76,7 @@ size_t pow_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t exp, uint64_
 
         for (i = 64 - cnt - 1;;) {
             exp <<= 1;
-            if (__has_high_bit(exp)) {
+            if (_has_high_bit(exp)) {
                 mul_s(tp, dst, dn, src, n);
                 dn = dn + n - (tp[dn + n - 1] == 0);
                 std::swap(dst, tp);

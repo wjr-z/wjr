@@ -64,7 +64,7 @@ void large_builtin_bi_not_n(T *dst, const T *src, size_t n) noexcept {
     src += offset;
     n -= offset;
 
-    const auto z = broadcast<__m128i_t, typename simd::int_tag_type>(y);
+    const auto z = broadcast<_m128i_t, typename simd::int_tag_type>(y);
 
     size_t m = n & (-type_width * 4);
     n &= (type_width * 4) - 1;

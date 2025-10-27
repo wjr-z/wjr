@@ -5,10 +5,10 @@ namespace wjr {
 namespace biginteger_detail {
 
 template <bool Check>
-from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
-                                                  biginteger_dispatcher dst,
-                                                  unsigned int base) noexcept {
-    const auto *__first = first;
+from_chars_result<const char *> _from_chars_impl(const char *first, const char *last,
+                                                 biginteger_dispatcher dst,
+                                                 unsigned int base) noexcept {
+    const auto *_first = first;
 
     do {
         if (WJR_UNLIKELY(first == last)) {
@@ -71,12 +71,12 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
         if constexpr (Check) {
 #endif
             if (base <= 10) {
-                const auto __try_match = [base](uint8_t &__ch) {
-                    __ch -= '0';
-                    return __ch < base;
+                const auto _try_match = [base](uint8_t &_ch) {
+                    _ch -= '0';
+                    return _ch < base;
                 };
 
-                if (WJR_UNLIKELY(!__try_match(ch))) {
+                if (WJR_UNLIKELY(!_try_match(ch))) {
                     break;
                 }
 
@@ -97,13 +97,13 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
                     return {first, std::errc{}};
                 LOOP_END_0:
 
-                    if (!__try_match(ch)) {
+                    if (!_try_match(ch)) {
                         dst.set_ssize(0);
                         return {first, std::errc{}};
                     }
                 }
 
-                __first = first;
+                _first = first;
 
                 if (++first != last) {
                     if (last - first >= 8) {
@@ -117,20 +117,20 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
                     }
 
                     ch = *first;
-                    if (__try_match(ch)) {
+                    if (_try_match(ch)) {
                         do {
                             ++first;
                             ch = *first;
-                        } while (__try_match(ch));
+                        } while (_try_match(ch));
                     }
                 }
             } else {
-                const auto __try_match = [base](uint8_t &__ch) {
-                    __ch = char_converter.from(__ch);
-                    return __ch < base;
+                const auto _try_match = [base](uint8_t &_ch) {
+                    _ch = char_converter.from(_ch);
+                    return _ch < base;
                 };
 
-                if (WJR_UNLIKELY(!__try_match(ch))) {
+                if (WJR_UNLIKELY(!_try_match(ch))) {
                     break;
                 }
 
@@ -151,13 +151,13 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
                     return {first, std::errc{}};
                 LOOP_END_1:
 
-                    if (!__try_match(ch)) {
+                    if (!_try_match(ch)) {
                         dst.clear();
                         return {first, std::errc{}};
                     }
                 }
 
-                __first = first;
+                _first = first;
 
                 do {
                     ++first;
@@ -166,40 +166,40 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
                     }
 
                     ch = *first;
-                } while (__try_match(ch));
+                } while (_try_match(ch));
             }
 #if WJR_DEBUG_LEVEL < 3
         } else {
-            __first = first;
+            _first = first;
             first = last;
         }
 #endif
 
-        const uint32_t str_size = static_cast<uint32_t>(first - __first);
+        const uint32_t str_size = static_cast<uint32_t>(first - _first);
         uint32_t capacity;
 
         switch (base) {
         case 2: {
-            capacity = __ceil_div(str_size, 64);
+            capacity = _ceil_div(str_size, 64);
             break;
         }
         case 8: {
-            capacity = __ceil_div(str_size * 3, 64);
+            capacity = _ceil_div(str_size * 3, 64);
             break;
         }
         case 16: {
-            capacity = __ceil_div(str_size, 16);
+            capacity = _ceil_div(str_size, 16);
             break;
         }
         case 4:
         case 32: {
             const int bits = base == 4 ? 2 : 5;
-            capacity = __ceil_div(str_size * bits, 64);
+            capacity = _ceil_div(str_size * bits, 64);
             break;
         }
         case 10: {
             // capacity = (str_size * log2(10) + 63) / 64;
-            capacity = __ceil_div(str_size * 10 / 3, 64);
+            capacity = _ceil_div(str_size * 10 / 3, 64);
             break;
         }
         default: {
@@ -210,28 +210,27 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
 
         dst.clear_if_reserved(capacity);
         auto *const ptr = dst.data();
-        int32_t dssize = biginteger_from_chars(__first, first, ptr, base) - ptr;
-        dssize = __fast_conditional_negate<int32_t>(sign, dssize);
+        int32_t dssize = biginteger_from_chars(_first, first, ptr, base) - ptr;
+        dssize = _fast_conditional_negate<int32_t>(sign, dssize);
         dst.set_ssize(dssize);
         return {first, std::errc{}};
     } while (0);
 
     dst.clear();
-    return {__first, std::errc::invalid_argument};
+    return {_first, std::errc::invalid_argument};
 }
 
-template from_chars_result<const char *> __from_chars_impl<false>(const char *first,
-                                                                  const char *last,
-                                                                  biginteger_dispatcher dst,
-                                                                  unsigned int base) noexcept;
-
-template from_chars_result<const char *> __from_chars_impl<true>(const char *first,
+template from_chars_result<const char *> _from_chars_impl<false>(const char *first,
                                                                  const char *last,
                                                                  biginteger_dispatcher dst,
                                                                  unsigned int base) noexcept;
 
+template from_chars_result<const char *> _from_chars_impl<true>(const char *first, const char *last,
+                                                                biginteger_dispatcher dst,
+                                                                unsigned int base) noexcept;
+
 template <bool xsign>
-void __addsub_impl(biginteger_dispatcher dst, const biginteger_view *lhs, uint64_t rhs) noexcept {
+void _addsub_impl(biginteger_dispatcher dst, const biginteger_view *lhs, uint64_t rhs) noexcept {
     const int32_t lssize = lhs->get_ssize();
     if (lssize == 0) {
         dst.clear_if_reserved(1);
@@ -239,14 +238,14 @@ void __addsub_impl(biginteger_dispatcher dst, const biginteger_view *lhs, uint64
         if (rhs == 0) {
             dst.set_ssize(0);
         } else {
-            dst.set_ssize(__fast_conditional_negate<int32_t>(xsign, 1));
+            dst.set_ssize(_fast_conditional_negate<int32_t>(xsign, 1));
             dst.data()[0] = rhs;
         }
 
         return;
     }
 
-    const uint32_t lusize = __fast_abs(lssize);
+    const uint32_t lusize = _fast_abs(lssize);
     dst.reserve(lusize + 1);
 
     auto *const dp = dst.data();
@@ -258,34 +257,34 @@ void __addsub_impl(biginteger_dispatcher dst, const biginteger_view *lhs, uint64
     // todo : Maybe make this a fast path.
     if (compare{}(lssize, 0)) {
         const uint32_t cf = addc_1(dp, lp, lusize, rhs, 0u);
-        dssize = __fast_conditional_negate<int32_t>(xsign, lusize + cf);
+        dssize = _fast_conditional_negate<int32_t>(xsign, lusize + cf);
         if (cf) {
             dp[lusize] = 1;
         }
     } else {
         if (lusize == 1 && lp[0] < rhs) {
             dp[0] = rhs - lp[0];
-            dssize = __fast_conditional_negate<int32_t>(xsign, 1);
+            dssize = _fast_conditional_negate<int32_t>(xsign, 1);
         } else {
             (void)subc_1(dp, lp, lusize, rhs);
-            dssize = __fast_conditional_negate<int32_t>(!xsign, lusize - (dp[lusize - 1] == 0));
+            dssize = _fast_conditional_negate<int32_t>(!xsign, lusize - (dp[lusize - 1] == 0));
         }
     }
 
     dst.set_ssize(dssize);
 }
 
-template void __addsub_impl<false>(biginteger_dispatcher dst, const biginteger_view *lhs,
-                                   uint64_t rhs) noexcept;
-template void __addsub_impl<true>(biginteger_dispatcher dst, const biginteger_view *lhs,
+template void _addsub_impl<false>(biginteger_dispatcher dst, const biginteger_view *lhs,
                                   uint64_t rhs) noexcept;
+template void _addsub_impl<true>(biginteger_dispatcher dst, const biginteger_view *lhs,
+                                 uint64_t rhs) noexcept;
 
-void __addsub_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
-                   const biginteger_view *rhs, bool xsign) noexcept {
+void _addsub_impl(biginteger_dispatcher dst, const biginteger_view *lhs, const biginteger_view *rhs,
+                  bool xsign) noexcept {
     auto lssize = lhs->get_ssize();
-    int32_t rssize = __fast_conditional_negate<int32_t>(xsign, rhs->get_ssize());
-    uint32_t lusize = __fast_abs(lssize);
-    uint32_t rusize = __fast_abs(rssize);
+    int32_t rssize = _fast_conditional_negate<int32_t>(xsign, rhs->get_ssize());
+    uint32_t lusize = _fast_abs(lssize);
+    uint32_t rusize = _fast_abs(rssize);
 
     if (lusize < rusize) {
         std::swap(lhs, rhs);
@@ -312,10 +311,10 @@ void __addsub_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
     // different sign
     if ((lssize ^ rssize) < 0) {
         const auto ans = static_cast<int32_t>(abs_subc_s_pos(dp, lp, lusize, rp, rusize));
-        dssize = __fast_negate_with<int32_t>(lssize, ans);
+        dssize = _fast_negate_with<int32_t>(lssize, ans);
     } else {
         const auto cf = addc_s(dp, lp, lusize, rp, rusize);
-        dssize = __fast_negate_with<int32_t>(lssize, lusize + cf);
+        dssize = _fast_negate_with<int32_t>(lssize, lusize + cf);
         if (cf) {
             dp[lusize] = 1;
         }
@@ -324,12 +323,12 @@ void __addsub_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
     dst.set_ssize(dssize);
 }
 
-void __mul_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
-                const biginteger_view *rhs) noexcept {
+void _mul_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
+               const biginteger_view *rhs) noexcept {
     int32_t lssize = lhs->get_ssize();
     int32_t rssize = rhs->get_ssize();
-    uint32_t lusize = __fast_abs(lssize);
-    uint32_t rusize = __fast_abs(rssize);
+    uint32_t lusize = _fast_abs(lssize);
+    uint32_t rusize = _fast_abs(rssize);
 
     if (lusize < rusize) {
         std::swap(lhs, rhs);
@@ -349,7 +348,7 @@ void __mul_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
     if (rusize == 1) {
         dst.reserve(lusize + 1);
         const auto cf = mul_1(dst.data(), lhs->data(), lusize, rhs->data()[0]);
-        dssize = __fast_negate_with<int32_t>(mask, lusize + (cf != 0));
+        dssize = _fast_negate_with<int32_t>(mask, lusize + (cf != 0));
         if (cf != 0) {
             dst.data()[lusize] = cf;
         }
@@ -392,7 +391,7 @@ void __mul_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
     }
 
     const bool cf = dp[dusize - 1] == 0;
-    dssize = __fast_negate_with<int32_t>(mask, dusize - cf);
+    dssize = _fast_negate_with<int32_t>(mask, dusize - cf);
 
     if (tmp.has_value()) {
         dst.move_assign(tmp.raw());
@@ -402,9 +401,9 @@ void __mul_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
     dst.set_ssize(dssize);
 }
 
-void __sqr_impl(biginteger_dispatcher dst, const biginteger_view *src) noexcept {
+void _sqr_impl(biginteger_dispatcher dst, const biginteger_view *src) noexcept {
     int32_t sssize = src->get_ssize();
-    uint32_t susize = __fast_abs(sssize);
+    uint32_t susize = _fast_abs(sssize);
 
     if (WJR_UNLIKELY(susize == 0)) {
         dst.set_ssize(0);
@@ -461,15 +460,15 @@ void __sqr_impl(biginteger_dispatcher dst, const biginteger_view *src) noexcept 
     dst.set_ssize(dssize);
 }
 
-void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_view *lhs, uint64_t rhs,
-                      int32_t xmask) noexcept {
+void _addsubmul_impl(biginteger_dispatcher dst, const biginteger_view *lhs, uint64_t rhs,
+                     int32_t xmask) noexcept {
     const int32_t lssize = lhs->get_ssize();
 
     if (lssize == 0 || rhs == 0) {
         return;
     }
 
-    const uint32_t lusize = __fast_abs(lssize);
+    const uint32_t lusize = _fast_abs(lssize);
     int32_t dssize = dst.get_ssize();
 
     if (dssize == 0) {
@@ -481,14 +480,14 @@ void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_view *lhs, uin
             dp[lusize] = cf;
         }
 
-        dst.set_ssize(__fast_negate_with(xmask, dssize));
+        dst.set_ssize(_fast_negate_with(xmask, dssize));
         return;
     }
 
     xmask ^= lssize;
     xmask ^= dssize;
 
-    const uint32_t dusize = __fast_abs(dssize);
+    const uint32_t dusize = _fast_abs(dssize);
 
     uint32_t new_dusize = std::max(lusize, dusize);
     const uint32_t min_size = std::min(lusize, dusize);
@@ -537,7 +536,7 @@ void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_view *lhs, uin
                     cf += math::bi_negate_n(dp, dp, new_dusize) - 1;
                     dp[new_dusize] = cf;
                     ++new_dusize;
-                    dssize = __fast_negate(dssize);
+                    dssize = _fast_negate(dssize);
                 }
             } else {
                 cf += math::bi_negate_n(dp, dp, dusize) - 1;
@@ -555,18 +554,18 @@ void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_view *lhs, uin
                     (void)subc_1(dp + dusize, dp + dusize, new_dusize - dusize, 1);
                 }
 
-                dssize = __fast_negate(dssize);
+                dssize = _fast_negate(dssize);
             }
 
             new_dusize = normalize(dp, new_dusize);
         } while (0);
     }
 
-    dst.set_ssize(__fast_conditional_negate<int32_t>(dssize < 0, new_dusize));
+    dst.set_ssize(_fast_conditional_negate<int32_t>(dssize < 0, new_dusize));
 }
 
-void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
-                      const biginteger_view *rhs, int32_t xmask) noexcept {
+void _addsubmul_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
+                     const biginteger_view *rhs, int32_t xmask) noexcept {
     int32_t lssize = lhs->get_ssize();
     int32_t rssize = rhs->get_ssize();
 
@@ -574,8 +573,8 @@ void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
         return;
     }
 
-    uint32_t lusize = __fast_abs(lssize);
-    uint32_t rusize = __fast_abs(rssize);
+    uint32_t lusize = _fast_abs(lssize);
+    uint32_t rusize = _fast_abs(rssize);
 
     if (lusize < rusize) {
         std::swap(lhs, rhs);
@@ -586,7 +585,7 @@ void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
     xmask ^= rssize;
 
     if (rusize == 1) {
-        __addsubmul_impl(dst, lhs, rhs->data()[0], xmask);
+        _addsubmul_impl(dst, lhs, rhs->data()[0], xmask);
         return;
     }
 
@@ -594,7 +593,7 @@ void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
 
     int32_t dssize = dst.get_ssize();
     xmask ^= dssize;
-    uint32_t dusize = __fast_abs(dssize);
+    uint32_t dusize = _fast_abs(dssize);
 
     uint32_t tusize = lusize + rusize;
     dst.reserve(std::max(tusize, dusize) + 1);
@@ -603,7 +602,7 @@ void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
     if (dssize == 0) {
         mul_s(dp, lhs->data(), lusize, rhs->data(), rusize);
         tusize -= dp[tusize - 1] == 0;
-        dst.set_ssize(__fast_conditional_negate<int32_t>(xmask < 0, tusize));
+        dst.set_ssize(_fast_conditional_negate<int32_t>(xmask < 0, tusize));
         return;
     }
 
@@ -638,25 +637,24 @@ void __addsubmul_impl(biginteger_dispatcher dst, const biginteger_view *lhs,
 
             dusize = uusize;
 
-            dssize = __fast_negate(dssize);
+            dssize = _fast_negate(dssize);
         }
 
         (void)subc_s(dp, up, uusize, tp, tusize);
         dssize = normalize(dp, dusize);
     }
 
-    dst.set_ssize(__fast_conditional_negate<int32_t>(dssize < 0, dusize));
+    dst.set_ssize(_fast_conditional_negate<int32_t>(dssize < 0, dusize));
 }
 
-void __tdiv_qr_impl(biginteger_dispatcher quot, biginteger_dispatcher rem,
-                    const biginteger_view *num, const biginteger_view *div) noexcept {
-    WJR_ASSERT_ASSUME(!__equal_pointer(quot.raw(), rem.raw()),
-                      "quot should not be the same as rem");
+void _tdiv_qr_impl(biginteger_dispatcher quot, biginteger_dispatcher rem,
+                   const biginteger_view *num, const biginteger_view *div) noexcept {
+    WJR_ASSERT_ASSUME(!_equal_pointer(quot.raw(), rem.raw()), "quot should not be the same as rem");
 
     const auto nssize = num->get_ssize();
     const auto dssize = div->get_ssize();
-    const auto nusize = __fast_abs(nssize);
-    auto dusize = __fast_abs(dssize);
+    const auto nusize = _fast_abs(nssize);
+    auto dusize = _fast_abs(dssize);
     int32_t qssize = nusize - dusize + 1;
 
     WJR_ASSERT(dusize != 0, "division by zero");
@@ -703,16 +701,16 @@ void __tdiv_qr_impl(biginteger_dispatcher quot, biginteger_dispatcher rem,
     qssize -= qp[qssize - 1] == 0;
     dusize = normalize(rp, dusize);
 
-    quot.set_ssize(__fast_conditional_negate<int32_t>((nssize ^ dssize) < 0, qssize));
-    rem.set_ssize(__fast_conditional_negate<int32_t>(nssize < 0, dusize));
+    quot.set_ssize(_fast_conditional_negate<int32_t>((nssize ^ dssize) < 0, qssize));
+    rem.set_ssize(_fast_conditional_negate<int32_t>(nssize < 0, dusize));
 }
 
-void __tdiv_q_impl(biginteger_dispatcher quot, const biginteger_view *num,
-                   const biginteger_view *div) noexcept {
+void _tdiv_q_impl(biginteger_dispatcher quot, const biginteger_view *num,
+                  const biginteger_view *div) noexcept {
     const auto nssize = num->get_ssize();
     const auto dssize = div->get_ssize();
-    const auto nusize = __fast_abs(nssize);
-    const auto dusize = __fast_abs(dssize);
+    const auto nusize = _fast_abs(nssize);
+    const auto dusize = _fast_abs(dssize);
     int32_t qssize = nusize - dusize + 1;
 
     WJR_ASSERT(dusize != 0, "division by zero");
@@ -750,15 +748,15 @@ void __tdiv_q_impl(biginteger_dispatcher quot, const biginteger_view *num,
     div_qr_s(qp, rp, np, nusize, dp, dusize);
 
     qssize -= qp[qssize - 1] == 0;
-    quot.set_ssize(__fast_conditional_negate<int32_t>((nssize ^ dssize) < 0, qssize));
+    quot.set_ssize(_fast_conditional_negate<int32_t>((nssize ^ dssize) < 0, qssize));
 }
 
-void __tdiv_r_impl(biginteger_dispatcher rem, const biginteger_view *num,
-                   const biginteger_view *div) noexcept {
+void _tdiv_r_impl(biginteger_dispatcher rem, const biginteger_view *num,
+                  const biginteger_view *div) noexcept {
     const auto nssize = num->get_ssize();
     const auto dssize = div->get_ssize();
-    const auto nusize = __fast_abs(nssize);
-    auto dusize = __fast_abs(dssize);
+    const auto nusize = _fast_abs(nssize);
+    auto dusize = _fast_abs(dssize);
     const int32_t qssize = nusize - dusize + 1;
 
     WJR_ASSERT(dusize != 0, "division by zero");
@@ -801,11 +799,11 @@ void __tdiv_r_impl(biginteger_dispatcher rem, const biginteger_view *num,
     div_qr_s(qp, rp, np, nusize, dp, dusize);
 
     dusize = normalize(rp, dusize);
-    rem.set_ssize(__fast_conditional_negate<int32_t>(nssize < 0, dusize));
+    rem.set_ssize(_fast_conditional_negate<int32_t>(nssize < 0, dusize));
 }
 
-void __cfdiv_r_2exp_impl(biginteger_dispatcher rem, const biginteger_view *num, uint32_t shift,
-                         int32_t xdir) noexcept {
+void _cfdiv_r_2exp_impl(biginteger_dispatcher rem, const biginteger_view *num, uint32_t shift,
+                        int32_t xdir) noexcept {
     int32_t nssize = num->get_ssize();
 
     if (nssize == 0) {
@@ -813,7 +811,7 @@ void __cfdiv_r_2exp_impl(biginteger_dispatcher rem, const biginteger_view *num, 
         return;
     }
 
-    uint32_t nusize = __fast_abs(nssize);
+    uint32_t nusize = _fast_abs(nssize);
     uint32_t offset = shift / 64;
     shift %= 64;
 
@@ -821,7 +819,7 @@ void __cfdiv_r_2exp_impl(biginteger_dispatcher rem, const biginteger_view *num, 
     auto *np = const_cast<uint64_t *>(num->data());
 
     if ((nssize ^ xdir) < 0) {
-        if (__equal_pointer(rem.raw(), num)) {
+        if (_equal_pointer(rem.raw(), num)) {
             if (nusize <= offset) {
                 return;
             }
@@ -878,10 +876,10 @@ void __cfdiv_r_2exp_impl(biginteger_dispatcher rem, const biginteger_view *num, 
         ++offset;
     }
 
-    rem.set_ssize(__fast_conditional_negate<int32_t>(nssize < 0, offset));
+    rem.set_ssize(_fast_conditional_negate<int32_t>(nssize < 0, offset));
 }
 
-void __pow_impl(biginteger_dispatcher dst, const biginteger_view *num, uint32_t exp) noexcept {
+void _pow_impl(biginteger_dispatcher dst, const biginteger_view *num, uint32_t exp) noexcept {
     const int32_t nssize = num->get_ssize();
     if (WJR_UNLIKELY(nssize == 0)) {
         dst = exp == 0 ? 1u : 0u;
@@ -894,13 +892,13 @@ void __pow_impl(biginteger_dispatcher dst, const biginteger_view *num, uint32_t 
         } else if (exp == 1) {
             dst.copy_assign(num);
         } else {
-            __sqr_impl(dst, num);
+            _sqr_impl(dst, num);
         }
         return;
     }
 
-    const uint32_t nusize = __fast_abs(nssize);
-    const uint32_t max_dusize = (uint64_t(__bit_width_impl(num)) * exp + 63) / 64 + 1;
+    const uint32_t nusize = _fast_abs(nssize);
+    const uint32_t max_dusize = (uint64_t(_bit_width_impl(num)) * exp + 63) / 64 + 1;
 
     using pointer = uint64_t *;
 
@@ -930,7 +928,7 @@ void __pow_impl(biginteger_dispatcher dst, const biginteger_view *num, uint32_t 
         tmp.destroy();
     }
 
-    dst.set_ssize(__fast_conditional_negate<int32_t>((nssize < 0) && (exp & 1), dusize));
+    dst.set_ssize(_fast_conditional_negate<int32_t>((nssize < 0) && (exp & 1), dusize));
 }
 
 } // namespace biginteger_detail
@@ -966,7 +964,7 @@ std::ostream &operator<<(std::ostream &os, const biginteger_view &src) noexcept 
         (void)to_chars_unchecked(std::back_inserter(buffer), src, base);
         // seems won't be empty
         WJR_ASSERT(!buffer.empty());
-        __ostream_insert_unchecked(os, buffer.data(), buffer.size());
+        _ostream_insert_unchecked(os, buffer.data(), buffer.size());
     } else {
         os.setstate(std::ios::badbit);
     }

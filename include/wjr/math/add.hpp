@@ -23,21 +23,21 @@ namespace wjr::math {
 namespace detail {
 /// @private Check if value is constant or zero at compile time
 template <typename T>
-constexpr int __is_constant_or_zero(T x) noexcept {
+constexpr int _is_constant_or_zero(T x) noexcept {
     return WJR_BUILTIN_CONSTANT_P_TRUE(x == 0) ? 2 : WJR_BUILTIN_CONSTANT_P(x) ? 1 : 0;
 }
 
 /// @private Count number of constant or zero arguments
 template <typename... Args>
-constexpr int __count_constant_or_zero_impl(Args... args) noexcept {
-    return (... + __is_constant_or_zero(args));
+constexpr int _count_constant_or_zero_impl(Args... args) noexcept {
+    return (... + _is_constant_or_zero(args));
 }
 
 /// @private Wrapper for counting constant/zero arguments with compiler check
 template <typename... Args>
-constexpr int __count_constant_or_zero(Args... args) noexcept {
+constexpr int _count_constant_or_zero(Args... args) noexcept {
 #if WJR_HAS_BUILTIN(__builtin_constant_p)
-    int ret = __count_constant_or_zero_impl(args...);
+    int ret = _count_constant_or_zero_impl(args...);
     return WJR_BUILTIN_CONSTANT_P(ret) ? ret : 0;
 #else
     return 0;
@@ -73,9 +73,9 @@ WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) noexcept {
 
     #define WJR_REGISTER_BUILTIN_ADDC(suffix, type)                                                \
         if constexpr (nd <= std::numeric_limits<type>::digits) {                                   \
-            type __c_out;                                                                          \
-            T ret = __builtin_addc##suffix(a, b, static_cast<type>(c_in), &__c_out);               \
-            c_out = static_cast<U>(__c_out);                                                       \
+            type _c_out;                                                                           \
+            T ret = __builtin_addc##suffix(a, b, static_cast<type>(c_in), &_c_out);                \
+            c_out = static_cast<U>(_c_out);                                                        \
             return ret;                                                                            \
         } else
 
@@ -114,7 +114,7 @@ WJR_INTRINSIC_CONSTEXPR20 T addc(T a, T b, type_identity_t<U> c_in, U &c_out) no
 #if !WJR_HAS_BUILTIN(ADDC) && !WJR_HAS_BUILTIN(ASM_ADDC)
     return fallback_addc(a, b, c_in, c_out);
 #else
-    if (is_constant_evaluated() || detail::__count_constant_or_zero(a, b, c_in) >= 2) {
+    if (is_constant_evaluated() || detail::_count_constant_or_zero(a, b, c_in) >= 2) {
         return fallback_addc(a, b, c_in, c_out);
     }
 
@@ -150,7 +150,7 @@ WJR_INTRINSIC_CONSTEXPR20 T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noex
     WJR_ASSERT_ASSUME_L2(c_in <= 1);
 
 #if WJR_HAS_BUILTIN(ASM_ADDC_CC)
-    if (is_constant_evaluated() || detail::__count_constant_or_zero(a, b, c_in) >= 2) {
+    if (is_constant_evaluated() || detail::_count_constant_or_zero(a, b, c_in) >= 2) {
         return fallback_addc(a, b, c_in, c_out);
     }
 
@@ -187,14 +187,14 @@ WJR_INTRINSIC_CONSTEXPR20 bool add_overflow(type_identity_t<T> a, type_identity_
 /// @brief <ah, al> = <hi0, lo0> + <hi1, lo1>
 WJR_INTRINSIC_CONSTEXPR void add_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
                                      uint64_t lo1, uint64_t hi1) noexcept {
-    const uint64_t __al = lo0 + lo1;
-    ah = hi0 + hi1 + (__al < lo0);
-    al = __al;
+    const uint64_t _al = lo0 + lo1;
+    ah = hi0 + hi1 + (_al < lo0);
+    al = _al;
 }
 
-WJR_INTRINSIC_CONSTEXPR20 uint64_t __fallback_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                                       uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                                       uint64_t c_in) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t _fallback_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                                      uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                                      uint64_t c_in) noexcept {
     al = addc(lo0, lo1, c_in, c_in);
     ah = addc(hi0, hi1, c_in, c_in);
     return c_in;
@@ -203,31 +203,30 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t __fallback_addc_128(uint64_t &al, uint64_t &a
 /**
  * @return carry-out
  */
-WJR_INTRINSIC_CONSTEXPR20 uint64_t __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                              uint64_t c_in) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t _addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0, uint64_t hi0,
+                                             uint64_t lo1, uint64_t hi1, uint64_t c_in) noexcept {
 #if WJR_HAS_BUILTIN(__ASM_ADDC_128)
     if (is_constant_evaluated()) {
-        return __fallback_addc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+        return _fallback_addc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
     }
 
-    return __asm_addc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+    return _asm_addc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
 #else
-    return __fallback_addc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+    return _fallback_addc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
 #endif
 }
 
-WJR_INTRINSIC_CONSTEXPR20 uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                                uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                                uint8_t c_in) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint8_t _addc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                               uint8_t c_in) noexcept {
 #if WJR_HAS_BUILTIN(__ASM_ADDC_CC_128)
     if (is_constant_evaluated()) {
-        return truncate_cast<uint8_t>(__fallback_addc_128(al, ah, lo0, hi0, lo1, hi1, c_in));
+        return truncate_cast<uint8_t>(_fallback_addc_128(al, ah, lo0, hi0, lo1, hi1, c_in));
     }
 
-    return __asm_addc_cc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+    return _asm_addc_cc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
 #else
-    return truncate_cast<uint8_t>(__addc_128(al, ah, lo0, hi0, lo1, hi1, c_in));
+    return truncate_cast<uint8_t>(_addc_128(al, ah, lo0, hi0, lo1, hi1, c_in));
 #endif
 }
 

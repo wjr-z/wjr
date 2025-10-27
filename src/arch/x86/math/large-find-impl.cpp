@@ -60,11 +60,11 @@ WJR_PURE size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) noe
 
     #include <wjr/arch/x86/simd/detail/unroll_prefix4.hpp>
 
-    const auto *__src0 = src0;
-    const auto *__end0 = src0 + n;
+    const auto *_src0 = src0;
+    const auto *_end0 = src0 + n;
 
     #undef WJR_XI
-    #define WJR_XI (src0 - __src0)
+    #define WJR_XI (src0 - _src0)
 
     // small size, use unroll4, 36 = 4 + 16 + 16
     if (n <= 36) {
@@ -76,7 +76,7 @@ WJR_PURE size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) noe
 
             src0 += 4;
             src1 += 4;
-        } while (WJR_LIKELY(src0 != __end0));
+        } while (WJR_LIKELY(src0 != _end0));
     } else {
     #include <wjr/arch/x86/simd/detail/unroll_prefix16.hpp>
 
@@ -118,10 +118,10 @@ WJR_PURE size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) noe
 
             src0 += type_width * 4;
             src1 += type_width * 4;
-        } while (WJR_LIKELY(src0 != __end0));
+        } while (WJR_LIKELY(src0 != _end0));
     }
 
-    return __end0 - __src0;
+    return _end0 - _src0;
 
     #include <wjr/arch/x86/simd/detail/unroll_footer.hpp>
 
@@ -170,7 +170,7 @@ WJR_PURE size_t large_builtin_find_n(const T *src, T val, size_t n) noexcept {
     #define WJRX_INIT2() const auto y2 = sse::set1(val, T());
 
     #if WJR_HAS_SIMD(AVX2)
-        #define WJRX_INIT4() const auto y4 = broadcast<__m128i_t, __m256i_t>(y2);
+        #define WJRX_INIT4() const auto y4 = broadcast<_m128i_t, _m256i_t>(y2);
     #else
         #define WJRX_INIT4()
     #endif
@@ -181,11 +181,11 @@ WJR_PURE size_t large_builtin_find_n(const T *src, T val, size_t n) noexcept {
 
     #include <wjr/arch/x86/simd/detail/unroll_prefix4.hpp>
 
-    const auto *__src = src;
-    const auto *__end = src + n;
+    const auto *_src = src;
+    const auto *_end = src + n;
 
     #undef WJR_XI
-    #define WJR_XI (src - __src)
+    #define WJR_XI (src - _src)
 
     // small size, use unroll4, 36 = 4 + 16 + 16
     if (n <= 36) {
@@ -195,7 +195,7 @@ WJR_PURE size_t large_builtin_find_n(const T *src, T val, size_t n) noexcept {
             WJRX_UNROLL4(0);
 
             src += 4;
-        } while (WJR_LIKELY(src != __end));
+        } while (WJR_LIKELY(src != _end));
     } else {
     #include <wjr/arch/x86/simd/detail/unroll_prefix16.hpp>
 
@@ -238,10 +238,10 @@ WJR_PURE size_t large_builtin_find_n(const T *src, T val, size_t n) noexcept {
             }
 
             src += type_width * 4;
-        } while (WJR_LIKELY(src != __end));
+        } while (WJR_LIKELY(src != _end));
     }
 
-    return __end - __src;
+    return _end - _src;
 
     #include <wjr/arch/x86/simd/detail/unroll_footer.hpp>
 
@@ -298,11 +298,11 @@ size_t large_builtin_find_not_n(const T *src0, const T *src1, size_t n) noexcept
 
     #include <wjr/arch/x86/simd/detail/unroll_prefix4.hpp>
 
-    const auto *__src0 = src0;
-    const auto *__end0 = src0 + n;
+    const auto *_src0 = src0;
+    const auto *_end0 = src0 + n;
 
     #undef WJR_XI
-    #define WJR_XI (src0 - __src0)
+    #define WJR_XI (src0 - _src0)
 
     // small size, use unroll4, 36 = 4 + 16 + 16
     if (n <= 36) {
@@ -314,7 +314,7 @@ size_t large_builtin_find_not_n(const T *src0, const T *src1, size_t n) noexcept
 
             src0 += 4;
             src1 += 4;
-        } while (WJR_LIKELY(src0 != __end0));
+        } while (WJR_LIKELY(src0 != _end0));
     } else {
     #include <wjr/arch/x86/simd/detail/unroll_prefix16.hpp>
 
@@ -356,10 +356,10 @@ size_t large_builtin_find_not_n(const T *src0, const T *src1, size_t n) noexcept
 
             src0 += type_width * 4;
             src1 += type_width * 4;
-        } while (WJR_LIKELY(src0 != __end0));
+        } while (WJR_LIKELY(src0 != _end0));
     }
 
-    return __end0 - __src0;
+    return _end0 - _src0;
 
     #include <wjr/arch/x86/simd/detail/unroll_footer.hpp>
 
@@ -407,7 +407,7 @@ size_t large_builtin_find_not_n(const T *src, T val, size_t n) noexcept {
     #define WJRX_INIT2() const auto y2 = sse::set1(val, T());
 
     #if WJR_HAS_SIMD(AVX2)
-        #define WJRX_INIT4() const auto y4 = broadcast<__m128i_t, __m256i_t>(y2);
+        #define WJRX_INIT4() const auto y4 = broadcast<_m128i_t, _m256i_t>(y2);
     #endif
 
     #define WJRX_RETURN_I(I) I
@@ -416,11 +416,11 @@ size_t large_builtin_find_not_n(const T *src, T val, size_t n) noexcept {
 
     #include <wjr/arch/x86/simd/detail/unroll_prefix4.hpp>
 
-    const auto *__src = src;
-    const auto *__end = src + n;
+    const auto *_src = src;
+    const auto *_end = src + n;
 
     #undef WJR_XI
-    #define WJR_XI (src - __src)
+    #define WJR_XI (src - _src)
 
     // small size, use unroll4, 36 = 4 + 16 + 16
     if (n <= 36) {
@@ -429,7 +429,7 @@ size_t large_builtin_find_not_n(const T *src, T val, size_t n) noexcept {
         do {
             WJRX_UNROLL4(0);
             src += 4;
-        } while (WJR_LIKELY(src != __end));
+        } while (WJR_LIKELY(src != _end));
     } else {
     #include <wjr/arch/x86/simd/detail/unroll_prefix16.hpp>
 
@@ -472,10 +472,10 @@ size_t large_builtin_find_not_n(const T *src, T val, size_t n) noexcept {
             }
 
             src += type_width * 4;
-        } while (WJR_LIKELY(src != __end));
+        } while (WJR_LIKELY(src != _end));
     }
 
-    return __end - __src;
+    return _end - _src;
 
     #include <wjr/arch/x86/simd/detail/unroll_footer.hpp>
 
@@ -534,10 +534,10 @@ WJR_PURE size_t large_builtin_reverse_find_n(const T *src0, const T *src1, size_
 
     #include <wjr/arch/x86/simd/detail/unroll_prefix4.hpp>
 
-    const auto *__src0 = src0;
+    const auto *_src0 = src0;
 
     #undef WJR_XI
-    #define WJR_XI (src0 - __src0)
+    #define WJR_XI (src0 - _src0)
 
     // small size, use unroll4, 36 = 4 + 16 + 16
     if (n <= 36) {
@@ -549,7 +549,7 @@ WJR_PURE size_t large_builtin_reverse_find_n(const T *src0, const T *src1, size_
 
             src0 -= 4;
             src1 -= 4;
-        } while (WJR_LIKELY(src0 != __src0));
+        } while (WJR_LIKELY(src0 != _src0));
     } else {
     #include <wjr/arch/x86/simd/detail/unroll_prefix16.hpp>
 
@@ -592,7 +592,7 @@ WJR_PURE size_t large_builtin_reverse_find_n(const T *src0, const T *src1, size_
 
             src0 -= type_width * 4;
             src1 -= type_width * 4;
-        } while (WJR_LIKELY(src0 != __src0));
+        } while (WJR_LIKELY(src0 != _src0));
     }
 
     return 0;
@@ -645,7 +645,7 @@ WJR_PURE size_t large_builtin_reverse_find_n(const T *src, T val, size_t n) noex
     #define WJRX_INIT2() const auto y2 = sse::set1(val, T());
 
     #if WJR_HAS_SIMD(AVX2)
-        #define WJRX_INIT4() const auto y4 = broadcast<__m128i_t, __m256i_t>(y2);
+        #define WJRX_INIT4() const auto y4 = broadcast<_m128i_t, _m256i_t>(y2);
     #endif
 
     #define WJRX_RETURN_I(I) I
@@ -654,10 +654,10 @@ WJR_PURE size_t large_builtin_reverse_find_n(const T *src, T val, size_t n) noex
 
     #include <wjr/arch/x86/simd/detail/unroll_prefix4.hpp>
 
-    const auto *__src = src;
+    const auto *_src = src;
 
     #undef WJR_XI
-    #define WJR_XI (src - __src)
+    #define WJR_XI (src - _src)
 
     // small size, use unroll4, 36 = 4 + 16 + 16
     if (n <= 36) {
@@ -667,7 +667,7 @@ WJR_PURE size_t large_builtin_reverse_find_n(const T *src, T val, size_t n) noex
             WJRX_UNROLL4_I(-4);
 
             src -= 4;
-        } while (WJR_LIKELY(src != __src));
+        } while (WJR_LIKELY(src != _src));
     } else {
     #include <wjr/arch/x86/simd/detail/unroll_prefix16.hpp>
 
@@ -710,7 +710,7 @@ WJR_PURE size_t large_builtin_reverse_find_n(const T *src, T val, size_t n) noex
             }
 
             src -= type_width * 4;
-        } while (WJR_LIKELY(src != __src));
+        } while (WJR_LIKELY(src != _src));
     }
 
     return 0;
@@ -771,10 +771,10 @@ size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1, size_t n) 
 
     #include <wjr/arch/x86/simd/detail/unroll_prefix4.hpp>
 
-    const auto *__src0 = src0;
+    const auto *_src0 = src0;
 
     #undef WJR_XI
-    #define WJR_XI (src0 - __src0)
+    #define WJR_XI (src0 - _src0)
 
     // small size, use unroll4, 36 = 4 + 16 + 16
     if (n <= 36) {
@@ -786,7 +786,7 @@ size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1, size_t n) 
 
             src0 -= 4;
             src1 -= 4;
-        } while (WJR_LIKELY(src0 != __src0));
+        } while (WJR_LIKELY(src0 != _src0));
     } else {
     #include <wjr/arch/x86/simd/detail/unroll_prefix16.hpp>
 
@@ -829,7 +829,7 @@ size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1, size_t n) 
 
             src0 -= type_width * 4;
             src1 -= type_width * 4;
-        } while (WJR_LIKELY(src0 != __src0));
+        } while (WJR_LIKELY(src0 != _src0));
     }
 
     return 0;
@@ -881,7 +881,7 @@ size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) noexcept 
     #define WJRX_INIT2() const auto y2 = sse::set1(val, T());
 
     #if WJR_HAS_SIMD(AVX2)
-        #define WJRX_INIT4() const auto y4 = broadcast<__m128i_t, __m256i_t>(y2);
+        #define WJRX_INIT4() const auto y4 = broadcast<_m128i_t, _m256i_t>(y2);
     #endif
 
     #define WJRX_RETURN_I(I) I
@@ -890,10 +890,10 @@ size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) noexcept 
 
     #include <wjr/arch/x86/simd/detail/unroll_prefix4.hpp>
 
-    const auto *__src = src;
+    const auto *_src = src;
 
     #undef WJR_XI
-    #define WJR_XI (src - __src)
+    #define WJR_XI (src - _src)
 
     // small size, use unroll4, 36 = 4 + 16 + 16
     if (n <= 36) {
@@ -903,7 +903,7 @@ size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) noexcept 
             WJRX_UNROLL4_I(-4);
 
             src -= 4;
-        } while (WJR_LIKELY(src != __src));
+        } while (WJR_LIKELY(src != _src));
     } else {
     #include <wjr/arch/x86/simd/detail/unroll_prefix16.hpp>
 
@@ -946,7 +946,7 @@ size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) noexcept 
             }
 
             src -= type_width * 4;
-        } while (WJR_LIKELY(src != __src));
+        } while (WJR_LIKELY(src != _src));
     }
 
     return 0;

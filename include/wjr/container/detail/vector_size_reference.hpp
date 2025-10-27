@@ -51,7 +51,7 @@ private:
 
 /// @private
 template <typename pointer, typename size_type>
-struct __unref_wrapper_helper<default_vector_size_reference<pointer, size_type>> {
+struct _unref_wrapper_helper<default_vector_size_reference<pointer, size_type>> {
     using type = size_type &;
 };
 } // namespace wjr

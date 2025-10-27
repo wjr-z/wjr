@@ -51,52 +51,52 @@ inline constexpr bool is_any_insert_iterator_v = is_any_insert_iterator<T>::valu
 
 /// @private
 template <typename Iter>
-struct __inserter_container_accessor : Iter {
-    __inserter_container_accessor(Iter it) noexcept(std::is_nothrow_copy_constructible_v<Iter>)
+struct _inserter_container_accessor : Iter {
+    _inserter_container_accessor(Iter it) noexcept(std::is_nothrow_copy_constructible_v<Iter>)
         : Iter(it) {}
     using Iter::container;
 };
 
 /// @private
 template <typename Iter>
-__inserter_container_accessor(Iter) -> __inserter_container_accessor<Iter>;
+_inserter_container_accessor(Iter) -> _inserter_container_accessor<Iter>;
 
 /// @private
 template <typename Iter>
-struct __inserter_iterator_accessor : Iter {
-    __inserter_iterator_accessor(Iter it) noexcept(std::is_nothrow_copy_constructible_v<Iter>)
+struct _inserter_iterator_accessor : Iter {
+    _inserter_iterator_accessor(Iter it) noexcept(std::is_nothrow_copy_constructible_v<Iter>)
         : Iter(it) {}
     using Iter::iter;
 };
 
 template <typename Iter>
-__inserter_iterator_accessor(Iter) -> __inserter_iterator_accessor<Iter>;
+_inserter_iterator_accessor(Iter) -> _inserter_iterator_accessor<Iter>;
 
 template <typename Container>
 Container &get_inserter_container(std::insert_iterator<Container> it) noexcept(
     std::is_nothrow_copy_constructible_v<std::insert_iterator<Container>>) {
-    __inserter_container_accessor tmp(it);
+    _inserter_container_accessor tmp(it);
     return *(tmp.container);
 }
 
 template <typename Container>
 Container &get_inserter_container(std::back_insert_iterator<Container> it) noexcept(
     std::is_nothrow_copy_constructible_v<std::back_insert_iterator<Container>>) {
-    __inserter_container_accessor tmp(it);
+    _inserter_container_accessor tmp(it);
     return *(tmp.container);
 }
 
 template <typename Container>
 Container &get_inserter_container(std::front_insert_iterator<Container> it) noexcept(
     std::is_nothrow_copy_constructible_v<std::front_insert_iterator<Container>>) {
-    __inserter_container_accessor tmp(it);
+    _inserter_container_accessor tmp(it);
     return *(tmp.container);
 }
 
 template <typename Container>
 typename Container::iterator get_inserter_iterator(std::insert_iterator<Container> it) noexcept(
     std::is_nothrow_copy_constructible_v<std::insert_iterator<Container>>) {
-    __inserter_iterator_accessor tmp(it);
+    _inserter_iterator_accessor tmp(it);
     return *(tmp.iter);
 }
 

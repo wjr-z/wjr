@@ -51,46 +51,45 @@
 namespace wjr {
 
 WJR_NORETURN WJR_COLD WJR_SYMBOL_EXPORT extern void
-__assert_failed(const char *expr, const char *file, const char *func, int line) noexcept;
+_assert_failed(const char *expr, const char *file, const char *func, int line) noexcept;
 
-WJR_NORETURN WJR_COLD WJR_SYMBOL_EXPORT extern void
-__assert_light_failed(const char *expr) noexcept;
+WJR_NORETURN WJR_COLD WJR_SYMBOL_EXPORT extern void _assert_light_failed(const char *expr) noexcept;
 
 // LCOV_EXCL_START
 
 /// @private
 template <typename... Args>
-WJR_NORETURN void __assert_failed_handler(const char *expr, const char *file, const char *func,
-                                          int line, Args &&...args) noexcept {
+WJR_NORETURN void _assert_failed_handler(const char *expr, const char *file, const char *func,
+                                         int line, Args &&...args) noexcept {
     std::cerr << "Assert message:";
     (void)(std::cerr << ... << std::forward<Args>(args));
     std::cerr << '\n';
-    __assert_failed(expr, file, func, line);
+    _assert_failed(expr, file, func, line);
 }
 
 /// @private
-WJR_NORETURN inline void __assert_failed_handler(const char *expr, const char *file,
-                                                 const char *func, int line) noexcept {
-    __assert_failed(expr, file, func, line);
+WJR_NORETURN inline void _assert_failed_handler(const char *expr, const char *file,
+                                                const char *func, int line) noexcept {
+    _assert_failed(expr, file, func, line);
 }
 
 /// @private
 template <typename... Args>
-WJR_NORETURN void __assert_light_failed_handler(const char *expr, Args &&...) noexcept {
-    __assert_light_failed(expr);
+WJR_NORETURN void _assert_light_failed_handler(const char *expr, Args &&...) noexcept {
+    _assert_light_failed(expr);
 }
 
 /// @private
-WJR_NORETURN inline void __assert_light_failed_handler(const char *expr) noexcept {
-    __assert_light_failed(expr);
+WJR_NORETURN inline void _assert_light_failed_handler(const char *expr) noexcept {
+    _assert_light_failed(expr);
 }
 
 #if defined(WJR_LIGHT_ASSERT)
     #define WJR_ASSERT_FAILED_HANDLER(expr, _file, _function, _line, ...)                          \
-        ::wjr::__assert_light_failed_handler(expr, ##__VA_ARGS__)
+        ::wjr::_assert_light_failed_handler(expr, ##__VA_ARGS__)
 #else
     #define WJR_ASSERT_FAILED_HANDLER(expr, file, function, line, ...)                             \
-        ::wjr::__assert_failed_handler(expr, file, function, line, ##__VA_ARGS__)
+        ::wjr::_assert_failed_handler(expr, file, function, line, ##__VA_ARGS__)
 #endif
 
 // LCOV_EXCL_STOP

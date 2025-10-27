@@ -85,7 +85,7 @@ public:
 
     WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor, T value, T lo,
                                                             T &hi) noexcept {
-        WJR_ASSERT_ASSUME_L3(__has_high_bit(divisor));
+        WJR_ASSERT_ASSUME_L3(_has_high_bit(divisor));
 
         if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(hi == 0)) {
             return divide_hi0(divisor, lo, hi);
@@ -103,11 +103,11 @@ public:
             return in_place_max;
         }
 
-        return __reciprocal_impl(d);
+        return _reciprocal_impl(d);
     }
 
 private:
-    WJR_CONST WJR_CONSTEXPR20 static T __reciprocal_impl(T d) noexcept;
+    WJR_CONST WJR_CONSTEXPR20 static T _reciprocal_impl(T d) noexcept;
 
     WJR_INTRINSIC_CONSTEXPR static void fallback_div2by1_adjust(T rax, T div, T &r8,
                                                                 T &rdx) noexcept {
@@ -185,8 +185,8 @@ protected:
 };
 
 template <typename T>
-WJR_CONST WJR_CONSTEXPR20 T div2by1_divider_noshift<T>::__reciprocal_impl(T d) noexcept {
-    WJR_ASSERT_ASSUME_L2(__has_high_bit(d));
+WJR_CONST WJR_CONSTEXPR20 T div2by1_divider_noshift<T>::_reciprocal_impl(T d) noexcept {
+    WJR_ASSERT_ASSUME_L2(_has_high_bit(d));
 
     uint64_t d40, d63;
     uint32_t v0;
@@ -259,7 +259,7 @@ public:
 private:
     // make sure m_shift/one_single_bit(divisor) can be inlined
     WJR_INTRINSIC_CONSTEXPR20 void initialize() noexcept {
-        if (WJR_UNLIKELY(!__has_high_bit(m_divisor))) {
+        if (WJR_UNLIKELY(!_has_high_bit(m_divisor))) {
             m_shift = clz(m_divisor);
             m_divisor <<= m_shift;
 
@@ -268,7 +268,7 @@ private:
             WJR_ASSUME(m_shift == 0u);
         }
 
-        WJR_ASSUME(__has_high_bit(m_divisor));
+        WJR_ASSUME(_has_high_bit(m_divisor));
         m_value = Mybase::reciprocal(m_divisor);
     }
 
@@ -316,7 +316,7 @@ protected:
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 T div3by2_divider_noshift<T>::divide(T divisor0, T divisor1, T value,
                                                                T u0, T &u1, T &u2) noexcept {
-    WJR_ASSERT_ASSUME_L3(__has_high_bit(divisor1));
+    WJR_ASSERT_ASSUME_L3(_has_high_bit(divisor1));
 
     T q1, q0;
     q0 = mul<T>(value, u2, q1);
@@ -336,7 +336,7 @@ WJR_INTRINSIC_CONSTEXPR20 T div3by2_divider_noshift<T>::divide(T divisor0, T div
         add_128(r0, r1, r0, r1, divisor0, divisor1);
     }
 
-    if (WJR_UNLIKELY(__less_equal_128(divisor0, divisor1, r0, r1))) {
+    if (WJR_UNLIKELY(_less_equal_128(divisor0, divisor1, r0, r1))) {
         ++q1;
         sub_128(r0, r1, r0, r1, divisor0, divisor1);
     }
@@ -348,7 +348,7 @@ WJR_INTRINSIC_CONSTEXPR20 T div3by2_divider_noshift<T>::divide(T divisor0, T div
 
 template <typename T>
 WJR_CONST WJR_CONSTEXPR20 T div3by2_divider_noshift<T>::reciprocal(T d0, T d1) noexcept {
-    WJR_ASSERT_ASSUME_L2(__has_high_bit(d1));
+    WJR_ASSERT_ASSUME_L2(_has_high_bit(d1));
 
     T v = div2by1_divider<T>::reciprocal(d1);
     T p = mullo<T>(d1, v);
@@ -367,7 +367,7 @@ WJR_CONST WJR_CONSTEXPR20 T div3by2_divider_noshift<T>::reciprocal(T d0, T d1) n
     p += t1;
     if (p < t1) {
         --v;
-        if (__less_equal_128(d0, d1, t0, p)) {
+        if (_less_equal_128(d0, d1, t0, p)) {
             --v;
         }
     }
@@ -415,7 +415,7 @@ public:
 
 private:
     WJR_INTRINSIC_CONSTEXPR20 void initialize() noexcept {
-        if (WJR_UNLIKELY(!__has_high_bit(m_divisor1))) {
+        if (WJR_UNLIKELY(!_has_high_bit(m_divisor1))) {
             m_shift = clz(m_divisor1);
             m_divisor1 = shld(m_divisor1, m_divisor0, m_shift);
             m_divisor0 <<= m_shift;
@@ -425,7 +425,7 @@ private:
             WJR_ASSUME(m_shift == 0);
         }
 
-        WJR_ASSUME(__has_high_bit(m_divisor1));
+        WJR_ASSUME(_has_high_bit(m_divisor1));
 
         m_value = Mybase::reciprocal(m_divisor0, m_divisor1);
     }

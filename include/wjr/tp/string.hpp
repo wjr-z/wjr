@@ -11,15 +11,15 @@ struct tp_cstr {
 };
 
 template <char... Chars>
-using __tp_cstr_t = tp_rename_t<tp_integers_list_t<char, Chars...>, tp_cstr>;
+using _tp_cstr_t = tp_rename_t<tp_integers_list_t<char, Chars...>, tp_cstr>;
 
 template <typename... Args0, typename... Args1>
 struct tp_less<tp_cstr<Args0...>, tp_cstr<Args1...>>
     : tp_lexicographical_compare_t<tp_cstr<Args0...>, tp_cstr<Args1...>> {};
 
 template <typename Str, std::size_t... indices>
-constexpr decltype(auto) __build_tp_cstr(std::index_sequence<indices...>) {
-    return __tp_cstr_t<Str().chars[indices]...>();
+constexpr decltype(auto) _build_tp_cstr(std::index_sequence<indices...>) {
+    return _tp_cstr_t<Str().chars[indices]...>();
 }
 
 #define WJR_MAKE_CSTR(str)                                                                         \
@@ -27,7 +27,7 @@ constexpr decltype(auto) __build_tp_cstr(std::index_sequence<indices...>) {
         struct WJR_VISIBILITY("hidden") Str {                                                      \
             const char *chars = str;                                                               \
         };                                                                                         \
-        return __build_tp_cstr<Str>(std::make_index_sequence<sizeof(str)>());                      \
+        return _build_tp_cstr<Str>(std::make_index_sequence<sizeof(str)>());                       \
     }()
 
 } // namespace wjr

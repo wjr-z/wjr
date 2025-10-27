@@ -37,7 +37,7 @@ namespace wjr {
 #ifndef __cpp_lib_spanstream
 template <typename _CharT, typename _Traits>
 class basic_spanbuf : public std::basic_streambuf<_CharT, _Traits> {
-    using __streambuf_type = std::basic_streambuf<_CharT, _Traits>;
+    using _streambuf_type = std::basic_streambuf<_CharT, _Traits>;
 
 public:
     using char_type = _CharT;
@@ -49,13 +49,12 @@ public:
     // [spanbuf.ctor], constructors
     basic_spanbuf() : basic_spanbuf(std::ios_base::in | std::ios_base::out) {}
 
-    explicit basic_spanbuf(std::ios_base::openmode __which)
-        : __streambuf_type(), _M_mode(__which) {}
+    explicit basic_spanbuf(std::ios_base::openmode _which) : _streambuf_type(), _M_mode(_which) {}
 
-    explicit basic_spanbuf(wjr::span<_CharT> __s,
-                           std::ios_base::openmode __which = std::ios_base::in | std::ios_base::out)
-        : __streambuf_type(), _M_mode(__which) {
-        span(__s);
+    explicit basic_spanbuf(wjr::span<_CharT> _s,
+                           std::ios_base::openmode _which = std::ios_base::in | std::ios_base::out)
+        : _streambuf_type(), _M_mode(_which) {
+        span(_s);
     }
 
     basic_spanbuf(const basic_spanbuf &) = delete;
@@ -63,26 +62,26 @@ public:
     /** Move constructor.
      *
      * Transfers the buffer and pointers into the get and put areas from
-     * `__rhs` to `*this`.
+     * `_rhs` to `*this`.
      *
      * In this implementation `rhs` is left unchanged,
      * but that is not guaranteed by the standard.
      */
-    basic_spanbuf(basic_spanbuf &&__rhs)
-        : __streambuf_type(__rhs), _M_mode(__rhs._M_mode), _M_buf(__rhs._M_buf) {}
+    basic_spanbuf(basic_spanbuf &&_rhs)
+        : _streambuf_type(_rhs), _M_mode(_rhs._M_mode), _M_buf(_rhs._M_buf) {}
 
     // [spanbuf.assign], assignment and swap
     basic_spanbuf &operator=(const basic_spanbuf &) = delete;
 
-    basic_spanbuf &operator=(basic_spanbuf &&__rhs) {
-        basic_spanbuf(std::move(__rhs)).swap(*this);
+    basic_spanbuf &operator=(basic_spanbuf &&_rhs) {
+        basic_spanbuf(std::move(_rhs)).swap(*this);
         return *this;
     }
 
-    void swap(basic_spanbuf &__rhs) {
-        __streambuf_type::swap(__rhs);
-        std::swap(_M_mode, __rhs._M_mode);
-        std::swap(_M_buf, __rhs._M_buf);
+    void swap(basic_spanbuf &_rhs) {
+        _streambuf_type::swap(_rhs);
+        std::swap(_M_mode, _rhs._M_mode);
+        std::swap(_M_buf, _rhs._M_buf);
     }
 
     // [spanbuf.members], member functions
@@ -94,85 +93,85 @@ public:
             return _M_buf;
     }
 
-    void span(wjr::span<_CharT> __s) noexcept {
-        _M_buf = __s;
+    void span(wjr::span<_CharT> _s) noexcept {
+        _M_buf = _s;
         if (_M_mode & std::ios_base::out) {
-            this->setp(__s.data(), __s.data() + __s.size());
+            this->setp(_s.data(), _s.data() + _s.size());
             if (_M_mode & std::ios_base::ate)
-                this->pbump(__s.size());
+                this->pbump(_s.size());
         }
         if (_M_mode & std::ios_base::in)
-            this->setg(__s.data(), __s.data(), __s.data() + __s.size());
+            this->setg(_s.data(), _s.data(), _s.data() + _s.size());
     }
 
 protected:
     // [spanbuf.virtuals], overridden virtual functions
-    std::basic_streambuf<_CharT, _Traits> *setbuf(_CharT *__s, std::streamsize __n) override {
-        WJR_ASSERT(__n >= 0);
-        this->span(wjr::span<_CharT>(__s, __n));
+    std::basic_streambuf<_CharT, _Traits> *setbuf(_CharT *_s, std::streamsize _n) override {
+        WJR_ASSERT(_n >= 0);
+        this->span(wjr::span<_CharT>(_s, _n));
         return this;
     }
 
-    pos_type seekoff(off_type __off, std::ios_base::seekdir __way,
-                     std::ios_base::openmode __which = std::ios_base::in |
-                                                       std::ios_base::out) override {
-        pos_type __ret = pos_type(off_type(-1));
+    pos_type seekoff(off_type _off, std::ios_base::seekdir _way,
+                     std::ios_base::openmode _which = std::ios_base::in |
+                                                      std::ios_base::out) override {
+        pos_type _ret = pos_type(off_type(-1));
 
-        if (__way == std::ios_base::beg) {
-            if (0 <= __off && to_unsigned(__off) <= _M_buf.size()) {
-                if (__which & std::ios_base::in)
-                    this->setg(this->eback(), this->eback() + __off, this->egptr());
+        if (_way == std::ios_base::beg) {
+            if (0 <= _off && to_unsigned(_off) <= _M_buf.size()) {
+                if (_which & std::ios_base::in)
+                    this->setg(this->eback(), this->eback() + _off, this->egptr());
 
-                if (__which & std::ios_base::out) {
+                if (_which & std::ios_base::out) {
                     this->setp(this->pbase(), this->epptr());
-                    this->pbump(__off);
+                    this->pbump(_off);
                 }
 
-                __ret = pos_type(__off);
+                _ret = pos_type(_off);
             }
         } else {
-            off_type __base{};
-            __which &= (std::ios_base::in | std::ios_base::out);
+            off_type _base{};
+            _which &= (std::ios_base::in | std::ios_base::out);
 
-            if (__which == std::ios_base::out)
-                __base = this->pptr() - this->pbase();
-            else if (__way == std::ios_base::cur) {
-                if (__which == std::ios_base::in)
-                    __base = this->gptr() - this->eback();
+            if (_which == std::ios_base::out)
+                _base = this->pptr() - this->pbase();
+            else if (_way == std::ios_base::cur) {
+                if (_which == std::ios_base::in)
+                    _base = this->gptr() - this->eback();
                 else
-                    return __ret;
-            } else if (__way == std::ios_base::end)
-                __base = _M_buf.size();
+                    return _ret;
+            } else if (_way == std::ios_base::end)
+                _base = _M_buf.size();
             else /* way is not ios::beg, ios::cur, or ios::end */ /* [[unlikely]] */
-                return __ret;
+                return _ret;
 
-            WJR_ASSERT(__base >= 0);
+            WJR_ASSERT(_base >= 0);
 
-            std::make_unsigned_t<off_type> __uoff;
-            if (WJR_UNLIKELY(add_overflow(__base, __off, __uoff)))
-                return __ret;
+            std::make_unsigned_t<off_type> _uoff;
+            if (WJR_UNLIKELY(add_overflow(_base, _off, _uoff)))
+                return _ret;
 
-            __off = static_cast<off_type>(__uoff);
+            _off = static_cast<off_type>(_uoff);
 
-            if (WJR_UNLIKELY(__off < 0 || to_unsigned(__off) > _M_buf.size()))
-                return __ret;
+            if (WJR_UNLIKELY(_off < 0 || to_unsigned(_off) > _M_buf.size()))
+                return _ret;
 
-            if (__which & std::ios_base::in)
-                this->setg(this->eback(), this->eback() + __off, this->egptr());
+            if (_which & std::ios_base::in)
+                this->setg(this->eback(), this->eback() + _off, this->egptr());
 
-            if (__which & std::ios_base::out) {
+            if (_which & std::ios_base::out) {
                 this->setp(this->pbase(), this->epptr());
-                this->pbump(__off);
+                this->pbump(_off);
             }
 
-            __ret = pos_type(__off);
+            _ret = pos_type(_off);
         }
-        return __ret;
+        return _ret;
     }
 
-    pos_type seekpos(pos_type __sp, std::ios_base::openmode __which = std::ios_base::in |
-                                                                      std::ios_base::out) override {
-        return seekoff(off_type(__sp), std::ios_base::beg, __which);
+    pos_type seekpos(pos_type _sp, std::ios_base::openmode _which = std::ios_base::in |
+                                                                    std::ios_base::out) override {
+        return seekoff(off_type(_sp), std::ios_base::beg, _which);
     }
 
 private:
@@ -185,7 +184,7 @@ using wspanbuf = basic_spanbuf<wchar_t>;
 
 template <typename _CharT, typename _Traits>
 class basic_ispanstream : public std::basic_istream<_CharT, _Traits> {
-    using __istream_type = std::basic_istream<_CharT, _Traits>;
+    using _istream_type = std::basic_istream<_CharT, _Traits>;
 
 public:
     using char_type = _CharT;
@@ -195,24 +194,24 @@ public:
     using traits_type = _Traits;
 
     // [ispanstream.ctor], constructors
-    explicit basic_ispanstream(wjr::span<_CharT> __s,
-                               std::ios_base::openmode __which = std::ios_base::in)
-        : __istream_type(std::addressof(_M_sb)), _M_sb(__s, __which | std::ios_base::in) {}
+    explicit basic_ispanstream(wjr::span<_CharT> _s,
+                               std::ios_base::openmode _which = std::ios_base::in)
+        : _istream_type(std::addressof(_M_sb)), _M_sb(_s, _which | std::ios_base::in) {}
 
     basic_ispanstream(const basic_ispanstream &) = delete;
 
-    basic_ispanstream(basic_ispanstream &&__rhs)
-        : __istream_type(std::move(__rhs)), _M_sb(std::move(__rhs._M_sb)) {
-        __istream_type::set_rdbuf(std::addressof(_M_sb));
+    basic_ispanstream(basic_ispanstream &&_rhs)
+        : _istream_type(std::move(_rhs)), _M_sb(std::move(_rhs._M_sb)) {
+        _istream_type::set_rdbuf(std::addressof(_M_sb));
     }
 
     // [ispanstream.assign], assignment and swap
     basic_ispanstream &operator=(const basic_ispanstream &) = delete;
-    basic_ispanstream &operator=(basic_ispanstream &&__rhs) = default;
+    basic_ispanstream &operator=(basic_ispanstream &&_rhs) = default;
 
-    void swap(basic_ispanstream &__rhs) {
-        __istream_type::swap(__rhs);
-        _M_sb.swap(__rhs._M_sb);
+    void swap(basic_ispanstream &_rhs) {
+        _istream_type::swap(_rhs);
+        _M_sb.swap(_rhs._M_sb);
     }
 
     // [ispanstream.members], member functions
@@ -224,7 +223,7 @@ public:
     WJR_NODISCARD
     wjr::span<const _CharT> span() const noexcept { return _M_sb.span(); }
 
-    void span(wjr::span<_CharT> __s) noexcept { return _M_sb.span(__s); }
+    void span(wjr::span<_CharT> _s) noexcept { return _M_sb.span(_s); }
 
 private:
     basic_spanbuf<_CharT, _Traits> _M_sb;
@@ -235,7 +234,7 @@ using wispanstream = basic_ispanstream<wchar_t>;
 
 template <typename _CharT, typename _Traits>
 class basic_ospanstream : public std::basic_ostream<_CharT, _Traits> {
-    using __ostream_type = std::basic_ostream<_CharT, _Traits>;
+    using _ostream_type = std::basic_ostream<_CharT, _Traits>;
 
 public:
     using char_type = _CharT;
@@ -245,24 +244,24 @@ public:
     using traits_type = _Traits;
 
     // [ospanstream.ctor], constructors
-    explicit basic_ospanstream(wjr::span<_CharT> __s,
-                               std::ios_base::openmode __which = std::ios_base::out)
-        : __ostream_type(std::addressof(_M_sb)), _M_sb(__s, __which | std::ios_base::in) {}
+    explicit basic_ospanstream(wjr::span<_CharT> _s,
+                               std::ios_base::openmode _which = std::ios_base::out)
+        : _ostream_type(std::addressof(_M_sb)), _M_sb(_s, _which | std::ios_base::in) {}
 
     basic_ospanstream(const basic_ospanstream &) = delete;
 
-    basic_ospanstream(basic_ospanstream &&__rhs)
-        : __ostream_type(std::move(__rhs)), _M_sb(std::move(__rhs._M_sb)) {
-        __ostream_type::set_rdbuf(std::addressof(_M_sb));
+    basic_ospanstream(basic_ospanstream &&_rhs)
+        : _ostream_type(std::move(_rhs)), _M_sb(std::move(_rhs._M_sb)) {
+        _ostream_type::set_rdbuf(std::addressof(_M_sb));
     }
 
     // [ospanstream.assign], assignment and swap
     basic_ospanstream &operator=(const basic_ospanstream &) = delete;
-    basic_ospanstream &operator=(basic_ospanstream &&__rhs) = default;
+    basic_ospanstream &operator=(basic_ospanstream &&_rhs) = default;
 
-    void swap(basic_ospanstream &__rhs) {
-        __ostream_type::swap(__rhs);
-        _M_sb.swap(__rhs._M_sb);
+    void swap(basic_ospanstream &_rhs) {
+        _ostream_type::swap(_rhs);
+        _M_sb.swap(_rhs._M_sb);
     }
 
     // [ospanstream.members], member functions
@@ -274,7 +273,7 @@ public:
     WJR_NODISCARD
     wjr::span<_CharT> span() const noexcept { return _M_sb.span(); }
 
-    void span(wjr::span<_CharT> __s) noexcept { return _M_sb.span(__s); }
+    void span(wjr::span<_CharT> _s) noexcept { return _M_sb.span(_s); }
 
 private:
     basic_spanbuf<_CharT, _Traits> _M_sb;
@@ -285,7 +284,7 @@ using wospanstream = basic_ospanstream<wchar_t>;
 
 template <typename _CharT, typename _Traits>
 class basic_spanstream : public std::basic_iostream<_CharT, _Traits> {
-    using __iostream_type = std::basic_iostream<_CharT, _Traits>;
+    using _iostream_type = std::basic_iostream<_CharT, _Traits>;
 
 public:
     using char_type = _CharT;
@@ -295,25 +294,25 @@ public:
     using traits_type = _Traits;
 
     // [spanstream.ctor], constructors
-    explicit basic_spanstream(wjr::span<_CharT> __s,
-                              std::ios_base::openmode __which = std::ios_base::out |
-                                                                std::ios_base::in)
-        : __iostream_type(std::addressof(_M_sb)), _M_sb(__s, __which) {}
+    explicit basic_spanstream(wjr::span<_CharT> _s,
+                              std::ios_base::openmode _which = std::ios_base::out |
+                                                               std::ios_base::in)
+        : _iostream_type(std::addressof(_M_sb)), _M_sb(_s, _which) {}
 
     basic_spanstream(const basic_spanstream &) = delete;
 
-    basic_spanstream(basic_spanstream &&__rhs)
-        : __iostream_type(std::move(__rhs)), _M_sb(std::move(__rhs._M_sb)) {
-        __iostream_type::set_rdbuf(std::addressof(_M_sb));
+    basic_spanstream(basic_spanstream &&_rhs)
+        : _iostream_type(std::move(_rhs)), _M_sb(std::move(_rhs._M_sb)) {
+        _iostream_type::set_rdbuf(std::addressof(_M_sb));
     }
 
     // [spanstream.assign], assignment and swap
     basic_spanstream &operator=(const basic_spanstream &) = delete;
-    basic_spanstream &operator=(basic_spanstream &&__rhs) = default;
+    basic_spanstream &operator=(basic_spanstream &&_rhs) = default;
 
-    void swap(basic_spanstream &__rhs) {
-        __iostream_type::swap(__rhs);
-        _M_sb.swap(__rhs._M_sb);
+    void swap(basic_spanstream &_rhs) {
+        _iostream_type::swap(_rhs);
+        _M_sb.swap(_rhs._M_sb);
     }
 
     // [spanstream.members], members
@@ -325,7 +324,7 @@ public:
     WJR_NODISCARD
     wjr::span<_CharT> span() const noexcept { return _M_sb.span(); }
 
-    void span(wjr::span<_CharT> __s) noexcept { return _M_sb.span(__s); }
+    void span(wjr::span<_CharT> _s) noexcept { return _M_sb.span(_s); }
 
 private:
     basic_spanbuf<_CharT, _Traits> _M_sb;
@@ -341,27 +340,26 @@ using wspanstream = basic_spanstream<wchar_t>;
 
 namespace std {
 template <typename _CharT, typename _Traits>
-inline void swap(wjr::basic_spanbuf<_CharT, _Traits> &__x,
-                 wjr::basic_spanbuf<_CharT, _Traits> &__y) {
-    __x.swap(__y);
+inline void swap(wjr::basic_spanbuf<_CharT, _Traits> &_x, wjr::basic_spanbuf<_CharT, _Traits> &_y) {
+    _x.swap(_y);
 }
 
 template <typename _CharT, typename _Traits>
-inline void swap(wjr::basic_ispanstream<_CharT, _Traits> &__x,
-                 wjr::basic_ispanstream<_CharT, _Traits> &__y) {
-    __x.swap(__y);
+inline void swap(wjr::basic_ispanstream<_CharT, _Traits> &_x,
+                 wjr::basic_ispanstream<_CharT, _Traits> &_y) {
+    _x.swap(_y);
 }
 
 template <typename _CharT, typename _Traits>
-inline void swap(wjr::basic_ospanstream<_CharT, _Traits> &__x,
-                 wjr::basic_ospanstream<_CharT, _Traits> &__y) {
-    __x.swap(__y);
+inline void swap(wjr::basic_ospanstream<_CharT, _Traits> &_x,
+                 wjr::basic_ospanstream<_CharT, _Traits> &_y) {
+    _x.swap(_y);
 }
 
 template <typename _CharT, typename _Traits>
-inline void swap(wjr::basic_spanstream<_CharT, _Traits> &__x,
-                 wjr::basic_spanstream<_CharT, _Traits> &__y) {
-    __x.swap(__y);
+inline void swap(wjr::basic_spanstream<_CharT, _Traits> &_x,
+                 wjr::basic_spanstream<_CharT, _Traits> &_y) {
+    _x.swap(_y);
 }
 } // namespace std
 

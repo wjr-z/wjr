@@ -103,7 +103,7 @@ namespace algorithm_detail {
 
 /// @private Insertion sort implementation for small ranges
 template <typename Iter, typename Pred>
-constexpr void __insertion_sort(Iter first, Iter last, Pred pred) {
+constexpr void _insertion_sort(Iter first, Iter last, Pred pred) {
     if (first != last) {
         for (Iter mid = first; ++mid != last;) {
             iterator_reference_t<Iter> ref = *mid;
@@ -132,12 +132,12 @@ constexpr void __insertion_sort(Iter first, Iter last, Pred pred) {
 }
 
 /// @private Threshold for switching to insertion sort
-inline constexpr size_t __insertion_sort_threshold = in_place_max;
+inline constexpr size_t _insertion_sort_threshold = in_place_max;
 
 /// @private Main sort implementation dispatcher
 template <typename Iter, typename Pred>
-constexpr void __sort_impl(Iter first, Iter last, Pred pred) {
-    __insertion_sort(first, last, pred);
+constexpr void _sort_impl(Iter first, Iter last, Pred pred) {
+    _insertion_sort(first, last, pred);
 }
 
 } // namespace algorithm_detail
@@ -145,7 +145,7 @@ constexpr void __sort_impl(Iter first, Iter last, Pred pred) {
 /// @todo
 template <typename Iter, typename Pred>
 constexpr void sort(Iter first, Iter last, Pred pred) {
-    algorithm_detail::__sort_impl(first, last, pred);
+    algorithm_detail::_sort_impl(first, last, pred);
 }
 
 #endif

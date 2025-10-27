@@ -94,7 +94,7 @@ private:
 namespace huffman {
 
 template <typename T>
-struct __trivial_pair {
+struct _trivial_pair {
     size_t first;
     T second;
 };
@@ -105,7 +105,7 @@ decltype(auto) build_tree(size_t n, Getter getter) noexcept {
     using value_type = typename Getter::value_type;
     static_assert(std::is_trivially_copyable_v<value_type>);
     using tree_type = huffman_tree<value_type>;
-    using pair_type = __trivial_pair<value_type>;
+    using pair_type = _trivial_pair<value_type>;
     using inner_type = huffman_node<value_type>;
     using leaf_type = huffman_leaf_node<value_type>;
 

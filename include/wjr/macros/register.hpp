@@ -12,11 +12,11 @@
 
 #define WJR_REGISTER_HAS_TYPE_0(NAME, HAS_EXPR)                                                    \
     template <typename Enable, typename... Args>                                                   \
-    struct __has_##NAME : std::false_type {};                                                      \
+    struct _has_##NAME : std::false_type {};                                                       \
     template <typename... Args>                                                                    \
-    struct __has_##NAME<std::void_t<decltype(HAS_EXPR)>, Args...> : std::true_type {};             \
+    struct _has_##NAME<std::void_t<decltype(HAS_EXPR)>, Args...> : std::true_type {};              \
     template <typename... Args>                                                                    \
-    struct has_##NAME : __has_##NAME<void, Args...> {};                                            \
+    struct has_##NAME : _has_##NAME<void, Args...> {};                                             \
     template <typename... Args>                                                                    \
     constexpr bool has_##NAME##_v = has_##NAME<Args...>::value
 
@@ -24,12 +24,11 @@
     WJR_REGISTER_HAS_TYPE_MORE_I(NAME, HAS_EXPR, WJR_REGISTER_TYPENAMES(__VA_ARGS__), __VA_ARGS__)
 #define WJR_REGISTER_HAS_TYPE_MORE_I(NAME, HAS_EXPR, TYPES, ...)                                   \
     template <typename Enable, WJR_PP_QUEUE_EXPAND(TYPES), typename... Args>                       \
-    struct __has_##NAME : std::false_type {};                                                      \
+    struct _has_##NAME : std::false_type {};                                                       \
     template <WJR_PP_QUEUE_EXPAND(TYPES), typename... Args>                                        \
-    struct __has_##NAME<std::void_t<decltype(HAS_EXPR)>, __VA_ARGS__, Args...> : std::true_type {  \
-    };                                                                                             \
+    struct _has_##NAME<std::void_t<decltype(HAS_EXPR)>, __VA_ARGS__, Args...> : std::true_type {}; \
     template <WJR_PP_QUEUE_EXPAND(TYPES), typename... Args>                                        \
-    struct has_##NAME : __has_##NAME<void, __VA_ARGS__, Args...> {};                               \
+    struct has_##NAME : _has_##NAME<void, __VA_ARGS__, Args...> {};                                \
     template <WJR_PP_QUEUE_EXPAND(TYPES), typename... Args>                                        \
     constexpr bool has_##NAME##_v = has_##NAME<__VA_ARGS__, Args...>::value
 

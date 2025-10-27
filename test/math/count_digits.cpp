@@ -323,7 +323,7 @@ TEST(count_digits, constexpr_evaluation) {
     EXPECT_EQ(count_digits<2>(255u), 8);
     EXPECT_EQ(count_digits<16>(255u), 2);
     EXPECT_EQ(count_digits<8>(511u), 3);
-    
+
     // Test with different integer types
     EXPECT_EQ(count_digits<10>(static_cast<uint8_t>(99)), 2);
     EXPECT_EQ(count_digits<10>(static_cast<uint16_t>(9999)), 4);

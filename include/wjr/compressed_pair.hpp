@@ -47,34 +47,34 @@ namespace wjr {
 
 /// @private
 template <typename T, typename U>
-struct __compressed_pair1 {};
+struct _compressed_pair1 {};
 
 /// @private
 template <typename T, typename U>
-struct __compressed_pair2 {};
+struct _compressed_pair2 {};
 
 template <typename T, typename U>
-using __compressed_pair_base_tag1 =
-    enable_special_members_of_args_base<enable_base_identity_t<0, __compressed_pair1<T, U>>, T>;
+using _compressed_pair_base_tag1 =
+    enable_special_members_of_args_base<enable_base_identity_t<0, _compressed_pair1<T, U>>, T>;
 
 template <typename T, typename U>
-using __compressed_pair_base_tag2 =
-    enable_special_members_of_args_base<enable_base_identity_t<1, __compressed_pair2<T, U>>, U>;
+using _compressed_pair_base_tag2 =
+    enable_special_members_of_args_base<enable_base_identity_t<1, _compressed_pair2<T, U>>, U>;
 
 template <typename T, typename U, typename Enable = void>
-struct __compressed_pair_base;
+struct _compressed_pair_base;
 
 template <typename T, typename U>
 struct WJR_EMPTY_BASES
-    __compressed_pair_base<T, U, std::enable_if_t<!is_compressed_v<T> && !is_compressed_v<U>>>
-    : __compressed_pair_base_tag1<T, U>, __compressed_pair_base_tag2<T, U> {
-    using Mybase1 = __compressed_pair_base_tag1<T, U>;
-    using Mybase2 = __compressed_pair_base_tag2<T, U>;
+    _compressed_pair_base<T, U, std::enable_if_t<!is_compressed_v<T> && !is_compressed_v<U>>>
+    : _compressed_pair_base_tag1<T, U>, _compressed_pair_base_tag2<T, U> {
+    using Mybase1 = _compressed_pair_base_tag1<T, U>;
+    using Mybase2 = _compressed_pair_base_tag2<T, U>;
 
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
                                               std::is_default_constructible<Uy>>)>
-    constexpr __compressed_pair_base() noexcept(
+    constexpr _compressed_pair_base() noexcept(
         std::conjunction_v<std::is_nothrow_constructible<T>, std::is_nothrow_constructible<U>>)
         : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor), m_first(),
           m_second() {}
@@ -82,14 +82,14 @@ struct WJR_EMPTY_BASES
     template <typename Ty, typename Uy,
               WJR_REQUIRES(
                   std::conjunction_v<std::is_constructible<T, Ty>, std::is_constructible<U, Uy>>)>
-    constexpr explicit __compressed_pair_base(Ty &&t, Uy &&u) noexcept(
+    constexpr explicit _compressed_pair_base(Ty &&t, Uy &&u) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<T, Ty>,
                            std::is_nothrow_constructible<U, Uy>>)
         : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor),
           m_first(std::forward<Ty>(t)), m_second(std::forward<Uy>(u)) {}
 
     template <typename Tuple1, typename Tuple2, size_t... N1, size_t... N2>
-    constexpr __compressed_pair_base(
+    constexpr _compressed_pair_base(
         Tuple1 &tp1, Tuple2 &tp2, std::index_sequence<N1...>,
         std::index_sequence<N2...>) noexcept(std::
                                                  conjunction_v<
@@ -103,7 +103,7 @@ struct WJR_EMPTY_BASES
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
                                               std::is_default_constructible<Uy>>)>
-    constexpr explicit __compressed_pair_base(default_construct_t, default_construct_t) noexcept(
+    constexpr explicit _compressed_pair_base(default_construct_t, default_construct_t) noexcept(
         std::conjunction_v<std::is_nothrow_default_constructible<T>,
                            std::is_nothrow_default_constructible<U>>)
         : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor) {}
@@ -111,7 +111,7 @@ struct WJR_EMPTY_BASES
     template <typename Ty = T, typename Uy,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
                                               std::is_constructible<U, Uy>>)>
-    constexpr explicit __compressed_pair_base(default_construct_t, Uy &&u) noexcept(
+    constexpr explicit _compressed_pair_base(default_construct_t, Uy &&u) noexcept(
         std::conjunction_v<std::is_nothrow_default_constructible<T>,
                            std::is_nothrow_constructible<U, Uy>>)
         : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor),
@@ -120,7 +120,7 @@ struct WJR_EMPTY_BASES
     template <typename Ty, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_constructible<T, Ty>,
                                               std::is_default_constructible<Uy>>)>
-    constexpr explicit __compressed_pair_base(T &&t, default_construct_t) noexcept(
+    constexpr explicit _compressed_pair_base(T &&t, default_construct_t) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<T, Ty>,
                            std::is_nothrow_default_constructible<U>>)
         : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor),
@@ -137,10 +137,10 @@ struct WJR_EMPTY_BASES
 };
 
 template <typename T, typename U>
-struct container_of_fn<__compressed_pair_base<T, U>, std::in_place_index_t<0>,
+struct container_of_fn<_compressed_pair_base<T, U>, std::in_place_index_t<0>,
                        std::enable_if_t<!is_compressed_v<T> && !is_compressed_v<U> &&
-                                        std::is_standard_layout_v<__compressed_pair_base<T, U>>>> {
-    using base_type = __compressed_pair_base<T, U>;
+                                        std::is_standard_layout_v<_compressed_pair_base<T, U>>>> {
+    using base_type = _compressed_pair_base<T, U>;
     using value_type = T;
 
     base_type &operator()(value_type &ref) const noexcept {
@@ -156,10 +156,10 @@ struct container_of_fn<__compressed_pair_base<T, U>, std::in_place_index_t<0>,
 };
 
 template <typename T, typename U>
-struct container_of_fn<__compressed_pair_base<T, U>, std::in_place_index_t<1>,
+struct container_of_fn<_compressed_pair_base<T, U>, std::in_place_index_t<1>,
                        std::enable_if_t<!is_compressed_v<T> && !is_compressed_v<U> &&
-                                        std::is_standard_layout_v<__compressed_pair_base<T, U>>>> {
-    using base_type = __compressed_pair_base<T, U>;
+                                        std::is_standard_layout_v<_compressed_pair_base<T, U>>>> {
+    using base_type = _compressed_pair_base<T, U>;
     using value_type = U;
 
     base_type &operator()(value_type &ref) const noexcept {
@@ -175,15 +175,15 @@ struct container_of_fn<__compressed_pair_base<T, U>, std::in_place_index_t<1>,
 };
 
 template <typename T, typename U>
-struct WJR_EMPTY_BASES __compressed_pair_base<T, U, std::enable_if_t<is_compressed_v<T>>>
-    : __compressed_pair_base_tag1<T, U>, __compressed_pair_base_tag2<T, U>, T {
-    using Mybase1 = __compressed_pair_base_tag1<T, U>;
-    using Mybase2 = __compressed_pair_base_tag2<T, U>;
+struct WJR_EMPTY_BASES _compressed_pair_base<T, U, std::enable_if_t<is_compressed_v<T>>>
+    : _compressed_pair_base_tag1<T, U>, _compressed_pair_base_tag2<T, U>, T {
+    using Mybase1 = _compressed_pair_base_tag1<T, U>;
+    using Mybase2 = _compressed_pair_base_tag2<T, U>;
 
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
                                               std::is_default_constructible<Uy>>)>
-    constexpr __compressed_pair_base() noexcept(
+    constexpr _compressed_pair_base() noexcept(
         std::conjunction_v<std::is_nothrow_constructible<T>, std::is_nothrow_constructible<U>>)
         : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor), T(),
           m_second() {}
@@ -191,14 +191,14 @@ struct WJR_EMPTY_BASES __compressed_pair_base<T, U, std::enable_if_t<is_compress
     template <typename Ty, typename Uy,
               WJR_REQUIRES(
                   std::conjunction_v<std::is_constructible<T, Ty>, std::is_constructible<U, Uy>>)>
-    constexpr explicit __compressed_pair_base(Ty &&t, Uy &&u) noexcept(
+    constexpr explicit _compressed_pair_base(Ty &&t, Uy &&u) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<T, Ty>,
                            std::is_nothrow_constructible<U, Uy>>)
         : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor),
           T(std::forward<Ty>(t)), m_second(std::forward<Uy>(u)) {}
 
     template <typename Tuple1, typename Tuple2, size_t... N1, size_t... N2>
-    constexpr __compressed_pair_base(
+    constexpr _compressed_pair_base(
         Tuple1 &tp1, Tuple2 &tp2, std::index_sequence<N1...>,
         std::index_sequence<N2...>) noexcept(std::
                                                  conjunction_v<
@@ -212,7 +212,7 @@ struct WJR_EMPTY_BASES __compressed_pair_base<T, U, std::enable_if_t<is_compress
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
                                               std::is_default_constructible<Uy>>)>
-    constexpr explicit __compressed_pair_base(default_construct_t, default_construct_t) noexcept(
+    constexpr explicit _compressed_pair_base(default_construct_t, default_construct_t) noexcept(
         std::conjunction_v<std::is_nothrow_default_constructible<T>,
                            std::is_nothrow_default_constructible<U>>)
         : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor) {}
@@ -220,7 +220,7 @@ struct WJR_EMPTY_BASES __compressed_pair_base<T, U, std::enable_if_t<is_compress
     template <typename Ty = T, typename Uy,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
                                               std::is_constructible<U, Uy>>)>
-    constexpr explicit __compressed_pair_base(default_construct_t, Uy &&u) noexcept(
+    constexpr explicit _compressed_pair_base(default_construct_t, Uy &&u) noexcept(
         std::conjunction_v<std::is_nothrow_default_constructible<T>,
                            std::is_nothrow_constructible<U, Uy>>)
         : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor),
@@ -229,7 +229,7 @@ struct WJR_EMPTY_BASES __compressed_pair_base<T, U, std::enable_if_t<is_compress
     template <typename Ty, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_constructible<T, Ty>,
                                               std::is_default_constructible<Uy>>)>
-    constexpr explicit __compressed_pair_base(T &&t, default_construct_t) noexcept(
+    constexpr explicit _compressed_pair_base(T &&t, default_construct_t) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<T, Ty>,
                            std::is_nothrow_default_constructible<U>>)
         : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor),
@@ -245,9 +245,9 @@ struct WJR_EMPTY_BASES __compressed_pair_base<T, U, std::enable_if_t<is_compress
 };
 
 template <typename T, typename U>
-struct container_of_fn<__compressed_pair_base<T, U>, std::in_place_index_t<0>,
+struct container_of_fn<_compressed_pair_base<T, U>, std::in_place_index_t<0>,
                        std::enable_if_t<is_compressed_v<T>>> {
-    using base_type = __compressed_pair_base<T, U>;
+    using base_type = _compressed_pair_base<T, U>;
     using value_type = T;
 
     base_type &operator()(value_type &ref) const noexcept { return static_cast<base_type &>(ref); }
@@ -258,10 +258,10 @@ struct container_of_fn<__compressed_pair_base<T, U>, std::in_place_index_t<0>,
 };
 
 template <typename T, typename U>
-struct container_of_fn<__compressed_pair_base<T, U>, std::in_place_index_t<1>,
+struct container_of_fn<_compressed_pair_base<T, U>, std::in_place_index_t<1>,
                        std::enable_if_t<is_compressed_v<T> &&
-                                        std::is_standard_layout_v<__compressed_pair_base<T, U>>>> {
-    using base_type = __compressed_pair_base<T, U>;
+                                        std::is_standard_layout_v<_compressed_pair_base<T, U>>>> {
+    using base_type = _compressed_pair_base<T, U>;
     using value_type = U;
 
     base_type &operator()(value_type &ref) const noexcept {
@@ -278,15 +278,15 @@ struct container_of_fn<__compressed_pair_base<T, U>, std::in_place_index_t<1>,
 
 template <typename T, typename U>
 struct WJR_EMPTY_BASES
-    __compressed_pair_base<T, U, std::enable_if_t<!is_compressed_v<T> && is_compressed_v<U>>>
-    : __compressed_pair_base_tag1<T, U>, __compressed_pair_base_tag2<T, U>, U {
-    using Mybase1 = __compressed_pair_base_tag1<T, U>;
-    using Mybase2 = __compressed_pair_base_tag2<T, U>;
+    _compressed_pair_base<T, U, std::enable_if_t<!is_compressed_v<T> && is_compressed_v<U>>>
+    : _compressed_pair_base_tag1<T, U>, _compressed_pair_base_tag2<T, U>, U {
+    using Mybase1 = _compressed_pair_base_tag1<T, U>;
+    using Mybase2 = _compressed_pair_base_tag2<T, U>;
 
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
                                               std::is_default_constructible<Uy>>)>
-    constexpr __compressed_pair_base() noexcept(
+    constexpr _compressed_pair_base() noexcept(
         std::conjunction_v<std::is_nothrow_constructible<T>, std::is_nothrow_constructible<U>>)
         : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor), U(), m_first() {
     }
@@ -294,14 +294,14 @@ struct WJR_EMPTY_BASES
     template <typename Ty, typename Uy,
               WJR_REQUIRES(
                   std::conjunction_v<std::is_constructible<T, Ty>, std::is_constructible<U, Uy>>)>
-    constexpr explicit __compressed_pair_base(Ty &&t, Uy &&u) noexcept(
+    constexpr explicit _compressed_pair_base(Ty &&t, Uy &&u) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<T, Ty>,
                            std::is_nothrow_constructible<U, Uy>>)
         : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor),
           U(std::forward<Uy>(u)), m_first(std::forward<Ty>(t)) {}
 
     template <typename Tuple1, typename Tuple2, size_t... N1, size_t... N2>
-    constexpr __compressed_pair_base(
+    constexpr _compressed_pair_base(
         Tuple1 &tp1, Tuple2 &tp2, std::index_sequence<N1...>,
         std::index_sequence<N2...>) noexcept(std::
                                                  conjunction_v<
@@ -315,7 +315,7 @@ struct WJR_EMPTY_BASES
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
                                               std::is_default_constructible<Uy>>)>
-    constexpr explicit __compressed_pair_base(default_construct_t, default_construct_t) noexcept(
+    constexpr explicit _compressed_pair_base(default_construct_t, default_construct_t) noexcept(
         std::conjunction_v<std::is_nothrow_default_constructible<T>,
                            std::is_nothrow_default_constructible<U>>)
         : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor) {}
@@ -323,7 +323,7 @@ struct WJR_EMPTY_BASES
     template <typename Ty = T, typename Uy,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
                                               std::is_constructible<U, Uy>>)>
-    constexpr explicit __compressed_pair_base(default_construct_t, Uy &&u) noexcept(
+    constexpr explicit _compressed_pair_base(default_construct_t, Uy &&u) noexcept(
         std::conjunction_v<std::is_nothrow_default_constructible<T>,
                            std::is_nothrow_constructible<U, Uy>>)
         : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor),
@@ -332,7 +332,7 @@ struct WJR_EMPTY_BASES
     template <typename Ty, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_constructible<T, Ty>,
                                               std::is_default_constructible<Uy>>)>
-    constexpr explicit __compressed_pair_base(T &&t, default_construct_t) noexcept(
+    constexpr explicit _compressed_pair_base(T &&t, default_construct_t) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<T, Ty>,
                            std::is_nothrow_default_constructible<U>>)
         : Mybase1(enable_default_constructor), Mybase2(enable_default_constructor),
@@ -349,9 +349,9 @@ struct WJR_EMPTY_BASES
 
 template <typename T, typename U>
 struct container_of_fn<
-    __compressed_pair_base<T, U>, std::in_place_index_t<0>,
+    _compressed_pair_base<T, U>, std::in_place_index_t<0>,
     std::enable_if_t<!is_compressed_v<T> && is_compressed_v<U> && std::is_standard_layout_v<T>>> {
-    using base_type = __compressed_pair_base<T, U>;
+    using base_type = _compressed_pair_base<T, U>;
     using value_type = T;
 
     base_type &operator()(value_type &ref) const noexcept {
@@ -367,9 +367,9 @@ struct container_of_fn<
 };
 
 template <typename T, typename U>
-struct container_of_fn<__compressed_pair_base<T, U>, std::in_place_index_t<1>,
+struct container_of_fn<_compressed_pair_base<T, U>, std::in_place_index_t<1>,
                        std::enable_if_t<!is_compressed_v<T> && is_compressed_v<U>>> {
-    using base_type = __compressed_pair_base<T, U>;
+    using base_type = _compressed_pair_base<T, U>;
     using value_type = U;
 
     base_type &operator()(value_type &ref) const noexcept { return static_cast<base_type &>(ref); }
@@ -387,19 +387,19 @@ struct container_of_fn<__compressed_pair_base<T, U>, std::in_place_index_t<1>,
  * @details Guaranteed to be standard-layout if `T' and `U' both are standard-layout.
  */
 template <typename T, typename U>
-class WJR_EMPTY_BASES compressed_pair final : private __compressed_pair_base<T, U> {
-    using Mybase = __compressed_pair_base<T, U>;
+class WJR_EMPTY_BASES compressed_pair final : private _compressed_pair_base<T, U> {
+    using Mybase = _compressed_pair_base<T, U>;
 
     template <typename Ty, typename Uy>
-    using __is_all_copy_constructible =
+    using _is_all_copy_constructible =
         std::conjunction<std::is_copy_constructible<Ty>, std::is_copy_constructible<Uy>>;
 
     template <typename Vty, typename Wuy>
-    using __is_all_convertible =
+    using _is_all_convertible =
         std::conjunction<std::is_convertible<Vty, T>, std::is_convertible<Wuy, U>>;
 
     template <typename Vty, typename Wuy>
-    using __is_all_constructible = std::is_constructible<Mybase, Vty, Wuy>;
+    using _is_all_constructible = std::is_constructible<Mybase, Vty, Wuy>;
 
     template <typename _Mybase, typename _Tag, typename _Enable>
     friend struct container_of_fn;
@@ -435,16 +435,16 @@ public:
 
 #if defined(__cpp_conditional_explicit)
     template <typename Ty = T, typename Uy = U,
-              WJR_REQUIRES(__is_all_copy_constructible<Ty, Uy>::value)>
-    constexpr explicit(!__is_all_convertible<const Ty &, const Uy &>::value)
+              WJR_REQUIRES(_is_all_copy_constructible<Ty, Uy>::value)>
+    constexpr explicit(!_is_all_convertible<const Ty &, const Uy &>::value)
         compressed_pair(const T &_First, const U &_Second) noexcept(
             std::conjunction_v<std::is_nothrow_copy_constructible<Ty>,
                                std::is_nothrow_copy_constructible<Uy>>)
         : Mybase(_First, _Second) {}
 #else
     template <typename Ty = T, typename Uy = U,
-              WJR_REQUIRES(std::conjunction_v<__is_all_copy_constructible<Ty, Uy>,
-                                              __is_all_convertible<const Ty &, const Uy &>>)>
+              WJR_REQUIRES(std::conjunction_v<_is_all_copy_constructible<Ty, Uy>,
+                                              _is_all_convertible<const Ty &, const Uy &>>)>
     constexpr compressed_pair(const T &_First, const U &_Second) noexcept(
         std::conjunction_v<std::is_nothrow_copy_constructible<Ty>,
                            std::is_nothrow_copy_constructible<Uy>>)
@@ -452,8 +452,8 @@ public:
 
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(
-                  std::conjunction_v<__is_all_copy_constructible<Ty, Uy>,
-                                     std::negation<__is_all_convertible<const Ty &, const Uy &>>>)>
+                  std::conjunction_v<_is_all_copy_constructible<Ty, Uy>,
+                                     std::negation<_is_all_convertible<const Ty &, const Uy &>>>)>
     constexpr explicit compressed_pair(const T &_First, const U &_Second) noexcept(
         std::conjunction_v<std::is_nothrow_copy_constructible<Ty>,
                            std::is_nothrow_copy_constructible<Uy>>)
@@ -462,23 +462,23 @@ public:
 
 #if defined(__cpp_conditional_explicit)
     template <typename Other1, typename Other2,
-              WJR_REQUIRES(__is_all_constructible<Other1 &&, Other2 &&>::value)>
-    constexpr explicit(!__is_all_convertible<Other1 &&, Other2 &&>::value)
+              WJR_REQUIRES(_is_all_constructible<Other1 &&, Other2 &&>::value)>
+    constexpr explicit(!_is_all_convertible<Other1 &&, Other2 &&>::value)
         compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
             std::is_nothrow_constructible_v<Mybase, Other1 &&, Other2 &&>)
         : Mybase(std::forward<Other1>(_First), std::forward<Other2>(_Second)) {}
 #else
     template <typename Other1, typename Other2,
-              WJR_REQUIRES(std::conjunction_v<__is_all_constructible<Other1 &&, Other2 &&>,
-                                              __is_all_convertible<Other1 &&, Other2 &&>>)>
+              WJR_REQUIRES(std::conjunction_v<_is_all_constructible<Other1 &&, Other2 &&>,
+                                              _is_all_convertible<Other1 &&, Other2 &&>>)>
     constexpr compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
         std::is_nothrow_constructible_v<Mybase, Other1 &&, Other2 &&>)
         : Mybase(std::forward<Other1>(_First), std::forward<Other2>(_Second)) {}
 
     template <
         typename Other1, typename Other2,
-        WJR_REQUIRES(std::conjunction_v<__is_all_constructible<Other1 &&, Other2 &&>,
-                                        std::negation<__is_all_convertible<Other1 &&, Other2 &&>>>)>
+        WJR_REQUIRES(std::conjunction_v<_is_all_constructible<Other1 &&, Other2 &&>,
+                                        std::negation<_is_all_convertible<Other1 &&, Other2 &&>>>)>
     constexpr explicit compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
         std::is_nothrow_constructible_v<Mybase, Other1 &&, Other2 &&>)
         : Mybase(std::forward<Other1>(_First), std::forward<Other2>(_Second)) {}
@@ -506,8 +506,8 @@ public:
 
 #if defined(__cpp_conditional_explicit)
     template <typename PairLike,
-              WJR_REQUIRES(__is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>)>
-    constexpr explicit(!__is_tuple_test_v<std::is_convertible, compressed_pair, PairLike &&>)
+              WJR_REQUIRES(_is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>)>
+    constexpr explicit(!_is_tuple_test_v<std::is_convertible, compressed_pair, PairLike &&>)
         compressed_pair(PairLike &&pr) noexcept(
             std::conjunction_v<
                 std::is_nothrow_constructible<T, decltype(std::get<0>(std::forward<PairLike>(pr)))>,
@@ -516,10 +516,9 @@ public:
         : Mybase(std::get<0>(std::forward<PairLike>(pr)), std::get<1>(std::forward<PairLike>(pr))) {
     }
 #else
-    template <
-        typename PairLike,
-        WJR_REQUIRES(__is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>
-                         &&__is_tuple_test_v<std::is_convertible, compressed_pair, PairLike &&>)>
+    template <typename PairLike,
+              WJR_REQUIRES(_is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&> &&
+                               _is_tuple_test_v<std::is_convertible, compressed_pair, PairLike &&>)>
     constexpr compressed_pair(PairLike &&pr) noexcept(
         std::conjunction_v<
             std::is_nothrow_constructible<T, decltype(std::get<0>(std::forward<PairLike>(pr)))>,
@@ -528,8 +527,8 @@ public:
     }
 
     template <typename PairLike,
-              WJR_REQUIRES(__is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&> &&
-                           !__is_tuple_test_v<std::is_convertible, compressed_pair, PairLike &&>)>
+              WJR_REQUIRES(_is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&> &&
+                           !_is_tuple_test_v<std::is_convertible, compressed_pair, PairLike &&>)>
     constexpr explicit compressed_pair(PairLike &&pr) noexcept(
         std::conjunction_v<
             std::is_nothrow_constructible<T, decltype(std::get<0>(std::forward<PairLike>(pr)))>,
@@ -539,7 +538,7 @@ public:
 #endif
 
     template <typename PairLike,
-              WJR_REQUIRES(__is_tuple_test_v<__is_tuple_assignable, compressed_pair, PairLike &&>)>
+              WJR_REQUIRES(_is_tuple_test_v<_is_tuple_assignable, compressed_pair, PairLike &&>)>
     constexpr compressed_pair &operator=(PairLike &&pr) noexcept(
         std::conjunction_v<std::is_nothrow_assignable<T, decltype(std::get<0>(pr))>,
                            std::is_nothrow_assignable<U, decltype(std::get<1>(pr))>>) {

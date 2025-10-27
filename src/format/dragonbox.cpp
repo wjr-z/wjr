@@ -26,7 +26,7 @@ namespace wjr {
 namespace dragonbox {
 namespace detail {
 
-inline constexpr auto &radix_100_table = __char_converter_table<char_converter_t, 10, 2>;
+inline constexpr auto &radix_100_table = _char_converter_table<char_converter_t, 10, 2>;
 
 inline constexpr char radix_100_head_table[200] JKJ_STATIC_DATA_SECTION = {
     '0', '.', '1', '.', '2', '.', '3', '.', '4', '.', //
@@ -54,7 +54,7 @@ inline constexpr char radix_100_head_table[200] JKJ_STATIC_DATA_SECTION = {
 static void print_1_digit(int n, char *buffer) noexcept { *buffer = char_converter.to(n); }
 
 static void print_2_digits(int n, char *buffer) noexcept {
-    __to_chars_unroll_2<10>(reinterpret_cast<uint8_t *>(buffer), n, char_converter);
+    _to_chars_unroll_2<10>(reinterpret_cast<uint8_t *>(buffer), n, char_converter);
 }
 
 // These digit generation routines are inspired by James Anhalt's itoa

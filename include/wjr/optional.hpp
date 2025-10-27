@@ -22,18 +22,18 @@
 namespace wjr {
 
 struct nullopt_t {
-    struct __tag {};
-    constexpr explicit nullopt_t(__tag) noexcept {}
+    struct _tag {};
+    constexpr explicit nullopt_t(_tag) noexcept {}
 };
 
-inline constexpr nullopt_t nullopt{nullopt_t::__tag{}};
+inline constexpr nullopt_t nullopt{nullopt_t::_tag{}};
 
 struct voidopt_t {
-    struct __tag {};
-    constexpr explicit voidopt_t(__tag) noexcept {}
+    struct _tag {};
+    constexpr explicit voidopt_t(_tag) noexcept {}
 };
 
-inline constexpr voidopt_t voidopt{voidopt_t::__tag{}};
+inline constexpr voidopt_t voidopt{voidopt_t::_tag{}};
 
 class bad_optional_access : public std::exception {
 public:
@@ -43,17 +43,17 @@ public:
 };
 
 template <typename T>
-struct __optional_unwrap {
+struct _optional_unwrap {
     using type = T;
 };
 
 template <typename T, T uniq_success>
-struct __optional_unwrap<compressed_value<T, uniq_success>> {
+struct _optional_unwrap<compressed_value<T, uniq_success>> {
     using type = T;
 };
 
 template <typename T>
-using __optional_unwrap_t = typename __optional_unwrap<T>::type;
+using _optional_unwrap_t = typename _optional_unwrap<T>::type;
 
 template <typename T>
 class optional;
@@ -180,7 +180,7 @@ struct optional_operations_base : optional_storage_base<T> {
     using Mybase = optional_storage_base<T>;
     using Mybase::Mybase;
 
-    using value_type = __optional_unwrap_t<T>;
+    using value_type = _optional_unwrap_t<T>;
 
     constexpr void set_valid() noexcept { Mybase::set_valid(); }
     constexpr void set_invalid() noexcept { Mybase::set_invalid(); }
@@ -194,7 +194,7 @@ struct optional_operations_base : optional_storage_base<T> {
 
     constexpr void construct_error() noexcept { set_invalid(); }
 
-    WJR_CONSTEXPR20 void __copy_construct(const optional_operations_base &other) {
+    WJR_CONSTEXPR20 void _copy_construct(const optional_operations_base &other) {
         if (other.has_value()) {
             construct_value(other.m_val);
         } else {
@@ -202,7 +202,7 @@ struct optional_operations_base : optional_storage_base<T> {
         }
     }
 
-    WJR_CONSTEXPR20 void __move_construct(optional_operations_base &&other) noexcept(
+    WJR_CONSTEXPR20 void _move_construct(optional_operations_base &&other) noexcept(
         std::is_nothrow_move_constructible_v<value_type>) {
         if (other.has_value()) {
             construct_value(std::move(other.m_val));
@@ -211,7 +211,7 @@ struct optional_operations_base : optional_storage_base<T> {
         }
     }
 
-    WJR_CONSTEXPR20 void __copy_assign(const optional_operations_base &other) {
+    WJR_CONSTEXPR20 void _copy_assign(const optional_operations_base &other) {
         if (this->has_value()) {
             if (WJR_LIKELY(other.has_value())) {
                 this->m_val = other.m_val;
@@ -228,7 +228,7 @@ struct optional_operations_base : optional_storage_base<T> {
         }
     }
 
-    WJR_CONSTEXPR20 void __move_assign(optional_operations_base &&other) noexcept(
+    WJR_CONSTEXPR20 void _move_assign(optional_operations_base &&other) noexcept(
         std::is_nothrow_move_assignable_v<value_type>) {
         if (this->has_value()) {
             if (WJR_LIKELY(other.has_value())) {
@@ -259,8 +259,8 @@ struct optional_operations_base<void> : optional_storage_base<void> {
 };
 
 template <typename T>
-struct __optional_storage_impl {
-    using value_type = __optional_unwrap_t<T>;
+struct _optional_storage_impl {
+    using value_type = _optional_unwrap_t<T>;
 
     using type =
         control_special_members_base<optional_operations_base<T>,
@@ -275,16 +275,16 @@ struct __optional_storage_impl {
 };
 
 template <>
-struct __optional_storage_impl<void> {
+struct _optional_storage_impl<void> {
     using type =
         control_special_members_base<optional_operations_base<void>, true, true, true, true>;
 };
 
 template <typename T>
-using optional_storage = typename __optional_storage_impl<T>::type;
+using optional_storage = typename _optional_storage_impl<T>::type;
 
 template <typename T>
-struct __enable_optional_storage_impl {
+struct _enable_optional_storage_impl {
     using type = enable_special_members_base<
         true, true, std::is_copy_constructible_v<T>, std::is_move_constructible_v<T>,
         std::is_copy_assignable_v<T> && std::is_copy_constructible_v<T> &&
@@ -294,12 +294,12 @@ struct __enable_optional_storage_impl {
 };
 
 template <>
-struct __enable_optional_storage_impl<void> {
+struct _enable_optional_storage_impl<void> {
     using type = enable_special_members_base<true, true, true, true, true, true>;
 };
 
 template <typename T>
-using enable_optional_storage = typename __enable_optional_storage_impl<T>::type;
+using enable_optional_storage = typename _enable_optional_storage_impl<T>::type;
 
 template <typename T, typename U>
 struct optional_construct_with
@@ -343,11 +343,11 @@ inline constexpr bool optional_construct_with_arg_v = optional_construct_with_ar
 } // namespace optional_detail
 
 template <typename Func, typename... Args>
-using __optional_result = std::remove_cv_t<std::invoke_result_t<Func, Args...>>;
+using _optional_result = std::remove_cv_t<std::invoke_result_t<Func, Args...>>;
 
 template <typename T>
 class WJR_EMPTY_BASES optional : optional_detail::optional_storage<T>,
-                                 optional_detail::enable_optional_storage<__optional_unwrap_t<T>> {
+                                 optional_detail::enable_optional_storage<_optional_unwrap_t<T>> {
     using Mybase = optional_detail::optional_storage<T>;
 
     template <typename OT>
@@ -559,7 +559,7 @@ public:
                            : static_cast<value_type>(std::forward<U>(default_value));
     }
 
-    template <typename Func, typename U = __optional_result<Func, value_type &>>
+    template <typename Func, typename U = _optional_result<Func, value_type &>>
     constexpr U and_then(Func &&func) & {
         if (WJR_LIKELY(has_value())) {
             return std::invoke(std::forward<Func>(func), this->m_val);
@@ -568,7 +568,7 @@ public:
         return U{};
     }
 
-    template <typename Func, typename U = __optional_result<Func, const value_type &>>
+    template <typename Func, typename U = _optional_result<Func, const value_type &>>
     constexpr U and_then(Func &&func) const & {
         if (WJR_LIKELY(has_value())) {
             return std::invoke(std::forward<Func>(func), this->m_val);
@@ -577,7 +577,7 @@ public:
         return U{};
     }
 
-    template <typename Func, typename U = __optional_result<Func, value_type &&>>
+    template <typename Func, typename U = _optional_result<Func, value_type &&>>
     constexpr U and_then(Func &&func) && {
         if (WJR_LIKELY(has_value())) {
             return std::invoke(std::forward<Func>(func), std::move(this->m_val));
@@ -586,7 +586,7 @@ public:
         return U{};
     }
 
-    template <typename Func, typename U = __optional_result<Func, const value_type &&>>
+    template <typename Func, typename U = _optional_result<Func, const value_type &&>>
     constexpr U and_then(Func &&func) const && {
         if (WJR_LIKELY(has_value())) {
             return std::invoke(std::forward<Func>(func), std::move(this->m_val));
@@ -595,7 +595,7 @@ public:
         return U{};
     }
 
-    template <typename Func, typename U = __optional_result<Func>>
+    template <typename Func, typename U = _optional_result<Func>>
     constexpr U or_else(Func &&func) & {
         if (WJR_UNLIKELY(!has_value())) {
             return std::invoke(std::forward<Func>(func));
@@ -604,7 +604,7 @@ public:
         return U(std::in_place, this->m_val);
     }
 
-    template <typename Func, typename U = __optional_result<Func>>
+    template <typename Func, typename U = _optional_result<Func>>
     constexpr U or_else(Func &&func) const & {
         if (WJR_UNLIKELY(!has_value())) {
             return std::invoke(std::forward<Func>(func));
@@ -613,7 +613,7 @@ public:
         return U(std::in_place, this->m_val);
     }
 
-    template <typename Func, typename U = __optional_result<Func>>
+    template <typename Func, typename U = _optional_result<Func>>
     constexpr U or_else(Func &&func) && {
         if (WJR_UNLIKELY(!has_value())) {
             return std::invoke(std::forward<Func>(func));
@@ -622,7 +622,7 @@ public:
         return U(std::in_place, std::move(this->m_val));
     }
 
-    template <typename Func, typename U = __optional_result<Func>>
+    template <typename Func, typename U = _optional_result<Func>>
     constexpr U or_else(Func &&func) const && {
         if (WJR_UNLIKELY(!has_value())) {
             return std::invoke(std::forward<Func>(func));
@@ -631,7 +631,7 @@ public:
         return U(std::in_place, std::move(this->m_val));
     }
 
-    template <typename Func, typename U = __optional_result<Func, value_type &>>
+    template <typename Func, typename U = _optional_result<Func, value_type &>>
     constexpr optional<U> transform(Func &&func) & {
         if (has_value()) {
             return std::invoke(std::forward<Func>(func), this->m_val);
@@ -640,7 +640,7 @@ public:
         return optional<U>{};
     }
 
-    template <typename Func, typename U = __optional_result<Func, const value_type &>>
+    template <typename Func, typename U = _optional_result<Func, const value_type &>>
     constexpr optional<U> transform(Func &&func) const & {
         if (has_value()) {
             return std::invoke(std::forward<Func>(func), this->m_val);
@@ -649,7 +649,7 @@ public:
         return optional<U>{};
     }
 
-    template <typename Func, typename U = __optional_result<Func, value_type &&>>
+    template <typename Func, typename U = _optional_result<Func, value_type &&>>
     constexpr optional<U> transform(Func &&func) && {
         if (has_value()) {
             return std::invoke(std::forward<Func>(func), std::move(this->m_val));
@@ -658,7 +658,7 @@ public:
         return optional<U>{};
     }
 
-    template <typename Func, typename U = __optional_result<Func, const value_type &&>>
+    template <typename Func, typename U = _optional_result<Func, const value_type &&>>
     constexpr optional<U> transform(Func &&func) const && {
         if (has_value()) {
             return std::invoke(std::forward<Func>(func), std::move(this->m_val));
@@ -694,8 +694,8 @@ public:
 
 private:
     WJR_CONSTEXPR20 void
-    __swap_impl(optional &other) noexcept(std::is_nothrow_move_constructible_v<T> &&
-                                          std::is_nothrow_swappable_v<T>) {
+    _swap_impl(optional &other) noexcept(std::is_nothrow_move_constructible_v<T> &&
+                                         std::is_nothrow_swappable_v<T>) {
         wjr::construct_at(std::addressof(other.m_val), std::move(this->m_val));
         std::destroy_at(std::addressof(this->m_val));
         this->set_invalid();
@@ -714,12 +714,12 @@ public:
             if (other.has_value()) {
                 std::swap(this->m_val, other.m_val);
             } else {
-                __swap_impl(other);
+                _swap_impl(other);
             }
         } else {
             if (!other.has_value()) {
             } else {
-                other.__swap_impl(*this);
+                other._swap_impl(*this);
             }
         }
     }
@@ -789,7 +789,7 @@ public:
     using Mybase::has_value;
     constexpr explicit operator bool() const noexcept { return has_value(); }
 
-    template <typename Func, typename U = __optional_result<Func>>
+    template <typename Func, typename U = _optional_result<Func>>
     constexpr U and_then(Func &&func) const {
         if (WJR_LIKELY(has_value())) {
             return std::invoke(std::forward<Func>(func));
@@ -798,7 +798,7 @@ public:
         return U{};
     }
 
-    template <typename Func, typename U = __optional_result<Func>>
+    template <typename Func, typename U = _optional_result<Func>>
     constexpr U or_else(Func &&func) const {
         if (WJR_UNLIKELY(!has_value())) {
             return std::invoke(std::forward<Func>(func));
@@ -807,7 +807,7 @@ public:
         return U(std::in_place);
     }
 
-    template <typename Func, typename U = __optional_result<Func>>
+    template <typename Func, typename U = _optional_result<Func>>
     constexpr optional<U> transform(Func &&func) const {
         if (has_value()) {
             return std::invoke(std::forward<Func>(func));

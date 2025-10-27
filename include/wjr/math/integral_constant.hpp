@@ -8,7 +8,7 @@ namespace wjr {
 namespace digits_literal_detail {
 
 template <uint64_t Base>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR static uint32_t __fast_conv_4(uint32_t val) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR static uint32_t _fast_conv_4(uint32_t val) noexcept {
     constexpr uint32_t Base2 = Base * Base;
 
     constexpr uint32_t mul1 = 1 + (Base << 8);
@@ -19,7 +19,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR static uint32_t __fast_conv_4(uint32_t val) no
 }
 
 template <uint64_t Base>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR static uint32_t __fast_conv_8(uint64_t val) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR static uint32_t _fast_conv_8(uint64_t val) noexcept {
     constexpr uint64_t Base2 = Base * Base;
     constexpr uint64_t Base4 = Base2 * Base2;
 
@@ -39,50 +39,50 @@ struct parse_result {
 };
 
 template <typename T>
-WJR_CONST constexpr parse_result<T> __parse_impl() noexcept {
+WJR_CONST constexpr parse_result<T> _parse_impl() noexcept {
     return {0, 1};
 }
 
 template <typename T, char c0>
-WJR_CONST constexpr parse_result<T> __parse_impl() noexcept {
+WJR_CONST constexpr parse_result<T> _parse_impl() noexcept {
     return {c0 - '0', 10};
 }
 
 template <typename T, char c0, char c1>
-WJR_CONST constexpr parse_result<T> __parse_impl() noexcept {
+WJR_CONST constexpr parse_result<T> _parse_impl() noexcept {
     constexpr T result = (c0 - '0') * 10 + c1 - '0';
     return {result, 100};
 }
 
 template <typename T, char c0, char c1, char c2>
-WJR_CONST constexpr parse_result<T> __parse_impl() noexcept {
+WJR_CONST constexpr parse_result<T> _parse_impl() noexcept {
     constexpr T result = (c0 - '0') * 100 + (c1 - '0') * 10 + c2 - '0';
     return {result, 1000};
 }
 
 template <typename T, char c0, char c1, char c2, char c3, char... Chars>
-WJR_CONST constexpr parse_result<T> __parse_impl() noexcept {
+WJR_CONST constexpr parse_result<T> _parse_impl() noexcept {
     constexpr uint32_t mem = (c0 | (c1 << 8) | (c2 << 16) | (c3 << 24)) - 0x30303030;
-    constexpr uint32_t val = __fast_conv_4<10>(mem);
-    constexpr auto result = __parse_impl<T, Chars...>();
+    constexpr uint32_t val = _fast_conv_4<10>(mem);
+    constexpr auto result = _parse_impl<T, Chars...>();
     return {static_cast<T>(result.result * result.pow + val), static_cast<T>(result.pow * 10000)};
 }
 
 template <typename T, char c0, char c1, char c2, char c3, char c4, char c5, char c6, char c7,
           char... Chars>
-WJR_CONST constexpr parse_result<T> __parse_impl() noexcept {
+WJR_CONST constexpr parse_result<T> _parse_impl() noexcept {
     constexpr uint64_t mem = (c0 | (c1 << 8) | (c2 << 16) | (c3 << 24) | ((uint64_t)c4 << 32) |
                               ((uint64_t)c5 << 40) | ((uint64_t)c6 << 48) | ((uint64_t)c7 << 56)) -
                              0x3030303030303030;
-    constexpr uint64_t val = __fast_conv_8<10>(mem);
-    constexpr auto result = __parse_impl<T, Chars...>();
+    constexpr uint64_t val = _fast_conv_8<10>(mem);
+    constexpr auto result = _parse_impl<T, Chars...>();
     return {static_cast<T>(result.result * result.pow + val),
             static_cast<T>(result.pow * 100000000)};
 }
 
 template <typename T, char... Chars>
 WJR_CONST constexpr T parse() noexcept {
-    return __parse_impl<T, Chars...>().result;
+    return _parse_impl<T, Chars...>().result;
 }
 
 } // namespace digits_literal_detail
