@@ -287,7 +287,7 @@ public:
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
             return static_cast<T *>(
-                mem::_default_allocate<mem::__new_alignof<T>>(size, std::nothrow));
+                mem::_default_allocate<mem::_new_alignof<T>>(size, std::nothrow));
         }
 
         return static_cast<T *>(m_alloc->_small_allocate(size));
@@ -296,7 +296,7 @@ public:
     void deallocate(T *ptr, size_type n) noexcept {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
-            mem::_default_deallocate<mem::__new_alignof<T>>(ptr, std::nothrow);
+            mem::_default_deallocate<mem::_new_alignof<T>>(ptr, std::nothrow);
         }
     }
 

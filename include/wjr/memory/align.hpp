@@ -105,7 +105,7 @@ inline constexpr size_t default_new_alignment = std::max<size_t>(
     sizeof(void *), std::max<size_t>(alignof(max_align_t), stdcpp_default_new_alignment));
 
 template <typename T>
-inline constexpr size_t __new_alignof = std::max<size_t>(alignof(T), default_new_alignment);
+inline constexpr size_t _new_alignof = std::max<size_t>(alignof(T), default_new_alignment);
 
 } // namespace mem
 
