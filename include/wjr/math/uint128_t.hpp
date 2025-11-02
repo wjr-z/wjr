@@ -198,7 +198,7 @@ public:
     uint64_t high;
 };
 
-WJR_INTRINSIC_CONSTEXPR20 uint128_t mul64x64to128(uint64_t a, uint64_t b) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 uint128_t mul64x64to128(uint64_t a, uint64_t b) noexcept {
     uint64_t low, high;
     low = mul(a, b, high);
     return uint128_t(low, high);

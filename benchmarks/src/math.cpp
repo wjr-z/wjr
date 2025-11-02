@@ -342,7 +342,7 @@ static void wjr_to_chars_backward_unchecked(benchmark::State &state) {
         [&]() {
             do {
                 x = mt_rand();
-            } while (!wjr::__has_high_bit(x));
+            } while (!wjr::_has_high_bit(x));
             x &= mask;
         },
         [&]() {
@@ -367,7 +367,7 @@ static void wjr_to_chars(benchmark::State &state) {
         [&]() {
             do {
                 x = mt_rand();
-            } while (!wjr::__has_high_bit(x));
+            } while (!wjr::_has_high_bit(x));
             x &= mask;
         },
         [&]() {
@@ -393,7 +393,7 @@ static void wjr_to_chars_unchecked(benchmark::State &state) {
         [&]() {
             do {
                 x = mt_rand();
-            } while (!wjr::__has_high_bit(x));
+            } while (!wjr::_has_high_bit(x));
             x &= mask;
         },
         [&]() {
@@ -559,7 +559,7 @@ static void fallback_to_chars(benchmark::State &state) {
         [&]() {
             do {
                 x = mt_rand();
-            } while (!wjr::__has_high_bit(x));
+            } while (!wjr::_has_high_bit(x));
             x &= mask;
         },
         [&]() {
