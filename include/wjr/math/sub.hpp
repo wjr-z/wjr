@@ -67,8 +67,7 @@ WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) noexcept {
 
 #endif // WJR_HAS_BUILTIN(SUBC)
 
-template <typename T, typename U,
-          WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
+template <nonbool_unsigned_integral T, nonbool_unsigned_integral U>
 WJR_INTRINSIC_CONSTEXPR20 T subc(T a, T b, type_identity_t<U> c_in, U &c_out) noexcept {
     WJR_ASSERT_ASSUME_L2(c_in <= 1);
 
@@ -107,7 +106,7 @@ WJR_INTRINSIC_CONSTEXPR20 T subc(T a, T b, type_identity_t<U> c_in, U &c_out) no
  cleared, so the performance is worse than the normal version when cc flag is
  not needed immediately.
 */
-template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_INTRINSIC_CONSTEXPR20 T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noexcept {
     WJR_ASSERT_ASSUME_L2(c_in <= 1);
 
@@ -141,7 +140,7 @@ WJR_INTRINSIC_CONSTEXPR20 bool fallback_sub_overflow(T a, T b, T &ret) noexcept 
     return ret > a;
 }
 
-template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_INTRINSIC_CONSTEXPR20 bool sub_overflow(type_identity_t<T> a, type_identity_t<T> b,
                                             T &ret) noexcept {
 #if WJR_HAS_BUILTIN(SUB_OVERFLOW)

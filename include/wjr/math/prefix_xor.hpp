@@ -51,7 +51,7 @@ constexpr T fallback_prefix_xor(T x) noexcept {
  * @param[in] x Input value
  * @return Prefix XOR result
  */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T prefix_xor(T x) noexcept {
 #if WJR_HAS_BUILTIN(PREFIX_XOR)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {

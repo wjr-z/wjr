@@ -183,14 +183,14 @@ public:
     constexpr const_iterator end() const noexcept { return const_iterator(nullptr); }
     constexpr const_iterator cend() const noexcept { return const_iterator(nullptr); }
 
-    template <typename U = T, typename V = Tag,
-              WJR_REQUIRES(std::is_same_v<U, T> &&std::is_same_v<V, Tag>)>
+    template <typename U = T, typename V = Tag>
+    requires(std::is_same_v<U, T> && std::is_same_v<V, Tag>)
     constexpr hlist_node<U, V> *get_node() noexcept {
         return this;
     }
 
-    template <typename U = T, typename V = Tag,
-              WJR_REQUIRES(std::is_same_v<U, T> &&std::is_same_v<V, Tag>)>
+    template <typename U = T, typename V = Tag>
+    requires(std::is_same_v<U, T> && std::is_same_v<V, Tag>)
     constexpr const hlist_node<U, V> *get_node() const noexcept {
         return this;
     }

@@ -43,7 +43,7 @@ WJR_INTRINSIC_CONSTEXPR int fallback_compare_n(const T *src0, const T *src1, siz
  * @param[in] n Number of elements to compare
  * @return int -1, 0, or 1 indicating comparison result
  */
-template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+template <nonbool_integral T>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR20 int compare_n(const T *src0, const T *src1, size_t n) noexcept {
     if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
         return 0;
@@ -91,7 +91,7 @@ WJR_INTRINSIC_CONSTEXPR int fallback_reverse_compare_n(const T *src0, const T *s
  * @param[in] n Number of elements to compare
  * @return int -1, 0, or 1 indicating comparison result
  */
-template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+template <nonbool_integral T>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR20 int reverse_compare_n(const T *src0, const T *src1,
                                                          size_t n) noexcept {
     if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {

@@ -4,11 +4,10 @@ name: Linux
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "main" ]
+    branches: [ "main", "cpp20" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "cpp20" ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -27,7 +26,7 @@ jobs:
         - {compiler: clang, version: '18'}
         - {compiler: clang, version: '19'}
         - {compiler: clang, version: '20'}
-        - {compiler: gcc, version: '9'}
+        - {compiler: gcc, version: '10'}
         - {compiler: gcc, version: '11'}
         - {compiler: gcc, version: '12'}
         - {compiler: gcc, version: '13'}

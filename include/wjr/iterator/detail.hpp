@@ -14,8 +14,6 @@
 
 #include <wjr/type_traits.hpp>
 
-#include <range/v3/iterator/concepts.hpp>
-
 namespace wjr {
 
 /// Extract difference_type from iterator traits
@@ -135,7 +133,7 @@ struct _is_contiguous_iterator_impl<std::move_iterator<Iter>>
 /// @todo Is std::contiguous_iterator needed here?
 template <typename Iter>
 inline constexpr bool _is_contiguous_iterator_impl_v =
-    _is_contiguous_iterator_impl<Iter>::value || ranges::contiguous_iterator<Iter>;
+    _is_contiguous_iterator_impl<Iter>::value || std::contiguous_iterator<Iter>;
 
 template <typename Iter>
 struct is_contiguous_iterator : std::bool_constant<_is_contiguous_iterator_impl_v<Iter>> {};
@@ -143,10 +141,12 @@ struct is_contiguous_iterator : std::bool_constant<_is_contiguous_iterator_impl_
 template <typename Iter>
 inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
 
-template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<Iter>)>
+template <typename Iter>
+requires(is_contiguous_iterator_v<Iter>)
 using iterator_contiguous_value_t = std::remove_reference_t<iterator_reference_t<Iter>>;
 
-template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<Iter>)>
+template <typename Iter>
+requires(is_contiguous_iterator_v<Iter>)
 using iterator_contiguous_pointer_t = std::add_pointer_t<iterator_contiguous_value_t<Iter>>;
 
 #if WJR_DEBUG_LEVEL >= 3
@@ -157,7 +157,7 @@ using iterator_contiguous_pointer_t = std::add_pointer_t<iterator_contiguous_val
  * @brief Contiguous iterator tag
  * @todo Support C++20 std::contiguous_iterator_tag
  */
-using contiguous_iterator_tag = ranges::contiguous_iterator_tag;
+using contiguous_iterator_tag = std::contiguous_iterator_tag;
 
 } // namespace wjr
 

@@ -250,14 +250,14 @@ public:
     }
     constexpr const_reverse_iterator crend() const noexcept { return rend(); }
 
-    template <typename U = T, typename V = Tag,
-              WJR_REQUIRES(std::is_same_v<U, T> &&std::is_same_v<V, Tag>)>
+    template <typename U = T, typename V = Tag>
+    requires(std::is_same_v<U, T> && std::is_same_v<V, Tag>)
     constexpr list_node<U, V> *get_node() noexcept {
         return this;
     }
 
-    template <typename U = T, typename V = Tag,
-              WJR_REQUIRES(std::is_same_v<U, T> &&std::is_same_v<V, Tag>)>
+    template <typename U = T, typename V = Tag>
+    requires(std::is_same_v<U, T> && std::is_same_v<V, Tag>)
     constexpr const list_node<U, V> *get_node() const noexcept {
         return this;
     }

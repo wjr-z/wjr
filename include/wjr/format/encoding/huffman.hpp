@@ -48,7 +48,8 @@ class huffman_leaf_node : public huffman_node<T> {
 public:
     huffman_leaf_node() noexcept : huffman_node<T>(), m_value() {}
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
+    template <typename... Args>
+    requires(std::is_constructible_v<T, Args && ...>)
     huffman_leaf_node(Args &&...args) noexcept(std::is_nothrow_constructible_v<T, Args &&...>)
         : huffman_node<T>(), m_value(std::forward<Args>(args)...) {}
 

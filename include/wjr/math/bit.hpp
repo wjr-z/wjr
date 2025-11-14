@@ -17,7 +17,7 @@
 
 namespace wjr {
 namespace constant {
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_CONST constexpr int countl_zero(T x) noexcept {
     if (WJR_UNLIKELY(x == 0)) {
         return std::numeric_limits<T>::digits;
@@ -26,7 +26,7 @@ WJR_CONST constexpr int countl_zero(T x) noexcept {
     return constant::clz(x);
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_CONST constexpr int countr_zero(T x) noexcept {
     if (WJR_UNLIKELY(x == 0)) {
         return std::numeric_limits<T>::digits;
@@ -35,22 +35,22 @@ WJR_CONST constexpr int countr_zero(T x) noexcept {
     return constant::ctz(x);
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_CONST constexpr int countl_one(T x) noexcept {
     return constant::countl_zero(static_cast<T>(~x));
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_CONST constexpr int countr_one(T x) noexcept {
     return constant::countr_zero(static_cast<T>(~x));
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_CONST constexpr int bit_width(T x) noexcept {
     return std::numeric_limits<T>::digits - constant::countl_zero(x);
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_CONST constexpr T bit_ceil(T x) noexcept {
     if (x <= 1) {
         return T(1);
@@ -65,7 +65,7 @@ WJR_CONST constexpr T bit_ceil(T x) noexcept {
     }
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_CONST constexpr T bit_floor(T x) noexcept {
     if (x != 0) {
         return T{1} << (constant::bit_width(x) - 1);
@@ -85,7 +85,7 @@ WJR_CONST constexpr T bit_floor(T x) noexcept {
  * @param[in] n Value to check
  * @return bool True if n is a power of two, false otherwise
  */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {
     return (n != 0) && is_zero_or_single_bit(n);
 }
@@ -101,7 +101,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {
  * @param[in] x Value to count leading zeros
  * @return int Number of leading zero bits
  */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
     // If not use __builtin_clz and use popcount, then don't need to handle
     // zero.
@@ -125,7 +125,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
  * @param[in] x Value to count trailing zeros
  * @return int Number of trailing zero bits
  */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_zero(T x) noexcept {
     // If not use __builtin_ctz and use popcount, then don't need to handle
     // zero.
@@ -138,12 +138,12 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_zero(T x) noexcept {
     return ctz(x);
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_one(T x) noexcept {
     return countl_zero(static_cast<T>(~x));
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_one(T x) noexcept {
     return countr_zero(static_cast<T>(~x));
 }
@@ -158,7 +158,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_one(T x) noexcept {
  * @param[in] x Value to calculate bit width
  * @return int Number of bits needed (0 to digits)
  */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int bit_width(T x) noexcept {
     return std::numeric_limits<T>::digits - countl_zero(x);
 }
@@ -173,7 +173,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int bit_width(T x) noexcept {
  * @param[in] x Value to round up
  * @return T Next power of two >= x
  */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_ceil(T x) noexcept {
     if (x <= 1) {
         return T(1);
@@ -198,7 +198,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_ceil(T x) noexcept {
  * @param[in] x Value to round down
  * @return T Previous power of two <= x
  */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_floor(T x) noexcept {
     if (x != 0) {
         return T{1} << (bit_width(x) - 1);
@@ -211,9 +211,9 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_floor(T x) noexcept {
     #define WJR_HAS_BUILTIN_BIT_CAST WJR_HAS_DEF
 #endif
 
-template <typename To, typename From,
-          WJR_REQUIRES(sizeof(To) == sizeof(From) && std::is_trivially_copyable_v<From> &&
-                       std::is_trivially_copyable_v<To>)>
+template <typename To, typename From>
+requires(sizeof(To) == sizeof(From) && std::is_trivially_copyable_v<From> &&
+         std::is_trivially_copyable_v<To>)
 WJR_PURE WJR_INTRINSIC_INLINE To bit_cast(const From &src) noexcept {
     static_assert(std::is_trivially_constructible_v<To>);
 #if WJR_HAS_BUILTIN(BIT_CAST)
@@ -264,8 +264,8 @@ WJR_INTRINSIC_INLINE To bitwise_cast_impl(From const &from, std::false_type) noe
 
 } // namespace bit_detail
 
-template <typename To, typename From,
-          WJR_REQUIRES(std::is_trivially_copyable_v<From> &&std::is_trivially_copyable_v<To>)>
+template <typename To, typename From>
+requires(std::is_trivially_copyable_v<From> && std::is_trivially_copyable_v<To>)
 WJR_INTRINSIC_INLINE To bitwise_cast(From const &from) noexcept {
     return bit_detail::bitwise_cast_impl<To>(
         from, std::bool_constant<(sizeof(From) == sizeof(To) &&

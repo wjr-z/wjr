@@ -15,9 +15,9 @@ namespace {
 
 template <typename Container>
 WJR_INTRINSIC_INLINE void append_string(Container &cont, const char *str, size_t length) {
-    if constexpr (has_container_append_v<Container, const char *, size_t>) {
+    if constexpr (has_container_append<Container, const char *, size_t>) {
         cont.append(str, length);
-    } else if constexpr (has_container_append_v<Container, const char *, const char *>) {
+    } else if constexpr (has_container_append<Container, const char *, const char *>) {
         cont.append(str, str + length);
     } else {
         cont.insert(cont.end(), str, str + length);
@@ -26,7 +26,7 @@ WJR_INTRINSIC_INLINE void append_string(Container &cont, const char *str, size_t
 
 template <typename Container>
 WJR_INTRINSIC_INLINE void append_indents(Container &cont, size_t length) {
-    if constexpr (has_container_append_v<Container, size_t, char>) {
+    if constexpr (has_container_append<Container, size_t, char>) {
         cont.append(length, ' ');
     } else {
         cont.insert(cont.end(), length, ' ');
