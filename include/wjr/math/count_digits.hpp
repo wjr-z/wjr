@@ -140,8 +140,7 @@ inline constexpr count_digits_fn<Base> count_digits{};
 /// @private Specialization for binary (base-2) digit counting
 template <>
 struct count_digits_fn<2> {
-    template <typename T>
-    requires(is_nonbool_unsigned_integral_v<T>)
+    template<nonbool_unsigned_integral T>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
         return bit_width(n);
     }
@@ -150,8 +149,7 @@ struct count_digits_fn<2> {
 /// @private Specialization for octal (base-8) digit counting
 template <>
 struct count_digits_fn<8> {
-    template <typename T>
-    requires(is_nonbool_unsigned_integral_v<T>)
+    template<nonbool_unsigned_integral T>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
         return _ceil_div(to_unsigned(bit_width(n)), 3);
     }
@@ -160,8 +158,7 @@ struct count_digits_fn<8> {
 /// @private Specialization for hexadecimal (base-16) digit counting
 template <>
 struct count_digits_fn<16> {
-    template <typename T>
-    requires(is_nonbool_unsigned_integral_v<T>)
+    template<nonbool_unsigned_integral T>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
         return _ceil_div(to_unsigned(bit_width(n)), 4);
     }
@@ -173,8 +170,7 @@ struct count_digits_fn<16> {
  */
 template <>
 struct count_digits_fn<1> {
-    template <typename T>
-    requires(is_nonbool_unsigned_integral_v<T>)
+    template<nonbool_unsigned_integral T>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n, int bits) const noexcept {
         return _ceil_div(to_unsigned(bit_width(n)), bits);
     }
@@ -183,8 +179,7 @@ struct count_digits_fn<1> {
 /// @private Specialization for decimal (base-10) digit counting
 template <>
 struct count_digits_fn<10> {
-    template <typename T>
-    requires(is_nonbool_unsigned_integral_v<T>)
+    template<nonbool_unsigned_integral T>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
         const int ret = count_digits10_impl(n);
         WJR_ASSUME(1 <= ret && ret <= std::numeric_limits<T>::digits10 + 1);

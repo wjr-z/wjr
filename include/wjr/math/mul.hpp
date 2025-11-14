@@ -118,8 +118,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t _mul_u64(uint64_t a, uint64_t b, uint64_t &hi
  * @param[out] hi Reference to store the high part of the product
  * @return T The low part of the product
  */
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_INTRINSIC_CONSTEXPR20 T mul(T a, T b, T &hi) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
@@ -141,8 +140,7 @@ WJR_INTRINSIC_CONSTEXPR20 T mul(T a, T b, T &hi) noexcept {
  * @param[in] b Second multiplicand
  * @return T The high part of the product
  */
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T mulhi(T a, T b) noexcept {
 #if WJR_HAS_BUILTIN(MSVC_MULH64)
     constexpr auto nd = std::numeric_limits<T>::digits;
@@ -169,8 +167,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T mulhi(T a, T b) noexcept {
  * @param[in] b Second multiplicand
  * @return T The low part of the product
  */
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T mullo(T a, T b) noexcept {
     return a * b;
 }
@@ -198,8 +195,7 @@ WJR_INTRINSIC_CONSTEXPR20 bool fallback_mul_overflow(T a, T b, T &ret) noexcept 
  * @param[out] ret Reference to store the product (low part if overflow)
  * @return bool True if overflow occurred, false otherwise
  */
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_INTRINSIC_CONSTEXPR20 bool mul_overflow(type_identity_t<T> a, type_identity_t<T> b,
                                             T &ret) noexcept {
 #if WJR_HAS_BUILTIN(MUL_OVERFLOW)

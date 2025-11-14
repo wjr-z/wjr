@@ -33,23 +33,19 @@ public:
 
     constexpr uint128_t(uint64_t lo_, uint64_t hi_) noexcept : low(lo_), high(hi_) {}
 
-    template <typename T>
-    requires(is_nonbool_unsigned_integral_v<T>)
+    template<nonbool_unsigned_integral T>
     explicit constexpr uint128_t(T value) noexcept : low(value), high(0) {}
 
-    template <typename T>
-    requires(is_nonbool_signed_integral_v<T>)
+    template<nonbool_signed_integral T>
     explicit constexpr uint128_t(T value) noexcept
         : low(static_cast<T>(value)), high(static_cast<T>(value >= 0 ? 0 : -1)) {}
 
-    template <typename T>
-    requires(is_nonbool_integral_v<T>)
+    template<nonbool_integral T>
     constexpr uint128_t &operator=(T value) noexcept {
         return *this = uint128_t(value);
     }
 
-    template <typename T>
-    requires(is_nonbool_integral_v<T>)
+    template<nonbool_integral T>
     explicit constexpr operator T() const noexcept {
         return static_cast<T>(low);
     }
@@ -132,14 +128,12 @@ private:
     }
 
 public:
-    template <typename T>
-    requires(is_nonbool_unsigned_integral_v<T>)
+    template<nonbool_unsigned_integral T>
     WJR_CONSTEXPR20 uint128_t &operator*=(T value) noexcept {
         return (*this) = mul_u64(*this, value);
     }
 
-    template <typename T>
-    requires(is_nonbool_signed_integral_v<T>)
+    template<nonbool_signed_integral T>
     WJR_CONSTEXPR20 uint128_t &operator*=(T value) noexcept {
         return (*this) = mul_i64(*this, value);
     }
@@ -148,14 +142,12 @@ public:
         return lhs *= rhs;
     }
 
-    template <typename T>
-    requires(is_nonbool_integral_v<T>)
+    template<nonbool_integral T>
     friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator*(uint128_t lhs, T rhs) noexcept {
         return lhs *= rhs;
     }
 
-    template <typename T>
-    requires(is_nonbool_integral_v<T>)
+    template<nonbool_integral T>
     friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator*(T lhs, uint128_t rhs) noexcept {
         return rhs *= lhs;
     }

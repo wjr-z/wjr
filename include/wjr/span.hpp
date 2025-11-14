@@ -132,38 +132,15 @@ public:
     requires(Ex == dynamic_extent || Ex == 0)
     constexpr span() noexcept : storage() {}
 
-#if defined(__cpp_conditional_explicit)
     template <typename It>
     requires(_is_span_iterator<It, element_type>::value)
     constexpr explicit(!_is_dynamic) span(It first, size_type count) noexcept
         : storage(wjr::to_address(first), count) {}
-#else
-    template <typename It>
-    requires(_is_span_iterator<It, element_type>::value && _is_dynamic)
-    constexpr span(It first, size_type count) noexcept : storage(wjr::to_address(first), count) {}
 
-    template <typename It>
-    requires(_is_span_iterator<It, element_type>::value && !_is_dynamic)
-    constexpr explicit span(It first, size_type count) noexcept
-        : storage(wjr::to_address(first), count) {}
-#endif
-
-#if defined(__cpp_conditional_explicit)
     template <typename It>
     requires(_is_span_iterator<It, element_type>::value)
     constexpr explicit(!_is_dynamic) span(It first, It last) noexcept
         : storage(wjr::to_address(first), static_cast<size_type>(last - first)) {}
-#else
-    template <typename It>
-    requires(_is_span_iterator<It, element_type>::value && _is_dynamic)
-    constexpr span(It first, It last) noexcept
-        : storage(wjr::to_address(first), static_cast<size_type>(last - first)) {}
-
-    template <typename It>
-    requires(_is_span_iterator<It, element_type>::value && !_is_dynamic)
-    constexpr explicit span(It first, It last) noexcept
-        : storage(wjr::to_address(first), static_cast<size_type>(last - first)) {}
-#endif
 
     template <size_t N>
     requires((_is_dynamic || N == Extent))
@@ -178,23 +155,10 @@ public:
     constexpr span(const std::array<U, N> &arr) noexcept
         : storage(std::data(arr), std::size(arr)) {}
 
-#if defined(__cpp_conditional_explicit)
     template <typename U, size_t N>
     requires((_is_dynamic || N == dynamic_extent || N == Extent) && std::is_convertible_v<U *, T *>)
     constexpr explicit(!_is_dynamic) span(const span<U, N> &source) noexcept
         : storage(source.data(), source.size()) {}
-#else
-    template <typename U, size_t N>
-    requires((_is_dynamic || N == dynamic_extent || N == Extent) &&
-             std::is_convertible_v<U *, T *> && _is_dynamic)
-    constexpr span(const span<U, N> &source) noexcept : storage(source.data(), source.size()) {}
-
-    template <typename U, size_t N>
-    requires((_is_dynamic || N == dynamic_extent || N == Extent) &&
-             std::is_convertible_v<U *, T *> && !_is_dynamic)
-    constexpr explicit span(const span<U, N> &source) noexcept
-        : storage(source.data(), source.size()) {}
-#endif
 
 #if WJR_HAS_GCC(9, 0, 0)
     // Disable gcc's warning in this constructor as it generates an enormous amount
@@ -204,20 +168,8 @@ public:
     #pragma GCC diagnostic ignored "-Winit-list-lifetime"
 #endif
 
-#if defined(__cpp_conditional_explicit)
     constexpr explicit(!_is_dynamic) span(std::initializer_list<value_type> il) noexcept
         : storage(il.begin(), il.size()) {}
-#else
-    template <size_t E = Extent>
-    requires(E == dynamic_extent)
-    constexpr span(std::initializer_list<value_type> il) noexcept
-        : storage(il.begin(), il.size()) {}
-
-    template <size_t E = Extent>
-    requires(E != dynamic_extent)
-    constexpr explicit span(std::initializer_list<value_type> il) noexcept
-        : storage(il.begin(), il.size()) {}
-#endif
 
 #if WJR_HAS_GCC(9, 0, 0)
     #pragma GCC diagnostic pop

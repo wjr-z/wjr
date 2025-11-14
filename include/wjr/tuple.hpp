@@ -145,7 +145,6 @@ class tuple<This, Args...> {
 #endif
 
 public:
-#if defined(__cpp_conditional_explicit)
     template <typename T = This>
     requires(std::conjunction_v<std::is_default_constructible<T>,
                                 std::is_default_constructible<Args>...>)
@@ -153,42 +152,13 @@ public:
         !std::conjunction_v<is_default_convertible<T>, is_default_convertible<Args>...>)
         tuple() noexcept(std::is_nothrow_constructible_v<Impl>)
         : m_impl() {}
-#else
-    template <typename T = This>
-    requires(std::conjunction_v<std::is_default_constructible<T>,
-                                std::is_default_constructible<Args>...> &&
-             std::conjunction_v<is_default_convertible<T>, is_default_convertible<Args>...>)
-    constexpr tuple() noexcept(std::is_nothrow_constructible_v<Impl>) : m_impl() {}
 
-    template <typename T = This>
-    requires(std::conjunction_v<std::is_default_constructible<T>,
-                                std::is_default_constructible<Args>...> &&
-             !std::conjunction_v<is_default_convertible<T>, is_default_convertible<Args>...>)
-    constexpr explicit tuple() noexcept(std::is_nothrow_constructible_v<Impl>) : m_impl() {}
-#endif
-
-#if defined(__cpp_conditional_explicit)
     template <typename Other = This>
     requires(std::is_constructible_v<Impl, const Other &, const Args &...>)
     constexpr explicit(!_is_all_convertible<Other, Args...>::value)
         tuple(const Other &first, const Args &...rest) noexcept(
             std::is_nothrow_constructible_v<Impl, const Other &, const Args &...>)
         : m_impl(first, rest...) {}
-#else
-    template <typename Other = This>
-    requires(std::is_constructible_v<Impl, const Other &, const Args &...> &&
-             _is_all_convertible<const Other &, const Args &...>::value)
-    constexpr tuple(const Other &first, const Args &...rest) noexcept(
-        std::is_nothrow_constructible_v<Impl, const Other &, const Args &...>)
-        : m_impl(first, rest...) {}
-
-    template <typename Other = This>
-    requires(std::is_constructible_v<Impl, const Other &, const Args &...> &&
-             !_is_all_convertible<const Other &, const Args &...>::value)
-    constexpr explicit tuple(const Other &first, const Args &...rest) noexcept(
-        std::is_nothrow_constructible_v<Impl, const Other &, const Args &...>)
-        : m_impl(first, rest...) {}
-#endif
 
     template <typename Other, typename... _Args>
     requires(

@@ -399,30 +399,13 @@ public:
     using first_type = T;
     using second_type = U;
 
-#if defined(__cpp_conditional_explicit)
     template <typename Ty = T, typename Uy = U>
     requires(
         std::conjunction_v<std::is_default_constructible<Ty>, std::is_default_constructible<Uy>>)
     constexpr explicit(!std::conjunction_v<is_default_convertible<Ty>, is_default_convertible<Uy>>)
         compressed_pair() noexcept(std::conjunction_v<std::is_nothrow_constructible<Ty>,
                                                       std::is_nothrow_constructible<Uy>>) {}
-#else
-    template <typename Ty = T, typename Uy = U>
-    requires(
-        std::conjunction_v<std::is_default_constructible<Ty>, std::is_default_constructible<Uy>> &&
-        std::conjunction_v<is_default_convertible<Ty>, is_default_convertible<Uy>>)
-    constexpr compressed_pair() noexcept(
-        std::conjunction_v<std::is_nothrow_constructible<Ty>, std::is_nothrow_constructible<Uy>>) {}
 
-    template <typename Ty = T, typename Uy = U>
-    requires(
-        std::conjunction_v<std::is_default_constructible<Ty>, std::is_default_constructible<Uy>> &&
-        !std::conjunction_v<is_default_convertible<Ty>, is_default_convertible<Uy>>)
-    constexpr explicit compressed_pair() noexcept(
-        std::conjunction_v<std::is_nothrow_constructible<Ty>, std::is_nothrow_constructible<Uy>>) {}
-#endif
-
-#if defined(__cpp_conditional_explicit)
     template <typename Ty = T, typename Uy = U>
     requires(_is_all_copy_constructible<Ty, Uy>::value)
     constexpr explicit(!_is_all_convertible<const Ty &, const Uy &>::value)
@@ -430,46 +413,13 @@ public:
             std::conjunction_v<std::is_nothrow_copy_constructible<Ty>,
                                std::is_nothrow_copy_constructible<Uy>>)
         : Mybase(_First, _Second) {}
-#else
-    template <typename Ty = T, typename Uy = U>
-    requires(std::conjunction_v<_is_all_copy_constructible<Ty, Uy>,
-                                _is_all_convertible<const Ty &, const Uy &>>)
-    constexpr compressed_pair(const T &_First, const U &_Second) noexcept(
-        std::conjunction_v<std::is_nothrow_copy_constructible<Ty>,
-                           std::is_nothrow_copy_constructible<Uy>>)
-        : Mybase(_First, _Second) {}
 
-    template <typename Ty = T, typename Uy = U>
-    requires(std::conjunction_v<_is_all_copy_constructible<Ty, Uy>,
-                                std::negation<_is_all_convertible<const Ty &, const Uy &>>>)
-    constexpr explicit compressed_pair(const T &_First, const U &_Second) noexcept(
-        std::conjunction_v<std::is_nothrow_copy_constructible<Ty>,
-                           std::is_nothrow_copy_constructible<Uy>>)
-        : Mybase(_First, _Second) {}
-#endif
-
-#if defined(__cpp_conditional_explicit)
     template <typename Other1, typename Other2>
     requires(_is_all_constructible<Other1 &&, Other2 &&>::value)
     constexpr explicit(!_is_all_convertible<Other1 &&, Other2 &&>::value)
         compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
             std::is_nothrow_constructible_v<Mybase, Other1 &&, Other2 &&>)
         : Mybase(std::forward<Other1>(_First), std::forward<Other2>(_Second)) {}
-#else
-    template <typename Other1, typename Other2>
-    requires(std::conjunction_v<_is_all_constructible<Other1 &&, Other2 &&>,
-                                _is_all_convertible<Other1 &&, Other2 &&>>)
-    constexpr compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
-        std::is_nothrow_constructible_v<Mybase, Other1 &&, Other2 &&>)
-        : Mybase(std::forward<Other1>(_First), std::forward<Other2>(_Second)) {}
-
-    template <typename Other1, typename Other2>
-    requires(std::conjunction_v<_is_all_constructible<Other1 &&, Other2 &&>,
-                                std::negation<_is_all_convertible<Other1 &&, Other2 &&>>>)
-    constexpr explicit compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
-        std::is_nothrow_constructible_v<Mybase, Other1 &&, Other2 &&>)
-        : Mybase(std::forward<Other1>(_First), std::forward<Other2>(_Second)) {}
-#endif
 
 private:
     template <typename Tuple1, typename Tuple2, size_t... N1, size_t... N2>
@@ -491,7 +441,6 @@ public:
         : compressed_pair(tp1, tp2, std::index_sequence_for<Args1...>{},
                           std::index_sequence_for<Args2...>{}) {}
 
-#if defined(__cpp_conditional_explicit)
     template <typename PairLike>
     requires(_is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>)
     constexpr explicit(!_is_tuple_test_v<std::is_convertible, compressed_pair, PairLike &&>)
@@ -502,27 +451,6 @@ public:
                                               decltype(std::get<1>(std::forward<PairLike>(pr)))>>)
         : Mybase(std::get<0>(std::forward<PairLike>(pr)), std::get<1>(std::forward<PairLike>(pr))) {
     }
-#else
-    template <typename PairLike>
-    requires(_is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&> &&
-             _is_tuple_test_v<std::is_convertible, compressed_pair, PairLike &&>)
-    constexpr compressed_pair(PairLike &&pr) noexcept(
-        std::conjunction_v<
-            std::is_nothrow_constructible<T, decltype(std::get<0>(std::forward<PairLike>(pr)))>,
-            std::is_nothrow_constructible<U, decltype(std::get<1>(std::forward<PairLike>(pr)))>>)
-        : Mybase(std::get<0>(std::forward<PairLike>(pr)), std::get<1>(std::forward<PairLike>(pr))) {
-    }
-
-    template <typename PairLike>
-    requires(_is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&> &&
-             !_is_tuple_test_v<std::is_convertible, compressed_pair, PairLike &&>)
-    constexpr explicit compressed_pair(PairLike &&pr) noexcept(
-        std::conjunction_v<
-            std::is_nothrow_constructible<T, decltype(std::get<0>(std::forward<PairLike>(pr)))>,
-            std::is_nothrow_constructible<U, decltype(std::get<1>(std::forward<PairLike>(pr)))>>)
-        : Mybase(std::get<0>(std::forward<PairLike>(pr)), std::get<1>(std::forward<PairLike>(pr))) {
-    }
-#endif
 
     template <typename PairLike>
     requires(_is_tuple_test_v<_is_tuple_assignable, compressed_pair, PairLike &&>)

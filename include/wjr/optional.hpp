@@ -375,7 +375,6 @@ public:
 
     constexpr optional(nullopt_t) : Mybase(nullopt) {}
 
-#if defined(__cpp_conditional_explicit)
     template <typename U>
     requires(std::is_constructible_v<value_type, const U &> &&
              optional_detail::optional_construct_with_v<value_type, U>)
@@ -400,73 +399,11 @@ public:
             this->construct_error();
         }
     }
-#else
-    template <typename U>
-    requires(std::is_constructible_v<value_type, const U &> &&
-             optional_detail::optional_construct_with_v<value_type, U> &&
-             std::is_convertible_v<const U &, value_type>)
-    WJR_CONSTEXPR20 optional(const optional<U> &other) : Mybase(enable_default_constructor) {
-        if (other.has_value()) {
-            this->construct_value(std::forward<const U &>(other.m_val));
-        } else {
-            this->construct_error();
-        }
-    }
 
-    template <typename U>
-    requires(std::is_constructible_v<value_type, const U &> &&
-             optional_detail::optional_construct_with_v<value_type, U> &&
-             !std::is_convertible_v<const U &, value_type>)
-    WJR_CONSTEXPR20 explicit optional(const optional<U> &other)
-        : Mybase(enable_default_constructor) {
-        if (other.has_value()) {
-            this->construct_value(std::forward<const U &>(other.m_val));
-        } else {
-            this->construct_error();
-        }
-    }
-
-    template <typename U>
-    requires(std::is_constructible_v<value_type, U> &&
-             optional_detail::optional_construct_with_v<value_type, U> &&
-             std::is_convertible_v<U, value_type>)
-    WJR_CONSTEXPR20 optional(optional<U> &&other) : Mybase(enable_default_constructor) {
-        if (other.has_value()) {
-            this->construct_value(std::forward<U>(other.m_val));
-        } else {
-            this->construct_error();
-        }
-    }
-
-    template <typename U>
-    requires(std::is_constructible_v<value_type, U> &&
-             optional_detail::optional_construct_with_v<value_type, U> &&
-             !std::is_convertible_v<U, value_type>)
-    WJR_CONSTEXPR20 explicit optional(optional<U> &&other) : Mybase(enable_default_constructor) {
-        if (other.has_value()) {
-            this->construct_value(std::forward<U>(other.m_val));
-        } else {
-            this->construct_error();
-        }
-    }
-#endif
-
-#if defined(__cpp_conditional_explicit)
     template <typename U = value_type>
     requires(optional_detail::optional_construct_with_arg_v<value_type, U>)
     constexpr explicit(!std::is_convertible_v<U, value_type>) optional(U &&v)
         : Mybase(std::in_place, std::forward<U>(v)) {}
-#else
-    template <typename U = value_type>
-    requires(optional_detail::optional_construct_with_arg_v<value_type, U> &&
-             std::is_convertible_v<U, value_type>)
-    constexpr optional(U &&v) : Mybase(std::in_place, std::forward<U>(v)) {}
-
-    template <typename U = value_type>
-    requires(optional_detail::optional_construct_with_arg_v<value_type, U> &&
-             !std::is_convertible_v<U, value_type>)
-    constexpr explicit optional(U &&v) : Mybase(std::in_place, std::forward<U>(v)) {}
-#endif
 
     WJR_CONSTEXPR20 optional &operator=(nullopt_t) {
         if (has_value()) {

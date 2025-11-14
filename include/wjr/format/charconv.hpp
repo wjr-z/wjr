@@ -112,11 +112,11 @@ private:
 
 public:
     static constexpr int value =
-        traits_type::is_trivially_contiguous_v && has_container_resize_v<Container, size_t>
-            ? (has_container_resize_v<Container, size_t, default_construct_t> ? 2 : 1)
+        traits_type::is_trivially_contiguous_v && has_container_resize<Container, size_t>
+            ? (has_container_resize<Container, size_t, default_construct_t> ? 2 : 1)
             : 0;
 
-    static_assert(value != 2 || has_container_append_v<Container, size_t, default_construct_t>);
+    static_assert(value != 2 || has_container_append<Container, size_t, default_construct_t>);
 };
 
 template <typename Iter, typename = void>
@@ -2234,8 +2234,7 @@ check_eight_digits(const char *ptr, integral_constant<unsigned int, IBase> = {})
     return ((memory & mask) & (memory + added)) == hi_expe64;
 }
 
-template <typename IBase>
-requires(is_nonbool_integral_v<IBase>)
+template <nonbool_integral IBase>
 WJR_PURE WJR_INTRINSIC_INLINE bool check_eight_digits(const char *ptr, IBase base) noexcept {
     WJR_ASSERT_L2(base <= 16);
 
@@ -2280,8 +2279,7 @@ check_eight_origin_digits(const char *ptr, integral_constant<unsigned int, IBase
     return (((memory - subtraction) & ~memory) & mask) != 0;
 }
 
-template <typename IBase>
-requires(is_nonbool_integral_v<IBase>)
+template <nonbool_integral IBase>
 WJR_PURE WJR_INTRINSIC_INLINE bool check_eight_origin_digits(const char *ptr, IBase base) noexcept {
     WJR_ASSERT_L2(base <= 16);
 

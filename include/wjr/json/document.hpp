@@ -1474,7 +1474,7 @@ private:
                 val.clear();
                 val.reserve(n);
 
-                if constexpr (has_container_append_v<value_type, Iter, Iter>) {
+                if constexpr (has_container_append<value_type, Iter, Iter>) {
                     append(val, first, last);
                 } else {
                     for (; first != last; ++first) {
@@ -1493,7 +1493,7 @@ private:
                     (*first).get_to(*val_first);
                 }
 
-                if constexpr (has_container_append_v<value_type, Iter, Iter>) {
+                if constexpr (has_container_append<value_type, Iter, Iter>) {
                     append(val, first, last);
                 } else {
                     for (; first != last; ++first) {

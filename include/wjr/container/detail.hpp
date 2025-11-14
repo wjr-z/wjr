@@ -15,18 +15,10 @@
 #include <wjr/iterator/detail.hpp>
 
 namespace wjr {
-
-WJR_REGISTER_HAS_TYPE(_container_resize,
-                      std::declval<std::add_lvalue_reference_t<Container>>().resize(
-                          std::declval<Size>(), std::declval<Args>()...),
-                      Container, Size);
-WJR_REGISTER_HAS_TYPE(_container_append, std::declval<Container>().append(std::declval<Args>()...),
-                      Container);
-
 template <typename Container>
 struct resize_fn_impl_base {
     template <typename... Args>
-    requires(has__container_resize_v<Container, Args...>)
+    requires requires(Container &cont, Args &&...args) { cont.resize(std::forward<Args>(args)...); }
     WJR_INTRINSIC_INLINE static void
     resize(Container &cont,
            Args &&...args) noexcept(noexcept(cont.resize(std::forward<Args>(args)...))) {
@@ -50,7 +42,7 @@ inline constexpr resize_fn resize{};
 template <typename Container>
 struct append_fn_impl_base {
     template <typename... Args>
-    requires(has__container_append_v<Container, Args...>)
+    requires requires(Container &cont, Args &&...args) { cont.append(std::forward<Args>(args)...); }
     WJR_INTRINSIC_INLINE static void
     append(Container &cont,
            Args &&...args) noexcept(noexcept(cont.append(std::forward<Args>(args)...))) {
@@ -71,28 +63,29 @@ struct append_fn {
 
 inline constexpr append_fn append{};
 
-WJR_REGISTER_HAS_TYPE(container_resize,
-                      resize_fn_impl<Container>::resize(std::declval<Container &>(),
-                                                        std::declval<Size>(),
-                                                        std::declval<Args>()...),
-                      Container, Size);
+template <typename Container, typename Size, typename... Args>
+concept has_container_resize = requires(Container &cont, Size sz, Args &&...args) {
+    resize_fn_impl<Container>::resize(cont, sz, std::forward<Args>(args)...);
+};
 
-WJR_REGISTER_HAS_TYPE(container_reserve, std::declval<Container>().reserve(std::declval<Size>()),
-                      Container, Size);
-WJR_REGISTER_HAS_TYPE(container_append,
-                      append_fn_impl<Container>::append(std::declval<Container &>(),
-                                                        std::declval<Args>()...),
-                      Container);
-WJR_REGISTER_HAS_TYPE(
-    container_insert,
-    (std::declval<Container>().insert(std::declval<Container>().cbegin(), std::declval<Args>()...),
-     std::declval<Container>().insert(std::declval<Container>().cend(), std::declval<Args>()...)),
-    Container);
+template <typename Container, typename Size, typename... Args>
+concept has_container_reserve = requires(Container &cont, Size sz) { cont.reserve(sz); };
+
+template <typename Container, typename... Args>
+concept has_container_append = requires(Container &cont, Args &&...args) {
+    append_fn_impl<Container>::append(cont, std::forward<Args>(args)...);
+};
+
+template <typename Container, typename... Args>
+concept has_container_insert = requires(Container &cont, Args &&...args) {
+    cont.insert(cont.begin(), std::forward<Args>(args)...);
+    cont.insert(cont.cbegin(), std::forward<Args>(args)...);
+};
 
 template <typename Container, typename Size>
-requires(has_container_resize_v<Container, Size>)
+requires(has_container_resize<Container, Size>)
 WJR_INTRINSIC_INLINE void try_uninitialized_resize(Container &cont, Size sz) {
-    if constexpr (has_container_resize_v<Container, Size, default_construct_t>) {
+    if constexpr (has_container_resize<Container, Size, default_construct_t>) {
         resize(cont, sz, default_construct);
     } else {
         resize(cont, sz);
@@ -100,9 +93,9 @@ WJR_INTRINSIC_INLINE void try_uninitialized_resize(Container &cont, Size sz) {
 }
 
 template <typename Container, typename Size>
-requires(has_container_append_v<Container, Size> || has_container_resize_v<Container, Size>)
+requires(has_container_append<Container, Size> || has_container_resize<Container, Size>)
 WJR_INTRINSIC_INLINE void try_uninitialized_append(Container &cont, Size sz) {
-    if constexpr (has_container_append_v<Container, Size, default_construct_t>) {
+    if constexpr (has_container_append<Container, Size, default_construct_t>) {
         append(cont, sz, default_construct);
     } else {
         try_uninitialized_resize(cont, cont.size() + sz);
