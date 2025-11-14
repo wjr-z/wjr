@@ -10,7 +10,7 @@ namespace wjr::math {
   return true if src is all zero
   calculations : stable n instead of not + inc which maybe n * 2
 */
-template <nonbool_integral T>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 bool bi_negate_n(T *dst, const T *src, size_t n) noexcept {
     const size_t idx = replace_find_not(dst, src, n, 0, 0);
 

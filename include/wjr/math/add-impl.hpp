@@ -5,14 +5,15 @@
 
 namespace wjr {
 namespace math {
-template <nonbool_unsigned_integral T, nonbool_unsigned_integral U>
+template <typename T, typename U,
+          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T addc(T a, T b, type_identity_t<U> c_in,
                                                U &c_out) noexcept;
 
-template <nonbool_unsigned_integral T>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noexcept;
 
-template <nonbool_unsigned_integral T>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool add_overflow(type_identity_t<T> a,
                                                           type_identity_t<T> b, T &ret) noexcept;
 

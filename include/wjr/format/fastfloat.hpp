@@ -126,8 +126,7 @@ from_chars_result<> from_chars(const char *first, const char *last, double &valu
     return _from_chars_impl(first, last, default_writer<double>(value), fmt);
 }
 
-template <typename T>
-requires(is_any_of_v<T, float, double>)
+template <typename T, WJR_REQUIRES(is_any_of_v<T, float, double>)>
 from_chars_result<> from_chars(const char *first, const char *last, T &value,
                                chars_format fmt) noexcept {
     if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(fmt)) {

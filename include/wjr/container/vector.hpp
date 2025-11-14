@@ -79,7 +79,8 @@
 #include <wjr/memory/allocate_at_least.hpp>
 #include <wjr/memory/copy.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
-#include <wjr/ranges.hpp>
+
+#include <range/v3/iterator/operations.hpp>
 
 namespace wjr {
 
@@ -680,8 +681,7 @@ public:
                                                                           in_place_empty)))
         : basic_vector(std::move(other), al, in_place_empty) {}
 
-    template <typename Iter>
-    requires(is_iterator_v<Iter>)
+    template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector(Iter first, Iter last, const allocator_type &al = allocator_type())
         : basic_vector(al) {
         _range_construct(wjr::_iter_base(first), wjr::_iter_base(last),
@@ -721,8 +721,7 @@ public:
         return *this;
     }
 
-    template <typename Iter>
-    requires(is_iterator_v<Iter>)
+    template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &assign(Iter first, Iter last) {
         _range_assign(wjr::_iter_base(first), wjr::_iter_base(last), iterator_category_t<Iter>());
         return *this;
@@ -1016,8 +1015,7 @@ public:
         return begin() + old_pos;
     }
 
-    template <typename Iter>
-    requires(is_iterator_v<Iter>)
+    template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 iterator insert(const_iterator pos, Iter first, Iter last) {
         const auto old_pos = static_cast<size_type>(pos - cbegin());
         _range_insert(data() + old_pos, wjr::_iter_base(first), wjr::_iter_base(last),
@@ -1075,8 +1073,7 @@ public:
         take_storage(other);
     }
 
-    template <typename Range>
-    requires(detail::_container_compatible_range<Range, value_type>)
+    template <typename Range, WJR_REQUIRES(detail::_container_compatible_range<Range, value_type>)>
     WJR_CONSTEXPR20 basic_vector(wjr::from_range_t, Range &&rg,
                                  const allocator_type &al = allocator_type())
         : basic_vector(al) {
@@ -1175,8 +1172,7 @@ public:
         return *this;
     }
 
-    template <typename Iter>
-    requires(is_iterator_v<Iter>)
+    template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &append(Iter first, Iter last) {
         _range_append(wjr::_iter_base(first), wjr::_iter_base(last), iterator_category_t<Iter>());
         return *this;
@@ -1201,8 +1197,7 @@ public:
      */
     WJR_CONSTEXPR20 basic_vector &truncate(const size_type n) { return chop(size() - n); }
 
-    template <typename Iter>
-    requires(is_iterator_v<Iter>)
+    template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &replace(const_iterator from, const_iterator to, Iter first,
                                           Iter last) {
         _range_replace(_get_pointer(from), _get_pointer(to), wjr::_iter_base(first),
@@ -1251,15 +1246,13 @@ private:
         destroy_using_allocator(begin_unsafe(), end_unsafe(), _get_allocator());
     }
 
-    template <typename S>
-    requires(has_vector_storage_destroy_and_deallocate_v<S, _Alty>)
+    template <typename S, WJR_REQUIRES(has_vector_storage_destroy_and_deallocate_v<S, _Alty>)>
     WJR_CONSTEXPR20 void _destroy_and_deallocate_impl() noexcept(
         noexcept(get_storage().destroy_and_deallocate(this->_get_allocator()))) {
         get_storage().destroy_and_deallocate(_get_allocator());
     }
 
-    template <typename S>
-    requires(!has_vector_storage_destroy_and_deallocate_v<S, _Alty>)
+    template <typename S, WJR_REQUIRES(!has_vector_storage_destroy_and_deallocate_v<S, _Alty>)>
     WJR_CONSTEXPR20 void _destroy_and_deallocate_impl() noexcept(noexcept(this->_destroy()) &&
                                                                  noexcept(this->_deallocate())) {
         _destroy();
@@ -1303,15 +1296,13 @@ private:
 
     // member function for container_fn (END)
 
-    template <typename S>
-    requires(has_vector_storage_deallocate_nonnull_v<S, _Alty>)
+    template <typename S, WJR_REQUIRES(has_vector_storage_deallocate_nonnull_v<S, _Alty>)>
     WJR_CONSTEXPR20 void _deallocate_nonnull_impl() noexcept(
         noexcept(get_storage().deallocate_nonnull(_get_allocator()))) {
         get_storage().deallocate_nonnull(_get_allocator());
     }
 
-    template <typename S>
-    requires(!has_vector_storage_deallocate_nonnull_v<S, _Alty>)
+    template <typename S, WJR_REQUIRES(!has_vector_storage_deallocate_nonnull_v<S, _Alty>)>
     WJR_CONSTEXPR20 void _deallocate_nonnull_impl() noexcept(noexcept(_deallocate())) {
         _deallocate();
     }
@@ -1935,8 +1926,8 @@ private:
     _pair_type m_pair;
 };
 
-template <typename Iter, typename T = iterator_value_t<Iter>, typename Alloc = std::allocator<T>>
-requires(is_iterator_v<Iter>)
+template <typename Iter, typename T = iterator_value_t<Iter>, typename Alloc = std::allocator<T>,
+          WJR_REQUIRES(is_iterator_v<Iter>)>
 basic_vector(Iter, Iter, Alloc = Alloc()) -> basic_vector<default_vector_storage<T, Alloc>>;
 
 template <typename S>
