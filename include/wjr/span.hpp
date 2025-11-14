@@ -14,8 +14,8 @@
 
 #include <wjr/assert.hpp>
 #include <wjr/iterator/contiguous_iterator_adapter.hpp>
+#include <wjr/ranges.hpp>
 
-#include <range/v3/range/concepts.hpp>
 
 namespace wjr {
 
@@ -79,16 +79,12 @@ inline constexpr bool _is_span_v = _is_span<T>::value;
 template <typename Elem, typename Ref>
 using _is_compatible_ref = _is_array_convertible<Elem, std::remove_reference_t<Ref>>;
 
-CPP_template(typename Range,
-             typename Elem)(concept(_is_range_compatible_ref_)(Range, Elem),
-                            _is_compatible_ref<Elem, ranges::range_reference_t<Range>>::value);
-
 template <typename Range, typename Elem>
-CPP_concept _is_range_like_v =
+concept _is_range_like_v =
     (!_is_span_v<remove_cvref_t<Range>>) && (!_is_std_array_v<remove_cvref_t<Range>>) &&
     (!_is_std_array_v<remove_cvref_t<Range>>) && ranges::contiguous_range<Range> &&
     ranges::sized_range<Range> && (ranges::borrowed_range<Range> || std::is_const_v<Elem>) &&
-    CPP_concept_ref(_is_range_compatible_ref_, Range, Elem);
+    _is_compatible_ref<Elem, ranges::range_reference_t<Range>>::value;
 
 /// @private
 template <typename T>

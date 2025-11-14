@@ -29,7 +29,6 @@ else()
 endif()
 
 option(WJR_DISABLE_EXCEPTIONS "Disable exceptions." OFF)
-option(WJR_DISABLE_CXX_20 "Disable C++ 20 even if it's supported." ON)
 option(WJR_PUBLIC_FLAGS "Set compile flags as public. Useful in tests" OFF)
 option(WJR_BUILD_TESTS "Build tests." OFF)
 option(WJR_BUILD_BENCHMARKS "Build benchmarks." OFF)
@@ -71,28 +70,6 @@ endif()
 
 include(FetchContent)
 
-# Fetch range-v3
-FetchContent_Declare(
-   range-v3
-   GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
-   GIT_TAG 0.12.0
-   GIT_SHALLOW ON
-   FIND_PACKAGE_ARGS 0.10.0
-)
-
-set(RANGES_NATIVE OFF CACHE BOOL "" FORCE)
-set(RANGES_TEST OFF CACHE BOOL "" FORCE)
-set(RANGES_EXAMPLE OFF CACHE BOOL "" FORCE)
-set(RANGES_PERF OFF CACHE BOOL "" FORCE)
-
-if(WJR_ENABLE_INSTALL)
-   set(RANGES_ENABLE_INSTALL ON CACHE BOOL "" FORCE)
-else()
-   set(RANGES_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
-endif()
-
-FetchContent_MakeAvailable(range-v3)
-
 #
 # initialize flags
 # todo : More SIMD flags for MSVC.
@@ -105,13 +82,6 @@ set(WJR_CXX_FLAGS_PRIVATE)
 set(WJR_CXX_FLAGS_DEBUG)
 set(WJR_CXX_FLAGS_RELEASE)
 set(WJR_COMPILE_DEFINITIONS)
-
-if(NOT WJR_DISABLE_CXX_20 AND "cxx_std_20" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
-   message(STATUS "Enable C++ 20.")
-   set(WJR_USE_CXX_20 ON)
-else()
-   set(WJR_USE_CXX_20 OFF)
-endif()
 
 list(APPEND CMAKE_MODULE_PATH
    ${CMAKE_CURRENT_LIST_DIR}/cmake
@@ -180,12 +150,7 @@ set(WJR_COMMON_CXX_FLAGS ${WJR_CXX_FLAGS})
 set(WJR_COMMON_DEFINES ${WJR_COMPILE_DEFINITIONS})
 
 set(WJR_PROPAGATE_CXX_STD ON)
-
-if(WJR_USE_CXX_20)
-   set(WJR_INTERNAL_CXX_STD_FEATURE cxx_std_20)
-else()
-   set(WJR_INTERNAL_CXX_STD_FEATURE cxx_std_17)
-endif()
+set(WJR_INTERNAL_CXX_STD_FEATURE cxx_std_20)
 
 set_property(GLOBAL PROPERTY WJR_ALL_TARGETS "")
 
