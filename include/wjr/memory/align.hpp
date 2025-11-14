@@ -80,19 +80,7 @@ WJR_CONST constexpr bool is_aligned(T n, type_identity_t<T> alignment) noexcept 
     return align_down_offset(n, alignment) == 0;
 }
 
-#if defined(WJR_CPP_20)
 using std::assume_aligned;
-#else
-template <size_t N, typename T>
-constexpr T *assume_aligned(T *ptr) noexcept {
-    #if WJR_HAS_BUILTIN(__builtin_assume_aligned)
-    return static_cast<T *>(__builtin_assume_aligned(ptr, N));
-    #else
-    WJR_ASSUME(is_aligned(bit_cast<uintptr_t>(ptr), N));
-    return ptr;
-    #endif
-}
-#endif
 
 namespace mem {
 #if defined(__STDCPP_DEFAULT_NEW_ALIGNMENT__)

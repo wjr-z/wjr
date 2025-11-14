@@ -1,5 +1,5 @@
-#ifndef WJR_VARIANT_HPP__
-#define WJR_VARIANT_HPP__
+#ifndef WJR_UTILITY_VARIANT_HPP__
+#define WJR_UTILITY_VARIANT_HPP__
 
 #include <variant>
 
@@ -246,4 +246,4 @@ constexpr decltype(auto) discrete_visit(Indexs, Callable &&func, Args &&...args)
 
 } // namespace wjr
 
-#endif // WJR_VARIANT_HPP__
+#endif // WJR_UTILITY_VARIANT_HPP__
