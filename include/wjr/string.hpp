@@ -202,8 +202,7 @@ WJR_PURE constexpr bool ends_with(std::basic_string_view<CharT, Traits> str,
     return Traits::compare(str.data() + n - length, sv.data(), length) == 0;
 }
 
-template <unsigned int Length>
-requires(Length <= 8)
+template <unsigned int Length, WJR_REQUIRES(Length <= 8)>
 WJR_PURE WJR_INTRINSIC_INLINE bool
 constant_length_strncaseequal(const char *a, const char *b,
                               integral_constant<unsigned int, Length>) {

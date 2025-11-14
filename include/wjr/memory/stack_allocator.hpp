@@ -353,13 +353,13 @@ private:
 class unique_stack_allocator_ref {
     struct tag {};
 
-    template <typename T, typename... Args>
-    requires(!is_weak_stack_allocator_v<typename T::allocator_type>)
+    template <typename T, typename... Args,
+              WJR_REQUIRES(!is_weak_stack_allocator_v<typename T::allocator_type>)>
     unique_stack_allocator_ref(tag, T *, Args *...args)
         : unique_stack_allocator_ref(tag{}, args...) {}
 
-    template <typename T, typename... Args>
-    requires(is_weak_stack_allocator_v<typename T::allocator_type>)
+    template <typename T, typename... Args,
+              WJR_REQUIRES(is_weak_stack_allocator_v<typename T::allocator_type>)>
     unique_stack_allocator_ref(tag, T *arg, Args *...) noexcept
         : stkal(*arg->get_allocator().alloc()) {}
 

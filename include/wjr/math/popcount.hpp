@@ -153,7 +153,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount_impl(T x) noexcept {
  * @param[in] x Value to count bits
  * @return int Number of set bits (0 to digits)
  */
-template <nonbool_unsigned_integral T>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount(T x) noexcept {
     const int ret = popcount_impl(x);
     WJR_ASSUME(0 <= ret && ret <= std::numeric_limits<T>::digits);

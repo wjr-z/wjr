@@ -17,8 +17,7 @@ namespace wjr {
 #ifdef __cpp_lib_invoke_r
 using std::invoke_r;
 #else
-template <class R, class F, class... Args>
-requires(std::is_invocable_r_v<R, F, Args...>)
+template <class R, class F, class... Args, WJR_REQUIRES(std::is_invocable_r_v<R, F, Args...>)>
 constexpr R invoke_r(F &&f, Args &&...args) noexcept(std::is_nothrow_invocable_r_v<R, F, Args...>) {
     if constexpr (std::is_void_v<R>)
         std::invoke(std::forward<F>(f), std::forward<Args>(args)...);

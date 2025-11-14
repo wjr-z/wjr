@@ -15,9 +15,9 @@ namespace wjr {
 
 #if WJR_HAS_BUILTIN(ASM_DIV2BY1_ADJUST)
 
-WJR_INTRINSIC_INLINE void asm_div2by1_adjust(uint64_t rax, uint64_t div, uint64_t &r8,
-                                             uint64_t &rdx) noexcept {
-    uint64_t r9 = r8 + div;
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
+WJR_INTRINSIC_INLINE void asm_div2by1_adjust(T rax, T div, T &r8, T &rdx) noexcept {
+    T r9 = r8 + div;
     asm("cmp{q %[rax], %[r8]| %[r8], %[rax]}\n\t"
         "cmovb{q %[r8], %[r9]| %[r9], %[r8]}\n\t"
         "adc{q $-1, %[rdx]| %[rdx], -1}"
@@ -31,7 +31,8 @@ WJR_INTRINSIC_INLINE void asm_div2by1_adjust(uint64_t rax, uint64_t div, uint64_
 
 #if WJR_HAS_BUILTIN(ASM_DIV2BY1_ADJUST_BRANCH)
 
-WJR_INTRINSIC_INLINE void asm_div2by1_adjust_branch(uint64_t div, uint64_t &lo) noexcept {
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
+WJR_INTRINSIC_INLINE void asm_div2by1_adjust_branch(T div, T &lo) noexcept {
     asm("sub %1, %0" : "+r"(lo) : "r"(div));
 }
 

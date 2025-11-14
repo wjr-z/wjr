@@ -43,14 +43,13 @@ struct is_as_variant : _is_as_variant_helper<T, void> {};
 template <typename T>
 inline constexpr bool is_as_variant_v = is_as_variant<T>::value;
 
-template <typename Callable, typename... Variants>
-requires(std::conjunction_v<is_as_variant<Variants>...>)
+template <typename Callable, typename... Variants,
+          WJR_REQUIRES(std::conjunction_v<is_as_variant<Variants>...>)>
 constexpr decltype(auto) visit(Callable &&func, Variants &&...vars) {
     return std::visit(std::forward<Callable>(func), std::forward<Variants>(vars)...);
 }
 
-template <typename Var, typename... Args>
-requires(is_as_variant_v<Var>)
+template <typename Var, typename... Args, WJR_REQUIRES(is_as_variant_v<Var>)>
 constexpr decltype(auto) match(Var &&var, Args &&...args) {
     return std::visit(variant_detail::overloaded{std::forward<Args>(args)...},
                       std::forward<Var>(var));

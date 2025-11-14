@@ -176,7 +176,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T builtin_byteswap(T x) noexcept {
 
 #endif
 
-template <nonbool_unsigned_integral T>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x) noexcept {
 #if WJR_HAS_BUILTIN(BYTESWAP)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
@@ -205,14 +205,14 @@ WJR_INTRINSIC_INLINE void maybe_null_memcpy(void *dst, void const *src, size_t s
     std::memcpy(dst, src, size);
 }
 
-template <nonbool_unsigned_integral T>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr) noexcept {
     T x;
     builtin_memcpy(std::addressof(x), ptr, sizeof(T));
     return x;
 }
 
-template <nonbool_unsigned_integral T>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x) noexcept {
     builtin_memcpy(ptr, std::addressof(x), sizeof(T));
 }
