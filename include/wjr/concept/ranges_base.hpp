@@ -6,7 +6,6 @@
 #include <wjr/ranges.hpp>
 #include <wjr/tp/base.hpp>
 
-
 namespace wjr {
 namespace detail {
 template <typename Range, typename T>

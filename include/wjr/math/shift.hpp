@@ -85,7 +85,8 @@ WJR_INTRINSIC_CONSTEXPR T fallback_lshift_n(T *dst, const T *src, size_t n, unsi
  * @pre n >= 1
  * @pre dst and src must be the same or dst must come after src
  */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T>
+requires(is_nonbool_unsigned_integral_v<T>)
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T lshift_n(T *dst, const T *src, size_t n, unsigned int c,
                                                    type_identity_t<T> lo = 0) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -144,7 +145,8 @@ WJR_INTRINSIC_CONSTEXPR T fallback_rshift_n(T *dst, const T *src, size_t n, unsi
  * @pre n >= 1
  * @pre dst and src must be the same or dst must come before src
  */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T>
+requires(is_nonbool_unsigned_integral_v<T>)
 WJR_INTRINSIC_CONSTEXPR20 T rshift_n(T *dst, const T *src, size_t n, unsigned int c,
                                      type_identity_t<T> hi = 0) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -191,7 +193,8 @@ WJR_INTRINSIC_CONSTEXPR T fallback_lshiftc_n(T *dst, const T *src, size_t n, uns
  * 1. n >= 1
  * 2. WJR_IS_SAME_OR_DECR_P(dst, n, src, n)
  */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T>
+requires(is_nonbool_unsigned_integral_v<T>)
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T lshiftc_n(T *dst, const T *src, size_t n, unsigned int c,
                                                     type_identity_t<T> lo = 0) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -231,7 +234,8 @@ WJR_INTRINSIC_CONSTEXPR T fallback_rshiftc_n(T *dst, const T *src, size_t n, uns
  * 1. n >= 1
  * 2. WJR_IS_SAME_OR_DECR_P(dst, n, src, n)
  */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T>
+requires(is_nonbool_unsigned_integral_v<T>)
 WJR_INTRINSIC_CONSTEXPR20 T rshiftc_n(T *dst, const T *src, size_t n, unsigned int c,
                                       type_identity_t<T> hi = 0) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);

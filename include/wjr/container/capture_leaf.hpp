@@ -26,15 +26,18 @@ class capture_leaf : enable_special_members_of_args_base<Tag, T> {
 public:
     using value_type = T;
 
-    template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
+    template <typename Ty = T>
+    requires(std::is_default_constructible_v<Ty>)
     constexpr capture_leaf() noexcept(std::is_nothrow_constructible_v<T>)
         : Mybase(enable_default_constructor), m_value() {}
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
+    template <typename... Args>
+    requires(std::is_constructible_v<T, Args...>)
     constexpr capture_leaf(Args &&...args) noexcept(std::is_constructible_v<T, Args...>)
         : Mybase(enable_default_constructor), m_value(std::forward<Args>(args)...) {}
 
-    template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
+    template <typename Ty = T>
+    requires(std::is_default_constructible_v<Ty>)
     constexpr explicit capture_leaf(default_construct_t) noexcept(
         std::is_nothrow_default_constructible_v<T>)
         : Mybase(enable_default_constructor) {}
@@ -80,14 +83,17 @@ class compressed_capture_leaf : T {
 public:
     using value_type = T;
 
-    template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
+    template <typename Ty = T>
+    requires(std::is_default_constructible_v<Ty>)
     constexpr compressed_capture_leaf() noexcept(std::is_nothrow_constructible_v<T>) : Mybase() {}
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
+    template <typename... Args>
+    requires(std::is_constructible_v<T, Args...>)
     constexpr compressed_capture_leaf(Args &&...args) noexcept(std::is_constructible_v<T, Args...>)
         : Mybase(std::forward<Args>(args)...) {}
 
-    template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
+    template <typename Ty = T>
+    requires(std::is_default_constructible_v<Ty>)
     constexpr explicit compressed_capture_leaf(default_construct_t) noexcept(
         std::is_nothrow_default_constructible_v<T>) {}
 

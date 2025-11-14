@@ -141,10 +141,12 @@ struct is_contiguous_iterator : std::bool_constant<_is_contiguous_iterator_impl_
 template <typename Iter>
 inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
 
-template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<Iter>)>
+template <typename Iter>
+requires(is_contiguous_iterator_v<Iter>)
 using iterator_contiguous_value_t = std::remove_reference_t<iterator_reference_t<Iter>>;
 
-template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<Iter>)>
+template <typename Iter>
+requires(is_contiguous_iterator_v<Iter>)
 using iterator_contiguous_pointer_t = std::add_pointer_t<iterator_contiguous_value_t<Iter>>;
 
 #if WJR_DEBUG_LEVEL >= 3

@@ -25,7 +25,8 @@ WJR_REGISTER_HAS_TYPE(_container_append, std::declval<Container>().append(std::d
 
 template <typename Container>
 struct resize_fn_impl_base {
-    template <typename... Args, WJR_REQUIRES(has__container_resize_v<Container, Args...>)>
+    template <typename... Args>
+    requires(has__container_resize_v<Container, Args...>)
     WJR_INTRINSIC_INLINE static void
     resize(Container &cont,
            Args &&...args) noexcept(noexcept(cont.resize(std::forward<Args>(args)...))) {
@@ -48,7 +49,8 @@ inline constexpr resize_fn resize{};
 
 template <typename Container>
 struct append_fn_impl_base {
-    template <typename... Args, WJR_REQUIRES(has__container_append_v<Container, Args...>)>
+    template <typename... Args>
+    requires(has__container_append_v<Container, Args...>)
     WJR_INTRINSIC_INLINE static void
     append(Container &cont,
            Args &&...args) noexcept(noexcept(cont.append(std::forward<Args>(args)...))) {
@@ -87,7 +89,8 @@ WJR_REGISTER_HAS_TYPE(
      std::declval<Container>().insert(std::declval<Container>().cend(), std::declval<Args>()...)),
     Container);
 
-template <typename Container, typename Size, WJR_REQUIRES(has_container_resize_v<Container, Size>)>
+template <typename Container, typename Size>
+requires(has_container_resize_v<Container, Size>)
 WJR_INTRINSIC_INLINE void try_uninitialized_resize(Container &cont, Size sz) {
     if constexpr (has_container_resize_v<Container, Size, default_construct_t>) {
         resize(cont, sz, default_construct);
@@ -96,9 +99,8 @@ WJR_INTRINSIC_INLINE void try_uninitialized_resize(Container &cont, Size sz) {
     }
 }
 
-template <typename Container, typename Size,
-          WJR_REQUIRES(has_container_append_v<Container, Size> ||
-                       has_container_resize_v<Container, Size>)>
+template <typename Container, typename Size>
+requires(has_container_append_v<Container, Size> || has_container_resize_v<Container, Size>)
 WJR_INTRINSIC_INLINE void try_uninitialized_append(Container &cont, Size sz) {
     if constexpr (has_container_append_v<Container, Size, default_construct_t>) {
         append(cont, sz, default_construct);

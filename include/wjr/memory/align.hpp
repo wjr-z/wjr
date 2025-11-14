@@ -30,7 +30,8 @@ namespace wjr {
  * @param[in] alignment Alignment boundary (must be power of 2)
  * @return T Aligned value
  */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T>
+requires(is_nonbool_unsigned_integral_v<T>)
 WJR_CONST constexpr T align_down(T n, type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(has_single_bit(alignment));
     return n & (-alignment);
@@ -47,19 +48,22 @@ WJR_CONST constexpr T align_down(T n, type_identity_t<T> alignment) noexcept {
  * @param[in] alignment Alignment boundary (must be power of 2)
  * @return T Aligned value
  */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T>
+requires(is_nonbool_unsigned_integral_v<T>)
 WJR_CONST constexpr T align_up(T n, type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(has_single_bit(alignment));
     return (n + alignment - 1) & (-alignment);
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T>
+requires(is_nonbool_unsigned_integral_v<T>)
 WJR_CONST constexpr T align_down_offset(T n, type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(has_single_bit(alignment));
     return n & (alignment - 1);
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T>
+requires(is_nonbool_unsigned_integral_v<T>)
 WJR_CONST constexpr T align_up_offset(T n, type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(has_single_bit(alignment));
     return (-n) & (alignment - 1);
@@ -75,7 +79,8 @@ WJR_CONST constexpr T align_up_offset(T n, type_identity_t<T> alignment) noexcep
  * @param[in] alignment Alignment boundary (must be power of 2)
  * @return bool True if n is aligned, false otherwise
  */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T>
+requires(is_nonbool_unsigned_integral_v<T>)
 WJR_CONST constexpr bool is_aligned(T n, type_identity_t<T> alignment) noexcept {
     return align_down_offset(n, alignment) == 0;
 }

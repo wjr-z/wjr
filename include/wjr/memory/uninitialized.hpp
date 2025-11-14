@@ -22,7 +22,8 @@ construct_at(T *ptr, Args &&...args) noexcept(std::is_nothrow_constructible_v<T,
     ::new (static_cast<void *>(ptr)) T(std::forward<Args>(args)...);
 }
 
-template <typename T, WJR_REQUIRES(!std::is_constructible_v<T, default_construct_t>)>
+template <typename T>
+requires(!std::is_constructible_v<T, default_construct_t>)
 WJR_CONSTEXPR20 void
 construct_at(T *ptr, default_construct_t) noexcept(std::is_nothrow_default_constructible_v<T>) {
     ::new (static_cast<void *>(ptr)) T;
@@ -619,25 +620,29 @@ private:
 public:
     using Mybase::Mybase;
 
-    template <typename U = T, WJR_REQUIRES(std::is_copy_constructible_v<U>)>
+    template <typename U = T>
+    requires(std::is_copy_constructible_v<U>)
     WJR_CONSTEXPR20 void _copy_construct(const _uninitialized_control_base &other) noexcept(
         std::is_nothrow_copy_constructible_v<T>) {
         wjr::construct_at(std::addressof(this->m_value), other.m_value);
     }
 
-    template <typename U = T, WJR_REQUIRES(std::is_move_constructible_v<U>)>
+    template <typename U = T>
+    requires(std::is_move_constructible_v<U>)
     WJR_CONSTEXPR20 void _move_construct(_uninitialized_control_base &&other) noexcept(
         std::is_nothrow_move_constructible_v<T>) {
         wjr::construct_at(std::addressof(this->m_value), std::move(other.m_value));
     }
 
-    template <typename U = T, WJR_REQUIRES(std::is_copy_assignable_v<U>)>
+    template <typename U = T>
+    requires(std::is_copy_assignable_v<U>)
     WJR_CONSTEXPR20 void _copy_assign(const _uninitialized_control_base &other) noexcept(
         std::is_nothrow_copy_assignable_v<T>) {
         this->m_value = other.m_value;
     }
 
-    template <typename U = T, WJR_REQUIRES(std::is_move_assignable_v<U>)>
+    template <typename U = T>
+    requires(std::is_move_assignable_v<U>)
     WJR_CONSTEXPR20 void _move_assign(_uninitialized_control_base &&other) noexcept(
         std::is_nothrow_move_assignable_v<T>) {
         this->m_value = std::move(other.m_value);
@@ -678,20 +683,21 @@ public:
 
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(_uninitialized);
 
-    template <typename U, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<U>, _uninitialized> &&
-                                       std::is_constructible_v<T, U>)>
+    template <typename U>
+    requires(!std::is_same_v<remove_cvref_t<U>, _uninitialized> && std::is_constructible_v<T, U>)
     constexpr _uninitialized(U &&u) noexcept(std::is_nothrow_constructible_v<T, U>)
         : Mybase(std::forward<U>(u)) {}
 
-    template <typename... Args,
-              WJR_REQUIRES(sizeof...(Args) > 1 && std::is_constructible_v<Mybase, Args...>)>
+    template <typename... Args>
+    requires(sizeof...(Args) > 1 && std::is_constructible_v<Mybase, Args...>)
     constexpr _uninitialized(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<Mybase, Args...>)
         : Mybase(std::forward<Args>(args)...) {}
 
     constexpr _uninitialized(default_construct_t) noexcept : Mybase() {}
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
+    template <typename... Args>
+    requires(std::is_constructible_v<T, Args...>)
     constexpr T &
     emplace(Args &&...args) noexcept(std::is_nothrow_constructible_v<Mybase, Args...>) {
         wjr::construct_at(get(), std::forward<Args>(args)...);

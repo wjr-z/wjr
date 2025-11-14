@@ -269,13 +269,24 @@ struct is_nonbool_signed_integral
 template <typename T>
 inline constexpr bool is_nonbool_signed_integral_v = is_nonbool_signed_integral<T>::value;
 
+// C++20 concepts
+template <typename T>
+concept nonbool_integral = std::integral<T> && !std::same_as<T, bool>;
+
+template <typename T>
+concept nonbool_unsigned_integral = std::unsigned_integral<T> && !std::same_as<T, bool>;
+
+template <typename T>
+concept nonbool_signed_integral = std::signed_integral<T> && !std::same_as<T, bool>;
+
 /**
  * @brief Convert single-byte integral type to uint8_t
  * @tparam T Single-byte integral type
  * @param[in] value Value to convert
  * @return uint8_t Converted value
  */
-template <typename T, WJR_REQUIRES(sizeof(T) == 1 && is_nonbool_integral_v<T>)>
+template <typename T>
+requires(sizeof(T) == 1 && nonbool_integral<T>)
 WJR_CONST constexpr uint8_t to_u8(T value) noexcept {
     return value;
 }
@@ -286,7 +297,8 @@ WJR_CONST constexpr uint8_t to_u8(T value) noexcept {
  * @param[in] value Value to convert
  * @return char Converted value
  */
-template <typename T, WJR_REQUIRES(sizeof(T) == 1 && is_nonbool_integral_v<T>)>
+template <typename T>
+requires(sizeof(T) == 1 && is_nonbool_integral_v<T>)
 WJR_CONST constexpr char to_char(T value) noexcept {
     return value;
 }
@@ -446,12 +458,12 @@ struct is_convertible_to
 template <typename From, typename To>
 inline constexpr bool is_convertible_to_v = is_convertible_to<From, To>::value;
 
-template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<Value>)>
+template <nonbool_integral Value>
 constexpr std::make_signed_t<Value> to_signed(Value value) noexcept {
     return static_cast<std::make_signed_t<Value>>(value);
 }
 
-template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<Value>)>
+template <nonbool_integral Value>
 constexpr std::make_unsigned_t<Value> to_unsigned(Value value) noexcept {
     return static_cast<std::make_unsigned_t<Value>>(value);
 }

@@ -140,7 +140,8 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
  *
  * @tparam T Must be an unsigned integral type
  */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T>
+requires(is_nonbool_unsigned_integral_v<T>)
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
     int ans;
 #if WJR_HAS_BUILTIN(CLZ)

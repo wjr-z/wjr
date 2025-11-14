@@ -289,16 +289,13 @@ struct sse {
     WJR_INTRINSIC_INLINE static __m128i loadu_si32(const void *ptr) noexcept;
     WJR_INTRINSIC_INLINE static __m128i loadu_si64(const void *ptr) noexcept;
 
-    template <typename T, WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                                   uint16_t, uint32_t, uint64_t>)>
+    template <simd_integral T>
     WJR_INTRINSIC_INLINE static __m128i logical_and(__m128i a, __m128i b, T) noexcept;
 
-    template <typename T, WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                                   uint16_t, uint32_t, uint64_t>)>
+    template <simd_integral T>
     WJR_INTRINSIC_INLINE static __m128i logical_not(__m128i v, T) noexcept;
 
-    template <typename T, WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                                   uint16_t, uint32_t, uint64_t>)>
+    template <simd_integral T>
     WJR_INTRINSIC_INLINE static __m128i logical_or(__m128i a, __m128i b, T) noexcept;
 
     WJR_INTRINSIC_INLINE static __m128i madd_epi16(__m128i a, __m128i b) noexcept;
@@ -1315,21 +1312,18 @@ __m128i sse::loadu_si64(const void *ptr) noexcept {
     return simd_cast<uint64_t, _m128i_t>(read_memory<uint64_t>(ptr));
 }
 
-template <typename T, WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                                 uint16_t, uint32_t, uint64_t>)>
+template <simd_integral T>
 __m128i sse::logical_and(__m128i a, __m128i b, T) noexcept {
     return Not(Or(logical_not(a, T()), logical_not(b, T())));
 }
 
-template <typename T, WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                                 uint16_t, uint32_t, uint64_t>)>
+template <simd_integral T>
 __m128i sse::logical_not(__m128i v, T) noexcept {
     auto Zero = zeros();
     return cmpeq(v, Zero, T());
 }
 
-template <typename T, WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                                 uint16_t, uint32_t, uint64_t>)>
+template <simd_integral T>
 __m128i sse::logical_or(__m128i a, __m128i b, T) noexcept {
     return Not(logical_not(Or(a, b), T()));
 }
