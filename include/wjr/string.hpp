@@ -12,6 +12,7 @@
 
 #include <memory>
 #include <string_view>
+#include <version>
 
 #include <wjr/container/detail.hpp>
 #include <wjr/format/ctype.hpp>
@@ -22,13 +23,7 @@ namespace wjr {
 
 #define WJR_HAS_FEATURE_STRING_UNINITIALIZED_RESIZE WJR_HAS_DEF
 
-#ifdef __cpp_lib_string_resize_and_overwrite
-    #define WJR_STRINF_RESIZE_AND_OVERWRITE __cpp_lib_string_resize_and_overwrite
-#else
-    #define WJR_STRINF_RESIZE_AND_OVERWRITE 0
-#endif
-
-#if WJR_STRINF_RESIZE_AND_OVERWRITE >= 202110L
+#if __cpp_lib_string_resize_and_overwrite >= 202110L
 template <typename CharT, typename Traits, typename Alloc>
 WJR_INTRINSIC_INLINE void
 _uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
@@ -136,7 +131,7 @@ struct _uninitialized_append_fn_impl : append_fn_impl_base<Container> {
     }
 };
 
-    #if WJR_STRINF_RESIZE_AND_OVERWRITE >= 202110L
+    #if __cpp_lib_string_resize_and_overwrite >= 202110L
 template <typename Char, typename Traits, typename Alloc>
 struct resize_fn_impl<std::basic_string<Char, Traits, Alloc>>
     : _uninitialized_resize_fn_impl<std::basic_string<Char, Traits, Alloc>> {};

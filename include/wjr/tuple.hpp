@@ -89,9 +89,9 @@ class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
     constexpr static size_t Size = sizeof...(Args);
 
 public:
-    template <typename S = void>
-    requires(std::conjunction_v<std::is_same<S, void>, std::is_default_constructible<Args>...>)
-    constexpr tuple_impl() noexcept(std::conjunction_v<std::is_nothrow_constructible<Args>...>) {}
+    constexpr tuple_impl() noexcept(std::conjunction_v<std::is_nothrow_constructible<Args>...>)
+    requires(std::conjunction_v<std::is_default_constructible<Args>...>)
+    {}
 
     template <typename... _Args>
     requires(std::conjunction_v<std::is_constructible<Mybase<Indexs>, _Args>...>)
@@ -145,12 +145,11 @@ class tuple<This, Args...> {
 #endif
 
 public:
-    template <typename T = This>
-    requires(std::conjunction_v<std::is_default_constructible<T>,
-                                std::is_default_constructible<Args>...>)
     constexpr explicit(
-        !std::conjunction_v<is_default_convertible<T>, is_default_convertible<Args>...>)
+        !std::conjunction_v<is_default_convertible<This>, is_default_convertible<Args>...>)
         tuple() noexcept(std::is_nothrow_constructible_v<Impl>)
+    requires(std::conjunction_v<std::is_default_constructible<This>,
+                                std::is_default_constructible<Args>...>)
         : m_impl() {}
 
     template <typename Other = This>

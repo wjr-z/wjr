@@ -10,13 +10,19 @@ struct allocation_result {
     SizeType count;
 };
 
-WJR_REGISTER_HAS_TYPE(allocate_at_least,
-                      std::declval<Allocator>().allocate_at_least(std::declval<SizeType>()),
-                      Allocator, SizeType);
+namespace detail {
+template <typename Allocator, typename SizeType>
+concept has_allocate_at_least = requires(Allocator &alloc, SizeType count) {
+    {
+        alloc.allocate_at_least(count)
+    } -> std::convertible_to<
+          allocation_result<typename std::allocator_traits<Allocator>::pointer, SizeType>>;
+};
+} // namespace detail
 
 template <typename Allocator, typename SizeType>
-WJR_NODISCARD auto allocate_at_least(Allocator &alloc, SizeType count) {
-    if constexpr (has_allocate_at_least_v<Allocator, SizeType>) {
+WJR_NODISCARD constexpr auto allocate_at_least(Allocator &alloc, SizeType count) {
+    if constexpr (detail::has_allocate_at_least<Allocator, SizeType>) {
         auto result = alloc.allocate_at_least(count);
         WJR_ASSUME(result.count >= count);
         return result;

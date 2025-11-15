@@ -128,9 +128,9 @@ public:
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    template <size_t Ex = Extent>
-    requires(Ex == dynamic_extent || Ex == 0)
-    constexpr span() noexcept : storage() {}
+    constexpr span() noexcept
+    requires(Extent == dynamic_extent || Extent == 0)
+        : storage() {}
 
     template <typename It>
     requires(_is_span_iterator<It, element_type>::value)
@@ -316,12 +316,9 @@ public:
     // extension :
 
     template <typename Range>
-    requires(span_detail::_is_range_like_v<Range, element_type> && _is_dynamic)
-    constexpr span(Range &&rg) noexcept : storage(ranges::data(rg), ranges::size(rg)) {}
-
-    template <typename Range>
-    requires(span_detail::_is_range_like_v<Range, element_type> && !_is_dynamic)
-    constexpr explicit span(Range &&rg) noexcept : storage(ranges::data(rg), ranges::size(rg)) {}
+    requires(span_detail::_is_range_like_v<Range, element_type>)
+    constexpr explicit(!_is_dynamic) span(Range &&rg) noexcept
+        : storage(ranges::data(rg), ranges::size(rg)) {}
 
 private:
     _storage storage;

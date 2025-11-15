@@ -159,6 +159,14 @@ using iterator_contiguous_pointer_t = std::add_pointer_t<iterator_contiguous_val
  */
 using contiguous_iterator_tag = std::contiguous_iterator_tag;
 
+namespace detail {
+template <typename T>
+void _test_maybe_same(T, T);
+
+template <typename T, typename U>
+concept _same_iterator = requires(T t, U u) { _test_maybe_same(t, u); };
+} // namespace detail
+
 } // namespace wjr
 
 #endif // WJR_ITERATOR_DETAIL_HPP__
