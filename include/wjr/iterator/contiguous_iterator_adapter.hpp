@@ -32,14 +32,14 @@ public:
 
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(contiguous_const_iterator_adapter);
 
-    WJR_CONSTEXPR20
+    constexpr
     contiguous_const_iterator_adapter(_pointer ptr, const Container *container) noexcept(
         std::is_nothrow_copy_constructible_v<_pointer>)
         : m_ptr(ptr) {
         _set_container(container);
     }
 
-    WJR_NODISCARD WJR_CONSTEXPR20 pointer operator->() const noexcept {
+    WJR_NODISCARD constexpr pointer operator->() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_CHECK(m_container != nullptr, "Can't dereference an value-initialized iterator.");
         WJR_CHECK(m_ptr != nullptr, "Can't dereference an invalid iterator.");
@@ -49,9 +49,9 @@ public:
         return const_cast<pointer>(m_ptr);
     }
 
-    WJR_NODISCARD WJR_CONSTEXPR20 reference operator*() const noexcept { return *operator->(); }
+    WJR_NODISCARD constexpr reference operator*() const noexcept { return *operator->(); }
 
-    WJR_CONSTEXPR20 contiguous_const_iterator_adapter &operator++() noexcept {
+    constexpr contiguous_const_iterator_adapter &operator++() noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_CHECK(m_container != nullptr, "Can't increment an value-initialized iterator.");
         WJR_CHECK(m_ptr != nullptr, "Can't increment an invalid iterator.");
@@ -61,13 +61,13 @@ public:
         return *this;
     }
 
-    WJR_CONSTEXPR20 contiguous_const_iterator_adapter operator++(int) noexcept {
+    constexpr contiguous_const_iterator_adapter operator++(int) noexcept {
         auto tmp = *this;
         ++*this;
         return tmp;
     }
 
-    WJR_CONSTEXPR20 contiguous_const_iterator_adapter &operator--() noexcept {
+    constexpr contiguous_const_iterator_adapter &operator--() noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_CHECK(m_container != nullptr, "Can't decrement an value-initialized iterator.");
         WJR_CHECK(m_ptr != nullptr, "Can't decrement an invalid iterator.");
@@ -78,84 +78,84 @@ public:
         return *this;
     }
 
-    WJR_CONSTEXPR20 contiguous_const_iterator_adapter operator--(int) noexcept {
+    constexpr contiguous_const_iterator_adapter operator--(int) noexcept {
         auto tmp = *this;
         --*this;
         return tmp;
     }
 
-    WJR_CONSTEXPR20 contiguous_const_iterator_adapter &operator+=(difference_type n) noexcept {
+    constexpr contiguous_const_iterator_adapter &operator+=(difference_type n) noexcept {
         _check_offset(n);
         m_ptr += n;
         return *this;
     }
 
-    WJR_NODISCARD WJR_CONSTEXPR20 contiguous_const_iterator_adapter
+    WJR_NODISCARD constexpr contiguous_const_iterator_adapter
     operator+(difference_type n) const noexcept {
         auto tmp = *this;
         return tmp += n;
     }
 
-    WJR_NODISCARD friend WJR_CONSTEXPR20 contiguous_const_iterator_adapter
+    WJR_NODISCARD friend constexpr contiguous_const_iterator_adapter
     operator+(difference_type n, const contiguous_const_iterator_adapter &rhs) noexcept {
         return rhs + n;
     }
 
-    WJR_CONSTEXPR20 contiguous_const_iterator_adapter &operator-=(difference_type n) noexcept {
+    constexpr contiguous_const_iterator_adapter &operator-=(difference_type n) noexcept {
         _check_offset(-n);
         m_ptr -= n;
         return *this;
     }
 
-    WJR_NODISCARD WJR_CONSTEXPR20 contiguous_const_iterator_adapter
+    WJR_NODISCARD constexpr contiguous_const_iterator_adapter
     operator-(difference_type n) const noexcept {
         auto tmp = *this;
         return tmp -= n;
     }
 
-    WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 difference_type
+    WJR_NODISCARD WJR_PURE constexpr difference_type
     operator-(const contiguous_const_iterator_adapter &rhs) const noexcept {
         _check_same_container(rhs);
         return m_ptr - rhs.m_ptr;
     }
 
-    WJR_NODISCARD WJR_CONSTEXPR20 reference operator[](difference_type n) const noexcept {
+    WJR_NODISCARD constexpr reference operator[](difference_type n) const noexcept {
         return *(*this + n);
     }
 
-    WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 bool
+    WJR_NODISCARD WJR_PURE constexpr bool
     operator==(const contiguous_const_iterator_adapter &rhs) const noexcept {
         _check_same_container(rhs);
         return m_ptr == rhs.m_ptr;
     }
 
-    WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 bool
+    WJR_NODISCARD WJR_PURE constexpr bool
     operator!=(const contiguous_const_iterator_adapter &rhs) const noexcept {
         return !(*this == rhs);
     }
 
-    WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 bool
+    WJR_NODISCARD WJR_PURE constexpr bool
     operator<(const contiguous_const_iterator_adapter &rhs) const noexcept {
         _check_same_container(rhs);
         return m_ptr < rhs.m_ptr;
     }
 
-    WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 bool
+    WJR_NODISCARD WJR_PURE constexpr bool
     operator>(const contiguous_const_iterator_adapter &rhs) const noexcept {
         return rhs < *this;
     }
 
-    WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 bool
+    WJR_NODISCARD WJR_PURE constexpr bool
     operator<=(const contiguous_const_iterator_adapter &rhs) const noexcept {
         return !(rhs < *this);
     }
 
-    WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 bool
+    WJR_NODISCARD WJR_PURE constexpr bool
     operator>=(const contiguous_const_iterator_adapter &rhs) const noexcept {
         return !(*this < rhs);
     }
 
-    WJR_CONSTEXPR20 void
+    constexpr void
     check_same_container(WJR_MAYBE_UNUSED const Container *cont) const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_CHECK(m_container == cont, "Can't compare iterators from different containers.");
@@ -167,12 +167,12 @@ public:
 private:
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
     /// @private
-    WJR_CONSTEXPR20 void _set_container(const Container *container) noexcept {
+    constexpr void _set_container(const Container *container) noexcept {
         m_container = container;
     }
 
     /// @private
-    WJR_CONSTEXPR20 void _check_offset(difference_type offset) const noexcept {
+    constexpr void _check_offset(difference_type offset) const noexcept {
         if (offset == 0) {
             return;
         }
@@ -187,17 +187,17 @@ private:
     }
 
     /// @private
-    WJR_CONSTEXPR20 void
+    constexpr void
     _check_same_container(const contiguous_const_iterator_adapter &rhs) const noexcept {
         WJR_CHECK(m_container == rhs.m_container,
                   "Can't compare iterators from different containers.");
     }
 
     /// @private
-    WJR_PURE WJR_CONSTEXPR20 pointer _begin() const noexcept { return m_container->data(); }
+    WJR_PURE constexpr pointer _begin() const noexcept { return m_container->data(); }
 
     /// @private
-    WJR_PURE WJR_CONSTEXPR20 pointer _end() const noexcept {
+    WJR_PURE constexpr pointer _end() const noexcept {
         return m_container->data() + m_container->size();
     }
 #else
@@ -237,64 +237,64 @@ public:
 
     using Mybase::Mybase;
 
-    WJR_NODISCARD WJR_CONSTEXPR20 pointer operator->() const noexcept {
+    WJR_NODISCARD constexpr pointer operator->() const noexcept {
         return const_cast<pointer>(Mybase::operator->());
     }
 
-    WJR_NODISCARD WJR_CONSTEXPR20 reference operator*() const noexcept { return *operator->(); }
+    WJR_NODISCARD constexpr reference operator*() const noexcept { return *operator->(); }
 
-    WJR_CONSTEXPR20 contiguous_iterator_adapter &operator++() noexcept {
+    constexpr contiguous_iterator_adapter &operator++() noexcept {
         Mybase::operator++();
         return *this;
     }
 
-    WJR_CONSTEXPR20 contiguous_iterator_adapter operator++(int) noexcept {
+    constexpr contiguous_iterator_adapter operator++(int) noexcept {
         auto tmp = *this;
         ++*this;
         return tmp;
     }
 
-    WJR_CONSTEXPR20 contiguous_iterator_adapter &operator--() noexcept {
+    constexpr contiguous_iterator_adapter &operator--() noexcept {
         Mybase::operator--();
         return *this;
     }
 
-    WJR_CONSTEXPR20 contiguous_iterator_adapter operator--(int) noexcept {
+    constexpr contiguous_iterator_adapter operator--(int) noexcept {
         auto tmp = *this;
         --*this;
         return tmp;
     }
 
-    WJR_CONSTEXPR20 contiguous_iterator_adapter &operator+=(difference_type n) noexcept {
+    constexpr contiguous_iterator_adapter &operator+=(difference_type n) noexcept {
         Mybase::operator+=(n);
         return *this;
     }
 
-    WJR_NODISCARD WJR_CONSTEXPR20 contiguous_iterator_adapter
+    WJR_NODISCARD constexpr contiguous_iterator_adapter
     operator+(difference_type n) const noexcept {
         auto tmp = *this;
         return tmp += n;
     }
 
-    WJR_NODISCARD friend WJR_CONSTEXPR20 contiguous_iterator_adapter
+    WJR_NODISCARD friend constexpr contiguous_iterator_adapter
     operator+(difference_type n, const contiguous_iterator_adapter &rhs) noexcept {
         return rhs + n;
     }
 
-    WJR_CONSTEXPR20 contiguous_iterator_adapter &operator-=(difference_type n) noexcept {
+    constexpr contiguous_iterator_adapter &operator-=(difference_type n) noexcept {
         Mybase::operator-=(n);
         return *this;
     }
 
     using Mybase::operator-;
 
-    WJR_NODISCARD WJR_CONSTEXPR20 contiguous_iterator_adapter
+    WJR_NODISCARD constexpr contiguous_iterator_adapter
     operator-(difference_type n) const noexcept {
         auto tmp = *this;
         return tmp -= n;
     }
 
-    WJR_NODISCARD WJR_CONSTEXPR20 reference operator[](difference_type n) const noexcept {
+    WJR_NODISCARD constexpr reference operator[](difference_type n) const noexcept {
         return *(*this + n);
     }
 

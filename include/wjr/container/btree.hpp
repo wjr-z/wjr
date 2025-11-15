@@ -1274,8 +1274,8 @@ private:
 
     // member function for container_fn (START)
 
-    WJR_CONSTEXPR20 _Alty &_get_allocator() noexcept { return m_pair.second().first(); }
-    WJR_CONSTEXPR20 const _Alty &_get_allocator() const noexcept { return m_pair.second().first(); }
+    constexpr _Alty &_get_allocator() noexcept { return m_pair.second().first(); }
+    constexpr const _Alty &_get_allocator() const noexcept { return m_pair.second().first(); }
 
     void _destroy_and_deallocate() noexcept;
 

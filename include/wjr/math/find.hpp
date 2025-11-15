@@ -425,48 +425,48 @@ WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_not_n(const T *src, T val, s
 } // namespace detail
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t find_n(const T *src0, const T *src1, size_t n) noexcept {
+WJR_PURE WJR_INTRINSIC_CONSTEXPR size_t find_n(const T *src0, const T *src1, size_t n) noexcept {
     return detail::resolve_find_n(src0, src1, n);
 }
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t find_n(const T *src, type_identity_t<T> val,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR size_t find_n(const T *src, type_identity_t<T> val,
                                                  size_t n) noexcept {
     return detail::resolve_find_n(src, val, n);
 }
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t find_not_n(const T *src0, const T *src1,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR size_t find_not_n(const T *src0, const T *src1,
                                                      size_t n) noexcept {
     return detail::resolve_find_not_n(src0, src1, n);
 }
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t find_not_n(const T *src, type_identity_t<T> val,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR size_t find_not_n(const T *src, type_identity_t<T> val,
                                                      size_t n) noexcept {
     return detail::resolve_find_not_n(src, val, n);
 }
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t reverse_find_n(const T *src0, const T *src1,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR size_t reverse_find_n(const T *src0, const T *src1,
                                                          size_t n) noexcept {
     return detail::resolve_reverse_find_n(src0, src1, n);
 }
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t reverse_find_n(const T *src, type_identity_t<T> val,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR size_t reverse_find_n(const T *src, type_identity_t<T> val,
                                                          size_t n) noexcept {
     return detail::resolve_reverse_find_n(src, val, n);
 }
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t reverse_find_not_n(const T *src0, const T *src1,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR size_t reverse_find_not_n(const T *src0, const T *src1,
                                                              size_t n) noexcept {
     return detail::resolve_reverse_find_not_n(src0, src1, n);
 }
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t reverse_find_not_n(const T *src, type_identity_t<T> val,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR size_t reverse_find_not_n(const T *src, type_identity_t<T> val,
                                                              size_t n) noexcept {
     return detail::resolve_reverse_find_not_n(src, val, n);
 }

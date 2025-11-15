@@ -317,7 +317,7 @@ TEST(count_digits, builtin_count_digits10_u64) {
 // Test constexpr evaluation
 TEST(count_digits, constexpr_evaluation) {
     // Test that count_digits works correctly at runtime
-    // Note: In C++17, these functions use WJR_INTRINSIC_CONSTEXPR20 which means
+    // Note: In C++17, these functions use WJR_INTRINSIC_CONSTEXPR which means
     // they're only constexpr in C++20 and later
     EXPECT_EQ(count_digits<10>(12345u), 5);
     EXPECT_EQ(count_digits<2>(255u), 8);

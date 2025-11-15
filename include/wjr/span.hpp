@@ -181,25 +181,25 @@ public:
     span &operator=(span &&) = default;
     ~span() = default;
 
-    WJR_CONSTEXPR20 pointer begin_unsafe() noexcept { return data(); }
-    WJR_CONSTEXPR20 const_pointer begin_unsafe() const noexcept { return data(); }
-    WJR_CONSTEXPR20 const_pointer cbegin_unsafe() const noexcept { return data(); }
+    constexpr pointer begin_unsafe() noexcept { return data(); }
+    constexpr const_pointer begin_unsafe() const noexcept { return data(); }
+    constexpr const_pointer cbegin_unsafe() const noexcept { return data(); }
 
-    WJR_CONSTEXPR20 pointer end_unsafe() noexcept { return data() + size(); }
-    WJR_CONSTEXPR20 const_pointer end_unsafe() const noexcept { return data() + size(); }
-    WJR_CONSTEXPR20 const_pointer cend_unsafe() const noexcept { return end_unsafe(); }
+    constexpr pointer end_unsafe() noexcept { return data() + size(); }
+    constexpr const_pointer end_unsafe() const noexcept { return data() + size(); }
+    constexpr const_pointer cend_unsafe() const noexcept { return end_unsafe(); }
 
 private:
-    WJR_PURE WJR_CONSTEXPR20 iterator _make_iterator(const_pointer ptr) const noexcept {
+    WJR_PURE constexpr iterator _make_iterator(const_pointer ptr) const noexcept {
         return iterator(const_cast<pointer>(ptr), this);
     }
 
-    WJR_PURE WJR_CONSTEXPR20 pointer _get_pointer(iterator ptr) const noexcept {
+    WJR_PURE constexpr pointer _get_pointer(iterator ptr) const noexcept {
         ptr.check_same_container(this);
         return wjr::to_address(ptr);
     }
 
-    WJR_PURE WJR_CONSTEXPR20 pointer _get_pointer(const_iterator ptr) const noexcept {
+    WJR_PURE constexpr pointer _get_pointer(const_iterator ptr) const noexcept {
         ptr.check_same_container(this);
         return const_cast<pointer>(wjr::to_address(ptr));
     }

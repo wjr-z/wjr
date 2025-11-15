@@ -11,7 +11,7 @@ namespace wjr::math {
   calculations : stable n instead of not + inc which maybe n * 2
 */
 template <nonbool_integral T>
-WJR_INTRINSIC_CONSTEXPR20 bool bi_negate_n(T *dst, const T *src, size_t n) noexcept {
+WJR_INTRINSIC_CONSTEXPR bool bi_negate_n(T *dst, const T *src, size_t n) noexcept {
     const size_t idx = replace_find_not(dst, src, n, 0, 0);
 
     if (idx == n) {

@@ -474,7 +474,7 @@ public:
 
     template <typename Char = char, typename Traits = std::char_traits<Char>,
               typename Alloc = std::allocator<Char>>
-    WJR_CONSTEXPR20 std::basic_string<Char, Traits, Alloc>
+    constexpr std::basic_string<Char, Traits, Alloc>
     to_string(const Char elem0 = static_cast<Char>('0'),
               const Char elem1 = static_cast<Char>('1')) const {
         std::basic_string<Char, Traits, Alloc> str;

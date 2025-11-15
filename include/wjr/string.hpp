@@ -99,14 +99,8 @@ template <typename CharT, typename Traits, typename Alloc>
 WJR_INTRINSIC_INLINE void
 _uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
                       typename std::basic_string<CharT, Traits, Alloc>::size_type sz) {
-        // Before C++20, reserve may shrink capacity, so only reserve when sz > capacity()
-    #if !defined(WJR_CPP_20)
-    if (sz > str.capacity()) {
-    #endif
-        str.reserve(sz);
-    #if !defined(WJR_CPP_20)
-    }
-    #endif
+    // Before C++20, reserve may shrink capacity, so only reserve when sz > capacity()
+    str.reserve(sz);
 
     string_set_length_hacker(str, sz);
     #if defined(__GLIBCXX__) || defined(_LIBCPP_VERSION)

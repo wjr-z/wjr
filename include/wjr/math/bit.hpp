@@ -102,7 +102,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {
  * @return int Number of leading zero bits
  */
 template <nonbool_unsigned_integral T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int countl_zero(T x) noexcept {
     // If not use __builtin_clz and use popcount, then don't need to handle
     // zero.
 #if defined(WJR_CLZ_NOT_FULL)
@@ -126,7 +126,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
  * @return int Number of trailing zero bits
  */
 template <nonbool_unsigned_integral T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_zero(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int countr_zero(T x) noexcept {
     // If not use __builtin_ctz and use popcount, then don't need to handle
     // zero.
 #if defined(WJR_CTZ_NOT_FULL)
@@ -139,12 +139,12 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_zero(T x) noexcept {
 }
 
 template <nonbool_unsigned_integral T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_one(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int countl_one(T x) noexcept {
     return countl_zero(static_cast<T>(~x));
 }
 
 template <nonbool_unsigned_integral T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_one(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int countr_one(T x) noexcept {
     return countr_zero(static_cast<T>(~x));
 }
 
@@ -159,7 +159,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_one(T x) noexcept {
  * @return int Number of bits needed (0 to digits)
  */
 template <nonbool_unsigned_integral T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int bit_width(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int bit_width(T x) noexcept {
     return std::numeric_limits<T>::digits - countl_zero(x);
 }
 
@@ -174,7 +174,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int bit_width(T x) noexcept {
  * @return T Next power of two >= x
  */
 template <nonbool_unsigned_integral T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_ceil(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T bit_ceil(T x) noexcept {
     if (x <= 1) {
         return T(1);
     }
@@ -199,7 +199,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_ceil(T x) noexcept {
  * @return T Previous power of two <= x
  */
 template <nonbool_unsigned_integral T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_floor(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T bit_floor(T x) noexcept {
     if (x != 0) {
         return T{1} << (bit_width(x) - 1);
     }

@@ -133,7 +133,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T fallback_byteswap(T x) noexcept {
 #if WJR_HAS_BUILTIN(BYTESWAP)
 
 template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T builtin_byteswap(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T builtin_byteswap(T x) noexcept {
     constexpr auto digits = std::numeric_limits<T>::digits;
     auto val = static_cast<uint_t<digits>>(x);
     if constexpr (digits == 8) {
@@ -152,7 +152,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T builtin_byteswap(T x) noexcept {
 #endif
 
 template <nonbool_unsigned_integral T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T byteswap(T x) noexcept {
 #if WJR_HAS_BUILTIN(BYTESWAP)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
         return fallback_byteswap(x);

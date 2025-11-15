@@ -211,13 +211,13 @@ struct default_float_bit_carrier_conversion_traits {
 
     // Converts the floating-point type into the bit-carrier unsigned integer
     // type.
-    static WJR_CONSTEXPR20 carrier_uint float_to_carrier(Float x) noexcept {
+    static constexpr carrier_uint float_to_carrier(Float x) noexcept {
         return bit_cast<carrier_uint>(x);
     }
 
     // Converts the bit-carrier unsigned integer type into the floating-point
     // type.
-    static WJR_CONSTEXPR20 Float carrier_to_float(carrier_uint x) noexcept {
+    static constexpr Float carrier_to_float(carrier_uint x) noexcept {
         return bit_cast<Float>(x);
     }
 };
@@ -321,7 +321,7 @@ struct float_bits {
 template <class Float, class ConversionTraits = default_float_bit_carrier_conversion_traits<Float>,
           class FormatTraits = ieee754_binary_traits<typename ConversionTraits::format,
                                                      typename ConversionTraits::carrier_uint>>
-WJR_CONSTEXPR20 float_bits<FormatTraits> make_float_bits(Float x) noexcept {
+constexpr float_bits<FormatTraits> make_float_bits(Float x) noexcept {
     return float_bits<FormatTraits>(ConversionTraits::float_to_carrier(x));
 }
 
@@ -338,20 +338,20 @@ inline constexpr uint64_t umul64(uint32_t x, uint32_t y) noexcept {
 }
 
 // Get 128-bit result of multiplication of two 64-bit unsigned integers.
-WJR_SAFEBUFFERS WJR_INTRINSIC_CONSTEXPR20 uint128_t umul128(uint64_t x, uint64_t y) noexcept {
+WJR_SAFEBUFFERS WJR_INTRINSIC_CONSTEXPR uint128_t umul128(uint64_t x, uint64_t y) noexcept {
     return mul64x64to128(x, y);
 }
 
 // Get high half of the 128-bit result of multiplication of two 64-bit unsigned
 // integers.
-WJR_SAFEBUFFERS WJR_INTRINSIC_CONSTEXPR20 uint64_t umul128_upper64(uint64_t x,
+WJR_SAFEBUFFERS WJR_INTRINSIC_CONSTEXPR uint64_t umul128_upper64(uint64_t x,
                                                                    uint64_t y) noexcept {
     return mulhi(x, y);
 }
 
 // Get upper 128-bits of multiplication of a 64-bit unsigned integer and a
 // 128-bit unsigned integer.
-WJR_SAFEBUFFERS WJR_INTRINSIC_CONSTEXPR20 uint128_t umul192_upper128(uint64_t x,
+WJR_SAFEBUFFERS WJR_INTRINSIC_CONSTEXPR uint128_t umul192_upper128(uint64_t x,
                                                                      uint128_t y) noexcept {
     auto r = umul128(x, y.high);
     r += umul128_upper64(x, y.low);
@@ -360,13 +360,13 @@ WJR_SAFEBUFFERS WJR_INTRINSIC_CONSTEXPR20 uint128_t umul192_upper128(uint64_t x,
 
 // Get upper 64-bits of multiplication of a 32-bit unsigned integer and a 64-bit
 // unsigned integer.
-WJR_INTRINSIC_CONSTEXPR20 uint64_t umul96_upper64(uint32_t x, uint64_t y) noexcept {
+WJR_INTRINSIC_CONSTEXPR uint64_t umul96_upper64(uint32_t x, uint64_t y) noexcept {
     return umul128_upper64(uint64_t(x) << 32, y);
 }
 
 // Get lower 128-bits of multiplication of a 64-bit unsigned integer and a
 // 128-bit unsigned integer.
-WJR_SAFEBUFFERS WJR_INTRINSIC_CONSTEXPR20 uint128_t umul192_lower128(uint64_t x,
+WJR_SAFEBUFFERS WJR_INTRINSIC_CONSTEXPR uint128_t umul192_lower128(uint64_t x,
                                                                      uint128_t y) noexcept {
     auto const high = x * y.high;
     auto const high_low = umul128(x, y.low);
@@ -712,7 +712,7 @@ constexpr UInt small_division_by_pow10(UInt n) noexcept {
 // Compute floor(n / 10^N) for small N.
 // Precondition: n <= n_max
 template <int N, class UInt, UInt n_max>
-WJR_INTRINSIC_CONSTEXPR20 UInt divide_by_pow10(UInt n) noexcept {
+WJR_INTRINSIC_CONSTEXPR UInt divide_by_pow10(UInt n) noexcept {
     static_assert(N >= 0);
 
     // Specialize for 32-bit division by 10.
@@ -1548,7 +1548,7 @@ struct compressed_cache_holder<ieee754_binary32, Dummy> {
     }();
 
     template <class ShiftAmountType, class DecimalExponentType>
-    static WJR_CONSTEXPR20 cache_entry_type get_cache(DecimalExponentType k) noexcept {
+    static constexpr cache_entry_type get_cache(DecimalExponentType k) noexcept {
         // Compute the base index.
         // Supposed to compute (k - min_k) / compression_ratio.
         static_assert(max_k - min_k <= 89 && compression_ratio == 13);
@@ -1619,7 +1619,7 @@ struct compressed_cache_holder<ieee754_binary64, Dummy> {
     }();
 
     template <class ShiftAmountType, class DecimalExponentType>
-    static WJR_CONSTEXPR20 cache_entry_type get_cache(DecimalExponentType k) noexcept {
+    static constexpr cache_entry_type get_cache(DecimalExponentType k) noexcept {
         // Compute the base index.
         // Supposed to compute (k - min_k) / compression_ratio.
         static_assert(max_k - min_k <= 619 && compression_ratio == 27);
@@ -2238,7 +2238,7 @@ inline constexpr struct compact_t {
     using cache_holder_type = compressed_cache_holder<FloatFormat>;
 
     template <class FloatFormat, class ShiftAmountType, class DecimalExponentType>
-    static WJR_CONSTEXPR20 typename cache_holder<FloatFormat>::cache_entry_type
+    static constexpr typename cache_holder<FloatFormat>::cache_entry_type
     get_cache(DecimalExponentType k) noexcept {
         WJR_ASSERT(k >= cache_holder<FloatFormat>::min_k && k <= cache_holder<FloatFormat>::max_k);
 
@@ -2419,7 +2419,7 @@ struct multiplication_traits<ieee754_binary_traits<ieee754_binary32, uint32_t, E
                              uint64_t, 64>
     : public multiplication_traits_base<ieee754_binary_traits<ieee754_binary32, uint32_t>, uint64_t,
                                         64> {
-    static WJR_INTRINSIC_CONSTEXPR20 compute_mul_result
+    static WJR_INTRINSIC_CONSTEXPR compute_mul_result
     compute_mul(carrier_uint u, cache_entry_type const &cache) noexcept {
         auto const r = detail::wuint::umul96_upper64(u, cache);
         return {carrier_uint(r >> 32), carrier_uint(r) == 0};
@@ -2432,7 +2432,7 @@ struct multiplication_traits<ieee754_binary_traits<ieee754_binary32, uint32_t, E
     }
 
     template <class ShiftAmountType>
-    static WJR_INTRINSIC_CONSTEXPR20 compute_mul_parity_result compute_mul_parity(
+    static WJR_INTRINSIC_CONSTEXPR compute_mul_parity_result compute_mul_parity(
         carrier_uint two_f, cache_entry_type const &cache, ShiftAmountType beta) noexcept {
         WJR_ASSERT(beta >= 1);
         WJR_ASSERT(beta <= 32);
@@ -2473,7 +2473,7 @@ struct multiplication_traits<ieee754_binary_traits<ieee754_binary64, uint64_t, E
                              uint128_t, 128>
     : public multiplication_traits_base<ieee754_binary_traits<ieee754_binary64, uint64_t>,
                                         uint128_t, 128> {
-    static WJR_INTRINSIC_CONSTEXPR20 compute_mul_result
+    static WJR_INTRINSIC_CONSTEXPR compute_mul_result
     compute_mul(carrier_uint u, cache_entry_type const &cache) noexcept {
         auto const r = detail::wuint::umul192_upper128(u, cache);
         return {r.high, r.low == 0};
@@ -2486,7 +2486,7 @@ struct multiplication_traits<ieee754_binary_traits<ieee754_binary64, uint64_t, E
     }
 
     template <class ShiftAmountType>
-    static WJR_INTRINSIC_CONSTEXPR20 compute_mul_parity_result compute_mul_parity(
+    static WJR_INTRINSIC_CONSTEXPR compute_mul_parity_result compute_mul_parity(
         carrier_uint two_f, cache_entry_type const &cache, ShiftAmountType beta) noexcept {
         WJR_ASSERT(beta >= 1);
         WJR_ASSERT(beta < 64);
@@ -2597,7 +2597,7 @@ struct impl : private FormatTraits::format {
     template <class SignPolicy, class TrailingZeroPolicy, class IntervalTypeProvider,
               class BinaryToDecimalRoundingPolicy, class CachePolicy,
               class PreferredIntegerTypesPolicy>
-    WJR_SAFEBUFFERS static WJR_CONSTEXPR20
+    WJR_SAFEBUFFERS static constexpr
         return_type<SignPolicy, TrailingZeroPolicy, PreferredIntegerTypesPolicy>
         compute_nearest(signed_significand_bits<FormatTraits> s,
                         exponent_int exponent_bits) noexcept {
@@ -2885,7 +2885,7 @@ struct impl : private FormatTraits::format {
 
     template <class SignPolicy, class TrailingZeroPolicy, class CachePolicy,
               class PreferredIntegerTypesPolicy>
-    WJR_INTRINSIC_INLINE WJR_SAFEBUFFERS static WJR_CONSTEXPR20
+    WJR_INTRINSIC_INLINE WJR_SAFEBUFFERS static constexpr
         return_type<SignPolicy, TrailingZeroPolicy, PreferredIntegerTypesPolicy>
         compute_left_closed_directed(signed_significand_bits<FormatTraits> s,
                                      exponent_int exponent_bits) noexcept {
@@ -3018,7 +3018,7 @@ struct impl : private FormatTraits::format {
 
     template <class SignPolicy, class TrailingZeroPolicy, class CachePolicy,
               class PreferredIntegerTypesPolicy>
-    WJR_INTRINSIC_INLINE WJR_SAFEBUFFERS static WJR_CONSTEXPR20
+    WJR_INTRINSIC_INLINE WJR_SAFEBUFFERS static constexpr
         return_type<SignPolicy, TrailingZeroPolicy, PreferredIntegerTypesPolicy>
         compute_right_closed_directed(signed_significand_bits<FormatTraits> s,
                                       exponent_int exponent_bits) noexcept {
@@ -3423,7 +3423,7 @@ struct to_decimal_dispatcher {
                                                           preferred_integer_types_policy>;
 
     template <class IntervalTypeProvider>
-    WJR_INTRINSIC_INLINE WJR_SAFEBUFFERS WJR_CONSTEXPR20 return_type
+    WJR_INTRINSIC_INLINE WJR_SAFEBUFFERS constexpr return_type
     operator()(IntervalTypeProvider, signed_significand_bits<FormatTraits> s,
                typename FormatTraits::exponent_int exponent_bits) noexcept {
         constexpr auto tag = IntervalTypeProvider::tag;
@@ -3455,7 +3455,7 @@ struct to_decimal_dispatcher {
 
 template <class FormatTraits, class ExponentBits, class... Policies>
 WJR_INTRINSIC_INLINE
-    WJR_SAFEBUFFERS WJR_CONSTEXPR20 detail::to_decimal_return_type<FormatTraits, Policies...>
+    WJR_SAFEBUFFERS constexpr detail::to_decimal_return_type<FormatTraits, Policies...>
     to_decimal_ex(signed_significand_bits<FormatTraits> s, ExponentBits exponent_bits,
                   Policies...) noexcept {
     // Build policy holder type.
@@ -3470,7 +3470,7 @@ template <class Float, class ConversionTraits = default_float_bit_carrier_conver
                                                      typename ConversionTraits::carrier_uint>,
           class... Policies>
 WJR_INTRINSIC_INLINE
-    WJR_SAFEBUFFERS WJR_CONSTEXPR20 detail::to_decimal_return_type<FormatTraits, Policies...>
+    WJR_SAFEBUFFERS constexpr detail::to_decimal_return_type<FormatTraits, Policies...>
     to_decimal(Float x, Policies... policies) noexcept {
     auto const br = make_float_bits<Float, ConversionTraits, FormatTraits>(x);
     auto const exponent_bits = br.extract_exponent_bits();
@@ -3581,7 +3581,7 @@ inline constexpr struct compact_t {
 
     template <class DecimalToBinaryRoundingPolicy, class BinaryToDecimalRoundingPolicy,
               class CachePolicy, class PreferredIntegerTypesPolicy, class FormatTraits>
-    static WJR_CONSTEXPR20 char *to_chars(signed_significand_bits<FormatTraits> s,
+    static constexpr char *to_chars(signed_significand_bits<FormatTraits> s,
                                           typename FormatTraits::exponent_int exponent_bits,
                                           char *buffer) noexcept {
         auto result = to_decimal_ex(
@@ -3609,7 +3609,7 @@ struct is_digit_generation_policy {
 template <class DecimalToBinaryRoundingPolicy, class BinaryToDecimalRoundingPolicy,
           class CachePolicy, class PreferredIntegerTypesPolicy, class DigitGenerationPolicy,
           class FormatTraits>
-WJR_CONSTEXPR20 char *to_chars_n_impl(float_bits<FormatTraits> br, char *buffer) noexcept {
+constexpr char *to_chars_n_impl(float_bits<FormatTraits> br, char *buffer) noexcept {
     auto const exponent_bits = br.extract_exponent_bits();
     auto const s = br.remove_exponent_bits();
 
@@ -3670,7 +3670,7 @@ template <class Float, class ConversionTraits = default_float_bit_carrier_conver
           class FormatTraits = ieee754_binary_traits<typename ConversionTraits::format,
                                                      typename ConversionTraits::carrier_uint>,
           class... Policies>
-WJR_CONSTEXPR20 char *to_chars_n(Float x, char *buffer, Policies...) noexcept {
+constexpr char *to_chars_n(Float x, char *buffer, Policies...) noexcept {
     using policy_holder = detail::make_policy_holder<
         detail::detector_default_pair_list<
             detail::detector_default_pair<detail::is_decimal_to_binary_rounding_policy,
@@ -3697,7 +3697,7 @@ template <class Float, class ConversionTraits = default_float_bit_carrier_conver
           class FormatTraits = ieee754_binary_traits<typename ConversionTraits::format,
                                                      typename ConversionTraits::carrier_uint>,
           class... Policies>
-WJR_CONSTEXPR20 char *to_chars(Float x, char *buffer, Policies... policies) noexcept {
+constexpr char *to_chars(Float x, char *buffer, Policies... policies) noexcept {
     auto ptr = to_chars_n<Float, ConversionTraits, FormatTraits>(x, buffer, policies...);
     *ptr = '\0';
     return ptr;

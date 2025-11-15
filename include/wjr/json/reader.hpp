@@ -27,8 +27,8 @@ public:
         m_tokens.get_storage().size() = 0;
     }
 
-    WJR_CONSTEXPR20 const_pointer data() const noexcept { return m_input.data(); }
-    WJR_CONSTEXPR20 size_type size() const noexcept { return m_input.size(); }
+    constexpr const_pointer data() const noexcept { return m_input.data(); }
+    constexpr size_type size() const noexcept { return m_input.size(); }
 
     bool valid() const noexcept { return m_ptr != nullptr; }
 

@@ -76,7 +76,7 @@ struct optional_storage_base {
     optional_storage_base &operator=(const optional_storage_base &) = default;
     optional_storage_base &operator=(optional_storage_base &&) = default;
 
-    WJR_CONSTEXPR20 optional_storage_base(enable_default_constructor_t) noexcept {}
+    constexpr optional_storage_base(enable_default_constructor_t) noexcept {}
 
     ~optional_storage_base() = default;
 
@@ -106,7 +106,7 @@ struct optional_storage_base<T, false> {
     optional_storage_base &operator=(const optional_storage_base &) = default;
     optional_storage_base &operator=(optional_storage_base &&) = default;
 
-    WJR_CONSTEXPR20 optional_storage_base(enable_default_constructor_t) noexcept {}
+    constexpr optional_storage_base(enable_default_constructor_t) noexcept {}
 
     ~optional_storage_base() noexcept(std::is_nothrow_destructible_v<T>) {
         if (m_has_val) {
@@ -135,7 +135,7 @@ struct optional_storage_base<void, true> {
     optional_storage_base &operator=(const optional_storage_base &) = default;
     optional_storage_base &operator=(optional_storage_base &&) = default;
 
-    WJR_CONSTEXPR20 optional_storage_base(enable_default_constructor_t) noexcept
+    constexpr optional_storage_base(enable_default_constructor_t) noexcept
         : m_has_val(false) {}
 
     ~optional_storage_base() = default;
@@ -164,7 +164,7 @@ struct optional_storage_base<compressed_value<T, uniq_failed>, true> {
     optional_storage_base &operator=(const optional_storage_base &) = default;
     optional_storage_base &operator=(optional_storage_base &&) = default;
 
-    WJR_CONSTEXPR20 optional_storage_base(enable_default_constructor_t) noexcept {}
+    constexpr optional_storage_base(enable_default_constructor_t) noexcept {}
 
     ~optional_storage_base() = default;
 
@@ -194,7 +194,7 @@ struct optional_operations_base : optional_storage_base<T> {
 
     constexpr void construct_error() noexcept { set_invalid(); }
 
-    WJR_CONSTEXPR20 void _copy_construct(const optional_operations_base &other) {
+    constexpr void _copy_construct(const optional_operations_base &other) {
         if (other.has_value()) {
             construct_value(other.m_val);
         } else {
@@ -202,7 +202,7 @@ struct optional_operations_base : optional_storage_base<T> {
         }
     }
 
-    WJR_CONSTEXPR20 void _move_construct(optional_operations_base &&other) noexcept(
+    constexpr void _move_construct(optional_operations_base &&other) noexcept(
         std::is_nothrow_move_constructible_v<value_type>) {
         if (other.has_value()) {
             construct_value(std::move(other.m_val));
@@ -211,7 +211,7 @@ struct optional_operations_base : optional_storage_base<T> {
         }
     }
 
-    WJR_CONSTEXPR20 void _copy_assign(const optional_operations_base &other) {
+    constexpr void _copy_assign(const optional_operations_base &other) {
         if (this->has_value()) {
             if (WJR_LIKELY(other.has_value())) {
                 this->m_val = other.m_val;
@@ -228,7 +228,7 @@ struct optional_operations_base : optional_storage_base<T> {
         }
     }
 
-    WJR_CONSTEXPR20 void _move_assign(optional_operations_base &&other) noexcept(
+    constexpr void _move_assign(optional_operations_base &&other) noexcept(
         std::is_nothrow_move_assignable_v<value_type>) {
         if (this->has_value()) {
             if (WJR_LIKELY(other.has_value())) {
@@ -378,7 +378,7 @@ public:
     template <typename U>
     requires(std::is_constructible_v<value_type, const U &> &&
              optional_detail::optional_construct_with_v<value_type, U>)
-    WJR_CONSTEXPR20 explicit(!std::is_convertible_v<const U &, value_type>)
+    constexpr explicit(!std::is_convertible_v<const U &, value_type>)
         optional(const optional<U> &other)
         : Mybase(enable_default_constructor) {
         if (other.has_value()) {
@@ -391,7 +391,7 @@ public:
     template <typename U>
     requires(std::is_constructible_v<value_type, U> &&
              optional_detail::optional_construct_with_v<value_type, U>)
-    WJR_CONSTEXPR20 explicit(!std::is_convertible_v<U, value_type>) optional(optional<U> &&other)
+    constexpr explicit(!std::is_convertible_v<U, value_type>) optional(optional<U> &&other)
         : Mybase(enable_default_constructor) {
         if (other.has_value()) {
             this->construct_value(std::forward<U>(other.m_val));
@@ -405,7 +405,7 @@ public:
     constexpr explicit(!std::is_convertible_v<U, value_type>) optional(U &&v)
         : Mybase(std::in_place, std::forward<U>(v)) {}
 
-    WJR_CONSTEXPR20 optional &operator=(nullopt_t) {
+    constexpr optional &operator=(nullopt_t) {
         if (has_value()) {
             std::destroy_at(std::addressof(this->m_val));
             this->set_invalid();
@@ -420,7 +420,7 @@ public:
              std::is_constructible_v<value_type, U> && std::is_assignable_v<value_type &, U> &&
              (std::is_nothrow_constructible_v<value_type, U> ||
               std::is_nothrow_move_constructible_v<value_type>))
-    WJR_CONSTEXPR20 optional &operator=(U &&v) {
+    constexpr optional &operator=(U &&v) {
         if (has_value()) {
             this->m_val = std::forward<U>(v);
         } else {
@@ -632,7 +632,7 @@ public:
     }
 
 private:
-    WJR_CONSTEXPR20 void
+    constexpr void
     _swap_impl(optional &other) noexcept(std::is_nothrow_move_constructible_v<T> &&
                                          std::is_nothrow_swappable_v<T>) {
         wjr::construct_at(std::addressof(other.m_val), std::move(this->m_val));
@@ -645,7 +645,7 @@ public:
     template <typename _T = value_type>
     requires(std::is_swappable_v<_T> && std::is_move_constructible_v<_T> &&
              std::is_nothrow_move_constructible_v<_T>)
-    WJR_CONSTEXPR20 void
+    constexpr void
     swap(optional &other) noexcept(std::is_nothrow_move_constructible_v<value_type> &&
                                    std::is_nothrow_swappable_v<value_type>) {
         using std::swap;
@@ -720,7 +720,7 @@ public:
     constexpr optional(voidopt_t) : Mybase(std::in_place) {}
     constexpr optional(nullopt_t) : Mybase(nullopt) {}
 
-    WJR_CONSTEXPR20 optional &operator=(nullopt_t) {
+    constexpr optional &operator=(nullopt_t) {
         this->set_invalid();
         return *this;
     }
@@ -757,7 +757,7 @@ public:
 
     constexpr void emplace() noexcept { this->set_valid(); }
 
-    WJR_CONSTEXPR20 void swap(optional &other) noexcept {
+    constexpr void swap(optional &other) noexcept {
         std::swap(this->m_has_val, other.m_has_val);
     }
 

@@ -11,7 +11,7 @@
 
 namespace wjr::math {
 
-WJR_INTRINSIC_CONSTEXPR20 uint64_t _addc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
+WJR_INTRINSIC_CONSTEXPR uint64_t _addc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
                                                 uint64_t src1, uint64_t c_in) noexcept {
     uint8_t overflow;
     dst[0] = addc_cc(src0[0], src1, static_cast<uint8_t>(c_in), overflow);
@@ -52,7 +52,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t _addc_1_impl(uint64_t *dst, const uint64_t *s
  * @pre 2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
  * @pre 3. c_in <= 1
  */
-WJR_INTRINSIC_CONSTEXPR20 uint64_t addc_1(uint64_t *dst, const uint64_t *src0, size_t n,
+WJR_INTRINSIC_CONSTEXPR uint64_t addc_1(uint64_t *dst, const uint64_t *src0, size_t n,
                                           uint64_t src1, uint64_t c_in) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
@@ -67,7 +67,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t addc_1(uint64_t *dst, const uint64_t *src0, s
     return _addc_1_impl(dst, src0, n, src1, c_in);
 }
 
-WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_addc_n(uint64_t *dst, const uint64_t *src0,
+WJR_INTRINSIC_CONSTEXPR uint64_t fallback_addc_n(uint64_t *dst, const uint64_t *src0,
                                                    const uint64_t *src1, size_t n,
                                                    uint64_t c_in) noexcept {
     size_t m = n / 4;
@@ -130,7 +130,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_addc_n(uint64_t *dst, const uint64_t
  * @pre 2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
  * @pre 3. WJR_IS_SAME_OR_INCR_P(dst, n, src1, n)
  */
-WJR_INTRINSIC_CONSTEXPR20 uint64_t addc_n(uint64_t *dst, const uint64_t *src0, const uint64_t *src1,
+WJR_INTRINSIC_CONSTEXPR uint64_t addc_n(uint64_t *dst, const uint64_t *src0, const uint64_t *src1,
                                           size_t n, uint64_t c_in) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
@@ -156,7 +156,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t addc_n(uint64_t *dst, const uint64_t *src0, c
  * @pre 3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
  * @pre 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
  */
-WJR_INTRINSIC_CONSTEXPR20 uint64_t addc_s(uint64_t *dst, const uint64_t *src0, size_t n,
+WJR_INTRINSIC_CONSTEXPR uint64_t addc_s(uint64_t *dst, const uint64_t *src0, size_t n,
                                           const uint64_t *src1, size_t m, uint64_t c_in) noexcept {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
@@ -179,7 +179,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t addc_s(uint64_t *dst, const uint64_t *src0, s
  * @pre 3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
  * @pre 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
  */
-WJR_INTRINSIC_CONSTEXPR20 uint64_t addc_sz(uint64_t *dst, const uint64_t *src0, size_t n,
+WJR_INTRINSIC_CONSTEXPR uint64_t addc_sz(uint64_t *dst, const uint64_t *src0, size_t n,
                                            const uint64_t *src1, size_t m, uint64_t c_in) noexcept {
     WJR_ASSERT_ASSUME(n >= m);
 

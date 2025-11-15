@@ -37,7 +37,7 @@ WJR_CONST constexpr int ctz(T x) noexcept {
 } // namespace constant
 
 template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_ctz(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int fallback_ctz(T x) noexcept {
 #if WJR_HAS_BUILTIN(POPCOUNT)
     return popcount<T>(lowbit(x) - 1);
 #else
@@ -106,7 +106,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) noexcept {
  * @tparam T Must be an unsigned integral type
  */
 template <nonbool_unsigned_integral T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int ctz(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int ctz(T x) noexcept {
     int ans;
 #if WJR_HAS_BUILTIN(CTZ)
     if (is_constant_evaluated()) {

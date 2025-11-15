@@ -18,13 +18,13 @@ class divexact1_divider;
 
 class uint128_t;
 
-WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
+WJR_INLINE_CONSTEXPR uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
                                                const div2by1_divider<uint64_t> &divider) noexcept;
 
 /**
  * @todo Using the `div` instruction directly on some machines may be faster
  */
-WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
+WJR_INLINE_CONSTEXPR uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
                                                uint64_t div) noexcept;
 
 inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,

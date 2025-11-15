@@ -36,7 +36,7 @@ namespace wjr {
  * @param[in] divider Precomputed normalized divider
  * @return uint64_t The 64-bit quotient
  */
-WJR_INLINE_CONSTEXPR20 uint64_t
+WJR_INLINE_CONSTEXPR uint64_t
 div128by64to64_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
                        const div2by1_divider_noshift<uint64_t> &divider) noexcept {
     const uint64_t result = divider.divide(lo, hi);
@@ -56,7 +56,7 @@ div128by64to64_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
  * @param[in] divider Precomputed divider with shift information
  * @return uint64_t The 64-bit quotient
  */
-WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64_shift(
+WJR_INLINE_CONSTEXPR uint64_t div128by64to64_shift(
     uint64_t &rem, uint64_t lo, uint64_t hi, const div2by1_divider<uint64_t> &divider) noexcept {
     const auto shift = divider.get_shift();
     hi = shld(hi, lo, shift);
@@ -81,7 +81,7 @@ WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64_shift(
  * @warning Not optimized for power-of-2 divisors; consider manual optimization
  * @note For power-of-2 divisors, bit shifting may be more efficient
  */
-WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
+WJR_INLINE_CONSTEXPR uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
                                                const div2by1_divider<uint64_t> &divider) noexcept {
     if (divider.get_shift() == 0) {
         return div128by64to64_noshift(rem, lo, hi, divider);
@@ -105,7 +105,7 @@ WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint6
  * @warning Not optimized for power-of-2 divisors; consider manual optimization
  * @note This creates a temporary divider; cache the divider for better performance
  */
-WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
+WJR_INLINE_CONSTEXPR uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
                                                uint64_t div) noexcept {
     return div128by64to64(rem, lo, hi, div2by1_divider<uint64_t>(div));
 }

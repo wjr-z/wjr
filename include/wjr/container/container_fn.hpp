@@ -54,7 +54,7 @@ private:
 
 public:
     template <typename Container>
-    WJR_CONSTEXPR20 static void copy_assign(Container &lhs, const Container &rhs) noexcept(
+    constexpr static void copy_assign(Container &lhs, const Container &rhs) noexcept(
         noexcept(lhs._copy_element(rhs)) && !propagate_on_container_copy_assignment::value
             ? true
             : (std::is_nothrow_copy_assignable_v<Alloc> && is_always_equal::value
@@ -76,7 +76,7 @@ public:
     }
 
     template <typename Container>
-    WJR_CONSTEXPR20 static void move_assign(Container &lhs, Container &&rhs) noexcept(
+    constexpr static void move_assign(Container &lhs, Container &&rhs) noexcept(
         noexcept(lhs._destroy_and_deallocate()) && noexcept(lhs._take_storage(std::move(rhs))) &&
                 std::disjunction_v<propagate_on_container_move_assignment, is_always_equal>
             ? (!propagate_on_container_move_assignment::value
@@ -100,7 +100,7 @@ public:
     }
 
     template <typename Container>
-    WJR_CONSTEXPR20 static void swap(Container &lhs, Container &rhs) noexcept(
+    constexpr static void swap(Container &lhs, Container &rhs) noexcept(
         noexcept(lhs._swap_storage(rhs)) &&
                 !std::conjunction_v<propagate_on_container_swap, std::negation<is_always_equal>>
             ? true

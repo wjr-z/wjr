@@ -296,19 +296,8 @@
     #define WJR_MAY_ALIAS
 #endif
 
-#define WJR_INLINE inline
-
-#if defined(WJR_CPP_20)
-    #define WJR_CONSTEXPR20 constexpr
-#else
-    #define WJR_CONSTEXPR20
-#endif
-
 #define WJR_INTRINSIC_CONSTEXPR WJR_INTRINSIC_INLINE constexpr
-#define WJR_INTRINSIC_CONSTEXPR20 WJR_INTRINSIC_INLINE WJR_CONSTEXPR20
-
 #define WJR_INLINE_CONSTEXPR inline constexpr
-#define WJR_INLINE_CONSTEXPR20 inline WJR_CONSTEXPR20
 
 #if defined(__cpp_consteval)
     #define WJR_CONSTEVAL consteval

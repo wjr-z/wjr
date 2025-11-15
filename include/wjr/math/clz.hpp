@@ -54,7 +54,7 @@ WJR_CONST constexpr int clz(T x) noexcept {
 } // namespace constant
 
 template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_clz(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int fallback_clz(T x) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
 #if !WJR_HAS_BUILTIN(POPCOUNT)
@@ -141,7 +141,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
  * @tparam T Must be an unsigned integral type
  */
 template <nonbool_unsigned_integral T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int clz(T x) noexcept {
     int ans;
 #if WJR_HAS_BUILTIN(CLZ)
     if (is_constant_evaluated()) {

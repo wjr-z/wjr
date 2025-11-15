@@ -127,7 +127,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) noexcept {
 #endif
 
 template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount_impl(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int popcount_impl(T x) noexcept {
     if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(is_zero_or_single_bit(x))) {
         return x != 0;
     }
@@ -154,7 +154,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount_impl(T x) noexcept {
  * @return int Number of set bits (0 to digits)
  */
 template <nonbool_unsigned_integral T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int popcount(T x) noexcept {
     const int ret = popcount_impl(x);
     WJR_ASSUME(0 <= ret && ret <= std::numeric_limits<T>::digits);
     return ret;

@@ -32,7 +32,7 @@ namespace wjr {
  * @todo Optimization: merge builtin_find_not_n and builtin_set_n
  */
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR20 size_t replace_find_not(T *dst, const T *src, size_t n,
+WJR_INTRINSIC_CONSTEXPR size_t replace_find_not(T *dst, const T *src, size_t n,
                                                   type_identity_t<T> from,
                                                   type_identity_t<T> to) noexcept {
     const size_t ret = find_not_n(src, from, n);
@@ -58,7 +58,7 @@ WJR_INTRINSIC_CONSTEXPR20 size_t replace_find_not(T *dst, const T *src, size_t n
  * @return size_t Index of last non-matching element
  */
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR20 size_t reverse_replace_find_not(T *dst, const T *src, size_t n,
+WJR_INTRINSIC_CONSTEXPR size_t reverse_replace_find_not(T *dst, const T *src, size_t n,
                                                           type_identity_t<T> from,
                                                           type_identity_t<T> to) noexcept {
     const size_t ret = reverse_find_not_n(src, from, n);

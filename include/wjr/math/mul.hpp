@@ -39,7 +39,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_mul(T a, T b, T &hi) noexcept {
     return static_cast<T>(x);
 }
 
-WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_mul64(uint64_t a, uint64_t b, uint64_t &hi) noexcept {
+WJR_INTRINSIC_CONSTEXPR uint64_t fallback_mul64(uint64_t a, uint64_t b, uint64_t &hi) noexcept {
     uint64_t ah = a >> 32;
     uint64_t al = a & 0xFFFFFFFF;
     uint64_t bh = b >> 32;
@@ -57,7 +57,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_mul64(uint64_t a, uint64_t b, uint64
     return rl;
 }
 
-WJR_INTRINSIC_CONSTEXPR20 uint64_t _mul_u64(uint64_t a, uint64_t b, uint64_t &hi) noexcept {
+WJR_INTRINSIC_CONSTEXPR uint64_t _mul_u64(uint64_t a, uint64_t b, uint64_t &hi) noexcept {
     if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(a)) {
         if (a == 0) {
             hi = 0;
@@ -119,7 +119,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t _mul_u64(uint64_t a, uint64_t b, uint64_t &hi
  * @return T The low part of the product
  */
 template <nonbool_unsigned_integral T>
-WJR_INTRINSIC_CONSTEXPR20 T mul(T a, T b, T &hi) noexcept {
+WJR_INTRINSIC_CONSTEXPR T mul(T a, T b, T &hi) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
     if constexpr (nd < 64) {
@@ -141,7 +141,7 @@ WJR_INTRINSIC_CONSTEXPR20 T mul(T a, T b, T &hi) noexcept {
  * @return T The high part of the product
  */
 template <nonbool_unsigned_integral T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T mulhi(T a, T b) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T mulhi(T a, T b) noexcept {
 #if WJR_HAS_BUILTIN(MSVC_MULH64)
     constexpr auto nd = std::numeric_limits<T>::digits;
     if constexpr (nd < 64) {
@@ -177,7 +177,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T mullo(T a, T b) noexcept {
 #endif
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR20 bool fallback_mul_overflow(T a, T b, T &ret) noexcept {
+WJR_INTRINSIC_CONSTEXPR bool fallback_mul_overflow(T a, T b, T &ret) noexcept {
     T hi;
     ret = mul(a, b, hi);
     return hi != 0;
@@ -196,7 +196,7 @@ WJR_INTRINSIC_CONSTEXPR20 bool fallback_mul_overflow(T a, T b, T &ret) noexcept 
  * @return bool True if overflow occurred, false otherwise
  */
 template <nonbool_unsigned_integral T>
-WJR_INTRINSIC_CONSTEXPR20 bool mul_overflow(type_identity_t<T> a, type_identity_t<T> b,
+WJR_INTRINSIC_CONSTEXPR bool mul_overflow(type_identity_t<T> a, type_identity_t<T> b,
                                             T &ret) noexcept {
 #if WJR_HAS_BUILTIN(MUL_OVERFLOW)
     if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {

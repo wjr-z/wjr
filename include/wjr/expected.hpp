@@ -130,7 +130,7 @@ template <typename T, typename E>
 class expected;
 
 template <typename NewType, typename OldType, typename... Args>
-WJR_CONSTEXPR20 void reinit_expected(NewType &new_val, OldType &old_val, Args &&...args) {
+constexpr void reinit_expected(NewType &new_val, OldType &old_val, Args &&...args) {
     if constexpr (std::is_nothrow_constructible_v<NewType, Args...>) {
         std::destroy_at(std::addressof(old_val));
         wjr::construct_at(std::addressof(new_val), std::forward<Args>(args)...);
@@ -173,7 +173,7 @@ struct expected_storage_base {
     expected_storage_base &operator=(const expected_storage_base &) = default;
     expected_storage_base &operator=(expected_storage_base &&) = default;
 
-    WJR_CONSTEXPR20 expected_storage_base(enable_default_constructor_t) noexcept {}
+    constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
 
     ~expected_storage_base() = default;
 
@@ -208,7 +208,7 @@ struct expected_storage_base<T, E, false> {
     expected_storage_base &operator=(const expected_storage_base &) = default;
     expected_storage_base &operator=(expected_storage_base &&) = default;
 
-    WJR_CONSTEXPR20 expected_storage_base(enable_default_constructor_t) noexcept {}
+    constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
 
     ~expected_storage_base() noexcept(std::is_nothrow_destructible_v<T> &&
                                       std::is_nothrow_destructible_v<E>) {
@@ -246,7 +246,7 @@ struct expected_storage_base<void, E, true> {
     expected_storage_base &operator=(const expected_storage_base &) = default;
     expected_storage_base &operator=(expected_storage_base &&) = default;
 
-    WJR_CONSTEXPR20 expected_storage_base(enable_default_constructor_t) noexcept {}
+    constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
 
     ~expected_storage_base() = default;
 
@@ -276,7 +276,7 @@ struct expected_storage_base<void, E, false> {
     expected_storage_base &operator=(const expected_storage_base &) = default;
     expected_storage_base &operator=(expected_storage_base &&) = default;
 
-    WJR_CONSTEXPR20 expected_storage_base(enable_default_constructor_t) noexcept {}
+    constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
 
     ~expected_storage_base() noexcept(std::is_nothrow_destructible_v<E>) {
         if (!m_has_val) {
@@ -316,7 +316,7 @@ struct expected_storage_base<T, compressed_value<E, uniq_success>, true> {
     expected_storage_base &operator=(const expected_storage_base &) = default;
     expected_storage_base &operator=(expected_storage_base &&) = default;
 
-    WJR_CONSTEXPR20 expected_storage_base(enable_default_constructor_t) noexcept {}
+    constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
 
     ~expected_storage_base() = default;
 
@@ -353,7 +353,7 @@ struct expected_storage_base<T, compressed_value<E, uniq_success>, false> {
     expected_storage_base &operator=(const expected_storage_base &) = default;
     expected_storage_base &operator=(expected_storage_base &&) = default;
 
-    WJR_CONSTEXPR20 expected_storage_base(enable_default_constructor_t) noexcept {}
+    constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
 
     ~expected_storage_base() noexcept(std::is_nothrow_destructible_v<T> &&
                                       std::is_nothrow_destructible_v<E>) {
@@ -391,7 +391,7 @@ struct expected_storage_base<void, compressed_value<E, uniq_success>, true> {
     expected_storage_base &operator=(const expected_storage_base &) = default;
     expected_storage_base &operator=(expected_storage_base &&) = default;
 
-    WJR_CONSTEXPR20 expected_storage_base(enable_default_constructor_t) noexcept {}
+    constexpr expected_storage_base(enable_default_constructor_t) noexcept {}
 
     ~expected_storage_base() = default;
 
@@ -428,7 +428,7 @@ struct expected_operations_base : expected_storage_base<T, E> {
         WJR_ASSERT_ASSUME_L2(!this->has_value());
     }
 
-    WJR_CONSTEXPR20 void _copy_construct(const expected_operations_base &other) {
+    constexpr void _copy_construct(const expected_operations_base &other) {
         if (other.has_value()) {
             construct_value(other.m_val);
         } else {
@@ -436,7 +436,7 @@ struct expected_operations_base : expected_storage_base<T, E> {
         }
     }
 
-    WJR_CONSTEXPR20 void _move_construct(expected_operations_base &&other) noexcept(
+    constexpr void _move_construct(expected_operations_base &&other) noexcept(
         std::is_nothrow_move_constructible_v<T> &&
         std::is_nothrow_move_constructible_v<error_type>) {
         if (other.has_value()) {
@@ -446,7 +446,7 @@ struct expected_operations_base : expected_storage_base<T, E> {
         }
     }
 
-    WJR_CONSTEXPR20 void _copy_assign(const expected_operations_base &other) {
+    constexpr void _copy_assign(const expected_operations_base &other) {
         if (this->has_value()) {
             if (WJR_LIKELY(other.has_value())) {
                 this->m_val = other.m_val;
@@ -468,7 +468,7 @@ struct expected_operations_base : expected_storage_base<T, E> {
         }
     }
 
-    WJR_CONSTEXPR20 void
+    constexpr void
     _move_assign(expected_operations_base &&other) noexcept(std::is_nothrow_move_assignable_v<T> &&
                                                             std::is_nothrow_move_assignable_v<E>) {
         if (this->has_value()) {
@@ -516,7 +516,7 @@ struct expected_operations_base<void, E> : expected_storage_base<void, E> {
         WJR_ASSERT_ASSUME_L2(!this->has_value());
     }
 
-    WJR_CONSTEXPR20 void _copy_construct(const expected_operations_base &other) {
+    constexpr void _copy_construct(const expected_operations_base &other) {
         if (other.has_value()) {
             construct_value();
         } else {
@@ -524,7 +524,7 @@ struct expected_operations_base<void, E> : expected_storage_base<void, E> {
         }
     }
 
-    WJR_CONSTEXPR20 void _move_construct(expected_operations_base &&other) noexcept(
+    constexpr void _move_construct(expected_operations_base &&other) noexcept(
         std::is_nothrow_move_constructible_v<error_type>) {
         if (other.has_value()) {
             construct_value();
@@ -533,7 +533,7 @@ struct expected_operations_base<void, E> : expected_storage_base<void, E> {
         }
     }
 
-    WJR_CONSTEXPR20 void _copy_assign(const expected_operations_base &other) {
+    constexpr void _copy_assign(const expected_operations_base &other) {
         if (this->has_value()) {
             if (WJR_LIKELY(other.has_value())) {
                 WJR_ASSERT_ASSUME_L2(this->has_value());
@@ -554,7 +554,7 @@ struct expected_operations_base<void, E> : expected_storage_base<void, E> {
         }
     }
 
-    WJR_CONSTEXPR20 void _move_assign(expected_operations_base &&other) noexcept(
+    constexpr void _move_assign(expected_operations_base &&other) noexcept(
         std::is_nothrow_move_assignable_v<error_type>) {
         if (this->has_value()) {
             if (WJR_LIKELY(other.has_value())) {
@@ -755,7 +755,7 @@ public:
     requires(std::is_constructible_v<T, const U &> &&
              std::is_constructible_v<error_type, const G &> &&
              expected_detail::expected_construct_with_v<T, error_type, U, G>)
-    WJR_CONSTEXPR20 explicit(!(std::is_convertible_v<const U &, T> &&
+    constexpr explicit(!(std::is_convertible_v<const U &, T> &&
                                std::is_convertible_v<const G &, error_type>))
         expected(const expected<U, G> &other)
         : Mybase(enable_default_constructor) {
@@ -769,7 +769,7 @@ public:
     template <typename U, typename G>
     requires(std::is_constructible_v<T, U> && std::is_constructible_v<error_type, G> &&
              expected_detail::expected_construct_with_v<T, error_type, U, G>)
-    WJR_CONSTEXPR20 explicit(!(std::is_convertible_v<U, T> && std::is_convertible_v<G, error_type>))
+    constexpr explicit(!(std::is_convertible_v<U, T> && std::is_convertible_v<G, error_type>))
         expected(expected<U, G> &&other)
         : Mybase(enable_default_constructor) {
         if (other.has_value()) {
@@ -790,7 +790,7 @@ public:
              (std::is_nothrow_constructible_v<error_type, const G &> ||
               std::is_nothrow_move_constructible_v<T> ||
               std::is_nothrow_move_constructible_v<error_type>))
-    WJR_CONSTEXPR20 expected &operator=(const unexpected<G> &e) {
+    constexpr expected &operator=(const unexpected<G> &e) {
         if (has_value()) {
             reinit_expected(this->m_err, this->m_val, std::forward<const G &>(e.error()));
             this->set_invalid();
@@ -807,7 +807,7 @@ public:
              (std::is_nothrow_constructible_v<error_type, G> ||
               std::is_nothrow_move_constructible_v<T> ||
               std::is_nothrow_move_constructible_v<error_type>))
-    WJR_CONSTEXPR20 expected &operator=(unexpected<G> &&e) {
+    constexpr expected &operator=(unexpected<G> &&e) {
         if (has_value()) {
             reinit_expected(this->m_err, this->m_val, std::forward<G>(e.error()));
             this->set_invalid();
@@ -825,7 +825,7 @@ public:
              std::is_constructible_v<T, U> && std::is_assignable_v<T &, U> &&
              (std::is_nothrow_constructible_v<T, U> || std::is_nothrow_move_constructible_v<T> ||
               std::is_nothrow_move_constructible_v<error_type>))
-    WJR_CONSTEXPR20 expected &operator=(U &&v) {
+    constexpr expected &operator=(U &&v) {
         if (has_value()) {
             this->m_val = std::forward<U>(v);
         } else {
@@ -1130,7 +1130,7 @@ private:
         std::is_nothrow_move_constructible_v<T> && std::is_nothrow_swappable_v<T> &&
         std::is_nothrow_move_constructible_v<error_type> && std::is_nothrow_swappable_v<error_type>;
 
-    WJR_CONSTEXPR20 void _swap_impl(expected &other) noexcept(_is_nothrow_swappable) {
+    constexpr void _swap_impl(expected &other) noexcept(_is_nothrow_swappable) {
 #if !defined(WJR_DISABLE_EXCEPTIONS)
         if constexpr (_is_nothrow_swappable) {
 #endif
@@ -1179,7 +1179,7 @@ public:
              std::is_move_constructible_v<_T> && std::is_move_constructible_v<error_type> &&
              (std::is_nothrow_move_constructible_v<_T> ||
               std::is_nothrow_move_constructible_v<error_type>))
-    WJR_CONSTEXPR20 void swap(expected &other) noexcept(_is_nothrow_swappable) {
+    constexpr void swap(expected &other) noexcept(_is_nothrow_swappable) {
         using std::swap;
         if (has_value()) {
             if (other.has_value()) {
@@ -1283,7 +1283,7 @@ public:
     template <typename G>
     requires(std::is_constructible_v<error_type, const G &> &&
              expected_detail::expected_construct_with_v<void, error_type, void, G>)
-    WJR_CONSTEXPR20 explicit(!std::is_convertible_v<const G &, error_type>)
+    constexpr explicit(!std::is_convertible_v<const G &, error_type>)
         expected(const expected<void, G> &other)
         : Mybase(enable_default_constructor) {
         if (other.has_value()) {
@@ -1296,7 +1296,7 @@ public:
     template <typename G>
     requires(std::is_constructible_v<error_type, G> &&
              expected_detail::expected_construct_with_v<void, error_type, void, G>)
-    WJR_CONSTEXPR20 explicit(!std::is_convertible_v<G, error_type>)
+    constexpr explicit(!std::is_convertible_v<G, error_type>)
         expected(expected<void, G> &&other)
         : Mybase(enable_default_constructor) {
         if (other.has_value()) {
@@ -1309,7 +1309,7 @@ public:
     template <typename G>
     requires(std::is_constructible_v<error_type, const G &> &&
              std::is_assignable_v<error_type &, const G &>)
-    WJR_CONSTEXPR20 expected &operator=(const unexpected<G> &e) {
+    constexpr expected &operator=(const unexpected<G> &e) {
         if (has_value()) {
             wjr::construct_at(std::addressof(this->m_err), std::forward<const G &>(e.error()));
             this->set_invalid();
@@ -1323,7 +1323,7 @@ public:
 
     template <typename G>
     requires(std::is_constructible_v<error_type, G> && std::is_assignable_v<error_type &, G>)
-    WJR_CONSTEXPR20 expected &operator=(unexpected<G> &&e) {
+    constexpr expected &operator=(unexpected<G> &&e) {
         if (has_value()) {
             wjr::construct_at(std::addressof(this->m_err), std::forward<G>(e.error()));
             this->set_invalid();
@@ -1555,7 +1555,7 @@ public:
     }
 
 private:
-    WJR_CONSTEXPR20 void
+    constexpr void
     _swap_impl(expected &other) noexcept(std::is_nothrow_move_constructible_v<error_type> &&
                                          std::is_nothrow_swappable_v<error_type>) {
         if constexpr (std::is_nothrow_move_constructible_v<error_type>) {
@@ -1576,7 +1576,7 @@ private:
 public:
     template <typename _E = error_type>
     requires(std::is_swappable_v<_E> && std::is_move_constructible_v<_E>)
-    WJR_CONSTEXPR20 void
+    constexpr void
     swap(expected &other) noexcept(std::is_nothrow_move_constructible_v<error_type> &&
                                    std::is_nothrow_swappable_v<error_type>) {
         using std::swap;

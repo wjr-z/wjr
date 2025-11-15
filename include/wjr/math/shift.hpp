@@ -86,7 +86,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_lshift_n(T *dst, const T *src, size_t n, unsi
  * @pre dst and src must be the same or dst must come after src
  */
 template <nonbool_unsigned_integral T>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T lshift_n(T *dst, const T *src, size_t n, unsigned int c,
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR T lshift_n(T *dst, const T *src, size_t n, unsigned int c,
                                                    type_identity_t<T> lo = 0) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
@@ -145,7 +145,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_rshift_n(T *dst, const T *src, size_t n, unsi
  * @pre dst and src must be the same or dst must come before src
  */
 template <nonbool_unsigned_integral T>
-WJR_INTRINSIC_CONSTEXPR20 T rshift_n(T *dst, const T *src, size_t n, unsigned int c,
+WJR_INTRINSIC_CONSTEXPR T rshift_n(T *dst, const T *src, size_t n, unsigned int c,
                                      type_identity_t<T> hi = 0) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
@@ -192,7 +192,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_lshiftc_n(T *dst, const T *src, size_t n, uns
  * 2. WJR_IS_SAME_OR_DECR_P(dst, n, src, n)
  */
 template <nonbool_unsigned_integral T>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T lshiftc_n(T *dst, const T *src, size_t n, unsigned int c,
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR T lshiftc_n(T *dst, const T *src, size_t n, unsigned int c,
                                                     type_identity_t<T> lo = 0) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_ASSUME(c >= 1);
@@ -232,7 +232,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_rshiftc_n(T *dst, const T *src, size_t n, uns
  * 2. WJR_IS_SAME_OR_DECR_P(dst, n, src, n)
  */
 template <nonbool_unsigned_integral T>
-WJR_INTRINSIC_CONSTEXPR20 T rshiftc_n(T *dst, const T *src, size_t n, unsigned int c,
+WJR_INTRINSIC_CONSTEXPR T rshiftc_n(T *dst, const T *src, size_t n, unsigned int c,
                                       type_identity_t<T> hi = 0) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_ASSUME(c >= 1);
