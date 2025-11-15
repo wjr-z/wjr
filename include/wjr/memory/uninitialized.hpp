@@ -614,40 +614,41 @@ struct _aligned_storage_t {
     alignas(T) std::byte buf[sizeof(T)];
 };
 
-template <typename T, bool Constructor, bool Destructor>
-struct _uninitialized_base;
+template <typename T, bool CON, bool DES>
+struct _uninitialized_base {
+    _uninitialized_base(const _uninitialized_base &) = default;
+    _uninitialized_base(_uninitialized_base &&) = default;
+    _uninitialized_base &operator=(const _uninitialized_base &) = default;
+    _uninitialized_base &operator=(_uninitialized_base &&) = default;
 
-#define WJR_REGISTER_UNION_BASE(CON, DES)                                                          \
-    template <typename T>                                                                          \
-    struct _uninitialized_base<T, CON, DES> {                                                      \
-        _uninitialized_base(const _uninitialized_base &) = default;                                \
-        _uninitialized_base(_uninitialized_base &&) = default;                                     \
-        _uninitialized_base &operator=(const _uninitialized_base &) = default;                     \
-        _uninitialized_base &operator=(_uninitialized_base &&) = default;                          \
-                                                                                                   \
-        constexpr _uninitialized_base() WJR_PP_BOOL_IF(CON, = default, noexcept {});               \
-                                                                                                   \
-        template <typename... Args>                                                                \
-        constexpr _uninitialized_base(Args &&...args) noexcept(                                    \
-            std::is_nothrow_constructible_v<T, Args...>)                                           \
-            : m_value(std::forward<Args>(args)...) {}                                              \
-                                                                                                   \
-        constexpr _uninitialized_base(enable_default_constructor_t) noexcept {}                    \
-                                                                                                   \
-        ~_uninitialized_base() WJR_PP_BOOL_IF(DES, = default, noexcept {});                        \
-                                                                                                   \
-        union {                                                                                    \
-            T m_value;                                                                             \
-            _aligned_storage_t<T> m_storage;                                                       \
-        };                                                                                         \
-    }
+    _uninitialized_base()
+    requires(CON)
+    = default;
 
-WJR_REGISTER_UNION_BASE(0, 0);
-WJR_REGISTER_UNION_BASE(0, 1);
-WJR_REGISTER_UNION_BASE(1, 0);
-WJR_REGISTER_UNION_BASE(1, 1);
+    constexpr _uninitialized_base() noexcept
+    requires(!CON)
+    {}
 
-#undef WJR_REGISTER_UNION_BASE
+    template <typename... Args>
+    constexpr _uninitialized_base(Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<T, Args...>)
+        : m_value(std::forward<Args>(args)...) {}
+
+    constexpr _uninitialized_base(enable_default_constructor_t) noexcept {}
+
+    ~_uninitialized_base()
+    requires(DES)
+    = default;
+
+    constexpr ~_uninitialized_base() noexcept
+    requires(!DES)
+    {}
+
+    union {
+        T m_value;
+        _aligned_storage_t<T> m_storage;
+    };
+};
 
 template <typename T>
 using _uninitialized_base_selector =
@@ -662,31 +663,31 @@ private:
 public:
     using Mybase::Mybase;
 
-    template <typename U = T>
-    requires(std::is_copy_constructible_v<U>)
     constexpr void _copy_construct(const _uninitialized_control_base &other) noexcept(
-        std::is_nothrow_copy_constructible_v<T>) {
+        std::is_nothrow_copy_constructible_v<T>)
+    requires(std::is_copy_constructible_v<T>)
+    {
         wjr::construct_at(std::addressof(this->m_value), other.m_value);
     }
 
-    template <typename U = T>
-    requires(std::is_move_constructible_v<U>)
     constexpr void _move_construct(_uninitialized_control_base &&other) noexcept(
-        std::is_nothrow_move_constructible_v<T>) {
+        std::is_nothrow_move_constructible_v<T>)
+    requires(std::is_move_constructible_v<T>)
+    {
         wjr::construct_at(std::addressof(this->m_value), std::move(other.m_value));
     }
 
-    template <typename U = T>
-    requires(std::is_copy_assignable_v<U>)
     constexpr void _copy_assign(const _uninitialized_control_base &other) noexcept(
-        std::is_nothrow_copy_assignable_v<T>) {
+        std::is_nothrow_copy_assignable_v<T>)
+    requires(std::is_copy_assignable_v<T>)
+    {
         this->m_value = other.m_value;
     }
 
-    template <typename U = T>
-    requires(std::is_move_assignable_v<U>)
-    constexpr void _move_assign(_uninitialized_control_base &&other) noexcept(
-        std::is_nothrow_move_assignable_v<T>) {
+    constexpr void
+    _move_assign(_uninitialized_control_base &&other) noexcept(std::is_nothrow_move_assignable_v<T>)
+    requires(std::is_move_assignable_v<T>)
+    {
         this->m_value = std::move(other.m_value);
     }
 };
