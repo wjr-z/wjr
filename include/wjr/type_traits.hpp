@@ -326,6 +326,11 @@ struct add_restrict<T *> {
 };
 
 template <typename T>
+struct add_restrict<T &> {
+    using type = T &WJR_RESTRICT;
+};
+
+template <typename T>
 using add_restrict_t = typename add_restrict<T>::type;
 
 /**

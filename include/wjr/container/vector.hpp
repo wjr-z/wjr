@@ -253,8 +253,9 @@ private:
     };
 
     static constexpr bool _use_memcpy = is_trivially_allocator_construct_v<Alloc, T, T &&> &&
-                                        std::is_trivially_copyable_v<Data> &&
-                                        (Capacity == 1 || sizeof(Data) <= 32);
+                                        std::is_trivially_copyable_v<T> &&
+                                        (Capacity * sizeof(T) <= 32);
+    static constexpr size_t _memcpy_bytes = Capacity * sizeof(T);
 
 public:
     static constexpr bool is_trivially_relocate_v = _use_memcpy;
@@ -282,14 +283,14 @@ public:
     take_storage(inplace_vector_storage &other,
                  _Alty &al) noexcept(std::is_nothrow_move_constructible_v<value_type>) {
         auto &other_storage = other.m_storage;
-        const auto lhs = data();
-        const auto rhs = other.data();
+        const auto lhs = _add_restrict(data());
+        const auto rhs = _add_restrict(other.data());
 
         m_storage.m_size = other_storage.m_size;
 
         if constexpr (_use_memcpy) {
             if (other.size()) {
-                builtin_memcpy(lhs, rhs, Capacity);
+                builtin_memcpy(lhs, rhs, _memcpy_bytes);
             }
         } else {
             wjr::uninitialized_move_n_restrict_using_allocator(rhs, other_storage.m_size, lhs, al);
@@ -302,9 +303,9 @@ public:
     swap_storage(inplace_vector_storage &other,
                  _Alty &al) noexcept(std::is_nothrow_move_constructible_v<value_type>) {
         auto &other_storage = other.m_storage;
-        auto *lhs = data();
+        auto *lhs = _add_restrict(data());
         auto lsize = size();
-        auto *rhs = other.data();
+        auto *rhs = _add_restrict(other.data());
         auto rsize = other.size();
 
         if (lsize && rsize) {
@@ -313,9 +314,9 @@ public:
 
             _simd_storage_t<T, Capacity> tmp;
             if constexpr (_use_memcpy) {
-                builtin_memcpy(&tmp, lhs, Capacity);
-                builtin_memcpy(lhs, rhs, Capacity);
-                builtin_memcpy(rhs, &tmp, Capacity);
+                builtin_memcpy(&tmp, lhs, _memcpy_bytes);
+                builtin_memcpy(lhs, rhs, _memcpy_bytes);
+                builtin_memcpy(rhs, &tmp, _memcpy_bytes);
             } else {
                 if (lsize > rsize) {
                     std::swap(lhs, rhs);
@@ -328,7 +329,7 @@ public:
             }
         } else if (rsize) {
             if constexpr (_use_memcpy) {
-                builtin_memcpy(lhs, rhs, Capacity);
+                builtin_memcpy(lhs, rhs, _memcpy_bytes);
             } else {
                 wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs, al);
             }
@@ -336,7 +337,7 @@ public:
             other_storage.m_size = 0;
         } else if (lsize) {
             if constexpr (_use_memcpy) {
-                builtin_memcpy(rhs, lhs, Capacity);
+                builtin_memcpy(rhs, lhs, _memcpy_bytes);
             } else {
                 wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize, rhs, al);
             }
@@ -370,6 +371,11 @@ template <typename T, size_t Capacity, typename Alloc>
 class small_vector_storage {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
+
+    static constexpr bool _use_memcpy = is_trivially_allocator_construct_v<Alloc, T, T &&> &&
+                                        std::is_trivially_copyable_v<T> &&
+                                        (Capacity * sizeof(T) <= 32);
+    static constexpr size_t _memcpy_bytes = Capacity * sizeof(T);
 
 public:
     using storage_traits_type = vector_storage_traits<T, Alloc>;
@@ -415,20 +421,29 @@ public:
     }
 
     WJR_CONSTEXPR20 void
-    take_storage(small_vector_storage &other,
+    take_storage(small_vector_storage &WJR_RESTRICT other,
                  _Alty &al) noexcept(std::is_nothrow_move_constructible_v<value_type>) {
+        const auto lhs = _add_restrict(data());
+        const auto rhs = _add_restrict(other.data());
+
         m_size = other.size();
+        other.m_size = 0;
+
         if (other._is_small()) {
-            _reset_data();
-            wjr::uninitialized_move_n_restrict_using_allocator(other.data(), other.size(), data(),
-                                                               al);
+            _reset_small();
+            if constexpr (_use_memcpy) {
+                if (m_size) {
+                    builtin_memcpy(lhs, rhs, _memcpy_bytes);
+                }
+            } else {
+                wjr::uninitialized_move_n_restrict_using_allocator(rhs, m_size, lhs, al);
+            }
         } else {
             m_data = other.m_data;
+            WJR_ASSUME(other._is_large());
             m_capacity = other.capacity();
+            other._reset_small();
         }
-
-        other.m_size = 0;
-        other._reset_data();
     }
 
     WJR_CONSTEXPR20 void
@@ -457,7 +472,7 @@ public:
                                                                    other._get_storage(), al);
                 m_data = other.m_data;
                 m_capacity = capacity;
-                other._reset_data();
+                other._reset_small();
             }
         } else {
             if (other._is_small()) {
@@ -466,7 +481,7 @@ public:
                                                                    _get_storage(), al);
                 other.m_data = m_data;
                 other.m_capacity = capacity;
-                _reset_data();
+                _reset_small();
             } else {
                 std::swap(m_data, other.m_data);
                 std::swap(m_capacity, other.m_capacity);
@@ -484,9 +499,9 @@ public:
     WJR_CONSTEXPR20 const_pointer data() const noexcept { return m_data; }
 
 private:
-    constexpr bool _is_small() const noexcept { return m_data == _get_storage(); }
-    constexpr bool _is_large() const noexcept { return !_is_small(); }
-    constexpr void _reset_data() noexcept { m_data = _get_storage(); }
+    WJR_PURE constexpr bool _is_small() const noexcept { return m_data == _get_storage(); }
+    WJR_PURE constexpr bool _is_large() const noexcept { return !_is_small(); }
+    constexpr void _reset_small() noexcept { m_data = _get_storage(); }
 
     static constexpr bool _is_small_capacity(size_type capacity) noexcept {
         return capacity <= Capacity;

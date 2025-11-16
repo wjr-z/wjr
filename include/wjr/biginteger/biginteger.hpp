@@ -261,6 +261,7 @@ class inplace_biginteger_vector_storage {
     friend struct container_of_fn;
 
     static constexpr bool _use_memcpy = sizeof(uint64_t) * Capacity <= 32;
+    static constexpr size_t _memcpy_bytes = sizeof(uint64_t) * Capacity;
 
 public:
     static constexpr bool is_trivially_relocate_v = false;
@@ -294,26 +295,25 @@ public:
     }
 
     void take_storage(inplace_biginteger_vector_storage &other, _Alty &al) noexcept {
-        const auto lhs = data();
-        const auto rhs = other.data();
+        const auto lhs = _add_restrict(data());
+        const auto rhs = _add_restrict(other.data());
 
         m_bd.m_size = other.m_bd.m_size;
+        other.m_bd.m_size = 0;
 
         if constexpr (_use_memcpy) {
             if (other.size()) {
-                builtin_memcpy(lhs, rhs, Capacity);
+                builtin_memcpy(lhs, rhs, _memcpy_bytes);
             }
         } else {
-            wjr::uninitialized_move_n_restrict_using_allocator(rhs, other.m_bd.m_size, lhs, al);
+            wjr::uninitialized_move_n_restrict_using_allocator(rhs, m_bd.m_size, lhs, al);
         }
-
-        other.m_bd.m_size = 0;
     }
 
     void swap_storage(inplace_biginteger_vector_storage &other, _Alty &al) noexcept {
-        auto *lhs = data();
+        auto *lhs = _add_restrict(data());
         auto lsize = size();
-        auto *rhs = other.data();
+        auto *rhs = _add_restrict(other.data());
         auto rsize = other.size();
 
         if (lsize && rsize) {
@@ -322,9 +322,9 @@ public:
 
             _simd_storage_t<uint64_t, Capacity> tmp;
             if constexpr (_use_memcpy) {
-                builtin_memcpy(&tmp, lhs, Capacity);
-                builtin_memcpy(lhs, rhs, Capacity);
-                builtin_memcpy(rhs, &tmp, Capacity);
+                builtin_memcpy(&tmp, lhs, _memcpy_bytes);
+                builtin_memcpy(lhs, rhs, _memcpy_bytes);
+                builtin_memcpy(rhs, &tmp, _memcpy_bytes);
             } else {
                 if (lsize > rsize) {
                     std::swap(lhs, rhs);
@@ -337,7 +337,7 @@ public:
             }
         } else if (rsize) {
             if constexpr (_use_memcpy) {
-                builtin_memcpy(lhs, rhs, Capacity);
+                builtin_memcpy(lhs, rhs, _memcpy_bytes);
             } else {
                 wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs, al);
             }
@@ -345,7 +345,7 @@ public:
             other.m_bd.m_size = 0;
         } else if (lsize) {
             if constexpr (_use_memcpy) {
-                builtin_memcpy(rhs, lhs, Capacity);
+                builtin_memcpy(rhs, lhs, _memcpy_bytes);
             } else {
                 wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize, rhs, al);
             }
