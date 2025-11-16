@@ -349,7 +349,7 @@ public:
 
     WJR_CONSTEXPR20 size_type &size() noexcept { return m_storage.m_size; }
     WJR_CONSTEXPR20 size_type size() const noexcept { return m_storage.m_size; }
-    WJR_CONST constexpr size_type capacity() const noexcept { return Capacity; }
+    WJR_PURE constexpr size_type capacity() const noexcept { return Capacity; }
 
     WJR_CONSTEXPR20 pointer data() noexcept { return reinterpret_cast<pointer>(m_storage.m_data); }
     WJR_CONSTEXPR20 const_pointer data() const noexcept {
@@ -493,7 +493,9 @@ public:
 
     WJR_CONSTEXPR20 size_type &size() noexcept { return m_size; }
     WJR_CONSTEXPR20 size_type size() const noexcept { return m_size; }
-    constexpr size_type capacity() const noexcept { return _is_small() ? Capacity : m_capacity; }
+    WJR_PURE constexpr size_type capacity() const noexcept {
+        return _is_small() ? Capacity : m_capacity;
+    }
 
     WJR_CONSTEXPR20 pointer data() noexcept { return m_data; }
     WJR_CONSTEXPR20 const_pointer data() const noexcept { return m_data; }
