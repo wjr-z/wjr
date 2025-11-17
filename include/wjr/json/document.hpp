@@ -103,12 +103,10 @@ WJR_REGISTER_DOCUMENT_GET_IMPL(array);
 
 class bad_document_access : public std::exception {
 public:
-    explicit bad_document_access(error_code e) : m_err(std::move(e)) {}
+    explicit bad_document_access(error_code e) : m_err(e) {}
 
     const error_code &error() const & { return m_err; }
     error_code &error() & { return m_err; }
-    const error_code &&error() const && { return std::move(m_err); }
-    error_code &&error() && { return std::move(m_err); }
 
     WJR_NODISCARD virtual const char *what() const noexcept override {
         return "Bad document access";

@@ -67,13 +67,13 @@ public:
      * In this implementation `rhs` is left unchanged,
      * but that is not guaranteed by the standard.
      */
-    basic_spanbuf(basic_spanbuf &&_rhs)
+    basic_spanbuf(basic_spanbuf &&_rhs) noexcept
         : _streambuf_type(_rhs), _M_mode(_rhs._M_mode), _M_buf(_rhs._M_buf) {}
 
     // [spanbuf.assign], assignment and swap
     basic_spanbuf &operator=(const basic_spanbuf &) = delete;
 
-    basic_spanbuf &operator=(basic_spanbuf &&_rhs) {
+    basic_spanbuf &operator=(basic_spanbuf &&_rhs) noexcept {
         basic_spanbuf(std::move(_rhs)).swap(*this);
         return *this;
     }
@@ -200,7 +200,7 @@ public:
 
     basic_ispanstream(const basic_ispanstream &) = delete;
 
-    basic_ispanstream(basic_ispanstream &&_rhs)
+    basic_ispanstream(basic_ispanstream &&_rhs) noexcept
         : _istream_type(std::move(_rhs)), _M_sb(std::move(_rhs._M_sb)) {
         _istream_type::set_rdbuf(std::addressof(_M_sb));
     }
@@ -250,7 +250,7 @@ public:
 
     basic_ospanstream(const basic_ospanstream &) = delete;
 
-    basic_ospanstream(basic_ospanstream &&_rhs)
+    basic_ospanstream(basic_ospanstream &&_rhs) noexcept
         : _ostream_type(std::move(_rhs)), _M_sb(std::move(_rhs._M_sb)) {
         _ostream_type::set_rdbuf(std::addressof(_M_sb));
     }
@@ -301,7 +301,7 @@ public:
 
     basic_spanstream(const basic_spanstream &) = delete;
 
-    basic_spanstream(basic_spanstream &&_rhs)
+    basic_spanstream(basic_spanstream &&_rhs) noexcept
         : _iostream_type(std::move(_rhs)), _M_sb(std::move(_rhs._M_sb)) {
         _iostream_type::set_rdbuf(std::addressof(_M_sb));
     }

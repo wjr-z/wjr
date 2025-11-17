@@ -1804,7 +1804,7 @@ private:
             return _make_iterator(pos);
         }
 
-        const size_type offset = static_cast<size_type>(pos - data());
+        const auto offset = static_cast<size_type>(pos - data());
         _realloc_insert(pos, std::forward<Args>(args)...);
         return begin() + offset;
     }
@@ -1939,7 +1939,6 @@ private:
         }
     }
 
-private:
     _pair_type m_pair;
 };
 

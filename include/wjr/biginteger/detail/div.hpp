@@ -69,7 +69,7 @@ WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t 
 
     if (WJR_UNLIKELY(div.is_zero_or_single_bit())) {
         const unsigned int c = 63 - div.get_shift();
-        rem = src[0] & ((1ull << c) - 1);
+        rem = src[0] & ((1ULL << c) - 1);
         (void)rshift_n(dst, src, n, c);
         return;
     }
@@ -91,7 +91,7 @@ WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t 
 
     if (WJR_UNLIKELY(is_zero_or_single_bit(div))) {
         const unsigned int c = ctz(div);
-        rem = src[0] & ((1ull << c) - 1);
+        rem = src[0] & ((1ULL << c) - 1);
         (void)rshift_n(dst, src, n, c);
         return;
     }
@@ -262,7 +262,6 @@ void fallback_divexact_1_noshift(uint64_t *dst, const uint64_t *src, size_t n,
     r10 -= rdx + cf;
     r10 = mullo(r10, value);
     dst[n] = r10;
-    return;
 }
 
 WJR_INLINE_CONSTEXPR20 void fallback_divexact_1_shift(uint64_t *dst, const uint64_t *src, size_t n,
@@ -524,7 +523,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t mod_1(const uint64_t *src, size_t n,
 
     if (WJR_UNLIKELY(div.is_zero_or_single_bit())) {
         const unsigned int c = 63 - div.get_shift();
-        return src[0] & ((1ull << c) - 1);
+        return src[0] & ((1ULL << c) - 1);
     }
 
     if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P_TRUE(n == 2)) {
@@ -542,7 +541,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t mod_1(const uint64_t *src, size_t n, uint64_t
 
     if (WJR_UNLIKELY(is_zero_or_single_bit(div))) {
         const unsigned int c = ctz(div);
-        return src[0] & ((1ull << c) - 1);
+        return src[0] & ((1ULL << c) - 1);
     }
 
     if (WJR_UNLIKELY(n == 1)) {

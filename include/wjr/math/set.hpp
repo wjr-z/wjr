@@ -17,7 +17,6 @@
 #ifndef WJR_MATH_SET_HPP__
 #define WJR_MATH_SET_HPP__
 
-#include <algorithm>
 #include <cstring>
 
 #include <wjr/assert.hpp>

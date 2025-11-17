@@ -13,12 +13,12 @@ class _dynamic_object_pool_impl {
 public:
     _dynamic_object_pool_impl() = default;
     _dynamic_object_pool_impl(const _dynamic_object_pool_impl &) = delete;
-    _dynamic_object_pool_impl(_dynamic_object_pool_impl &&other) {
+    _dynamic_object_pool_impl(_dynamic_object_pool_impl &&other) noexcept {
         replace(&other.m_head, &m_head);
     }
 
     _dynamic_object_pool_impl &operator=(const _dynamic_object_pool_impl &) = delete;
-    _dynamic_object_pool_impl &operator=(_dynamic_object_pool_impl &&other) {
+    _dynamic_object_pool_impl &operator=(_dynamic_object_pool_impl &&other) noexcept {
         replace(&other.m_head, &m_head);
         return *this;
     }

@@ -11,6 +11,7 @@
 #define WJR_STRING_HPP__
 
 #include <memory>
+#include <string>
 #include <string_view>
 
 #include <wjr/container/detail.hpp>

@@ -10,8 +10,6 @@
 #ifndef WJR_CONTAINER_DETAIL_HPP__
 #define WJR_CONTAINER_DETAIL_HPP__
 
-#include <string>
-
 #include <wjr/iterator/detail.hpp>
 
 namespace wjr {

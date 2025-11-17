@@ -1,8 +1,6 @@
 #ifndef WJR_CONCEPT_RANGES_BASE_HPP__
 #define WJR_CONCEPT_RANGES_BASE_HPP__
 
-#include <type_traits>
-
 #include <wjr/tp/base.hpp>
 
 #include <range/v3/range/concepts.hpp>

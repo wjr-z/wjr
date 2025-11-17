@@ -3120,4 +3120,4 @@ constexpr void swap(wjr::basic_biginteger<Storage> &lhs,
 #include <wjr/biginteger/expression/expression.hpp>
 #include <wjr/biginteger/expression/integration.hpp>
 
-#endif
+#endif // WJR_BIGINTEGER_BIGINTEGER_HPP__

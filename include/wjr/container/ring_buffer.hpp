@@ -1296,7 +1296,6 @@ private:
         }
     }
 
-private:
     cpair<_Alty, storage_type> m_pair;
 };
 

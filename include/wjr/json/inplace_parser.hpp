@@ -14,6 +14,7 @@
 #ifndef WJR_JSON_INPLACE_PARSER_HPP__
 #define WJR_JSON_INPLACE_PARSER_HPP__
 
+#include "wjr/config/attribute.hpp"
 #include <wjr/json/visitor.hpp>
 
 namespace wjr::json {
@@ -26,8 +27,8 @@ struct inplace_parser_impl : inplace_parser_base {};
 template <typename T>
 class inplace_parser {
 public:
-    WJR_INTRINSIC_INLINE static result<void> parse(T *root, ondemand_reader &r) noexcept {
-        return visitor_detail::parse(*this, rd);
+    WJR_INTRINSIC_INLINE static result<void> parse(T *, ondemand_reader &) noexcept {
+        WJR_UNREACHABLE();
     }
 
 protected:

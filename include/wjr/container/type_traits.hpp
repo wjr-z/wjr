@@ -10,8 +10,6 @@
 #ifndef WJR_CONTAINER_TYPE_TRAITS_HPP__
 #define WJR_CONTAINER_TYPE_TRAITS_HPP__
 
-#include <initializer_list>
-#include <memory>
 #include <string>
 
 #include <wjr/container/detail.hpp>

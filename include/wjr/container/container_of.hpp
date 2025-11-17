@@ -10,8 +10,6 @@
 #ifndef WJR_CONTAINER_CONTAINER_OF_HPP__
 #define WJR_CONTAINER_CONTAINER_OF_HPP__
 
-#include <cstddef>
-
 namespace wjr {
 
 /**
@@ -25,7 +23,7 @@ struct container_of_fn;
 
 /// container_of function object
 template <typename Mybase, typename Tag = void, typename Enable = void>
-inline container_of_fn<Mybase, Tag, Enable> container_of;
+inline constexpr container_of_fn<Mybase, Tag, Enable> container_of;
 
 } // namespace wjr
 

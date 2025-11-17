@@ -6,7 +6,7 @@
 
 namespace wjr {
 
-// todo: Remove this, use sentinel_trait instead.
+// todo: Remove this, use sentinel_traits instead.
 template <typename T, T uniq_value>
 class compressed_value {
     static_assert(std::is_trivially_copyable_v<T>, "Only support trivial type currently.");

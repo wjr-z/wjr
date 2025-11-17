@@ -3,7 +3,6 @@
 
 #include <wjr/type_traits.hpp>
 
-#include <functional>
 #include <utility>
 
 namespace wjr {
@@ -38,16 +37,19 @@ public:
     }
 
     ~RCReference() noexcept(is_noexcept_reset) {
-        if (m_handle)
+        if (m_handle) {
             m_handle->drop_ref();
+        }
     }
 
     void reset(T *h, bool add_ref) noexcept(is_noexcept_reset) {
         if (h != m_handle) {
-            if (add_ref && h)
+            if (add_ref && h) {
                 h->add_ref();
-            if (m_handle)
+            }
+            if (m_handle) {
                 m_handle->drop_ref();
+            }
             m_handle = h;
         }
     }

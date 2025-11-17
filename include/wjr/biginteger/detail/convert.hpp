@@ -19,10 +19,10 @@ inline constexpr size_t dc_bignum_from_chars_precompute_threshold =
     WJR_DC_BIGNUM_FROM_CHARS_PRECOMPUTE_THRESHOLD;
 
 inline constexpr auto div2by1_divider_noshift_of_big_base_10 =
-    div2by1_divider_noshift<uint64_t>(10'000'000'000'000'000'000ull, 15'581'492'618'384'294'730ull);
+    div2by1_divider_noshift<uint64_t>(10'000'000'000'000'000'000ULL, 15'581'492'618'384'294'730ULL);
 
 inline constexpr auto div3by2_divider_shift_of_big_base_10 = div3by2_divider<uint64_t>(
-    1374799102801346560ull, 10842021724855044340ull, 12'938'764'603'223'852'203ull, 1);
+    1374799102801346560ULL, 10842021724855044340ULL, 12'938'764'603'223'852'203ULL, 1);
 } // namespace
 
 template <typename Converter>

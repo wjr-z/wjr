@@ -1,8 +1,6 @@
 #ifndef WJR_BIGINTEGER_DETAIL_DIV_IMPL_HPP__
 #define WJR_BIGINTEGER_DETAIL_DIV_IMPL_HPP__
 
-#include <utility>
-
 #include <wjr/math/div-impl.hpp>
 #include <wjr/math/integral_constant.hpp>
 

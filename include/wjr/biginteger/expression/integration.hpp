@@ -1,7 +1,10 @@
 #ifndef WJR_BIGINTEGER_EXPRESSION_INTEGRATION_HPP__
 #define WJR_BIGINTEGER_EXPRESSION_INTEGRATION_HPP__
 
-#include <wjr/biginteger/biginteger.hpp>
+#ifndef WJR_BIGINTEGER_BIGINTEGER_HPP__
+    #error "Include <wjr/biginteger/biginteger.hpp> instead of including this file directly."
+#endif
+
 #include <wjr/biginteger/expression/expression.hpp>
 #include <wjr/macros/requires.hpp>
 

@@ -12,7 +12,6 @@
 #define WJR_MEMORY_ALIGN_HPP__
 
 #include <cstdlib>
-#include <new>
 
 #include <wjr/assert.hpp>
 #include <wjr/math/bit.hpp>
