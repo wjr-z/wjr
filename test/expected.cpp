@@ -283,7 +283,7 @@ TYPED_TEST(ExpectedTest, error_constructor) {
     } else if constexpr (std::is_same_v<ErrorType, std::string>) {
         err = "error";
     } else if constexpr (std::is_same_v<ErrorType, compressed_value<int, -1>>) {
-        err = compressed_value<int, -1>(99);
+        err = 99;
     }
 
     ExpectedType a = wjr::unexpected(err);
@@ -435,7 +435,7 @@ TEST(expected, compressed_value_detailed) {
         using exp_normal = expected<int, bool>;
 
         exp a(42);
-        exp b(wjr::unexpected(compressed_value<bool, false>(true)));
+        exp b(wjr::unexpected(true));
 
         EXPECT_TRUE(a.has_value());
         EXPECT_EQ(*a, 42);
@@ -451,7 +451,7 @@ TEST(expected, compressed_value_detailed) {
         using void_exp = expected<void, compressed_value<int, -1>>;
 
         void_exp a;
-        void_exp b(wjr::unexpected(compressed_value<int, -1>(99)));
+        void_exp b(wjr::unexpected(99));
 
         EXPECT_TRUE(a.has_value());
         EXPECT_FALSE(b.has_value());
