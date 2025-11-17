@@ -9,7 +9,6 @@
 
 #include <wjr/biginteger/biginteger.hpp>
 #include <wjr/biginteger/expression/expression.hpp>
-#include <wjr/biginteger/expression/integration.hpp>
 
 using namespace wjr;
 using namespace biginteger_detail;
