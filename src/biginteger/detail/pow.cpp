@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include <wjr/assert.hpp>
 #include <wjr/biginteger/detail/mul.hpp>
 #include <wjr/biginteger/detail/pow.hpp>
