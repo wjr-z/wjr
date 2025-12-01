@@ -248,6 +248,9 @@ private:
     static constexpr auto max_alignment = std::max<size_type>(alignof(T), alignof(size_type));
 
     struct Data {
+        // Avoid zero-initialize m_data.
+        Data() noexcept {}
+
         size_type m_size = 0;
         alignas(max_alignment) std::byte m_data[Capacity * sizeof(T)];
     };
@@ -387,7 +390,8 @@ public:
     using allocator_type = typename storage_traits_type::allocator_type;
     using is_reallocatable = std::true_type;
 
-    small_vector_storage() = default;
+    // Avoid zero-initialize m_storage.
+    small_vector_storage() noexcept {}
 
     small_vector_storage(const small_vector_storage &) = delete;
     small_vector_storage(small_vector_storage &&) = delete;

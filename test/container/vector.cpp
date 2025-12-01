@@ -16,13 +16,35 @@ inline const std::string __string2 = std::string("abc");
 
 using namespace wjr;
 
-static_assert(is_contiguous_iterator_v<typename vector<int>::iterator>, "");
-static_assert(is_contiguous_iterator_v<typename vector<int>::const_iterator>, "");
-
-static_assert(is_contiguous_iterator_v<typename vector<std::string>::iterator>, "");
-static_assert(is_contiguous_iterator_v<typename vector<std::string>::const_iterator>, "");
-
 static_assert(is_trivially_allocator_v<std::allocator<int>>, "");
+
+template <typename Vec>
+constexpr bool test_vector_type() {
+    using T = typename Vec::value_type;
+    using allocator_type = typename Vec::allocator_type;
+    using storage_type = typename Vec::storage_type;
+
+    static_assert(std::is_nothrow_default_constructible_v<storage_type>);
+
+    static_assert(std::is_nothrow_default_constructible_v<Vec> ==
+                  std::is_nothrow_default_constructible_v<allocator_type>);
+    static_assert(std::is_nothrow_move_constructible_v<Vec>);
+    static_assert(std::is_nothrow_destructible_v<Vec>);
+
+    static_assert(is_contiguous_iterator_v<typename Vec::iterator>);
+    static_assert(is_contiguous_iterator_v<typename Vec::const_iterator>);
+
+    return true;
+}
+
+static_assert(test_vector_type<vector<int>>(), "");
+static_assert(test_vector_type<vector<std::string>>(), "");
+
+static_assert(test_vector_type<inplace_vector<int, 8>>(), "");
+static_assert(test_vector_type<inplace_vector<std::string, 8>>(), "");
+
+static_assert(test_vector_type<small_vector<int, 8>>(), "");
+static_assert(test_vector_type<small_vector<std::string, 8>>(), "");
 
 template <typename Iter, typename Func>
 void for_each_n(Iter first, size_t n, Func fn) {
@@ -790,28 +812,28 @@ TEST(vector, memcpy_bytes_correctness) {
     // uint16_t: 2 bytes
     // uint32_t: 4 bytes
     // uint64_t: 8 bytes
-    
+
     // Test inplace_vector with uint16_t (2 bytes)
     {
         inplace_vector<uint16_t, 8> v1;
         for (uint16_t i = 0; i < 8; ++i) {
             v1.push_back(0x1000 + i);
         }
-        
+
         inplace_vector<uint16_t, 8> v2;
         v2 = v1; // copy assignment
-        
+
         EXPECT_EQ(v2.size(), 8);
         for (size_t i = 0; i < 8; ++i) {
             EXPECT_EQ(v2[i], 0x1000 + i);
         }
-        
+
         // Test move/swap
         inplace_vector<uint16_t, 8> v3;
         for (uint16_t i = 0; i < 8; ++i) {
             v3.push_back(0x2000 + i);
         }
-        
+
         v1.swap(v3);
         EXPECT_EQ(v1.size(), 8);
         EXPECT_EQ(v3.size(), 8);
@@ -820,58 +842,58 @@ TEST(vector, memcpy_bytes_correctness) {
             EXPECT_EQ(v3[i], 0x1000 + i);
         }
     }
-    
+
     // Test inplace_vector with uint32_t (4 bytes)
     {
         inplace_vector<uint32_t, 4> v1;
         for (uint32_t i = 0; i < 4; ++i) {
             v1.push_back(0x10000000 + i);
         }
-        
+
         inplace_vector<uint32_t, 4> v2;
         v2 = v1;
-        
+
         EXPECT_EQ(v2.size(), 4);
         for (size_t i = 0; i < 4; ++i) {
             EXPECT_EQ(v2[i], 0x10000000 + i);
         }
     }
-    
+
     // Test inplace_vector with uint64_t (8 bytes)
     {
         inplace_vector<uint64_t, 2> v1;
         v1.push_back(0x1000000000000000ULL);
         v1.push_back(0x2000000000000000ULL);
-        
+
         inplace_vector<uint64_t, 2> v2;
         v2 = v1;
-        
+
         EXPECT_EQ(v2.size(), 2);
         EXPECT_EQ(v2[0], 0x1000000000000000ULL);
         EXPECT_EQ(v2[1], 0x2000000000000000ULL);
     }
-    
+
     // Test small_vector with uint16_t
     {
         small_vector<uint16_t, 4> v1;
         for (uint16_t i = 0; i < 4; ++i) {
             v1.push_back(0x3000 + i);
         }
-        
+
         small_vector<uint16_t, 4> v2;
         v2 = v1;
-        
+
         EXPECT_EQ(v2.size(), 4);
         for (size_t i = 0; i < 4; ++i) {
             EXPECT_EQ(v2[i], 0x3000 + i);
         }
-        
+
         // Test swap when small
         small_vector<uint16_t, 4> v3;
         for (uint16_t i = 0; i < 4; ++i) {
             v3.push_back(0x4000 + i);
         }
-        
+
         v1.swap(v3);
         EXPECT_EQ(v1.size(), 4);
         EXPECT_EQ(v3.size(), 4);
@@ -880,44 +902,44 @@ TEST(vector, memcpy_bytes_correctness) {
             EXPECT_EQ(v3[i], 0x3000 + i);
         }
     }
-    
+
     // Test small_vector with uint32_t
     {
         small_vector<uint32_t, 4> v1;
         for (uint32_t i = 0; i < 4; ++i) {
             v1.push_back(0x20000000 + i);
         }
-        
+
         small_vector<uint32_t, 4> v2;
         v2 = v1;
-        
+
         EXPECT_EQ(v2.size(), 4);
         for (size_t i = 0; i < 4; ++i) {
             EXPECT_EQ(v2[i], 0x20000000 + i);
         }
     }
-    
+
     // Test with struct that is 12 bytes
     struct Data12 {
         uint32_t a;
         uint32_t b;
         uint32_t c;
-        
-        bool operator==(const Data12& other) const {
+
+        bool operator==(const Data12 &other) const {
             return a == other.a && b == other.b && c == other.c;
         }
     };
     static_assert(sizeof(Data12) == 12, "Data12 should be 12 bytes");
     static_assert(std::is_trivially_copyable_v<Data12>, "Data12 should be trivially copyable");
-    
+
     {
         inplace_vector<Data12, 2> v1;
         v1.push_back({0x11111111, 0x22222222, 0x33333333});
         v1.push_back({0x44444444, 0x55555555, 0x66666666});
-        
+
         inplace_vector<Data12, 2> v2;
         v2 = v1;
-        
+
         EXPECT_EQ(v2.size(), 2);
         EXPECT_EQ(v2[0].a, 0x11111111);
         EXPECT_EQ(v2[0].b, 0x22222222);
@@ -926,7 +948,7 @@ TEST(vector, memcpy_bytes_correctness) {
         EXPECT_EQ(v2[1].b, 0x55555555);
         EXPECT_EQ(v2[1].c, 0x66666666);
     }
-    
+
     // Test partial fill (size < capacity) to ensure we don't read uninitialized memory
     {
         inplace_vector<uint32_t, 8> v1;
@@ -934,25 +956,25 @@ TEST(vector, memcpy_bytes_correctness) {
         v1.push_back(0xBBBBBBBB);
         v1.push_back(0xCCCCCCCC);
         // Only 3 elements, capacity is 8
-        
+
         inplace_vector<uint32_t, 8> v2;
         v2 = v1;
-        
+
         EXPECT_EQ(v2.size(), 3);
         EXPECT_EQ(v2[0], 0xAAAAAAAA);
         EXPECT_EQ(v2[1], 0xBBBBBBBB);
         EXPECT_EQ(v2[2], 0xCCCCCCCC);
     }
-    
+
     {
         small_vector<uint32_t, 4> v1;
         v1.push_back(0xDDDDDDDD);
         v1.push_back(0xEEEEEEEE);
         // Only 2 elements, capacity is 4
-        
+
         small_vector<uint32_t, 4> v2;
         v2 = v1;
-        
+
         EXPECT_EQ(v2.size(), 2);
         EXPECT_EQ(v2[0], 0xDDDDDDDD);
         EXPECT_EQ(v2[1], 0xEEEEEEEE);
