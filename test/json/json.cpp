@@ -72,7 +72,7 @@ const auto twitter_json = []() {
             if (input.is_open()) {
                 std::stringstream buffer;
                 buffer << input.rdbuf();
-                return std::move(buffer).str();
+                return buffer.str();
             }
         }
     }
