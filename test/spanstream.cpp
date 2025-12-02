@@ -10,7 +10,7 @@ WJR_REGISTER_HAS_TYPE(input, (std::declval<std::istream &>() >> std::declval<T &
 WJR_REGISTER_HAS_TYPE(output, (std::declval<std::ostream &>() << std::declval<const T &>()), T);
 
 template <typename T>
-class BaseSpanStreamTest : public testing::Test {
+class BaseSpanStreamTest {
 public:
     static constexpr std::string_view test_string = "Hello, World! 123 45.67";
 
@@ -23,14 +23,14 @@ public:
     static void constructor() {
         wjr::span sp(test_span());
         T ss(sp);
-        WJR_CHECK(strcmp(ss.span().data(), sp.data()) == 0);
+        CHECK(strcmp(ss.span().data(), sp.data()) == 0);
     }
 
     static void move_constructor() {
         wjr::span sp(test_span());
         T ss1(sp);
         T ss2(std::move(ss1));
-        WJR_CHECK(strcmp(ss2.span().data(), sp.data()) == 0);
+        CHECK(strcmp(ss2.span().data(), sp.data()) == 0);
     }
 };
 
@@ -45,10 +45,10 @@ public:
         double d;
 
         ss >> s0 >> s1 >> x >> d;
-        WJR_CHECK(s0 == "Hello,");
-        WJR_CHECK(s1 == "World!");
-        WJR_CHECK(x == 123);
-        WJR_CHECK(d == 45.67);
+        CHECK(s0 == "Hello,");
+        CHECK(s1 == "World!");
+        CHECK(x == 123);
+        CHECK(d == 45.67);
     }
 };
 
@@ -61,27 +61,28 @@ public:
         T ss(sp);
 
         ss << "Hello, World! " << 123 << ' ' << 45.67 << '\0';
-        WJR_CHECK(strcmp(buf, BaseSpanStreamTest<T>::test_span().data()) == 0);
+        CHECK(strcmp(buf, BaseSpanStreamTest<T>::test_span().data()) == 0);
     }
 };
 
 template <typename T>
 class InputOutputSpanStreamTest : public InputSpanStreamTest<T>, public OutputSpanStreamTest<T> {};
 
-using BaseTypes = ::testing::Types<ispanstream, ospanstream, spanstream>;
-using InputTypes = ::testing::Types<ispanstream, spanstream>;
-using OutputTypes = ::testing::Types<ospanstream, spanstream>;
+TEMPLATE_TEST_CASE("BaseSpanStreamTest - constructor", "", ispanstream, ospanstream, spanstream) {
+    BaseSpanStreamTest<TestType>::constructor();
+}
 
-TYPED_TEST_SUITE(BaseSpanStreamTest, BaseTypes);
-TYPED_TEST_SUITE(InputSpanStreamTest, InputTypes);
-TYPED_TEST_SUITE(OutputSpanStreamTest, OutputTypes);
+TEMPLATE_TEST_CASE("BaseSpanStreamTest - move_constructor", "", ispanstream, ospanstream,
+                   spanstream) {
+    BaseSpanStreamTest<TestType>::move_constructor();
+}
 
-TYPED_TEST(BaseSpanStreamTest, constructor) { this->constructor(); }
+TEMPLATE_TEST_CASE("InputSpanStreamTest - input", "", ispanstream, spanstream) {
+    InputSpanStreamTest<TestType>::input();
+}
 
-TYPED_TEST(BaseSpanStreamTest, move_constructor) { this->move_constructor(); }
-
-TYPED_TEST(InputSpanStreamTest, input) { this->input(); }
-
-TYPED_TEST(OutputSpanStreamTest, output) { this->output(); }
+TEMPLATE_TEST_CASE("OutputSpanStreamTest - output", "", ospanstream, spanstream) {
+    OutputSpanStreamTest<TestType>::output();
+}
 
 #endif

@@ -7,7 +7,7 @@
 #include <system_error>
 #include <utility>
 
-#include <gtest/gtest.h>
+#include "../detail.hpp"
 
 #include <wjr/format/fastfloat.hpp>
 
@@ -249,9 +249,9 @@ static bool tester(uint64_t seed, size_t volume) {
 }
 } // namespace
 
-TEST(fastfloat, random_string) {
-    WJR_CHECK(tester(0xDEADBEEF, 100000));
-    WJR_CHECK(tester(0x12345678, 100000));
+TEST_CASE("fastfloat - random_string") {
+    CHECK(tester(0xDEADBEEF, 100000));
+    CHECK(tester(0x12345678, 100000));
 }
 
 #endif

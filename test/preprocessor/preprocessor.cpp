@@ -6,7 +6,7 @@ using namespace wjr;
 
 #define CASSERT(expr) static_assert(expr, "")
 
-TEST(preprocessor, arithmatic) {
+TEST_CASE("preprocessor - arithmatic") {
     CASSERT(WJR_PP_ADD(1, 3) == 4);
     CASSERT(WJR_PP_ADD(1, 4) == 5);
     CASSERT(WJR_PP_ADD(0, 4) == 4);
@@ -86,7 +86,7 @@ TEST(preprocessor, arithmatic) {
     CASSERT(WJR_PP_GE(63, 63) == 1);
 }
 
-TEST(preprocessor, compiler) {
+TEST_CASE("preprocessor - compiler") {
     CASSERT(WJR_HAS_BUILTIN(__TEST) == 0);
 #define WJR_HAS_BUILTIN___TEST WJR_HAS_DEF
     CASSERT(WJR_HAS_BUILTIN(__TEST) == 1);
@@ -96,7 +96,7 @@ TEST(preprocessor, compiler) {
 
 #define WJR_TEST_STR(a, b) static_assert(std::string_view(a) == std::string_view(b))
 
-TEST(preprocessor, detail) {
+TEST_CASE("preprocessor - detail") {
     WJR_TEST_STR(WJR_PP_STR((WJR_PP_IOTA(0))), "()");
     WJR_TEST_STR(WJR_PP_STR((WJR_PP_IOTA(1))), "(0)");
     WJR_TEST_STR(WJR_PP_STR((WJR_PP_IOTA(2))), "(0, 1)");
@@ -113,7 +113,7 @@ TEST(preprocessor, detail) {
     #define WJR_TEST_MSVC
 #endif
 
-TEST(preprocessor_preview, queue) {
+TEST_CASE("preprocessor_preview - queue") {
 
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_FRONT((1))), "1");
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_FRONT((1, 2, 3))), "1");

@@ -96,41 +96,41 @@ public:
 int ThrowingObject::construction_count = 0;
 bool ThrowingObject::should_throw_on_construction = false;
 
-TEST(ring_buffer, constructor) {
+TEST_CASE("ring_buffer - constructor") {
     // Default constructor
     ring_buffer<int> rb1;
-    EXPECT_TRUE(rb1.empty());
-    EXPECT_EQ(rb1.size(), 0);
+    CHECK(rb1.empty());
+    CHECK_EQ(rb1.size(), 0);
 
     // Size constructor
     ring_buffer<int> rb2(5);
-    EXPECT_EQ(rb2.size(), 5);
-    EXPECT_FALSE(rb2.empty());
+    CHECK_EQ(rb2.size(), 5);
+    CHECK_FALSE(rb2.empty());
 
     // Size and value constructor
     ring_buffer<int> rb3(4, 42);
-    EXPECT_EQ(rb3.size(), 4);
+    CHECK_EQ(rb3.size(), 4);
     for (size_t i = 0; i < 4; ++i) {
-        EXPECT_EQ(rb3[i], 42);
+        CHECK_EQ(rb3[i], 42);
     }
 
     // Iterator constructor
     std::vector<int> vec = {1, 2, 3, 4, 5};
     ring_buffer<int> rb4(vec.begin(), vec.end());
-    EXPECT_EQ(rb4.size(), 5);
+    CHECK_EQ(rb4.size(), 5);
     for (size_t i = 0; i < 5; ++i) {
-        EXPECT_EQ(rb4[i], vec[i]);
+        CHECK_EQ(rb4[i], vec[i]);
     }
 
     // Initializer list constructor
     ring_buffer<int> rb5{10, 20, 30};
-    EXPECT_EQ(rb5.size(), 3);
-    EXPECT_EQ(rb5[0], 10);
-    EXPECT_EQ(rb5[1], 20);
-    EXPECT_EQ(rb5[2], 30);
+    CHECK_EQ(rb5.size(), 3);
+    CHECK_EQ(rb5[0], 10);
+    CHECK_EQ(rb5[1], 20);
+    CHECK_EQ(rb5[2], 30);
 }
 
-TEST(ring_buffer, basic_operations) {
+TEST_CASE("ring_buffer - basic_operations") {
     ring_buffer<int> rb;
 
     // Test push_back and emplace_back
@@ -138,83 +138,83 @@ TEST(ring_buffer, basic_operations) {
     rb.emplace_back(2);
     rb.push_back(3);
 
-    EXPECT_EQ(rb.size(), 3);
-    EXPECT_EQ(rb[0], 1);
-    EXPECT_EQ(rb[1], 2);
-    EXPECT_EQ(rb[2], 3);
+    CHECK_EQ(rb.size(), 3);
+    CHECK_EQ(rb[0], 1);
+    CHECK_EQ(rb[1], 2);
+    CHECK_EQ(rb[2], 3);
 
     // Test front and back
-    EXPECT_EQ(rb.front(), 1);
-    EXPECT_EQ(rb.back(), 3);
+    CHECK_EQ(rb.front(), 1);
+    CHECK_EQ(rb.back(), 3);
 
     // Test pop_front and pop_back
     rb.pop_front();
-    EXPECT_EQ(rb.size(), 2);
-    EXPECT_EQ(rb.front(), 2);
+    CHECK_EQ(rb.size(), 2);
+    CHECK_EQ(rb.front(), 2);
 
     rb.pop_back();
-    EXPECT_EQ(rb.size(), 1);
-    EXPECT_EQ(rb.back(), 2);
+    CHECK_EQ(rb.size(), 1);
+    CHECK_EQ(rb.back(), 2);
 
     // Test clear
     rb.clear();
-    EXPECT_TRUE(rb.empty());
-    EXPECT_EQ(rb.size(), 0);
+    CHECK(rb.empty());
+    CHECK_EQ(rb.size(), 0);
 }
 
-TEST(ring_buffer, iterator) {
+TEST_CASE("ring_buffer - iterator") {
     ring_buffer<int> rb{1, 2, 3, 4, 5};
 
     // Test forward iteration
     int expected = 1;
     for (auto it = rb.begin(); it != rb.end(); ++it, ++expected) {
-        EXPECT_EQ(*it, expected);
+        CHECK_EQ(*it, expected);
     }
 
     // Test range-based for loop
     expected = 1;
     for (int value : rb) {
-        EXPECT_EQ(value, expected++);
+        CHECK_EQ(value, expected++);
     }
 
     // Test reverse iteration
     expected = 5;
     for (auto it = rb.rbegin(); it != rb.rend(); ++it, --expected) {
-        EXPECT_EQ(*it, expected);
+        CHECK_EQ(*it, expected);
     }
 
     // Test const iterators
     const ring_buffer<int> &const_rb = rb;
     expected = 1;
     for (auto it = const_rb.cbegin(); it != const_rb.cend(); ++it, ++expected) {
-        EXPECT_EQ(*it, expected);
+        CHECK_EQ(*it, expected);
     }
 }
 
-TEST(ring_buffer, capacity) {
+TEST_CASE("ring_buffer - capacity") {
     ring_buffer<int> rb;
 
     // Test reserve
     rb.reserve(100);
-    EXPECT_GE(rb.capacity(), 100);
-    EXPECT_TRUE(rb.empty());
+    CHECK_GE(rb.capacity(), 100);
+    CHECK(rb.empty());
 
     // Fill up to capacity
     for (size_t i = 0; i < rb.capacity(); ++i) {
         rb.push_back(static_cast<int>(i));
     }
 
-    EXPECT_TRUE(rb.full());
-    EXPECT_EQ(rb.size(), rb.capacity());
+    CHECK(rb.full());
+    CHECK_EQ(rb.size(), rb.capacity());
 
     // Test automatic expansion
     size_t old_capacity = rb.capacity();
     rb.push_back(999);
-    EXPECT_GT(rb.capacity(), old_capacity);
-    EXPECT_EQ(rb.back(), 999);
+    CHECK_GT(rb.capacity(), old_capacity);
+    CHECK_EQ(rb.back(), 999);
 }
 
-TEST(ring_buffer, wrap_around_behavior) {
+TEST_CASE("ring_buffer - wrap_around_behavior") {
     ring_buffer<int> rb;
     rb.reserve(4);
 
@@ -230,12 +230,12 @@ TEST(ring_buffer, wrap_around_behavior) {
 
         // Verify the buffer contains the last 4 elements
         for (int j = 0; j < 4; ++j) {
-            EXPECT_EQ(rb[j], i - 3 + j);
+            CHECK_EQ(rb[j], i - 3 + j);
         }
     }
 }
 
-TEST(ring_buffer, array_access) {
+TEST_CASE("ring_buffer - array_access") {
     ring_buffer<int> rb{1, 2, 3, 4, 5};
 
     // Test array_one and array_two (contiguous access)
@@ -245,7 +245,7 @@ TEST(ring_buffer, array_access) {
     // When data is contiguous, array_one should contain all data
     // and array_two should be empty
     size_t total_size = array1.size() + array2.size();
-    EXPECT_EQ(total_size, rb.size());
+    CHECK_EQ(total_size, rb.size());
 
     // Test after wrap-around
     rb.pop_front();
@@ -256,10 +256,10 @@ TEST(ring_buffer, array_access) {
     array1 = rb.array_one();
     array2 = rb.array_two();
     total_size = array1.size() + array2.size();
-    EXPECT_EQ(total_size, rb.size());
+    CHECK_EQ(total_size, rb.size());
 }
 
-TEST(ring_buffer, comparison_with_vector) {
+TEST_CASE("ring_buffer - comparison_with_vector") {
     // Test that ring_buffer behaves similarly to vector for basic operations
     ring_buffer<int> rb;
     std::vector<int> vec;
@@ -268,23 +268,23 @@ TEST(ring_buffer, comparison_with_vector) {
         rb.push_back(i);
         vec.push_back(i);
 
-        EXPECT_EQ(rb.size(), vec.size());
-        EXPECT_EQ(rb.back(), vec.back());
+        CHECK_EQ(rb.size(), vec.size());
+        CHECK_EQ(rb.back(), vec.back());
         if (!rb.empty()) {
-            EXPECT_EQ(rb.front(), vec.front());
+            CHECK_EQ(rb.front(), vec.front());
         }
     }
 
     // Compare element access
     for (size_t i = 0; i < rb.size(); ++i) {
-        EXPECT_EQ(rb[i], vec[i]);
+        CHECK_EQ(rb[i], vec[i]);
     }
 
     // Test that iterators work the same way
-    EXPECT_TRUE(std::equal(rb.begin(), rb.end(), vec.begin()));
+    CHECK(std::equal(rb.begin(), rb.end(), vec.begin()));
 }
 
-TEST(ring_buffer, input_iterator_assign) {
+TEST_CASE("ring_buffer - input_iterator_assign") {
     ring_buffer<int> rb{1, 2, 3, 4, 5};
 
     // Test assigning from input iterator (list iterator)
@@ -298,46 +298,46 @@ TEST(ring_buffer, input_iterator_assign) {
         rb.emplace_back(val);
     }
 
-    EXPECT_EQ(rb.size(), 3);
-    EXPECT_EQ(rb[0], 10);
-    EXPECT_EQ(rb[1], 20);
-    EXPECT_EQ(rb[2], 30);
+    CHECK_EQ(rb.size(), 3);
+    CHECK_EQ(rb[0], 10);
+    CHECK_EQ(rb[1], 20);
+    CHECK_EQ(rb[2], 30);
 }
 
-TEST(ring_buffer, copy_constructor_and_assignment) {
+TEST_CASE("ring_buffer - copy_constructor_and_assignment") {
     ring_buffer<int> rb1{1, 2, 3, 4, 5};
 
     // Test copy constructor
     ring_buffer<int> rb2(rb1);
-    EXPECT_EQ(rb2.size(), rb1.size());
-    EXPECT_TRUE(std::equal(rb1.begin(), rb1.end(), rb2.begin()));
+    CHECK_EQ(rb2.size(), rb1.size());
+    CHECK(std::equal(rb1.begin(), rb1.end(), rb2.begin()));
 
     // Modify original to ensure deep copy
     rb1[0] = 999;
-    EXPECT_NE(rb2[0], rb1[0]);
-    EXPECT_EQ(rb2[0], 1); // Should still be original value
+    CHECK_NE(rb2[0], rb1[0]);
+    CHECK_EQ(rb2[0], 1); // Should still be original value
 
     // Test copy assignment (when implemented)
     ring_buffer<int> rb3{10, 20};
     rb3 = rb1;
-    EXPECT_EQ(rb3.size(), rb1.size());
-    EXPECT_TRUE(std::equal(rb1.begin(), rb1.end(), rb3.begin()));
+    CHECK_EQ(rb3.size(), rb1.size());
+    CHECK(std::equal(rb1.begin(), rb1.end(), rb3.begin()));
 }
 
-TEST(ring_buffer, move_constructor_and_assignment) {
+TEST_CASE("ring_buffer - move_constructor_and_assignment") {
     ring_buffer<int> rb1{1, 2, 3, 4, 5};
     auto original_capacity = rb1.capacity();
     auto original_data = rb1.data();
 
     // Test move constructor
     ring_buffer<int> rb2(std::move(rb1));
-    EXPECT_EQ(rb2.size(), 5);
-    EXPECT_EQ(rb2.capacity(), original_capacity);
-    EXPECT_EQ(rb2.data(), original_data); // Should have taken ownership
+    CHECK_EQ(rb2.size(), 5);
+    CHECK_EQ(rb2.capacity(), original_capacity);
+    CHECK_EQ(rb2.data(), original_data); // Should have taken ownership
 
     // rb1 should be in valid but unspecified state
-    EXPECT_EQ(rb1.size(), 0);
-    EXPECT_TRUE(rb1.empty());
+    CHECK_EQ(rb1.size(), 0);
+    CHECK(rb1.empty());
 
     // Test move assignment (when implemented)
     ring_buffer<int> rb3{10, 20};
@@ -346,14 +346,14 @@ TEST(ring_buffer, move_constructor_and_assignment) {
     auto rb4_data = rb4.data();
 
     rb3 = std::move(rb4);
-    EXPECT_EQ(rb3.size(), 3);
-    EXPECT_EQ(rb3.capacity(), rb4_capacity);
-    EXPECT_EQ(rb3.data(), rb4_data);
-    EXPECT_EQ(rb4.size(), 0);
-    EXPECT_TRUE(rb4.empty());
+    CHECK_EQ(rb3.size(), 3);
+    CHECK_EQ(rb3.capacity(), rb4_capacity);
+    CHECK_EQ(rb3.data(), rb4_data);
+    CHECK_EQ(rb4.size(), 0);
+    CHECK(rb4.empty());
 }
 
-TEST(ring_buffer, destruction_and_raii) {
+TEST_CASE("ring_buffer - destruction_and_raii") {
     TrackingObject::reset_counts();
 
     {
@@ -365,26 +365,26 @@ TEST(ring_buffer, destruction_and_raii) {
         rb.emplace_back(2);
         rb.emplace_back(3);
 
-        EXPECT_EQ(TrackingObject::get_construction_count(), 3);
-        EXPECT_EQ(TrackingObject::get_destruction_count(), 0);
+        CHECK_EQ(TrackingObject::get_construction_count(), 3);
+        CHECK_EQ(TrackingObject::get_destruction_count(), 0);
 
         rb.pop_back();
-        EXPECT_EQ(TrackingObject::get_destruction_count(), 1);
+        CHECK_EQ(TrackingObject::get_destruction_count(), 1);
 
         rb.clear();
-        EXPECT_EQ(TrackingObject::get_destruction_count(), 3);
+        CHECK_EQ(TrackingObject::get_destruction_count(), 3);
 
         // Add more elements (no reallocation due to reserve)
         rb.emplace_back(4);
         rb.emplace_back(5);
-        EXPECT_EQ(TrackingObject::get_construction_count(), 5);
+        CHECK_EQ(TrackingObject::get_construction_count(), 5);
     }
     // ring_buffer destructor should clean up remaining elements
-    EXPECT_EQ(TrackingObject::get_destruction_count(), 5);
-    EXPECT_EQ(TrackingObject::get_construction_count(), TrackingObject::get_destruction_count());
+    CHECK_EQ(TrackingObject::get_destruction_count(), 5);
+    CHECK_EQ(TrackingObject::get_construction_count(), TrackingObject::get_destruction_count());
 }
 
-TEST(ring_buffer, copy_semantics_with_tracking) {
+TEST_CASE("ring_buffer - copy_semantics_with_tracking") {
     TrackingObject::reset_counts();
 
     {
@@ -403,21 +403,21 @@ TEST(ring_buffer, copy_semantics_with_tracking) {
         ring_buffer<TrackingObject> rb2(rb1);
 
         // Should have created copies of all elements
-        EXPECT_EQ(TrackingObject::get_construction_count(), constructions_before_copy + 3);
-        EXPECT_EQ(TrackingObject::get_copy_count(), copies_before_copy + 3);
+        CHECK_EQ(TrackingObject::get_construction_count(), constructions_before_copy + 3);
+        CHECK_EQ(TrackingObject::get_copy_count(), copies_before_copy + 3);
 
         // Verify content
-        EXPECT_EQ(rb2.size(), 3);
+        CHECK_EQ(rb2.size(), 3);
         for (size_t i = 0; i < 3; ++i) {
-            EXPECT_EQ(rb1[i].value(), rb2[i].value());
+            CHECK_EQ(rb1[i].value(), rb2[i].value());
         }
     }
 
     // All objects should be destroyed
-    EXPECT_EQ(TrackingObject::get_construction_count(), TrackingObject::get_destruction_count());
+    CHECK_EQ(TrackingObject::get_construction_count(), TrackingObject::get_destruction_count());
 }
 
-TEST(ring_buffer, move_semantics_with_tracking) {
+TEST_CASE("ring_buffer - move_semantics_with_tracking") {
     TrackingObject::reset_counts();
 
     {
@@ -437,27 +437,27 @@ TEST(ring_buffer, move_semantics_with_tracking) {
         ring_buffer<TrackingObject> rb2(std::move(rb1));
 
         // Should not have created additional objects (just moved storage)
-        EXPECT_EQ(TrackingObject::get_construction_count(), constructions_before_move);
-        EXPECT_EQ(TrackingObject::get_move_count(),
-                  moves_before_move); // No element moves, just storage move
-        EXPECT_EQ(TrackingObject::get_destruction_count(),
-                  destructions_before_move); // No destructions from move
+        CHECK_EQ(TrackingObject::get_construction_count(), constructions_before_move);
+        CHECK_EQ(TrackingObject::get_move_count(),
+                 moves_before_move); // No element moves, just storage move
+        CHECK_EQ(TrackingObject::get_destruction_count(),
+                 destructions_before_move); // No destructions from move
 
         // Verify content moved
-        EXPECT_EQ(rb2.size(), 3);
-        EXPECT_EQ(rb2[0].value(), 1);
-        EXPECT_EQ(rb2[1].value(), 2);
-        EXPECT_EQ(rb2[2].value(), 3);
+        CHECK_EQ(rb2.size(), 3);
+        CHECK_EQ(rb2[0].value(), 1);
+        CHECK_EQ(rb2[1].value(), 2);
+        CHECK_EQ(rb2[2].value(), 3);
 
         // rb1 should be empty
-        EXPECT_TRUE(rb1.empty());
+        CHECK(rb1.empty());
     }
 
     // All objects should be destroyed only once at the end
-    EXPECT_EQ(TrackingObject::get_construction_count(), TrackingObject::get_destruction_count());
+    CHECK_EQ(TrackingObject::get_construction_count(), TrackingObject::get_destruction_count());
 }
 
-TEST(ring_buffer, exception_safety) {
+TEST_CASE("ring_buffer - exception_safety") {
     ThrowingObject::reset();
 
     ring_buffer<ThrowingObject> rb;
@@ -468,25 +468,25 @@ TEST(ring_buffer, exception_safety) {
     rb.emplace_back(1);
     rb.emplace_back(2);
     rb.emplace_back(3);
-    EXPECT_EQ(rb.size(), 3);
+    CHECK_EQ(rb.size(), 3);
 
     // Test exception during construction
     ThrowingObject::enable_throwing();
 
     try {
         rb.emplace_back(4); // This should throw
-        FAIL() << "Expected exception was not thrown";
+        FAIL("Expected exception was not thrown");
     } catch (const std::exception &) {
         // Exception was thrown as expected
         // ring_buffer should remain in valid state
-        EXPECT_EQ(rb.size(), 3); // Size should not have changed
-        EXPECT_EQ(rb[0].value, 1);
-        EXPECT_EQ(rb[1].value, 2);
-        EXPECT_EQ(rb[2].value, 3);
+        CHECK_EQ(rb.size(), 3); // Size should not have changed
+        CHECK_EQ(rb[0].value, 1);
+        CHECK_EQ(rb[1].value, 2);
+        CHECK_EQ(rb[2].value, 3);
     }
 }
 
-TEST(ring_buffer, reallocation_move_semantics) {
+TEST_CASE("ring_buffer - reallocation_move_semantics") {
     TrackingObject::reset_counts();
 
     {
@@ -511,54 +511,54 @@ TEST(ring_buffer, reallocation_move_semantics) {
         rb.emplace_back(999);
 
         // After reallocation, old elements should be moved/relocated and old copies destroyed
-        EXPECT_EQ(TrackingObject::get_construction_count(),
-                  constructions_before_realloc + size_before_realloc + 1);
+        CHECK_EQ(TrackingObject::get_construction_count(),
+                 constructions_before_realloc + size_before_realloc + 1);
 
-        EXPECT_EQ(TrackingObject::get_destruction_count(),
-                  destructions_before_realloc + size_before_realloc);
+        CHECK_EQ(TrackingObject::get_destruction_count(),
+                 destructions_before_realloc + size_before_realloc);
 
         // The exact number of moves/destructions depends on implementation
         // but there should be some activity due to reallocation
-        EXPECT_GE(TrackingObject::get_move_count() + TrackingObject::get_copy_count(),
-                  moves_before_realloc); // Some form of relocation should occur
+        CHECK_GE(TrackingObject::get_move_count() + TrackingObject::get_copy_count(),
+                 moves_before_realloc); // Some form of relocation should occur
 
         // Content should still be correct
-        EXPECT_EQ(rb.back().value(), 999);
-        EXPECT_GT(rb.capacity(), current_capacity); // Capacity should have increased
+        CHECK_EQ(rb.back().value(), 999);
+        CHECK_GT(rb.capacity(), current_capacity); // Capacity should have increased
     }
 
     // All objects should be properly cleaned up
-    EXPECT_EQ(TrackingObject::get_construction_count(), TrackingObject::get_destruction_count());
+    CHECK_EQ(TrackingObject::get_construction_count(), TrackingObject::get_destruction_count());
 }
 
-TEST(ring_buffer, fixed_ring_buffer_capacity_constraint) {
+TEST_CASE("ring_buffer - fixed_ring_buffer_capacity_constraint") {
     // Test fixed_ring_buffer which has truly fixed capacity
     fixed_ring_buffer<int> frb;
 
     // fixed_ring_buffer should start empty
-    EXPECT_TRUE(frb.empty());
-    EXPECT_EQ(frb.size(), 0);
+    CHECK(frb.empty());
+    CHECK_EQ(frb.size(), 0);
 
     // For fixed_ring_buffer, we need to reserve capacity at construction
     fixed_ring_buffer<int> frb_with_capacity(5, in_place_reserve);
-    EXPECT_EQ(frb_with_capacity.capacity(), 5);
-    EXPECT_TRUE(frb_with_capacity.empty());
+    CHECK_EQ(frb_with_capacity.capacity(), 5);
+    CHECK(frb_with_capacity.empty());
 
     // Fill to capacity
     for (int i = 0; i < 5; ++i) {
         frb_with_capacity.emplace_back(i);
     }
 
-    EXPECT_TRUE(frb_with_capacity.full());
-    EXPECT_EQ(frb_with_capacity.size(), 5);
+    CHECK(frb_with_capacity.full());
+    CHECK_EQ(frb_with_capacity.size(), 5);
 
     // Verify contents
     for (int i = 0; i < 5; ++i) {
-        EXPECT_EQ(frb_with_capacity[i], i);
+        CHECK_EQ(frb_with_capacity[i], i);
     }
 }
 
-TEST(ring_buffer, dynamic_vs_fixed_behavior) {
+TEST_CASE("ring_buffer - dynamic_vs_fixed_behavior") {
     TrackingObject::reset_counts();
 
     {
@@ -567,27 +567,27 @@ TEST(ring_buffer, dynamic_vs_fixed_behavior) {
         for (int i = 0; i < 10; ++i) {
             dynamic_rb.emplace_back(i);
         }
-        EXPECT_EQ(dynamic_rb.size(), 10);
+        CHECK_EQ(dynamic_rb.size(), 10);
 
         // Test fixed ring_buffer with pre-allocated capacity
         fixed_ring_buffer<TrackingObject> fixed_rb(5, in_place_reserve);
         for (int i = 0; i < 5; ++i) {
             fixed_rb.emplace_back(i);
         }
-        EXPECT_EQ(fixed_rb.size(), 5);
-        EXPECT_TRUE(fixed_rb.full());
+        CHECK_EQ(fixed_rb.size(), 5);
+        CHECK(fixed_rb.full());
 
         // Verify contents
         for (int i = 0; i < 5; ++i) {
-            EXPECT_EQ(fixed_rb[i].value(), i);
+            CHECK_EQ(fixed_rb[i].value(), i);
         }
     }
 
     // All objects should be cleaned up
-    EXPECT_EQ(TrackingObject::get_construction_count(), TrackingObject::get_destruction_count());
+    CHECK_EQ(TrackingObject::get_construction_count(), TrackingObject::get_destruction_count());
 }
 
-TEST(ring_buffer, swap_functionality) {
+TEST_CASE("ring_buffer - swap_functionality") {
     ring_buffer<int> rb1{1, 2, 3};
     ring_buffer<int> rb2{10, 20, 30, 40, 50};
 
@@ -597,21 +597,21 @@ TEST(ring_buffer, swap_functionality) {
     rb1.swap(rb2);
 
     // Sizes should be swapped
-    EXPECT_EQ(rb1.size(), rb2_size);
-    EXPECT_EQ(rb2.size(), rb1_size);
+    CHECK_EQ(rb1.size(), rb2_size);
+    CHECK_EQ(rb2.size(), rb1_size);
 
     // Contents should be swapped
-    EXPECT_EQ(rb1[0], 10);
-    EXPECT_EQ(rb1[4], 50);
-    EXPECT_EQ(rb2[0], 1);
-    EXPECT_EQ(rb2[2], 3);
+    CHECK_EQ(rb1[0], 10);
+    CHECK_EQ(rb1[4], 50);
+    CHECK_EQ(rb2[0], 1);
+    CHECK_EQ(rb2[2], 3);
 
     // Test std::swap
     std::swap(rb1, rb2);
 
     // Should be back to original state
-    EXPECT_EQ(rb1.size(), rb1_size);
-    EXPECT_EQ(rb2.size(), rb2_size);
-    EXPECT_EQ(rb1[0], 1);
-    EXPECT_EQ(rb2[0], 10);
+    CHECK_EQ(rb1.size(), rb1_size);
+    CHECK_EQ(rb2.size(), rb2_size);
+    CHECK_EQ(rb1[0], 1);
+    CHECK_EQ(rb2[0], 10);
 }

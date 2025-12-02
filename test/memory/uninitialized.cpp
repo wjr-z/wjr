@@ -58,7 +58,7 @@ void verify_lazy_initialized() {
 
 } // namespace
 
-TEST(memory, uninitialized) {
+TEST_CASE("memory - uninitialized") {
     verify_uninitialized<int>();
     verify_uninitialized<std::string>();
     verify_uninitialized<std::pair<int, std::string>>();
@@ -71,7 +71,7 @@ TEST(memory, uninitialized) {
     verify_uninitialized<disable_move_assign>();
 }
 
-TEST(memory, lazy_initialized) {
+TEST_CASE("memory - lazy_initialized") {
     verify_lazy_initialized<int>();
     verify_lazy_initialized<std::string>();
     verify_lazy_initialized<std::pair<int, std::string>>();

@@ -141,15 +141,15 @@ template class basic_vector<default_vector_storage<int, std::allocator<int>>>;
 template class basic_vector<default_vector_storage<std::string, std::allocator<std::string>>>;
 } // namespace wjr
 
-TEST(vector, construct) {
+TEST_CASE("vector - construct") {
 
     // default
     {
         auto test = [](auto _Val) {
             using T = decltype(_Val);
             wvector<T> v;
-            EXPECT_EQ(v.size(), 0);
-            EXPECT_GE(v.capacity(), 0);
+            CHECK_EQ(v.size(), 0);
+            CHECK_GE(v.capacity(), 0);
         };
         test(__int);
         test(__string);
@@ -159,8 +159,8 @@ TEST(vector, construct) {
             using T = decltype(_Val);
             std::allocator<T> al;
             wvector<T> v(al);
-            EXPECT_EQ(v.size(), 0);
-            EXPECT_GE(v.capacity(), 0);
+            CHECK_EQ(v.size(), 0);
+            CHECK_GE(v.capacity(), 0);
         };
         test(__int);
         test(__string);
@@ -170,9 +170,9 @@ TEST(vector, construct) {
             using T = decltype(_Val);
             std::allocator<T> al;
             wvector<T> v(n, al);
-            EXPECT_EQ(v.size(), n);
-            EXPECT_GE(v.capacity(), n);
-            for_each_n(v.begin(), n, [](auto &x) { EXPECT_EQ(x, T()); });
+            CHECK_EQ(v.size(), n);
+            CHECK_GE(v.capacity(), n);
+            for_each_n(v.begin(), n, [](auto &x) { CHECK_EQ(x, T()); });
         };
         run_range([&](int i) {
             test(__int, i);
@@ -185,12 +185,12 @@ TEST(vector, construct) {
             std::allocator<T> al;
             wvector<T> V(n, _Val, al);
             wvector<T> v(V);
-            EXPECT_EQ(v.size(), n);
-            EXPECT_GE(v.capacity(), n);
-            EXPECT_EQ(V.size(), n);
-            EXPECT_GE(V.capacity(), n);
-            for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
-            for_each_n(V.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            CHECK_EQ(v.size(), n);
+            CHECK_GE(v.capacity(), n);
+            CHECK_EQ(V.size(), n);
+            CHECK_GE(V.capacity(), n);
+            for_each_n(v.begin(), n, [&_Val](auto &x) { CHECK_EQ(x, _Val); });
+            for_each_n(V.begin(), n, [&_Val](auto &x) { CHECK_EQ(x, _Val); });
         };
         run_range([&](int i) {
             test(0, i);
@@ -207,12 +207,12 @@ TEST(vector, construct) {
             std::allocator<T> al;
             wvector<T> V(n, _Val, al);
             wvector<T> v(V, al);
-            EXPECT_EQ(v.size(), n);
-            EXPECT_GE(v.capacity(), n);
-            EXPECT_EQ(V.size(), n);
-            EXPECT_GE(V.capacity(), n);
-            for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
-            for_each_n(V.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            CHECK_EQ(v.size(), n);
+            CHECK_GE(v.capacity(), n);
+            CHECK_EQ(V.size(), n);
+            CHECK_GE(V.capacity(), n);
+            for_each_n(v.begin(), n, [&_Val](auto &x) { CHECK_EQ(x, _Val); });
+            for_each_n(V.begin(), n, [&_Val](auto &x) { CHECK_EQ(x, _Val); });
         };
         run_range([&](int i) {
             test(0, i);
@@ -229,9 +229,9 @@ TEST(vector, construct) {
             std::allocator<T> al;
             wvector<T> V(n, _Val, al);
             wvector<T> v(std::move(V));
-            EXPECT_EQ(v.size(), n);
-            EXPECT_GE(v.capacity(), n);
-            for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            CHECK_EQ(v.size(), n);
+            CHECK_GE(v.capacity(), n);
+            for_each_n(v.begin(), n, [&_Val](auto &x) { CHECK_EQ(x, _Val); });
         };
         run_range([&](int i) {
             test(__int, i);
@@ -244,9 +244,9 @@ TEST(vector, construct) {
             std::allocator<T> al;
             wvector<T> V(n, _Val, al);
             wvector<T> v(std::move(V), al);
-            EXPECT_EQ(v.size(), n);
-            EXPECT_GE(v.capacity(), n);
-            for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            CHECK_EQ(v.size(), n);
+            CHECK_GE(v.capacity(), n);
+            for_each_n(v.begin(), n, [&_Val](auto &x) { CHECK_EQ(x, _Val); });
         };
         run_range([&](int i) {
             test(__int, i);
@@ -258,9 +258,9 @@ TEST(vector, construct) {
             using T = decltype(_Val);
             std::allocator<T> al;
             wvector<T> v(first, last, al);
-            EXPECT_EQ(v.size(), n);
-            EXPECT_GE(v.capacity(), n);
-            EXPECT_TRUE(std::equal(first, last, v.begin()));
+            CHECK_EQ(v.size(), n);
+            CHECK_GE(v.capacity(), n);
+            CHECK(std::equal(first, last, v.begin()));
         };
         run_range([&](int i) {
             {
@@ -292,9 +292,9 @@ TEST(vector, construct) {
             auto n = il.size();
             std::allocator<T> al;
             wvector<T> v(il, al);
-            EXPECT_EQ(v.size(), n);
-            EXPECT_GE(v.capacity(), n);
-            EXPECT_TRUE(std::equal(il.begin(), il.end(), v.begin()));
+            CHECK_EQ(v.size(), n);
+            CHECK_GE(v.capacity(), n);
+            CHECK(std::equal(il.begin(), il.end(), v.begin()));
         };
 
         test(__int, int_ilist{});
@@ -315,7 +315,7 @@ TEST(vector, construct) {
     }
 }
 
-TEST(vector, assignment) {
+TEST_CASE("vector - assignment") {
     // vector& operator=(const vector&)
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
@@ -324,15 +324,15 @@ TEST(vector, assignment) {
             wvector<T> V(n, _Val, al);
             wvector<T> v(c);
             v.resize(s);
-            EXPECT_EQ(v.size(), s);
-            EXPECT_GE(v.capacity(), c);
+            CHECK_EQ(v.size(), s);
+            CHECK_GE(v.capacity(), c);
             v = V;
-            EXPECT_EQ(v.size(), n);
-            EXPECT_GE(v.capacity(), c);
-            EXPECT_EQ(V.size(), n);
-            EXPECT_GE(V.capacity(), n);
-            for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
-            for_each_n(V.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            CHECK_EQ(v.size(), n);
+            CHECK_GE(v.capacity(), c);
+            CHECK_EQ(V.size(), n);
+            CHECK_GE(V.capacity(), n);
+            for_each_n(v.begin(), n, [&_Val](auto &x) { CHECK_EQ(x, _Val); });
+            for_each_n(V.begin(), n, [&_Val](auto &x) { CHECK_EQ(x, _Val); });
         };
         run_range3([&](int n, int s, int c) {
             test(__int, n, s, c);
@@ -347,9 +347,9 @@ TEST(vector, assignment) {
             wvector<T> v(c);
             v.resize(s);
             v = std::move(V);
-            EXPECT_EQ(v.size(), n);
-            EXPECT_GE(v.capacity(), n);
-            for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            CHECK_EQ(v.size(), n);
+            CHECK_GE(v.capacity(), n);
+            for_each_n(v.begin(), n, [&_Val](auto &x) { CHECK_EQ(x, _Val); });
         };
         run_range3([&](int n, int s, int c) {
             test(__int, n, s, c);
@@ -362,9 +362,9 @@ TEST(vector, assignment) {
             auto n = il.size();
             wvector<T> v;
             v = il;
-            EXPECT_EQ(v.size(), n);
-            EXPECT_GE(v.capacity(), n);
-            EXPECT_TRUE(std::equal(il.begin(), il.end(), v.begin()));
+            CHECK_EQ(v.size(), n);
+            CHECK_GE(v.capacity(), n);
+            CHECK(std::equal(il.begin(), il.end(), v.begin()));
         };
 
         test(__int, int_ilist{});
@@ -385,7 +385,7 @@ TEST(vector, assignment) {
     }
 }
 
-TEST(vector, assign) {
+TEST_CASE("vector - assign") {
     // assign(size_t _Count, const vlaue_type& _Val)
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
@@ -393,10 +393,9 @@ TEST(vector, assign) {
             wvector<T> v(c);
             v.resize(s);
             v.assign(n, _Val);
-            EXPECT_EQ(v.size(), n);
-            EXPECT_GE(v.capacity(), n);
-            for_each_n(v.begin(), n,
-                       [&](auto &x) { EXPECT_EQ(x, _Val) << n << ' ' << s << ' ' << c; });
+            CHECK_EQ(v.size(), n);
+            CHECK_GE(v.capacity(), n);
+            for_each_n(v.begin(), n, [&](auto &x) { CHECK_EQ(x, _Val); });
         };
         run_range3([&](int n, int s, int c) {
             test(__int, n, s, c);
@@ -408,9 +407,9 @@ TEST(vector, assign) {
             using T = decltype(_Val);
             wvector<T> v;
             v.assign(first, last);
-            EXPECT_EQ(v.size(), n);
-            EXPECT_GE(v.capacity(), n);
-            EXPECT_TRUE(std::equal(first, last, v.begin()));
+            CHECK_EQ(v.size(), n);
+            CHECK_GE(v.capacity(), n);
+            CHECK(std::equal(first, last, v.begin()));
         };
 
         run_range([&](int i) {
@@ -443,9 +442,9 @@ TEST(vector, assign) {
             auto n = il.size();
             wvector<T> v;
             v.assign(il);
-            EXPECT_EQ(v.size(), n);
-            EXPECT_GE(v.capacity(), n);
-            EXPECT_TRUE(std::equal(il.begin(), il.end(), v.begin()));
+            CHECK_EQ(v.size(), n);
+            CHECK_GE(v.capacity(), n);
+            CHECK(std::equal(il.begin(), il.end(), v.begin()));
         };
 
         test(__int, int_ilist{});
@@ -466,21 +465,21 @@ TEST(vector, assign) {
     }
 }
 
-TEST(vector, resize) {
+TEST_CASE("vector - resize") {
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
             wvector<T> v(c);
             v.resize(s);
             v.resize(n, _Val);
-            EXPECT_EQ(v.size(), n);
-            EXPECT_GE(v.capacity(), n);
+            CHECK_EQ(v.size(), n);
+            CHECK_GE(v.capacity(), n);
             T val{};
             if (n > s) {
-                for_each_n(v.begin(), s, [&](auto &x) { EXPECT_EQ(x, val); });
-                for_each_n(v.begin() + s, n - s, [&](auto &x) { EXPECT_EQ(x, _Val); });
+                for_each_n(v.begin(), s, [&](auto &x) { CHECK_EQ(x, val); });
+                for_each_n(v.begin() + s, n - s, [&](auto &x) { CHECK_EQ(x, _Val); });
             } else {
-                for_each_n(v.begin(), n, [&](auto &x) { EXPECT_EQ(x, val); });
+                for_each_n(v.begin(), n, [&](auto &x) { CHECK_EQ(x, val); });
             }
         };
         run_range3([&](int n, int s, int c) {
@@ -495,14 +494,14 @@ TEST(vector, resize) {
             wvector<T> v(c);
             v.resize(s);
             v.resize(n);
-            EXPECT_EQ(v.size(), n);
-            EXPECT_GE(v.capacity(), n);
+            CHECK_EQ(v.size(), n);
+            CHECK_GE(v.capacity(), n);
             T val{};
             if (n > s) {
-                for_each_n(v.begin(), s, [&](auto &x) { EXPECT_EQ(x, val); });
-                for_each_n(v.begin() + s, n - s, [&](auto &x) { EXPECT_EQ(x, val); });
+                for_each_n(v.begin(), s, [&](auto &x) { CHECK_EQ(x, val); });
+                for_each_n(v.begin() + s, n - s, [&](auto &x) { CHECK_EQ(x, val); });
             } else {
-                for_each_n(v.begin(), n, [&](auto &x) { EXPECT_EQ(x, val); });
+                for_each_n(v.begin(), n, [&](auto &x) { CHECK_EQ(x, val); });
             }
         };
         run_range3([&](int n, int s, int c) {
@@ -512,16 +511,16 @@ TEST(vector, resize) {
     }
 }
 
-TEST(vector, reserve) {
+TEST_CASE("vector - reserve") {
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
             wvector<T> v(c, _Val);
             v.resize(s, _Val);
             v.reserve(n);
-            EXPECT_EQ(v.size(), s);
-            EXPECT_GE(v.capacity(), n);
-            for_each_n(v.begin(), s, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            CHECK_EQ(v.size(), s);
+            CHECK_GE(v.capacity(), n);
+            for_each_n(v.begin(), s, [&_Val](auto &x) { CHECK_EQ(x, _Val); });
         };
         run_range3([&](int n, int s, int c) {
             test(__int, n, s, c);
@@ -530,16 +529,16 @@ TEST(vector, reserve) {
     }
 }
 
-TEST(vector, shrink_to_fit) {
+TEST_CASE("vector - shrink_to_fit") {
     {
         auto test = [](auto _Val, size_t s, size_t c) {
             using T = decltype(_Val);
             wvector<T> v(c, _Val);
             v.resize(s, _Val);
             v.shrink_to_fit();
-            EXPECT_EQ(v.size(), s);
-            EXPECT_GE(v.capacity(), s);
-            for_each_n(v.begin(), s, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            CHECK_EQ(v.size(), s);
+            CHECK_GE(v.capacity(), s);
+            for_each_n(v.begin(), s, [&_Val](auto &x) { CHECK_EQ(x, _Val); });
         };
         run_range2([&](int s, int c) {
             test(__int, s, c);
@@ -548,7 +547,7 @@ TEST(vector, shrink_to_fit) {
     }
 }
 
-TEST(vector, emplace_back) {
+TEST_CASE("vector - emplace_back") {
     {
         auto test = [](auto _Val, size_t n) {
             using T = decltype(_Val);
@@ -556,9 +555,9 @@ TEST(vector, emplace_back) {
             for (size_t i = 0; i < n; ++i) {
                 v.emplace_back(_Val);
             }
-            EXPECT_EQ(v.size(), n);
-            EXPECT_GE(v.capacity(), n);
-            for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            CHECK_EQ(v.size(), n);
+            CHECK_GE(v.capacity(), n);
+            for_each_n(v.begin(), n, [&_Val](auto &x) { CHECK_EQ(x, _Val); });
         };
         run_range([&](int i) {
             test(__int, i);
@@ -570,19 +569,19 @@ TEST(vector, emplace_back) {
         wvector<int> a;
         a.emplace_back(default_construct);
 
-        WJR_CHECK(a.size() == 1);
+        CHECK(a.size() == 1);
     }
 
     {
         wvector<std::string> a;
         a.emplace_back(default_construct);
 
-        WJR_CHECK(a.size() == 1);
-        WJR_CHECK(a[0].empty());
+        CHECK(a.size() == 1);
+        CHECK(a[0].empty());
     }
 }
 
-TEST(vector, pop_back) {
+TEST_CASE("vector - pop_back") {
     {
         auto test = [](auto _Val, size_t n) {
             if (!n)
@@ -590,9 +589,9 @@ TEST(vector, pop_back) {
             using T = decltype(_Val);
             wvector<T> v(n, _Val);
             v.pop_back();
-            EXPECT_EQ(v.size(), n - 1);
-            EXPECT_GE(v.capacity(), n);
-            for_each_n(v.begin(), n - 1, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            CHECK_EQ(v.size(), n - 1);
+            CHECK_GE(v.capacity(), n);
+            for_each_n(v.begin(), n - 1, [&_Val](auto &x) { CHECK_EQ(x, _Val); });
         };
         run_range([&](int i) {
             test(__int, i);
@@ -601,14 +600,14 @@ TEST(vector, pop_back) {
     }
 }
 
-TEST(vector, empty) {
+TEST_CASE("vector - empty") {
     {
         auto test = [](auto _Val) {
             using T = decltype(_Val);
             wvector<T> v;
-            EXPECT_EQ(v.size(), 0);
-            EXPECT_GE(v.capacity(), 0);
-            EXPECT_TRUE(v.empty());
+            CHECK_EQ(v.size(), 0);
+            CHECK_GE(v.capacity(), 0);
+            CHECK(v.empty());
         };
         [&]() {
             test(__int);
@@ -618,18 +617,19 @@ TEST(vector, empty) {
 }
 
 #if !defined(WJR_DISABLE_EXCEPTIONS)
-TEST(vector, at) {
+TEST_CASE("vector - at") {
     {
         auto test = [](auto _Val, size_t n, size_t i) {
             using T = decltype(_Val);
             wvector<T> v(n, _Val);
-            EXPECT_EQ(v.size(), n);
-            EXPECT_GE(v.capacity(), n);
+            CHECK_EQ(v.size(), n);
+            CHECK_GE(v.capacity(), n);
             try {
-                EXPECT_EQ(v.at(i), _Val);
-                EXPECT_LT(i, n);
+                auto &val = v.at(i);
+                CHECK_EQ(val, _Val);
+                CHECK_LT(i, n);
             } catch (...) {
-                EXPECT_GE(i, n);
+                CHECK_GE(i, n);
             }
         };
         run_range2([&](int s, int c) {
@@ -640,7 +640,7 @@ TEST(vector, at) {
 }
 #endif
 
-TEST(vector, emplace) {
+TEST_CASE("vector - emplace") {
     {
         auto test = [](auto _Val, auto _Val2, size_t n, size_t s, size_t c) {
             if (n > s)
@@ -649,13 +649,13 @@ TEST(vector, emplace) {
             wvector<T> v(c, _Val);
             v.resize(s, _Val);
             v.insert(v.begin() + n, _Val2);
-            EXPECT_EQ(v.size(), s + 1);
+            CHECK_EQ(v.size(), s + 1);
             for (size_t i = 0; i < n; ++i) {
-                EXPECT_EQ(v[i], _Val);
+                CHECK_EQ(v[i], _Val);
             }
-            EXPECT_EQ(v[n], _Val2);
+            CHECK_EQ(v[n], _Val2);
             for (size_t i = n + 1; i < s + 1; ++i) {
-                EXPECT_EQ(v[i], _Val);
+                CHECK_EQ(v[i], _Val);
             }
         };
         run_range3([&](size_t n, size_t s, size_t c) {
@@ -665,7 +665,7 @@ TEST(vector, emplace) {
     }
 }
 
-TEST(vector, insert) {
+TEST_CASE("vector - insert") {
     {
         auto test = [](auto _Val, auto _Val2, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
@@ -676,15 +676,15 @@ TEST(vector, insert) {
                 wvector<T> v(c, _Val);
                 v.resize(s, _Val);
                 v.insert(v.begin() + pos, n, _Val2);
-                EXPECT_EQ(v.size(), s + n);
+                CHECK_EQ(v.size(), s + n);
                 for (size_t i = 0; i < pos; ++i) {
-                    EXPECT_EQ(v[i], _Val);
+                    CHECK_EQ(v[i], _Val);
                 }
                 for (size_t i = 0; i < n; ++i) {
-                    EXPECT_EQ(v[i + pos], _Val2);
+                    CHECK_EQ(v[i + pos], _Val2);
                 }
                 for (size_t i = pos + n; i < s + n; ++i) {
-                    EXPECT_EQ(v[i], _Val);
+                    CHECK_EQ(v[i], _Val);
                 }
             };
             __test(0);
@@ -700,7 +700,7 @@ TEST(vector, insert) {
     }
 }
 
-TEST(vector, erase) {
+TEST_CASE("vector - erase") {
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             if (n >= s || !s)
@@ -709,9 +709,9 @@ TEST(vector, erase) {
             wvector<T> v(c, _Val);
             v.resize(s, _Val);
             v.erase(v.begin() + n);
-            EXPECT_EQ(v.size(), s - 1);
+            CHECK_EQ(v.size(), s - 1);
             for (size_t i = 0; i < s - 1; ++i) {
-                EXPECT_EQ(v[i], _Val);
+                CHECK_EQ(v[i], _Val);
             }
         };
         run_range3([&](int n, int s, int c) {
@@ -721,15 +721,15 @@ TEST(vector, erase) {
     }
 }
 
-TEST(vector, swap) {
+TEST_CASE("vector - swap") {
     {
         vector<int> v1(32, 1);
         vector<int> v2(64, 2);
         v1.swap(v2);
-        EXPECT_EQ(v1.size(), 64);
-        EXPECT_EQ(v2.size(), 32);
-        for_each_n(v1.begin(), 64, [](auto &x) { EXPECT_EQ(x, 2); });
-        for_each_n(v2.begin(), 32, [](auto &x) { EXPECT_EQ(x, 1); });
+        CHECK_EQ(v1.size(), 64);
+        CHECK_EQ(v2.size(), 32);
+        for_each_n(v1.begin(), 64, [](auto &x) { CHECK_EQ(x, 2); });
+        for_each_n(v2.begin(), 32, [](auto &x) { CHECK_EQ(x, 1); });
     }
 
     for (int n = 0; n < 16; ++n)
@@ -737,10 +737,10 @@ TEST(vector, swap) {
             inplace_vector<int, 16> v1(n, 1);
             inplace_vector<int, 16> v2(m, 2);
             v1.swap(v2);
-            EXPECT_EQ(v1.size(), m);
-            EXPECT_EQ(v2.size(), n);
-            for_each_n(v1.begin(), m, [](auto &x) { EXPECT_EQ(x, 2); });
-            for_each_n(v2.begin(), n, [](auto &x) { EXPECT_EQ(x, 1); });
+            CHECK_EQ(v1.size(), m);
+            CHECK_EQ(v2.size(), n);
+            for_each_n(v1.begin(), m, [](auto &x) { CHECK_EQ(x, 2); });
+            for_each_n(v2.begin(), n, [](auto &x) { CHECK_EQ(x, 1); });
         }
 
     for (int n = 0; n < 32; ++n)
@@ -748,10 +748,10 @@ TEST(vector, swap) {
             inplace_vector<int, 32> v1(n, 1);
             inplace_vector<int, 32> v2(m, 2);
             v1.swap(v2);
-            EXPECT_EQ(v1.size(), m);
-            EXPECT_EQ(v2.size(), n);
-            for_each_n(v1.begin(), m, [](auto &x) { EXPECT_EQ(x, 2); });
-            for_each_n(v2.begin(), n, [](auto &x) { EXPECT_EQ(x, 1); });
+            CHECK_EQ(v1.size(), m);
+            CHECK_EQ(v2.size(), n);
+            for_each_n(v1.begin(), m, [](auto &x) { CHECK_EQ(x, 2); });
+            for_each_n(v2.begin(), n, [](auto &x) { CHECK_EQ(x, 1); });
         }
 
     for (int n = 0; n < 32; ++n)
@@ -759,54 +759,54 @@ TEST(vector, swap) {
             small_vector<int, 4> v1(n, 1);
             small_vector<int, 4> v2(m, 2);
             v1.swap(v2);
-            EXPECT_EQ(v1.size(), m);
-            EXPECT_EQ(v2.size(), n);
-            for_each_n(v1.begin(), m, [](auto &x) { EXPECT_EQ(x, 2); });
-            for_each_n(v2.begin(), n, [](auto &x) { EXPECT_EQ(x, 1); });
+            CHECK_EQ(v1.size(), m);
+            CHECK_EQ(v2.size(), n);
+            for_each_n(v1.begin(), m, [](auto &x) { CHECK_EQ(x, 2); });
+            for_each_n(v2.begin(), n, [](auto &x) { CHECK_EQ(x, 1); });
         }
 }
 
-TEST(vector, ptr_unsafe) {
+TEST_CASE("vector - ptr_unsafe") {
     {
         wvector<int> a(16);
-        WJR_CHECK(a.begin_unsafe() == wjr::to_address(a.begin()));
-        WJR_CHECK(a.end_unsafe() == wjr::to_address(a.end()));
-        WJR_CHECK(a.buf_end_unsafe() == a.begin_unsafe() + a.capacity());
+        CHECK(a.begin_unsafe() == wjr::to_address(a.begin()));
+        CHECK(a.end_unsafe() == wjr::to_address(a.end()));
+        CHECK(a.buf_end_unsafe() == a.begin_unsafe() + a.capacity());
     }
 }
 
-TEST(vector, construct_dctor) {
+TEST_CASE("vector - construct_dctor") {
     {
         wvector<std::string> vec(16, default_construct);
-        for_each_n(vec.begin(), 16, [](auto &x) { WJR_CHECK(x.empty()); });
+        for_each_n(vec.begin(), 16, [](auto &x) { CHECK(x.empty()); });
     }
 }
 
-TEST(vector, clear) {
+TEST_CASE("vector - clear") {
     {
         wvector<std::string> vec(16, default_construct);
         vec.clear();
 
-        WJR_CHECK(vec.empty());
+        CHECK(vec.empty());
     }
 }
 
-TEST(vector, front) {
+TEST_CASE("vector - front") {
     {
         wvector<std::string> vec(16, default_construct);
 
-        WJR_CHECK(vec.front().empty());
-        WJR_CHECK(vec.front() == vec[0]);
-        WJR_CHECK(vec.front() == vec.begin()[0]);
-        WJR_CHECK(vec.front() == *vec.begin());
-        WJR_CHECK(vec.front() == *vec.data());
+        CHECK(vec.front().empty());
+        CHECK(vec.front() == vec[0]);
+        CHECK(vec.front() == vec.begin()[0]);
+        CHECK(vec.front() == *vec.begin());
+        CHECK(vec.front() == *vec.data());
     }
 }
 
 // Test memcpy byte size correctness for inplace_vector and small_vector
 // These tests verify that when _use_memcpy condition is satisfied,
 // the correct number of bytes (count * sizeof(T)) is copied
-TEST(vector, memcpy_bytes_correctness) {
+TEST_CASE("vector - memcpy_bytes_correctness") {
     // Test with different sized trivially copyable types
     // uint8_t: 1 byte
     // uint16_t: 2 bytes
@@ -823,9 +823,9 @@ TEST(vector, memcpy_bytes_correctness) {
         inplace_vector<uint16_t, 8> v2;
         v2 = v1; // copy assignment
 
-        EXPECT_EQ(v2.size(), 8);
+        CHECK_EQ(v2.size(), 8);
         for (size_t i = 0; i < 8; ++i) {
-            EXPECT_EQ(v2[i], 0x1000 + i);
+            CHECK_EQ(v2[i], 0x1000 + i);
         }
 
         // Test move/swap
@@ -835,11 +835,11 @@ TEST(vector, memcpy_bytes_correctness) {
         }
 
         v1.swap(v3);
-        EXPECT_EQ(v1.size(), 8);
-        EXPECT_EQ(v3.size(), 8);
+        CHECK_EQ(v1.size(), 8);
+        CHECK_EQ(v3.size(), 8);
         for (size_t i = 0; i < 8; ++i) {
-            EXPECT_EQ(v1[i], 0x2000 + i);
-            EXPECT_EQ(v3[i], 0x1000 + i);
+            CHECK_EQ(v1[i], 0x2000 + i);
+            CHECK_EQ(v3[i], 0x1000 + i);
         }
     }
 
@@ -853,9 +853,9 @@ TEST(vector, memcpy_bytes_correctness) {
         inplace_vector<uint32_t, 4> v2;
         v2 = v1;
 
-        EXPECT_EQ(v2.size(), 4);
+        CHECK_EQ(v2.size(), 4);
         for (size_t i = 0; i < 4; ++i) {
-            EXPECT_EQ(v2[i], 0x10000000 + i);
+            CHECK_EQ(v2[i], 0x10000000 + i);
         }
     }
 
@@ -868,9 +868,9 @@ TEST(vector, memcpy_bytes_correctness) {
         inplace_vector<uint64_t, 2> v2;
         v2 = v1;
 
-        EXPECT_EQ(v2.size(), 2);
-        EXPECT_EQ(v2[0], 0x1000000000000000ULL);
-        EXPECT_EQ(v2[1], 0x2000000000000000ULL);
+        CHECK_EQ(v2.size(), 2);
+        CHECK_EQ(v2[0], 0x1000000000000000ULL);
+        CHECK_EQ(v2[1], 0x2000000000000000ULL);
     }
 
     // Test small_vector with uint16_t
@@ -883,9 +883,9 @@ TEST(vector, memcpy_bytes_correctness) {
         small_vector<uint16_t, 4> v2;
         v2 = v1;
 
-        EXPECT_EQ(v2.size(), 4);
+        CHECK_EQ(v2.size(), 4);
         for (size_t i = 0; i < 4; ++i) {
-            EXPECT_EQ(v2[i], 0x3000 + i);
+            CHECK_EQ(v2[i], 0x3000 + i);
         }
 
         // Test swap when small
@@ -895,11 +895,11 @@ TEST(vector, memcpy_bytes_correctness) {
         }
 
         v1.swap(v3);
-        EXPECT_EQ(v1.size(), 4);
-        EXPECT_EQ(v3.size(), 4);
+        CHECK_EQ(v1.size(), 4);
+        CHECK_EQ(v3.size(), 4);
         for (size_t i = 0; i < 4; ++i) {
-            EXPECT_EQ(v1[i], 0x4000 + i);
-            EXPECT_EQ(v3[i], 0x3000 + i);
+            CHECK_EQ(v1[i], 0x4000 + i);
+            CHECK_EQ(v3[i], 0x3000 + i);
         }
     }
 
@@ -913,9 +913,9 @@ TEST(vector, memcpy_bytes_correctness) {
         small_vector<uint32_t, 4> v2;
         v2 = v1;
 
-        EXPECT_EQ(v2.size(), 4);
+        CHECK_EQ(v2.size(), 4);
         for (size_t i = 0; i < 4; ++i) {
-            EXPECT_EQ(v2[i], 0x20000000 + i);
+            CHECK_EQ(v2[i], 0x20000000 + i);
         }
     }
 
@@ -940,13 +940,13 @@ TEST(vector, memcpy_bytes_correctness) {
         inplace_vector<Data12, 2> v2;
         v2 = v1;
 
-        EXPECT_EQ(v2.size(), 2);
-        EXPECT_EQ(v2[0].a, 0x11111111);
-        EXPECT_EQ(v2[0].b, 0x22222222);
-        EXPECT_EQ(v2[0].c, 0x33333333);
-        EXPECT_EQ(v2[1].a, 0x44444444);
-        EXPECT_EQ(v2[1].b, 0x55555555);
-        EXPECT_EQ(v2[1].c, 0x66666666);
+        CHECK_EQ(v2.size(), 2);
+        CHECK_EQ(v2[0].a, 0x11111111);
+        CHECK_EQ(v2[0].b, 0x22222222);
+        CHECK_EQ(v2[0].c, 0x33333333);
+        CHECK_EQ(v2[1].a, 0x44444444);
+        CHECK_EQ(v2[1].b, 0x55555555);
+        CHECK_EQ(v2[1].c, 0x66666666);
     }
 
     // Test partial fill (size < capacity) to ensure we don't read uninitialized memory
@@ -960,10 +960,10 @@ TEST(vector, memcpy_bytes_correctness) {
         inplace_vector<uint32_t, 8> v2;
         v2 = v1;
 
-        EXPECT_EQ(v2.size(), 3);
-        EXPECT_EQ(v2[0], 0xAAAAAAAA);
-        EXPECT_EQ(v2[1], 0xBBBBBBBB);
-        EXPECT_EQ(v2[2], 0xCCCCCCCC);
+        CHECK_EQ(v2.size(), 3);
+        CHECK_EQ(v2[0], 0xAAAAAAAA);
+        CHECK_EQ(v2[1], 0xBBBBBBBB);
+        CHECK_EQ(v2[2], 0xCCCCCCCC);
     }
 
     {
@@ -975,8 +975,8 @@ TEST(vector, memcpy_bytes_correctness) {
         small_vector<uint32_t, 4> v2;
         v2 = v1;
 
-        EXPECT_EQ(v2.size(), 2);
-        EXPECT_EQ(v2[0], 0xDDDDDDDD);
-        EXPECT_EQ(v2[1], 0xEEEEEEEE);
+        CHECK_EQ(v2.size(), 2);
+        CHECK_EQ(v2[0], 0xDDDDDDDD);
+        CHECK_EQ(v2[1], 0xEEEEEEEE);
     }
 }

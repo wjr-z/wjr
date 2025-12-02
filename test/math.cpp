@@ -9,18 +9,18 @@
 
 using namespace wjr;
 
-TEST(math, popcount_ctz_clz) {
+TEST_CASE("math - popcount_ctz_clz") {
 
 #define WJR_TEST_PTZ(queue) WJR_PP_TRANSFORM_PUT(queue, WJR_TEST_PTZ_I_CALLER)
 
 #define WJR_TEST_POPCOUNT_I(type, x, ans)                                                          \
-    WJR_CHECK(fallback_popcount<type>(x) == ans)                                                   \
-    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(POPCOUNT), ; WJR_CHECK((builtin_popcount<type>(x) == ans)), )
+    CHECK(fallback_popcount<type>(x) == ans)                                                       \
+    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(POPCOUNT), ; CHECK((builtin_popcount<type>(x) == ans)), )
 #define WJR_TEST_CTZ_I(type, x, ans)                                                               \
     type n = x;                                                                                    \
     auto ctz_ans = popcount<type>((type)(lowbit(n) - 1));                                          \
-    WJR_CHECK((x == 0 ? std::numeric_limits<type>::digits : fallback_ctz<type>(x)) == ctz_ans)     \
-    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(CTZ), ; WJR_CHECK((countr_zero<type>(x) == ctz_ans)), )
+    CHECK((x == 0 ? std::numeric_limits<type>::digits : fallback_ctz<type>(x)) == ctz_ans)         \
+    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(CTZ), ; CHECK((countr_zero<type>(x) == ctz_ans)), )
 #define WJR_TEST_CLZ_I(type, x, ans)                                                               \
     auto clz_ans = []() -> int {                                                                   \
         type n = x;                                                                                \
@@ -43,8 +43,8 @@ TEST(math, popcount_ctz_clz) {
         ++n;                                                                                       \
         return nd - countr_zero<type>(n);                                                          \
     }();                                                                                           \
-    WJR_CHECK((x == 0 ? std::numeric_limits<type>::digits : fallback_clz<type>(x)) == clz_ans)     \
-    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(CTZ), ; WJR_CHECK((countl_zero<type>(x) == clz_ans)), )
+    CHECK((x == 0 ? std::numeric_limits<type>::digits : fallback_clz<type>(x)) == clz_ans)         \
+    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(CTZ), ; CHECK((countl_zero<type>(x) == clz_ans)), )
 
 #define WJR_TEST_PTZ_I_CALLER(args)                                                                \
     do {                                                                                           \
@@ -154,24 +154,24 @@ TEST(math, popcount_ctz_clz) {
 #undef WJR_TEST_PTZ
 }
 
-TEST(math, addc) {
+TEST_CASE("math - addc") {
 
 #define WJR_TEST_ADDC(type, x, y, ci, ans, ans_co) WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)
 #define WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)                                           \
-    WJR_CHECK((math::fallback_addc<type, type>(x, y, ci, co) == ans && co == ans_co));             \
+    CHECK((math::fallback_addc<type, type>(x, y, ci, co) == ans && co == ans_co));                 \
     WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ADDC),                                                          \
                    do {                                                                            \
-                       WJR_CHECK(                                                                  \
+                       CHECK(                                                                      \
                            (math::builtin_addc<type, type>(x, y, ci, co) == ans && co == ans_co)); \
                    } while (false),                                                                \
                    {});                                                                            \
     WJR_PP_BOOL_IF_NE(                                                                             \
         WJR_HAS_BUILTIN(ASM_ADDC), do {                                                            \
             if constexpr (std::is_same_v<type, uint64_t>) {                                        \
-                WJR_CHECK((math::asm_addc<type>(x, y, ci, co) == ans && co == ans_co));            \
-                WJR_CHECK(WJR_PP_BOOL_IF(                                                          \
-                    WJR_HAS_BUILTIN(ASM_ADDC_CC),                                                  \
-                    (math::asm_addc_cc(x, y, ci, co2) == ans && co2 == ans_co), true));            \
+                CHECK((math::asm_addc<type>(x, y, ci, co) == ans && co == ans_co));                \
+                CHECK(WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_ADDC_CC),                                 \
+                                     (math::asm_addc_cc(x, y, ci, co2) == ans && co2 == ans_co),   \
+                                     true));                                                       \
             }                                                                                      \
         } while (false), )
 
@@ -208,22 +208,22 @@ TEST(math, addc) {
 #undef WJR_TEST_ADDC
 }
 
-TEST(math, sub) {
+TEST_CASE("math - sub") {
 
 #define WJR_TEST_SUBC(type, x, y, ci, ans, ans_co) WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)
 #define WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)                                           \
-    WJR_CHECK((math::fallback_subc<type, type>(x, y, ci, co) == ans && co == ans_co))              \
+    CHECK((math::fallback_subc<type, type>(x, y, ci, co) == ans && co == ans_co))                  \
     WJR_PP_BOOL_IF(                                                                                \
         WJR_HAS_BUILTIN(SUBC), ; do {                                                              \
-            WJR_CHECK((math::builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co));      \
+            CHECK((math::builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co));          \
         } while (false), )                                                                         \
     WJR_PP_BOOL_IF_NE(                                                                             \
         WJR_HAS_BUILTIN(ASM_SUBC), ; do {                                                          \
             if constexpr (std::is_same_v<type, uint64_t>) {                                        \
-                WJR_CHECK((math::asm_subc<type>(x, y, ci, co) == ans && co == ans_co));            \
-                WJR_CHECK(WJR_PP_BOOL_IF(                                                          \
-                    WJR_HAS_BUILTIN(ASM_SUBC_CC),                                                  \
-                    (math::asm_subc_cc(x, y, ci, co2) == ans && co2 == ans_co), true));            \
+                CHECK((math::asm_subc<type>(x, y, ci, co) == ans && co == ans_co));                \
+                CHECK(WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_SUBC_CC),                                 \
+                                     (math::asm_subc_cc(x, y, ci, co2) == ans && co2 == ans_co),   \
+                                     true));                                                       \
             }                                                                                      \
         } while (false), )
 
@@ -261,8 +261,8 @@ TEST(math, sub) {
 #undef WJR_TEST_SUBC
 }
 
-TEST(math, broadcast) {
-#define WJR_TEST_BROADCAST(ft, tt, x, expect) WJR_CHECK((broadcast<ft, tt>(x) == expect))
+TEST_CASE("math - broadcast") {
+#define WJR_TEST_BROADCAST(ft, tt, x, expect) CHECK((broadcast<ft, tt>(x) == expect))
 
     WJR_TEST_BROADCAST(uint8_t, uint8_t, 0, 0);
     WJR_TEST_BROADCAST(uint8_t, uint8_t, 0x3f, 0x3f);
@@ -311,7 +311,7 @@ TEST(math, broadcast) {
 #undef WJR_TEST_BROADCAST
 }
 
-TEST(math, find_n) {
+TEST_CASE("math - find_n") {
     std::vector<uint64_t> a, b;
 
     for (size_t n = 0; n < 384; ++n) {
@@ -330,11 +330,11 @@ TEST(math, find_n) {
 
             auto idx = find_n(a.data(), 0, n);
 
-            WJR_CHECK(idx == m);
+            CHECK(idx == m);
 
             idx = find_n(a.data(), b.data(), n);
 
-            WJR_CHECK(idx == m);
+            CHECK(idx == m);
 
             if (m != n) {
                 a[m] = -1;
@@ -344,7 +344,7 @@ TEST(math, find_n) {
     }
 }
 
-TEST(math, find_not_n) {
+TEST_CASE("math - find_not_n") {
     std::vector<uint64_t> a, b;
 
     for (size_t n = 0; n < 384; ++n) {
@@ -363,11 +363,11 @@ TEST(math, find_not_n) {
 
             auto idx = find_not_n(a.data(), 0, n);
 
-            WJR_CHECK(idx == m);
+            CHECK(idx == m);
 
             idx = find_not_n(a.data(), b.data(), n);
 
-            WJR_CHECK(idx == m);
+            CHECK(idx == m);
 
             if (m != n) {
                 a[m] = 0;
@@ -377,7 +377,7 @@ TEST(math, find_not_n) {
     }
 }
 
-TEST(math, reverse_find_n) {
+TEST_CASE("math - reverse_find_n") {
     std::vector<uint64_t> a, b;
 
     for (size_t n = 0; n < 384; ++n) {
@@ -396,11 +396,11 @@ TEST(math, reverse_find_n) {
 
             auto idx = reverse_find_n(a.data(), 0, n);
 
-            WJR_CHECK(idx == n - m);
+            CHECK(idx == n - m);
 
             idx = reverse_find_n(a.data(), b.data(), n);
 
-            WJR_CHECK(idx == n - m);
+            CHECK(idx == n - m);
 
             if (m != n) {
                 a[n - m - 1] = -1;
@@ -410,7 +410,7 @@ TEST(math, reverse_find_n) {
     }
 }
 
-TEST(math, reverse_find_not_n) {
+TEST_CASE("math - reverse_find_not_n") {
     std::vector<uint64_t> a, b;
 
     for (size_t n = 0; n < 384; ++n) {
@@ -429,11 +429,11 @@ TEST(math, reverse_find_not_n) {
 
             auto idx = reverse_find_not_n(a.data(), 0, n);
 
-            WJR_CHECK(idx == n - m);
+            CHECK(idx == n - m);
 
             idx = reverse_find_not_n(a.data(), b.data(), n);
 
-            WJR_CHECK(idx == n - m);
+            CHECK(idx == n - m);
 
             if (m != n) {
                 a[n - m - 1] = 0;
@@ -443,7 +443,7 @@ TEST(math, reverse_find_not_n) {
     }
 }
 
-TEST(math, replace_find_not) {
+TEST_CASE("math - replace_find_not") {
     {
         std::vector<uint64_t> a, b;
 
@@ -475,45 +475,45 @@ TEST(math, replace_find_not) {
 
                 auto idx = replace_find_not(b.data(), a.data(), n, 0, 1);
 
-                WJR_CHECK(idx == m);
+                CHECK(idx == m);
 
                 for (size_t i = 0; i < m; ++i) {
-                    WJR_CHECK(b[i] == 1);
+                    CHECK(b[i] == 1);
                 }
 
                 if (n != m) {
                     for (size_t i = m; i < n; ++i) {
-                        WJR_CHECK(b[i] == 0);
+                        CHECK(b[i] == 0);
                     }
                 }
 
                 idx = replace_find_not(a.data(), a.data(), n, 0, 0);
 
-                WJR_CHECK(idx == m);
+                CHECK(idx == m);
 
                 for (size_t i = 0; i < m; ++i) {
-                    WJR_CHECK(a[i] == 0);
+                    CHECK(a[i] == 0);
                 }
 
                 if (n != m) {
-                    WJR_CHECK(a[m] == -1ull);
+                    CHECK(a[m] == -1ull);
                     for (size_t i = m + 1; i < n; ++i) {
-                        WJR_CHECK(a[i] == 0);
+                        CHECK(a[i] == 0);
                     }
                 }
 
                 idx = replace_find_not(a.data(), a.data(), n, 0, 1);
 
-                WJR_CHECK(idx == m);
+                CHECK(idx == m);
 
                 for (size_t i = 0; i < m; ++i) {
-                    WJR_CHECK(a[i] == 1);
+                    CHECK(a[i] == 1);
                 }
 
                 if (n != m) {
-                    WJR_CHECK(a[m] == -1ull);
+                    CHECK(a[m] == -1ull);
                     for (size_t i = m + 1; i < n; ++i) {
-                        WJR_CHECK(a[i] == 0);
+                        CHECK(a[i] == 0);
                     }
                 }
             }
@@ -521,7 +521,7 @@ TEST(math, replace_find_not) {
     }
 }
 
-TEST(math, bi_not_n) {
+TEST_CASE("math - bi_not_n") {
     std::vector<uint64_t> a, b;
     for (size_t n = 0; n <= 384; ++n) {
         a.resize(n);
@@ -532,17 +532,17 @@ TEST(math, bi_not_n) {
 
         math::bi_not_n(b.data(), a.data(), n);
         for (auto &i : b) {
-            WJR_CHECK(i == -1ull);
+            CHECK(i == -1ull);
         }
 
         math::bi_not_n(a.data(), a.data(), n);
         for (auto &i : a) {
-            WJR_CHECK(i == -1ull);
+            CHECK(i == -1ull);
         }
     }
 }
 
-TEST(math, bi_negate_n) {
+TEST_CASE("math - bi_negate_n") {
     std::vector<uint64_t> a, b, c;
     for (size_t n = 0; n <= 384; ++n) {
         a.resize(n);
@@ -571,19 +571,19 @@ TEST(math, bi_negate_n) {
             bool zero = math::bi_negate_n(b.data(), a.data(), n);
 
             if (n == m) {
-                WJR_CHECK(zero);
+                CHECK(zero);
             } else {
-                WJR_CHECK(!zero);
+                CHECK(!zero);
             }
 
             for (size_t i = 0; i < m; ++i) {
-                WJR_CHECK(b[i] == 0);
+                CHECK(b[i] == 0);
             }
 
             if (n != m) {
-                WJR_CHECK(b[m] == -xx);
+                CHECK(b[m] == -xx);
                 for (size_t i = m + 1; i < n; ++i) {
-                    WJR_CHECK(b[i] == ~c[i]);
+                    CHECK(b[i] == ~c[i]);
                 }
             }
 
@@ -595,19 +595,19 @@ TEST(math, bi_negate_n) {
             }();
 
             if (n != m) {
-                WJR_CHECK(cf);
+                CHECK(cf);
             } else {
-                WJR_CHECK(!cf);
+                CHECK(!cf);
             }
 
             for (size_t i = 0; i < n; ++i) {
-                WJR_CHECK(c[i] == 0);
+                CHECK(c[i] == 0);
             }
         }
     }
 }
 
-TEST(math, set_n) {
+TEST_CASE("math - set_n") {
     auto test = [](auto x) {
         using type = decltype(x);
         std::vector<type> a;
@@ -619,7 +619,7 @@ TEST(math, set_n) {
             set_n(a.data(), b, n);
 
             for (auto &i : a) {
-                WJR_CHECK(i == b);
+                CHECK(i == b);
             }
         }
 
@@ -631,7 +631,7 @@ TEST(math, set_n) {
             set_n(a.data(), b, n);
 
             for (auto &i : a) {
-                WJR_CHECK(i == b);
+                CHECK(i == b);
             }
         }
     };
@@ -641,11 +641,11 @@ TEST(math, set_n) {
     test((uint64_t)0);
 }
 
-TEST(math, compare_n) {
+TEST_CASE("math - compare_n") {
     {
         std::vector<uint64_t> a = {0, 1ull << 31, 0, 0};
         std::vector<uint64_t> b = {0, 0, 0, 0};
-        WJR_CHECK(compare_n(a.data(), b.data(), 4) > 0);
+        CHECK(compare_n(a.data(), b.data(), 4) > 0);
     }
 
     std::vector<uint64_t> a, b;
@@ -668,18 +668,18 @@ TEST(math, compare_n) {
 
             int f = compare_n(a.data(), b.data(), n);
             if (n == m) {
-                WJR_CHECK(f == 0);
+                CHECK(f == 0);
                 continue;
             }
 
-            WJR_CHECK(f < 0);
+            CHECK(f < 0);
 
             if (n != m + 1) {
                 for (size_t j = m + 1; j < n; ++j) {
                     a[j] = mt_rand();
                 }
                 f = compare_n(a.data(), b.data(), n);
-                WJR_CHECK(f < 0);
+                CHECK(f < 0);
             }
 
             while (a[m] == 0) {
@@ -689,20 +689,20 @@ TEST(math, compare_n) {
 
             f = compare_n(a.data(), b.data(), n);
 
-            WJR_CHECK(f > 0);
+            CHECK(f > 0);
 
             if (n != m + 1) {
                 for (size_t j = m + 1; j < n; ++j) {
                     a[j] = mt_rand();
                 }
                 f = compare_n(a.data(), b.data(), n);
-                WJR_CHECK(f > 0);
+                CHECK(f > 0);
             }
         }
     }
 }
 
-TEST(math, reverse_compare_n) {
+TEST_CASE("math - reverse_compare_n") {
     std::vector<uint64_t> a, b;
     for (size_t n = 0; n <= 64; ++n) {
         a.resize(n);
@@ -722,18 +722,18 @@ TEST(math, reverse_compare_n) {
 
             int f = reverse_compare_n(a.data(), b.data(), n);
             if (n == m) {
-                WJR_CHECK(f == 0);
+                CHECK(f == 0);
                 continue;
             }
 
-            WJR_CHECK(f < 0);
+            CHECK(f < 0);
 
             if (n != m + 1) {
                 for (size_t j = 0; j < n - m - 1; ++j) {
                     a[j] = mt_rand();
                 }
                 f = reverse_compare_n(a.data(), b.data(), n);
-                WJR_CHECK(f < 0);
+                CHECK(f < 0);
             }
 
             while (a[n - m - 1] == 0) {
@@ -743,21 +743,21 @@ TEST(math, reverse_compare_n) {
 
             f = reverse_compare_n(a.data(), b.data(), n);
 
-            WJR_CHECK(f > 0);
+            CHECK(f > 0);
 
             if (n != m + 1) {
                 for (size_t j = 0; j < n - m - 1; ++j) {
                     a[j] = mt_rand();
                 }
                 f = reverse_compare_n(a.data(), b.data(), n);
-                WJR_CHECK(f > 0);
+                CHECK(f > 0);
             }
         }
     }
 }
 
-TEST(math, shld) {
-#define WJR_TEST_SHLD(hi, lo, c, expect) WJR_CHECK(shld<uint64_t>((hi), (lo), (c)) == (expect))
+TEST_CASE("math - shld") {
+#define WJR_TEST_SHLD(hi, lo, c, expect) CHECK(shld<uint64_t>((hi), (lo), (c)) == (expect))
 
     WJR_TEST_SHLD(0, 0, 1, 0);
     WJR_TEST_SHLD(0, 1, 1, 0);
@@ -768,8 +768,8 @@ TEST(math, shld) {
 #undef WJR_TEST_SHLD
 }
 
-TEST(math, shrd) {
-#define WJR_TEST_SHRD(lo, hi, c, expect) WJR_CHECK(shrd<uint64_t>((lo), (hi), (c)) == (expect))
+TEST_CASE("math - shrd") {
+#define WJR_TEST_SHRD(lo, hi, c, expect) CHECK(shrd<uint64_t>((lo), (hi), (c)) == (expect))
 
     WJR_TEST_SHRD(0, 0, 1, 0);
     WJR_TEST_SHRD(0, 1, 1, 1ull << 63);
@@ -780,7 +780,7 @@ TEST(math, shrd) {
 #undef WJR_TEST_SHRD
 }
 
-TEST(math, lshift_n) {
+TEST_CASE("math - lshift_n") {
     std::vector<uint64_t> a, b;
 
     for (size_t n = 1; n <= 512; ++n) {
@@ -794,21 +794,21 @@ TEST(math, lshift_n) {
         for (unsigned int c = 0; c < 64; ++c) {
             uint64_t ex = c ? (a[n - 1] >> (64 - c)) : 0;
             auto z = lshift_n(b.data(), a.data(), n, c);
-            WJR_CHECK(z == ex);
+            CHECK(z == ex);
 
             for (size_t i = 1; i < n; ++i) {
                 ex = c ? ((a[i] << c) | (a[i - 1] >> (64 - c))) : a[i];
-                WJR_CHECK(b[i] == ex);
+                CHECK(b[i] == ex);
             }
 
             ex = a[0] << c;
 
-            WJR_CHECK(b[0] == ex);
+            CHECK(b[0] == ex);
         }
     }
 }
 
-TEST(math, rshift_n) {
+TEST_CASE("math - rshift_n") {
     std::vector<uint64_t> a, b;
 
     for (size_t n = 1; n <= 512; ++n) {
@@ -822,26 +822,26 @@ TEST(math, rshift_n) {
         for (unsigned int c = 0; c < 64; ++c) {
             uint64_t ex = c ? (a[0] << (64 - c)) : 0;
             auto z = rshift_n(b.data(), a.data(), n, c);
-            WJR_CHECK(z == ex);
+            CHECK(z == ex);
 
             for (size_t i = 0; i < n - 1; ++i) {
                 ex = c ? ((a[i] >> c) | (a[i + 1] << (64 - c))) : a[i];
-                WJR_CHECK(b[i] == ex);
+                CHECK(b[i] == ex);
             }
 
             ex = a[n - 1] >> c;
 
-            WJR_CHECK(b[n - 1] == ex);
+            CHECK(b[n - 1] == ex);
         }
     }
 }
 
-TEST(math, add_128) {
+TEST_CASE("math - add_128") {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t anslo,
                     uint64_t anshi) {
         add_128(lo0, hi0, lo0, hi0, lo1, hi1);
-        WJR_CHECK(lo0 == anslo);
-        WJR_CHECK(hi0 == anshi);
+        CHECK(lo0 == anslo);
+        CHECK(hi0 == anshi);
     };
 
     check(0, 0, 0, 0, 0, 0);
@@ -862,13 +862,13 @@ TEST(math, add_128) {
     check(UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX - 1, UINT64_MAX);
 }
 
-TEST(math, __addc_128) {
+TEST_CASE("math - __addc_128") {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t c,
                     uint64_t anslo, uint64_t anshi, uint64_t ansc) {
         auto cf = math::_addc_128(lo0, hi0, lo0, hi0, lo1, hi1, c);
-        WJR_CHECK(lo0 == anslo);
-        WJR_CHECK(hi0 == anshi);
-        WJR_CHECK(cf == ansc);
+        CHECK(lo0 == anslo);
+        CHECK(hi0 == anshi);
+        CHECK(cf == ansc);
     };
 
     check(0, 0, 0, 0, 0, 0, 0, 0);
@@ -906,12 +906,12 @@ TEST(math, __addc_128) {
     check(UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX, 1, UINT64_MAX, UINT64_MAX, 1);
 }
 
-TEST(math, __sub_128) {
+TEST_CASE("math - __sub_128") {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t anslo,
                     uint64_t anshi) {
         sub_128(lo0, hi0, lo0, hi0, lo1, hi1);
-        WJR_CHECK(lo0 == anslo);
-        WJR_CHECK(hi0 == anshi);
+        CHECK(lo0 == anslo);
+        CHECK(hi0 == anshi);
     };
 
     check(0, 0, 0, 0, 0, 0);
@@ -928,13 +928,13 @@ TEST(math, __sub_128) {
     check(UINT64_MAX, 0, UINT64_MAX, 1, 0, UINT64_MAX);
 }
 
-TEST(math, __subc_128) {
+TEST_CASE("math - __subc_128") {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t c,
                     uint64_t anslo, uint64_t anshi, uint64_t ansc) {
         auto cf = math::_subc_128(lo0, hi0, lo0, hi0, lo1, hi1, c);
-        WJR_CHECK(lo0 == anslo);
-        WJR_CHECK(hi0 == anshi);
-        WJR_CHECK(cf == ansc);
+        CHECK(lo0 == anslo);
+        CHECK(hi0 == anshi);
+        CHECK(cf == ansc);
     };
 
     check(0, 0, 0, 0, 0, 0, 0, 0);
@@ -964,7 +964,7 @@ TEST(math, __subc_128) {
     check(UINT64_MAX, 0, UINT64_MAX, 1, 1, UINT64_MAX, UINT64_MAX - 1, 1);
 }
 
-TEST(math, mul_128) {
+TEST_CASE("math - mul_128") {
 
     const int T = 256;
     for (int i = 0; i < T; ++i) {
@@ -976,8 +976,8 @@ TEST(math, mul_128) {
 
         uint64_t lo, hi;
         lo = mul(x, y, hi);
-        WJR_CHECK(lo == anslo);
-        WJR_CHECK(hi == anshi);
+        CHECK(lo == anslo);
+        CHECK(hi == anshi);
     }
 }
 
@@ -1009,7 +1009,7 @@ static_assert(is_fast_container_inserter_v<std::back_insert_iterator<vector<int>
 
 } // namespace convert_tests
 
-TEST(math, to_chars) {
+TEST_CASE("math - to_chars") {
     const int T = 16;
 
     char b[64], c[64];
@@ -1022,18 +1022,18 @@ TEST(math, to_chars) {
         auto ret0 = to_chars(b, b + k, x, base);
 
         if (!ret0) {
-            WJR_CHECK(ret0.ptr == b + k);
+            CHECK(ret0.ptr == b + k);
         }
 
         do {
             auto ret1 = std::to_chars(c, c + k, x, base);
 
-            WJR_CHECK(ret0.ec == ret1.ec);
+            CHECK(ret0.ec == ret1.ec);
 
             if ((bool)ret0) {
-                WJR_CHECK(std::string_view(b, ret0.ptr - b) == std::string_view(c, ret1.ptr - c));
+                CHECK(std::string_view(b, ret0.ptr - b) == std::string_view(c, ret1.ptr - c));
             } else {
-                WJR_CHECK(ret1.ptr == c + k);
+                CHECK(ret1.ptr == c + k);
             }
         } while (false);
 
@@ -1041,13 +1041,13 @@ TEST(math, to_chars) {
         do {
             auto ret1 = to_chars(vec.data(), vec.data() + k, x, base);
 
-            WJR_CHECK(ret0.ec == ret1.ec);
+            CHECK(ret0.ec == ret1.ec);
 
             if ((bool)ret0) {
-                WJR_CHECK(std::string_view(b, ret0.ptr - b) ==
-                          std::string_view(vec.data(), ret1.ptr - vec.data()));
+                CHECK(std::string_view(b, ret0.ptr - b) ==
+                      std::string_view(vec.data(), ret1.ptr - vec.data()));
             } else {
-                WJR_CHECK(ret1.ptr == vec.data() + k);
+                CHECK(ret1.ptr == vec.data() + k);
             }
         } while (false);
 
@@ -1055,12 +1055,12 @@ TEST(math, to_chars) {
         do {
             auto ret1 = to_chars(lst.begin(), std::next(lst.begin(), k), x, base);
 
-            WJR_CHECK(ret0.ec == ret1.ec);
+            CHECK(ret0.ec == ret1.ec);
 
             if ((bool)ret0) {
-                WJR_CHECK(std::string_view(b, ret0.ptr - b) == std::string(lst.begin(), ret1.ptr));
+                CHECK(std::string_view(b, ret0.ptr - b) == std::string(lst.begin(), ret1.ptr));
             } else {
-                WJR_CHECK(std::distance(lst.begin(), ret1.ptr) == k);
+                CHECK(std::distance(lst.begin(), ret1.ptr) == k);
             }
         } while (false);
 
@@ -1070,15 +1070,14 @@ TEST(math, to_chars) {
             do {
                 auto ret1 = to_chars_backward_unchecked(c + 64, x, base);
 
-                WJR_CHECK(std::string_view(b, ret0.ptr - b) ==
-                          std::string_view(ret1, c + 64 - ret1));
+                CHECK(std::string_view(b, ret0.ptr - b) == std::string_view(ret1, c + 64 - ret1));
             } while (false);
 
             // test __fast_to_chars_unchecked
             do {
                 auto ret1 = to_chars_unchecked(c, x, base);
 
-                WJR_CHECK(std::string_view(b, ret0.ptr - b) == std::string_view(c, ret1 - c));
+                CHECK(std::string_view(b, ret0.ptr - b) == std::string_view(c, ret1 - c));
             } while (false);
 
             // test random access iterator of __fallback_to_chars_unchecked
@@ -1087,8 +1086,8 @@ TEST(math, to_chars) {
 
                 (void)to_chars_unchecked(std::back_inserter(vec), x, base);
 
-                WJR_CHECK(std::string_view(b, ret0.ptr - b) ==
-                          std::string_view((char *)vec.data(), vec.size()));
+                CHECK(std::string_view(b, ret0.ptr - b) ==
+                      std::string_view((char *)vec.data(), vec.size()));
             } while (false);
 
             // test forward iterator of __fallback_to_chars_unchecked
@@ -1097,7 +1096,7 @@ TEST(math, to_chars) {
 
                 (void)to_chars_unchecked(std::back_inserter(lst), x, base);
 
-                WJR_CHECK(std::string_view(b, ret0.ptr - b) == std::string(lst.begin(), lst.end()));
+                CHECK(std::string_view(b, ret0.ptr - b) == std::string(lst.begin(), lst.end()));
 
                 lst.resize(64);
             } while (false);
@@ -1131,7 +1130,7 @@ TEST(math, to_chars) {
     }
 }
 
-TEST(math, from_chars) {
+TEST_CASE("math - from_chars") {
     const int T = 16;
 
     char str[65];
@@ -1145,13 +1144,13 @@ TEST(math, from_chars) {
             decltype(type) y = 3;
             auto ret1 = std::from_chars(str, str + n, y, base);
 
-            WJR_CHECK(ret0.ec == ret1.ec);
-            WJR_CHECK(ret0.ptr - str == ret1.ptr - str);
+            CHECK(ret0.ec == ret1.ec);
+            CHECK(ret0.ptr - str == ret1.ptr - str);
             if ((bool)ret0) {
-                WJR_CHECK(x == y);
+                CHECK(x == y);
             } else {
-                WJR_CHECK(x == 1);
-                WJR_CHECK(y == 3);
+                CHECK(x == 1);
+                CHECK(y == 3);
             }
         } while (false);
     };
@@ -1182,7 +1181,7 @@ TEST(math, from_chars) {
     }
 }
 
-TEST(math, div1by1) {
+TEST_CASE("math - div1by1") {
     auto check = [](auto ic) {
         constexpr auto type = ic();
         for (size_t i = 0; i < 100; ++i) {
@@ -1197,7 +1196,7 @@ TEST(math, div1by1) {
                 uint64_t q = val / div;
                 uint64_t o = q * divisor;
                 uint64_t delta = val - o;
-                WJR_CHECK(delta < divisor);
+                CHECK(delta < divisor);
             }
         }
 
@@ -1210,7 +1209,7 @@ TEST(math, div1by1) {
                 uint64_t q = val / div;
                 uint64_t o = q * divisor;
                 uint64_t delta = val - o;
-                WJR_CHECK(delta < divisor);
+                CHECK(delta < divisor);
             }
         }
     };
@@ -1219,7 +1218,7 @@ TEST(math, div1by1) {
     check(integral_constant<branch, branch::full>{});
 }
 
-TEST(math, div2by1) {
+TEST_CASE("math - div2by1") {
     auto check128 = [](uint64_t lo, uint64_t hi) {
         uint128_t u128(lo, hi);
 
@@ -1232,7 +1231,7 @@ TEST(math, div2by1) {
             uint64_t rem;
             uint128_t q = div128by64to128(rem, lo, hi, divisor);
             uint128_t o = q * divisor + rem;
-            WJR_CHECK(o == u128);
+            CHECK(o == u128);
         }
     };
 
@@ -1245,7 +1244,7 @@ TEST(math, div2by1) {
             uint64_t rem;
             uint64_t q = div128by64to64(rem, lo, hi, divisor);
             uint128_t o = uint128_t(q) * divisor + rem;
-            WJR_CHECK(o == u128);
+            CHECK(o == u128);
         }
     };
 

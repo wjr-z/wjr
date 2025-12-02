@@ -2,35 +2,35 @@
 
 #include <algorithm>
 #include <map>
+#include <string>
 #include <wjr/container/btree_map.hpp>
 #include <wjr/container/vector.hpp>
 
 using namespace wjr;
 
 // Test fixture for typed tests with different key-value types
-template <typename TypeParam>
-class BtreeMapTest : public testing::Test {};
-
-using TestTypes = ::testing::Types<tp_list<int, int>, tp_list<std::string, std::string>>;
-TYPED_TEST_SUITE(BtreeMapTest, TestTypes);
+template <typename TestType>
+class BtreeMapTest {};
 
 #define REGISTER_TYPES()                                                                           \
-    using key_type = tp_at_t<TypeParam, 0>;                                                        \
-    using value_type = tp_at_t<TypeParam, 1>
+    using key_type = tp_at_t<TestType, 0>;                                                         \
+    using value_type = tp_at_t<TestType, 1>
 
 // Test: Default constructor creates empty map
-TYPED_TEST(BtreeMapTest, DefaultConstructor) {
+TEMPLATE_TEST_CASE("BtreeMapTest - DefaultConstructor", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     btree_map<key_type, value_type> map;
-    EXPECT_TRUE(map.empty());
-    EXPECT_EQ(map.size(), 0u);
-    EXPECT_EQ(map.begin(), map.end());
-    EXPECT_EQ(map.rbegin(), map.rend());
+    CHECK(map.empty());
+    CHECK_EQ(map.size(), 0u);
+    CHECK_EQ(map.begin(), map.end());
+    CHECK_EQ(map.rbegin(), map.rend());
 }
 
 // Test: Range constructor with various sizes
-TYPED_TEST(BtreeMapTest, RangeConstructor) {
+TEMPLATE_TEST_CASE("BtreeMapTest - RangeConstructor", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     for (int n : {0, 1, 2, 3, 7, 15, 31, 63, 127, 255, 511, 1023}) {
@@ -42,14 +42,14 @@ TYPED_TEST(BtreeMapTest, RangeConstructor) {
         btree_map<key_type, value_type> map(vec.begin(), vec.end());
         std::map<key_type, value_type> std_map(vec.begin(), vec.end());
 
-        EXPECT_EQ(map.size(), std_map.size()) << "Size mismatch for n=" << n;
-        EXPECT_TRUE(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()))
-            << "Content mismatch for n=" << n;
+        CHECK_EQ(map.size(), std_map.size());
+        CHECK(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
     }
 }
 
 // Test: Copy constructor
-TYPED_TEST(BtreeMapTest, CopyConstructor) {
+TEMPLATE_TEST_CASE("BtreeMapTest - CopyConstructor", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     for (int n : {0, 1, 10, 50, 100, 500}) {
@@ -61,14 +61,14 @@ TYPED_TEST(BtreeMapTest, CopyConstructor) {
         btree_map<key_type, value_type> map(vec.begin(), vec.end());
         btree_map<key_type, value_type> map_copy(map);
 
-        EXPECT_EQ(map.size(), map_copy.size());
-        EXPECT_TRUE(std::equal(map.begin(), map.end(), map_copy.begin(), map_copy.end()))
-            << "Copy constructor failed for n=" << n;
+        CHECK_EQ(map.size(), map_copy.size());
+        CHECK(std::equal(map.begin(), map.end(), map_copy.begin(), map_copy.end()));
     }
 }
 
 // Test: Move constructor
-TYPED_TEST(BtreeMapTest, MoveConstructor) {
+TEMPLATE_TEST_CASE("BtreeMapTest - MoveConstructor", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     for (int n : {0, 1, 10, 50, 100, 500}) {
@@ -82,15 +82,15 @@ TYPED_TEST(BtreeMapTest, MoveConstructor) {
 
         btree_map<key_type, value_type> map_moved(std::move(map));
 
-        EXPECT_TRUE(map.empty()) << "Source map should be empty after move";
-        EXPECT_EQ(map_moved.size(), std_map.size());
-        EXPECT_TRUE(std::equal(map_moved.begin(), map_moved.end(), std_map.begin(), std_map.end()))
-            << "Move constructor failed for n=" << n;
+        CHECK(map.empty());
+        CHECK_EQ(map_moved.size(), std_map.size());
+        CHECK(std::equal(map_moved.begin(), map_moved.end(), std_map.begin(), std_map.end()));
     }
 }
 
 // Test: Copy assignment
-TYPED_TEST(BtreeMapTest, CopyAssignment) {
+TEMPLATE_TEST_CASE("BtreeMapTest - CopyAssignment", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     for (int n : {0, 1, 10, 50, 100, 500}) {
@@ -104,14 +104,14 @@ TYPED_TEST(BtreeMapTest, CopyAssignment) {
 
         map2 = map;
 
-        EXPECT_EQ(map.size(), map2.size());
-        EXPECT_TRUE(std::equal(map.begin(), map.end(), map2.begin(), map2.end()))
-            << "Copy assignment failed for n=" << n;
+        CHECK_EQ(map.size(), map2.size());
+        CHECK(std::equal(map.begin(), map.end(), map2.begin(), map2.end()));
     }
 }
 
 // Test: Move assignment
-TYPED_TEST(BtreeMapTest, MoveAssignment) {
+TEMPLATE_TEST_CASE("BtreeMapTest - MoveAssignment", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     for (int n : {0, 1, 10, 50, 100, 500}) {
@@ -126,15 +126,15 @@ TYPED_TEST(BtreeMapTest, MoveAssignment) {
 
         map2 = std::move(map);
 
-        EXPECT_TRUE(map.empty()) << "Source map should be empty after move assignment";
-        EXPECT_EQ(map2.size(), std_map.size());
-        EXPECT_TRUE(std::equal(map2.begin(), map2.end(), std_map.begin(), std_map.end()))
-            << "Move assignment failed for n=" << n;
+        CHECK(map.empty());
+        CHECK_EQ(map2.size(), std_map.size());
+        CHECK(std::equal(map2.begin(), map2.end(), std_map.begin(), std_map.end()));
     }
 }
 
 // Test: Emplace with pair
-TYPED_TEST(BtreeMapTest, EmplaceWithPair) {
+TEMPLATE_TEST_CASE("BtreeMapTest - EmplaceWithPair", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     for (int n : {0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023}) {
@@ -150,17 +150,17 @@ TYPED_TEST(BtreeMapTest, EmplaceWithPair) {
             auto [it1, inserted1] = map.emplace(pr);
             auto [it2, inserted2] = std_map.emplace(pr);
 
-            EXPECT_EQ(inserted1, inserted2) << "Emplace insertion result mismatch";
+            CHECK_EQ(inserted1, inserted2) /* Emplace insertion result mismatch */;
         }
 
-        EXPECT_EQ(map.size(), std_map.size());
-        EXPECT_TRUE(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()))
-            << "Emplace with pair failed for n=" << n;
+        CHECK_EQ(map.size(), std_map.size());
+        CHECK(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
     }
 }
 
 // Test: Emplace with key and value
-TYPED_TEST(BtreeMapTest, EmplaceWithKeyValue) {
+TEMPLATE_TEST_CASE("BtreeMapTest - EmplaceWithKeyValue", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     for (int n : {0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023}) {
@@ -176,17 +176,17 @@ TYPED_TEST(BtreeMapTest, EmplaceWithKeyValue) {
             auto [it1, inserted1] = map.emplace(pr.first, pr.second);
             auto [it2, inserted2] = std_map.emplace(pr.first, pr.second);
 
-            EXPECT_EQ(inserted1, inserted2) << "Emplace insertion result mismatch";
+            CHECK_EQ(inserted1, inserted2) /* Emplace insertion result mismatch */;
         }
 
-        EXPECT_EQ(map.size(), std_map.size());
-        EXPECT_TRUE(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()))
-            << "Emplace with key-value failed for n=" << n;
+        CHECK_EQ(map.size(), std_map.size());
+        CHECK(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
     }
 }
 
 // Test: Insert duplicate keys (should not increase size)
-TYPED_TEST(BtreeMapTest, InsertDuplicates) {
+TEMPLATE_TEST_CASE("BtreeMapTest - InsertDuplicates", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     btree_map<key_type, value_type> map;
@@ -196,17 +196,18 @@ TYPED_TEST(BtreeMapTest, InsertDuplicates) {
     value_type val2 = trandom<value_type>();
 
     auto [it1, inserted1] = map.emplace(key, val1);
-    EXPECT_TRUE(inserted1);
-    EXPECT_EQ(map.size(), 1u);
+    CHECK(inserted1);
+    CHECK_EQ(map.size(), 1u);
 
     auto [it2, inserted2] = map.emplace(key, val2);
-    EXPECT_FALSE(inserted2);
-    EXPECT_EQ(map.size(), 1u);
-    EXPECT_EQ(it1, it2);
+    CHECK_FALSE(inserted2);
+    CHECK_EQ(map.size(), 1u);
+    CHECK_EQ(it1, it2);
 }
 
 // Test: lower_bound
-TYPED_TEST(BtreeMapTest, LowerBound) {
+TEMPLATE_TEST_CASE("BtreeMapTest - LowerBound", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     for (int n : {0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023}) {
@@ -223,17 +224,18 @@ TYPED_TEST(BtreeMapTest, LowerBound) {
             auto it2 = std_map.lower_bound(key);
 
             if (it1 == map.end()) {
-                EXPECT_EQ(it2, std_map.end()) << "lower_bound end mismatch for n=" << n;
+                CHECK_EQ(it2, std_map.end());
             } else {
-                EXPECT_NE(it2, std_map.end()) << "lower_bound not end mismatch for n=" << n;
-                EXPECT_EQ(*it1, *it2) << "lower_bound value mismatch for n=" << n;
+                CHECK_NE(it2, std_map.end());
+                CHECK_EQ(*it1, *it2);
             }
         }
     }
 }
 
 // Test: upper_bound
-TYPED_TEST(BtreeMapTest, UpperBound) {
+TEMPLATE_TEST_CASE("BtreeMapTest - UpperBound", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     for (int n : {0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023}) {
@@ -250,17 +252,18 @@ TYPED_TEST(BtreeMapTest, UpperBound) {
             auto it2 = std_map.upper_bound(key);
 
             if (it1 == map.end()) {
-                EXPECT_EQ(it2, std_map.end()) << "upper_bound end mismatch for n=" << n;
+                CHECK_EQ(it2, std_map.end());
             } else {
-                EXPECT_NE(it2, std_map.end()) << "upper_bound not end mismatch for n=" << n;
-                EXPECT_EQ(*it1, *it2) << "upper_bound value mismatch for n=" << n;
+                CHECK_NE(it2, std_map.end());
+                CHECK_EQ(*it1, *it2);
             }
         }
     }
 }
 
 // Test: Lookup with lower_bound and upper_bound
-TYPED_TEST(BtreeMapTest, Lookup) {
+TEMPLATE_TEST_CASE("BtreeMapTest - Lookup", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     for (int n : {0, 10, 50, 100}) {
@@ -283,18 +286,19 @@ TYPED_TEST(BtreeMapTest, Lookup) {
             auto it2 = std_map.lower_bound(key);
 
             if (it1 == map.end()) {
-                EXPECT_EQ(it2, std_map.end());
+                CHECK_EQ(it2, std_map.end());
             } else {
-                EXPECT_NE(it2, std_map.end());
-                EXPECT_EQ(it1->first, it2->first);
-                EXPECT_EQ(it1->second, it2->second);
+                CHECK_NE(it2, std_map.end());
+                CHECK_EQ(it1->first, it2->first);
+                CHECK_EQ(it1->second, it2->second);
             }
         }
     }
 }
 
 // Test: Erase by iterator
-TYPED_TEST(BtreeMapTest, EraseByIterator) {
+TEMPLATE_TEST_CASE("BtreeMapTest - EraseByIterator", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     for (int n : {1, 3, 7, 15, 31, 63, 127, 255, 511}) {
@@ -312,20 +316,20 @@ TYPED_TEST(BtreeMapTest, EraseByIterator) {
             auto it1 = map.begin();
             auto it2 = std_map.begin();
 
-            EXPECT_EQ(it1->first, it2->first);
+            CHECK_EQ(it1->first, it2->first);
 
             map.erase(it1);
             std_map.erase(it2);
         }
 
-        EXPECT_EQ(map.size(), std_map.size());
-        EXPECT_TRUE(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()))
-            << "Erase by iterator failed for n=" << n;
+        CHECK_EQ(map.size(), std_map.size());
+        CHECK(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
     }
 }
 
 // Test: Erase by finding key first
-TYPED_TEST(BtreeMapTest, EraseByKey) {
+TEMPLATE_TEST_CASE("BtreeMapTest - EraseByKey", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     for (int n : {10, 50, 100, 500}) {
@@ -352,14 +356,14 @@ TYPED_TEST(BtreeMapTest, EraseByKey) {
             std_map.erase(keys[i]);
         }
 
-        EXPECT_EQ(map.size(), std_map.size());
-        EXPECT_TRUE(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()))
-            << "Erase by key failed for n=" << n;
+        CHECK_EQ(map.size(), std_map.size());
+        CHECK(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
     }
 }
 
 // Test: Erase with node_size=4 (critical for reproducing past bugs)
-TYPED_TEST(BtreeMapTest, EraseWithSmallNodeSize) {
+TEMPLATE_TEST_CASE("BtreeMapTest - EraseWithSmallNodeSize", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     btree_map<key_type, value_type, std::less<>, std::allocator<char>, 4> map;
@@ -391,12 +395,13 @@ TYPED_TEST(BtreeMapTest, EraseWithSmallNodeSize) {
         }
     }
 
-    EXPECT_EQ(map.size(), std_map.size());
-    EXPECT_TRUE(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
+    CHECK_EQ(map.size(), std_map.size());
+    CHECK(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
 }
 
 // Test: Clear
-TYPED_TEST(BtreeMapTest, Clear) {
+TEMPLATE_TEST_CASE("BtreeMapTest - Clear", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     for (int n : {0, 1, 10, 50, 100}) {
@@ -406,18 +411,19 @@ TYPED_TEST(BtreeMapTest, Clear) {
         }
 
         btree_map<key_type, value_type> map(std_map.begin(), std_map.end());
-        EXPECT_EQ(map.size(), std_map.size());
+        CHECK_EQ(map.size(), std_map.size());
 
         map.clear();
 
-        EXPECT_TRUE(map.empty());
-        EXPECT_EQ(map.size(), 0u);
-        EXPECT_EQ(map.begin(), map.end());
+        CHECK(map.empty());
+        CHECK_EQ(map.size(), 0u);
+        CHECK_EQ(map.begin(), map.end());
     }
 }
 
 // Test: Swap
-TYPED_TEST(BtreeMapTest, Swap) {
+TEMPLATE_TEST_CASE("BtreeMapTest - Swap", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     for (int n : {0, 1, 3, 7, 15, 31, 63, 127, 255}) {
@@ -440,23 +446,20 @@ TYPED_TEST(BtreeMapTest, Swap) {
 
             // Swap
             map.swap(map2);
-            EXPECT_TRUE(std::equal(map.begin(), map.end(), std_map2.begin(), std_map2.end()))
-                << "Swap failed (1st swap) for n=" << n << ", m=" << m;
-            EXPECT_TRUE(std::equal(map2.begin(), map2.end(), std_map.begin(), std_map.end()))
-                << "Swap failed (1st swap) for n=" << n << ", m=" << m;
+            CHECK(std::equal(map.begin(), map.end(), std_map2.begin(), std_map2.end()));
+            CHECK(std::equal(map2.begin(), map2.end(), std_map.begin(), std_map.end()));
 
             // Swap back
             map.swap(map2);
-            EXPECT_TRUE(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()))
-                << "Swap back failed for n=" << n << ", m=" << m;
-            EXPECT_TRUE(std::equal(map2.begin(), map2.end(), std_map2.begin(), std_map2.end()))
-                << "Swap back failed for n=" << n << ", m=" << m;
+            CHECK(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
+            CHECK(std::equal(map2.begin(), map2.end(), std_map2.begin(), std_map2.end()));
         }
     }
 }
 
 // Test: Iterator increment and decrement
-TYPED_TEST(BtreeMapTest, IteratorTraversal) {
+TEMPLATE_TEST_CASE("BtreeMapTest - IteratorTraversal", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     for (int n : {0, 1, 10, 50, 100}) {
@@ -472,34 +475,35 @@ TYPED_TEST(BtreeMapTest, IteratorTraversal) {
         }
 
         // Verify sizes match
-        ASSERT_EQ(map.size(), std_map.size()) << "Size mismatch for n=" << n;
+        REQUIRE_EQ(map.size(), std_map.size());
 
         // Forward iteration
         auto it1 = map.begin();
         auto it2 = std_map.begin();
         while (it1 != map.end() && it2 != std_map.end()) {
-            EXPECT_EQ(it1->first, it2->first) << "Forward iteration key mismatch";
+            CHECK_EQ(it1->first, it2->first) /* Forward iteration key mismatch */;
             ++it1;
             ++it2;
         }
-        EXPECT_EQ(it1, map.end());
-        EXPECT_EQ(it2, std_map.end());
+        CHECK_EQ(it1, map.end());
+        CHECK_EQ(it2, std_map.end());
 
         // Reverse iteration
         auto rit1 = map.rbegin();
         auto rit2 = std_map.rbegin();
         while (rit1 != map.rend() && rit2 != std_map.rend()) {
-            EXPECT_EQ(rit1->first, rit2->first) << "Reverse iteration key mismatch";
+            CHECK_EQ(rit1->first, rit2->first) /* Reverse iteration key mismatch */;
             ++rit1;
             ++rit2;
         }
-        EXPECT_EQ(rit1, map.rend());
-        EXPECT_EQ(rit2, std_map.rend());
+        CHECK_EQ(rit1, map.rend());
+        CHECK_EQ(rit2, std_map.rend());
     }
 }
 
 // Test: const iterator
-TYPED_TEST(BtreeMapTest, ConstIterator) {
+TEMPLATE_TEST_CASE("BtreeMapTest - ConstIterator", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     btree_map<key_type, value_type> map;
@@ -515,13 +519,14 @@ TYPED_TEST(BtreeMapTest, ConstIterator) {
     const btree_map<key_type, value_type> &cmap = map;
     const std::map<key_type, value_type> &cstd_map = std_map;
 
-    EXPECT_EQ(cmap.size(), cstd_map.size());
-    EXPECT_TRUE(std::equal(cmap.begin(), cmap.end(), cstd_map.begin(), cstd_map.end()));
-    EXPECT_TRUE(std::equal(cmap.cbegin(), cmap.cend(), cstd_map.cbegin(), cstd_map.cend()));
+    CHECK_EQ(cmap.size(), cstd_map.size());
+    CHECK(std::equal(cmap.begin(), cmap.end(), cstd_map.begin(), cstd_map.end()));
+    CHECK(std::equal(cmap.cbegin(), cmap.cend(), cstd_map.cbegin(), cstd_map.cend()));
 }
 
 // Test: Random operations stress test
-TYPED_TEST(BtreeMapTest, RandomOperationsStressTest) {
+TEMPLATE_TEST_CASE("BtreeMapTest - RandomOperationsStressTest", "", (tp_list<int, int>),
+                   (tp_list<std::string, std::string>)) {
     REGISTER_TYPES();
 
     btree_map<key_type, value_type> map;
@@ -546,32 +551,31 @@ TYPED_TEST(BtreeMapTest, RandomOperationsStressTest) {
 
         // Verify every 50 operations
         if (i % 50 == 49) {
-            EXPECT_EQ(map.size(), std_map.size()) << "Size mismatch at iteration " << i;
-            EXPECT_TRUE(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()))
-                << "Content mismatch at iteration " << i;
+            CHECK_EQ(map.size(), std_map.size());
+            CHECK(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
         }
     }
 
-    EXPECT_EQ(map.size(), std_map.size());
-    EXPECT_TRUE(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
+    CHECK_EQ(map.size(), std_map.size());
+    CHECK(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
 }
 
 // Test: Different node sizes
-TEST(BtreeMapNodeSizeTest, DifferentNodeSizes) {
+TEST_CASE("BtreeMapNodeSizeTest - DifferentNodeSizes") {
     // Test with node_size = 4
     {
         btree_map<int, int, std::less<>, std::allocator<char>, 4> map;
         for (int i = 0; i < 100; ++i) {
             map.emplace(i, i * 2);
         }
-        EXPECT_EQ(map.size(), 100u);
+        CHECK_EQ(map.size(), 100u);
 
         for (int i = 0; i < 50; ++i) {
             auto it = map.lower_bound(i);
             if (it != map.end())
                 map.erase(it);
         }
-        EXPECT_EQ(map.size(), 50u);
+        CHECK_EQ(map.size(), 50u);
     }
 
     // Test with node_size = 8
@@ -580,14 +584,14 @@ TEST(BtreeMapNodeSizeTest, DifferentNodeSizes) {
         for (int i = 0; i < 100; ++i) {
             map.emplace(i, i * 2);
         }
-        EXPECT_EQ(map.size(), 100u);
+        CHECK_EQ(map.size(), 100u);
 
         for (int i = 0; i < 50; ++i) {
             auto it = map.lower_bound(i);
             if (it != map.end())
                 map.erase(it);
         }
-        EXPECT_EQ(map.size(), 50u);
+        CHECK_EQ(map.size(), 50u);
     }
 
     // Test with node_size = 16
@@ -596,19 +600,19 @@ TEST(BtreeMapNodeSizeTest, DifferentNodeSizes) {
         for (int i = 0; i < 100; ++i) {
             map.emplace(i, i * 2);
         }
-        EXPECT_EQ(map.size(), 100u);
+        CHECK_EQ(map.size(), 100u);
 
         for (int i = 0; i < 50; ++i) {
             auto it = map.lower_bound(i);
             if (it != map.end())
                 map.erase(it);
         }
-        EXPECT_EQ(map.size(), 50u);
+        CHECK_EQ(map.size(), 50u);
     }
 }
 
 // Test: Large scale operations
-TEST(BtreeMapScaleTest, LargeScale) {
+TEST_CASE("BtreeMapScaleTest - LargeScale") {
     btree_map<int, std::string> map;
     std::map<int, std::string> std_map;
 
@@ -619,8 +623,8 @@ TEST(BtreeMapScaleTest, LargeScale) {
         std_map.emplace(i, val);
     }
 
-    EXPECT_EQ(map.size(), 10000u);
-    EXPECT_TRUE(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
+    CHECK_EQ(map.size(), 10000u);
+    CHECK(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
 
     // Erase 5000 random elements
     vector<int> keys;
@@ -637,6 +641,6 @@ TEST(BtreeMapScaleTest, LargeScale) {
         std_map.erase(keys[i]);
     }
 
-    EXPECT_EQ(map.size(), 5000u);
-    EXPECT_TRUE(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
+    CHECK_EQ(map.size(), 5000u);
+    CHECK(std::equal(map.begin(), map.end(), std_map.begin(), std_map.end()));
 }

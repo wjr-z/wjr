@@ -18,7 +18,7 @@ struct default_construtor_struct {
     default_construtor_struct(enable_default_constructor_t) {}
 };
 
-TEST(compressed_pair, constructor) {
+TEST_CASE("compressed_pair - constructor") {
     using cpi2 = compressed_pair<int, int>;
     using cpis = compressed_pair<int, std::string>;
 
@@ -51,40 +51,40 @@ TEST(compressed_pair, constructor) {
 
     {
         cpi2 a;
-        WJR_CHECK(a.first() == 0);
-        WJR_CHECK(a.second() == 0);
+        CHECK(a.first() == 0);
+        CHECK(a.second() == 0);
         cpi2 b(default_construct, default_construct);
         cpi2 c(default_construct, 3);
         (void)(b);
-        WJR_CHECK(c.second() == 3);
+        CHECK(c.second() == 3);
 
         a = std::make_pair(1, 2);
-        WJR_CHECK(a.first() == 1);
-        WJR_CHECK(a.second() == 2);
+        CHECK(a.first() == 1);
+        CHECK(a.second() == 2);
 
         a = std::make_tuple(3, 4);
-        WJR_CHECK(a.first() == 3);
-        WJR_CHECK(a.second() == 4);
+        CHECK(a.first() == 3);
+        CHECK(a.second() == 4);
 
         a = make_compressed_pair(5, 6);
-        WJR_CHECK(a.first() == 5);
-        WJR_CHECK(a.second() == 6);
+        CHECK(a.first() == 5);
+        CHECK(a.second() == 6);
 
         a = std::array<char, 2>{7, 8};
-        WJR_CHECK(a.first() == 7);
-        WJR_CHECK(a.second() == 8);
+        CHECK(a.first() == 7);
+        CHECK(a.second() == 8);
     }
 
     {
         tuple<int, int> a(1, 2);
 
         cpi2 b(std::make_pair(1, 3));
-        WJR_CHECK(b.first() == 1);
-        WJR_CHECK(b.second() == 3);
+        CHECK(b.first() == 1);
+        CHECK(b.second() == 3);
 
         auto [x, y] = a;
-        WJR_CHECK(x == 1);
-        WJR_CHECK(y == 2);
+        CHECK(x == 1);
+        CHECK(y == 2);
 
         auto &[z, w] = a;
         z = 5;
@@ -97,18 +97,18 @@ TEST(compressed_pair, constructor) {
         cpi2 c(std::move(a));
         cpi2 d = c;
 
-        WJR_CHECK(b.first() == 1);
-        WJR_CHECK(b.second() == 2);
-        WJR_CHECK(c.first() == 1);
-        WJR_CHECK(c.second() == 2);
-        WJR_CHECK(d.first() == 1);
-        WJR_CHECK(d.second() == 2);
+        CHECK(b.first() == 1);
+        CHECK(b.second() == 2);
+        CHECK(c.first() == 1);
+        CHECK(c.second() == 2);
+        CHECK(d.first() == 1);
+        CHECK(d.second() == 2);
     }
 
     {
         cpis a(1, "hello");
-        WJR_CHECK(a.first() == 1);
-        WJR_CHECK(a.second() == "hello");
+        CHECK(a.first() == 1);
+        CHECK(a.second() == "hello");
     }
 
     {
@@ -117,7 +117,7 @@ TEST(compressed_pair, constructor) {
         type a;
         (void)(a);
         type b({}, 3);
-        WJR_CHECK(b.second() == 3);
+        CHECK(b.second() == 3);
     }
 
     {
@@ -125,14 +125,14 @@ TEST(compressed_pair, constructor) {
         static_assert(sizeof(type) == sizeof(int), "size error");
         static_assert(!std::is_default_constructible_v<type>, "default constructible error");
         type a(enable_default_constructor, 3);
-        WJR_CHECK(a.second() == 3);
+        CHECK(a.second() == 3);
         type b(a);
         type c(std::move(a));
         type d = c;
         type e = std::move(c);
-        WJR_CHECK(b.second() == 3);
-        WJR_CHECK(c.second() == 3);
-        WJR_CHECK(d.second() == 3);
-        WJR_CHECK(e.second() == 3);
+        CHECK(b.second() == 3);
+        CHECK(c.second() == 3);
+        CHECK(d.second() == 3);
+        CHECK(e.second() == 3);
     }
 }

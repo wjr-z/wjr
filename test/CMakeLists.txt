@@ -31,20 +31,21 @@ else()
    message(STATUS "GMP library not found, tests will be built without GMP support.")
 endif()
 
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
-set(BUILD_GTEST ON CACHE BOOL "" FORCE)
-
-if(EXISTS googletest)
-   add_subdirectory(googletest)
+if(EXISTS Catch2)
+   add_subdirectory(Catch2)
 else()
    FetchContent_Declare(
-      googletest
-      GIT_REPOSITORY https://github.com/google/googletest.git
-      GIT_TAG v1.17.0
+      Catch2
+      GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+      GIT_TAG v3.8.1
    )
 
-   FetchContent_MakeAvailable(googletest)
+   FetchContent_MakeAvailable(Catch2)
+   set_target_properties(Catch2 PROPERTIES CXX_STANDARD 17)
+   target_compile_definitions(Catch2
+   PUBLIC
+      CATCH_CONFIG_CPP17_STRING_VIEW
+   )
 endif()
 
 file(GLOB_RECURSE TEST_SRCS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
@@ -107,7 +108,7 @@ target_include_directories(tests PRIVATE ${GMP_INCLUDE_DIRS})
 target_link_libraries(tests
    PRIVATE
    wjr::wjr
-   gtest_main
+   Catch2::Catch2WithMain
    ${GMP_LIBRARIES}
 )
 
