@@ -133,43 +133,66 @@ void run_range3(Func fn) {
 using int_ilist = std::initializer_list<int>;
 using string_ilist = std::initializer_list<std::string>;
 
+// Container templates
 template <typename T>
 using wvector = wjr::vector<T>;
+
+template <typename T>
+using wsmall_vector = wjr::small_vector<T, 4>;
 
 namespace wjr {
 template class basic_vector<default_vector_storage<int, std::allocator<int>>>;
 template class basic_vector<default_vector_storage<std::string, std::allocator<std::string>>>;
 } // namespace wjr
 
-TEST(vector, construct) {
+// Wrapper for container template
+template <template <typename> class Container>
+struct ContainerWrapper {
+    template <typename T>
+    using type = Container<T>;
+};
 
-    // default
-    {
-        auto test = [](auto _Val) {
-            using T = decltype(_Val);
-            wvector<T> v;
+// Test fixture for typed tests
+template <typename TypeParam>
+class VectorTest : public ::testing::Test {};
+
+// Define the types to test - just the two container templates
+using VectorTypes = ::testing::Types<
+    ContainerWrapper<wvector>,
+    ContainerWrapper<wsmall_vector>
+>;
+
+TYPED_TEST_SUITE(VectorTest, VectorTypes);
+
+TYPED_TEST(VectorTest, construct_default) {
+    auto test = [](auto _Val) {
+        using T = decltype(_Val);
+        using Vec = typename TypeParam::template type<T>;
+        // default
+        {
+            Vec v;
             EXPECT_EQ(v.size(), 0);
             EXPECT_GE(v.capacity(), 0);
-        };
-        test(__int);
-        test(__string);
-    }
-    {
-        auto test = [](auto _Val) {
-            using T = decltype(_Val);
+        }
+        {
             std::allocator<T> al;
-            wvector<T> v(al);
+            Vec v(al);
             EXPECT_EQ(v.size(), 0);
             EXPECT_GE(v.capacity(), 0);
-        };
-        test(__int);
-        test(__string);
-    }
+        }
+    };
+    
+    test(__int);
+    test(__string);
+}
+
+TYPED_TEST(VectorTest, construct_with_size) {
     {
         auto test = [](auto _Val, size_t n) {
             using T = decltype(_Val);
+            using Vec = typename TypeParam::template type<T>;
             std::allocator<T> al;
-            wvector<T> v(n, al);
+            Vec v(n, al);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
             for_each_n(v.begin(), n, [](auto &x) { EXPECT_EQ(x, T()); });
@@ -315,14 +338,15 @@ TEST(vector, construct) {
     }
 }
 
-TEST(vector, assignment) {
+TYPED_TEST(VectorTest, assignment) {
     // vector& operator=(const vector&)
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
+            using Vec = typename TypeParam::template type<T>;
             std::allocator<T> al;
-            wvector<T> V(n, _Val, al);
-            wvector<T> v(c);
+            Vec V(n, _Val, al);
+            Vec v(c);
             v.resize(s);
             EXPECT_EQ(v.size(), s);
             EXPECT_GE(v.capacity(), c);
@@ -342,9 +366,10 @@ TEST(vector, assignment) {
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
+            using Vec = typename TypeParam::template type<T>;
             std::allocator<T> al;
-            wvector<T> V(n, _Val, al);
-            wvector<T> v(c);
+            Vec V(n, _Val, al);
+            Vec v(c);
             v.resize(s);
             v = std::move(V);
             EXPECT_EQ(v.size(), n);
@@ -359,8 +384,9 @@ TEST(vector, assignment) {
     {
         auto test = [](auto _Val, auto il) {
             using T = decltype(_Val);
+            using Vec = typename TypeParam::template type<T>;
             auto n = il.size();
-            wvector<T> v;
+            Vec v;
             v = il;
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
@@ -385,12 +411,13 @@ TEST(vector, assignment) {
     }
 }
 
-TEST(vector, assign) {
+TYPED_TEST(VectorTest, assign) {
     // assign(size_t _Count, const vlaue_type& _Val)
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
-            wvector<T> v(c);
+            using Vec = typename TypeParam::template type<T>;
+            Vec v(c);
             v.resize(s);
             v.assign(n, _Val);
             EXPECT_EQ(v.size(), n);
@@ -406,7 +433,8 @@ TEST(vector, assign) {
     {
         auto test = [](auto _Val, int n, auto first, auto last) {
             using T = decltype(_Val);
-            wvector<T> v;
+            using Vec = typename TypeParam::template type<T>;
+            Vec v;
             v.assign(first, last);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
@@ -440,8 +468,9 @@ TEST(vector, assign) {
     {
         auto test = [](auto _Val, auto il) {
             using T = decltype(_Val);
+            using Vec = typename TypeParam::template type<T>;
             auto n = il.size();
-            wvector<T> v;
+            Vec v;
             v.assign(il);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
@@ -466,11 +495,12 @@ TEST(vector, assign) {
     }
 }
 
-TEST(vector, resize) {
+TYPED_TEST(VectorTest, resize) {
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
-            wvector<T> v(c);
+            using Vec = typename TypeParam::template type<T>;
+            Vec v(c);
             v.resize(s);
             v.resize(n, _Val);
             EXPECT_EQ(v.size(), n);
@@ -492,7 +522,8 @@ TEST(vector, resize) {
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
-            wvector<T> v(c);
+            using Vec = typename TypeParam::template type<T>;
+            Vec v(c);
             v.resize(s);
             v.resize(n);
             EXPECT_EQ(v.size(), n);
@@ -512,11 +543,12 @@ TEST(vector, resize) {
     }
 }
 
-TEST(vector, reserve) {
+TYPED_TEST(VectorTest, reserve) {
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
-            wvector<T> v(c, _Val);
+            using Vec = typename TypeParam::template type<T>;
+            Vec v(c, _Val);
             v.resize(s, _Val);
             v.reserve(n);
             EXPECT_EQ(v.size(), s);
@@ -530,11 +562,12 @@ TEST(vector, reserve) {
     }
 }
 
-TEST(vector, shrink_to_fit) {
+TYPED_TEST(VectorTest, shrink_to_fit) {
     {
         auto test = [](auto _Val, size_t s, size_t c) {
             using T = decltype(_Val);
-            wvector<T> v(c, _Val);
+            using Vec = typename TypeParam::template type<T>;
+            Vec v(c, _Val);
             v.resize(s, _Val);
             v.shrink_to_fit();
             EXPECT_EQ(v.size(), s);
@@ -548,11 +581,12 @@ TEST(vector, shrink_to_fit) {
     }
 }
 
-TEST(vector, emplace_back) {
+TYPED_TEST(VectorTest, emplace_back) {
     {
         auto test = [](auto _Val, size_t n) {
             using T = decltype(_Val);
-            wvector<T> v;
+            using Vec = typename TypeParam::template type<T>;
+            Vec v;
             for (size_t i = 0; i < n; ++i) {
                 v.emplace_back(_Val);
             }
@@ -567,28 +601,30 @@ TEST(vector, emplace_back) {
     }
 
     {
-        wvector<int> a;
+        using Vec = typename TypeParam::template type<int>;
+        Vec a;
         a.emplace_back(default_construct);
-
         EXPECT_TRUE(a.size() == 1);
     }
 
     {
-        wvector<std::string> a;
+        using Vec = typename TypeParam::template type<std::string>;
+        Vec a;
         a.emplace_back(default_construct);
-
         EXPECT_TRUE(a.size() == 1);
         EXPECT_TRUE(a[0].empty());
     }
 }
 
-TEST(vector, pop_back) {
+TYPED_TEST(VectorTest, pop_back) {
     {
         auto test = [](auto _Val, size_t n) {
-            if (!n)
+            if (!n) {
                 return;
+            }
             using T = decltype(_Val);
-            wvector<T> v(n, _Val);
+            using Vec = typename TypeParam::template type<T>;
+            Vec v(n, _Val);
             v.pop_back();
             EXPECT_EQ(v.size(), n - 1);
             EXPECT_GE(v.capacity(), n);
@@ -601,28 +637,26 @@ TEST(vector, pop_back) {
     }
 }
 
-TEST(vector, empty) {
-    {
-        auto test = [](auto _Val) {
-            using T = decltype(_Val);
-            wvector<T> v;
-            EXPECT_EQ(v.size(), 0);
-            EXPECT_GE(v.capacity(), 0);
-            EXPECT_TRUE(v.empty());
-        };
-        [&]() {
-            test(__int);
-            test(__string);
-        }();
-    }
+TYPED_TEST(VectorTest, empty) {
+    auto test = [](auto _Val) {
+        using T = decltype(_Val);
+        using Vec = typename TypeParam::template type<T>;
+        Vec v;
+        EXPECT_EQ(v.size(), 0);
+        EXPECT_GE(v.capacity(), 0);
+        EXPECT_TRUE(v.empty());
+    };
+    test(__int);
+    test(__string);
 }
 
 #if !defined(WJR_DISABLE_EXCEPTIONS)
-TEST(vector, at) {
+TYPED_TEST(VectorTest, at) {
     {
         auto test = [](auto _Val, size_t n, size_t i) {
             using T = decltype(_Val);
-            wvector<T> v(n, _Val);
+            using Vec = typename TypeParam::template type<T>;
+            Vec v(n, _Val);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
             try {
@@ -640,13 +674,15 @@ TEST(vector, at) {
 }
 #endif
 
-TEST(vector, emplace) {
+TYPED_TEST(VectorTest, emplace) {
     {
         auto test = [](auto _Val, auto _Val2, size_t n, size_t s, size_t c) {
-            if (n > s)
+            if (n > s) {
                 return;
+            }
             using T = decltype(_Val);
-            wvector<T> v(c, _Val);
+            using Vec = typename TypeParam::template type<T>;
+            Vec v(c, _Val);
             v.resize(s, _Val);
             v.insert(v.begin() + n, _Val2);
             EXPECT_EQ(v.size(), s + 1);
@@ -665,15 +701,16 @@ TEST(vector, emplace) {
     }
 }
 
-TEST(vector, insert) {
+TYPED_TEST(VectorTest, insert) {
     {
         auto test = [](auto _Val, auto _Val2, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
+            using Vec = typename TypeParam::template type<T>;
             auto __test = [&](size_t pos) {
                 if (_has_high_bit(pos) || pos > s) {
                     return;
                 }
-                wvector<T> v(c, _Val);
+                Vec v(c, _Val);
                 v.resize(s, _Val);
                 v.insert(v.begin() + pos, n, _Val2);
                 EXPECT_EQ(v.size(), s + n);
@@ -700,13 +737,15 @@ TEST(vector, insert) {
     }
 }
 
-TEST(vector, erase) {
+TYPED_TEST(VectorTest, erase) {
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
-            if (n >= s || !s)
+            if (n >= s || !s) {
                 return;
+            }
             using T = decltype(_Val);
-            wvector<T> v(c, _Val);
+            using Vec = typename TypeParam::template type<T>;
+            Vec v(c, _Val);
             v.resize(s, _Val);
             v.erase(v.begin() + n);
             EXPECT_EQ(v.size(), s - 1);
@@ -721,10 +760,12 @@ TEST(vector, erase) {
     }
 }
 
-TEST(vector, swap) {
+TYPED_TEST(VectorTest, swap) {
+    using Vec = typename TypeParam::template type<int>;
+    
     {
-        vector<int> v1(32, 1);
-        vector<int> v2(64, 2);
+        Vec v1(32, 1);
+        Vec v2(64, 2);
         v1.swap(v2);
         EXPECT_EQ(v1.size(), 64);
         EXPECT_EQ(v2.size(), 32);
@@ -732,7 +773,22 @@ TEST(vector, swap) {
         for_each_n(v2.begin(), 32, [](auto &x) { EXPECT_EQ(x, 1); });
     }
 
-    for (int n = 0; n < 16; ++n)
+    for (int n = 0; n < 32; ++n) {
+        for (int m = 0; m < 32; ++m) {
+            Vec v1(n, 1);
+            Vec v2(m, 2);
+            v1.swap(v2);
+            EXPECT_EQ(v1.size(), m);
+            EXPECT_EQ(v2.size(), n);
+            for_each_n(v1.begin(), m, [](auto &x) { EXPECT_EQ(x, 2); });
+            for_each_n(v2.begin(), n, [](auto &x) { EXPECT_EQ(x, 1); });
+        }
+    }
+}
+
+// Keep inplace_vector tests separate as they have fixed capacity
+TEST(vector, swap_inplace) {
+    for (int n = 0; n < 16; ++n) {
         for (int m = 0; m < 16; ++m) {
             inplace_vector<int, 16> v1(n, 1);
             inplace_vector<int, 16> v2(m, 2);
@@ -742,8 +798,9 @@ TEST(vector, swap) {
             for_each_n(v1.begin(), m, [](auto &x) { EXPECT_EQ(x, 2); });
             for_each_n(v2.begin(), n, [](auto &x) { EXPECT_EQ(x, 1); });
         }
+    }
 
-    for (int n = 0; n < 32; ++n)
+    for (int n = 0; n < 32; ++n) {
         for (int m = 0; m < 32; ++m) {
             inplace_vector<int, 32> v1(n, 1);
             inplace_vector<int, 32> v2(m, 2);
@@ -753,54 +810,38 @@ TEST(vector, swap) {
             for_each_n(v1.begin(), m, [](auto &x) { EXPECT_EQ(x, 2); });
             for_each_n(v2.begin(), n, [](auto &x) { EXPECT_EQ(x, 1); });
         }
-
-    for (int n = 0; n < 32; ++n)
-        for (int m = 0; m < 32; ++m) {
-            small_vector<int, 4> v1(n, 1);
-            small_vector<int, 4> v2(m, 2);
-            v1.swap(v2);
-            EXPECT_EQ(v1.size(), m);
-            EXPECT_EQ(v2.size(), n);
-            for_each_n(v1.begin(), m, [](auto &x) { EXPECT_EQ(x, 2); });
-            for_each_n(v2.begin(), n, [](auto &x) { EXPECT_EQ(x, 1); });
-        }
-}
-
-TEST(vector, ptr_unsafe) {
-    {
-        wvector<int> a(16);
-        EXPECT_TRUE(a.begin_unsafe() == wjr::to_address(a.begin()));
-        EXPECT_TRUE(a.end_unsafe() == wjr::to_address(a.end()));
-        EXPECT_TRUE(a.buf_end_unsafe() == a.begin_unsafe() + a.capacity());
     }
 }
 
-TEST(vector, construct_dctor) {
-    {
-        wvector<std::string> vec(16, default_construct);
-        for_each_n(vec.begin(), 16, [](auto &x) { EXPECT_TRUE(x.empty()); });
-    }
+TYPED_TEST(VectorTest, ptr_unsafe) {
+    using Vec = typename TypeParam::template type<int>;
+    Vec a(16);
+    EXPECT_TRUE(a.begin_unsafe() == wjr::to_address(a.begin()));
+    EXPECT_TRUE(a.end_unsafe() == wjr::to_address(a.end()));
+    EXPECT_TRUE(a.buf_end_unsafe() == a.begin_unsafe() + a.capacity());
 }
 
-TEST(vector, clear) {
-    {
-        wvector<std::string> vec(16, default_construct);
-        vec.clear();
-
-        EXPECT_TRUE(vec.empty());
-    }
+TYPED_TEST(VectorTest, construct_dctor) {
+    using Vec = typename TypeParam::template type<std::string>;
+    Vec vec(16, default_construct);
+    for_each_n(vec.begin(), 16, [](auto &x) { EXPECT_TRUE(x.empty()); });
 }
 
-TEST(vector, front) {
-    {
-        wvector<std::string> vec(16, default_construct);
+TYPED_TEST(VectorTest, clear) {
+    using Vec = typename TypeParam::template type<std::string>;
+    Vec vec(16, default_construct);
+    vec.clear();
+    EXPECT_TRUE(vec.empty());
+}
 
-        EXPECT_TRUE(vec.front().empty());
-        EXPECT_TRUE(vec.front() == vec[0]);
-        EXPECT_TRUE(vec.front() == vec.begin()[0]);
-        EXPECT_TRUE(vec.front() == *vec.begin());
-        EXPECT_TRUE(vec.front() == *vec.data());
-    }
+TYPED_TEST(VectorTest, front) {
+    using Vec = typename TypeParam::template type<std::string>;
+    Vec vec(16, default_construct);
+    EXPECT_TRUE(vec.front().empty());
+    EXPECT_TRUE(vec.front() == vec[0]);
+    EXPECT_TRUE(vec.front() == vec.begin()[0]);
+    EXPECT_TRUE(vec.front() == *vec.begin());
+    EXPECT_TRUE(vec.front() == *vec.data());
 }
 
 // Test memcpy byte size correctness for inplace_vector and small_vector
