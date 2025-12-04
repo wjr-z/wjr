@@ -37,76 +37,76 @@ TEST(expected, constructor) {
         using type = decltype(x);
         {
             type a;
-            WJR_CHECK(a.has_value());
-            WJR_CHECK(*a == x);
+            EXPECT_TRUE(a.has_value());
+            EXPECT_TRUE(*a == x);
         }
         {
             type a;
             type b(a);
-            WJR_CHECK(b.has_value());
-            WJR_CHECK(*b == x);
-            WJR_CHECK(a == b);
+            EXPECT_TRUE(b.has_value());
+            EXPECT_TRUE(*b == x);
+            EXPECT_TRUE(a == b);
         }
         {
             type a;
             type b(std::move(a));
-            WJR_CHECK(b.has_value());
-            WJR_CHECK(*b == x);
+            EXPECT_TRUE(b.has_value());
+            EXPECT_TRUE(*b == x);
         }
         {
             type a(val);
-            WJR_CHECK(a.has_value());
-            WJR_CHECK(*a == val);
+            EXPECT_TRUE(a.has_value());
+            EXPECT_TRUE(*a == val);
         }
         {
             auto val2(val);
             type a(std::move(val2));
-            WJR_CHECK(a.has_value());
-            WJR_CHECK(*a == val);
+            EXPECT_TRUE(a.has_value());
+            EXPECT_TRUE(*a == val);
         }
         {
             type a(std::in_place, val);
-            WJR_CHECK(a.has_value());
-            WJR_CHECK(*a == val);
+            EXPECT_TRUE(a.has_value());
+            EXPECT_TRUE(*a == val);
         }
         {
             auto val2(val);
             type a(std::in_place, std::move(val2));
-            WJR_CHECK(a.has_value());
-            WJR_CHECK(*a == val);
+            EXPECT_TRUE(a.has_value());
+            EXPECT_TRUE(*a == val);
         }
         {
             wjr::unexpected ec(err);
             type a(ec);
-            WJR_CHECK(!a.has_value());
-            WJR_CHECK(a.error() == err);
+            EXPECT_TRUE(!a.has_value());
+            EXPECT_TRUE(a.error() == err);
             type b(a);
-            WJR_CHECK(!b.has_value());
-            WJR_CHECK(b.error() == err);
-            WJR_CHECK(a == b);
+            EXPECT_TRUE(!b.has_value());
+            EXPECT_TRUE(b.error() == err);
+            EXPECT_TRUE(a == b);
         }
         {
             wjr::unexpected ec(err);
             type a(std::move(ec));
-            WJR_CHECK(!a.has_value());
-            WJR_CHECK(a.error() == err);
+            EXPECT_TRUE(!a.has_value());
+            EXPECT_TRUE(a.error() == err);
             type b(std::move(a));
-            WJR_CHECK(!b.has_value());
-            WJR_CHECK(b.error() == err);
+            EXPECT_TRUE(!b.has_value());
+            EXPECT_TRUE(b.error() == err);
         }
 
         {
             auto ec(err);
             type a(unexpect, ec);
-            WJR_CHECK(!a.has_value());
-            WJR_CHECK(a.error() == err);
+            EXPECT_TRUE(!a.has_value());
+            EXPECT_TRUE(a.error() == err);
         }
 
         {
             auto ec(err);
             type a(unexpect, std::move(ec));
-            WJR_CHECK(!a.has_value());
-            WJR_CHECK(a.error() == err);
+            EXPECT_TRUE(!a.has_value());
+            EXPECT_TRUE(a.error() == err);
         }
     };
 
@@ -122,52 +122,52 @@ TEST(expected, constructor) {
         using type = decltype(x);
         {
             type a;
-            WJR_CHECK(a.has_value());
+            EXPECT_TRUE(a.has_value());
         }
         {
             type a;
             type b(a);
-            WJR_CHECK(b.has_value());
+            EXPECT_TRUE(b.has_value());
         }
         {
             type a;
             type c(std::move(a));
-            WJR_CHECK(c.has_value());
+            EXPECT_TRUE(c.has_value());
         }
         {
             type a(std::in_place);
-            WJR_CHECK(a.has_value());
+            EXPECT_TRUE(a.has_value());
         }
         {
             wjr::unexpected ec(err);
             type a(ec);
-            WJR_CHECK(!a.has_value());
-            WJR_CHECK(a.error() == err);
+            EXPECT_TRUE(!a.has_value());
+            EXPECT_TRUE(a.error() == err);
             type b(a);
-            WJR_CHECK(!b.has_value());
-            WJR_CHECK(b.error() == err);
-            WJR_CHECK(a == b);
+            EXPECT_TRUE(!b.has_value());
+            EXPECT_TRUE(b.error() == err);
+            EXPECT_TRUE(a == b);
         }
         {
             wjr::unexpected ec(err);
             type a(std::move(ec));
-            WJR_CHECK(!a.has_value());
-            WJR_CHECK(a.error() == err);
+            EXPECT_TRUE(!a.has_value());
+            EXPECT_TRUE(a.error() == err);
             type b(std::move(a));
-            WJR_CHECK(!b.has_value());
-            WJR_CHECK(b.error() == err);
+            EXPECT_TRUE(!b.has_value());
+            EXPECT_TRUE(b.error() == err);
         }
         {
             auto ec(err);
             type a(unexpect, ec);
-            WJR_CHECK(!a.has_value());
-            WJR_CHECK(a.error() == err);
+            EXPECT_TRUE(!a.has_value());
+            EXPECT_TRUE(a.error() == err);
         }
         {
             auto ec(err);
             type a(unexpect, std::move(ec));
-            WJR_CHECK(!a.has_value());
-            WJR_CHECK(a.error() == err);
+            EXPECT_TRUE(!a.has_value());
+            EXPECT_TRUE(a.error() == err);
         }
     };
 

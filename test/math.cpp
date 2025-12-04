@@ -14,14 +14,14 @@ TEST(math, popcount_ctz_clz) {
 #define WJR_TEST_PTZ(queue) WJR_PP_TRANSFORM_PUT(queue, WJR_TEST_PTZ_I_CALLER)
 
 #define WJR_TEST_POPCOUNT_I(type, x, ans)                                                          \
-    WJR_CHECK(fallback_popcount<type>(x) == (ans))                                                 \
+    EXPECT_TRUE(fallback_popcount<type>(x) == (ans))                                                 \
     WJR_PP_BOOL_IF_NZ(WJR_HAS_BUILTIN(POPCOUNT), ;                                                 \
-                      WJR_CHECK((builtin_popcount<type>(x) == (ans))), )
+                      EXPECT_TRUE((builtin_popcount<type>(x) == (ans))), )
 #define WJR_TEST_CTZ_I(type, x, ans)                                                               \
     type n = x;                                                                                    \
     auto ctz_ans = popcount<type>((type)(lowbit(n) - 1));                                          \
-    WJR_CHECK((x == 0 ? std::numeric_limits<type>::digits : fallback_ctz<type>(x)) == ctz_ans)     \
-    WJR_PP_BOOL_IF_NZ(WJR_HAS_BUILTIN(CTZ), ; WJR_CHECK((countr_zero<type>(x) == ctz_ans)), )
+    EXPECT_TRUE((x == 0 ? std::numeric_limits<type>::digits : fallback_ctz<type>(x)) == ctz_ans)     \
+    WJR_PP_BOOL_IF_NZ(WJR_HAS_BUILTIN(CTZ), ; EXPECT_TRUE((countr_zero<type>(x) == ctz_ans)), )
 #define WJR_TEST_CLZ_I(type, x, ans)                                                               \
     auto clz_ans = []() -> int {                                                                   \
         type n = x;                                                                                \
@@ -44,8 +44,8 @@ TEST(math, popcount_ctz_clz) {
         ++n;                                                                                       \
         return nd - countr_zero<type>(n);                                                          \
     }();                                                                                           \
-    WJR_CHECK((x == 0 ? std::numeric_limits<type>::digits : fallback_clz<type>(x)) == clz_ans)     \
-    WJR_PP_BOOL_IF_NZ(WJR_HAS_BUILTIN(CTZ), ; WJR_CHECK((countl_zero<type>(x) == clz_ans)), )
+    EXPECT_TRUE((x == 0 ? std::numeric_limits<type>::digits : fallback_clz<type>(x)) == clz_ans)     \
+    WJR_PP_BOOL_IF_NZ(WJR_HAS_BUILTIN(CTZ), ; EXPECT_TRUE((countl_zero<type>(x) == clz_ans)), )
 
 #define WJR_TEST_PTZ_I_CALLER(args)                                                                \
     do {                                                                                           \
@@ -159,18 +159,18 @@ TEST(math, addc) {
 
 #define WJR_TEST_ADDC(type, x, y, ci, ans, ans_co) WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)
 #define WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)                                           \
-    WJR_CHECK((math::fallback_addc<type, type>(x, y, ci, co) == ans && co == ans_co));             \
+    EXPECT_TRUE((math::fallback_addc<type, type>(x, y, ci, co) == ans && co == ans_co));             \
     WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ADDC),                                                          \
                    do {                                                                            \
-                       WJR_CHECK(                                                                  \
+                       EXPECT_TRUE(                                                                  \
                            (math::builtin_addc<type, type>(x, y, ci, co) == ans && co == ans_co)); \
                    } while (false),                                                                \
                    {});                                                                            \
     WJR_PP_BOOL_IF_NZ(                                                                             \
         WJR_HAS_BUILTIN(ASM_ADDC), do {                                                            \
             if constexpr (std::is_same_v<type, uint64_t>) {                                        \
-                WJR_CHECK((math::asm_addc<type>(x, y, ci, co) == ans && co == ans_co));            \
-                WJR_CHECK(WJR_PP_BOOL_IF(                                                          \
+                EXPECT_TRUE((math::asm_addc<type>(x, y, ci, co) == ans && co == ans_co));            \
+                EXPECT_TRUE(WJR_PP_BOOL_IF(                                                          \
                     WJR_HAS_BUILTIN(ASM_ADDC_CC),                                                  \
                     (math::asm_addc_cc(x, y, ci, co2) == ans && co2 == ans_co), true));            \
             }                                                                                      \
@@ -213,16 +213,16 @@ TEST(math, sub) {
 
 #define WJR_TEST_SUBC(type, x, y, ci, ans, ans_co) WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)
 #define WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)                                           \
-    WJR_CHECK((math::fallback_subc<type, type>(x, y, ci, co) == ans && co == ans_co))              \
+    EXPECT_TRUE((math::fallback_subc<type, type>(x, y, ci, co) == ans && co == ans_co))              \
     WJR_PP_BOOL_IF(                                                                                \
         WJR_HAS_BUILTIN(SUBC), ; do {                                                              \
-            WJR_CHECK((math::builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co));      \
+            EXPECT_TRUE((math::builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co));      \
         } while (false), )                                                                         \
     WJR_PP_BOOL_IF_NZ(                                                                             \
         WJR_HAS_BUILTIN(ASM_SUBC), ; do {                                                          \
             if constexpr (std::is_same_v<type, uint64_t>) {                                        \
-                WJR_CHECK((math::asm_subc<type>(x, y, ci, co) == ans && co == ans_co));            \
-                WJR_CHECK(WJR_PP_BOOL_IF(                                                          \
+                EXPECT_TRUE((math::asm_subc<type>(x, y, ci, co) == ans && co == ans_co));            \
+                EXPECT_TRUE(WJR_PP_BOOL_IF(                                                          \
                     WJR_HAS_BUILTIN(ASM_SUBC_CC),                                                  \
                     (math::asm_subc_cc(x, y, ci, co2) == ans && co2 == ans_co), true));            \
             }                                                                                      \
@@ -263,7 +263,7 @@ TEST(math, sub) {
 }
 
 TEST(math, broadcast) {
-#define WJR_TEST_BROADCAST(ft, tt, x, expect) WJR_CHECK((broadcast<ft, tt>(x) == expect))
+#define WJR_TEST_BROADCAST(ft, tt, x, expect) EXPECT_TRUE((broadcast<ft, tt>(x) == expect))
 
     WJR_TEST_BROADCAST(uint8_t, uint8_t, 0, 0);
     WJR_TEST_BROADCAST(uint8_t, uint8_t, 0x3f, 0x3f);
@@ -331,11 +331,11 @@ TEST(math, find_n) {
 
             auto idx = find_n(a.data(), 0, n);
 
-            WJR_CHECK(idx == m);
+            EXPECT_TRUE(idx == m);
 
             idx = find_n(a.data(), b.data(), n);
 
-            WJR_CHECK(idx == m);
+            EXPECT_TRUE(idx == m);
 
             if (m != n) {
                 a[m] = -1;
@@ -364,11 +364,11 @@ TEST(math, find_not_n) {
 
             auto idx = find_not_n(a.data(), 0, n);
 
-            WJR_CHECK(idx == m);
+            EXPECT_TRUE(idx == m);
 
             idx = find_not_n(a.data(), b.data(), n);
 
-            WJR_CHECK(idx == m);
+            EXPECT_TRUE(idx == m);
 
             if (m != n) {
                 a[m] = 0;
@@ -397,11 +397,11 @@ TEST(math, reverse_find_n) {
 
             auto idx = reverse_find_n(a.data(), 0, n);
 
-            WJR_CHECK(idx == n - m);
+            EXPECT_TRUE(idx == n - m);
 
             idx = reverse_find_n(a.data(), b.data(), n);
 
-            WJR_CHECK(idx == n - m);
+            EXPECT_TRUE(idx == n - m);
 
             if (m != n) {
                 a[n - m - 1] = -1;
@@ -430,11 +430,11 @@ TEST(math, reverse_find_not_n) {
 
             auto idx = reverse_find_not_n(a.data(), 0, n);
 
-            WJR_CHECK(idx == n - m);
+            EXPECT_TRUE(idx == n - m);
 
             idx = reverse_find_not_n(a.data(), b.data(), n);
 
-            WJR_CHECK(idx == n - m);
+            EXPECT_TRUE(idx == n - m);
 
             if (m != n) {
                 a[n - m - 1] = 0;
@@ -476,45 +476,45 @@ TEST(math, replace_find_not) {
 
                 auto idx = replace_find_not(b.data(), a.data(), n, 0, 1);
 
-                WJR_CHECK(idx == m);
+                EXPECT_TRUE(idx == m);
 
                 for (size_t i = 0; i < m; ++i) {
-                    WJR_CHECK(b[i] == 1);
+                    EXPECT_TRUE(b[i] == 1);
                 }
 
                 if (n != m) {
                     for (size_t i = m; i < n; ++i) {
-                        WJR_CHECK(b[i] == 0);
+                        EXPECT_TRUE(b[i] == 0);
                     }
                 }
 
                 idx = replace_find_not(a.data(), a.data(), n, 0, 0);
 
-                WJR_CHECK(idx == m);
+                EXPECT_TRUE(idx == m);
 
                 for (size_t i = 0; i < m; ++i) {
-                    WJR_CHECK(a[i] == 0);
+                    EXPECT_TRUE(a[i] == 0);
                 }
 
                 if (n != m) {
-                    WJR_CHECK(a[m] == -1ull);
+                    EXPECT_TRUE(a[m] == -1ull);
                     for (size_t i = m + 1; i < n; ++i) {
-                        WJR_CHECK(a[i] == 0);
+                        EXPECT_TRUE(a[i] == 0);
                     }
                 }
 
                 idx = replace_find_not(a.data(), a.data(), n, 0, 1);
 
-                WJR_CHECK(idx == m);
+                EXPECT_TRUE(idx == m);
 
                 for (size_t i = 0; i < m; ++i) {
-                    WJR_CHECK(a[i] == 1);
+                    EXPECT_TRUE(a[i] == 1);
                 }
 
                 if (n != m) {
-                    WJR_CHECK(a[m] == -1ull);
+                    EXPECT_TRUE(a[m] == -1ull);
                     for (size_t i = m + 1; i < n; ++i) {
-                        WJR_CHECK(a[i] == 0);
+                        EXPECT_TRUE(a[i] == 0);
                     }
                 }
             }
@@ -533,12 +533,12 @@ TEST(math, bi_not_n) {
 
         math::bi_not_n(b.data(), a.data(), n);
         for (auto &i : b) {
-            WJR_CHECK(i == -1ull);
+            EXPECT_TRUE(i == -1ull);
         }
 
         math::bi_not_n(a.data(), a.data(), n);
         for (auto &i : a) {
-            WJR_CHECK(i == -1ull);
+            EXPECT_TRUE(i == -1ull);
         }
     }
 }
@@ -572,19 +572,19 @@ TEST(math, bi_negate_n) {
             bool zero = math::bi_negate_n(b.data(), a.data(), n);
 
             if (n == m) {
-                WJR_CHECK(zero);
+                EXPECT_TRUE(zero);
             } else {
-                WJR_CHECK(!zero);
+                EXPECT_TRUE(!zero);
             }
 
             for (size_t i = 0; i < m; ++i) {
-                WJR_CHECK(b[i] == 0);
+                EXPECT_TRUE(b[i] == 0);
             }
 
             if (n != m) {
-                WJR_CHECK(b[m] == -xx);
+                EXPECT_TRUE(b[m] == -xx);
                 for (size_t i = m + 1; i < n; ++i) {
-                    WJR_CHECK(b[i] == ~c[i]);
+                    EXPECT_TRUE(b[i] == ~c[i]);
                 }
             }
 
@@ -596,13 +596,13 @@ TEST(math, bi_negate_n) {
             }();
 
             if (n != m) {
-                WJR_CHECK(cf);
+                EXPECT_TRUE(cf);
             } else {
-                WJR_CHECK(!cf);
+                EXPECT_TRUE(!cf);
             }
 
             for (size_t i = 0; i < n; ++i) {
-                WJR_CHECK(c[i] == 0);
+                EXPECT_TRUE(c[i] == 0);
             }
         }
     }
@@ -620,7 +620,7 @@ TEST(math, set_n) {
             set_n(a.data(), b, n);
 
             for (auto &i : a) {
-                WJR_CHECK(i == b);
+                EXPECT_TRUE(i == b);
             }
         }
 
@@ -632,7 +632,7 @@ TEST(math, set_n) {
             set_n(a.data(), b, n);
 
             for (auto &i : a) {
-                WJR_CHECK(i == b);
+                EXPECT_TRUE(i == b);
             }
         }
     };
@@ -646,7 +646,7 @@ TEST(math, compare_n) {
     {
         std::vector<uint64_t> a = {0, 1ull << 31, 0, 0};
         std::vector<uint64_t> b = {0, 0, 0, 0};
-        WJR_CHECK(compare_n(a.data(), b.data(), 4) > 0);
+        EXPECT_TRUE(compare_n(a.data(), b.data(), 4) > 0);
     }
 
     std::vector<uint64_t> a, b;
@@ -669,18 +669,18 @@ TEST(math, compare_n) {
 
             int f = compare_n(a.data(), b.data(), n);
             if (n == m) {
-                WJR_CHECK(f == 0);
+                EXPECT_TRUE(f == 0);
                 continue;
             }
 
-            WJR_CHECK(f < 0);
+            EXPECT_TRUE(f < 0);
 
             if (n != m + 1) {
                 for (size_t j = m + 1; j < n; ++j) {
                     a[j] = mt_rand();
                 }
                 f = compare_n(a.data(), b.data(), n);
-                WJR_CHECK(f < 0);
+                EXPECT_TRUE(f < 0);
             }
 
             while (a[m] == 0) {
@@ -690,14 +690,14 @@ TEST(math, compare_n) {
 
             f = compare_n(a.data(), b.data(), n);
 
-            WJR_CHECK(f > 0);
+            EXPECT_TRUE(f > 0);
 
             if (n != m + 1) {
                 for (size_t j = m + 1; j < n; ++j) {
                     a[j] = mt_rand();
                 }
                 f = compare_n(a.data(), b.data(), n);
-                WJR_CHECK(f > 0);
+                EXPECT_TRUE(f > 0);
             }
         }
     }
@@ -723,18 +723,18 @@ TEST(math, reverse_compare_n) {
 
             int f = reverse_compare_n(a.data(), b.data(), n);
             if (n == m) {
-                WJR_CHECK(f == 0);
+                EXPECT_TRUE(f == 0);
                 continue;
             }
 
-            WJR_CHECK(f < 0);
+            EXPECT_TRUE(f < 0);
 
             if (n != m + 1) {
                 for (size_t j = 0; j < n - m - 1; ++j) {
                     a[j] = mt_rand();
                 }
                 f = reverse_compare_n(a.data(), b.data(), n);
-                WJR_CHECK(f < 0);
+                EXPECT_TRUE(f < 0);
             }
 
             while (a[n - m - 1] == 0) {
@@ -744,21 +744,21 @@ TEST(math, reverse_compare_n) {
 
             f = reverse_compare_n(a.data(), b.data(), n);
 
-            WJR_CHECK(f > 0);
+            EXPECT_TRUE(f > 0);
 
             if (n != m + 1) {
                 for (size_t j = 0; j < n - m - 1; ++j) {
                     a[j] = mt_rand();
                 }
                 f = reverse_compare_n(a.data(), b.data(), n);
-                WJR_CHECK(f > 0);
+                EXPECT_TRUE(f > 0);
             }
         }
     }
 }
 
 TEST(math, shld) {
-#define WJR_TEST_SHLD(hi, lo, c, expect) WJR_CHECK(shld<uint64_t>((hi), (lo), (c)) == (expect))
+#define WJR_TEST_SHLD(hi, lo, c, expect) EXPECT_TRUE(shld<uint64_t>((hi), (lo), (c)) == (expect))
 
     WJR_TEST_SHLD(0, 0, 1, 0);
     WJR_TEST_SHLD(0, 1, 1, 0);
@@ -770,7 +770,7 @@ TEST(math, shld) {
 }
 
 TEST(math, shrd) {
-#define WJR_TEST_SHRD(lo, hi, c, expect) WJR_CHECK(shrd<uint64_t>((lo), (hi), (c)) == (expect))
+#define WJR_TEST_SHRD(lo, hi, c, expect) EXPECT_TRUE(shrd<uint64_t>((lo), (hi), (c)) == (expect))
 
     WJR_TEST_SHRD(0, 0, 1, 0);
     WJR_TEST_SHRD(0, 1, 1, 1ull << 63);
@@ -795,16 +795,16 @@ TEST(math, lshift_n) {
         for (unsigned int c = 0; c < 64; ++c) {
             uint64_t ex = c ? (a[n - 1] >> (64 - c)) : 0;
             auto z = lshift_n(b.data(), a.data(), n, c);
-            WJR_CHECK(z == ex);
+            EXPECT_TRUE(z == ex);
 
             for (size_t i = 1; i < n; ++i) {
                 ex = c ? ((a[i] << c) | (a[i - 1] >> (64 - c))) : a[i];
-                WJR_CHECK(b[i] == ex);
+                EXPECT_TRUE(b[i] == ex);
             }
 
             ex = a[0] << c;
 
-            WJR_CHECK(b[0] == ex);
+            EXPECT_TRUE(b[0] == ex);
         }
     }
 }
@@ -823,16 +823,16 @@ TEST(math, rshift_n) {
         for (unsigned int c = 0; c < 64; ++c) {
             uint64_t ex = c ? (a[0] << (64 - c)) : 0;
             auto z = rshift_n(b.data(), a.data(), n, c);
-            WJR_CHECK(z == ex);
+            EXPECT_TRUE(z == ex);
 
             for (size_t i = 0; i < n - 1; ++i) {
                 ex = c ? ((a[i] >> c) | (a[i + 1] << (64 - c))) : a[i];
-                WJR_CHECK(b[i] == ex);
+                EXPECT_TRUE(b[i] == ex);
             }
 
             ex = a[n - 1] >> c;
 
-            WJR_CHECK(b[n - 1] == ex);
+            EXPECT_TRUE(b[n - 1] == ex);
         }
     }
 }
@@ -841,8 +841,8 @@ TEST(math, add_128) {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t anslo,
                     uint64_t anshi) {
         add_128(lo0, hi0, lo0, hi0, lo1, hi1);
-        WJR_CHECK(lo0 == anslo);
-        WJR_CHECK(hi0 == anshi);
+        EXPECT_TRUE(lo0 == anslo);
+        EXPECT_TRUE(hi0 == anshi);
     };
 
     check(0, 0, 0, 0, 0, 0);
@@ -867,9 +867,9 @@ TEST(math, __addc_128) {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t c,
                     uint64_t anslo, uint64_t anshi, uint64_t ansc) {
         auto cf = math::_addc_128(lo0, hi0, lo0, hi0, lo1, hi1, c);
-        WJR_CHECK(lo0 == anslo);
-        WJR_CHECK(hi0 == anshi);
-        WJR_CHECK(cf == ansc);
+        EXPECT_TRUE(lo0 == anslo);
+        EXPECT_TRUE(hi0 == anshi);
+        EXPECT_TRUE(cf == ansc);
     };
 
     check(0, 0, 0, 0, 0, 0, 0, 0);
@@ -911,8 +911,8 @@ TEST(math, __sub_128) {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t anslo,
                     uint64_t anshi) {
         sub_128(lo0, hi0, lo0, hi0, lo1, hi1);
-        WJR_CHECK(lo0 == anslo);
-        WJR_CHECK(hi0 == anshi);
+        EXPECT_TRUE(lo0 == anslo);
+        EXPECT_TRUE(hi0 == anshi);
     };
 
     check(0, 0, 0, 0, 0, 0);
@@ -933,9 +933,9 @@ TEST(math, __subc_128) {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t c,
                     uint64_t anslo, uint64_t anshi, uint64_t ansc) {
         auto cf = math::_subc_128(lo0, hi0, lo0, hi0, lo1, hi1, c);
-        WJR_CHECK(lo0 == anslo);
-        WJR_CHECK(hi0 == anshi);
-        WJR_CHECK(cf == ansc);
+        EXPECT_TRUE(lo0 == anslo);
+        EXPECT_TRUE(hi0 == anshi);
+        EXPECT_TRUE(cf == ansc);
     };
 
     check(0, 0, 0, 0, 0, 0, 0, 0);
@@ -977,8 +977,8 @@ TEST(math, mul_128) {
 
         uint64_t lo, hi;
         lo = mul(x, y, hi);
-        WJR_CHECK(lo == anslo);
-        WJR_CHECK(hi == anshi);
+        EXPECT_TRUE(lo == anslo);
+        EXPECT_TRUE(hi == anshi);
     }
 }
 
@@ -1023,18 +1023,18 @@ TEST(math, to_chars) {
         auto ret0 = to_chars(b, b + k, x, base);
 
         if (!ret0) {
-            WJR_CHECK(ret0.ptr == b + k);
+            EXPECT_TRUE(ret0.ptr == b + k);
         }
 
         do {
             auto ret1 = std::to_chars(c, c + k, x, base);
 
-            WJR_CHECK(ret0.ec == ret1.ec);
+            EXPECT_TRUE(ret0.ec == ret1.ec);
 
             if ((bool)ret0) {
-                WJR_CHECK(std::string_view(b, ret0.ptr - b) == std::string_view(c, ret1.ptr - c));
+                EXPECT_TRUE(std::string_view(b, ret0.ptr - b) == std::string_view(c, ret1.ptr - c));
             } else {
-                WJR_CHECK(ret1.ptr == c + k);
+                EXPECT_TRUE(ret1.ptr == c + k);
             }
         } while (false);
 
@@ -1042,13 +1042,13 @@ TEST(math, to_chars) {
         do {
             auto ret1 = to_chars(vec.data(), vec.data() + k, x, base);
 
-            WJR_CHECK(ret0.ec == ret1.ec);
+            EXPECT_TRUE(ret0.ec == ret1.ec);
 
             if ((bool)ret0) {
-                WJR_CHECK(std::string_view(b, ret0.ptr - b) ==
+                EXPECT_TRUE(std::string_view(b, ret0.ptr - b) ==
                           std::string_view(vec.data(), ret1.ptr - vec.data()));
             } else {
-                WJR_CHECK(ret1.ptr == vec.data() + k);
+                EXPECT_TRUE(ret1.ptr == vec.data() + k);
             }
         } while (false);
 
@@ -1056,12 +1056,12 @@ TEST(math, to_chars) {
         do {
             auto ret1 = to_chars(lst.begin(), std::next(lst.begin(), k), x, base);
 
-            WJR_CHECK(ret0.ec == ret1.ec);
+            EXPECT_TRUE(ret0.ec == ret1.ec);
 
             if ((bool)ret0) {
-                WJR_CHECK(std::string_view(b, ret0.ptr - b) == std::string(lst.begin(), ret1.ptr));
+                EXPECT_TRUE(std::string_view(b, ret0.ptr - b) == std::string(lst.begin(), ret1.ptr));
             } else {
-                WJR_CHECK(std::distance(lst.begin(), ret1.ptr) == k);
+                EXPECT_TRUE(std::distance(lst.begin(), ret1.ptr) == k);
             }
         } while (false);
 
@@ -1071,7 +1071,7 @@ TEST(math, to_chars) {
             do {
                 auto ret1 = to_chars_backward_unchecked(c + 64, x, base);
 
-                WJR_CHECK(std::string_view(b, ret0.ptr - b) ==
+                EXPECT_TRUE(std::string_view(b, ret0.ptr - b) ==
                           std::string_view(ret1, c + 64 - ret1));
             } while (false);
 
@@ -1079,7 +1079,7 @@ TEST(math, to_chars) {
             do {
                 auto ret1 = to_chars_unchecked(c, x, base);
 
-                WJR_CHECK(std::string_view(b, ret0.ptr - b) == std::string_view(c, ret1 - c));
+                EXPECT_TRUE(std::string_view(b, ret0.ptr - b) == std::string_view(c, ret1 - c));
             } while (false);
 
             // test random access iterator of __fallback_to_chars_unchecked
@@ -1088,7 +1088,7 @@ TEST(math, to_chars) {
 
                 (void)to_chars_unchecked(std::back_inserter(vec), x, base);
 
-                WJR_CHECK(std::string_view(b, ret0.ptr - b) ==
+                EXPECT_TRUE(std::string_view(b, ret0.ptr - b) ==
                           std::string_view((char *)vec.data(), vec.size()));
             } while (false);
 
@@ -1098,7 +1098,7 @@ TEST(math, to_chars) {
 
                 (void)to_chars_unchecked(std::back_inserter(lst), x, base);
 
-                WJR_CHECK(std::string_view(b, ret0.ptr - b) == std::string(lst.begin(), lst.end()));
+                EXPECT_TRUE(std::string_view(b, ret0.ptr - b) == std::string(lst.begin(), lst.end()));
 
                 lst.resize(64);
             } while (false);
@@ -1146,13 +1146,13 @@ TEST(math, from_chars) {
             decltype(type) y = 3;
             auto ret1 = std::from_chars(str, str + n, y, base);
 
-            WJR_CHECK(ret0.ec == ret1.ec);
-            WJR_CHECK(ret0.ptr - str == ret1.ptr - str);
+            EXPECT_TRUE(ret0.ec == ret1.ec);
+            EXPECT_TRUE(ret0.ptr - str == ret1.ptr - str);
             if ((bool)ret0) {
-                WJR_CHECK(x == y);
+                EXPECT_TRUE(x == y);
             } else {
-                WJR_CHECK(x == 1);
-                WJR_CHECK(y == 3);
+                EXPECT_TRUE(x == 1);
+                EXPECT_TRUE(y == 3);
             }
         } while (false);
     };
@@ -1198,7 +1198,7 @@ TEST(math, div1by1) {
                 uint64_t q = val / div;
                 uint64_t o = q * divisor;
                 uint64_t delta = val - o;
-                WJR_CHECK(delta < divisor);
+                EXPECT_TRUE(delta < divisor);
             }
         }
 
@@ -1211,7 +1211,7 @@ TEST(math, div1by1) {
                 uint64_t q = val / div;
                 uint64_t o = q * divisor;
                 uint64_t delta = val - o;
-                WJR_CHECK(delta < divisor);
+                EXPECT_TRUE(delta < divisor);
             }
         }
     };
@@ -1233,7 +1233,7 @@ TEST(math, div2by1) {
             uint64_t rem;
             uint128_t q = div128by64to128(rem, lo, hi, divisor);
             uint128_t o = q * divisor + rem;
-            WJR_CHECK(o == u128);
+            EXPECT_TRUE(o == u128);
         }
     };
 
@@ -1246,7 +1246,7 @@ TEST(math, div2by1) {
             uint64_t rem;
             uint64_t q = div128by64to64(rem, lo, hi, divisor);
             uint128_t o = uint128_t(q) * divisor + rem;
-            WJR_CHECK(o == u128);
+            EXPECT_TRUE(o == u128);
         }
     };
 

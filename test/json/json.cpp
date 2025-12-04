@@ -95,19 +95,19 @@ TEST(json, parse) {
     {
         ondemand_reader rd;
         rd.read(twitter_json);
-        WJR_CHECK(check(rd).has_value());
+        EXPECT_TRUE(check(rd).has_value());
         rd.read(twitter_json);
         auto ret = document::parse(rd);
-        WJR_CHECK(ret.has_value());
+        EXPECT_TRUE(ret.has_value());
         auto j = std::move(*ret);
         auto str = j.to_string();
         rd.read(str);
         ret = document::parse(rd);
-        WJR_CHECK(ret.has_value());
+        EXPECT_TRUE(ret.has_value());
         auto j2 = std::move(*ret);
         auto str2 = j2.to_string();
-        WJR_CHECK(j == j2);
-        WJR_CHECK(str == str2);
+        EXPECT_TRUE(j == j2);
+        EXPECT_TRUE(str == str2);
     }
 }
 
@@ -131,13 +131,13 @@ void json_constructor_test(const T &expected) {
 
     do {
         document doc(expected);
-        WJR_CHECK((T)doc == expected);
+        EXPECT_TRUE((T)doc == expected);
         doc = expected;
-        WJR_CHECK((T)doc == expected);
+        EXPECT_TRUE((T)doc == expected);
         T val(doc);
-        WJR_CHECK(val == expected);
+        EXPECT_TRUE(val == expected);
         doc.get_to(val);
-        WJR_CHECK(val == expected);
+        EXPECT_TRUE(val == expected);
     } while (0);
 
     do {
@@ -145,14 +145,14 @@ void json_constructor_test(const T &expected) {
         T c1(expected);
 
         document doc(std::move(c0));
-        WJR_CHECK((T)doc == expected);
+        EXPECT_TRUE((T)doc == expected);
         doc = std::move(c1);
-        WJR_CHECK((T)doc == expected);
+        EXPECT_TRUE((T)doc == expected);
         T val(std::move(doc));
-        WJR_CHECK(val == expected);
+        EXPECT_TRUE(val == expected);
         document doc2(expected);
         std::move(doc2).get_to(val);
-        WJR_CHECK(val == expected);
+        EXPECT_TRUE(val == expected);
     } while (0);
 }
 
@@ -173,8 +173,8 @@ TEST(json, constructor) {
             document a(std::string_view("name"));
             document b(std::string("version"));
 
-            WJR_CHECK((std::string_view)a == "name");
-            WJR_CHECK((std::string_view)b == "version");
+            EXPECT_TRUE((std::string_view)a == "name");
+            EXPECT_TRUE((std::string_view)b == "version");
 
             static_assert(!std::is_constructible_v<std::string_view, document &&>);
 
@@ -182,9 +182,9 @@ TEST(json, constructor) {
             std::string d(b);
             std::string e(std::move(b));
 
-            WJR_CHECK(c == "name");
-            WJR_CHECK(d == "version");
-            WJR_CHECK(e == "version");
+            EXPECT_TRUE(c == "name");
+            EXPECT_TRUE(d == "version");
+            EXPECT_TRUE(e == "version");
         } while (false);
 
         do {
@@ -195,8 +195,8 @@ TEST(json, constructor) {
 
             auto iter = a.begin();
             for (auto &[key, value] : b.template get<object_t>()) {
-                WJR_CHECK((std::string_view)(key) == iter->first);
-                WJR_CHECK((std::string_view)(value) == iter->second);
+                EXPECT_TRUE((std::string_view)(key) == iter->first);
+                EXPECT_TRUE((std::string_view)(value) == iter->second);
                 ++iter;
             }
         } while (false);
@@ -207,7 +207,7 @@ TEST(json, constructor) {
 
             auto iter = a.begin();
             for (auto &elem : b.template get<array_t>()) {
-                WJR_CHECK((int)(elem) == *iter);
+                EXPECT_TRUE((int)(elem) == *iter);
                 ++iter;
             }
 
@@ -215,7 +215,7 @@ TEST(json, constructor) {
 
             iter = a.begin();
             for (auto &elem : c) {
-                WJR_CHECK((int)(elem) == *iter);
+                EXPECT_TRUE((int)(elem) == *iter);
                 ++iter;
             }
         } while (false);
@@ -226,10 +226,10 @@ TEST(json, constructor) {
             rd.read(str);
 
             test_struct0 it(document::parse(rd).value());
-            WJR_CHECK(it.name == "wjr");
-            WJR_CHECK(it.version == "1.0.0");
-            WJR_CHECK(it.age == 22);
+            EXPECT_TRUE(it.name == "wjr");
+            EXPECT_TRUE(it.version == "1.0.0");
+            EXPECT_TRUE(it.age == 22);
         } while (false);
     }
-    WJR_CATCH(...) { WJR_CHECK(false); }
+    WJR_CATCH(...) { EXPECT_TRUE(false); }
 }

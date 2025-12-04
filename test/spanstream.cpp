@@ -23,14 +23,14 @@ public:
     static void constructor() {
         wjr::span sp(test_span());
         T ss(sp);
-        WJR_CHECK(strcmp(ss.span().data(), sp.data()) == 0);
+        EXPECT_TRUE(strcmp(ss.span().data(), sp.data()) == 0);
     }
 
     static void move_constructor() {
         wjr::span sp(test_span());
         T ss1(sp);
         T ss2(std::move(ss1));
-        WJR_CHECK(strcmp(ss2.span().data(), sp.data()) == 0);
+        EXPECT_TRUE(strcmp(ss2.span().data(), sp.data()) == 0);
     }
 };
 
@@ -45,10 +45,10 @@ public:
         double d;
 
         ss >> s0 >> s1 >> x >> d;
-        WJR_CHECK(s0 == "Hello,");
-        WJR_CHECK(s1 == "World!");
-        WJR_CHECK(x == 123);
-        WJR_CHECK(d == 45.67);
+        EXPECT_TRUE(s0 == "Hello,");
+        EXPECT_TRUE(s1 == "World!");
+        EXPECT_TRUE(x == 123);
+        EXPECT_TRUE(d == 45.67);
     }
 };
 
@@ -61,7 +61,7 @@ public:
         T ss(sp);
 
         ss << "Hello, World! " << 123 << ' ' << 45.67 << '\0';
-        WJR_CHECK(strcmp(buf, BaseSpanStreamTest<T>::test_span().data()) == 0);
+        EXPECT_TRUE(strcmp(buf, BaseSpanStreamTest<T>::test_span().data()) == 0);
     }
 };
 

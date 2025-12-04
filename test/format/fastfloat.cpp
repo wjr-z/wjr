@@ -250,8 +250,8 @@ static bool tester(uint64_t seed, size_t volume) {
 } // namespace
 
 TEST(fastfloat, random_string) {
-    WJR_CHECK(tester(0xDEADBEEF, 100000));
-    WJR_CHECK(tester(0x12345678, 100000));
+    EXPECT_TRUE(tester(0xDEADBEEF, 100000));
+    EXPECT_TRUE(tester(0x12345678, 100000));
 }
 
 #endif

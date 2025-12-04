@@ -570,15 +570,15 @@ TEST(vector, emplace_back) {
         wvector<int> a;
         a.emplace_back(default_construct);
 
-        WJR_CHECK(a.size() == 1);
+        EXPECT_TRUE(a.size() == 1);
     }
 
     {
         wvector<std::string> a;
         a.emplace_back(default_construct);
 
-        WJR_CHECK(a.size() == 1);
-        WJR_CHECK(a[0].empty());
+        EXPECT_TRUE(a.size() == 1);
+        EXPECT_TRUE(a[0].empty());
     }
 }
 
@@ -769,16 +769,16 @@ TEST(vector, swap) {
 TEST(vector, ptr_unsafe) {
     {
         wvector<int> a(16);
-        WJR_CHECK(a.begin_unsafe() == wjr::to_address(a.begin()));
-        WJR_CHECK(a.end_unsafe() == wjr::to_address(a.end()));
-        WJR_CHECK(a.buf_end_unsafe() == a.begin_unsafe() + a.capacity());
+        EXPECT_TRUE(a.begin_unsafe() == wjr::to_address(a.begin()));
+        EXPECT_TRUE(a.end_unsafe() == wjr::to_address(a.end()));
+        EXPECT_TRUE(a.buf_end_unsafe() == a.begin_unsafe() + a.capacity());
     }
 }
 
 TEST(vector, construct_dctor) {
     {
         wvector<std::string> vec(16, default_construct);
-        for_each_n(vec.begin(), 16, [](auto &x) { WJR_CHECK(x.empty()); });
+        for_each_n(vec.begin(), 16, [](auto &x) { EXPECT_TRUE(x.empty()); });
     }
 }
 
@@ -787,7 +787,7 @@ TEST(vector, clear) {
         wvector<std::string> vec(16, default_construct);
         vec.clear();
 
-        WJR_CHECK(vec.empty());
+        EXPECT_TRUE(vec.empty());
     }
 }
 
@@ -795,11 +795,11 @@ TEST(vector, front) {
     {
         wvector<std::string> vec(16, default_construct);
 
-        WJR_CHECK(vec.front().empty());
-        WJR_CHECK(vec.front() == vec[0]);
-        WJR_CHECK(vec.front() == vec.begin()[0]);
-        WJR_CHECK(vec.front() == *vec.begin());
-        WJR_CHECK(vec.front() == *vec.data());
+        EXPECT_TRUE(vec.front().empty());
+        EXPECT_TRUE(vec.front() == vec[0]);
+        EXPECT_TRUE(vec.front() == vec.begin()[0]);
+        EXPECT_TRUE(vec.front() == *vec.begin());
+        EXPECT_TRUE(vec.front() == *vec.data());
     }
 }
 
