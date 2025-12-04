@@ -157,12 +157,23 @@ template <typename TypeParam>
 class VectorTest : public ::testing::Test {};
 
 // Define the types to test - just the two container templates
-using VectorTypes = ::testing::Types<
-    ContainerWrapper<wvector>,
-    ContainerWrapper<wsmall_vector>
->;
+using VectorTypes = ::testing::Types<ContainerWrapper<wvector>, ContainerWrapper<wsmall_vector>>;
 
-TYPED_TEST_SUITE(VectorTest, VectorTypes);
+// Custom name generator for better test output
+struct VectorTestNames {
+    template <typename T>
+    static std::string GetName(int i) {
+        if constexpr (std::is_same_v<T, ContainerWrapper<wvector>>) {
+            return "vector";
+        } else if constexpr (std::is_same_v<T, ContainerWrapper<wsmall_vector>>) {
+            return "small_vector";
+        } else {
+            static_assert(false, "Unknown container type");
+        }
+    }
+};
+
+TYPED_TEST_SUITE(VectorTest, VectorTypes, VectorTestNames);
 
 TYPED_TEST(VectorTest, construct_default) {
     auto test = [](auto _Val) {
@@ -181,7 +192,7 @@ TYPED_TEST(VectorTest, construct_default) {
             EXPECT_GE(v.capacity(), 0);
         }
     };
-    
+
     test(__int);
     test(__string);
 }
@@ -762,7 +773,7 @@ TYPED_TEST(VectorTest, erase) {
 
 TYPED_TEST(VectorTest, swap) {
     using Vec = typename TypeParam::template type<int>;
-    
+
     {
         Vec v1(32, 1);
         Vec v2(64, 2);
