@@ -436,15 +436,15 @@ TYPED_TEST(VectorTest, assign) {
                        [&](auto &x) { EXPECT_EQ(x, _Val) << n << ' ' << s << ' ' << c; });
         };
         run_range3([&](int n, int s, int c) {
-            std::cout << "n=" << n << ", s=" << s << ", c=" << c << "\n";
+            std::cout << "n=" << n << ", s=" << s << ", c=" << c << std::endl;
             test(__int, n, s, c);
-            std::cout << "----\n";
+            std::cout << "----" << std::endl;
             test(__string, n, s, c);
-            std::cout << "====\n";
+            std::cout << "====" << std::endl;
         });
     }
 
-    std::cout << "assign(range)\n";
+    std::cout << "assign(range)" << std::endl;
 
     {
         auto test = [](auto _Val, int n, auto first, auto last) {
@@ -458,7 +458,7 @@ TYPED_TEST(VectorTest, assign) {
         };
 
         run_range([&](int i) {
-            std::cout << "i=" << i << "\n";
+            std::cout << "i=" << i << std::endl;
 
             {
                 std::vector<int> vec(i);
@@ -482,11 +482,11 @@ TYPED_TEST(VectorTest, assign) {
                 test(__string, i, vec.begin(), vec.end());
             }
 
-            std::cout << "----\n";
+            std::cout << "----" << std::endl;
         });
     }
 
-    std::cout << "assign(initializer_list)\n";
+    std::cout << "assign(initializer_list)" << std::endl;
 
     {
         auto test = [](auto _Val, auto il) {
