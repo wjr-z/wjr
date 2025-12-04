@@ -133,4 +133,7 @@
 #define WJR_PP_TRANSFORM_UNWRAP_PUT(queue, op)                                                     \
     WJR_PP_QUEUE_UNWRAP_PUT(WJR_PP_QUEUE_TRANSFORM(queue, op))
 
+#define WJR_PP_QUEUE_IF(cond, t, f) WJR_PP_QUEUE_EXPAND(WJR_PP_BOOL_IF(cond, t, f))
+#define WJR_PP_QUEUE_IF_NZ(expr, t, f) WJR_PP_QUEUE_IF(WJR_PP_BOOL(expr), t, f)
+
 #endif // WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP__

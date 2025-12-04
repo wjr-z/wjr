@@ -89,7 +89,7 @@ WJR_INTRINSIC_CONSTEXPR20 T subc(T a, T b, type_identity_t<U> c_in, U &c_out) no
     }
 
     if constexpr (sizeof(T) == 8) {
-        return WJR_PP_BOOL_IF_NE(
+        return WJR_PP_BOOL_IF_NZ(
             WJR_HAS_BUILTIN(ASM_SUBC), asm_subc,
             WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(SUBC), builtin_subc, fallback_subc))(a, b, c_in, c_out);
     } else {

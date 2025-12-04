@@ -4,7 +4,7 @@
 
 using namespace wjr;
 
-#define CASSERT(expr) static_assert(expr, "")
+#define CASSERT(expr) static_assert(expr)
 
 TEST(preprocessor, arithmatic) {
     CASSERT(WJR_PP_ADD(1, 3) == 4);

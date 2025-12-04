@@ -1552,7 +1552,7 @@ struct compressed_cache_holder<ieee754_binary32, Dummy> {
         // Compute the base index.
         // Supposed to compute (k - min_k) / compression_ratio.
         static_assert(max_k - min_k <= 89 && compression_ratio == 13);
-        static_assert(max_k - min_k <= std::numeric_limits<DecimalExponentType>::max(), "");
+        static_assert(max_k - min_k <= std::numeric_limits<DecimalExponentType>::max());
         auto const cache_index = DecimalExponentType(
             std::uint_fast16_t(DecimalExponentType(k - min_k) * std::int_fast16_t(79)) >> 10);
         auto const kb = DecimalExponentType(cache_index * compression_ratio + min_k);
@@ -1623,7 +1623,7 @@ struct compressed_cache_holder<ieee754_binary64, Dummy> {
         // Compute the base index.
         // Supposed to compute (k - min_k) / compression_ratio.
         static_assert(max_k - min_k <= 619 && compression_ratio == 27);
-        static_assert(max_k - min_k <= std::numeric_limits<DecimalExponentType>::max(), "");
+        static_assert(max_k - min_k <= std::numeric_limits<DecimalExponentType>::max());
         auto const cache_index = DecimalExponentType(
             std::uint_fast32_t(DecimalExponentType(k - min_k) * std::int_fast32_t(607)) >> 14);
         auto const kb = DecimalExponentType(cache_index * compression_ratio + min_k);
@@ -2540,7 +2540,7 @@ struct impl : private FormatTraits::format {
 
     static constexpr int kappa = log::floor_log10_pow2(carrier_bits - significand_bits - 2) - 1;
     static_assert(kappa >= 1);
-    static_assert(carrier_bits >= significand_bits + 2 + log::floor_log2_pow10(kappa + 1), "");
+    static_assert(carrier_bits >= significand_bits + 2 + log::floor_log2_pow10(kappa + 1));
 
     static constexpr int min(int x, int y) noexcept { return x < y ? x : y; }
     static constexpr int max(int x, int y) noexcept { return x > y ? x : y; }

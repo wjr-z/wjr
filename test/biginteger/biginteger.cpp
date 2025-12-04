@@ -919,10 +919,10 @@ constexpr bool __test_divexact_fast() {
     return ss.mode == 2 && ss.cl == 0;
 }
 
-static_assert(__test_divexact_fast<3>(), "");
-static_assert(__test_divexact_fast<5>(), "");
-static_assert(__test_divexact_fast<15>(), "");
-static_assert(__test_divexact_fast<17>(), "");
+static_assert(__test_divexact_fast<3>());
+static_assert(__test_divexact_fast<5>());
+static_assert(__test_divexact_fast<15>());
+static_assert(__test_divexact_fast<17>());
 
 TEST(biginteger, mul_s) {
 

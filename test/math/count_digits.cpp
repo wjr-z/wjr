@@ -235,25 +235,25 @@ TEST(count_digits, base1_dynamic) {
 // Test fallback implementation directly
 TEST(count_digits, fallback_count_digits10) {
     // Test the fallback implementation for compile-time evaluation
-    static_assert(fallback_count_digits10(0u) == 1, "");
-    static_assert(fallback_count_digits10(9u) == 1, "");
-    static_assert(fallback_count_digits10(10u) == 2, "");
-    static_assert(fallback_count_digits10(99u) == 2, "");
-    static_assert(fallback_count_digits10(100u) == 3, "");
-    static_assert(fallback_count_digits10(999u) == 3, "");
-    static_assert(fallback_count_digits10(1000u) == 4, "");
-    static_assert(fallback_count_digits10(9999u) == 4, "");
-    static_assert(fallback_count_digits10(10000u) == 5, "");
-    static_assert(fallback_count_digits10(99999u) == 5, "");
-    static_assert(fallback_count_digits10(100000u) == 6, "");
-    static_assert(fallback_count_digits10(999999u) == 6, "");
-    static_assert(fallback_count_digits10(1000000u) == 7, "");
-    static_assert(fallback_count_digits10(9999999u) == 7, "");
-    static_assert(fallback_count_digits10(10000000u) == 8, "");
-    static_assert(fallback_count_digits10(99999999u) == 8, "");
-    static_assert(fallback_count_digits10(100000000u) == 9, "");
-    static_assert(fallback_count_digits10(999999999u) == 9, "");
-    static_assert(fallback_count_digits10(1000000000u) == 10, "");
+    static_assert(fallback_count_digits10(0u) == 1);
+    static_assert(fallback_count_digits10(9u) == 1);
+    static_assert(fallback_count_digits10(10u) == 2);
+    static_assert(fallback_count_digits10(99u) == 2);
+    static_assert(fallback_count_digits10(100u) == 3);
+    static_assert(fallback_count_digits10(999u) == 3);
+    static_assert(fallback_count_digits10(1000u) == 4);
+    static_assert(fallback_count_digits10(9999u) == 4);
+    static_assert(fallback_count_digits10(10000u) == 5);
+    static_assert(fallback_count_digits10(99999u) == 5);
+    static_assert(fallback_count_digits10(100000u) == 6);
+    static_assert(fallback_count_digits10(999999u) == 6);
+    static_assert(fallback_count_digits10(1000000u) == 7);
+    static_assert(fallback_count_digits10(9999999u) == 7);
+    static_assert(fallback_count_digits10(10000000u) == 8);
+    static_assert(fallback_count_digits10(99999999u) == 8);
+    static_assert(fallback_count_digits10(100000000u) == 9);
+    static_assert(fallback_count_digits10(999999999u) == 9);
+    static_assert(fallback_count_digits10(1000000000u) == 10);
 
     // Runtime tests
     EXPECT_EQ(fallback_count_digits10(12345u), 5);

@@ -14,13 +14,14 @@ TEST(math, popcount_ctz_clz) {
 #define WJR_TEST_PTZ(queue) WJR_PP_TRANSFORM_PUT(queue, WJR_TEST_PTZ_I_CALLER)
 
 #define WJR_TEST_POPCOUNT_I(type, x, ans)                                                          \
-    WJR_CHECK(fallback_popcount<type>(x) == ans)                                                   \
-    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(POPCOUNT), ; WJR_CHECK((builtin_popcount<type>(x) == ans)), )
+    WJR_CHECK(fallback_popcount<type>(x) == (ans))                                                 \
+    WJR_PP_BOOL_IF_NZ(WJR_HAS_BUILTIN(POPCOUNT), ;                                                 \
+                      WJR_CHECK((builtin_popcount<type>(x) == (ans))), )
 #define WJR_TEST_CTZ_I(type, x, ans)                                                               \
     type n = x;                                                                                    \
     auto ctz_ans = popcount<type>((type)(lowbit(n) - 1));                                          \
     WJR_CHECK((x == 0 ? std::numeric_limits<type>::digits : fallback_ctz<type>(x)) == ctz_ans)     \
-    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(CTZ), ; WJR_CHECK((countr_zero<type>(x) == ctz_ans)), )
+    WJR_PP_BOOL_IF_NZ(WJR_HAS_BUILTIN(CTZ), ; WJR_CHECK((countr_zero<type>(x) == ctz_ans)), )
 #define WJR_TEST_CLZ_I(type, x, ans)                                                               \
     auto clz_ans = []() -> int {                                                                   \
         type n = x;                                                                                \
@@ -44,7 +45,7 @@ TEST(math, popcount_ctz_clz) {
         return nd - countr_zero<type>(n);                                                          \
     }();                                                                                           \
     WJR_CHECK((x == 0 ? std::numeric_limits<type>::digits : fallback_clz<type>(x)) == clz_ans)     \
-    WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(CTZ), ; WJR_CHECK((countl_zero<type>(x) == clz_ans)), )
+    WJR_PP_BOOL_IF_NZ(WJR_HAS_BUILTIN(CTZ), ; WJR_CHECK((countl_zero<type>(x) == clz_ans)), )
 
 #define WJR_TEST_PTZ_I_CALLER(args)                                                                \
     do {                                                                                           \
@@ -165,7 +166,7 @@ TEST(math, addc) {
                            (math::builtin_addc<type, type>(x, y, ci, co) == ans && co == ans_co)); \
                    } while (false),                                                                \
                    {});                                                                            \
-    WJR_PP_BOOL_IF_NE(                                                                             \
+    WJR_PP_BOOL_IF_NZ(                                                                             \
         WJR_HAS_BUILTIN(ASM_ADDC), do {                                                            \
             if constexpr (std::is_same_v<type, uint64_t>) {                                        \
                 WJR_CHECK((math::asm_addc<type>(x, y, ci, co) == ans && co == ans_co));            \
@@ -217,7 +218,7 @@ TEST(math, sub) {
         WJR_HAS_BUILTIN(SUBC), ; do {                                                              \
             WJR_CHECK((math::builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co));      \
         } while (false), )                                                                         \
-    WJR_PP_BOOL_IF_NE(                                                                             \
+    WJR_PP_BOOL_IF_NZ(                                                                             \
         WJR_HAS_BUILTIN(ASM_SUBC), ; do {                                                          \
             if constexpr (std::is_same_v<type, uint64_t>) {                                        \
                 WJR_CHECK((math::asm_subc<type>(x, y, ci, co) == ans && co == ans_co));            \
@@ -985,27 +986,27 @@ namespace convert_tests {
 using namespace wjr;
 using namespace charconv_detail;
 
-static_assert(std::is_same_v<fast_buffer_t<char *>, char>, "");
-static_assert(std::is_same_v<fast_buffer_t<uint8_t *>, uint8_t>, "");
-static_assert(std::is_same_v<fast_buffer_t<int *>, char>, "");
-static_assert(std::is_same_v<fast_buffer_t<std::back_insert_iterator<std::string>>, char>, "");
+static_assert(std::is_same_v<fast_buffer_t<char *>, char>);
+static_assert(std::is_same_v<fast_buffer_t<uint8_t *>, uint8_t>);
+static_assert(std::is_same_v<fast_buffer_t<int *>, char>);
+static_assert(std::is_same_v<fast_buffer_t<std::back_insert_iterator<std::string>>, char>);
 static_assert(
     std::is_same_v<fast_buffer_t<std::back_insert_iterator<std::vector<uint8_t>>>, uint8_t>, "");
 
-static_assert(is_fast_container_inserter_v<int *> == 0, "");
-static_assert(is_fast_container_inserter_v<std::back_insert_iterator<std::vector<char>>> == 1, "");
+static_assert(is_fast_container_inserter_v<int *> == 0);
+static_assert(is_fast_container_inserter_v<std::back_insert_iterator<std::vector<char>>> == 1);
 static_assert(is_fast_container_inserter_v<std::back_insert_iterator<std::string>> ==
                   WJR_PP_BOOL_IF(WJR_HAS_FEATURE(STRING_UNINITIALIZED_RESIZE), 2, 1),
               "");
-static_assert(is_fast_container_inserter_v<std::back_insert_iterator<std::wstring>> == 0, "");
+static_assert(is_fast_container_inserter_v<std::back_insert_iterator<std::wstring>> == 0);
 
 struct Traits : public std::char_traits<char> {};
 static_assert(
     is_fast_container_inserter_v<std::back_insert_iterator<std::basic_string<char, Traits>>> == 0,
     "");
 
-static_assert(is_fast_container_inserter_v<std::back_insert_iterator<vector<char>>> == 2, "");
-static_assert(is_fast_container_inserter_v<std::back_insert_iterator<vector<int>>> == 0, "");
+static_assert(is_fast_container_inserter_v<std::back_insert_iterator<vector<char>>> == 2);
+static_assert(is_fast_container_inserter_v<std::back_insert_iterator<vector<int>>> == 0);
 
 } // namespace convert_tests
 

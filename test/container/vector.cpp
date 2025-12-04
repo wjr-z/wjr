@@ -16,7 +16,7 @@ inline const std::string __string2 = std::string("abc");
 
 using namespace wjr;
 
-static_assert(is_trivially_allocator_v<std::allocator<int>>, "");
+static_assert(is_trivially_allocator_v<std::allocator<int>>);
 
 template <typename Vec>
 constexpr bool test_vector_type() {
@@ -37,14 +37,14 @@ constexpr bool test_vector_type() {
     return true;
 }
 
-static_assert(test_vector_type<vector<int>>(), "");
-static_assert(test_vector_type<vector<std::string>>(), "");
+static_assert(test_vector_type<vector<int>>());
+static_assert(test_vector_type<vector<std::string>>());
 
-static_assert(test_vector_type<inplace_vector<int, 8>>(), "");
-static_assert(test_vector_type<inplace_vector<std::string, 8>>(), "");
+static_assert(test_vector_type<inplace_vector<int, 8>>());
+static_assert(test_vector_type<inplace_vector<std::string, 8>>());
 
-static_assert(test_vector_type<small_vector<int, 8>>(), "");
-static_assert(test_vector_type<small_vector<std::string, 8>>(), "");
+static_assert(test_vector_type<small_vector<int, 8>>());
+static_assert(test_vector_type<small_vector<std::string, 8>>());
 
 template <typename Iter, typename Func>
 void for_each_n(Iter first, size_t n, Func fn) {

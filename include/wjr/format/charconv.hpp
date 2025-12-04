@@ -1036,18 +1036,18 @@ to_chars_result<Iter> _fallback_to_chars_impl(Iter first, Iter last, Value val, 
 #define WJR_TO_CHARS_VALIDATE_IMPL(BASE, TABLE, CALL)                                              \
     if constexpr (is_random_access) {                                                              \
         const auto size = std::distance(first, last);                                              \
-        WJR_PP_QUEUE_EXPAND(WJR_PP_BOOL_IF(WJR_PP_NE(BASE, 10),                                    \
-                                           (                                                       \
-                                               if constexpr (is_signed) {                          \
-                                                   if (WJR_UNLIKELY(n + sign > size)) {            \
-                                                       return {last, std::errc::value_too_large};  \
-                                                   }                                               \
-                                               } else {                                            \
-                                                   if (WJR_UNLIKELY(n > size)) {                   \
-                                                       return {last, std::errc::value_too_large};  \
-                                                   }                                               \
-                                               }),                                                 \
-                                           ()))                                                    \
+        WJR_PP_QUEUE_IF(WJR_PP_NE(BASE, 10),                                                       \
+                        (                                                                          \
+                            if constexpr (is_signed) {                                             \
+                                if (WJR_UNLIKELY(n + sign > size)) {                               \
+                                    return {last, std::errc::value_too_large};                     \
+                                }                                                                  \
+                            } else {                                                               \
+                                if (WJR_UNLIKELY(n > size)) {                                      \
+                                    return {last, std::errc::value_too_large};                     \
+                                }                                                                  \
+                            }),                                                                    \
+                        ())                                                                        \
                                                                                                    \
         charconv_detail::fast_buffer_t<Iter> buffer[TABLE + is_signed];                            \
         const auto _end = buffer + TABLE + is_signed;                                              \
@@ -1055,20 +1055,20 @@ to_chars_result<Iter> _fallback_to_chars_impl(Iter first, Iter last, Value val, 
             (charconv_detail::fast_buffer_t<Iter> *)_unsigned_to_chars_backward_unchecked<BASE>(   \
                 (uint8_t *)_end, WJR_PP_QUEUE_EXPAND(CALL), conv);                                 \
                                                                                                    \
-        WJR_PP_QUEUE_EXPAND(WJR_PP_BOOL_IF(WJR_PP_EQ(BASE, 10),                                    \
-                                           (                                                       \
-                                               const auto n = _end - _ptr;                         \
+        WJR_PP_QUEUE_IF(WJR_PP_EQ(BASE, 10),                                                       \
+                        (                                                                          \
+                            const auto n = _end - _ptr;                                            \
                                                                                                    \
-                                               if constexpr (is_signed) {                          \
-                                                   if (WJR_UNLIKELY(n + sign > size)) {            \
-                                                       return {last, std::errc::value_too_large};  \
-                                                   }                                               \
-                                               } else {                                            \
-                                                   if (WJR_UNLIKELY(n > size)) {                   \
-                                                       return {last, std::errc::value_too_large};  \
-                                                   }                                               \
-                                               }),                                                 \
-                                           ()))                                                    \
+                            if constexpr (is_signed) {                                             \
+                                if (WJR_UNLIKELY(n + sign > size)) {                               \
+                                    return {last, std::errc::value_too_large};                     \
+                                }                                                                  \
+                            } else {                                                               \
+                                if (WJR_UNLIKELY(n > size)) {                                      \
+                                    return {last, std::errc::value_too_large};                     \
+                                }                                                                  \
+                            }),                                                                    \
+                        ())                                                                        \
                                                                                                    \
         if constexpr (is_signed) {                                                                 \
             if (sign) {                                                                            \

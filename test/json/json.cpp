@@ -176,7 +176,7 @@ TEST(json, constructor) {
             WJR_CHECK((std::string_view)a == "name");
             WJR_CHECK((std::string_view)b == "version");
 
-            static_assert(!std::is_constructible_v<std::string_view, document &&>, "");
+            static_assert(!std::is_constructible_v<std::string_view, document &&>);
 
             std::string_view c(a);
             std::string d(b);

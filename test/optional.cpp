@@ -15,33 +15,33 @@ TEST(optional, trivial) {
     {
         using type = optional<int>;
 
-        static_assert(std::is_trivially_destructible_v<type>, "");
-        static_assert(std::is_trivially_copy_constructible_v<type>, "");
-        static_assert(std::is_trivially_move_constructible_v<type>, "");
-        static_assert(std::is_trivially_copy_assignable_v<type>, "");
-        static_assert(std::is_trivially_move_assignable_v<type>, "");
+        static_assert(std::is_trivially_destructible_v<type>);
+        static_assert(std::is_trivially_copy_constructible_v<type>);
+        static_assert(std::is_trivially_move_constructible_v<type>);
+        static_assert(std::is_trivially_copy_assignable_v<type>);
+        static_assert(std::is_trivially_move_assignable_v<type>);
     }
 
     {
         using type = optional<compressed_value<int, 0>>;
 
-        static_assert(sizeof(type) == sizeof(int), "");
-        static_assert(std::is_trivially_destructible_v<type>, "");
-        static_assert(std::is_trivially_copy_constructible_v<type>, "");
-        static_assert(std::is_trivially_move_constructible_v<type>, "");
-        static_assert(std::is_trivially_copy_assignable_v<type>, "");
-        static_assert(std::is_trivially_move_assignable_v<type>, "");
+        static_assert(sizeof(type) == sizeof(int));
+        static_assert(std::is_trivially_destructible_v<type>);
+        static_assert(std::is_trivially_copy_constructible_v<type>);
+        static_assert(std::is_trivially_move_constructible_v<type>);
+        static_assert(std::is_trivially_copy_assignable_v<type>);
+        static_assert(std::is_trivially_move_assignable_v<type>);
     }
 
     {
         using type = optional<compressed_value<const char *, nullptr>>;
 
-        static_assert(sizeof(type) == sizeof(const char *), "");
-        static_assert(std::is_trivially_destructible_v<type>, "");
-        static_assert(std::is_trivially_copy_constructible_v<type>, "");
-        static_assert(std::is_trivially_move_constructible_v<type>, "");
-        static_assert(std::is_trivially_copy_assignable_v<type>, "");
-        static_assert(std::is_trivially_move_assignable_v<type>, "");
+        static_assert(sizeof(type) == sizeof(const char *));
+        static_assert(std::is_trivially_destructible_v<type>);
+        static_assert(std::is_trivially_copy_constructible_v<type>);
+        static_assert(std::is_trivially_move_constructible_v<type>);
+        static_assert(std::is_trivially_copy_assignable_v<type>);
+        static_assert(std::is_trivially_move_assignable_v<type>);
     }
 }
 
