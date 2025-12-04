@@ -436,10 +436,16 @@ TYPED_TEST(VectorTest, assign) {
                        [&](auto &x) { EXPECT_EQ(x, _Val) << n << ' ' << s << ' ' << c; });
         };
         run_range3([&](int n, int s, int c) {
+            std::cout << "n=" << n << ", s=" << s << ", c=" << c << "\n";
             test(__int, n, s, c);
+            std::cout << "----\n";
             test(__string, n, s, c);
+            std::cout << "====\n";
         });
     }
+
+    std::cout << "assign(range)\n";
+
     {
         auto test = [](auto _Val, int n, auto first, auto last) {
             using T = decltype(_Val);
@@ -452,6 +458,8 @@ TYPED_TEST(VectorTest, assign) {
         };
 
         run_range([&](int i) {
+            std::cout << "i=" << i << "\n";
+
             {
                 std::vector<int> vec(i);
                 std::generate_n(vec.begin(), i, trandom<int>);
@@ -473,8 +481,13 @@ TYPED_TEST(VectorTest, assign) {
                 std::generate_n(std::back_inserter(vec), i, trandom<std::string>);
                 test(__string, i, vec.begin(), vec.end());
             }
+
+            std::cout << "----\n";
         });
     }
+
+    std::cout << "assign(initializer_list)\n";
+
     {
         auto test = [](auto _Val, auto il) {
             using T = decltype(_Val);
