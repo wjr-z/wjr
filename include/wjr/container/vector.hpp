@@ -185,14 +185,20 @@ public:
         std::swap(m_storage, other.m_storage);
     }
 
-    constexpr size_ref size() noexcept { return size_ref(m_storage.m_data, m_storage.m_end); }
+    WJR_PURE constexpr size_ref size() noexcept {
+        return size_ref(m_storage.m_data, m_storage.m_end);
+    }
 
-    constexpr size_type size() const noexcept { return m_storage.m_end - m_storage.m_data; }
+    WJR_PURE constexpr size_type size() const noexcept {
+        return m_storage.m_end - m_storage.m_data;
+    }
 
-    constexpr size_type capacity() const noexcept { return m_storage.m_buffer - m_storage.m_data; }
+    WJR_PURE constexpr size_type capacity() const noexcept {
+        return m_storage.m_buffer - m_storage.m_data;
+    }
 
-    constexpr pointer data() noexcept { return m_storage.m_data; }
-    constexpr const_pointer data() const noexcept { return m_storage.m_data; }
+    WJR_PURE constexpr pointer data() noexcept { return m_storage.m_data; }
+    WJR_PURE constexpr const_pointer data() const noexcept { return m_storage.m_data; }
 
 protected:
     Data m_storage;
@@ -343,9 +349,9 @@ public:
         }
     }
 
-    constexpr size_type &size() noexcept { return m_storage.m_size; }
-    constexpr size_type size() const noexcept { return m_storage.m_size; }
-    static constexpr size_type capacity() noexcept { return Capacity; }
+    WJR_PURE constexpr size_type &size() noexcept { return m_storage.m_size; }
+    WJR_PURE constexpr size_type size() const noexcept { return m_storage.m_size; }
+    WJR_PURE static constexpr size_type capacity() noexcept { return Capacity; }
 
     constexpr pointer data() noexcept { return reinterpret_cast<pointer>(m_storage.m_data); }
     constexpr const_pointer data() const noexcept {
@@ -487,17 +493,17 @@ public:
         std::swap(m_size, other.m_size);
     }
 
-    constexpr size_type &size() noexcept { return m_size; }
-    constexpr size_type size() const noexcept { return m_size; }
-    constexpr size_type capacity() const noexcept { return _is_small() ? Capacity : m_capacity; }
+    WJR_PURE constexpr size_type &size() noexcept { return m_size; }
+    WJR_PURE constexpr size_type size() const noexcept { return m_size; }
+    size_type capacity() const noexcept { return _is_small() ? Capacity : m_capacity; }
 
-    constexpr pointer data() noexcept { return m_data; }
-    constexpr const_pointer data() const noexcept { return m_data; }
+    WJR_PURE constexpr pointer data() noexcept { return m_data; }
+    WJR_PURE constexpr const_pointer data() const noexcept { return m_data; }
 
 private:
-    constexpr bool _is_small() const noexcept { return m_data == _get_storage(); }
-    constexpr bool _is_large() const noexcept { return !_is_small(); }
-    constexpr void _reset_small() noexcept { m_data = _get_storage(); }
+    bool _is_small() const noexcept { return m_data == _get_storage(); }
+    bool _is_large() const noexcept { return !_is_small(); }
+    void _reset_small() noexcept { m_data = _get_storage(); }
 
     static constexpr bool _is_small_capacity(size_type capacity) noexcept {
         return capacity <= Capacity;
@@ -507,8 +513,8 @@ private:
         return !_is_small_capacity(capacity);
     }
 
-    constexpr pointer _get_storage() noexcept { return reinterpret_cast<pointer>(m_storage); }
-    constexpr const_pointer _get_storage() const noexcept {
+    pointer _get_storage() noexcept { return reinterpret_cast<pointer>(m_storage); }
+    const_pointer _get_storage() const noexcept {
         return reinterpret_cast<const_pointer>(m_storage);
     }
 
@@ -742,17 +748,21 @@ public:
         return assign(il.begin(), il.end());
     }
 
-    WJR_CONSTEXPR20 pointer begin_unsafe() noexcept { return data(); }
-    WJR_CONSTEXPR20 const_pointer begin_unsafe() const noexcept { return data(); }
-    WJR_CONSTEXPR20 const_pointer cbegin_unsafe() const noexcept { return data(); }
+    WJR_PURE WJR_CONSTEXPR20 pointer begin_unsafe() noexcept { return data(); }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer begin_unsafe() const noexcept { return data(); }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer cbegin_unsafe() const noexcept { return data(); }
 
-    WJR_CONSTEXPR20 pointer end_unsafe() noexcept { return data() + size(); }
-    WJR_CONSTEXPR20 const_pointer end_unsafe() const noexcept { return data() + size(); }
-    WJR_CONSTEXPR20 const_pointer cend_unsafe() const noexcept { return end_unsafe(); }
+    WJR_PURE WJR_CONSTEXPR20 pointer end_unsafe() noexcept { return data() + size(); }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer end_unsafe() const noexcept { return data() + size(); }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer cend_unsafe() const noexcept { return end_unsafe(); }
 
-    WJR_CONSTEXPR20 pointer buf_end_unsafe() noexcept { return data() + capacity(); }
-    WJR_CONSTEXPR20 const_pointer buf_end_unsafe() const noexcept { return data() + capacity(); }
-    WJR_CONSTEXPR20 const_pointer cbuf_end_unsafe() const noexcept { return buf_end_unsafe(); }
+    WJR_PURE WJR_CONSTEXPR20 pointer buf_end_unsafe() noexcept { return data() + capacity(); }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer buf_end_unsafe() const noexcept {
+        return data() + capacity();
+    }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer cbuf_end_unsafe() const noexcept {
+        return buf_end_unsafe();
+    }
 
 private:
     WJR_PURE WJR_CONSTEXPR20 iterator _make_iterator(const_pointer ptr) const noexcept {
@@ -798,7 +808,7 @@ public:
 
     WJR_CONSTEXPR20 const_reverse_iterator crend() const noexcept { return rend(); }
 
-    constexpr size_type size() const noexcept { return get_storage().size(); }
+    WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept { return get_storage().size(); }
 
     WJR_CONSTEXPR20 void resize(const size_type new_size) { _resize(new_size, value_construct); }
 
@@ -834,9 +844,9 @@ public:
         }
     }
 
-    constexpr size_type capacity() const noexcept { return get_storage().capacity(); }
+    WJR_PURE constexpr size_type capacity() const noexcept { return get_storage().capacity(); }
 
-    constexpr bool empty() const noexcept {
+    WJR_PURE constexpr bool empty() const noexcept {
         if constexpr (has_vector_storage_empty_v<storage_type>) {
             return get_storage().empty();
         } else {
@@ -973,9 +983,9 @@ public:
         return *(end_unsafe() - 1);
     }
 
-    constexpr pointer data() noexcept { return get_storage().data(); }
-    constexpr const_pointer data() const noexcept { return get_storage().data(); }
-    constexpr const_pointer cdata() const noexcept { return data(); }
+    WJR_PURE constexpr pointer data() noexcept { return get_storage().data(); }
+    WJR_PURE constexpr const_pointer data() const noexcept { return get_storage().data(); }
+    WJR_PURE constexpr const_pointer cdata() const noexcept { return data(); }
 
     template <typename... Args>
     WJR_CONSTEXPR20 reference emplace_back(Args &&...args) {

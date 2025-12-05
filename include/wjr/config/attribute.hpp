@@ -466,4 +466,13 @@
     #define WJR_PREFETCH_EX(addr, rw, locality) ((void)0)
 #endif
 
+#ifdef __clang__
+    #define WJR_IGNORE_WASSUME_BEGIN                                                               \
+        _Pragma("clang diagnostic push") _Pragma("clang diagnostic ignored \"-Wassume\"")
+    #define WJR_IGNORE_WASSUME_END _Pragma("clang diagnostic pop")
+#else
+    #define WJR_IGNORE_WASSUME_BEGIN
+    #define WJR_IGNORE_WASSUME_END
+#endif
+
 #endif // WJR_CONFIG_ATTRIBUTE_HPP__
