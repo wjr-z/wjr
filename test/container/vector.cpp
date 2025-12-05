@@ -168,7 +168,7 @@ struct VectorTestNames {
         } else if constexpr (std::is_same_v<T, ContainerWrapper<wsmall_vector>>) {
             return "small_vector";
         } else {
-            static_assert(false, "Unknown container type");
+            return ::testing::internal::StreamableToString(i);
         }
     }
 };

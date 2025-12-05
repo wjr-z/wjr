@@ -31,11 +31,11 @@ public:
     using Mybase::Mybase;
 
 private:
-    WJR_PURE bool _is_lower_bound_same(const_iterator iter, const key_type &key) const {
+    bool _is_lower_bound_same(const_iterator iter, const key_type &key) const {
         return iter != this->cend() && !this->key_comp()(Traits::get_key(*iter), key);
     }
 
-    WJR_PURE bool _count_unique(const key_type &key) const {
+    bool _count_unique(const key_type &key) const {
         auto iter = this->lower_bound(key);
         return _is_lower_bound_same(iter, key);
     }

@@ -181,8 +181,8 @@ struct get_relocate_mode<std::basic_string<Char, Traits, Alloc>> {
 };
 
 template <typename CharT, typename Traits>
-WJR_PURE constexpr bool starts_with(std::basic_string_view<CharT, Traits> str,
-                                    std::basic_string_view<CharT, Traits> sv) noexcept {
+constexpr bool starts_with(std::basic_string_view<CharT, Traits> str,
+                           std::basic_string_view<CharT, Traits> sv) noexcept {
     const auto length = sv.size();
     if (str.size() < length) {
         return false;
@@ -192,8 +192,8 @@ WJR_PURE constexpr bool starts_with(std::basic_string_view<CharT, Traits> str,
 }
 
 template <typename CharT, typename Traits>
-WJR_PURE constexpr bool ends_with(std::basic_string_view<CharT, Traits> str,
-                                  std::basic_string_view<CharT, Traits> sv) noexcept {
+constexpr bool ends_with(std::basic_string_view<CharT, Traits> str,
+                         std::basic_string_view<CharT, Traits> sv) noexcept {
     const auto n = str.size();
     const auto length = sv.size();
     if (n < length) {
