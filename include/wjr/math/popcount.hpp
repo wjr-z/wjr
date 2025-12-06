@@ -47,7 +47,7 @@ private:
         for (uint8_t i = 0; i < digits; ++i) {
             const auto idx = (seed << i) >> mv;
             lookup[idx] = i;
-            lookupr[idx] = i == 0 ? 0u : digits - i;
+            lookupr[idx] = i == 0 ? 0U : digits - i;
         }
     }
 

@@ -130,7 +130,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR uint32_t hex_to_u32_unchecked(const char *src) 
     const uint32_t v1 = digit_to_val32[630u + to_u8(src[0])];
     const uint32_t v2 = digit_to_val32[420u + to_u8(src[1])];
     const uint32_t v3 = digit_to_val32[210u + to_u8(src[2])];
-    const uint32_t v4 = digit_to_val32[0u + to_u8(src[3])];
+    const uint32_t v4 = digit_to_val32[0U + to_u8(src[3])];
     return v1 | v2 | v3 | v4;
 }
 

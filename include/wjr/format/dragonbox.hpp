@@ -127,21 +127,21 @@ struct ieee754_binary_traits {
     // The result must be aligned to the LSB so that there is no additional zero
     // paddings on the right. The result does not contain the implicit bit.
     static constexpr carrier_uint extract_significand_bits(carrier_uint u) noexcept {
-        return carrier_uint(u & ((carrier_uint(1) << format::significand_bits) - 1u));
+        return carrier_uint(u & ((carrier_uint(1) << format::significand_bits) - 1U));
     }
 
     // Remove the exponent bits and extract significand bits together with the
     // sign bit.
     static constexpr carrier_uint remove_exponent_bits(carrier_uint u) noexcept {
         return carrier_uint(
-            u & ~(((carrier_uint(1) << format::exponent_bits) - 1u) << format::significand_bits));
+            u & ~(((carrier_uint(1) << format::exponent_bits) - 1U) << format::significand_bits));
     }
 
     // Shift the obtained signed significand bits to the left by 1 to remove the
     // sign bit.
     static constexpr carrier_uint remove_sign_bit_and_shift(carrier_uint u) noexcept {
         return carrier_uint((carrier_uint(u) << 1) &
-                            ((((carrier_uint(1) << (Format::total_bits - 1)) - 1u) << 1) | 1u));
+                            ((((carrier_uint(1) << (Format::total_bits - 1)) - 1U) << 1) | 1U));
     }
 
     // Obtain the actual value of the binary exponent from the extracted
@@ -164,7 +164,7 @@ struct ieee754_binary_traits {
 
     static constexpr bool is_nonzero(carrier_uint u) noexcept {
         return (u & ((carrier_uint(1) << (format::significand_bits + format::exponent_bits)) -
-                     1u)) != 0;
+                     1U)) != 0;
     }
     static constexpr bool is_positive(carrier_uint u) noexcept {
         return u < (carrier_uint(1) << (format::significand_bits + format::exponent_bits));
@@ -174,7 +174,7 @@ struct ieee754_binary_traits {
         return exponent_bits != ((exponent_int(1) << format::exponent_bits) - 1);
     }
     static constexpr bool has_all_zero_significand_bits(carrier_uint u) noexcept {
-        return ((u << 1) & ((((carrier_uint(1) << (Format::total_bits - 1)) - 1u) << 1) | 1u)) == 0;
+        return ((u << 1) & ((((carrier_uint(1) << (Format::total_bits - 1)) - 1U) << 1) | 1U)) == 0;
     }
     static constexpr bool has_even_significand_bits(carrier_uint u) noexcept { return u % 2 == 0; }
 };

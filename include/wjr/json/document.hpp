@@ -783,7 +783,7 @@ public:
     void dump_impl(Container &cont, unsigned indents = -1) const noexcept {
         static_assert(std::is_same_v<typename Container::value_type, char>);
 
-        if (indents == -1u) {
+        if (indents == -1U) {
             format(minify_formatter(std::back_inserter(cont)), *this);
         } else {
             format(pretty_formatter(std::back_inserter(cont), indents), *this);

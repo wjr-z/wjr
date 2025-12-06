@@ -32,7 +32,6 @@
 #include <wjr/json/document.hpp>
 #include <wjr/tp/args.hpp>
 #include <wjr/tp/switch.hpp>
-#include <wjr/variant.hpp>
 
 #include <gmp.h>
 

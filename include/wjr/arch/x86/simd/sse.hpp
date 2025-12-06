@@ -1483,11 +1483,11 @@ __m128i sse::min(__m128i a, __m128i b, uint8_t) noexcept { return min_epu8(a, b)
 __m128i sse::min(__m128i a, __m128i b, uint16_t) noexcept { return min_epu16(a, b); }
 __m128i sse::min(__m128i a, __m128i b, uint32_t) noexcept { return min_epu32(a, b); }
 
-int8_t sse::min_epi8(__m128i a) noexcept { return 0x80u ^ min_epu8(Xor(a, setmin_epi8())); }
+int8_t sse::min_epi8(__m128i a) noexcept { return 0x80U ^ min_epu8(Xor(a, setmin_epi8())); }
 
 int16_t sse::min_epi16(__m128i a) noexcept {
     #if WJR_HAS_SIMD(SSE4_1)
-    return 0x8000u ^ min_epu16(Xor(a, setmin_epi16()));
+    return 0x8000U ^ min_epu16(Xor(a, setmin_epi16()));
     #else
     a = min_epi16(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
     a = min_epi16(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 3, 2)>(a));

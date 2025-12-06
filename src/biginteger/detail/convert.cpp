@@ -236,7 +236,7 @@ size_t _biginteger_to_chars_power_of_two_impl(uint8_t *first, const uint64_t *up
     WJR_ASSERT_ASSUME(n >= 2);
 
     const int bits = ctz(base);
-    const unsigned int mask = (1u << bits) - 1;
+    const unsigned int mask = (1U << bits) - 1;
 
     uint64_t x = up[n - 1];
     --n;
@@ -255,7 +255,7 @@ size_t _biginteger_to_chars_power_of_two_impl(uint8_t *first, const uint64_t *up
 
         if (rest) {
             int fix = bits - rest;
-            unsigned int val = ((x & ((1u << fix) - 1)) << rest) | last;
+            unsigned int val = ((x & ((1U << fix) - 1)) << rest) | last;
             x >>= fix;
             rest = 64 - fix;
             *--first = conv.to(val);
@@ -280,7 +280,7 @@ size_t _biginteger_to_chars_power_of_two_impl(uint8_t *first, const uint64_t *up
 
     if (WJR_UNLIKELY(rest != 0)) {
         int fix = bits - rest;
-        unsigned int val = ((x & ((1u << fix) - 1)) << rest) | last;
+        unsigned int val = ((x & ((1U << fix) - 1)) << rest) | last;
         x >>= fix;
         *--first = conv.to(val);
         rest = hbits - fix;

@@ -37,9 +37,7 @@ inline constexpr voidopt_t voidopt{voidopt_t::_tag{}};
 
 class bad_optional_access : public std::exception {
 public:
-    WJR_NODISCARD virtual const char *what() const noexcept override {
-        return "Bad optional access";
-    }
+    WJR_NODISCARD const char *what() const noexcept override { return "Bad optional access"; }
 };
 
 template <typename T>

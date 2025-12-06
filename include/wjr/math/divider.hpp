@@ -263,9 +263,9 @@ private:
             m_shift = clz(m_divisor);
             m_divisor <<= m_shift;
 
-            WJR_ASSUME(m_shift != 0u);
+            WJR_ASSUME(m_shift != 0U);
         } else {
-            WJR_ASSUME(m_shift == 0u);
+            WJR_ASSUME(m_shift == 0U);
         }
 
         WJR_ASSUME(_has_high_bit(m_divisor));

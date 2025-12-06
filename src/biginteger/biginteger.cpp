@@ -15,8 +15,7 @@ from_chars_result<const char *> _from_chars_impl(const char *first, const char *
             break;
         }
 
-        uint8_t ch;
-        ch = *first;
+        uint8_t ch = *first;
 
         if constexpr (Check) {
             first = skip_whitespace(first, last);
@@ -256,7 +255,7 @@ void _addsub_impl(biginteger_dispatcher dst, const biginteger_view *lhs, uint64_
 
     // todo : Maybe make this a fast path.
     if (compare{}(lssize, 0)) {
-        const uint32_t cf = addc_1(dp, lp, lusize, rhs, 0u);
+        const uint32_t cf = addc_1(dp, lp, lusize, rhs, 0U);
         dssize = _fast_conditional_negate<int32_t>(xsign, lusize + cf);
         if (cf) {
             dp[lusize] = 1;
@@ -882,13 +881,13 @@ void _cfdiv_r_2exp_impl(biginteger_dispatcher rem, const biginteger_view *num, u
 void _pow_impl(biginteger_dispatcher dst, const biginteger_view *num, uint32_t exp) noexcept {
     const int32_t nssize = num->get_ssize();
     if (WJR_UNLIKELY(nssize == 0)) {
-        dst = exp == 0 ? 1u : 0u;
+        dst = exp == 0 ? 1U : 0U;
         return;
     }
 
     if (exp <= 2) {
         if (exp == 0) {
-            dst = 1u;
+            dst = 1U;
         } else if (exp == 1) {
             dst.copy_assign(num);
         } else {

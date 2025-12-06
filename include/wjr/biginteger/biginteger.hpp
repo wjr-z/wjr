@@ -1248,12 +1248,12 @@ WJR_REGISTER_BIGINTEGER_ADDSUB(sub)
 
 template <typename S>
 void increment(basic_biginteger<S> &dst) noexcept {
-    add(dst, dst, 1u);
+    add(dst, dst, 1U);
 }
 
 template <typename S>
 void decrement(basic_biginteger<S> &dst) noexcept {
-    sub(dst, dst, 1u);
+    sub(dst, dst, 1U);
 }
 
 template <typename S>
@@ -2179,7 +2179,7 @@ void _fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
     _tdiv_qr_impl(quot, rem, num, div);
 
     if (xsize < 0 && !rem->empty()) {
-        _sub_impl(quot, quot->_get_data(), 1u);
+        _sub_impl(quot, quot->_get_data(), 1U);
         _add_impl(rem, rem->_get_data(), div);
     }
 }
@@ -2195,7 +2195,7 @@ void _fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_view *num,
     _tdiv_qr_impl(quot, &rem, num, div);
 
     if (xsize < 0 && !rem.empty()) {
-        _sub_impl(quot, quot->_get_data(), 1u);
+        _sub_impl(quot, quot->_get_data(), 1U);
     }
 }
 
@@ -2235,7 +2235,7 @@ uint64_t _fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
         if (xssize < 0 && remv != 0) {
             WJR_ASSERT(rem->is_negate());
 
-            _sub_impl(quot, quot->_get_data(), 1u);
+            _sub_impl(quot, quot->_get_data(), 1U);
             rem->set_ssize(1);
             remv = div - remv;
             rem->front() = remv;
@@ -2258,7 +2258,7 @@ uint64_t _fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
         quot->conditional_negate(xsign);
 
         if ((nssize ^ xsign) < 0 && remv != 0) {
-            _sub_impl(quot, quot->_get_data(), 1u);
+            _sub_impl(quot, quot->_get_data(), 1U);
             rem->set_ssize(_fast_conditional_negate(xsign < 0, 1));
             remv = div - remv;
             rem->front() = remv;
@@ -2276,7 +2276,7 @@ uint64_t _fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_view *num, T d
         uint64_t remv = _tdiv_q_ui_impl(quot, num, div);
 
         if (xssize < 0 && remv != 0) {
-            _sub_impl(quot, quot->_get_data(), 1u);
+            _sub_impl(quot, quot->_get_data(), 1U);
             remv = div - remv;
         }
 
@@ -2297,7 +2297,7 @@ uint64_t _fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_view *num, T d
         quot->conditional_negate(xsign);
 
         if ((nssize ^ xsign) < 0 && remv != 0) {
-            _sub_impl(quot, quot->_get_data(), 1u);
+            _sub_impl(quot, quot->_get_data(), 1U);
             remv = div - remv;
         }
 
@@ -2367,7 +2367,7 @@ void _cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
     _tdiv_qr_impl(quot, rem, num, div);
 
     if (xsize >= 0 && !rem->empty()) {
-        _add_impl(quot, quot->_get_data(), 1u);
+        _add_impl(quot, quot->_get_data(), 1U);
         _sub_impl(rem, rem->_get_data(), div);
     }
 }
@@ -2383,7 +2383,7 @@ void _cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_view *num,
     _tdiv_qr_impl(quot, &rem, num, div);
 
     if (xsize >= 0 && !rem.empty()) {
-        _add_impl(quot, quot->_get_data(), 1u);
+        _add_impl(quot, quot->_get_data(), 1U);
     }
 }
 
@@ -2424,7 +2424,7 @@ uint64_t _cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
         if (xssize >= 0 && remv != 0) {
             WJR_ASSERT(rem->is_negate());
 
-            _add_impl(quot, quot->_get_data(), 1u);
+            _add_impl(quot, quot->_get_data(), 1U);
             rem->set_ssize(-1);
             remv = div - remv;
             rem->front() = remv;
@@ -2447,7 +2447,7 @@ uint64_t _cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
         quot->conditional_negate(xsign);
 
         if ((nssize ^ xsign) >= 0 && remv != 0) {
-            _add_impl(quot, quot->_get_data(), 1u);
+            _add_impl(quot, quot->_get_data(), 1U);
             rem->set_ssize(_fast_conditional_negate(xsign >= 0, 1));
             remv = div - remv;
             rem->front() = remv;
@@ -2465,7 +2465,7 @@ uint64_t _cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_view *num, T d
         uint64_t remv = _tdiv_q_ui_impl(quot, num, div);
 
         if (xssize >= 0 && remv != 0) {
-            _add_impl(quot, quot->_get_data(), 1u);
+            _add_impl(quot, quot->_get_data(), 1U);
             remv = div - remv;
         }
 
@@ -2486,7 +2486,7 @@ uint64_t _cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_view *num, T d
         quot->conditional_negate(xsign);
 
         if ((nssize ^ xsign) >= 0 && remv != 0) {
-            _add_impl(quot, quot->_get_data(), 1u);
+            _add_impl(quot, quot->_get_data(), 1U);
             remv = div - remv;
         }
 
@@ -2629,7 +2629,7 @@ void _cfdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_view *num, u
 
     if (WJR_LIKELY(round != 0)) {
         if (WJR_LIKELY(qssize != 0)) {
-            const auto cf = addc_1(qp, qp, qssize, 1u);
+            const auto cf = addc_1(qp, qp, qssize, 1U);
             if (cf != 0) {
                 qp[qssize] = cf;
                 ++qssize;
@@ -2890,9 +2890,9 @@ void _powmod_impl(basic_biginteger<S> *dst, const biginteger_view *num, _powmod_
     if (size == 0) {
         uint64_t val;
         if (WJR_UNLIKELY(mod->size() == 1 && mod->data()[0] == 1)) {
-            val = 0u;
+            val = 0U;
         } else {
-            val = 1u;
+            val = 1U;
         }
 
         *dst = val;

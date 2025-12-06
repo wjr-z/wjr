@@ -93,9 +93,7 @@ class bad_expected_access;
 template <>
 class bad_expected_access<void> : public std::exception {
 public:
-    WJR_NODISCARD virtual const char *what() const noexcept override {
-        return "Bad expected access";
-    }
+    WJR_NODISCARD const char *what() const noexcept override { return "Bad expected access"; }
 };
 
 template <typename E>

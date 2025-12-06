@@ -410,8 +410,7 @@ constexpr bool operator<(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs)
         [&rhs, &ret](const auto &...lhs_args) {
             return apply(
                 [&lhs_args..., &ret](const auto &...rhs_args) {
-                    (void)((lhs_args < rhs_args ? (ret = true, false)
-                                                : (rhs_args < lhs_args ? false : true)) &&
+                    (void)((lhs_args < rhs_args ? (ret = true, false) : (!(rhs_args < lhs_args))) &&
                            ...);
                 },
                 rhs);

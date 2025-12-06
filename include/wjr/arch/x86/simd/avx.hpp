@@ -960,10 +960,10 @@ __m256i avx::set1(uint16_t a, uint16_t) noexcept { return set1_epi16(a); }
 __m256i avx::set1(uint32_t a, uint32_t) noexcept { return set1_epi32(a); }
 __m256i avx::set1(uint64_t a, uint64_t) noexcept { return set1_epi64(a); }
 
-__m256i avx::setmin_epi8() noexcept { return set1_epi8(0x80u); }
-__m256i avx::setmin_epi16() noexcept { return set1_epi16(0x8000u); }
-__m256i avx::setmin_epi32() noexcept { return set1_epi32(0x80000000u); }
-__m256i avx::setmin_epi64() noexcept { return set1_epi64(0x8000000000000000ull); }
+__m256i avx::setmin_epi8() noexcept { return set1_epi8(0x80U); }
+__m256i avx::setmin_epi16() noexcept { return set1_epi16(0x8000U); }
+__m256i avx::setmin_epi32() noexcept { return set1_epi32(0x80000000U); }
+__m256i avx::setmin_epi64() noexcept { return set1_epi64(0x8000000000000000ULL); }
 
 __m256i avx::setmin(int8_t) noexcept { return setmin_epi8(); }
 __m256i avx::setmin(int16_t) noexcept { return setmin_epi16(); }

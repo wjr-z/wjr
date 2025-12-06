@@ -732,7 +732,7 @@ public:
         WJR_ASSERT_L2(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= std::numeric_limits<UnsignedValue>::digits);
 
-        const unsigned int mask = (1u << bits) - 1;
+        const unsigned int mask = (1U << bits) - 1;
 
         do {
             *--ptr = conv.to(x & mask);
