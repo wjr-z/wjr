@@ -556,7 +556,7 @@ public:
         if (m_pos != 0) {
             --m_pos;
         } else {
-            m_leaf = m_leaf = m_leaf->prev()->self();
+            m_leaf = m_leaf->prev()->self();
             m_pos = _get_usize() - 1;
         }
 
