@@ -422,6 +422,16 @@ TYPED_TEST(VectorTest, assignment) {
 }
 
 TYPED_TEST(VectorTest, assign) {
+#ifdef __clang__
+    std::cout << "clang:" << __clang_major__ << "." << __clang_minor__ << "."
+              << __clang_patchlevel__ << std::endl;
+#elif defined(__GNUC__)
+    std::cout << "gcc:" << __GNUC__ << "." << __GNUC_MINOR__ << "." << __GNUC_PATCHLEVEL__
+              << std::endl;
+#elif defined(_MSC_VER)
+    std::cout << "msvc:" << _MSC_VER << std::endl;
+#endif
+
     // assign(size_t _Count, const vlaue_type& _Val)
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
