@@ -35,7 +35,7 @@ void large_builtin_bi_not_n(T *dst, const T *src, size_t n) noexcept {
     constexpr auto simd_width = simd::width();
     constexpr auto type_width = simd_width / 64;
 
-    const uintptr_t ptr = reinterpret_cast<uintptr_t>(dst);
+    const auto ptr = reinterpret_cast<uintptr_t>(dst);
     WJR_ASSUME(ptr % sizeof(T) == 0);
     const size_t offset = align_up_offset(ptr, 32) / sizeof(T);
 
