@@ -12,8 +12,6 @@
 #ifndef WJR_MEMORY_STACK_ALLOCATOR_HPP__
 #define WJR_MEMORY_STACK_ALLOCATOR_HPP__
 
-#include <algorithm>
-
 #include <wjr/math/literals.hpp>
 #include <wjr/memory/aligned_alloc.hpp>
 #include <wjr/string.hpp>

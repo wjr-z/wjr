@@ -2540,7 +2540,7 @@ void _tdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_view *num,
     uint32_t nusize = _fast_abs(nssize);
     uint32_t offset = shift / 64;
 
-    int32_t qssize = nusize - offset;
+    auto qssize = static_cast<int32_t>(nusize - offset);
 
     if (qssize <= 0) {
         quot->set_ssize(0);
@@ -2549,7 +2549,7 @@ void _tdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_view *num,
 
     quot->reserve(qssize);
     const auto qp = quot->data();
-    const auto np = num->data();
+    const auto *const np = num->data();
 
     (void)rshift_n(qp, np + offset, qssize, shift % 64);
     qssize -= qp[qssize - 1] == 0;
@@ -2614,7 +2614,7 @@ void _cfdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_view *num, u
 
     quot->reserve(qssize + 1);
     const auto qp = quot->data();
-    const auto np = num->data();
+    const auto *const np = num->data();
 
     uint64_t xmask = (nssize ^ xdir) < 0 ? 0 : UINT64_MAX;
     uint64_t round = 0;
@@ -2721,7 +2721,7 @@ void _urandom_impl(biginteger_dispatcher dst, const biginteger_view *limit,
 
     dst.reserve(size);
 
-    const auto dp = dst.data();
+    auto *const dp = dst.data();
     const uint64_t *lp = limit->data();
 
     unique_stack_allocator stkal;
@@ -2803,7 +2803,7 @@ void _urandom_exact_impl(biginteger_dispatcher dst, const biginteger_view *limit
 
     dst.reserve(size);
 
-    const auto dp = dst.data();
+    auto *const dp = dst.data();
     const uint64_t *lp = limit->data();
 
     unique_stack_allocator stkal;
@@ -3078,8 +3078,8 @@ public:
     FMT_CONSTEXPR auto parse(parse_context<char> &ctx) -> const char * {
         if (ctx.begin() == ctx.end() || *ctx.begin() == '}')
             return ctx.begin();
-        auto end = detail::parse_format_specs(ctx.begin(), ctx.end(), m_specs, ctx,
-                                              detail::type::int128_type);
+        const auto *end = detail::parse_format_specs(ctx.begin(), ctx.end(), m_specs, ctx,
+                                                     detail::type::int128_type);
         if (m_specs.upper()) {
             report_error("Upper letters are temporarily not supported");
         }

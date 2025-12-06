@@ -29,6 +29,7 @@ public:
     arena(arena &&other) = default;
     arena &operator=(const arena &) = delete;
     arena &operator=(arena &&other) = default;
+    ~arena() = default;
 
     WJR_MALLOC void *allocate(size_t n) noexcept {
         if (WJR_UNLIKELY(to_unsigned(m_end - m_start) < n)) {

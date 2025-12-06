@@ -10,7 +10,6 @@
 #ifndef WJR_MEMORY_DETAIL_HPP__
 #define WJR_MEMORY_DETAIL_HPP__
 
-#include <array>
 #include <cstring>
 #include <memory>
 

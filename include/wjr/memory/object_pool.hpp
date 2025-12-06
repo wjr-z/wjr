@@ -116,8 +116,8 @@ struct single_object_pool_traits {
         using other = single_object_pool_traits<Other>;
     };
 
-    static constexpr size_t get(WJR_MAYBE_UNUSED size_t size) noexcept {
-        WJR_ASSERT_L2(size == sizeof(T));
+    static constexpr size_t get(WJR_MAYBE_UNUSED size_t sz) noexcept {
+        WJR_ASSERT_L2(sz == sizeof(T));
         return 0;
     }
     static constexpr value_type *allocate_large(size_t) noexcept { WJR_UNREACHABLE(); }

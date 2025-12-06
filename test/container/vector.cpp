@@ -20,7 +20,6 @@ static_assert(is_trivially_allocator_v<std::allocator<int>>);
 
 template <typename Vec>
 constexpr bool test_vector_type() {
-    using T = typename Vec::value_type;
     using allocator_type = typename Vec::allocator_type;
     using storage_type = typename Vec::storage_type;
 
