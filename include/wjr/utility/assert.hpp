@@ -59,11 +59,11 @@ WJR_NORETURN WJR_COLD WJR_SYMBOL_EXPORT extern void _assert_light_failed(const c
 // LCOV_EXCL_START
 
 /// @private
-template <typename... Args, WJR_REQUIRES(sizeof...(Args) > 0)>
+template <typename... Args>
 WJR_NORETURN void _assert_failed_handler(const char *expr, const char *file, const char *func,
-                                         int line, Args &&...args) {
+                                         int line, const Args &...args) {
     std::cerr << "Assert message:";
-    (void)(std::cerr << ... << std::forward<Args>(args));
+    (void)(std::cerr << ... << args);
     std::cerr << '\n';
     _assert_failed(expr, file, func, line);
 }
@@ -76,7 +76,7 @@ WJR_NORETURN inline void _assert_failed_handler(const char *expr, const char *fi
 
 /// @private
 template <typename... Args>
-WJR_NORETURN void _assert_light_failed_handler(const char *expr, Args &&...) noexcept {
+WJR_NORETURN void _assert_light_failed_handler(const char *expr, const Args &...) noexcept {
     _assert_light_failed(expr);
 }
 
