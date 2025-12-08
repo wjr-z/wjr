@@ -209,7 +209,7 @@
  * all path even if only one path will be executed, then the function that calls
  * it will not be inlined.
  */
-#if WJR_HAS_BUILTIN(__builtin_constant_p)
+#if WJR_HAS_BUILTIN(__builtin_constant_p) && 0
     #define WJR_BUILTIN_CONSTANT_P(expr) __builtin_constant_p(expr)
     #define WJR_BUILTIN_CONSTANT_P_TRUE(expr) (WJR_BUILTIN_CONSTANT_P(expr) && (expr))
     #define WJR_BUILTIN_CONSTANT_CONSTEXPR
