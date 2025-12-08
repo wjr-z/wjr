@@ -437,9 +437,13 @@ TYPED_TEST(VectorTest, assign) {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
             using Vec = typename TypeParam::template type<T>;
+            std::cout << "START" << std::endl;
             Vec v(c);
+            std::cout << "construct done" << std::endl;
             v.resize(s);
+            std::cout << "resize done" << std::endl;
             v.assign(n, _Val);
+            std::cout << "assign done" << std::endl;
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
             for_each_n(v.begin(), n,
