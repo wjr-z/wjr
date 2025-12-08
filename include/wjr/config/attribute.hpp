@@ -14,15 +14,7 @@
     #define WJR_FALLTHROUGH
 #endif
 
-#if WJR_HAS_CPP_ATTRIBUTE(noreturn)
-    #define WJR_NORETURN [[noreturn]]
-#elif WJR_HAS_ATTRIBUTE(noreturn)
-    #define WJR_NORETURN __attribute__((noreturn))
-#elif defined(_MSC_VER)
-    #define WJR_NORETURN __declspec(noreturn)
-#else
-    #define WJR_NORETURN
-#endif
+#define WJR_NORETURN
 
 #if WJR_HAS_CPP_ATTRIBUTE(nodiscard)
     #define WJR_NODISCARD [[nodiscard]]
