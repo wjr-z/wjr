@@ -390,7 +390,7 @@ public:
     using is_reallocatable = std::true_type;
 
     // Avoid zero-initialize m_storage.
-    small_vector_storage() noexcept {}
+    small_vector_storage() noexcept { _reset_small(); }
 
     small_vector_storage(const small_vector_storage &) = delete;
     small_vector_storage(small_vector_storage &&) = delete;
@@ -513,12 +513,12 @@ private:
         return !_is_small_capacity(capacity);
     }
 
-    pointer _get_storage() noexcept { return reinterpret_cast<pointer>(m_storage); }
+    pointer _get_storage() noexcept { return std::launder(reinterpret_cast<pointer>(m_storage)); }
     const_pointer _get_storage() const noexcept {
-        return reinterpret_cast<const_pointer>(m_storage);
+        return std::launder(reinterpret_cast<const_pointer>(m_storage));
     }
 
-    pointer m_data = reinterpret_cast<pointer>(m_storage);
+    pointer m_data;
     size_type m_size = 0;
     union {
         size_type m_capacity;
