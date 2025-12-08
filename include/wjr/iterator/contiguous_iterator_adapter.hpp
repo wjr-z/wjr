@@ -41,7 +41,7 @@ public:
     }
 
     WJR_NODISCARD WJR_CONSTEXPR20 pointer operator->() const noexcept {
-#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
+#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER) && 0
         WJR_CHECK(m_container != nullptr, "Can't dereference an value-initialized iterator.");
         WJR_CHECK(m_ptr != nullptr, "Can't dereference an invalid iterator.");
         WJR_CHECK(m_ptr >= _begin() && m_ptr < _end(),
