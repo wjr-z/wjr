@@ -31,6 +31,7 @@
 #include <utility>  // for forward
 
 #include <wjr/config/attribute.hpp>
+#include <wjr/macros/requires.hpp>
 
 #ifndef WJR_DEBUG_LEVEL
     #if defined(NDEBUG)
@@ -58,7 +59,7 @@ WJR_NORETURN WJR_COLD WJR_SYMBOL_EXPORT extern void _assert_light_failed(const c
 // LCOV_EXCL_START
 
 /// @private
-template <typename... Args>
+template <typename... Args, WJR_REQUIRES(sizeof...(Args) > 0)>
 WJR_NORETURN void _assert_failed_handler(const char *expr, const char *file, const char *func,
                                          int line, Args &&...args) noexcept {
     std::cerr << "Assert message:";
