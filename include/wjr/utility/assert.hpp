@@ -45,7 +45,7 @@
     #error "WJR_DEBUG_LEVEL must be 0 ~ 3"
 #endif
 
-#if WJR_DEBUG_LEVEL == 0 && !defined(WJR_LIGHT_ASSERT)
+#if WJR_DEBUG_LEVEL == 0 && !defined(WJR_LIGHT_ASSERT) && 0
     #define WJR_LIGHT_ASSERT
 #endif
 
@@ -62,9 +62,13 @@ WJR_NORETURN WJR_COLD WJR_SYMBOL_EXPORT extern void _assert_light_failed(const c
 template <typename... Args, WJR_REQUIRES(sizeof...(Args) > 0)>
 WJR_NORETURN void _assert_failed_handler(const char *expr, const char *file, const char *func,
                                          int line, Args &&...args) noexcept {
-    std::cerr << "Assert message:";
-    (void)(std::cerr << ... << std::forward<Args>(args));
-    std::cerr << '\n';
+    try {
+        std::cerr << "Assert message:";
+        (void)(std::cerr << ... << std::forward<Args>(args));
+        std::cerr << '\n';
+    } catch (...) {
+        // ignore
+    }
     _assert_failed(expr, file, func, line);
 }
 
