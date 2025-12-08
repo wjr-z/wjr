@@ -50,7 +50,7 @@ public:
             auto s = _begin();
             auto siz = m_container->size();
             std::cout << "begin: " << static_cast<const void *>(s) << std::endl;
-            std::cout << "size: " << size << std::endl;
+            std::cout << "size: " << siz << std::endl;
         }
 #endif
         return const_cast<pointer>(m_ptr);
