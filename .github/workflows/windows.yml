@@ -58,5 +58,31 @@ jobs:
       - name: Build
         run: cmake --build build --target tests --config Release --parallel
 
+      - name: Dump assembly for tests executable
+        shell: bash
+        run: |
+          objdump -d ./build/bin/tests.exe > tests_disassembly.txt
+          echo "Tests executable disassembly saved to tests_disassembly.txt"
+
+      - name: Dump assembly for vector.cpp object file
+        shell: bash
+        run: |
+          if [ -f ./build/test/CMakeFiles/tests.dir/container/vector.cpp.obj ]; then
+            objdump -d ./build/test/CMakeFiles/tests.dir/container/vector.cpp.obj > vector_cpp_disassembly.txt
+            echo "vector.cpp.obj disassembly saved to vector_cpp_disassembly.txt"
+          else
+            echo "Warning: vector.cpp.obj not found"
+            find ./build -name "vector.cpp.obj" -o -name "vector.cpp.o"
+          fi
+
+      - name: Upload assembly artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: assembly-dumps-${{ matrix.sys.compiler }}
+          path: |
+            tests_disassembly.txt
+            vector_cpp_disassembly.txt
+          retention-days: 7
+
       - name: Run tests
         run: ./build/bin/tests
