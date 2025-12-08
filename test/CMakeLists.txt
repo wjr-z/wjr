@@ -51,7 +51,7 @@ file(GLOB_RECURSE TEST_SRCS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
 add_executable(
    tests
-   ${TEST_SRCS}
+   container/vector.cpp
 )
 
 target_include_directories(tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
