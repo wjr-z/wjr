@@ -174,6 +174,29 @@ struct VectorTestNames {
 
 TYPED_TEST_SUITE(VectorTest, VectorTypes, VectorTestNames);
 
+struct String {
+    String() { std::cout << "String default constructor" << std::endl; }
+    String(const String &) { std::cout << "String copy constructor" << std::endl; }
+    String(String &&) noexcept { std::cout << "String move constructor" << std::endl; }
+    ~String() { std::cout << "String destructor" << std::endl; }
+    String &operator=(const String &) {
+        std::cout << "String copy assignment" << std::endl;
+        return *this;
+    }
+    String &operator=(String &&) noexcept {
+        std::cout << "String move assignment" << std::endl;
+        return *this;
+    }
+
+    friend bool operator==(const String &lhs, const String &rhs) noexcept {
+        return lhs.str == rhs.str;
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const String &s) { return os << s.str; }
+
+    std::string str = __string;
+};
+
 TYPED_TEST(VectorTest, assign) {
 #ifdef __clang__
     std::cout << "clang:" << __clang_major__ << "." << __clang_minor__ << "."
@@ -209,7 +232,7 @@ TYPED_TEST(VectorTest, assign) {
             std::cout << "n=" << n << ", s=" << s << ", c=" << c << std::endl;
             test(__int, n, s, c);
             std::cout << "----" << std::endl;
-            test(__string, n, s, c);
+            test(String(), n, s, c);
             std::cout << "====" << std::endl;
         });
     }
