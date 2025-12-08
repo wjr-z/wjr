@@ -46,7 +46,7 @@ static_assert(test_vector_type<small_vector<int, 8>>());
 static_assert(test_vector_type<small_vector<std::string, 8>>());
 
 template <typename Iter, typename Func>
-WJR_NOINLINE void for_each_n(Iter first, size_t n, Func fn) {
+void for_each_n(Iter first, size_t n, Func fn) {
     for (size_t i = 0; i < n; ++i) {
         fn(first[i]);
     }
