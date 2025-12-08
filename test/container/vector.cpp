@@ -226,8 +226,8 @@ TYPED_TEST(VectorTest, assign) {
             std::cout << "capacity ok" << std::endl;
             auto p = v.data();
             std::cout << "ptr: " << static_cast<const void *>(p) << std::endl;
-            std::for_each(v.begin(), v.end(),
-                          [&](auto &x) { EXPECT_EQ(x, _Val) << n << ' ' << s << ' ' << c; });
+            for_each_n(v.begin(), n,
+                       [&](auto &x) { EXPECT_EQ(x, _Val) << n << ' ' << s << ' ' << c; });
             std::cout << "END" << std::endl;
         };
         run_range3([&](int n, int s, int c) {
