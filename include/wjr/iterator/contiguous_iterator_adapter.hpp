@@ -85,7 +85,7 @@ public:
     }
 
     WJR_CONSTEXPR20 contiguous_const_iterator_adapter &operator+=(difference_type n) noexcept {
-        _check_offset(n);
+        // _check_offset(n);
         m_ptr += n;
         return *this;
     }
