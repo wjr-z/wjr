@@ -34,9 +34,10 @@ jobs:
 
       - name: Setup clang
         if: matrix.sys.compiler == 'clang'
-        run: |
-            echo "CC=clang" >> $GITHUB_ENV
-            echo "CXX=clang++" >> $GITHUB_ENV
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "18.1"
+          env: true
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout code

@@ -406,7 +406,7 @@ public:
         }
 
         if (_is_large()) {
-            _Alty_traits::deallocate(al, data(), capacity());
+            _Alty_traits::deallocate(al, data(), m_capacity);
         }
     }
 
