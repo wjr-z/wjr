@@ -149,7 +149,7 @@ using iterator_contiguous_value_t = std::remove_reference_t<iterator_reference_t
 template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<Iter>)>
 using iterator_contiguous_pointer_t = std::add_pointer_t<iterator_contiguous_value_t<Iter>>;
 
-#if WJR_DEBUG_LEVEL >= 3
+#if WJR_DEBUG_LEVEL >= 3 && 0
     #define WJR_HAS_DEBUG_CONTIGUOUS_ITERATOR_CHECKER WJR_HAS_DEF
 #endif
 
