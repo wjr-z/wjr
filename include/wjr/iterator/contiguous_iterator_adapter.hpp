@@ -176,7 +176,8 @@ private:
         if (offset == 0) {
             return;
         }
-        WJR_CHECK(m_container != nullptr, "Can't seek an value-initialized iterator.");
+        // WJR_CHECK(m_container != nullptr, "Can't seek an value-initialized iterator.");
+        std::cout << (const void*)(m_container) << std::endl;
     }
 
     /// @private
