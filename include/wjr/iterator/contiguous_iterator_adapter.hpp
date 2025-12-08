@@ -178,12 +178,6 @@ private:
         }
         WJR_CHECK(m_container != nullptr, "Can't seek an value-initialized iterator.");
         WJR_CHECK(m_ptr != nullptr, "Can't seek an invalid iterator.");
-        if (offset < 0) {
-            WJR_CHECK(offset >= _begin() - m_ptr,
-                      "Can't seek an iterator that before the beginning.");
-        } else {
-            WJR_CHECK(offset <= _end() - m_ptr, "Can't seek an iterator that after the end.");
-        }
     }
 
     /// @private
