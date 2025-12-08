@@ -426,14 +426,14 @@ public:
     WJR_CONSTEXPR20 void
     take_storage(small_vector_storage &WJR_RESTRICT other,
                  _Alty &al) noexcept(std::is_nothrow_move_constructible_v<value_type>) {
-        const auto rhs = _add_restrict(other.data());
+        const auto rhs = (other.data());
 
         m_size = other.size();
         other.m_size = 0;
 
         if (other._is_small()) {
             _reset_small();
-            const auto lhs = _add_restrict(data());
+            const auto lhs = (data());
             if constexpr (_use_memcpy) {
                 if (m_size) {
                     builtin_memcpy(lhs, rhs, _memcpy_bytes);
