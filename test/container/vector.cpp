@@ -139,11 +139,6 @@ using wvector = wjr::vector<T>;
 template <typename T>
 using wsmall_vector = wjr::small_vector<T, 4>;
 
-namespace wjr {
-template class basic_vector<default_vector_storage<int, std::allocator<int>>>;
-template class basic_vector<default_vector_storage<std::string, std::allocator<std::string>>>;
-} // namespace wjr
-
 // Wrapper for container template
 template <template <typename> class Container>
 struct ContainerWrapper {
@@ -174,29 +169,6 @@ struct VectorTestNames {
 
 TYPED_TEST_SUITE(VectorTest, VectorTypes, VectorTestNames);
 
-struct String {
-    String() { std::cout << "String default constructor" << std::endl; }
-    String(const String &) { std::cout << "String copy constructor" << std::endl; }
-    String(String &&) noexcept { std::cout << "String move constructor" << std::endl; }
-    ~String() { std::cout << "String destructor" << std::endl; }
-    String &operator=(const String &) {
-        std::cout << "String copy assignment" << std::endl;
-        return *this;
-    }
-    String &operator=(String &&) noexcept {
-        std::cout << "String move assignment" << std::endl;
-        return *this;
-    }
-
-    friend bool operator==(const String &lhs, const String &rhs) noexcept {
-        return lhs.str == rhs.str;
-    }
-
-    friend std::ostream &operator<<(std::ostream &os, const String &s) { return os << s.str; }
-
-    std::string str = __string;
-};
-
 TYPED_TEST(VectorTest, assign) {
 #ifdef __clang__
     std::cout << "clang:" << __clang_major__ << "." << __clang_minor__ << "."
@@ -213,30 +185,18 @@ TYPED_TEST(VectorTest, assign) {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
             using Vec = typename TypeParam::template type<T>;
-            std::cout << "START" << std::endl;
             Vec v(c);
-            std::cout << "construct done" << std::endl;
             v.resize(s);
-            std::cout << "resize done" << std::endl;
             v.assign(n, _Val);
-            std::cout << "assign done" << std::endl;
-            EXPECT_EQ(v.size(), n);
-            std::cout << "size ok" << std::endl;
-            EXPECT_GE(v.capacity(), n);
-            std::cout << "capacity ok" << std::endl;
-            auto p = v.data();
-            std::cout << "ptr: " << static_cast<const void *>(p) << std::endl;
             for_each_n(v.begin(), n,
                        [&](auto &x) { EXPECT_EQ(x, _Val) << n << ' ' << s << ' ' << c; });
-            std::cout << "END" << std::endl;
         };
-        run_range3([&](int n, int s, int c) {
-            std::cout << "n=" << n << ", s=" << s << ", c=" << c << std::endl;
+        auto fn = [&](int n, int s, int c) {
             test(__int, n, s, c);
-            std::cout << "----" << std::endl;
-            test(String(), n, s, c);
-            std::cout << "====" << std::endl;
-        });
+            test(__string, n, s, c);
+        };
+
+        fn(0, 0, 1);
     }
 
     std::cout << "assign(range)" << std::endl;
