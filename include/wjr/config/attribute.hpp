@@ -120,11 +120,11 @@
 #endif
 
 #if defined(__cpp_lib_unreachable)
-    #define WJR_UNREACHABLE() std::unreachable()
+    #define WJR_UNREACHABLE() std::terminate()
 #elif WJR_HAS_BUILTIN(__builtin_unreachable)
-    #define WJR_UNREACHABLE() __builtin_unreachable()
+    #define WJR_UNREACHABLE() std::terminate()
 #elif defined(WJR_COMPILER_MSVC)
-    #define WJR_UNREACHABLE() __assume(0)
+    #define WJR_UNREACHABLE() std::terminate()
 #else
     #define WJR_UNREACHABLE()
 #endif
