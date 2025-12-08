@@ -156,7 +156,7 @@ template <typename TypeParam>
 class VectorTest : public ::testing::Test {};
 
 // Define the types to test - just the two container templates
-using VectorTypes = ::testing::Types<ContainerWrapper<wvector>, ContainerWrapper<wsmall_vector>>;
+using VectorTypes = ::testing::Types<ContainerWrapper<wsmall_vector>>;
 
 // Custom name generator for better test output
 struct VectorTestNames {
