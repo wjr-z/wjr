@@ -188,7 +188,9 @@ TYPED_TEST(VectorTest, assign) {
             Vec v(c);
             v.resize(s);
             v.assign(n, _Val);
-            for_each_n(v.begin(), n, [&](auto &x) {});
+            for_each_n(v.begin(), n, [_Val, n, s, c](auto &x) {
+                EXPECT_EQ(x, _Val) << n << ' ' << s << ' ' << c;
+            });
         };
         auto fn = [&](int n, int s, int c) {
             test(__int, n, s, c);
