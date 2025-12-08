@@ -14,7 +14,15 @@
     #define WJR_FALLTHROUGH
 #endif
 
-#define WJR_NORETURN
+#if WJR_HAS_CPP_ATTRIBUTE(noreturn)
+    #define WJR_NORETURN [[noreturn]]
+#elif WJR_HAS_ATTRIBUTE(noreturn)
+    #define WJR_NORETURN __attribute__((noreturn))
+#elif defined(_MSC_VER)
+    #define WJR_NORETURN __declspec(noreturn)
+#else
+    #define WJR_NORETURN
+#endif
 
 #if WJR_HAS_CPP_ATTRIBUTE(nodiscard)
     #define WJR_NODISCARD [[nodiscard]]
@@ -120,11 +128,11 @@
 #endif
 
 #if defined(__cpp_lib_unreachable)
-    #define WJR_UNREACHABLE() std::terminate()
+    #define WJR_UNREACHABLE() std::unreachable()
 #elif WJR_HAS_BUILTIN(__builtin_unreachable)
-    #define WJR_UNREACHABLE() std::terminate()
+    #define WJR_UNREACHABLE() __builtin_unreachable()
 #elif defined(WJR_COMPILER_MSVC)
-    #define WJR_UNREACHABLE() std::terminate()
+    #define WJR_UNREACHABLE() __assume(0)
 #else
     #define WJR_UNREACHABLE()
 #endif
@@ -209,7 +217,7 @@
  * all path even if only one path will be executed, then the function that calls
  * it will not be inlined.
  */
-#if WJR_HAS_BUILTIN(__builtin_constant_p) && 0
+#if WJR_HAS_BUILTIN(__builtin_constant_p)
     #define WJR_BUILTIN_CONSTANT_P(expr) __builtin_constant_p(expr)
     #define WJR_BUILTIN_CONSTANT_P_TRUE(expr) (WJR_BUILTIN_CONSTANT_P(expr) && (expr))
     #define WJR_BUILTIN_CONSTANT_CONSTEXPR
@@ -241,7 +249,7 @@
 
 // pure attribute
 #if WJR_HAS_ATTRIBUTE(pure)
-    #define WJR_PURE
+    #define WJR_PURE __attribute__((pure))
 #else
     #define WJR_PURE
 #endif

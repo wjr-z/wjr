@@ -10,7 +10,6 @@
 #ifndef WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP__
 #define WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP__
 
-#include <exception>
 #include <wjr/assert.hpp>
 #include <wjr/memory/detail.hpp>
 
@@ -42,11 +41,10 @@ public:
 
     WJR_NODISCARD WJR_CONSTEXPR20 pointer operator->() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        // std::cout << (const void *)(m_container) << std::endl;
-        // std::cout << (const void *)(m_ptr) << std::endl;
-        WJR_CHECK(m_container != nullptr);
-        WJR_CHECK(m_ptr != nullptr);
-        WJR_CHECK(m_ptr >= _begin() && m_ptr < _end());
+        WJR_CHECK(m_container != nullptr, "Can't dereference an value-initialized iterator.");
+        WJR_CHECK(m_ptr != nullptr, "Can't dereference an invalid iterator.");
+        WJR_CHECK(m_ptr >= _begin() && m_ptr < _end(),
+                  "Can't dereference an out-of-range iterator.");
 #endif
         return const_cast<pointer>(m_ptr);
     }
@@ -87,7 +85,7 @@ public:
     }
 
     WJR_CONSTEXPR20 contiguous_const_iterator_adapter &operator+=(difference_type n) noexcept {
-        // _check_offset(n);
+        _check_offset(n);
         m_ptr += n;
         return *this;
     }
@@ -175,15 +173,16 @@ private:
 
     /// @private
     WJR_CONSTEXPR20 void _check_offset(difference_type offset) const noexcept {
-        try {
-            if (offset == 0) {
-                return;
-            }
-            // WJR_CHECK(m_container != nullptr, "Can't seek an value-initialized iterator.");
-            std::cout << (const void *)(m_container) << std::endl;
-        } catch (...) {
-            std::cout << "exception caught" << std::endl;
-            std::terminate();
+        if (offset == 0) {
+            return;
+        }
+        WJR_CHECK(m_container != nullptr, "Can't seek an value-initialized iterator.");
+        WJR_CHECK(m_ptr != nullptr, "Can't seek an invalid iterator.");
+        if (offset < 0) {
+            WJR_CHECK(offset >= _begin() - m_ptr,
+                      "Can't seek an iterator that before the beginning.");
+        } else {
+            WJR_CHECK(offset <= _end() - m_ptr, "Can't seek an iterator that after the end.");
         }
     }
 
@@ -195,10 +194,10 @@ private:
     }
 
     /// @private
-    WJR_CONSTEXPR20 pointer _begin() const noexcept { return m_container->data(); }
+    WJR_PURE WJR_CONSTEXPR20 pointer _begin() const noexcept { return m_container->data(); }
 
     /// @private
-    WJR_CONSTEXPR20 pointer _end() const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 pointer _end() const noexcept {
         return m_container->data() + m_container->size();
     }
 #else
@@ -216,7 +215,7 @@ private:
 protected:
     _pointer m_ptr;
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-    const Container *m_container = nullptr;
+    const Container *m_container;
 #endif
 };
 

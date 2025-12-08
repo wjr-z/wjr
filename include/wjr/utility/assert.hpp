@@ -31,7 +31,6 @@
 #include <utility>  // for forward
 
 #include <wjr/config/attribute.hpp>
-#include <wjr/macros/requires.hpp>
 
 #ifndef WJR_DEBUG_LEVEL
     #if defined(NDEBUG)
@@ -45,7 +44,7 @@
     #error "WJR_DEBUG_LEVEL must be 0 ~ 3"
 #endif
 
-#if WJR_DEBUG_LEVEL == 0 && !defined(WJR_LIGHT_ASSERT) && 0
+#if WJR_DEBUG_LEVEL == 0 && !defined(WJR_LIGHT_ASSERT)
     #define WJR_LIGHT_ASSERT
 #endif
 
@@ -60,10 +59,10 @@ WJR_NORETURN WJR_COLD WJR_SYMBOL_EXPORT extern void _assert_light_failed(const c
 
 /// @private
 template <typename... Args>
-WJR_NOINLINE WJR_NORETURN void _assert_failed_handler(const char *expr, const char *file, const char *func,
-                                         int line, const Args &...args) {
+WJR_NORETURN void _assert_failed_handler(const char *expr, const char *file, const char *func,
+                                         int line, Args &&...args) noexcept {
     std::cerr << "Assert message:";
-    (void)(std::cerr << ... << args);
+    (void)(std::cerr << ... << std::forward<Args>(args));
     std::cerr << '\n';
     _assert_failed(expr, file, func, line);
 }
@@ -76,7 +75,7 @@ WJR_NORETURN inline void _assert_failed_handler(const char *expr, const char *fi
 
 /// @private
 template <typename... Args>
-WJR_NORETURN void _assert_light_failed_handler(const char *expr, const Args &...) noexcept {
+WJR_NORETURN void _assert_light_failed_handler(const char *expr, Args &&...) noexcept {
     _assert_light_failed(expr);
 }
 

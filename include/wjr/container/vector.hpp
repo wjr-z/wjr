@@ -406,7 +406,7 @@ public:
         }
 
         if (_is_large()) {
-            _Alty_traits::deallocate(al, data(), capacity());
+            _Alty_traits::deallocate(al, data(), m_capacity);
         }
     }
 
@@ -426,14 +426,14 @@ public:
     WJR_CONSTEXPR20 void
     take_storage(small_vector_storage &WJR_RESTRICT other,
                  _Alty &al) noexcept(std::is_nothrow_move_constructible_v<value_type>) {
-        const auto rhs = (other.data());
+        const auto rhs = _add_restrict(other.data());
 
         m_size = other.size();
         other.m_size = 0;
 
         if (other._is_small()) {
             _reset_small();
-            const auto lhs = (data());
+            const auto lhs = _add_restrict(data());
             if constexpr (_use_memcpy) {
                 if (m_size) {
                     builtin_memcpy(lhs, rhs, _memcpy_bytes);
@@ -761,16 +761,16 @@ public:
     WJR_CONSTEXPR20 const_pointer cbuf_end_unsafe() const noexcept { return buf_end_unsafe(); }
 
 private:
-    WJR_CONSTEXPR20 iterator _make_iterator(const_pointer ptr) const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 iterator _make_iterator(const_pointer ptr) const noexcept {
         return iterator(const_cast<pointer>(ptr), this);
     }
 
-    WJR_CONSTEXPR20 pointer _get_pointer(iterator ptr) const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 pointer _get_pointer(iterator ptr) const noexcept {
         ptr.check_same_container(this);
         return wjr::to_address(ptr);
     }
 
-    WJR_CONSTEXPR20 pointer _get_pointer(const_iterator ptr) const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 pointer _get_pointer(const_iterator ptr) const noexcept {
         ptr.check_same_container(this);
         return const_cast<pointer>(wjr::to_address(ptr));
     }
