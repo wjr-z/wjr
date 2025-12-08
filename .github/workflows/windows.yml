@@ -75,5 +75,14 @@ jobs:
             find ./build -name "vector.cpp.obj" -o -name "vector.cpp.o"
           fi
 
+      - name: Upload assembly artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: assembly-dumps-${{ matrix.sys.compiler }}
+          path: |
+            tests_disassembly.txt
+            vector_cpp_disassembly.txt
+          retention-days: 7
+
       - name: Run tests
         run: ./build/bin/tests
