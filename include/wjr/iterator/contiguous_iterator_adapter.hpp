@@ -173,6 +173,10 @@ private:
 
     /// @private
     WJR_CONSTEXPR20 void _check_offset(difference_type offset) const noexcept {
+        if (offset == 0) {
+            return;
+        }
+        WJR_CHECK(m_container != nullptr, "Can't seek an value-initialized iterator.");
     }
 
     /// @private
