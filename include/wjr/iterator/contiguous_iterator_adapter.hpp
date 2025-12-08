@@ -10,6 +10,7 @@
 #ifndef WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP__
 #define WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP__
 
+#include <exception>
 #include <wjr/assert.hpp>
 #include <wjr/memory/detail.hpp>
 
@@ -173,7 +174,16 @@ private:
 
     /// @private
     WJR_CONSTEXPR20 void _check_offset(difference_type offset) const noexcept {
-        (void)offset;
+        try {
+            if (offset == 0) {
+                return;
+            }
+            // WJR_CHECK(m_container != nullptr, "Can't seek an value-initialized iterator.");
+            std::cout << (const void *)(m_container) << std::endl;
+        } catch (...) {
+            std::cout << "exception caught" << std::endl;
+            std::terminate();
+        }
     }
 
     /// @private
