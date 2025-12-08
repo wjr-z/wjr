@@ -188,7 +188,7 @@ TYPED_TEST(VectorTest, assign) {
             Vec v(c);
             v.resize(s);
             v.assign(n, _Val);
-            for_each_n(v.begin(), n, [&v, _Val, n, s, c](auto &x) {
+            for_each_n(v.begin(), n, [&v, &_Val, &n, &s, &c](T &x) { // 非泛型
                 EXPECT_EQ(x, _Val) << n << ' ' << s << ' ' << c;
             });
         };
