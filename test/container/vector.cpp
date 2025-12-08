@@ -198,7 +198,9 @@ TYPED_TEST(VectorTest, assign) {
             v.assign(n, _Val);
             std::cout << "assign done" << std::endl;
             EXPECT_EQ(v.size(), n);
+            std::cout << "size ok" << std::endl;
             EXPECT_GE(v.capacity(), n);
+            std::cout << "capacity ok" << std::endl;
             for_each_n(v.begin(), n,
                        [&](auto &x) { EXPECT_EQ(x, _Val) << n << ' ' << s << ' ' << c; });
             std::cout << "END" << std::endl;
