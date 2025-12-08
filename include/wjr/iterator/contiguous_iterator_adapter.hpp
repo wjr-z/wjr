@@ -48,7 +48,9 @@ public:
         //           "Can't dereference an out-of-range iterator.");
         if (m_container != nullptr && m_ptr != nullptr) {
             auto s = _begin();
+            auto e = _end();
             std::cout << "begin: " << static_cast<const void *>(s) << std::endl;
+            std::cout << "end: " << static_cast<const void *>(e) << std::endl;
         }
 #endif
         return const_cast<pointer>(m_ptr);
