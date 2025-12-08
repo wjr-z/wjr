@@ -106,7 +106,8 @@ target_include_directories(tests PRIVATE ${GMP_INCLUDE_DIRS})
 
 target_link_libraries(tests
    PRIVATE
-   wjr::wjr
+   wjr::assert
+   wjr::iterator
    gtest_main
    ${GMP_LIBRARIES}
 )
