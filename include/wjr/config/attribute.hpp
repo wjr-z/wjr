@@ -249,7 +249,7 @@
 
 // pure attribute
 #if WJR_HAS_ATTRIBUTE(pure)
-    #define WJR_PURE __attribute__((pure))
+    #define WJR_PURE
 #else
     #define WJR_PURE
 #endif
