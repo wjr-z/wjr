@@ -194,10 +194,10 @@ private:
     }
 
     /// @private
-    WJR_PURE WJR_CONSTEXPR20 pointer _begin() const noexcept { return m_container->data(); }
+    WJR_CONSTEXPR20 pointer _begin() const noexcept { return m_container->data(); }
 
     /// @private
-    WJR_PURE WJR_CONSTEXPR20 pointer _end() const noexcept {
+    WJR_CONSTEXPR20 pointer _end() const noexcept {
         return m_container->data() + m_container->size();
     }
 #else
