@@ -209,7 +209,7 @@ private:
 protected:
     _pointer m_ptr;
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-    const Container *m_container;
+    const Container *m_container = nullptr;
 #endif
 };
 
