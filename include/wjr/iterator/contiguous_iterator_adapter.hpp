@@ -44,10 +44,9 @@ public:
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         // std::cout << (const void *)(m_container) << std::endl;
         // std::cout << (const void *)(m_ptr) << std::endl;
-        WJR_CHECK(m_container != nullptr, "Can't dereference an value-initialized iterator.");
-        WJR_CHECK(m_ptr != nullptr, "Can't dereference an invalid iterator.");
-        WJR_CHECK(m_ptr >= _begin() && m_ptr < _end(),
-                  "Can't dereference an out-of-range iterator.");
+        WJR_CHECK(m_container != nullptr);
+        WJR_CHECK(m_ptr != nullptr);
+        WJR_CHECK(m_ptr >= _begin() && m_ptr < _end());
 #endif
         return const_cast<pointer>(m_ptr);
     }
