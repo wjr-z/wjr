@@ -56,7 +56,7 @@ jobs:
             -DWJR_DEBUG_LEVEL_RELEASE=3 -DWJR_PUBLIC_FLAGS=ON -DWJR_USE_GMP=OFF
 
       - name: Build
-        run: cmake --build build --config Release --parallel
+        run: cmake --build build --target tests --config Release --parallel
 
       - name: Run tests
         run: ./build/bin/tests
