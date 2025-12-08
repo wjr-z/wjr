@@ -201,6 +201,7 @@ TYPED_TEST(VectorTest, assign) {
             EXPECT_GE(v.capacity(), n);
             for_each_n(v.begin(), n,
                        [&](auto &x) { EXPECT_EQ(x, _Val) << n << ' ' << s << ' ' << c; });
+            std::cout << "END" << std::endl;
         };
         run_range3([&](int n, int s, int c) {
             std::cout << "n=" << n << ", s=" << s << ", c=" << c << std::endl;
