@@ -61,7 +61,10 @@ WJR_NORETURN WJR_COLD WJR_SYMBOL_EXPORT extern void _assert_light_failed(const c
 /// @private
 template <typename... Args, WJR_REQUIRES(sizeof...(Args) > 0)>
 WJR_NORETURN void _assert_failed_handler(const char *expr, const char *file, const char *func,
-                                         int line, Args &&...) noexcept {
+                                         int line, Args &&...args) {
+    std::cerr << "Assert message:";
+    (void)(std::cerr << ... << std::forward<Args>(args));
+    std::cerr << '\n';
     _assert_failed(expr, file, func, line);
 }
 
