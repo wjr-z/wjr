@@ -369,6 +369,10 @@ struct get_relocate_mode<inplace_vector_storage<T, Capacity>> {
                                             : relocate_t::maybe_trivial;
 };
 
+// Forward declaration for grow_storage
+template <typename T, size_t Capacity, typename Alloc>
+struct small_vector_grow_storage;
+
 template <typename T, size_t Capacity, typename Alloc>
 class small_vector_storage {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
@@ -388,6 +392,7 @@ public:
     using difference_type = typename storage_traits_type::difference_type;
     using allocator_type = typename storage_traits_type::allocator_type;
     using is_reallocatable = std::true_type;
+    using grow_storage_type = small_vector_grow_storage<T, Capacity, Alloc>;
 
     // Avoid zero-initialize m_storage.
     small_vector_storage() noexcept {}
@@ -423,6 +428,16 @@ public:
         other.m_capacity = result.count;
     }
 
+    // Construct grow_storage (always allocates, never uses small buffer)
+    WJR_CONSTEXPR20 static void
+    uninitialized_construct(grow_storage_type &other, size_type size, size_type capacity,
+                            _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
+        const auto result = allocate_at_least(al, capacity);
+        other.m_data = result.ptr;
+        other.m_size = size;
+        other.m_capacity = result.count;
+    }
+
     WJR_CONSTEXPR20 void
     take_storage(small_vector_storage &WJR_RESTRICT other,
                  _Alty &al) noexcept(std::is_nothrow_move_constructible_v<value_type>) {
@@ -446,6 +461,14 @@ public:
             m_capacity = other.m_capacity;
             other._reset_small();
         }
+    }
+
+    // Take from grow_storage (grow_storage is always large, never small)
+    WJR_CONSTEXPR20 void take_storage(grow_storage_type &WJR_RESTRICT other, _Alty &) noexcept {
+        m_data = other.m_data;
+        m_size = other.m_size;
+        m_capacity = other.m_capacity;
+        other.m_size = 0;
     }
 
     WJR_CONSTEXPR20 void
@@ -536,6 +559,43 @@ struct get_relocate_mode<small_vector_storage<T, Capacity, Alloc>> {
         Capacity == 0 ? relocate_t::normal : get_relocate_mode_v<default_vector_storage<T, Alloc>>;
 };
 
+/**
+ * @brief Grow storage for small_vector_storage
+ *
+ * @details Lightweight temporary storage used when small_vector grows beyond small capacity.
+ * Only provides minimal interface: data() for accessing the pointer.
+ * All other operations (construction, take_storage, etc.) are delegated to small_vector_storage.
+ */
+template <typename T, size_t Capacity, typename Alloc>
+struct small_vector_grow_storage {
+    using pointer = typename std::allocator_traits<
+        typename std::allocator_traits<Alloc>::template rebind_alloc<T>>::pointer;
+    using size_type = typename std::allocator_traits<
+        typename std::allocator_traits<Alloc>::template rebind_alloc<T>>::size_type;
+
+    pointer m_data = nullptr;
+    size_type m_size = 0;
+    size_type m_capacity = 0;
+
+    WJR_PURE constexpr pointer data() noexcept { return m_data; }
+    WJR_PURE constexpr size_type &size() noexcept { return m_size; }
+};
+
+namespace detail {
+template <typename Storage, typename = void>
+struct get_grow_storage {
+    using type = Storage;
+};
+
+template <typename Storage>
+struct get_grow_storage<Storage, std::void_t<typename Storage::grow_storage_type>> {
+    using type = typename Storage::grow_storage_type;
+};
+
+template <typename Storage>
+using get_grow_storage_t = typename get_grow_storage<Storage>::type;
+} // namespace detail
+
 WJR_REGISTER_HAS_TYPE(vector_storage_deallocate_nonnull,
                       std::declval<Storage>().deallocate_nonnull(std::declval<Alty &>()), Storage,
                       Alty);
@@ -603,16 +663,32 @@ private:
 
     static_assert(std::is_nothrow_default_constructible_v<storage_type>);
 
-    static constexpr bool _is_nothrow_uninitialized_construct =
+    template <typename S>
+    static constexpr bool _is_nothrow_uninitialized_construct_impl =
         noexcept(std::declval<storage_type &>().uninitialized_construct(
-            std::declval<storage_type &>(), std::declval<size_type>(), std::declval<size_type>(),
+            std::declval<S &>(), std::declval<size_type>(), std::declval<size_type>(),
             std::declval<_Alty &>()));
-    static constexpr bool _is_nothrow_take_storage =
-        noexcept(std::declval<storage_type &>().take_storage(std::declval<storage_type &>(),
-                                                             std::declval<_Alty &>()));
+
+    template <typename S>
+    static constexpr bool _is_nothrow_take_storage_impl = noexcept(
+        std::declval<storage_type &>().take_storage(std::declval<S &>(), std::declval<_Alty &>()));
+
+    static constexpr bool _is_nothrow_uninitialized_construct =
+        _is_nothrow_uninitialized_construct_impl<storage_type>;
+    static constexpr bool _is_nothrow_take_storage = _is_nothrow_take_storage_impl<storage_type>;
     static constexpr bool _is_nothrow_swap_storage =
         noexcept(std::declval<storage_type &>().swap_storage(std::declval<storage_type &>(),
                                                              std::declval<_Alty &>()));
+
+    // Use grow_storage_type if available, otherwise fallback to storage_type
+    using _grow_storage_type = detail::get_grow_storage_t<Storage>;
+
+    static_assert(
+        std::is_same_v<_grow_storage_type, storage_type> ||
+            (_is_nothrow_take_storage_impl<_grow_storage_type> == _is_nothrow_take_storage &&
+             _is_nothrow_uninitialized_construct_impl<_grow_storage_type> ==
+                 _is_nothrow_uninitialized_construct),
+        "If grow_storage_type is provided, it must have the same noexcept guarantees as storage_type");
 
     template <typename Ty>
     WJR_CONSTEXPR20 void _construct_n(const size_type n, Ty &&val) {
@@ -863,7 +939,7 @@ private:
             const size_type old_size = size();
             const size_type new_capacity = get_growth_capacity(old_capacity, n);
 
-            storage_type new_storage;
+            _grow_storage_type new_storage;
             uninitialized_construct(new_storage, old_size, new_capacity);
 
             uninitialized_relocate_n_restrict_using_allocator(data(), old_size, new_storage.data(),
@@ -891,7 +967,7 @@ private:
             WJR_ASSERT_ASSUME_L2(old_capacity < n);
             const size_type new_capacity = get_growth_capacity(old_capacity, n);
 
-            storage_type new_storage;
+            _grow_storage_type new_storage;
             uninitialized_construct(new_storage, 0, new_capacity);
 
             _deallocate();
@@ -1118,7 +1194,7 @@ private:
             if (WJR_UNLIKELY(old_capacity < n)) {
                 const size_type new_capacity = get_growth_capacity(old_capacity, n);
 
-                storage_type new_storage;
+                _grow_storage_type new_storage;
                 uninitialized_construct(new_storage, 0, new_capacity);
 
                 _destroy_and_deallocate();
@@ -1229,12 +1305,14 @@ public:
 
     WJR_CONSTEXPR20 const storage_type &get_storage() const noexcept { return m_pair.second(); }
 
-    WJR_CONSTEXPR20 void take_storage(storage_type &other) noexcept(_is_nothrow_take_storage) {
+    template <typename S>
+    WJR_CONSTEXPR20 void take_storage(S &other) noexcept(_is_nothrow_take_storage) {
         get_storage().take_storage(other, _get_allocator());
     }
 
+    template <typename S>
     WJR_CONSTEXPR20 void
-    uninitialized_construct(storage_type &other, size_type siz,
+    uninitialized_construct(S &other, size_type siz,
                             size_type cap) noexcept(_is_nothrow_uninitialized_construct) {
         WJR_ASSERT_ASSUME(cap != 0);
         get_storage().uninitialized_construct(other, siz, cap, _get_allocator());
@@ -1337,7 +1415,8 @@ private:
         WJR_IGNORE_WASSUME_END
     }
 
-    WJR_CONSTEXPR20 void _take_storage(storage_type &other) noexcept(_is_nothrow_take_storage) {
+    template <typename S>
+    WJR_CONSTEXPR20 void _take_storage(S &other) noexcept(_is_nothrow_take_storage) {
         take_storage(other);
     }
 
@@ -1452,7 +1531,7 @@ private:
                 const auto old_pos = static_cast<size_type>(pos - _begin);
                 const size_type new_capacity = get_growth_capacity(capacity(), old_size + n);
 
-                storage_type new_storage;
+                _grow_storage_type new_storage;
                 uninitialized_construct(new_storage, old_size + n, new_capacity);
 
                 const pointer _new_begin = new_storage.data();
@@ -1502,7 +1581,7 @@ private:
                 const auto old_size = static_cast<size_type>(_end - _begin);
                 const size_type new_capacity = get_growth_capacity(capacity(), old_size + n);
 
-                storage_type new_storage;
+                _grow_storage_type new_storage;
                 uninitialized_construct(new_storage, old_size + n, new_capacity);
 
                 const pointer _new_begin = new_storage.data();
@@ -1556,7 +1635,7 @@ private:
             if constexpr (is_reallocatable::value) {
                 size_type new_capacity = get_growth_capacity(capacity(), n);
 
-                storage_type new_storage;
+                _grow_storage_type new_storage;
                 uninitialized_construct(new_storage, n, new_capacity);
 
                 const pointer _new_begin = new_storage.data();
@@ -1609,7 +1688,7 @@ private:
             const size_type new_size = old_size + 1;
             const size_type new_capacity = get_growth_capacity(old_size, new_size);
 
-            storage_type new_storage;
+            _grow_storage_type new_storage;
             uninitialized_construct(new_storage, new_size, new_capacity);
 
             const pointer _new_begin = new_storage.data();
@@ -1641,7 +1720,7 @@ private:
             const auto new_size = old_size + 1;
             const size_type new_capacity = get_growth_capacity(old_size, new_size);
 
-            storage_type new_storage;
+            _grow_storage_type new_storage;
             uninitialized_construct(new_storage, new_size, new_capacity);
 
             const pointer _new_begin = new_storage.data();
@@ -1691,7 +1770,7 @@ private:
             if constexpr (is_reallocatable::value) {
                 const auto new_capacity = get_growth_capacity(capacity(), old_size + n);
 
-                storage_type new_storage;
+                _grow_storage_type new_storage;
                 uninitialized_construct(new_storage, old_size + n, new_capacity);
 
                 const pointer _new_begin = new_storage.data();
@@ -1762,7 +1841,7 @@ private:
             if constexpr (is_reallocatable::value) {
                 auto new_capacity = get_growth_capacity(old_capacity, new_size);
 
-                storage_type new_storage;
+                _grow_storage_type new_storage;
                 uninitialized_construct(new_storage, new_size, new_capacity);
 
                 const pointer _new_begin = new_storage.data();
@@ -1867,7 +1946,7 @@ private:
                     const auto old_pos = static_cast<size_type>(old_first - _begin);
                     const auto new_capacity = get_growth_capacity(capacity(), old_size + _delta);
 
-                    storage_type new_storage;
+                    _grow_storage_type new_storage;
                     uninitialized_construct(new_storage, old_size + _delta, new_capacity);
 
                     const pointer _new_begin = new_storage.data();
@@ -1926,7 +2005,7 @@ private:
                     const auto old_pos = static_cast<size_type>(old_first - _begin);
                     const auto new_capacity = get_growth_capacity(capacity(), old_size + _delta);
 
-                    storage_type new_storage;
+                    _grow_storage_type new_storage;
                     uninitialized_construct(new_storage, old_size + _delta, new_capacity);
 
                     const pointer _ptr = new_storage.data();
