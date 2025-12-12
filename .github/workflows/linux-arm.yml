@@ -1,0 +1,43 @@
+name: Linux (ARM)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    name: GCC (ARM64)
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Init submodule
+        run: git submodule update --init --recursive
+
+      - uses: uraimo/run-on-arch-action@v2
+        name: Build and Run Tests
+        id: build
+        with:
+          arch: aarch64
+          distro: ubuntu22.04
+          
+          githubToken: ${{ github.token }}
+
+          install: |
+            apt-get update -q -y
+            apt-get install -q -y build-essential cmake ninja-build libgmp-dev git
+
+          run: |
+            # Fix git safety issue in container
+            git config --global --add safe.directory $GITHUB_WORKSPACE
+            
+            cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON \
+              -DWJR_DEBUG_LEVEL_RELEASE=3 -DWJR_PUBLIC_FLAGS=ON
+            
+            cmake --build build --config Release --parallel
+            
+            ./build/bin/tests
