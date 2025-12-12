@@ -1,6 +1,3 @@
-[submodule "third-party/cpu_features"]
-	path = third-party/cpu_features
-	url = https://github.com/google/cpu_features.git
 [submodule "third-party/fmt"]
 	path = third-party/fmt
 	url = https://github.com/fmtlib/fmt

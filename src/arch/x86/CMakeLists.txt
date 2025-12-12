@@ -1,3 +1,18 @@
+include(FetchContent)
+
+# Fetch cpu_features for x86 architecture
+FetchContent_Declare(
+    cpu_features
+    GIT_REPOSITORY https://github.com/google/cpu_features.git
+    GIT_TAG v0.10.1
+    GIT_SHALLOW ON
+    FIND_PACKAGE_ARGS 0.10.1
+)
+
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(cpu_features)
+
 wjr_cc_library(
     NAME
     arch-cpuinfo

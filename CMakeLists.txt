@@ -65,10 +65,6 @@ if(NOT TARGET fmt)
    add_subdirectory(third-party/fmt)
 endif()
 
-if(NOT TARGET CpuFeatures)
-   add_subdirectory(third-party/cpu_features)
-endif()
-
 include(FetchContent)
 
 # Fetch range-v3
