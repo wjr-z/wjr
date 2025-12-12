@@ -30,10 +30,6 @@
 #endif // __GNUC__
 
 #if defined(__clang__)
-    #if defined(__apple_build_version__)
-        #error "Not support"
-    #endif
-
     #define WJR_HAS_CLANG(major, minor, patchlevel)                                                \
         ((__clang_major__ > (major)) ||                                                            \
          (__clang_major__ == (major) && __clang_minor__ > (minor)) ||                              \

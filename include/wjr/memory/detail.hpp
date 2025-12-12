@@ -28,6 +28,10 @@ using std::to_address;
 WJR_REGISTER_HAS_TYPE(pointer_traits_to_address,
                       std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()), Ptr);
 
+    #if defined(_MSC_VER)
+WJR_REGISTER_HAS_TYPE(_Unwrapped, std::declval<Ptr>()._Unwrapped(), Ptr);
+    #endif
+
 template <typename T>
 constexpr T *to_address(T *p) noexcept {
     static_assert(!std::is_function_v<T>, "T cannot be a function.");
@@ -43,7 +47,13 @@ template <typename Ptr>
 constexpr auto to_address(const Ptr &p) noexcept {
     if constexpr (has_pointer_traits_to_address_v<remove_cvref_t<Ptr>>) {
         return std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p);
-    } else {
+    }
+    #if defined(_MSC_VER)
+    else if constexpr (has__Unwrapped_v<remove_cvref_t<Ptr>>) {
+        return wjr::to_address(p._Unwrapped());
+    }
+    #endif
+    else {
         return wjr::to_address(p.operator->());
     }
 }

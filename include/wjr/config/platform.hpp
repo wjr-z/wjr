@@ -27,6 +27,8 @@
     #include <wjr/config/platform/linux.hpp>
 #elif defined(__unix__) // all unices not caught above
     #define WJR_OS_UNIX
+#elif defined(__APPLE__) || defined(__MACH__)
+    #define WJR_OS_MACOS
 #else
     #error "Unknown platform!"
 #endif

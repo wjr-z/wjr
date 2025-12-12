@@ -88,8 +88,8 @@ void string_set_length_hacker(Container &bank, typename Container::size_type sz)
                 string_thief_of_, Name)<void(Container::size_type), &Container::_M_set_length>
     #elif defined(_LIBCPP_VERSION)
         #define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container)               \
-            template struct WJR_PP_CONCAT(string_thief_of_,                                        \
-                                          Name)<void(Container::size_type), &Container::_set_size>
+            template struct WJR_PP_CONCAT(                                                         \
+                string_thief_of_, Name)<void(Container::size_type), &Container::__set_size>
     #else
         #define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container)               \
             template struct WJR_PP_CONCAT(string_thief_of_,                                        \

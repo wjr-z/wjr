@@ -1047,9 +1047,12 @@ TEST(biginteger, div_qr_2) {
 }
 
 TEST(biginteger, div_qr_s) {
-
     const int T = 8;
+#ifndef _DEBUG
     const int N = 2400;
+#else
+    const int N = 800;
+#endif
 
     std::vector<uint64_t> a(N), b(N + 1), c(N + 1), d(N + 1), rem(N);
 
@@ -1697,10 +1700,10 @@ TEST(biginteger, subc_1) {
         uint64_t expect[N];                                                                        \
         init(in, WJR_PP_QUEUE_EXPAND(inputs));                                                     \
         init(expect, WJR_PP_QUEUE_EXPAND(outputs));                                                \
-        EXPECT_TRUE((subc_1(out, in, N, c, c_in) == ans));                                           \
-        EXPECT_TRUE((memcmp(out, expect, sizeof(out)) == 0));                         \
-        EXPECT_TRUE((subc_1(in, in, N, c, c_in) == ans));                                            \
-        EXPECT_TRUE((memcmp(in, expect, sizeof(out)) == 0));                              \
+        EXPECT_TRUE((subc_1(out, in, N, c, c_in) == ans));                                         \
+        EXPECT_TRUE((memcmp(out, expect, sizeof(out)) == 0));                                      \
+        EXPECT_TRUE((subc_1(in, in, N, c, c_in) == ans));                                          \
+        EXPECT_TRUE((memcmp(in, expect, sizeof(out)) == 0));                                       \
     }
 #define WJR_TEST_SUBC_1_I_CALLER(args) WJR_TEST_SUBC_1_I args
 

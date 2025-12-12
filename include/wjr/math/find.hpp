@@ -12,6 +12,7 @@
 
 #include <wjr/math/broadcast.hpp>
 #include <wjr/math/clz.hpp>
+#include <wjr/memory/detail.hpp>
 
 #if defined(WJR_ARCH_X86)
     #include <wjr/arch/x86/math/find.hpp>
