@@ -17,9 +17,9 @@ C++17，64位系统，CMake。  \
 - [ ] 模块（优先级低）
 - [ ] MSVC 编译flag
 
-# coverage
+# test
 ```
-cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON -DWJR_ENABLE_COVERAGE=ON \
+cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON \
 -DWJR_DEBUG_LEVEL_RELEASE=3
 
 cmake --build build --target coverage
