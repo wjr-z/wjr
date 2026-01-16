@@ -4,7 +4,7 @@ include(CMakeParseArguments)
 # macro
 #
 function(wjr_glob_cpp_source TARGET PATH)
-    file(GLOB_RECURSE TMP_SRCS ${WJR_LIB_DIR}/${PATH}/*.cpp ${WJR_LIB_DIR}/${PATH}/**/*.cpp)
+    file(GLOB_RECURSE TMP_SRCS CONFIGURE_DEPENDS ${WJR_LIB_DIR}/${PATH}/*.cpp ${WJR_LIB_DIR}/${PATH}/**/*.cpp)
     set(${TARGET} ${TMP_SRCS} PARENT_SCOPE)
 endfunction()
 
