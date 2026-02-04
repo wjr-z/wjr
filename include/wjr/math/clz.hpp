@@ -10,6 +10,7 @@
 #ifndef WJR_MATH_CLZ_HPP__
 #define WJR_MATH_CLZ_HPP__
 
+#include "wjr/config/attribute.hpp"
 #include <wjr/assert.hpp>
 #include <wjr/math/popcount.hpp>
 
