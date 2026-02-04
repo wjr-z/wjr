@@ -1,8 +1,8 @@
 #ifndef WJR_PREPROCESSOR_QUEUE_CALL_HPP__
 #define WJR_PREPROCESSOR_QUEUE_CALL_HPP__
 
-#include <wjr/preprocessor/arithmatic/dec.hpp>
-#include <wjr/preprocessor/arithmatic/inc.hpp>
+#include <wjr/preprocessor/arithmetic/dec.hpp>
+#include <wjr/preprocessor/arithmetic/inc.hpp>
 #include <wjr/preprocessor/detail/basic.hpp>
 #include <wjr/preprocessor/queue/basic.hpp>
 

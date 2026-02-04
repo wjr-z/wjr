@@ -1,0 +1,222 @@
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__
+#define WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__
+
+#include <wjr/preprocessor/arithmetic/detail/number.hpp>
+#include <wjr/preprocessor/arithmetic/neg.hpp>
+#include <wjr/preprocessor/arithmetic/sub.hpp>
+#include <wjr/preprocessor/detail/basic.hpp>
+#include <wjr/preprocessor/logical/basic.hpp>
+#include <wjr/preprocessor/logical/bool.hpp>
+
+#define WJR_PP_GE(x, y) WJR_PP_BOOL_IF(WJR_PP_BOOL(y), WJR_PP_SUB_OVERFLOW(x, y), 1)
+#define WJR_PP_LE(x, y) WJR_PP_GE(y, x)
+#define WJR_PP_LT(x, y) WJR_PP_BOOL_NOT(WJR_PP_GE(x, y))
+#define WJR_PP_GT(x, y) WJR_PP_LT(y, x)
+#define WJR_PP_NE(x, y) WJR_PP_BOOL(WJR_PP_SUB(x, y))
+#define WJR_PP_EQ(x, y) WJR_PP_BOOL_NOT(WJR_PP_NE(x, y))
+
+#define WJR_PP_ADD_OVERFLOW(x, y)                                                                  \
+    WJR_PP_ADD_OVERFLOW_I(                                                                         \
+        WJR_PP_CONCAT(WJR_PP_ARITHMATIC_FROM_NUMBER(x), WJR_PP_ARITHMATIC_FROM_NUMBER(y)))
+#define WJR_PP_ADD_OVERFLOW_I(x) WJR_PP_ADD_OVERFLOW_II(x)
+#define WJR_PP_ADD_OVERFLOW_II(x) __wjr_arithmetic_overflow_##x
+
+#define WJR_PP_SUB_OVERFLOW(x, y)                                                                  \
+    WJR_PP_SUB_OVERFLOW_I(WJR_PP_CONCAT(WJR_PP_ARITHMATIC_FROM_NUMBER(x),                          \
+                                        WJR_PP_ARITHMATIC_FROM_NUMBER(WJR_PP_NEG(y))))
+#define WJR_PP_SUB_OVERFLOW_I(x) WJR_PP_SUB_OVERFLOW_II(x)
+#define WJR_PP_SUB_OVERFLOW_II(x) __wjr_arithmetic_overflow_##x
+
+#define __wjr_arithmetic_overflow_ 0
+#define __wjr_arithmetic_overflow_x 0
+#define __wjr_arithmetic_overflow_xx 0
+#define __wjr_arithmetic_overflow_xxx 0
+#define __wjr_arithmetic_overflow_xxxx 0
+#define __wjr_arithmetic_overflow_xxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmetic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+
+#endif // ! WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__

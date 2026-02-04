@@ -10,7 +10,7 @@
 #ifndef WJR_PREPROCESSOR_PREVIEW_HPP__
 #define WJR_PREPROCESSOR_PREVIEW_HPP__
 
-#include <wjr/preprocessor/arithmatic.hpp>
+#include <wjr/preprocessor/arithmetic.hpp>
 #include <wjr/preprocessor/detail.hpp>
 #include <wjr/preprocessor/logical.hpp>
 

@@ -14,13 +14,13 @@ TEST(math, popcount_ctz_clz) {
 #define WJR_TEST_PTZ(queue) WJR_PP_TRANSFORM_PUT(queue, WJR_TEST_PTZ_I_CALLER)
 
 #define WJR_TEST_POPCOUNT_I(type, x, ans)                                                          \
-    EXPECT_TRUE(fallback_popcount<type>(x) == (ans))                                                 \
+    EXPECT_TRUE(fallback_popcount<type>(x) == (ans))                                               \
     WJR_PP_BOOL_IF_NZ(WJR_HAS_BUILTIN(POPCOUNT), ;                                                 \
                       EXPECT_TRUE((builtin_popcount<type>(x) == (ans))), )
 #define WJR_TEST_CTZ_I(type, x, ans)                                                               \
     type n = x;                                                                                    \
     auto ctz_ans = popcount<type>((type)(lowbit(n) - 1));                                          \
-    EXPECT_TRUE((x == 0 ? std::numeric_limits<type>::digits : fallback_ctz<type>(x)) == ctz_ans)     \
+    EXPECT_TRUE((x == 0 ? std::numeric_limits<type>::digits : fallback_ctz<type>(x)) == ctz_ans)   \
     WJR_PP_BOOL_IF_NZ(WJR_HAS_BUILTIN(CTZ), ; EXPECT_TRUE((countr_zero<type>(x) == ctz_ans)), )
 #define WJR_TEST_CLZ_I(type, x, ans)                                                               \
     auto clz_ans = []() -> int {                                                                   \
@@ -44,7 +44,7 @@ TEST(math, popcount_ctz_clz) {
         ++n;                                                                                       \
         return nd - countr_zero<type>(n);                                                          \
     }();                                                                                           \
-    EXPECT_TRUE((x == 0 ? std::numeric_limits<type>::digits : fallback_clz<type>(x)) == clz_ans)     \
+    EXPECT_TRUE((x == 0 ? std::numeric_limits<type>::digits : fallback_clz<type>(x)) == clz_ans)   \
     WJR_PP_BOOL_IF_NZ(WJR_HAS_BUILTIN(CTZ), ; EXPECT_TRUE((countl_zero<type>(x) == clz_ans)), )
 
 #define WJR_TEST_PTZ_I_CALLER(args)                                                                \
@@ -159,18 +159,18 @@ TEST(math, addc) {
 
 #define WJR_TEST_ADDC(type, x, y, ci, ans, ans_co) WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)
 #define WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)                                           \
-    EXPECT_TRUE((math::fallback_addc<type, type>(x, y, ci, co) == ans && co == ans_co));             \
+    EXPECT_TRUE((math::fallback_addc<type, type>(x, y, ci, co) == ans && co == ans_co));           \
     WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ADDC),                                                          \
                    do {                                                                            \
-                       EXPECT_TRUE(                                                                  \
+                       EXPECT_TRUE(                                                                \
                            (math::builtin_addc<type, type>(x, y, ci, co) == ans && co == ans_co)); \
                    } while (false),                                                                \
                    {});                                                                            \
     WJR_PP_BOOL_IF_NZ(                                                                             \
         WJR_HAS_BUILTIN(ASM_ADDC), do {                                                            \
             if constexpr (std::is_same_v<type, uint64_t>) {                                        \
-                EXPECT_TRUE((math::asm_addc<type>(x, y, ci, co) == ans && co == ans_co));            \
-                EXPECT_TRUE(WJR_PP_BOOL_IF(                                                          \
+                EXPECT_TRUE((math::asm_addc<type>(x, y, ci, co) == ans && co == ans_co));          \
+                EXPECT_TRUE(WJR_PP_BOOL_IF(                                                        \
                     WJR_HAS_BUILTIN(ASM_ADDC_CC),                                                  \
                     (math::asm_addc_cc(x, y, ci, co2) == ans && co2 == ans_co), true));            \
             }                                                                                      \
@@ -213,16 +213,16 @@ TEST(math, sub) {
 
 #define WJR_TEST_SUBC(type, x, y, ci, ans, ans_co) WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)
 #define WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)                                           \
-    EXPECT_TRUE((math::fallback_subc<type, type>(x, y, ci, co) == ans && co == ans_co))              \
+    EXPECT_TRUE((math::fallback_subc<type, type>(x, y, ci, co) == ans && co == ans_co))            \
     WJR_PP_BOOL_IF(                                                                                \
         WJR_HAS_BUILTIN(SUBC), ; do {                                                              \
-            EXPECT_TRUE((math::builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co));      \
+            EXPECT_TRUE((math::builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co));    \
         } while (false), )                                                                         \
     WJR_PP_BOOL_IF_NZ(                                                                             \
         WJR_HAS_BUILTIN(ASM_SUBC), ; do {                                                          \
             if constexpr (std::is_same_v<type, uint64_t>) {                                        \
-                EXPECT_TRUE((math::asm_subc<type>(x, y, ci, co) == ans && co == ans_co));            \
-                EXPECT_TRUE(WJR_PP_BOOL_IF(                                                          \
+                EXPECT_TRUE((math::asm_subc<type>(x, y, ci, co) == ans && co == ans_co));          \
+                EXPECT_TRUE(WJR_PP_BOOL_IF(                                                        \
                     WJR_HAS_BUILTIN(ASM_SUBC_CC),                                                  \
                     (math::asm_subc_cc(x, y, ci, co2) == ans && co2 == ans_co), true));            \
             }                                                                                      \
@@ -1046,7 +1046,7 @@ TEST(math, to_chars) {
 
             if ((bool)ret0) {
                 EXPECT_TRUE(std::string_view(b, ret0.ptr - b) ==
-                          std::string_view(vec.data(), ret1.ptr - vec.data()));
+                            std::string_view(vec.data(), ret1.ptr - vec.data()));
             } else {
                 EXPECT_TRUE(ret1.ptr == vec.data() + k);
             }
@@ -1059,7 +1059,8 @@ TEST(math, to_chars) {
             EXPECT_TRUE(ret0.ec == ret1.ec);
 
             if ((bool)ret0) {
-                EXPECT_TRUE(std::string_view(b, ret0.ptr - b) == std::string(lst.begin(), ret1.ptr));
+                EXPECT_TRUE(std::string_view(b, ret0.ptr - b) ==
+                            std::string(lst.begin(), ret1.ptr));
             } else {
                 EXPECT_TRUE(std::distance(lst.begin(), ret1.ptr) == k);
             }
@@ -1072,7 +1073,7 @@ TEST(math, to_chars) {
                 auto ret1 = to_chars_backward_unchecked(c + 64, x, base);
 
                 EXPECT_TRUE(std::string_view(b, ret0.ptr - b) ==
-                          std::string_view(ret1, c + 64 - ret1));
+                            std::string_view(ret1, c + 64 - ret1));
             } while (false);
 
             // test __fast_to_chars_unchecked
@@ -1089,7 +1090,7 @@ TEST(math, to_chars) {
                 (void)to_chars_unchecked(std::back_inserter(vec), x, base);
 
                 EXPECT_TRUE(std::string_view(b, ret0.ptr - b) ==
-                          std::string_view((char *)vec.data(), vec.size()));
+                            std::string_view((char *)vec.data(), vec.size()));
             } while (false);
 
             // test forward iterator of __fallback_to_chars_unchecked
@@ -1098,7 +1099,8 @@ TEST(math, to_chars) {
 
                 (void)to_chars_unchecked(std::back_inserter(lst), x, base);
 
-                EXPECT_TRUE(std::string_view(b, ret0.ptr - b) == std::string(lst.begin(), lst.end()));
+                EXPECT_TRUE(std::string_view(b, ret0.ptr - b) ==
+                            std::string(lst.begin(), lst.end()));
 
                 lst.resize(64);
             } while (false);

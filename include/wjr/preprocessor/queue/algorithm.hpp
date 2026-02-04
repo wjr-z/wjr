@@ -1,7 +1,7 @@
 #ifndef WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP__
 #define WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP__
 
-#include <wjr/preprocessor/arithmatic.hpp>
+#include <wjr/preprocessor/arithmetic.hpp>
 #include <wjr/preprocessor/detail.hpp>
 #include <wjr/preprocessor/queue/call.hpp>
 

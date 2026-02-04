@@ -6,7 +6,7 @@ using namespace wjr;
 
 #define CASSERT(expr) static_assert(expr)
 
-TEST(preprocessor, arithmatic) {
+TEST(preprocessor, arithmetic) {
     CASSERT(WJR_PP_ADD(1, 3) == 4);
     CASSERT(WJR_PP_ADD(1, 4) == 5);
     CASSERT(WJR_PP_ADD(0, 4) == 4);
