@@ -16,6 +16,7 @@
 
 #include <wjr/math/literals.hpp>
 #include <wjr/memory/aligned_alloc.hpp>
+#include <wjr/memory/asan.hpp>
 #include <wjr/string.hpp>
 #include <wjr/type_traits.hpp>
 
@@ -64,6 +65,17 @@ public:
     };
 
 private:
+    static constexpr size_t asan_small_redzone_size =
+#if defined(WJR_HAS_ADDRESS_SANITIZER)
+        mem::default_new_alignment;
+#else
+        0;
+#endif
+
+#if defined(WJR_HAS_ADDRESS_SANITIZER)
+    void _unpoison_small(const stack_context &context) noexcept;
+#endif
+
     WJR_MALLOC static void *_large_allocate(size_t n, large_memory *&mem) noexcept {
         auto *const raw = mem::_default_allocate(n + aligned_header_size, std::nothrow);
         auto *const buffer = static_cast<large_memory *>(raw);
@@ -75,19 +87,51 @@ private:
 
     static void _large_deallocate(large_memory *buffer) noexcept;
 
-    WJR_MALLOC void *_small_allocate(size_t n) noexcept {
-        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
+    struct _small_tag {};
+
+    template <typename T>
+    WJR_INTRINSIC_INLINE WJR_MALLOC void *_allocate_impl(size_t n, T &&ptr) noexcept {
+        constexpr bool is_large = !std::is_same_v<std::remove_reference_t<T>, _small_tag>;
+
+        if constexpr (is_large) {
+            if (WJR_BUILTIN_CONSTANT_P_TRUE(n >= stack_allocator_threshold)) {
+                return _large_allocate(n, ptr);
+            }
+        }
+
+        const size_t step = n + asan_small_redzone_size;
+
+        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < step)) {
+            if constexpr (is_large) {
+                if (step >= stack_allocator_threshold) {
+                    return _large_allocate(n, ptr);
+                }
+            }
+
             _small_reallocate();
         }
 
         WJR_ASSUME(m_cache.ptr != nullptr);
 
         auto *const ret = wjr::assume_aligned<mem::default_new_alignment>(m_cache.ptr);
-        m_cache.ptr += align_up(n, mem::default_new_alignment);
+        m_cache.ptr += align_up(step, mem::default_new_alignment);
+
+#if defined(WJR_HAS_ADDRESS_SANITIZER)
+        WJR_ASAN_UNPOISON_MEMORY_REGION(static_cast<std::byte *>(ret), n);
+#endif
+
         return ret;
     }
 
+    WJR_MALLOC void *_small_allocate(size_t n) noexcept { return _allocate_impl(n, _small_tag{}); }
+
     void _small_deallocate(const stack_context &context) noexcept {
+#if defined(WJR_HAS_ADDRESS_SANITIZER)
+        if (m_cache.ptr != nullptr) {
+            _unpoison_small(context);
+        }
+#endif
+
         if (WJR_UNLIKELY(context.m_ptr == nullptr))
             m_cache.ptr = m_first;
         else
@@ -122,23 +166,7 @@ public:
     ~stack_allocator_object() = default;
 
     WJR_NODISCARD WJR_MALLOC void *allocate(size_t n, stack_context &context) noexcept {
-        if (WJR_BUILTIN_CONSTANT_P_TRUE(n >= stack_allocator_threshold)) {
-            return _large_allocate(n, context.m_prev);
-        }
-
-        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
-            if (n >= stack_allocator_threshold) {
-                return _large_allocate(n, context.m_prev);
-            }
-
-            _small_reallocate();
-        }
-
-        WJR_ASSUME(m_cache.ptr != nullptr);
-
-        auto *const ret = wjr::assume_aligned<mem::default_new_alignment>(m_cache.ptr);
-        m_cache.ptr += align_up(n, mem::default_new_alignment);
-        return ret;
+        return _allocate_impl(n, context.m_prev);
     }
 
     void deallocate(const stack_context &context) noexcept {

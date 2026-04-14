@@ -31,7 +31,13 @@ else()
    message(STATUS "GMP library not found, tests will be built without GMP support.")
 endif()
 
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+if(WJR_ENABLE_ASAN AND WIN32)
+   # ASAN runtime uses static CRT (/MT); gtest must match.
+   set(gtest_force_shared_crt OFF CACHE BOOL "" FORCE)
+else()
+   set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+endif()
+
 set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 set(BUILD_GTEST ON CACHE BOOL "" FORCE)
 
@@ -45,6 +51,15 @@ else()
    )
 
    FetchContent_MakeAvailable(googletest)
+endif()
+
+if(WJR_ENABLE_ASAN)
+   # gtest must be compiled with -fsanitize=address so annotate_string matches wjr libs.
+   foreach(_gtest_target gtest gtest_main)
+      if(TARGET ${_gtest_target})
+         target_compile_options(${_gtest_target} PRIVATE -fsanitize=address)
+      endif()
+   endforeach()
 endif()
 
 file(GLOB_RECURSE TEST_SRCS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)

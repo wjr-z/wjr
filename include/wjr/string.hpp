@@ -18,6 +18,8 @@
 #include <wjr/format/ctype.hpp>
 #include <wjr/math/broadcast.hpp>
 #include <wjr/math/integral_constant.hpp>
+#include <wjr/memory/asan.hpp>
+
 
 namespace wjr {
 
@@ -100,20 +102,29 @@ template <typename CharT, typename Traits, typename Alloc>
 WJR_INTRINSIC_INLINE void
 _uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
                       typename std::basic_string<CharT, Traits, Alloc>::size_type sz) {
+        // Under ASan, fall back to the standard resize() which correctly manages
+        // all container-poison annotations (including SSO vs heap transitions).
+        // The hacker-based approach below bypasses the STL's internal ASAN hooks,
+        // causing false positives and stack-poison residue across object lifetimes.
+        // Performance doesn't matter in sanitizer builds.
+    #if defined(WJR_HAS_ADDRESS_SANITIZER)
+    str.resize(sz);
+    #else
         // Before C++20, reserve may shrink capacity, so only reserve when sz > capacity()
-    #if !defined(WJR_CPP_20)
+        #if !defined(WJR_CPP_20)
     if (sz > str.capacity()) {
-    #endif
+        #endif
         str.reserve(sz);
-    #if !defined(WJR_CPP_20)
+        #if !defined(WJR_CPP_20)
     }
-    #endif
+        #endif
 
     string_set_length_hacker(str, sz);
-    #if defined(__GLIBCXX__) || defined(_LIBCPP_VERSION)
-    #else
+        #if defined(__GLIBCXX__) || defined(_LIBCPP_VERSION)
+        #else
     str[sz] = '\0';
-    #endif
+        #endif
+    #endif // WJR_HAS_ADDRESS_SANITIZER
 }
 
 #else

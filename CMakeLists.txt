@@ -34,6 +34,17 @@ option(WJR_PUBLIC_FLAGS "Set compile flags as public. Useful in tests" OFF)
 option(WJR_BUILD_TESTS "Build tests." OFF)
 option(WJR_BUILD_BENCHMARKS "Build benchmarks." OFF)
 option(WJR_ENABLE_ASSERT_BACKTRACE "Enable assert backtrace." OFF)
+option(WJR_ENABLE_ASAN "Enable AddressSanitizer." OFF)
+
+if(WJR_ENABLE_ASAN)
+   include(CheckIncludeFileCXX)
+   check_include_file_cxx("sanitizer/asan_interface.h" WJR_HAVE_ASAN_INTERFACE_H)
+   if(NOT WJR_HAVE_ASAN_INTERFACE_H)
+      message(WARNING "WJR_ENABLE_ASAN is ON but <sanitizer/asan_interface.h> was not found. "
+                      "AddressSanitizer will be disabled.")
+      set(WJR_ENABLE_ASAN OFF CACHE BOOL "" FORCE)
+   endif()
+endif()
 
 set(WJR_DEBUG_LEVEL_DEBUG "1" CACHE STRING "Debug level in debug mode(default = 1).")
 set(WJR_DEBUG_LEVEL_RELEASE "0" CACHE STRING "Debug level in release mode(default = 0).")
@@ -101,6 +112,7 @@ set(WJR_CXX_FLAGS_PRIVATE)
 set(WJR_CXX_FLAGS_DEBUG)
 set(WJR_CXX_FLAGS_RELEASE)
 set(WJR_COMPILE_DEFINITIONS)
+set(WJR_DEFAULT_LINKOPTS)
 
 if(NOT WJR_DISABLE_CXX_20 AND "cxx_std_20" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
    message(STATUS "Enable C++ 20.")
@@ -128,6 +140,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
    if(WJR_LIGHT_ASSERT)
       list(APPEND WJR_CXX_FLAGS /DWJR_LIGHT_ASSERT)
    endif()
+
+   # todo: ASAN and coverage for MSVC
 else()
    list(APPEND WJR_CXX_FLAGS_PRIVATE
       -Wall -Wextra -Wshadow -Wformat=2 -Wunused
@@ -150,7 +164,17 @@ else()
 
    if(WJR_ENABLE_COVERAGE)
       list(APPEND WJR_CXX_FLAGS_PRIVATE -fprofile-instr-generate -fcoverage-mapping -fno-inline)
-      set(WJR_DEFAULT_LINKOPTS "-fprofile-instr-generate -fcoverage-mapping")
+      list(APPEND WJR_DEFAULT_LINKOPTS -fprofile-instr-generate -fcoverage-mapping)
+   endif()
+
+   if(WJR_ENABLE_ASAN)
+      message(STATUS "Enable AddressSanitizer.")
+      list(APPEND WJR_CXX_FLAGS -fsanitize=address -fno-omit-frame-pointer)
+      list(APPEND WJR_DEFAULT_LINKOPTS -fsanitize=address)
+      if(WIN32)
+         # clang_rt.asan on Windows is built with static runtime (MT); match it.
+         set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)
+      endif()
    endif()
 endif()
 
