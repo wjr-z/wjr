@@ -1,0 +1,7 @@
+# LeakSanitizer suppressions for known third-party leaks.
+#
+# GMP maintains internal global memory (via __gmp_default_reallocate /
+# __gmpz_realloc) that is never freed before process exit.  These are
+# not real leaks in our code.
+leak:__gmp_default_reallocate
+leak:__gmpz_realloc
