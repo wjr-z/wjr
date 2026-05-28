@@ -201,7 +201,7 @@ template <typename Tag = void>
 using noncopyable = enable_copy_move_base<false, true, false, true, Tag>;
 
 template <typename Tag = void>
-using nonmoveable = enable_copy_move_base<false, true, false, true, Tag>;
+using nonmoveable = enable_copy_move_base<true, false, true, false, Tag>;
 
 template <typename Tag = void, typename... Args>
 using enable_special_members_of_args_base =

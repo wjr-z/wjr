@@ -432,7 +432,7 @@ struct is_derived_from
                        std::is_convertible<const volatile Derived *, const volatile Base *>> {};
 
 template <typename Derived, typename Base>
-inline constexpr bool is_derived_from_v = is_derived_from<Derived, Base>::Value;
+inline constexpr bool is_derived_from_v = is_derived_from<Derived, Base>::value;
 
 /// @private
 template <typename From, typename To, typename = void>

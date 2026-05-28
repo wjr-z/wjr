@@ -179,7 +179,7 @@ WJR_REGISTER_SWITCH_VISITOR(256);
 
 /// @private Determine appropriate switch case size based on variant size
 constexpr size_t _switch_visitor_SZ(size_t size) {
-    return size <= 2 ? 2 : size <= 4 ? 4 : size <= 8 ? 8 : size <= 16 ? 16 ? size <= 64 : 64 : 256;
+    return size <= 2 ? 2 : size <= 4 ? 4 : size <= 8 ? 8 : size <= 16 ? 16 : size <= 64 ? 64 : 256;
 }
 
 /// @private Result structure for multi-variant index calculation

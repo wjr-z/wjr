@@ -330,7 +330,7 @@ public:
     constexpr span<element_type, dynamic_extent> last(size_type Count) const noexcept {
         WJR_ASSERT_L2(Count <= size());
 
-        return {data() - Count, Count};
+        return {data() + size() - Count, Count};
     }
 
     template <size_t Offset, size_t Count = dynamic_extent>

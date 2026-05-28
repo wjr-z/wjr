@@ -1092,7 +1092,7 @@ TEST(math, to_chars) {
                 EXPECT_TRUE(std::string_view(b, ret0.ptr - b) ==
                             std::string_view((char *)vec.data(), vec.size()));
 
-                vec.resize(64);  // restore invariant: vec.size()==64 for subsequent raw-ptr tests
+                vec.resize(64); // restore invariant: vec.size()==64 for subsequent raw-ptr tests
             } while (false);
 
             // test forward iterator of __fallback_to_chars_unchecked

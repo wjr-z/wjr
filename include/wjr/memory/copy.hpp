@@ -127,7 +127,7 @@ constexpr OutputIt _copy_n_impl(InputIt first, Size count, OutputIt d_first) {
                 cont.insert(pos, first, std::next(first, count));
                 return d_first;
             } else {
-                return std::copy_n(first, std::next(first, count), d_first);
+                return std::copy_n(first, count, d_first);
             }
         }
     } else {

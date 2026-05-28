@@ -232,7 +232,7 @@ struct optional_operations_base : optional_storage_base<T> {
             if (WJR_LIKELY(other.has_value())) {
                 this->m_val = std::move(other.m_val);
             } else {
-                std::destroy_at(this->m_val);
+                std::destroy_at(std::addressof(this->m_val));
                 set_invalid();
             }
         } else {

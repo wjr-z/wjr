@@ -62,7 +62,7 @@ class hlist_node_iterator : public hlist_node_const_iterator<T> {
     using Mybase = hlist_node_const_iterator<T>;
 
 public:
-    using iterator_category = std::bidirectional_iterator_tag;
+    using iterator_category = std::forward_iterator_tag;
     using value_type = T;
     using pointer = T *;
     using reference = T &;
@@ -85,17 +85,6 @@ public:
     hlist_node_iterator operator++(int) {
         hlist_node_iterator tmp(*this);
         ++*this;
-        return tmp;
-    }
-
-    hlist_node_iterator &operator--() {
-        Mybase::operator--();
-        return *this;
-    }
-
-    hlist_node_iterator operator--(int) {
-        hlist_node_iterator tmp(*this);
-        --*this;
         return tmp;
     }
 
@@ -156,8 +145,6 @@ private:
 public:
     using iterator = hlist_node_iterator<T>;
     using const_iterator = hlist_node_const_iterator<T>;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     using Mybase::Mybase;
 

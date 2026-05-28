@@ -66,7 +66,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t _mul_u64(uint64_t a, uint64_t b, uint64_t &hi
 
         if (is_zero_or_single_bit(a)) {
             const auto shift = constant::ctz(a);
-            hi = b >> (64 - shift);
+            hi = shift == 0 ? 0 : b >> (64 - shift);
             return b << shift;
         }
     }
@@ -79,7 +79,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t _mul_u64(uint64_t a, uint64_t b, uint64_t &hi
 
         if (is_zero_or_single_bit(b)) {
             const auto shift = constant::ctz(b);
-            hi = a >> (64 - shift);
+            hi = shift == 0 ? 0 : a >> (64 - shift);
             return a << shift;
         }
     }

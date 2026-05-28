@@ -96,7 +96,7 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_using_allocator(InputItInit first, I
         auto _last = wjr::_iter_base(last);
         auto _dest = wjr::_iter_base(dest);
         for (; _first != _last; ++_dest, (void)++_first) {
-            std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(_dest), *first);
+            std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(_dest), *_first);
         }
         return wjr::_iter_wrap(dest, _dest);
     }
