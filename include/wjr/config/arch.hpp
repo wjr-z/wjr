@@ -86,4 +86,64 @@
     #define WJR_ARCH_LOONGARCH
 #endif
 
+////////////////////////////////////////////////////////////////////////////////
+// Virtual address bits
+////////////////////////////////////////////////////////////////////////////////
+
+// WJR_PTR_BITS: effective virtual address bits used by user-space pointers.
+//
+// When WJR_HAS_48BIT_PTR is defined, bits 63:48 of any user-space pointer are
+// guaranteed to be zero, making those bits available for pointer tagging,
+// NaN-boxing, and similar techniques.
+//
+// Platform notes
+// ──────────────
+//  x86-64 (4-level paging, default)
+//      48-bit VA; bits 63:48 == 0 in user space.  This is the overwhelmingly
+//      common case on Windows, Linux, and macOS.
+//
+//  x86-64 with Intel LA57 / 5-level paging
+//      57-bit VA; only bits 63:57 are zero.  Requires explicit kernel + CPU
+//      support and is rarely deployed.  Define WJR_PTR_BITS=57 manually when
+//      targeting such environments.
+//
+//  AArch64 (standard, 4K/64K granule, 4-level)
+//      48-bit VA; same guarantee as x86-64 default.
+//
+//  AArch64 + LPA (52-bit extension)
+//      Uncommon.  Define WJR_PTR_BITS=52 manually if needed.
+//
+//  32-bit architectures
+//      32-bit VA; no high bits available for tagging.
+//
+//  RISC-V 64, MIPS64, PowerPC64, S390x, LoongArch
+//      VA size is implementation-defined (Sv39/Sv48/Sv57 for RISC-V, etc.).
+//      Conservative default: WJR_PTR_BITS=0 (tagging disabled).
+//
+// To override auto-detection, define WJR_PTR_BITS before including any
+// wjr header.
+#if !defined(WJR_PTR_BITS)
+    #if defined(WJR_ARCH_X86_64)
+        // Default: 4-level paging (48-bit).  LA57 requires rare kernel + HW
+        // support; override with -DWJR_PTR_BITS=57 if targeting it.
+        #define WJR_PTR_BITS 48
+    #elif defined(WJR_ARCH_AARCH64)
+        // Standard AArch64: 48-bit.  LPA (52-bit) is uncommon; override if needed.
+        #define WJR_PTR_BITS 48
+    #elif defined(WJR_ARCH_X86_32) || defined(WJR_ARCH_ARM) || \
+          defined(WJR_ARCH_MIPS32) || defined(WJR_ARCH_RISCV32)
+        #define WJR_PTR_BITS 32
+    #else
+        // RISC-V 64, MIPS64, PPC64, S390x, LoongArch, VM, unknown
+        // VA size not determinable at compile time; disable pointer tagging.
+        #define WJR_PTR_BITS 0
+    #endif
+#endif
+
+#if WJR_PTR_BITS == 48
+    /// Defined when user-space pointer bits 63:48 are guaranteed zero.
+    /// Safe to use those 16 bits for NaN-boxing, pointer tagging, etc.
+    #define WJR_HAS_48BIT_PTR
+#endif
+
 #endif // WJR_CONFIG_ARCH_HPP__
