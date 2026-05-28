@@ -885,12 +885,19 @@ public:
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 private:
-    static key_type &from_ikey(ikey_type &key) { return Traits::from_ikey(key); }
-    static const key_type &from_ikey(const ikey_type &key) { return Traits::from_ikey(key); }
-    static ikey_type to_ikey(const key_type &key) { return Traits::to_ikey(key); }
-
-    static value_type &from_ivalue(ivalue_type &value) { return Traits::from_ivalue(value); }
-    static const value_type &from_ivalue(const ivalue_type &value) {
+    WJR_INTRINSIC_INLINE static key_type &from_ikey(ikey_type &key) noexcept {
+        return Traits::from_ikey(key);
+    }
+    WJR_INTRINSIC_INLINE static const key_type &from_ikey(const ikey_type &key) noexcept {
+        return Traits::from_ikey(key);
+    }
+    WJR_INTRINSIC_INLINE static ikey_type to_ikey(const key_type &key) noexcept {
+        return Traits::to_ikey(key);
+    }
+    WJR_INTRINSIC_INLINE static value_type &from_ivalue(ivalue_type &value) noexcept {
+        return Traits::from_ivalue(value);
+    }
+    WJR_INTRINSIC_INLINE static const value_type &from_ivalue(const ivalue_type &value) noexcept {
         return Traits::from_ivalue(value);
     }
 

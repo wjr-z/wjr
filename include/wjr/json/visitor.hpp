@@ -50,7 +50,7 @@ WJR_PURE WJR_INTRINSIC_INLINE result<void> check_true(const char *first) noexcep
 
 WJR_PURE WJR_INTRINSIC_INLINE result<void> check_false(const char *first) noexcept {
     if (WJR_UNLIKELY(std::memcmp(first + 1, "alse", 4) != 0)) {
-        return unexpected(error_code::N_ATOM_ERROR);
+        return unexpected(error_code::F_ATOM_ERROR);
     }
 
     return {};
