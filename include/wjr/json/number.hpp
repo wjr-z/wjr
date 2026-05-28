@@ -5,6 +5,7 @@
 #include <wjr/json/detail.hpp>
 
 namespace wjr::json::number_detail {
+
 struct number_writer {
     using float_type = double;
     using support_integral = std::true_type;
@@ -14,9 +15,10 @@ struct number_writer {
     number_writer(number_writer &&) = default;
     number_writer &operator=(const number_writer &) = delete;
     number_writer &operator=(number_writer &&) = delete;
-    ~number_writer() = default;
 
     WJR_INTRINSIC_CONSTEXPR number_writer(basic_value &_value) noexcept : value(_value) {}
+
+    ~number_writer() = default;
 
     WJR_INTRINSIC_CONSTEXPR uint64_t &get_u64() noexcept {
         value.m_type = value_t::number_unsigned;

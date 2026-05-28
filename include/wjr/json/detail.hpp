@@ -10,6 +10,7 @@
 #ifndef WJR_JSON_DETAIL_HPP__
 #define WJR_JSON_DETAIL_HPP__
 
+#include <wjr/config/attribute.hpp>
 #include <wjr/expected.hpp>
 #include <wjr/math/integral_constant.hpp>
 
@@ -86,8 +87,8 @@ using array_t = integral_constant<value_t, value_t::array>;
 /**
  * @brief Non-templated value container shared by all JSON value variants.
  *
- * Stores the active type tag and a union of all scalar payloads.
- * String, object, and array types are held as opaque pointers.
+ * 8-byte union holds the active payload; a separate value_t tag byte
+ * identifies the type.  7 bytes of alignment padding follow the tag.
  */
 struct basic_value {
     basic_value() noexcept : m_type(value_t::null) {}
@@ -148,6 +149,19 @@ struct basic_value {
         m_ptr = ptr;
         m_type = value_t::array;
     }
+
+    WJR_PURE WJR_INTRINSIC_INLINE value_t type() const noexcept { return m_type; }
+    WJR_PURE WJR_INTRINSIC_INLINE bool get_boolean() const noexcept { return m_boolean; }
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t get_number_unsigned() const noexcept {
+        return m_number_unsigned;
+    }
+    WJR_PURE WJR_INTRINSIC_INLINE int64_t get_number_signed() const noexcept {
+        return m_number_signed;
+    }
+    WJR_PURE WJR_INTRINSIC_INLINE double get_number_float() const noexcept {
+        return m_number_float;
+    }
+    WJR_PURE WJR_INTRINSIC_INLINE void *get_ptr() const noexcept { return m_ptr; }
 
     union {
         bool m_boolean;

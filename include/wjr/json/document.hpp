@@ -539,10 +539,10 @@ public:
     basic_document(const basic_document &other) {
         switch (other.type()) {
         case value_t::null:
+        case value_t::boolean:
         case value_t::number_unsigned:
         case value_t::number_signed:
         case value_t::number_float: {
-            // use a simple memcpy
             m_value = other.m_value;
             break;
         }
@@ -566,7 +566,7 @@ public:
     }
 
     basic_document(basic_document &&other) noexcept : m_value(other.m_value) {
-        other.m_value.m_type = value_t::null;
+        other.m_value.set(null_t{});
     }
 
     basic_document &operator=(const basic_document &other) {
@@ -720,7 +720,7 @@ public:
 
         _destroy();
         m_value = other.m_value;
-        other.m_value.m_type = value_t::null;
+        other.m_value.set(null_t{});
         return *this;
     }
 
@@ -733,9 +733,9 @@ public:
 
     explicit basic_document(null_t) noexcept : m_value(null_t()) {}
     basic_document(boolean_t, bool f) noexcept : m_value(boolean_t(), f) {}
-    basic_document(number_signed_t, int64_t value) noexcept : m_value(number_unsigned_t(), value) {}
+    basic_document(number_signed_t, int64_t value) noexcept : m_value(number_signed_t(), value) {}
     basic_document(number_unsigned_t, uint64_t value) noexcept
-        : m_value(number_signed_t(), value) {}
+        : m_value(number_unsigned_t(), value) {}
     basic_document(number_float_t, double value) noexcept : m_value(number_float_t(), value) {}
 
     basic_document(string_t, string_type *ptr) noexcept : m_value(string_t(), ptr) {}
@@ -745,7 +745,7 @@ public:
     explicit basic_document(basic_value value) noexcept : m_value(value) {}
     explicit basic_document(default_construct_t) noexcept : basic_document() {}
 
-    value_t type() const noexcept { return m_value.m_type; }
+    value_t type() const noexcept { return m_value.type(); }
 
     template <typename T>
     decltype(auto) get_unsafe() noexcept {
@@ -1135,19 +1135,20 @@ private:
     number_float_type &_get_number_float() noexcept { return m_value.m_number_float; }
     const number_float_type &_get_number_float() const noexcept { return m_value.m_number_float; }
 
-    string_type &_get_string() noexcept { return *static_cast<string_type *>(m_value.m_ptr); }
+    // Pointer types use get_ptr() to remain compatible if the layout ever changes.
+    string_type &_get_string() noexcept { return *static_cast<string_type *>(m_value.get_ptr()); }
     const string_type &_get_string() const noexcept {
-        return *static_cast<const string_type *>(m_value.m_ptr);
+        return *static_cast<const string_type *>(m_value.get_ptr());
     }
 
-    object_type &_get_object() noexcept { return *static_cast<object_type *>(m_value.m_ptr); }
+    object_type &_get_object() noexcept { return *static_cast<object_type *>(m_value.get_ptr()); }
     const object_type &_get_object() const noexcept {
-        return *static_cast<const object_type *>(m_value.m_ptr);
+        return *static_cast<const object_type *>(m_value.get_ptr());
     }
 
-    array_type &_get_array() noexcept { return *static_cast<array_type *>(m_value.m_ptr); }
+    array_type &_get_array() noexcept { return *static_cast<array_type *>(m_value.get_ptr()); }
     const array_type &_get_array() const noexcept {
-        return *static_cast<const array_type *>(m_value.m_ptr);
+        return *static_cast<const array_type *>(m_value.get_ptr());
     }
 
     basic_value m_value;

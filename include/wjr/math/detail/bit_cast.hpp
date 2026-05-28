@@ -20,13 +20,13 @@ template <typename To, typename From,
                        std::is_trivially_copyable_v<To>)>
 WJR_PURE WJR_INTRINSIC_INLINE To bit_cast(const From &src) noexcept {
     static_assert(std::is_trivially_constructible_v<To>);
-    #if WJR_HAS_BUILTIN(BIT_CAST)
+#if WJR_HAS_BUILTIN(BIT_CAST)
     return __builtin_bit_cast(To, src);
-    #else
+#else
     To dst;
     builtin_memcpy(std::addressof(dst), std::addressof(src), sizeof(To));
     return dst;
-    #endif
+#endif
 }
 } // namespace wjr
 

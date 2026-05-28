@@ -130,8 +130,8 @@
     #elif defined(WJR_ARCH_AARCH64)
         // Standard AArch64: 48-bit.  LPA (52-bit) is uncommon; override if needed.
         #define WJR_PTR_BITS 48
-    #elif defined(WJR_ARCH_X86_32) || defined(WJR_ARCH_ARM) || \
-          defined(WJR_ARCH_MIPS32) || defined(WJR_ARCH_RISCV32)
+    #elif defined(WJR_ARCH_X86_32) || defined(WJR_ARCH_ARM) || defined(WJR_ARCH_MIPS32) ||         \
+        defined(WJR_ARCH_RISCV32)
         #define WJR_PTR_BITS 32
     #else
         // RISC-V 64, MIPS64, PPC64, S390x, LoongArch, VM, unknown

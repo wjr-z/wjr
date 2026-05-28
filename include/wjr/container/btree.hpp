@@ -688,7 +688,7 @@ namespace btree_detail {
  */
 template <typename Compare>
 WJR_INTRINSIC_INLINE unsigned int linear_search_step2(unsigned int size, unsigned int offset,
-                                                             const Compare &comp) {
+                                                      const Compare &comp) {
     unsigned int i = offset + 1;
 
     // Step by 2 for better ILP (instruction-level parallelism)

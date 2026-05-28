@@ -20,7 +20,6 @@
 #include <wjr/math/integral_constant.hpp>
 #include <wjr/memory/asan.hpp>
 
-
 namespace wjr {
 
 #define WJR_HAS_FEATURE_STRING_UNINITIALIZED_RESIZE WJR_HAS_DEF
