@@ -110,7 +110,7 @@ struct basic_value {
     basic_value(null_t) noexcept : m_type(value_t::null) {}
     basic_value(boolean_t, bool f) noexcept : m_boolean(f), m_type(value_t::boolean) {}
     basic_value(number_unsigned_t, uint64_t value) noexcept
-        : m_number_unsigned(value), m_type(value_t::number_signed) {}
+        : m_number_unsigned(value), m_type(value_t::number_unsigned) {}
     basic_value(number_signed_t, int64_t value) noexcept
         : m_number_signed(value), m_type(value_t::number_signed) {}
     basic_value(number_float_t, double value) noexcept

@@ -995,7 +995,7 @@ protected:
     leaf_node_type *_create_leaf_node() noexcept {
         auto &al = _get_allocator();
         auto *const node = reinterpret_cast<leaf_node_type *>(_Alty_traits::allocate(
-            al, sizeof(leaf_node_type) + sizeof(value_type *) * Traits::node_size));
+            al, sizeof(leaf_node_type) + sizeof(ivalue_type) * Traits::node_size));
         uninitialized_construct_using_allocator(node, al, default_construct);
         return node;
     }
@@ -1025,7 +1025,7 @@ protected:
         auto &al = _get_allocator();
         destroy_at_using_allocator(node, al);
         _Alty_traits::deallocate(al, reinterpret_cast<char *>(node),
-                                 sizeof(leaf_node_type) + sizeof(value_type *) * Traits::node_size);
+                                 sizeof(leaf_node_type) + sizeof(ivalue_type) * Traits::node_size);
     }
 
     void _drop_node(ivalue_type node) noexcept {
