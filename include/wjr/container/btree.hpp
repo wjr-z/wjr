@@ -205,26 +205,8 @@ struct btree_traits : btree_detail::btree_inline_traits<Key, Value> {
 private:
     using Mybase = btree_detail::btree_inline_traits<Key, Value>;
 
-    // Auto-select optimal node_size if not specified (NodeSize == 0)
-    // Consider the actual stored types which may be pointers if not inline
-    // For typical use cases:
-    // - Small stored data (<=8 bytes): use 16 for better cache utilization
-    // - Medium stored data (<=32 bytes): use 8 for balance
-    // - Large stored data (>32 bytes): use 4 to reduce memory
-    static constexpr size_t _auto_node_size() {
-        if constexpr (NodeSize != 0) {
-            return NodeSize;
-        } else {
-            constexpr size_t max_stored_size = std::max(sizeof(ikey_type), sizeof(ivalue_type));
-            if constexpr (max_stored_size <= 8) {
-                return 16; // Better for small stored data (pointers or small values)
-            } else {
-                return 8; // Default balanced
-            }
-        }
-    }
-
 public:
+    // Allocator
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<char>;
     using _Alty_traits = std::allocator_traits<_Alty>;
     using storage_fn_type = container_fn<_Alty>;
@@ -232,31 +214,50 @@ public:
     using size_type = typename _Alty_traits::size_type;
     using difference_type = typename _Alty_traits::difference_type;
 
+    // Value types
     using key_type = typename Mybase::key_type;
     using mapped_type = typename Mybase::mapped_type;
     using value_type = typename Mybase::value_type;
     using key_compare = Compare;
 
+    // Inline storage: trivial types <= 8 bytes are kept directly in nodes;
+    // larger types are stored by pointer.
     static constexpr bool is_inline_key = btree_detail::is_inline_key_v<key_type>;
     static constexpr bool is_inline_value = btree_detail::is_inline_key_v<value_type>;
 
     using ikey_type = std::conditional_t<is_inline_key, key_type, const key_type *>;
     using ivalue_type = std::conditional_t<is_inline_value, value_type, value_type *>;
 
+    // Structural
     static constexpr bool is_map = Mybase::is_map;
+    static constexpr bool multi = Multi;
 
     using node_type = btree_node<btree_traits>;
     using inner_node_type = btree_inner_node<btree_traits>;
     using leaf_node_type = btree_leaf_node<btree_traits>;
-    static constexpr bool multi = Multi;
 
     using slot_size_type = int;
     using slot_usize_type = unsigned int;
 
+private:
+    // Auto-select node_size based on inline element size:
+    //   <= 8 bytes  ->  16 keys/node  (better cache utilization)
+    //   >  8 bytes  ->   8 keys/node  (balanced)
+    static constexpr size_t _auto_node_size() noexcept {
+        if constexpr (NodeSize != 0) {
+            return NodeSize;
+        } else {
+            constexpr size_t max_stored = std::max(sizeof(ikey_type), sizeof(ivalue_type));
+            return max_stored <= 8 ? 16 : 8;
+        }
+    }
+
+public:
     static constexpr size_t node_size = _auto_node_size();
     static_assert(node_size >= 4 && node_size <= 64, "node_size must be in range [4, 64]");
 
-    static key_type &from_ikey(ikey_type &key) {
+    // Inline/pointer conversion helpers
+    WJR_INTRINSIC_INLINE static key_type &from_ikey(ikey_type &key) noexcept {
         if constexpr (is_inline_key) {
             return key;
         } else {
@@ -264,7 +265,7 @@ public:
         }
     }
 
-    static const key_type &from_ikey(const ikey_type &key) {
+    WJR_INTRINSIC_INLINE static const key_type &from_ikey(const ikey_type &key) noexcept {
         if constexpr (is_inline_key) {
             return key;
         } else {
@@ -272,7 +273,7 @@ public:
         }
     }
 
-    static ikey_type to_ikey(const key_type &key) {
+    WJR_INTRINSIC_INLINE static ikey_type to_ikey(const key_type &key) noexcept {
         if constexpr (is_inline_key) {
             return key;
         } else {
@@ -280,7 +281,7 @@ public:
         }
     }
 
-    static value_type &from_ivalue(ivalue_type &value) {
+    WJR_INTRINSIC_INLINE static value_type &from_ivalue(ivalue_type &value) noexcept {
         if constexpr (is_inline_value) {
             return value;
         } else {
@@ -288,7 +289,7 @@ public:
         }
     }
 
-    static const value_type &from_ivalue(const ivalue_type &value) {
+    WJR_INTRINSIC_INLINE static const value_type &from_ivalue(const ivalue_type &value) noexcept {
         if constexpr (is_inline_value) {
             return value;
         } else {
@@ -659,10 +660,6 @@ public:
         return Mybase::operator==(other);
     }
 
-    bool operator!=(const btree_iterator &other) const noexcept {
-        return Mybase::operator!=(other);
-    }
-
 protected:
     WJR_INTRINSIC_INLINE btree_iterator &_adjust_next() noexcept {
         Mybase::_adjust_next();
@@ -674,7 +671,6 @@ template <size_t N, typename Enable = void>
 struct basic_btree_searcher_impl;
 
 namespace btree_detail {
-template <typename Compare>
 /**
  * @brief Linear search with step=2 optimization for small nodes
  *
@@ -690,7 +686,8 @@ template <typename Compare>
  * @param comp Comparison lambda: comp(i) returns true if key < element[i]
  * @return Position where key should be inserted
  */
-WJR_INTRINSIC_INLINE static unsigned int linear_search_step2(unsigned int size, unsigned int offset,
+template <typename Compare>
+WJR_INTRINSIC_INLINE unsigned int linear_search_step2(unsigned int size, unsigned int offset,
                                                              const Compare &comp) {
     unsigned int i = offset + 1;
 
@@ -906,7 +903,6 @@ public:
                  wjr::forward_as_tuple(std::piecewise_construct, wjr::forward_as_tuple(),
                                        wjr::forward_as_tuple(btree_node_constructor))) {}
 
-    // not implemented currently
     basic_btree(const basic_btree &other) noexcept(
         std::is_nothrow_copy_constructible_v<key_compare>)
         : basic_btree(other.key_comp()) {
@@ -1050,7 +1046,7 @@ protected:
     template <typename... Args>
     iterator _emplace_multi(Args &&...args) noexcept {
         ivalue_type xval = _create_node(std::forward<Args>(args)...);
-        const auto iter = _get_insert_multi_pos(Traits::get_key(*xval));
+        const auto iter = _get_insert_multi_pos(Traits::get_key(from_ivalue(xval)));
         return _insert_iter(iter, xval);
     }
 
