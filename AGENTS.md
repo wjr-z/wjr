@@ -5,7 +5,7 @@
 - 这是一个使用 CMake 构建的 C++17 库。大多数架构相关的优化针对 x64。
 - 公共头文件位于 `include/wjr`，实现代码位于 `src`。
 - 根目录的 `CMakeLists.txt` 是构建选项和 target 依赖关系的权威来源。
-- 各模块的用途和 CMake alias 见 [模块说明](../docs/modules/README.md)。
+- 各模块的用途和 CMake alias 见 [模块说明](docs/modules/README.md)。
 
 ## 构建和测试
 

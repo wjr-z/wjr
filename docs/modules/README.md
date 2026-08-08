@@ -1,6 +1,6 @@
-# WJR 模块说明
-
-WJR 的模块通过 CMake alias 提供。使用某个模块时，在自己的 CMake target 上链接对应的 `wjr::<module>`；CMake 会自动传递头文件路径、C++ 标准和模块依赖。
+WJR 的模块通过 CMake alias 提供。使用某个模块时，在自己的 CMake
+target 上链接对应的 `wjr::<module>`；CMake 会自动传递头文件路径、C++
+标准和模块依赖。
 
 ```cmake
 target_link_libraries(my_app PRIVATE wjr::json)
@@ -18,7 +18,8 @@ target_link_libraries(my_app PRIVATE wjr::json)
 
 断言和调试辅助功能，供库内代码检查前置条件、内部状态和不可达路径。
 
-编写与 WJR 风格一致的底层组件，且需要使用 WJR 断言接口时使用。启用 `WJR_ENABLE_ASSERT_BACKTRACE` 后，该模块可以额外提供断言回溯信息。
+编写与 WJR 风格一致的底层组件，且需要使用 WJR 断言接口时使用。
+启用 `WJR_ENABLE_ASSERT_BACKTRACE` 后，该模块可以额外提供断言回溯信息。
 
 ## `wjr::iterator`
 
@@ -61,7 +62,8 @@ JSON 数据结构和解析、序列化相关功能。
 下面的 target 用于库内部实现，一般不建议应用程序直接依赖：
 
 - `wjr::format-internal`：格式化实现的对象库，不是面向用户的独立模块。
-- `wjr::arch-*`：架构相关实现，例如 `wjr::arch-math`、`wjr::arch-json` 和 `wjr::arch-biginteger`。
+- `wjr::arch-*`：架构相关实现，例如 `wjr::arch-math`、`wjr::arch-json`
+  和 `wjr::arch-biginteger`。
 - `wjr::asm-*`：NASM 汇编实现，只有启用对应架构汇编时才会生成。
 
 应用程序优先使用上面列出的公共模块或总库 `wjr::wjr`，不要依赖这些内部 target 的名称和实现细节。
