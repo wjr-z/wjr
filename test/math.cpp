@@ -1274,3 +1274,4 @@ TEST(math, div2by1) {
 
     check128(0, 0);
     check64(0, 0);
+}
