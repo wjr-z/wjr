@@ -75,4 +75,4 @@ pre-commit install
 pre-commit run --all-files
 ```
 
-GitHub Actions 会在 push 和 pull request 时自动执行同一套检查。
+GitHub Actions 会在 push 和 pull request 时检查本次变更的文件；通过 Actions 手动触发时会检查全部文件。

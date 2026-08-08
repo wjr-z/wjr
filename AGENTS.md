@@ -61,8 +61,9 @@
 
 - 代码格式检查由根目录 `.pre-commit-config.yaml` 管理，使用 `pre-commit/mirrors-clang-format` 的 `v18.1.8`，不依赖开发者本机预装的 clang-format。
 - hook 检查 C/C++ 文件，排除 `third-party` 和 `build`/`build_*` 目录；不要另行创建仓库内自定义 hook 或安装脚本。
+- pre-commit 没有数值型并行度配置，`require_serial` 只能将单个 hook 限制为串行；默认配置不强制串行，以免本地检查变慢。
 - 本地标准流程：
 	- `python -m pip install pre-commit`
 	- `python -m pre_commit install`
 	- `python -m pre_commit run --all-files`
-- `.github/workflows/pre-commit.yml` 在 `main` 的 push 和 pull request 上执行同一套检查；修改格式规则时要同时考虑本地 hook 和 GitHub Actions。
+- `.github/workflows/pre-commit.yml` 在 `main` 的 push 和 pull request 上只检查变更文件，手动 `workflow_dispatch` 执行全量检查；修改格式规则时要同时考虑本地 hook 和 GitHub Actions。
