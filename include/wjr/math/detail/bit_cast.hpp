@@ -30,4 +30,4 @@ WJR_PURE WJR_INTRINSIC_INLINE To bit_cast(const From &src) noexcept {
 }
 } // namespace wjr
 
-#endif // WJR_MATH_DETAIL_BIT_CAST_HPP__
+#endif // WJR_MATH_DETAIL_BIT_CAST_HPP_

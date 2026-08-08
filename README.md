@@ -59,3 +59,20 @@ cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON \
 
 cmake --build build --target coverage
 ```
+
+## Code style
+
+安装并启用标准的 `pre-commit` 检查：
+
+```sh
+python -m pip install pre-commit
+pre-commit install
+```
+
+手动检查所有文件：
+
+```sh
+pre-commit run --all-files
+```
+
+GitHub Actions 会在 push 和 pull request 时自动执行同一套检查。

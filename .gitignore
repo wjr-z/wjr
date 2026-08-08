@@ -44,3 +44,8 @@ trace
 __pycache__
 
 compile_commands.json
+build_asan
+examples/calc
+gcc_build
+tools
+test.py
