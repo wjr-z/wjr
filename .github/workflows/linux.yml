@@ -7,8 +7,16 @@ on:
   # Triggers the workflow on push or pull request events
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - "README.md"
+      - "docs/**"
+      - ".github/AGENTS.md"
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+      - "README.md"
+      - "docs/**"
+      - ".github/AGENTS.md"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -51,7 +59,7 @@ jobs:
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Init submodule
         run: git submodule update --init --recursive
