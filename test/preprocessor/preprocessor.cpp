@@ -123,7 +123,7 @@ TEST(preprocessor_preview, queue) {
 
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_PUSH_FRONT((1, 2, 3), 0)), "(0, 1, 2, 3)");
 
-#if defined(WJR_TEST_MSVC)
+#if defined(WJR_TEST_MSVC) && _MSVC_TRADITIONAL
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_PUSH_FRONT((), 0)), "(0,)");
 #else
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_PUSH_FRONT((), 0)), "(0, )");
