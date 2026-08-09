@@ -17,14 +17,14 @@ protected:
 
 TEST(ostream_insert, width_and_alignment) {
     std::ostringstream right;
-    right.fill('.');
+    EXPECT_EQ(right.fill('.'), ' ');
     right.width(5);
     EXPECT_EQ(&_ostream_insert(right, "abc", 3), &right);
     EXPECT_EQ(right.str(), "..abc");
     EXPECT_EQ(right.width(), 0);
 
     std::ostringstream left;
-    left.fill('.');
+    EXPECT_EQ(left.fill('.'), ' ');
     left.setf(std::ios_base::left, std::ios_base::adjustfield);
     left.width(5);
     _ostream_insert(left, "abc", 3);
