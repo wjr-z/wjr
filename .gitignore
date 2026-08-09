@@ -43,6 +43,10 @@ build.ninja
 trace
 .cache
 __pycache__
+.clang-tidy
+.clangd
+*.log
+third-party/abseil-cpp
 
 compile_commands.json
 build_asan

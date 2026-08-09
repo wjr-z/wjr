@@ -6,6 +6,8 @@
 - 保持修改聚焦，优先修复控制行为的最近代码路径；不要因为发现无关问题而扩大范围。
 - 尊重工作区中已有的用户修改、暂存内容和未跟踪文件，不使用 `git reset --hard` 或 `git checkout --` 覆盖它们。
 - 除非用户明确要求，不创建提交、不创建分支，也不修改生成目录或 vendored third-party 代码。
+- `.github/copilot-instructions.md`、`.clang-tidy`、`.clangd`、日志文件和 `third-party/abseil-cpp/` 是本地开发文件，不应提交或发布；这些文件应保持在 `.gitignore` 中。
+- `tools/` 下的本地辅助脚本和数据默认不应提交；唯一例外是用户明确保留的 `tools/generate_coverage_report.py`。
 - 修改行为时优先补充或更新针对性测试；完成后运行与修改范围最小且最相关的构建、测试或配置校验，并报告未运行的检查。
 
 ## 项目
@@ -15,6 +17,13 @@
 - 根目录的 `CMakeLists.txt` 是构建选项和 target 依赖关系的权威来源。
 - 各模块的用途和 CMake alias 见 [模块说明](docs/modules/README.md)。
 - `third-party` 下是 vendored 依赖；除非任务明确针对第三方代码，否则不要修改。
+
+## 优化与可移植性
+
+- 这是高度优化的 C++17 库；修改底层数值或内存路径时，先检查现有的 `WJR_HAS_*`、编译器版本、C++ 标准和架构宏，再选择 builtin、intrinsic、SIMD 或 inline assembly。
+- 主要支持 GCC、Clang 和 MSVC，以及 Windows/Linux 的 x86/x64；除非有可靠的编译器和目标平台依据，不要假设 ARM 或其他架构具备同样的优化指令。
+- 每个 builtin 或 assembly 快速路径都必须有宏守卫，并提供语义等价的 fallback；不能使用 `__has_builtin`、编译器专属函数或汇编作为无条件实现。
+- C++17 兼容性必须保持；涉及整数溢出、移位和指针运算时避免未定义行为，优先复用已有的 traits、`WJR_HAS_*` 分发和 fallback 约定。
 - `build`、`build_asan`、`CMakeFiles`、`compile_commands.json` 等是生成内容，不应纳入修改。
 
 ## 构建和测试
@@ -29,9 +38,10 @@
 ## CI
 
 - CI workflow 位于 `.github/workflows`；根目录 `CMakeLists.txt` 仍是构建选项和 target 的权威来源。
+- 修改 `AGENTS.md`、`.gitignore`、文档或其他不影响构建的本地/流程元数据时，应检查 Linux 和 Windows workflow 的 `paths-ignore` 是否同步；`pre-commit.yml` 仍负责格式规则和 hook 配置相关变更。
 - `linux.yml` 在 `ubuntu-latest` 上测试 Clang 17-20 和 GCC 9、11-14，启用测试和 ASan，并运行 GMP 测试环境。
 - `windows.yml` 在 `windows-latest` 上测试 MSVC 和 Clang，安装 NASM，关闭 GMP 测试，并运行 Windows 测试。
-- Linux、Windows 和 pre-commit workflow 都在 `main` 的 push、pull request 上运行，也支持手动 `workflow_dispatch`；Linux/Windows workflow 会跳过仅修改 `README.md`、`docs/**`、`AGENTS.md`、`.editorconfig`、`.gitattributes`、`.clang-format`、`.pre-commit-config.yaml` 或 pre-commit workflow 的变更。
+- Linux、Windows 和 pre-commit workflow 都在 `main` 的 push、pull request 上运行，也支持手动 `workflow_dispatch`；Linux/Windows workflow 会跳过仅修改 `README.md`、`docs/**`、`AGENTS.md`、`.gitignore`、`.editorconfig`、`.gitattributes`、`.clang-format`、`.pre-commit-config.yaml` 或 pre-commit workflow 的变更。
 - pre-commit workflow 不使用这些排除项，格式规则或 hook 配置变化应由它负责验证；源码、测试、依赖、LSan 配置以及 Linux/Windows workflow 的变化仍应触发对应编译 CI。
 - 修改编译器选项、依赖、测试配置或 workflow 时，至少运行对应平台或 target 的最小验证；不要把 GitHub Actions 生成目录或缓存提交到仓库。
 

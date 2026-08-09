@@ -6,6 +6,12 @@ using namespace wjr;
 
 namespace {
 void __set4(int &x) { x = 4; }
+int __square(int x) { return x * x; }
+int __noexcept_square(int x) noexcept { return x * x; }
+
+struct const_callable {
+    int operator()(int x) const { return x + 1; }
+};
 } // namespace
 
 TEST(functional, function_ref) {
@@ -61,4 +67,23 @@ TEST(functional, function_ref_const) {
     static_assert(std::is_constructible_v<function_ref<void() const>, void (*)() noexcept>);
     auto mutable_func = [](int &) mutable {};
     static_assert(!std::is_constructible_v<function_ref<void() const>, decltype(mutable_func)>);
+}
+
+TEST(functional, function_ref_function_pointer) {
+    function_ref<int(int)> f = &__square;
+
+    EXPECT_EQ(f(4), 16);
+}
+
+TEST(functional, function_ref_noexcept) {
+    function_ref<int(int) noexcept> f = &__noexcept_square;
+
+    EXPECT_EQ(f(4), 16);
+}
+
+TEST(functional, function_ref_const_callable) {
+    const const_callable callable;
+    function_ref<int(int) const> f = callable;
+
+    EXPECT_EQ(f(4), 5);
 }

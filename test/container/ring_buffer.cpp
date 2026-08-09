@@ -191,6 +191,42 @@ TEST(ring_buffer, iterator) {
     }
 }
 
+TEST(ring_buffer, random_access_iterator) {
+    ring_buffer<int> rb;
+    rb.reserve(5);
+    for (int i = 0; i < 5; ++i) {
+        rb.push_back(i);
+    }
+
+    rb.pop_front();
+    rb.pop_front();
+    rb.push_back(5);
+    rb.push_back(6);
+
+    auto begin = rb.begin();
+    auto end = rb.end();
+    EXPECT_EQ(end - begin, 5);
+    EXPECT_EQ(begin[0], 2);
+    EXPECT_EQ(begin[4], 6);
+    EXPECT_EQ(*(begin + 2), 4);
+    EXPECT_EQ(*(2 + begin), 4);
+    EXPECT_EQ(*(end - 1), 6);
+
+    auto it = begin + 3;
+    EXPECT_EQ(*it, 5);
+    EXPECT_EQ(*(it -= 2), 3);
+    EXPECT_EQ(*(it += -1), 2);
+    EXPECT_EQ(*(it -= -2), 4);
+
+    auto previous = it--;
+    EXPECT_EQ(*previous, 4);
+    EXPECT_EQ(*it, 3);
+    EXPECT_EQ(*(--it), 2);
+
+    auto last = end;
+    EXPECT_EQ(*(--last), 6);
+}
+
 TEST(ring_buffer, capacity) {
     ring_buffer<int> rb;
 

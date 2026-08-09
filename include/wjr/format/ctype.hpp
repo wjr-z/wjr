@@ -34,14 +34,14 @@ static constexpr std::array<uint8_t, 256> code_table = {
     127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
     127, 127, 127, 127, 127, 127, 127, 127, 127};
 
-constexpr uint8_t get_code(char c) { return code_table[static_cast<unsigned>(c)]; }
+constexpr uint8_t get_code(char c) { return code_table[static_cast<unsigned char>(c)]; }
 } // namespace cctype
 
 /// Check if character is decimal digit (0-9)
 constexpr bool isDigit(char C) { return C >= '0' && C <= '9'; }
 
 /// Check if character is hexadecimal digit (0-9, a-f, A-F)
-constexpr bool isHexDigit(char C) { return cctype::get_code(C) != 127; }
+constexpr bool isHexDigit(char C) { return cctype::get_code(C) < 16; }
 
 /// Check if character is lowercase letter (a-z)
 constexpr bool isLower(char C) { return 'a' <= C && C <= 'z'; }
