@@ -79,4 +79,4 @@ jobs:
         run: cmake --build build --config Release --parallel
 
       - name: Run tests
-        run: ./build/bin/tests
+        run: ctest --test-dir build --output-on-failure

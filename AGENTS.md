@@ -20,8 +20,8 @@
 ## 构建和测试
 
 - 使用 `build` 等源码目录之外的目录进行构建。
-- 配置时添加 `-DWJR_BUILD_TESTS=ON`，然后构建 `tests` target。
-- 覆盖率需要同时配置 `-DWJR_BUILD_TESTS=ON` 和 `-DWJR_ENABLE_COVERAGE=ON`，然后构建 `coverage` target。
+- 配置时添加 `-DWJR_BUILD_TESTS=ON`，构建 `tests` target 后使用 `ctest --test-dir build --output-on-failure` 运行测试。
+- 覆盖率需要使用 Clang，同时配置 `-DWJR_BUILD_TESTS=ON` 和 `-DWJR_ENABLE_COVERAGE=ON`，然后构建 `coverage` target。
 - 配置时添加 `-DWJR_BUILD_BENCHMARKS=ON`，然后构建 `benchmarks` target。
 - 复现问题时保留原来的构建类型和相关选项。
 - 推荐使用源码目录之外的构建目录，例如 `build`；不要把生成文件写入源码目录。
@@ -61,6 +61,7 @@
 
 - 代码格式检查由根目录 `.pre-commit-config.yaml` 管理，使用 `pre-commit/mirrors-clang-format` 的 `v18.1.8`，不依赖开发者本机预装的 clang-format。
 - hook 检查 C/C++ 文件，排除 `third-party` 和 `build`/`build_*` 目录；不要另行创建仓库内自定义 hook 或安装脚本。
+- 修改或新增 C/C++ 文件后，提交前必须运行 `python -m pre_commit run clang-format --all-files`，确保代码符合根目录 `.clang-format`；不要只运行编译和测试。
 - pre-commit 没有数值型并行度配置，`require_serial` 只能将单个 hook 限制为串行；默认配置不强制串行，以免本地检查变慢。
 - 本地标准流程：
 	- `python -m pip install pre-commit`

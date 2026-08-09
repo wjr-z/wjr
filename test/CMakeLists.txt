@@ -71,10 +71,23 @@ add_executable(
 
 target_include_directories(tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
+add_test(NAME wjr_tests COMMAND tests)
+set_tests_properties(wjr_tests PROPERTIES
+   LABELS unit
+   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)
+
 if(WJR_ENABLE_COVERAGE)
    # find required tools
    find_program(LLVM_COV_PATH llvm-cov REQUIRED)
    find_program(LLVM_PROFDATA_PATH llvm-profdata REQUIRED)
+
+   target_compile_options(tests PRIVATE
+      -fprofile-instr-generate -fcoverage-mapping -fno-inline
+   )
+   target_link_options(tests PRIVATE
+      -fprofile-instr-generate -fcoverage-mapping
+   )
 
    set(COVERAGE_IGNORE
       "(test|third-party|benchmark|build|_deps|simd.*(sse|avx|simd_cast))"
@@ -82,13 +95,17 @@ if(WJR_ENABLE_COVERAGE)
 
    # add coverage target
    add_custom_target(coverage
+      DEPENDS tests
 
       # Clean previous coverage data
-      COMMAND ${CMAKE_COMMAND} -E remove -f default.profraw default.profdata
-      COMMAND ${CMAKE_COMMAND} -E remove_directory coverage
+      COMMAND ${CMAKE_COMMAND} -E remove -f
+      ${CMAKE_BINARY_DIR}/default.profraw
+      ${CMAKE_BINARY_DIR}/default.profdata
+      COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/coverage
 
       # Run tests to generate coverage data
-      COMMAND $<TARGET_FILE:tests>
+      COMMAND ${CMAKE_COMMAND} -E env LLVM_PROFILE_FILE=default.profraw
+      $<TARGET_FILE:tests>
 
       # Merge profile data
       COMMAND ${LLVM_PROFDATA_PATH} merge

@@ -258,6 +258,38 @@ TEST(expected, error_or) {
     EXPECT_EQ(b.error_or(99), 2);
 }
 
+TEST(expected, observers_and_transformations) {
+    expected<std::string, int> value("wjr");
+    EXPECT_TRUE(static_cast<bool>(value));
+    EXPECT_EQ(value->size(), 3U);
+
+    auto length =
+        value.and_then([](const std::string &text) { return expected<size_t, int>(text.size()); });
+    EXPECT_TRUE(length.has_value());
+    EXPECT_EQ(length.value(), 3U);
+
+    auto transformed = value.transform([](const std::string &text) { return text.size() + 1; });
+    EXPECT_TRUE(transformed.has_value());
+    EXPECT_EQ(transformed.value(), 4U);
+
+    expected<std::string, int> error(unexpect, 7);
+    EXPECT_FALSE(static_cast<bool>(error));
+
+    auto propagated = error.and_then([](const std::string &) { return expected<size_t, int>(0); });
+    EXPECT_FALSE(propagated.has_value());
+    EXPECT_EQ(propagated.error(), 7);
+
+    auto transformed_error = error.transform_error(
+        [](int value) { return std::string("error ") + std::to_string(value); });
+    EXPECT_FALSE(transformed_error.has_value());
+    EXPECT_EQ(transformed_error.error(), "error 7");
+
+    auto recovered = error.or_else(
+        [](int value) { return expected<std::string, int>(std::in_place, std::to_string(value)); });
+    EXPECT_TRUE(recovered.has_value());
+    EXPECT_EQ(recovered.value(), "7");
+}
+
 // Type parametrized tests for both void and non-void expected
 template <typename T>
 class ExpectedTest : public ::testing::Test {};

@@ -88,4 +88,7 @@ jobs:
         run: cmake --build build --config Release --parallel
 
       - name: Run tests
-        run: ASAN_OPTIONS=detect_leaks=1 LSAN_OPTIONS=suppressions=$GITHUB_WORKSPACE/.github/lsan_suppressions.txt ./build/bin/tests
+        env:
+          ASAN_OPTIONS: detect_leaks=1
+          LSAN_OPTIONS: suppressions=${{ github.workspace }}/.github/lsan_suppressions.txt
+        run: ctest --test-dir build --output-on-failure

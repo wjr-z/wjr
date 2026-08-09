@@ -24,11 +24,11 @@ cmake --build build --target <target>
 	cmake --build build --target tests
 	ctest --test-dir build --output-on-failure
 	```
-- `coverage`：运行测试并生成覆盖率报告。需要检查测试覆盖范围时使用；配置时同时添加 `-DWJR_BUILD_TESTS=ON` 和 `-DWJR_ENABLE_COVERAGE=ON`，并确保环境中有 `llvm-cov` 和 `llvm-profdata`。
+- `coverage`：运行测试并生成覆盖率报告。需要检查测试覆盖范围时使用；配置时使用 Clang，并同时添加 `-DWJR_BUILD_TESTS=ON` 和 `-DWJR_ENABLE_COVERAGE=ON`，确保环境中有 `llvm-cov` 和 `llvm-profdata`。
 	```sh
 	cmake --build build --target coverage
 	```
-	报告生成在 `build/coverage` 目录。
+	报告生成在 `build/coverage` 目录。覆盖率 target 会先构建并运行 `tests`；测试失败时不会继续生成报告。
 - `benchmarks`：基准测试可执行文件。需要比较性能或评估优化效果时使用；配置时添加 `-DWJR_BUILD_BENCHMARKS=ON`，然后执行：
 	```sh
 	cmake --build build --target benchmarks
@@ -53,10 +53,8 @@ cmake --build build --target <target>
 
 # test
 ```
-cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON \
--DWJR_ENABLE_COVERAGE=ON \
--DWJR_DEBUG_LEVEL_RELEASE=3
-
+cmake -Bbuild -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON \
+-DWJR_ENABLE_COVERAGE=ON -DWJR_DEBUG_LEVEL_RELEASE=3
 cmake --build build --target coverage
 ```
 
