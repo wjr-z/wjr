@@ -755,6 +755,31 @@ TEST(biginteger, pow) {
 #endif
 }
 
+TEST(biginteger, arithmetic_without_gmp) {
+    const biginteger left = (biginteger(1) << 64) + 3;
+    const biginteger right = (biginteger(1) << 64) + 5;
+    const biginteger product_expected = (biginteger(1) << 128) + (biginteger(8) << 64) + 15;
+    const biginteger square_expected = (biginteger(1) << 128) + (biginteger(6) << 64) + 9;
+    biginteger negative_product_expected = product_expected;
+    negative_product_expected.negate();
+
+    biginteger result;
+    mul(result, left, right);
+    EXPECT_EQ(result, product_expected);
+
+    result = left;
+    result *= right;
+    EXPECT_EQ(result, product_expected);
+
+    sqr(result, left);
+    EXPECT_EQ(result, square_expected);
+
+    result = left;
+    result.negate();
+    mul(result, result, right);
+    EXPECT_EQ(result, negative_product_expected);
+}
+
 #ifdef WJR_USE_GMP
 
 TEST(biginteger, mul_1) {

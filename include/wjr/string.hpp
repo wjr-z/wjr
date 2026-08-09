@@ -19,6 +19,7 @@
 #include <wjr/math/broadcast.hpp>
 #include <wjr/math/integral_constant.hpp>
 #include <wjr/memory/asan.hpp>
+#include <wjr/memory/detail.hpp>
 
 namespace wjr {
 
@@ -240,7 +241,9 @@ constant_length_strncaseequal(const char *a, const char *b,
     }
 }
 
-WJR_PURE constexpr int strncasecmp(const char *a, const char *b, size_t length) {
+namespace string_detail {
+
+WJR_PURE constexpr int compare_nocase_n(const char *a, const char *b, size_t length) {
     for (size_t i = 0; i < length; ++i) {
         const char diff = (a[i] ^ b[i]) & 0xDF;
         if (diff != 0) {
@@ -251,8 +254,11 @@ WJR_PURE constexpr int strncasecmp(const char *a, const char *b, size_t length) 
     return 0;
 }
 
+} // namespace string_detail
+
 WJR_PURE constexpr int compare_insensitive(std::string_view lhs, std::string_view rhs) {
-    if (int ret = strncasecmp(lhs.data(), rhs.data(), std::min(lhs.length(), rhs.length()))) {
+    if (int ret = string_detail::compare_nocase_n(lhs.data(), rhs.data(),
+                                                  std::min(lhs.length(), rhs.length()))) {
         return ret;
     }
 
@@ -260,12 +266,14 @@ WJR_PURE constexpr int compare_insensitive(std::string_view lhs, std::string_vie
 }
 
 WJR_PURE constexpr bool starts_with_insensitive(std::string_view base, std::string_view sv) {
-    return base.size() >= sv.size() && strncasecmp(base.data(), sv.data(), sv.size()) == 0;
+    return base.size() >= sv.size() &&
+           string_detail::compare_nocase_n(base.data(), sv.data(), sv.size()) == 0;
 }
 
 WJR_PURE constexpr bool ends_with_insensitive(std::string_view base, std::string_view sv) {
     return base.size() >= sv.size() &&
-           strncasecmp(base.data() + base.size() - sv.size(), sv.data(), sv.size()) == 0;
+           string_detail::compare_nocase_n(base.data() + base.size() - sv.size(), sv.data(),
+                                           sv.size()) == 0;
 }
 
 } // namespace wjr
