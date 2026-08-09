@@ -24,6 +24,7 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 build
+build_coverage
 msvc_build
 .vscode
 *.sln
