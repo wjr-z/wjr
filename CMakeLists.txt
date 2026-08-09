@@ -61,6 +61,12 @@ endif()
 
 option(WJR_ENABLE_COVERAGE "Enable coverage for tests." OFF)
 
+if(WJR_ENABLE_COVERAGE AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+   message(FATAL_ERROR
+      "WJR_ENABLE_COVERAGE requires a Clang-compatible C++ compiler. "
+      "Configure with -DCMAKE_CXX_COMPILER=clang++.")
+endif()
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 #
