@@ -76,6 +76,14 @@ jobs:
       - name: Init submodule
         run: git submodule update --init --recursive
 
+      - name: Cache CMake dependencies
+        uses: actions/cache@v5
+        with:
+          path: ${{ runner.temp }}/wjr-fetchcontent
+          key: fetchcontent-${{ runner.os }}-${{ matrix.sys.compiler }}-${{ matrix.sys.version }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', 'src/**/CMakeLists.txt', 'test/CMakeLists.txt') }}
+          restore-keys: |
+            fetchcontent-${{ runner.os }}-${{ matrix.sys.compiler }}-${{ matrix.sys.version }}-
+
       - name: Install GMP
         run: sudo apt-get update && sudo apt-get install -y libgmp-dev
 
@@ -84,6 +92,7 @@ jobs:
           if [[ "${{matrix.sys.compiler}}" = "gcc" ]]; then export CC=gcc-${{matrix.sys.version}}; export CXX=g++-${{matrix.sys.version}}; else export CC=clang; export CXX=clang++; fi
           cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON \
             -DWJR_DEBUG_LEVEL_RELEASE=3 -DWJR_PUBLIC_FLAGS=ON -DWJR_ENABLE_ASAN=ON \
+            -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent" \
             -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX
 
       - name: Build
