@@ -81,6 +81,7 @@ if(WJR_ENABLE_COVERAGE)
    # find required tools
    find_program(LLVM_COV_PATH llvm-cov REQUIRED)
    find_program(LLVM_PROFDATA_PATH llvm-profdata REQUIRED)
+   find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
    target_compile_options(tests PRIVATE
       -fprofile-instr-generate -fcoverage-mapping -fno-inline
@@ -119,18 +120,20 @@ if(WJR_ENABLE_COVERAGE)
       -show-instantiation-summary
       -show-branches=count
       -format=html
-      -output-dir=coverage
+      -output-dir=coverage/details
       -ignore-filename-regex="${COVERAGE_IGNORE}"
 
-      # Generate text summary report (only for include and src directories)
-      COMMAND ${LLVM_COV_PATH} report $<TARGET_FILE:tests>
-      -instr-profile=default.profdata
-      -show-region-summary=true
-      -show-branch-summary=true
-      -ignore-filename-regex="${COVERAGE_IGNORE}"
+      # Generate the summary dashboard and text report.
+      COMMAND ${Python3_EXECUTABLE}
+      ${CMAKE_SOURCE_DIR}/tools/generate_coverage_report.py
+      --llvm-cov ${LLVM_COV_PATH}
+      --binary $<TARGET_FILE:tests>
+      --profile ${CMAKE_BINARY_DIR}/default.profdata
+      --output-dir ${CMAKE_BINARY_DIR}/coverage
+      --details-dir details
 
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-      COMMENT "Generating coverage report for include and src directories..."
+      COMMENT "Generating coverage dashboard for include and src directories..."
    )
 endif()
 

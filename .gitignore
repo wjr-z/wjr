@@ -47,5 +47,7 @@ compile_commands.json
 build_asan
 examples/calc
 gcc_build
-tools
+tools/*
+!tools/generate_coverage_report.py
+.github/copilot-instructions.md
 test.py
