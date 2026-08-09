@@ -1,4 +1,4 @@
-#include "detail.hpp"
+#include <gtest/gtest.h>
 
 #include <string_view>
 
@@ -37,10 +37,10 @@ TEST(string, prefix_and_suffix) {
 }
 
 TEST(string, compare_insensitive) {
-    EXPECT_EQ(strncasecmp("WJR", "wjr", 3), 0);
-    EXPECT_EQ(strncasecmp("abc", "abd", 3), -1);
-    EXPECT_EQ(strncasecmp("abd", "abc", 3), 1);
-    EXPECT_EQ(strncasecmp("abc", "abd", 0), 0);
+    EXPECT_EQ(string_detail::compare_nocase_n("WJR", "wjr", 3), 0);
+    EXPECT_EQ(string_detail::compare_nocase_n("abc", "abd", 3), -1);
+    EXPECT_EQ(string_detail::compare_nocase_n("abd", "abc", 3), 1);
+    EXPECT_EQ(string_detail::compare_nocase_n("abc", "abd", 0), 0);
 
     EXPECT_EQ(compare_insensitive("WJR", "wjr"), 0);
     EXPECT_EQ(compare_insensitive("wjr", "wjr-test"), -1);
