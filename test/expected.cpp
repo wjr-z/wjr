@@ -1,5 +1,9 @@
 #include "detail.hpp"
 
+#include <initializer_list>
+#include <string>
+#include <vector>
+
 #include <wjr/expected.hpp>
 
 using namespace wjr;
@@ -489,4 +493,248 @@ TEST(expected, compressed_value_detailed) {
         EXPECT_FALSE(b.has_value());
         EXPECT_EQ(b.error(), 99);
     }
+}
+
+TEST(expected, copy_and_move_assignment) {
+    {
+        expected<int, std::string> source(7);
+        expected<int, std::string> target(1);
+        target = source;
+        EXPECT_TRUE(target.has_value());
+        EXPECT_EQ(target.value(), 7);
+
+        target = std::move(source);
+        EXPECT_TRUE(target.has_value());
+        EXPECT_EQ(target.value(), 7);
+    }
+
+    {
+        expected<int, std::string> source(unexpect, "source");
+        expected<int, std::string> target(unexpect, "target");
+        target = source;
+        EXPECT_FALSE(target.has_value());
+        EXPECT_EQ(target.error(), "source");
+
+        target = std::move(source);
+        EXPECT_FALSE(target.has_value());
+        EXPECT_EQ(target.error(), "source");
+    }
+
+    {
+        expected<int, std::string> source(unexpect, "error");
+        expected<int, std::string> target(1);
+        target = source;
+        EXPECT_FALSE(target.has_value());
+        EXPECT_EQ(target.error(), "error");
+    }
+
+    {
+        expected<int, std::string> source(2);
+        expected<int, std::string> target(unexpect, "error");
+        target = source;
+        EXPECT_TRUE(target.has_value());
+        EXPECT_EQ(target.value(), 2);
+
+        target = std::move(source);
+        EXPECT_TRUE(target.has_value());
+        EXPECT_EQ(target.value(), 2);
+    }
+
+    {
+        expected<void, std::string> value_source;
+        expected<void, std::string> value_target;
+        expected<void, std::string> error_source(unexpect, "error");
+        expected<void, std::string> error_target(unexpect, "old");
+
+        error_target = value_source;
+        EXPECT_TRUE(error_target.has_value());
+        value_target = error_source;
+        EXPECT_FALSE(value_target.has_value());
+        EXPECT_EQ(value_target.error(), "error");
+
+        error_target = error_source;
+        EXPECT_FALSE(error_target.has_value());
+        EXPECT_EQ(error_target.error(), "error");
+        value_target = std::move(value_source);
+        EXPECT_TRUE(value_target.has_value());
+    }
+}
+
+TEST(expected, cross_type_construction) {
+    expected<short, const char *> value_source(12);
+    expected<int, std::string> value_copy(value_source);
+    EXPECT_TRUE(value_copy.has_value());
+    EXPECT_EQ(value_copy.value(), 12);
+
+    expected<int, std::string> value_move(expected<short, const char *>(13));
+    EXPECT_TRUE(value_move.has_value());
+    EXPECT_EQ(value_move.value(), 13);
+
+    expected<short, const char *> error_source(unexpect, "failure");
+    expected<int, std::string> error_copy(error_source);
+    EXPECT_FALSE(error_copy.has_value());
+    EXPECT_EQ(error_copy.error(), "failure");
+
+    expected<int, std::string> error_move(expected<short, const char *>(unexpect, "moved failure"));
+    EXPECT_FALSE(error_move.has_value());
+    EXPECT_EQ(error_move.error(), "moved failure");
+
+    expected<void, const char *> void_error_source(unexpect, "void failure");
+    expected<void, std::string> void_error_copy(void_error_source);
+    EXPECT_FALSE(void_error_copy.has_value());
+    EXPECT_EQ(void_error_copy.error(), "void failure");
+
+    expected<void, std::string> void_value_copy((expected<void, const char *>(std::in_place)));
+    EXPECT_TRUE(void_value_copy.has_value());
+}
+
+TEST(expected, access_qualifiers_and_bad_access) {
+    const expected<std::string, int> value("value");
+    EXPECT_EQ(value.value(), "value");
+    EXPECT_EQ((static_cast<const expected<std::string, int> &&>(value).value()), "value");
+
+    const expected<std::string, int> error(unexpect, 17);
+    expected<std::string, int> movable_error(unexpect, 19);
+    EXPECT_THROW(error.value(), bad_expected_access<int>);
+    EXPECT_THROW(std::move(movable_error).value(), bad_expected_access<int>);
+
+    bad_expected_access<int> exception(17);
+    EXPECT_EQ(exception.error(), 17);
+    EXPECT_EQ(std::move(exception).error(), 17);
+    EXPECT_STREQ(exception.what(), "Bad expected access");
+}
+
+TEST(expected, initializer_list_and_unexpected) {
+    expected<std::vector<int>, int> value(std::in_place, std::initializer_list<int>{1, 2, 3});
+    EXPECT_EQ(value.value(), (std::vector<int>{1, 2, 3}));
+
+    value.emplace(std::initializer_list<int>{4, 5});
+    EXPECT_EQ(value.value(), (std::vector<int>{4, 5}));
+
+    wjr::unexpected<std::string> first(std::in_place, {'e', 'r', 'r'});
+    wjr::unexpected<std::string> second("other");
+    EXPECT_EQ(first.error(), "err");
+    EXPECT_TRUE(first != second);
+    first.swap(second);
+    EXPECT_EQ(first.error(), "other");
+    EXPECT_EQ(second.error(), "err");
+    EXPECT_EQ(std::move(second).error(), "err");
+}
+
+TEST(expected, monadic_value_categories) {
+    expected<int, std::string> value(3);
+    const expected<int, std::string> const_value(4);
+    expected<int, std::string> error(unexpect, "error");
+    const expected<int, std::string> const_error(unexpect, "const error");
+
+    auto check_value = [](auto &&item) { return expected<int, std::string>(item + 1); };
+    EXPECT_EQ(value.and_then(check_value).value(), 4);
+    EXPECT_EQ(const_value.and_then(check_value).value(), 5);
+    EXPECT_FALSE(std::move(error).and_then(check_value).has_value());
+    EXPECT_EQ((static_cast<const expected<int, std::string> &&>(const_error)
+                   .and_then(check_value)
+                   .error()),
+              "const error");
+
+    EXPECT_EQ(value.or_else([](auto &&) { return expected<int, std::string>(9); }).value(), 3);
+    EXPECT_EQ(const_value.or_else([](auto &&) { return expected<int, std::string>(9); }).value(),
+              4);
+    EXPECT_EQ(
+        std::move(error).or_else([](auto &&) { return expected<int, std::string>(9); }).value(), 9);
+    EXPECT_EQ((static_cast<const expected<int, std::string> &&>(const_error)
+                   .or_else([](auto &&) { return expected<int, std::string>(10); })
+                   .value()),
+              10);
+
+    EXPECT_EQ(value.transform([](int item) { return item * 2; }).value(), 6);
+    EXPECT_EQ(const_value.transform([](int item) { return item * 2; }).value(), 8);
+    EXPECT_EQ(std::move(value).transform([](int item) { return item * 2; }).value(), 6);
+    EXPECT_EQ((static_cast<const expected<int, std::string> &&>(const_value)
+                   .transform([](int item) { return item * 2; })
+                   .value()),
+              8);
+
+    auto transformed_value = expected<int, std::string>(3).transform([](int) {});
+    EXPECT_TRUE(transformed_value.has_value());
+    EXPECT_FALSE(error.transform([](int) { return 0; }).has_value());
+
+    EXPECT_EQ((expected<int, int>(3)
+                   .transform_error([](int item) { return std::to_string(item); })
+                   .value()),
+              3);
+    EXPECT_EQ((expected<int, int>(unexpect, 3)
+                   .transform_error([](int item) { return std::to_string(item); })
+                   .error()),
+              "3");
+    EXPECT_EQ((expected<int, int>(unexpect, 4)
+                   .transform_error([](int item) { return std::to_string(item); })
+                   .error()),
+              "4");
+}
+
+TEST(expected, void_monadic_operations) {
+    expected<void, int> value;
+    const expected<void, int> const_value;
+    expected<void, int> error(unexpect, 3);
+    const expected<void, int> const_error(unexpect, 4);
+
+    EXPECT_EQ(value.and_then([] { return expected<int, int>(7); }).value(), 7);
+    EXPECT_EQ(const_value.and_then([] { return expected<int, int>(8); }).value(), 8);
+    EXPECT_EQ((static_cast<expected<void, int> &&>(value)
+                   .and_then([] { return expected<int, int>(9); })
+                   .value()),
+              9);
+    EXPECT_EQ((static_cast<const expected<void, int> &&>(const_value)
+                   .and_then([] { return expected<int, int>(10); })
+                   .value()),
+              10);
+    EXPECT_EQ(error.and_then([] { return expected<int, int>(0); }).error(), 3);
+    EXPECT_EQ((static_cast<const expected<void, int> &&>(const_error)
+                   .and_then([] { return expected<int, int>(0); })
+                   .error()),
+              4);
+
+    EXPECT_TRUE(
+        (expected<void, int>().or_else([](int) { return expected<void, int>(); }).has_value()));
+    EXPECT_TRUE((expected<void, int>(unexpect, 5)
+                     .or_else([](int value) { return expected<void, int>(unexpect, value + 1); })
+                     .error() == 6));
+
+    EXPECT_TRUE((expected<void, int>().transform([] { return 1; }).has_value()));
+    EXPECT_EQ((expected<void, int>(unexpect, 7).transform([] { return 1; }).error()), 7);
+    EXPECT_TRUE((expected<void, int>().transform([] {}).has_value()));
+
+    EXPECT_TRUE((expected<void, int>()
+                     .transform_error([](int value) { return std::to_string(value); })
+                     .has_value()));
+    EXPECT_EQ((expected<void, int>(unexpect, 8)
+                   .transform_error([](int value) { return std::to_string(value); })
+                   .error()),
+              "8");
+}
+
+TEST(expected, macros) {
+    auto try_value = [](bool success) -> expected<int, int> {
+        WJR_EXPECTED_TRY(success ? expected<void, int>() : expected<void, int>(unexpect, 3));
+        return 42;
+    };
+    EXPECT_EQ(try_value(true).value(), 42);
+    EXPECT_EQ(try_value(false).error(), 3);
+
+    auto init_value = [](bool success) -> expected<int, int> {
+        WJR_EXPECTED_INIT(value,
+                          success ? expected<int, int>(21) : expected<int, int>(unexpect, 4));
+        return *value * 2;
+    };
+    EXPECT_EQ(init_value(true).value(), 42);
+    EXPECT_EQ(init_value(false).error(), 4);
+
+    auto set_value = [](bool success) -> expected<int, int> {
+        int result = 0;
+        WJR_EXPECTED_SET(result,
+                         success ? expected<int, int>(21) : expected<int, int>(unexpect, 5));
+        return result * 2;
+    };
+    EXPECT_EQ(set_value(true).value(), 42);
+    EXPECT_EQ(set_value(false).error(), 5);
 }
