@@ -147,14 +147,14 @@ protected:
 
             WJR_ASSERT(_base >= 0);
 
-            std::make_unsigned_t<off_type> _uoff;
-            if (WJR_UNLIKELY(add_overflow(_base, _off, _uoff)))
+            off_type _offset;
+            if (WJR_UNLIKELY(add_overflow(_base, _off, _offset)))
                 return _ret;
 
-            _off = static_cast<off_type>(_uoff);
-
-            if (WJR_UNLIKELY(_off < 0 || to_unsigned(_off) > _M_buf.size()))
+            if (WJR_UNLIKELY(_offset < 0 || to_unsigned(_offset) > _M_buf.size()))
                 return _ret;
+
+            _off = _offset;
 
             if (_which & std::ios_base::in)
                 this->setg(this->eback(), this->eback() + _off, this->egptr());

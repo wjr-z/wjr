@@ -111,6 +111,47 @@ TEST(json, parse) {
     }
 }
 
+TEST(json, visitor_root_values) {
+    using namespace json;
+
+    const std::pair<const char *, const char *> cases[] = {
+        {"null", "null"},
+        {"true", "true"},
+        {"false", "false"},
+        {"0", "0"},
+        {"-12.5", "-1.25E1"},
+        {"\"text\"", "\"text\""},
+        {"[]", "[]"},
+        {"{}", "{}"},
+        {"[null,true,false,1,\"x\",[],{}]", "[null,true,false,1,\"x\",[],{}]"},
+        {"{\"n\":null,\"t\":true,\"f\":false,\"v\":[1,\"x\"]}",
+         "{\"f\":false,\"n\":null,\"t\":true,\"v\":[1,\"x\"]}"},
+    };
+
+    for (const auto &[input, expected] : cases) {
+        ondemand_reader rd;
+        rd.read(input);
+        auto result = document::parse(rd);
+        ASSERT_TRUE(result.has_value()) << input;
+        EXPECT_EQ(result->to_string(), expected);
+    }
+}
+
+TEST(json, visitor_rejects_invalid_values) {
+    using namespace json;
+
+    const char *cases[] = {
+        "",     "nul",     "truex",    "false0",   "[",     "]",          "{", "}",
+        "[1,]", "{\"a\"}", "{\"a\":}", "{\"a\":1", "[1 2]", "\"unclosed", "@",
+    };
+
+    for (const char *input : cases) {
+        ondemand_reader rd;
+        rd.read(input);
+        EXPECT_FALSE(document::parse(rd).has_value()) << input;
+    }
+}
+
 struct test_struct0 {
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(test_struct0);
 

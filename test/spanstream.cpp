@@ -84,4 +84,41 @@ TYPED_TEST(InputSpanStreamTest, input) { this->input(); }
 
 TYPED_TEST(OutputSpanStreamTest, output) { this->output(); }
 
+TEST(spanstream, spanbuf_seek) {
+    char data[] = "abcdef";
+    spanbuf buffer(span<char>(data, 6));
+
+    EXPECT_EQ(buffer.pubseekpos(2, std::ios_base::in), spanbuf::pos_type(2));
+    EXPECT_EQ(buffer.sgetc(), 'c');
+    EXPECT_EQ(buffer.pubseekoff(1, std::ios_base::cur, std::ios_base::in), spanbuf::pos_type(3));
+    EXPECT_EQ(buffer.sgetc(), 'd');
+    EXPECT_EQ(buffer.pubseekoff(-1, std::ios_base::end, std::ios_base::in), spanbuf::pos_type(5));
+    EXPECT_EQ(buffer.sgetc(), 'f');
+    EXPECT_EQ(buffer.pubseekoff(-1, std::ios_base::beg, std::ios_base::in),
+              spanbuf::pos_type(std::streamoff(-1)));
+    EXPECT_EQ(buffer.pubseekoff(0, std::ios_base::cur, std::ios_base::in | std::ios_base::out),
+              spanbuf::pos_type(std::streamoff(-1)));
+}
+
+TEST(spanstream, spanbuf_output_position_and_setbuf) {
+    char data[6] = {};
+    spanbuf buffer(span<char>(data, 6), std::ios_base::out);
+
+    EXPECT_EQ(buffer.sputn("abc", 3), 3);
+    EXPECT_EQ(buffer.span().size(), 3);
+    EXPECT_EQ(buffer.pubseekoff(-1, std::ios_base::cur, std::ios_base::out), spanbuf::pos_type(2));
+    EXPECT_EQ(buffer.sputc('X'), 'X');
+    EXPECT_EQ(std::string(data, 3), "abX");
+
+    char replacement[4] = {};
+    EXPECT_EQ(buffer.pubsetbuf(replacement, 4), &buffer);
+    EXPECT_EQ(buffer.sputn("xy", 2), 2);
+    EXPECT_EQ(buffer.span().size(), 2);
+    EXPECT_EQ(std::string(replacement, 2), "xy");
+
+    char at_data[4] = {};
+    spanbuf at_buffer(span<char>(at_data, 4), std::ios_base::out | std::ios_base::ate);
+    EXPECT_EQ(at_buffer.span().size(), 4);
+}
+
 #endif

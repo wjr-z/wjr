@@ -194,7 +194,7 @@ inline constexpr std::array<uint8_t, 256> escape_table = {
  * @brief Check if starts with `\u'
  */
 WJR_PURE WJR_INTRINSIC_INLINE bool check_unicode_escape(const char *first) noexcept {
-    constexpr uint16_t escape = (static_cast<uint8_t>('\\') << 8) | static_cast<uint8_t>('u');
+    constexpr uint16_t escape = static_cast<uint8_t>('\\') | (static_cast<uint8_t>('u') << 8);
     return read_memory<uint16_t>(first) == escape;
 }
 
@@ -270,7 +270,7 @@ unicode_codepoint_to_utf8(char *&dst, const char *first) noexcept {
     first += 4;
 
     if (WJR_UNLIKELY(code_point >= 0xd800 && code_point < 0xdc00)) {
-        constexpr uint16_t escaped = (static_cast<uint8_t>('\\') << 8) | static_cast<uint8_t>('u');
+        constexpr uint16_t escaped = static_cast<uint8_t>('\\') | (static_cast<uint8_t>('u') << 8);
 
         if (WJR_UNLIKELY(read_memory<uint16_t>(first) != escaped)) {
             return nullopt;
@@ -312,7 +312,7 @@ unicode_codepoint_to_utf8(char *&dst, const char *first, const char *last) noexc
             return nullopt;
         }
 
-        constexpr uint16_t escaped = (static_cast<uint8_t>('\\') << 8) | static_cast<uint8_t>('u');
+        constexpr uint16_t escaped = static_cast<uint8_t>('\\') | (static_cast<uint8_t>('u') << 8);
 
         if (WJR_UNLIKELY(read_memory<uint16_t>(first) != escaped)) {
             return nullopt;

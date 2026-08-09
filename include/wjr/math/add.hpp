@@ -60,7 +60,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_addc(T a, T b, U c_in, U &c_out) noexcept {
     #define WJR_HAS_BUILTIN_ADD_OVERFLOW WJR_HAS_DEF
 #endif
 
-// todo : Support GCC optimization, GCC don't support size of 1, 2. Support add_overflow.
+// todo : Support GCC optimization, GCC don't support size of 1, 2.
 #if WJR_HAS_BUILTIN(__builtin_addcb) && WJR_HAS_BUILTIN(__builtin_addcll)
     #define WJR_HAS_BUILTIN_ADDC WJR_HAS_DEF
 #endif
@@ -181,6 +181,35 @@ WJR_INTRINSIC_CONSTEXPR20 bool add_overflow(type_identity_t<T> a, type_identity_
     return __builtin_add_overflow(a, b, &ret);
 #else
     return fallback_add_overflow(a, b, ret);
+#endif
+}
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR20 bool fallback_add_overflow_signed(T a, T b, T &ret) noexcept {
+    const bool overflow = (b > 0 && a > std::numeric_limits<T>::max() - b) ||
+                          (b < 0 && a < std::numeric_limits<T>::min() - b);
+
+    if (WJR_LIKELY(!overflow)) {
+        ret = a + b;
+    } else {
+        using U = std::make_unsigned_t<T>;
+        ret = static_cast<T>(static_cast<U>(a) + static_cast<U>(b));
+    }
+
+    return overflow;
+}
+
+template <typename T, WJR_REQUIRES_I(is_nonbool_signed_integral_v<T>)>
+WJR_INTRINSIC_CONSTEXPR20 bool add_overflow(type_identity_t<T> a, type_identity_t<T> b,
+                                            T &ret) noexcept {
+#if WJR_HAS_BUILTIN(ADD_OVERFLOW)
+    if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
+        return fallback_add_overflow_signed(a, b, ret);
+    }
+
+    return __builtin_add_overflow(a, b, &ret);
+#else
+    return fallback_add_overflow_signed(a, b, ret);
 #endif
 }
 
