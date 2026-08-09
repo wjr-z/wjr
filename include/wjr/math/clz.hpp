@@ -50,7 +50,7 @@ WJR_CONST constexpr int clz(T x) noexcept {
         x |= (x >> 32);
     }
 
-    return constant::popcount(~x);
+    return constant::popcount(static_cast<T>(~x));
 }
 } // namespace constant
 
@@ -143,7 +143,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
  */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
-    int ans;
+    int ans = 0;
 #if WJR_HAS_BUILTIN(CLZ)
     if (is_constant_evaluated()) {
         ans = fallback_clz(x);

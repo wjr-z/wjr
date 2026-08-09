@@ -19,6 +19,7 @@
 #include <wjr/math/broadcast.hpp>
 #include <wjr/math/integral_constant.hpp>
 #include <wjr/memory/asan.hpp>
+#include <wjr/memory/detail.hpp>
 
 namespace wjr {
 

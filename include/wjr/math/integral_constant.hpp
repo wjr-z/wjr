@@ -60,12 +60,13 @@ WJR_CONST constexpr parse_result<T> _parse_impl() noexcept {
     return {result, 1000};
 }
 
-template <typename T, char c0, char c1, char c2, char c3, char... Chars>
+template <typename T, char c0, char c1, char c2, char c3, char... Chars,
+          std::enable_if_t<(sizeof...(Chars) < 4), int> = 0>
 WJR_CONST constexpr parse_result<T> _parse_impl() noexcept {
     constexpr uint32_t mem = (c0 | (c1 << 8) | (c2 << 16) | (c3 << 24)) - 0x30303030;
     constexpr uint32_t val = _fast_conv_4<10>(mem);
     constexpr auto result = _parse_impl<T, Chars...>();
-    return {static_cast<T>(result.result * result.pow + val), static_cast<T>(result.pow * 10000)};
+    return {static_cast<T>(val * result.pow + result.result), static_cast<T>(result.pow * 10000)};
 }
 
 template <typename T, char c0, char c1, char c2, char c3, char c4, char c5, char c6, char c7,
@@ -76,7 +77,7 @@ WJR_CONST constexpr parse_result<T> _parse_impl() noexcept {
                              0x3030303030303030;
     constexpr uint64_t val = _fast_conv_8<10>(mem);
     constexpr auto result = _parse_impl<T, Chars...>();
-    return {static_cast<T>(result.result * result.pow + val),
+    return {static_cast<T>(val * result.pow + result.result),
             static_cast<T>(result.pow * 100000000)};
 }
 
