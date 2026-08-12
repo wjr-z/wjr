@@ -15,7 +15,7 @@
 namespace wjr {
 
 /// @private
-template <typename T>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST constexpr T fallback_rotl(T x, unsigned int s) noexcept {
     constexpr auto mask = static_cast<unsigned int>(std::numeric_limits<T>::digits) - 1;
     s &= mask;
@@ -33,12 +33,12 @@ WJR_CONST constexpr T fallback_rotl(T x, unsigned int s) noexcept {
  * @param[in] s Rotation count
  * @return T Rotated value
  */
-template <typename T>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST constexpr T rotl(T x, int s) noexcept {
     return fallback_rotl(x, s);
 }
 
-template <typename T>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST constexpr T fallback_rotr(T x, unsigned int s) noexcept {
     constexpr auto mask = static_cast<unsigned int>(std::numeric_limits<T>::digits) - 1;
     s &= mask;
@@ -56,7 +56,7 @@ WJR_CONST constexpr T fallback_rotr(T x, unsigned int s) noexcept {
  * @param[in] s Rotation count
  * @return T Rotated value
  */
-template <typename T>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST constexpr T rotr(T x, int s) noexcept {
     return fallback_rotr(x, s);
 }

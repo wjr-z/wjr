@@ -3,10 +3,8 @@
  * @brief 128-bit unsigned integer type
  * @author wjr
  *
- * Provides a portable uint128_t implementation with arithmetic operations.
- * Used primarily for 128-bit division operations.
- *
- * @todo Implement more functions
+ * Provides a lightweight uint128_t implementation with arithmetic operations.
+ * Division operators are declared here and defined by <wjr/math/div.hpp>.
  */
 
 #ifndef WJR_MATH_UINT128_T_HPP__
@@ -22,10 +20,7 @@
 namespace wjr {
 
 /**
- * @brief temporary uint128_t for divide 128
- *
- * @todo implement more functions
- *
+ * @brief Lightweight 128-bit unsigned integer.
  */
 class uint128_t {
 public:
@@ -150,6 +145,20 @@ public:
     template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator*(T lhs, uint128_t rhs) noexcept {
         return rhs *= lhs;
+    }
+
+    uint128_t &operator/=(uint128_t other) noexcept;
+
+    uint128_t &operator%=(uint128_t other) noexcept;
+
+    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+    uint128_t &operator/=(T value) noexcept {
+        return *this /= uint128_t(value);
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+    uint128_t &operator%=(T value) noexcept {
+        return *this %= uint128_t(value);
     }
 
     friend WJR_CONST WJR_CONSTEXPR20 bool operator<(uint128_t lhs, uint128_t rhs) noexcept {

@@ -25,6 +25,7 @@ namespace wjr {
  *
  * Shifts hi left by c bits and fills with the high c bits from lo.
  * Equivalent to x86's SHLD instruction.
+ * When c is zero, hi is returned unchanged and lo is ignored.
  *
  * @tparam T Unsigned integral type
  * @param[in] hi High part
@@ -43,6 +44,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T shld(T hi, T lo, unsigned int c) noexcept {
  *
  * Shifts lo right by c bits and fills with the low c bits from hi.
  * Equivalent to x86's SHRD instruction.
+ * When c is zero, lo is returned unchanged and hi is ignored.
  *
  * @tparam T Unsigned integral type
  * @param[in] lo Low part

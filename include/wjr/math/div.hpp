@@ -190,7 +190,7 @@ inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
 /**
  * @brief Divide 128-bit by 64-bit to produce 128-bit quotient (convenience)
  *
- * Convenience overload that constructs the divider on-the-fly. For multiple
+ * Convenience overload that constructs the divider object on-the-fly. For multiple
  * divisions by the same divisor, construct and cache the divider object.
  *
  * @param[out] rem Reference to store the 64-bit remainder
@@ -285,6 +285,67 @@ inline uint64_t div128by128to64(uint128_t &rem, uint64_t lo, uint64_t hi,
 
     return div128by128to64_shift(rem, lo, hi, divider);
 }
+
+/**
+ * @brief Divide a 128-bit number by a 128-bit number.
+ *
+ * Uses the compiler's native 128-bit division when available. Otherwise,
+ * divisors with a zero high word use the existing 128-by-64 divider. For
+ * divisors with a non-zero high word, the quotient fits in 64 bits and uses
+ * the existing 128-by-128-to-64 divider.
+ *
+ * @param[out] rem Remainder of the division
+ * @param[in] dividend Dividend
+ * @param[in] divisor Non-zero divisor
+ * @return uint128_t Quotient
+ */
+inline uint128_t div128by128to128(uint128_t &rem, uint128_t dividend, uint128_t divisor) noexcept {
+    WJR_ASSERT_ASSUME(divisor.low != 0 || divisor.high != 0);
+
+#if WJR_HAS_FEATURE(INT128_DIV)
+    const auto lhs = static_cast<__uint128_t>(dividend);
+    const auto rhs = static_cast<__uint128_t>(divisor);
+    const auto quotient = lhs / rhs;
+    rem = uint128_t(lhs % rhs);
+    return uint128_t(quotient);
+#else
+    if (divisor.high == 0) {
+        uint64_t remainder;
+        const auto quotient = div128by64to128(remainder, dividend.low, dividend.high, divisor.low);
+        rem = uint128_t(remainder);
+        return quotient;
+    }
+
+    const auto quotient = div128by128to64(rem, dividend.low, dividend.high,
+                                          div3by2_divider<uint64_t>(divisor.low, divisor.high));
+    return uint128_t(quotient, 0);
+#endif
+}
+
+inline uint128_t operator/(uint128_t lhs, uint128_t rhs) noexcept {
+    uint128_t rem;
+    return div128by128to128(rem, lhs, rhs);
+}
+
+inline uint128_t operator%(uint128_t lhs, uint128_t rhs) noexcept {
+    uint128_t rem;
+    (void)div128by128to128(rem, lhs, rhs);
+    return rem;
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+inline uint128_t operator/(uint128_t lhs, T rhs) noexcept {
+    return lhs / uint128_t(rhs);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+inline uint128_t operator%(uint128_t lhs, T rhs) noexcept {
+    return lhs % uint128_t(rhs);
+}
+
+inline uint128_t &uint128_t::operator/=(uint128_t other) noexcept { return *this = *this / other; }
+
+inline uint128_t &uint128_t::operator%=(uint128_t other) noexcept { return *this = *this % other; }
 
 } // namespace wjr
 

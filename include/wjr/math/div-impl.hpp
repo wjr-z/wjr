@@ -35,6 +35,8 @@ inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
  */
 inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi, uint64_t div) noexcept;
 
+inline uint128_t div128by128to128(uint128_t &rem, uint128_t dividend, uint128_t divisor) noexcept;
+
 /**
  * @pre
  * divider >= 2^64
