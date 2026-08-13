@@ -572,6 +572,13 @@ static void fallback_to_chars(benchmark::State &state) {
 }
 
 static void to_chars_tests(benchmark::internal::Benchmark *state) {
+#ifdef WJR_BENCHMARK_QUICK
+    for (int base : {2, 10, 16}) {
+        for (int n : {1, 4, 8, 16, 32, 64}) {
+            state->Args({base, n});
+        }
+    }
+#else
     for (int base : {2, 8, 16, 10}) {
         for (int n = 1; n <= 8; ++n) {
             state->Args({base, n});
@@ -583,6 +590,7 @@ static void to_chars_tests(benchmark::internal::Benchmark *state) {
             state->Args({base, n});
         }
     }
+#endif
 }
 
 #define __BIGINTEGER_FROM_CHARS_TESTS_I(base)                                                      \

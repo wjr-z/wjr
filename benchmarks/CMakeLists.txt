@@ -32,23 +32,6 @@ else()
     message(STATUS "GMP library not found, tests will be built without GMP support.")
 endif()
 
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
-set(BUILD_GTEST ON CACHE BOOL "" FORCE)
-
-if(EXISTS googletest)
-    add_subdirectory(googletest)
-else()
-    FetchContent_Declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG v1.17.0
-        GIT_SHALLOW ON
-    )
-
-    FetchContent_MakeAvailable(googletest)
-endif()
-
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
 set(BENCHMARK_ENABLE_WERROR OFF CACHE BOOL "Suppressing warnings as errors" FORCE)
 
@@ -64,12 +47,39 @@ else()
     FetchContent_MakeAvailable(benchmark)
 endif()
 
-file(GLOB_RECURSE TEST_SRCS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+set(WJR_BENCHMARK_PROFILE "core" CACHE STRING "Benchmark profile to build")
+set_property(CACHE WJR_BENCHMARK_PROFILE PROPERTY STRINGS core all)
+
+set(BENCHMARK_CORE_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/division.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/math.cpp
+)
+
+set(BENCHMARK_ALL_SRCS
+    ${BENCHMARK_CORE_SRCS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/biginteger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/btree.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/container.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/memory.cpp
+)
+
+if(WJR_BENCHMARK_PROFILE STREQUAL "core")
+    set(BENCHMARK_SRCS ${BENCHMARK_CORE_SRCS})
+elseif(WJR_BENCHMARK_PROFILE STREQUAL "all")
+    set(BENCHMARK_SRCS ${BENCHMARK_ALL_SRCS})
+else()
+    message(FATAL_ERROR "WJR_BENCHMARK_PROFILE must be 'core' or 'all'")
+endif()
 
 add_executable(
     benchmarks
-    ${TEST_SRCS}
+    ${BENCHMARK_SRCS}
 )
+
+if(WJR_BENCHMARK_PROFILE STREQUAL "core")
+    target_compile_definitions(benchmarks PRIVATE WJR_BENCHMARK_QUICK)
+endif()
 
 target_include_directories(benchmarks PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 

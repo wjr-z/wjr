@@ -1,0 +1,113 @@
+name: Benchmarks
+
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Benchmark profile
+        required: true
+        default: core
+        type: choice
+        options:
+          - core
+          - all
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: benchmarks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-24.04
+    env:
+      BENCHMARK_PROFILE: ${{ inputs.profile || 'core' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Init submodule
+        run: git submodule update --init --recursive
+
+      - name: Install benchmark dependencies
+        run: sudo apt-get update && sudo apt-get install -y libgmp-dev ninja-build
+
+      - name: Cache CMake dependencies
+        uses: actions/cache@v5
+        with:
+          path: ${{ runner.temp }}/wjr-fetchcontent
+          key: fetchcontent-${{ runner.os }}-benchmarks-${{ hashFiles('CMakeLists.txt', 'cmake/**', 'benchmarks/**', 'include/**', 'src/**') }}
+          restore-keys: |
+            fetchcontent-${{ runner.os }}-benchmarks-
+
+      - name: Configure
+        shell: bash
+        run: |
+          if [[ "$BENCHMARK_PROFILE" == "all" ]]; then
+            gmp=ON
+          else
+            gmp=OFF
+          fi
+          cmake -B build -GNinja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DWJR_BUILD_BENCHMARKS=ON \
+            -DWJR_BUILD_TESTS=OFF \
+            -DWJR_BENCHMARK_PROFILE="$BENCHMARK_PROFILE" \
+            -DWJR_USE_GMP_TESTS="$gmp" \
+            -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent"
+
+      - name: Build benchmarks
+        run: cmake --build build --target benchmarks --parallel
+
+      - name: Run benchmarks
+        run: |
+          if [[ "$BENCHMARK_PROFILE" == "all" ]]; then
+            repetitions=1
+            min_time=0.03
+          else
+            repetitions=3
+            min_time=0.02
+          fi
+          ./build/bin/benchmarks \
+            --benchmark_format=json \
+            --benchmark_out=benchmark-results.json \
+            --benchmark_repetitions="$repetitions" \
+            --benchmark_report_aggregates_only=true \
+            --benchmark_min_time="$min_time"
+
+      - name: Download previous benchmark result
+        uses: dawidd6/action-download-artifact@v9
+        continue-on-error: true
+        with:
+          workflow: benchmarks.yml
+          workflow_conclusion: success
+          branch: main
+          name: benchmark-results-${{ env.BENCHMARK_PROFILE }}
+          path: baseline
+          search_artifacts: true
+          if_no_artifact_found: warn
+
+      - name: Add benchmark summary
+        shell: bash
+        run: |
+          baseline_file=$(find baseline -type f -name '*.json' -print -quit 2>/dev/null || true)
+          if [[ -n "$baseline_file" ]]; then
+            python3 benchmarks/tools/summarize.py \
+              benchmark-results.json "$BENCHMARK_PROFILE" "$baseline_file" >> "$GITHUB_STEP_SUMMARY"
+          else
+            python3 benchmarks/tools/summarize.py \
+              benchmark-results.json "$BENCHMARK_PROFILE" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-${{ env.BENCHMARK_PROFILE }}
+          path: benchmark-results.json
+          retention-days: 90

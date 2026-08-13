@@ -43,8 +43,13 @@ void random_run(benchmark::State &state, Re re, Func fn, size_t step = 0) {
     (void)(begin != end);
 }
 
-#define NORMAL_TESTS(SMALL, MULTIPLY, MAXN)                                                        \
-    DenseRange(1, SMALL)->RangeMultiplier(MULTIPLY)->Range(SMALL * 2, MAXN)
+#ifdef WJR_BENCHMARK_QUICK
+    #define NORMAL_TESTS(SMALL, MULTIPLY, MAXN)                                                    \
+        DenseRange(1, SMALL)->RangeMultiplier(MULTIPLY)->Range(SMALL * 2, 64)
+#else
+    #define NORMAL_TESTS(SMALL, MULTIPLY, MAXN)                                                    \
+        DenseRange(1, SMALL)->RangeMultiplier(MULTIPLY)->Range(SMALL * 2, MAXN)
+#endif
 
 inline void Product2D(benchmark::internal::Benchmark *state) {
     // 生成二维数据，且第一维大于等于第二维
