@@ -11,7 +11,7 @@
 #define WJR_PP_QUEUE_CALL_R_N(r, args, ops, n) WJR_PP_QUEUE_CALL_R_N_I(r, args, ops, n)
 #define WJR_PP_QUEUE_CALL_R_N_I(r, args, ops, n) WJR_PP_QUEUE_CALL_R_N_II(r, args, ops, n)
 #define WJR_PP_QUEUE_CALL_R_N_II(r, args, ops, n)                                                  \
-    WJR_PP_EVAL(WJR_PP_CONCAT(WJR_PP_QUEUE_CALL_R_N_, r)(args, ops, n))
+    WJR_PP_CONCAT(WJR_PP_EVAL_R_, r)(WJR_PP_CONCAT(WJR_PP_QUEUE_CALL_R_N_, r)(args, ops, n))
 
 #define WJR_PP_QUEUE_CALL_R_N_0(args, ops, n) WJR_PP_QUEUE_CALL_R_0_I(args, ops, n)
 #define WJR_PP_QUEUE_CALL_R_0_I(args, ops, n)                                                      \

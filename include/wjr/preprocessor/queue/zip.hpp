@@ -5,6 +5,9 @@
 #include <wjr/preprocessor/detail.hpp>
 #include <wjr/preprocessor/queue/call.hpp>
 
+// The recursive algorithms use this header directly, while algorithm.hpp only
+// exposes the high-level wrappers.
+
 #define WJR_PP_QUEUE_ZIP_INIT_N(op, n) WJR_PP_QUEUE_ZIP_INIT_N_I(op, n)
 #define WJR_PP_QUEUE_ZIP_INIT_N_I(op, n) (WJR_PP_REPEAT(op, n))
 

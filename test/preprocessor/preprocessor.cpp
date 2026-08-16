@@ -186,15 +186,25 @@ TEST(preprocessor_preview, queue) {
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_TRANSFORM((1, 2, 3), WJR_TEST_F)), "(f(1), f(2), f(3))");
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_TRANSFORM_R(0, (1, 2, 3), WJR_TEST_F)),
                  "(f(1), f(2), f(3))");
+    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_MAP_R(0, (1, 2, 3), WJR_TEST_F)), "(f(1), f(2), f(3))");
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_TRANSFORM((1, 2), WJR_TEST_NESTED_TRANSFORM)),
                  "((f(1)), (f(2)))");
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_TRANSFORM((1, 2), WJR_TEST_NESTED_ZIP)),
                  "(((1, A), (1, B)), ((2, A), (2, B)))");
+    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_TRANSFORMS_R(0, (1, 2), (WJR_TEST_F, WJR_TEST_SELF))),
+                 "(f(1), 2)");
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_MAP((1, 2, 3), WJR_TEST_F)), "(f(1), f(2), f(3))");
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_FOLD((0, 1, 2, 3), WJR_TEST_FOLD)),
                  "((((0 + 1) + 2) + 3))");
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_FOLD((0, 1, 2), WJR_TEST_NESTED_FOLD)),
                  "(((((0 + 1)) + 2)))");
+    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_PUT_R(0, (1, 2, 3))), "1 2 3");
+    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_UNWRAP_R(0, ((1), (2), (3)))), "(1, 2, 3)");
+    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_ACCUMULATE_R(0, 0, (1, 2, 3), WJR_TEST_ADD)),
+                 "(0 + 1 + 2 + 3)");
+    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_ACCUMULATES_R(0, 0, (1, 2, 3),
+                                                       (WJR_TEST_ADD, WJR_TEST_ADD, WJR_TEST_SUB))),
+                 "(0 + 1 + 2 - 3)");
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_ZIP((1, 2, 3), (4, 5, 6))), "((1, 4), (2, 5), (3, 6))");
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_ZIP_2_R(0, (1, 2, 3), (4, 5, 6))),
                  "((1, 4), (2, 5), (3, 6))");

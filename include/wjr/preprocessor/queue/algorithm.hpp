@@ -5,6 +5,7 @@
 #include <wjr/preprocessor/detail.hpp>
 #include <wjr/preprocessor/queue/call.hpp>
 #include <wjr/preprocessor/queue/recursive.hpp>
+#include <wjr/preprocessor/queue/zip.hpp>
 
 #define WJR_PP_QUEUE_INIT_N(x, N) WJR_PP_QUEUE_INIT_N_I(x, N)
 #define WJR_PP_QUEUE_INIT_N_I(x, N) (WJR_PP_REPEAT(x, N))
@@ -58,6 +59,7 @@
 
 // (a, b, c), f -> (f(a), f(b), f(c))
 #define WJR_PP_QUEUE_MAP(queue, op) WJR_PP_QUEUE_TRANSFORM(queue, op)
+#define WJR_PP_QUEUE_MAP_R(r, queue, op) WJR_PP_QUEUE_TRANSFORM_R(r, queue, op)
 
 #define WJR_PP_QUEUE_TRANSFORM_R(r, queue, op)                                                     \
     WJR_PP_CONCAT(__WJR_PP_QUEUE_TRANSFORM_R_, r)(queue, op)
@@ -105,6 +107,12 @@
         state, WJR_PP_OBSTRUCT(WJR_PP_QUEUE_TRANSFORM_R_APPLY_3)(WJR_PP_QUEUE_FRONT(state), elem))
 #define WJR_PP_QUEUE_TRANSFORM_R_APPLY_3(op, elem) op(elem)
 
+#define WJR_PP_QUEUE_TRANSFORMS_R(r, queue, ops)                                                   \
+    WJR_PP_QUEUE_TRANSFORM_R(r, WJR_PP_QUEUE_ZIP_2_R(r, queue, ops),                               \
+                             WJR_PP_QUEUE_TRANSFORMS_R_APPLY)
+#define WJR_PP_QUEUE_TRANSFORMS_R_APPLY(pair) WJR_PP_QUEUE_TRANSFORMS_R_APPLY_I pair
+#define WJR_PP_QUEUE_TRANSFORMS_R_APPLY_I(elem, op) op(elem)
+
 // 0, (1, 2, 3), (f, g, h) -> h(g(f(0, 1), 2), 3)
 #define WJR_PP_QUEUE_ACCUMULATES(init, queue, ops)                                                 \
     WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_CALL_N_SAME(                                \
@@ -121,10 +129,19 @@
 #define WJR_PP_QUEUE_ACCUMULATE(init, queue, op)                                                   \
     WJR_PP_QUEUE_ACCUMULATES(init, queue, WJR_PP_QUEUE_INIT_N(op, WJR_PP_QUEUE_SIZE(queue)))
 
-// (1, 2, 3) -> 3
-#define WJR_PP_QUEUE_BACK(queue) WJR_PP_QUEUE_ACCUMULATE(0, queue, WJR_PP_QUEUE_BACK_CALLER)
+#define WJR_PP_QUEUE_ACCUMULATE_R(r, init, queue, op)                                              \
+    WJR_PP_QUEUE_FOLD_R(r, WJR_PP_QUEUE_PUSH_FRONT(queue, init), op)
 
-#define WJR_PP_QUEUE_BACK_CALLER(x, y) y
+#define WJR_PP_QUEUE_ACCUMULATES_R(r, init, queue, ops)                                            \
+    WJR_PP_QUEUE_FOLD_R(r, WJR_PP_QUEUE_PUSH_FRONT(WJR_PP_QUEUE_ZIP_2_R(r, ops, queue), init),     \
+                        WJR_PP_QUEUE_ACCUMULATES_R_APPLY)
+#define WJR_PP_QUEUE_ACCUMULATES_R_APPLY(state, pair)                                              \
+    WJR_PP_QUEUE_ACCUMULATES_R_APPLY_I(state, WJR_PP_QUEUE_FRONT(pair),                            \
+                                       WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(pair)))
+#define WJR_PP_QUEUE_ACCUMULATES_R_APPLY_I(state, op, elem) op(state, elem)
+
+// (1, 2, 3) -> 3
+#define WJR_PP_QUEUE_BACK(queue) WJR_PP_QUEUE_AT(queue, WJR_PP_DEC(WJR_PP_QUEUE_SIZE(queue)))
 
 // (1, 2, 3, 4, 5), 2 -> (1, 2, 3)
 #define WJR_PP_QUEUE_POP_BACK_N(queue, N)                                                          \
@@ -157,11 +174,18 @@
 
 #define WJR_PP_QUEUE_PUT_CALLER(x, y) x y
 
+#define WJR_PP_QUEUE_PUT_R(r, queue)                                                               \
+    WJR_PP_QUEUE_EXPAND(                                                                           \
+        WJR_PP_QUEUE_FOLD_R(r, WJR_PP_QUEUE_PUSH_FRONT(queue, ), WJR_PP_QUEUE_PUT_CALLER))
+
 // ((A), (B), (C)) -> (A, B, C)
 #define WJR_PP_QUEUE_UNWRAP(queue) WJR_PP_QUEUE_TRANSFORM(queue, WJR_PP_QUEUE_UNWRAP_CALLER)
 
 #define WJR_PP_QUEUE_UNWRAP_CALLER(x) WJR_PP_QUEUE_UNWRAP_CALLER_I x
 #define WJR_PP_QUEUE_UNWRAP_CALLER_I(...) __VA_ARGS__
+
+#define WJR_PP_QUEUE_UNWRAP_R(r, queue)                                                            \
+    WJR_PP_QUEUE_TRANSFORM_R(r, queue, WJR_PP_QUEUE_UNWRAP_CALLER)
 
 // ((A), (B), (C)) -> A B C
 #define WJR_PP_QUEUE_UNWRAP_PUT(queue)                                                             \
