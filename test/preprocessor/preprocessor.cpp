@@ -184,6 +184,10 @@ TEST(preprocessor_preview, queue) {
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_ZIP_3_R(3, (1, 2, 3), (4, 5, 6), (7, 8, 9))),
                  "((1, 4, 7), (2, 5, 8), (3, 6, 9))");
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_ZIP_3_R(0, (), (), ())), "()");
+    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_ZIP_4_R(0, (1, 2, 3), (4, 5, 6), (7, 8, 9), (A, B, C))),
+                 "((1, 4, 7, A), (2, 5, 8, B), (3, 6, 9, C))");
+    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_ZIP_4_R(3, (1, 2, 3), (4, 5, 6), (7, 8, 9), (A, B, C))),
+                 "((1, 4, 7, A), (2, 5, 8, B), (3, 6, 9, C))");
 
 #define WJR_TEST_SELF(x) x
 #define WJR_TEST_F(x) f(x)
@@ -194,6 +198,7 @@ TEST(preprocessor_preview, queue) {
 #define WJR_TEST_NESTED_TRANSFORM(x) WJR_PP_QUEUE_TRANSFORM_R(1, (x), WJR_TEST_F)
 #define WJR_TEST_NESTED_ZIP(x) WJR_PP_QUEUE_ZIP_2_R(1, (x, x), (A, B))
 #define WJR_TEST_NESTED_ZIP_3(x) WJR_PP_QUEUE_ZIP_3_R(1, (x, x), (A, B), (C, D))
+#define WJR_TEST_NESTED_ZIP_4(x) WJR_PP_QUEUE_ZIP_4_R(1, (x, x), (A, B), (C, D), (E, F))
 
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_TRANSFORM((1, 2, 3), WJR_TEST_SELF)), "(1, 2, 3)");
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_TRANSFORM((1, 2, 3), WJR_TEST_F)), "(f(1), f(2), f(3))");
@@ -209,6 +214,8 @@ TEST(preprocessor_preview, queue) {
                  "(((1, A), (1, B)), ((2, A), (2, B)))");
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_TRANSFORM((1, 2), WJR_TEST_NESTED_ZIP_3)),
                  "(((1, A, C), (1, B, D)), ((2, A, C), (2, B, D)))");
+    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_TRANSFORM((1, 2), WJR_TEST_NESTED_ZIP_4)),
+                 "(((1, A, C, E), (1, B, D, F)), ((2, A, C, E), (2, B, D, F)))");
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_TRANSFORMS_R(0, (1, 2), (WJR_TEST_F, WJR_TEST_SELF))),
                  "(f(1), 2)");
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_MAP((1, 2, 3), WJR_TEST_F)), "(f(1), f(2), f(3))");
@@ -241,6 +248,7 @@ TEST(preprocessor_preview, queue) {
 #undef WJR_TEST_NESTED_TRANSFORM
 #undef WJR_TEST_NESTED_ZIP
 #undef WJR_TEST_NESTED_ZIP_3
+#undef WJR_TEST_NESTED_ZIP_4
 #undef WJR_TEST_SELF
 
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_ZIP_IOTA((A, B, C))), "((0, A), (1, B), (2, C))");
