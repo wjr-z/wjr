@@ -18,5 +18,6 @@
 // output as the next input, the difficulty of implementing recursion is also
 // high.
 #include <wjr/preprocessor/queue/algorithm.hpp>
+#include <wjr/preprocessor/queue/zip.hpp>
 
 #endif // ! WJR_PREPROCESSOR_PREVIEW_HPP__
