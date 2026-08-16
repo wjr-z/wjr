@@ -291,77 +291,77 @@ WJR_REGISTER_HAS_TYPE(construct_to_document,
 #define __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_ASSIGN_CALLER(var)                     \
     std::move(__wjr_obj.at(#var)).get_to(var)
 
-#define WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER(Type, ...)                                     \
-private:                                                                                            \
-    template <typename Object>                                                                      \
-    explicit Type(const Object &__wjr_obj,                                                          \
-                  ::wjr::json::in_place_document_serializer_object_copy_t)                          \
-        : WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                               \
-              (__VA_ARGS__),                                                                        \
-              __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_CONSTRUCTOR_CALLER)) {}           \
-    template <typename Object>                                                                      \
-    explicit Type(Object &&__wjr_obj, ::wjr::json::in_place_document_serializer_object_move_t)      \
-        : WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                               \
-              (__VA_ARGS__),                                                                        \
-              __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_CONSTRUCTOR_CALLER)) {}           \
-                                                                                                    \
-public:                                                                                             \
-    template <                                                                                      \
-        typename Traits, typename TT = Type,                                                        \
-        WJR_REQUIRES(                                                                               \
-            std::conjunction_v<WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                          \
-                (__VA_ARGS__),                                                                      \
-                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_CONSTRUCTOR_ENABLER_CALLER))>)> \
-    explicit Type(const ::wjr::json::basic_document<Traits> &__wjr_document,                        \
-                  ::wjr::json::in_place_document_serializer_from_t)                                 \
-        : Type(__wjr_document.template get<::wjr::json::object_t>(),                                \
-               ::wjr::json::in_place_document_serializer_object_copy) {}                            \
-    template <                                                                                      \
-        typename Traits, typename TT = Type,                                                        \
-        WJR_REQUIRES(                                                                               \
-            std::conjunction_v<WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                          \
-                (__VA_ARGS__),                                                                      \
-                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_CONSTRUCTOR_ENABLER_CALLER))>)> \
-    explicit Type(::wjr::json::basic_document<Traits> &&__wjr_document,                             \
-                  ::wjr::json::in_place_document_serializer_from_t)                                 \
-        : Type(std::move(__wjr_document.template get<::wjr::json::object_t>()),                     \
-               ::wjr::json::in_place_document_serializer_object_move) {}                            \
-                                                                                                    \
-private:                                                                                            \
-    template <typename Object>                                                                      \
-    void _assign(const Object &__wjr_obj,                                                           \
-                 ::wjr::json::in_place_document_serializer_object_copy_t) {                         \
-        WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                                 \
-            (__VA_ARGS__), __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_ASSIGN_CALLER));     \
-    }                                                                                               \
-    template <typename Object>                                                                      \
-    void _assign(Object &&__wjr_obj, ::wjr::json::in_place_document_serializer_object_move_t) {     \
-        WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                                 \
-            (__VA_ARGS__), __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_ASSIGN_CALLER));     \
-    }                                                                                               \
-                                                                                                    \
-public:                                                                                             \
-    template <                                                                                      \
-        typename Traits, typename TT = Type,                                                        \
-        WJR_REQUIRES(                                                                               \
-            std::conjunction_v<WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                          \
-                (__VA_ARGS__),                                                                      \
-                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_ASSIGN_ENABLER_CALLER))>)>      \
-    Type &operator=(const ::wjr::json::basic_document<Traits> &__wjr_document) {                    \
-        _assign(__wjr_document.template get<::wjr::json::object_t>(),                               \
-                ::wjr::json::in_place_document_serializer_object_copy);                             \
-        return *this;                                                                               \
-    }                                                                                               \
-    template <                                                                                      \
-        typename Traits, typename TT = Type,                                                        \
-        WJR_REQUIRES(                                                                               \
-            std::conjunction_v<WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                          \
-                (__VA_ARGS__),                                                                      \
-                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_ASSIGN_ENABLER_CALLER))>)>      \
-    Type &operator=(::wjr::json::basic_document<Traits> &&__wjr_document) {                         \
-        _assign(std::move(__wjr_document.template get<::wjr::json::object_t>()),                    \
-                ::wjr::json::in_place_document_serializer_object_move);                             \
-        return *this;                                                                               \
+#define WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER(Type, ...)                                    \
+private:                                                                                           \
+    template <typename Object>                                                                     \
+    explicit Type(const Object &__wjr_obj,                                                         \
+                  ::wjr::json::in_place_document_serializer_object_copy_t)                         \
+        : WJR_PP_QUEUE_TRANSFORM_EXPAND(                                                           \
+              (__VA_ARGS__),                                                                       \
+              __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_CONSTRUCTOR_CALLER) {}           \
+    template <typename Object>                                                                     \
+    explicit Type(Object &&__wjr_obj, ::wjr::json::in_place_document_serializer_object_move_t)     \
+        : WJR_PP_QUEUE_TRANSFORM_EXPAND(                                                           \
+              (__VA_ARGS__),                                                                       \
+              __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_CONSTRUCTOR_CALLER) {}           \
+                                                                                                   \
+public:                                                                                            \
+    template <                                                                                     \
+        typename Traits, typename TT = Type,                                                       \
+        WJR_REQUIRES(                                                                              \
+            std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                      \
+                (__VA_ARGS__),                                                                     \
+                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_CONSTRUCTOR_ENABLER_CALLER)>)> \
+    explicit Type(const ::wjr::json::basic_document<Traits> &__wjr_document,                       \
+                  ::wjr::json::in_place_document_serializer_from_t)                                \
+        : Type(__wjr_document.template get<::wjr::json::object_t>(),                               \
+               ::wjr::json::in_place_document_serializer_object_copy) {}                           \
+    template <                                                                                     \
+        typename Traits, typename TT = Type,                                                       \
+        WJR_REQUIRES(                                                                              \
+            std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                      \
+                (__VA_ARGS__),                                                                     \
+                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_CONSTRUCTOR_ENABLER_CALLER)>)> \
+    explicit Type(::wjr::json::basic_document<Traits> &&__wjr_document,                            \
+                  ::wjr::json::in_place_document_serializer_from_t)                                \
+        : Type(std::move(__wjr_document.template get<::wjr::json::object_t>()),                    \
+               ::wjr::json::in_place_document_serializer_object_move) {}                           \
+                                                                                                   \
+private:                                                                                           \
+    template <typename Object>                                                                     \
+    void _assign(const Object &__wjr_obj,                                                          \
+                 ::wjr::json::in_place_document_serializer_object_copy_t) {                        \
+        WJR_PP_QUEUE_TRANSFORM_EXPAND(                                                             \
+            (__VA_ARGS__), __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_ASSIGN_CALLER);     \
+    }                                                                                              \
+    template <typename Object>                                                                     \
+    void _assign(Object &&__wjr_obj, ::wjr::json::in_place_document_serializer_object_move_t) {    \
+        WJR_PP_QUEUE_TRANSFORM_EXPAND(                                                             \
+            (__VA_ARGS__), __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_ASSIGN_CALLER);     \
+    }                                                                                              \
+                                                                                                   \
+public:                                                                                            \
+    template <                                                                                     \
+        typename Traits, typename TT = Type,                                                       \
+        WJR_REQUIRES(                                                                              \
+            std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                      \
+                (__VA_ARGS__),                                                                     \
+                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_ASSIGN_ENABLER_CALLER)>)>      \
+    Type &operator=(const ::wjr::json::basic_document<Traits> &__wjr_document) {                   \
+        _assign(__wjr_document.template get<::wjr::json::object_t>(),                              \
+                ::wjr::json::in_place_document_serializer_object_copy);                            \
+        return *this;                                                                              \
+    }                                                                                              \
+    template <                                                                                     \
+        typename Traits, typename TT = Type,                                                       \
+        WJR_REQUIRES(                                                                              \
+            std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                      \
+                (__VA_ARGS__),                                                                     \
+                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_ASSIGN_ENABLER_CALLER)>)>      \
+    Type &operator=(::wjr::json::basic_document<Traits> &&__wjr_document) {                        \
+        _assign(std::move(__wjr_document.template get<::wjr::json::object_t>()),                   \
+                ::wjr::json::in_place_document_serializer_object_move);                            \
+        return *this;                                                                              \
     }
 
 // to_document
@@ -378,79 +378,79 @@ public:                                                                         
 #define __WJR_REGISTER_TO_DOCUMENT_OBJECT_SERIALIZER_MOVE_CALLER(var)                              \
     __wjr_obj.emplace(#var, std::move(__wjr_tp.var))
 
-#define WJR_REGISTER_TO_DOCUMENT_OBJECT_SERIALIZER(Type, ...)                                       \
-private:                                                                                            \
-    template <typename Document>                                                                    \
-    static void assign_object(const Type &__wjr_tp, Document &__wjr_document,                       \
-                              ::wjr::json::in_place_document_serializer_object_copy_t) {            \
-        auto &__wjr_obj = __wjr_document.template get_unsafe<::wjr::json::object_t>();              \
-        WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                                 \
-            (__VA_ARGS__), __WJR_REGISTER_TO_DOCUMENT_OBJECT_SERIALIZER_COPY_CALLER));              \
-    }                                                                                               \
-    template <typename Document>                                                                    \
-    static void assign_object(Type &&__wjr_tp, Document &__wjr_document,                            \
-                              ::wjr::json::in_place_document_serializer_object_move_t) {            \
-        auto &__wjr_obj = __wjr_document.template get_unsafe<::wjr::json::object_t>();              \
-        WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                                                 \
-            (__VA_ARGS__), __WJR_REGISTER_TO_DOCUMENT_OBJECT_SERIALIZER_MOVE_CALLER));              \
-    }                                                                                               \
-                                                                                                    \
-public:                                                                                             \
-    template <typename Document, typename TT = Type,                                                \
-              WJR_REQUIRES(                                                                         \
-                  std::conjunction_v<WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                    \
-                      (__VA_ARGS__),                                                                \
-                      __WJR_REGISTER_TO_DOCUMENT_OBJECT_SERIALIZER_COPY_ENABLER_CALLER))>)>         \
-    static Document construct(const Type &__wjr_tp,                                                 \
-                              ::wjr::json::in_place_document_serializer_to_t) {                     \
-        using namespace wjr::json;                                                                  \
-        using object_type = typename Document::object_type;                                         \
-        Document __wjr_document(object_t(), _document_create<object_type>());                       \
-        assign_object(__wjr_tp, __wjr_document,                                                     \
-                      ::wjr::json::in_place_document_serializer_object_copy);                       \
-        return __wjr_document;                                                                      \
-    }                                                                                               \
-    template <typename Document, typename TT = Type,                                                \
-              WJR_REQUIRES(                                                                         \
-                  std::conjunction_v<WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                    \
-                      (__VA_ARGS__),                                                                \
-                      __WJR_REGISTER_TO_DOCUMENT_OBJECT_SERIALIZER_MOVE_ENABLER_CALLER))>)>         \
-    static Document construct(Type &&__wjr_tp, ::wjr::json::in_place_document_serializer_to_t) {    \
-        using namespace wjr::json;                                                                  \
-        using object_type = typename Document::object_type;                                         \
-        Document __wjr_document(object_t(), _document_create<object_type>());                       \
-        assign_object(std::move(__wjr_tp), __wjr_document,                                          \
-                      ::wjr::json::in_place_document_serializer_object_move);                       \
-        return __wjr_document;                                                                      \
-    }                                                                                               \
-    template <                                                                                      \
-        typename Traits, typename TT = Type,                                                        \
-        WJR_REQUIRES(                                                                               \
-            std::conjunction_v<WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                          \
-                (__VA_ARGS__),                                                                      \
-                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_CONSTRUCTOR_ENABLER_CALLER))>)> \
-    static void assign(const Type &__wjr_tp, ::wjr::json::basic_document<Traits> &__wjr_document,   \
-                       ::wjr::json::in_place_document_serializer_to_t) {                            \
-        using namespace wjr::json;                                                                  \
-        if (__wjr_document.type() != value_t::object) {                                             \
-            __wjr_document.emplace_object();                                                        \
-        }                                                                                           \
-        assign_object(__wjr_tp, __wjr_document, in_place_document_serializer_object_copy);          \
-    }                                                                                               \
-    template <                                                                                      \
-        typename Traits, typename TT = Type,                                                        \
-        WJR_REQUIRES(                                                                               \
-            std::conjunction_v<WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(                          \
-                (__VA_ARGS__),                                                                      \
-                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_CONSTRUCTOR_ENABLER_CALLER))>)> \
-    static void assign(Type &&__wjr_tp, ::wjr::json::basic_document<Traits> &__wjr_document,        \
-                       ::wjr::json::in_place_document_serializer_to_t) {                            \
-        using namespace wjr::json;                                                                  \
-        if (__wjr_document.type() != value_t::object) {                                             \
-            __wjr_document.emplace_object();                                                        \
-        }                                                                                           \
-        assign_object(std::move(__wjr_tp), __wjr_document,                                          \
-                      in_place_document_serializer_object_move);                                    \
+#define WJR_REGISTER_TO_DOCUMENT_OBJECT_SERIALIZER(Type, ...)                                      \
+private:                                                                                           \
+    template <typename Document>                                                                   \
+    static void assign_object(const Type &__wjr_tp, Document &__wjr_document,                      \
+                              ::wjr::json::in_place_document_serializer_object_copy_t) {           \
+        auto &__wjr_obj = __wjr_document.template get_unsafe<::wjr::json::object_t>();             \
+        WJR_PP_QUEUE_TRANSFORM_EXPAND((__VA_ARGS__),                                               \
+                                      __WJR_REGISTER_TO_DOCUMENT_OBJECT_SERIALIZER_COPY_CALLER);   \
+    }                                                                                              \
+    template <typename Document>                                                                   \
+    static void assign_object(Type &&__wjr_tp, Document &__wjr_document,                           \
+                              ::wjr::json::in_place_document_serializer_object_move_t) {           \
+        auto &__wjr_obj = __wjr_document.template get_unsafe<::wjr::json::object_t>();             \
+        WJR_PP_QUEUE_TRANSFORM_EXPAND((__VA_ARGS__),                                               \
+                                      __WJR_REGISTER_TO_DOCUMENT_OBJECT_SERIALIZER_MOVE_CALLER);   \
+    }                                                                                              \
+                                                                                                   \
+public:                                                                                            \
+    template <typename Document, typename TT = Type,                                               \
+              WJR_REQUIRES(                                                                        \
+                  std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                \
+                      (__VA_ARGS__),                                                               \
+                      __WJR_REGISTER_TO_DOCUMENT_OBJECT_SERIALIZER_COPY_ENABLER_CALLER)>)>         \
+    static Document construct(const Type &__wjr_tp,                                                \
+                              ::wjr::json::in_place_document_serializer_to_t) {                    \
+        using namespace wjr::json;                                                                 \
+        using object_type = typename Document::object_type;                                        \
+        Document __wjr_document(object_t(), _document_create<object_type>());                      \
+        assign_object(__wjr_tp, __wjr_document,                                                    \
+                      ::wjr::json::in_place_document_serializer_object_copy);                      \
+        return __wjr_document;                                                                     \
+    }                                                                                              \
+    template <typename Document, typename TT = Type,                                               \
+              WJR_REQUIRES(                                                                        \
+                  std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                \
+                      (__VA_ARGS__),                                                               \
+                      __WJR_REGISTER_TO_DOCUMENT_OBJECT_SERIALIZER_MOVE_ENABLER_CALLER)>)>         \
+    static Document construct(Type &&__wjr_tp, ::wjr::json::in_place_document_serializer_to_t) {   \
+        using namespace wjr::json;                                                                 \
+        using object_type = typename Document::object_type;                                        \
+        Document __wjr_document(object_t(), _document_create<object_type>());                      \
+        assign_object(std::move(__wjr_tp), __wjr_document,                                         \
+                      ::wjr::json::in_place_document_serializer_object_move);                      \
+        return __wjr_document;                                                                     \
+    }                                                                                              \
+    template <                                                                                     \
+        typename Traits, typename TT = Type,                                                       \
+        WJR_REQUIRES(                                                                              \
+            std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                      \
+                (__VA_ARGS__),                                                                     \
+                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_CONSTRUCTOR_ENABLER_CALLER)>)> \
+    static void assign(const Type &__wjr_tp, ::wjr::json::basic_document<Traits> &__wjr_document,  \
+                       ::wjr::json::in_place_document_serializer_to_t) {                           \
+        using namespace wjr::json;                                                                 \
+        if (__wjr_document.type() != value_t::object) {                                            \
+            __wjr_document.emplace_object();                                                       \
+        }                                                                                          \
+        assign_object(__wjr_tp, __wjr_document, in_place_document_serializer_object_copy);         \
+    }                                                                                              \
+    template <                                                                                     \
+        typename Traits, typename TT = Type,                                                       \
+        WJR_REQUIRES(                                                                              \
+            std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                      \
+                (__VA_ARGS__),                                                                     \
+                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_CONSTRUCTOR_ENABLER_CALLER)>)> \
+    static void assign(Type &&__wjr_tp, ::wjr::json::basic_document<Traits> &__wjr_document,       \
+                       ::wjr::json::in_place_document_serializer_to_t) {                           \
+        using namespace wjr::json;                                                                 \
+        if (__wjr_document.type() != value_t::object) {                                            \
+            __wjr_document.emplace_object();                                                       \
+        }                                                                                          \
+        assign_object(std::move(__wjr_tp), __wjr_document,                                         \
+                      in_place_document_serializer_object_move);                                   \
     }
 
 #define WJR_REGISTER_DOCUMENT_OBJECT_SERIALIZER(Type, ...)                                         \

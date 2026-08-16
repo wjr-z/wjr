@@ -60,6 +60,8 @@
 // (a, b, c), f -> (f(a), f(b), f(c))
 #define WJR_PP_QUEUE_MAP(queue, op) WJR_PP_QUEUE_TRANSFORM(queue, op)
 #define WJR_PP_QUEUE_MAP_R(r, queue, op) WJR_PP_QUEUE_TRANSFORM_R(r, queue, op)
+#define WJR_PP_QUEUE_TRANSFORM_EXPAND(queue, op)                                                   \
+    WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(queue, op))
 
 #define WJR_PP_QUEUE_TRANSFORM_R(r, queue, op)                                                     \
     WJR_PP_CONCAT(__WJR_PP_QUEUE_TRANSFORM_R_, r)(queue, op)

@@ -21,9 +21,7 @@
 #define WJR_PP_ADD_OVERFLOW_I(x) WJR_PP_ADD_OVERFLOW_II(x)
 #define WJR_PP_ADD_OVERFLOW_II(x) __wjr_arithmetic_overflow_##x
 
-#define WJR_PP_SUB_OVERFLOW(x, y)                                                                  \
-    WJR_PP_SUB_OVERFLOW_I(WJR_PP_CONCAT(WJR_PP_ARITHMATIC_FROM_NUMBER(x),                          \
-                                        WJR_PP_ARITHMATIC_FROM_NUMBER(WJR_PP_NEG(y))))
+#define WJR_PP_SUB_OVERFLOW(x, y) WJR_PP_SUB_OVERFLOW_I(WJR_PP_ARITHMATIC_PAIR(x, WJR_PP_NEG(y)))
 #define WJR_PP_SUB_OVERFLOW_I(x) WJR_PP_SUB_OVERFLOW_II(x)
 #define WJR_PP_SUB_OVERFLOW_II(x) __wjr_arithmetic_overflow_##x
 

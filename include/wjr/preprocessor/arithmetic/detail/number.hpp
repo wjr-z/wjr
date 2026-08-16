@@ -7,6 +7,9 @@
 #define WJR_PP_ARITHMATIC_TO_NUMBER(x) WJR_PP_ARITHMATIC_TO_NUMBER_I(x)
 #define WJR_PP_ARITHMATIC_TO_NUMBER_I(x) __wjr_pp_arithmetic_to_number_##x
 
+#define WJR_PP_ARITHMATIC_PAIR(x, y)                                                               \
+    WJR_PP_CONCAT(WJR_PP_ARITHMATIC_FROM_NUMBER(x), WJR_PP_ARITHMATIC_FROM_NUMBER(y))
+
 #define __wjr_pp_arithmetic_from_number_0
 #define __wjr_pp_arithmetic_from_number_1 x
 #define __wjr_pp_arithmetic_from_number_2 xx
