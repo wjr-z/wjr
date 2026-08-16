@@ -15,9 +15,7 @@
 #define WJR_PP_NE(x, y) WJR_PP_BOOL(WJR_PP_SUB(x, y))
 #define WJR_PP_EQ(x, y) WJR_PP_BOOL_NOT(WJR_PP_NE(x, y))
 
-#define WJR_PP_ADD_OVERFLOW(x, y)                                                                  \
-    WJR_PP_ADD_OVERFLOW_I(                                                                         \
-        WJR_PP_CONCAT(WJR_PP_ARITHMATIC_FROM_NUMBER(x), WJR_PP_ARITHMATIC_FROM_NUMBER(y)))
+#define WJR_PP_ADD_OVERFLOW(x, y) WJR_PP_ADD_OVERFLOW_I(WJR_PP_ARITHMATIC_PAIR(x, y))
 #define WJR_PP_ADD_OVERFLOW_I(x) WJR_PP_ADD_OVERFLOW_II(x)
 #define WJR_PP_ADD_OVERFLOW_II(x) __wjr_arithmetic_overflow_##x
 
