@@ -60,6 +60,8 @@
 // (a, b, c), f -> (f(a), f(b), f(c))
 #define WJR_PP_QUEUE_MAP(queue, op) WJR_PP_QUEUE_TRANSFORM(queue, op)
 #define WJR_PP_QUEUE_MAP_R(r, queue, op) WJR_PP_QUEUE_TRANSFORM_R(r, queue, op)
+#define WJR_PP_QUEUE_TRANSFORM_EXPAND(queue, op)                                                   \
+    WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_TRANSFORM(queue, op))
 
 #define WJR_PP_QUEUE_TRANSFORM_R(r, queue, op)                                                     \
     WJR_PP_CONCAT(__WJR_PP_QUEUE_TRANSFORM_R_, r)(queue, op)
@@ -168,6 +170,55 @@
                                  WJR_PP_QUEUE_SIZE(queue))))
 
 #define WJR_PP_QUEUE_REVERSE_CALLER(x, y) WJR_PP_QUEUE_PUSH_FRONT(x, y)
+
+#define WJR_PP_QUEUE_REVERSE_R(r, queue) WJR_PP_CONCAT(__WJR_PP_QUEUE_REVERSE_R_, r)(queue)
+#define __WJR_PP_QUEUE_REVERSE_R_0(queue)                                                          \
+    __WJR_PP_QUEUE_REVERSE_R_0_I(WJR_PP_EVAL_R_0(WJR_PP_QUEUE_CALL_R_N_0(                          \
+        WJR_PP_QUEUE_PUSH_FRONT(queue, ((0))),                                                     \
+        WJR_PP_QUEUE_INIT_N(WJR_PP_QUEUE_REVERSE_R_CALLER_0, WJR_PP_QUEUE_SIZE(queue)),            \
+        WJR_PP_QUEUE_SIZE(queue))))
+#define __WJR_PP_QUEUE_REVERSE_R_0_I(result)                                                       \
+    WJR_PP_QUEUE_POP_BACK(WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_FRONT(result)))
+#define WJR_PP_QUEUE_REVERSE_R_CALLER_0(state, elem)                                               \
+    WJR_PP_OBSTRUCT(WJR_PP_QUEUE_REVERSE_R_APPLY_0)(state, elem)
+#define WJR_PP_QUEUE_REVERSE_R_APPLY_0(state, elem)                                                \
+    WJR_PP_QUEUE_PUSH_FRONT((), WJR_PP_QUEUE_PUSH_FRONT(WJR_PP_QUEUE_FRONT(state), elem))
+
+#define __WJR_PP_QUEUE_REVERSE_R_1(queue)                                                          \
+    __WJR_PP_QUEUE_REVERSE_R_1_I(WJR_PP_EVAL_R_1(WJR_PP_QUEUE_CALL_R_N_1(                          \
+        WJR_PP_QUEUE_PUSH_FRONT(queue, ((0))),                                                     \
+        WJR_PP_QUEUE_INIT_N(WJR_PP_QUEUE_REVERSE_R_CALLER_1, WJR_PP_QUEUE_SIZE(queue)),            \
+        WJR_PP_QUEUE_SIZE(queue))))
+#define __WJR_PP_QUEUE_REVERSE_R_1_I(result)                                                       \
+    WJR_PP_QUEUE_POP_BACK(WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_FRONT(result)))
+#define WJR_PP_QUEUE_REVERSE_R_CALLER_1(state, elem)                                               \
+    WJR_PP_OBSTRUCT(WJR_PP_QUEUE_REVERSE_R_APPLY_1)(state, elem)
+#define WJR_PP_QUEUE_REVERSE_R_APPLY_1(state, elem)                                                \
+    WJR_PP_QUEUE_PUSH_FRONT((), WJR_PP_QUEUE_PUSH_FRONT(WJR_PP_QUEUE_FRONT(state), elem))
+
+#define __WJR_PP_QUEUE_REVERSE_R_2(queue)                                                          \
+    __WJR_PP_QUEUE_REVERSE_R_2_I(WJR_PP_EVAL_R_2(WJR_PP_QUEUE_CALL_R_N_2(                          \
+        WJR_PP_QUEUE_PUSH_FRONT(queue, ((0))),                                                     \
+        WJR_PP_QUEUE_INIT_N(WJR_PP_QUEUE_REVERSE_R_CALLER_2, WJR_PP_QUEUE_SIZE(queue)),            \
+        WJR_PP_QUEUE_SIZE(queue))))
+#define __WJR_PP_QUEUE_REVERSE_R_2_I(result)                                                       \
+    WJR_PP_QUEUE_POP_BACK(WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_FRONT(result)))
+#define WJR_PP_QUEUE_REVERSE_R_CALLER_2(state, elem)                                               \
+    WJR_PP_OBSTRUCT(WJR_PP_QUEUE_REVERSE_R_APPLY_2)(state, elem)
+#define WJR_PP_QUEUE_REVERSE_R_APPLY_2(state, elem)                                                \
+    WJR_PP_QUEUE_PUSH_FRONT((), WJR_PP_QUEUE_PUSH_FRONT(WJR_PP_QUEUE_FRONT(state), elem))
+
+#define __WJR_PP_QUEUE_REVERSE_R_3(queue)                                                          \
+    __WJR_PP_QUEUE_REVERSE_R_3_I(WJR_PP_EVAL_R_3(WJR_PP_QUEUE_CALL_R_N_3(                          \
+        WJR_PP_QUEUE_PUSH_FRONT(queue, ((0))),                                                     \
+        WJR_PP_QUEUE_INIT_N(WJR_PP_QUEUE_REVERSE_R_CALLER_3, WJR_PP_QUEUE_SIZE(queue)),            \
+        WJR_PP_QUEUE_SIZE(queue))))
+#define __WJR_PP_QUEUE_REVERSE_R_3_I(result)                                                       \
+    WJR_PP_QUEUE_POP_BACK(WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_FRONT(result)))
+#define WJR_PP_QUEUE_REVERSE_R_CALLER_3(state, elem)                                               \
+    WJR_PP_OBSTRUCT(WJR_PP_QUEUE_REVERSE_R_APPLY_3)(state, elem)
+#define WJR_PP_QUEUE_REVERSE_R_APPLY_3(state, elem)                                                \
+    WJR_PP_QUEUE_PUSH_FRONT((), WJR_PP_QUEUE_PUSH_FRONT(WJR_PP_QUEUE_FRONT(state), elem))
 
 // (a, b, c) -> a b c
 #define WJR_PP_QUEUE_PUT(queue) WJR_PP_QUEUE_ACCUMULATE(, queue, WJR_PP_QUEUE_PUT_CALLER)
