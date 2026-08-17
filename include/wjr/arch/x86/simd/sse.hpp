@@ -1772,12 +1772,15 @@ __m128i sse::sll_epi16(__m128i a, __m128i b) noexcept { return _mm_sll_epi16(a, 
 __m128i sse::sll_epi32(__m128i a, __m128i b) noexcept { return _mm_sll_epi32(a, b); }
 __m128i sse::sll_epi64(__m128i a, __m128i b) noexcept { return _mm_sll_epi64(a, b); }
 
-__m128i sse::sll(__m128i a, __m128i b, int16_t) noexcept { return sll_epi16(a, b); }
-__m128i sse::sll(__m128i a, __m128i b, int32_t) noexcept { return sll_epi32(a, b); }
-__m128i sse::sll(__m128i a, __m128i b, int64_t) noexcept { return sll_epi64(a, b); }
-__m128i sse::sll(__m128i a, __m128i b, uint16_t) noexcept { return sll_epi16(a, b); }
-__m128i sse::sll(__m128i a, __m128i b, uint32_t) noexcept { return sll_epi32(a, b); }
-__m128i sse::sll(__m128i a, __m128i b, uint64_t) noexcept { return sll_epi64(a, b); }
+    #define WJR_SSE_DEFINE_VARIABLE_SHIFT(name, type, impl)                                        \
+        __m128i sse::name(__m128i a, __m128i b, type) noexcept { return impl(a, b); }
+
+WJR_SSE_DEFINE_VARIABLE_SHIFT(sll, int16_t, sll_epi16)
+WJR_SSE_DEFINE_VARIABLE_SHIFT(sll, int32_t, sll_epi32)
+WJR_SSE_DEFINE_VARIABLE_SHIFT(sll, int64_t, sll_epi64)
+WJR_SSE_DEFINE_VARIABLE_SHIFT(sll, uint16_t, sll_epi16)
+WJR_SSE_DEFINE_VARIABLE_SHIFT(sll, uint32_t, sll_epi32)
+WJR_SSE_DEFINE_VARIABLE_SHIFT(sll, uint64_t, sll_epi64)
 
 template <int imm8>
 __m128i sse::slli(__m128i v) noexcept {
@@ -1833,12 +1836,14 @@ __m128i sse::srl_epi16(__m128i a, __m128i b) noexcept { return _mm_srl_epi16(a, 
 __m128i sse::srl_epi32(__m128i a, __m128i b) noexcept { return _mm_srl_epi32(a, b); }
 __m128i sse::srl_epi64(__m128i a, __m128i b) noexcept { return _mm_srl_epi64(a, b); }
 
-__m128i sse::srl(__m128i a, __m128i b, int16_t) noexcept { return srl_epi16(a, b); }
-__m128i sse::srl(__m128i a, __m128i b, int32_t) noexcept { return srl_epi32(a, b); }
-__m128i sse::srl(__m128i a, __m128i b, int64_t) noexcept { return srl_epi64(a, b); }
-__m128i sse::srl(__m128i a, __m128i b, uint16_t) noexcept { return srl_epi16(a, b); }
-__m128i sse::srl(__m128i a, __m128i b, uint32_t) noexcept { return srl_epi32(a, b); }
-__m128i sse::srl(__m128i a, __m128i b, uint64_t) noexcept { return srl_epi64(a, b); }
+WJR_SSE_DEFINE_VARIABLE_SHIFT(srl, int16_t, srl_epi16)
+WJR_SSE_DEFINE_VARIABLE_SHIFT(srl, int32_t, srl_epi32)
+WJR_SSE_DEFINE_VARIABLE_SHIFT(srl, int64_t, srl_epi64)
+WJR_SSE_DEFINE_VARIABLE_SHIFT(srl, uint16_t, srl_epi16)
+WJR_SSE_DEFINE_VARIABLE_SHIFT(srl, uint32_t, srl_epi32)
+WJR_SSE_DEFINE_VARIABLE_SHIFT(srl, uint64_t, srl_epi64)
+
+    #undef WJR_SSE_DEFINE_VARIABLE_SHIFT
 
 template <int imm8>
 __m128i sse::srli(__m128i v) noexcept {
