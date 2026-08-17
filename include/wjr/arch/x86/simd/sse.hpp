@@ -1805,12 +1805,17 @@ __m128i sse::slli_epi64(__m128i a, int imm8) noexcept {
     return _mm_slli_epi64(a, imm8);
 }
 
-__m128i sse::slli(__m128i a, int imm8, int16_t) noexcept { return slli_epi16(a, imm8); }
-__m128i sse::slli(__m128i a, int imm8, int32_t) noexcept { return slli_epi32(a, imm8); }
-__m128i sse::slli(__m128i a, int imm8, int64_t) noexcept { return slli_epi64(a, imm8); }
-__m128i sse::slli(__m128i a, int imm8, uint16_t) noexcept { return slli_epi16(a, imm8); }
-__m128i sse::slli(__m128i a, int imm8, uint32_t) noexcept { return slli_epi32(a, imm8); }
-__m128i sse::slli(__m128i a, int imm8, uint64_t) noexcept { return slli_epi64(a, imm8); }
+    #define WJR_SSE_DEFINE_SHIFT_LEFT(type, impl)                                                  \
+        __m128i sse::slli(__m128i a, int imm8, type) noexcept { return impl(a, imm8); }
+
+WJR_SSE_DEFINE_SHIFT_LEFT(int16_t, slli_epi16)
+WJR_SSE_DEFINE_SHIFT_LEFT(int32_t, slli_epi32)
+WJR_SSE_DEFINE_SHIFT_LEFT(int64_t, slli_epi64)
+WJR_SSE_DEFINE_SHIFT_LEFT(uint16_t, slli_epi16)
+WJR_SSE_DEFINE_SHIFT_LEFT(uint32_t, slli_epi32)
+WJR_SSE_DEFINE_SHIFT_LEFT(uint64_t, slli_epi64)
+
+    #undef WJR_SSE_DEFINE_SHIFT_LEFT
 
 __m128i sse::sra_epi16(__m128i a, __m128i b) noexcept { return _mm_sra_epi16(a, b); }
 __m128i sse::sra_epi32(__m128i a, __m128i b) noexcept { return _mm_sra_epi32(a, b); }
@@ -1846,14 +1851,19 @@ __m128i sse::srli_epi16(__m128i a, int imm8) noexcept { return _mm_srli_epi16(a,
 __m128i sse::srli_epi32(__m128i a, int imm8) noexcept { return _mm_srli_epi32(a, imm8); }
 __m128i sse::srli_epi64(__m128i a, int imm8) noexcept { return _mm_srli_epi64(a, imm8); }
 
-__m128i sse::srli(__m128i a, int imm8, int8_t) noexcept { return srli_epi8(a, imm8); }
-__m128i sse::srli(__m128i a, int imm8, int16_t) noexcept { return srli_epi16(a, imm8); }
-__m128i sse::srli(__m128i a, int imm8, int32_t) noexcept { return srli_epi32(a, imm8); }
-__m128i sse::srli(__m128i a, int imm8, int64_t) noexcept { return srli_epi64(a, imm8); }
-__m128i sse::srli(__m128i a, int imm8, uint8_t) noexcept { return srli_epi8(a, imm8); }
-__m128i sse::srli(__m128i a, int imm8, uint16_t) noexcept { return srli_epi16(a, imm8); }
-__m128i sse::srli(__m128i a, int imm8, uint32_t) noexcept { return srli_epi32(a, imm8); }
-__m128i sse::srli(__m128i a, int imm8, uint64_t) noexcept { return srli_epi64(a, imm8); }
+    #define WJR_SSE_DEFINE_SHIFT_RIGHT(type, impl)                                                 \
+        __m128i sse::srli(__m128i a, int imm8, type) noexcept { return impl(a, imm8); }
+
+WJR_SSE_DEFINE_SHIFT_RIGHT(int8_t, srli_epi8)
+WJR_SSE_DEFINE_SHIFT_RIGHT(int16_t, srli_epi16)
+WJR_SSE_DEFINE_SHIFT_RIGHT(int32_t, srli_epi32)
+WJR_SSE_DEFINE_SHIFT_RIGHT(int64_t, srli_epi64)
+WJR_SSE_DEFINE_SHIFT_RIGHT(uint8_t, srli_epi8)
+WJR_SSE_DEFINE_SHIFT_RIGHT(uint16_t, srli_epi16)
+WJR_SSE_DEFINE_SHIFT_RIGHT(uint32_t, srli_epi32)
+WJR_SSE_DEFINE_SHIFT_RIGHT(uint64_t, srli_epi64)
+
+    #undef WJR_SSE_DEFINE_SHIFT_RIGHT
 
 void sse::stream(void *p, __m128i a) noexcept { _mm_stream_si128(static_cast<__m128i *>(p), a); }
 void sse::store(void *p, __m128i a) noexcept { _mm_store_si128(static_cast<__m128i *>(p), a); }

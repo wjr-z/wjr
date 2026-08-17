@@ -1544,12 +1544,17 @@ __m256i avx::slli_epi16(__m256i a, int imm8) noexcept { return _mm256_slli_epi16
 __m256i avx::slli_epi32(__m256i a, int imm8) noexcept { return _mm256_slli_epi32(a, imm8); }
 __m256i avx::slli_epi64(__m256i a, int imm8) noexcept { return _mm256_slli_epi64(a, imm8); }
 
-__m256i avx::slli(__m256i a, int imm8, int16_t) noexcept { return slli_epi16(a, imm8); }
-__m256i avx::slli(__m256i a, int imm8, int32_t) noexcept { return slli_epi32(a, imm8); }
-__m256i avx::slli(__m256i a, int imm8, int64_t) noexcept { return slli_epi64(a, imm8); }
-__m256i avx::slli(__m256i a, int imm8, uint16_t) noexcept { return slli_epi16(a, imm8); }
-__m256i avx::slli(__m256i a, int imm8, uint32_t) noexcept { return slli_epi32(a, imm8); }
-__m256i avx::slli(__m256i a, int imm8, uint64_t) noexcept { return slli_epi64(a, imm8); }
+    #define WJR_AVX_DEFINE_SHIFT_LEFT(type, impl)                                                  \
+        __m256i avx::slli(__m256i a, int imm8, type) noexcept { return impl(a, imm8); }
+
+WJR_AVX_DEFINE_SHIFT_LEFT(int16_t, slli_epi16)
+WJR_AVX_DEFINE_SHIFT_LEFT(int32_t, slli_epi32)
+WJR_AVX_DEFINE_SHIFT_LEFT(int64_t, slli_epi64)
+WJR_AVX_DEFINE_SHIFT_LEFT(uint16_t, slli_epi16)
+WJR_AVX_DEFINE_SHIFT_LEFT(uint32_t, slli_epi32)
+WJR_AVX_DEFINE_SHIFT_LEFT(uint64_t, slli_epi64)
+
+    #undef WJR_AVX_DEFINE_SHIFT_LEFT
 
 __m256i avx::sllv_epi32(__m256i a, __m256i b) noexcept { return _mm256_sllv_epi32(a, b); }
 __m256i avx::sllv_epi64(__m256i a, __m256i b) noexcept { return _mm256_sllv_epi64(a, b); }
@@ -1598,14 +1603,19 @@ __m256i avx::srli_epi16(__m256i a, int imm8) noexcept { return _mm256_srli_epi16
 __m256i avx::srli_epi32(__m256i a, int imm8) noexcept { return _mm256_srli_epi32(a, imm8); }
 __m256i avx::srli_epi64(__m256i a, int imm8) noexcept { return _mm256_srli_epi64(a, imm8); }
 
-__m256i avx::srli(__m256i a, int imm8, int8_t) noexcept { return srli_epi8(a, imm8); }
-__m256i avx::srli(__m256i a, int imm8, int16_t) noexcept { return srli_epi16(a, imm8); }
-__m256i avx::srli(__m256i a, int imm8, int32_t) noexcept { return srli_epi32(a, imm8); }
-__m256i avx::srli(__m256i a, int imm8, int64_t) noexcept { return srli_epi64(a, imm8); }
-__m256i avx::srli(__m256i a, int imm8, uint8_t) noexcept { return srli_epi8(a, imm8); }
-__m256i avx::srli(__m256i a, int imm8, uint16_t) noexcept { return srli_epi16(a, imm8); }
-__m256i avx::srli(__m256i a, int imm8, uint32_t) noexcept { return srli_epi32(a, imm8); }
-__m256i avx::srli(__m256i a, int imm8, uint64_t) noexcept { return srli_epi64(a, imm8); }
+    #define WJR_AVX_DEFINE_SHIFT_RIGHT(type, impl)                                                 \
+        __m256i avx::srli(__m256i a, int imm8, type) noexcept { return impl(a, imm8); }
+
+WJR_AVX_DEFINE_SHIFT_RIGHT(int8_t, srli_epi8)
+WJR_AVX_DEFINE_SHIFT_RIGHT(int16_t, srli_epi16)
+WJR_AVX_DEFINE_SHIFT_RIGHT(int32_t, srli_epi32)
+WJR_AVX_DEFINE_SHIFT_RIGHT(int64_t, srli_epi64)
+WJR_AVX_DEFINE_SHIFT_RIGHT(uint8_t, srli_epi8)
+WJR_AVX_DEFINE_SHIFT_RIGHT(uint16_t, srli_epi16)
+WJR_AVX_DEFINE_SHIFT_RIGHT(uint32_t, srli_epi32)
+WJR_AVX_DEFINE_SHIFT_RIGHT(uint64_t, srli_epi64)
+
+    #undef WJR_AVX_DEFINE_SHIFT_RIGHT
 
 __m256i avx::srlv_epi32(__m256i a, __m256i b) noexcept { return _mm256_srlv_epi32(a, b); }
 __m256i avx::srlv_epi64(__m256i a, __m256i b) noexcept { return _mm256_srlv_epi64(a, b); }
