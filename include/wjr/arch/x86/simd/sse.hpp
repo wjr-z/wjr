@@ -1904,27 +1904,32 @@ __m128i sse::unpackhi_epi16(__m128i a, __m128i b) noexcept { return _mm_unpackhi
 __m128i sse::unpackhi_epi32(__m128i a, __m128i b) noexcept { return _mm_unpackhi_epi32(a, b); }
 __m128i sse::unpackhi_epi64(__m128i a, __m128i b) noexcept { return _mm_unpackhi_epi64(a, b); }
 
-__m128i sse::unpackhi(__m128i a, __m128i b, int8_t) noexcept { return unpackhi_epi8(a, b); }
-__m128i sse::unpackhi(__m128i a, __m128i b, int16_t) noexcept { return unpackhi_epi16(a, b); }
-__m128i sse::unpackhi(__m128i a, __m128i b, int32_t) noexcept { return unpackhi_epi32(a, b); }
-__m128i sse::unpackhi(__m128i a, __m128i b, int64_t) noexcept { return unpackhi_epi64(a, b); }
-__m128i sse::unpackhi(__m128i a, __m128i b, uint8_t) noexcept { return unpackhi_epi8(a, b); }
-__m128i sse::unpackhi(__m128i a, __m128i b, uint16_t) noexcept { return unpackhi_epi16(a, b); }
-__m128i sse::unpackhi(__m128i a, __m128i b, uint32_t) noexcept { return unpackhi_epi32(a, b); }
-__m128i sse::unpackhi(__m128i a, __m128i b, uint64_t) noexcept { return unpackhi_epi64(a, b); }
+    #define WJR_SSE_DEFINE_UNPACK(name, type, impl)                                                \
+        __m128i sse::name(__m128i a, __m128i b, type) noexcept { return impl(a, b); }
+
+WJR_SSE_DEFINE_UNPACK(unpackhi, int8_t, unpackhi_epi8)
+WJR_SSE_DEFINE_UNPACK(unpackhi, int16_t, unpackhi_epi16)
+WJR_SSE_DEFINE_UNPACK(unpackhi, int32_t, unpackhi_epi32)
+WJR_SSE_DEFINE_UNPACK(unpackhi, int64_t, unpackhi_epi64)
+WJR_SSE_DEFINE_UNPACK(unpackhi, uint8_t, unpackhi_epi8)
+WJR_SSE_DEFINE_UNPACK(unpackhi, uint16_t, unpackhi_epi16)
+WJR_SSE_DEFINE_UNPACK(unpackhi, uint32_t, unpackhi_epi32)
+WJR_SSE_DEFINE_UNPACK(unpackhi, uint64_t, unpackhi_epi64)
 
 __m128i sse::unpacklo_epi8(__m128i a, __m128i b) noexcept { return _mm_unpacklo_epi8(a, b); }
 __m128i sse::unpacklo_epi16(__m128i a, __m128i b) noexcept { return _mm_unpacklo_epi16(a, b); }
 __m128i sse::unpacklo_epi32(__m128i a, __m128i b) noexcept { return _mm_unpacklo_epi32(a, b); }
 __m128i sse::unpacklo_epi64(__m128i a, __m128i b) noexcept { return _mm_unpacklo_epi64(a, b); }
 
-__m128i sse::unpacklo(__m128i a, __m128i b, int8_t) noexcept { return unpacklo_epi8(a, b); }
-__m128i sse::unpacklo(__m128i a, __m128i b, int16_t) noexcept { return unpacklo_epi16(a, b); }
-__m128i sse::unpacklo(__m128i a, __m128i b, int32_t) noexcept { return unpacklo_epi32(a, b); }
-__m128i sse::unpacklo(__m128i a, __m128i b, int64_t) noexcept { return unpacklo_epi64(a, b); }
-__m128i sse::unpacklo(__m128i a, __m128i b, uint8_t) noexcept { return unpacklo_epi8(a, b); }
-__m128i sse::unpacklo(__m128i a, __m128i b, uint16_t) noexcept { return unpacklo_epi16(a, b); }
-__m128i sse::unpacklo(__m128i a, __m128i b, uint32_t) noexcept { return unpacklo_epi32(a, b); }
+WJR_SSE_DEFINE_UNPACK(unpacklo, int8_t, unpacklo_epi8)
+WJR_SSE_DEFINE_UNPACK(unpacklo, int16_t, unpacklo_epi16)
+WJR_SSE_DEFINE_UNPACK(unpacklo, int32_t, unpacklo_epi32)
+WJR_SSE_DEFINE_UNPACK(unpacklo, int64_t, unpacklo_epi64)
+WJR_SSE_DEFINE_UNPACK(unpacklo, uint8_t, unpacklo_epi8)
+WJR_SSE_DEFINE_UNPACK(unpacklo, uint16_t, unpacklo_epi16)
+WJR_SSE_DEFINE_UNPACK(unpacklo, uint32_t, unpacklo_epi32)
+
+    #undef WJR_SSE_DEFINE_UNPACK
 
 __m128i sse::Xor(__m128i a, __m128i b) noexcept { return _mm_xor_si128(a, b); }
 
