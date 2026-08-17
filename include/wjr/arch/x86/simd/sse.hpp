@@ -808,14 +808,20 @@ __m128i sse::add_epi16(__m128i a, __m128i b) noexcept { return _mm_add_epi16(a, 
 __m128i sse::add_epi32(__m128i a, __m128i b) noexcept { return _mm_add_epi32(a, b); }
 __m128i sse::add_epi64(__m128i a, __m128i b) noexcept { return _mm_add_epi64(a, b); }
 
-__m128i sse::add(__m128i a, __m128i b, int8_t) noexcept { return add_epi8(a, b); }
-__m128i sse::add(__m128i a, __m128i b, int16_t) noexcept { return add_epi16(a, b); }
-__m128i sse::add(__m128i a, __m128i b, int32_t) noexcept { return add_epi32(a, b); }
-__m128i sse::add(__m128i a, __m128i b, int64_t) noexcept { return add_epi64(a, b); }
-__m128i sse::add(__m128i a, __m128i b, uint8_t) noexcept { return add_epi8(a, b); }
-__m128i sse::add(__m128i a, __m128i b, uint16_t) noexcept { return add_epi16(a, b); }
-__m128i sse::add(__m128i a, __m128i b, uint32_t) noexcept { return add_epi32(a, b); }
-__m128i sse::add(__m128i a, __m128i b, uint64_t) noexcept { return add_epi64(a, b); }
+    #define WJR_SSE_DEFINE_ADD(type, vector_impl, scalar_impl)                                     \
+        __m128i sse::add(__m128i a, __m128i b, type) noexcept { return vector_impl(a, b); }        \
+        type sse::add(__m128i a, type) noexcept { return scalar_impl(a); }
+
+WJR_SSE_DEFINE_ADD(int8_t, add_epi8, add_epi8)
+WJR_SSE_DEFINE_ADD(int16_t, add_epi16, add_epi16)
+WJR_SSE_DEFINE_ADD(int32_t, add_epi32, add_epi32)
+WJR_SSE_DEFINE_ADD(int64_t, add_epi64, add_epi64)
+WJR_SSE_DEFINE_ADD(uint8_t, add_epi8, add_epu8)
+WJR_SSE_DEFINE_ADD(uint16_t, add_epi16, add_epu16)
+WJR_SSE_DEFINE_ADD(uint32_t, add_epi32, add_epu32)
+WJR_SSE_DEFINE_ADD(uint64_t, add_epi64, add_epu64)
+
+    #undef WJR_SSE_DEFINE_ADD
 
 int8_t sse::add_epi8(__m128i a) noexcept { return static_cast<int8_t>(add_epu8(a)); }
 int16_t sse::add_epi16(__m128i a) noexcept { return static_cast<int16_t>(add_epu16(a)); }
@@ -847,15 +853,6 @@ uint64_t sse::add_epu64(__m128i a) noexcept {
     a = add(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a), uint64_t());
     return simd_cast<_m128i_t, uint64_t>(a);
 }
-
-int8_t sse::add(__m128i a, int8_t) noexcept { return add_epi8(a); }
-int16_t sse::add(__m128i a, int16_t) noexcept { return add_epi16(a); }
-int32_t sse::add(__m128i a, int32_t) noexcept { return add_epi32(a); }
-int64_t sse::add(__m128i a, int64_t) noexcept { return add_epi64(a); }
-uint8_t sse::add(__m128i a, uint8_t) noexcept { return add_epu8(a); }
-uint16_t sse::add(__m128i a, uint16_t) noexcept { return add_epu16(a); }
-uint32_t sse::add(__m128i a, uint32_t) noexcept { return add_epu32(a); }
-uint64_t sse::add(__m128i a, uint64_t) noexcept { return add_epu64(a); }
 
 __m128i sse::adds_epi8(__m128i a, __m128i b) noexcept { return _mm_adds_epi8(a, b); }
 __m128i sse::adds_epi16(__m128i a, __m128i b) noexcept { return _mm_adds_epi16(a, b); }

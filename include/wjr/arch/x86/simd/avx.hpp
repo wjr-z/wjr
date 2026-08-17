@@ -1022,14 +1022,20 @@ __m256i avx::add_epi16(__m256i a, __m256i b) noexcept { return _mm256_add_epi16(
 __m256i avx::add_epi32(__m256i a, __m256i b) noexcept { return _mm256_add_epi32(a, b); }
 __m256i avx::add_epi64(__m256i a, __m256i b) noexcept { return _mm256_add_epi64(a, b); }
 
-__m256i avx::add(__m256i a, __m256i b, int8_t) noexcept { return add_epi8(a, b); }
-__m256i avx::add(__m256i a, __m256i b, int16_t) noexcept { return add_epi16(a, b); }
-__m256i avx::add(__m256i a, __m256i b, int32_t) noexcept { return add_epi32(a, b); }
-__m256i avx::add(__m256i a, __m256i b, int64_t) noexcept { return add_epi64(a, b); }
-__m256i avx::add(__m256i a, __m256i b, uint8_t) noexcept { return add_epi8(a, b); }
-__m256i avx::add(__m256i a, __m256i b, uint16_t) noexcept { return add_epi16(a, b); }
-__m256i avx::add(__m256i a, __m256i b, uint32_t) noexcept { return add_epi32(a, b); }
-__m256i avx::add(__m256i a, __m256i b, uint64_t) noexcept { return add_epi64(a, b); }
+    #define WJR_AVX_DEFINE_ADD(type, vector_impl, scalar_impl)                                     \
+        __m256i avx::add(__m256i a, __m256i b, type) noexcept { return vector_impl(a, b); }        \
+        type avx::add(__m256i a, type) noexcept { return scalar_impl(a); }
+
+WJR_AVX_DEFINE_ADD(int8_t, add_epi8, add_epi8)
+WJR_AVX_DEFINE_ADD(int16_t, add_epi16, add_epi16)
+WJR_AVX_DEFINE_ADD(int32_t, add_epi32, add_epi32)
+WJR_AVX_DEFINE_ADD(int64_t, add_epi64, add_epi64)
+WJR_AVX_DEFINE_ADD(uint8_t, add_epi8, add_epu8)
+WJR_AVX_DEFINE_ADD(uint16_t, add_epi16, add_epu16)
+WJR_AVX_DEFINE_ADD(uint32_t, add_epi32, add_epu32)
+WJR_AVX_DEFINE_ADD(uint64_t, add_epi64, add_epu64)
+
+    #undef WJR_AVX_DEFINE_ADD
 
 uint8_t avx::add_epu8(__m256i v) noexcept {
     return sse::add_epu8(sse::add_epi8(getlow(v), gethigh(v)));
@@ -1051,15 +1057,6 @@ int8_t avx::add_epi8(__m256i v) noexcept { return add_epu8(v); }
 int16_t avx::add_epi16(__m256i v) noexcept { return add_epu16(v); }
 int32_t avx::add_epi32(__m256i v) noexcept { return add_epu32(v); }
 int64_t avx::add_epi64(__m256i v) noexcept { return add_epu64(v); }
-
-int8_t avx::add(__m256i v, int8_t) noexcept { return add_epi8(v); }
-int16_t avx::add(__m256i v, int16_t) noexcept { return add_epi16(v); }
-int32_t avx::add(__m256i v, int32_t) noexcept { return add_epi32(v); }
-int64_t avx::add(__m256i v, int64_t) noexcept { return add_epi64(v); }
-uint8_t avx::add(__m256i v, uint8_t) noexcept { return add_epu8(v); }
-uint16_t avx::add(__m256i v, uint16_t) noexcept { return add_epu16(v); }
-uint32_t avx::add(__m256i v, uint32_t) noexcept { return add_epu32(v); }
-uint64_t avx::add(__m256i v, uint64_t) noexcept { return add_epu64(v); }
 
 __m256i avx::adds_epi8(__m256i a, __m256i b) noexcept { return _mm256_adds_epi8(a, b); }
 __m256i avx::adds_epi16(__m256i a, __m256i b) noexcept { return _mm256_adds_epi16(a, b); }
