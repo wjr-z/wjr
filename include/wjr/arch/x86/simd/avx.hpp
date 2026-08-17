@@ -1620,14 +1620,19 @@ __m256i avx::sub_epi16(__m256i a, __m256i b) noexcept { return _mm256_sub_epi16(
 __m256i avx::sub_epi32(__m256i a, __m256i b) noexcept { return _mm256_sub_epi32(a, b); }
 __m256i avx::sub_epi64(__m256i a, __m256i b) noexcept { return _mm256_sub_epi64(a, b); }
 
-__m256i avx::sub(__m256i a, __m256i b, int8_t) noexcept { return sub_epi8(a, b); }
-__m256i avx::sub(__m256i a, __m256i b, int16_t) noexcept { return sub_epi16(a, b); }
-__m256i avx::sub(__m256i a, __m256i b, int32_t) noexcept { return sub_epi32(a, b); }
-__m256i avx::sub(__m256i a, __m256i b, int64_t) noexcept { return sub_epi64(a, b); }
-__m256i avx::sub(__m256i a, __m256i b, uint8_t) noexcept { return sub_epi8(a, b); }
-__m256i avx::sub(__m256i a, __m256i b, uint16_t) noexcept { return sub_epi16(a, b); }
-__m256i avx::sub(__m256i a, __m256i b, uint32_t) noexcept { return sub_epi32(a, b); }
-__m256i avx::sub(__m256i a, __m256i b, uint64_t) noexcept { return sub_epi64(a, b); }
+    #define WJR_AVX_DEFINE_SUB(type, impl)                                                         \
+        __m256i avx::sub(__m256i a, __m256i b, type) noexcept { return impl(a, b); }
+
+WJR_AVX_DEFINE_SUB(int8_t, sub_epi8)
+WJR_AVX_DEFINE_SUB(int16_t, sub_epi16)
+WJR_AVX_DEFINE_SUB(int32_t, sub_epi32)
+WJR_AVX_DEFINE_SUB(int64_t, sub_epi64)
+WJR_AVX_DEFINE_SUB(uint8_t, sub_epi8)
+WJR_AVX_DEFINE_SUB(uint16_t, sub_epi16)
+WJR_AVX_DEFINE_SUB(uint32_t, sub_epi32)
+WJR_AVX_DEFINE_SUB(uint64_t, sub_epi64)
+
+    #undef WJR_AVX_DEFINE_SUB
 
 __m256i avx::subs_epi8(__m256i a, __m256i b) noexcept { return _mm256_subs_epi8(a, b); }
 __m256i avx::subs_epi16(__m256i a, __m256i b) noexcept { return _mm256_subs_epi16(a, b); }

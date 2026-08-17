@@ -1864,14 +1864,19 @@ __m128i sse::sub_epi16(__m128i a, __m128i b) noexcept { return _mm_sub_epi16(a, 
 __m128i sse::sub_epi32(__m128i a, __m128i b) noexcept { return _mm_sub_epi32(a, b); }
 __m128i sse::sub_epi64(__m128i a, __m128i b) noexcept { return _mm_sub_epi64(a, b); }
 
-__m128i sse::sub(__m128i a, __m128i b, int8_t) noexcept { return sub_epi8(a, b); }
-__m128i sse::sub(__m128i a, __m128i b, int16_t) noexcept { return sub_epi16(a, b); }
-__m128i sse::sub(__m128i a, __m128i b, int32_t) noexcept { return sub_epi32(a, b); }
-__m128i sse::sub(__m128i a, __m128i b, int64_t) noexcept { return sub_epi64(a, b); }
-__m128i sse::sub(__m128i a, __m128i b, uint8_t) noexcept { return sub_epi8(a, b); }
-__m128i sse::sub(__m128i a, __m128i b, uint16_t) noexcept { return sub_epi16(a, b); }
-__m128i sse::sub(__m128i a, __m128i b, uint32_t) noexcept { return sub_epi32(a, b); }
-__m128i sse::sub(__m128i a, __m128i b, uint64_t) noexcept { return sub_epi64(a, b); }
+    #define WJR_SSE_DEFINE_SUB(type, impl)                                                         \
+        __m128i sse::sub(__m128i a, __m128i b, type) noexcept { return impl(a, b); }
+
+WJR_SSE_DEFINE_SUB(int8_t, sub_epi8)
+WJR_SSE_DEFINE_SUB(int16_t, sub_epi16)
+WJR_SSE_DEFINE_SUB(int32_t, sub_epi32)
+WJR_SSE_DEFINE_SUB(int64_t, sub_epi64)
+WJR_SSE_DEFINE_SUB(uint8_t, sub_epi8)
+WJR_SSE_DEFINE_SUB(uint16_t, sub_epi16)
+WJR_SSE_DEFINE_SUB(uint32_t, sub_epi32)
+WJR_SSE_DEFINE_SUB(uint64_t, sub_epi64)
+
+    #undef WJR_SSE_DEFINE_SUB
 
 __m128i sse::subs_epi8(__m128i a, __m128i b) noexcept { return _mm_subs_epi8(a, b); }
 __m128i sse::subs_epi16(__m128i a, __m128i b) noexcept { return _mm_subs_epi16(a, b); }
