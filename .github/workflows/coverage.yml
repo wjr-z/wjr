@@ -22,24 +22,42 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Cache CMake dependencies
+      - name: Cache dependency sources
         uses: actions/cache@v4
+        id: dependency-cache
         with:
-          path: build/_deps
-          key: ${{ runner.os }}-cmake-deps-${{ hashFiles('CMakeLists.txt', 'cmake/**', 'src/**/CMakeLists.txt', 'test/CMakeLists.txt', '.github/workflows/coverage.yml') }}
+          path: |
+            build/_deps/cpu_features-src
+            build/_deps/googletest-src
+            build/_deps/range-v3-src
+          key: ${{ runner.os }}-cmake-source-${{ hashFiles('CMakeLists.txt', 'cmake/**', 'src/**/CMakeLists.txt', 'test/CMakeLists.txt', '.github/workflows/coverage.yml') }}
 
       - name: Install coverage dependencies
         run: sudo apt-get update && sudo apt-get install -y clang llvm cmake ninja-build libgmp-dev python3
 
       - name: Configure
-        run: >-
-          cmake -S . -B build -GNinja
-          -DCMAKE_BUILD_TYPE=Release
-          -DWJR_BUILD_TESTS=ON
-          -DWJR_ENABLE_COVERAGE=ON
-          -DWJR_DEBUG_LEVEL_RELEASE=3
-          -DCMAKE_C_COMPILER=clang
-          -DCMAKE_CXX_COMPILER=clang++
+        run: |
+          cmake_args=(
+            -S .
+            -B build
+            -GNinja
+            -DCMAKE_BUILD_TYPE=Release
+            -DWJR_BUILD_TESTS=ON
+            -DWJR_ENABLE_COVERAGE=ON
+            -DWJR_DEBUG_LEVEL_RELEASE=3
+            -DCMAKE_C_COMPILER=clang
+            -DCMAKE_CXX_COMPILER=clang++
+          )
+
+          if [ "${{ steps.dependency-cache.outputs.cache-hit }}" = "true" ]; then
+            cmake_args+=(
+              "-DFETCHCONTENT_SOURCE_DIR_CPU_FEATURES=$GITHUB_WORKSPACE/build/_deps/cpu_features-src"
+              "-DFETCHCONTENT_SOURCE_DIR_GOOGLETEST=$GITHUB_WORKSPACE/build/_deps/googletest-src"
+              "-DFETCHCONTENT_SOURCE_DIR_RANGE-V3=$GITHUB_WORKSPACE/build/_deps/range-v3-src"
+            )
+          fi
+
+          cmake "${cmake_args[@]}"
 
       - name: Generate coverage report
         run: cmake --build build --target coverage --parallel 2
