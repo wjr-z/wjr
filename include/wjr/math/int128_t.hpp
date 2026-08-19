@@ -359,15 +359,15 @@ public:
 
     constexpr int128_t operator+() const noexcept { return *this; }
 
-    constexpr int128_t &operator++() noexcept { return *this += 1; }
-    constexpr int128_t operator++(int) noexcept {
+    WJR_CONSTEXPR20 int128_t &operator++() noexcept { return *this += 1; }
+    WJR_CONSTEXPR20 int128_t operator++(int) noexcept {
         const auto value = *this;
         ++*this;
         return value;
     }
 
-    constexpr int128_t &operator--() noexcept { return *this -= 1; }
-    constexpr int128_t operator--(int) noexcept {
+    WJR_CONSTEXPR20 int128_t &operator--() noexcept { return *this -= 1; }
+    WJR_CONSTEXPR20 int128_t operator--(int) noexcept {
         const auto value = *this;
         --*this;
         return value;
