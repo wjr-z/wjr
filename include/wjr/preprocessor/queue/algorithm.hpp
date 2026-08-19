@@ -22,23 +22,11 @@
 #define WJR_PP_QUEUE_FOLD(args, op)                                                                \
     WJR_PP_QUEUE_CALL_N_SAME(args, op, WJR_PP_DEC(WJR_PP_QUEUE_SIZE(args)))
 
-#define WJR_PP_QUEUE_FOLD_R(r, args, op) WJR_PP_CONCAT(__WJR_PP_QUEUE_FOLD_R_, r)(args, op)
-#define __WJR_PP_QUEUE_FOLD_R_0(args, op)                                                          \
-    WJR_PP_EVAL_R_0(WJR_PP_QUEUE_CALL_R_N_0(                                                       \
-        args, WJR_PP_QUEUE_INIT_N(op, WJR_PP_DEC(WJR_PP_QUEUE_SIZE(args))),                        \
-        WJR_PP_DEC(WJR_PP_QUEUE_SIZE(args))))
-#define __WJR_PP_QUEUE_FOLD_R_1(args, op)                                                          \
-    WJR_PP_EVAL_R_1(WJR_PP_QUEUE_CALL_R_N_1(                                                       \
-        args, WJR_PP_QUEUE_INIT_N(op, WJR_PP_DEC(WJR_PP_QUEUE_SIZE(args))),                        \
-        WJR_PP_DEC(WJR_PP_QUEUE_SIZE(args))))
-#define __WJR_PP_QUEUE_FOLD_R_2(args, op)                                                          \
-    WJR_PP_EVAL_R_2(WJR_PP_QUEUE_CALL_R_N_2(                                                       \
-        args, WJR_PP_QUEUE_INIT_N(op, WJR_PP_DEC(WJR_PP_QUEUE_SIZE(args))),                        \
-        WJR_PP_DEC(WJR_PP_QUEUE_SIZE(args))))
-#define __WJR_PP_QUEUE_FOLD_R_3(args, op)                                                          \
-    WJR_PP_EVAL_R_3(WJR_PP_QUEUE_CALL_R_N_3(                                                       \
-        args, WJR_PP_QUEUE_INIT_N(op, WJR_PP_DEC(WJR_PP_QUEUE_SIZE(args))),                        \
-        WJR_PP_DEC(WJR_PP_QUEUE_SIZE(args))))
+#define WJR_PP_QUEUE_FOLD_R(r, args, op)                                                           \
+    WJR_PP_CONCAT(WJR_PP_EVAL_R_, r)                                                               \
+    (WJR_PP_CONCAT(WJR_PP_QUEUE_CALL_R_N_,                                                         \
+                   r)(args, WJR_PP_QUEUE_INIT_N(op, WJR_PP_DEC(WJR_PP_QUEUE_SIZE(args))),          \
+                      WJR_PP_DEC(WJR_PP_QUEUE_SIZE(args))))
 
 // (1,2,3), (f, g, h) -> (f(1), g(2), h(3))
 #define WJR_PP_QUEUE_TRANSFORMS(queue, ops)                                                        \

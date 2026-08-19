@@ -10,6 +10,12 @@
 #ifndef WJR_MATH_UINT128_T_HPP__
 #define WJR_MATH_UINT128_T_HPP__
 
+#include <cstddef>
+#include <cstdint>
+#include <limits>
+#include <tuple>
+#include <utility>
+
 #include <wjr/math/add.hpp>
 #include <wjr/math/div-impl.hpp>
 #include <wjr/math/divider.hpp>
@@ -18,6 +24,8 @@
 #include <wjr/math/sub.hpp>
 
 namespace wjr {
+
+class int128_t;
 
 /**
  * @brief Lightweight 128-bit unsigned integer.
@@ -70,6 +78,13 @@ public:
         return *this;
     }
 
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    constexpr uint128_t &operator+=(T value) noexcept {
+        return *this += uint128_t(value);
+    }
+
+    constexpr uint128_t operator+() const noexcept { return *this; }
+
     friend WJR_CONST constexpr uint128_t operator+(uint128_t lhs, uint64_t rhs) noexcept {
         return lhs += rhs;
     }
@@ -78,10 +93,23 @@ public:
         return rhs += lhs;
     }
 
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend WJR_CONST constexpr uint128_t operator+(uint128_t lhs, T rhs) noexcept {
+        return lhs += rhs;
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend WJR_CONST constexpr uint128_t operator+(T lhs, uint128_t rhs) noexcept {
+        return rhs += lhs;
+    }
+
     WJR_CONSTEXPR20 uint128_t &operator-=(uint128_t other) noexcept {
         sub_128(low, high, low, high, other.low, other.high);
         return *this;
     }
+
+    uint128_t &operator+=(int128_t other) noexcept;
+    uint128_t &operator-=(int128_t other) noexcept;
 
     friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator-(uint128_t lhs, uint128_t rhs) noexcept {
         return lhs -= rhs;
@@ -92,8 +120,99 @@ public:
         return *this;
     }
 
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    constexpr uint128_t &operator-=(T value) noexcept {
+        return *this -= uint128_t(value);
+    }
+
     friend WJR_CONST constexpr uint128_t operator-(uint128_t lhs, uint64_t rhs) noexcept {
         return lhs -= rhs;
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend WJR_CONST constexpr uint128_t operator-(uint128_t lhs, T rhs) noexcept {
+        return lhs -= rhs;
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend WJR_CONST constexpr uint128_t operator-(T lhs, uint128_t rhs) noexcept {
+        return uint128_t(lhs) - rhs;
+    }
+
+    WJR_CONSTEXPR20 uint128_t operator-() const noexcept { return uint128_t(0, 0) - *this; }
+
+    constexpr uint128_t &operator&=(uint128_t other) noexcept {
+        low &= other.low;
+        high &= other.high;
+        return *this;
+    }
+
+    constexpr uint128_t &operator|=(uint128_t other) noexcept {
+        low |= other.low;
+        high |= other.high;
+        return *this;
+    }
+
+    constexpr uint128_t &operator^=(uint128_t other) noexcept {
+        low ^= other.low;
+        high ^= other.high;
+        return *this;
+    }
+
+    friend constexpr uint128_t operator~(uint128_t value) noexcept {
+        value.low = ~value.low;
+        value.high = ~value.high;
+        return value;
+    }
+
+    friend constexpr uint128_t operator&(uint128_t lhs, uint128_t rhs) noexcept {
+        return lhs &= rhs;
+    }
+
+    friend constexpr uint128_t operator|(uint128_t lhs, uint128_t rhs) noexcept {
+        return lhs |= rhs;
+    }
+
+    friend constexpr uint128_t operator^(uint128_t lhs, uint128_t rhs) noexcept {
+        return lhs ^= rhs;
+    }
+
+    constexpr uint128_t &operator<<=(unsigned int shift) noexcept {
+        if (shift >= 128) {
+            low = 0;
+            high = 0;
+        } else if (shift >= 64) {
+            high = low << (shift - 64);
+            low = 0;
+        } else if (shift != 0) {
+            high = (high << shift) | (low >> (64 - shift));
+            low <<= shift;
+        }
+
+        return *this;
+    }
+
+    friend constexpr uint128_t operator<<(uint128_t value, unsigned int shift) noexcept {
+        return value <<= shift;
+    }
+
+    constexpr uint128_t &operator>>=(unsigned int shift) noexcept {
+        if (shift >= 128) {
+            low = 0;
+            high = 0;
+        } else if (shift >= 64) {
+            low = high >> (shift - 64);
+            high = 0;
+        } else if (shift != 0) {
+            low = (low >> shift) | (high << (64 - shift));
+            high >>= shift;
+        }
+
+        return *this;
+    }
+
+    friend constexpr uint128_t operator>>(uint128_t value, unsigned int shift) noexcept {
+        return value >>= shift;
     }
 
     WJR_CONSTEXPR20 uint128_t &operator*=(uint128_t other) noexcept {
@@ -103,6 +222,8 @@ public:
         high += tmp;
         return *this;
     }
+
+    uint128_t &operator*=(int128_t other) noexcept;
 
 private:
     static WJR_CONST WJR_CONSTEXPR20 uint128_t mul_u64(uint128_t lhs, uint64_t value) noexcept {
@@ -147,16 +268,37 @@ public:
         return rhs *= lhs;
     }
 
+    constexpr uint128_t &operator++() noexcept { return *this += uint64_t{1}; }
+    constexpr uint128_t operator++(int) noexcept {
+        const auto value = *this;
+        ++*this;
+        return value;
+    }
+
+    constexpr uint128_t &operator--() noexcept { return *this -= uint64_t{1}; }
+    constexpr uint128_t operator--(int) noexcept {
+        const auto value = *this;
+        --*this;
+        return value;
+    }
+
     uint128_t &operator/=(uint128_t other) noexcept;
 
     uint128_t &operator%=(uint128_t other) noexcept;
 
-    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+    uint128_t &operator/=(int128_t other) noexcept;
+    uint128_t &operator%=(int128_t other) noexcept;
+
+    uint128_t &operator&=(int128_t other) noexcept;
+    uint128_t &operator|=(int128_t other) noexcept;
+    uint128_t &operator^=(int128_t other) noexcept;
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     uint128_t &operator/=(T value) noexcept {
         return *this /= uint128_t(value);
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     uint128_t &operator%=(T value) noexcept {
         return *this %= uint128_t(value);
     }
@@ -185,8 +327,69 @@ public:
         return !(lhs == rhs);
     }
 
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend constexpr bool operator<(uint128_t lhs, T rhs) noexcept {
+        return lhs < uint128_t(rhs);
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend constexpr bool operator<(T lhs, uint128_t rhs) noexcept {
+        return uint128_t(lhs) < rhs;
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend constexpr bool operator<=(uint128_t lhs, T rhs) noexcept {
+        return lhs <= uint128_t(rhs);
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend constexpr bool operator<=(T lhs, uint128_t rhs) noexcept {
+        return uint128_t(lhs) <= rhs;
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend constexpr bool operator>(uint128_t lhs, T rhs) noexcept {
+        return lhs > uint128_t(rhs);
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend constexpr bool operator>(T lhs, uint128_t rhs) noexcept {
+        return uint128_t(lhs) > rhs;
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend constexpr bool operator>=(uint128_t lhs, T rhs) noexcept {
+        return lhs >= uint128_t(rhs);
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend constexpr bool operator>=(T lhs, uint128_t rhs) noexcept {
+        return uint128_t(lhs) >= rhs;
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend constexpr bool operator==(uint128_t lhs, T rhs) noexcept {
+        return lhs == uint128_t(rhs);
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend constexpr bool operator==(T lhs, uint128_t rhs) noexcept {
+        return uint128_t(lhs) == rhs;
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend constexpr bool operator!=(uint128_t lhs, T rhs) noexcept {
+        return !(lhs == rhs);
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend constexpr bool operator!=(T lhs, uint128_t rhs) noexcept {
+        return !(lhs == rhs);
+    }
+
     template <size_t I>
     constexpr uint64_t &get() & noexcept {
+        static_assert(I < 2);
         if constexpr (I == 0) {
             return low;
         } else {
@@ -196,10 +399,31 @@ public:
 
     template <size_t I>
     constexpr const uint64_t &get() const & noexcept {
+        static_assert(I < 2);
         if constexpr (I == 0) {
             return low;
         } else {
             return high;
+        }
+    }
+
+    template <size_t I>
+    constexpr uint64_t &&get() && noexcept {
+        static_assert(I < 2);
+        if constexpr (I == 0) {
+            return std::move(low);
+        } else {
+            return std::move(high);
+        }
+    }
+
+    template <size_t I>
+    constexpr const uint64_t &&get() const && noexcept {
+        static_assert(I < 2);
+        if constexpr (I == 0) {
+            return std::move(low);
+        } else {
+            return std::move(high);
         }
     }
 
@@ -222,6 +446,7 @@ struct tuple_size<wjr::uint128_t> : integral_constant<size_t, 2> {};
 
 template <size_t I>
 struct tuple_element<I, wjr::uint128_t> {
+    static_assert(I < 2);
     using type = uint64_t;
 };
 
@@ -244,6 +469,50 @@ template <size_t I>
 WJR_NODISCARD constexpr const uint64_t &&get(const wjr::uint128_t &&u) noexcept {
     return std::move(u).get<I>();
 }
+
+} // namespace std
+
+namespace std {
+
+template <>
+class numeric_limits<wjr::uint128_t> {
+public:
+    static constexpr bool is_specialized = true;
+    static constexpr int digits = 128;
+    static constexpr int digits10 = 38;
+    static constexpr int max_digits10 = 0;
+    static constexpr bool is_signed = false;
+    static constexpr bool is_integer = true;
+    static constexpr bool is_exact = true;
+    static constexpr int radix = 2;
+    static constexpr int min_exponent = 0;
+    static constexpr int max_exponent = 0;
+    static constexpr int min_exponent10 = 0;
+    static constexpr int max_exponent10 = 0;
+    static constexpr bool has_infinity = false;
+    static constexpr bool has_quiet_NaN = false;
+    static constexpr bool has_signaling_NaN = false;
+    static constexpr float_denorm_style has_denorm = denorm_absent;
+    static constexpr bool has_denorm_loss = false;
+    static constexpr bool is_iec559 = false;
+    static constexpr bool is_bounded = true;
+    static constexpr bool is_modulo = true;
+    static constexpr int traps = 0;
+    static constexpr bool tinyness_before = false;
+    static constexpr float_round_style round_style = round_toward_zero;
+
+    static constexpr wjr::uint128_t min() noexcept { return wjr::uint128_t(0, 0); }
+    static constexpr wjr::uint128_t lowest() noexcept { return min(); }
+    static constexpr wjr::uint128_t max() noexcept {
+        return wjr::uint128_t(UINT64_MAX, UINT64_MAX);
+    }
+    static constexpr wjr::uint128_t epsilon() noexcept { return min(); }
+    static constexpr wjr::uint128_t round_error() noexcept { return min(); }
+    static constexpr wjr::uint128_t infinity() noexcept { return min(); }
+    static constexpr wjr::uint128_t quiet_NaN() noexcept { return min(); }
+    static constexpr wjr::uint128_t signaling_NaN() noexcept { return min(); }
+    static constexpr wjr::uint128_t denorm_min() noexcept { return min(); }
+};
 
 } // namespace std
 

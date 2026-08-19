@@ -36,6 +36,7 @@
 
 #define WJR_PP_QUEUE_ZIP_3_R(r, queue1, queue2, queue3)                                            \
     WJR_PP_CONCAT(__WJR_PP_QUEUE_ZIP_3_R_, r)(queue1, queue2, queue3)
+#define WJR_PP_QUEUE_ZIP_R_QUEUE(state, n) WJR_PP_QUEUE_AT(WJR_PP_QUEUE_POP_FRONT(state), n)
 #define __WJR_PP_QUEUE_ZIP_3_R_0(queue1, queue2, queue3)                                           \
     __WJR_PP_QUEUE_ZIP_3_R_0_I(WJR_PP_EVAL_R_0(WJR_PP_QUEUE_CALL_R_N_0(                            \
         (((0), queue1, queue2, queue3), WJR_PP_QUEUE_INIT_N((), WJR_PP_QUEUE_SIZE(queue1))),       \
@@ -46,11 +47,9 @@
 #define WJR_PP_QUEUE_ZIP_3_R_CALLER_0(state, unused)                                               \
     WJR_PP_OBSTRUCT(WJR_PP_QUEUE_ZIP_3_R_APPLY_0)(state, unused)
 #define WJR_PP_QUEUE_ZIP_3_R_APPLY_0(state, unused)                                                \
-    WJR_PP_QUEUE_ZIP_3_R_APPLY_0_I(                                                                \
-        WJR_PP_QUEUE_FRONT(state), WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(state)),              \
-        WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state))),                 \
-        WJR_PP_QUEUE_FRONT(                                                                        \
-            WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state)))))
+    WJR_PP_QUEUE_ZIP_3_R_APPLY_0_I(WJR_PP_QUEUE_FRONT(state), WJR_PP_QUEUE_ZIP_R_QUEUE(state, 0),  \
+                                   WJR_PP_QUEUE_ZIP_R_QUEUE(state, 1),                             \
+                                   WJR_PP_QUEUE_ZIP_R_QUEUE(state, 2))
 #define WJR_PP_QUEUE_ZIP_3_R_APPLY_0_I(result, queue1, queue2, queue3)                             \
     (WJR_PP_QUEUE_PUSH_BACK(result, (WJR_PP_QUEUE_FRONT(queue1), WJR_PP_QUEUE_FRONT(queue2),       \
                                      WJR_PP_QUEUE_FRONT(queue3))),                                 \
@@ -67,11 +66,9 @@
 #define WJR_PP_QUEUE_ZIP_3_R_CALLER_1(state, unused)                                               \
     WJR_PP_OBSTRUCT(WJR_PP_QUEUE_ZIP_3_R_APPLY_1)(state, unused)
 #define WJR_PP_QUEUE_ZIP_3_R_APPLY_1(state, unused)                                                \
-    WJR_PP_QUEUE_ZIP_3_R_APPLY_1_I(                                                                \
-        WJR_PP_QUEUE_FRONT(state), WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(state)),              \
-        WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state))),                 \
-        WJR_PP_QUEUE_FRONT(                                                                        \
-            WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state)))))
+    WJR_PP_QUEUE_ZIP_3_R_APPLY_1_I(WJR_PP_QUEUE_FRONT(state), WJR_PP_QUEUE_ZIP_R_QUEUE(state, 0),  \
+                                   WJR_PP_QUEUE_ZIP_R_QUEUE(state, 1),                             \
+                                   WJR_PP_QUEUE_ZIP_R_QUEUE(state, 2))
 #define WJR_PP_QUEUE_ZIP_3_R_APPLY_1_I(result, queue1, queue2, queue3)                             \
     (WJR_PP_QUEUE_PUSH_BACK(result, (WJR_PP_QUEUE_FRONT(queue1), WJR_PP_QUEUE_FRONT(queue2),       \
                                      WJR_PP_QUEUE_FRONT(queue3))),                                 \
@@ -88,11 +85,9 @@
 #define WJR_PP_QUEUE_ZIP_3_R_CALLER_2(state, unused)                                               \
     WJR_PP_OBSTRUCT(WJR_PP_QUEUE_ZIP_3_R_APPLY_2)(state, unused)
 #define WJR_PP_QUEUE_ZIP_3_R_APPLY_2(state, unused)                                                \
-    WJR_PP_QUEUE_ZIP_3_R_APPLY_2_I(                                                                \
-        WJR_PP_QUEUE_FRONT(state), WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(state)),              \
-        WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state))),                 \
-        WJR_PP_QUEUE_FRONT(                                                                        \
-            WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state)))))
+    WJR_PP_QUEUE_ZIP_3_R_APPLY_2_I(WJR_PP_QUEUE_FRONT(state), WJR_PP_QUEUE_ZIP_R_QUEUE(state, 0),  \
+                                   WJR_PP_QUEUE_ZIP_R_QUEUE(state, 1),                             \
+                                   WJR_PP_QUEUE_ZIP_R_QUEUE(state, 2))
 #define WJR_PP_QUEUE_ZIP_3_R_APPLY_2_I(result, queue1, queue2, queue3)                             \
     (WJR_PP_QUEUE_PUSH_BACK(result, (WJR_PP_QUEUE_FRONT(queue1), WJR_PP_QUEUE_FRONT(queue2),       \
                                      WJR_PP_QUEUE_FRONT(queue3))),                                 \
@@ -109,11 +104,9 @@
 #define WJR_PP_QUEUE_ZIP_3_R_CALLER_3(state, unused)                                               \
     WJR_PP_OBSTRUCT(WJR_PP_QUEUE_ZIP_3_R_APPLY_3)(state, unused)
 #define WJR_PP_QUEUE_ZIP_3_R_APPLY_3(state, unused)                                                \
-    WJR_PP_QUEUE_ZIP_3_R_APPLY_3_I(                                                                \
-        WJR_PP_QUEUE_FRONT(state), WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(state)),              \
-        WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state))),                 \
-        WJR_PP_QUEUE_FRONT(                                                                        \
-            WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state)))))
+    WJR_PP_QUEUE_ZIP_3_R_APPLY_3_I(WJR_PP_QUEUE_FRONT(state), WJR_PP_QUEUE_ZIP_R_QUEUE(state, 0),  \
+                                   WJR_PP_QUEUE_ZIP_R_QUEUE(state, 1),                             \
+                                   WJR_PP_QUEUE_ZIP_R_QUEUE(state, 2))
 #define WJR_PP_QUEUE_ZIP_3_R_APPLY_3_I(result, queue1, queue2, queue3)                             \
     (WJR_PP_QUEUE_PUSH_BACK(result, (WJR_PP_QUEUE_FRONT(queue1), WJR_PP_QUEUE_FRONT(queue2),       \
                                      WJR_PP_QUEUE_FRONT(queue3))),                                 \
@@ -123,13 +116,10 @@
 #define WJR_PP_QUEUE_ZIP_4_R(r, queue1, queue2, queue3, queue4)                                    \
     WJR_PP_CONCAT(__WJR_PP_QUEUE_ZIP_4_R_, r)(queue1, queue2, queue3, queue4)
 #define WJR_PP_QUEUE_ZIP_4_R_APPLY(state, unused)                                                  \
-    WJR_PP_QUEUE_ZIP_4_R_APPLY_I(                                                                  \
-        WJR_PP_QUEUE_FRONT(state), WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(state)),              \
-        WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state))),                 \
-        WJR_PP_QUEUE_FRONT(                                                                        \
-            WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state)))),        \
-        WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(                                                 \
-            WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state))))))
+    WJR_PP_QUEUE_ZIP_4_R_APPLY_I(WJR_PP_QUEUE_FRONT(state), WJR_PP_QUEUE_ZIP_R_QUEUE(state, 0),    \
+                                 WJR_PP_QUEUE_ZIP_R_QUEUE(state, 1),                               \
+                                 WJR_PP_QUEUE_ZIP_R_QUEUE(state, 2),                               \
+                                 WJR_PP_QUEUE_ZIP_R_QUEUE(state, 3))
 #define WJR_PP_QUEUE_ZIP_4_R_APPLY_I(result, queue1, queue2, queue3, queue4)                       \
     (WJR_PP_QUEUE_PUSH_BACK(result, (WJR_PP_QUEUE_FRONT(queue1), WJR_PP_QUEUE_FRONT(queue2),       \
                                      WJR_PP_QUEUE_FRONT(queue3), WJR_PP_QUEUE_FRONT(queue4))),     \
@@ -182,22 +172,11 @@
 
 #define WJR_PP_QUEUE_ZIP_5_R(r, queue1, queue2, queue3, queue4, queue5)                            \
     WJR_PP_CONCAT(__WJR_PP_QUEUE_ZIP_5_R_, r)(queue1, queue2, queue3, queue4, queue5)
-#define WJR_PP_QUEUE_ZIP_5_R_Q1(state) WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(state))
-#define WJR_PP_QUEUE_ZIP_5_R_Q2(state)                                                             \
-    WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state)))
-#define WJR_PP_QUEUE_ZIP_5_R_Q3(state)                                                             \
-    WJR_PP_QUEUE_FRONT(                                                                            \
-        WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state))))
-#define WJR_PP_QUEUE_ZIP_5_R_Q4(state)                                                             \
-    WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(                                                     \
-        WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state)))))
-#define WJR_PP_QUEUE_ZIP_5_R_Q5(state)                                                             \
-    WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(                              \
-        WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state))))))
 #define WJR_PP_QUEUE_ZIP_5_R_APPLY(state, unused)                                                  \
-    WJR_PP_QUEUE_ZIP_5_R_APPLY_I(WJR_PP_QUEUE_FRONT(state), WJR_PP_QUEUE_ZIP_5_R_Q1(state),        \
-                                 WJR_PP_QUEUE_ZIP_5_R_Q2(state), WJR_PP_QUEUE_ZIP_5_R_Q3(state),   \
-                                 WJR_PP_QUEUE_ZIP_5_R_Q4(state), WJR_PP_QUEUE_ZIP_5_R_Q5(state))
+    WJR_PP_QUEUE_ZIP_5_R_APPLY_I(                                                                  \
+        WJR_PP_QUEUE_FRONT(state), WJR_PP_QUEUE_ZIP_R_QUEUE(state, 0),                             \
+        WJR_PP_QUEUE_ZIP_R_QUEUE(state, 1), WJR_PP_QUEUE_ZIP_R_QUEUE(state, 2),                    \
+        WJR_PP_QUEUE_ZIP_R_QUEUE(state, 3), WJR_PP_QUEUE_ZIP_R_QUEUE(state, 4))
 #define WJR_PP_QUEUE_ZIP_5_R_APPLY_I(result, queue1, queue2, queue3, queue4, queue5)               \
     (WJR_PP_QUEUE_PUSH_BACK(result, (WJR_PP_QUEUE_FRONT(queue1), WJR_PP_QUEUE_FRONT(queue2),       \
                                      WJR_PP_QUEUE_FRONT(queue3), WJR_PP_QUEUE_FRONT(queue4),       \
@@ -252,26 +231,12 @@
 
 #define WJR_PP_QUEUE_ZIP_6_R(r, queue1, queue2, queue3, queue4, queue5, queue6)                    \
     WJR_PP_CONCAT(__WJR_PP_QUEUE_ZIP_6_R_, r)(queue1, queue2, queue3, queue4, queue5, queue6)
-#define WJR_PP_QUEUE_ZIP_6_R_Q1(state) WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(state))
-#define WJR_PP_QUEUE_ZIP_6_R_Q2(state)                                                             \
-    WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state)))
-#define WJR_PP_QUEUE_ZIP_6_R_Q3(state)                                                             \
-    WJR_PP_QUEUE_FRONT(                                                                            \
-        WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state))))
-#define WJR_PP_QUEUE_ZIP_6_R_Q4(state)                                                             \
-    WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(                                                     \
-        WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state)))))
-#define WJR_PP_QUEUE_ZIP_6_R_Q5(state)                                                             \
-    WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(                              \
-        WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state))))))
-#define WJR_PP_QUEUE_ZIP_6_R_Q6(state)                                                             \
-    WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(       \
-        WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_POP_FRONT(state)))))))
 #define WJR_PP_QUEUE_ZIP_6_R_APPLY(state, unused)                                                  \
-    WJR_PP_QUEUE_ZIP_6_R_APPLY_I(WJR_PP_QUEUE_FRONT(state), WJR_PP_QUEUE_ZIP_6_R_Q1(state),        \
-                                 WJR_PP_QUEUE_ZIP_6_R_Q2(state), WJR_PP_QUEUE_ZIP_6_R_Q3(state),   \
-                                 WJR_PP_QUEUE_ZIP_6_R_Q4(state), WJR_PP_QUEUE_ZIP_6_R_Q5(state),   \
-                                 WJR_PP_QUEUE_ZIP_6_R_Q6(state))
+    WJR_PP_QUEUE_ZIP_6_R_APPLY_I(                                                                  \
+        WJR_PP_QUEUE_FRONT(state), WJR_PP_QUEUE_ZIP_R_QUEUE(state, 0),                             \
+        WJR_PP_QUEUE_ZIP_R_QUEUE(state, 1), WJR_PP_QUEUE_ZIP_R_QUEUE(state, 2),                    \
+        WJR_PP_QUEUE_ZIP_R_QUEUE(state, 3), WJR_PP_QUEUE_ZIP_R_QUEUE(state, 4),                    \
+        WJR_PP_QUEUE_ZIP_R_QUEUE(state, 5))
 #define WJR_PP_QUEUE_ZIP_6_R_APPLY_I(result, queue1, queue2, queue3, queue4, queue5, queue6)       \
     (WJR_PP_QUEUE_PUSH_BACK(result, (WJR_PP_QUEUE_FRONT(queue1), WJR_PP_QUEUE_FRONT(queue2),       \
                                      WJR_PP_QUEUE_FRONT(queue3), WJR_PP_QUEUE_FRONT(queue4),       \

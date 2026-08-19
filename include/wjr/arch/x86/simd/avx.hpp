@@ -1022,14 +1022,20 @@ __m256i avx::add_epi16(__m256i a, __m256i b) noexcept { return _mm256_add_epi16(
 __m256i avx::add_epi32(__m256i a, __m256i b) noexcept { return _mm256_add_epi32(a, b); }
 __m256i avx::add_epi64(__m256i a, __m256i b) noexcept { return _mm256_add_epi64(a, b); }
 
-__m256i avx::add(__m256i a, __m256i b, int8_t) noexcept { return add_epi8(a, b); }
-__m256i avx::add(__m256i a, __m256i b, int16_t) noexcept { return add_epi16(a, b); }
-__m256i avx::add(__m256i a, __m256i b, int32_t) noexcept { return add_epi32(a, b); }
-__m256i avx::add(__m256i a, __m256i b, int64_t) noexcept { return add_epi64(a, b); }
-__m256i avx::add(__m256i a, __m256i b, uint8_t) noexcept { return add_epi8(a, b); }
-__m256i avx::add(__m256i a, __m256i b, uint16_t) noexcept { return add_epi16(a, b); }
-__m256i avx::add(__m256i a, __m256i b, uint32_t) noexcept { return add_epi32(a, b); }
-__m256i avx::add(__m256i a, __m256i b, uint64_t) noexcept { return add_epi64(a, b); }
+    #define WJR_AVX_DEFINE_ADD(type, vector_impl, scalar_impl)                                     \
+        __m256i avx::add(__m256i a, __m256i b, type) noexcept { return vector_impl(a, b); }        \
+        type avx::add(__m256i a, type) noexcept { return scalar_impl(a); }
+
+WJR_AVX_DEFINE_ADD(int8_t, add_epi8, add_epi8)
+WJR_AVX_DEFINE_ADD(int16_t, add_epi16, add_epi16)
+WJR_AVX_DEFINE_ADD(int32_t, add_epi32, add_epi32)
+WJR_AVX_DEFINE_ADD(int64_t, add_epi64, add_epi64)
+WJR_AVX_DEFINE_ADD(uint8_t, add_epi8, add_epu8)
+WJR_AVX_DEFINE_ADD(uint16_t, add_epi16, add_epu16)
+WJR_AVX_DEFINE_ADD(uint32_t, add_epi32, add_epu32)
+WJR_AVX_DEFINE_ADD(uint64_t, add_epi64, add_epu64)
+
+    #undef WJR_AVX_DEFINE_ADD
 
 uint8_t avx::add_epu8(__m256i v) noexcept {
     return sse::add_epu8(sse::add_epi8(getlow(v), gethigh(v)));
@@ -1051,15 +1057,6 @@ int8_t avx::add_epi8(__m256i v) noexcept { return add_epu8(v); }
 int16_t avx::add_epi16(__m256i v) noexcept { return add_epu16(v); }
 int32_t avx::add_epi32(__m256i v) noexcept { return add_epu32(v); }
 int64_t avx::add_epi64(__m256i v) noexcept { return add_epu64(v); }
-
-int8_t avx::add(__m256i v, int8_t) noexcept { return add_epi8(v); }
-int16_t avx::add(__m256i v, int16_t) noexcept { return add_epi16(v); }
-int32_t avx::add(__m256i v, int32_t) noexcept { return add_epi32(v); }
-int64_t avx::add(__m256i v, int64_t) noexcept { return add_epi64(v); }
-uint8_t avx::add(__m256i v, uint8_t) noexcept { return add_epu8(v); }
-uint16_t avx::add(__m256i v, uint16_t) noexcept { return add_epu16(v); }
-uint32_t avx::add(__m256i v, uint32_t) noexcept { return add_epu32(v); }
-uint64_t avx::add(__m256i v, uint64_t) noexcept { return add_epu64(v); }
 
 __m256i avx::adds_epi8(__m256i a, __m256i b) noexcept { return _mm256_adds_epi8(a, b); }
 __m256i avx::adds_epi16(__m256i a, __m256i b) noexcept { return _mm256_adds_epi16(a, b); }
@@ -1532,12 +1529,15 @@ __m256i avx::sll_epi16(__m256i a, __m128i b) noexcept { return _mm256_sll_epi16(
 __m256i avx::sll_epi32(__m256i a, __m128i b) noexcept { return _mm256_sll_epi32(a, b); }
 __m256i avx::sll_epi64(__m256i a, __m128i b) noexcept { return _mm256_sll_epi64(a, b); }
 
-__m256i avx::sll(__m256i a, __m128i b, int16_t) noexcept { return sll_epi16(a, b); }
-__m256i avx::sll(__m256i a, __m128i b, int32_t) noexcept { return sll_epi32(a, b); }
-__m256i avx::sll(__m256i a, __m128i b, int64_t) noexcept { return sll_epi64(a, b); }
-__m256i avx::sll(__m256i a, __m128i b, uint16_t) noexcept { return sll_epi16(a, b); }
-__m256i avx::sll(__m256i a, __m128i b, uint32_t) noexcept { return sll_epi32(a, b); }
-__m256i avx::sll(__m256i a, __m128i b, uint64_t) noexcept { return sll_epi64(a, b); }
+    #define WJR_AVX_DEFINE_VARIABLE_SHIFT(name, type, impl)                                        \
+        __m256i avx::name(__m256i a, __m128i b, type) noexcept { return impl(a, b); }
+
+WJR_AVX_DEFINE_VARIABLE_SHIFT(sll, int16_t, sll_epi16)
+WJR_AVX_DEFINE_VARIABLE_SHIFT(sll, int32_t, sll_epi32)
+WJR_AVX_DEFINE_VARIABLE_SHIFT(sll, int64_t, sll_epi64)
+WJR_AVX_DEFINE_VARIABLE_SHIFT(sll, uint16_t, sll_epi16)
+WJR_AVX_DEFINE_VARIABLE_SHIFT(sll, uint32_t, sll_epi32)
+WJR_AVX_DEFINE_VARIABLE_SHIFT(sll, uint64_t, sll_epi64)
 
 template <int imm8>
 __m256i avx::slli(__m256i a) noexcept {
@@ -1547,20 +1547,28 @@ __m256i avx::slli_epi16(__m256i a, int imm8) noexcept { return _mm256_slli_epi16
 __m256i avx::slli_epi32(__m256i a, int imm8) noexcept { return _mm256_slli_epi32(a, imm8); }
 __m256i avx::slli_epi64(__m256i a, int imm8) noexcept { return _mm256_slli_epi64(a, imm8); }
 
-__m256i avx::slli(__m256i a, int imm8, int16_t) noexcept { return slli_epi16(a, imm8); }
-__m256i avx::slli(__m256i a, int imm8, int32_t) noexcept { return slli_epi32(a, imm8); }
-__m256i avx::slli(__m256i a, int imm8, int64_t) noexcept { return slli_epi64(a, imm8); }
-__m256i avx::slli(__m256i a, int imm8, uint16_t) noexcept { return slli_epi16(a, imm8); }
-__m256i avx::slli(__m256i a, int imm8, uint32_t) noexcept { return slli_epi32(a, imm8); }
-__m256i avx::slli(__m256i a, int imm8, uint64_t) noexcept { return slli_epi64(a, imm8); }
+    #define WJR_AVX_DEFINE_SHIFT_LEFT(type, impl)                                                  \
+        __m256i avx::slli(__m256i a, int imm8, type) noexcept { return impl(a, imm8); }
+
+WJR_AVX_DEFINE_SHIFT_LEFT(int16_t, slli_epi16)
+WJR_AVX_DEFINE_SHIFT_LEFT(int32_t, slli_epi32)
+WJR_AVX_DEFINE_SHIFT_LEFT(int64_t, slli_epi64)
+WJR_AVX_DEFINE_SHIFT_LEFT(uint16_t, slli_epi16)
+WJR_AVX_DEFINE_SHIFT_LEFT(uint32_t, slli_epi32)
+WJR_AVX_DEFINE_SHIFT_LEFT(uint64_t, slli_epi64)
+
+    #undef WJR_AVX_DEFINE_SHIFT_LEFT
 
 __m256i avx::sllv_epi32(__m256i a, __m256i b) noexcept { return _mm256_sllv_epi32(a, b); }
 __m256i avx::sllv_epi64(__m256i a, __m256i b) noexcept { return _mm256_sllv_epi64(a, b); }
 
-__m256i avx::sllv(__m256i a, __m256i b, int32_t) noexcept { return sllv_epi32(a, b); }
-__m256i avx::sllv(__m256i a, __m256i b, int64_t) noexcept { return sllv_epi64(a, b); }
-__m256i avx::sllv(__m256i a, __m256i b, uint32_t) noexcept { return sllv_epi32(a, b); }
-__m256i avx::sllv(__m256i a, __m256i b, uint64_t) noexcept { return sllv_epi64(a, b); }
+    #define WJR_AVX_DEFINE_VARIABLE_SHIFT_V(name, type, impl)                                      \
+        __m256i avx::name(__m256i a, __m256i b, type) noexcept { return impl(a, b); }
+
+WJR_AVX_DEFINE_VARIABLE_SHIFT_V(sllv, int32_t, sllv_epi32)
+WJR_AVX_DEFINE_VARIABLE_SHIFT_V(sllv, int64_t, sllv_epi64)
+WJR_AVX_DEFINE_VARIABLE_SHIFT_V(sllv, uint32_t, sllv_epi32)
+WJR_AVX_DEFINE_VARIABLE_SHIFT_V(sllv, uint64_t, sllv_epi64)
 
 __m256i avx::sra_epi16(__m256i a, __m128i b) noexcept { return _mm256_sra_epi16(a, b); }
 __m256i avx::sra_epi32(__m256i a, __m128i b) noexcept { return _mm256_sra_epi32(a, b); }
@@ -1582,12 +1590,12 @@ __m256i avx::srl_epi16(__m256i a, __m128i b) noexcept { return _mm256_srl_epi16(
 __m256i avx::srl_epi32(__m256i a, __m128i b) noexcept { return _mm256_srl_epi32(a, b); }
 __m256i avx::srl_epi64(__m256i a, __m128i b) noexcept { return _mm256_srl_epi64(a, b); }
 
-__m256i avx::srl(__m256i a, __m128i b, int16_t) noexcept { return srl_epi16(a, b); }
-__m256i avx::srl(__m256i a, __m128i b, int32_t) noexcept { return srl_epi32(a, b); }
-__m256i avx::srl(__m256i a, __m128i b, int64_t) noexcept { return srl_epi64(a, b); }
-__m256i avx::srl(__m256i a, __m128i b, uint16_t) noexcept { return srl_epi16(a, b); }
-__m256i avx::srl(__m256i a, __m128i b, uint32_t) noexcept { return srl_epi32(a, b); }
-__m256i avx::srl(__m256i a, __m128i b, uint64_t) noexcept { return srl_epi64(a, b); }
+WJR_AVX_DEFINE_VARIABLE_SHIFT(srl, int16_t, srl_epi16)
+WJR_AVX_DEFINE_VARIABLE_SHIFT(srl, int32_t, srl_epi32)
+WJR_AVX_DEFINE_VARIABLE_SHIFT(srl, int64_t, srl_epi64)
+WJR_AVX_DEFINE_VARIABLE_SHIFT(srl, uint16_t, srl_epi16)
+WJR_AVX_DEFINE_VARIABLE_SHIFT(srl, uint32_t, srl_epi32)
+WJR_AVX_DEFINE_VARIABLE_SHIFT(srl, uint64_t, srl_epi64)
 
 template <int imm8>
 __m256i avx::srli(__m256i a) noexcept {
@@ -1601,36 +1609,49 @@ __m256i avx::srli_epi16(__m256i a, int imm8) noexcept { return _mm256_srli_epi16
 __m256i avx::srli_epi32(__m256i a, int imm8) noexcept { return _mm256_srli_epi32(a, imm8); }
 __m256i avx::srli_epi64(__m256i a, int imm8) noexcept { return _mm256_srli_epi64(a, imm8); }
 
-__m256i avx::srli(__m256i a, int imm8, int8_t) noexcept { return srli_epi8(a, imm8); }
-__m256i avx::srli(__m256i a, int imm8, int16_t) noexcept { return srli_epi16(a, imm8); }
-__m256i avx::srli(__m256i a, int imm8, int32_t) noexcept { return srli_epi32(a, imm8); }
-__m256i avx::srli(__m256i a, int imm8, int64_t) noexcept { return srli_epi64(a, imm8); }
-__m256i avx::srli(__m256i a, int imm8, uint8_t) noexcept { return srli_epi8(a, imm8); }
-__m256i avx::srli(__m256i a, int imm8, uint16_t) noexcept { return srli_epi16(a, imm8); }
-__m256i avx::srli(__m256i a, int imm8, uint32_t) noexcept { return srli_epi32(a, imm8); }
-__m256i avx::srli(__m256i a, int imm8, uint64_t) noexcept { return srli_epi64(a, imm8); }
+    #define WJR_AVX_DEFINE_SHIFT_RIGHT(type, impl)                                                 \
+        __m256i avx::srli(__m256i a, int imm8, type) noexcept { return impl(a, imm8); }
+
+WJR_AVX_DEFINE_SHIFT_RIGHT(int8_t, srli_epi8)
+WJR_AVX_DEFINE_SHIFT_RIGHT(int16_t, srli_epi16)
+WJR_AVX_DEFINE_SHIFT_RIGHT(int32_t, srli_epi32)
+WJR_AVX_DEFINE_SHIFT_RIGHT(int64_t, srli_epi64)
+WJR_AVX_DEFINE_SHIFT_RIGHT(uint8_t, srli_epi8)
+WJR_AVX_DEFINE_SHIFT_RIGHT(uint16_t, srli_epi16)
+WJR_AVX_DEFINE_SHIFT_RIGHT(uint32_t, srli_epi32)
+WJR_AVX_DEFINE_SHIFT_RIGHT(uint64_t, srli_epi64)
+
+    #undef WJR_AVX_DEFINE_SHIFT_RIGHT
 
 __m256i avx::srlv_epi32(__m256i a, __m256i b) noexcept { return _mm256_srlv_epi32(a, b); }
 __m256i avx::srlv_epi64(__m256i a, __m256i b) noexcept { return _mm256_srlv_epi64(a, b); }
 
-__m256i avx::srlv(__m256i a, __m256i b, int32_t) noexcept { return srlv_epi32(a, b); }
-__m256i avx::srlv(__m256i a, __m256i b, int64_t) noexcept { return srlv_epi64(a, b); }
-__m256i avx::srlv(__m256i a, __m256i b, uint32_t) noexcept { return srlv_epi32(a, b); }
-__m256i avx::srlv(__m256i a, __m256i b, uint64_t) noexcept { return srlv_epi64(a, b); }
+WJR_AVX_DEFINE_VARIABLE_SHIFT_V(srlv, int32_t, srlv_epi32)
+WJR_AVX_DEFINE_VARIABLE_SHIFT_V(srlv, int64_t, srlv_epi64)
+WJR_AVX_DEFINE_VARIABLE_SHIFT_V(srlv, uint32_t, srlv_epi32)
+WJR_AVX_DEFINE_VARIABLE_SHIFT_V(srlv, uint64_t, srlv_epi64)
+
+    #undef WJR_AVX_DEFINE_VARIABLE_SHIFT
+    #undef WJR_AVX_DEFINE_VARIABLE_SHIFT_V
 
 __m256i avx::sub_epi8(__m256i a, __m256i b) noexcept { return _mm256_sub_epi8(a, b); }
 __m256i avx::sub_epi16(__m256i a, __m256i b) noexcept { return _mm256_sub_epi16(a, b); }
 __m256i avx::sub_epi32(__m256i a, __m256i b) noexcept { return _mm256_sub_epi32(a, b); }
 __m256i avx::sub_epi64(__m256i a, __m256i b) noexcept { return _mm256_sub_epi64(a, b); }
 
-__m256i avx::sub(__m256i a, __m256i b, int8_t) noexcept { return sub_epi8(a, b); }
-__m256i avx::sub(__m256i a, __m256i b, int16_t) noexcept { return sub_epi16(a, b); }
-__m256i avx::sub(__m256i a, __m256i b, int32_t) noexcept { return sub_epi32(a, b); }
-__m256i avx::sub(__m256i a, __m256i b, int64_t) noexcept { return sub_epi64(a, b); }
-__m256i avx::sub(__m256i a, __m256i b, uint8_t) noexcept { return sub_epi8(a, b); }
-__m256i avx::sub(__m256i a, __m256i b, uint16_t) noexcept { return sub_epi16(a, b); }
-__m256i avx::sub(__m256i a, __m256i b, uint32_t) noexcept { return sub_epi32(a, b); }
-__m256i avx::sub(__m256i a, __m256i b, uint64_t) noexcept { return sub_epi64(a, b); }
+    #define WJR_AVX_DEFINE_SUB(type, impl)                                                         \
+        __m256i avx::sub(__m256i a, __m256i b, type) noexcept { return impl(a, b); }
+
+WJR_AVX_DEFINE_SUB(int8_t, sub_epi8)
+WJR_AVX_DEFINE_SUB(int16_t, sub_epi16)
+WJR_AVX_DEFINE_SUB(int32_t, sub_epi32)
+WJR_AVX_DEFINE_SUB(int64_t, sub_epi64)
+WJR_AVX_DEFINE_SUB(uint8_t, sub_epi8)
+WJR_AVX_DEFINE_SUB(uint16_t, sub_epi16)
+WJR_AVX_DEFINE_SUB(uint32_t, sub_epi32)
+WJR_AVX_DEFINE_SUB(uint64_t, sub_epi64)
+
+    #undef WJR_AVX_DEFINE_SUB
 
 __m256i avx::subs_epi8(__m256i a, __m256i b) noexcept { return _mm256_subs_epi8(a, b); }
 __m256i avx::subs_epi16(__m256i a, __m256i b) noexcept { return _mm256_subs_epi16(a, b); }
@@ -1650,27 +1671,32 @@ __m256i avx::unpackhi_epi16(__m256i a, __m256i b) noexcept { return _mm256_unpac
 __m256i avx::unpackhi_epi32(__m256i a, __m256i b) noexcept { return _mm256_unpackhi_epi32(a, b); }
 __m256i avx::unpackhi_epi64(__m256i a, __m256i b) noexcept { return _mm256_unpackhi_epi64(a, b); }
 
-__m256i avx::unpackhi(__m256i a, __m256i b, int8_t) noexcept { return unpackhi_epi8(a, b); }
-__m256i avx::unpackhi(__m256i a, __m256i b, int16_t) noexcept { return unpackhi_epi16(a, b); }
-__m256i avx::unpackhi(__m256i a, __m256i b, int32_t) noexcept { return unpackhi_epi32(a, b); }
-__m256i avx::unpackhi(__m256i a, __m256i b, int64_t) noexcept { return unpackhi_epi64(a, b); }
-__m256i avx::unpackhi(__m256i a, __m256i b, uint8_t) noexcept { return unpackhi_epi8(a, b); }
-__m256i avx::unpackhi(__m256i a, __m256i b, uint16_t) noexcept { return unpackhi_epi16(a, b); }
-__m256i avx::unpackhi(__m256i a, __m256i b, uint32_t) noexcept { return unpackhi_epi32(a, b); }
-__m256i avx::unpackhi(__m256i a, __m256i b, uint64_t) noexcept { return unpackhi_epi64(a, b); }
+    #define WJR_AVX_DEFINE_UNPACK(name, type, impl)                                                \
+        __m256i avx::name(__m256i a, __m256i b, type) noexcept { return impl(a, b); }
+
+WJR_AVX_DEFINE_UNPACK(unpackhi, int8_t, unpackhi_epi8)
+WJR_AVX_DEFINE_UNPACK(unpackhi, int16_t, unpackhi_epi16)
+WJR_AVX_DEFINE_UNPACK(unpackhi, int32_t, unpackhi_epi32)
+WJR_AVX_DEFINE_UNPACK(unpackhi, int64_t, unpackhi_epi64)
+WJR_AVX_DEFINE_UNPACK(unpackhi, uint8_t, unpackhi_epi8)
+WJR_AVX_DEFINE_UNPACK(unpackhi, uint16_t, unpackhi_epi16)
+WJR_AVX_DEFINE_UNPACK(unpackhi, uint32_t, unpackhi_epi32)
+WJR_AVX_DEFINE_UNPACK(unpackhi, uint64_t, unpackhi_epi64)
 
 __m256i avx::unpacklo_epi8(__m256i a, __m256i b) noexcept { return _mm256_unpacklo_epi8(a, b); }
 __m256i avx::unpacklo_epi16(__m256i a, __m256i b) noexcept { return _mm256_unpacklo_epi16(a, b); }
 __m256i avx::unpacklo_epi32(__m256i a, __m256i b) noexcept { return _mm256_unpacklo_epi32(a, b); }
 __m256i avx::unpacklo_epi64(__m256i a, __m256i b) noexcept { return _mm256_unpacklo_epi64(a, b); }
 
-__m256i avx::unpacklo(__m256i a, __m256i b, int8_t) noexcept { return unpacklo_epi8(a, b); }
-__m256i avx::unpacklo(__m256i a, __m256i b, int16_t) noexcept { return unpacklo_epi16(a, b); }
-__m256i avx::unpacklo(__m256i a, __m256i b, int32_t) noexcept { return unpacklo_epi32(a, b); }
-__m256i avx::unpacklo(__m256i a, __m256i b, int64_t) noexcept { return unpacklo_epi64(a, b); }
-__m256i avx::unpacklo(__m256i a, __m256i b, uint8_t) noexcept { return unpacklo_epi8(a, b); }
-__m256i avx::unpacklo(__m256i a, __m256i b, uint16_t) noexcept { return unpacklo_epi16(a, b); }
-__m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) noexcept { return unpacklo_epi32(a, b); }
+WJR_AVX_DEFINE_UNPACK(unpacklo, int8_t, unpacklo_epi8)
+WJR_AVX_DEFINE_UNPACK(unpacklo, int16_t, unpacklo_epi16)
+WJR_AVX_DEFINE_UNPACK(unpacklo, int32_t, unpacklo_epi32)
+WJR_AVX_DEFINE_UNPACK(unpacklo, int64_t, unpacklo_epi64)
+WJR_AVX_DEFINE_UNPACK(unpacklo, uint8_t, unpacklo_epi8)
+WJR_AVX_DEFINE_UNPACK(unpacklo, uint16_t, unpacklo_epi16)
+WJR_AVX_DEFINE_UNPACK(unpacklo, uint32_t, unpacklo_epi32)
+
+    #undef WJR_AVX_DEFINE_UNPACK
 
 #endif
 
