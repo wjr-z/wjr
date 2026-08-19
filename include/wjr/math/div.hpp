@@ -333,12 +333,12 @@ inline uint128_t operator%(uint128_t lhs, uint128_t rhs) noexcept {
     return rem;
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 inline uint128_t operator/(uint128_t lhs, T rhs) noexcept {
     return lhs / uint128_t(rhs);
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 inline uint128_t operator%(uint128_t lhs, T rhs) noexcept {
     return lhs % uint128_t(rhs);
 }
