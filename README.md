@@ -1,3 +1,7 @@
+[![Coverage](https://github.com/wjr-z/wjr/actions/workflows/coverage.yml/badge.svg?branch=coverage-report)](https://github.com/wjr-z/wjr/actions/workflows/coverage.yml)
+
+Coverage runs with Clang on pushes to `main` and `coverage-report`, and on pull requests targeting `main`. Each run uploads the generated HTML report as a workflow artifact. After GitHub Pages is enabled for the repository, the latest `main` report is published at <https://wjr-z.github.io/wjr/>.
+
 最低要求：  \
 C++17，64位系统，CMake。  \
 绝大多数优化仅针对x64。 目前异常处理支持不佳。  
