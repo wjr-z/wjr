@@ -1,0 +1,68 @@
+name: Coverage
+
+on:
+  push:
+    branches:
+      - main
+      - coverage-report
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install coverage dependencies
+        run: sudo apt-get update && sudo apt-get install -y clang llvm cmake ninja-build libgmp-dev python3
+
+      - name: Configure
+        run: >-
+          cmake -S . -B build -GNinja
+          -DCMAKE_BUILD_TYPE=Release
+          -DWJR_BUILD_TESTS=ON
+          -DWJR_ENABLE_COVERAGE=ON
+          -DWJR_DEBUG_LEVEL_RELEASE=3
+          -DCMAKE_C_COMPILER=clang
+          -DCMAKE_CXX_COMPILER=clang++
+
+      - name: Generate coverage report
+        run: cmake --build build --target coverage --parallel 2
+
+      - name: Upload HTML coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-${{ github.sha }}
+          path: build/coverage
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/coverage
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: coverage
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
