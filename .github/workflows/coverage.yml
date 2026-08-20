@@ -47,13 +47,13 @@ jobs:
           retention-days: 14
 
       - name: Upload Pages artifact
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/coverage-report')
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/coverage
 
   deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/coverage-report')
     needs: coverage
     runs-on: ubuntu-latest
     permissions:
