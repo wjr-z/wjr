@@ -27,6 +27,8 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       BENCHMARK_PROFILE: ${{ inputs.profile || 'core' }}
+      BENCHMARK_SUMMARY_LIMIT: 32
+      BENCHMARK_DETAILS_OUTPUT: benchmark-comparison.json
 
     steps:
       - name: Checkout code
@@ -96,7 +98,7 @@ jobs:
       - name: Add benchmark summary
         shell: bash
         run: |
-          baseline_file=$(find baseline -type f -name '*.json' -print -quit 2>/dev/null || true)
+          baseline_file=$(find baseline -type f -name 'benchmark-results.json' -print -quit 2>/dev/null || true)
           if [[ -n "$baseline_file" ]]; then
             python3 benchmarks/tools/summarize.py \
               benchmark-results.json "$BENCHMARK_PROFILE" "$baseline_file" >> "$GITHUB_STEP_SUMMARY"
@@ -109,5 +111,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-results-${{ env.BENCHMARK_PROFILE }}
-          path: benchmark-results.json
+          path: |
+            benchmark-results.json
+            benchmark-comparison.json
           retention-days: 90
