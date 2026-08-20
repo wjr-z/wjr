@@ -69,11 +69,46 @@ def metric_card(label: str, total: int, missed: int, coverage: str) -> str:
     """
 
 
+def write_badge(output_dir: Path, metrics: list[tuple[str, int, int, str]]) -> None:
+    lines = next((metric for metric in metrics if metric[0] == "Lines"), None)
+    if lines is None:
+        raise ValueError("llvm-cov report did not contain line coverage")
+
+    coverage = lines[3]
+    percentage = float(coverage.rstrip("%"))
+    color = "#167c80" if percentage >= 80 else "#ae6a16" if percentage >= 60 else "#b24646"
+    label_width = 74
+    value_width = max(58, len(coverage) * 8 + 18)
+    total_width = label_width + value_width
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="{total_width}" height="20" role="img" aria-label="coverage: {coverage}">
+  <title>coverage: {coverage}</title>
+  <linearGradient id="s" x2="0" y2="100%">
+    <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+    <stop offset="1" stop-opacity=".1"/>
+  </linearGradient>
+  <clipPath id="r"><rect width="{total_width}" height="20" rx="3"/></clipPath>
+  <g clip-path="url(#r)">
+    <rect width="{label_width}" height="20" fill="#555"/>
+    <rect x="{label_width}" width="{value_width}" height="20" fill="{color}"/>
+    <rect width="{total_width}" height="20" fill="url(#s)"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
+    <text x="{label_width / 2}" y="15" fill="#010101" fill-opacity=".3">coverage</text>
+    <text x="{label_width / 2}" y="14">coverage</text>
+    <text x="{label_width + value_width / 2}" y="15" fill="#010101" fill-opacity=".3">{coverage}</text>
+    <text x="{label_width + value_width / 2}" y="14">{coverage}</text>
+  </g>
+</svg>
+'''
+    (output_dir / "coverage.svg").write_text(svg, encoding="utf-8")
+
+
 def write_dashboard(args: argparse.Namespace, report: str) -> None:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     details_url = f"{args.details_dir}/index.html"
-    cards = "".join(metric_card(*metric) for metric in total_metrics(report))
+    metrics = total_metrics(report)
+    cards = "".join(metric_card(*metric) for metric in metrics)
     generated = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z")
 
     html = f"""<!doctype html>
@@ -147,6 +182,7 @@ def write_dashboard(args: argparse.Namespace, report: str) -> None:
 """
     (output_dir / "index.html").write_text(html, encoding="utf-8")
     (output_dir / "summary.txt").write_text(report, encoding="utf-8")
+    write_badge(output_dir, metrics)
 
 
 def main() -> None:

@@ -1,6 +1,7 @@
-[![Coverage](https://github.com/wjr-z/wjr/actions/workflows/coverage.yml/badge.svg?branch=coverage-report)](https://github.com/wjr-z/wjr/actions/workflows/coverage.yml)
+[![Coverage](https://wjr-z.github.io/wjr/coverage.svg)](https://wjr-z.github.io/wjr/)
+[![Coverage workflow](https://github.com/wjr-z/wjr/actions/workflows/coverage.yml/badge.svg?branch=main)](https://github.com/wjr-z/wjr/actions/workflows/coverage.yml)
 
-Coverage runs with Clang on pushes to `main` and `coverage-report`, and on pull requests targeting `main`. Each run uploads the generated HTML report as a workflow artifact. After GitHub Pages is enabled for the repository, the latest `main` report is published at <https://wjr-z.github.io/wjr/>.
+Coverage runs with Clang on pushes to `main` and `coverage-report`, and on pull requests targeting `main`. The badge reports line coverage from the latest `main` run; each run also uploads the generated HTML report as an artifact. After GitHub Pages is enabled for the repository, the full report is published at <https://wjr-z.github.io/wjr/>.
 
 最低要求：  \
 C++17，64位系统，CMake。  \
