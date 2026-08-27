@@ -68,6 +68,19 @@ JSON 数据结构和解析、序列化相关功能。
 
 应用程序优先使用上面列出的公共模块或总库 `wjr::wjr`，不要依赖这些内部 target 的名称和实现细节。
 
+## 顶层头文件
+
+常用功能提供顶层入口，应用程序可以直接包含：
+
+```cpp
+#include <wjr/json.hpp>
+#include <wjr/ring_buffer.hpp>
+```
+
+其中 `wjr/json.hpp` 提供 JSON document 的公共入口，`wjr/ring_buffer.hpp`
+转发到环形缓冲区容器。其他功能仍可直接包含对应目录下的头文件，例如
+`wjr/math.hpp`、`wjr/biginteger.hpp` 和 `wjr/container/ring_buffer.hpp`。
+
 ## 使用方式
 
 在 WJR 已作为子目录加入项目，或通过安装包 `find_package(wjr CONFIG REQUIRED)` 找到后，链接模块 alias：
