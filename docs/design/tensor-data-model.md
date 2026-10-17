@@ -96,6 +96,7 @@ target_link_libraries(research PRIVATE wjr::np)
 组件配置文件名为 `wjr-<component>-config.cmake`，仅装载请求的组件，重复发现可用。
 如果集成项目已经定义上游 `std::mdspan` CMake target，应确保它对应同一快照及配置；
 这个历史 target 名称并不表示 C++ 类型切换到 `std` 命名空间。
+源码集成允许该 target 不参加 WJR 的导出；对应 mdspan 安装包由集成方提供。
 安装发现也应使用同一安装前缀中的依赖，不能只凭 `0.6.0` 版本字符串接受另一份实现。
 
 ## 已测成本与限制

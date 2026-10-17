@@ -13,7 +13,7 @@ endif()
 add_library(wjr-np INTERFACE)
 add_library(wjr::np ALIAS wjr-np)
 set_target_properties(wjr-np PROPERTIES EXPORT_NAME np)
-target_link_libraries(wjr-np INTERFACE wjr::config std::mdspan)
+target_link_libraries(wjr-np INTERFACE wjr::config $<BUILD_INTERFACE:std::mdspan>)
 target_compile_features(wjr-np INTERFACE cxx_std_20)
 # One indexing spelling in C++20 and C++23, with no public backend switch.
 target_compile_definitions(wjr-np INTERFACE
