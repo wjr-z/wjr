@@ -10,7 +10,10 @@ auto panel = wjr::np::try_make_strided_tensor_view<shape>(
 // expected<tensor_view<元素类型, shape, layout_stride>, shape_error>
 ```
 
-stride 单位是 T 对象数，不能直接传 NumPy/DLPack 的 byte stride。
+stride 单位是 T 对象数，不能直接传 NumPy 的 byte stride。
+[DLPack 的 strides](https://dmlc.github.io/dlpack/latest/c_api.html#c.DLTensor.strides)
+同样以元素为单位，byte_offset 才以字节为单位。单位一致不代表已经实现 DLPack 导入器：
+dtype、device、byte_offset 处理，以及 producer/deleter 或 lease 的生命周期边界尚未接入。
 shape 与 stride 可以使用不同整数类型；两者都检查后再转成 index_type，不接受 bool 或浮点。
 静态 extent 和 T 的 const 性保留。返回已有 mdspan alias，不增加标记、共享所有权或索引检查。
 调用方仍需保证地址、类型、对齐、包含间隙的存储范围及整个使用期间的生命周期有效。
