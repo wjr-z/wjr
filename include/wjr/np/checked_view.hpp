@@ -23,6 +23,9 @@ enum class shape_error {
     storage_size_mismatch,
     container_size_limit,
     element_count_mismatch,
+    nonpositive_stride,
+    stride_out_of_range,
+    unsupported_stride_order,
 };
 
 namespace detail {
