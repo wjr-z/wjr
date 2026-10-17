@@ -101,3 +101,21 @@ alias contract is described in [SIMD expression evaluation](../../docs/design/te
 展示与预分配 `eval_to` 的区别。`wjr_np_evaluate` 输出平方偏差，随后修改原数组，
 确认结果保持独立。allocator、错误和 layout 约定见
 [表达式物化](../../docs/design/tensor-evaluation.md)。
+
+## 前缀和、区间和与二维积分表
+
+`wjr_np_prefix_sums` 展示 `cumsum_to` 的三个组合：一维 inclusive prefix，
+通过前缀相减计算固定宽度窗口总和，以及先列后行生成二维离散积分表。
+所有输出均预分配；第二次二维 scan 直接复用输出，不分配中间数组。
+CTest 包含该示例，预期输出为：
+
+```text
+inclusive prefix: 1 3 6 10 15 21
+width-3 window totals: 6 9 12 15
+2D integral table:
+1 3 6
+5 12 21
+```
+
+有序累计、输出转换、原位别名及浮点前缀相减的限制见
+[scan 契约](../../docs/design/tensor-scans.md)。
