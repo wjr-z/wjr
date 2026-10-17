@@ -80,8 +80,6 @@
 #include <wjr/memory/copy.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
 
-#include <range/v3/iterator/operations.hpp>
-
 namespace wjr {
 
 template <typename T, typename Alloc>
@@ -1187,12 +1185,12 @@ public:
     WJR_CONSTEXPR20 basic_vector(wjr::from_range_t, Range &&rg,
                                  const allocator_type &al = allocator_type())
         : basic_vector(al) {
-        if constexpr (ranges::sized_range<Range> || ranges::forward_range<Range>) {
-            const auto n = static_cast<size_type>(ranges::distance(rg));
-            _construct_n(n, ranges::begin(rg), ranges::end(rg));
+        if constexpr (std::ranges::sized_range<Range> || std::ranges::forward_range<Range>) {
+            const auto n = static_cast<size_type>(std::ranges::distance(rg));
+            _construct_n(n, std::ranges::begin(rg), std::ranges::end(rg));
         } else {
-            auto _first = ranges::begin(rg);
-            const auto _last = ranges::end(rg);
+            auto _first = std::ranges::begin(rg);
+            const auto _last = std::ranges::end(rg);
             for (; _first != _last; ++_first)
                 emplace_back(*_first);
         }
@@ -1455,7 +1453,8 @@ private:
             auto &al = _get_allocator();
             _construction_rollback rollback(*this);
             uninitialized_construct(n, n);
-            wjr::uninitialized_copy_restrict_using_allocator(first, last, data(), al);
+            wjr::uninitialized_copy_restrict_using_allocator(std::move(first), std::move(last),
+                                                             data(), al);
             rollback.release();
         }
     }

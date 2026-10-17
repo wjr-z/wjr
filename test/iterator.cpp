@@ -88,7 +88,7 @@ static_assert(wjr::is_contiguous_iterator_v<int[3]>);
 static_assert(wjr::is_contiguous_iterator_v<std::move_iterator<int *>>);
 static_assert(!wjr::is_contiguous_iterator_v<std::move_iterator<nontrivial *>>);
 static_assert(!std::contiguous_iterator<std::move_iterator<int *>>);
-static_assert(ranges::contiguous_iterator<wjr::span<int>::iterator>);
+static_assert(std::contiguous_iterator<wjr::span<int>::iterator>);
 static_assert(wjr::is_contiguous_iterator_v<wjr::span<int>::iterator>);
 static_assert(std::same_as<wjr::iterator_contiguous_pointer_t<const_counted>, const int *>);
 static_assert(std::same_as<wjr::iterator_contiguous_pointer_t<volatile_counted>, volatile int *>);

@@ -99,7 +99,7 @@ constexpr auto _uninitialized_iter_base(Iter iter) {
 template <typename InputItInit, typename InputItSe, typename OutputIt>
 WJR_CONSTEXPR20 OutputIt uninitialized_copy(InputItInit first, InputItSe last, OutputIt dest) {
     auto _dest = wjr::_iter_base(dest);
-    if constexpr (std::is_same_v<InputItInit, InputItSe>) {
+    if constexpr (std::is_same_v<InputItInit, InputItSe> && is_input_iterator_v<InputItInit>) {
         auto _first = wjr::_iter_base(first);
         auto _last = wjr::_iter_base(last);
         return wjr::_iter_wrap(dest, std::uninitialized_copy(_first, _last, _dest));
@@ -144,7 +144,7 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_using_allocator(InputItInit first, I
     if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<OutputIt>,
                                                      iterator_reference_t<InputItInit>> &&
                   is_trivially_allocator_destroy_v<Alloc, iterator_value_t<OutputIt>>) {
-        return wjr::uninitialized_copy(first, last, dest);
+        return wjr::uninitialized_copy(std::move(first), std::move(last), dest);
     } else {
         auto _dest = wjr::_iter_base(dest);
         _uninitialized_rollback<decltype(_dest), Alloc> rollback(_dest, _dest, &alloc);

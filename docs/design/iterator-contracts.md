@@ -17,14 +17,14 @@
 
 ## 连续访问的边界
 
-`is_contiguous_iterator_v` 同时接受标准 `std::contiguous_iterator` 和现有 range-v3
-连续迭代器，保留数组和 trivial 元素 move iterator 的 WJR 扩展。
+`is_contiguous_iterator_v` 接受标准 `std::contiguous_iterator`，保留数组和
+trivial 元素 move iterator 的 WJR 扩展。
 扩展不代表该类型满足标准概念。`void*` 和函数指针没有连续对象元素，结果为 false；
 `const` 和 `volatile` 对象指针的元素限定保持。非 trivial 元素的 move iterator
 不会被解包成普通指针，以免丢失移动语义。
 
-WJR 自身的 contiguous tag 仍保留 range-v3 定义。两套 tag 的直接替换或双继承会破坏
-现有识别，具体证据见 [span 互操作](span-interop.md)。标准迭代器满足
+WJR 自身的 contiguous tag 使用标准定义。仅声明 range-v3 contiguous tag 的外部类型
+需要标准迭代器接口才能进入连续路径，迁移边界见 [标准 ranges 决策](std-ranges.md)。标准迭代器满足
 [连续访问要求](https://eel.is/c++draft/iterator.concept.contiguous)，可以通过
 `std::to_address` 提取对应元素地址，不需要新增虚接口或共享所有权。
 
