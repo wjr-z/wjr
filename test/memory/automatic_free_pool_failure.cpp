@@ -17,15 +17,11 @@ bool allocation_expected = false;
 // Isolate failure injection from the unit-test executable and global operator new.
 namespace wjr::mem {
 template <>
-void *_default_allocate<default_new_alignment>(size_t) {
+void *_default_allocate<default_new_alignment>(size_t, std::nothrow_t) {
     if (!allocation_expected) {
         std::_Exit(EXIT_FAILURE);
     }
-#if defined(WJR_DISABLE_EXCEPTIONS)
-    std::terminate();
-#else
-    throw std::bad_alloc{};
-#endif
+    return nullptr;
 }
 } // namespace wjr::mem
 

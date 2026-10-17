@@ -1,6 +1,7 @@
 #ifndef WJR_MEMORY_AUTOMATIC_FREE_POOL_HPP__
 #define WJR_MEMORY_AUTOMATIC_FREE_POOL_HPP__
 
+#include <exception>
 #include <limits>
 #include <memory>
 
@@ -28,7 +29,9 @@ public:
     automatic_free_pool() = default;
     ~automatic_free_pool() noexcept {
         chunk *node, *next;
-        WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) { mem::_default_deallocate(node); }
+        WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) {
+            mem::_default_deallocate(node, std::nothrow);
+        }
     }
 
     automatic_free_pool(const automatic_free_pool &) = delete;
@@ -41,7 +44,9 @@ public:
     automatic_free_pool &operator=(automatic_free_pool &&other) noexcept {
         if (this != std::addressof(other)) {
             chunk *node, *next;
-            WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) { mem::_default_deallocate(node); }
+            WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) {
+                mem::_default_deallocate(node, std::nothrow);
+            }
             replace(&other.head, &head);
             other.head.init_self();
         }
@@ -51,7 +56,10 @@ public:
     /// @pre n + aligned_header_size is representable in size_t.
     WJR_MALLOC void *allocate(size_t n) noexcept {
         WJR_ASSERT_ASSUME_L2(n <= std::numeric_limits<size_t>::max() - aligned_header_size);
-        auto *const raw = mem::_default_allocate(n + aligned_header_size);
+        auto *const raw = mem::_default_allocate(n + aligned_header_size, std::nothrow);
+        if (WJR_UNLIKELY(raw == nullptr)) {
+            std::terminate();
+        }
         head.push_back(static_cast<chunk *>(raw));
         return static_cast<void *>(static_cast<std::byte *>(raw) + aligned_header_size);
     }
@@ -59,7 +67,7 @@ public:
     static void deallocate(void *ptr) noexcept {
         auto *const node = static_cast<std::byte *>(ptr) - aligned_header_size;
         reinterpret_cast<chunk *>(node)->remove();
-        mem::_default_deallocate(node);
+        mem::_default_deallocate(node, std::nothrow);
     }
 
 private:
