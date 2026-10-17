@@ -61,4 +61,4 @@ GCC 动态构造不再需要分配失败时的多余 size 清零，MSVC 的构�
 相较不含回滚的旧实现，仍有栈帧和 call/return 成本，没有宣称完全消除。
 Clang/GCC 的独立批量算法探针保持指令数量，未按元素 noexcept 猜测并跳过清理。
 新增回归覆盖输入解引用、递增、sentinel 比较抛出，以及元素无抛但 allocator 定制抛出。
-allocator_traits 特化用例仅在 C++20 启用；C++23 起按 P2652R2 改由 allocator 成员定制。
+测试统一使用 allocator 成员定制，不特化当前标准库禁止用户特化的 allocator_traits。

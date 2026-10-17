@@ -26,21 +26,8 @@ struct allocator : std::allocator<value> {
     int attempts = 0;
     int constructed = 0;
     int destroyed = 0;
-    int direct_calls = 0;
     int throw_at = 0;
 
-    #if !defined(WJR_CPP_23)
-    template <typename... Args>
-    void construct(value *ptr, Args &&...args) noexcept {
-        ++direct_calls;
-        std::construct_at(ptr, std::forward<Args>(args)...);
-    }
-
-    void destroy(value *ptr) noexcept {
-        ++direct_calls;
-        std::destroy_at(ptr);
-    }
-    #else
     template <typename... Args>
     void construct(value *ptr, Args &&...args) {
         if (++attempts == throw_at) {
@@ -54,41 +41,11 @@ struct allocator : std::allocator<value> {
         ++destroyed;
         std::destroy_at(ptr);
     }
-    #endif
 };
-
-} // namespace rollback_test
-
-    // C++23 disallows program-defined allocator_traits specializations (P2652R2).
-    #if !defined(WJR_CPP_23)
-template <>
-struct std::allocator_traits<rollback_test::allocator>
-    : std::allocator_traits<std::allocator<rollback_test::value>> {
-    using allocator_type = rollback_test::allocator;
-
-    template <typename... Args>
-    static void construct(allocator_type &alloc, value_type *ptr, Args &&...args) {
-        if (++alloc.attempts == alloc.throw_at) {
-            throw rollback_test::failure{};
-        }
-        std::construct_at(ptr, std::forward<Args>(args)...);
-        ++alloc.constructed;
-    }
-
-    static void destroy(allocator_type &alloc, value_type *ptr) noexcept {
-        ++alloc.destroyed;
-        std::destroy_at(ptr);
-    }
-};
-    #endif
-
-namespace rollback_test {
 
 static_assert(std::is_nothrow_default_constructible_v<value>);
 static_assert(std::is_nothrow_copy_constructible_v<value>);
-    #if !defined(WJR_CPP_23)
-static_assert(noexcept(std::declval<allocator &>().construct(std::declval<value *>())));
-    #endif
+static_assert(!noexcept(std::declval<allocator &>().construct(std::declval<value *>())));
 static_assert(!noexcept(std::allocator_traits<allocator>::construct(std::declval<allocator &>(),
                                                                     std::declval<value *>())));
 
@@ -172,7 +129,6 @@ WJR_NOINLINE void check_input_failure(int algorithm, input_operation operation, 
     if (algorithm != 0) {
         EXPECT_EQ(alloc.constructed, completed);
         EXPECT_EQ(alloc.destroyed, completed);
-        EXPECT_EQ(alloc.direct_calls, 0);
     }
     storage.deallocate(dest, source.size());
 }
@@ -230,7 +186,6 @@ WJR_NOINLINE void check_traits_construction(int operation, int throw_at) {
             std::allocator_traits<allocator>::destroy(alloc, dest + i);
         }
     }
-    EXPECT_EQ(alloc.direct_calls, 0);
     storage.deallocate(dest, source.size());
 }
 
@@ -256,7 +211,7 @@ TEST(uninitialized_rollback, input_operations_may_throw) {
     EXPECT_EQ(value::live, 0);
 }
 
-TEST(uninitialized_rollback, allocator_traits_customization_is_preserved) {
+TEST(uninitialized_rollback, allocator_hooks_may_throw_for_nothrow_elements) {
     for (int operation = 0; operation < 8; ++operation) {
         SCOPED_TRACE(operation);
         for (int position = 0; position <= 4; ++position) {
