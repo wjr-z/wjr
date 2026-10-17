@@ -33,6 +33,9 @@ target_link_libraries(app PRIVATE wjr::simd_xsimd)
 - `first_true(mask)`：返回第一个 true lane 的索引；空结果返回 lane 数。
 - `find_equal(src, value, count)`：返回首个相等元素或 count，作为有界读取的参考内核。
 
+连续数据的一元/二元变换见 [`<wjr/simd/transform.hpp>`](simd-transform.md)：
+输出缓冲区由调用方预分配，复用 batch load/store 和用户算子，不引入表达式引擎。
+
 这些类型和名称仍属实验接口。架构进入 `batch` 的类型，因此它们不出现在跨 ISA 的编译内核 ABI 中。
 未来的分发入口采用指针、元素数和标量参数；CPU 探测及 dispatcher 必须用基线 ISA 编译。
 是否引入多目标分发，需要单独衡量间接调用、代码体积和首次探测成本。
