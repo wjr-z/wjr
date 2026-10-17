@@ -40,7 +40,8 @@
 
 - CI workflow 位于 `.github/workflows`；根目录 `CMakeLists.txt` 仍是构建选项和 target 的权威来源。
 - 修改 `AGENTS.md`、`.gitignore`、文档或其他不影响构建的本地/流程元数据时，应检查 Linux 和 Windows workflow 的 `paths-ignore` 是否同步；`pre-commit.yml` 仍负责格式规则和 hook 配置相关变更。
-- `linux.yml` 在 `ubuntu-latest` 上测试 Clang 17-20 和 GCC 11-14，默认 C++20，覆盖 C++20/baseline 和 C++23/baseline，启用测试和 ASan，并运行 GMP 测试环境。
+- `linux.yml` 在 `ubuntu-24.04` 上测试 Clang 17-20 和 GCC 11-14，默认 C++20，覆盖 C++20/baseline 和 C++23/baseline，启用测试和 ASan，并运行 GMP 测试环境。
+- Linux、coverage、pre-commit 和 benchmark workflow 固定使用 `ubuntu-24.04`；升级 runner 版本前先验证工具链、依赖和系统库。Linux 编译缓存由现成 ccache action 管理，普通编译共享缓存，仅真实 native 编译通过 launcher 附加 CPU 指纹；不要移除这层区分或将 native 简化为常量缓存标记。
 - `windows.yml` 在 `windows-latest` 上测试 MSVC 和 Clang，安装 NASM，关闭 GMP 测试，并运行 Windows 测试。
 - Windows CI 保持 MSVC 和 Clang 两项；新的标准版本、ISA 和安装组合优先放在 Linux 验证，不自行增加 Windows 矩阵或额外耗时步骤。
 - Linux、Windows 和 pre-commit workflow 都在 `main` 的 push、pull request 上运行，也支持手动 `workflow_dispatch`；Linux/Windows workflow 会跳过仅修改 `README.md`、`docs/**`、`AGENTS.md`、`.gitignore`、`.editorconfig`、`.gitattributes`、`.clang-format`、`.pre-commit-config.yaml` 或 pre-commit workflow 的变更。
