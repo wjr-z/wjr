@@ -20,6 +20,8 @@ enum class shape_error {
     size_overflow,
     insufficient_storage,
     null_storage,
+    storage_size_mismatch,
+    container_size_limit,
 };
 
 namespace detail {
@@ -30,20 +32,17 @@ inline constexpr bool is_extents = false;
 template <class Index, size_t... Values>
 inline constexpr bool is_extents<extents<Index, Values...>> = true;
 
-} // namespace detail
+template <class Extents>
+struct checked_metadata {
+    std::array<typename Extents::index_type, Extents::rank()> dimensions;
+    size_t size;
+};
 
-// Checks metadata before constructing the unchecked backend mapping. The caller
-// still owns the storage and must provide correctly aligned, live T objects.
-template <class Extents, class Layout = layout_right, class T, std::integral Integer>
-requires(detail::is_extents<Extents> &&
-         (std::same_as<Layout, layout_right> || std::same_as<Layout, layout_left>) &&
-         !std::same_as<std::remove_cv_t<Integer>, bool> && std::is_object_v<T> &&
-         requires { sizeof(T); })
-[[nodiscard]] constexpr expected<tensor_view<T, Extents, Layout>, shape_error>
-try_make_tensor_view(T *data, size_t available_elements,
-                     const std::array<Integer, Extents::rank()> &shape) noexcept {
+// Shared boundary validation; no backend mapping or allocation exists yet.
+template <class T, class Extents, std::integral Integer>
+constexpr expected<checked_metadata<Extents>, shape_error>
+check_metadata(const std::array<Integer, Extents::rank()> &shape) noexcept {
     using index_type = typename Extents::index_type;
-    using view_type = tensor_view<T, Extents, Layout>;
     std::array<index_type, Extents::rank()> dimensions{};
     bool empty = false;
 
@@ -91,14 +90,34 @@ try_make_tensor_view(T *data, size_t available_elements,
     if (elements > max_bytes / sizeof(T)) {
         return unexpected(shape_error::size_overflow);
     }
-    if (elements > available_elements) {
+    return checked_metadata<Extents>{dimensions, elements};
+}
+
+} // namespace detail
+
+// Checks metadata before constructing the unchecked backend mapping. The caller
+// still owns the storage and must provide correctly aligned, live T objects.
+template <class Extents, class Layout = layout_right, class T, std::integral Integer>
+requires(detail::is_extents<Extents> &&
+         (std::same_as<Layout, layout_right> || std::same_as<Layout, layout_left>) &&
+         !std::same_as<std::remove_cv_t<Integer>, bool> && std::is_object_v<T> &&
+         requires { sizeof(T); })
+[[nodiscard]] constexpr expected<tensor_view<T, Extents, Layout>, shape_error>
+try_make_tensor_view(T *data, size_t available_elements,
+                     const std::array<Integer, Extents::rank()> &shape) noexcept {
+    using view_type = tensor_view<T, Extents, Layout>;
+    auto metadata = detail::check_metadata<T, Extents>(shape);
+    if (!metadata) {
+        return unexpected(metadata.error());
+    }
+    if (metadata->size > available_elements) {
         return unexpected(shape_error::insufficient_storage);
     }
     if (data == nullptr && available_elements != 0) {
         return unexpected(shape_error::null_storage);
     }
 
-    const Extents extents(dimensions);
+    const Extents extents(metadata->dimensions);
     const typename view_type::mapping_type mapping(extents);
     return view_type(data, mapping);
 }

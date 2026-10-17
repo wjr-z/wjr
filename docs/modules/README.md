@@ -83,7 +83,9 @@ JSON 数据结构和解析、序列化相关功能。
 不依赖 `wjr::isa`，不默认链接到 `wjr::wjr`。
 安装消费使用 `find_package(wjr CONFIG REQUIRED COMPONENTS np)`。
 数据生命周期、未检查构造的前置条件和已测空间限制见
-[初始数据模型](../design/tensor-data-model.md)；owner 与计算框架尚未实现。
+[初始数据模型](../design/tensor-data-model.md)。`<wjr/np/tensor.hpp>` 提供
+容器管理生命周期的连续 owner、checked 创建及显式借用，见
+[owner 契约](../design/tensor-owner.md)；计算框架尚未实现。
 
 ## `wjr::simd_xsimd`（可选、实验性）
 
