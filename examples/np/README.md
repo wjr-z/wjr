@@ -94,3 +94,10 @@ and `WJR_ENABLE_XSIMD=ON`, then configure this example project with
 `-DWJR_NP_EXAMPLES_XSIMD=ON`. It links the optional `wjr::simd_xsimd` component;
 the ordinary examples keep their existing dependencies. The precise dtype and
 alias contract is described in [SIMD expression evaluation](../../docs/design/tensor-expression-xsimd.md).
+
+## 物化为独立拥有数据的结果
+
+`evaluate.cpp` 使用 `eval((x-center)*(x-center))` 创建新的 tensor owner，
+展示与预分配 `eval_to` 的区别。`wjr_np_evaluate` 输出平方偏差，随后修改原数组，
+确认结果保持独立。allocator、错误和 layout 约定见
+[表达式物化](../../docs/design/tensor-evaluation.md)。
