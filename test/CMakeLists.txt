@@ -216,7 +216,10 @@ foreach(_WJR_ASSERT_MODE IN ITEMS full light minimal)
    add_dependencies(tests assert_contract_${_WJR_ASSERT_MODE})
    add_test(NAME wjr_assert_${_WJR_ASSERT_MODE}
       COMMAND assert_contract_${_WJR_ASSERT_MODE} 0)
-   set_tests_properties(wjr_assert_${_WJR_ASSERT_MODE} PROPERTIES LABELS unit)
+   add_test(NAME wjr_assert_${_WJR_ASSERT_MODE}_minimal_handler
+      COMMAND assert_contract_${_WJR_ASSERT_MODE} 0 minimal)
+   set_tests_properties(wjr_assert_${_WJR_ASSERT_MODE}
+      wjr_assert_${_WJR_ASSERT_MODE}_minimal_handler PROPERTIES LABELS unit)
 endforeach()
 
 if(WJR_ENABLE_NP)

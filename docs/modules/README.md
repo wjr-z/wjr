@@ -33,6 +33,9 @@ target_link_libraries(my_app PRIVATE wjr::json)
 静态链接且其他代码也不使用诊断时，无须从 `wjr::assert` 提取包含 iostream 的实现；
 共享库仍保留既有诊断导出函数及其固定成本。
 
+只在某个失败路径使用最小处理时，可以直接调用零参数
+`WJR_ASSERT_FAILED_HANDLER_MINIMAL()`；它不依赖全局模式，也直接展开为 `std::terminate()`。
+
 ## `wjr::iterator`
 
 迭代器相关的基础工具和适配支持，为容器、算法及其他模块提供通用迭代器能力。
