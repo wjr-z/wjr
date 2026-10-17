@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <limits>
 #include <type_traits>
+#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -93,6 +94,24 @@ constexpr bool constant_empty_and_singleton() {
 }
 static_assert(constant_empty_and_singleton());
 
+constexpr bool constant_column_block() {
+    using dimensions = np::extents<size_t, 3, 5>;
+    int source[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+    int output[15]{};
+    np::cumsum_to(np::tensor_view<int, dimensions>(output),
+                  np::tensor_view<const int, dimensions>(source), np::axes<0>);
+    for (size_t column = 0; column != 5; ++column) {
+        int state = 0;
+        for (size_t row = 0; row != 3; ++row) {
+            state += source[row * 5 + column];
+            if (output[row * 5 + column] != state)
+                return false;
+        }
+    }
+    return true;
+}
+static_assert(constant_column_block());
+
 TEST(np_scan, constant_evaluation_and_empty_domains) {
     EXPECT_TRUE((constant_matrix_scan<np::layout_right, np::layout_right, 1>()));
     EXPECT_TRUE((constant_matrix_scan<np::layout_left, np::layout_right, 0>()));
@@ -100,6 +119,7 @@ TEST(np_scan, constant_evaluation_and_empty_domains) {
     EXPECT_TRUE((constant_matrix_scan<np::layout_left, np::layout_left, 0>()));
     EXPECT_TRUE(constant_disjoint_and_inplace());
     EXPECT_TRUE(constant_empty_and_singleton());
+    EXPECT_TRUE(constant_column_block());
 }
 
 TEST(np_scan, output_conversion_does_not_replace_accumulator) {
@@ -187,5 +207,55 @@ TEST(np_scan, real_bool_and_nan_prefixes) {
     EXPECT_EQ(output[0], 1);
     EXPECT_TRUE(std::isnan(output[1]));
     EXPECT_TRUE(std::isnan(output[2]));
+}
+
+template <class Input, class Accumulator, class Output>
+void check_column_scan_blocks() {
+    using dimensions = np::dextents<size_t, 2>;
+    for (size_t rows : {0, 1, 3, 5}) {
+        for (size_t columns : {0, 1, 3, 4, 5, 7, 300}) {
+            std::vector<Input> input(rows * columns);
+            std::vector<Output> actual(rows * columns), expected(rows * columns);
+            for (size_t row = 0; row != rows; ++row)
+                for (size_t column = 0; column != columns; ++column)
+                    input[row * columns + column] =
+                        static_cast<Input>((static_cast<int>(row * 3 + column) % 17) - 8);
+            for (size_t column = 0; column != columns; ++column) {
+                Accumulator state{};
+                for (size_t row = 0; row != rows; ++row) {
+                    state += static_cast<Accumulator>(input[row * columns + column]);
+                    expected[row * columns + column] = static_cast<Output>(state);
+                }
+            }
+            const np::tensor_view<const Input, dimensions> src(input.data(), rows, columns);
+            np::cumsum_to<Accumulator>(
+                np::tensor_view<Output, dimensions>(actual.data(), rows, columns), src,
+                np::axes<0>);
+            EXPECT_EQ(actual, expected);
+            if constexpr (std::same_as<Input, Output>) {
+                np::tensor_view<Input, dimensions> inplace(input.data(), rows, columns);
+                np::cumsum_to<Accumulator>(inplace, inplace, np::axes<0>);
+                EXPECT_EQ(input, expected);
+            }
+        }
+    }
+}
+
+TEST(np_scan, adjacent_column_blocks_and_remainders) {
+    check_column_scan_blocks<double, double, double>();
+    check_column_scan_blocks<float, double, float>();
+    check_column_scan_blocks<std::uint8_t, int, std::uint8_t>();
+    check_column_scan_blocks<int, int, float>();
+}
+
+TEST(np_scan, column_blocks_keep_order_and_accumulator_between_output_conversions) {
+    using dimensions = np::extents<size_t, 3, 5>;
+    const float input[] = {1e8f, 1e8f, 1e8f,  1e8f,  1e8f,  1,     1,    1,
+                           1,    1,    -1e8f, -1e8f, -1e8f, -1e8f, -1e8f};
+    float actual[15]{};
+    np::cumsum_to<double>(np::tensor_view<float, dimensions>(actual),
+                          np::tensor_view<const float, dimensions>(input), np::axes<0>);
+    for (size_t column = 0; column != 5; ++column)
+        EXPECT_EQ(actual[10 + column], 1);
 }
 } // namespace

@@ -21,8 +21,14 @@ constexpr void cumsum_to(tensor_view<D, DstExtents, DstLayout> dst,
     if (dst.empty())
         return;
     const auto count = static_cast<size_t>(src.extent(Axis));
-    const auto input_step = static_cast<size_t>(src.stride(Axis));
-    const auto output_step = static_cast<size_t>(dst.stride(Axis));
+    if constexpr (Axis == 0 && SrcExtents::rank() == 2 && std::same_as<SrcLayout, layout_right> &&
+                  std::same_as<DstLayout, layout_right>) {
+        detail::axis_columns_to<true, accumulator_type>(dst.data_handle(), src.data_handle(), count,
+                                                        static_cast<size_t>(src.extent(1)));
+        return;
+    }
+    const auto input_step = static_cast<size_t>(detail::axis_stride<Axis>(src));
+    const auto output_step = static_cast<size_t>(detail::axis_stride<Axis>(dst));
     const auto input = src.data_handle();
     const auto output = dst.data_handle();
     auto scan = [=](size_t output_offset, size_t input_offset) noexcept {

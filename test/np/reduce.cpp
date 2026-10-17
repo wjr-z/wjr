@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <limits>
 #include <type_traits>
+#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -231,5 +232,57 @@ TEST(np_reduce, ieee_values_follow_ordered_scalar_addition) {
     EXPECT_FALSE(std::signbit(np::sum(np::tensor_view<const double, single>(&negative_zero))));
     EXPECT_TRUE(std::isinf(np::sum(np::tensor_view<const double, single>(&infinity))));
     EXPECT_TRUE(std::isnan(np::sum(np::tensor_view<const double, single>(&nan))));
+}
+
+template <class Input, class Accumulator, class Output>
+void check_column_blocks() {
+    using input_shape = np::dextents<size_t, 2>;
+    using output_shape = np::dextents<size_t, 1>;
+    for (size_t rows : {0, 1, 3, 5}) {
+        for (size_t columns : {0, 1, 3, 4, 5, 7, 300}) {
+            std::vector<Input> input(rows * columns);
+            std::vector<Output> actual(columns, Output{9}), expected(columns), kept(columns);
+            for (size_t row = 0; row != rows; ++row)
+                for (size_t column = 0; column != columns; ++column)
+                    input[row * columns + column] =
+                        static_cast<Input>((static_cast<int>(row * 3 + column) % 17) - 8);
+            for (size_t column = 0; column != columns; ++column) {
+                Accumulator value{};
+                for (size_t row = 0; row != rows; ++row)
+                    value += static_cast<Accumulator>(input[row * columns + column]);
+                expected[column] = static_cast<Output>(value);
+            }
+            const np::tensor_view<const Input, input_shape> src(input.data(), rows, columns);
+            np::sum_to<Accumulator>(
+                np::tensor_view<Output, output_shape, np::layout_left>(actual.data(), columns), src,
+                np::axes<0>);
+            np::sum_to<Accumulator>(np::tensor_view<Output, input_shape>(kept.data(), 1, columns),
+                                    src, np::axes<0>, np::keepdims);
+            EXPECT_EQ(actual, expected);
+            EXPECT_EQ(kept, expected);
+        }
+    }
+}
+
+TEST(np_reduce, adjacent_column_blocks_and_remainders) {
+    check_column_blocks<double, double, double>();
+    check_column_blocks<float, double, float>();
+    check_column_blocks<std::uint8_t, int, std::uint8_t>();
+}
+
+TEST(np_reduce, column_blocks_keep_order_and_wide_accumulator) {
+    using input_shape = np::extents<size_t, 3, 5>;
+    using output_shape = np::extents<size_t, 5>;
+    const float input[] = {1e8f, 1e8f, 1e8f,  1e8f,  1e8f,  1,     1,    1,
+                           1,    1,    -1e8f, -1e8f, -1e8f, -1e8f, -1e8f};
+    float defaults[5]{};
+    double wide[5]{};
+    const np::tensor_view<const float, input_shape> src(input);
+    np::sum_to(np::tensor_view<float, output_shape>(defaults), src, np::axes<0>);
+    np::sum_to<double>(np::tensor_view<double, output_shape>(wide), src, np::axes<0>);
+    for (size_t column = 0; column != 5; ++column) {
+        EXPECT_EQ(defaults[column], 0);
+        EXPECT_EQ(wide[column], 1);
+    }
 }
 } // namespace
