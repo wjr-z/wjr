@@ -21,8 +21,9 @@ vector、small_vector 和 inplace_vector 完成构造后，size 对应已构造�
 批量构造函数负责在异常时销毁其成功前缀，随后原样传播异常。
 标准算法已有这一责任；自写的 iterator/sentinel 或 allocator hook 循环也必须遵守。
 手写循环使用一个局部前缀守卫，在全部成功后解除；不在每个元素上分配或添加状态标志。
-守卫不持有存储，只记录输出游标；解除时清空游标引用，不再复制最终迭代器。
-allocator 分支通过相同 allocator 销毁对象。
+守卫不持有存储，直接保存起点和当前输出游标；循环推进其内部游标，
+避免守卫引用外部游标带来的别名关系。成功后只解除清理，不再复制最终迭代器。
+allocator 分支仍通过相同 allocator_traits 销毁对象。
 输出迭代器的复制、比较和递增须满足 uninitialized 算法的非抛异常前置条件。
 
 只有 construct 和 destroy 都没有定制行为时，才能把异常清理交给原始标准算法。
@@ -56,5 +57,8 @@ Clang 18/Windows ASan 在优化后的 GTest 异常测试中出现静默 trap，
 GCC 动态构造不再需要分配失败时的多余 size 清零，MSVC 的构造探针保持不变。
 没有对整个构造函数强制内联，也没有引入运行时异常计数或额外检查。
 这些结论仅覆盖所测类型和调用场景，不承诺所有实例化或编译器版本严格零开销。
-前缀回滚对 MSVC 自定义 allocator 值初始化的影响另行核对；
-不能只根据元素类型的 noexcept 跳过清理，因为 allocator hook 仍可能抛出。
+前缀守卫持有自己的游标后，MSVC 自定义 allocator 值初始化恢复 memset；
+相较不含回滚的旧实现，仍有栈帧和 call/return 成本，没有宣称完全消除。
+Clang/GCC 的独立批量算法探针保持指令数量，未按元素 noexcept 猜测并跳过清理。
+新增回归覆盖输入解引用、递增、sentinel 比较抛出，以及元素无抛但 allocator 定制抛出。
+allocator_traits 特化用例仅在 C++20 启用；C++23 起按 P2652R2 改由 allocator 成员定制。
