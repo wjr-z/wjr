@@ -26,6 +26,7 @@ enum class shape_error {
     nonpositive_stride,
     stride_out_of_range,
     unsupported_stride_order,
+    expression_shape_mismatch,
 };
 
 namespace detail {

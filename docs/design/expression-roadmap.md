@@ -37,7 +37,7 @@
 
 依赖：2，可在范围自然较小时与 2 合并。
 
-- eval 根据自然 shape/dtype 创建默认 row-major owner，保持 make_tensor 的 expected/allocator 约定。
+- eval 根据自然 shape/dtype 创建 owner；首版保留表达式的 packed layout，避免隐式布局转换，保持 make_tensor 的 expected/allocator 约定。
 - 通过小型具名入口选择 layout/allocator，不预建复杂存储 policy 框架。
 - eval 始终物化新结果，不根据输入类别有时返回引用。
 - 示例：物化昂贵子表达式后，多次借用其 view。
