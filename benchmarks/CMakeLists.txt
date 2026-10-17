@@ -49,7 +49,7 @@ else()
 endif()
 
 set(WJR_BENCHMARK_PROFILE "core" CACHE STRING "Benchmark profile to build")
-set_property(CACHE WJR_BENCHMARK_PROFILE PROPERTY STRINGS core all simd)
+set_property(CACHE WJR_BENCHMARK_PROFILE PROPERTY STRINGS core all simd np)
 option(WJR_BENCHMARK_XSIMD "Compare SIMD kernels with pinned xsimd" OFF)
 
 set(BENCHMARK_CORE_SRCS
@@ -76,12 +76,24 @@ elseif(WJR_BENCHMARK_PROFILE STREQUAL "simd")
         ${CMAKE_CURRENT_SOURCE_DIR}/src/simd.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/simd_scan.cpp
     )
+elseif(WJR_BENCHMARK_PROFILE STREQUAL "np")
+    if(NOT WJR_ENABLE_NP)
+        message(FATAL_ERROR "The np benchmark profile requires WJR_ENABLE_NP=ON")
+    endif()
+    set(BENCHMARK_SRCS
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/np.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/np_owner.cpp
+    )
 else()
-    message(FATAL_ERROR "WJR_BENCHMARK_PROFILE must be 'core', 'all', or 'simd'")
+    message(FATAL_ERROR "WJR_BENCHMARK_PROFILE must be 'core', 'all', 'simd', or 'np'")
 endif()
 
-if(WJR_BENCHMARK_XSIMD AND NOT WJR_BENCHMARK_PROFILE STREQUAL "simd")
-    message(FATAL_ERROR "WJR_BENCHMARK_XSIMD requires WJR_BENCHMARK_PROFILE=simd")
+if(WJR_BENCHMARK_XSIMD AND NOT WJR_BENCHMARK_PROFILE MATCHES "^(simd|np)$")
+    message(FATAL_ERROR "WJR_BENCHMARK_XSIMD requires the simd or np benchmark profile")
+endif()
+if(WJR_BENCHMARK_XSIMD AND WJR_BENCHMARK_PROFILE STREQUAL "np" AND NOT WJR_ENABLE_XSIMD)
+    message(FATAL_ERROR "The np SIMD benchmarks require WJR_ENABLE_XSIMD=ON")
 endif()
 
 add_executable(
@@ -90,10 +102,18 @@ add_executable(
 )
 
 target_compile_definitions(benchmarks PRIVATE
+    WJR_BENCHMARK_PROFILE="${WJR_BENCHMARK_PROFILE}"
     WJR_BENCHMARK_COMPILER="${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION}"
     WJR_BENCHMARK_CXX_STANDARD="${WJR_CXX_STANDARD}"
     WJR_BENCHMARK_CPU_TARGET="${WJR_CPU_TARGET}"
 )
+
+if(WJR_BENCHMARK_PROFILE STREQUAL "np")
+    target_link_libraries(benchmarks PRIVATE wjr::np)
+    if(WJR_BENCHMARK_XSIMD)
+        target_link_libraries(benchmarks PRIVATE wjr::simd_xsimd)
+    endif()
+endif()
 
 if(WJR_BENCHMARK_XSIMD)
     include(wjrXsimd)
