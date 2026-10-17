@@ -4,6 +4,7 @@
 #include <wjr/np/checked_view.hpp>
 #include <wjr/np/copy.hpp>
 #include <wjr/np/expression.hpp>
+#include <wjr/np/reduce.hpp>
 #include <wjr/np/reshape.hpp>
 #include <wjr/np/subview.hpp>
 #include <wjr/np/tensor.hpp>
@@ -58,6 +59,9 @@ int main(int argc, char **) {
     wjr::np::copy_to(output, transposed);
     wjr::np::transform_to(output, output, [](int value) noexcept { return value * 2; });
     if (output(2, 1) != 84 || materialized[1] != 6) {
+        return 1;
+    }
+    if (wjr::np::sum(output) != 104) {
         return 1;
     }
     wjr::np::fill_to(output, 0);
