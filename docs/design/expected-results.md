@@ -33,17 +33,35 @@ compressed representation. Conversely, compressed error construction omitted
 the separate boolean-state store in those probes. These are code-generation
 observations, not throughput measurements.
 
-Compressed and ordinary results are different types. Current heterogeneous
-expected constructors do not consistently unwrap the source compression tag
-when checking error convertibility. Do not assume conversions from compressed
-to ordinary expected, or between different compressed value types, are accepted.
-Same-type copy/move and ordinary `unexpected(E)` construction are unaffected.
-This existing interoperability limitation is not changed by the alias.
+Compressed and ordinary results are different types. Heterogeneous expected
+constructors check conversion from the source's underlying error type, while
+retaining the complete source expected type for the usual constructor constraints.
+They support const-reference and rvalue conversion between compressed and ordinary
+results, and between different compressed value types, when their value and error
+conversions are valid. Explicit value/error conversions still produce an explicit
+expected constructor. No storage or exception-cleanup mechanism is changed.
+For a compressed destination, converting an error must not produce its reserved
+success value.
 
 ## NP shape results
 
 `<wjr/np/checked_view.hpp>` defines `np::shape_result<T>` as
-`wjr::expected<T, np::shape_error>`. Checked view, reshape, metadata and owner
-factories use this domain spelling. It keeps their exact existing result type,
-error values, layout and interoperability: no success sentinel is added to
-`shape_error`, and NP results are not silently migrated to compressed storage.
+`wjr::compressed_expected<T, np::shape_error, np::shape_error::ok>`. Checked view,
+reshape, metadata and owner factories, including expression materialization,
+actually use this representation. State is encoded by the stored error code:
+`ok` means a value is present, and every existing error code means failure.
+`ok` is appended after the existing errors, preserving their numeric values.
+It is reserved: never pass `shape_error::ok` to `unexpected`, an error constructor,
+error assignment or a conversion whose source is in an error state.
+
+This changes NP result types and ABI, even when sizeof/alignof are unchanged;
+rebuild both producers and consumers. The measured non-void owner/view/metadata
+results retain their previous sizes, while `shape_result<void>` drops the separate
+boolean and occupies one four-byte error code on the tested x64 configurations.
+This is not a blanket space or speed improvement.
+
+An explicitly spelled old `expected<T, shape_error>` result can still receive a
+new factory result through heterogeneous conversion, including read-only view
+conversion. Such compatibility conversions can copy/move the value; factories
+themselves construct `shape_result` directly, without an intermediate ordinary
+expected. Exact type identity and function-pointer return signatures do change.

@@ -2,6 +2,7 @@
 
 #include <initializer_list>
 #include <span>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -377,6 +378,136 @@ TEST(expected, compressed_alias_preserves_result_contract) {
     EXPECT_EQ(sizeof(domain_result<void>), sizeof(result_code));
     EXPECT_LT(sizeof(domain_result<void>), sizeof(expected<void, result_code>));
 }
+
+namespace {
+template <class Source, class Destination>
+constexpr bool sentinel_conversions() {
+    const auto make_value = [] {
+        if constexpr (std::is_void_v<typename Source::value_type>)
+            return Source{};
+        else
+            return Source(3);
+    };
+    const Source value = make_value();
+    const Source error(unexpect, 7);
+    const Destination copied_value(value);
+    const Destination copied_error(error);
+    const Destination moved_value(make_value());
+    const Destination moved_error(Source(unexpect, 7));
+    if (!copied_value || !moved_value || copied_error || moved_error || copied_error.error() != 7 ||
+        moved_error.error() != 7)
+        return false;
+    if constexpr (!std::is_void_v<typename Destination::value_type>)
+        return *copied_value == 3 && *moved_value == 3;
+    return true;
+}
+using compact_int = compressed_expected<int, int, 0>;
+using compact_void = compressed_expected<void, int, 0>;
+static_assert(sentinel_conversions<expected<int, int>, compressed_expected<long, short, -1>>());
+static_assert(sentinel_conversions<compact_int, expected<long, long>>());
+static_assert(sentinel_conversions<compact_int, compressed_expected<long, short, -1>>());
+static_assert(sentinel_conversions<expected<void, int>, compressed_expected<void, short, -1>>());
+static_assert(sentinel_conversions<compact_void, expected<void, long>>());
+static_assert(sentinel_conversions<compact_void, compressed_expected<void, short, -1>>());
+
+struct explicit_result_error {
+    int value;
+    constexpr explicit explicit_result_error(int code) : value(code) {}
+};
+struct rvalue_result_error {
+    int value;
+    constexpr explicit rvalue_result_error(int &&code) : value(code) {}
+    explicit rvalue_result_error(const int &) = delete;
+};
+static_assert(std::is_constructible_v<expected<long, explicit_result_error>, const compact_int &>);
+static_assert(!std::is_convertible_v<const compact_int &, expected<long, explicit_result_error>>);
+static_assert(std::is_constructible_v<expected<void, explicit_result_error>, const compact_void &>);
+static_assert(!std::is_convertible_v<const compact_void &, expected<void, explicit_result_error>>);
+static_assert(std::is_constructible_v<expected<long, rvalue_result_error>, compact_int &&>);
+static_assert(!std::is_constructible_v<expected<long, rvalue_result_error>, const compact_int &>);
+static_assert(std::is_constructible_v<expected<void, rvalue_result_error>, compact_void &&>);
+static_assert(!std::is_constructible_v<expected<void, rvalue_result_error>, const compact_void &>);
+static_assert(
+    !std::is_constructible_v<expected<int, int>, wjr::unexpected<compressed_value<int, 0>>>);
+struct expected_wrapper_value {
+    bool captured_result;
+    explicit expected_wrapper_value(const compact_int &) : captured_result(true) {}
+    explicit expected_wrapper_value(int) : captured_result(false) {}
+};
+} // namespace
+
+TEST(expected, sentinel_heterogeneous_construction) {
+    EXPECT_TRUE((sentinel_conversions<expected<int, int>, compressed_expected<long, short, -1>>()));
+    EXPECT_TRUE((sentinel_conversions<compact_int, expected<long, long>>()));
+    EXPECT_TRUE((sentinel_conversions<compact_int, compressed_expected<long, short, -1>>()));
+    EXPECT_TRUE(
+        (sentinel_conversions<expected<void, int>, compressed_expected<void, short, -1>>()));
+    EXPECT_TRUE((sentinel_conversions<compact_void, expected<void, long>>()));
+    EXPECT_TRUE((sentinel_conversions<compact_void, compressed_expected<void, short, -1>>()));
+    expected<long, rvalue_result_error> moved_error(compact_int(unexpect, 7));
+    expected<void, rvalue_result_error> moved_void_error(compact_void(unexpect, 8));
+    EXPECT_EQ(moved_error.error().value, 7);
+    EXPECT_EQ(moved_void_error.error().value, 8);
+    const compact_int false_value(0);
+    const expected<bool, int> boolean(false_value);
+    EXPECT_TRUE(boolean);
+    EXPECT_FALSE(*boolean);
+    const compact_int source_error(unexpect, 7);
+    const expected<expected_wrapper_value, int> wrapped(source_error);
+    ASSERT_TRUE(wrapped);
+    EXPECT_TRUE(wrapped->captured_result);
+}
+
+#ifndef WJR_DISABLE_EXCEPTIONS
+namespace {
+struct conversion_lifetime {
+    inline static int live = 0;
+    inline static bool fail = false;
+    int value;
+    conversion_lifetime() = delete;
+    explicit conversion_lifetime(int input) : value(input) {
+        if (fail)
+            throw std::runtime_error("conversion");
+        ++live;
+    }
+    ~conversion_lifetime() { --live; }
+};
+} // namespace
+
+TEST(expected, sentinel_conversion_unwinds_only_constructed_objects) {
+    using plain_value = expected<conversion_lifetime, int>;
+    using compact_value = compressed_expected<conversion_lifetime, int, 0>;
+    using plain_error = expected<int, conversion_lifetime>;
+    using void_error = expected<void, conversion_lifetime>;
+    const compact_int value(3);
+    const compact_int error(unexpect, 7);
+    const compact_void empty_error(unexpect, 7);
+    EXPECT_EQ(conversion_lifetime::live, 0);
+    conversion_lifetime::fail = true;
+    EXPECT_THROW((plain_value(value)), std::runtime_error);
+    EXPECT_THROW((plain_value(compact_int(3))), std::runtime_error);
+    EXPECT_THROW((compact_value(value)), std::runtime_error);
+    EXPECT_THROW((compact_value(compact_int(3))), std::runtime_error);
+    EXPECT_THROW((plain_error(error)), std::runtime_error);
+    EXPECT_THROW((plain_error(compact_int(unexpect, 7))), std::runtime_error);
+    EXPECT_THROW((void_error(empty_error)), std::runtime_error);
+    EXPECT_THROW((void_error(compact_void(unexpect, 7))), std::runtime_error);
+    EXPECT_EQ(conversion_lifetime::live, 0);
+    conversion_lifetime::fail = false;
+    {
+        plain_value copied(value);
+        compact_value moved(compact_int(3));
+        plain_error copied_error(error);
+        void_error moved_error(compact_void(unexpect, 7));
+        EXPECT_EQ(conversion_lifetime::live, 4);
+        EXPECT_EQ(copied->value, 3);
+        EXPECT_EQ(moved->value, 3);
+        EXPECT_EQ(copied_error.error().value, 7);
+        EXPECT_EQ(moved_error.error().value, 7);
+    }
+    EXPECT_EQ(conversion_lifetime::live, 0);
+}
+#endif
 
 TEST(expected, nested_expected) {
     expected<expected<int, int>, int> a(expected<int, int>(5));

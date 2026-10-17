@@ -283,7 +283,7 @@ concept tensor_shape =
     is_tensor<Owner> && std::integral<Integer> && !std::same_as<std::remove_cv_t<Integer>, bool>;
 
 template <class Owner, std::integral Integer, class... Initialization>
-constexpr expected<Owner, shape_error>
+constexpr shape_result<Owner>
 make_allocated_tensor(const std::array<Integer, Owner::rank()> &shape,
                       const typename Owner::container_type::allocator_type &allocator,
                       Initialization... initialization) {
@@ -318,7 +318,7 @@ template <class Owner, std::integral Integer>
 requires(detail::tensor_shape<Owner, Integer> &&
          detail::default_initialized_tensor_container<typename Owner::container_type> &&
          std::default_initializable<typename Owner::element_type>)
-[[nodiscard]] constexpr expected<Owner, shape_error>
+[[nodiscard]] constexpr shape_result<Owner>
 make_tensor(const std::array<Integer, Owner::rank()> &shape, default_construct_t,
             std::allocator_arg_t, const typename Owner::container_type::allocator_type &allocator) {
     return detail::make_allocated_tensor<Owner>(shape, allocator, default_construct);
@@ -329,7 +329,7 @@ requires(detail::tensor_shape<Owner, Integer> &&
          detail::default_initialized_tensor_container<typename Owner::container_type> &&
          std::default_initializable<typename Owner::container_type::allocator_type> &&
          std::default_initializable<typename Owner::element_type>)
-[[nodiscard]] constexpr expected<Owner, shape_error>
+[[nodiscard]] constexpr shape_result<Owner>
 make_tensor(const std::array<Integer, Owner::rank()> &shape, default_construct_t) {
     return make_tensor<Owner>(shape, default_construct, std::allocator_arg,
                               typename Owner::container_type::allocator_type{});
