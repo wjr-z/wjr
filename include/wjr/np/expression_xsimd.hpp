@@ -27,7 +27,9 @@ inline constexpr bool homogeneous_xsimd_expression = false;
 
 template <class View, class T>
 inline constexpr bool homogeneous_xsimd_expression<view_expression<View>, T> =
-    std::same_as<typename View::value_type, T>;
+    std::same_as<typename View::value_type, T> &&
+    std::same_as<typename View::accessor_type, default_accessor<typename View::element_type>> &&
+    expression_layout<typename View::layout_type>;
 
 template <class S, class T>
 inline constexpr bool homogeneous_xsimd_expression<scalar_expression<S>, T> = std::same_as<S, T>;
