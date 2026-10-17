@@ -199,6 +199,9 @@ static_assert(!std::is_copy_constructible_v<compressed_pair<std::unique_ptr<int>
 static_assert(std::is_nothrow_move_constructible_v<compressed_pair<std::unique_ptr<int>, empty>>);
 static_assert(!std::is_copy_assignable_v<compressed_pair<const empty, int>>);
 static_assert(sizeof(compressed_pair<empty, empty>) >= 2 * sizeof(empty));
+static_assert(std::is_standard_layout_v<compressed_pair<empty, empty>>);
+static_assert(std::is_standard_layout_v<compressed_pair<const empty, empty>>);
+static_assert(std::is_standard_layout_v<compressed_pair<empty, const empty>>);
 static_assert(sizeof(compressed_pair<aligned_empty, aligned_empty>) >= 2 * sizeof(aligned_empty));
 
 } // namespace
@@ -308,6 +311,31 @@ TEST(compressed_pair, identifiable_empty_subobjects_have_distinct_addresses) {
               &repeated);
     EXPECT_EQ((&wjr::container_of<decltype(repeated), std::in_place_index_t<1>>(repeated.second())),
               &repeated);
+    const auto &constant = repeated;
+    EXPECT_EQ((&wjr::container_of<decltype(repeated), std::in_place_index_t<0>>(constant.first())),
+              &constant);
+    EXPECT_EQ((&wjr::container_of<decltype(repeated), std::in_place_index_t<1>>(constant.second())),
+              &constant);
+
+    compressed_pair<empty, int> compressed;
+    EXPECT_EQ(
+        (&wjr::container_of<decltype(compressed), std::in_place_index_t<0>>(compressed.first())),
+        &compressed);
+    EXPECT_EQ(
+        (&wjr::container_of<decltype(compressed), std::in_place_index_t<1>>(compressed.second())),
+        &compressed);
+    const auto &constant_compressed = compressed;
+    EXPECT_EQ((&wjr::container_of<decltype(compressed), std::in_place_index_t<0>>(
+                  constant_compressed.first())),
+              &constant_compressed);
+    EXPECT_EQ((&wjr::container_of<decltype(compressed), std::in_place_index_t<1>>(
+                  constant_compressed.second())),
+              &constant_compressed);
+
+    compressed_pair<const empty, empty> const_first;
+    EXPECT_NE(std::addressof(const_first.first()), std::addressof(const_first.second()));
+    compressed_pair<empty, const empty> const_second;
+    EXPECT_NE(std::addressof(const_second.first()), std::addressof(const_second.second()));
 
     compressed_pair<const empty, volatile empty> qualified;
     EXPECT_NE(static_cast<const volatile void *>(std::addressof(qualified.first())),

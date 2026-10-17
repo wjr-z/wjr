@@ -61,15 +61,15 @@ template <typename T, typename U>
 using _compressed_pair_base_tag2 =
     enable_special_members_of_args_base<enable_base_identity_t<1, _compressed_pair2<T, U>>, U>;
 
-// MSVC ABI can overlap an empty base with a same-type or related element.
-// Keep these statically identifiable cases as members instead.
+// Repeated types use members to preserve standard-layout container recovery.
+// MSVC ABI also needs this for related types whose empty subobjects overlap.
 template <typename T, typename U>
 inline constexpr bool _compressed_pair_ebo_v =
 #if defined(_MSC_VER)
     is_compressed_v<T> && !std::is_base_of_v<std::remove_cv_t<T>, std::remove_cv_t<U>> &&
     !std::is_base_of_v<std::remove_cv_t<U>, std::remove_cv_t<T>>;
 #else
-    is_compressed_v<T>;
+    is_compressed_v<T> && !std::is_same_v<std::remove_cv_t<T>, std::remove_cv_t<U>>;
 #endif
 
 template <typename T, typename U, typename Enable = void>

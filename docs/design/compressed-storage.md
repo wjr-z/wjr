@@ -19,10 +19,13 @@
 `_is_tuple_test_impl` 在 get 不可用时返回 false，不在 traits 或候选转换构造中产生硬错误。
 此变更不修改 capture_leaf 的存储，也不改写 tuple 实现。
 
-## MSVC ABI 的局部布局修复
+## 重复类型与 MSVC ABI 的局部布局修复
+
+所有 ABI 中，相同 cv-unqualified 类型都采用成员存储，使两个元素具备标准布局的 container_of 恢复路径。
+GNU ABI 下，这保持了重复空元素的尺寸、对齐及两个元素的地址偏移。
 
 在本地 Clang 18.1.8/MSVC ABI 和 MSVC 19.42 中，继承的空元素可能与相同类型元素、
-或另一个元素的相同类型基类重合。修复只在该 ABI 下针对可静态识别的同类型及基类关联，
+或另一个元素的相同类型基类重合。该 ABI 还额外针对可静态识别的基类关联，
 让这两个元素采用成员存储。判断忽略顶层 cv，不修改全局 is_compressed。
 相同类型子对象的地址约束参见 [C++ 对象模型](https://eel.is/c++draft/intro.object#10)。
 
