@@ -10,6 +10,8 @@
  *
  */
 
+#include <memory>
+
 #include <wjr/crtp/class_base.hpp>
 #include <wjr/crtp/trivially_allocator_base.hpp>
 #include <wjr/memory/detail.hpp>
@@ -19,7 +21,13 @@ namespace wjr {
 template <typename T, typename... Args>
 WJR_CONSTEXPR20 void
 construct_at(T *ptr, Args &&...args) noexcept(std::is_nothrow_constructible_v<T, Args...>) {
-    ::new (static_cast<void *>(ptr)) T(std::forward<Args>(args)...);
+    if constexpr (!std::is_array_v<T> &&
+                  requires { std::construct_at(ptr, std::forward<Args>(args)...); }) {
+        (void)std::construct_at(ptr, std::forward<Args>(args)...);
+    } else {
+        // Keep arrays and constructors accessible only to this WJR customization.
+        ::new (static_cast<void *>(ptr)) T(std::forward<Args>(args)...);
+    }
 }
 
 template <typename T, WJR_REQUIRES(!std::is_constructible_v<T, default_construct_t>)>
