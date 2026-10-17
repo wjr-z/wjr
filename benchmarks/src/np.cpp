@@ -119,12 +119,13 @@ void np_fixed(benchmark::State &state) {
     }
     auto *dst = data.actual.data();
     const auto *x = data.first.data(), *y = data.second.data();
-    benchmark::DoNotOptimize(dst);
-    benchmark::DoNotOptimize(x);
-    benchmark::DoNotOptimize(y);
+    // Escape addresses without reusing DoNotOptimize's read/write asm output.
+    benchmark::DoNotOptimize(&dst);
+    benchmark::DoNotOptimize(&x);
+    benchmark::DoNotOptimize(&y);
     double alpha = 1.5, beta = -0.5;
-    benchmark::DoNotOptimize(alpha);
-    benchmark::DoNotOptimize(beta);
+    benchmark::DoNotOptimize(&alpha);
+    benchmark::DoNotOptimize(&beta);
     const auto tree = make_expression<Square>(input(x, count), input(y, count), alpha, beta);
     for (auto _ : state) {
         if constexpr (!Reuse) {
@@ -165,12 +166,13 @@ void np_mixed(benchmark::State &state) {
     }
     auto *dst = data.actual.data();
     const auto *x = data.first.data(), *y = data.second.data();
-    benchmark::DoNotOptimize(dst);
-    benchmark::DoNotOptimize(x);
-    benchmark::DoNotOptimize(y);
+    // Escape addresses without reusing DoNotOptimize's read/write asm output.
+    benchmark::DoNotOptimize(&dst);
+    benchmark::DoNotOptimize(&x);
+    benchmark::DoNotOptimize(&y);
     double alpha = 1.5, beta = -0.5;
-    benchmark::DoNotOptimize(alpha);
-    benchmark::DoNotOptimize(beta);
+    benchmark::DoNotOptimize(&alpha);
+    benchmark::DoNotOptimize(&beta);
     size_t iteration = 0;
     for (auto _ : state) {
         const auto count = counts[iteration++ % counts.size()];

@@ -24,8 +24,8 @@ void np_materialize(benchmark::State &state) {
         y[i] = static_cast<double>(i % 23) / 8.0;
     }
     const double *first = x.data(), *second = y.data();
-    benchmark::DoNotOptimize(first);
-    benchmark::DoNotOptimize(second);
+    benchmark::DoNotOptimize(&first);
+    benchmark::DoNotOptimize(&second);
     using input = np::tensor_view<const double, shape>;
     const auto expression =
         1.5 * np::as_expr(input(first, count)) - 0.5 * np::as_expr(input(second, count));
