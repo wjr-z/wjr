@@ -4,12 +4,12 @@
 Coverage runs with Clang on pushes to `main` and `coverage-report`, and on pull requests targeting `main`, except for documentation and process-metadata-only changes. The badge reports line coverage from the latest published run; each run also uploads the generated HTML report as an artifact. After GitHub Pages is enabled for the repository, the full report is published at <https://wjr-z.github.io/wjr/>.
 
 最低要求：  \
-C++20 默认，C++17 可选，64位系统，CMake 3.20 及以上。  \
+C++20 及以上，64位系统，CMake 3.20 及以上。  \
 绝大多数优化仅针对x64。 目前异常处理支持不佳。  
 
-使用 `-DWJR_CXX_STANDARD=17|20|23` 选择最低语言标准。旧的
-`WJR_DISABLE_CXX_20` 选项进入迁移期；已有 build 目录中的该选项仍会影响首次标准选择，
-新配置建议直接指定 `WJR_CXX_STANDARD`。
+使用 `-DWJR_CXX_STANDARD=20|23` 选择最低语言标准，默认 `20`。
+C++17 配置不再支持；已有 build 目录需删除 `WJR_DISABLE_CXX_20` 缓存项，
+并将 `WJR_CXX_STANDARD=17` 改为 `20` 或 `23`。直接包含头文件也需要 C++20 模式。
 
 通用模块使用架构基线。`-DWJR_CPU_TARGET=native|baseline|<编译器架构名>`
 只选择数值优化模块及其头文件调用方的 ISA 要求；GNU 风格编译器本机默认 `native`，

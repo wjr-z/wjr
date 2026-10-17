@@ -9,8 +9,12 @@ if(NOT CMAKE_PREFIX_PATH STREQUAL WJR_PREFIX_PATH_BEFORE)
     message(FATAL_ERROR "Finding WJR changed the consumer's CMAKE_PREFIX_PATH.")
 endif()
 
+get_target_property(WJR_IMPORTED_FEATURES wjr::config INTERFACE_COMPILE_FEATURES)
+if(NOT "cxx_std_20" IN_LIST WJR_IMPORTED_FEATURES AND NOT "cxx_std_23" IN_LIST WJR_IMPORTED_FEATURES)
+    message(FATAL_ERROR "The installed package must require C++20 or later.")
+endif()
+
 if(DEFINED WJR_EXPECT_CXX_STANDARD)
-    get_target_property(WJR_IMPORTED_FEATURES wjr::config INTERFACE_COMPILE_FEATURES)
     if(NOT "cxx_std_${WJR_EXPECT_CXX_STANDARD}" IN_LIST WJR_IMPORTED_FEATURES)
         message(FATAL_ERROR "The installed package did not preserve its C++ requirement.")
     endif()

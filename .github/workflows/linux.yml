@@ -47,12 +47,12 @@ jobs:
         - {compiler: clang, version: '18', standard: '20', cpu: native}
         - {compiler: clang, version: '19', standard: '20', cpu: native}
         - {compiler: clang, version: '20', standard: '20', cpu: native}
-        - {compiler: gcc, version: '9', standard: '17', cpu: baseline}
+        - {compiler: gcc, version: '11', standard: '20', cpu: baseline}
         - {compiler: gcc, version: '11', standard: '20', cpu: native}
         - {compiler: gcc, version: '12', standard: '20', cpu: native}
         - {compiler: gcc, version: '13', standard: '20', cpu: native}
         - {compiler: gcc, version: '14', standard: '20', cpu: native}
-        - {compiler: clang, version: '20', standard: '17', cpu: baseline}
+        - {compiler: gcc, version: '14', standard: '23', cpu: baseline}
         - {compiler: clang, version: '20', standard: '23', cpu: baseline}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
