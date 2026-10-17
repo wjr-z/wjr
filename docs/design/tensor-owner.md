@@ -1,8 +1,9 @@
 # Tensor owner 存储与 API 契约
 
 本轮在 [初始数据模型](tensor-data-model.md#owner-的初步结构决策) 的 Container + mapping
-决策上收敛首版 owner。这里只确定契约，公共 owner、checked factory 和 evaluator 尚未实现。
-计算继续接收现有 `tensor_view`；这一决策不引入第二套表达式引擎。
+决策上收敛首版 owner。`<wjr/np/tensor.hpp>` 已实现下述连续存储子集和 checked factory，
+通过可选 `wjr::np` target 使用；evaluator 尚未实现。计算继续接收现有 `tensor_view`，
+不引入第二套表达式引擎。
 
 ## 复用结论
 
@@ -44,7 +45,6 @@ xtensor 0.27.1 固定为
 首版模板形态为：
 
 ```cpp
-// 设计签名，尚无公共实现。
 template <class T, class Extents, class Layout = layout_right,
           class Container = std::vector<T>>
 class tensor;
@@ -70,13 +70,13 @@ class tensor;
 
 | 配置 | 必需契约 |
 | --- | --- |
-| vector 类动态存储 | 空构造、按检查后的长度创建值初始化对象；data/size/max_size；所用复制、移动、赋值操作 |
+| vector 类动态存储 | `allocator_type`、`C(allocator)`、`C(count, allocator)`、`get_allocator()`；data/size/max_size；所用复制、移动、赋值操作 |
 | 显式 `std::array<T, N>` | Extents 全静态，N 在编译期等于逻辑元素数；通过值初始化构造对象 |
 
 共同要求 `data()`/`data() const` 分别精确返回 `T*`/`const T*`，
 元素引用分别为 `T&`/`const T&`，`data()[i]` 与容器第 i 个对象相同。
 不能只用 `std::ranges::contiguous_range` 约束而意外排除 WJR 当前迭代器。
-`data()`、`size()` 及其 const 观察操作不得抛异常。
+`data()`、`size()`、`max_size()` 及其 const 观察操作不得抛异常。
 销毁必须安全；失败的容器操作须留下仍可查询 data/size、析构和重新赋值的有效容器表示。
 这些语义要求不能单凭 requires 表达式证明。
 
@@ -129,6 +129,7 @@ array 的元素移动后仍有 6 个对象，可能继续满足 has_storage，�
 
 owner 提供 extents、mapping、逻辑 size/empty、storage_size 和 has_storage 观察接口。
 mapping 只返回 const 引用；不公开可写 container/storage 引用。
+返回引用的 mapping/extents 观察接口同样拒绝右值，避免借出已销毁对象的元数据。
 首版通过以下两个入口借用数据：
 
 ```cpp
@@ -156,7 +157,7 @@ owner 销毁或可能替换存储的操作使先前借用失效；即使某次�
 ## checked 创建边界
 
 首版使用命名 factory 接收固定 rank 的完整整数 shape，避免不可信数据先进入后端 extents/mapping。
-建议的调用形式如下；实现 MR 必须以约束和错误测试确认这些签名：
+调用形式如下：
 
 ```cpp
 using panel = tensor<double, extents<std::size_t, dynamic_extent, 300>>;
@@ -164,11 +165,13 @@ auto result = make_tensor<panel>(std::array<std::int64_t, 2>{days, 300});
 // metadata 错误：wjr::expected<panel, shape_error>；容器分配异常仍可传播。
 
 auto adopted = adopt_tensor<panel>(shape, std::move(existing_container));
+auto allocated = make_tensor<panel>(shape, std::allocator_arg, allocator);
 ```
 
 shape 总是含 rank 个值，静态维度也必须与类型匹配。
 成功采用已有容器前检查其 size 精确相等，然后才移动它；不默默 resize 或复制补齐。
-factory 的元数据错误使用已有 `wjr::expected` 返回，区分非法 extent、静态不匹配、算术越界和存储长度不匹配。
+factory 的元数据错误使用已有 `wjr::expected` 返回，区分非法 extent、静态不匹配、算术越界、
+`container_size_limit` 和 `storage_size_mismatch`。失败的 shape/长度检查不移动传入的容器。
 这不是一个将所有 OOM 转成状态码的接口；Container 的分配、元素构造或移动异常保留原语义。
 无异常配置不能因这个设计被宣称具有统一、可恢复的 OOM 机制。
 
@@ -192,6 +195,11 @@ rank-0 的空乘积为 1，仍必须通过标量所需的字节数和容量检�
 
 allocator 定制通过 Container 类型及有明确 allocator tag 的 factory 重载传入。
 检查 max_size 和实际创建容器须使用同一 allocator 状态；
+实现以同一 allocator 值构造空容器查询 `max_size()`，再按长度构造值初始化存储；
+空容器不分配元素，不作为永久成员保存。无 allocator 参数的 factory 要求 allocator 可默认构造。
+显式 `std::array` 使用值初始化，不接受 allocator 重载。非默认构造元素可通过 `adopt_tensor` 引入。
+factory 通过私有构造 key 直接在 expected 内创建 owner：新 array 不额外移动元素，
+adopt 只执行一次 Container 移动；不先创建 owner 临时对象再整体移入 expected。
 不在外层保存第二份 allocator，也不转发无约束的任意构造参数包。
 首版不提供 resize/reserve、可写 storage、任意 mapping 或表达式赋值；
 同类型赋值仍可改变动态 shape，这是替换 owner 的值，须遵守下面的提交顺序。
@@ -224,9 +232,10 @@ POCMA 为 false 且 allocator 不等时，移动可能重新分配并移动元�
 
 ## 外部原型证据与实现门槛
 
+以下是设计阶段的外部原型证据；首版正式实现的验证范围列在下一节。
 原型使用上述固定 mdspan/xtensor 源码，xtl 0.8.0 固定为
 [`ef84e9f27020ad54961c99acd293d80d4b775dd3`](https://github.com/xtensor-stack/xtl/tree/ef84e9f27020ad54961c99acd293d80d4b775dd3)，
-不修改它们；WJR 公共目录没有加入 owner/evaluator 原型。
+不修改它们；这些原型当时没有加入 WJR 公共目录。
 Clang 18.1.8/MSVC STL 的 C++20、C++23、C++20 ASan，以及 MSVC 19.42 的 C++20 Release 均通过。
 这些配置都在 x64 Windows，未声称已完成 Linux 或其它 STL 验证。
 
@@ -261,6 +270,23 @@ Clang 18 C++20 Release 下，静态 vector/array owner 的索引分别与直接�
 这些结果支持消除所测 owner 的冗余静态状态，没有证明吞吐量提升，
 也没有改变当前后端静态 view 在 MSVC ABI 下仍为 16 字节的限制。
 
-实际 owner 实现 MR 还需把这些边界变成正式测试，补齐 Linux GCC/Clang、无异常编译、
-状态 allocator 与部分构造清理，并比较相同输入的布局及借用索引生成码。
-只在这些契约通过后加入连续预分配输出求值；广播、切片、表达式融合与 xtensor evaluator 复用仍属后续独立决策。
+## 首版实现与验证
+
+正式测试覆盖静态/动态/空/rank-0、row/column 布局、const 借用、右值借用拒绝、
+静态 mapping 压缩、checked 创建/采用，以及不完整表示的传播和恢复。
+状态 allocator 用例验证 max_size、复制构造的 allocator 选择、分配失败和不等 allocator 的移动；
+抛异常元素覆盖部分构造清理及移动失败后的元数据保留。
+默认存储为 std::vector；显式 WJR vector 的 int/真实 bool 创建与借用也有回归，
+不据此承诺其所有存储操作已经等价验收。
+
+本地 Clang 18 的 C++20/debug-3、C++23/debug-0、C++20 ASan，
+MSVC 19.42 的 C++20/debug-3，以及仅链接已安装 wjr::np 的 consumer 通过。
+GCC 12/MinGW 的独立程序覆盖创建、移动、空/rank-0 和宽整数 shape 拒绝；
+本地该 GCC 的线程模型不支持 GTest 所需 std::mutex，未据此声称全套 GCC/Linux 已运行。
+现有 range-v3 头仍阻止直接 -fno-exceptions；使用另一独立改动的标准 ranges 头后，
+owner 的无异常创建/借用/元数据错误路径可编译运行，不将其声明为当前主线完整无异常支持。
+
+Clang 18 Release 下，静态 vector/array owner 的借用与索引分别与直接使用相同常量 mapping
+的写法生成相同指令；固定 shape 创建只有一次元素分配，空容器 max_size 探针不引入额外分配。
+这些检查支持所测包装路径的空间与生成码目标，不是吞吐量结论或通用零成本保证。
+连续预分配输出求值、广播、切片、表达式融合与 xtensor evaluator 复用仍属后续独立工作。

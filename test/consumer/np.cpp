@@ -1,6 +1,7 @@
 #include <array>
 
 #include <wjr/np/checked_view.hpp>
+#include <wjr/np/tensor.hpp>
 
 using shape = wjr::np::extents<size_t, wjr::np::dynamic_extent, 3>;
 using result_type = wjr::expected<wjr::np::tensor_view<int, shape>, wjr::np::shape_error>;
@@ -18,9 +19,16 @@ int main(int argc, char **) {
     auto checked = wjr::np::try_make_tensor_view<shape>(values, available, std::array{2, 3});
     auto insufficient =
         wjr::np::try_make_tensor_view<shape>(values, available - 1, std::array{2, 3});
+    using owner = wjr::np::tensor<int, shape>;
+    auto owned = wjr::np::make_tensor<owner>(std::array{2, 3});
+    auto invalid = wjr::np::make_tensor<owner>(std::array{-1, 3});
+    if (!owned || invalid || invalid.error() != wjr::np::shape_error::negative_extent) {
+        return 1;
+    }
+    owned->view()(1, 2) = 9;
     return checked && !insufficient && read_value(checked) == 42 &&
                    read_error(insufficient) == wjr::np::shape_error::insufficient_storage &&
-                   view.size() == 6
+                   view.size() == 6 && owned->try_view()->operator()(1, 2) == 9
                ? 0
                : 1;
 }
