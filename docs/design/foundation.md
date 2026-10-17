@@ -126,7 +126,11 @@ SIMD 迁移先选择一个常见算术内核，对比 scalar、自动向量化�
 
 配置测试覆盖逐 flag 探测缓存、非法语言版本和旧选项迁移。
 CI 覆盖默认 C++20、C++20 基线和 Clang/GCC 的 C++23 基线配置；告警保持私有的安装消费流程
-应独立运行。Linux、Windows 和 coverage 的文档、流程元数据 paths-ignore 规则保持同步。
+应独立运行。Linux、Windows 的文档、流程元数据 paths-ignore 规则保持同步。
+覆盖率与 benchmark 分别每周定时运行，也允许手动触发；coverage 不在 push/PR 上运行，
+不使用 paths-ignore。源码变更继续由 Linux/Windows 单测和 Linux ASan CI 验证。
+覆盖率报告仅在 `main` 的定时或手动运行后发布到 GitHub Pages，徽章代表最近发布的快照，
+不保证与当前 HEAD 同步；其他分支的手动运行只上传 artifact。
 
 性能比较固定编译器、CPU、语言标准、构建选项及输入分布，同时记录分配次数和内存占用。
 通用模块减少 ISA 变体的收益主要体现在复用和分发；数值吞吐是否变化需要由内核基准判断。

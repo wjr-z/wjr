@@ -1,33 +1,9 @@
 name: Coverage
 
 on:
-  push:
-    branches:
-      - main
-      - coverage-report
-    paths-ignore:
-      - "README.md"
-      - "docs/**"
-      - "AGENTS.md"
-      - ".gitignore"
-      - ".editorconfig"
-      - ".gitattributes"
-      - ".clang-format"
-      - ".pre-commit-config.yaml"
-      - ".github/workflows/pre-commit.yml"
-  pull_request:
-    branches:
-      - main
-    paths-ignore:
-      - "README.md"
-      - "docs/**"
-      - "AGENTS.md"
-      - ".gitignore"
-      - ".editorconfig"
-      - ".gitattributes"
-      - ".clang-format"
-      - ".pre-commit-config.yaml"
-      - ".github/workflows/pre-commit.yml"
+  schedule:
+    # Weekly, offset from the Monday 03:17 UTC benchmark run.
+    - cron: "43 4 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -67,13 +43,17 @@ jobs:
           retention-days: 14
 
       - name: Upload Pages artifact
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: >-
+          github.ref == 'refs/heads/main' &&
+          (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/coverage
 
   deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
     needs: coverage
     runs-on: ubuntu-24.04
     permissions:
