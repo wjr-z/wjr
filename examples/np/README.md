@@ -120,3 +120,19 @@ width-3 window totals: 6 9 12 15
 
 有序累计、输出转换、原位别名及浮点前缀相减的限制见
 [scan 契约](../../docs/design/tensor-scans.md)。
+
+## 表达式融合规约
+
+`wjr_np_expression_reduce` 先将每行均值写入调用方的小 workspace，
+再直接计算 `sum((x-mean)*(x-mean))` 和逐行平方残差和。
+减法、乘法与累计共用一次遍历，不物化矩阵大小的中间结果。
+示例也展示 `sum_to(..., axes<1>, keepdims)` 与广播的组合：
+
+```text
+row means: 2 6
+row squared residuals: 2 8
+sum of squared residuals: 10
+```
+
+累计类型、严格逻辑顺序、空域与输出别名要求见
+[表达式规约契约](../../docs/design/tensor-expression-reductions.md)。

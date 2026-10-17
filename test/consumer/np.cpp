@@ -5,6 +5,7 @@
 #include <wjr/np/copy.hpp>
 #include <wjr/np/evaluate.hpp>
 #include <wjr/np/expression.hpp>
+#include <wjr/np/expression_reduce.hpp>
 #include <wjr/np/reduce.hpp>
 #include <wjr/np/reshape.hpp>
 #include <wjr/np/scan.hpp>
@@ -94,6 +95,9 @@ int main(int argc, char **) {
                     wjr::np::as_expr(
                         wjr::np::tensor_view<const int, wjr::np::extents<size_t, 2>>(row_bias)));
     if (output(0, 0) != 5 || output(2, 1) != 7) {
+        return 1;
+    }
+    if (wjr::np::sum(wjr::np::as_expr(output) * wjr::np::as_expr(output)) != 222) {
         return 1;
     }
     auto reshaped =
