@@ -79,7 +79,7 @@ struct owner_state {
 ### 压缩存储原则
 
 复用仓库已有的 `wjr::compressed_pair` / EBO，压缩空 allocator、静态 mapping 和无状态策略对象；
-使用 C++20 的 `[[no_unique_address]]` 前核对目标编译器的实际布局支持，C++17 保留可用路径。
+使用 C++20 的 `[[no_unique_address]]` 前核对目标编译器的实际布局支持，对有 ABI 限制的编译器保留 `compressed_pair`/EBO 路径。
 同类优化也适用于无状态 deleter、运算 functor 和 accessor，但不能压掉有状态 allocator 或 accessor 的信息。
 
 空类型不意味着任何组合都能占零字节：final 类型不能用继承实现 EBO，同类型子对象的地址规则、

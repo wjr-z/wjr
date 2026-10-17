@@ -104,7 +104,7 @@ add_test(NAME wjr_invalid_standard
    -S ${CMAKE_CURRENT_SOURCE_DIR}/cmake
    -B ${CMAKE_CURRENT_BINARY_DIR}/invalid-standard
    ${WJR_POLICY_CMAKE_ARGS}
-   -DWJR_CXX_STANDARD=11
+   -DWJR_CXX_STANDARD=17
 )
 set_tests_properties(wjr_invalid_standard PROPERTIES WILL_FAIL TRUE)
 add_test(NAME wjr_legacy_standard
@@ -112,9 +112,10 @@ add_test(NAME wjr_legacy_standard
    -S ${CMAKE_CURRENT_SOURCE_DIR}/cmake
    -B ${CMAKE_CURRENT_BINARY_DIR}/legacy-standard
    ${WJR_POLICY_CMAKE_ARGS}
+   -DWJR_CXX_STANDARD=20
    -DWJR_DISABLE_CXX_20=ON
-   -DEXPECT_STANDARD=17
 )
+set_tests_properties(wjr_legacy_standard PROPERTIES WILL_FAIL TRUE)
 set_tests_properties(wjr_build_policy wjr_invalid_standard wjr_legacy_standard
    PROPERTIES LABELS configuration)
 

@@ -12,7 +12,7 @@
 
 ## 项目
 
-- 这是一个使用 CMake 构建的库，默认 C++20；`WJR_CXX_STANDARD` 支持 17、20 和 23。大多数架构相关的优化针对 x64。
+- 这是一个使用 CMake 构建的库，最低 C++20；`WJR_CXX_STANDARD` 支持 20 和 23。大多数架构相关的优化针对 x64。
 - 公共头文件位于 `include/wjr`，实现代码位于 `src`。
 - 根目录的 `CMakeLists.txt` 是构建选项和 target 依赖关系的权威来源。
 - 各模块的用途和 CMake alias 见 [模块说明](docs/modules/README.md)。
@@ -23,7 +23,7 @@
 - 这是高度优化的 C++ 库；修改底层数值或内存路径时，先检查现有的 `WJR_HAS_*`、编译器版本、C++ 标准和架构宏，再选择 builtin、intrinsic、SIMD 或 inline assembly。
 - 主要支持 GCC、Clang 和 MSVC，以及 Windows/Linux 的 x86/x64；除非有可靠的编译器和目标平台依据，不要假设 ARM 或其他架构具备同样的优化指令。
 - 每个 builtin 或 assembly 快速路径都必须有宏守卫，并提供语义等价的 fallback；不能使用 `__has_builtin`、编译器专属函数或汇编作为无条件实现。
-- 保持显式 C++17 配置的兼容性；使用较新标准库设施时按 feature-test macro 分发。涉及整数溢出、移位和指针运算时避免未定义行为，优先复用已有的 traits、`WJR_HAS_*` 分发和 fallback 约定。
+- 保持 C++20 兼容性；使用可选或较新标准库设施时按 feature-test macro 分发。涉及整数溢出、移位和指针运算时避免未定义行为，优先复用已有的 traits、`WJR_HAS_*` 分发和 fallback 约定。
 - `wjr::config` 提供通用头文件和语言要求；只有显式标记 `ARCH_DEPENDENT` 的数值模块依赖 `wjr::isa`。不要把 `-march=native` 加入所有 target 的通用配置。
 - `build`、`build_asan`、`CMakeFiles`、`compile_commands.json` 等是生成内容，不应纳入修改。
 
@@ -40,7 +40,7 @@
 
 - CI workflow 位于 `.github/workflows`；根目录 `CMakeLists.txt` 仍是构建选项和 target 的权威来源。
 - 修改 `AGENTS.md`、`.gitignore`、文档或其他不影响构建的本地/流程元数据时，应检查 Linux 和 Windows workflow 的 `paths-ignore` 是否同步；`pre-commit.yml` 仍负责格式规则和 hook 配置相关变更。
-- `linux.yml` 在 `ubuntu-latest` 上测试 Clang 17-20 和 GCC 9、11-14，默认 C++20，保留 C++17 配置并覆盖 C++23/baseline，启用测试和 ASan，并运行 GMP 测试环境。
+- `linux.yml` 在 `ubuntu-latest` 上测试 Clang 17-20 和 GCC 11-14，默认 C++20，覆盖 C++20/baseline 和 C++23/baseline，启用测试和 ASan，并运行 GMP 测试环境。
 - `windows.yml` 在 `windows-latest` 上测试 MSVC 和 Clang，安装 NASM，关闭 GMP 测试，并运行 Windows 测试。
 - Windows CI 保持 MSVC 和 Clang 两项；新的标准版本、ISA 和安装组合优先放在 Linux 验证，不自行增加 Windows 矩阵或额外耗时步骤。
 - Linux、Windows 和 pre-commit workflow 都在 `main` 的 push、pull request 上运行，也支持手动 `workflow_dispatch`；Linux/Windows workflow 会跳过仅修改 `README.md`、`docs/**`、`AGENTS.md`、`.gitignore`、`.editorconfig`、`.gitattributes`、`.clang-format`、`.pre-commit-config.yaml` 或 pre-commit workflow 的变更。
@@ -58,7 +58,7 @@
 - 保持修改聚焦，并遵循附近 CMake 和 C++ 代码的风格。
 - 除非任务明确要求，不要修改 `build`、`build_asan`、`CMakeFiles`、`compile_commands.json` 等生成文件或构建目录。
 - 除非任务明确针对第三方代码，不要修改 `third-party` 下的 vendored 代码。
-- 除非任务明确要求破坏性变更，否则保持公共 API 和 C++17 兼容性。
+- 除非任务明确要求破坏性变更，否则保持公共 API 和 C++20 兼容性。
 - 对行为变更添加或更新针对性的测试。
 - 完成前运行与修改最相关的、范围最小的构建或测试 target，并报告缺失的依赖或失败的检查。
 

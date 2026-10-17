@@ -80,9 +80,9 @@
     #define WJR_CPP_26
 #endif
 
-#ifndef WJR_CPP_17
-    #error "required C++17 or later"
-#endif // c++17
+#if WJR_CPP_STANDARD < 202002L
+    #error "WJR requires C++20 or later"
+#endif
 
 #if defined(WJR_CPP_20)
     #include <version>
