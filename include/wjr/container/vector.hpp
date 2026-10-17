@@ -563,15 +563,16 @@ struct get_relocate_mode<small_vector_storage<T, Capacity, Alloc>> {
  * @brief Grow storage for small_vector_storage
  *
  * @details Lightweight temporary storage used when small_vector grows beyond small capacity.
- * Only provides minimal interface: data() for accessing the pointer.
- * All other operations (construction, take_storage, etc.) are delegated to small_vector_storage.
+ * Owns only a heap allocation; it never uses the small buffer. Construction and
+ * ownership transfer are delegated to small_vector_storage; deallocate releases
+ * the allocation without destroying elements.
  */
 template <typename T, size_t Capacity, typename Alloc>
 struct small_vector_grow_storage {
-    using pointer = typename std::allocator_traits<
-        typename std::allocator_traits<Alloc>::template rebind_alloc<T>>::pointer;
-    using size_type = typename std::allocator_traits<
-        typename std::allocator_traits<Alloc>::template rebind_alloc<T>>::size_type;
+    using allocator_type = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
+    using allocator_traits = std::allocator_traits<allocator_type>;
+    using pointer = typename allocator_traits::pointer;
+    using size_type = typename allocator_traits::size_type;
 
     pointer m_data = nullptr;
     size_type m_size = 0;
@@ -579,6 +580,10 @@ struct small_vector_grow_storage {
 
     WJR_PURE constexpr pointer data() noexcept { return m_data; }
     WJR_PURE constexpr size_type &size() noexcept { return m_size; }
+    WJR_CONSTEXPR20 void deallocate(allocator_type &allocator) noexcept(
+        noexcept(allocator_traits::deallocate(allocator, m_data, m_capacity))) {
+        allocator_traits::deallocate(allocator, m_data, m_capacity);
+    }
 };
 
 namespace detail {
