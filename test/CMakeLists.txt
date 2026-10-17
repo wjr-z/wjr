@@ -65,6 +65,7 @@ endif()
 file(GLOB_RECURSE TEST_SRCS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 # Installed-package consumers have their own main and are built independently.
 list(FILTER TEST_SRCS EXCLUDE REGEX "/consumer/")
+list(FILTER TEST_SRCS EXCLUDE REGEX "/np/")
 
 add_executable(
    tests
@@ -187,5 +188,12 @@ target_link_libraries(tests
    gtest_main
    ${GMP_LIBRARIES}
 )
+
+if(WJR_ENABLE_NP)
+   add_executable(np_tests np/view.cpp)
+   target_link_libraries(np_tests PRIVATE wjr::np gtest_main)
+   add_test(NAME wjr_np_tests COMMAND np_tests)
+   set_tests_properties(wjr_np_tests PROPERTIES LABELS unit)
+endif()
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

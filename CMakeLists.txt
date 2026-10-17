@@ -37,6 +37,7 @@ option(WJR_BUILD_TESTS "Build tests." OFF)
 option(WJR_BUILD_BENCHMARKS "Build benchmarks." OFF)
 option(WJR_ENABLE_ASSERT_BACKTRACE "Enable assert backtrace." OFF)
 option(WJR_ENABLE_ASAN "Enable AddressSanitizer." OFF)
+option(WJR_ENABLE_NP "Enable the experimental tensor data model." OFF)
 
 if(WJR_ENABLE_ASAN)
    include(CheckIncludeFileCXX)
@@ -135,6 +136,10 @@ set_property(GLOBAL PROPERTY WJR_ALL_TARGETS "")
 # library : config
 #
 add_subdirectory(src/config)
+
+if(WJR_ENABLE_NP)
+   add_subdirectory(src/np)
+endif()
 
 #
 # library : utility

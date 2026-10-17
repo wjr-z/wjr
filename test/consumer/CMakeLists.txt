@@ -3,6 +3,10 @@ project(wjr_consumer LANGUAGES CXX)
 
 set(WJR_PREFIX_PATH_BEFORE "${CMAKE_PREFIX_PATH}")
 find_package(wjr CONFIG REQUIRED)
+find_package(wjr CONFIG REQUIRED OPTIONAL_COMPONENTS wjr_unavailable)
+if(wjr_wjr_unavailable_FOUND)
+    message(FATAL_ERROR "An unavailable optional component was reported as found.")
+endif()
 # Repeated discovery is common when multiple components use the same package.
 find_package(wjr CONFIG REQUIRED)
 if(NOT CMAKE_PREFIX_PATH STREQUAL WJR_PREFIX_PATH_BEFORE)
@@ -52,3 +56,46 @@ add_test(NAME wjr_portable_options
     COMMAND ${CMAKE_COMMAND}
     -P "${CMAKE_CURRENT_BINARY_DIR}/portable-options-$<CONFIG>-CXX.cmake"
 )
+
+add_test(NAME wjr_required_unknown_component
+    COMMAND ${CMAKE_COMMAND}
+    -S "${CMAKE_CURRENT_SOURCE_DIR}/component"
+    -B "${CMAKE_CURRENT_BINARY_DIR}/required-component"
+    -G "${CMAKE_GENERATOR}"
+    "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
+    "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+)
+set_tests_properties(wjr_required_unknown_component PROPERTIES WILL_FAIL TRUE)
+
+option(WJR_TEST_NP "Validate the installed optional np component." OFF)
+if(WJR_TEST_NP)
+    if(TARGET wjr::np)
+        message(FATAL_ERROR "Ordinary package discovery imported the np component.")
+    endif()
+    find_package(wjr CONFIG REQUIRED COMPONENTS np)
+    find_package(wjr CONFIG REQUIRED COMPONENTS np)
+    if(NOT wjr_np_FOUND)
+        message(FATAL_ERROR "The installed np component was not found.")
+    endif()
+    if(NOT CMAKE_PREFIX_PATH STREQUAL WJR_PREFIX_PATH_BEFORE)
+        message(FATAL_ERROR "Finding np changed the consumer's CMAKE_PREFIX_PATH.")
+    endif()
+    add_executable(wjr_np_consumer np.cpp)
+    target_link_libraries(wjr_np_consumer PRIVATE wjr::np)
+    add_test(NAME wjr_np_consumer COMMAND wjr_np_consumer)
+
+    foreach(_WJR_OPTIONAL IN ITEMS ON OFF)
+        add_test(NAME wjr_np_missing_dependency_optional_${_WJR_OPTIONAL}
+            COMMAND ${CMAKE_COMMAND}
+            -S "${CMAKE_CURRENT_SOURCE_DIR}/component"
+            -B "${CMAKE_CURRENT_BINARY_DIR}/np-missing-dependency-${_WJR_OPTIONAL}"
+            -G "${CMAKE_GENERATOR}"
+            "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
+            "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+            -DWJR_REQUEST_COMPONENT=np
+            -DWJR_OPTIONAL_COMPONENT=${_WJR_OPTIONAL}
+            -DCMAKE_DISABLE_FIND_PACKAGE_mdspan=TRUE
+        )
+    endforeach()
+    set_tests_properties(wjr_np_missing_dependency_optional_OFF PROPERTIES WILL_FAIL TRUE)
+endif()
