@@ -61,6 +61,15 @@ JSON 数据结构和解析、序列化相关功能。
 
 需要低开销地暂存数据流、事件或生产者消费者之间的数据时使用。它依赖 `wjr::assert` 和 `wjr::iterator`。
 
+## `wjr::np`（可选、实验性）
+
+设置 `WJR_ENABLE_NP=ON` 后提供 C++20 的多维借用 view，包含
+`<wjr/np/view.hpp>` 并链接 `wjr::np`。它复用固定版本 Kokkos mdspan，
+不依赖 `wjr::isa`，不默认链接到 `wjr::wjr`。
+安装消费使用 `find_package(wjr CONFIG REQUIRED COMPONENTS np)`。
+数据生命周期、未检查构造的前置条件和已测空间限制见
+[初始数据模型](../design/tensor-data-model.md)；owner 与计算框架尚未实现。
+
 ## 内部模块
 
 下面的 target 用于库内部实现，一般不建议应用程序直接依赖：

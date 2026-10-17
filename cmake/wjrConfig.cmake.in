@@ -16,7 +16,23 @@ endif()
 if (NOT TARGET range-v3::range-v3)
     find_dependency(range-v3 CONFIG HINTS "${_WJR_PACKAGE_PREFIX}")
 endif()
-unset(_WJR_PACKAGE_PREFIX)
-
 include ("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Alias.cmake")
+
+foreach(_WJR_COMPONENT IN LISTS wjr_FIND_COMPONENTS)
+    # Component files are installed only when the optional module was enabled.
+    # Restrict names before using them as paths.
+    if(_WJR_COMPONENT MATCHES "^[A-Za-z0-9_]+$")
+        include("${CMAKE_CURRENT_LIST_DIR}/wjr-${_WJR_COMPONENT}-config.cmake"
+            OPTIONAL RESULT_VARIABLE _WJR_COMPONENT_FILE)
+    else()
+        set(_WJR_COMPONENT_FILE NOTFOUND)
+    endif()
+    if(NOT _WJR_COMPONENT_FILE)
+        set(wjr_${_WJR_COMPONENT}_FOUND FALSE)
+    endif()
+endforeach()
+unset(_WJR_COMPONENT)
+unset(_WJR_COMPONENT_FILE)
+unset(_WJR_PACKAGE_PREFIX)
+check_required_components(wjr)
