@@ -36,6 +36,8 @@ target_link_libraries(my_app PRIVATE wjr::json)
 ## `wjr::iterator`
 
 迭代器相关的基础工具和适配支持，为容器、算法及其他模块提供通用迭代器能力。
+连续迭代器使用标准 C++20 tag，core 不再依赖 range-v3；兼容边界见
+[标准 ranges 决策](../design/std-ranges.md)。
 
 实现自定义容器或需要复用 WJR 迭代器工具时使用；只使用上层模块时通常会通过依赖传递得到它。
 

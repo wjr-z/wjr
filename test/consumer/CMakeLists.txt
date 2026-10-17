@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 project(wjr_consumer LANGUAGES CXX)
 
 set(WJR_PREFIX_PATH_BEFORE "${CMAKE_PREFIX_PATH}")
+# Core consumers must not need the former range-v3 dependency.
+set(CMAKE_DISABLE_FIND_PACKAGE_range-v3 TRUE)
 find_package(wjr CONFIG REQUIRED)
 find_package(wjr CONFIG REQUIRED OPTIONAL_COMPONENTS wjr_unavailable)
 if(wjr_wjr_unavailable_FOUND)

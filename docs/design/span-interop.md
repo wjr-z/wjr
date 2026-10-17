@@ -20,20 +20,16 @@ auto local = wjr::as_wjr_span(standard);
 `WJR_DEBUG_LEVEL` 绑定到新的 WJR 视图对象。桥接不延长底层数据的生命周期；
 临时描述符可以转换，但示例中的 `values` 必须继续存活。
 
-## 为什么暂不直接改 iterator tag
+## 原生标准迭代器与显式桥
 
-WJR 目前使用 range-v3 0.12 的独立 contiguous tag。标准库优先读取
-`ITER_TRAITS(I)::iterator_concept`；range-v3 对 primary 与自定义
-`std::iterator_traits` 采用同样的来源选择，再优先读取 `iterator_concept`。
-仅在 traits 中换成标准 tag，会让 range-v3 丢失 contiguous 识别。
-两个独立 tag 的双继承则形成有歧义的 `std::random_access_iterator_tag` 基类，
-不能满足两侧要求的 `derived_from`。参见
-[标准概念来源规则](https://eel.is/c++draft/iterator.concepts.general)、
-[range-v3 的概念来源](https://github.com/ericniebler/range-v3/blob/a81477931a8aa2ad025c6bda0609f38e09e4d7ec/include/range/v3/iterator/concepts.hpp) 和
-[独立 tag 定义](https://github.com/ericniebler/range-v3/blob/a81477931a8aa2ad025c6bda0609f38e09e4d7ec/include/range/v3/iterator/traits.hpp)。
+WJR contiguous iterator 已使用标准 tag，可以直接传给标准 ranges 算法；
+WJR vector 的左值也可以直接构造标准 span。显式桥仍用于保留已有 span 的静态 extent，
+并明确选择只携带 pointer/count 的标准描述符。range-v3 的兼容变化见
+[标准 ranges 决策](std-ranges.md)。
 
-显式桥保留现有识别和布局，使标准算法通过标准视图工作；它不代表 WJR 的迭代器已经满足
-`std::contiguous_iterator`。后续更换 range-v3 依赖或采用其公开兼容机制时，再评估直接互操作。
+标准算法可以利用 contiguous iterator 的 `to_address` 进行 bulk 操作，
+不保证逐元素触发 WJR 迭代器检查。直接调用 WJR 迭代器操作时，仍保留原有检查；
+使用标准算法和视图时仍需满足其范围及对象生命周期的前置条件。
 
 ## 为什么不注册 borrowed_range
 

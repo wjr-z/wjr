@@ -45,8 +45,8 @@ static_assert(noexcept(wjr::as_std_span(std::declval<wjr::span<int>>())));
 static_assert(noexcept(wjr::as_wjr_span(std::declval<std::span<int>>())));
 static_assert(!std::ranges::borrowed_range<wjr::span<int>>);
 static_assert(std::ranges::borrowed_range<std::span<int>>);
-static_assert(ranges::contiguous_iterator<wjr::span<int>::iterator>);
-static_assert(ranges::contiguous_iterator<wjr::span<int>::const_iterator>);
+static_assert(std::contiguous_iterator<wjr::span<int>::iterator>);
+static_assert(std::contiguous_iterator<wjr::span<int>::const_iterator>);
 static_assert(
     std::ranges::contiguous_range<decltype(wjr::as_std_span(std::declval<wjr::span<int>>()))>);
 

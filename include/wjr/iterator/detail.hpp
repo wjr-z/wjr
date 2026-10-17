@@ -14,8 +14,6 @@
 
 #include <wjr/type_traits.hpp>
 
-#include <range/v3/iterator/concepts.hpp>
-
 namespace wjr {
 
 /// Extract the C++20 iterator difference type
@@ -143,11 +141,10 @@ struct _is_contiguous_iterator_impl<std::move_iterator<Iter>>
     : std::conjunction<_is_contiguous_iterator_impl<Iter>,
                        std::is_trivially_copyable<iterator_value_t<Iter>>> {};
 
-// Retain range-v3 tags and the existing array/trivial move-iterator extensions.
+// Retain the existing array/trivial move-iterator extensions.
 template <typename Iter>
 inline constexpr bool _is_contiguous_iterator_impl_v =
-    _is_contiguous_iterator_impl<Iter>::value || std::contiguous_iterator<Iter> ||
-    ranges::contiguous_iterator<Iter>;
+    _is_contiguous_iterator_impl<Iter>::value || std::contiguous_iterator<Iter>;
 
 template <typename Iter>
 struct is_contiguous_iterator : std::bool_constant<_is_contiguous_iterator_impl_v<Iter>> {};
@@ -167,9 +164,8 @@ using iterator_contiguous_pointer_t = std::add_pointer_t<iterator_contiguous_val
 
 /**
  * @brief Contiguous iterator tag
- * @details Kept for range-v3 compatibility; the trait also accepts standard tags.
  */
-using contiguous_iterator_tag = ranges::contiguous_iterator_tag;
+using contiguous_iterator_tag = std::contiguous_iterator_tag;
 
 } // namespace wjr
 

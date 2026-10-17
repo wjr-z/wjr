@@ -35,8 +35,8 @@ C++26 暂不成为构建契约；`std::simd` 等设施需要独立验证目标�
 ### span 的首轮迁移
 
 `wjr::span` 使用原生 concepts、`requires` 和 `explicit(bool)`，范围构造使用标准
-`std::ranges` 的大小、数据指针和借用约束。保留既有 WJR contiguous iterator 识别，
-使当前 WJR 容器继续可用；不改变全库 iterator tag，也没有移除传递的 range-v3 依赖。
+`std::ranges` 的大小、数据指针和借用约束。WJR contiguous iterator 使用标准 tag，
+core 已移除 range-v3 依赖，兼容性边界见 [标准 ranges 决策](std-ranges.md)。
 仅在 range-v3 中注册借用属性的自定义范围，需要同时提供标准的
 `std::ranges::enable_borrowed_range` 注册，才能作为临时可变范围传入。
 

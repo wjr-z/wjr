@@ -8,6 +8,8 @@
  *
  */
 
+#include <ranges>
+
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/container_fn.hpp>
 #include <wjr/container/detail/storage_traits.hpp>
@@ -17,8 +19,6 @@
 #include <wjr/memory/allocate_at_least.hpp>
 #include <wjr/memory/copy.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
-
-#include <range/v3/view/subrange.hpp>
 
 namespace wjr {
 
@@ -414,8 +414,8 @@ public:
     using is_reallocatable = typename storage_type::is_reallocatable;
 
     using self_type = basic_ring_buffer<storage_type>;
-    using array_range = ranges::subrange<pointer>;
-    using const_array_range = ranges::subrange<const_pointer>;
+    using array_range = std::ranges::subrange<pointer>;
+    using const_array_range = std::ranges::subrange<const_pointer>;
 
 private:
     using STraits = storage_traits_type;
