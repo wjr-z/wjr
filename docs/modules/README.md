@@ -90,6 +90,7 @@ JSON 数据结构和解析、序列化相关功能。
 支持连续和正步长输入，见[逐元素计算](../design/tensor-elementwise.md)。
 `<wjr/np/transpose.hpp>` 提供[二维转置借用](../design/tensor-transpose.md)；
 与 `copy_to` 组合可显式重排数据。表达式树和广播 evaluator 尚未实现。
+预分配计算、列视图和转置复制的可运行示例见 [examples/np](../../examples/np)。
 
 ## `wjr::simd_xsimd`（可选、实验性）
 
