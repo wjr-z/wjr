@@ -69,9 +69,10 @@ materialized transpose:
 首版表达式要求数组同 shape，二维及以上还须同连续布局；普通 scalar 可以参与计算。
 类型提升逐节点遵循 C++，不将中间整数除法提升成浮点运算。
 范围和别名合同见 [表达式 API](../../docs/design/tensor-expression-api.md)。
+
 ## 行中心化与规约
 
-同一 CMake 项目还会构建 `wjr_np_row_centering`，CTest 同时运行三个示例。
+同一 CMake 项目还会构建 `wjr_np_row_centering`，CTest 运行这些示例。
 `row_centering.cpp` 用显式预分配的 `[rows,1]` workspace 保存 `sum_to` 结果，
 再逐行通过 `transform_to` 减均值。最后复用输出存平方残差并全量 `sum`。
 没有 lazy reducer，也没有为每个输出元素重复计算均值。
@@ -86,3 +87,10 @@ sum of squared residuals: 10
 ```
 
 累计类型、逻辑顺序、空域及不交叠要求见[规约契约](../../docs/design/tensor-reductions.md)。
+
+`expression_simd.cpp` demonstrates explicit SIMD evaluation of a packed
+expression, including a scalar tail. Install WJR with both `WJR_ENABLE_NP=ON`
+and `WJR_ENABLE_XSIMD=ON`, then configure this example project with
+`-DWJR_NP_EXAMPLES_XSIMD=ON`. It links the optional `wjr::simd_xsimd` component;
+the ordinary examples keep their existing dependencies. The precise dtype and
+alias contract is described in [SIMD expression evaluation](../../docs/design/tensor-expression-xsimd.md).
