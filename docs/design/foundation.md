@@ -46,6 +46,9 @@ initializer-list 扩展仅参与 const 元素视图的重载；视图继续借�
 及 `WJR_DEBUG_LEVEL=0` 下，7 个 WJR 构造、访问和遍历探针修改前后的函数指令一致。
 这些检查不代表所有调用场景的吞吐量结论。
 
+与标准算法互操作时，可使用 `<wjr/span_std.hpp>` 的显式双向视图桥，保留静态长度与元素 cv。
+现有 iterator tag 与借用语义保持不变，详见 [span 标准库互操作](span-interop.md)。
+
 ## 配置与模块边界
 
 ```mermaid
