@@ -25,6 +25,14 @@ target_link_libraries(my_app PRIVATE wjr::json)
 编写与 WJR 风格一致的底层组件，且需要使用 WJR 断言接口时使用。
 启用 `WJR_ENABLE_ASSERT_BACKTRACE` 后，该模块可以额外提供断言回溯信息。
 
+普通模式报告表达式和位置；`WJR_LIGHT_ASSERT` 仅报告失败表达式，Release 默认采用此模式。
+可选的 `WJR_MINIMAL_ASSERT=ON` 使启用的断言失败时直接调用零参数
+`std::terminate()`，不准备或求值诊断参数，也不引入 `<iostream>`。
+它优先于 light 模式，适合调用方接受缺少断言文本和回溯的构建；断言条件及分级规则保持原样。
+直接包含头文件时，可在包含前定义同名宏。该选项通过 `wjr::config` 传递给消费者。
+静态链接且其他代码也不使用诊断时，无须从 `wjr::assert` 提取包含 iostream 的实现；
+共享库仍保留既有诊断导出函数及其固定成本。
+
 ## `wjr::iterator`
 
 迭代器相关的基础工具和适配支持，为容器、算法及其他模块提供通用迭代器能力。

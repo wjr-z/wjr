@@ -5,6 +5,10 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../../cmake")
 set(WJR_ARCH x86)
 include(wjrBuildOptions)
 
+if(WJR_MINIMAL_ASSERT AND NOT "WJR_MINIMAL_ASSERT" IN_LIST WJR_COMPILE_DEFINITIONS)
+    message(FATAL_ERROR "Minimal assertion mode must propagate through the public config.")
+endif()
+
 if(DEFINED EXPECT_STANDARD AND NOT WJR_CXX_STANDARD STREQUAL EXPECT_STANDARD)
     message(FATAL_ERROR "Expected C++${EXPECT_STANDARD}, got C++${WJR_CXX_STANDARD}.")
 endif()

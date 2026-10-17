@@ -27,10 +27,10 @@
  *
  */
 
-#include <iostream> // for operator<<, cerr, basic_ostream, ostream
-#include <utility>  // for forward
+#include <utility> // for forward
 
 #include <wjr/config/attribute.hpp>
+#include <wjr/config/builtin.hpp>
 
 #ifndef WJR_DEBUG_LEVEL
     #if defined(NDEBUG)
@@ -48,6 +48,12 @@
     #define WJR_LIGHT_ASSERT
 #endif
 
+#if defined(WJR_MINIMAL_ASSERT)
+    #include <exception>
+#elif !defined(WJR_LIGHT_ASSERT)
+    #include <iostream>
+#endif
+
 namespace wjr {
 
 WJR_NORETURN WJR_COLD WJR_SYMBOL_EXPORT extern void
@@ -58,6 +64,7 @@ WJR_NORETURN WJR_COLD WJR_SYMBOL_EXPORT extern void _assert_light_failed(const c
 // LCOV_EXCL_START
 
 /// @private
+#if !defined(WJR_MINIMAL_ASSERT) && !defined(WJR_LIGHT_ASSERT)
 template <typename... Args>
 WJR_NORETURN void _assert_failed_handler(const char *expr, const char *file, const char *func,
                                          int line, Args &&...args) noexcept {
@@ -66,6 +73,7 @@ WJR_NORETURN void _assert_failed_handler(const char *expr, const char *file, con
     std::cerr << '\n';
     _assert_failed(expr, file, func, line);
 }
+#endif
 
 /// @private
 WJR_NORETURN inline void _assert_failed_handler(const char *expr, const char *file,
@@ -84,7 +92,9 @@ WJR_NORETURN inline void _assert_light_failed_handler(const char *expr) noexcept
     _assert_light_failed(expr);
 }
 
-#if defined(WJR_LIGHT_ASSERT)
+#if defined(WJR_MINIMAL_ASSERT)
+    #define WJR_ASSERT_FAILED_HANDLER(expr, file, function, line, ...) ::std::terminate()
+#elif defined(WJR_LIGHT_ASSERT)
     #define WJR_ASSERT_FAILED_HANDLER(expr, _file, _function, _line, ...)                          \
         ::wjr::_assert_light_failed_handler(expr, ##__VA_ARGS__)
 #else
@@ -120,7 +130,7 @@ WJR_NORETURN inline void _assert_light_failed_handler(const char *expr) noexcept
 
 // level of assert is zero at default.
 #define WJR_ASSERT_L0(...) WJR_ASSERT_CHECK_I(__VA_ARGS__)
-#define WJR_ASSERT_ASSUME_L0(...) WJR_ASSERT_ASSUME_CHECK_I(0, __VA_ARGS__)
+#define WJR_ASSERT_ASSUME_L0(...) WJR_ASSERT_ASSUME_CHECK_I(__VA_ARGS__)
 
 #if WJR_DEBUG_LEVEL >= 1
     #define WJR_ASSERT_L1(...) WJR_ASSERT_CHECK_I(__VA_ARGS__)
