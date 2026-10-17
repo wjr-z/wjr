@@ -37,8 +37,10 @@ on:
 jobs:
   tests:
     # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: ${{ matrix.sys.compiler }} ${{ matrix.sys.version }} C++${{ matrix.sys.standard }} ${{ matrix.sys.cpu }}
+    env:
+      CCACHE_COMPILERCHECK: content
     strategy:
       fail-fast: false
       matrix:
@@ -89,9 +91,36 @@ jobs:
       - name: Install GMP
         run: sudo apt-get update && sudo apt-get install -y libgmp-dev
 
+      - name: Identify compilers and native target
+        id: compiler
+        run: |
+          if [[ "${{matrix.sys.compiler}}" = "gcc" ]]; then CC=gcc-${{matrix.sys.version}}; CXX=g++-${{matrix.sys.version}}; else CC=clang; CXX=clang++; fi
+          echo "CC=$CC" >> "$GITHUB_ENV"
+          echo "CXX=$CXX" >> "$GITHUB_ENV"
+          echo "CCACHE_DIR=$RUNNER_TEMP/wjr-ccache" >> "$GITHUB_ENV"
+          fingerprint_file="$RUNNER_TEMP/wjr-compiler-fingerprint.json"
+          echo "WJR_CCACHE_NATIVE_FINGERPRINT=$fingerprint_file" >> "$GITHUB_ENV"
+          . /etc/os-release
+          echo "os=${ImageOS:-unknown}-${ID:?}-${VERSION_ID:?}" >> "$GITHUB_OUTPUT"
+          python3 .github/scripts/compiler_fingerprint.py \
+            --family "${{matrix.sys.compiler}}" --cc "$CC" --cxx "$CXX" \
+            --output "$fingerprint_file" >> "$GITHUB_OUTPUT"
+
+      - name: Cache compiled objects
+        # v1.2.24: restore/save, bounded storage and statistics are owned by the action.
+        uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d
+        with:
+          key: linux-v3-${{ steps.compiler.outputs.os }}-${{ runner.arch }}-${{ matrix.sys.compiler }}-${{ matrix.sys.version }}-cxx${{ matrix.sys.standard }}-${{ matrix.sys.cpu }}-${{ steps.compiler.outputs.toolchain }}
+          # No broader restore-keys. Native objects are isolated by the launcher;
+          # baseline objects can share this pool across different runner CPUs.
+          max-size: 500MB
+
+      - name: Validate compiler fingerprint guards
+        if: matrix.sys.compiler == 'clang' && matrix.sys.version == '20' && matrix.sys.standard == '20'
+        run: python3 .github/scripts/test_compiler_fingerprint.py
+
       - name: Configure using CMake
         run: |
-          if [[ "${{matrix.sys.compiler}}" = "gcc" ]]; then export CC=gcc-${{matrix.sys.version}}; export CXX=g++-${{matrix.sys.version}}; else export CC=clang; export CXX=clang++; fi
           benchmark_args=()
           if [[ "${{matrix.sys.compiler}}" == "clang" && "${{matrix.sys.version}}" == "20" || "${{matrix.sys.compiler}}" == "gcc" && "${{matrix.sys.version}}" == "11" ]]; then
             benchmark_args+=(-DWJR_ENABLE_NP=ON)
@@ -103,6 +132,8 @@ jobs:
             -DWJR_DEBUG_LEVEL_RELEASE=3 -DWJR_ENABLE_ASAN=ON \
             -DWJR_CXX_STANDARD=${{matrix.sys.standard}} -DWJR_CPU_TARGET=${{matrix.sys.cpu}} \
             -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent" \
+            -DCMAKE_C_COMPILER_LAUNCHER="python3;$GITHUB_WORKSPACE/.github/scripts/ccache_launcher.py" \
+            -DCMAKE_CXX_COMPILER_LAUNCHER="python3;$GITHUB_WORKSPACE/.github/scripts/ccache_launcher.py" \
             -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX "${benchmark_args[@]}"
 
       - name: Build
@@ -123,6 +154,7 @@ jobs:
           cmake --install build --prefix "$RUNNER_TEMP/wjr-install"
           cmake -S test/consumer -B consumer-build -GNinja \
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_CXX_COMPILER_LAUNCHER="python3;$GITHUB_WORKSPACE/.github/scripts/ccache_launcher.py" \
             -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/wjr-install" -DWJR_EXPECT_CXX_STANDARD=20 \
             -DWJR_TEST_NP=ON
           cmake --build consumer-build --parallel
