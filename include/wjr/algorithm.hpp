@@ -3,22 +3,20 @@
  * @brief Algorithm utilities and constexpr-friendly wrappers
  * @author wjr
  *
- * Provides constexpr algorithm implementations and optimized wrappers
- * for standard algorithms including sort, merge, and searching.
+ * Provides thin wrappers over standard algorithms. C++20 algorithms support
+ * constant evaluation; inplace_merge follows the standard library's support.
  */
 
 #ifndef WJR_ALGORITHM_HPP__
 #define WJR_ALGORITHM_HPP__
 
 #include <algorithm>
+#include <functional>
 
-#include <wjr/iterator/detail.hpp>
-#include <wjr/memory/detail.hpp>
-#include <wjr/type_traits.hpp>
+#include <wjr/config/compiler.hpp>
 
 namespace wjr {
 namespace constant {
-#if defined(__cpp_lib_algorithms)
 
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt copy(InputIt first, InputIt last, OutputIt dst) {
@@ -36,120 +34,24 @@ constexpr OutputIt merge(InputIt1 first1, InputIt1 last1, InputIt2 first2, Input
     return std::merge(first1, last1, first2, last2, dst, pred);
 }
 
+#if defined(__cpp_lib_constexpr_algorithms) && __cpp_lib_constexpr_algorithms >= 202306L
 template <typename Iter, typename Pred>
 constexpr Iter inplace_merge(Iter first, Iter mid, Iter last, Pred pred) {
     std::inplace_merge(first, mid, last, pred);
     return last;
 }
+#else
+template <typename Iter, typename Pred>
+Iter inplace_merge(Iter first, Iter mid, Iter last, Pred pred) {
+    std::inplace_merge(first, mid, last, pred);
+    return last;
+}
+#endif
 
 template <typename Iter, typename Pred>
 constexpr void sort(Iter first, Iter last, Pred pred) {
     std::sort(first, last, pred);
 }
-
-#else
-
-template <typename InputIt, typename OutputIt>
-constexpr OutputIt copy(InputIt first, InputIt last, OutputIt dst) {
-    for (; first != last; (void)++first, (void)++dst) {
-        *dst = *first;
-    }
-
-    return dst;
-}
-
-template <typename InputIt, typename OutputIt>
-constexpr OutputIt move_backward(InputIt first, InputIt last, OutputIt dst) {
-    while (first != last) {
-        *(--dst) = std::move(*(--last));
-    }
-
-    return dst;
-}
-
-template <typename InputIt1, typename InputIt2, typename OutputIt, typename Pred>
-constexpr OutputIt merge(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2,
-                         OutputIt dst, Pred pred) {
-    const auto count1 = std::distance(first1, last1);
-    const auto count2 = std::distance(first2, last2);
-    if (first1 != last1 && first2 != last2) {
-        for (;;) {
-            if (pred(*first2, *first1)) {
-                *dst = *first2;
-                ++dst;
-                ++first2;
-
-                if (first2 == last2) {
-                    break;
-                }
-            } else {
-                *dst = *first1;
-                ++dst;
-                ++first1;
-
-                if (first1 == last1) {
-                    break;
-                }
-            }
-        }
-    }
-
-    dst = copy(first1, last1, dst);
-    dst = copy(first2, last2, dst);
-    return dst;
-}
-
-/// @private Internal implementation details for sorting algorithms
-namespace algorithm_detail {
-
-/// @private Insertion sort implementation for small ranges
-template <typename Iter, typename Pred>
-constexpr void _insertion_sort(Iter first, Iter last, Pred pred) {
-    if (first != last) {
-        for (Iter mid = first; ++mid != last;) {
-            iterator_reference_t<Iter> ref = *mid;
-
-            if (pred(ref, *first)) {
-                iterator_value_t<Iter> tmp = std::move(ref);
-                Iter hole = mid;
-                move_backward(first, mid, ++hole);
-                *first = std::move(tmp);
-            } else {
-                Iter prev = mid;
-                if (pred(ref, *--prev)) {
-                    iterator_value_t<Iter> tmp = std::move(ref);
-                    *mid = *prev;
-
-                    Iter pprev = prev;
-                    for (; pred(tmp, *--pprev); prev = pprev) {
-                        *prev = std::move(*pprev);
-                    }
-
-                    *prev = std::move(tmp);
-                }
-            }
-        }
-    }
-}
-
-/// @private Threshold for switching to insertion sort
-inline constexpr size_t _insertion_sort_threshold = in_place_max;
-
-/// @private Main sort implementation dispatcher
-template <typename Iter, typename Pred>
-constexpr void _sort_impl(Iter first, Iter last, Pred pred) {
-    _insertion_sort(first, last, pred);
-}
-
-} // namespace algorithm_detail
-
-/// @todo
-template <typename Iter, typename Pred>
-constexpr void sort(Iter first, Iter last, Pred pred) {
-    algorithm_detail::_sort_impl(first, last, pred);
-}
-
-#endif
 
 template <typename Iter>
 constexpr void sort(Iter first, Iter last) {
