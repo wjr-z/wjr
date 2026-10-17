@@ -75,6 +75,7 @@ TEST(bit, bit_cast_preserves_representation) {
 namespace {
 struct non_default_constructible {
     non_default_constructible() = delete;
+    constexpr explicit non_default_constructible(int32_t input) : value(input) {}
     int32_t value;
 };
 
