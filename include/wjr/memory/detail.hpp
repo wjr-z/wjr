@@ -15,9 +15,7 @@
 
 #include <wjr/iterator/detail.hpp>
 
-#if defined(WJR_CPP_20)
-    #include <bit>
-#endif
+#include <bit>
 
 namespace wjr {
 
@@ -120,27 +118,18 @@ constexpr add_restrict_t<Iter> _add_restrict(Iter iter) {
     return iter;
 }
 
-/// @private
-class _is_little_endian_helper {
-    constexpr static std::uint32_t u4 = 1;
-    constexpr static std::uint8_t u1 = static_cast<const std::uint8_t &>(u4);
-
-public:
-    constexpr static bool value = u1 != 0;
-};
-
 // constexpr endian
 enum class endian {
     little = 0,
     big = 1,
-    native = _is_little_endian_helper::value ? little : big,
+    native = std::endian::native == std::endian::little ? little : big,
 };
 
 inline constexpr bool is_little_endian = endian::native == endian::little;
 inline constexpr bool is_big_endian = !is_little_endian;
 
 static_assert(
-    is_little_endian,
+    std::endian::native == std::endian::little,
     "Don't support big endian. There are currently many optimizations that rely on small end sequences,\
     which may gradually become compatible in the future");
 
