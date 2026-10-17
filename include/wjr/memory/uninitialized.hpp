@@ -57,18 +57,58 @@ WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &a
     }
 }
 
+// Manual construction loops own their constructed prefix until they succeed.
+template <typename Iter, typename Alloc = void>
+class _uninitialized_rollback {
+public:
+    constexpr _uninitialized_rollback(Iter first, Iter &last, Alloc *alloc = nullptr) noexcept
+        : m_first(first), m_last(std::addressof(last)), m_alloc(alloc) {}
+
+    _uninitialized_rollback(const _uninitialized_rollback &) = delete;
+    _uninitialized_rollback &operator=(const _uninitialized_rollback &) = delete;
+
+    constexpr ~_uninitialized_rollback() noexcept {
+        if (m_last == nullptr)
+            return;
+        for (; m_first != *m_last; ++m_first) {
+            if constexpr (std::is_void_v<Alloc>) {
+                std::destroy_at(wjr::to_address(m_first));
+            } else {
+                std::allocator_traits<Alloc>::destroy(*m_alloc, wjr::to_address(m_first));
+            }
+        }
+    }
+
+    constexpr void release() noexcept { m_last = nullptr; }
+
+private:
+    Iter m_first;
+    Iter *m_last;
+    Alloc *m_alloc;
+};
+
+template <typename Sentinel, typename Iter>
+constexpr auto _uninitialized_iter_base(Iter iter) {
+    if constexpr (std::is_same_v<Iter, Sentinel>) {
+        return wjr::_iter_base(std::move(iter));
+    } else {
+        return iter;
+    }
+}
+
 template <typename InputItInit, typename InputItSe, typename OutputIt>
 WJR_CONSTEXPR20 OutputIt uninitialized_copy(InputItInit first, InputItSe last, OutputIt dest) {
-    auto _first = wjr::_iter_base(first);
-    auto _last = wjr::_iter_base(last);
     auto _dest = wjr::_iter_base(dest);
     if constexpr (std::is_same_v<InputItInit, InputItSe>) {
+        auto _first = wjr::_iter_base(first);
+        auto _last = wjr::_iter_base(last);
         return wjr::_iter_wrap(dest, std::uninitialized_copy(_first, _last, _dest));
     } else {
-        for (; _first != _last; ++_dest, (void)++_first) {
-            wjr::construct_at(wjr::to_address(_dest), *_first);
+        _uninitialized_rollback<decltype(_dest)> rollback(_dest, _dest);
+        for (; first != last; ++_dest, (void)++first) {
+            wjr::construct_at(wjr::to_address(_dest), *first);
         }
-
+        rollback.release();
         return wjr::_iter_wrap(dest, _dest);
     }
 }
@@ -76,9 +116,14 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy(InputItInit first, InputItSe last, O
 template <typename InputItInit, typename InputItSe, typename OutputIt>
 WJR_CONSTEXPR20 OutputIt uninitialized_copy_restrict(InputItInit first, InputItSe last,
                                                      OutputIt dest) {
-    return wjr::_iter_wrap(dest, wjr::uninitialized_copy(_add_restrict(wjr::_iter_base(first)),
-                                                         _add_restrict(wjr::_iter_base(last)),
-                                                         _add_restrict(wjr::_iter_base(dest))));
+    if constexpr (!std::is_same_v<InputItInit, InputItSe>) {
+        return wjr::_iter_wrap(dest, wjr::uninitialized_copy(std::move(first), std::move(last),
+                                                             _add_restrict(wjr::_iter_base(dest))));
+    } else {
+        return wjr::_iter_wrap(dest, wjr::uninitialized_copy(_add_restrict(wjr::_iter_base(first)),
+                                                             _add_restrict(wjr::_iter_base(last)),
+                                                             _add_restrict(wjr::_iter_base(dest))));
+    }
 }
 
 template <typename InputIt, typename Size, typename OutputIt>
@@ -97,15 +142,16 @@ template <typename InputItInit, typename InputItSe, typename OutputIt, typename 
 WJR_CONSTEXPR20 OutputIt uninitialized_copy_using_allocator(InputItInit first, InputItSe last,
                                                             OutputIt dest, Alloc &alloc) {
     if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<OutputIt>,
-                                                     iterator_reference_t<InputItInit>>) {
+                                                     iterator_reference_t<InputItInit>> &&
+                  is_trivially_allocator_destroy_v<Alloc, iterator_value_t<OutputIt>>) {
         return wjr::uninitialized_copy(first, last, dest);
     } else {
-        auto _first = wjr::_iter_base(first);
-        auto _last = wjr::_iter_base(last);
         auto _dest = wjr::_iter_base(dest);
-        for (; _first != _last; ++_dest, (void)++_first) {
-            std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(_dest), *_first);
+        _uninitialized_rollback<decltype(_dest), Alloc> rollback(_dest, _dest, &alloc);
+        for (; first != last; ++_dest, (void)++first) {
+            std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(_dest), *first);
         }
+        rollback.release();
         return wjr::_iter_wrap(dest, _dest);
     }
 }
@@ -114,24 +160,33 @@ template <typename InputItInit, typename InputItSe, typename OutputIt, typename 
 WJR_CONSTEXPR20 OutputIt uninitialized_copy_restrict_using_allocator(InputItInit first,
                                                                      InputItSe last, OutputIt dest,
                                                                      Alloc &alloc) {
-    return wjr::_iter_wrap(
-        dest, uninitialized_copy_using_allocator(_add_restrict(wjr::_iter_base(first)),
-                                                 _add_restrict(wjr::_iter_base(last)),
-                                                 _add_restrict(wjr::_iter_base(dest)), alloc));
+    if constexpr (!std::is_same_v<InputItInit, InputItSe>) {
+        return wjr::_iter_wrap(
+            dest, uninitialized_copy_using_allocator(std::move(first), std::move(last),
+                                                     _add_restrict(wjr::_iter_base(dest)), alloc));
+    } else {
+        return wjr::_iter_wrap(
+            dest, uninitialized_copy_using_allocator(_add_restrict(wjr::_iter_base(first)),
+                                                     _add_restrict(wjr::_iter_base(last)),
+                                                     _add_restrict(wjr::_iter_base(dest)), alloc));
+    }
 }
 
 template <typename InputIt, typename Size, typename OutputIt, typename Alloc>
 WJR_CONSTEXPR20 OutputIt uninitialized_copy_n_using_allocator(InputIt first, Size n, OutputIt dest,
                                                               Alloc &alloc) {
     if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<OutputIt>,
-                                                     iterator_reference_t<InputIt>>) {
+                                                     iterator_reference_t<InputIt>> &&
+                  is_trivially_allocator_destroy_v<Alloc, iterator_value_t<OutputIt>>) {
         return wjr::uninitialized_copy_n(first, n, dest);
     } else {
         auto _first = wjr::_iter_base(first);
         auto _dest = wjr::_iter_base(dest);
+        _uninitialized_rollback<decltype(_dest), Alloc> rollback(_dest, _dest, &alloc);
         for (; n > 0; --n, (void)++_dest, (void)++_first) {
             std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(_dest), *_first);
         }
+        rollback.release();
         return wjr::_iter_wrap(dest, _dest);
     }
 }
@@ -199,14 +254,16 @@ WJR_CONSTEXPR20 OutputIt uninitialized_move_n_restrict_using_allocator(InputIt f
 
 template <typename IterInit, typename IterSe>
 WJR_CONSTEXPR20 void uninitialized_default_construct(IterInit first, IterSe last) {
-    auto _first = wjr::_iter_base(first);
-    auto _last = wjr::_iter_base(last);
+    auto _first = _uninitialized_iter_base<IterSe>(std::move(first));
+    auto _last = _uninitialized_iter_base<IterInit>(std::move(last));
     if constexpr (std::is_same_v<IterInit, IterSe>) {
         std::uninitialized_default_construct(_first, _last);
     } else {
+        _uninitialized_rollback<decltype(_first)> rollback(_first, _first);
         for (; _first != _last; ++_first) {
             wjr::construct_at(wjr::to_address(_first), default_construct);
         }
+        rollback.release();
     }
 }
 
@@ -214,16 +271,17 @@ template <typename IterInit, typename IterSe, typename Alloc>
 WJR_CONSTEXPR20 void uninitialized_default_construct_using_allocator(IterInit first, IterSe last,
                                                                      Alloc &alloc) {
     using value_type = iterator_value_t<IterInit>;
-    WJR_MAYBE_UNUSED auto _first = wjr::_iter_base(first);
-    WJR_MAYBE_UNUSED auto _last = wjr::_iter_base(last);
-    if constexpr (is_trivially_allocator_construct_v<Alloc, value_type>) {
+    WJR_MAYBE_UNUSED auto _first = _uninitialized_iter_base<IterSe>(std::move(first));
+    WJR_MAYBE_UNUSED auto _last = _uninitialized_iter_base<IterInit>(std::move(last));
+    if constexpr (is_trivially_allocator_construct_v<Alloc, value_type> &&
+                  is_trivially_allocator_destroy_v<Alloc, value_type>) {
         wjr::uninitialized_default_construct(_first, _last);
     } else {
-        if constexpr (!std::is_trivially_default_constructible_v<value_type>) {
-            for (; _first != _last; ++_first) {
-                std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(_first));
-            }
+        _uninitialized_rollback<decltype(_first), Alloc> rollback(_first, _first, &alloc);
+        for (; _first != _last; ++_first) {
+            wjr::uninitialized_construct_using_allocator(_first, alloc, default_construct);
         }
+        rollback.release();
     }
 }
 
@@ -232,42 +290,47 @@ WJR_CONSTEXPR20 void uninitialized_default_construct_n_using_allocator(Iter firs
                                                                        Alloc &alloc) {
     using value_type = iterator_value_t<Iter>;
     auto _first = wjr::_iter_base(first);
-    if constexpr (is_trivially_allocator_construct_v<Alloc, value_type>) {
+    if constexpr (is_trivially_allocator_construct_v<Alloc, value_type> &&
+                  is_trivially_allocator_destroy_v<Alloc, value_type>) {
         std::uninitialized_default_construct_n(_first, n);
     } else {
-        if constexpr (!std::is_trivially_default_constructible_v<value_type>) {
-            for (; n > 0; ++_first, --n) {
-                std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(_first),
-                                                        value_type());
-            }
+        _uninitialized_rollback<decltype(_first), Alloc> rollback(_first, _first, &alloc);
+        for (; n > 0; ++_first, --n) {
+            wjr::uninitialized_construct_using_allocator(_first, alloc, default_construct);
         }
+        rollback.release();
     }
 }
 
 template <typename IterInit, typename InitSe>
 WJR_CONSTEXPR20 void uninitialized_value_construct(IterInit first, InitSe last) {
-    auto _first = wjr::_iter_base(first);
-    auto _last = wjr::_iter_base(last);
+    auto _first = _uninitialized_iter_base<InitSe>(std::move(first));
+    auto _last = _uninitialized_iter_base<IterInit>(std::move(last));
     if constexpr (std::is_same_v<IterInit, InitSe>) {
         std::uninitialized_value_construct(_first, _last);
     } else {
+        _uninitialized_rollback<decltype(_first)> rollback(_first, _first);
         for (; _first != _last; ++_first) {
             wjr::construct_at(wjr::to_address(_first));
         }
+        rollback.release();
     }
 }
 
 template <typename IterInit, typename InitSe, typename Alloc>
 WJR_CONSTEXPR20 void uninitialized_value_construct_using_allocator(IterInit first, InitSe last,
                                                                    Alloc &alloc) {
-    auto _first = wjr::_iter_base(first);
-    auto _last = wjr::_iter_base(last);
-    if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<IterInit>>) {
+    auto _first = _uninitialized_iter_base<InitSe>(std::move(first));
+    auto _last = _uninitialized_iter_base<IterInit>(std::move(last));
+    if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<IterInit>> &&
+                  is_trivially_allocator_destroy_v<Alloc, iterator_value_t<IterInit>>) {
         wjr::uninitialized_value_construct(_first, _last);
     } else {
+        _uninitialized_rollback<decltype(_first), Alloc> rollback(_first, _first, &alloc);
         for (; _first != _last; ++_first) {
             std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(_first));
         }
+        rollback.release();
     }
 }
 
@@ -275,25 +338,30 @@ template <typename Iter, typename Size, typename Alloc>
 WJR_CONSTEXPR20 void uninitialized_value_construct_n_using_allocator(Iter first, Size n,
                                                                      Alloc &alloc) {
     auto _first = wjr::_iter_base(first);
-    if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<Iter>>) {
+    if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<Iter>> &&
+                  is_trivially_allocator_destroy_v<Alloc, iterator_value_t<Iter>>) {
         std::uninitialized_value_construct_n(_first, n);
     } else {
+        _uninitialized_rollback<decltype(_first), Alloc> rollback(_first, _first, &alloc);
         for (; n > 0; --n, (void)++_first) {
             std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(_first));
         }
+        rollback.release();
     }
 }
 
 template <typename IterInit, typename InitSe, typename T>
 WJR_CONSTEXPR20 void uninitialized_fill(IterInit first, InitSe last, const T &value) {
-    auto _first = wjr::_iter_base(first);
-    auto _last = wjr::_iter_base(last);
+    auto _first = _uninitialized_iter_base<InitSe>(std::move(first));
+    auto _last = _uninitialized_iter_base<IterInit>(std::move(last));
     if constexpr (std::is_same_v<IterInit, InitSe>) {
         std::uninitialized_fill(_first, _last, value);
     } else {
+        _uninitialized_rollback<decltype(_first)> rollback(_first, _first);
         for (; _first != _last; ++_first) {
             wjr::construct_at(wjr::to_address(_first), value);
         }
+        rollback.release();
     }
 }
 
@@ -311,15 +379,18 @@ WJR_CONSTEXPR20 void uninitialized_fill_using_allocator(IterInit first, InitSe l
     } else if constexpr (std::is_same_v<T, value_construct_t>) {
         uninitialized_value_construct_using_allocator(first, last, alloc);
     } else {
-        auto _first = wjr::_iter_base(first);
-        auto _last = wjr::_iter_base(last);
+        auto _first = _uninitialized_iter_base<InitSe>(std::move(first));
+        auto _last = _uninitialized_iter_base<IterInit>(std::move(last));
         if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<IterInit>,
-                                                         const T &>) {
+                                                         const T &> &&
+                      is_trivially_allocator_destroy_v<Alloc, iterator_value_t<IterInit>>) {
             wjr::uninitialized_fill(_first, _last, value);
         } else {
+            _uninitialized_rollback<decltype(_first), Alloc> rollback(_first, _first, &alloc);
             for (; _first != _last; ++_first) {
                 std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(_first), value);
             }
+            rollback.release();
         }
     }
 }
@@ -340,12 +411,15 @@ WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n, Al
     } else {
         auto _first = wjr::_iter_base(first);
         if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<Iter>,
-                                                         const T &>) {
+                                                         const T &> &&
+                      is_trivially_allocator_destroy_v<Alloc, iterator_value_t<Iter>>) {
             std::uninitialized_fill_n(_first, n, value);
         } else {
+            _uninitialized_rollback<decltype(_first), Alloc> rollback(_first, _first, &alloc);
             for (; n > 0; --n, (void)++_first) {
                 std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(_first), value);
             }
+            rollback.release();
         }
     }
 }

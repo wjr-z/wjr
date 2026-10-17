@@ -690,12 +690,30 @@ private:
                  _is_nothrow_uninitialized_construct),
         "If grow_storage_type is provided, it must have the same noexcept guarantees as storage_type");
 
+    class _construction_rollback {
+    public:
+        constexpr explicit _construction_rollback(basic_vector &owner) noexcept
+            : m_owner(std::addressof(owner)) {}
+        _construction_rollback(const _construction_rollback &) = delete;
+        _construction_rollback &operator=(const _construction_rollback &) = delete;
+        constexpr ~_construction_rollback() noexcept {
+            if (m_owner != nullptr)
+                m_owner->_get_size() = 0;
+        }
+        constexpr void release() noexcept { m_owner = nullptr; }
+
+    private:
+        basic_vector *m_owner;
+    };
+
     template <typename Ty>
     WJR_CONSTEXPR20 void _construct_n(const size_type n, Ty &&val) {
         if (WJR_LIKELY(n != 0)) {
             auto &al = _get_allocator();
+            _construction_rollback rollback(*this);
             uninitialized_construct(n, n);
             wjr::uninitialized_fill_n_using_allocator(data(), n, al, std::forward<Ty>(val));
+            rollback.release();
         }
     }
 
@@ -735,9 +753,11 @@ private:
         : basic_vector(al) {
         const auto size = other.size();
         if (WJR_LIKELY(size != 0)) {
+            _construction_rollback rollback(*this);
             uninitialized_construct(size, size);
             wjr::uninitialized_copy_n_restrict_using_allocator(other.data(), size, data(),
                                                                _get_allocator());
+            rollback.release();
         }
     }
 
@@ -1429,12 +1449,14 @@ private:
         WJR_UNREACHABLE();
     }
 
-    template <typename Iter>
-    WJR_CONSTEXPR20 void _construct_n(const size_type n, Iter first, Iter last) {
+    template <typename Iter, typename Sentinel>
+    WJR_CONSTEXPR20 void _construct_n(const size_type n, Iter first, Sentinel last) {
         if (WJR_LIKELY(n != 0)) {
             auto &al = _get_allocator();
+            _construction_rollback rollback(*this);
             uninitialized_construct(n, n);
             wjr::uninitialized_copy_restrict_using_allocator(first, last, data(), al);
+            rollback.release();
         }
     }
 
