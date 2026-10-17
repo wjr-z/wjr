@@ -44,20 +44,22 @@ inline constexpr bool compatible_sum_shape = [] {
     }
 }();
 
+// Visit one line base per remaining coordinate. Keep means the selected axis
+// remains in dst's metadata; the caller processes that axis itself.
 template <size_t Level, size_t Axis, bool Keep, class Dst, class Src, class Function>
-constexpr void walk_sum_output(const Dst &dst, const Src &src, Function &function,
+constexpr void walk_axis_lines(const Dst &dst, const Src &src, Function &function,
                                size_t output_offset, size_t input_offset) noexcept {
     if constexpr (Level == Dst::rank()) {
         function(output_offset, input_offset);
     } else if constexpr (Keep && Level == Axis) {
-        walk_sum_output<Level + 1, Axis, Keep>(dst, src, function, output_offset, input_offset);
+        walk_axis_lines<Level + 1, Axis, Keep>(dst, src, function, output_offset, input_offset);
     } else {
         constexpr auto source_axis = Level + (!Keep && Level >= Axis);
         const auto count = static_cast<size_t>(dst.extent(Level));
         const auto output_step = static_cast<size_t>(dst.stride(Level));
         const auto input_step = static_cast<size_t>(src.stride(source_axis));
         for (size_t i = 0; i != count; ++i) {
-            walk_sum_output<Level + 1, Axis, Keep>(dst, src, function, output_offset, input_offset);
+            walk_axis_lines<Level + 1, Axis, Keep>(dst, src, function, output_offset, input_offset);
             output_offset += output_step;
             input_offset += input_step;
         }
@@ -92,7 +94,7 @@ constexpr void sum_axis_to(const Dst &dst, const Src &src) noexcept {
             result += static_cast<accumulator_type>(input[input_offset + i * step]);
         output[output_offset] = result;
     };
-    walk_sum_output<0, Axis, Keep>(dst, src, reduce, 0, 0);
+    walk_axis_lines<0, Axis, Keep>(dst, src, reduce, 0, 0);
 }
 
 } // namespace detail

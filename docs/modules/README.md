@@ -93,6 +93,7 @@ JSON 数据结构和解析、序列化相关功能。
 预分配计算、列视图和转置复制的可运行示例见 [examples/np](../../examples/np)。
 `<wjr/np/reduce.hpp>` 提供立即执行的全量 `sum` 和单轴 `sum_to`，
 支持显式累计类型与 `keepdims`，见[规约契约](../design/tensor-reductions.md)。
+`<wjr/np/scan.hpp>` 提供[预分配单轴前缀和](../design/tensor-scans.md)，支持精确原位计算。
 
 ## `wjr::simd_xsimd`（可选、实验性）
 

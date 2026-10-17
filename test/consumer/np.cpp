@@ -6,6 +6,7 @@
 #include <wjr/np/expression.hpp>
 #include <wjr/np/reduce.hpp>
 #include <wjr/np/reshape.hpp>
+#include <wjr/np/scan.hpp>
 #include <wjr/np/subview.hpp>
 #include <wjr/np/tensor.hpp>
 #include <wjr/np/transform.hpp>
@@ -62,6 +63,10 @@ int main(int argc, char **) {
         return 1;
     }
     if (wjr::np::sum(output) != 104) {
+        return 1;
+    }
+    wjr::np::cumsum_to(output, output, wjr::np::axes<1>);
+    if (output(2, 1) != 88) {
         return 1;
     }
     wjr::np::fill_to(output, 0);
