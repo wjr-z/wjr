@@ -21,7 +21,8 @@ if (result) {
 `shape_error::expression_shape_mismatch`。指定结果布局留给后续扩展。
 
 纯标量表达式产生 rank 0、一个元素的 owner。空数组保留所有维度，且不读取输入。
-默认容器为 `wjr::vector<T>`；显式 allocator 可通过以下重载传入，其 `value_type`
+默认容器为 `tensor_vector<T>`；它复用 WJR vector 并将增强的移动后存储契约限制在 NP 层。
+显式 allocator 可通过以下重载传入，其 `value_type`
 必须与表达式结果完全相同：
 
 ```cpp
@@ -49,9 +50,10 @@ MSVC 19.42 为 `/O2`。数值 `2 * input + 1` 的 owning eval 探针原先存在
 std/WJR vector 构造仍保留清零，显式 default-init 和 `new double[n]` 均不写 payload。
 这证明所测初始化遍历被移除，不是完整吞吐量或硬件计数器结论。
 
-默认 vector 的移动修复额外清空源对象另外两个指针；相同 move/tuple-move 探针中，
-Clang 指令数 9→10、GCC 11→12、MSVC 10→12，没有增加分配或引用计数。
-这是保持可查询移动后表示所需的固定元数据工作。
+NP 的 `tensor_vector` 移动额外清空源对象另外两个指针；相同 move/tuple-move 探针中，
+普通 WJR vector 为 Clang 9、GCC 11、MSVC 10 条指令，NP 专用存储为 10、12、12 条，
+没有增加分配或引用计数。这是 owner 可查询移动后表示所需的固定元数据工作，
+普通 WJR vector 保留原先的生成码与有限移动后契约。
 范围赋值的失败清理只在可能抛出的增长路径出现：标准 allocator、double 指针输入的
 无守卫/有守卫对照在 Clang/GCC 分别为相同的 68/99 条指令，
 MSVC wrapper 及其五个可达函数的指令也一致；不据此推广到任意迭代器和元素类型。

@@ -8,8 +8,10 @@
 ## 复用结论
 
 首版组合已有容器与固定 Kokkos mapping，不直接 alias 或公开继承后端的实验性 mdarray。
-不另建 allocator、buffer 或共享控制块；默认采用 `wjr::vector<T>`。
-它已有显式 `default_construct` 构造，可合法开始数值对象生命周期而不要求先写初值，
+不另建 allocator、buffer 或共享控制块；默认采用 `np::tensor_vector<T>`。
+这是复用 `wjr::basic_vector` 的薄 alias，仅将默认 storage 的移动后契约增强为可查询、复制的空表示，
+不增加字段，保留原 allocator 和 trivial-relocation 策略。已有显式 `default_construct` 构造
+可合法开始数值对象生命周期而不要求先写初值，
 供拥有结果的 evaluator 使用。普通构造和 `make_tensor(shape)` 继续值初始化；
 显式 `std::vector<T>` 和全静态 `std::array<T, N>` 仍受支持。
 选择依据是可用的初始化语义，并非容器名称或尚未测量的吞吐量优势。
@@ -55,7 +57,7 @@ WJR 复用已有 vector 的 default-initialization 路径，不照搬 uvector �
 
 ```cpp
 template <class T, class Extents, class Layout = layout_right,
-          class Container = wjr::vector<T>>
+          class Container = tensor_vector<T>>
 class tensor;
 ```
 
@@ -90,7 +92,12 @@ class tensor;
 这些语义要求不能单凭 requires 表达式证明。
 
 `std::vector<bool>` 不符合真实指针和引用要求，明确拒绝实例化，不降级为位代理。
-默认 `wjr::vector<bool>` 使用真实 `bool` 对象，可直接提供 bool owner 与 const view。
+默认 `tensor_vector<bool>` 使用真实 `bool` 对象，可直接提供 bool owner 与 const view。
+普通 `wjr::vector`、`fixed_vector` 和零内嵌容量的 `small_vector` 的移动源
+只保证既有的有限 storage 契约，不能用于 owner 强化的移动后观察与复制。
+这些已知配置因此在 owner 约束中拒绝；显式 allocator 存储应使用
+`tensor_vector<T, Allocator>`。这是修正此前仅语法可接受、移动后却不满足 owner 契约的适配，
+不泛化拒绝其它 basic_vector 或用户容器。
 过对齐类型由 Container/allocator 保证对齐；owner 不额外承诺超出 T 所需的 SIMD 对齐。
 
 ## 逻辑 shape 与有效存储
@@ -297,10 +304,11 @@ Clang 18 C++20 Release 下，静态 vector/array owner 的索引分别与直接�
 静态 mapping 压缩、checked 创建/采用，以及不完整表示的传播和恢复。
 状态 allocator 用例验证 max_size、复制构造的 allocator 选择、分配失败和不等 allocator 的移动；
 抛异常元素覆盖部分构造清理及移动失败后的元数据保留。
-默认存储现为 WJR vector；普通值初始化、显式默认初始化、真实 bool、非平凡元素构造、
+默认存储现为 tensor_vector；普通值初始化、显式默认初始化、真实 bool、非平凡元素构造、
 allocator 钩子及部分构造回滚均有针对回归，显式标准容器仍保留原语义。
-默认 vector 移动后清空全部三指针，源对象的 size/capacity 与 owner 存储观察保持有效；
-只清空 data 指针会留下不属于同一数组的指针相减，不能用于 owner 的移动后表示。
+NP 专用 storage 移动后清空全部三指针，源对象的 size/capacity 与 owner 存储观察保持有效。
+普通 WJR vector 仍只清空 data，保留原本只保证销毁/有限存储操作的移动后契约，
+不为 tensor 增加额外两次存储。它留下的 end/capacity 不可供 owner 的移动后查询或复制使用。
 复制赋值的 `noexcept` 同时计入元素复制，允许分配异常正常传播；
 范围赋值增长路径在元素构造失败后只释放新分配，已构造前缀由原有 uninitialized 算法销毁。
 

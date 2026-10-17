@@ -160,7 +160,7 @@ TEST(NpEvaluate, AllocatesOneResultAndRetainsAllocatorState) {
                                evaluation_allocator<double>(state, 17));
         using owner = typename decltype(result)::value_type;
         static_assert(std::same_as<typename owner::container_type,
-                                   wjr::vector<double, evaluation_allocator<double>>>);
+                                   np::tensor_vector<double, evaluation_allocator<double>>>);
         ASSERT_TRUE(result);
         EXPECT_EQ(state.allocations, 1);
         EXPECT_EQ(state.deallocations, 0);

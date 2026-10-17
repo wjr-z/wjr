@@ -7,8 +7,8 @@
 #include <vector>
 
 #include <wjr/compressed_pair.hpp>
-#include <wjr/container/vector.hpp>
 #include <wjr/np/checked_view.hpp>
+#include <wjr/np/tensor_vector.hpp>
 
 namespace wjr::np {
 
@@ -24,9 +24,18 @@ inline constexpr bool is_std_vector = false;
 template <class T, class A>
 inline constexpr bool is_std_vector<std::vector<T, A>> = true;
 
+template <class C>
+inline constexpr bool has_limited_vector_move = false;
+template <class T, class A>
+inline constexpr bool has_limited_vector_move<wjr::vector<T, A>> = true;
+template <class T, class A>
+inline constexpr bool has_limited_vector_move<wjr::fixed_vector<T, A>> = true;
+template <class T, class A>
+inline constexpr bool has_limited_vector_move<wjr::small_vector<T, 0, A>> = true;
+
 template <class T, class C>
 concept tensor_container =
-    std::is_object_v<T> && std::same_as<T, std::remove_cv_t<T>> &&
+    std::is_object_v<T> && std::same_as<T, std::remove_cv_t<T>> && !has_limited_vector_move<C> &&
     requires {
         sizeof(T);
         typename C::value_type;
@@ -117,7 +126,7 @@ inline constexpr bool is_tensor = false;
 } // namespace detail
 
 // Owns objects through Container; computation and ordinary indexing use view().
-template <class T, class Extents, class Layout = layout_right, class Container = wjr::vector<T>>
+template <class T, class Extents, class Layout = layout_right, class Container = tensor_vector<T>>
 requires(detail::is_extents<Extents> && detail::tensor_container<T, Container> &&
          (std::same_as<Layout, layout_right> || std::same_as<Layout, layout_left>) &&
          (detail::is_std_array<Container> || detail::allocated_tensor_container<Container>))
