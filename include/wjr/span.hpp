@@ -49,7 +49,7 @@ struct _span_dynamic_storage {
 
 template <typename Iter, typename Elem>
 concept _is_span_iterator =
-    (std::contiguous_iterator<Iter> || is_contiguous_iterator_v<Iter>) &&
+    is_contiguous_iterator_v<Iter> &&
     _is_array_convertible<Elem, std::remove_reference_t<std::iter_reference_t<Iter>>>::value;
 
 template <typename T, size_t Extent = dynamic_extent>
@@ -352,7 +352,7 @@ template <typename T, size_t Size>
 span(const std::array<T, Size> &) -> span<const T, Size>;
 
 template <typename It, typename End>
-requires(std::contiguous_iterator<It> || is_contiguous_iterator_v<It>)
+requires is_contiguous_iterator_v<It>
 span(It, End) -> span<std::remove_reference_t<std::iter_reference_t<It>>>;
 
 template <typename Range>
