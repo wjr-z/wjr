@@ -103,6 +103,9 @@ rank-0 需要一个对象，不能用 nullptr/0 作为标量借用。
 返回值不分配、不持有 owner 或 shared_ptr，不复制元素，也不改变现有 view 的表示和索引路径。
 检查只发生在适配边界，热循环获得普通 tensor_view 后不重复验证 shape。
 
+正步长、行间填充和转置输入使用独立的
+[checked strided 借用](tensor-strided-view.md)；它只接受可证明满足固定后端构造前置条件的子集。
+
 索引固定使用 `view(i, j)`。`wjr::np` 通过公开 CMake 定义启用后端 paren 运算符、禁用 bracket 运算符，
 使 C++20/23 使用相同拼写。整个程序直接使用此后端的翻译单元也须遵循相同宏配置与源码版本，
 不可在别处先以不同命名空间或宏配置包含另一份 Kokkos mdspan。

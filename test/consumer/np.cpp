@@ -1,5 +1,6 @@
 #include <array>
 
+#include <wjr/np/checked_strided_view.hpp>
 #include <wjr/np/checked_view.hpp>
 #include <wjr/np/reshape.hpp>
 #include <wjr/np/tensor.hpp>
@@ -27,6 +28,15 @@ int main(int argc, char **) {
         return 1;
     }
     owned->view()(1, 2) = 9;
+    using strided_shape = wjr::np::dextents<size_t, 2>;
+    auto pitched = wjr::np::try_make_strided_tensor_view<strided_shape>(values, 6, std::array{2, 2},
+                                                                        std::array{4, 1});
+    auto overlap = wjr::np::try_make_strided_tensor_view<strided_shape>(values, 6, std::array{2, 2},
+                                                                        std::array{1, 1});
+    if (!pitched || (*pitched)(1, 1) != 42 || overlap ||
+        overlap.error() != wjr::np::shape_error::unsupported_stride_order) {
+        return 1;
+    }
     auto flat = wjr::np::flatten_view(view);
     auto reshaped =
         wjr::np::try_reshape_view<wjr::np::extents<size_t, 3, 2>>(view, std::array{3, 2});
