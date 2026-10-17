@@ -3,9 +3,11 @@
 
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <vector>
 
 #include <wjr/compressed_pair.hpp>
+#include <wjr/container/vector.hpp>
 #include <wjr/np/checked_view.hpp>
 
 namespace wjr::np {
@@ -16,6 +18,11 @@ template <class C>
 inline constexpr bool is_std_array = false;
 template <class T, size_t N>
 inline constexpr bool is_std_array<std::array<T, N>> = true;
+
+template <class C>
+inline constexpr bool is_std_vector = false;
+template <class T, class A>
+inline constexpr bool is_std_vector<std::vector<T, A>> = true;
 
 template <class T, class C>
 concept tensor_container =
@@ -41,6 +48,13 @@ concept allocated_tensor_container =
         C(a);
         C(n, a);
         { storage.get_allocator() } -> std::convertible_to<typename C::allocator_type>;
+    };
+
+template <class C>
+concept default_initialized_tensor_container =
+    allocated_tensor_container<C> && !is_std_vector<C> &&
+    requires(const typename C::allocator_type &a, typename C::size_type n) {
+        C(n, default_construct, a);
     };
 
 template <class C>
@@ -103,7 +117,7 @@ inline constexpr bool is_tensor = false;
 } // namespace detail
 
 // Owns objects through Container; computation and ordinary indexing use view().
-template <class T, class Extents, class Layout = layout_right, class Container = std::vector<T>>
+template <class T, class Extents, class Layout = layout_right, class Container = wjr::vector<T>>
 requires(detail::is_extents<Extents> && detail::tensor_container<T, Container> &&
          (std::same_as<Layout, layout_right> || std::same_as<Layout, layout_left>) &&
          (detail::is_std_array<Container> || detail::allocated_tensor_container<Container>))
@@ -159,6 +173,13 @@ public:
                      const typename C::allocator_type &allocator)
         : m_storage(std::piecewise_construct, wjr::tuple<const mapping_type &>{mapping},
                     wjr::tuple<size_type, const typename C::allocator_type &>{count, allocator}) {}
+    template <class C = Container>
+    requires detail::default_initialized_tensor_container<C>
+    constexpr tensor(construction_key, const mapping_type &mapping, size_type count,
+                     default_construct_t, const typename C::allocator_type &allocator)
+        : m_storage(std::piecewise_construct, wjr::tuple<const mapping_type &>{mapping},
+                    wjr::tuple<size_type, default_construct_t, const typename C::allocator_type &>{
+                        count, default_construct, allocator}) {}
     tensor(const tensor &) = default;
     constexpr tensor(tensor &&other) noexcept(std::is_nothrow_move_constructible_v<Container>)
     requires std::is_move_constructible_v<Container>
@@ -228,9 +249,17 @@ private:
         if constexpr (detail::is_std_array<Container>) {
             return wjr::tuple<>{};
         } else {
+            using allocator_type = typename Container::allocator_type;
+            allocator_type allocator;
+            if constexpr (default_metadata->size != 0) {
+                if (WJR_UNLIKELY(wjr::cmp_greater(
+                        default_metadata->size,
+                        std::allocator_traits<allocator_type>::max_size(allocator)))) {
+                    WJR_THROW(std::length_error("tensor default shape exceeds allocator max_size"));
+                }
+            }
             return wjr::tuple<size_type, typename Container::allocator_type>{
-                static_cast<size_type>(default_metadata->size),
-                typename Container::allocator_type{}};
+                static_cast<size_type>(default_metadata->size), std::move(allocator)};
         }
     }
     compressed_pair<holder_type, Container> m_storage;
@@ -243,6 +272,26 @@ inline constexpr bool is_tensor<tensor<T, E, L, C>> = true;
 template <class Owner, class Integer>
 concept tensor_shape =
     is_tensor<Owner> && std::integral<Integer> && !std::same_as<std::remove_cv_t<Integer>, bool>;
+
+template <class Owner, std::integral Integer, class... Initialization>
+constexpr expected<Owner, shape_error>
+make_allocated_tensor(const std::array<Integer, Owner::rank()> &shape,
+                      const typename Owner::container_type::allocator_type &allocator,
+                      Initialization... initialization) {
+    using C = typename Owner::container_type;
+    using allocator_traits = std::allocator_traits<typename C::allocator_type>;
+    auto metadata =
+        check_metadata<typename Owner::element_type, typename Owner::extents_type>(shape);
+    if (!metadata)
+        return unexpected(metadata.error());
+    if (!wjr::in_range<typename C::size_type>(metadata->size))
+        return unexpected(shape_error::size_overflow);
+    if (metadata->size > C(allocator).max_size() ||
+        wjr::cmp_greater(metadata->size, allocator_traits::max_size(allocator)))
+        return unexpected(shape_error::container_size_limit);
+    return tensor_access::make<Owner>(*metadata, static_cast<typename C::size_type>(metadata->size),
+                                      initialization..., allocator);
+}
 } // namespace detail
 
 template <class Owner, std::integral Integer>
@@ -252,17 +301,29 @@ requires(detail::tensor_shape<Owner, Integer> &&
 [[nodiscard]] constexpr shape_result<Owner>
 make_tensor(const std::array<Integer, Owner::rank()> &shape, std::allocator_arg_t,
             const typename Owner::container_type::allocator_type &allocator) {
-    using C = typename Owner::container_type;
-    auto metadata =
-        detail::check_metadata<typename Owner::element_type, typename Owner::extents_type>(shape);
-    if (!metadata)
-        return unexpected(metadata.error());
-    if (!wjr::in_range<typename C::size_type>(metadata->size))
-        return unexpected(shape_error::size_overflow);
-    if (metadata->size > C(allocator).max_size())
-        return unexpected(shape_error::container_size_limit);
-    return detail::tensor_access::make<Owner>(
-        *metadata, static_cast<typename C::size_type>(metadata->size), allocator);
+    return detail::make_allocated_tensor<Owner>(shape, allocator);
+}
+
+// Default-initializes live objects. Scalar values must be written before reading.
+template <class Owner, std::integral Integer>
+requires(detail::tensor_shape<Owner, Integer> &&
+         detail::default_initialized_tensor_container<typename Owner::container_type> &&
+         std::default_initializable<typename Owner::element_type>)
+[[nodiscard]] constexpr expected<Owner, shape_error>
+make_tensor(const std::array<Integer, Owner::rank()> &shape, default_construct_t,
+            std::allocator_arg_t, const typename Owner::container_type::allocator_type &allocator) {
+    return detail::make_allocated_tensor<Owner>(shape, allocator, default_construct);
+}
+
+template <class Owner, std::integral Integer>
+requires(detail::tensor_shape<Owner, Integer> &&
+         detail::default_initialized_tensor_container<typename Owner::container_type> &&
+         std::default_initializable<typename Owner::container_type::allocator_type> &&
+         std::default_initializable<typename Owner::element_type>)
+[[nodiscard]] constexpr expected<Owner, shape_error>
+make_tensor(const std::array<Integer, Owner::rank()> &shape, default_construct_t) {
+    return make_tensor<Owner>(shape, default_construct, std::allocator_arg,
+                              typename Owner::container_type::allocator_type{});
 }
 
 template <class Owner, std::integral Integer>

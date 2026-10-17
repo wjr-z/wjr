@@ -70,6 +70,7 @@
 #ifndef WJR_CONTAINER_VECTOR_HPP__
 #define WJR_CONTAINER_VECTOR_HPP__
 
+#include <memory>
 #include <stdexcept>
 
 #include <wjr/compressed_pair.hpp>
@@ -179,7 +180,7 @@ public:
     constexpr void take_storage(Mybase &other, _Alty &) noexcept {
         auto &other_storage = other.m_storage;
         m_storage = std::move(other_storage);
-        other_storage.m_data = nullptr;
+        other_storage = {};
     }
 
     constexpr void swap_storage(Mybase &other, _Alty &) noexcept {
@@ -562,15 +563,16 @@ struct get_relocate_mode<small_vector_storage<T, Capacity, Alloc>> {
  * @brief Grow storage for small_vector_storage
  *
  * @details Lightweight temporary storage used when small_vector grows beyond small capacity.
- * Only provides minimal interface: data() for accessing the pointer.
- * All other operations (construction, take_storage, etc.) are delegated to small_vector_storage.
+ * Owns only a heap allocation; it never uses the small buffer. Construction and
+ * ownership transfer are delegated to small_vector_storage; deallocate releases
+ * the allocation without destroying elements.
  */
 template <typename T, size_t Capacity, typename Alloc>
 struct small_vector_grow_storage {
-    using pointer = typename std::allocator_traits<
-        typename std::allocator_traits<Alloc>::template rebind_alloc<T>>::pointer;
-    using size_type = typename std::allocator_traits<
-        typename std::allocator_traits<Alloc>::template rebind_alloc<T>>::size_type;
+    using allocator_type = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
+    using allocator_traits = std::allocator_traits<allocator_type>;
+    using pointer = typename allocator_traits::pointer;
+    using size_type = typename allocator_traits::size_type;
 
     pointer m_data = nullptr;
     size_type m_size = 0;
@@ -578,6 +580,10 @@ struct small_vector_grow_storage {
 
     WJR_PURE constexpr pointer data() noexcept { return m_data; }
     WJR_PURE constexpr size_type &size() noexcept { return m_size; }
+    WJR_CONSTEXPR20 void deallocate(allocator_type &allocator) noexcept(
+        noexcept(allocator_traits::deallocate(allocator, m_data, m_capacity))) {
+        allocator_traits::deallocate(allocator, m_data, m_capacity);
+    }
 };
 
 namespace detail {
@@ -1661,7 +1667,22 @@ private:
                 uninitialized_construct(new_storage, n, new_capacity);
 
                 const pointer _new_begin = new_storage.data();
-                wjr::uninitialized_copy_n_restrict_using_allocator(first, n, _new_begin, al);
+                if constexpr (std::is_pointer_v<Iter> &&
+                              is_trivially_allocator_construct_v<_Alty, value_type,
+                                                                 iterator_reference_t<Iter>> &&
+                              is_trivially_allocator_destroy_v<_Alty, value_type> &&
+                              std::is_nothrow_constructible_v<value_type,
+                                                              iterator_reference_t<Iter>>) {
+                    wjr::uninitialized_copy_n_restrict_using_allocator(first, n, _new_begin, al);
+                } else {
+                    const auto deallocate = [&al](_grow_storage_type *storage) {
+                        storage->deallocate(al);
+                    };
+                    std::unique_ptr<_grow_storage_type, decltype(deallocate)> rollback(&new_storage,
+                                                                                       deallocate);
+                    wjr::uninitialized_copy_n_restrict_using_allocator(first, n, _new_begin, al);
+                    rollback.release();
+                }
 
                 _destroy_and_deallocate();
                 _take_storage(new_storage);

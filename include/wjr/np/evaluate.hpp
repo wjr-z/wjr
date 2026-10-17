@@ -9,8 +9,7 @@ namespace wjr::np {
 namespace detail {
 
 template <class E>
-concept owning_expression = tensor_expression<E> && expression_element<typename E::value_type> &&
-                            !std::same_as<typename E::value_type, bool>;
+concept owning_expression = tensor_expression<E> && expression_element<typename E::value_type>;
 
 template <class Allocator, class E>
 concept expression_allocator = requires {
@@ -21,7 +20,7 @@ template <owning_expression E, class Allocator>
 requires expression_allocator<Allocator, E>
 using evaluation_tensor =
     tensor<typename E::value_type, typename E::extents_type, typename E::layout_type,
-           std::vector<typename E::value_type, Allocator>>;
+           wjr::vector<typename E::value_type, Allocator>>;
 
 } // namespace detail
 
@@ -37,7 +36,7 @@ eval(const E &expression, std::allocator_arg_t,
     std::array<index_type, E::rank()> shape{};
     if (!detail::try_expression_shape(expression, shape))
         return unexpected(shape_error::expression_shape_mismatch);
-    auto result = make_tensor<owner_type>(shape, std::allocator_arg, allocator);
+    auto result = make_tensor<owner_type>(shape, default_construct, std::allocator_arg, allocator);
     if (result)
         eval_to(result->view(), expression);
     return result;
