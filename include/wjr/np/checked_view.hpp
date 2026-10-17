@@ -1,0 +1,108 @@
+#ifndef WJR_NP_CHECKED_VIEW_HPP__
+#define WJR_NP_CHECKED_VIEW_HPP__
+
+#include <array>
+#include <concepts>
+#include <cstddef>
+#include <limits>
+#include <type_traits>
+
+#include <wjr/expected.hpp>
+#include <wjr/np/view.hpp>
+
+namespace wjr::np {
+
+enum class shape_error {
+    negative_extent,
+    extent_out_of_range,
+    static_extent_mismatch,
+    index_overflow,
+    size_overflow,
+    insufficient_storage,
+    null_storage,
+};
+
+namespace detail {
+
+template <class T>
+inline constexpr bool is_extents = false;
+
+template <class Index, size_t... Values>
+inline constexpr bool is_extents<extents<Index, Values...>> = true;
+
+} // namespace detail
+
+// Checks metadata before constructing the unchecked backend mapping. The caller
+// still owns the storage and must provide correctly aligned, live T objects.
+template <class Extents, class Layout = layout_right, class T, std::integral Integer>
+requires(detail::is_extents<Extents> &&
+         (std::same_as<Layout, layout_right> || std::same_as<Layout, layout_left>) &&
+         !std::same_as<std::remove_cv_t<Integer>, bool> && std::is_object_v<T> &&
+         requires { sizeof(T); })
+[[nodiscard]] constexpr expected<tensor_view<T, Extents, Layout>, shape_error>
+try_make_tensor_view(T *data, size_t available_elements,
+                     const std::array<Integer, Extents::rank()> &shape) noexcept {
+    using index_type = typename Extents::index_type;
+    using view_type = tensor_view<T, Extents, Layout>;
+    std::array<index_type, Extents::rank()> dimensions{};
+    bool empty = false;
+
+    // Validate every dimension before multiplying, including dimensions after a
+    // zero. Do not narrow an external integer before checking representability.
+    for (size_t r = 0; r != Extents::rank(); ++r) {
+        if constexpr (std::is_signed_v<Integer>) {
+            if (shape[r] < 0) {
+                return unexpected(shape_error::negative_extent);
+            }
+        }
+        if (!wjr::in_range<index_type>(shape[r])) {
+            return unexpected(shape_error::extent_out_of_range);
+        }
+        if (Extents::static_extent(r) != dynamic_extent &&
+            !wjr::cmp_equal(shape[r], Extents::static_extent(r))) {
+            return unexpected(shape_error::static_extent_mismatch);
+        }
+        dimensions[r] = static_cast<index_type>(shape[r]);
+        empty |= dimensions[r] == 0;
+    }
+
+    // Even empty mappings can compute overflowing prefix/suffix strides. Every
+    // zero-free run must fit index_type before invoking either backend layout.
+    constexpr index_type max_index = std::numeric_limits<index_type>::max();
+    index_type run = 1;
+    for (index_type dimension : dimensions) {
+        if (dimension == 0) {
+            run = 1;
+        } else {
+            if (run > max_index / dimension) {
+                return unexpected(shape_error::index_overflow);
+            }
+            run *= dimension;
+        }
+    }
+    const index_type count = empty ? 0 : run;
+    if (!wjr::in_range<size_t>(count)) {
+        return unexpected(shape_error::size_overflow);
+    }
+    const auto elements = static_cast<size_t>(count);
+    // Conservatively keep the addressed byte span within PTRDIFF_MAX, which
+    // also makes its multiplication by sizeof(T) representable in size_t.
+    constexpr auto max_bytes = static_cast<size_t>(std::numeric_limits<ptrdiff_t>::max());
+    if (elements > max_bytes / sizeof(T)) {
+        return unexpected(shape_error::size_overflow);
+    }
+    if (elements > available_elements) {
+        return unexpected(shape_error::insufficient_storage);
+    }
+    if (data == nullptr && available_elements != 0) {
+        return unexpected(shape_error::null_storage);
+    }
+
+    const Extents extents(dimensions);
+    const typename view_type::mapping_type mapping(extents);
+    return view_type(data, mapping);
+}
+
+} // namespace wjr::np
+
+#endif // WJR_NP_CHECKED_VIEW_HPP__

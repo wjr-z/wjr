@@ -65,9 +65,42 @@ mapping 内含 extents，不重复保存 shape。
 
 这里的构造和 `operator()` 都遵循 mdspan 的**未检查前置条件**。
 它们不是 NumPy/DLPack 的安全接入边界，不检查外部存储长度、溢出、stride 合法性或生命周期。
-随后单独添加 checked 适配入口，在形成 mapping、指针或分配之前验证这些条件；
+需要校验连续 shape 和存储长度时，使用下面的 checked 适配入口；
 不能先调用可能溢出的 required_span_size() 再事后检查。
 不将尚未实现的调试边界检查、`at()`、reshape、切片或标准 mdspan 互操作宣称为已有功能。
+
+## checked 连续借用
+
+```cpp
+#include <wjr/np/checked_view.hpp>
+
+using shape = wjr::np::extents<std::size_t, wjr::np::dynamic_extent, 300>;
+auto result = wjr::np::try_make_tensor_view<shape>(
+    data, available_elements, std::array<std::int64_t, 2>{days, 300});
+// result 为 expected<tensor_view<元素类型, shape>, shape_error>。
+// 在确认 result 有值后借用 *result；数据的生命周期仍由调用方负责。
+```
+
+`try_make_tensor_view<Extents, Layout = layout_right>` 从 `T*` 推导元素 const 性，
+完整 shape 使用 rank 个整数，包括类型中声明的静态维度。
+只接受 layout_left/right 与默认 accessor，不接受任意 stride、广播或容器隐式转换。
+输入 shape 的整数类型可与 index_type 不同，但不接受 bool 或浮点 shape。
+
+该 constexpr/noexcept 入口先检查所有 extent 的符号、可表示性及静态匹配，
+然后检查无零连续维度段的乘积、逻辑元素数和字节跨度，最后检查 available_elements 与空指针。
+所有检查通过后才构造后端 extents、mapping 和 view；不计算未验证 mapping 的 required_span_size()。
+字节跨度保守限制在 PTRDIFF_MAX 内；含零维度也不能跳过可能溢出的 prefix/suffix stride。
+例如 int 索引下的 [0,46341,46341] 被拒绝，而 [46341,0,46341] 可表示为空 view。
+元数据错误返回 `shape_error`，不调用断言或抛异常报告正常输入错误。
+
+available_elements 表示从 data 开始的可用 T 对象数，可以大于逻辑元素数。
+空 shape 的 nullptr/0 合法；非零 available_elements 携带 nullptr 被拒绝。
+rank-0 需要一个对象，不能用 nullptr/0 作为标量借用。
+这不是内存探测：调用方仍须保证所声明的存储确实有效、对齐、类型正确且在使用期间存活。
+原始指针不能证明所有权或检测曾经发生的悬垂，错误的非空指针也无法由长度字段证明安全。
+
+返回值不分配、不持有 owner 或 shared_ptr，不复制元素，也不改变现有 view 的表示和索引路径。
+检查只发生在适配边界，热循环获得普通 tensor_view 后不重复验证 shape。
 
 索引固定使用 `view(i, j)`。`wjr::np` 通过公开 CMake 定义启用后端 paren 运算符、禁用 bracket 运算符，
 使 C++20/23 使用相同拼写。整个程序直接使用此后端的翻译单元也须遵循相同宏配置与源码版本，
@@ -81,7 +114,8 @@ cmake --build build --target np_tests
 ctest --test-dir build -R wjr_np_tests --output-on-failure
 ```
 
-源码消费时链接 `wjr::np`；它只传递 `wjr::config` 和固定后端，不链接 `wjr::isa`。
+源码消费时链接 `wjr::np`；它传递 `wjr::config`、固定后端及 baseline 的断言和迭代器依赖，
+使 checked 返回值的 expected 在调试配置下也有完整的头文件和链接要求，不链接 `wjr::isa`。
 默认 `WJR_ENABLE_NP=OFF` 不下载 mdspan，普通 `wjr::wjr` 不依赖 np。
 启用安装时，上游头文件及 mdspan CMake 包随安装前缀安装，np 单独导出。
 

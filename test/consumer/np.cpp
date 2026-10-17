@@ -1,9 +1,26 @@
-#include <wjr/np/view.hpp>
+#include <array>
 
-int main() {
+#include <wjr/np/checked_view.hpp>
+
+using shape = wjr::np::extents<size_t, wjr::np::dynamic_extent, 3>;
+using result_type = wjr::expected<wjr::np::tensor_view<int, shape>, wjr::np::shape_error>;
+
+// Keep debug expected access out of line so its assertion linkage is exercised
+// even when the factory can be inlined into the successful call site.
+WJR_NOINLINE int read_value(const result_type &result) { return (*result)(1, 2); }
+WJR_NOINLINE wjr::np::shape_error read_error(const result_type &result) { return result.error(); }
+
+int main(int argc, char **) {
     int values[] = {0, 1, 2, 3, 4, 5};
-    using shape = wjr::np::extents<size_t, wjr::np::dynamic_extent, 3>;
     wjr::np::tensor_view<int, shape> view(values, 2);
     view(1, 2) = 42;
-    return values[5] == 42 && view.size() == 6 ? 0 : 1;
+    const size_t available = argc == 1 ? 6 : 5;
+    auto checked = wjr::np::try_make_tensor_view<shape>(values, available, std::array{2, 3});
+    auto insufficient =
+        wjr::np::try_make_tensor_view<shape>(values, available - 1, std::array{2, 3});
+    return checked && !insufficient && read_value(checked) == 42 &&
+                   read_error(insufficient) == wjr::np::shape_error::insufficient_storage &&
+                   view.size() == 6
+               ? 0
+               : 1;
 }

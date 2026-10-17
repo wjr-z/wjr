@@ -206,7 +206,7 @@ foreach(_WJR_POOL_FAILURE IN ITEMS overflow allocation)
 endforeach()
 
 if(WJR_ENABLE_NP)
-   add_executable(np_tests np/view.cpp)
+   add_executable(np_tests np/view.cpp np/checked_view.cpp)
    target_link_libraries(np_tests PRIVATE wjr::np gtest_main)
    add_test(NAME wjr_np_tests COMMAND np_tests)
    set_tests_properties(wjr_np_tests PROPERTIES LABELS unit)

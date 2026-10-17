@@ -64,7 +64,9 @@ JSON 数据结构和解析、序列化相关功能。
 ## `wjr::np`（可选、实验性）
 
 设置 `WJR_ENABLE_NP=ON` 后提供 C++20 的多维借用 view，包含
-`<wjr/np/view.hpp>` 并链接 `wjr::np`。它复用固定版本 Kokkos mdspan，
+`<wjr/np/view.hpp>` 并链接 `wjr::np`。`<wjr/np/checked_view.hpp>` 另外提供
+检查连续 shape、算术和存储长度的借用入口，返回 expected，不分配或延长数据寿命。
+它复用固定版本 Kokkos mdspan，并传递 expected 所需的 baseline 断言与迭代器依赖，
 不依赖 `wjr::isa`，不默认链接到 `wjr::wjr`。
 安装消费使用 `find_package(wjr CONFIG REQUIRED COMPONENTS np)`。
 数据生命周期、未检查构造的前置条件和已测空间限制见
