@@ -437,6 +437,39 @@ private:
         noexcept(std::declval<storage_type &>().swap_storage(std::declval<storage_type &>(),
                                                              std::declval<_Alty &>()));
 
+    class _allocation_rollback {
+    public:
+        constexpr _allocation_rollback(storage_type &storage, _Alty &alloc) noexcept
+            : m_storage(std::addressof(storage)), m_alloc(std::addressof(alloc)) {}
+        _allocation_rollback(const _allocation_rollback &) = delete;
+        _allocation_rollback &operator=(const _allocation_rollback &) = delete;
+        constexpr ~_allocation_rollback() noexcept {
+            if (m_storage != nullptr)
+                m_storage->deallocate(*m_alloc);
+        }
+        constexpr void release() noexcept { m_storage = nullptr; }
+
+    private:
+        storage_type *m_storage;
+        _Alty *m_alloc;
+    };
+
+    class _input_construction_rollback {
+    public:
+        constexpr explicit _input_construction_rollback(basic_ring_buffer &owner) noexcept
+            : m_owner(std::addressof(owner)) {}
+        _input_construction_rollback(const _input_construction_rollback &) = delete;
+        _input_construction_rollback &operator=(const _input_construction_rollback &) = delete;
+        constexpr ~_input_construction_rollback() noexcept {
+            if (m_owner != nullptr)
+                m_owner->_destroy_and_deallocate();
+        }
+        constexpr void release() noexcept { m_owner = nullptr; }
+
+    private:
+        basic_ring_buffer *m_owner;
+    };
+
 public:
     basic_ring_buffer() noexcept(std::is_nothrow_default_constructible_v<allocator_type>) = default;
 
@@ -474,22 +507,24 @@ private:
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
         const size_type _size = other.size();
         if (WJR_LIKELY(_size != 0)) {
+            auto &_al = _get_allocator();
             uninitialized_construct(_size, _size);
+            _allocation_rollback allocation(get_storage(), _al);
 
             pointer dst = data();
             const const_pointer _head = other._get_head();
             const const_pointer _tail = other._get_tail();
-
-            auto &_al = _get_allocator();
-
             if (_head < _tail) {
                 wjr::uninitialized_copy_restrict_using_allocator(_head, _tail, dst, _al);
             } else {
-                const_pointer _data = other.data();
-                const_pointer _buf_end = other._get_buf_end();
-                dst = wjr::uninitialized_copy_restrict_using_allocator(_head, _buf_end, dst, _al);
-                wjr::uninitialized_copy_restrict_using_allocator(_data, _tail, dst, _al);
+                _uninitialized_rollback<pointer, _Alty> rollback(dst, &_al);
+                rollback.current() = wjr::uninitialized_copy_restrict_using_allocator(
+                    _head, other._get_buf_end(), dst, _al);
+                wjr::uninitialized_copy_restrict_using_allocator(other.data(), _tail,
+                                                                 rollback.current(), _al);
+                rollback.release();
             }
+            allocation.release();
         }
     }
 
@@ -1069,7 +1104,9 @@ private:
         if (WJR_LIKELY(n != 0)) {
             auto &al = _get_allocator();
             uninitialized_construct(n, n);
+            _allocation_rollback allocation(get_storage(), al);
             wjr::uninitialized_fill_n_using_allocator(data(), n, al, std::forward<Ty>(val));
+            allocation.release();
         }
     }
 
@@ -1078,15 +1115,19 @@ private:
         if (WJR_LIKELY(n != 0)) {
             auto &al = _get_allocator();
             uninitialized_construct(n, n);
+            _allocation_rollback allocation(get_storage(), al);
             wjr::uninitialized_copy_restrict_using_allocator(first, last, data(), al);
+            allocation.release();
         }
     }
 
     template <typename Iter>
     WJR_CONSTEXPR20 void _range_construct(Iter first, Iter last, std::input_iterator_tag) {
+        _input_construction_rollback rollback(*this);
         for (; first != last; ++first) {
             emplace_back(*first);
         }
+        rollback.release();
     }
 
     template <typename Iter>
@@ -1108,21 +1149,44 @@ private:
 
             storage_type new_storage;
             uninitialized_construct(new_storage, new_size, new_capacity);
+            _allocation_rollback allocation(new_storage, al);
             pointer _new_begin = new_storage.data();
-
             const pointer new_pos = _new_begin + old_size;
+            _uninitialized_rollback<pointer, _Alty> tail_rollback(new_pos, &al);
             wjr::uninitialized_construct_using_allocator(new_pos, al, std::forward<Args>(args)...);
+            ++tail_rollback.current();
 
-            if (_head < _tail) {
-                uninitialized_relocate_restrict_using_allocator(_head, _tail, _new_begin, al);
-            } else if (!empty()) {
-                _new_begin = uninitialized_relocate_restrict_using_allocator(_head, _get_buf_end(),
-                                                                             _new_begin, al);
-                uninitialized_relocate_restrict_using_allocator(data(), _tail, _new_begin, al);
+            if constexpr (is_trivially_allocator_construct_v<_Alty, value_type, value_type &&> &&
+                          is_trivially_allocator_destroy_v<_Alty, value_type> &&
+                          (get_relocate_mode_v<value_type> == relocate_t::trivial ||
+                           std::is_nothrow_move_constructible_v<value_type>)) {
+                if (_head < _tail) {
+                    uninitialized_relocate_restrict_using_allocator(_head, _tail, _new_begin, al);
+                } else if (!empty()) {
+                    _new_begin = uninitialized_relocate_restrict_using_allocator(
+                        _head, _get_buf_end(), _new_begin, al);
+                    uninitialized_relocate_restrict_using_allocator(data(), _tail, _new_begin, al);
+                }
+            } else {
+                _uninitialized_rollback<pointer, _Alty> prefix_rollback(_new_begin, &al);
+                auto &prefix_end = prefix_rollback.current();
+                if (_head < _tail) {
+                    prefix_end =
+                        uninitialized_move_restrict_using_allocator(_head, _tail, prefix_end, al);
+                } else if (!empty()) {
+                    prefix_end = uninitialized_move_restrict_using_allocator(_head, _get_buf_end(),
+                                                                             prefix_end, al);
+                    prefix_end =
+                        uninitialized_move_restrict_using_allocator(data(), _tail, prefix_end, al);
+                }
+                _destroy();
+                prefix_rollback.release();
             }
+            tail_rollback.release();
 
             _deallocate();
             _take_storage(new_storage);
+            allocation.release();
         } else {
             _unreallocatable_unreachable(size() + 1);
         }
