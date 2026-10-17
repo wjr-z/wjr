@@ -26,6 +26,26 @@ template <class Owner>
 concept tries_borrow = requires(Owner &&owner) { std::forward<Owner>(owner).try_view(); };
 template <class Owner, class Integer, size_t Rank>
 concept makes = requires(std::array<Integer, Rank> shape) { np::make_tensor<Owner>(shape); };
+
+template <class Owner>
+concept makes_default_initialized = requires(std::array<int, Owner::rank()> shape) {
+    np::make_tensor<Owner>(shape, wjr::default_construct);
+};
+
+using standard_owner = np::tensor<int, dynamic_shape, np::layout_right, std::vector<int>>;
+static_assert(std::same_as<fixed_owner::container_type, wjr::vector<int>>);
+static_assert(makes_default_initialized<dynamic_owner>);
+static_assert(!makes_default_initialized<standard_owner>);
+static_assert(!makes_default_initialized<array_owner>);
+
+struct accepts_initialization_tag {
+    accepts_initialization_tag() = default;
+    // Deliberately implicit: std::vector could treat the tag as a fill value.
+    accepts_initialization_tag(wjr::default_construct_t) {}
+};
+using convertible_tag_owner = np::tensor<accepts_initialization_tag, dynamic_shape,
+                                         np::layout_right, std::vector<accepts_initialization_tag>>;
+static_assert(!makes_default_initialized<convertible_tag_owner>);
 template <class Owner>
 concept bypasses_factory =
     requires(typename Owner::mapping_type mapping, typename Owner::container_type storage) {
@@ -50,7 +70,8 @@ static_assert(!makes<dynamic_owner, bool, 2> && !makes<dynamic_owner, int, 1>);
 static_assert(
     std::same_as<decltype(std::declval<const fixed_owner &>().view()(0, 0)), const int &>);
 static_assert(std::is_nothrow_move_constructible_v<fixed_owner>);
-static_assert(std::is_nothrow_move_assignable_v<fixed_owner>);
+static_assert(std::is_nothrow_move_assignable_v<fixed_owner> ==
+              std::is_nothrow_move_assignable_v<fixed_owner::container_type>);
 
 constexpr bool constant_array() {
     array_owner owner;
@@ -141,7 +162,7 @@ struct state_allocator {
 
 template <class T>
 using state_owner =
-    np::tensor<T, dynamic_shape, np::layout_right, std::vector<T, state_allocator<T>>>;
+    np::tensor<T, dynamic_shape, np::layout_right, wjr::vector<T, state_allocator<T>>>;
 
 #if !defined(WJR_DISABLE_EXCEPTIONS)
 struct throwing_element {
@@ -228,9 +249,9 @@ TEST(np_tensor, default_static_dynamic_scalar_and_empty) {
 TEST(np_tensor, compact_storage_layout_const_and_alignment) {
     struct direct_dynamic_storage {
         dynamic_owner::mapping_type mapping;
-        std::vector<int> storage;
+        wjr::vector<int> storage;
     };
-    EXPECT_EQ(sizeof(fixed_owner), sizeof(std::vector<int>));
+    EXPECT_EQ(sizeof(fixed_owner), sizeof(wjr::vector<int>));
     EXPECT_EQ(sizeof(array_owner), sizeof(std::array<int, 6>));
     EXPECT_EQ(sizeof(dynamic_owner), sizeof(direct_dynamic_storage));
     EXPECT_EQ(alignof(array_owner), alignof(std::array<int, 6>));
@@ -249,10 +270,13 @@ TEST(np_tensor, compact_storage_layout_const_and_alignment) {
 }
 
 TEST(np_tensor, checked_creation_and_adoption) {
+    auto standard = np::make_tensor<standard_owner>(std::array{2, 3});
+    ASSERT_TRUE(standard);
+    EXPECT_EQ(standard->view()(1, 2), 0);
     auto made = np::make_tensor<dynamic_owner>(std::array{2, 3});
     ASSERT_TRUE(made);
     EXPECT_EQ(made->view()(1, 2), 0);
-    std::vector<int> storage{0, 1, 2, 3, 4, 5};
+    wjr::vector<int> storage{0, 1, 2, 3, 4, 5};
     auto *data = storage.data();
     auto wrong = np::adopt_tensor<dynamic_owner>(std::array{2, 2}, std::move(storage));
     ASSERT_FALSE(wrong);
@@ -269,7 +293,7 @@ TEST(np_tensor, checked_creation_and_adoption) {
     auto mismatch = np::make_tensor<fixed_owner>(std::array{3, 2});
     ASSERT_FALSE(mismatch);
     EXPECT_EQ(mismatch.error(), np::shape_error::static_extent_mismatch);
-    std::vector<no_default> objects;
+    wjr::vector<no_default> objects;
     objects.emplace_back(7);
     auto nondefault = np::adopt_tensor<no_default_owner>(std::array{1}, std::move(objects));
     ASSERT_TRUE(nondefault);

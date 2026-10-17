@@ -55,11 +55,10 @@ private:
 public:
     template <typename Container>
     WJR_CONSTEXPR20 static void copy_assign(Container &lhs, const Container &rhs) noexcept(
-        noexcept(lhs._copy_element(rhs)) && !propagate_on_container_copy_assignment::value
-            ? true
-            : (std::is_nothrow_copy_assignable_v<Alloc> && is_always_equal::value
-                   ? true
-                   : noexcept(lhs._destroy_and_deallocate()))) {
+        noexcept(lhs._copy_element(rhs)) &&
+        (!propagate_on_container_copy_assignment::value ||
+         (std::is_nothrow_copy_assignable_v<Alloc> &&
+          (is_always_equal::value || noexcept(lhs._release_before_copy()))))) {
         if constexpr (propagate_on_container_copy_assignment::value) {
             auto &lhs_allocator = lhs._get_allocator();
             const auto &rhs_allocator = rhs._get_allocator();

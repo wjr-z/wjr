@@ -3,6 +3,7 @@
 #include <wjr/np/checked_strided_view.hpp>
 #include <wjr/np/checked_view.hpp>
 #include <wjr/np/copy.hpp>
+#include <wjr/np/evaluate.hpp>
 #include <wjr/np/expression.hpp>
 #include <wjr/np/reduce.hpp>
 #include <wjr/np/reshape.hpp>
@@ -75,6 +76,10 @@ int main(int argc, char **) {
     }
     wjr::np::eval_to(output, wjr::np::as_expr(output) + 2);
     if (materialized[5] != 2) {
+        return 1;
+    }
+    auto evaluated = wjr::np::eval(wjr::np::as_expr(output) * 3);
+    if (!evaluated || evaluated->view()(2, 1) != 6) {
         return 1;
     }
     const int row_bias[] = {3, 5};

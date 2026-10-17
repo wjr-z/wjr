@@ -20,7 +20,7 @@ concept allocates = requires(const E &expression, const Allocator &allocator) {
     np::eval(expression, std::allocator_arg, allocator);
 };
 
-static_assert(!evaluates<np::scalar_expression<bool>>);
+static_assert(evaluates<np::scalar_expression<bool>>);
 static_assert(!evaluates<np::tensor<double, dynamic_shape>>);
 static_assert(allocates<np::scalar_expression<double>, std::allocator<double>>);
 static_assert(!allocates<np::scalar_expression<double>, std::allocator<float>>);
@@ -137,6 +137,20 @@ TEST(NpEvaluate, MaterializesRankZeroScalarsAndScalarTrees) {
     EXPECT_EQ(promoted_bool->view()(), 1);
 }
 
+TEST(NpEvaluate, MaterializesRealBooleanStorage) {
+    auto scalar = np::eval(np::as_expr(true));
+    ASSERT_TRUE(scalar);
+    EXPECT_TRUE(scalar->view()());
+    static_assert(std::same_as<decltype(scalar->view()()), bool &>);
+    std::array<bool, 3> values{true, false, true};
+    auto result = np::eval(np::as_expr(view<const bool, np::extents<size_t, 3>>(values.data())));
+    ASSERT_TRUE(result);
+    EXPECT_NE(result->view().data_handle(), values.data());
+    EXPECT_TRUE(result->view()(0));
+    EXPECT_FALSE(result->view()(1));
+    EXPECT_TRUE(result->view()(2));
+}
+
 TEST(NpEvaluate, AllocatesOneResultAndRetainsAllocatorState) {
     allocation_state state;
     std::array<double, 6> x{1, 2, 3, 4, 5, 6};
@@ -146,7 +160,7 @@ TEST(NpEvaluate, AllocatesOneResultAndRetainsAllocatorState) {
                                evaluation_allocator<double>(state, 17));
         using owner = typename decltype(result)::value_type;
         static_assert(std::same_as<typename owner::container_type,
-                                   std::vector<double, evaluation_allocator<double>>>);
+                                   wjr::vector<double, evaluation_allocator<double>>>);
         ASSERT_TRUE(result);
         EXPECT_EQ(state.allocations, 1);
         EXPECT_EQ(state.deallocations, 0);

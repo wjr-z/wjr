@@ -8,9 +8,14 @@
 ## 复用结论
 
 首版组合已有容器与固定 Kokkos mapping，不直接 alias 或公开继承后端的实验性 mdarray。
-不另建 allocator、buffer 或共享控制块；默认采用 `std::vector<T>`。
-`wjr::vector<T>` 保留为显式存储选择，其扩容、异常和 allocator 行为须独立验收后再考虑替换默认值。
-本轮没有测得两者吞吐量差异，不以本库容器身份作为默认选型依据。
+不另建 allocator、buffer 或共享控制块；默认采用 `wjr::vector<T>`。
+它已有显式 `default_construct` 构造，可合法开始数值对象生命周期而不要求先写初值，
+供拥有结果的 evaluator 使用。普通构造和 `make_tensor(shape)` 继续值初始化；
+显式 `std::vector<T>` 和全静态 `std::array<T, N>` 仍受支持。
+选择依据是可用的初始化语义，并非容器名称或尚未测量的吞吐量优势。
+默认容器改变了公开类型；采用标准 vector 的代码应显式写出该 Container。
+owner 的条件 `noexcept` 仍跟随容器；当前 WJR vector 的移动赋值因底层 deallocate
+声明而保守地不是 nothrow，不保留原标准 vector 的该项 trait。
 
 [P1684R5](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p1684r5.html)
 提供容器适配器的设计依据，也提出通过实际容器长度判断移动后能否访问数据。
@@ -36,6 +41,10 @@ WJR 首版采用少量命名 factory，避免同时转发所有容器构造重�
 xtensor 0.27.1 固定为
 [`f115228a7fc277b9be1bef34572831f8fd53ac73`](https://github.com/xtensor-stack/xtensor/tree/f115228a7fc277b9be1bef34572831f8fd53ac73)。
 其 `xtensor_container<std::vector<T>, rank, row_major>` 是相同底层存储的比较对象。
+该版本的[默认容器](https://github.com/xtensor-stack/xtensor/blob/f115228a7fc277b9be1bef34572831f8fd53ac73/include/xtensor/core/xtensor_config.hpp#L51)
+实际为 `uvector<T, A>`；其 [safe_init_allocate](https://github.com/xtensor-stack/xtensor/blob/f115228a7fc277b9be1bef34572831f8fd53ac73/include/xtensor/containers/xstorage.hpp#L160)
+对满足其 trivial-default-construction trait 的元素省去构造循环。
+WJR 复用已有 vector 的 default-initialization 路径，不照搬 uvector 的 allocator 行为。
 它的 [xstrided_container](https://github.com/xtensor-stack/xtensor/blob/f115228a7fc277b9be1bef34572831f8fd53ac73/include/xtensor/containers/xcontainer.hpp#L326)
 同时保存 shape、strides、backstrides 和 layout，支持比首版连续 owner 更广的操作。
 本轮不引入其 owner/表达式依赖；后续 evaluator 仍须比较可复用的 xtensor 子集，不能据此先实现替代引擎。
@@ -46,7 +55,7 @@ xtensor 0.27.1 固定为
 
 ```cpp
 template <class T, class Extents, class Layout = layout_right,
-          class Container = std::vector<T>>
+          class Container = wjr::vector<T>>
 class tensor;
 ```
 
@@ -81,9 +90,7 @@ class tensor;
 这些语义要求不能单凭 requires 表达式证明。
 
 `std::vector<bool>` 不符合真实指针和引用要求，明确拒绝实例化，不降级为位代理。
-首版默认存储因此只覆盖非 bool；真实 bool owner 显式指定合规容器，例如 `std::array<bool, N>`，
-或经对应操作验收的 `wjr::vector<bool>`。本轮原型验证了后者的真实 bool 分配、读写与 const view，
-没有据此声称已完成全部 allocator/赋值测试。
+默认 `wjr::vector<bool>` 使用真实 `bool` 对象，可直接提供 bool owner 与 const view。
 过对齐类型由 Container/allocator 保证对齐；owner 不额外承诺超出 T 所需的 SIMD 对齐。
 
 ## 逻辑 shape 与有效存储
@@ -166,6 +173,11 @@ auto result = make_tensor<panel>(std::array<std::int64_t, 2>{days, 300});
 
 auto adopted = adopt_tensor<panel>(shape, std::move(existing_container));
 auto allocated = make_tensor<panel>(shape, std::allocator_arg, allocator);
+
+// 开始全部元素的生命周期；普通数值元素必须先写后读。
+auto overwrite = make_tensor<panel>(shape, wjr::default_construct);
+auto with_allocator = make_tensor<panel>(shape, wjr::default_construct,
+                                         std::allocator_arg, allocator);
 ```
 
 shape 总是含 rank 个值，静态维度也必须与类型匹配。
@@ -175,6 +187,15 @@ factory 的元数据错误使用已有 `wjr::expected` 返回，区分非法 ext
 这不是一个将所有 OOM 转成状态码的接口；Container 的分配、元素构造或移动异常保留原语义。
 无异常配置不能因这个设计被宣称具有统一、可恢复的 OOM 机制。
 
+`default_construct` 工厂仅接受具有 `C(count, default_construct, allocator)` 语义的容器，
+不对 `std::vector` 或 `std::array` 提供悄悄值初始化的 fallback。
+外部容器必须保证 tag 表示默认初始化，能匹配构造表达式本身不足以证明该语义。
+标准 allocator 下，WJR vector 对数值类型复用 `std::uninitialized_default_construct_n`；
+非平凡类型仍执行必要构造，自定义 allocator 的 `construct`/`destroy` 钩子保留。
+因此该 tag 不承诺任意元素或 allocator 都没有初始化写入。
+普通默认构造的非空静态 shape 同样先核对默认 allocator 的 max_size，
+超限使用既有异常策略报告 `std::length_error`，不把超限请求交给 allocator。
+
 检查顺序固定为：
 
 1. 在原整数类型上检查每个 extent 非负、可表示为 index_type，核对静态值；不先窄化。
@@ -182,7 +203,7 @@ factory 的元数据错误使用已有 `wjr::expected` 返回，区分非法 ext
    尚未构造 mapping，不借助可能已溢出的 required_span_size() 做校验。
 3. 检查逻辑元素数可表示为容器 size_type，字节数可表示为 size_t，
    并满足首版的 PTRDIFF_MAX 字节跨度上界和实际 Container/allocator max_size。
-4. 创建 extents/mapping；创建相应数量的值初始化对象，或采用已验证容器。
+4. 创建 extents/mapping；按选定初始化方式创建相应数量的活对象，或采用已验证容器。
    仅在这些步骤全部成功后发布完整 owner。
 
 空 shape 的总元素数为 0，并不能豁免 mapping 的中间算术。
@@ -276,8 +297,21 @@ Clang 18 C++20 Release 下，静态 vector/array owner 的索引分别与直接�
 静态 mapping 压缩、checked 创建/采用，以及不完整表示的传播和恢复。
 状态 allocator 用例验证 max_size、复制构造的 allocator 选择、分配失败和不等 allocator 的移动；
 抛异常元素覆盖部分构造清理及移动失败后的元数据保留。
-默认存储为 std::vector；显式 WJR vector 的 int/真实 bool 创建与借用也有回归，
-不据此承诺其所有存储操作已经等价验收。
+默认存储现为 WJR vector；普通值初始化、显式默认初始化、真实 bool、非平凡元素构造、
+allocator 钩子及部分构造回滚均有针对回归，显式标准容器仍保留原语义。
+默认 vector 移动后清空全部三指针，源对象的 size/capacity 与 owner 存储观察保持有效；
+只清空 data 指针会留下不属于同一数组的指针相减，不能用于 owner 的移动后表示。
+复制赋值的 `noexcept` 同时计入元素复制，允许分配异常正常传播；
+范围赋值增长路径在元素构造失败后只释放新分配，已构造前缀由原有 uninitialized 算法销毁。
+
+复用 vector 仍保留三指针（data/end/capacity），所测 x64 下为 24 字节；
+动态二维 owner 另有 16 字节 extents，全静态 holder 不占额外字节。
+全静态 exact-size owner 理想上只需 data 和 allocator，当前仍保存 end/capacity；
+动态 owner 的 mapping 已含逻辑长度，vector 的 end 也重复表达了它。
+本轮以现有容器的维护、allocator 与异常语义换取这部分常量状态，尚未达到 owner 的空间下界；
+exact-size buffer 或整合 owner/storage 是后续独立设计，不在本轮另建 allocator-aware buffer。
+`allocate_at_least` 也可能返回超过逻辑 size 的容量，容器必须保存它以正确释放。
+这些是当前复用方案相对于 exact-size 存储的空间成本，不能把无初始化写入推广成所有维度的零开销。
 
 本地 Clang 18 的 C++20/debug-3、C++23/debug-0、C++20 ASan，
 MSVC 19.42 的 C++20/debug-3，以及仅链接已安装 wjr::np 的 consumer 通过。

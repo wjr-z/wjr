@@ -70,6 +70,7 @@
 #ifndef WJR_CONTAINER_VECTOR_HPP__
 #define WJR_CONTAINER_VECTOR_HPP__
 
+#include <memory>
 #include <stdexcept>
 
 #include <wjr/compressed_pair.hpp>
@@ -179,7 +180,7 @@ public:
     constexpr void take_storage(Mybase &other, _Alty &) noexcept {
         auto &other_storage = other.m_storage;
         m_storage = std::move(other_storage);
-        other_storage.m_data = nullptr;
+        other_storage = {};
     }
 
     constexpr void swap_storage(Mybase &other, _Alty &) noexcept {
@@ -1661,7 +1662,22 @@ private:
                 uninitialized_construct(new_storage, n, new_capacity);
 
                 const pointer _new_begin = new_storage.data();
-                wjr::uninitialized_copy_n_restrict_using_allocator(first, n, _new_begin, al);
+                if constexpr (std::is_pointer_v<Iter> &&
+                              is_trivially_allocator_construct_v<_Alty, value_type,
+                                                                 iterator_reference_t<Iter>> &&
+                              is_trivially_allocator_destroy_v<_Alty, value_type> &&
+                              std::is_nothrow_constructible_v<value_type,
+                                                              iterator_reference_t<Iter>>) {
+                    wjr::uninitialized_copy_n_restrict_using_allocator(first, n, _new_begin, al);
+                } else {
+                    const auto deallocate = [&al](_grow_storage_type *storage) {
+                        storage->deallocate(al);
+                    };
+                    std::unique_ptr<_grow_storage_type, decltype(deallocate)> rollback(&new_storage,
+                                                                                       deallocate);
+                    wjr::uninitialized_copy_n_restrict_using_allocator(first, n, _new_begin, al);
+                    rollback.release();
+                }
 
                 _destroy_and_deallocate();
                 _take_storage(new_storage);
