@@ -89,7 +89,7 @@ JSON 数据结构和解析、序列化相关功能。
 
 ## `wjr::simd_xsimd`（可选、实验性）
 
-设置 `WJR_ENABLE_XSIMD=ON` 后提供固定版本 xsimd 的 batch、谓词及有界扫描参考内核。
+设置 `WJR_ENABLE_XSIMD=ON` 后提供固定版本 xsimd 的 batch、谓词、有界扫描及连续变换内核。
 包含 `<wjr/simd/xsimd.hpp>` 并链接 `wjr::simd_xsimd`；该模块显式依赖 `wjr::isa`，
 不默认链接到 `wjr::wjr`。安装消费使用 `COMPONENTS simd_xsimd`。
 架构相关类型、mask 顺序和后续扩展边界见 [SIMD 后端初版](../design/simd.md)。
