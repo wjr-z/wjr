@@ -26,9 +26,9 @@ public:
         func_detail::init_ptr(m_ptr, f);
     }
 
-    template <typename F, typename VT = remove_cvref_t<F>,
-              WJR_REQUIRES(!std::is_same_v<VT, function_ref> && !std::is_member_pointer_v<VT> &&
-                           !std::is_function_v<VT> && _is_invocable_using<VT WJR_FUNCREF_CV &>)>
+    template <typename F, typename VT = std::remove_reference_t<F>>
+    requires(!std::is_same_v<remove_cvref_t<F>, function_ref> && !std::is_member_pointer_v<VT> &&
+             !std::is_function_v<VT> && _is_invocable_using<VT WJR_FUNCREF_CV &>)
     function_ref(F &&f) noexcept : m_func(Invoker::template _s_ptr<VT WJR_FUNCREF_CV &>()) {
         func_detail::init_ptr(m_ptr, std::addressof(f));
     }

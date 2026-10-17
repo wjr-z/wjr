@@ -10,6 +10,8 @@
 #ifndef WJR_UTILITY_FUNCTIONAL_HPP__
 #define WJR_UTILITY_FUNCTIONAL_HPP__
 
+#include <functional>
+
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
@@ -28,7 +30,7 @@ constexpr R invoke_r(F &&f, Args &&...args) noexcept(std::is_nothrow_invocable_r
 
 namespace func_detail {
 union Ptr {
-    const void *obj;
+    const volatile void *obj;
     void (*func)();
 };
 
@@ -37,8 +39,6 @@ WJR_INTRINSIC_INLINE constexpr auto *_cast_to(Ptr ptr) noexcept {
     using Td = std::remove_reference_t<Tp>;
     if constexpr (std::is_function_v<Td>)
         return reinterpret_cast<Td *>(ptr.func);
-    else if constexpr (std::is_const_v<Td>)
-        return static_cast<Td *>(ptr.obj);
     else
         return static_cast<Td *>(const_cast<void *>(ptr.obj));
 }
@@ -84,13 +84,12 @@ constexpr void init_ptr(Ptr &ptr, Tp *p) noexcept {
     if constexpr (std::is_function_v<Tp>) {
         ptr.func = reinterpret_cast<void (*)()>(p);
     } else {
-        ptr.obj = static_cast<const void *>(p);
+        ptr.obj = static_cast<const volatile void *>(p);
     }
 }
 
 } // namespace func_detail
 
-#ifndef WJR_CPP_26
 template <auto V>
 struct nontype_t {
     explicit nontype_t() = default;
@@ -98,10 +97,6 @@ struct nontype_t {
 
 template <auto V>
 constexpr nontype_t<V> nontype{};
-#else
-using std::nontype;
-using std::nontype_t;
-#endif
 
 template <typename F>
 class function_ref;
