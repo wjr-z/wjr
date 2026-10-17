@@ -22,6 +22,7 @@ enum class shape_error {
     null_storage,
     storage_size_mismatch,
     container_size_limit,
+    element_count_mismatch,
 };
 
 namespace detail {
