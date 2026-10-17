@@ -229,6 +229,25 @@ TEST(NpExpressionXsimd, BroadcastsMissingAxesAndRankZeroViews) {
     EXPECT_EQ(actual, expected);
 }
 
+TEST(NpExpressionXsimd, AssignmentBroadcastUsesDestinationInnerExtent) {
+    using destination_shape = np::extents<size_t, 2, 3, 7>;
+    using row_shape = np::extents<size_t, 7>;
+    using singleton_shape = np::extents<size_t, 1>;
+    std::array<double, 42> actual{}, expected{};
+    std::array<double, 7> bias{1, 2, 3, 4, 5, 6, 7};
+    const auto row = np::as_expr(np::tensor_view<const double, row_shape>(bias.data()));
+    np::eval_to(np::tensor_view<double, destination_shape>(expected.data()), row + 1.);
+    np::eval_to(np::tensor_view<double, destination_shape>(actual.data()), row + 1.,
+                np::xsimd_policy<>{});
+    EXPECT_EQ(actual, expected);
+
+    const auto singleton = np::as_expr(np::tensor_view<const double, singleton_shape>(bias.data()));
+    np::eval_to(np::tensor_view<double, destination_shape>(expected.data()), singleton + 1.);
+    np::eval_to(np::tensor_view<double, destination_shape>(actual.data()), singleton + 1.,
+                np::xsimd_policy<>{});
+    EXPECT_EQ(actual, expected);
+}
+
 TEST(NpExpressionXsimd, DynamicSingletonAndUnitInputsKeepScalarProjection) {
     using matrix_shape = np::extents<size_t, 2, 7>;
     std::array<double, 14> source{}, actual{}, expected{};
