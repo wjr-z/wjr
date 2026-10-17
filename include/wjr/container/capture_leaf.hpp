@@ -168,7 +168,8 @@ struct _is_tuple_test_impl : std::false_type {};
 /// @private
 template <template <typename...> typename Test, size_t... Idxs, typename LP, typename RP>
 struct _is_tuple_test_impl<Test, std::index_sequence<Idxs...>, LP, RP,
-                           std::enable_if_t<_is_tuple_like_v<LP, RP>>>
+                           std::void_t<std::enable_if_t<_is_tuple_like_v<LP, RP>>,
+                                       decltype(std::get<Idxs>(std::declval<RP>()))...>>
     : std::conjunction<
           Test<std::tuple_element_t<Idxs, LP>, decltype(std::get<Idxs>(std::declval<RP>()))>...> {};
 
