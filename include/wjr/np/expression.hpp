@@ -551,9 +551,10 @@ eval_projected_expression(Dst dst, const E &expression, const Values &values) no
                         size_t output_offset,
                         auto... input_offsets) noexcept(noexcept(dst.data_handle()[size_t{}] =
                                                                      expression.read(size_t{}))) {
-                        eval_expression_row<E>(output + output_offset, inner_count, output_step,
-                                               values, std::array<size_t, inputs>{input_offsets...},
-                                               steps, std::make_index_sequence<inputs>{});
+                        eval_expression_row<E>(
+                            output + output_offset, inner_count, output_step, values,
+                            std::array<size_t, expression_leaf_count<E>>{input_offsets...}, steps,
+                            std::make_index_sequence<expression_leaf_count<E>>{});
                     };
             } else {
                 return RowExecutor::template bind<E>(dst.data_handle(), values, inner_count);

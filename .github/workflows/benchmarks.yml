@@ -85,10 +85,10 @@ jobs:
         run: |
           if [[ "$BENCHMARK_PROFILE" == "all" ]]; then
             repetitions=1
-            min_time=0.03
+            min_time=0.03s
           else
             repetitions=3
-            min_time=0.02
+            min_time=0.02s
           fi
           ./build/bin/benchmarks \
             --benchmark_format=json \
