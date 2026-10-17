@@ -226,4 +226,135 @@ TEST(NpEvaluate, ReleasesResultWhenAnOperationThrows) {
     EXPECT_EQ(state.allocations, 1);
     EXPECT_EQ(state.deallocations, 1);
 }
+
+TEST(NpEvaluate, BroadcastsRightAlignedRanksIntoTheNaturalShape) {
+    using cube_shape = np::extents<size_t, 2, 1, 3>;
+    using bias_shape = np::extents<size_t, 4, 1>;
+    std::array<double, 6> input{1, 2, 3, 4, 5, 6};
+    std::array<double, 4> bias{10, 20, 30, 40};
+    const auto x = np::as_expr(view<double, cube_shape>(input.data()));
+    const auto y = np::as_expr(view<double, bias_shape>(bias.data()));
+    auto result = np::eval(x + y);
+    using owner = typename decltype(result)::value_type;
+    static_assert(std::same_as<owner, np::tensor<double, np::extents<size_t, 2, 4, 3>>>);
+    ASSERT_TRUE(result);
+    EXPECT_EQ(result->size(), 24);
+    EXPECT_EQ(result->view()(0, 0, 0), 11.);
+    EXPECT_EQ(result->view()(1, 2, 2), 36.);
+    EXPECT_EQ(result->view()(1, 3, 1), 45.);
+}
+
+TEST(NpEvaluate, BroadcastsDynamicAndStaticRefinements) {
+    using dynamic_vector = np::dextents<size_t, 1>;
+    using fixed_matrix = np::extents<size_t, 2, 3>;
+    std::array<double, 3> input{1, 2, 3};
+    std::array<double, 6> weights{10, 20, 30, 40, 50, 60};
+    const auto x = np::as_expr(view<double, dynamic_vector>(input.data(), 3));
+    const auto y = np::as_expr(view<double, fixed_matrix>(weights.data()));
+    auto result = np::eval(2. * x + y);
+    using owner = typename decltype(result)::value_type;
+    static_assert(std::same_as<owner, np::tensor<double, fixed_matrix>>);
+    ASSERT_TRUE(result);
+    EXPECT_EQ(result->view()(0, 2), 36.);
+    EXPECT_EQ(result->view()(1, 0), 42.);
+}
+
+TEST(NpEvaluate, BroadcastsSingletonsWithZeroExtentsWithoutAllocating) {
+    allocation_state state;
+    using empty_shape = np::extents<size_t, 0, 1>;
+    using row_shape = np::extents<size_t, 1, 4>;
+    std::array<double, 4> row{1, 2, 3, 4};
+    const auto x = np::as_expr(view<double, empty_shape>(nullptr));
+    const auto y = np::as_expr(view<double, row_shape>(row.data()));
+    auto result = np::eval(x + y, std::allocator_arg, evaluation_allocator<double>(state, 1));
+    using owner = typename decltype(result)::value_type;
+    static_assert(std::same_as<typename owner::extents_type, np::extents<size_t, 0, 4>>);
+    ASSERT_TRUE(result);
+    EXPECT_EQ(result->extent(0), 0);
+    EXPECT_EQ(result->extent(1), 4);
+    EXPECT_TRUE(result->empty());
+    EXPECT_EQ(state.allocations, 0);
+}
+
+TEST(NpEvaluate, RejectsIncompatibleZeroAndNonSingletonExtents) {
+    allocation_state state;
+    std::array<double, 6> input{};
+    const auto x = np::as_expr(view<double>(nullptr, 0, 3));
+    const auto y = np::as_expr(view<double>(input.data(), 2, 3));
+    auto result = np::eval(x + y, std::allocator_arg, evaluation_allocator<double>(state, 1));
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error(), np::shape_error::expression_shape_mismatch);
+    EXPECT_EQ(state.allocations, 0);
+}
+
+TEST(NpEvaluate, BroadcastsRankZeroViewWithoutTreatingItAsLinearInput) {
+    double scalar = 10.;
+    std::array<double, 6> input{1, 2, 3, 4, 5, 6};
+    const auto x = np::as_expr(view<double>(input.data(), 2, 3));
+    const auto y = np::as_expr(view<double, np::extents<size_t>>(&scalar));
+    auto result = np::eval(y + x);
+    ASSERT_TRUE(result);
+    EXPECT_EQ(result->extent(0), 2);
+    EXPECT_EQ(result->extent(1), 3);
+    EXPECT_EQ(result->view()(0, 0), 11.);
+    EXPECT_EQ(result->view()(1, 2), 16.);
+}
+
+TEST(NpEvaluate, MaterializesStridedColumnsWithRowBroadcasting) {
+    using column_shape = np::extents<size_t, 2, 1>;
+    using row_shape = np::extents<size_t, 3>;
+    std::array<double, 6> input{1, 2, 3, 4, 5, 6};
+    std::array<double, 3> bias{10, 20, 30};
+    const np::layout_stride::mapping<column_shape> mapping(column_shape{},
+                                                           std::array<size_t, 2>{3, 1});
+    const auto x =
+        np::as_expr(view<double, column_shape, np::layout_stride>(input.data() + 1, mapping));
+    const auto y = np::as_expr(view<double, row_shape>(bias.data()));
+    auto result = np::eval(x + y);
+    using owner = typename decltype(result)::value_type;
+    static_assert(std::same_as<typename owner::layout_type, np::layout_right>);
+    ASSERT_TRUE(result);
+    EXPECT_EQ(result->view()(0, 0), 12.);
+    EXPECT_EQ(result->view()(0, 2), 32.);
+    EXPECT_EQ(result->view()(1, 0), 15.);
+    EXPECT_EQ(result->view()(1, 2), 35.);
+}
+
+TEST(NpEvaluate, ResolvesMixedLayoutsByLogicalCoordinates) {
+    using matrix_shape = np::extents<size_t, 2, 3>;
+    std::array<double, 6> left_data{1, 4, 2, 5, 3, 6};
+    std::array<double, 6> right_data{10, 20, 30, 40, 50, 60};
+    const auto x = np::as_expr(view<double, matrix_shape, np::layout_left>(left_data.data()));
+    const auto y = np::as_expr(view<double, matrix_shape>(right_data.data()));
+    auto result = np::eval(x + y);
+    using owner = typename decltype(result)::value_type;
+    static_assert(std::same_as<typename owner::layout_type, np::layout_right>);
+    ASSERT_TRUE(result);
+    EXPECT_EQ(result->view()(0, 1), 22.);
+    EXPECT_EQ(result->view()(1, 2), 66.);
+}
+
+TEST(NpEvaluate, ChecksContainerLimitAgainstTheFullBroadcastShape) {
+    allocation_state state;
+    state.limit = 5;
+    std::array<double, 2> column{1, 2};
+    std::array<double, 3> row{3, 4, 5};
+    const auto x = np::as_expr(view<double, np::extents<size_t, 2, 1>>(column.data()));
+    const auto y = np::as_expr(view<double, np::extents<size_t, 3>>(row.data()));
+    auto result = np::eval(x + y, std::allocator_arg, evaluation_allocator<double>(state, 1));
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error(), np::shape_error::container_size_limit);
+    EXPECT_EQ(state.allocations, 0);
+}
+
+TEST(NpEvaluate, ValidatesRemainingBroadcastAxesAfterAZeroExtent) {
+    allocation_state state;
+    std::array<double, 2> row{1, 2};
+    const auto x = np::as_expr(view<double>(nullptr, 0, 3));
+    const auto y = np::as_expr(view<double>(row.data(), 1, 2));
+    auto result = np::eval(x + y, std::allocator_arg, evaluation_allocator<double>(state, 1));
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error(), np::shape_error::expression_shape_mismatch);
+    EXPECT_EQ(state.allocations, 0);
+}
 } // namespace

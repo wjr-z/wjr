@@ -80,6 +80,14 @@ WJR_INTRINSIC_INLINE void eval_to(tensor_view<T, Extents, Layout> dst, const Exp
         // The scalar entry point's shape binding is shared below; the loop does
         // not perform metadata checks, allocate storage, or assume alignment.
         detail::assert_expression_shape(dst, expr);
+        if (dst.empty())
+            return;
+        if (!detail::is_linear_expression(dst, expr)) {
+            const auto values = detail::bind_expression_values(
+                expr, std::make_index_sequence<detail::expression_leaf_count<Expr>>{});
+            detail::eval_projected_expression(dst, expr, values);
+            return;
+        }
         const auto values = detail::bind_expression_values(
             expr, std::make_index_sequence<detail::expression_leaf_count<Expr>>{});
         using batch = xsimd::batch<T, Arch>;

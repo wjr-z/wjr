@@ -27,7 +27,7 @@ struct custom_accessor : np::default_accessor<double> {};
 using owner = np::tensor<double, shape>;
 static_assert(can_capture<view> && can_capture<const node &> && can_capture<int>);
 static_assert(!can_capture<owner &> && !can_capture<owner>);
-static_assert(!can_capture<np::tensor_view<double, shape, np::layout_stride>>);
+static_assert(can_capture<np::tensor_view<double, shape, np::layout_stride>>);
 static_assert(!can_capture<np::tensor_view<volatile double, shape>>);
 static_assert(!can_capture<np::tensor_view<double, shape, np::layout_right, custom_accessor>>);
 static_assert(!can_add<view, view> && !can_add<node, owner &>);
@@ -38,10 +38,10 @@ using wrong_rank =
 using left_node =
     decltype(np::as_expr(std::declval<np::tensor_view<double, shape, np::layout_left>>()));
 static_assert(!can_add<node, mismatched> && !can_add<node, wrong_rank>);
-static_assert(!can_add<node, left_node>);
+static_assert(can_add<node, left_node>);
 static_assert(!can_evaluate<np::tensor_view<const double, shape>, node>);
-static_assert(!can_evaluate<np::tensor_view<double, shape, np::layout_stride>, node>);
-static_assert(!can_evaluate<np::tensor_view<double, shape, np::layout_left>, node>);
+static_assert(can_evaluate<np::tensor_view<double, shape, np::layout_stride>, node>);
+static_assert(can_evaluate<np::tensor_view<double, shape, np::layout_left>, node>);
 static_assert(!can_evaluate<np::tensor_view<double, np::extents<size_t, 3, 2>>, node>);
 static_assert(!can_evaluate<view, wrong_rank>);
 static_assert(std::same_as<decltype(std::declval<const node &>().read(0)), const double &>);

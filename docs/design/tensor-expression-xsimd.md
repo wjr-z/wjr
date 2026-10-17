@@ -22,11 +22,15 @@ whereas `2.0 * float_expression` retains the scalar evaluator's intermediate
 double precision. Mixed integer division also stays scalar, so SIMD cannot
 turn `int(3) / int(2) + float(0)` into `1.5` in some lanes.
 
-The shape, packed layout, lifetime, and alias preconditions are identical to
+The shape, lifetime, and alias preconditions are identical to
 scalar `eval_to`. Output must be logically disjoint from each input or exactly
 correspond to that input at every coordinate. Complete batches load before
 their output store, making exact pointwise in-place evaluation valid.
 Partial overlap is a caller precondition violation; no temporary is allocated.
+The boundary checks linear compatibility once: all array leaves must have the
+output's actual shape and packed traversal order. Broadcast, mixed-layout, and
+positive-stride expressions use the shared scalar coordinate traversal instead.
+No batch loop checks shape or silently loads a broadcast leaf as a full batch.
 
 Loads and stores use unaligned operations. Full batches never cross the
 logical allocation end, and remaining elements use the original scalar tree.
