@@ -42,7 +42,11 @@ WJR_INTRINSIC_INLINE auto apply(const T &x, const T &y, const T &alpha, const T 
         const auto sum = x + y;
         return sum * sum;
     } else {
-        return alpha * x + beta * y;
+        // Match the AST's intermediate expression boundaries, including the
+        // compiler's default floating-point contraction rules.
+        const auto scaled_x = alpha * x;
+        const auto scaled_y = beta * y;
+        return scaled_x + scaled_y;
     }
 }
 
