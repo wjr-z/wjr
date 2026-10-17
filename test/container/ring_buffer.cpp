@@ -1,6 +1,9 @@
 #include "../detail.hpp"
 
+#include <cstring>
+#include <forward_list>
 #include <list>
+#include <sstream>
 #include <vector>
 #include <wjr/container/ring_buffer.hpp>
 
@@ -322,22 +325,161 @@ TEST(ring_buffer, comparison_with_vector) {
 
 TEST(ring_buffer, input_iterator_assign) {
     ring_buffer<int> rb{1, 2, 3, 4, 5};
-
-    // Test assigning from input iterator (list iterator)
-    std::list<int> lst{10, 20, 30};
-    // Note: This would call __range_assign with input_iterator_tag
-    // rb.assign(lst.begin(), lst.end()); // Uncomment when assign is implemented
-
-    // For now, test the underlying behavior manually
-    rb.clear();
-    for (auto val : lst) {
-        rb.emplace_back(val);
-    }
+    std::istringstream input("10 20 30");
+    rb.assign(std::istream_iterator<int>(input), std::istream_iterator<int>());
 
     EXPECT_EQ(rb.size(), 3);
     EXPECT_EQ(rb[0], 10);
     EXPECT_EQ(rb[1], 20);
     EXPECT_EQ(rb[2], 30);
+}
+
+TEST(ring_buffer, forward_iterator_assign) {
+    ring_buffer<int> rb;
+    rb.reserve(8);
+    std::forward_list<int> forward{1, 2, 3};
+    rb.assign(forward.begin(), forward.end());
+    EXPECT_TRUE(std::equal(rb.begin(), rb.end(), forward.begin(), forward.end()));
+
+    std::list<int> bidirectional{4, 5, 6, 7};
+    rb.assign(bidirectional.begin(), bidirectional.end());
+    EXPECT_TRUE(std::equal(rb.begin(), rb.end(), bidirectional.begin(), bidirectional.end()));
+
+    bidirectional.resize(20, 9);
+    rb.assign(bidirectional.begin(), bidirectional.end());
+    EXPECT_TRUE(std::equal(rb.begin(), rb.end(), bidirectional.begin(), bidirectional.end()));
+}
+
+TEST(ring_buffer, wrapped_assign_destroys_unused_elements) {
+    for (size_t count : {size_t(0), size_t(1), size_t(4), size_t(5), size_t(8)}) {
+        TrackingObject::reset_counts();
+        {
+            ring_buffer<TrackingObject> rb;
+            rb.reserve(8);
+            for (int i = 0; i < 6; ++i) {
+                rb.emplace_back(i);
+            }
+            for (int i = 0; i < 4; ++i) {
+                rb.pop_front();
+            }
+            for (int i = 6; i < 10; ++i) {
+                rb.emplace_back(i);
+            }
+
+            std::vector<TrackingObject> values(count, TrackingObject(42));
+            rb.assign(values.begin(), values.end());
+            EXPECT_EQ(rb.size(), count);
+            EXPECT_TRUE(std::equal(rb.begin(), rb.end(), values.begin(), values.end()));
+            EXPECT_EQ(TrackingObject::get_construction_count() -
+                          TrackingObject::get_destruction_count(),
+                      static_cast<int>(2 * count));
+
+            rb.emplace_back(99);
+            EXPECT_EQ(rb.back().value(), 99);
+        }
+        EXPECT_EQ(TrackingObject::get_construction_count(),
+                  TrackingObject::get_destruction_count());
+    }
+}
+
+TEST(ring_buffer, empty_input_assign_destroys_wrapped_elements) {
+    TrackingObject::reset_counts();
+    {
+        ring_buffer<TrackingObject> rb;
+        rb.reserve(4);
+        for (int i = 0; i < 4; ++i) {
+            rb.emplace_back(i);
+        }
+        rb.pop_front();
+        rb.emplace_back(4);
+        std::istringstream input;
+        rb.assign(std::istream_iterator<int>(input), std::istream_iterator<int>());
+        EXPECT_TRUE(rb.empty());
+        EXPECT_EQ(TrackingObject::get_construction_count(),
+                  TrackingObject::get_destruction_count());
+    }
+}
+
+namespace {
+template <typename T>
+struct zeroing_allocator {
+    using value_type = T;
+    T *allocate(size_t n) {
+        auto *ptr = std::allocator<T>().allocate(n);
+        std::memset(ptr, 0, n * sizeof(T));
+        return ptr;
+    }
+    void deallocate(T *ptr, size_t n) { std::allocator<T>().deallocate(ptr, n); }
+};
+} // namespace
+
+TEST(ring_buffer, shrink_to_fit_preserves_elements) {
+    for (bool wrapped : {false, true}) {
+        ring_buffer<int, zeroing_allocator<int>> rb;
+        rb.reserve(8);
+        for (int i = 0; i < 6; ++i) {
+            rb.push_back(i);
+        }
+        if (wrapped) {
+            for (int i = 0; i < 4; ++i) {
+                rb.pop_front();
+                rb.push_back(i + 6);
+            }
+        }
+        std::vector<int> expected(rb.begin(), rb.end());
+        rb.shrink_to_fit();
+        EXPECT_EQ(rb.capacity(), expected.size());
+        for (size_t i = 0; i < expected.size(); ++i) {
+            EXPECT_EQ(rb[i], expected[i]) << "wrapped=" << wrapped << ", index=" << i;
+        }
+        rb.push_back(99);
+        EXPECT_EQ(rb.back(), 99);
+        rb.clear();
+        rb.shrink_to_fit();
+        EXPECT_EQ(rb.capacity(), 0);
+    }
+}
+
+TEST(ring_buffer, growth_preserves_rotated_full_buffer_order) {
+    for (bool explicit_reserve : {false, true}) {
+        ring_buffer<int> rb;
+        rb.reserve(4);
+        for (int i = 1; i <= 4; ++i) {
+            rb.push_back(i);
+        }
+        rb.pop_front();
+        rb.pop_front();
+        rb.push_back(5);
+        rb.push_back(6);
+        if (explicit_reserve) {
+            rb.reserve(8);
+        } else {
+            rb.push_back(7);
+        }
+        for (size_t i = 0; i < rb.size(); ++i) {
+            EXPECT_EQ(rb[i], static_cast<int>(i + 3));
+        }
+    }
+}
+
+TEST(ring_buffer, shrink_to_fit_preserves_object_lifetimes) {
+    TrackingObject::reset_counts();
+    {
+        ring_buffer<TrackingObject> rb;
+        rb.reserve(8);
+        for (int i = 0; i < 6; ++i) {
+            rb.emplace_back(i);
+        }
+        for (int i = 0; i < 4; ++i) {
+            rb.pop_front();
+            rb.emplace_back(i + 6);
+        }
+        rb.shrink_to_fit();
+        for (size_t i = 0; i < rb.size(); ++i) {
+            EXPECT_EQ(rb[i].value(), static_cast<int>(i + 4));
+        }
+    }
+    EXPECT_EQ(TrackingObject::get_construction_count(), TrackingObject::get_destruction_count());
 }
 
 TEST(ring_buffer, copy_constructor_and_assignment) {

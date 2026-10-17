@@ -15,11 +15,15 @@ public:
     _dynamic_object_pool_impl(const _dynamic_object_pool_impl &) = delete;
     _dynamic_object_pool_impl(_dynamic_object_pool_impl &&other) noexcept {
         replace(&other.m_head, &m_head);
+        other.m_head.init_self();
     }
 
     _dynamic_object_pool_impl &operator=(const _dynamic_object_pool_impl &) = delete;
     _dynamic_object_pool_impl &operator=(_dynamic_object_pool_impl &&other) noexcept {
-        replace(&other.m_head, &m_head);
+        if (this != std::addressof(other)) {
+            replace(&other.m_head, &m_head);
+            other.m_head.init_self();
+        }
         return *this;
     }
 
@@ -82,6 +86,9 @@ public:
     }
 
     void deallocate(value_type *ptr, size_type n) noexcept {
+        if (n == 0) {
+            return;
+        }
         n *= sizeof(value_type);
         if (auto [idx, _] = Traits::get(n); WJR_LIKELY(idx != tableSize)) {
             return m_pool[idx].deallocate(ptr);
@@ -116,12 +123,12 @@ struct single_object_pool_traits {
         using other = single_object_pool_traits<Other>;
     };
 
-    static constexpr size_t get(WJR_MAYBE_UNUSED size_t sz) noexcept {
+    static constexpr std::pair<size_t, size_t> get(WJR_MAYBE_UNUSED size_t sz) noexcept {
         WJR_ASSERT_L2(sz == sizeof(T));
-        return 0;
+        return {0, std::max(sizeof(T), sizeof(intrusive::hlist_node<>))};
     }
     static constexpr value_type *allocate_large(size_t) noexcept { WJR_UNREACHABLE(); }
-    static constexpr value_type *deallocate_large(size_t) noexcept { WJR_UNREACHABLE(); }
+    static constexpr void deallocate_large(value_type *, size_t) noexcept { WJR_UNREACHABLE(); }
 };
 } // namespace mem::detail
 

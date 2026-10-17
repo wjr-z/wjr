@@ -63,6 +63,8 @@ if(WJR_ENABLE_ASAN)
 endif()
 
 file(GLOB_RECURSE TEST_SRCS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+# Installed-package consumers have their own main and are built independently.
+list(FILTER TEST_SRCS EXCLUDE REGEX "/consumer/")
 
 add_executable(
    tests
