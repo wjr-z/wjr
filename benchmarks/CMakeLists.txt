@@ -74,6 +74,7 @@ elseif(WJR_BENCHMARK_PROFILE STREQUAL "simd")
     set(BENCHMARK_SRCS
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/simd.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/simd_scan.cpp
     )
 else()
     message(FATAL_ERROR "WJR_BENCHMARK_PROFILE must be 'core', 'all', or 'simd'")
@@ -95,14 +96,10 @@ target_compile_definitions(benchmarks PRIVATE
 )
 
 if(WJR_BENCHMARK_XSIMD)
-    # Experimental dependency only: do not export or install it with WJR.
-    set(XSIMD_SKIP_INSTALL ON)
-    FetchContent_Declare(xsimd
-        GIT_REPOSITORY https://github.com/xtensor-stack/xsimd.git
-        GIT_TAG e88a72831858123924f7118f345dfe5d70d95991 # 14.3.0
-    )
-    FetchContent_MakeAvailable(xsimd)
+    include(wjrXsimd)
+    wjr_load_xsimd(FALSE)
     target_link_libraries(benchmarks PRIVATE xsimd)
+    target_compile_features(benchmarks PRIVATE cxx_std_20)
     target_compile_definitions(benchmarks PRIVATE WJR_BENCHMARK_XSIMD=1)
 endif()
 

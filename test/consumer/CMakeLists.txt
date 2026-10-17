@@ -105,3 +105,39 @@ if(WJR_TEST_NP)
     endforeach()
     set_tests_properties(wjr_np_missing_dependency_optional_OFF PROPERTIES WILL_FAIL TRUE)
 endif()
+
+option(WJR_TEST_SIMD_XSIMD "Validate the installed optional xsimd component." OFF)
+if(WJR_TEST_SIMD_XSIMD)
+    if(TARGET wjr::simd_xsimd)
+        message(FATAL_ERROR "Ordinary package discovery imported the xsimd component.")
+    endif()
+    find_package(wjr CONFIG REQUIRED COMPONENTS simd_xsimd)
+    find_package(wjr CONFIG REQUIRED COMPONENTS simd_xsimd)
+    get_target_property(_WJR_SIMD_DEPS wjr::simd_xsimd INTERFACE_LINK_LIBRARIES)
+    list(FILTER _WJR_SIMD_DEPS INCLUDE REGEX "^xsimd$")
+    list(LENGTH _WJR_SIMD_DEPS _WJR_SIMD_DEP_COUNT)
+    if(NOT wjr_simd_xsimd_FOUND OR NOT _WJR_SIMD_DEP_COUNT EQUAL 1)
+        message(FATAL_ERROR "The xsimd component must retain exactly one backend dependency.")
+    endif()
+    if(NOT CMAKE_PREFIX_PATH STREQUAL WJR_PREFIX_PATH_BEFORE)
+        message(FATAL_ERROR "Finding xsimd changed the consumer's CMAKE_PREFIX_PATH.")
+    endif()
+    add_executable(wjr_simd_xsimd_consumer simd_xsimd.cpp)
+    target_link_libraries(wjr_simd_xsimd_consumer PRIVATE wjr::simd_xsimd)
+    add_test(NAME wjr_simd_xsimd_consumer COMMAND wjr_simd_xsimd_consumer)
+
+    foreach(_WJR_OPTIONAL IN ITEMS ON OFF)
+        add_test(NAME wjr_simd_missing_dependency_optional_${_WJR_OPTIONAL}
+            COMMAND ${CMAKE_COMMAND}
+            -S "${CMAKE_CURRENT_SOURCE_DIR}/component"
+            -B "${CMAKE_CURRENT_BINARY_DIR}/simd-missing-dependency-${_WJR_OPTIONAL}"
+            -G "${CMAKE_GENERATOR}"
+            "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
+            "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+            -DWJR_REQUEST_COMPONENT=simd_xsimd
+            -DWJR_OPTIONAL_COMPONENT=${_WJR_OPTIONAL}
+            -DCMAKE_DISABLE_FIND_PACKAGE_xsimd=TRUE
+        )
+    endforeach()
+    set_tests_properties(wjr_simd_missing_dependency_optional_OFF PROPERTIES WILL_FAIL TRUE)
+endif()
