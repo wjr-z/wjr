@@ -1,6 +1,7 @@
 #include "detail.hpp"
 
 #include <initializer_list>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -12,6 +13,124 @@ namespace wjr {
 template class expected<int, bool>;
 template class expected<int, compressed_value<bool, false>>;
 } // namespace wjr
+
+namespace {
+
+struct non_default_value {
+    int value;
+    non_default_value() = delete;
+    constexpr explicit non_default_value(int v) : value(v) {}
+    constexpr non_default_value(std::initializer_list<int> values, int initial) : value(initial) {
+        for (int v : values) {
+            value += v;
+        }
+    }
+};
+
+struct non_default_move_only {
+    int value;
+    non_default_move_only() = delete;
+    constexpr explicit non_default_move_only(int v) : value(v) {}
+    non_default_move_only(const non_default_move_only &) = delete;
+    non_default_move_only(non_default_move_only &&) = default;
+    non_default_move_only &operator=(const non_default_move_only &) = delete;
+    non_default_move_only &operator=(non_default_move_only &&) = default;
+};
+
+using non_default_result = expected<non_default_value, int>;
+static_assert(!std::is_default_constructible_v<non_default_result>);
+static_assert(std::is_trivially_copy_constructible_v<non_default_result>);
+static_assert(std::is_trivially_move_constructible_v<non_default_result>);
+static_assert(std::is_trivially_copy_assignable_v<non_default_result>);
+static_assert(std::is_trivially_move_assignable_v<non_default_result>);
+static_assert(std::is_trivially_destructible_v<non_default_result>);
+static_assert(sizeof(non_default_result) == sizeof(expected<int, int>));
+static_assert(alignof(non_default_result) == alignof(expected<int, int>));
+using move_only_result = expected<non_default_move_only, int>;
+static_assert(!std::is_default_constructible_v<move_only_result>);
+static_assert(!std::is_copy_constructible_v<move_only_result>);
+static_assert(!std::is_copy_assignable_v<move_only_result>);
+static_assert(std::is_move_constructible_v<move_only_result>);
+static_assert(std::is_move_assignable_v<move_only_result>);
+
+constexpr bool non_default_construction() {
+    non_default_result value(non_default_value(7));
+    non_default_result placed(std::in_place, 8);
+    non_default_result listed(std::in_place, {1, 2}, 3);
+    non_default_result error(unexpect, 9);
+    const wjr::unexpected<int> failure(10);
+    non_default_result copied_error(failure);
+    non_default_result moved_error(wjr::unexpected<int>(11));
+    return value->value == 7 && placed->value == 8 && listed->value == 6 && !error &&
+           error.error() == 9 && !copied_error && copied_error.error() == 10 && !moved_error &&
+           moved_error.error() == 11;
+}
+static_assert(non_default_construction());
+
+constexpr bool static_view_construction() {
+    int values[4] = {1, 2, 3, 4};
+    using view = std::span<int, 4>;
+    static_assert(!std::is_default_constructible_v<expected<view, int>>);
+    expected<view, int> result(std::in_place, values);
+    expected<view, int> error(unexpect, 5);
+    return (*result)[3] == 4 && !error && error.error() == 5;
+}
+static_assert(static_view_construction());
+
+} // namespace
+
+TEST(expected, non_default_value_construction) {
+    EXPECT_TRUE(non_default_construction());
+    EXPECT_TRUE(static_view_construction());
+    move_only_result moved(non_default_move_only(12));
+    move_only_result destination(std::move(moved));
+    EXPECT_EQ(destination->value, 12);
+    expected<non_default_value, non_default_value> value(std::in_place, 3);
+    expected<non_default_value, non_default_value> error(unexpect, {1, 2}, 4);
+    EXPECT_EQ(value->value, 3);
+    ASSERT_FALSE(error);
+    EXPECT_EQ(error.error().value, 7);
+}
+
+TEST(expected, non_default_converting_construction) {
+    const expected<int, short> value(7);
+    const expected<int, short> error(unexpect, 9);
+    non_default_result copied_value(value);
+    non_default_result copied_error(error);
+    non_default_result moved_value(expected<int, short>(8));
+    non_default_result moved_error(expected<int, short>(unexpect, 10));
+    EXPECT_EQ(copied_value->value, 7);
+    EXPECT_EQ(moved_value->value, 8);
+    ASSERT_FALSE(copied_error);
+    ASSERT_FALSE(moved_error);
+    EXPECT_EQ(copied_error.error(), 9);
+    EXPECT_EQ(moved_error.error(), 10);
+}
+
+TEST(expected, non_default_compressed_and_void_errors) {
+    using compressed_result = expected<non_default_value, compressed_value<int, 0>>;
+    static_assert(!std::is_default_constructible_v<compressed_result>);
+    compressed_result value(std::in_place, 7);
+    compressed_result error(unexpect, 8);
+    compressed_result unexpected_error(wjr::unexpected<int>(9));
+    EXPECT_EQ(value->value, 7);
+    ASSERT_FALSE(error);
+    ASSERT_FALSE(unexpected_error);
+    EXPECT_EQ(error.error(), 8);
+    EXPECT_EQ(unexpected_error.error(), 9);
+
+    expected<void, non_default_value> empty;
+    expected<void, non_default_value> placed(std::in_place);
+    expected<void, non_default_value> void_error(unexpect, {1, 2}, 4);
+    expected<void, non_default_value> from_error(
+        wjr::unexpected<non_default_value>(std::in_place, 11));
+    EXPECT_TRUE(empty);
+    EXPECT_TRUE(placed);
+    ASSERT_FALSE(void_error);
+    ASSERT_FALSE(from_error);
+    EXPECT_EQ(void_error.error().value, 7);
+    EXPECT_EQ(from_error.error().value, 11);
+}
 
 TEST(expected, trivial) {
     {
