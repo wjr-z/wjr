@@ -5,6 +5,7 @@
 #include <wjr/np/reshape.hpp>
 #include <wjr/np/subview.hpp>
 #include <wjr/np/tensor.hpp>
+#include <wjr/np/transpose.hpp>
 
 using shape = wjr::np::extents<size_t, wjr::np::dynamic_extent, 3>;
 using result_type = wjr::expected<wjr::np::tensor_view<int, shape>, wjr::np::shape_error>;
@@ -45,6 +46,10 @@ int main(int argc, char **) {
         return 1;
     }
     auto flat = wjr::np::flatten_view(view);
+    auto transposed = wjr::np::transpose_view(view);
+    if (&transposed(2, 1) != &view(1, 2)) {
+        return 1;
+    }
     auto reshaped =
         wjr::np::try_reshape_view<wjr::np::extents<size_t, 3, 2>>(view, std::array{3, 2});
     auto mismatch = wjr::np::try_reshape_view<shape>(view, std::array{1, 3});
