@@ -3,6 +3,7 @@
 #include <wjr/np/checked_strided_view.hpp>
 #include <wjr/np/checked_view.hpp>
 #include <wjr/np/reshape.hpp>
+#include <wjr/np/subview.hpp>
 #include <wjr/np/tensor.hpp>
 
 using shape = wjr::np::extents<size_t, wjr::np::dynamic_extent, 3>;
@@ -28,6 +29,12 @@ int main(int argc, char **) {
         return 1;
     }
     owned->view()(1, 2) = 9;
+    auto selected_row = wjr::np::try_row_view(view, 1);
+    auto selected_column = wjr::np::try_column_view(view, 2);
+    if (!selected_row || !selected_column || (*selected_row)(2) != 42 ||
+        (*selected_column)(1) != 42 || wjr::np::try_row_view(view, -1)) {
+        return 1;
+    }
     using strided_shape = wjr::np::dextents<size_t, 2>;
     auto pitched = wjr::np::try_make_strided_tensor_view<strided_shape>(values, 6, std::array{2, 2},
                                                                         std::array{4, 1});

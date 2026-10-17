@@ -68,7 +68,8 @@ mapping 内含 extents，不重复保存 shape。
 需要校验连续 shape 和存储长度时，使用下面的 checked 适配入口；
 不能先调用可能溢出的 required_span_size() 再事后检查。
 连续 view 的零拷贝 flatten 与 checked reshape 见 [元数据适配](tensor-reshape.md)。
-调试边界检查、`at()`、切片或标准 mdspan 互操作尚未实现。
+二维连续源的行/列借用见 [受限子 view](tensor-subview.md)。
+调试边界检查、`at()`、通用切片或标准 mdspan 互操作尚未实现。
 
 ## checked 连续借用
 
