@@ -13,7 +13,7 @@ template <class Extents, class T, std::integral Integer, std::integral StrideInt
 requires(detail::is_extents<Extents> && !std::same_as<std::remove_cv_t<Integer>, bool> &&
          !std::same_as<std::remove_cv_t<StrideInteger>, bool> && std::is_object_v<T> &&
          requires { sizeof(T); })
-[[nodiscard]] constexpr expected<tensor_view<T, Extents, layout_stride>, shape_error>
+[[nodiscard]] constexpr shape_result<tensor_view<T, Extents, layout_stride>>
 try_make_strided_tensor_view(
     T *data, size_t available_elements, const std::array<Integer, Extents::rank()> &shape,
     const std::array<StrideInteger, Extents::rank()> &input_strides) noexcept {

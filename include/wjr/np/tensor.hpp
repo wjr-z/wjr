@@ -88,13 +88,12 @@ public:
 
 struct tensor_access {
     template <class Owner, class... Args>
-    static constexpr expected<Owner, shape_error>
+    static constexpr shape_result<Owner>
     make(const checked_metadata<typename Owner::extents_type> &metadata, Args &&...args) {
         using mapping_type = typename Owner::mapping_type;
-        return expected<Owner, shape_error>(
-            std::in_place, typename Owner::construction_key{},
-            mapping_type(typename Owner::extents_type(metadata.dimensions)),
-            std::forward<Args>(args)...);
+        return shape_result<Owner>(std::in_place, typename Owner::construction_key{},
+                                   mapping_type(typename Owner::extents_type(metadata.dimensions)),
+                                   std::forward<Args>(args)...);
     }
 };
 
@@ -250,7 +249,7 @@ template <class Owner, std::integral Integer>
 requires(detail::tensor_shape<Owner, Integer> &&
          detail::allocated_tensor_container<typename Owner::container_type> &&
          std::default_initializable<typename Owner::element_type>)
-[[nodiscard]] constexpr expected<Owner, shape_error>
+[[nodiscard]] constexpr shape_result<Owner>
 make_tensor(const std::array<Integer, Owner::rank()> &shape, std::allocator_arg_t,
             const typename Owner::container_type::allocator_type &allocator) {
     using C = typename Owner::container_type;
@@ -270,7 +269,7 @@ template <class Owner, std::integral Integer>
 requires(detail::tensor_shape<Owner, Integer> &&
          std::default_initializable<typename Owner::element_type> &&
          detail::default_tensor_storage<typename Owner::container_type>)
-[[nodiscard]] constexpr expected<Owner, shape_error>
+[[nodiscard]] constexpr shape_result<Owner>
 make_tensor(const std::array<Integer, Owner::rank()> &shape) {
     using C = typename Owner::container_type;
     if constexpr (detail::is_std_array<C>) {
@@ -288,7 +287,7 @@ make_tensor(const std::array<Integer, Owner::rank()> &shape) {
 template <class Owner, std::integral Integer>
 requires(detail::tensor_shape<Owner, Integer> &&
          std::is_move_constructible_v<typename Owner::container_type>)
-[[nodiscard]] constexpr expected<Owner, shape_error>
+[[nodiscard]] constexpr shape_result<Owner>
 adopt_tensor(const std::array<Integer, Owner::rank()> &shape,
              typename Owner::container_type &&storage) {
     using C = typename Owner::container_type;

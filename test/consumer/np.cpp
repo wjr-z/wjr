@@ -13,7 +13,7 @@
 #include <wjr/np/transpose.hpp>
 
 using shape = wjr::np::extents<size_t, wjr::np::dynamic_extent, 3>;
-using result_type = wjr::expected<wjr::np::tensor_view<int, shape>, wjr::np::shape_error>;
+using result_type = wjr::np::shape_result<wjr::np::tensor_view<int, shape>>;
 
 // Keep debug expected access out of line so its assertion linkage is exercised
 // even when the factory can be inlined into the successful call site.

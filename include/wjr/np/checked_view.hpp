@@ -29,6 +29,10 @@ enum class shape_error {
     expression_shape_mismatch,
 };
 
+// Same result representation and error codes as expected<T, shape_error>.
+template <class T>
+using shape_result = expected<T, shape_error>;
+
 namespace detail {
 
 template <class T>
@@ -45,7 +49,7 @@ struct checked_metadata {
 
 // Shared boundary validation; no backend mapping or allocation exists yet.
 template <class T, class Extents, std::integral Integer>
-constexpr expected<checked_metadata<Extents>, shape_error>
+constexpr shape_result<checked_metadata<Extents>>
 check_metadata(const std::array<Integer, Extents::rank()> &shape) noexcept {
     using index_type = typename Extents::index_type;
     std::array<index_type, Extents::rank()> dimensions{};
@@ -107,7 +111,7 @@ requires(detail::is_extents<Extents> &&
          (std::same_as<Layout, layout_right> || std::same_as<Layout, layout_left>) &&
          !std::same_as<std::remove_cv_t<Integer>, bool> && std::is_object_v<T> &&
          requires { sizeof(T); })
-[[nodiscard]] constexpr expected<tensor_view<T, Extents, Layout>, shape_error>
+[[nodiscard]] constexpr shape_result<tensor_view<T, Extents, Layout>>
 try_make_tensor_view(T *data, size_t available_elements,
                      const std::array<Integer, Extents::rank()> &shape) noexcept {
     using view_type = tensor_view<T, Extents, Layout>;

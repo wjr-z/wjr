@@ -139,6 +139,10 @@ using _expected_unwrap_t = typename _expected_unwrap<E>::type;
 template <typename T, typename E>
 class expected;
 
+// Success is reserved for the value state and must not be used as an error.
+template <typename T, typename E, E Success>
+using compressed_expected = expected<T, compressed_value<E, Success>>;
+
 template <typename NewType, typename OldType, typename... Args>
 WJR_CONSTEXPR20 void reinit_expected(NewType &new_val, OldType &old_val, Args &&...args) {
     if constexpr (std::is_nothrow_constructible_v<NewType, Args...>) {

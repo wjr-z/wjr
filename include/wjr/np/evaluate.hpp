@@ -31,7 +31,7 @@ template <detail::owning_expression E, class Allocator>
 requires detail::expression_allocator<Allocator, E>
 [[nodiscard]] constexpr auto
 eval(const E &expression, std::allocator_arg_t,
-     const Allocator &allocator) -> expected<detail::evaluation_tensor<E, Allocator>, shape_error> {
+     const Allocator &allocator) -> shape_result<detail::evaluation_tensor<E, Allocator>> {
     using owner_type = detail::evaluation_tensor<E, Allocator>;
     using index_type = typename owner_type::index_type;
     std::array<index_type, E::rank()> shape{};
@@ -45,7 +45,7 @@ eval(const E &expression, std::allocator_arg_t,
 
 template <detail::owning_expression E>
 [[nodiscard]] constexpr auto eval(const E &expression)
-    -> expected<detail::evaluation_tensor<E, std::allocator<typename E::value_type>>, shape_error> {
+    -> shape_result<detail::evaluation_tensor<E, std::allocator<typename E::value_type>>> {
     return eval(expression, std::allocator_arg, std::allocator<typename E::value_type>{});
 }
 

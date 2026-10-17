@@ -70,7 +70,7 @@ template <class NewExtents, class T, class Extents, class Layout, std::integral 
 requires(detail::is_extents<NewExtents> && detail::contiguous_layout<Layout> &&
          !std::same_as<std::remove_cv_t<Integer>, bool> && std::is_object_v<T> &&
          requires { sizeof(T); })
-[[nodiscard]] constexpr expected<tensor_view<T, NewExtents, Layout>, shape_error>
+[[nodiscard]] constexpr shape_result<tensor_view<T, NewExtents, Layout>>
 try_reshape_view(tensor_view<T, Extents, Layout> source,
                  const std::array<Integer, NewExtents::rank()> &shape) noexcept {
     const auto count = source.mapping().required_span_size();

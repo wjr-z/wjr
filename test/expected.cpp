@@ -349,6 +349,35 @@ TEST(expected, compressed_value_size) {
     EXPECT_EQ(sizeof(exp2), sizeof(int) * 2);
 }
 
+namespace {
+enum class result_code { success, failure };
+template <class T>
+using domain_result = compressed_expected<T, result_code, result_code::success>;
+static_assert(std::is_same_v<domain_result<int>,
+                             expected<int, compressed_value<result_code, result_code::success>>>);
+static_assert(std::is_same_v<typename domain_result<int>::error_type, result_code>);
+static_assert(std::is_same_v<typename domain_result<void>::error_type, result_code>);
+static_assert(sizeof(domain_result<void>) == sizeof(result_code));
+static_assert(alignof(domain_result<void>) == alignof(result_code));
+
+constexpr bool compressed_alias_states() {
+    domain_result<int> value(7);
+    domain_result<int> failure{wjr::unexpected(result_code::failure)};
+    auto copied = failure;
+    domain_result<void> success;
+    domain_result<void> void_failure{wjr::unexpected(result_code::failure)};
+    return value && *value == 7 && !copied && copied.error() == result_code::failure && success &&
+           !void_failure && void_failure.error() == result_code::failure;
+}
+static_assert(compressed_alias_states());
+} // namespace
+
+TEST(expected, compressed_alias_preserves_result_contract) {
+    EXPECT_TRUE(compressed_alias_states());
+    EXPECT_EQ(sizeof(domain_result<void>), sizeof(result_code));
+    EXPECT_LT(sizeof(domain_result<void>), sizeof(expected<void, result_code>));
+}
+
 TEST(expected, nested_expected) {
     expected<expected<int, int>, int> a(expected<int, int>(5));
     EXPECT_TRUE(a.has_value());

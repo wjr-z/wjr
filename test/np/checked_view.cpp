@@ -14,6 +14,16 @@ using static_shape = np::extents<size_t, 2, 3>;
 using mixed_shape = np::extents<size_t, np::dynamic_extent, 3>;
 using dynamic_shape = np::dextents<size_t, 2>;
 using scalar_shape = np::extents<size_t>;
+using static_view = np::tensor_view<int, static_shape>;
+static_assert(
+    std::same_as<np::shape_result<static_view>, wjr::expected<static_view, np::shape_error>>);
+static_assert(std::same_as<typename np::shape_result<void>::error_type, np::shape_error>);
+static_assert(std::same_as<decltype(np::try_make_tensor_view<static_shape>(
+                               static_cast<int *>(nullptr), size_t{}, std::array{2, 3})),
+                           np::shape_result<static_view>>);
+static_assert(
+    std::same_as<decltype(np::detail::check_metadata<int, static_shape>(std::array{2, 3})),
+                 np::shape_result<np::detail::checked_metadata<static_shape>>>);
 
 template <class Shape, class Layout, class T, class Integer, size_t Rank>
 concept can_make_view = requires(T *data, std::array<Integer, Rank> shape) {
