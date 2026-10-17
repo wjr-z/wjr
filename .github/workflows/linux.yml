@@ -97,7 +97,7 @@ jobs:
             benchmark_args+=(-DWJR_ENABLE_NP=ON)
           fi
           if [[ "${{matrix.sys.compiler}}" == "clang" && "${{matrix.sys.version}}" == "20" && "${{matrix.sys.standard}}" == "20" ]]; then
-            benchmark_args+=(-DWJR_BUILD_BENCHMARKS=ON -DWJR_BENCHMARK_PROFILE=simd -DWJR_BENCHMARK_XSIMD=ON)
+            benchmark_args+=(-DWJR_BUILD_BENCHMARKS=ON -DWJR_BENCHMARK_PROFILE=simd -DWJR_BENCHMARK_XSIMD=ON -DWJR_ENABLE_XSIMD=ON)
           fi
           cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON \
             -DWJR_DEBUG_LEVEL_RELEASE=3 -DWJR_ENABLE_ASAN=ON \
@@ -124,7 +124,7 @@ jobs:
           cmake -S test/consumer -B consumer-build -GNinja \
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ \
             -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/wjr-install" -DWJR_EXPECT_CXX_STANDARD=20 \
-            -DWJR_TEST_NP=ON
+            -DWJR_TEST_NP=ON -DWJR_TEST_SIMD_XSIMD=ON
           cmake --build consumer-build --parallel
           ctest --test-dir consumer-build --output-on-failure
 
@@ -135,5 +135,5 @@ jobs:
           LSAN_OPTIONS: suppressions=${{ github.workspace }}/.github/lsan_suppressions.txt
         run: >-
           ./build/bin/benchmarks
-          --benchmark_filter='(fill/(wjr|loop|xsimd)/u(16|32|64)/(value|zero)/n:(4|8|300)|mixed_fill/(wjr|loop|xsimd)/u64/(value|zero)/workload:1)/offset:1/real_time$'
+          --benchmark_filter='((fill/(wjr|loop|xsimd)/u(16|32|64)/(value|zero)/n:(4|8|300)|mixed_fill/(wjr|loop|xsimd)/u64/(value|zero)/workload:1)/offset:1|scan/(wjr|loop|xsimd)/u64/n:(4|8|300)/offset:1/hit:(0|3)|mixed_scan/(wjr|loop|xsimd)/u64)/real_time$'
           --benchmark_min_time=0.001s

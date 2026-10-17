@@ -115,3 +115,31 @@ shuffle、reduction、NaN/舍入语义与编译成本。现有有价值的特化
 CI 在已有的一个 Linux job 中构建并冒烟验证三个后端；不对共享 runner 上的纳秒延迟设通过阈值。
 Windows 不增加 job 或步骤。手动 benchmark workflow 可选择 simd profile 获取完整 JSON artifact，
 每周默认的 core profile 保持不变。
+
+## 扫描与谓词对照
+
+同一个 simd profile 还提供 `scan/{wjr,loop,xsimd}/u64` 与 `mixed_scan/{wjr,loop,xsimd}/u64`。
+比较首个相等元素的索引；无匹配返回元素数。xsimd 路径使用
+[实验后端](../design/simd.md)的完整向量加载及标量尾部，不迁移原有扫描器。
+
+```sh
+./build-simd/bin/benchmarks \
+  --benchmark_filter='^(scan|mixed_scan)/' \
+  --benchmark_min_time=0.05s --benchmark_repetitions=7 \
+  --benchmark_enable_random_interleaving=true \
+  --benchmark_out=scan.json --benchmark_out_format=json
+```
+
+固定用例覆盖 0 到 65536 个 uint64 元素、64 字节对齐地址及一个元素偏移，
+`hit:0/1/2/3` 分别为无匹配、首元素、中间、末元素匹配。
+校验和数据准备在计时外完成，验证失败以非零退出。
+固定用例的 items/s 按逻辑比较至结果的元素数统计，不当作实际硬件加载字节数。
+
+混合用例使用 4096 项 pointer/count 序列，将 16 种长度、四种命中模式和两种偏移组合打乱。
+每种组合读取已准备的独立缓冲区，不在计时中修改数据或分配。
+它计量每秒调用数，包含序列读取及多个缓冲区的缓存成本；不能把差异全部归因于分支预测。
+固定种子为 42，复现时同样需要固定 STL 的 shuffle 实现。
+
+本轮增加正确性、安装消费及生成码检查，不给扫描吞吐设置 CI 阈值。
+后端扩展仍需在目标硬件上重复测量，结合调用点和可用 PMU 计数；
+一次短数组或固定命中位置的胜出不构成全库替换依据。
