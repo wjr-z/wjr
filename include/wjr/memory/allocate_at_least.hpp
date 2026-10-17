@@ -1,6 +1,8 @@
 #ifndef WJR_MEMORY_ALLOCATE_AT_LEAST_HPP__
 #define WJR_MEMORY_ALLOCATE_AT_LEAST_HPP__
 
+#include <memory>
+
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
@@ -11,7 +13,7 @@ struct allocation_result {
 };
 
 WJR_REGISTER_HAS_TYPE(allocate_at_least,
-                      std::declval<Allocator>().allocate_at_least(std::declval<SizeType>()),
+                      std::declval<Allocator &>().allocate_at_least(std::declval<SizeType &>()),
                       Allocator, SizeType);
 
 template <typename Allocator, typename SizeType>
@@ -21,7 +23,7 @@ WJR_NODISCARD auto allocate_at_least(Allocator &alloc, SizeType count) {
         WJR_ASSUME(result.count >= count);
         return result;
     } else {
-        auto *const ptr = std::allocator_traits<Allocator>::allocate(alloc, count);
+        const auto ptr = std::allocator_traits<Allocator>::allocate(alloc, count);
         return allocation_result<remove_cvref_t<decltype(ptr)>, SizeType>{ptr, count};
     }
 }

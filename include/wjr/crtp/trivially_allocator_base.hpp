@@ -1,6 +1,8 @@
 #ifndef WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
 #define WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
 
+#include <memory>
+
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
@@ -9,12 +11,12 @@ WJR_REGISTER_HAS_TYPE(is_trivially_allocator,
                       std::declval<typename Alloc::is_trivially_allocator>(), Alloc);
 
 WJR_REGISTER_HAS_TYPE(is_non_trivially_allocator_construct,
-                      std::declval<Alloc>().construct(std::declval<Obj *>(),
-                                                      std::declval<Args>()...),
+                      std::declval<Alloc &>().construct(std::declval<Obj *>(),
+                                                        std::declval<Args>()...),
                       Alloc, Obj);
 
 WJR_REGISTER_HAS_TYPE(is_non_trivially_allocator_destroy,
-                      std::declval<Alloc>().destroy(std::declval<Obj *>()), Alloc, Obj);
+                      std::declval<Alloc &>().destroy(std::declval<Obj *>()), Alloc, Obj);
 
 /// @private
 template <typename Alloc, typename = void>
