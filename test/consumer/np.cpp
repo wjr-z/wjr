@@ -2,9 +2,11 @@
 
 #include <wjr/np/checked_strided_view.hpp>
 #include <wjr/np/checked_view.hpp>
+#include <wjr/np/copy.hpp>
 #include <wjr/np/reshape.hpp>
 #include <wjr/np/subview.hpp>
 #include <wjr/np/tensor.hpp>
+#include <wjr/np/transform.hpp>
 #include <wjr/np/transpose.hpp>
 
 using shape = wjr::np::extents<size_t, wjr::np::dynamic_extent, 3>;
@@ -48,6 +50,17 @@ int main(int argc, char **) {
     auto flat = wjr::np::flatten_view(view);
     auto transposed = wjr::np::transpose_view(view);
     if (&transposed(2, 1) != &view(1, 2)) {
+        return 1;
+    }
+    int materialized[6]{};
+    wjr::np::tensor_view<int, wjr::np::extents<size_t, 3, 2>> output(materialized);
+    wjr::np::copy_to(output, transposed);
+    wjr::np::transform_to(output, output, [](int value) noexcept { return value * 2; });
+    if (output(2, 1) != 84 || materialized[1] != 6) {
+        return 1;
+    }
+    wjr::np::fill_to(output, 0);
+    if (materialized[5] != 0) {
         return 1;
     }
     auto reshaped =

@@ -21,7 +21,8 @@ if (storage) {
 结果保留元素类型及 const 性、index_type 和交换后的静态 extent。
 `layout_right` 变为 `layout_left`，反之亦然；连续维度及物理存储不变。
 因此对结果做物理 flatten 得到相同的元素顺序，不能将其解释为按新行序复制。
-需要实际行列重排时，应显式复制到预分配输出；此接口不隐藏临时 buffer。
+需要实际行列重排时，显式调用 `copy_to(dst, transpose_view(src))` 写入预分配输出，
+参见[逐元素计算](tensor-elementwise.md)；此接口不隐藏临时 buffer。
 再 transpose 一次恢复原 view 类型、shape 和地址。
 
 调用方须提供有效的源 view，包括可表示的 mapping 和存活、对齐且类型正确的存储。

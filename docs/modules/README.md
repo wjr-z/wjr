@@ -85,7 +85,11 @@ JSON 数据结构和解析、序列化相关功能。
 数据生命周期、未检查构造的前置条件和已测空间限制见
 [初始数据模型](../design/tensor-data-model.md)。`<wjr/np/tensor.hpp>` 提供
 容器管理生命周期的连续 owner、checked 创建及显式借用，见
-[owner 契约](../design/tensor-owner.md)；计算框架尚未实现。
+[owner 契约](../design/tensor-owner.md)。`<wjr/np/copy.hpp>` 和
+`<wjr/np/transform.hpp>` 提供预分配输出的复制、填充及单目/双目融合变换，
+支持连续和正步长输入，见[逐元素计算](../design/tensor-elementwise.md)。
+`<wjr/np/transpose.hpp>` 提供[二维转置借用](../design/tensor-transpose.md)；
+与 `copy_to` 组合可显式重排数据。表达式树和广播 evaluator 尚未实现。
 
 ## `wjr::simd_xsimd`（可选、实验性）
 
