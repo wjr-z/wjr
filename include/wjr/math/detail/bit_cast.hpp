@@ -10,24 +10,32 @@
 #include <wjr/macros/requires.hpp>
 #include <wjr/memory/detail.hpp>
 
+#if defined(WJR_CPP_20)
+    #include <bit>
+#endif
+
 #if WJR_HAS_BUILTIN(__builtin_bit_cast) || WJR_HAS_MSVC(19, 27)
     #define WJR_HAS_BUILTIN_BIT_CAST WJR_HAS_DEF
 #endif
 
 namespace wjr {
+#if defined(__cpp_lib_bit_cast) && __cpp_lib_bit_cast >= 201806L
+using std::bit_cast;
+#else
 template <typename To, typename From,
           WJR_REQUIRES(sizeof(To) == sizeof(From) && std::is_trivially_copyable_v<From> &&
                        std::is_trivially_copyable_v<To>)>
 WJR_PURE WJR_INTRINSIC_INLINE To bit_cast(const From &src) noexcept {
     static_assert(std::is_trivially_constructible_v<To>);
-#if WJR_HAS_BUILTIN(BIT_CAST)
+    #if WJR_HAS_BUILTIN(BIT_CAST)
     return __builtin_bit_cast(To, src);
-#else
+    #else
     To dst;
     builtin_memcpy(std::addressof(dst), std::addressof(src), sizeof(To));
     return dst;
-#endif
+    #endif
 }
+#endif
 } // namespace wjr
 
 #endif // WJR_MATH_DETAIL_BIT_CAST_HPP_

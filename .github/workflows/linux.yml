@@ -38,20 +38,22 @@ jobs:
   tests:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-    name: ${{ matrix.sys.compiler }} ${{ matrix.sys.version }}
+    name: ${{ matrix.sys.compiler }} ${{ matrix.sys.version }} C++${{ matrix.sys.standard }} ${{ matrix.sys.cpu }}
     strategy:
       fail-fast: false
       matrix:
         sys:
-        - {compiler: clang, version: '17'}
-        - {compiler: clang, version: '18'}
-        - {compiler: clang, version: '19'}
-        - {compiler: clang, version: '20'}
-        - {compiler: gcc, version: '9'}
-        - {compiler: gcc, version: '11'}
-        - {compiler: gcc, version: '12'}
-        - {compiler: gcc, version: '13'}
-        - {compiler: gcc, version: '14'}
+        - {compiler: clang, version: '17', standard: '20', cpu: native}
+        - {compiler: clang, version: '18', standard: '20', cpu: native}
+        - {compiler: clang, version: '19', standard: '20', cpu: native}
+        - {compiler: clang, version: '20', standard: '20', cpu: native}
+        - {compiler: gcc, version: '9', standard: '17', cpu: baseline}
+        - {compiler: gcc, version: '11', standard: '20', cpu: native}
+        - {compiler: gcc, version: '12', standard: '20', cpu: native}
+        - {compiler: gcc, version: '13', standard: '20', cpu: native}
+        - {compiler: gcc, version: '14', standard: '20', cpu: native}
+        - {compiler: clang, version: '20', standard: '17', cpu: baseline}
+        - {compiler: clang, version: '20', standard: '23', cpu: baseline}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -91,7 +93,8 @@ jobs:
         run: |
           if [[ "${{matrix.sys.compiler}}" = "gcc" ]]; then export CC=gcc-${{matrix.sys.version}}; export CXX=g++-${{matrix.sys.version}}; else export CC=clang; export CXX=clang++; fi
           cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON \
-            -DWJR_DEBUG_LEVEL_RELEASE=3 -DWJR_PUBLIC_FLAGS=ON -DWJR_ENABLE_ASAN=ON \
+            -DWJR_DEBUG_LEVEL_RELEASE=3 -DWJR_ENABLE_ASAN=ON \
+            -DWJR_CXX_STANDARD=${{matrix.sys.standard}} -DWJR_CPU_TARGET=${{matrix.sys.cpu}} \
             -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent" \
             -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX
 
@@ -103,3 +106,16 @@ jobs:
           ASAN_OPTIONS: detect_leaks=1
           LSAN_OPTIONS: suppressions=${{ github.workspace }}/.github/lsan_suppressions.txt
         run: ctest --test-dir build --verbose --output-on-failure
+
+      - name: Validate installed package
+        if: matrix.sys.compiler == 'clang' && matrix.sys.version == '20' && matrix.sys.standard == '20'
+        env:
+          ASAN_OPTIONS: detect_leaks=1
+          LSAN_OPTIONS: suppressions=${{ github.workspace }}/.github/lsan_suppressions.txt
+        run: |
+          cmake --install build --prefix "$RUNNER_TEMP/wjr-install"
+          cmake -S test/consumer -B consumer-build -GNinja \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/wjr-install" -DWJR_EXPECT_CXX_STANDARD=20
+          cmake --build consumer-build --parallel
+          ctest --test-dir consumer-build --output-on-failure

@@ -25,7 +25,7 @@ endfunction()
 # todo: support pch
 function(wjr_cc_library)
     cmake_parse_arguments(WJR_CC_LIB
-        "DISABLE_INSTALL;PUBLIC;OBJECT;FINAL"
+        "DISABLE_INSTALL;PUBLIC;OBJECT;FINAL;ARCH_DEPENDENT"
         "NAME"
         "HDRS;SRCS;COPTS;PRIVATE_COPTS;DEFINES;LINKOPTS;DEPS"
         ${ARGN}
@@ -57,8 +57,17 @@ function(wjr_cc_library)
         wjr_append_library(${WJR_CC_LIB_NAME})
     endif()
 
-    set(WJR_CC_COPTS ${WJR_CC_LIB_COPTS} ${WJR_COMMON_CXX_FLAGS})
+    set(WJR_CC_COPTS ${WJR_CC_LIB_COPTS})
     set(WJR_CC_PRIVATE_COPTS ${WJR_CC_LIB_PRIVATE_COPTS} ${WJR_CXX_FLAGS_PRIVATE})
+    set(WJR_CC_DEPS ${WJR_CC_LIB_DEPS})
+    if(NOT WJR_CC_LIB_NAME STREQUAL "config")
+        list(APPEND WJR_CC_DEPS wjr::config)
+    endif()
+    if(WJR_CC_LIB_ARCH_DEPENDENT)
+        list(APPEND WJR_CC_DEPS wjr::isa)
+    else()
+        list(APPEND WJR_CC_PRIVATE_COPTS ${WJR_BASELINE_FLAGS})
+    endif()
 
     if(WJR_ENABLE_INSTALL AND NOT WJR_CC_LIB_DISABLE_INSTALL)
         set(WJR_NEED_INSTALL ON)
@@ -96,57 +105,30 @@ function(wjr_cc_library)
         target_sources(${WJR_TARGET} PRIVATE ${WJR_CC_LIB_SRCS} ${WJR_CC_LIB_HDRS})
 
         target_link_libraries(${WJR_TARGET}
-            PUBLIC ${WJR_CC_LIB_DEPS}
-            PRIVATE
-            ${WJR_CC_LIB_LINKOPTS}
-            ${WJR_DEFAULT_LINKOPTS}
+            PUBLIC ${WJR_CC_DEPS}
         )
-
-        target_include_directories(${WJR_TARGET}
-            PUBLIC
-            $<BUILD_INTERFACE:${WJR_COMMON_INCLUDE_DIRS}>
-            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-        )
+        target_link_options(${WJR_TARGET} PRIVATE ${WJR_CC_LIB_LINKOPTS})
         target_compile_options(${WJR_TARGET}
             PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${WJR_CC_COPTS}$<SEMICOLON>>
             PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${WJR_CC_PRIVATE_COPTS}$<SEMICOLON>>
-            PUBLIC $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:DEBUG>>:${WJR_CXX_FLAGS_DEBUG}$<SEMICOLON>>
-            PUBLIC $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELEASE>>:${WJR_CXX_FLAGS_RELEASE}$<SEMICOLON>>
         )
         target_compile_definitions(${WJR_TARGET}
-            PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${WJR_CC_LIB_DEFINES} ${WJR_COMMON_DEFINES}$<SEMICOLON>>
+            PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${WJR_CC_LIB_DEFINES}$<SEMICOLON>>
         )
-
-        if(WJR_PROPAGATE_CXX_STD)
-            target_compile_features(${WJR_TARGET} PUBLIC ${WJR_INTERNAL_CXX_STD_FEATURE})
-        endif()
     else()
         add_library(${WJR_TARGET} INTERFACE)
-        target_include_directories(${WJR_TARGET}
-            INTERFACE
-            $<BUILD_INTERFACE:${WJR_COMMON_INCLUDE_DIRS}>
-            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-        )
-
         target_compile_options(${WJR_TARGET}
             INTERFACE $<$<COMPILE_LANGUAGE:CXX>:${WJR_CC_COPTS}$<SEMICOLON>>
-            INTERFACE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:DEBUG>>:${WJR_CXX_FLAGS_DEBUG}$<SEMICOLON>>
-            INTERFACE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELEASE>>:${WJR_CXX_FLAGS_RELEASE}$<SEMICOLON>>
         )
 
         target_link_libraries(${WJR_TARGET}
             INTERFACE
-            ${WJR_CC_LIB_DEPS}
-            ${WJR_CC_LIB_LINKOPTS}
-            ${WJR_DEFAULT_LINKOPTS}
+            ${WJR_CC_DEPS}
         )
+        target_link_options(${WJR_TARGET} INTERFACE ${WJR_CC_LIB_LINKOPTS})
         target_compile_definitions(${WJR_TARGET}
-            INTERFACE $<$<COMPILE_LANGUAGE:CXX>:${WJR_CC_LIB_DEFINES} ${WJR_COMMON_DEFINES}$<SEMICOLON>>
+            INTERFACE $<$<COMPILE_LANGUAGE:CXX>:${WJR_CC_LIB_DEFINES}$<SEMICOLON>>
         )
-
-        if(WJR_PROPAGATE_CXX_STD)
-            target_compile_features(${WJR_TARGET} INTERFACE ${WJR_INTERNAL_CXX_STD_FEATURE})
-        endif()
     endif()
 
     if(WJR_CC_LIB_IS_INTERFACE OR WJR_CC_LIB_OBJECT)

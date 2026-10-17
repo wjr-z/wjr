@@ -79,6 +79,45 @@ set_tests_properties(wjr_tests PROPERTIES
    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+set(WJR_POLICY_CMAKE_ARGS
+   -G ${CMAKE_GENERATOR}
+   -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+)
+if(CMAKE_GENERATOR_PLATFORM)
+   list(APPEND WJR_POLICY_CMAKE_ARGS -A ${CMAKE_GENERATOR_PLATFORM})
+endif()
+if(CMAKE_GENERATOR_TOOLSET)
+   list(APPEND WJR_POLICY_CMAKE_ARGS -T ${CMAKE_GENERATOR_TOOLSET})
+endif()
+
+add_test(NAME wjr_build_policy
+   COMMAND ${CMAKE_COMMAND}
+   -S ${CMAKE_CURRENT_SOURCE_DIR}/cmake
+   -B ${CMAKE_CURRENT_BINARY_DIR}/build-policy
+   ${WJR_POLICY_CMAKE_ARGS}
+   -DWJR_CXX_STANDARD=${WJR_CXX_STANDARD}
+   -DWJR_CPU_TARGET=${WJR_CPU_TARGET}
+   -DEXPECT_STANDARD=${WJR_CXX_STANDARD}
+)
+add_test(NAME wjr_invalid_standard
+   COMMAND ${CMAKE_COMMAND}
+   -S ${CMAKE_CURRENT_SOURCE_DIR}/cmake
+   -B ${CMAKE_CURRENT_BINARY_DIR}/invalid-standard
+   ${WJR_POLICY_CMAKE_ARGS}
+   -DWJR_CXX_STANDARD=11
+)
+set_tests_properties(wjr_invalid_standard PROPERTIES WILL_FAIL TRUE)
+add_test(NAME wjr_legacy_standard
+   COMMAND ${CMAKE_COMMAND}
+   -S ${CMAKE_CURRENT_SOURCE_DIR}/cmake
+   -B ${CMAKE_CURRENT_BINARY_DIR}/legacy-standard
+   ${WJR_POLICY_CMAKE_ARGS}
+   -DWJR_DISABLE_CXX_20=ON
+   -DEXPECT_STANDARD=17
+)
+set_tests_properties(wjr_build_policy wjr_invalid_standard wjr_legacy_standard
+   PROPERTIES LABELS configuration)
+
 if(WJR_ENABLE_COVERAGE)
    # find required tools
    find_program(LLVM_COV_PATH llvm-cov REQUIRED)

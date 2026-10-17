@@ -5,6 +5,8 @@ wjr_cc_library(
    NAME
    json
 
+   ARCH_DEPENDENT
+
    SRCS
    ${WJR_SRCS}
 

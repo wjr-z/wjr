@@ -38,13 +38,13 @@ jobs:
   tests:
     # The type of runner that the job will run on
     runs-on: windows-latest
-    name: ${{ matrix.sys.compiler }} ${{ matrix.sys.version }}
+    name: ${{ matrix.sys.compiler }} C++${{ matrix.sys.standard }} ${{ matrix.sys.cpu }}
     strategy:
       fail-fast: false
       matrix:
         sys:
-        - {compiler: msvc}
-        - {compiler: clang}
+        - {compiler: msvc, standard: '20', cpu: baseline}
+        - {compiler: clang, standard: '20', cpu: native}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -83,7 +83,8 @@ jobs:
         shell: bash
         run: |
           cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON \
-            -DWJR_DEBUG_LEVEL_RELEASE=3 -DWJR_PUBLIC_FLAGS=ON -DWJR_USE_GMP=OFF \
+            -DWJR_DEBUG_LEVEL_RELEASE=3 -DWJR_USE_GMP_TESTS=OFF \
+            -DWJR_CXX_STANDARD=${{matrix.sys.standard}} -DWJR_CPU_TARGET=${{matrix.sys.cpu}} \
             -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent" \
 
       - name: Build
