@@ -55,10 +55,14 @@ The public operation's full floating-point semantics still need unit tests.
 `np_materialize<Storage>` includes allocation, initialization, evaluation and
 destruction in each iteration. It compares default-initialized raw scalar
 arrays, value-initialized `std::vector`, `wjr::vector(default_construct)`, and
-the default tensor factory. This exposes costs that preallocated `eval_to`
+the default tensor factory, and actual owning `np::eval`. This exposes costs
+that preallocated `eval_to`
 cannot measure. The ordinary tensor factory's value initialization is part of
 its contract; it should not be confused with an uninitialized output factory.
-These cases share the same pointwise evaluator to isolate storage costs.
+The raw/container/factory cases share the same pointwise evaluator to compare
+storage costs. The owning `eval` case additionally includes its natural-shape
+resolution and error contract; its total cost cannot be attributed solely to
+initialization.
 The JSON also records descriptor/expression sizes and owning-object sizes.
 These `sizeof` values exclude allocator-internal metadata, backing allocations,
 and capacity slack; they are representation evidence, not total resident memory.

@@ -190,6 +190,7 @@ void sizes(benchmark::internal::Benchmark *entry) {
     BENCHMARK_TEMPLATE(np_fixed, Backend, false, false)->Apply(sizes);                             \
     BENCHMARK_TEMPLATE(np_fixed, Backend, false, true)->Apply(sizes);                              \
     BENCHMARK_TEMPLATE(np_fixed, Backend, true, false)->Apply(sizes);                              \
+    BENCHMARK_TEMPLATE(np_fixed, Backend, true, true)->Apply(sizes);                               \
     BENCHMARK_TEMPLATE(np_mixed, Backend, false)->UseRealTime();                                   \
     BENCHMARK_TEMPLATE(np_mixed, Backend, true)->UseRealTime()
 
