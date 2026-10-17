@@ -30,9 +30,10 @@
  *  ```
  *
  * - [static] void uninitialized_construct(storage_type &other, size_type size,
- * size_type capacity, _Alty& al) noexcept
+ * size_type capacity, _Alty& al) noexcept(optional)
  *  Construct a storage of other from this storage, this function can be static. \n
- *  Ensure that the capacity is not zero.
+ *  Ensure that the capacity is not zero. If allocation throws, leave `other`
+ *  unchanged; publish its size and allocation metadata only after success.
  *
  * - void take_storage(storage& other, _Alty& al) noexcept(optional)
  *  take the storage from other and set other to `empty` state. \n
@@ -68,6 +69,8 @@
 
 #ifndef WJR_CONTAINER_VECTOR_HPP__
 #define WJR_CONTAINER_VECTOR_HPP__
+
+#include <stdexcept>
 
 #include <wjr/compressed_pair.hpp>
 #include <wjr/concept/ranges_base.hpp>
@@ -416,14 +419,12 @@ public:
     WJR_CONSTEXPR20 static void
     uninitialized_construct(small_vector_storage &other, size_type size, size_type capacity,
                             _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
-        other.m_size = size;
-        if (_is_small_capacity(capacity)) {
-            return;
+        if (_is_large_capacity(capacity)) {
+            const auto result = allocate_at_least(al, capacity);
+            other.m_data = result.ptr;
+            other.m_capacity = result.count;
         }
-
-        const auto result = allocate_at_least(al, capacity);
-        other.m_data = result.ptr;
-        other.m_capacity = result.count;
+        other.m_size = size;
     }
 
     // Construct grow_storage (always allocates, never uses small buffer)
@@ -708,8 +709,8 @@ private:
     WJR_CONSTEXPR20 void _construct_n(const size_type n, Ty &&val) {
         if (WJR_LIKELY(n != 0)) {
             auto &al = _get_allocator();
-            _construction_rollback rollback(*this);
             uninitialized_construct(n, n);
+            _construction_rollback rollback(*this);
             wjr::uninitialized_fill_n_using_allocator(data(), n, al, std::forward<Ty>(val));
             rollback.release();
         }
@@ -751,8 +752,8 @@ private:
         : basic_vector(al) {
         const auto size = other.size();
         if (WJR_LIKELY(size != 0)) {
-            _construction_rollback rollback(*this);
             uninitialized_construct(size, size);
+            _construction_rollback rollback(*this);
             wjr::uninitialized_copy_n_restrict_using_allocator(other.data(), size, data(),
                                                                _get_allocator());
             rollback.release();
@@ -1451,8 +1452,8 @@ private:
     WJR_CONSTEXPR20 void _construct_n(const size_type n, Iter first, Sentinel last) {
         if (WJR_LIKELY(n != 0)) {
             auto &al = _get_allocator();
-            _construction_rollback rollback(*this);
             uninitialized_construct(n, n);
+            _construction_rollback rollback(*this);
             wjr::uninitialized_copy_restrict_using_allocator(std::move(first), std::move(last),
                                                              data(), al);
             rollback.release();

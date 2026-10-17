@@ -248,4 +248,25 @@ TEST(vector_construction, stateful_allocator_rolls_back_elements_and_hooks) {
     check_constructor_matrix<wjr::small_vector<tracked_value, 4, allocator>>(3, true, false);
     check_constructor_matrix<wjr::small_vector<tracked_value, 4, allocator>>(7, true, true);
 }
+
+TEST(vector_construction, storage_allocation_failure_preserves_empty_state) {
+    construction_state state;
+    using allocator = tracking_allocator<tracked_value>;
+    allocator alloc;
+    state.fail_allocation = true;
+    auto check = [&]<class Storage>(Storage &storage) {
+        const auto *data = storage.data();
+        const auto capacity = storage.capacity();
+        EXPECT_THROW(Storage::uninitialized_construct(storage, 7, 7, alloc), std::bad_alloc);
+        EXPECT_EQ(storage.data(), data);
+        EXPECT_EQ(storage.size(), 0u);
+        EXPECT_EQ(storage.capacity(), capacity);
+    };
+    wjr::default_vector_storage<tracked_value, allocator> dynamic;
+    wjr::small_vector_storage<tracked_value, 4, allocator> small;
+    check(dynamic);
+    check(small);
+    EXPECT_EQ(state.allocations, 0);
+    EXPECT_EQ(state.deallocations, 0);
+}
 #endif
