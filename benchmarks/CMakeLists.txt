@@ -34,6 +34,7 @@ endif()
 
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
 set(BENCHMARK_ENABLE_WERROR OFF CACHE BOOL "Suppressing warnings as errors" FORCE)
+set(BENCHMARK_ENABLE_INSTALL OFF)
 
 if(EXISTS benchmark)
     add_subdirectory(benchmark)
@@ -48,7 +49,8 @@ else()
 endif()
 
 set(WJR_BENCHMARK_PROFILE "core" CACHE STRING "Benchmark profile to build")
-set_property(CACHE WJR_BENCHMARK_PROFILE PROPERTY STRINGS core all)
+set_property(CACHE WJR_BENCHMARK_PROFILE PROPERTY STRINGS core all simd)
+option(WJR_BENCHMARK_XSIMD "Compare SIMD kernels with pinned xsimd" OFF)
 
 set(BENCHMARK_CORE_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
@@ -68,14 +70,41 @@ if(WJR_BENCHMARK_PROFILE STREQUAL "core")
     set(BENCHMARK_SRCS ${BENCHMARK_CORE_SRCS})
 elseif(WJR_BENCHMARK_PROFILE STREQUAL "all")
     set(BENCHMARK_SRCS ${BENCHMARK_ALL_SRCS})
+elseif(WJR_BENCHMARK_PROFILE STREQUAL "simd")
+    set(BENCHMARK_SRCS
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/simd.cpp
+    )
 else()
-    message(FATAL_ERROR "WJR_BENCHMARK_PROFILE must be 'core' or 'all'")
+    message(FATAL_ERROR "WJR_BENCHMARK_PROFILE must be 'core', 'all', or 'simd'")
+endif()
+
+if(WJR_BENCHMARK_XSIMD AND NOT WJR_BENCHMARK_PROFILE STREQUAL "simd")
+    message(FATAL_ERROR "WJR_BENCHMARK_XSIMD requires WJR_BENCHMARK_PROFILE=simd")
 endif()
 
 add_executable(
     benchmarks
     ${BENCHMARK_SRCS}
 )
+
+target_compile_definitions(benchmarks PRIVATE
+    WJR_BENCHMARK_COMPILER="${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION}"
+    WJR_BENCHMARK_CXX_STANDARD="${WJR_CXX_STANDARD}"
+    WJR_BENCHMARK_CPU_TARGET="${WJR_CPU_TARGET}"
+)
+
+if(WJR_BENCHMARK_XSIMD)
+    # Experimental dependency only: do not export or install it with WJR.
+    set(XSIMD_SKIP_INSTALL ON)
+    FetchContent_Declare(xsimd
+        GIT_REPOSITORY https://github.com/xtensor-stack/xsimd.git
+        GIT_TAG e88a72831858123924f7118f345dfe5d70d95991 # 14.3.0
+    )
+    FetchContent_MakeAvailable(xsimd)
+    target_link_libraries(benchmarks PRIVATE xsimd)
+    target_compile_definitions(benchmarks PRIVATE WJR_BENCHMARK_XSIMD=1)
+endif()
 
 if(WJR_BENCHMARK_PROFILE STREQUAL "core")
     target_compile_definitions(benchmarks PRIVATE WJR_BENCHMARK_QUICK)

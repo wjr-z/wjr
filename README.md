@@ -49,6 +49,9 @@ cmake --build build --target <target>
 	```
 	可执行文件位于 `build/bin` 目录。
 
+SIMD 填充实验使用 `-DWJR_BENCHMARK_PROFILE=simd`；xsimd 对照默认关闭。
+复现命令、混合长度负载和测量边界见 [SIMD 性能基线](docs/performance/simd.md)。
+
 ## todo
 - [ ] AMD上性能暂未测试调优（优先级低）
 - [ ] 可抢占调度器(EEVDF)
