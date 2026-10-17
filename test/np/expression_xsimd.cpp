@@ -157,4 +157,154 @@ TEST(NpExpressionXsimd, ExceptionalFloatingPointValues) {
     }
 }
 
+template <class T, size_t Columns>
+void compare_broadcast_rows() {
+    using matrix_shape = np::extents<size_t, np::dynamic_extent, Columns>;
+    using column_shape = np::extents<size_t, np::dynamic_extent, 1>;
+    using row_shape = np::extents<size_t, Columns>;
+    using matrix = np::tensor_view<T, matrix_shape>;
+    using column = np::tensor_view<T, column_shape>;
+    using row = np::tensor_view<T, row_shape>;
+    for (size_t rows = 0; rows != 7; ++rows) {
+        const auto count = rows * Columns;
+        std::vector<T> x(count + 1), bias(Columns + 1), scale(rows + 1);
+        std::vector<T> actual(count + 1), expected(count + 1);
+        for (size_t i = 0; i != count + 1; ++i)
+            x[i] = static_cast<T>(i % 17) / T(4);
+        for (size_t i = 0; i != Columns + 1; ++i)
+            bias[i] = static_cast<T>(i % 7) / T(8);
+        for (size_t i = 0; i != rows + 1; ++i)
+            scale[i] = static_cast<T>(i % 3) / T(4);
+        const auto a = np::as_expr(matrix(x.data() + 1, rows));
+        const auto b = np::as_expr(row(bias.data() + 1));
+        const auto c = np::as_expr(column(scale.data() + 1, rows));
+        const auto expression = -(a + b * T(.5)) / (c + T(1));
+        np::eval_to(matrix(expected.data() + 1, rows), expression);
+        np::eval_to(matrix(actual.data() + 1, rows), expression, np::xsimd_policy<>{});
+        EXPECT_EQ(actual, expected);
+        np::eval_to(matrix(x.data() + 1, rows), expression, np::xsimd_policy<>{});
+        EXPECT_EQ(x, expected);
+    }
+}
+
+TEST(NpExpressionXsimd, StaticInnerBroadcastBatchesTailsAndExactAlias) {
+    compare_broadcast_rows<float, 0>();
+    compare_broadcast_rows<float, 1>();
+    compare_broadcast_rows<float, 3>();
+    compare_broadcast_rows<float, xsimd::batch<float>::size + 1>();
+    compare_broadcast_rows<float, 300>();
+    compare_broadcast_rows<double, 0>();
+    compare_broadcast_rows<double, 1>();
+    compare_broadcast_rows<double, 3>();
+    compare_broadcast_rows<double, xsimd::batch<double>::size + 1>();
+    compare_broadcast_rows<double, 300>();
+}
+
+TEST(NpExpressionXsimd, BroadcastRowCanAliasOneRowOutputExactly) {
+    using matrix_shape = np::extents<size_t, 1, 7>;
+    using row_shape = np::extents<size_t, 7>;
+    std::array<double, 7> source{1, 2, 3, 4, 5, 6, 7};
+    std::array<double, 7> output{7, 6, 5, 4, 3, 2, 1};
+    const auto x = np::as_expr(np::tensor_view<const double, matrix_shape>(source.data()));
+    const auto bias = np::as_expr(np::tensor_view<const double, row_shape>(output.data()));
+    np::eval_to(np::tensor_view<double, matrix_shape>(output.data()), x + bias,
+                np::xsimd_policy<>{});
+    for (auto value : output)
+        EXPECT_EQ(value, 8.);
+}
+
+TEST(NpExpressionXsimd, BroadcastsMissingAxesAndRankZeroViews) {
+    using cube_shape = np::extents<size_t, 2, 1, 7>;
+    using row_shape = np::extents<size_t, 7>;
+    std::array<float, 14> source{}, actual{}, expected{};
+    std::array<float, 7> bias{1, 2, 3, 4, 5, 6, 7};
+    float center = .5f;
+    const auto x = np::as_expr(np::tensor_view<const float, cube_shape>(source.data()));
+    const auto b = np::as_expr(np::tensor_view<const float, row_shape>(bias.data()));
+    const auto scalar = np::as_expr(np::tensor_view<const float, np::extents<size_t>>(&center));
+    const auto expression = x + b * scalar;
+    np::eval_to(np::tensor_view<float, cube_shape>(expected.data()), expression);
+    np::eval_to(np::tensor_view<float, cube_shape>(actual.data()), expression,
+                np::xsimd_policy<>{});
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(NpExpressionXsimd, DynamicSingletonAndUnitInputsKeepScalarProjection) {
+    using matrix_shape = np::extents<size_t, 2, 7>;
+    std::array<double, 14> source{}, actual{}, expected{};
+    std::array<double, 7> row{1, 2, 3, 4, 5, 6, 7};
+    const auto x = np::as_expr(np::tensor_view<const double, matrix_shape>(source.data()));
+    for (auto length : {size_t{1}, size_t{7}}) {
+        const auto b = np::as_expr(view<const double>(row.data(), length));
+        const auto expression = x + b;
+        np::eval_to(np::tensor_view<double, matrix_shape>(expected.data()), expression);
+        np::eval_to(np::tensor_view<double, matrix_shape>(actual.data()), expression,
+                    np::xsimd_policy<>{});
+        EXPECT_EQ(actual, expected);
+    }
+}
+
+TEST(NpExpressionXsimd, BroadcastWideIntermediateKeepsItsPrecision) {
+    using matrix_shape = np::extents<size_t, 2, 7>;
+    using row_shape = np::extents<size_t, 7>;
+    std::array<float, 14> source{}, actual{};
+    std::array<double, 7> bias{};
+    source.fill(1.f);
+    bias.fill(0x1p-30);
+    const auto expression =
+        (np::as_expr(np::tensor_view<const float, matrix_shape>(source.data())) +
+         np::as_expr(np::tensor_view<const double, row_shape>(bias.data()))) -
+        1.;
+    np::eval_to(np::tensor_view<float, matrix_shape>(actual.data()), expression,
+                np::xsimd_policy<>{});
+    for (auto value : actual)
+        EXPECT_EQ(value, 0x1p-30f);
+}
+
+TEST(NpExpressionXsimd, NonunitOutputStrideRetainsScalarProjection) {
+    using matrix_shape = np::extents<size_t, 2, 7>;
+    using row_shape = np::extents<size_t, 7>;
+    std::array<double, 14> source{};
+    std::array<double, 7> bias{1, 2, 3, 4, 5, 6, 7};
+    std::array<double, 31> actual{}, expected{};
+    actual.fill(-99.);
+    expected = actual;
+    using strided = np::tensor_view<double, matrix_shape, np::layout_stride>;
+    const np::layout_stride::mapping<matrix_shape> mapping(matrix_shape{},
+                                                           std::array<size_t, 2>{16, 2});
+    const auto expression =
+        np::as_expr(np::tensor_view<const double, matrix_shape>(source.data())) +
+        np::as_expr(np::tensor_view<const double, row_shape>(bias.data()));
+    np::eval_to(strided(expected.data(), mapping), expression);
+    np::eval_to(strided(actual.data(), mapping), expression, np::xsimd_policy<>{});
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(NpExpressionXsimd, BroadcastExceptionalValuesKeepScalarResults) {
+    using matrix_shape = np::extents<size_t, 2, 7>;
+    using row_shape = np::extents<size_t, 7>;
+    std::array<double, 14> source{}, actual{}, expected{};
+    std::array<double, 7> bias{std::numeric_limits<double>::infinity(),
+                               -std::numeric_limits<double>::infinity(),
+                               std::numeric_limits<double>::quiet_NaN(),
+                               -0.,
+                               0.,
+                               1.,
+                               -1.};
+    const auto expression =
+        -(np::as_expr(np::tensor_view<const double, matrix_shape>(source.data())) +
+          np::as_expr(np::tensor_view<const double, row_shape>(bias.data())));
+    np::eval_to(np::tensor_view<double, matrix_shape>(expected.data()), expression);
+    np::eval_to(np::tensor_view<double, matrix_shape>(actual.data()), expression,
+                np::xsimd_policy<>{});
+    for (size_t i = 0; i != actual.size(); ++i) {
+        if (std::isnan(expected[i]))
+            EXPECT_TRUE(std::isnan(actual[i]));
+        else {
+            EXPECT_EQ(actual[i], expected[i]);
+            EXPECT_EQ(std::signbit(actual[i]), std::signbit(expected[i]));
+        }
+    }
+}
+
 } // namespace
