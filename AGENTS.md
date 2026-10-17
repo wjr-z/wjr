@@ -45,6 +45,7 @@
 - `windows.yml` 在 `windows-latest` 上测试 MSVC 和 Clang，安装 NASM，关闭 GMP 测试，并运行 Windows 测试。
 - Windows CI 保持 MSVC 和 Clang 两项；新的标准版本、ISA 和安装组合优先放在 Linux 验证，不自行增加 Windows 矩阵或额外耗时步骤。
 - Linux、Windows 和 pre-commit workflow 都在 `main` 的 push、pull request 上运行，也支持手动 `workflow_dispatch`；Linux/Windows workflow 会跳过仅修改 `README.md`、`docs/**`、`AGENTS.md`、`.gitignore`、`.editorconfig`、`.gitattributes`、`.clang-format`、`.pre-commit-config.yaml` 或 pre-commit workflow 的变更。
+- coverage workflow 仅在每周一 04:43 UTC 或手动 `workflow_dispatch` 时运行，不在 push/PR 上运行；与每周一 03:17 UTC 的 benchmark 错开。只有 `main` 上的定时或手动运行发布 GitHub Pages，其他分支的手动运行仅上传报告 artifact；coverage 不使用文件路径排除规则。
 - pre-commit workflow 不使用这些排除项，格式规则或 hook 配置变化应由它负责验证；源码、测试、依赖、LSan 配置以及 Linux/Windows workflow 的变化仍应触发对应编译 CI。
 - 修改编译器选项、依赖、测试配置或 workflow 时，至少运行对应平台或 target 的最小验证；不要把 GitHub Actions 生成目录或缓存提交到仓库。
 

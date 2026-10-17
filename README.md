@@ -1,7 +1,7 @@
-[![Coverage](https://wjr-z.github.io/wjr/coverage.svg)](https://wjr-z.github.io/wjr/)
-[![Coverage workflow](https://github.com/wjr-z/wjr/actions/workflows/coverage.yml/badge.svg?branch=main)](https://github.com/wjr-z/wjr/actions/workflows/coverage.yml)
+[![Published coverage](https://wjr-z.github.io/wjr/coverage.svg)](https://wjr-z.github.io/wjr/)
+[![Scheduled/manual coverage workflow](https://github.com/wjr-z/wjr/actions/workflows/coverage.yml/badge.svg?branch=main)](https://github.com/wjr-z/wjr/actions/workflows/coverage.yml)
 
-Coverage runs with Clang on pushes to `main` and `coverage-report`, and on pull requests targeting `main`, except for documentation and process-metadata-only changes. The badge reports line coverage from the latest published run; each run also uploads the generated HTML report as an artifact. After GitHub Pages is enabled for the repository, the full report is published at <https://wjr-z.github.io/wjr/>.
+Coverage runs with Clang every Monday at 04:43 UTC and via manual `workflow_dispatch`; pushes and pull requests do not trigger it. Scheduled and manual runs on `main` publish to GitHub Pages; manual runs on other branches only upload the report artifact. The coverage badge shows the latest published `main` report, updated by scheduled/manual publication, and may predate HEAD. Each generated report is also uploaded as an artifact. The full published report is available at <https://wjr-z.github.io/wjr/> after GitHub Pages is enabled for the repository.
 
 最低要求：  \
 C++20 及以上，64位系统，CMake 3.20 及以上。  \
