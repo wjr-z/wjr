@@ -1,6 +1,7 @@
 #include "detail.hpp"
 #include "type.hpp"
 
+#include <vector>
 #include <wjr/memory/uninitialized.hpp>
 
 using namespace wjr;
@@ -82,4 +83,43 @@ TEST(memory, lazy_initialized) {
     verify_lazy_initialized<disable_move_construct>();
     verify_lazy_initialized<disable_copy_assign>();
     verify_lazy_initialized<disable_move_assign>();
+}
+
+TEST(memory, allocator_fill_n_constructs_each_element) {
+    struct allocator {
+        using value_type = int;
+        std::vector<int *> constructed;
+        void construct(int *ptr, const int &value) {
+            constructed.push_back(ptr);
+            wjr::construct_at(ptr, value);
+        }
+    } alloc;
+    auto *ptr = std::allocator<int>().allocate(3);
+    uninitialized_fill_n_using_allocator(ptr, 3, alloc, 42);
+    ASSERT_EQ(alloc.constructed.size(), 3);
+    EXPECT_EQ(alloc.constructed[0], ptr);
+    EXPECT_EQ(alloc.constructed[1], ptr + 1);
+    EXPECT_EQ(alloc.constructed[2], ptr + 2);
+    uninitialized_fill_n_using_allocator(ptr, 0, alloc, 42);
+    EXPECT_EQ(alloc.constructed.size(), 3);
+    std::allocator<int>().deallocate(ptr, 3);
+}
+
+TEST(memory, trivial_relocation_returns_destination_end) {
+    int source[] = {7, 11, 13};
+    int destination[3] = {};
+    std::allocator<int> alloc;
+    EXPECT_EQ(uninitialized_relocate(source, source + 3, destination), destination + 3);
+    EXPECT_TRUE(std::equal(source, source + 3, destination));
+    EXPECT_EQ(uninitialized_relocate_n(source, 3, destination), destination + 3);
+    EXPECT_EQ(uninitialized_relocate_restrict(source, source + 3, destination), destination + 3);
+    EXPECT_EQ(uninitialized_relocate_n_restrict(source, 3, destination), destination + 3);
+    EXPECT_EQ(uninitialized_relocate_using_allocator(source, source + 3, destination, alloc),
+              destination + 3);
+    EXPECT_EQ(uninitialized_relocate_n_using_allocator(source, 3, destination, alloc),
+              destination + 3);
+    EXPECT_EQ(uninitialized_relocate_n(source, 0, destination), destination);
+    int *empty = nullptr;
+    EXPECT_EQ(uninitialized_relocate(empty, empty, empty), empty);
+    EXPECT_EQ(uninitialized_relocate_n(empty, 0, empty), empty);
 }

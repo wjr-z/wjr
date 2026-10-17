@@ -335,7 +335,7 @@ WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n, Al
                                                          const T &>) {
             std::uninitialized_fill_n(_first, n, value);
         } else {
-            for (; n > 0; --n, (void)_first) {
+            for (; n > 0; --n, (void)++_first) {
                 std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(_first), value);
             }
         }
@@ -417,6 +417,9 @@ T *uninitialized_relocate_at_using_allocator(T *src, T *dst, Alloc &alloc) noexc
 
 template <typename InputItInit, typename InputItSe, typename OutputIt>
 OutputIt uninitialized_relocate(InputItInit first, InputItSe last, OutputIt dest) {
+    if (first == last) {
+        return dest;
+    }
     using InputValue = iterator_value_t<InputItInit>;
     using OutputValue = iterator_value_t<OutputIt>;
 
@@ -430,7 +433,7 @@ OutputIt uninitialized_relocate(InputItInit first, InputItSe last, OutputIt dest
                   get_relocate_mode_v<InputValue> == relocate_t::trivial) {
         const auto n = _last - _first;
         maybe_null_memcpy(_dest, _first, n * sizeof(InputValue));
-        return wjr::_iter_wrap(dest, _dest);
+        return wjr::_iter_wrap(dest, _dest + n);
     } else if constexpr (std::is_same_v<InputValue, OutputValue> &&
                          get_relocate_mode_v<InputValue> == relocate_t::maybe_trivial) {
         for (; _first != _last; ++_dest, (void)++_first) {
@@ -494,6 +497,9 @@ OutputIt uninitialized_relocate_restrict_using_allocator(InputIt first, InputIt 
 
 template <typename InputIt, typename Size, typename OutputIt>
 OutputIt uninitialized_relocate_n(InputIt first, Size n, OutputIt dest) {
+    if (n == 0) {
+        return dest;
+    }
     using InputValue = iterator_value_t<InputIt>;
     using OutputValue = iterator_value_t<OutputIt>;
 
@@ -504,7 +510,7 @@ OutputIt uninitialized_relocate_n(InputIt first, Size n, OutputIt dest) {
                   is_contiguous_iterator_v<OutputIt> &&
                   get_relocate_mode_v<InputValue> == relocate_t::trivial) {
         maybe_null_memcpy(_dest, _first, n * sizeof(InputValue));
-        return wjr::_iter_wrap(dest, _dest);
+        return wjr::_iter_wrap(dest, _dest + n);
     } else if constexpr (std::is_same_v<InputValue, OutputValue> &&
                          get_relocate_mode_v<InputValue> == relocate_t::maybe_trivial) {
         for (; n > 0; --n, (void)++_dest, (void)++_first) {
@@ -522,8 +528,8 @@ OutputIt uninitialized_relocate_n(InputIt first, Size n, OutputIt dest) {
 
 template <typename InputIt, typename Size, typename OutputIt>
 OutputIt uninitialized_relocate_n_restrict(InputIt first, Size n, OutputIt dest) {
-    return wjr::_iter_wrap(dest, uninitialized_relocate(_add_restrict(wjr::_iter_base(first)), n,
-                                                        _add_restrict(wjr::_iter_base(dest))));
+    return wjr::_iter_wrap(dest, uninitialized_relocate_n(_add_restrict(wjr::_iter_base(first)), n,
+                                                          _add_restrict(wjr::_iter_base(dest))));
 }
 
 template <typename InputIt, typename Size, typename OutputIt, typename Alloc>

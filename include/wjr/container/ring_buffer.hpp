@@ -575,7 +575,7 @@ public:
                 storage_type new_storage;
                 uninitialized_construct(new_storage, _size, _size);
 
-                pointer dst = data();
+                pointer dst = new_storage.data();
                 const const_pointer _head = _get_head();
                 const const_pointer _tail = _get_tail();
 
@@ -628,16 +628,11 @@ private:
 
                 if (_head < _tail) {
                     uninitialized_relocate_restrict_using_allocator(_head, _tail, dst, al);
-                } else {
+                } else if (old_size != 0) {
                     const pointer _data = data();
                     const pointer _buf_end = _get_buf_end();
-                    if (_head == _tail) {
-                        uninitialized_relocate_n_restrict_using_allocator(_data, size(), dst, al);
-                    } else {
-                        dst = uninitialized_relocate_restrict_using_allocator(_head, _buf_end, dst,
-                                                                              al);
-                        uninitialized_relocate_restrict_using_allocator(_data, _tail, dst, al);
-                    }
+                    dst = uninitialized_relocate_restrict_using_allocator(_head, _buf_end, dst, al);
+                    uninitialized_relocate_restrict_using_allocator(_data, _tail, dst, al);
                 }
 
                 _deallocate();
@@ -1135,6 +1130,10 @@ private:
 
     template <typename Iter>
     WJR_CONSTEXPR20 void _range_assign(Iter first, Iter last, std::input_iterator_tag) {
+        if (first == last) {
+            clear();
+            return;
+        }
         // For input iterators, process elements one by one
         auto current_iter = first;
         const size_type old_size = size();
@@ -1194,6 +1193,10 @@ private:
     template <typename Iter>
     WJR_CONSTEXPR20 void _range_assign(Iter first, Iter last, std::forward_iterator_tag) {
         const auto n = static_cast<size_type>(std::distance(first, last));
+        if (n == 0) {
+            clear();
+            return;
+        }
         auto &al = _get_allocator();
         const pointer _head = _get_head();
         const pointer _tail = _get_tail();
@@ -1206,10 +1209,13 @@ private:
             destroy_using_allocator(_head + n1, _head < _tail ? _tail : _get_buf_end(), al);
 
             if (n <= _one) {
-                _get_tail() = _head + n;
+                if (_tail <= _head) {
+                    destroy_using_allocator(data(), _tail, al);
+                }
+                _get_tail() = n == _one ? data() : _head + n;
             } else {
                 const auto n2 = n - n1;
-                wjr::copy_restrict(first + n1, first + n, data());
+                wjr::copy_restrict(std::next(first, n1), last, data());
                 destroy_using_allocator(data() + n2, _tail, al);
                 _get_tail() = data() + n2;
             }
@@ -1224,35 +1230,37 @@ private:
 
             // First, assign to existing elements in first segment
             auto iter = first;
-            wjr::copy_restrict(iter, iter + old_size_one, _head);
-            iter += old_size_one;
+            auto next = std::next(iter, old_size_one);
+            wjr::copy_restrict(iter, next, _head);
+            iter = next;
 
             if (old_size <= _one) {
                 // All existing elements are in first segment
                 // Construct new elements in first segment
                 const auto new_in_first = n <= _one ? (n - old_size) : (_one - old_size);
                 if (new_in_first > 0) {
-                    wjr::uninitialized_copy_restrict_using_allocator(iter, iter + new_in_first,
-                                                                     _head + old_size, al);
-                    iter += new_in_first;
+                    next = std::next(iter, new_in_first);
+                    wjr::uninitialized_copy_restrict_using_allocator(iter, next, _head + old_size,
+                                                                     al);
+                    iter = next;
                 }
 
                 // If we need more space, use second segment
                 if (n > _one) {
                     const auto new_in_second = n - _one;
-                    wjr::uninitialized_copy_restrict_using_allocator(iter, iter + new_in_second,
-                                                                     data(), al);
+                    wjr::uninitialized_copy_restrict_using_allocator(iter, last, data(), al);
                     _get_tail() = data() + new_in_second;
                 } else {
-                    _get_tail() = _head + n;
+                    _get_tail() = n == _one ? data() : _head + n;
                 }
             } else {
                 // Existing elements span both segments
                 const auto old_size_two = old_size - old_size_one;
 
                 // Assign to existing elements in second segment
-                wjr::copy_restrict(iter, iter + old_size_two, data());
-                iter += old_size_two;
+                next = std::next(iter, old_size_two);
+                wjr::copy_restrict(iter, next, data());
+                iter = next;
 
                 // Determine where to place new elements
                 const auto remaining = n - old_size;
@@ -1260,18 +1268,19 @@ private:
 
                 if (remaining <= space_in_first) {
                     // All new elements fit in first segment
-                    wjr::uninitialized_copy_restrict_using_allocator(iter, iter + remaining,
+                    wjr::uninitialized_copy_restrict_using_allocator(iter, last,
                                                                      _head + old_size_one, al);
                     _get_tail() = data() + old_size_two;
                 } else {
                     // New elements span both segments
                     if (space_in_first > 0) {
-                        wjr::uninitialized_copy_restrict_using_allocator(
-                            iter, iter + space_in_first, _head + old_size_one, al);
-                        iter += space_in_first;
+                        next = std::next(iter, space_in_first);
+                        wjr::uninitialized_copy_restrict_using_allocator(iter, next,
+                                                                         _head + old_size_one, al);
+                        iter = next;
                     }
                     const auto new_in_second = remaining - space_in_first;
-                    wjr::uninitialized_copy_restrict_using_allocator(iter, iter + new_in_second,
+                    wjr::uninitialized_copy_restrict_using_allocator(iter, last,
                                                                      data() + old_size_two, al);
                     _get_tail() = data() + old_size_two + new_in_second;
                 }
