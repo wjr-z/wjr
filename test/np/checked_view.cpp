@@ -16,14 +16,40 @@ using dynamic_shape = np::dextents<size_t, 2>;
 using scalar_shape = np::extents<size_t>;
 using static_view = np::tensor_view<int, static_shape>;
 static_assert(
-    std::same_as<np::shape_result<static_view>, wjr::expected<static_view, np::shape_error>>);
+    std::same_as<np::shape_result<static_view>,
+                 wjr::compressed_expected<static_view, np::shape_error, np::shape_error::ok>>);
 static_assert(std::same_as<typename np::shape_result<void>::error_type, np::shape_error>);
+static_assert(std::is_convertible_v<
+              np::shape_result<static_view>,
+              wjr::expected<np::tensor_view<const int, static_shape>, np::shape_error>>);
 static_assert(std::same_as<decltype(np::try_make_tensor_view<static_shape>(
                                static_cast<int *>(nullptr), size_t{}, std::array{2, 3})),
                            np::shape_result<static_view>>);
 static_assert(
     std::same_as<decltype(np::detail::check_metadata<int, static_shape>(std::array{2, 3})),
                  np::shape_result<np::detail::checked_metadata<static_shape>>>);
+static_assert(static_cast<int>(np::shape_error::negative_extent) == 0);
+static_assert(static_cast<int>(np::shape_error::unsupported_stride_order) == 12);
+static_assert(static_cast<int>(np::shape_error::expression_shape_mismatch) == 13);
+static_assert(static_cast<int>(np::shape_error::ok) == 14);
+
+constexpr bool result_interoperation() {
+    int values[] = {1, 2, 3, 4, 5, 6};
+    const auto result = np::try_make_tensor_view<static_shape>(values, 6, std::array{2, 3});
+    using readonly_view = np::tensor_view<const int, static_shape>;
+    const np::shape_result<readonly_view> readonly(result);
+    const wjr::expected<readonly_view, np::shape_error> legacy(result);
+    const np::shape_result<readonly_view> round_trip(legacy);
+    const auto error = np::try_make_tensor_view<static_shape>(values, 5, std::array{2, 3});
+    const wjr::expected<readonly_view, np::shape_error> legacy_error(error);
+    const np::shape_result<readonly_view> round_trip_error(legacy_error);
+    const np::shape_result<readonly_view> moved(
+        np::try_make_tensor_view<static_shape>(values, 6, std::array{2, 3}));
+    return readonly && legacy && round_trip && moved && (*round_trip)(1, 2) == 6 &&
+           (*moved)(0, 0) == 1 && !round_trip_error &&
+           round_trip_error.error() == np::shape_error::insufficient_storage;
+}
+static_assert(result_interoperation());
 
 template <class Shape, class Layout, class T, class Integer, size_t Rank>
 concept can_make_view = requires(T *data, std::array<Integer, Rank> shape) {
@@ -68,6 +94,11 @@ struct alignas(64) aligned_element {
 };
 
 } // namespace
+
+TEST(np_checked_view, sentinel_result_and_legacy_readonly_interoperation) {
+    EXPECT_TRUE(result_interoperation());
+    EXPECT_EQ(sizeof(np::shape_result<void>), sizeof(np::shape_error));
+}
 
 TEST(np_checked_view, static_dynamic_const_and_layout) {
     const float values[] = {0, 1, 2, 3, 4, 5};

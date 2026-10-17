@@ -29,6 +29,12 @@ int main(int argc, char **) {
     auto checked = wjr::np::try_make_tensor_view<shape>(values, available, std::array{2, 3});
     auto insufficient =
         wjr::np::try_make_tensor_view<shape>(values, available - 1, std::array{2, 3});
+    // Existing explicitly spelled results remain usable through conversion.
+    const wjr::expected<wjr::np::tensor_view<const int, shape>, wjr::np::shape_error> legacy(
+        checked);
+    if (!legacy || (*legacy)(1, 2) != 42) {
+        return 1;
+    }
     using owner = wjr::np::tensor<int, shape>;
     auto owned = wjr::np::make_tensor<owner>(std::array{2, 3});
     auto invalid = wjr::np::make_tensor<owner>(std::array{-1, 3});

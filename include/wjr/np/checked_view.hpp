@@ -27,11 +27,12 @@ enum class shape_error {
     stride_out_of_range,
     unsupported_stride_order,
     expression_shape_mismatch,
+    ok, // Reserved for shape_result success; never construct unexpected(ok).
 };
 
-// Same result representation and error codes as expected<T, shape_error>.
+// The reserved success code encodes state without a separate boolean.
 template <class T>
-using shape_result = expected<T, shape_error>;
+using shape_result = compressed_expected<T, shape_error, shape_error::ok>;
 
 namespace detail {
 

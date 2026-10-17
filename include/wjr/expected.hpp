@@ -896,60 +896,66 @@ public:
 
 #if defined(__cpp_conditional_explicit)
     template <typename U, typename G,
-              WJR_REQUIRES(std::is_constructible_v<T, const U &>
-                               &&std::is_constructible_v<error_type, const G &> &&
+              WJR_REQUIRES(std::is_constructible_v<T, const U &> &&
+                               std::is_constructible_v<error_type, const _expected_unwrap_t<G> &> &&
                                    expected_detail::expected_construct_with_v<T, error_type, U, G>)>
     WJR_CONSTEXPR20 explicit(!(std::is_convertible_v<const U &, T> &&
-                               std::is_convertible_v<const G &, error_type>))
+                               std::is_convertible_v<const _expected_unwrap_t<G> &, error_type>))
         expected(const expected<U, G> &other)
         : Mybase(expected_detail::converting_t{}, other.has_value(),
                  static_cast<const expected_detail::expected_storage<U, G> &>(other)),
           EnableBase(enable_default_constructor) {}
 
     template <typename U, typename G,
-              WJR_REQUIRES(std::is_constructible_v<T, U> &&std::is_constructible_v<error_type, G>
-                               &&expected_detail::expected_construct_with_v<T, error_type, U, G>)>
-    WJR_CONSTEXPR20 explicit(!(std::is_convertible_v<U, T> && std::is_convertible_v<G, error_type>))
+              WJR_REQUIRES(std::is_constructible_v<T, U>
+                               &&std::is_constructible_v<error_type, _expected_unwrap_t<G>> &&
+                                   expected_detail::expected_construct_with_v<T, error_type, U, G>)>
+    WJR_CONSTEXPR20 explicit(!(std::is_convertible_v<U, T> &&
+                               std::is_convertible_v<_expected_unwrap_t<G>, error_type>))
         expected(expected<U, G> &&other)
         : Mybase(expected_detail::converting_t{}, other.has_value(),
                  static_cast<expected_detail::expected_storage<U, G> &&>(other)),
           EnableBase(enable_default_constructor) {}
 #else
-    template <
-        typename U, typename G,
-        WJR_REQUIRES(
-            std::is_constructible_v<T, const U &> &&std::is_constructible_v<error_type, const G &>
-                &&expected_detail::expected_construct_with_v<T, error_type, U, G> &&
-            (std::is_convertible_v<const U &, T> && std::is_convertible_v<const G &, error_type>))>
+    template <typename U, typename G,
+              WJR_REQUIRES(std::is_constructible_v<T, const U &> &&std::is_constructible_v<
+                               error_type, const _expected_unwrap_t<G> &>
+                               &&expected_detail::expected_construct_with_v<T, error_type, U, G> &&
+                           (std::is_convertible_v<const U &, T> &&
+                            std::is_convertible_v<const _expected_unwrap_t<G> &, error_type>))>
     WJR_CONSTEXPR20 expected(const expected<U, G> &other)
         : Mybase(expected_detail::converting_t{}, other.has_value(),
                  static_cast<const expected_detail::expected_storage<U, G> &>(other)),
           EnableBase(enable_default_constructor) {}
 
-    template <
-        typename U, typename G,
-        WJR_REQUIRES(
-            std::is_constructible_v<T, const U &> &&std::is_constructible_v<error_type, const G &>
-                &&expected_detail::expected_construct_with_v<T, error_type, U, G> &&
-            !(std::is_convertible_v<const U &, T> && std::is_convertible_v<const G &, error_type>))>
+    template <typename U, typename G,
+              WJR_REQUIRES(std::is_constructible_v<T, const U &> &&std::is_constructible_v<
+                               error_type, const _expected_unwrap_t<G> &>
+                               &&expected_detail::expected_construct_with_v<T, error_type, U, G> &&
+                           !(std::is_convertible_v<const U &, T> &&
+                             std::is_convertible_v<const _expected_unwrap_t<G> &, error_type>))>
     WJR_CONSTEXPR20 explicit expected(const expected<U, G> &other)
         : Mybase(expected_detail::converting_t{}, other.has_value(),
                  static_cast<const expected_detail::expected_storage<U, G> &>(other)),
           EnableBase(enable_default_constructor) {}
 
     template <typename U, typename G,
-              WJR_REQUIRES(std::is_constructible_v<T, U> &&std::is_constructible_v<error_type, G>
+              WJR_REQUIRES(std::is_constructible_v<T, U> &&std::is_constructible_v<
+                               error_type, _expected_unwrap_t<G>>
                                &&expected_detail::expected_construct_with_v<T, error_type, U, G> &&
-                           (std::is_convertible_v<U, T> && std::is_convertible_v<G, error_type>))>
+                           (std::is_convertible_v<U, T> &&
+                            std::is_convertible_v<_expected_unwrap_t<G>, error_type>))>
     WJR_CONSTEXPR20 expected(expected<U, G> &&other)
         : Mybase(expected_detail::converting_t{}, other.has_value(),
                  static_cast<expected_detail::expected_storage<U, G> &&>(other)),
           EnableBase(enable_default_constructor) {}
 
     template <typename U, typename G,
-              WJR_REQUIRES(std::is_constructible_v<T, U> &&std::is_constructible_v<error_type, G>
+              WJR_REQUIRES(std::is_constructible_v<T, U> &&std::is_constructible_v<
+                               error_type, _expected_unwrap_t<G>>
                                &&expected_detail::expected_construct_with_v<T, error_type, U, G> &&
-                           !(std::is_convertible_v<U, T> && std::is_convertible_v<G, error_type>))>
+                           !(std::is_convertible_v<U, T> &&
+                             std::is_convertible_v<_expected_unwrap_t<G>, error_type>))>
     WJR_CONSTEXPR20 explicit expected(expected<U, G> &&other)
         : Mybase(expected_detail::converting_t{}, other.has_value(),
                  static_cast<expected_detail::expected_storage<U, G> &&>(other)),
@@ -1496,53 +1502,58 @@ public:
 #endif
 
 #if defined(__cpp_conditional_explicit)
-    template <typename G,
-              WJR_REQUIRES(std::is_constructible_v<error_type, const G &> &&expected_detail::
-                               expected_construct_with_v<void, error_type, void, G>)>
-    WJR_CONSTEXPR20 explicit(!std::is_convertible_v<const G &, error_type>)
+    template <
+        typename G,
+        WJR_REQUIRES(std::is_constructible_v<error_type, const _expected_unwrap_t<G> &>
+                         &&expected_detail::expected_construct_with_v<void, error_type, void, G>)>
+    WJR_CONSTEXPR20 explicit(!std::is_convertible_v<const _expected_unwrap_t<G> &, error_type>)
         expected(const expected<void, G> &other)
         : Mybase(expected_detail::converting_t{}, other.has_value(),
                  static_cast<const expected_detail::expected_storage<void, G> &>(other)),
           EnableBase(enable_default_constructor) {}
 
-    template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, G> &&expected_detail::
-                                           expected_construct_with_v<void, error_type, void, G>)>
-    WJR_CONSTEXPR20 explicit(!std::is_convertible_v<G, error_type>)
+    template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, _expected_unwrap_t<G>>
+                                           &&expected_detail::expected_construct_with_v<
+                                               void, error_type, void, G>)>
+    WJR_CONSTEXPR20 explicit(!std::is_convertible_v<_expected_unwrap_t<G>, error_type>)
         expected(expected<void, G> &&other)
         : Mybase(expected_detail::converting_t{}, other.has_value(),
                  static_cast<expected_detail::expected_storage<void, G> &&>(other)),
           EnableBase(enable_default_constructor) {}
 #else
-    template <typename G,
-              WJR_REQUIRES(std::is_constructible_v<error_type, const G &> &&
-                               expected_detail::expected_construct_with_v<void, error_type, void, G>
-                                   &&std::is_convertible_v<const G &, error_type>)>
+    template <
+        typename G,
+        WJR_REQUIRES(std::is_constructible_v<error_type, const _expected_unwrap_t<G> &>
+                         &&expected_detail::expected_construct_with_v<void, error_type, void, G>
+                             &&std::is_convertible_v<const _expected_unwrap_t<G> &, error_type>)>
     WJR_CONSTEXPR20 expected(const expected<void, G> &other)
         : Mybase(expected_detail::converting_t{}, other.has_value(),
                  static_cast<const expected_detail::expected_storage<void, G> &>(other)),
           EnableBase(enable_default_constructor) {}
 
-    template <typename G,
-              WJR_REQUIRES(std::is_constructible_v<error_type, const G &> &&expected_detail::
-                               expected_construct_with_v<void, error_type, void, G> &&
-                           !std::is_convertible_v<const G &, error_type>)>
+    template <
+        typename G,
+        WJR_REQUIRES(std::is_constructible_v<error_type, const _expected_unwrap_t<G> &>
+                         &&expected_detail::expected_construct_with_v<void, error_type, void, G> &&
+                     !std::is_convertible_v<const _expected_unwrap_t<G> &, error_type>)>
     WJR_CONSTEXPR20 explicit expected(const expected<void, G> &other)
         : Mybase(expected_detail::converting_t{}, other.has_value(),
                  static_cast<const expected_detail::expected_storage<void, G> &>(other)),
           EnableBase(enable_default_constructor) {}
 
     template <typename G,
-              WJR_REQUIRES(std::is_constructible_v<error_type, G> &&
+              WJR_REQUIRES(std::is_constructible_v<error_type, _expected_unwrap_t<G>> &&
                                expected_detail::expected_construct_with_v<void, error_type, void, G>
-                                   &&std::is_convertible_v<G, error_type>)>
+                                   &&std::is_convertible_v<_expected_unwrap_t<G>, error_type>)>
     WJR_CONSTEXPR20 expected(expected<void, G> &&other)
         : Mybase(expected_detail::converting_t{}, other.has_value(),
                  static_cast<expected_detail::expected_storage<void, G> &&>(other)),
           EnableBase(enable_default_constructor) {}
 
-    template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, G> &&expected_detail::
-                                           expected_construct_with_v<void, error_type, void, G> &&
-                                       !std::is_convertible_v<G, error_type>)>
+    template <typename G, WJR_REQUIRES(std::is_constructible_v<error_type, _expected_unwrap_t<G>>
+                                           &&expected_detail::expected_construct_with_v<
+                                               void, error_type, void, G> &&
+                                       !std::is_convertible_v<_expected_unwrap_t<G>, error_type>)>
     WJR_CONSTEXPR20 explicit expected(expected<void, G> &&other)
         : Mybase(expected_detail::converting_t{}, other.has_value(),
                  static_cast<expected_detail::expected_storage<void, G> &&>(other)),
