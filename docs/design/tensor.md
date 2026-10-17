@@ -2,8 +2,10 @@
 
 目标是一个通用的多维数据与计算层：owner 管理生命周期，计算主要借用轻量 view，
 表达式保留编译期信息，evaluator 在边界处理广播、别名和后端选择。
-这份草案约定初始数据模型及验收条件。首个可选的实验性借用 view 已按
-[初始数据模型决策](tensor-data-model.md) 固定依赖及验证范围；owner、表达式和求值器仍处于设计阶段。
+借用 view、owner 与预分配逐元素原语已提供实验接口。
+数据结构见 [初始数据模型](tensor-data-model.md)，计算接口见 [逐元素操作](tensor-elementwise.md)。
+表达式闭包、广播、别名、SIMD 与规约采用后续的
+[表达式设计决策](tensor-expressions.md) 和 [实施计划](expression-roadmap.md)；下文保留总体方向。
 
 ## 复用基础与分层
 
@@ -151,10 +153,11 @@ reshape 只有在布局兼容且元素总数一致时产生 view；需要重排�
 
 ## 表达式与广播
 
-表达式节点保存操作类型及闭包。左值 owner 和表达式借用引用，右值节点或 owner 按值保存并移动。
-轻量 view 描述符可以按值保存，但底层 buffer 的借用义务仍然存在。
-返回引用了局部左值 owner 的表达式仍然无效，右值闭包规则不会修复这种借用。
-参照 [xtensor closure semantics](https://xtensor.readthedocs.io/en/latest/closure-semantics.html)。
+表达式保存操作类型及值闭包：标量、轻量 view 与可复制左值节点按值快照，右值节点移动。
+owner 初版显式通过左值 .view() 接入，不自动借用临时 owner；不可复制节点左值不回退成引用闭包。
+这避免引用局部描述符/节点，但不延长底层 buffer 寿命，也不修复借用局部 owner 数据的返回值。
+与 [xtensor closure semantics](https://xtensor.readthedocs.io/en/latest/closure-semantics.html)
+的左值引用策略存在有意差异，具体成本和语义见新的表达式设计。
 
 编译期 shape 推导与运行时广播使用相同规则：从尾维对齐，两维相等或其中一维为 1 时兼容。
 `0` 与 `1` 广播为 `0`，`0` 与大于 1 的维度不兼容，不能用简单 max 替代这套规则。
@@ -172,13 +175,14 @@ reshape 只有在布局兼容且元素总数一致时产生 view；需要重排�
 
 ## 求值与别名
 
-初始核心入口是对预分配输出求值的 eval_to(out, expression)，便利入口 eval(expression) 创建 owner。
-view 赋值不改变其 shape。只有拥有输出的容器可以按显式约定调整容量。
+核心 eval_to(out, expression) 延续现有 transform_to 的低级合同：不隐藏分配，
+有效 shape 及不相交/精确逐元素同映射的别名关系由调用方保证，必要调试诊断使用断言层级。
+eval(expression) 显式创建新 owner，并按现有工厂约定返回 expected。
+view 的普通赋值仍是描述符重绑定，表达式写入必须明确调用 eval_to。
 
-求值前验证目标 shape、操作类型和广播，随后检查源与目标的存储关系。
-仅在地址范围不相交或已证明同一逐元素映射时直接原地求值。
-跨位移切片、转置、未知外部映射或 owner 调整容量可能覆盖输入时，先物化再提交。
-为一份含有目标 owner 的表达式分配或重用输出之前，必须先保存仍被读取的输入。
+安全赋值与 checked 边界单独提供：先处理 shape、广播和可证明的存储关系，
+移位、转置或未知危险重叠必要时使用 caller scratch 或允许临时物化的便利入口。
+低级 eval_to 不为这些情况自动分配。owner 需要调整容量时，先保留仍被读取的 RHS。
 
 显式 noalias 允许调用方承诺不重叠；普通 view 类型不默认携带 restrict 假设。
 工作区由调用方或 evaluator 的一次执行上下文提供，不能把临时 buffer 的所有权塞入每个 view。
