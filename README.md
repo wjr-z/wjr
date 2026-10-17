@@ -14,7 +14,7 @@ C++20 默认，C++17 可选，64位系统，CMake 3.20 及以上。  \
 通用模块使用架构基线。`-DWJR_CPU_TARGET=native|baseline|<编译器架构名>`
 只选择数值优化模块及其头文件调用方的 ISA 要求；GNU 风格编译器本机默认 `native`，
 MSVC 和交叉编译默认 `baseline`。发布可分发包时应明确选择 `baseline` 或固定架构。
-详见 [基础架构设计](docs/design/foundation.md)。
+详见 [基础架构设计](docs/design/foundation.md) 和 [tensor 数据结构设计](docs/design/tensor.md)。
 
 # 构建 target
 项目使用 CMake 构建。配置完成后，可以通过下面的命令构建指定 target：

@@ -108,7 +108,7 @@ CI 分别覆盖默认 C++20、C++17 兼容配置和 C++23 基线配置；告警�
 
 先稳定构建、配置、安装和标准适配契约，再建立可复现的性能基线。
 随后验证 SIMD 候选与内核 ABI，按数据选择迁移范围。
-tensor 先确认数据结构和语义，再逐层实现；本阶段不添加 tensor 代码。
+tensor 先按 [数据结构设计](tensor.md) 确认类型和语义，再逐层实现；本阶段不添加 tensor 代码。
 
 参考 [CMake compile features](https://cmake.org/cmake/help/v3.20/manual/cmake-compile-features.7.html)、
 [编译选项探测](https://cmake.org/cmake/help/v3.20/module/CheckCXXCompilerFlag.html) 和
