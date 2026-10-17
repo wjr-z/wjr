@@ -33,7 +33,10 @@ concept makes_default_initialized = requires(std::array<int, Owner::rank()> shap
 };
 
 using standard_owner = np::tensor<int, dynamic_shape, np::layout_right, std::vector<int>>;
-static_assert(std::same_as<fixed_owner::container_type, wjr::vector<int>>);
+static_assert(std::same_as<fixed_owner::container_type, np::tensor_vector<int>>);
+static_assert(sizeof(np::tensor_vector<int>) == sizeof(wjr::vector<int>));
+static_assert(wjr::get_relocate_mode_v<np::tensor_vector<int>> ==
+              wjr::get_relocate_mode_v<wjr::vector<int>>);
 static_assert(makes_default_initialized<dynamic_owner>);
 static_assert(!makes_default_initialized<standard_owner>);
 static_assert(!makes_default_initialized<array_owner>);
@@ -61,6 +64,9 @@ static_assert(!owner_type<bool, fixed_shape, np::layout_right, std::vector<bool>
 static_assert(!owner_type<const int, fixed_shape, np::layout_right, std::vector<int>>);
 static_assert(!owner_type<int, fixed_shape, np::layout_stride, std::vector<int>>);
 static_assert(!owner_type<int, fixed_shape, np::layout_right, std::vector<float>>);
+static_assert(!owner_type<int, fixed_shape, np::layout_right, wjr::vector<int>>);
+static_assert(!owner_type<int, fixed_shape, np::layout_right, wjr::fixed_vector<int>>);
+static_assert(!owner_type<int, fixed_shape, np::layout_right, wjr::small_vector<int, 0>>);
 static_assert(borrows<fixed_owner &> && borrows<const fixed_owner &>);
 static_assert(!borrows<fixed_owner> && !borrows<const fixed_owner>);
 static_assert(!tries_borrow<fixed_owner> && !tries_borrow<const fixed_owner>);
@@ -162,7 +168,7 @@ struct state_allocator {
 
 template <class T>
 using state_owner =
-    np::tensor<T, dynamic_shape, np::layout_right, wjr::vector<T, state_allocator<T>>>;
+    np::tensor<T, dynamic_shape, np::layout_right, np::tensor_vector<T, state_allocator<T>>>;
 
 #if !defined(WJR_DISABLE_EXCEPTIONS)
 struct throwing_element {
@@ -249,9 +255,9 @@ TEST(np_tensor, default_static_dynamic_scalar_and_empty) {
 TEST(np_tensor, compact_storage_layout_const_and_alignment) {
     struct direct_dynamic_storage {
         dynamic_owner::mapping_type mapping;
-        wjr::vector<int> storage;
+        np::tensor_vector<int> storage;
     };
-    EXPECT_EQ(sizeof(fixed_owner), sizeof(wjr::vector<int>));
+    EXPECT_EQ(sizeof(fixed_owner), sizeof(np::tensor_vector<int>));
     EXPECT_EQ(sizeof(array_owner), sizeof(std::array<int, 6>));
     EXPECT_EQ(sizeof(dynamic_owner), sizeof(direct_dynamic_storage));
     EXPECT_EQ(alignof(array_owner), alignof(std::array<int, 6>));
@@ -276,7 +282,7 @@ TEST(np_tensor, checked_creation_and_adoption) {
     auto made = np::make_tensor<dynamic_owner>(std::array{2, 3});
     ASSERT_TRUE(made);
     EXPECT_EQ(made->view()(1, 2), 0);
-    wjr::vector<int> storage{0, 1, 2, 3, 4, 5};
+    np::tensor_vector<int> storage{0, 1, 2, 3, 4, 5};
     auto *data = storage.data();
     auto wrong = np::adopt_tensor<dynamic_owner>(std::array{2, 2}, std::move(storage));
     ASSERT_FALSE(wrong);
@@ -293,7 +299,7 @@ TEST(np_tensor, checked_creation_and_adoption) {
     auto mismatch = np::make_tensor<fixed_owner>(std::array{3, 2});
     ASSERT_FALSE(mismatch);
     EXPECT_EQ(mismatch.error(), np::shape_error::static_extent_mismatch);
-    wjr::vector<no_default> objects;
+    np::tensor_vector<no_default> objects;
     objects.emplace_back(7);
     auto nondefault = np::adopt_tensor<no_default_owner>(std::array{1}, std::move(objects));
     ASSERT_TRUE(nondefault);
@@ -351,8 +357,8 @@ TEST(np_tensor, in_place_factories_do_not_move_new_array_elements) {
 }
 
 TEST(np_tensor, explicit_wjr_vector_int_and_real_bool_storage) {
-    using integers = np::tensor<int, dynamic_shape, np::layout_right, wjr::vector<int>>;
-    using booleans = np::tensor<bool, dynamic_shape, np::layout_right, wjr::vector<bool>>;
+    using integers = np::tensor<int, dynamic_shape, np::layout_right, np::tensor_vector<int>>;
+    using booleans = np::tensor<bool, dynamic_shape, np::layout_right, np::tensor_vector<bool>>;
     auto values = np::make_tensor<integers>(std::array{2, 3});
     auto flags = np::make_tensor<booleans>(std::array{2, 3});
     ASSERT_TRUE(values);

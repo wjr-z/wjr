@@ -262,8 +262,6 @@ TYPED_TEST(VectorTest, construct_with_size) {
             std::allocator<T> al;
             wvector<T> V(n, _Val, al);
             wvector<T> v(std::move(V));
-            EXPECT_EQ(V.size(), 0u);
-            EXPECT_EQ(V.capacity(), 0u);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
             for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
@@ -279,8 +277,6 @@ TYPED_TEST(VectorTest, construct_with_size) {
             std::allocator<T> al;
             wvector<T> V(n, _Val, al);
             wvector<T> v(std::move(V), al);
-            EXPECT_EQ(V.size(), 0u);
-            EXPECT_EQ(V.capacity(), 0u);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
             for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });

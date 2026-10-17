@@ -180,7 +180,7 @@ public:
     constexpr void take_storage(Mybase &other, _Alty &) noexcept {
         auto &other_storage = other.m_storage;
         m_storage = std::move(other_storage);
-        other_storage = {};
+        other_storage.m_data = nullptr;
     }
 
     constexpr void swap_storage(Mybase &other, _Alty &) noexcept {

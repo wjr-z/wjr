@@ -20,7 +20,7 @@ template <owning_expression E, class Allocator>
 requires expression_allocator<Allocator, E>
 using evaluation_tensor =
     tensor<typename E::value_type, typename E::extents_type, typename E::layout_type,
-           wjr::vector<typename E::value_type, Allocator>>;
+           tensor_vector<typename E::value_type, Allocator>>;
 
 } // namespace detail
 

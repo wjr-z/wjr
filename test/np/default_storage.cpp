@@ -55,7 +55,7 @@ struct hook_allocator {
 };
 
 using hooked_owner =
-    np::tensor<int, shape, np::layout_right, wjr::vector<int, hook_allocator<int>>>;
+    np::tensor<int, shape, np::layout_right, np::tensor_vector<int, hook_allocator<int>>>;
 
 TEST(NpDefaultStorage, ValueInitializationAndExplicitDefaultInitialization) {
     using owner = np::tensor<int, shape>;
@@ -156,6 +156,18 @@ TEST(NpDefaultStorage, MovedFromOwnersRetainQueryableStorageAndCanBeReassigned) 
     EXPECT_FALSE(moved.try_view());
 }
 
+TEST(NpDefaultStorage, OnlyTheTensorVectorOptsIntoQueryableMovedFromStorage) {
+    np::tensor_vector<int> source{1, 2, 3};
+    auto *const data = source.data();
+    auto moved = std::move(source);
+    EXPECT_EQ(moved.data(), data);
+    EXPECT_EQ(moved[2], 3);
+    EXPECT_EQ(source.size(), 0);
+    EXPECT_EQ(source.capacity(), 0);
+    source = moved;
+    EXPECT_EQ(source[2], 3);
+}
+
 #if !defined(WJR_DISABLE_EXCEPTIONS)
 template <class T>
 struct failing_allocator {
@@ -175,13 +187,13 @@ struct failing_allocator {
     bool operator==(const failing_allocator &) const = default;
 };
 using failing_owner =
-    np::tensor<int, shape, np::layout_right, wjr::vector<int, failing_allocator<int>>>;
+    np::tensor<int, shape, np::layout_right, np::tensor_vector<int, failing_allocator<int>>>;
 static_assert(!std::is_nothrow_copy_assignable_v<failing_owner>);
 static_assert(!std::is_nothrow_copy_assignable_v<np::tensor<int, shape>>);
 
 TEST(NpDefaultStorage, DefaultConstructionChecksAllocatorLimitBeforeAllocation) {
     using owner = np::tensor<int, np::extents<size_t, 6>, np::layout_right,
-                             wjr::vector<int, failing_allocator<int>>>;
+                             np::tensor_vector<int, failing_allocator<int>>>;
     failing_allocator<int>::allocations = 0;
     failing_allocator<int>::limit = 2;
     EXPECT_THROW((void)owner{}, std::length_error);
