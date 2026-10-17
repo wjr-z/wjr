@@ -14,6 +14,7 @@ on:
           - core
           - all
           - simd
+          - np
 
 permissions:
   contents: read
@@ -58,7 +59,12 @@ jobs:
             gmp=OFF
           fi
           xsimd=OFF
+          np=OFF
           if [[ "$BENCHMARK_PROFILE" == "simd" ]]; then
+            xsimd=ON
+          fi
+          if [[ "$BENCHMARK_PROFILE" == "np" ]]; then
+            np=ON
             xsimd=ON
           fi
           cmake -B build -GNinja \
@@ -67,6 +73,8 @@ jobs:
             -DWJR_BUILD_TESTS=OFF \
             -DWJR_BENCHMARK_PROFILE="$BENCHMARK_PROFILE" \
             -DWJR_BENCHMARK_XSIMD="$xsimd" \
+            -DWJR_ENABLE_NP="$np" \
+            -DWJR_ENABLE_XSIMD="$np" \
             -DWJR_USE_GMP_TESTS="$gmp" \
             -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent"
 

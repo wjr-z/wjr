@@ -23,7 +23,7 @@ Windows 使用对应的 `.exe` 路径。比较固定 ISA 时使用同一工具�
 xsimd 行另记录实际选择的架构与 lane 数。完整编译命令、CPU 型号、构建提交、异常、
 sanitizer、汇编及优化选项应随结果一起保存，不能只凭 `native` 字符串判断两次实验相同。
 
-`WJR_BENCHMARK_XSIMD` 默认关闭，并且只允许用于 simd profile。
+`WJR_BENCHMARK_XSIMD` 默认关闭，可用于 simd 和 [np profile](tensor.md)。
 开启时获取 [xsimd 14.3.0](https://github.com/xtensor-stack/xsimd/tree/14.3.0) 对应的固定 commit
 `e88a72831858123924f7118f345dfe5d70d95991`；它只链接到基准程序，不进入 WJR 的公共头文件、
 模块依赖或安装包。离线环境可通过标准 FetchContent source override 使用相同源码。
