@@ -1,6 +1,7 @@
 #include <array>
 
 #include <wjr/np/checked_view.hpp>
+#include <wjr/np/reshape.hpp>
 #include <wjr/np/tensor.hpp>
 
 using shape = wjr::np::extents<size_t, wjr::np::dynamic_extent, 3>;
@@ -26,9 +27,15 @@ int main(int argc, char **) {
         return 1;
     }
     owned->view()(1, 2) = 9;
+    auto flat = wjr::np::flatten_view(view);
+    auto reshaped =
+        wjr::np::try_reshape_view<wjr::np::extents<size_t, 3, 2>>(view, std::array{3, 2});
+    auto mismatch = wjr::np::try_reshape_view<shape>(view, std::array{1, 3});
     return checked && !insufficient && read_value(checked) == 42 &&
                    read_error(insufficient) == wjr::np::shape_error::insufficient_storage &&
-                   view.size() == 6 && owned->try_view()->operator()(1, 2) == 9
+                   view.size() == 6 && flat(5) == 42 && reshaped && (*reshaped)(2, 1) == 42 &&
+                   !mismatch && mismatch.error() == wjr::np::shape_error::element_count_mismatch &&
+                   owned->try_view()->operator()(1, 2) == 9
                ? 0
                : 1;
 }

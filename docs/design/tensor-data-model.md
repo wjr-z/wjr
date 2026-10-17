@@ -67,7 +67,8 @@ mapping 内含 extents，不重复保存 shape。
 它们不是 NumPy/DLPack 的安全接入边界，不检查外部存储长度、溢出、stride 合法性或生命周期。
 需要校验连续 shape 和存储长度时，使用下面的 checked 适配入口；
 不能先调用可能溢出的 required_span_size() 再事后检查。
-不将尚未实现的调试边界检查、`at()`、reshape、切片或标准 mdspan 互操作宣称为已有功能。
+连续 view 的零拷贝 flatten 与 checked reshape 见 [元数据适配](tensor-reshape.md)。
+调试边界检查、`at()`、切片或标准 mdspan 互操作尚未实现。
 
 ## checked 连续借用
 
