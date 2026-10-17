@@ -13,6 +13,7 @@
 #define WJR_EXPECTED_HPP__
 
 #include <exception>
+#include <functional>
 
 #include <wjr/assert.hpp>
 #include <wjr/container/compressed_value.hpp>
@@ -65,20 +66,31 @@ public:
     constexpr E &&error() && noexcept { return std::move(m_err); }
     constexpr const E &&error() const && noexcept { return std::move(m_err); }
 
-    constexpr void swap(unexpected &other) noexcept(std::is_nothrow_swappable_v<E>) {
-        std::swap(m_err, other.m_err);
+    constexpr void swap(unexpected &other) noexcept(std::is_nothrow_swappable_v<E>)
+    requires std::is_swappable_v<E>
+    {
+        using std::swap;
+        swap(m_err, other.m_err);
     }
 
     template <typename E2>
-    friend constexpr bool operator==(unexpected &x,
-                                     unexpected<E2> &y) noexcept(has_noexcept_equal_to_v<E, E2>) {
+    requires std::is_invocable_r_v<bool, std::equal_to<>, const E &, const E2 &>
+    friend constexpr bool operator==(const unexpected &x, const unexpected<E2> &y) noexcept(
+        std::is_nothrow_invocable_r_v<bool, std::equal_to<>, const E &, const E2 &>) {
         return x.error() == y.error();
     }
 
     template <typename E2>
-    friend constexpr bool
-    operator!=(unexpected &x, unexpected<E2> &y) noexcept(has_noexcept_not_equal_to_v<E, E2>) {
+    requires std::is_invocable_r_v<bool, std::not_equal_to<>, const E &, const E2 &>
+    friend constexpr bool operator!=(const unexpected &x, const unexpected<E2> &y) noexcept(
+        std::is_nothrow_invocable_r_v<bool, std::not_equal_to<>, const E &, const E2 &>) {
         return x.error() != y.error();
+    }
+
+    friend constexpr void swap(unexpected &lhs, unexpected &rhs) noexcept(noexcept(lhs.swap(rhs)))
+    requires std::is_swappable_v<E>
+    {
+        lhs.swap(rhs);
     }
 
 private:
@@ -1790,6 +1802,7 @@ public:
 namespace std {
 
 template <typename E>
+requires std::is_swappable_v<E>
 constexpr void swap(wjr::unexpected<E> &lhs,
                     wjr::unexpected<E> &rhs) noexcept(noexcept(lhs.swap(rhs))) {
     lhs.swap(rhs);
