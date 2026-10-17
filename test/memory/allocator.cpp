@@ -16,7 +16,7 @@ public:
     explicit fancy_pointer(T *ptr) noexcept : m_ptr(ptr) {}
 
     template <typename U, std::enable_if_t<std::is_convertible_v<U *, T *>, int> = 0>
-    fancy_pointer(fancy_pointer<U> ptr) noexcept : m_ptr(ptr.operator->()) {}
+    explicit fancy_pointer(fancy_pointer<U> ptr) noexcept : m_ptr(ptr.operator->()) {}
 
     T *operator->() const noexcept { return m_ptr; }
 
@@ -69,13 +69,16 @@ struct tracking_allocator {
 };
 
 template <typename T>
-struct fancy_allocator : tracking_allocator<T> {
+struct fancy_allocator {
+    using value_type = T;
     using pointer = fancy_pointer<T>;
 
-    pointer allocate(std::size_t count) { return pointer(tracking_allocator<T>::allocate(count)); }
+    tracking_allocator<T> backing;
+
+    pointer allocate(std::size_t count) { return pointer(backing.allocate(count)); }
 
     void deallocate(pointer ptr, std::size_t count) noexcept {
-        tracking_allocator<T>::deallocate(ptr.operator->(), count);
+        backing.deallocate(ptr.operator->(), count);
     }
 };
 
