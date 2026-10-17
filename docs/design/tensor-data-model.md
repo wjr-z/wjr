@@ -125,6 +125,9 @@ Clang 18 的静态/动态索引生成相同指令；GCC 12 静态索引相同，
 
 ## owner 的初步结构决策
 
+具体的首版模板、存储有效状态、借用和异常赋值规则见
+[owner 存储与 API 契约](tensor-owner.md)；本节保留结构选择的背景，owner 尚未实现。
+
 下一步优先采用 **Container + mapping**，参照
 [P1684R5](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p1684r5.html)。
 容器拥有对象和 allocator，mapping 保存 shape；外层不再复制容器已有的指针、size、capacity、allocator。
