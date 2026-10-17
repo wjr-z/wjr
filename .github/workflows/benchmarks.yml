@@ -13,6 +13,7 @@ on:
         options:
           - core
           - all
+          - simd
 
 permissions:
   contents: read
@@ -56,11 +57,16 @@ jobs:
           else
             gmp=OFF
           fi
+          xsimd=OFF
+          if [[ "$BENCHMARK_PROFILE" == "simd" ]]; then
+            xsimd=ON
+          fi
           cmake -B build -GNinja \
             -DCMAKE_BUILD_TYPE=Release \
             -DWJR_BUILD_BENCHMARKS=ON \
             -DWJR_BUILD_TESTS=OFF \
             -DWJR_BENCHMARK_PROFILE="$BENCHMARK_PROFILE" \
+            -DWJR_BENCHMARK_XSIMD="$xsimd" \
             -DWJR_USE_GMP_TESTS="$gmp" \
             -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent"
 
