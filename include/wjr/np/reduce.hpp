@@ -26,6 +26,75 @@ using sum_accumulator =
     std::conditional_t<std::is_void_v<Accumulator>, decltype(std::declval<T>() + std::declval<T>()),
                        Accumulator>;
 
+// Ask the mapping at constant evaluation when only static extents contribute.
+// Some compilers otherwise retain the backend's runtime stride-product loop.
+template <size_t Axis, class View>
+constexpr auto axis_stride(const View &view) noexcept {
+    using extents_type = typename View::extents_type;
+    constexpr bool fixed = [] {
+        if constexpr (std::same_as<typename View::layout_type, layout_right>) {
+            for (size_t i = Axis + 1; i != View::rank(); ++i)
+                if (extents_type::static_extent(i) == dynamic_extent)
+                    return false;
+            return true;
+        } else if constexpr (std::same_as<typename View::layout_type, layout_left>) {
+            for (size_t i = 0; i != Axis; ++i)
+                if (extents_type::static_extent(i) == dynamic_extent)
+                    return false;
+            return true;
+        } else {
+            return false;
+        }
+    }();
+    if constexpr (fixed) {
+        constexpr auto stride = (typename View::mapping_type{}).stride(Axis);
+        return stride;
+    } else {
+        return view.stride(Axis);
+    }
+}
+
+// Adjacent columns keep independent ordered accumulators. Scan reads every
+// lane before writing it back, including when input and output are identical.
+template <bool Scan, class Accumulator, class D, class T>
+constexpr void axis_columns_to(D *output, const T *input, size_t rows, size_t columns) noexcept {
+    const auto bound = columns - columns % 4;
+    size_t first = 0;
+    for (; first != bound; first += 4) {
+        Accumulator a{}, b{}, c{}, d{};
+        for (size_t row = 0; row != rows; ++row) {
+            const auto offset = row * columns + first;
+            a += static_cast<Accumulator>(input[offset]);
+            b += static_cast<Accumulator>(input[offset + 1]);
+            c += static_cast<Accumulator>(input[offset + 2]);
+            d += static_cast<Accumulator>(input[offset + 3]);
+            if constexpr (Scan) {
+                output[offset] = a;
+                output[offset + 1] = b;
+                output[offset + 2] = c;
+                output[offset + 3] = d;
+            }
+        }
+        if constexpr (!Scan) {
+            output[first] = a;
+            output[first + 1] = b;
+            output[first + 2] = c;
+            output[first + 3] = d;
+        }
+    }
+    for (; first != columns; ++first) {
+        Accumulator value{};
+        for (size_t row = 0; row != rows; ++row) {
+            const auto offset = row * columns + first;
+            value += static_cast<Accumulator>(input[offset]);
+            if constexpr (Scan)
+                output[offset] = value;
+        }
+        if constexpr (!Scan)
+            output[first] = value;
+    }
+}
+
 template <class DstExtents, class SrcExtents, size_t Axis, bool Keep>
 inline constexpr bool compatible_sum_shape = [] {
     if constexpr (Axis >= SrcExtents::rank() || DstExtents::rank() != SrcExtents::rank() - !Keep) {
@@ -56,8 +125,8 @@ constexpr void walk_axis_lines(const Dst &dst, const Src &src, Function &functio
     } else {
         constexpr auto source_axis = Level + (!Keep && Level >= Axis);
         const auto count = static_cast<size_t>(dst.extent(Level));
-        const auto output_step = static_cast<size_t>(dst.stride(Level));
-        const auto input_step = static_cast<size_t>(src.stride(source_axis));
+        const auto output_step = static_cast<size_t>(axis_stride<Level>(dst));
+        const auto input_step = static_cast<size_t>(axis_stride<source_axis>(src));
         for (size_t i = 0; i != count; ++i) {
             walk_axis_lines<Level + 1, Axis, Keep>(dst, src, function, output_offset, input_offset);
             output_offset += output_step;
@@ -84,7 +153,15 @@ constexpr void sum_axis_to(const Dst &dst, const Src &src) noexcept {
         apply_kernel(dst, [](typename Dst::reference value) noexcept { value = {}; });
         return;
     }
-    const auto step = static_cast<size_t>(src.stride(Axis));
+    if constexpr (Axis == 0 && Src::rank() == 2 &&
+                  std::same_as<typename Src::layout_type, layout_right> &&
+                  (std::same_as<typename Dst::layout_type, layout_right> ||
+                   (!Keep && std::same_as<typename Dst::layout_type, layout_left>))) {
+        axis_columns_to<false, accumulator_type>(dst.data_handle(), src.data_handle(), count,
+                                                 static_cast<size_t>(src.extent(1)));
+        return;
+    }
+    const auto step = static_cast<size_t>(axis_stride<Axis>(src));
     auto reduce = [input = src.data_handle(), output = dst.data_handle(), count,
                    step](size_t output_offset, size_t input_offset) noexcept {
         accumulator_type result{};
