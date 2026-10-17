@@ -91,6 +91,8 @@ JSON 数据结构和解析、序列化相关功能。
 `<wjr/np/transpose.hpp>` 提供[二维转置借用](../design/tensor-transpose.md)；
 与 `copy_to` 组合可显式重排数据。表达式树和广播 evaluator 尚未实现。
 预分配计算、列视图和转置复制的可运行示例见 [examples/np](../../examples/np)。
+`<wjr/np/reduce.hpp>` 提供立即执行的全量 `sum` 和单轴 `sum_to`，
+支持显式累计类型与 `keepdims`，见[规约契约](../design/tensor-reductions.md)。
 
 ## `wjr::simd_xsimd`（可选、实验性）
 
