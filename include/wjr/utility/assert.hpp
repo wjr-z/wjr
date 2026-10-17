@@ -27,7 +27,8 @@
  *
  */
 
-#include <utility> // for forward
+#include <exception> // for terminate
+#include <utility>   // for forward
 
 #include <wjr/config/attribute.hpp>
 #include <wjr/config/builtin.hpp>
@@ -48,9 +49,7 @@
     #define WJR_LIGHT_ASSERT
 #endif
 
-#if defined(WJR_MINIMAL_ASSERT)
-    #include <exception>
-#elif !defined(WJR_LIGHT_ASSERT)
+#if !defined(WJR_MINIMAL_ASSERT) && !defined(WJR_LIGHT_ASSERT)
     #include <iostream>
 #endif
 
@@ -92,8 +91,11 @@ WJR_NORETURN inline void _assert_light_failed_handler(const char *expr) noexcept
     _assert_light_failed(expr);
 }
 
+#define WJR_ASSERT_FAILED_HANDLER_MINIMAL() ::std::terminate()
+
 #if defined(WJR_MINIMAL_ASSERT)
-    #define WJR_ASSERT_FAILED_HANDLER(expr, file, function, line, ...) ::std::terminate()
+    #define WJR_ASSERT_FAILED_HANDLER(expr, file, function, line, ...)                             \
+        WJR_ASSERT_FAILED_HANDLER_MINIMAL()
 #elif defined(WJR_LIGHT_ASSERT)
     #define WJR_ASSERT_FAILED_HANDLER(expr, _file, _function, _line, ...)                          \
         ::wjr::_assert_light_failed_handler(expr, ##__VA_ARGS__)

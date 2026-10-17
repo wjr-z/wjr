@@ -51,12 +51,18 @@ static_assert(check_without_formatting(7) == 7);
 } // namespace
 
 int main(int argc, char **argv) {
-    if (argc != 2) {
+    if (argc != 2 && argc != 3) {
         return EXIT_FAILURE;
     }
     const int expected = std::atoi(argv[1]);
     if (checked_levels(expected) != 8 || diagnostic_calls != 0) {
         return EXIT_FAILURE;
+    }
+    if (argc == 3) {
+        std::set_terminate([] {
+            std::_Exit(condition_calls == 0 && diagnostic_calls == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
+        });
+        WJR_ASSERT_FAILED_HANDLER_MINIMAL();
     }
     std::set_terminate([] {
 #if defined(WJR_MINIMAL_ASSERT)
