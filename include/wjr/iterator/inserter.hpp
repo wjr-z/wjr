@@ -10,6 +10,8 @@
 #ifndef WJR_ITERATOR_INSERTER_HPP__
 #define WJR_ITERATOR_INSERTER_HPP__
 
+#include <ranges>
+
 #include <wjr/iterator/detail.hpp>
 
 namespace wjr {
@@ -50,9 +52,11 @@ template <typename T>
 inline constexpr bool is_any_insert_iterator_v = is_any_insert_iterator<T>::value;
 
 /// @private
+// Copy into a real derived object to access the standard's protected members.
 template <typename Iter>
 struct _inserter_container_accessor : Iter {
-    _inserter_container_accessor(Iter it) noexcept(std::is_nothrow_copy_constructible_v<Iter>)
+    constexpr explicit _inserter_container_accessor(const Iter &it) noexcept(
+        std::is_nothrow_copy_constructible_v<Iter>)
         : Iter(it) {}
     using Iter::container;
 };
@@ -64,7 +68,8 @@ _inserter_container_accessor(Iter) -> _inserter_container_accessor<Iter>;
 /// @private
 template <typename Iter>
 struct _inserter_iterator_accessor : Iter {
-    _inserter_iterator_accessor(Iter it) noexcept(std::is_nothrow_copy_constructible_v<Iter>)
+    constexpr explicit _inserter_iterator_accessor(const Iter &it) noexcept(
+        std::is_nothrow_copy_constructible_v<Iter>)
         : Iter(it) {}
     using Iter::iter;
 };
@@ -73,31 +78,33 @@ template <typename Iter>
 _inserter_iterator_accessor(Iter) -> _inserter_iterator_accessor<Iter>;
 
 template <typename Container>
-Container &get_inserter_container(std::insert_iterator<Container> it) noexcept(
+constexpr Container &get_inserter_container(std::insert_iterator<Container> it) noexcept(
     std::is_nothrow_copy_constructible_v<std::insert_iterator<Container>>) {
     _inserter_container_accessor tmp(it);
     return *(tmp.container);
 }
 
 template <typename Container>
-Container &get_inserter_container(std::back_insert_iterator<Container> it) noexcept(
+constexpr Container &get_inserter_container(std::back_insert_iterator<Container> it) noexcept(
     std::is_nothrow_copy_constructible_v<std::back_insert_iterator<Container>>) {
     _inserter_container_accessor tmp(it);
     return *(tmp.container);
 }
 
 template <typename Container>
-Container &get_inserter_container(std::front_insert_iterator<Container> it) noexcept(
+constexpr Container &get_inserter_container(std::front_insert_iterator<Container> it) noexcept(
     std::is_nothrow_copy_constructible_v<std::front_insert_iterator<Container>>) {
     _inserter_container_accessor tmp(it);
     return *(tmp.container);
 }
 
 template <typename Container>
-typename Container::iterator get_inserter_iterator(std::insert_iterator<Container> it) noexcept(
-    std::is_nothrow_copy_constructible_v<std::insert_iterator<Container>>) {
+constexpr std::ranges::iterator_t<Container>
+get_inserter_iterator(std::insert_iterator<Container> it) noexcept(
+    std::is_nothrow_copy_constructible_v<std::insert_iterator<Container>> &&
+    std::is_nothrow_copy_constructible_v<std::ranges::iterator_t<Container>>) {
     _inserter_iterator_accessor tmp(it);
-    return *(tmp.iter);
+    return tmp.iter;
 }
 
 } // namespace wjr
