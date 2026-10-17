@@ -334,7 +334,8 @@ public:
 
     template <typename Range>
     requires span_detail::_is_range_like_v<Range, element_type>
-    constexpr explicit(!_is_dynamic) span(Range &&rg) noexcept
+    constexpr explicit(!_is_dynamic) span(Range &&rg) noexcept(noexcept(std::ranges::data(rg)) &&
+                                                               noexcept(std::ranges::size(rg)))
         : storage(std::ranges::data(rg), std::ranges::size(rg)) {}
 
 private:

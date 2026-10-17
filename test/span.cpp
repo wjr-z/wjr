@@ -4,6 +4,7 @@
 #include <list>
 #include <ranges>
 #include <span>
+#include <stdexcept>
 #include <type_traits>
 #include <vector>
 
@@ -30,6 +31,34 @@ struct incompatible_data_range {
     derived *data() const noexcept { return nullptr; }
 };
 
+struct nonthrowing_range {
+    int values[3] = {1, 2, 3};
+    int *begin() noexcept { return values; }
+    int *end() noexcept { return values + 3; }
+    int *data() noexcept { return values; }
+    std::size_t size() const noexcept { return 3; }
+};
+
+struct throwing_data_range : nonthrowing_range {
+    int *data() noexcept(false) {
+#if !defined(WJR_DISABLE_EXCEPTIONS)
+        throw std::runtime_error("range data failed");
+#else
+        return values;
+#endif
+    }
+};
+
+struct throwing_size_range : nonthrowing_range {
+    std::size_t size() const noexcept(false) {
+#if !defined(WJR_DISABLE_EXCEPTIONS)
+        throw std::runtime_error("range size failed");
+#else
+        return 3;
+#endif
+    }
+};
+
 static_assert(std::default_initializable<span<int>>);
 static_assert(std::default_initializable<span<int, 0>>);
 static_assert(!std::default_initializable<span<int, 1>>);
@@ -54,6 +83,10 @@ static_assert(std::is_constructible_v<span<int, 3>, int (&)[3]>);
 static_assert(!std::is_constructible_v<span<int, 3>, int (&)[4]>);
 static_assert(!std::is_constructible_v<span<int, 3>, std::array<int, 4> &>);
 static_assert(std::is_constructible_v<span<int>, std::vector<int> &>);
+static_assert(std::is_nothrow_constructible_v<span<int>, std::vector<int> &>);
+static_assert(std::is_nothrow_constructible_v<span<int>, nonthrowing_range &>);
+static_assert(!std::is_nothrow_constructible_v<span<int>, throwing_data_range &>);
+static_assert(!std::is_nothrow_constructible_v<span<int>, throwing_size_range &>);
 static_assert(std::is_constructible_v<span<const int>, const std::vector<int> &>);
 static_assert(!std::is_constructible_v<span<int>, std::vector<int>>);
 static_assert(std::is_constructible_v<span<const int>, std::vector<int>>);
@@ -132,6 +165,15 @@ TEST(span, native_range_construction) {
     EXPECT_EQ(custom_view.data(), custom.data());
     EXPECT_EQ(custom_view.size(), custom.size());
 }
+
+#if !defined(WJR_DISABLE_EXCEPTIONS)
+TEST(span, range_access_exceptions_propagate) {
+    throwing_data_range data;
+    throwing_size_range size;
+    EXPECT_THROW((void)wjr::span<int>(data), std::runtime_error);
+    EXPECT_THROW((void)wjr::span<int>(size), std::runtime_error);
+}
+#endif
 
 TEST(span, arrays_and_fixed_extent_conversions) {
     std::array<int, 3> values = {1, 2, 3};
