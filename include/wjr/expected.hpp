@@ -56,7 +56,8 @@ public:
               WJR_REQUIRES(std::is_constructible_v<E, std::initializer_list<U> &, Args...>)>
     constexpr explicit unexpected(
         std::in_place_t, std::initializer_list<U> il,
-        Args &&...args) noexcept(std::is_constructible_v<E, std::initializer_list<U> &, Args...>)
+        Args &&...args) noexcept(std::is_nothrow_constructible_v<E, std::initializer_list<U> &,
+                                                                 Args...>)
         : Mybase(enable_default_constructor), m_err(il, std::forward<Args>(args)...) {}
 
     constexpr E &error() & noexcept { return m_err; }
