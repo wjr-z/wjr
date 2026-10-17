@@ -92,7 +92,6 @@ jobs:
             min_time=0.02s
           fi
           gdb --batch --return-child-result -ex run -ex 'thread apply all bt full' --args ./build/bin/benchmarks \
-            --benchmark_filter='np_fixed<expression, false, true>/1/' \
             --benchmark_format=json \
             --benchmark_out=benchmark-results.json \
             --benchmark_repetitions="$repetitions" \
