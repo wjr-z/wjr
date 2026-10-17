@@ -10,12 +10,14 @@
 #ifndef WJR_SPAN_HPP__
 #define WJR_SPAN_HPP__
 
+#include <array>
+#include <concepts>
+#include <initializer_list>
+#include <ranges>
 #include <stdexcept>
 
 #include <wjr/assert.hpp>
 #include <wjr/iterator/contiguous_iterator_adapter.hpp>
-
-#include <range/v3/range/concepts.hpp>
 
 namespace wjr {
 
@@ -46,9 +48,9 @@ struct _span_dynamic_storage {
 };
 
 template <typename Iter, typename Elem>
-struct _is_span_iterator
-    : std::conjunction<is_contiguous_iterator<Iter>,
-                       std::is_convertible<iterator_contiguous_pointer_t<Iter>, Elem *>> {};
+concept _is_span_iterator =
+    (std::contiguous_iterator<Iter> || is_contiguous_iterator_v<Iter>) &&
+    _is_array_convertible<Elem, std::remove_reference_t<std::iter_reference_t<Iter>>>::value;
 
 template <typename T, size_t Extent = dynamic_extent>
 class span;
@@ -76,24 +78,23 @@ struct _is_span<span<T, Extent>> : std::true_type {};
 template <typename T>
 inline constexpr bool _is_span_v = _is_span<T>::value;
 
-template <typename Elem, typename Ref>
-using _is_compatible_ref = _is_array_convertible<Elem, std::remove_reference_t<Ref>>;
-
-CPP_template(typename Range,
-             typename Elem)(concept(_is_range_compatible_ref_)(Range, Elem),
-                            _is_compatible_ref<Elem, ranges::range_reference_t<Range>>::value);
-
+// WJR iterators retain their existing contiguous tag. Require standard range/data
+// semantics while recognizing both standard and WJR contiguous iterators.
 template <typename Range, typename Elem>
-CPP_concept _is_range_like_v =
+concept _is_range_like_v =
     (!_is_span_v<remove_cvref_t<Range>>) && (!_is_std_array_v<remove_cvref_t<Range>>) &&
-    (!_is_std_array_v<remove_cvref_t<Range>>) && ranges::contiguous_range<Range> &&
-    ranges::sized_range<Range> && (ranges::borrowed_range<Range> || std::is_const_v<Elem>) &&
-    CPP_concept_ref(_is_range_compatible_ref_, Range, Elem);
+    (!std::is_array_v<remove_cvref_t<Range>>) && std::ranges::sized_range<Range> &&
+    (std::ranges::borrowed_range<Range> || std::is_const_v<Elem>) &&
+    _is_span_iterator<std::ranges::iterator_t<Range>, Elem> && requires(Range &range) {
+        {
+            std::ranges::data(range)
+        } -> std::same_as<std::add_pointer_t<std::ranges::range_reference_t<Range>>>;
+    };
 
 /// @private
 template <typename T>
 struct basic_span_traits {
-    using value_type = T;
+    using value_type = std::remove_cv_t<T>;
     using difference_type = ptrdiff_t;
     using pointer = T *;
     using const_pointer = const T *;
@@ -106,7 +107,7 @@ struct basic_span_traits {
 /**
  * @class span
  *
- * @brief A view over a contiguous sequence of objectsd.
+ * @brief A view over a contiguous sequence of objects.
  *
  * @tparam Extent if Extent is `dynamic_extent`, the span is a runtime-sized
  * view. Otherwise, the span is a compile-time-sized view.
@@ -133,87 +134,48 @@ public:
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    template <size_t Ex = Extent, WJR_REQUIRES(Ex == dynamic_extent || Ex == 0)>
-    constexpr span() noexcept : storage() {}
+    constexpr span() noexcept
+    requires(_is_dynamic || Extent == 0)
+        : storage() {}
 
-#if defined(__cpp_conditional_explicit)
-    template <typename It, WJR_REQUIRES(_is_span_iterator<It, element_type>::value)>
+    template <typename It>
+    requires _is_span_iterator<It, element_type>
     constexpr explicit(!_is_dynamic) span(It first, size_type count) noexcept
         : storage(wjr::to_address(first), count) {}
-#else
-    template <typename It, WJR_REQUIRES(_is_span_iterator<It, element_type>::value &&_is_dynamic)>
-    constexpr span(It first, size_type count) noexcept : storage(wjr::to_address(first), count) {}
 
-    template <typename It, WJR_REQUIRES(_is_span_iterator<It, element_type>::value && !_is_dynamic)>
-    constexpr explicit span(It first, size_type count) noexcept
-        : storage(wjr::to_address(first), count) {}
-#endif
-
-#if defined(__cpp_conditional_explicit)
-    template <typename It, WJR_REQUIRES(_is_span_iterator<It, element_type>::value)>
+    template <typename It>
+    requires _is_span_iterator<It, element_type>
     constexpr explicit(!_is_dynamic) span(It first, It last) noexcept
         : storage(wjr::to_address(first), static_cast<size_type>(last - first)) {}
-#else
-    template <typename It, WJR_REQUIRES(_is_span_iterator<It, element_type>::value &&_is_dynamic)>
-    constexpr span(It first, It last) noexcept
-        : storage(wjr::to_address(first), static_cast<size_type>(last - first)) {}
 
-    template <typename It, WJR_REQUIRES(_is_span_iterator<It, element_type>::value && !_is_dynamic)>
-    constexpr explicit span(It first, It last) noexcept
-        : storage(wjr::to_address(first), static_cast<size_type>(last - first)) {}
-#endif
-
-    template <size_t N, WJR_REQUIRES((_is_dynamic || N == Extent))>
+    template <size_t N>
+    requires(_is_dynamic || N == Extent)
     constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept : storage(std::data(arr), N) {}
 
-    template <typename U, size_t N,
-              WJR_REQUIRES((_is_dynamic || N == Extent) && std::is_convertible_v<U *, T *>)>
+    template <typename U, size_t N>
+    requires((_is_dynamic || N == Extent) && _is_array_convertible<T, U>::value)
     constexpr span(std::array<U, N> &arr) noexcept : storage(std::data(arr), std::size(arr)) {}
 
-    template <typename U, size_t N,
-              WJR_REQUIRES((_is_dynamic || N == Extent) && std::is_convertible_v<const U *, T *>)>
+    template <typename U, size_t N>
+    requires((_is_dynamic || N == Extent) && _is_array_convertible<T, const U>::value)
     constexpr span(const std::array<U, N> &arr) noexcept
         : storage(std::data(arr), std::size(arr)) {}
 
-#if defined(__cpp_conditional_explicit)
-    template <typename U, size_t N,
-              WJR_REQUIRES((_is_dynamic || N == dynamic_extent || N == Extent) &&
-                           std::is_convertible_v<U *, T *>)>
-    constexpr explicit(!_is_dynamic) span(const span<U, N> &source) noexcept
+    template <typename U, size_t N>
+    requires((_is_dynamic || N == dynamic_extent || N == Extent) &&
+             _is_array_convertible<T, U>::value)
+    constexpr explicit(!_is_dynamic && N == dynamic_extent) span(const span<U, N> &source) noexcept
         : storage(source.data(), source.size()) {}
-#else
-    template <typename U, size_t N,
-              WJR_REQUIRES((_is_dynamic || N == dynamic_extent || N == Extent) &&
-                           std::is_convertible_v<U *, T *> && _is_dynamic)>
-    constexpr span(const span<U, N> &source) noexcept : storage(source.data(), source.size()) {}
-
-    template <typename U, size_t N,
-              WJR_REQUIRES((_is_dynamic || N == dynamic_extent || N == Extent) &&
-                           std::is_convertible_v<U *, T *> && !_is_dynamic)>
-    constexpr explicit span(const span<U, N> &source) noexcept
-        : storage(source.data(), source.size()) {}
-#endif
 
 #if WJR_HAS_GCC(9, 0, 0)
-    // Disable gcc's warning in this constructor as it generates an enormous amount
-    // of messages. Anyone using ArrayRef should already be aware of the fact that
-    // it does not do lifetime extension.
+    // This constructor borrows initializer-list storage without extending its lifetime.
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Winit-list-lifetime"
 #endif
 
-#if defined(__cpp_conditional_explicit)
     constexpr explicit(!_is_dynamic) span(std::initializer_list<value_type> il) noexcept
+    requires std::is_const_v<element_type>
         : storage(il.begin(), il.size()) {}
-#else
-    template <size_t E = Extent, WJR_REQUIRES(E == dynamic_extent)>
-    constexpr span(std::initializer_list<value_type> il) noexcept
-        : storage(il.begin(), il.size()) {}
-
-    template <size_t E = Extent, WJR_REQUIRES(E != dynamic_extent)>
-    constexpr explicit span(std::initializer_list<value_type> il) noexcept
-        : storage(il.begin(), il.size()) {}
-#endif
 
 #if WJR_HAS_GCC(9, 0, 0)
     #pragma GCC diagnostic pop
@@ -225,25 +187,25 @@ public:
     span &operator=(span &&) = default;
     ~span() = default;
 
-    WJR_CONSTEXPR20 pointer begin_unsafe() noexcept { return data(); }
-    WJR_CONSTEXPR20 const_pointer begin_unsafe() const noexcept { return data(); }
-    WJR_CONSTEXPR20 const_pointer cbegin_unsafe() const noexcept { return data(); }
+    constexpr pointer begin_unsafe() noexcept { return data(); }
+    constexpr const_pointer begin_unsafe() const noexcept { return data(); }
+    constexpr const_pointer cbegin_unsafe() const noexcept { return data(); }
 
-    WJR_CONSTEXPR20 pointer end_unsafe() noexcept { return data() + size(); }
-    WJR_CONSTEXPR20 const_pointer end_unsafe() const noexcept { return data() + size(); }
-    WJR_CONSTEXPR20 const_pointer cend_unsafe() const noexcept { return end_unsafe(); }
+    constexpr pointer end_unsafe() noexcept { return data() + size(); }
+    constexpr const_pointer end_unsafe() const noexcept { return data() + size(); }
+    constexpr const_pointer cend_unsafe() const noexcept { return end_unsafe(); }
 
 private:
-    WJR_PURE WJR_CONSTEXPR20 iterator _make_iterator(const_pointer ptr) const noexcept {
+    WJR_PURE constexpr iterator _make_iterator(const_pointer ptr) const noexcept {
         return iterator(const_cast<pointer>(ptr), this);
     }
 
-    WJR_PURE WJR_CONSTEXPR20 pointer _get_pointer(iterator ptr) const noexcept {
+    WJR_PURE constexpr pointer _get_pointer(iterator ptr) const noexcept {
         ptr.check_same_container(this);
         return wjr::to_address(ptr);
     }
 
-    WJR_PURE WJR_CONSTEXPR20 pointer _get_pointer(const_iterator ptr) const noexcept {
+    WJR_PURE constexpr pointer _get_pointer(const_iterator ptr) const noexcept {
         ptr.check_same_container(this);
         return const_cast<pointer>(wjr::to_address(ptr));
     }
@@ -258,13 +220,17 @@ public:
     constexpr const_iterator cend() const noexcept { return _make_iterator(end_unsafe()); }
 
     constexpr reverse_iterator rbegin() noexcept { return std::make_reverse_iterator(end()); }
-    constexpr reverse_iterator rbegin() const noexcept { return std::make_reverse_iterator(end()); }
+    constexpr const_reverse_iterator rbegin() const noexcept {
+        return std::make_reverse_iterator(end());
+    }
     constexpr const_reverse_iterator crbegin() const noexcept {
         return std::make_reverse_iterator(cend());
     }
 
     constexpr reverse_iterator rend() noexcept { return std::make_reverse_iterator(begin()); }
-    constexpr reverse_iterator rend() const noexcept { return std::make_reverse_iterator(begin()); }
+    constexpr const_reverse_iterator rend() const noexcept {
+        return std::make_reverse_iterator(begin());
+    }
     constexpr const_reverse_iterator crend() const noexcept {
         return std::make_reverse_iterator(cbegin());
     }
@@ -311,26 +277,28 @@ public:
     constexpr span<element_type, Count> first() const noexcept {
         static_assert(Count <= Extent);
 
-        return {begin(), Count};
+        WJR_ASSERT_L2(Count <= size());
+        return span<element_type, Count>(data(), Count);
     }
 
     constexpr span<element_type, dynamic_extent> first(size_type Count) const noexcept {
         WJR_ASSERT_L2(Count <= size());
 
-        return {begin(), Count};
+        return span<element_type>(data(), Count);
     }
 
     template <size_t Count>
     constexpr span<element_type, Count> last() const noexcept {
         static_assert(Count <= Extent);
 
-        return {end() - Count, Count};
+        WJR_ASSERT_L2(Count <= size());
+        return span<element_type, Count>(data() + size() - Count, Count);
     }
 
     constexpr span<element_type, dynamic_extent> last(size_type Count) const noexcept {
         WJR_ASSERT_L2(Count <= size());
 
-        return {data() + size() - Count, Count};
+        return span<element_type>(data() + size() - Count, Count);
     }
 
     template <size_t Offset, size_t Count = dynamic_extent>
@@ -347,25 +315,27 @@ public:
                 WJR_ASSERT_L2(Count <= size() - Offset);
             }
         }
-        return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
+        using result_type = span<element_type, Count != dynamic_extent    ? Count
+                                               : Extent != dynamic_extent ? Extent - Offset
+                                                                          : dynamic_extent>;
+        return result_type(data() + Offset, Count == dynamic_extent ? size() - Offset : Count);
     }
 
     constexpr span<element_type, dynamic_extent>
     subspan(size_type Offset, size_type Count = dynamic_extent) const noexcept {
         WJR_ASSERT_L2(Offset <= size());
 
-        return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
+        WJR_ASSERT_L2(Count == dynamic_extent || Count <= size() - Offset);
+        return span<element_type>(data() + Offset,
+                                  Count == dynamic_extent ? size() - Offset : Count);
     }
 
     // extension :
 
-    template <typename Range,
-              WJR_REQUIRES(span_detail::_is_range_like_v<Range, element_type> &&_is_dynamic)>
-    constexpr span(Range &&rg) noexcept : storage(ranges::data(rg), ranges::size(rg)) {}
-
-    template <typename Range,
-              WJR_REQUIRES(span_detail::_is_range_like_v<Range, element_type> && !_is_dynamic)>
-    constexpr explicit span(Range &&rg) noexcept : storage(ranges::data(rg), ranges::size(rg)) {}
+    template <typename Range>
+    requires span_detail::_is_range_like_v<Range, element_type>
+    constexpr explicit(!_is_dynamic) span(Range &&rg) noexcept
+        : storage(std::ranges::data(rg), std::ranges::size(rg)) {}
 
 private:
     _storage storage;
@@ -380,11 +350,14 @@ span(std::array<T, Size> &) -> span<T, Size>;
 template <typename T, size_t Size>
 span(const std::array<T, Size> &) -> span<const T, Size>;
 
-template <typename It, typename End, WJR_REQUIRES(is_contiguous_iterator_v<It>)>
-span(It, End) -> span<iterator_contiguous_value_t<It>>;
+template <typename It, typename End>
+requires(std::contiguous_iterator<It> || is_contiguous_iterator_v<It>)
+span(It, End) -> span<std::remove_reference_t<std::iter_reference_t<It>>>;
 
-template <typename Range, WJR_REQUIRES(ranges::contiguous_range<Range>)>
-span(Range &&) -> span<std::remove_reference_t<ranges::range_reference_t<Range &>>>;
+template <typename Range>
+requires span_detail::_is_range_like_v<
+             Range, std::remove_reference_t<std::ranges::range_reference_t<Range>>>
+span(Range &&) -> span<std::remove_reference_t<std::ranges::range_reference_t<Range>>>;
 
 } // namespace wjr
 

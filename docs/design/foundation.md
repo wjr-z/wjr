@@ -26,6 +26,26 @@ C++26 暂不成为构建契约；`std::simd` 等设施需要独立验证目标�
 对已有热点模板进行 concepts 或 ranges 重构时，需要同时检查实例化成本与运行时代码。
 更高语言标准本身不构成提速证据。
 
+### span 的首轮迁移
+
+`wjr::span` 使用原生 concepts、`requires` 和 `explicit(bool)`，范围构造使用标准
+`std::ranges` 的大小、数据指针和借用约束。保留既有 WJR contiguous iterator 识别，
+使当前 WJR 容器继续可用；不改变全库 iterator tag，也没有移除传递的 range-v3 依赖。
+仅在 range-v3 中注册借用属性的自定义范围，需要同时提供标准的
+`std::ranges::enable_borrowed_range` 注册，才能作为临时可变范围传入。
+
+构造约束按数组元素兼容性判断，拒绝 `Derived*`、`array<Derived>` 或 `span<Derived>`
+转成 `span<Base>`，避免元素步长错误。相同静态长度的 cv 转换允许隐式进行，
+动态长度到静态长度仍显式并保留 `WJR_ASSERT_L2` 长度检查。非零静态长度仍不允许默认构造。
+initializer-list 扩展仅参与 const 元素视图的重载；视图继续借用数据，不延长存储生命周期。
+
+修复静态 `first`、`last` 和 `subspan` 的显式构造，补充动态视图的切片边界检查，
+并修正 const 反向迭代器、cv 元素的 iterator value type 和 `to_address` 类型。
+保留现有存储与 checked iterator 布局；在受测 Windows x64 工具链中，动态视图为 16 字节，
+静态视图为 8 字节，与对应 `std::span` 一致。Clang 18、C++20/23、`-O3 -march=x86-64`
+及 `WJR_DEBUG_LEVEL=0` 下，7 个 WJR 构造、访问和遍历探针修改前后的函数指令一致。
+这些检查不代表所有调用场景的吞吐量结论。
+
 ## 配置与模块边界
 
 ```mermaid

@@ -307,7 +307,7 @@ namespace std {
 template <typename Container, typename Traits>
 struct pointer_traits<wjr::contiguous_const_iterator_adapter<Container, Traits>> {
     using pointer = wjr::contiguous_const_iterator_adapter<Container, Traits>;
-    using element_type = const typename pointer::value_type;
+    using element_type = std::remove_reference_t<typename pointer::reference>;
     using difference_type = typename pointer::difference_type;
 
     WJR_NODISCARD constexpr static element_type *to_address(const pointer &ptr) noexcept {
@@ -328,7 +328,7 @@ struct pointer_traits<wjr::contiguous_const_iterator_adapter<Container, Traits>>
 template <typename Container, typename Traits>
 struct pointer_traits<wjr::contiguous_iterator_adapter<Container, Traits>> {
     using pointer = wjr::contiguous_iterator_adapter<Container, Traits>;
-    using element_type = typename pointer::value_type;
+    using element_type = std::remove_reference_t<typename pointer::reference>;
     using difference_type = typename pointer::difference_type;
 
     WJR_NODISCARD constexpr static element_type *to_address(const pointer &ptr) noexcept {
