@@ -3,6 +3,7 @@
 #include <wjr/np/checked_strided_view.hpp>
 #include <wjr/np/checked_view.hpp>
 #include <wjr/np/copy.hpp>
+#include <wjr/np/expression.hpp>
 #include <wjr/np/reshape.hpp>
 #include <wjr/np/subview.hpp>
 #include <wjr/np/tensor.hpp>
@@ -61,6 +62,10 @@ int main(int argc, char **) {
     }
     wjr::np::fill_to(output, 0);
     if (materialized[5] != 0) {
+        return 1;
+    }
+    wjr::np::eval_to(output, wjr::np::as_expr(output) + 2);
+    if (materialized[5] != 2) {
         return 1;
     }
     auto reshaped =

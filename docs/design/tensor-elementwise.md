@@ -74,7 +74,8 @@ np::fill_to(out, 0.0);
 首版不为任意 stride 自动选循环顺序或 tile，不承诺任意转置/稀疏步长都达到手写专用核的性能。
 
 这些入口是后续 evaluator 可复用的执行原语，并非完整 NumPy 运算或表达式系统。
-表达式树、广播绑定、向量化后端、矩阵乘、reduction 和未知别名的临时工作区由后续模块分别设计。
+同 shape 连续表达式已有 [独立 API](tensor-expression-api.md)。
+完整广播绑定、向量化后端、矩阵乘、reduction 和未知别名的临时工作区由后续模块分别设计。
 当前没有自动并行、显式 SIMD 或全局 fast-math。
 
 ## 初版验证
