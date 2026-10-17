@@ -35,6 +35,7 @@ option(WJR_PUBLIC_FLAGS "Set compile flags as public. Useful in tests" OFF)
 option(WJR_LIGHT_ASSERT "Use lightweight assertions." OFF)
 option(WJR_BUILD_TESTS "Build tests." OFF)
 option(WJR_BUILD_BENCHMARKS "Build benchmarks." OFF)
+option(WJR_ENABLE_XSIMD "Enable the experimental xsimd backend module." OFF)
 option(WJR_ENABLE_ASSERT_BACKTRACE "Enable assert backtrace." OFF)
 option(WJR_ENABLE_ASAN "Enable AddressSanitizer." OFF)
 option(WJR_ENABLE_NP "Enable the experimental tensor data model." OFF)
@@ -139,6 +140,10 @@ add_subdirectory(src/config)
 
 if(WJR_ENABLE_NP)
    add_subdirectory(src/np)
+endif()
+
+if(WJR_ENABLE_XSIMD)
+   add_subdirectory(src/simd)
 endif()
 
 #
