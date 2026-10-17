@@ -6,6 +6,8 @@
 
 #include <benchmark/benchmark.h>
 
+#include "np_detail.hpp"
+
 #include <wjr/config/attribute.hpp>
 #include <wjr/np/expression.hpp>
 
@@ -117,15 +119,11 @@ void np_fixed(benchmark::State &state) {
         state.SkipWithError("tensor kernel differs from its scalar reference");
         return;
     }
-    auto *dst = data.actual.data();
-    const auto *x = data.first.data(), *y = data.second.data();
-    // Escape addresses without reusing DoNotOptimize's read/write asm output.
-    benchmark::DoNotOptimize(&dst);
-    benchmark::DoNotOptimize(&x);
-    benchmark::DoNotOptimize(&y);
-    double alpha = 1.5, beta = -0.5;
-    benchmark::DoNotOptimize(&alpha);
-    benchmark::DoNotOptimize(&beta);
+    auto *const dst = np_benchmark::runtime_input(data.actual.data());
+    const auto *const x = np_benchmark::runtime_input(data.first.data());
+    const auto *const y = np_benchmark::runtime_input(data.second.data());
+    const auto alpha = np_benchmark::runtime_input(1.5);
+    const auto beta = np_benchmark::runtime_input(-0.5);
     const auto tree = make_expression<Square>(input(x, count), input(y, count), alpha, beta);
     for (auto _ : state) {
         if constexpr (!Reuse) {
@@ -164,15 +162,11 @@ void np_mixed(benchmark::State &state) {
             return;
         }
     }
-    auto *dst = data.actual.data();
-    const auto *x = data.first.data(), *y = data.second.data();
-    // Escape addresses without reusing DoNotOptimize's read/write asm output.
-    benchmark::DoNotOptimize(&dst);
-    benchmark::DoNotOptimize(&x);
-    benchmark::DoNotOptimize(&y);
-    double alpha = 1.5, beta = -0.5;
-    benchmark::DoNotOptimize(&alpha);
-    benchmark::DoNotOptimize(&beta);
+    auto *const dst = np_benchmark::runtime_input(data.actual.data());
+    const auto *const x = np_benchmark::runtime_input(data.first.data());
+    const auto *const y = np_benchmark::runtime_input(data.second.data());
+    const auto alpha = np_benchmark::runtime_input(1.5);
+    const auto beta = np_benchmark::runtime_input(-0.5);
     size_t iteration = 0;
     for (auto _ : state) {
         const auto count = counts[iteration++ % counts.size()];
