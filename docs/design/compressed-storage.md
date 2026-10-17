@@ -22,7 +22,8 @@
 ## 重复类型与 MSVC ABI 的局部布局修复
 
 所有 ABI 中，相同 cv-unqualified 类型都采用成员存储，使两个元素具备标准布局的 container_of 恢复路径。
-GNU ABI 下，这保持了重复空元素的尺寸、对齐及两个元素的地址偏移。
+GNU ABI 下，普通及过对齐的同类型重复空元素保持原来的尺寸、对齐和地址偏移。
+混合 cv 的 `pair<E, const E>` 原来可能重叠，修复后也会有意改变布局。
 
 在本地 Clang 18.1.8/MSVC ABI 和 MSVC 19.42 中，继承的空元素可能与相同类型元素、
 或另一个元素的相同类型基类重合。该 ABI 还额外针对可静态识别的基类关联，
@@ -38,6 +39,7 @@ GNU ABI 下，这保持了重复空元素的尺寸、对齐及两个元素的地
 | pair<allocator<int>, int> | 4 | 4 → 4 | 4 → 4 |
 | pair<stateful int wrapper, int> | 8 | 8 → 8 | 8 → 8 |
 | pair<E, E> | 2 | 1 → 2 | 1 → 2 |
+| pair<E, const E> | 1 → 2 | 1 → 2 | 1 → 2 |
 | pair<A, A> | 128 | 64 → 128 | 64 → 128 |
 
 普通、final、有状态、cv-qualified、过对齐及独立空策略的现有尺寸和特殊成员 traits 有针对性检查。
