@@ -14,9 +14,11 @@ if (result) {
 ```
 
 结果保留表达式逐节点推导的 `value_type`、编译期 extents 和 packed layout。
-首版保留 `layout_left`，不会暗中转换为行优先布局；输入仍遵循当前表达式的
-相同 shape、相容遍历顺序约定。不同 shape 在分配前返回
-`shape_error::expression_shape_mismatch`。通用广播和指定输出布局留给后续扩展。
+同布局的 packed 表达式保留 `layout_left`；混合布局或 strided 输入选择行优先
+结果，并按逻辑坐标计算。自然 shape 由表达式的公共广播规则解析，而不是取首个
+数组的 shape：维度右对齐，缺少的维度视为 1；相同维度或任一侧为 1 时可合并。
+`0` 与 `1` 合并为 `0`，`0` 与大于 1 的维度不相容。不相容的 shape 在分配前返回
+`shape_error::expression_shape_mismatch`。指定结果布局留给后续扩展。
 
 纯标量表达式产生 rank 0、一个元素的 owner。空数组保留所有维度，且不读取输入。
 默认容器为 `std::vector<T>`；显式 allocator 可通过以下重载传入，其 `value_type`

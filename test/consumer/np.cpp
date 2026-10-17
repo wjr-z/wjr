@@ -77,6 +77,14 @@ int main(int argc, char **) {
     if (materialized[5] != 2) {
         return 1;
     }
+    const int row_bias[] = {3, 5};
+    wjr::np::eval_to(
+        output, wjr::np::as_expr(output) +
+                    wjr::np::as_expr(
+                        wjr::np::tensor_view<const int, wjr::np::extents<size_t, 2>>(row_bias)));
+    if (output(0, 0) != 5 || output(2, 1) != 7) {
+        return 1;
+    }
     auto reshaped =
         wjr::np::try_reshape_view<wjr::np::extents<size_t, 3, 2>>(view, std::array{3, 2});
     auto mismatch = wjr::np::try_reshape_view<shape>(view, std::array{1, 3});

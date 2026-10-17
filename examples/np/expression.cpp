@@ -29,5 +29,15 @@ int main() {
     // Local expression nodes are values. The original input storage stays alive.
     // Exact pointwise in-place evaluation needs no temporary tensor.
     np::eval_to(output.view(), squared_difference(output.view(), 2.0));
-    return output.view()(0, 0) == 0 && output.view()(1, 2) == 1.5625 ? 0 : 1;
+    if (output.view()(0, 0) != 0 || output.view()(1, 2) != 1.5625)
+        return 1;
+
+    // [2,3] * [2,1] + [3]: row scales and column biases are borrowed once.
+    const double scale[] = {2.0, 3.0};
+    const double bias[] = {10.0, 20.0, 30.0};
+    const auto scales =
+        np::as_expr(np::tensor_view<const double, np::extents<size_t, 2, 1>>(scale));
+    const auto biases = np::as_expr(np::tensor_view<const double, np::extents<size_t, 3>>(bias));
+    np::eval_to(output.view(), x * scales + biases);
+    return output.view()(0, 0) == 12 && output.view()(1, 2) == 48 ? 0 : 1;
 }

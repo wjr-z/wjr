@@ -100,6 +100,32 @@ TEST(NpExpressionXsimd, UnknownOperationUsesScalarFallback) {
         EXPECT_EQ(value, 6.0);
 }
 
+TEST(NpExpressionXsimd, BroadcastAndMixedLayoutUseCoordinateFallback) {
+    using matrix = np::extents<size_t, 2, 3>;
+    const double source[] = {1, 2, 3, 4, 5, 6};
+    const double bias[] = {10, 20, 30};
+    const double columns[] = {2, 4};
+    const double left[] = {1, 4, 2, 5, 3, 6};
+    double result[6]{};
+    const auto expression =
+        np::as_expr(np::tensor_view<const double, matrix>(source)) +
+        np::as_expr(np::tensor_view<const double, np::extents<size_t, 3>>(bias)) *
+            np::as_expr(np::tensor_view<const double, np::extents<size_t, 2, 1>>(columns)) +
+        np::as_expr(np::tensor_view<const double, matrix, np::layout_left>(left));
+    np::eval_to(np::tensor_view<double, matrix>(result), expression, np::xsimd_policy<>{});
+    for (size_t i = 0; i != 2; ++i)
+        for (size_t j = 0; j != 3; ++j)
+            EXPECT_EQ(result[i * 3 + j], 2 * source[i * 3 + j] + bias[j] * columns[i]);
+
+    const np::layout_stride::mapping<matrix> mapping(matrix{}, std::array<size_t, 2>{4, 1});
+    const double padded[] = {1, 2, 3, -99, 4, 5, 6};
+    const auto strided =
+        np::as_expr(np::tensor_view<const double, matrix, np::layout_stride>(padded, mapping));
+    np::eval_to(np::tensor_view<double, matrix>(result), strided * 2.0, np::xsimd_policy<>{});
+    for (size_t i = 0; i != 6; ++i)
+        EXPECT_EQ(result[i], 2 * source[i]);
+}
+
 TEST(NpExpressionXsimd, NullEmptyAndRankZero) {
     view<double> empty(nullptr, 0);
     np::eval_to(empty, np::as_expr(empty) * 2.0, np::xsimd_policy<>{});
