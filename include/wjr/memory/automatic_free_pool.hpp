@@ -15,7 +15,7 @@ namespace wjr {
  * variables that require high performance. Such as stack allocator. This is usually used to
  * allocate larger blocks of memory.
  *
- * @note Allocation size overflow and allocation failure terminate the process.
+ * @note Allocation failure terminates the process.
  *
  */
 class automatic_free_pool {
@@ -28,9 +28,7 @@ public:
     automatic_free_pool() = default;
     ~automatic_free_pool() noexcept {
         chunk *node, *next;
-        WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) {
-            mem::_default_deallocate(node, std::nothrow);
-        }
+        WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) { mem::_default_deallocate(node); }
     }
 
     automatic_free_pool(const automatic_free_pool &) = delete;
@@ -43,23 +41,17 @@ public:
     automatic_free_pool &operator=(automatic_free_pool &&other) noexcept {
         if (this != std::addressof(other)) {
             chunk *node, *next;
-            WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) {
-                mem::_default_deallocate(node, std::nothrow);
-            }
+            WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) { mem::_default_deallocate(node); }
             replace(&other.head, &head);
             other.head.init_self();
         }
         return *this;
     }
 
+    /// @pre n + aligned_header_size is representable in size_t.
     WJR_MALLOC void *allocate(size_t n) noexcept {
-        if (WJR_UNLIKELY(n > std::numeric_limits<size_t>::max() - aligned_header_size)) {
-            _allocation_failed("n <= std::numeric_limits<size_t>::max() - aligned_header_size");
-        }
-        auto *const raw = mem::_default_allocate(n + aligned_header_size, std::nothrow);
-        if (WJR_UNLIKELY(raw == nullptr)) {
-            _allocation_failed("raw != nullptr");
-        }
+        WJR_ASSERT_ASSUME_L2(n <= std::numeric_limits<size_t>::max() - aligned_header_size);
+        auto *const raw = mem::_default_allocate(n + aligned_header_size);
         head.push_back(static_cast<chunk *>(raw));
         return static_cast<void *>(static_cast<std::byte *>(raw) + aligned_header_size);
     }
@@ -67,15 +59,10 @@ public:
     static void deallocate(void *ptr) noexcept {
         auto *const node = static_cast<std::byte *>(ptr) - aligned_header_size;
         reinterpret_cast<chunk *>(node)->remove();
-        mem::_default_deallocate(node, std::nothrow);
+        mem::_default_deallocate(node);
     }
 
 private:
-    WJR_NORETURN WJR_NOINLINE WJR_COLD static void
-    _allocation_failed(const char *condition) noexcept {
-        WJR_ASSERT_FAILED_HANDLER(condition, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE);
-    }
-
     chunk head;
 };
 
