@@ -1,6 +1,9 @@
 #ifndef WJR_MEMORY_AUTOMATIC_FREE_POOL_HPP__
 #define WJR_MEMORY_AUTOMATIC_FREE_POOL_HPP__
 
+#include <limits>
+#include <memory>
+
 #include <wjr/container/list.hpp>
 #include <wjr/memory/aligned_alloc.hpp>
 
@@ -11,6 +14,8 @@ namespace wjr {
  * @details For example, it is possible to have a trivial destructor to thread_local
  * variables that require high performance. Such as stack allocator. This is usually used to
  * allocate larger blocks of memory.
+ *
+ * @note Allocation size overflow and allocation failure terminate the process.
  *
  */
 class automatic_free_pool {
@@ -36,17 +41,21 @@ public:
 
     automatic_free_pool &operator=(const automatic_free_pool &) = delete;
     automatic_free_pool &operator=(automatic_free_pool &&other) noexcept {
-        chunk *node, *next;
-        WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) {
-            mem::_default_deallocate(node, std::nothrow);
+        if (this != std::addressof(other)) {
+            chunk *node, *next;
+            WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) {
+                mem::_default_deallocate(node, std::nothrow);
+            }
+            replace(&other.head, &head);
+            other.head.init_self();
         }
-        replace(&other.head, &head);
-        other.head.init_self();
         return *this;
     }
 
     WJR_MALLOC void *allocate(size_t n) noexcept {
+        WJR_CHECK(n <= std::numeric_limits<size_t>::max() - aligned_header_size);
         auto *const raw = mem::_default_allocate(n + aligned_header_size, std::nothrow);
+        WJR_CHECK(raw != nullptr);
         head.push_back(static_cast<chunk *>(raw));
         return static_cast<void *>(static_cast<std::byte *>(raw) + aligned_header_size);
     }

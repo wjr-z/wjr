@@ -66,6 +66,7 @@ file(GLOB_RECURSE TEST_SRCS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 # Installed-package consumers have their own main and are built independently.
 list(FILTER TEST_SRCS EXCLUDE REGEX "/consumer/")
 list(FILTER TEST_SRCS EXCLUDE REGEX "/np/")
+list(FILTER TEST_SRCS EXCLUDE REGEX "/automatic_free_pool_failure\\.cpp$")
 
 add_executable(
    tests
@@ -193,6 +194,16 @@ target_link_libraries(tests
    gtest_main
    ${GMP_LIBRARIES}
 )
+
+# Test fatal allocation contracts without changing allocators in the unit-test process.
+add_executable(automatic_free_pool_failure memory/automatic_free_pool_failure.cpp)
+target_link_libraries(automatic_free_pool_failure PRIVATE wjr::assert wjr::iterator)
+add_dependencies(tests automatic_free_pool_failure)
+foreach(_WJR_POOL_FAILURE IN ITEMS overflow allocation)
+   add_test(NAME wjr_pool_${_WJR_POOL_FAILURE}
+      COMMAND automatic_free_pool_failure ${_WJR_POOL_FAILURE})
+   set_tests_properties(wjr_pool_${_WJR_POOL_FAILURE} PROPERTIES LABELS unit)
+endforeach()
 
 if(WJR_ENABLE_NP)
    add_executable(np_tests np/view.cpp)
