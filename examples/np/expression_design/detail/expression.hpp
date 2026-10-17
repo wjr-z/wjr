@@ -22,7 +22,7 @@ struct leaf {
     using expression_tag = void;
     std::span<const double, Extent> values;
 
-    WJR_INTRINSIC_INLINE double value_at(std::size_t i) const noexcept { return values.data()[i]; }
+    WJR_INTRINSIC_INLINE double read(std::size_t i) const noexcept { return values.data()[i]; }
 #if defined(WJR_EXPR_XSIMD)
     template <class Batch>
     WJR_INTRINSIC_INLINE Batch read_batch(std::size_t i) const noexcept {
@@ -42,7 +42,7 @@ struct scalar {
     using expression_tag = void;
     double value;
 
-    constexpr double value_at(std::size_t) const noexcept { return value; }
+    constexpr double read(std::size_t) const noexcept { return value; }
 #if defined(WJR_EXPR_XSIMD)
     template <class Batch>
     WJR_INTRINSIC_INLINE Batch read_batch(std::size_t) const noexcept {
@@ -86,8 +86,8 @@ struct binary {
     using expression_tag = void;
     wjr::compressed_pair<Left, Right> children;
 
-    WJR_INTRINSIC_INLINE double value_at(std::size_t i) const noexcept {
-        return Op::apply(children.first().value_at(i), children.second().value_at(i));
+    WJR_INTRINSIC_INLINE double read(std::size_t i) const noexcept {
+        return Op::apply(children.first().read(i), children.second().read(i));
     }
 #if defined(WJR_EXPR_XSIMD)
     template <class Batch>
@@ -148,7 +148,7 @@ constexpr auto operator*(L &&left, R &&right) noexcept {
 template <expression E>
 WJR_INTRINSIC_INLINE void evaluate(double *dst, std::size_t count, const E &expr) noexcept {
     for (std::size_t i = 0; i != count; ++i) {
-        dst[i] = expr.value_at(i);
+        dst[i] = expr.read(i);
     }
 }
 
@@ -178,7 +178,7 @@ WJR_INTRINSIC_INLINE void evaluate_simd(double *dst, std::size_t count, const E 
         expr.template read_batch<batch>(i).store_unaligned(dst + i);
     }
     for (; i != count; ++i)
-        dst[i] = expr.value_at(i);
+        dst[i] = expr.read(i);
 }
 #endif
 
