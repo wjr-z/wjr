@@ -1,4 +1,5 @@
 #include <exception> // for terminate
+#include <iostream>
 
 #include <wjr/assert.hpp>
 

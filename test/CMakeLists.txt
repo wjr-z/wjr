@@ -67,6 +67,7 @@ file(GLOB_RECURSE TEST_SRCS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 list(FILTER TEST_SRCS EXCLUDE REGEX "/consumer/")
 list(FILTER TEST_SRCS EXCLUDE REGEX "/np/")
 list(FILTER TEST_SRCS EXCLUDE REGEX "/automatic_free_pool_failure\\.cpp$")
+list(FILTER TEST_SRCS EXCLUDE REGEX "/assert_contract\\.cpp$")
 
 add_executable(
    tests
@@ -105,6 +106,7 @@ add_test(NAME wjr_build_policy
    -DWJR_CXX_STANDARD=${WJR_CXX_STANDARD}
    -DWJR_CPU_TARGET=${WJR_CPU_TARGET}
    -DEXPECT_STANDARD=${WJR_CXX_STANDARD}
+   -DWJR_MINIMAL_ASSERT=${WJR_MINIMAL_ASSERT}
 )
 add_test(NAME wjr_invalid_standard
    COMMAND ${CMAKE_COMMAND}
@@ -203,6 +205,18 @@ foreach(_WJR_POOL_FAILURE IN ITEMS overflow allocation)
    add_test(NAME wjr_pool_${_WJR_POOL_FAILURE}
       COMMAND automatic_free_pool_failure ${_WJR_POOL_FAILURE})
    set_tests_properties(wjr_pool_${_WJR_POOL_FAILURE} PROPERTIES LABELS unit)
+endforeach()
+
+foreach(_WJR_ASSERT_MODE IN ITEMS full light minimal)
+   string(TOUPPER "${_WJR_ASSERT_MODE}" _WJR_ASSERT_MODE_MACRO)
+   add_executable(assert_contract_${_WJR_ASSERT_MODE} utility/assert_contract.cpp)
+   target_link_libraries(assert_contract_${_WJR_ASSERT_MODE} PRIVATE wjr::assert)
+   target_compile_definitions(assert_contract_${_WJR_ASSERT_MODE}
+      PRIVATE WJR_ASSERT_TEST_${_WJR_ASSERT_MODE_MACRO})
+   add_dependencies(tests assert_contract_${_WJR_ASSERT_MODE})
+   add_test(NAME wjr_assert_${_WJR_ASSERT_MODE}
+      COMMAND assert_contract_${_WJR_ASSERT_MODE} 0)
+   set_tests_properties(wjr_assert_${_WJR_ASSERT_MODE} PROPERTIES LABELS unit)
 endforeach()
 
 if(WJR_ENABLE_NP)
