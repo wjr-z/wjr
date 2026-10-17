@@ -53,9 +53,13 @@ public:
     }
 
     WJR_MALLOC void *allocate(size_t n) noexcept {
-        WJR_CHECK(n <= std::numeric_limits<size_t>::max() - aligned_header_size);
+        if (WJR_UNLIKELY(n > std::numeric_limits<size_t>::max() - aligned_header_size)) {
+            _allocation_failed("n <= std::numeric_limits<size_t>::max() - aligned_header_size");
+        }
         auto *const raw = mem::_default_allocate(n + aligned_header_size, std::nothrow);
-        WJR_CHECK(raw != nullptr);
+        if (WJR_UNLIKELY(raw == nullptr)) {
+            _allocation_failed("raw != nullptr");
+        }
         head.push_back(static_cast<chunk *>(raw));
         return static_cast<void *>(static_cast<std::byte *>(raw) + aligned_header_size);
     }
@@ -67,6 +71,11 @@ public:
     }
 
 private:
+    WJR_NORETURN WJR_NOINLINE WJR_COLD static void
+    _allocation_failed(const char *condition) noexcept {
+        WJR_ASSERT_FAILED_HANDLER(condition, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE);
+    }
+
     chunk head;
 };
 
