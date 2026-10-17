@@ -17,6 +17,19 @@ xtensor 用作 owner、view、表达式闭包、广播和求值设计的参照�
 不预先实现一套完整的 xtensor 替代品。
 参见 [xtensor 容器](https://xtensor.readthedocs.io/en/latest/container.html)。
 
+### WG21 提案核对
+
+以 open-std 原始提案理解设计动机，再按采用的标准版本、后续缺陷修正与固定版本的实现核对接口。
+提案不是编译器已实现的保证，也不直接决定本库的对象 ABI。
+
+| 参考 | 对当前设计的约束或启发 | 规划 |
+| --- | --- | --- |
+| [P0009R18 mdspan](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p0009r18.html) | extents、mapping、accessor 分工；平凡复制取决于组成类型，不能无条件承诺 | 复用标准数据模型；默认 view 的句柄、mapping、accessor 都需验证平凡复制 |
+| [P1684R5 mdarray](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p1684r5.html) | owner 可以组合 mapping 与已有存储容器，将分配责任交给容器 | 优先比较这种组合与 xtensor 子集，不预先自建 buffer；不宣称 mdarray 已成为标准设施 |
+| [P2630R4 submdspan](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2630r4.html) | 切片同时生成 mapping、偏移和合适的 accessor | 复用可用的 submdspan；扩展负步长时保持独立语义 |
+| [P2642R6 padded layouts](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2642r6.pdf) | 行列填充布局可保留连续维度与 leading dimension 信息，避免全部退化为任意 strides | 作为后续 BLAS/SIMD 互操作候选，首版 owner 仍只采用无填充的连续布局 |
+| [P2897R7 aligned_accessor](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2897r7.html) | 原指针对齐不代表偏移后的指针仍对齐，offset_policy 可降级为默认 accessor | 对齐是显式前置条件；切片后重新证明或降级，不无条件保留标签 |
+
 | 层 | 初始职责 | 持有的数据 |
 | --- | --- | --- |
 | extents 和 mapping | 索引到元素偏移的映射 | 必要的动态维度或步长；静态值进入类型 |
@@ -40,22 +53,40 @@ xtensor 的容器/表达式子集，并核对许可、维护、编译成本、�
 template <class T, class Extents, class Layout, class Accessor>
 using tensor_view = mdspan_backend::mdspan<T, Extents, Layout, Accessor>;
 
-template <class T, class Extents, class Layout, class Allocator>
-struct tensor_owner {
-    allocator_type allocator;
-    mapping_type mapping;
-    allocator_pointer storage; // 唯一持有；view 使用可访问的数据句柄
-    size_type allocated_count; // 分配范围及对应 deallocate 的元素数
+// 需要定制分配时的备选表示；先与 Container + mapping 方案比较。
+struct allocation_state {
+    allocator_pointer storage;
+    size_type allocated_count;
+};
+
+struct owner_state {
+    using mapped_storage = compressed_pair<mapping_type, allocation_state>;
+    compressed_pair<allocator_type, mapped_storage> state;
 };
 ```
 
 常规 owner 首先只允许连续布局；所有逻辑元素均已构造，逻辑大小之外的预留槽位不构造对象。
-mapping 提供逻辑大小，allocated_count 记录容量；失败构造时的已构造数量由局部清理守卫记录。
-空 allocator 或静态 mapping 应通过可压缩存储消除冗余字段，不能按草图机械地增加对象尺寸。
+逻辑大小由 extents 的乘积计算，mapping 提供 required_span_size()，allocated_count 记录容量；
+失败构造时的已构造数量由局部清理守卫记录。
+若复用已有容器，则由容器管理分配和构造状态，不在外层重复保存 allocator、指针或容量。
+容器 size 至少覆盖 required_span_size()；首版无填充的连续布局可令 size 等于逻辑元素数，capacity 可以更大。
+是否值得省去可推导的大小字段，需先测量对象密度和访问成本。
 默认 accessor 只负责访问，不保留 lease；外部生命周期由调用或任务上下文管理。
 默认原始指针 accessor 下，完全静态的连续 view 以一个指针为尺寸目标，
 动态连续 view 只增加动态 extents；通用 stride view 再保存无法从类型或 extents 推导的步长。
 这些是需用 sizeof 和生成码验证的目标，不依赖某个后端恰好采用的字段排列。
+
+### 压缩存储原则
+
+复用仓库已有的 `wjr::compressed_pair` / EBO，压缩空 allocator、静态 mapping 和无状态策略对象；
+使用 C++20 的 `[[no_unique_address]]` 前核对目标编译器的实际布局支持，C++17 保留可用路径。
+同类优化也适用于无状态 deleter、运算 functor 和 accessor，但不能压掉有状态 allocator 或 accessor 的信息。
+
+空类型不意味着任何组合都能占零字节：final 类型不能用继承实现 EBO，同类型子对象的地址规则、
+对齐和 padding 也可能限制压缩。压缩布局不作为可序列化格式，也不跨编译器假定相同 ABI。
+不通过 reinterpret_cast、裸 memcpy 或假设成员偏移来恢复被压缩对象；访问使用存储封装的正规接口。
+验收覆盖空/有状态/final allocator、静态/混合 extents、空策略重复出现、过对齐元素，
+同时检查 sizeof、alignof、构造/析构及复制移动语义，避免只优化一个默认实例。
 
 ## 维度与布局
 
@@ -63,7 +94,8 @@ mapping 提供逻辑大小，allocated_count 记录容量；失败构造时的�
 动态 extent 存在固定长度元数据中，避免为 shape 单独分配；静态 extent 不重复存储。
 完全动态 rank 放在独立的互操作描述符中，进入内核前按需要适配或分派。
 
-extent 使用非负索引类型，元素偏移和通用步长使用能够表达负值的类型。
+extent 值必须非负；extents 的 index_type 可按所选标准模型采用有符号或无符号整型。
+signed-stride 扩展的偏移和步长必须能表达负值，跨索引类型转换前检查可表示性。
 extent 乘积、字节数、stride 累乘、最小/最大偏移和 allocator 最大容量均在形成指针前检查。
 静态可判定的错误在编译期拒绝；动态错误在 checked 构造或适配入口处理。
 
@@ -75,6 +107,13 @@ rank-0 的空维度列表表示一个标量，元素数为 1；任何一个 exte
 标准布局首先覆盖 row-major、column-major 和正步长唯一映射。
 编译期保留连续性、唯一性、穷尽性和对齐能力，转置或切片只在确实保持这些性质时保留相应标签。
 切片后的地址不能继续假设具有原 buffer 的对齐。
+对一般 accessor，切片经 accessor.offset(data_handle, offset) 生成新句柄，并采用其 offset_policy；
+只有默认原始指针路径可以简化为指针偏移。空切片单独处理，避免对空指针执行算术。
+对齐 accessor 在偏移后按可证明的对齐降级；重新提升需要检查或明确的调用方契约。
+
+逻辑元素数、mapping.required_span_size() 与分配容量是不同概念。
+唯一且穷尽的标准映射中前两者一致；填充或带间隔的映射可能需要更大的可访问存储范围。
+外部适配按实际 address span 验证边界，不能只按元素数证明安全。
 
 标准 `layout_stride` 要求正步长和唯一映射，不能承接任意 NumPy 视图。
 需要负步长时增加独立 signed-stride mapping，data handle 指向逻辑原点；
@@ -97,6 +136,8 @@ WJR 所选择的异常模式及 allocator 契约，不把任意 allocator 的 OO
 
 view 的复制和切片不分配、不增减引用计数，也不延长存储寿命。
 元素 const 性由 `view<const T>` 表达；描述符自身为 const 不隐式使元素只读。
+转换沿用所选 mdspan 的约束：可增加元素 const，不能移除；不能只凭 T* 可转换就接受派生类数组到基类数组。
+动态 extent 转静态 extent 或收窄索引类型时显式转换并在 checked 入口校验，不能静默截断或改变 shape。
 禁止从临时 owner 获取可逃逸的借用 view，例如在 owner 的右值上删除 view() 重载。
 owner 扩容或被替换后，已有 view 失效。
 
@@ -177,11 +218,14 @@ Python 薄封装一次传递整块 view，并在调用或任务期间持有 Pyth
 借用规则、静态 shape 诊断与编译成本，再确定具体模板名称和依赖版本。
 核心 data model 的验收包括：
 
-- 默认 accessor 的普通 view 可平凡复制，构造、切片和 transpose 不分配，也无引用计数操作。
+- 默认 view 的句柄、mapping 和 accessor 均可平凡复制，构造、切片和 transpose 不分配，也无引用计数操作。
 - 已知静态元数据不重复存储；类型尺寸与等价手写描述符比较。
 - 等价索引/逐元素循环的生成码、向量化和分配行为与手写实现及候选库对照。
 - rank-0、空维度、stride 溢出、非连续输入、别名和生命周期边界有独立行为测试。
 - 同一组语义测试覆盖所有求值后端，不以更宽松的数值规则换取未声明的速度。
 
 数据模型确认后，再依次实现 owner/view、预分配求值、有限广播和逐元素融合。
+首先固定后端与编译器覆盖，比较 Container + mapping 和定制压缩存储的尺寸、语义及生成码；
+再确定 owner 的具体模板参数和存储选择。其后补齐切片的 accessor 转换与空/负步长边界，
+最后在有工作负载收益时引入 padded/aligned 特化，不要求第一版同时覆盖全部提案。
 动态 rank、设备后端、XLA 图导出、自动微分、复杂索引及完整 NumPy API 属于后续单独设计范围。
