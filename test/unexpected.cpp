@@ -155,18 +155,19 @@ static_assert(!std::is_nothrow_swappable_v<wjr::unexpected<throwing_swap_error>>
 static_assert(!has_member_swap<wjr::unexpected<unswappable_error>>);
 static_assert(!std::is_swappable_v<wjr::unexpected<unswappable_error>>);
 
-constexpr bool check_constexpr_operations() {
-    const wjr::unexpected<independent_comparison_error> independent(std::in_place);
-    if (!(independent == independent) || !(independent != independent)) {
-        return false;
-    }
-    const wjr::unexpected<int> x(7);
-    const wjr::unexpected<long> y(7L);
-    if (!(x == y) || x != y || !(wjr::unexpected<int>(7) == y) ||
-        !(x != wjr::unexpected<long>(8L))) {
-        return false;
-    }
+constexpr wjr::unexpected<independent_comparison_error> independent_left(std::in_place);
+constexpr wjr::unexpected<independent_comparison_error> independent_right(std::in_place);
+static_assert(independent_left == independent_right);
+static_assert(independent_left != independent_right);
 
+constexpr wjr::unexpected<int> comparison_left(7);
+constexpr wjr::unexpected<long> comparison_right(7L);
+static_assert(comparison_left == comparison_right);
+static_assert(!(comparison_left != comparison_right));
+static_assert(wjr::unexpected<int>(7) == comparison_right);
+static_assert(comparison_left != wjr::unexpected<long>(8L));
+
+constexpr bool check_constexpr_swap() {
     wjr::unexpected<adl_error> a(std::in_place, 1), b(std::in_place, 2);
     a.swap(b);
     if (a.error().value != 2 || b.error().value != 1) {
@@ -181,7 +182,7 @@ constexpr bool check_constexpr_operations() {
     return a.error().value == 2 && b.error().value == 1;
 }
 
-static_assert(check_constexpr_operations());
+static_assert(check_constexpr_swap());
 
 } // namespace
 
