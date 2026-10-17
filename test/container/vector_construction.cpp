@@ -14,15 +14,24 @@ namespace {
 
 struct construction_error {};
 
+struct construction_state;
+construction_state *active_state = nullptr;
+
 struct construction_state {
+    construction_state() noexcept : m_previous(std::exchange(active_state, this)) {}
+    construction_state(const construction_state &) = delete;
+    construction_state &operator=(const construction_state &) = delete;
+    ~construction_state() { active_state = m_previous; }
+
     std::set<const void *> live;
     int attempts = 0, throw_at = 0, created = 0, destroyed = 0, invalid_destroys = 0;
     int allocations = 0, deallocations = 0;
     int hook_attempts = 0, hook_throw_at = 0, hook_created = 0, hook_destroyed = 0;
     bool fail_allocation = false;
-};
 
-construction_state *active_state = nullptr;
+private:
+    construction_state *m_previous;
+};
 
 struct tracked_value {
     int value = 17;
@@ -166,7 +175,6 @@ void check_construction(constructor_kind kind, std::size_t n, int throw_at, bool
                                       << " throw_at=" << throw_at << " hook=" << hook
                                       << " allocation_failure=" << allocation_failure);
     construction_state state;
-    active_state = &state;
     {
         const typename Vec::allocator_type alloc;
         const Vec source(n, alloc);
