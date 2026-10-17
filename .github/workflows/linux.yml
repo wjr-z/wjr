@@ -93,7 +93,7 @@ jobs:
         run: |
           if [[ "${{matrix.sys.compiler}}" = "gcc" ]]; then export CC=gcc-${{matrix.sys.version}}; export CXX=g++-${{matrix.sys.version}}; else export CC=clang; export CXX=clang++; fi
           benchmark_args=()
-          if [[ "${{matrix.sys.standard}}" != "17" && ( "${{matrix.sys.compiler}}" == "clang" && "${{matrix.sys.version}}" == "20" || "${{matrix.sys.compiler}}" == "gcc" && "${{matrix.sys.version}}" == "11" ) ]]; then
+          if [[ "${{matrix.sys.compiler}}" == "clang" && "${{matrix.sys.version}}" == "20" || "${{matrix.sys.compiler}}" == "gcc" && "${{matrix.sys.version}}" == "11" ]]; then
             benchmark_args+=(-DWJR_ENABLE_NP=ON)
           fi
           if [[ "${{matrix.sys.compiler}}" == "clang" && "${{matrix.sys.version}}" == "20" && "${{matrix.sys.standard}}" == "20" ]]; then
