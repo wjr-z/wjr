@@ -4,6 +4,8 @@
 
 #include <benchmark/benchmark.h>
 
+#include "np_detail.hpp"
+
 #include <wjr/np/evaluate.hpp>
 #include <wjr/np/expression.hpp>
 #include <wjr/np/tensor.hpp>
@@ -23,9 +25,8 @@ void np_materialize(benchmark::State &state) {
         x[i] = static_cast<double>(i % 17) / 4.0;
         y[i] = static_cast<double>(i % 23) / 8.0;
     }
-    const double *first = x.data(), *second = y.data();
-    benchmark::DoNotOptimize(&first);
-    benchmark::DoNotOptimize(&second);
+    const auto *const first = np_benchmark::runtime_input(x.data());
+    const auto *const second = np_benchmark::runtime_input(y.data());
     using input = np::tensor_view<const double, shape>;
     const auto expression =
         1.5 * np::as_expr(input(first, count)) - 0.5 * np::as_expr(input(second, count));
