@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <string>
 #include <utility>
 
@@ -11,6 +12,17 @@ namespace {
 
 struct base {};
 struct derived : base {};
+enum class signed_enum : int8_t { minimum = INT8_MIN, maximum = INT8_MAX };
+enum class unsigned_enum : uint64_t { zero = 0, maximum = UINT64_MAX };
+enum unscoped_enum : unsigned { unscoped_value = 42 };
+
+template <typename T, typename = void>
+struct has_to_underlying : std::false_type {};
+
+template <typename T>
+struct has_to_underlying<T, std::void_t<decltype(wjr::to_underlying(std::declval<T>()))>>
+    : std::true_type {};
+
 struct not_swappable {
     not_swappable() = delete;
     not_swappable(const not_swappable &) = delete;
@@ -64,6 +76,21 @@ static_assert(!in_range<uint8_t>(int16_t(-1)));
 static_assert(is_value_preserving_v<uint8_t, uint16_t>);
 static_assert(!is_value_preserving_v<uint16_t, uint8_t>);
 static_assert(is_value_preserving_or_int_v<int, uint8_t>);
+static_assert(wjr::to_underlying(signed_enum::minimum) == INT8_MIN);
+static_assert(wjr::to_underlying(signed_enum::maximum) == INT8_MAX);
+static_assert(wjr::to_underlying(unsigned_enum::zero) == 0);
+static_assert(wjr::to_underlying(unsigned_enum::maximum) == UINT64_MAX);
+static_assert(wjr::to_underlying(unscoped_value) == 42);
+static_assert(std::is_same_v<decltype(wjr::to_underlying(signed_enum::minimum)), int8_t>);
+static_assert(std::is_same_v<decltype(wjr::to_underlying(unsigned_enum::maximum)), uint64_t>);
+static_assert(noexcept(wjr::to_underlying(signed_enum::minimum)));
+static_assert(has_to_underlying<signed_enum>::value);
+static_assert(has_to_underlying<const unsigned_enum &>::value);
+static_assert(has_to_underlying<std::byte>::value);
+static_assert(wjr::to_underlying(std::byte{0xff}) == 0xff);
+static_assert(!has_to_underlying<int>::value);
+static_assert(!has_to_underlying<bool>::value);
+static_assert(!has_to_underlying<std::string>::value);
 
 } // namespace
 

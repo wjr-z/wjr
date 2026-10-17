@@ -15,6 +15,10 @@
 
 #include <wjr/iterator/detail.hpp>
 
+#if defined(WJR_CPP_20)
+    #include <bit>
+#endif
+
 namespace wjr {
 
 template <typename T, typename D>
@@ -187,7 +191,10 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T builtin_byteswap(T x) noexcept {
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x) noexcept {
-#if WJR_HAS_BUILTIN(BYTESWAP)
+#if defined(__cpp_lib_byteswap) && __cpp_lib_byteswap >= 202110L
+    static_assert(std::numeric_limits<T>::digits <= 64, "Unsupported bit width");
+    return std::byteswap(x);
+#elif WJR_HAS_BUILTIN(BYTESWAP)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
         return fallback_byteswap(x);
     }

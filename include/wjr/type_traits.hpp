@@ -794,7 +794,11 @@ struct common_reference<Tp1, Tp2, Rest...>
 
 template <typename Enum>
 WJR_CONST constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept {
+#if defined(__cpp_lib_to_underlying) && __cpp_lib_to_underlying >= 202102L
+    return std::to_underlying(e);
+#else
     return static_cast<std::underlying_type_t<Enum>>(e);
+#endif
 }
 
 enum class relocate_t {
