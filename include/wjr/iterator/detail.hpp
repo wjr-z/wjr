@@ -18,17 +18,26 @@
 
 namespace wjr {
 
-/// Extract difference_type from iterator traits
+/// Extract the C++20 iterator difference type
 template <typename Iter>
-using iterator_difference_t = typename std::iterator_traits<Iter>::difference_type;
+using iterator_difference_t = std::iter_difference_t<Iter>;
 
-/// Extract value_type from iterator traits
-template <typename Iter>
-using iterator_value_t = typename std::iterator_traits<Iter>::value_type;
+/// @private Preserve void value types of legacy output iterators.
+template <typename Iter, typename = void>
+struct _iterator_value_impl : std::iterator_traits<Iter> {};
 
-/// Extract reference type from iterator traits
 template <typename Iter>
-using iterator_reference_t = typename std::iterator_traits<Iter>::reference;
+struct _iterator_value_impl<Iter, std::void_t<std::iter_value_t<Iter>>> {
+    using value_type = std::iter_value_t<Iter>;
+};
+
+/// Extract the C++20 value type, retaining the legacy output-iterator fallback
+template <typename Iter>
+using iterator_value_t = typename _iterator_value_impl<Iter>::value_type;
+
+/// Extract the actual iterator dereference type
+template <typename Iter>
+using iterator_reference_t = std::iter_reference_t<Iter>;
 
 /// Extract pointer type from iterator traits
 template <typename Iter>
@@ -123,8 +132,10 @@ inline constexpr bool is_random_access_iterator_v = is_random_access_iterator<It
 
 /// @private
 template <typename Iter>
-struct _is_contiguous_iterator_impl : std::disjunction<std::is_pointer<Iter>, std::is_array<Iter>> {
-};
+struct _is_contiguous_iterator_impl
+    : std::bool_constant<(std::is_pointer_v<Iter> &&
+                          std::is_object_v<std::remove_pointer_t<Iter>>) ||
+                         std::is_array_v<Iter>> {};
 
 /// @private
 template <typename Iter>
@@ -132,10 +143,11 @@ struct _is_contiguous_iterator_impl<std::move_iterator<Iter>>
     : std::conjunction<_is_contiguous_iterator_impl<Iter>,
                        std::is_trivially_copyable<iterator_value_t<Iter>>> {};
 
-/// @todo Is std::contiguous_iterator needed here?
+// Retain range-v3 tags and the existing array/trivial move-iterator extensions.
 template <typename Iter>
 inline constexpr bool _is_contiguous_iterator_impl_v =
-    _is_contiguous_iterator_impl<Iter>::value || ranges::contiguous_iterator<Iter>;
+    _is_contiguous_iterator_impl<Iter>::value || std::contiguous_iterator<Iter> ||
+    ranges::contiguous_iterator<Iter>;
 
 template <typename Iter>
 struct is_contiguous_iterator : std::bool_constant<_is_contiguous_iterator_impl_v<Iter>> {};
@@ -155,7 +167,7 @@ using iterator_contiguous_pointer_t = std::add_pointer_t<iterator_contiguous_val
 
 /**
  * @brief Contiguous iterator tag
- * @todo Support C++20 std::contiguous_iterator_tag
+ * @details Kept for range-v3 compatibility; the trait also accepts standard tags.
  */
 using contiguous_iterator_tag = ranges::contiguous_iterator_tag;
 

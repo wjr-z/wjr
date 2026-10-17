@@ -64,7 +64,8 @@ constexpr OutputIt _copy_impl(InputIt first, InputIt last, OutputIt d_first) {
  */
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
-    return _copy_impl(wjr::_iter_base(first), wjr::_iter_base(last), wjr::_iter_base(d_first));
+    return wjr::_iter_wrap(d_first, _copy_impl(wjr::_iter_base(first), wjr::_iter_base(last),
+                                               wjr::_iter_base(d_first)));
 }
 
 /// @private
@@ -143,7 +144,8 @@ constexpr OutputIt _copy_n_impl(InputIt first, Size count, OutputIt d_first) {
  */
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
-    return _copy_n_impl(wjr::_iter_base(first), count, wjr::_iter_base(d_first));
+    return wjr::_iter_wrap(d_first,
+                           _copy_n_impl(wjr::_iter_base(first), count, wjr::_iter_base(d_first)));
 }
 
 /// @private

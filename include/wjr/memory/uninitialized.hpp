@@ -440,7 +440,7 @@ OutputIt uninitialized_relocate(InputItInit first, InputItSe last, OutputIt dest
                   is_contiguous_iterator_v<InputItInit> && is_contiguous_iterator_v<OutputIt> &&
                   get_relocate_mode_v<InputValue> == relocate_t::trivial) {
         const auto n = _last - _first;
-        maybe_null_memcpy(_dest, _first, n * sizeof(InputValue));
+        maybe_null_memcpy(wjr::to_address(_dest), wjr::to_address(_first), n * sizeof(InputValue));
         return wjr::_iter_wrap(dest, _dest + n);
     } else if constexpr (std::is_same_v<InputValue, OutputValue> &&
                          get_relocate_mode_v<InputValue> == relocate_t::maybe_trivial) {
@@ -517,7 +517,7 @@ OutputIt uninitialized_relocate_n(InputIt first, Size n, OutputIt dest) {
     if constexpr (std::is_same_v<InputValue, OutputValue> && is_contiguous_iterator_v<InputIt> &&
                   is_contiguous_iterator_v<OutputIt> &&
                   get_relocate_mode_v<InputValue> == relocate_t::trivial) {
-        maybe_null_memcpy(_dest, _first, n * sizeof(InputValue));
+        maybe_null_memcpy(wjr::to_address(_dest), wjr::to_address(_first), n * sizeof(InputValue));
         return wjr::_iter_wrap(dest, _dest + n);
     } else if constexpr (std::is_same_v<InputValue, OutputValue> &&
                          get_relocate_mode_v<InputValue> == relocate_t::maybe_trivial) {
