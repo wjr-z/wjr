@@ -69,7 +69,7 @@ jobs:
           fi
           cmake -B build -GNinja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_CXX_FLAGS=-g1 \
+            "-DCMAKE_CXX_FLAGS=-g1 -fsanitize=address -fno-omit-frame-pointer" \
             -DWJR_BUILD_BENCHMARKS=ON \
             -DWJR_BUILD_TESTS=OFF \
             -DWJR_BENCHMARK_PROFILE="$BENCHMARK_PROFILE" \
@@ -91,7 +91,7 @@ jobs:
             repetitions=3
             min_time=0.02s
           fi
-          gdb --batch --return-child-result -ex run -ex 'thread apply all bt full' --args ./build/bin/benchmarks \
+          ./build/bin/benchmarks \
             --benchmark_format=json \
             --benchmark_out=benchmark-results.json \
             --benchmark_repetitions="$repetitions" \
