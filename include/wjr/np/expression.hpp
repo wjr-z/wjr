@@ -511,7 +511,7 @@ WJR_INTRINSIC_INLINE constexpr void eval_expression_row(
 
 // Shape/alias preconditions are established and output is nonempty. Both the
 // scalar API and optional backends reuse this fallback without repeating checks.
-template <class Dst, tensor_expression E, class Values>
+template <class RowExecutor = void, class Dst, tensor_expression E, class Values>
 WJR_INTRINSIC_INLINE constexpr void
 eval_projected_expression(Dst dst, const E &expression, const Values &values) noexcept(
     noexcept(dst.data_handle()[size_t{}] = expression.read(size_t{}))) {
@@ -544,14 +544,21 @@ eval_projected_expression(Dst dst, const E &expression, const Values &values) no
             for (size_t operand = 0; operand != 1 + inputs; ++operand)
                 outer_strides[operand][axis] = strides[operand][source_axis];
         }
-        auto point = [output = dst.data_handle(), values, steps, inner_count, output_step](
-                         size_t output_offset,
-                         auto... input_offsets) noexcept(noexcept(dst.data_handle()[size_t{}] =
-                                                                      expression.read(size_t{}))) {
-            eval_expression_row<E>(output + output_offset, inner_count, output_step, values,
-                                   std::array<size_t, inputs>{input_offsets...}, steps,
-                                   std::make_index_sequence<inputs>{});
-        };
+        auto point = [&] {
+            if constexpr (std::is_void_v<RowExecutor>) {
+                return
+                    [output = dst.data_handle(), values, steps, inner_count, output_step](
+                        size_t output_offset,
+                        auto... input_offsets) noexcept(noexcept(dst.data_handle()[size_t{}] =
+                                                                     expression.read(size_t{}))) {
+                        eval_expression_row<E>(output + output_offset, inner_count, output_step,
+                                               values, std::array<size_t, inputs>{input_offsets...},
+                                               steps, std::make_index_sequence<inputs>{});
+                    };
+            } else {
+                return RowExecutor::template bind<E>(dst.data_handle(), values, inner_count);
+            }
+        }();
         [&]<size_t... I>(std::index_sequence<I...> operands) {
             walk_kernel<0, std::same_as<typename Dst::layout_type, layout_left>>(
                 outer_shape, outer_strides, point, operands, decltype(I){}...);

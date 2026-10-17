@@ -20,4 +20,18 @@ int main() {
     }
     std::cout << "lanes=" << xsimd::batch<double>::size << " first=" << output.front()
               << " last=" << output.back() << '\n';
+
+    using matrix_shape = np::extents<size_t, 2, 7>;
+    using row_shape = np::extents<size_t, 7>;
+    std::array<double, 14> broadcast_output{};
+    const auto matrix = np::as_expr(np::tensor_view<const double, matrix_shape>(x.data()));
+    const auto bias = np::as_expr(np::tensor_view<const double, row_shape>(y.data()));
+    np::eval_to(np::tensor_view<double, matrix_shape>(broadcast_output.data()), matrix + bias * 0.5,
+                np::xsimd_policy<>{});
+    for (size_t i = 0; i != broadcast_output.size(); ++i) {
+        if (broadcast_output[i] != x[i] + 1.)
+            return 1;
+    }
+    std::cout << "broadcast first=" << broadcast_output.front()
+              << " last=" << broadcast_output.back() << '\n';
 }
