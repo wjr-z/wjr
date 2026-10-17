@@ -5,6 +5,8 @@ wjr_cc_library(
    NAME
    format-internal
 
+   ARCH_DEPENDENT
+
    SRCS
    ${WJR_SRCS}
 

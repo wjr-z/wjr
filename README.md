@@ -1,11 +1,20 @@
 [![Coverage](https://wjr-z.github.io/wjr/coverage.svg)](https://wjr-z.github.io/wjr/)
 [![Coverage workflow](https://github.com/wjr-z/wjr/actions/workflows/coverage.yml/badge.svg?branch=main)](https://github.com/wjr-z/wjr/actions/workflows/coverage.yml)
 
-Coverage runs with Clang on pushes to `main` and `coverage-report`, and on pull requests targeting `main`. The badge reports line coverage from the latest published run; each run also uploads the generated HTML report as an artifact. After GitHub Pages is enabled for the repository, the full report is published at <https://wjr-z.github.io/wjr/>.
+Coverage runs with Clang on pushes to `main` and `coverage-report`, and on pull requests targeting `main`, except for documentation and process-metadata-only changes. The badge reports line coverage from the latest published run; each run also uploads the generated HTML report as an artifact. After GitHub Pages is enabled for the repository, the full report is published at <https://wjr-z.github.io/wjr/>.
 
 最低要求：  \
-C++17，64位系统，CMake。  \
+C++20 默认，C++17 可选，64位系统，CMake 3.20 及以上。  \
 绝大多数优化仅针对x64。 目前异常处理支持不佳。  
+
+使用 `-DWJR_CXX_STANDARD=17|20|23` 选择最低语言标准。旧的
+`WJR_DISABLE_CXX_20` 选项进入迁移期；已有 build 目录中的该选项仍会影响首次标准选择，
+新配置建议直接指定 `WJR_CXX_STANDARD`。
+
+通用模块使用架构基线。`-DWJR_CPU_TARGET=native|baseline|<编译器架构名>`
+只选择数值优化模块及其头文件调用方的 ISA 要求；GNU 风格编译器本机默认 `native`，
+MSVC 和交叉编译默认 `baseline`。发布可分发包时应明确选择 `baseline` 或固定架构。
+详见 [基础架构设计](docs/design/foundation.md)。
 
 # 构建 target
 项目使用 CMake 构建。配置完成后，可以通过下面的命令构建指定 target：
@@ -47,7 +56,7 @@ cmake --build build --target <target>
 - [ ] 修复动态库下的unique_stack_allocator（优先级低）
 - [ ] JSON封装（目前封装性能一般，并非零开销）
 - [x] biginteger完善，lazy计算（优先级低）
-- [ ] C++17 mdspan支持，以及numpy风格数据结构+算法
+- [ ] 按设计稿评估成熟 mdspan 实现，以及 view、owner 和表达式层
 - [ ] ring_buffer完善
 - [ ] log（优先级低）
 - [ ] malloc库替换

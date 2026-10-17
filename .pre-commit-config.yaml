@@ -5,4 +5,5 @@ repos:
       - id: clang-format
         args: [--dry-run, --Werror, --style=file]
         files: \.(c|cc|cpp|cxx|h|hh|hpp|hxx)$
-        exclude: ^(third-party|build(?:_[^/]*)?)/
+        # The demo carries upstream simdjson amalgamations; do not reformat them.
+        exclude: ^(?:(?:third-party|build(?:_[^/]*)?)/|examples/demo/src/simdjson\.(?:cpp|hpp)$)

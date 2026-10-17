@@ -78,8 +78,7 @@ BENCHMARK(wjr_vector_construct_with_size<std::string>)->NORMAL_TESTS(1, 2, 1 << 
 
 BENCHMARK(wjr_vector_construct_with_size_and_value<int>)->NORMAL_TESTS(1, 2, 1 << 6);
 BENCHMARK(wjr_vector_construct_with_size_and_value<double>)->NORMAL_TESTS(1, 2, 1 << 6);
-BENCHMARK(wjr_vector_construct_with_size_and_value<std::string>)
-    ->NORMAL_TESTS(1, 2, 1 << 6);
+BENCHMARK(wjr_vector_construct_with_size_and_value<std::string>)->NORMAL_TESTS(1, 2, 1 << 6);
 
 BENCHMARK(wjr_vector_copy_construct<int>)->NORMAL_TESTS(1, 2, 1 << 6);
 BENCHMARK(wjr_vector_copy_construct<double>)->NORMAL_TESTS(1, 2, 1 << 6);

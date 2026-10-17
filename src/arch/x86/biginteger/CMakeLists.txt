@@ -39,6 +39,8 @@ wjr_cc_library(
     NAME
     arch-biginteger
 
+    ARCH_DEPENDENT
+
     SRCS
     ${WJR_SRCS}
 

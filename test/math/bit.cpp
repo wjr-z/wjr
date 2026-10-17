@@ -64,3 +64,21 @@ TEST(bit, single_bit) {
     EXPECT_TRUE(has_single_bit(uint8_t(0x80)));
     EXPECT_FALSE(has_single_bit(uint8_t(0xff)));
 }
+
+TEST(bit, bit_cast_preserves_representation) {
+    const int32_t value = -1;
+    EXPECT_EQ(wjr::bit_cast<uint32_t>(value), UINT32_MAX);
+    EXPECT_EQ(wjr::bit_cast<int32_t>(UINT32_MAX), value);
+}
+
+#if defined(__cpp_lib_bit_cast) && __cpp_lib_bit_cast >= 201806L
+namespace {
+struct non_default_constructible {
+    non_default_constructible() = delete;
+    int32_t value;
+};
+
+static_assert(wjr::bit_cast<uint32_t>(int32_t(-1)) == UINT32_MAX);
+static_assert(wjr::bit_cast<non_default_constructible>(int32_t(42)).value == 42);
+} // namespace
+#endif

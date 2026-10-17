@@ -5,9 +5,29 @@ on:
     branches:
       - main
       - coverage-report
+    paths-ignore:
+      - "README.md"
+      - "docs/**"
+      - "AGENTS.md"
+      - ".gitignore"
+      - ".editorconfig"
+      - ".gitattributes"
+      - ".clang-format"
+      - ".pre-commit-config.yaml"
+      - ".github/workflows/pre-commit.yml"
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - "README.md"
+      - "docs/**"
+      - "AGENTS.md"
+      - ".gitignore"
+      - ".editorconfig"
+      - ".gitattributes"
+      - ".clang-format"
+      - ".pre-commit-config.yaml"
+      - ".github/workflows/pre-commit.yml"
   workflow_dispatch:
 
 permissions:

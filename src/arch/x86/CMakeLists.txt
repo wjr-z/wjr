@@ -33,6 +33,8 @@ wjr_cc_library(
     NAME
     arch-math
 
+    ARCH_DEPENDENT
+
     SRCS
     ${WJR_SRCS}
 
@@ -48,6 +50,8 @@ wjr_glob_cpp_source(WJR_SRCS arch/x86/format)
 wjr_cc_library(
     NAME
     arch-format
+
+    ARCH_DEPENDENT
 
     SRCS
     ${WJR_SRCS}
@@ -65,6 +69,8 @@ wjr_glob_cpp_source(WJR_SRCS arch/x86/json)
 wjr_cc_library(
     NAME
     arch-json
+
+    ARCH_DEPENDENT
 
     SRCS
     ${WJR_SRCS}

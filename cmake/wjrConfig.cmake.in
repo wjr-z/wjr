@@ -2,21 +2,21 @@
 
 @PACKAGE_INIT@
 
-list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/../fmt")
-list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/../CpuFeatures")
-list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/../range-v3")
+include(CMakeFindDependencyMacro)
+set(_WJR_PACKAGE_PREFIX "${PACKAGE_PREFIX_DIR}")
 
-if (NOT TARGET fmt)
-    find_package(fmt REQUIRED)
+if (NOT TARGET fmt::fmt)
+    find_dependency(fmt CONFIG HINTS "${_WJR_PACKAGE_PREFIX}")
 endif()
 
-if (NOT TARGET CpuFeatures)
-    find_package(CpuFeatures REQUIRED)
+if (NOT TARGET CpuFeatures::cpu_features)
+    find_dependency(CpuFeatures CONFIG HINTS "${_WJR_PACKAGE_PREFIX}")
 endif()
 
-if (NOT TARGET range-v3)
-    find_package(range-v3 REQUIRED)
+if (NOT TARGET range-v3::range-v3)
+    find_dependency(range-v3 CONFIG HINTS "${_WJR_PACKAGE_PREFIX}")
 endif()
+unset(_WJR_PACKAGE_PREFIX)
 
 include ("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Alias.cmake")

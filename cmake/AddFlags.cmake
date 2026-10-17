@@ -1,8 +1,10 @@
 include(CheckCXXCompilerFlag)
 
 function(AddSingleFlagsIfExists OUTPUT Flags)
-    check_cxx_compiler_flag("${Flags}" FlagsExist)
-    if (FlagsExist)
+    string(SHA256 FlagKey "${CMAKE_CXX_COMPILER_ID};${CMAKE_CXX_COMPILER_VERSION};${CMAKE_CXX_COMPILER_TARGET};${Flags}")
+    set(Result "WJR_CXX_FLAG_${FlagKey}")
+    check_cxx_compiler_flag("${Flags}" ${Result})
+    if (${Result})
         list(APPEND ${OUTPUT} ${Flags})
         set(${OUTPUT} ${${OUTPUT}} PARENT_SCOPE)
     endif()

@@ -6,7 +6,7 @@
 #include <wjr/biginteger.hpp>
 
 #if !defined(yyFlexLexerOnce)
-#include <FlexLexer.h>
+    #include <FlexLexer.h>
 #endif
 
 namespace wjr {

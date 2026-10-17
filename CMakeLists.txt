@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
-set(WJR_VERSION 0.1.1)
+set(WJR_VERSION 0.2.0)
 project(wjr VERSION ${WJR_VERSION} LANGUAGES CXX)
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 if(NOT(CMAKE_SIZEOF_VOID_P EQUAL 8))
    message(FATAL_ERROR "Not support non 64-bit currently, CMake will exit.")
@@ -29,8 +31,8 @@ else()
 endif()
 
 option(WJR_DISABLE_EXCEPTIONS "Disable exceptions." OFF)
-option(WJR_DISABLE_CXX_20 "Disable C++ 20 even if it's supported." ON)
 option(WJR_PUBLIC_FLAGS "Set compile flags as public. Useful in tests" OFF)
+option(WJR_LIGHT_ASSERT "Use lightweight assertions." OFF)
 option(WJR_BUILD_TESTS "Build tests." OFF)
 option(WJR_BUILD_BENCHMARKS "Build benchmarks." OFF)
 option(WJR_ENABLE_ASSERT_BACKTRACE "Enable assert backtrace." OFF)
@@ -61,11 +63,8 @@ endif()
 
 option(WJR_ENABLE_COVERAGE "Enable coverage for tests." OFF)
 
-if(WJR_ENABLE_COVERAGE AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-   message(FATAL_ERROR
-      "WJR_ENABLE_COVERAGE requires a Clang-compatible C++ compiler. "
-      "Configure with -DCMAKE_CXX_COMPILER=clang++.")
-endif()
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
+include(wjrBuildOptions)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
@@ -113,81 +112,6 @@ FetchContent_MakeAvailable(range-v3)
 set(WJR_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 set(WJR_LIB_DIR ${PROJECT_SOURCE_DIR}/src)
 
-set(WJR_CXX_FLAGS)
-set(WJR_CXX_FLAGS_PRIVATE)
-set(WJR_CXX_FLAGS_DEBUG)
-set(WJR_CXX_FLAGS_RELEASE)
-set(WJR_COMPILE_DEFINITIONS)
-set(WJR_DEFAULT_LINKOPTS)
-
-if(NOT WJR_DISABLE_CXX_20 AND "cxx_std_20" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
-   message(STATUS "Enable C++ 20.")
-   set(WJR_USE_CXX_20 ON)
-else()
-   set(WJR_USE_CXX_20 OFF)
-endif()
-
-list(APPEND CMAKE_MODULE_PATH
-   ${CMAKE_CURRENT_LIST_DIR}/cmake
-)
-
-include(AddFlags)
-
-if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-   list(APPEND WJR_CXX_FLAGS_PRIVATE /W3)
-   list(APPEND WJR_CXX_FLAGS /Zc:preprocessor /Zc:lambda /EHsc /wd4146 /wd4309 /wd4244 /utf-8)
-   list(APPEND WJR_CXX_FLAGS_DEBUG /DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_DEBUG})
-   list(APPEND WJR_CXX_FLAGS_RELEASE /DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_RELEASE})
-
-   if(WJR_DISABLE_EXCEPTIONS)
-      list(APPEND WJR_CXX_FLAGS /D_HAS_EXCEPTIONS=0 /DWJR_DISABLE_EXCEPTIONS)
-   endif()
-
-   if(WJR_LIGHT_ASSERT)
-      list(APPEND WJR_CXX_FLAGS /DWJR_LIGHT_ASSERT)
-   endif()
-
-   # todo: ASAN and coverage for MSVC
-else()
-   list(APPEND WJR_CXX_FLAGS_PRIVATE
-      -Wall -Wextra -Wshadow -Wformat=2 -Wunused
-   )
-
-   AddFlagsIfExists(WJR_CXX_FLAGS_PRIVATE
-      "-Waddress-of-packed-member -Wpointer-arith -Wcast-align -Wreorder -Wpacked -Wcast-qual")
-
-   list(APPEND WJR_CXX_FLAGS -march=native)
-   list(APPEND WJR_CXX_FLAGS_DEBUG -DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_DEBUG})
-   list(APPEND WJR_CXX_FLAGS_RELEASE -DWJR_DEBUG_LEVEL=${WJR_DEBUG_LEVEL_RELEASE})
-
-   if(WJR_DISABLE_EXCEPTIONS)
-      list(APPEND WJR_CXX_FLAGS -fno-exceptions -DWJR_DISABLE_EXCEPTIONS)
-   endif()
-
-   if(WJR_LIGHT_ASSERT)
-      list(APPEND WJR_CXX_FLAGS -DWJR_LIGHT_ASSERT)
-   endif()
-
-   if(WJR_ENABLE_COVERAGE)
-      list(APPEND WJR_CXX_FLAGS_PRIVATE -fprofile-instr-generate -fcoverage-mapping -fno-inline)
-      list(APPEND WJR_DEFAULT_LINKOPTS -fprofile-instr-generate -fcoverage-mapping)
-   endif()
-
-   if(WJR_ENABLE_ASAN)
-      message(STATUS "Enable AddressSanitizer.")
-      list(APPEND WJR_CXX_FLAGS -fsanitize=address -fno-omit-frame-pointer)
-      list(APPEND WJR_DEFAULT_LINKOPTS -fsanitize=address)
-      if(WIN32)
-         # clang_rt.asan on Windows is built with static runtime (MT); match it.
-         set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)
-      endif()
-   endif()
-endif()
-
-if(WJR_PUBLIC_FLAGS)
-   list(APPEND WJR_CXX_FLAGS ${WJR_CXX_FLAGS_PRIVATE})
-endif()
-
 if(WJR_ENABLE_ASSEMBLY AND WJR_ARCH)
    enable_language(ASM_NASM)
 
@@ -200,18 +124,6 @@ if(WJR_ENABLE_ASSEMBLY AND WJR_ARCH)
 endif()
 
 include(wjrHelpers)
-
-set(WJR_COMMON_INCLUDE_DIRS ${WJR_INCLUDE_DIR})
-set(WJR_COMMON_CXX_FLAGS ${WJR_CXX_FLAGS})
-set(WJR_COMMON_DEFINES ${WJR_COMPILE_DEFINITIONS})
-
-set(WJR_PROPAGATE_CXX_STD ON)
-
-if(WJR_USE_CXX_20)
-   set(WJR_INTERNAL_CXX_STD_FEATURE cxx_std_20)
-else()
-   set(WJR_INTERNAL_CXX_STD_FEATURE cxx_std_17)
-endif()
 
 set_property(GLOBAL PROPERTY WJR_ALL_TARGETS "")
 
@@ -353,7 +265,8 @@ if(WJR_ENABLE_INSTALL)
          set(TARGET_NAME "wjr-${NAME}")
       endif()
 
-      file(APPEND "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Alias.cmake" "add_library(wjr::${NAME} ALIAS ${TARGET_NAME})\n")
+      file(APPEND "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Alias.cmake"
+         "if(NOT TARGET wjr::${NAME})\n  add_library(wjr::${NAME} ALIAS ${TARGET_NAME})\nendif()\n")
    endforeach()
 
    install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Alias.cmake"
