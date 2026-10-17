@@ -58,6 +58,8 @@ class optional;
 
 namespace optional_detail {
 
+struct converting_t {};
+
 template <typename T, bool Destructor = is_void_or_v<T, std::is_trivially_destructible<T>>>
 struct optional_storage_base {
     constexpr optional_storage_base() noexcept : m_has_val(false) {}
@@ -69,8 +71,28 @@ struct optional_storage_base {
 
     constexpr optional_storage_base(nullopt_t) noexcept : m_has_val(false) {}
 
-    optional_storage_base(const optional_storage_base &) = default;
-    optional_storage_base(optional_storage_base &&) = default;
+    template <typename Other>
+    constexpr optional_storage_base(converting_t, bool has_val, Other &&other)
+        : m_has_val(has_val) {
+        if (has_val) {
+            wjr::construct_at(std::addressof(m_val), std::forward<Other>(other).m_val);
+        }
+    }
+
+    optional_storage_base(const optional_storage_base &)
+    requires(std::is_trivially_copy_constructible_v<T>)
+    = default;
+    constexpr optional_storage_base(const optional_storage_base &other)
+    requires(!(std::is_trivially_copy_constructible_v<T>))
+        : optional_storage_base(converting_t{}, other.has_value(), other) {}
+
+    optional_storage_base(optional_storage_base &&)
+    requires(std::is_trivially_move_constructible_v<T>)
+    = default;
+    constexpr optional_storage_base(optional_storage_base &&other) noexcept(
+        std::is_nothrow_move_constructible_v<T>)
+    requires(!(std::is_trivially_move_constructible_v<T>))
+        : optional_storage_base(converting_t{}, other.has_value(), std::move(other)) {}
     optional_storage_base &operator=(const optional_storage_base &) = default;
     optional_storage_base &operator=(optional_storage_base &&) = default;
 
@@ -99,8 +121,28 @@ struct optional_storage_base<T, false> {
 
     constexpr optional_storage_base(nullopt_t) noexcept : m_has_val(false) {}
 
-    optional_storage_base(const optional_storage_base &) = default;
-    optional_storage_base(optional_storage_base &&) = default;
+    template <typename Other>
+    constexpr optional_storage_base(converting_t, bool has_val, Other &&other)
+        : m_has_val(has_val) {
+        if (has_val) {
+            wjr::construct_at(std::addressof(m_val), std::forward<Other>(other).m_val);
+        }
+    }
+
+    optional_storage_base(const optional_storage_base &)
+    requires(std::is_trivially_copy_constructible_v<T>)
+    = default;
+    constexpr optional_storage_base(const optional_storage_base &other)
+    requires(!(std::is_trivially_copy_constructible_v<T>))
+        : optional_storage_base(converting_t{}, other.has_value(), other) {}
+
+    optional_storage_base(optional_storage_base &&)
+    requires(std::is_trivially_move_constructible_v<T>)
+    = default;
+    constexpr optional_storage_base(optional_storage_base &&other) noexcept(
+        std::is_nothrow_move_constructible_v<T>)
+    requires(!(std::is_trivially_move_constructible_v<T>))
+        : optional_storage_base(converting_t{}, other.has_value(), std::move(other)) {}
     optional_storage_base &operator=(const optional_storage_base &) = default;
     optional_storage_base &operator=(optional_storage_base &&) = default;
 
@@ -157,6 +199,10 @@ struct optional_storage_base<compressed_value<T, uniq_failed>, true> {
 
     constexpr optional_storage_base(nullopt_t) noexcept : m_val(uniq_failed) {}
 
+    template <typename Other>
+    constexpr optional_storage_base(converting_t, bool has_val, Other &&other)
+        : m_val(has_val ? T(std::forward<Other>(other).m_val) : uniq_failed) {}
+
     optional_storage_base(const optional_storage_base &) = default;
     optional_storage_base(optional_storage_base &&) = default;
     optional_storage_base &operator=(const optional_storage_base &) = default;
@@ -191,23 +237,6 @@ struct optional_operations_base : optional_storage_base<T> {
     }
 
     constexpr void construct_error() noexcept { set_invalid(); }
-
-    WJR_CONSTEXPR20 void _copy_construct(const optional_operations_base &other) {
-        if (other.has_value()) {
-            construct_value(other.m_val);
-        } else {
-            construct_error();
-        }
-    }
-
-    WJR_CONSTEXPR20 void _move_construct(optional_operations_base &&other) noexcept(
-        std::is_nothrow_move_constructible_v<value_type>) {
-        if (other.has_value()) {
-            construct_value(std::move(other.m_val));
-        } else {
-            construct_error();
-        }
-    }
 
     WJR_CONSTEXPR20 void _copy_assign(const optional_operations_base &other) {
         if (this->has_value()) {
@@ -260,10 +289,9 @@ template <typename T>
 struct _optional_storage_impl {
     using value_type = _optional_unwrap_t<T>;
 
+    // Storage owns copy/move construction; only assignments use operation wrappers.
     using type =
-        control_special_members_base<optional_operations_base<T>,
-                                     std::is_trivially_copy_constructible_v<value_type>,
-                                     std::is_trivially_move_constructible_v<value_type>,
+        control_special_members_base<optional_operations_base<T>, true, true,
                                      std::is_trivially_copy_assignable_v<value_type> &&
                                          std::is_trivially_copy_constructible_v<value_type> &&
                                          std::is_trivially_destructible_v<value_type>,
@@ -379,72 +407,45 @@ public:
                                &&optional_detail::optional_construct_with_v<value_type, U>)>
     WJR_CONSTEXPR20 explicit(!std::is_convertible_v<const U &, value_type>)
         optional(const optional<U> &other)
-        : Mybase(enable_default_constructor) {
-        if (other.has_value()) {
-            this->construct_value(std::forward<const U &>(other.m_val));
-        } else {
-            this->construct_error();
-        }
-    }
+        : Mybase(optional_detail::converting_t{}, other.has_value(),
+                 static_cast<const optional_detail::optional_storage<U> &>(other)) {}
 
     template <typename U,
               WJR_REQUIRES(std::is_constructible_v<value_type, U>
                                &&optional_detail::optional_construct_with_v<value_type, U>)>
     WJR_CONSTEXPR20 explicit(!std::is_convertible_v<U, value_type>) optional(optional<U> &&other)
-        : Mybase(enable_default_constructor) {
-        if (other.has_value()) {
-            this->construct_value(std::forward<U>(other.m_val));
-        } else {
-            this->construct_error();
-        }
-    }
+        : Mybase(optional_detail::converting_t{}, other.has_value(),
+                 static_cast<optional_detail::optional_storage<U> &&>(other)) {}
 #else
     template <typename U, WJR_REQUIRES(std::is_constructible_v<value_type, const U &> &&
                                            optional_detail::optional_construct_with_v<value_type, U>
                                                &&std::is_convertible_v<const U &, value_type>)>
-    WJR_CONSTEXPR20 optional(const optional<U> &other) : Mybase(enable_default_constructor) {
-        if (other.has_value()) {
-            this->construct_value(std::forward<const U &>(other.m_val));
-        } else {
-            this->construct_error();
-        }
-    }
+    WJR_CONSTEXPR20 optional(const optional<U> &other)
+        : Mybase(optional_detail::converting_t{}, other.has_value(),
+                 static_cast<const optional_detail::optional_storage<U> &>(other)) {}
 
     template <typename U,
               WJR_REQUIRES(std::is_constructible_v<value_type, const U &>
                                &&optional_detail::optional_construct_with_v<value_type, U> &&
                            !std::is_convertible_v<const U &, value_type>)>
     WJR_CONSTEXPR20 explicit optional(const optional<U> &other)
-        : Mybase(enable_default_constructor) {
-        if (other.has_value()) {
-            this->construct_value(std::forward<const U &>(other.m_val));
-        } else {
-            this->construct_error();
-        }
-    }
+        : Mybase(optional_detail::converting_t{}, other.has_value(),
+                 static_cast<const optional_detail::optional_storage<U> &>(other)) {}
 
     template <typename U, WJR_REQUIRES(std::is_constructible_v<value_type, U> &&
                                            optional_detail::optional_construct_with_v<value_type, U>
                                                &&std::is_convertible_v<U, value_type>)>
-    WJR_CONSTEXPR20 optional(optional<U> &&other) : Mybase(enable_default_constructor) {
-        if (other.has_value()) {
-            this->construct_value(std::forward<U>(other.m_val));
-        } else {
-            this->construct_error();
-        }
-    }
+    WJR_CONSTEXPR20 optional(optional<U> &&other)
+        : Mybase(optional_detail::converting_t{}, other.has_value(),
+                 static_cast<optional_detail::optional_storage<U> &&>(other)) {}
 
     template <typename U,
               WJR_REQUIRES(std::is_constructible_v<value_type, U>
                                &&optional_detail::optional_construct_with_v<value_type, U> &&
                            !std::is_convertible_v<U, value_type>)>
-    WJR_CONSTEXPR20 explicit optional(optional<U> &&other) : Mybase(enable_default_constructor) {
-        if (other.has_value()) {
-            this->construct_value(std::forward<U>(other.m_val));
-        } else {
-            this->construct_error();
-        }
-    }
+    WJR_CONSTEXPR20 explicit optional(optional<U> &&other)
+        : Mybase(optional_detail::converting_t{}, other.has_value(),
+                 static_cast<optional_detail::optional_storage<U> &&>(other)) {}
 #endif
 
 #if defined(__cpp_conditional_explicit)
