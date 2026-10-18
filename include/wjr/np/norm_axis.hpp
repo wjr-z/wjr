@@ -33,8 +33,15 @@ void norm_axis_to(const Dst &dst, const Src &src) noexcept {
     const auto step = static_cast<size_t>(detail::axis_stride<Axis>(src));
     auto reduce = [input = src.data_handle(), output = dst.data_handle(), count,
                    step](size_t output_offset, size_t input_offset) noexcept {
-        output[output_offset] =
-            detail::blue_norm<accumulator_type>(input + input_offset, count, step);
+        // Retain static arguments before the line callback is inlined, so GCC
+        // can specialize the existing kernel without runtime stride metadata.
+        using layout = typename Src::layout_type;
+        constexpr bool unit_step = (packed_layout<layout> || padded_layout<layout>) &&
+                                   (left_layout<layout> ? Axis == 0 : Axis + 1 == Src::rank());
+        constexpr auto static_count = Src::static_extent(Axis);
+        const auto bound = static_count == dynamic_extent ? count : static_count;
+        output[output_offset] = detail::blue_norm<accumulator_type>(input + input_offset, bound,
+                                                                    unit_step ? size_t{1} : step);
     };
     detail::walk_axis_lines<0, Axis, Keep>(dst, src, reduce, 0, 0);
 }
