@@ -104,6 +104,10 @@ column norms: 5e+200 5e-200
 
 默认 dtype、NaN 优先及支持的 view 子集见[范数契约](../../docs/design/tensor-norm.md)。
 
+`expression_mean.cpp` / `wjr_np_expression_mean` 直接计算 `mean(a*a)` 和
+非线性纯 `map` 的均值，不创建中间 tensor。完整类型、空域与顺序说明见
+[表达式 mean](../../docs/design/tensor-expression-mean.md)；融合不意味着总比物化更快。
+
 `expression_simd.cpp` demonstrates explicit SIMD evaluation of a packed
 expression, including a scalar tail. Install WJR with both `WJR_ENABLE_NP=ON`
 and `WJR_ENABLE_XSIMD=ON`, then configure this example project with
