@@ -8,7 +8,7 @@
 #include <utility>
 
 #include <wjr/assert.hpp>
-#include <wjr/np/view.hpp>
+#include <wjr/np/detail/layout.hpp>
 
 namespace wjr::np::detail {
 
@@ -16,8 +16,8 @@ template <class T>
 concept kernel_element = std::is_arithmetic_v<T> && !std::is_volatile_v<T>;
 
 template <class Layout>
-concept kernel_layout = std::same_as<Layout, layout_left> || std::same_as<Layout, layout_right> ||
-                        std::same_as<Layout, layout_stride>;
+concept kernel_layout =
+    packed_layout<Layout> || std::same_as<Layout, layout_stride> || padded_layout<Layout>;
 
 template <class DstExtents, class SrcExtents>
 inline constexpr bool compatible_kernel_shape = [] {
@@ -70,8 +70,8 @@ constexpr void apply_kernel(Dst dst, Function &&function, Src... src) noexcept(
     constexpr auto rank = Dst::rank();
     constexpr bool dense =
         rank == 0 ||
-        (!std::same_as<typename Dst::layout_type, layout_stride> &&
-         ((!std::same_as<typename Src::layout_type, layout_stride> &&
+        (packed_layout<typename Dst::layout_type> &&
+         ((packed_layout<typename Src::layout_type> &&
            (rank <= 1 || std::same_as<typename Dst::layout_type, typename Src::layout_type>)) &&
           ...));
     if constexpr (dense) {
@@ -103,8 +103,8 @@ constexpr void apply_kernel(Dst dst, Function &&function, Src... src) noexcept(
                         std::as_const(src.data_handle()[input_offsets])...);
         };
         [&]<size_t... I>(std::index_sequence<I...> indices) {
-            walk_kernel<0, std::same_as<typename Dst::layout_type, layout_left>>(
-                shape, strides, leaf, indices, decltype(I){}...);
+            walk_kernel<0, left_layout<typename Dst::layout_type>>(shape, strides, leaf, indices,
+                                                                   decltype(I){}...);
         }(std::make_index_sequence<operands>{});
     }
 }

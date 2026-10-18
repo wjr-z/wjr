@@ -200,3 +200,18 @@ guarded log of raw inputs: 0 0 1.09861 1.38629
 guard 接收原始输入，在 callback 内判断后再调用 log；不是用 eager select 保护非法分支。
 标准重载类型、errno/fenv、constexpr 和剩余执行成本见
 [scalar math 契约](../../docs/design/tensor-expression-math.md)。
+
+## Borrowed slices
+
+`wjr_np_slice` selects alternate columns of a padded owner, computes directly
+into the selected elements and reduces the result. Neither slicing nor the
+expression allocates an intermediate array; untouched columns and padding
+remain untouched. Its output is:
+
+```text
+selected shape: 2x3, strides: 8,2, total: 222
+```
+
+`strided_slice{offset,extent,step}` uses a source interval length, rather than
+Python's stop coordinate. See the [slice contract](../../docs/design/tensor-slices.md)
+for examples, layout preservation and trusted-input preconditions.

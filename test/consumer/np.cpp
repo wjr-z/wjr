@@ -10,6 +10,7 @@
 #include <wjr/np/reduce.hpp>
 #include <wjr/np/reshape.hpp>
 #include <wjr/np/scan.hpp>
+#include <wjr/np/slice.hpp>
 #include <wjr/np/strided_tensor.hpp>
 #include <wjr/np/subview.hpp>
 #include <wjr/np/tensor.hpp>
@@ -21,6 +22,10 @@ int main() {
     int values[] = {0, 1, 2, 3, 4, 5};
     wjr::np::tensor_view<int, shape> view(values, 2);
     view(1, 2) = 42;
+    auto row_slice = wjr::np::slice_view(view, 1, wjr::np::full_extent);
+    if (row_slice(2) != 42) {
+        return 1;
+    }
     using owner = wjr::np::tensor<int, shape>;
     auto owned = wjr::np::make_tensor<owner>(std::array{2, 3});
     auto invalid = wjr::np::make_tensor<owner>(std::array{-1, 3});

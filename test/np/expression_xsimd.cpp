@@ -6,10 +6,12 @@
 
 #include <gtest/gtest.h>
 
+#include <wjr/np/copy.hpp>
 #include <wjr/np/expression_cast.hpp>
 #include <wjr/np/expression_mask.hpp>
 #include <wjr/np/expression_math.hpp>
 #include <wjr/np/expression_xsimd.hpp>
+#include <wjr/np/slice.hpp>
 
 namespace {
 namespace np = wjr::np;
@@ -404,4 +406,28 @@ TEST(NpExpressionXsimd, BroadcastExceptionalValuesKeepScalarResults) {
     }
 }
 
+} // namespace
+
+namespace {
+namespace np = wjr::np;
+using slice_shape = np::extents<size_t, 4, 6>;
+TEST(np_slice, optional_simd_uses_correct_padded_fallback) {
+    double values[24]{};
+    np::tensor_view<double, slice_shape> source(values);
+    auto window = np::slice_view(source, np::full_extent, std::pair{1, 5});
+    np::fill_to(window, 2.0);
+    const auto expression = np::as_expr(window) * 3.0;
+    double output[16]{};
+    np::tensor_view<double, np::extents<size_t, 4, 4>> dense(output);
+    np::eval_to(dense, expression, np::xsimd_policy<>{});
+    np::eval_to(window, expression, np::xsimd_policy<>{});
+    for (size_t row = 0; row != 4; ++row) {
+        EXPECT_EQ(source(row, 0), 0);
+        EXPECT_EQ(source(row, 5), 0);
+        for (size_t col = 0; col != 4; ++col) {
+            EXPECT_EQ(window(row, col), 6);
+            EXPECT_EQ(dense(row, col), 6);
+        }
+    }
+}
 } // namespace

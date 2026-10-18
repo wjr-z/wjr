@@ -43,6 +43,9 @@ target_link_libraries(wjr_np_strided_tensor PRIVATE wjr::np)
 add_executable(wjr_np_expression_math expression_math.cpp)
 target_link_libraries(wjr_np_expression_math PRIVATE wjr::np)
 
+add_executable(wjr_np_slice slice.cpp)
+target_link_libraries(wjr_np_slice PRIVATE wjr::np)
+
 include(CTest)
 if(BUILD_TESTING)
     add_test(NAME wjr_np_elementwise COMMAND wjr_np_elementwise)
@@ -61,4 +64,6 @@ if(BUILD_TESTING)
 
     add_test(NAME wjr_np_strided_tensor COMMAND wjr_np_strided_tensor)
     add_test(NAME wjr_np_expression_math COMMAND wjr_np_expression_math)
+
+    add_test(NAME wjr_np_slice COMMAND wjr_np_slice)
 endif()
