@@ -67,12 +67,26 @@ packed-right 且每个非 scalar 叶子恰好覆盖整个逻辑域时，使用�
 每个坐标按 AST 语义计算一次；重复子树仍会重复求值，没有公共子表达式缓存。
 辅助空间是编译期 rank 与叶子数量决定的少量栈元数据，没有中间 payload 或隐式分配。
 
+二维 `axes<0>` 的非抛出内建算术/pure map 子树，在列数至少为 4、每个叶子的有效列步长
+为 0 或 1 时，可交错处理四个独立输出列。每列仍按原行顺序从零累计，没有横向合并 accumulator，
+显式 Acc 和最终输出转换保持原语义。行间 padding、行/列广播和输出 stride 沿用已有绑定；
+叶子全部为单位列步长时使用常量 lane 偏移，否则使用 unit/splat 路径，最多两种模式。
+不足四列、其他步长/axis/rank 继续原路径，块末尾的 1–3 列也保持原有逐线累加。
+资格与模式仅在入口判断，不在每个点重查 shape，不复制 callable，也不公开块宽参数。
+
+`noexcept` 并不意味着没有错误状态副作用。math、cast、mask 和未知静态 operation
+首版保守保持原逐列路径；例如 `std::log` 的 errno 仍按原 line 顺序调用，
+不新增不同标准库之间 errno 取值一致的承诺。可能抛出的 map 同样保留逐线完成后提交，
+不把它改成可能在异常时失去已完成输出的跨列交错。
+
 这并不保证所有布局、编译器都与较优手写循环具有相同指令数。
-当前 Clang 18/GCC 12 的六组 baseline `-O3 -ffp-contract=off` 探针中，
+最初逐线实现的 Clang 18/GCC 12 六组 baseline `-O3 -ffp-contract=off` 历史探针中，
 公开 kernel 内无残留函数调用或分配调用；动态一维残差与静态 2×3 整数探针的
 静态指令数分别与对应手写循环相同。泛步长、单轴和列主序探针仍有布局相关差异。
 MSVC 19.42 仍保留部分绑定/遍历 helper 调用和较多 setup 指令。
 静态生成码审查只说明这些探针的代码形态，不代表普遍吞吐提升。
+当前四列路径的 Linux 实际 API 基准、生成码与剩余差距见
+[列规约成本记录](../performance/np-expression-columns.md)。
 
 完整例子见 [expression_reduce.cpp](../../examples/np/expression_reduce.cpp)：
 只物化每行均值的小 workspace，直接融合计算平方残差的全量和及逐行和。
