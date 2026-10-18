@@ -21,10 +21,10 @@ jobs:
             "$cxx" --version >> context.txt
             flags="-std=c++20 -O3 -ffp-contract=off -march=x86-64 -DWJR_DEBUG_LEVEL=0 -DMDSPAN_USE_PAREN_OPERATOR=1 -DMDSPAN_USE_BRACKET_OPERATOR=0 -Iinclude -I/tmp/mdspan/include"
             echo "$cxx $flags" >> context.txt
-            for mode in before after; do
+            for mode in after; do
               cp /tmp/scan-expression-before.hpp include/wjr/np/expression.hpp
               if [[ "$mode" == "after" ]]; then
-                python3 -c 'from pathlib import Path; p=Path("include/wjr/np/expression.hpp"); s=p.read_text(); a="return [&]<size_t... I>(std::index_sequence<I...>) {"; assert s.count(a)==2; p.write_text(s.replace(a,"return [&]<size_t... I>(std::index_sequence<I...>) WJR_FORCEINLINE_LAMBDA {"))'
+                python3 -c 'from pathlib import Path; p=Path("include/wjr/np/expression.hpp"); s=p.read_text(); a="return [&]<size_t... I>(std::index_sequence<I...>) {\n            if constexpr (E::kind == expression_kind::mapped)"; assert s.count(a)==2; p.write_text(s.replace(a,a.replace(") {", ") WJR_FORCEINLINE_LAMBDA {",1)))'
               fi
               "$cxx" $flags -S -masm=intel benchmarks/research/scan.cpp -o "$cxx-$mode.s"
               "$cxx" $flags benchmarks/research/scan.cpp -o "/tmp/$cxx-scan"
