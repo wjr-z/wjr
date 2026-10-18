@@ -77,20 +77,23 @@ JSON 数据结构和解析、序列化相关功能。
 ## `wjr::np`（可选、实验性）
 
 设置 `WJR_ENABLE_NP=ON` 后提供 C++20 的多维借用 view，包含
-`<wjr/np/view.hpp>` 并链接 `wjr::np`。`<wjr/np/make_view.hpp>` 另外提供
-检查连续 shape、算术和存储长度的借用入口，返回 `shape_result<T>`，不分配或延长数据寿命。
-该结果用保留的 `shape_error::ok` 编码成功状态，见 [结果类型别名](../design/expected-results.md)。
+`<wjr/np/view.hpp>` 并链接 `wjr::np`，直接按 mdspan 前置条件构造。
+可选 try_make_* 薄函数位于 `<wjr/np/make_view.hpp>`；成功仍返回同一 alias，不增加 checked 数据结构或索引检查。
+owner/eval 仍使用 shape_result 报告必要元数据失败，见[结果类型别名](../design/expected-results.md)。
 它复用固定版本 Kokkos mdspan，并传递 expected 所需的 baseline 断言与迭代器依赖，
 不依赖 `wjr::isa`，不默认链接到 `wjr::wjr`。
 安装消费使用 `find_package(wjr CONFIG REQUIRED COMPONENTS np)`。
 数据生命周期、未检查构造的前置条件和已测空间限制见
-[初始数据模型](../design/tensor-data-model.md)。`<wjr/np/tensor.hpp>` 提供
-容器管理生命周期的连续 owner、checked 创建及显式借用，见
-[owner 契约](../design/tensor-owner.md)。`<wjr/np/copy.hpp>` 和
+[借用数据模型](../design/tensor-data-model.md)与[核心标准](../design/np-core-standard.md)。`<wjr/np/tensor.hpp>` 提供
+容器管理生命周期的连续 owner 及显式借用，见
+[owner 契约](../design/tensor-owner.md)。正 stride owner 使用
+`<wjr/np/strided_tensor.hpp>`，见[跨度与孔洞契约](../design/tensor-strided-owner.md)。`<wjr/np/copy.hpp>` 和
 `<wjr/np/transform.hpp>` 提供预分配输出的复制、填充及单目/双目融合变换，
 支持连续和正步长输入，见[逐元素计算](../design/tensor-elementwise.md)。
 `<wjr/np/transpose.hpp>` 提供[二维转置借用](../design/tensor-transpose.md)；
-与 `copy_to` 组合可显式重排数据。表达式树和广播 evaluator 尚未实现。
+与 `copy_to` 组合可显式重排数据。`<wjr/np/expression.hpp>` 已提供值表达式、广播与预分配 eval_to，
+`<wjr/np/evaluate.hpp>` 提供独立拥有结果的 eval；见[表达式接口](../design/tensor-expression-api.md)。
+显式 cast、表达式 terminal sum 与可选 xsimd policy 使用各自头文件，状态与依赖见核心标准。
 预分配计算、列视图和转置复制的可运行示例见 [examples/np](../../examples/np)。
 `<wjr/np/reduce.hpp>` 提供立即执行的全量 `sum` 和单轴 `sum_to`，
 支持显式累计类型与 `keepdims`，见[规约契约](../design/tensor-reductions.md)。

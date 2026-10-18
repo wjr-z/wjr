@@ -1,62 +1,45 @@
-# 正 stride view 的可选构造入口
+# 正 stride 借用
 
-`<wjr/np/make_view.hpp>` 提供 CPU 外部数据的正 stride 接入边界，链接可选 `wjr::np`。函数返回的仍是普通 `tensor_view`，不引入 checked 类型或访问状态。
-已可信的 shape/stride 直接构造 mdspan mapping 和 view，不经过此入口：
+`<wjr/np/view.hpp>` 的 tensor_view alias 直接组合固定 Kokkos mdspan mapping。
+普通借用由可信调用方满足后端前置条件。可选 try_make_strided_tensor_view 仍保留为报告构造错误的薄函数，
+与连续构造入口合并到 make_view.hpp；它返回同一种 mdspan，不是 checked view 数据结构。
+构造函数使用中性 `make_view.hpp`；普通计算不依赖该头，见[核心标准](np-core-standard.md)。
 
 ```cpp
-using shape = wjr::np::extents<std::size_t, wjr::np::dynamic_extent, 300>;
-auto panel = wjr::np::try_make_strided_tensor_view<shape>(
-    data, available_elements, std::array<std::int64_t, 2>{days, 300},
-    std::array<std::int64_t, 2>{row_pitch, 1});
-// expected<tensor_view<元素类型, shape, layout_stride>, shape_error>
+namespace np = wjr::np;
+using shape = np::extents<std::size_t, np::dynamic_extent, 300>;
+using view = np::tensor_view<const double, shape, np::layout_stride>;
+const shape dimensions(days, 300);
+const view::mapping_type mapping(dimensions, std::array<std::size_t, 2>{row_pitch, 1});
+const view panel(data, mapping);
 ```
 
-stride 单位是 T 对象数，不能直接传 NumPy 的 byte stride。
-[DLPack 的 strides](https://dmlc.github.io/dlpack/latest/c_api.html#c.DLTensor.strides)
-同样以元素为单位，byte_offset 才以字节为单位。单位一致不代表已经实现 DLPack 导入器：
-dtype、device、byte_offset 处理，以及 producer/deleter 或 lease 的生命周期边界尚未接入。
-shape 与 stride 可以使用不同整数类型；两者都检查后再转成 index_type，不接受 bool 或浮点。
-静态 extent 和 T 的 const 性保留。返回已有 mdspan alias，不增加标记、共享所有权或索引检查。
-调用方仍需保证地址、类型、对齐、包含间隙的存储范围及整个使用期间的生命周期有效。
+例中 days、row_pitch 和 data 必须已经满足下述条件，可信内部直接使用此路径。
+若调用方需要失败结果，可显式调用 try_make_strided_tensor_view<shape>(data, available_elements, shape_values, strides)。
+它先验证整数、排列与 span，再返回 shape_result<tensor_view<...>>；这是一次函数调用的选择，不改变后续 view 类型或索引。
+stride 以元素数计数，不能直接把字节 stride 传入。保留静态 extent 和元素 const 性，
+复制只复制 descriptor，不增加共享所有权、分配或逐索引检查。
 
-## 固定后端的合法输入子集
+## 合法输入子集
 
-首版复用固定 Kokkos `layout_stride::mapping`，不实现新的布局。
-其 [array 构造函数](https://github.com/kokkos/mdspan/blob/0e4eba59ad53451784b3839bdf98b25fa2d64931/include/experimental/__p0009_bits/layout_stride.hpp#L307)
-只注释前置条件而不校验：stride 严格为正、required span 可表示为 index_type，
-并存在轴排列使相邻轴满足 `stride[next] >= stride[previous] * extent[previous]`。
-[P0009R18](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p0009r18.html)
-提供这一排列约束的背景；不能通过构造 mapping 后调用始终为 true 的 is_unique() 验证外部输入。
+固定后端的 [layout_stride 构造](https://github.com/kokkos/mdspan/blob/0e4eba59ad53451784b3839bdf98b25fa2d64931/include/experimental/__p0009_bits/layout_stride.hpp)
+要求每轴 stride 严格为正，required span 可表示，并存在轴排列使
+`stride[next] >= stride[previous] * extent[previous]`。
+调用 is_unique() 不能检查一个已违反构造前提的 mapping。
+shape (2,2)、strides (2,3) 虽数学上单射，仍不满足此构造条件，不属于本接口子集。
 
-适配器在边界建立一次排列见证：零 extent 轴先放，剩余按 stride 升序；相同 stride 按 extent 升序，
-使 singleton 轴排在前面。用除法比较相邻轴，不先计算可能溢出的乘积；末轴不需要 stride * extent。
-非空 shape 下这验证了后端要求的排列条件，但不是任意映射的通用唯一性算法。
-例如 `[2,2]` 配合 stride `[2,3]` 的四个偏移互不相同，却没有满足该构造前置条件的排列，
-因此返回 `unsupported_stride_order`，不将它错误报告为已经证明重叠。
+非空 span 为 `1 + sum((extent - 1) * stride)`；shape (2,3)、strides (8,1) 的 size 为 6、span 为 11。
+data 必须覆盖所需的有效对象范围，不只覆盖逻辑 size；不要求最后一行之后额外的 padding。
+rank-0 需要一个对象，含零 extent 的逻辑域为空。
+空域仍须满足后端执行的中间算术；不能先发生乘加溢出再依赖后续零 extent 返回 0。
 
-空 shape 使用保守的零轴优先顺序：`[2,0,2]` / stride `[1,100,1]` 有其他合法排列，
-但本入口仍返回 `unsupported_stride_order`。同时复用现有 check_metadata 的完整 shape 检查，
-包括空 shape 的无零连续段乘积约束；不宣称接受后端可能表示的全部空映射。
-固定 rank 的局部数组和插入排序不分配内存，普通访问不再排序或重新校验。
+自然对齐、真实类型、可访问范围和生命周期均由调用方承担。
+标准 layout_stride 不接收 negative/zero stride；表达式广播在内部只读投影中使用零步长，
+不构造这种非法 mapping。signed-stride 和外部 byte-buffer/device 适配是独立后续范围。
 
-## 跨度与失败
+## 与 owner 和计算的关系
 
-先验证全部 shape 和 stride，再检查排列、span 乘加和字节跨度后构造 mapping。
-借用入口再检查 available_elements 和指针，最后构造 view；拥有存储的入口复用同一 mapping 校验。正常 metadata 错误返回 expected，不用断言报告输入错误。
-非空所需对象数为 `1 + sum((extent - 1) * stride)`，rank-0 为 1，空映射为 0。
-例如 shape `[2,3]` / stride `[8,1]` 的逻辑大小为 6，所需存储跨度为 11；
-末行之后的额外 padding 可以存在，但不要求必须提供。
-
-固定后端的 required_span_size() 按原轴顺序累加，到零 extent 才返回 0。
-因此 `[2,0]` / stride `[INT_MAX,1]` 会在到零之前溢出；入口同样保护首个零前的每步乘加。
-不会因为最终逻辑大小为 0 就跳过这些约束，也不会要求最后一轴的 stride * extent 可表示。
-实际跨度还须满足 size_t、PTRDIFF_MAX 字节上界及所声明存储长度。
-
-负数或零 stride 返回 `nonpositive_stride`，stride 不可表示返回 `stride_out_of_range`；
-排列不在支持集合返回 `unsupported_stride_order`。其余 shape/算术/存储错误沿用 shape_error。
-空 shape 的 nullptr/0 合法；非零 available_elements 不能携带 nullptr。
-
-不支持负 stride、零 stride 广播、自定义 accessor、byte stride 自动转换或设备地址。
-[P3959R0](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3959r0.html)
-讨论了允许空映射的零 stride；本接口遵循固定快照的严格正数前置条件，不采用其中的放宽。
-该入口可以描述行间填充和转置后的正步长数据，不引入 padded owner、表达式或 evaluator。
+这是借用 view，不分配孔洞存储，也不维护 allocation 长度。
+正 stride owner 必须在分配前验证完整 span，容器长度足以覆盖它；该责任留在 owner 内部。
+view 可以直接传给现有正 stride 逐元素计算、表达式与 sum；每个入口另有 dtype/alias 前置条件。
+任意相交/重复写 mapping 不因只读描述符构造成功就被授权作为输出。

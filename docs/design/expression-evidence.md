@@ -1,6 +1,7 @@
 # 表达式原型与参考实现证据
 
-这是 [表达式架构](tensor-expressions.md) 的验收输入，不是正式表达式 API 的性能承诺。
+这是 [表达式架构](tensor-expressions.md) 的带快照验收输入；统一契约见[核心标准](np-core-standard.md)。
+下文前半记录 2026-10-17/18 的早期 span 原型，不代表当前生产实现仍缺少已经合入的功能。
 可运行原型位于 [examples/np/expression_design](../../examples/np/expression_design/README.md)。
 原型只处理 double 和已经绑定的遍历域，尚不包含完整 shape 推导、任意广播、
 重叠规划、规约或图编译。
@@ -50,6 +51,24 @@ Google Benchmark 1.9.0 的探索性运行覆盖 4、300、262144 元素，以及
 这些数据用于暴露问题，不作为吞吐量验收或跨机器收益结论。
 后续正式比较需增加测量时长、随机交错和稳定机器上的独立重复，且统一语义、ISA 与调用上下文。
 
+## 当前实现与历史证据的关系
+
+基线 39fb36ba 已有真实 mdspan 值表达式、广播/stride、eval、cast、表达式 sum 与可选 SIMD。
+原型 MSVC reason 1200 不能继续作为生产 axpby 的现状：实际绑定路径已恢复所测自动向量化，
+但重复叶子的 alias guards、复杂树的内联预算、通用布局 setup 与 helper 调用仍有剩余成本。
+拥有结果的标准数值 eval 已使用 default_construct 消除所测初始化清零；view sum/scan 的四列路径已实现。
+这些结论的详细范围分别见实际 API 文档，不能用历史负面结果覆盖后来修复。
+
+本次核心审查重新读取 map 152260e5、mask d9194269 与正 stride owner 工作副本。
+map 的本地/显式 scalar 配置可更容易外提；跨非内联 AST 的 const F* 仍可能产生状态加载和别名保护。
+这类生成码观察不等于吞吐；比较必须同时包含同 const F& 和手工外提字段的基准。
+既有宽列实验全部在 Windows x64，8/16 宽块有收益也有尾段/寄存器退化，不能作为 Linux 默认宽度证据。
+本次未重新运行这些计时、硬件计数器或编译矩阵；新能力须保存自己的精确快照和实测范围。
+
+构造/复用基准还必须匹配已捕获系数的快照和 FP contraction 边界。
+把手写版本的活系数地址暴露给输出别名、或让一方形成 FMA 而另一方保留乘加，都不是公平对照。
+当前基准应按实际 expression closure 检查，而非沿用看起来类似的源代码。
+
 ## xtensor 固定版本审查
 
 参考 xtensor **0.27.1**，提交
@@ -67,7 +86,7 @@ xtl 0.8.0，提交 `ef84e9f27020ad54961c99acd293d80d4b775dd3`。
 
 xtensor/xtl 的闭包会借用部分左值，包括左值标量。
 例如创建 `a + scale` 后改变 scale，惰性表达式可能读取新值。
-WJR 拟采用标量值快照，这是可见语义差异，需要明确说明。
+WJR 已采用标量值快照，这是可见语义差异，需要明确说明。
 值捕获描述符与轻量节点能避免引用函数内局部节点，但不会延长底层数组寿命。
 
 ### 静态广播的零维度
@@ -119,6 +138,7 @@ Clang 18、GCC 12、MSVC 19.42：标量读取 `e(0)` 为 1；启用 SIMD 后，
 
 ### 赋值与遍历分层
 
+xtensor 并非性能上限；以下机制既有功能价值，也可能增加 WJR 当前子集不需要的成本。
 普通 xtensor 表达式赋值已有
 [`overlap checker`](https://github.com/xtensor-stack/xtensor/blob/f115228a7fc277b9be1bef34572831f8fd53ac73/include/xtensor/core/xsemantic.hpp#L622-L642)，
 不能描述成所有赋值都会物化。noalias 绕过相关安全处理，也不等于结果缓存。

@@ -1,8 +1,8 @@
-# 初始 tensor 数据模型
+# Tensor 借用数据模型
 
 本轮确定 CPU 借用描述符的最小数据结构，并提供实验性的 `wjr::np` 模块。
-它不分配、不延长数据寿命；owner、切片、广播、表达式及 evaluator 继续按
-[总体设计](tensor.md) 单独推进。此接口尚未承诺稳定 ABI。
+它不分配、不延长数据寿命。owner、有限切片、广播与 evaluator 已有独立 API；
+共同不变量和准确状态见[核心标准](np-core-standard.md)。此接口尚未承诺稳定 ABI。
 
 ## 选择与版本边界
 
@@ -65,47 +65,32 @@ mapping 内含 extents，不重复保存 shape。
 
 这里的构造和 `operator()` 都遵循 mdspan 的**未检查前置条件**。
 它们不是 NumPy/DLPack 的安全接入边界，不检查外部存储长度、溢出、stride 合法性或生命周期。
-需要校验连续 shape 和存储长度时，使用下面的 checked 适配入口；
-不能先调用可能溢出的 required_span_size() 再事后检查。
+调用方在构造前满足 shape、跨度与对象有效性的前置条件；
+不能先调用可能溢出的 required_span_size() 再事后判断是否合法。
 连续 view 的零拷贝 flatten 与 checked reshape 见 [元数据适配](tensor-reshape.md)。
 二维连续源的行/列借用见 [受限子 view](tensor-subview.md)。
 调试边界检查、`at()`、通用切片或标准 mdspan 互操作尚未实现。
 
-## checked 连续借用
+## 直接构造与迁移
+
+普通借用直接使用 mdspan alias；可选 try_make_tensor_view/try_make_strided_tensor_view 函数仍可报告构造失败，
+成功返回同一种 tensor_view。本次将这两个薄函数合并到 make_view.hpp，替换 checked_view.hpp/checked_strided_view.hpp 头名；
+旧 include 迁移到中性的构造头；普通计算只需 view.hpp。不另造 checked/trusted/unchecked 数据结构，也不增加访问检查。
 
 ```cpp
-#include <wjr/np/make_view.hpp>
+#include <wjr/np/view.hpp>
 
 using shape = wjr::np::extents<std::size_t, wjr::np::dynamic_extent, 300>;
-auto result = wjr::np::try_make_tensor_view<shape>(
-    data, available_elements, std::array<std::int64_t, 2>{days, 300});
-// result 为 expected<tensor_view<元素类型, shape>, shape_error>。
-// 在确认 result 有值后借用 *result；数据的生命周期仍由调用方负责。
+wjr::np::tensor_view<const double, shape> panel(data, days);
+// 可信调用方保证维度、对象跨度、类型/对齐和寿命；构造不扫描内存或再次验证。
 ```
 
-`try_make_tensor_view<Extents, Layout = layout_right>` 从 `T*` 推导元素 const 性，
-完整 shape 使用 rank 个整数，包括类型中声明的静态维度。
-只接受 layout_left/right 与默认 accessor，不接受任意 stride、广播或容器隐式转换。
-输入 shape 的整数类型可与 index_type 不同，但不接受 bool 或浮点 shape。
-
-该 constexpr/noexcept 入口先检查所有 extent 的符号、可表示性及静态匹配，
-然后检查无零连续维度段的乘积、逻辑元素数和字节跨度，最后检查 available_elements 与空指针。
-所有检查通过后才构造后端 extents、mapping 和 view；不计算未验证 mapping 的 required_span_size()。
-字节跨度保守限制在 PTRDIFF_MAX 内；含零维度也不能跳过可能溢出的 prefix/suffix stride。
-例如 int 索引下的 [0,46341,46341] 被拒绝，而 [46341,0,46341] 可表示为空 view。
-元数据错误返回 `shape_error`，不调用断言或抛异常报告正常输入错误。
-
-available_elements 表示从 data 开始的可用 T 对象数，可以大于逻辑元素数。
-空 shape 的 nullptr/0 合法；非零 available_elements 携带 nullptr 被拒绝。
-rank-0 需要一个对象，不能用 nullptr/0 作为标量借用。
-这不是内存探测：调用方仍须保证所声明的存储确实有效、对齐、类型正确且在使用期间存活。
-原始指针不能证明所有权或检测曾经发生的悬垂，错误的非空指针也无法由长度字段证明安全。
-
-返回值不分配、不持有 owner 或 shared_ptr，不复制元素，也不改变现有 view 的表示和索引路径。
-检查只发生在适配边界，热循环获得普通 tensor_view 后不重复验证 shape。
-
-正步长、行间填充和转置输入使用独立的
-[正 stride 构造](tensor-strided-view.md)；它只接受可证明满足固定后端构造前置条件的子集。
+mdspan alias 已是所需的薄接口，可信内部数据直接使用它。
+需要恢复外部元数据错误时显式调用 make_view.hpp 中的 try_make_*；静态不匹配、负数、溢出和长度不足在构造前报告。
+它们不能探测真实 allocation 或寿命，typed pointer 仍须有效、自然对齐且存活。
+owner/eval 分配前必要的整数、跨度和容量检查留在内部，不 include 公共构造头或绕行其 buffer/null 验证。
+未来 Python/设备适配若面对不可信元数据，在真实外部边界决定验证责任，不先为它建立通用校验框架。
+正步长映射的直接构造与前提见[正 stride 借用](tensor-strided-view.md)。
 
 索引固定使用 `view(i, j)`。`wjr::np` 通过公开 CMake 定义启用后端 paren 运算符、禁用 bracket 运算符，
 使 C++20/23 使用相同拼写。整个程序直接使用此后端的翻译单元也须遵循相同宏配置与源码版本，
@@ -120,7 +105,7 @@ ctest --test-dir build -R wjr_np_tests --output-on-failure
 ```
 
 源码消费时链接 `wjr::np`；它传递 `wjr::config`、固定后端及 baseline 的断言和迭代器依赖，
-使 checked 返回值的 expected 在调试配置下也有完整的头文件和链接要求，不链接 `wjr::isa`。
+使 shape_result 等返回值在调试配置下也有完整的头文件和链接要求，不链接 `wjr::isa`。
 默认 `WJR_ENABLE_NP=OFF` 不下载 mdspan，普通 `wjr::wjr` 不依赖 np。
 启用安装时，上游头文件及 mdspan CMake 包随安装前缀安装，np 单独导出。
 
@@ -164,32 +149,11 @@ Clang 18 的静态/动态索引生成相同指令；GCC 12 静态索引相同，
 
 ## owner 的初步结构决策
 
-具体的首版模板、存储有效状态、借用和异常赋值规则见
-[owner 存储与 API 契约](tensor-owner.md)；本节保留结构选择的背景，owner 尚未实现。
+此节保留链接锚点，初步方案现已实现为[owner 存储与 API 契约](tensor-owner.md)。
+默认 tensor_vector + mapping_holder 复用容器生命周期；静态 packed mapping 压缩，动态 extents 按实例保存。
+默认 owner 不再处于选型阶段，也没有自动采用 xtensor owner。正 stride owner 是本次审查接受的增量能力，
+其完整 span 与状态在[核心标准](np-core-standard.md)中单独列明。
 
-下一步优先采用 **Container + mapping**，参照
-[P1684R5](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p1684r5.html)。
-容器拥有对象和 allocator，mapping 保存 shape；外层不再复制容器已有的指针、size、capacity、allocator。
-首版只允许无填充的连续 layout_left/right；Container::data() 必须提供真实 T*，排除 vector<bool>。
-自定义 allocator、alignment 及分配策略通过容器处理，而非附加一个通用共享控制块。
-
-```cpp
-// 仅结构草图，未实现 owner。
-template <class Extents, class Layout, class Container>
-struct owner_state {
-    using mapping_type = typename Layout::template mapping<Extents>;
-    wjr::compressed_pair<mapping_type, Container> state;
-};
-```
-
-默认动态存储候选为已有 vector 类容器；小型完全静态 shape 可显式选 array 类容器，
-不让静态大数组自动进入栈中。复制遵循容器值语义，allocator propagation/noexcept 由容器实际行为决定。
-`view() &` 返回可写描述符，`view() const &` 返回只读元素描述符；`view() &&` 和 `view() const &&` 删除。
-初始化先检查 shape/容量再创建容器；不暴露会破坏 mapping 与容器长度关系的可写 storage()。
-移动后的静态 owner 可保留 shape 但失去动态存储，形成 view 前必须重新满足存储要求。
-
-本地原型中，二维动态 mapping 加 Release std::vector<int> 为 40 字节（容器自身 24 字节，mapping 16 字节），
-与这些必需状态之和一致。静态 mapping 加 std::array<int,6> 在 GCC 12 为 24 字节，
-Clang/MSVC ABI 直接成员组合为 28 字节。原型没有实现 allocator/借用适配，也未测 xtensor owner 或自定义压缩 owner；
-这些数据只支持继续评估组合存储，尚不足以定稿默认容器或承诺 owner API。
-在实际 owner MR 中再验证强异常保证、状态 allocator、临时借用拒绝以及 checked shape 算术。
+默认静态 owner 仍包含 vector 的 data/end/capacity；它不同于指针级 exact-storage 的表示下界。
+既有容器带来的 allocator、异常和 moved-from 规则有维护价值，但不构成空间开销已消失的证据。
+后续优化需用具体小 owner 工作负载证明收益，再决定是否新增 opt-in 存储。

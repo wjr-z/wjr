@@ -2,8 +2,9 @@
 
 本轮在 [初始数据模型](tensor-data-model.md#owner-的初步结构决策) 的 Container + mapping
 决策上收敛首版 owner。`<wjr/np/tensor.hpp>` 已实现下述连续存储子集和 checked factory，
-通过可选 `wjr::np` target 使用；evaluator 尚未实现。计算继续接收现有 `tensor_view`，
-不引入第二套表达式引擎。
+通过可选 `wjr::np` target 使用；[eval](tensor-evaluation.md) 已提供拥有结果的物化。
+本文主要说明 packed 基线，跨布局契约及正 stride owner 的候选状态见[核心标准](np-core-standard.md)。
+计算继续接收现有 tensor_view。
 
 ## 复用结论
 
@@ -49,7 +50,8 @@ xtensor 0.27.1 固定为
 WJR 复用已有 vector 的 default-initialization 路径，不照搬 uvector 的 allocator 行为。
 它的 [xstrided_container](https://github.com/xtensor-stack/xtensor/blob/f115228a7fc277b9be1bef34572831f8fd53ac73/include/xtensor/containers/xcontainer.hpp#L326)
 同时保存 shape、strides、backstrides 和 layout，支持比首版连续 owner 更广的操作。
-本轮不引入其 owner/表达式依赖；后续 evaluator 仍须比较可复用的 xtensor 子集，不能据此先实现替代引擎。
+本轮不引入其 owner/表达式依赖；现有 WJR evaluator 已采用更窄的静态值树。
+xtensor 仍是设计和同语义对照输入，不是性能上限，也不因成熟而要求替换当前实现。
 
 ## 类型与存储
 
@@ -124,7 +126,7 @@ bool has_storage() const noexcept {
 | 存在零 extent | 保留该 shape | 逻辑大小 0，合法空 view 可以携带空指针 |
 
 默认构造同样先满足静态运算约束，再创建存储。
-数值元素的值初始化得到零；首版不提供未初始化存储捷径。
+数值元素的值初始化得到零；显式 default_construct factory 提供合法默认初始化，见下文，不能先读未写的算术值。
 静态 shape 也不自动改用内嵌数组，避免大数组无意进入对象或栈。
 
 移动或容器操作失败后，允许得到 **mapping 有效但存储不完整** 的表示。
@@ -234,7 +236,8 @@ adopt 只执行一次 Container 移动；不先创建 owner 临时对象再整�
 
 ## 复制、移动与异常
 
-mapping 属于已校验的 layout_left/right，要求其复制/赋值不抛异常。
+本节 packed mapping 属于已校验的 layout_left/right，要求其复制/赋值不抛异常。
+正 stride 扩展同样要求无抛提交，并把 has_storage 的比较对象改为 required span；不能拿逻辑 size 检验有孔存储。
 复制构造和移动构造分别使用容器自身对应构造；复制 allocator 的选择交给容器，
 不另行绕过 select_on_container_copy_construction。
 
@@ -331,4 +334,5 @@ owner 的无异常创建/借用/元数据错误路径可编译运行，不将其
 Clang 18 Release 下，静态 vector/array owner 的借用与索引分别与直接使用相同常量 mapping
 的写法生成相同指令；固定 shape 创建只有一次元素分配，空容器 max_size 探针不引入额外分配。
 这些检查支持所测包装路径的空间与生成码目标，不是吞吐量结论或通用零成本保证。
-连续预分配输出求值、广播、切片、表达式融合与 xtensor evaluator 复用仍属后续独立工作。
+连续预分配求值、广播、有限切片与表达式融合已实现；本节历史尺寸/生成码证据不因此自动覆盖后来所有路径。
+泛切片、exact-storage 与更广后端复用按[实施计划](expression-roadmap.md)的证据门槛推进。
