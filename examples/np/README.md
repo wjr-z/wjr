@@ -89,6 +89,15 @@ sum of squared residuals: 10
 
 累计类型、逻辑顺序、空域及不交叠要求见[规约契约](../../docs/design/tensor-reductions.md)。
 
+`norm.cpp` / `wjr_np_norm` 直接借用矩阵的非连续列，计算稳定 L2 范数。
+它不会创建平方数组；示例同时包含直接平方会溢出和下溢的量级：
+
+```text
+column norms: 5e+200 5e-200
+```
+
+默认 dtype、NaN 优先及支持的 view 子集见[范数契约](../../docs/design/tensor-norm.md)。
+
 `expression_simd.cpp` demonstrates explicit SIMD evaluation of a packed
 expression, including a scalar tail. Install WJR with both `WJR_ENABLE_NP=ON`
 and `WJR_ENABLE_XSIMD=ON`, then configure this example project with

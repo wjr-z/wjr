@@ -55,6 +55,9 @@ target_link_libraries(wjr_np_slice PRIVATE wjr::np)
 add_executable(wjr_np_mean mean.cpp)
 target_link_libraries(wjr_np_mean PRIVATE wjr::np)
 
+add_executable(wjr_np_norm norm.cpp)
+target_link_libraries(wjr_np_norm PRIVATE wjr::np)
+
 include(CTest)
 if(BUILD_TESTING)
     add_test(NAME wjr_np_mean COMMAND wjr_np_mean)
@@ -78,4 +81,5 @@ if(BUILD_TESTING)
     add_test(NAME wjr_np_expression_math COMMAND wjr_np_expression_math)
 
     add_test(NAME wjr_np_slice COMMAND wjr_np_slice)
+    add_test(NAME wjr_np_norm COMMAND wjr_np_norm)
 endif()
