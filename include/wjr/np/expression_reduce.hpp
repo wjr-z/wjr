@@ -79,6 +79,70 @@ sum_linear_expression(Values values,
     return result;
 }
 
+// Nothrow alone does not permit reordering math/unknown operations: e.g. std
+// math may write errno. Pure map callbacks already require order independence.
+template <tensor_expression Expression>
+inline constexpr bool interleavable_sum_expression = [] {
+    using E = std::remove_cvref_t<Expression>;
+    if constexpr (E::kind == expression_kind::view || E::kind == expression_kind::scalar) {
+        return true;
+    } else {
+        constexpr bool operation = [] {
+            if constexpr (E::kind == expression_kind::mapped)
+                return true; // User callable follows the pure map contract.
+            else if constexpr (E::kind == expression_kind::unary ||
+                               E::kind == expression_kind::binary) {
+                using op = typename E::operation_type;
+                return std::same_as<op, add_operation> || std::same_as<op, subtract_operation> ||
+                       std::same_as<op, multiply_operation> || std::same_as<op, divide_operation> ||
+                       std::same_as<op, positive_operation> || std::same_as<op, negative_operation>;
+            } else
+                return false;
+        }();
+        return operation && []<size_t... I>(std::index_sequence<I...>) {
+            return (interleavable_sum_expression<expression_child_type<E, I>> && ...);
+        }(expression_child_indices<E>{});
+    }
+}();
+
+// Each lane is a separate ordered fold. Unit means every pointer leaf has
+// adjacent columns; scalar slots ignore offsets. Splat leaves use the general
+// lane offsets without enumerating per-leaf load-mode combinations.
+template <bool Unit, tensor_expression E, class Accumulator, class D, class Values, size_t Count,
+          size_t... I>
+WJR_INTRINSIC_INLINE constexpr void
+sum_expression_columns_to(D *output, const Values &values, size_t rows, size_t columns,
+                          size_t output_step, const std::array<size_t, Count> &row_steps,
+                          const std::array<size_t, Count> &column_steps,
+                          std::index_sequence<I...> operands) noexcept {
+    const auto bound = columns - columns % 4;
+    size_t first = 0;
+    for (; first != bound; first += 4) {
+        std::array<size_t, Count> offsets{(Unit ? first : first * column_steps[I])...};
+        Accumulator a{}, b{}, c{}, d{};
+        for (size_t row = 0; row != rows; ++row) {
+            a += static_cast<Accumulator>(read_bound_expression<E>(values, offsets));
+            b += static_cast<Accumulator>(read_bound_expression<E>(
+                values, std::array<size_t, Count>{(offsets[I] + (Unit ? 1 : column_steps[I]))...}));
+            c += static_cast<Accumulator>(read_bound_expression<E>(
+                values,
+                std::array<size_t, Count>{(offsets[I] + (Unit ? 2 : 2 * column_steps[I]))...}));
+            d += static_cast<Accumulator>(read_bound_expression<E>(
+                values,
+                std::array<size_t, Count>{(offsets[I] + (Unit ? 3 : 3 * column_steps[I]))...}));
+            ((offsets[I] += row_steps[I]), ...);
+        }
+        output[first * output_step] = a;
+        output[(first + 1) * output_step] = b;
+        output[(first + 2) * output_step] = c;
+        output[(first + 3) * output_step] = d;
+    }
+    for (; first != columns; ++first)
+        output[first * output_step] = sum_expression_line<E, Accumulator>(
+            values, rows, std::array<size_t, Count>{first * column_steps[I]...}, row_steps,
+            operands);
+}
+
 template <size_t Rank, size_t Count, class Function, size_t... I>
 WJR_INTRINSIC_INLINE constexpr void walk_expression_sum(
     const std::array<size_t, Rank> &shape,
@@ -113,6 +177,36 @@ sum_expression_axis_to(Dst dst, const E &expression) noexcept(noexcept(expressio
     std::array<size_t, inputs> steps{};
     for (size_t input = 0; input != inputs; ++input)
         steps[input] = input_strides[input][Axis];
+    if constexpr (rank == 2 && Axis == 0 && noexcept(expression.read(size_t{})) &&
+                  interleavable_sum_expression<E>) {
+        const auto columns = domain.extent(1);
+        if (columns >= 4) {
+            std::array<size_t, inputs> column_steps{};
+            bool unit_or_splat = true;
+            for (size_t input = 0; input != inputs; ++input) {
+                column_steps[input] = input_strides[input][1];
+                unit_or_splat &= column_steps[input] <= 1;
+            }
+            if (unit_or_splat) {
+                const bool unit = [&]<size_t... I>(std::index_sequence<I...>) {
+                    using data_type = std::remove_cvref_t<decltype(expression_values(values))>;
+                    return ((!std::is_pointer_v<std::tuple_element_t<I, data_type>> ||
+                             column_steps[I] == 1) &&
+                            ...);
+                }(std::make_index_sequence<inputs>{});
+                const auto output_step = static_cast<size_t>(dst.stride(Keep ? 1 : 0));
+                if (unit)
+                    sum_expression_columns_to<true, E, accumulator_type>(
+                        dst.data_handle(), values, count, columns, output_step, steps, column_steps,
+                        std::make_index_sequence<inputs>{});
+                else
+                    sum_expression_columns_to<false, E, accumulator_type>(
+                        dst.data_handle(), values, count, columns, output_step, steps, column_steps,
+                        std::make_index_sequence<inputs>{});
+                return;
+            }
+        }
+    }
     std::array<size_t, rank - 1> outer_shape{};
     std::array<std::array<size_t, rank - 1>, 1 + inputs> outer_strides{};
     if constexpr (rank > 1) {

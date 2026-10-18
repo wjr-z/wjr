@@ -574,7 +574,7 @@ read_bound_expression(const Values &binding,
                                   Function + expression_function_count<typename E::left_type>>(
                 binding, i));
     } else {
-        return [&]<size_t... I>(std::index_sequence<I...>) {
+        return [&]<size_t... I>(std::index_sequence<I...>) WJR_FORCEINLINE_LAMBDA {
             if constexpr (E::kind == expression_kind::mapped)
                 return std::invoke(
                     *std::get<Function>(binding.functions),
@@ -612,7 +612,7 @@ read_bound_expression(const Values &binding, const std::array<size_t, Count> &of
                                   Function + expression_function_count<typename E::left_type>>(
                 binding, offsets));
     } else {
-        return [&]<size_t... I>(std::index_sequence<I...>) {
+        return [&]<size_t... I>(std::index_sequence<I...>) WJR_FORCEINLINE_LAMBDA {
             if constexpr (E::kind == expression_kind::mapped)
                 return std::invoke(
                     *std::get<Function>(binding.functions),

@@ -84,6 +84,10 @@ elseif(WJR_BENCHMARK_PROFILE STREQUAL "np")
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_owner.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/np_expression_reduce.cpp
+    )
+    set_source_files_properties(src/np_expression_reduce.cpp PROPERTIES
+        COMPILE_OPTIONS "$<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-ffp-contract=off>"
     )
 else()
     message(FATAL_ERROR "WJR_BENCHMARK_PROFILE must be 'core', 'all', 'simd', or 'np'")
