@@ -1,168 +1,124 @@
-# 表达式实施计划
+# NP 后续能力实施计划
 
-本计划落实 [表达式设计](tensor-expressions.md)，按可用能力分组，不按文件或任意行数切分。
-每组包含实现、针对性验证与能展示功能的示例。通常控制在约 1000–2000 行内，
-自然较小的能力不填充代码；依赖合入后及时刷新分支。
+本计划落实[核心标准](np-core-standard.md)，按可用能力组织实现、针对性测试、例子与证据。
+每组自然形成完整审查，不以固定行数拆开同一个不变量，也不为占满审查容量填充工作。
+审查基线 `39fb36ba` 已有值表达式、广播/stride 求值、eval、xsimd、cast、view sum/scan 与表达式 sum。
+map/mask 与正 stride owner 已于本次审查期间合入，准确快照见核心标准。
+当前同步落实构造边界收敛：可选 try_make_* 薄函数合并到 make_view.hpp，返回同一种 mdspan；
+不制作 checked 数据结构，可信内部直接构造，owner/reshape 使用内部 metadata 而不绕公共工厂。
 
-## 第一阶段：直接可用的计算
+## 1. 完整 span owner 与组合验收
 
-### 1. 表达式值与连续求值
+优先级 P0，依赖现有 owner/mapping；与中性构造头及可信内部路径迁移同步。
+完成显式 shape/strides make/adopt、required_span_size 观察与分配所需内部 mapping 验证。
+静态 extents 仍保留每实例 strides；普通 packed owner 的表示和构造保持原合同。
+容器覆盖完整 span，has_storage 不比较逻辑 size；初批不提供 shape-only/default stride owner 或 array 配置。
 
-依赖：现有 np owner/view、逐元素接口。
+文档和例子解释孔洞的生命周期与 default_construct 后先写后读责任。
+逻辑 eval 只写逻辑对象，不能声称整个底层容器随后都可复制；packed eval(view) 是逻辑副本入口。
+不通过清零孔洞或把普通 owner 复制改成新语义规避这一边界。
 
-- 实现 as_expr、scalar/view/node 值闭包、内建一/二元算术、真实标量 result type。
-- 保留静态 rank/extents，提供后续共用的广播代数；本组先支持同 shape 连续输入与 scalar。
-- eval_to 不分配，使用真实 mdspan 数据，保留精确 pointwise 原地合同。
-- 拒绝临时 owner 借用和不可复制节点左值；不悄悄换成引用捕获。
-- 示例：axpby、返回局部 difference-square 表达式。
+验收：padded row/column、静态/动态 strides、rank-0/空域、非法排序/负/零/溢出、adopt 不提前移动、
+状态 allocator/失败清理/移动源、非平凡孔洞对象；组合 map/select、sum 与 scalar fallback。
+生成码比较同合同 mapping + container，记录分配跨度，不能把有孔 allocation 与 packed 数据吞吐混比。
+这组主体已合入，剩余重点是构造头迁移、组合验收与证据，不要求重新开发。
 
-验收：三主流编译器 C++20；标量/描述符快照、局部节点返回、rank0/空输入、
-中间整数除法/promotion、分配计数与真实 mdspan 叶子生成码。
-若首组需要缩小数值类型子集，必须明确范围，不把 double 原型称作通用实现。
-不混入自定义 callable、共享图、别名求交或调度器。
+## 2. 保留静态信息的正步长切片
 
-### 2. 固定 rank 广播与 stride 求值
+优先级 P1，依赖合法 view/mapping，不依赖新增 owner 或 SIMD。
+设计一个受限通用 slice 入口：整数缩轴、full_extent、半开 range、正 step，复用固定后端 submdspan。
+先支持默认 accessor 与已有布局子集；每一新增 accessor/layout 明确转换与 offset_policy。
+返回类型保留可证明的静态 extents、packed 顺序和单位内步长，不无条件擦成全动态 layout_stride。
 
-依赖：1。
+先 probe 固定后端对空 slice、窄 index、静态 slice 和 padded 结果的实际行为，
+再决定薄适配或受限转换；不为便利接口升级全部 backend 或修改 vendored 代码。
+合法 view 的存储不重复做全范围校验；普通切片优先沿用 submdspan 的可信参数前提，
+不为切片再建立独立 checked 类型或通用错误恢复框架。
 
-- 每个叶子一次投影到输出域，加入赋值式广播。
-- 支持 left/right 混合、正 stride、静态 singleton 和 leading-rank 扩展。
-- 提供自然 shape 查询与可复用的 checked shape resolution，执行内循环不重验。
-- 示例：行 bias、列 scaling、转置输入；输出可带 padding。
+例子：从有行间 padding 的矩阵选窗口、取每隔两个特征、转置后读取。
+验收：rank 改变、混合静态 extents、空/尾端范围、越界/步长溢出、const、布局类型断言及零分配。
+分别比较直接地址描述符、WJR view 和后端 submdspan；布局分支与丢失的静态信息都计入成本。
+signed reverse 与可写重叠不混入本组。
 
-验收：独立标量 oracle 覆盖 rank0–4、固定/混合/动态 shape、0/1/N 规则、
-[N,1]+[1,M]、空域不读取/不调用数值函数、padding 保持、错误在 checked 边界写入前返回。
+## 3. 有数值合同的函数与实用流水线
 
-### 3. 拥有结果与显式物化
+优先级 P1，可与切片并行，依赖现有静态操作；map/mask 用于组合示例，不依赖 SIMD。
+选少量实际需要的 sqrt、exp、log、abs、isfinite 等具名静态节点，精确使用标量标准库 overload 的结果类型。
+整数 sqrt/exp/log 按相应 cmath overload 转换；C++20 不额外承诺这些调用能常量求值。
+整数 abs 的最小值、unsigned/bool 准入、定义域、NaN/Inf、带符号零、errno/fenv 和 noexcept 逐项说明。
+不增加每元素诊断，不一次建立全部 NumPy ufunc 目录，也不自动把 map 认作 batch callable。
 
-依赖：2，可在范围自然较小时与 2 合并。
+例子使用当前 sum/keepdims 的显式小 workspace 计算中心化、有效值选择和尺度转换。
+危险计算在 map 内保护时传原始操作数，不能先把非法 child 算式传进去；select 也不提供保护。
+验收：同 std 调用的独立标量 oracle、mixed dtype/cast、空域不调用、异常/FP 边界、真实 bool 与安装消费。
+新数学函数首先 scalar 正确；成熟 math 后端或 SIMD 加速须另行匹配误差与 fenv 合同。
 
-- eval 根据自然 shape/dtype 创建 owner；首版保留表达式的 packed layout，避免隐式布局转换，保持 make_tensor 的 expected/allocator 约定。
-- 通过小型具名入口选择 layout/allocator，不预建复杂存储 policy 框架。
-- eval 始终物化新结果，不根据输入类别有时返回引用。
-- 示例：物化昂贵子表达式后，多次借用其 view。
+## 4. 带类型的 predicate SIMD
 
-验收：零维度与标量结果、类型断言、分配前元数据溢出处理、抛出时清理、allocator 保留、
-安装消费。单独测量 owner 初始化+计算，不能复用预分配结果冒充拥有结果成本。
+优先级 P1，性能驱动；依赖 mask/select 和当前显式 xsimd policy。
+对支持的 homogeneous float/double 根表达式，建立私有 numeric/predicate batch 资格与结果类型。
+比较/逻辑生成 lane 几何匹配的 predicate，select 两分支为数值 batch；不增加中间 bool 数组。
+独立 bool materialization 暂走 scalar；native mask 表示不进入公共 AST 或跨 ISA ABI。
 
-## 第二阶段：性能与执行合同
+验收：eager 两分支、NaN/Inf/正负零、连续/unit/splat、tail 不越界、精确原位、
+mixed integer division/cast/未知 map 整体 fallback，不实例化无效 batch 分支。
+对照相同 ISA、相同选择语义的手写 SIMD；同时记录 setup、fallback、编译时间与代码体积。
+某子集若只增加复杂度而无实测收益，保留 scalar，不强求所有 mask 向量化。
 
-### 4. 可选 SIMD 后端
+## 5. Ordered fused collective 与扫描组合
 
-依赖：2；不阻塞基础标量功能。
+优先级 P1，依赖 expression sum 与最终 map 绑定；可独立于 predicate SIMD。
+已有 view 四列 sum/scan 不重复实现。先为适合的表达式 axis-0 sum 增加 unit/splat 多列路径，
+每列保留独立 accumulator 和原顺序；可能抛出的子树继续 line-at-a-time，保留完成 line 才提交的保证。
+若实际流水线需要，再把同一绑定用于 expression scan，明确逐前缀写入、原位和异常行为。
 
-- 独立可选 header/target 与明确 policy，复用 xsimd 原语与 ISA 约定。
-- 同类 float/double 内建树，多个叶子、packed stream、splat 和有界 scalar tail。
-- 不支持的 mixed dtype/operation/mapping 保守走标量，不能让无效 batch 分支参与实例化。
-- 示例：同一表达式选择标量和 SIMD，展示相同结果。
+四列是起点，八加四尾段是候选；不公开微调旋钮或直接把 portable 默认改成十六。
+验收真实 API 的 float/double/wide Acc、短/尾/混合长度、复杂树/捕获状态、原位 scan 与部分失败。
+默认改变前补 Linux/SysV GCC/Clang 的计时与生成码；区分 ABI 寄存器保存与热循环 spill，
+报告缓存计数器缺失，匹配 ordered FP 语义。现有 Windows 证据只证明机会。
 
-验收：声明的 FP 合同下标量/batch 一致、mixed integer division 反例、
-offset/alignment/tail/空/原地、ASan 与三编译器手写 SIMD 对照；安装消费者验证可选依赖。
-不增加 Windows job，不把噪声性能数据作为通过门槛。
+## 6. 一种有用的规约数值选择
 
-### 5. 内层行绑定与常用广播性能
+优先级 P2，依赖 terminal sum；由使用者的精度或重排需求决定先做哪一种。
+需要固定分组时先实现 pairwise：明确树形、叶块 cutoff、空域/带符号零、布局一致性和栈上界。
+需要重结合吞吐时实现 relaxed SIMD：只放宽累计加法分组，保留 child dtype/cast/除法。
+两者不强制同时交付，也不改变默认 ordered sum。
 
-依赖：2、4。
+pairwise 初版可限制布局，不能无声退回另一种分组；泛 stride 扁平化不能每点增加除模却宣称免费。
+relaxed fallback 须满足所声明的数值合同。整数重结合因不同中间溢出条件另行设计。
+验收高精度 oracle 的消去/量级测试、NaN/Inf/零、精确 grouping oracle、同分组手写性能和无隐藏 payload。
+stable norm、max/mean/variance 在明确空域/NaN/tie/溢出策略后独立进入，不借泛型 reduce 跳过这些决定。
 
-- 根据共同 stride witness 选择连续内层，按行/列重新绑定，处理 zero-inner-stride splat。
-- 只增加本组实际需要的 axis collapse，不生成所有 leaf load-mode 组合。
-- SIMD 之外仍保留清楚的标量 fallback；调查 MSVC 时采用小型独立 cursor 对照，不猜测性重写 AST。
-- 示例：row bias、column scale、padded rows。
+## 7. 绑定表示与编译成本收敛
 
-验收：静态/动态内维、重复叶子、交替与打乱的短/长输入；
-比较 setup+loop、scalar hoist 和 pointwise 原地安全，记录编译体积。
+优先级 P2，依赖实际 map/mask/函数/规约案例；解决已定位问题，不只提交 checker。
+测 2/4/8/16 叶子、重复树、局部与非内联 F、静态/动态 shape，分开构造、首次与重复求值。
+记录 AST/plan 尺寸、数据与函数 slot 展开、tuple 索引、helper outlining、编译时间/峰值内存和二进制。
+单次表达式不分配并不证明每叶每轴绑定或 repeated state load 没有代价。
 
-### 6. 安全直接求值与 caller scratch
+明确两个 F 基准：同 const F& 调用，以及手工外提字段的最佳实用循环。
+小系数可以是 scalar operand；不默认复制任意 F，不以 restrict 修饰普通原位入口。
+每次只选能解决已测问题的变化：精简绑定、有限专门化、静态 prefix 表，或有明确寿命的引用表达式。
+大树复制/实例化未形成实际瓶颈前，不增加公共 plan、DAG、let/cache 或强制 fusion 边界。
 
-依赖：2、3，可独立于 SIMD 性能工作。
+## 8. 小 owner 与布局互操作的独立准入
 
-- 一次把存储关系分为 disjoint、exact pointwise、hazardous 或 unknown。
-- try_eval_to 在写入前返回 shape/overlap 错误；typed scratch 支持安全 assign_to。
-- 仅在确实省去有用工作时加入明确 noalias promise，不自动映射成 restrict。
-- 示例：重叠位移与原地转置通过预分配 scratch 完成。
+优先级 P3，依赖明确工作负载；两条支线互不依赖，不机械拼成一个 MR。
+若大量小 owner 的对象密度/移动成本突出，先研究兼容 Container 合同的 opt-in exact storage。
+它通常仍需 pointer+count；指针级静态 owner 需整合生命周期，不是换容器名称即可达到。
+保留 allocator hooks、释放长度、copy selection、传播规则、失败状态、moved-from 查询和 noinit 语义。
+验收 sizeof/alignof、分配数量/字节、owner 数组访问和构造+计算，不只测大 payload 热循环。
 
-验收：前/后移位、转置、重复同源、输出行/元素被广播、span 相交但逻辑不交的列、
-scratch 别名/shape/空域、异常与 copy-back 保证。不建立通用集合求交器。
+若外部数据要求 reverse 或 padding witness，选择相应互操作支线：
+signed read-only descriptor 明确逻辑原点/min-max offset；padded/aligned 适配明确支持、pitch 和切片降级。
+可写 zero/overlap、任意字节缓冲区和设备内存不默认开放。STL 支持不能由语言模式推断。
 
-## 第三阶段：表达力与规约
+## 顺序与发布门槛
 
-### 7. Pure map 与显式转换
+先完成候选组合验收及第 1 组，再推进第 2/3 组可见能力；第 4/5 组按性能需要独立推进。
+第 6 组依据数值需求，第 7/8 组依据实测缺口，避免把计划执行成必须创造全部机制的清单。
+安全 assign/scratch、oneTBB、BLAS、大型 graph export 保留需求门槛，低层接口不增加预防性检查。
 
-依赖：1；SIMD 适配依赖 4。
-
-- 存储 const-invocable pure callable，保留配置、转发、非复制状态与条件 noexcept。
-- 明确 cast 位置，SIMD conversion 按能力保守准入。
-- 示例：callable 局部临时实现每元素复用，与整体物化对照。
-
-验收：有可见构造/析构的空 functor 不被丢弃、状态 copy/move、显式 move-only、异常。
-纯度是语义要求，不凭 arithmetic 返回类型自动承诺 SIMD 等价。
-
-### 8. Terminal sum 与 axis reduction
-
-依赖：2、3；这是首批研究/训练示例的重要能力。
-
-- sum(expr) 与 sum_to，编译期或固定数量 axes、keepdims、显式 accumulator 与顺序。
-- 融合 pointwise 输入 map，初版要求规约输出与输入不交。
-- 明确定义空域/空轴列表/identity，执行前处理重复与非法轴。
-- 示例：row centering，再计算平方残差；规约 workspace 显式预分配。
-
-验收：全量/行/列 sum、非连续轴、转置/padding、keepdims 后广播、zero extent、
-累计 promotion、整数溢出前置条件与消去敏感有限输入；计数证明每坐标按合同读取。
-不把 lazy reducer 加入 pointwise concept。
-
-### 9. Mask 与 eager selection
-
-依赖：数值核心稳定后的 2、4、7。
-
-- 比较节点、backend-local mask、eager select、具名逻辑组合。
-- 明确真实 bool 输出或显式 byte-mask，处理默认 owner 的 vector<bool> 限制。
-- 示例：两侧均合法的 clipping/selection；惰性 masked division 留给独立能力。
-
-验收：NaN/正负零、mask/data tail、不同编码；不泄漏 ISA mask ABI，
-不把 eager select 描述成除零保护。
-
-## 后续按证据选择
-
-### 10. 构造、复用与编译成本
-
-依赖：1–7 有实际使用后。
-
-比较 2/4/8/16 叶子、重复树、静态/动态 shape 与状态 functor，
-分别记录节点/plan 大小、非内联边界、构造指令、编译时间和二进制体积。
-只为已证明的问题选一项：缩小 bound 状态、expression_ref、有限 fusion 或局部 map。
-不同时引入全部机制；引用包装拒绝临时值且不宣称缓存结果。
-
-### 11. 数值 collective 扩展
-
-依赖：8。以下候选按独立模块交付，不合成一个大 MR：
-
-- max + stable softmax/normalization，显式 scratch 与 NaN/空域合同。
-- 显式 relaxed SIMD sum，比较误差与速度，说明重排。
-- 具有明确溢出/下溢行为的 stable norm。
-- 经评估的 BLAS matmul 边界与可选 pointwise epilogue。
-
-### 12. 可选 oneTBB executor
-
-依赖：成熟的绑定/别名合同与足够大工作量。
-
-独立模块、明确 policy、实测 grainsize/阈值；分割可独立写入域，
-规定 callable 并发安全、异常与嵌套并行。小任务保留顺序路径。
-验收 medium/large 与内存带宽场景，不用线程调度掩盖低效串行 kernel，
-不把非法重叠当作可并行修复的问题。
-
-### 13. 最小 graph export 实验
-
-依赖：内建运算语义稳定；不阻塞 CPU 功能。
-
-用 visitor 把 leaf、builtin、cast、shape 与显式规约降到独立拥有的图。
-拒绝尚不支持的 lambda/accessor/policy；区分常量与外部 buffer 绑定。
-先比较一个小型 CPU/导出表达式，包括中间整数运算，再决定 XLA 接入范围。
-未使用 exporter 时，不增加普通表达式的字段、分配或第三方依赖。
-
-## 第一批交付顺序
-
-先交付 1–4 的实际计算能力；随后按需求选 5 的速度、6 的安全赋值与 8 的规约。
-不要用 checker-only 或 design-only 小片段填满并行数量。
-有展示价值的能力附简短 examples，性能驱动与可读示例分开。
-更宽的 dynamic rank、负 stride、complex、mixed-lane SIMD、严格 fenv、自动 DAG CSE、
-异步拥有闭包和完整 XLA 支持都保留为独立范围。
+每组运行最小相关 NP 测试/ASan 与必要安装消费，涉及 C++ 时执行仓库规定 clang-format hook。
+额外标准/ISA 组合优先 Linux，保留现有 Windows 两项；性能测试独立于噪声敏感的普通 CI。
+代码与文档必须写同一合同，未实现规则保持后续状态，审查前更新精确快照和遗漏验证。

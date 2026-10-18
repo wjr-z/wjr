@@ -30,7 +30,8 @@ rank-0 标量得到长度 1，而空 shape 得到长度 0；不会对空指针�
 `expected<tensor_view<T, NewExtents, 原布局>, shape_error>`。
 完整 shape 包含 rank 个整数，静态维度也要给出并匹配；不接受 bool、浮点或负维度推断。
 
-新 shape 复用 `try_make_tensor_view` 的一次检查：逐维检查符号和可表示性、静态匹配，
+本接口检查新 shape；构造头重组后直接复用内部 shape 算术，不绕公共 view 工厂重复检查源 buffer/null。
+逐维检查符号和可表示性、静态匹配，
 再检查索引乘积、空 shape 的中间 stride、字节跨度和存储长度，然后才构造目标 mapping。
 目标逻辑元素数必须与源完全相等；较大和较小都返回 `element_count_mismatch`，
 其他 metadata 错误保留已有错误值。算术错误先于元素数不匹配。

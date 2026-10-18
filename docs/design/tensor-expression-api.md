@@ -7,6 +7,7 @@
 本页描述基础算术接口；后续的 [pure map](tensor-expression-map.md)、
 [表达式规约](tensor-expression-reductions.md) 与 [cast](tensor-expression-casts.md) 分别说明扩展契约。
 调度不在本接口范围内。
+[mask/select](tensor-expression-masks.md) 及跨模块规则见[核心标准](np-core-standard.md)。
 
 ```cpp
 namespace np = wjr::np;
@@ -19,8 +20,8 @@ np::eval_to(output.view(), 0.5 * difference * difference);
 ## 形状、类型与寿命
 
 接受默认 accessor、layout_right/left/stride 的算术元素 view，拒绝 volatile 与代理存储。
-layout_stride 必须是有效、正步长且唯一的 mapping；外部输入可先使用
-[positive-stride construction](tensor-strided-view.md) 构造。
+layout_stride 必须是满足后端轴排序等构造前提的有效正步长 mapping，不能仅凭数学单射接受；
+可信调用方直接构造，见[正 stride 借用](tensor-strided-view.md)。
 不同布局按逻辑坐标组合，不会把转置描述符误当成同顺序连续数组。
 
 数组 shape 右对齐，缺少的前导轴视为长度 1；每轴长度相等或一方为 1 才兼容。
@@ -88,8 +89,9 @@ rank 0 处理一个对象。任意 extent 为零时不准备数据绑定、不�
 该绑定方式在真实 mdspan 探针中保留了 MSVC 的 axpby 自动向量化；Clang/GCC 也生成批量循环。
 MSVC 的重复叶子探针仍保留 security cookie 与重复 alias guards，不能据此声称全面零开销。
 通用路径当前仍是实验执行策略：它具有额外的 shape/stride 准备、外层 cursor 复制和可能的
-helper outlining；MSVC 通用行内核的已检探针不再逐元素加载 metadata，但尚未实现广播 SIMD splat
-或 stride 特化，不能据此保证与针对布局编写的手工循环同样快。连续路径的 boundary 判定、
+helper outlining；MSVC 通用行内核的已检探针不再逐元素加载 metadata。
+可选 xsimd 已支持静态可证明 unit/splat 的广播行，动态内维与一般 stride 仍走 scalar；
+不能据此保证与针对布局编写的手工循环同样快。连续路径的 boundary 判定、
 security cookie 和代码体积也可能带来额外成本。
 现有证据是有限生成码与正确性检查，不是吞吐、编译成本或任意表达式树的完整验收。
 

@@ -3,18 +3,20 @@
 本设计在现有 owner/view、copy/transform 和 SIMD 原语上增加可组合的计算接口。
 目标是让常见表达式达到与同等语义、同等 ISA 的较优手写内核接近的实际开销。
 预分配求值不隐藏分配，普通节点不包含 shared_ptr、虚函数或运行时图。
-这是一份实现决策与验收约定，尚不是已发布表达式 API，也不是全面零开销的证明。
+本页解释结构选择；跨模块不变量和准确状态以[核心标准](np-core-standard.md)为准。
+算术/广播/物化/cast/sum 已实现，API 见[表达式接口](tensor-expression-api.md)及其配套页面；
+候选和后续能力在各节标出，不把现有实现称为全面零开销。
 
 配套资料：
 
 - [参考实现与原型证据](expression-evidence.md)：固定版本源码审查、已复现边界和当前性能限制。
-- [分阶段实现计划](expression-roadmap.md)：13 组有依赖、示例与验收条件的后续能力。
+- [分阶段实现计划](expression-roadmap.md)：8 组有依赖、示例与验收条件的后续能力。
 - [可运行设计示例](../../examples/np/expression_design/README.md)：独立实验，未接入生产 target。
 - [现有逐元素接口](tensor-elementwise.md)：当前可直接使用的 copy/fill/transform。
 
 ## 接口与职责
 
-以下为拟定接口。实际实现保持现有 make_tensor、allocator 与异常配置约定：
+以下算术、eval_to 与 eval 已实现，保持 make_tensor、allocator 与异常配置约定：
 
 ```cpp
 namespace np = wjr::np;
@@ -24,7 +26,7 @@ auto y = np::as_expr(y_owner.view());
 auto expr = alpha * x + beta * y;
 np::eval_to(output.view(), expr); // 预分配，遵循可信输入前置条件。
 
-auto result = np::eval(expr);    // expected<拥有结果的 tensor, evaluation_error>。
+auto result = np::eval(expr);    // expected<拥有结果的 tensor, shape_error>。
 
 auto square_difference = [](auto input, double center) {
     auto d = np::as_expr(input) - center;
@@ -50,7 +52,10 @@ eval_to 才明确表示写入元素。owner 不隐式进入泛型 scalar 重载�
 
 ## 节点与闭包
 
-初始内部协议只需要表达式识别、value_type、静态 rank/extents，以及内部访问器。
+初始内部协议包含表达式识别、value_type、静态 rank/extents，以及内部访问器。
+map 集成增加私有 expression_children 的 arity/child 访问，统一元数据遍历；
+数据叶与真实 callable 分别绑定，静态操作不占函数 slot。内建 unary/binary 热读仍可专门化，
+不为形式统一牺牲已验证的 MSVC 自动向量化。
 节点类型不承诺稳定 ABI，不要求模拟容器、保存 allocator 或暴露可写迭代器。
 
 ```cpp
@@ -58,7 +63,7 @@ template<class View> struct view_expression;
 template<class T> struct scalar_expression; // rank 0，保留实际 T。
 template<class Op, class Child> struct unary_expression;
 template<class Op, class Left, class Right> struct binary_expression;
-// 后续按需增加 map_expression<Function, Children...>。
+// map 候选使用 mapped_expression<Function, Children...>。
 ```
 
 内建算术的 Op 是类型标签，不保存空操作实例。children 复用现有压缩存储，
@@ -89,7 +94,7 @@ owner 扩容、销毁或被替换会使表达式失效；值闭包不修复返�
 递归重复组合可能使节点大小、编译时间和内联压力迅速增长。
 编译器可能消除重复加载，不能据此承诺昂贵函数或规约只执行一次。
 
-首先提供两种明确方式：在后续 pure map 的每元素 callable 中使用局部变量，
+采用两种明确方式：在 pure map 的每元素 callable 中使用局部变量，
 或者通过 eval/eval_to 显式物化可复用结果。
 expression_ref、own、let、cache 分别涉及借用、所有权、词法绑定或结果失效规则，
 不一次加入；只有实际构造/跨调用成本证明需要时再选一种扩展。
@@ -168,7 +173,8 @@ baseline eval_to 特化定义，避免 ODR 和 ISA 要求不一致。
 
 ## 输出、别名与内存
 
-首批只交付 as_expr、eval_to 与 eval；下表中其他边界按功能需求后续实现。
+as_expr、eval_to 与 eval 已交付；下表中 checked/scratch 边界仍未实现，只有实际便利层需求出现后才推进，
+不优先于可用函数和数值能力，也不改变可信 eval_to 的成本。
 
 | 接口 | 分配与责任 |
 | --- | --- |
@@ -216,32 +222,38 @@ eval_to 遇到操作异常允许部分输出已更新，noexcept 反映捕获、
 没有 fast-math 也不等于所有平台拥有严格相同的 fenv、NaN payload 或 errno 行为。
 规约若采用不同顺序，也不能默认逐位一致。
 
-后续 map 保存 const-invocable、语义纯且配置不可变的 callable。
+map 集成保存 const-invocable、语义纯且本次执行配置稳定的真实 callable。
 const 语法不能证明纯度；执行可能重排、重复或向量化，调用计数、日志、RNG 推进与输入修改不属于该合同。
 现有 transform_to 的逐元素调用约定继续保留，不能因为新表达式层而悄悄收紧。
 可移动不可复制 callable 需要显式移动其表达式；异常与 noexcept 条件如实传播。
+所有 child 按自身 value_type 纯值传入，引用/void/proxy 返回被拒绝；捕获内存必须与输出逻辑存储不交。
+绑定 const F* 消除求值复制，但不能保证捕获状态不重载；同 const F& 与手动外提字段是两个应记录的基准。
 
-mask/选择在基础数值稳定后添加。eager select 会计算两侧，不能充当除零或无效读取的惰性保护。
+mask/选择已有独立候选，尚未包含在本页审查基线；状态见核心标准。
+eager select 会计算两侧，不能充当除零或无效读取的惰性保护。
 不使用重载 &&/|| 暗示标量短路；真正逐 lane 的惰性条件需要另一种执行能力。
-bool 结果须真实 bool 存储或显式 mask adapter，不能忽略当前默认 vector<bool> owner 的限制。
+默认 tensor_vector<bool> 已提供真实 bool 对象，可直接物化；std::vector<bool> 仍不满足 owner 要求。
+map、比较、逻辑和 select 候选在显式 xsimd 请求下整体 scalar fallback，predicate batch 尚待独立实现。
 
 ### 规约是执行边界
 
-首先实现终结式 sum(expr) 与 sum_to(out,expr,axes,options)，允许融合输入 pointwise map，
+已实现终结式 sum(expr) 与 sum_to(out,expr,axes<I>[,keepdims])，允许融合输入 pointwise 树，
 不把 lazy reducer 当作普通逐点叶子。规约结果显式物化后，再作为 view 广播。
 这避免 `(x-mean(x))` 在每个输出坐标重新聚合整个输入。
 
-初始 axis 接口使用编译期轴，或长度在类型中已知的 runtime 数组；
+当前 axis 接口只接受一个编译期轴；固定长度 runtime 数组和多轴是后续能力。
 任意 runtime 轴个数配合 keepdims=false 会改变 rank，超出当前固定 rank 模型。
-空轴列表表示不规约，不能与全部轴混淆；重复/越界轴在执行前处理，keepdims 保留被规约的 singleton 轴。
+若以后接收轴列表，空列表表示不规约，不能与全部轴混淆；重复/越界轴在执行前处理。
+当前 keepdims 保留所选单轴为 singleton。
 
-sum 初始累计类型按标量加法结果推导，可显式指定更宽累计类型；
-更宽输出不代表中间自动更宽。初版按明确的顺序执行，sum 的空域 identity 为 0。
+sum 当前累计类型按标量加法结果推导，可显式指定更宽累计类型；
+更宽输出不代表中间自动更宽。全量按逻辑行主序、单轴按轴索引递增，从零累计。
+空域 identity 为 0；pairwise 与 relaxed SIMD 是独立未来选择，不改变默认顺序。
 min/max、mean、variance、norm 分别定义初始值、空域、NaN 和稳定性，
 不在第一个泛型 reduce 中隐藏这些决策。SIMD/parallel 重排规约是明确的数值 policy。
 
 ```cpp
-// 拟定接口：row_sums 为 [rows,1]，columns==0 先按数值合同处理。
+// 已实现接口：row_sums 为 [rows,1]，columns==0 先按数值合同处理。
 np::sum_to(row_sums.view(), np::as_expr(input.view()), np::axes<1>, np::keepdims);
 np::eval_to(centered.view(),
             np::as_expr(input.view()) - np::as_expr(row_sums.view()) / columns);
@@ -262,8 +274,9 @@ explicit SIMD 对比 explicit SIMD。检查热循环调用、metadata 分支、�
 不要求机器码逐字相同，不把噪声内的小差异判成胜利或退化。
 明显、稳定的吞吐退化必须解释或修复，不能只展示指令总数。
 
-当前原型的 MSVC 标量向量化问题未解决，显式 SIMD 也未通过完整吞吐验收。
-已有证据支持继续设计与实验，尚不支持把该原型推广为正式零开销表达式层。
+历史 span 原型曾不能恢复 MSVC 标量向量化；实际 mdspan 实现的局部绑定已恢复所测 axpby 路径。
+重复叶子、复杂 map、通用 stride 的 setup/outlining 与捕获状态加载仍有缺口。
+历史原型不能代替当前代码证据，现有有限探针也不足以承诺任意树的完整吞吐或编译成本。
 噪声敏感的性能测试定期/手动运行；普通 CI 保留正确性、标量 fallback、编译与格式验证。
 
 oneTBB 接收已经绑定、可独立写入的域，负责分块、grainsize、异常与嵌套并行。
@@ -288,5 +301,6 @@ IR 分配、DAG 规范化、编译缓存与设备 lease 位于适配边界，
 | xassign / stepper | 线性、内层 stride、通用遍历逐级选择 | 固定 rank、一次绑定；不照搬全部动态 rank 状态与迭代器外观 |
 | xreducer | axis、keepdims、lazy/immediate 的不同成本 | 先 terminal 规约和显式物化，不依赖共享描述自动缓存结果 |
 
-这些取舍来自较窄的 WJR 合同与具体证据，不是对 xtensor 整体性能或所有版本正确性的评价。
+xtensor 并非零开销或最佳性能默认方案。上述机制的存在不构成 WJR 照搬理由；
+具体选择仍与同语义最佳实用手写基准比较，不据有限尺寸/源码证据反推 WJR 整体更快。
 mdspan 继续提供数据模型，表达式/求值器负责它没有规定的算术、广播、别名和调度语义。
