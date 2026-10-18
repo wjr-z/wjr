@@ -150,3 +150,15 @@ cast after division: 1 3 2
 
 类型、生命周期与 scalar/SIMD 边界见
 [显式转换契约](../../docs/design/tensor-expression-casts.md)。
+
+## 融合自定义逐点函数
+
+`wjr_np_expression_map` 将每列中心和缩放广播到样本矩阵，在一次预分配写入中完成归一化与截断。
+随后 `sum(map(square, normalized))` 直接计算能量，未物化完整的平方中间结果。
+参数使用显式 scalar/view operands；callable 本身无状态，便于编译器保留系数快照。
+
+```text
+clipped normalized panel energy: 7
+```
+
+值闭包、纯度、异常和捕获状态的性能限制见 [pure map](../../docs/design/tensor-expression-map.md)。

@@ -24,7 +24,9 @@ requires(detail::expression_element<To> && std::same_as<To, std::remove_cv_t<To>
              requires detail::expression_element<typename decltype(as_expr(
                  std::forward<E>(value)))::value_type>;
          })
-[[nodiscard]] constexpr auto cast(E &&value) noexcept(noexcept(as_expr(std::forward<E>(value)))) {
+[[nodiscard]] constexpr auto cast(E &&value) noexcept(
+    noexcept(unary_expression<detail::cast_operation<To>, detail::captured_expression<E>>(
+        as_expr(std::forward<E>(value))))) {
     using child_type = decltype(as_expr(std::forward<E>(value)));
     return unary_expression<detail::cast_operation<To>, child_type>(
         as_expr(std::forward<E>(value)));

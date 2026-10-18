@@ -3,6 +3,8 @@
 
 #include <array>
 #include <concepts>
+#include <functional>
+#include <memory>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -16,7 +18,7 @@ namespace wjr::np {
 
 namespace detail {
 
-enum class expression_kind { view, scalar, unary, binary };
+enum class expression_kind { view, scalar, unary, binary, mapped, static_node };
 
 template <class T>
 concept expression_element = std::is_arithmetic_v<T> && !std::is_volatile_v<T>;
@@ -107,6 +109,34 @@ struct expression_domain<L, R> {
     using extents_type = typename R::extents_type;
     using layout_type = typename R::layout_type;
 };
+
+template <class L, class R>
+struct combined_expression_domain : expression_domain<L, R> {
+    static constexpr bool is_scalar = L::is_scalar && R::is_scalar;
+    static constexpr size_t rank() noexcept {
+        return expression_domain<L, R>::extents_type::rank();
+    }
+};
+
+template <class... Children>
+struct expression_pack_domain {};
+template <class Child>
+struct expression_pack_domain<Child> : Child {};
+template <class Left, class Right, class... Rest>
+requires(compatible_expressions<Left, Right> &&
+         requires {
+             typename expression_pack_domain<combined_expression_domain<Left, Right>,
+                                             Rest...>::extents_type;
+         })
+struct expression_pack_domain<Left, Right, Rest...>
+    : expression_pack_domain<combined_expression_domain<Left, Right>, Rest...> {};
+
+template <class F, class... Children>
+concept expression_function =
+    std::invocable<const F &, typename Children::value_type...> &&
+    !std::is_reference_v<std::invoke_result_t<const F &, typename Children::value_type...>> &&
+    expression_element<
+        std::remove_cv_t<std::invoke_result_t<const F &, typename Children::value_type...>>>;
 
 template <class L, class R>
 requires(!L::is_scalar && R::is_scalar)
@@ -217,7 +247,11 @@ public:
     static constexpr auto kind = detail::expression_kind::unary;
     static constexpr bool is_scalar = Child::is_scalar;
 
-    constexpr explicit unary_expression(Child child) noexcept : m_child(std::move(child)) {}
+    template <class E>
+    requires std::constructible_from<Child, E>
+    constexpr explicit unary_expression(E &&child) noexcept(
+        std::is_nothrow_constructible_v<Child, E>)
+        : m_child(std::forward<E>(child)) {}
     static constexpr size_t rank() noexcept { return extents_type::rank(); }
     static constexpr size_t static_extent(size_t axis) noexcept {
         return extents_type::static_extent(axis);
@@ -246,8 +280,12 @@ public:
     static constexpr auto kind = detail::expression_kind::binary;
     static constexpr bool is_scalar = Left::is_scalar && Right::is_scalar;
 
-    constexpr binary_expression(Left left, Right right) noexcept
-        : m_children(std::move(left), std::move(right)) {}
+    template <class L, class R>
+    requires(std::constructible_from<Left, L> && std::constructible_from<Right, R>)
+    constexpr binary_expression(L &&left,
+                                R &&right) noexcept(std::is_nothrow_constructible_v<Left, L> &&
+                                                    std::is_nothrow_constructible_v<Right, R>)
+        : m_children(std::forward<L>(left), std::forward<R>(right)) {}
     static constexpr size_t rank() noexcept { return extents_type::rank(); }
     static constexpr size_t static_extent(size_t axis) noexcept {
         return extents_type::static_extent(axis);
@@ -263,6 +301,52 @@ private:
     compressed_pair<Left, Right> m_children;
 };
 
+// The function is a real value-owned object, including when its type is empty.
+// Evaluation borrows it through const F& and never copies or moves it.
+template <class F, tensor_expression... Children>
+requires(sizeof...(Children) != 0 && detail::expression_function<F, Children...> &&
+         requires { typename detail::expression_pack_domain<Children...>::extents_type; })
+class mapped_expression {
+public:
+    using function_type = F;
+    using children_type = std::tuple<Children...>;
+    using value_type =
+        std::remove_cv_t<std::invoke_result_t<const F &, typename Children::value_type...>>;
+    using extents_type = typename detail::expression_pack_domain<Children...>::extents_type;
+    using layout_type = typename detail::expression_pack_domain<Children...>::layout_type;
+    static constexpr auto kind = detail::expression_kind::mapped;
+    static constexpr bool is_scalar = (Children::is_scalar && ...);
+
+    template <class Function, class... E>
+    requires(std::constructible_from<F, Function> && std::constructible_from<children_type, E...>)
+    constexpr explicit mapped_expression(Function &&function, E &&...children) noexcept(
+        std::is_nothrow_constructible_v<F, Function> &&
+        std::is_nothrow_constructible_v<children_type, E...>)
+        : m_state(std::piecewise_construct,
+                  wjr::tuple<Function &&>(std::forward<Function>(function)),
+                  wjr::tuple<E &&...>(std::forward<E>(children)...)) {}
+    static constexpr size_t rank() noexcept { return extents_type::rank(); }
+    static constexpr size_t static_extent(size_t axis) noexcept {
+        return extents_type::static_extent(axis);
+    }
+    constexpr const F &function() const noexcept { return m_state.first(); }
+    template <size_t I>
+    constexpr const auto &child() const noexcept {
+        return std::get<I>(m_state.second());
+    }
+    WJR_INTRINSIC_INLINE constexpr value_type read(size_t i) const
+        noexcept(std::is_nothrow_invocable_v<const F &, typename Children::value_type...> &&
+                 (noexcept(std::declval<const Children &>().read(i)) && ...)) {
+        return [&]<size_t... I>(std::index_sequence<I...>) {
+            return std::invoke(function(),
+                               static_cast<typename Children::value_type>(child<I>().read(i))...);
+        }(std::index_sequence_for<Children...>{});
+    }
+
+private:
+    compressed_pair<F, children_type> m_state;
+};
+
 namespace detail {
 template <class V>
 requires is_expression_view<V>
@@ -274,6 +358,59 @@ inline constexpr bool is_expression<unary_expression<Op, E>> = true;
 template <class Op, tensor_expression L, tensor_expression R>
 requires compatible_expressions<L, R>
 inline constexpr bool is_expression<binary_expression<Op, L, R>> = true;
+template <class F, tensor_expression... Children>
+requires requires { typename mapped_expression<F, Children...>; }
+inline constexpr bool is_expression<mapped_expression<F, Children...>> = true;
+
+// Private static structure, shared by metadata and binding. No runtime visitor.
+template <class E>
+struct expression_children {
+    static constexpr size_t arity = 0;
+    template <size_t I>
+    static void get(const E &) = delete;
+};
+template <class Op, tensor_expression Child>
+struct expression_children<unary_expression<Op, Child>> {
+    static constexpr size_t arity = 1;
+    template <size_t I>
+    static constexpr const Child &get(const unary_expression<Op, Child> &expression) noexcept {
+        static_assert(I == 0);
+        return expression.child();
+    }
+};
+template <class Op, tensor_expression Left, tensor_expression Right>
+struct expression_children<binary_expression<Op, Left, Right>> {
+    static constexpr size_t arity = 2;
+    template <size_t I>
+    static constexpr const auto &
+    get(const binary_expression<Op, Left, Right> &expression) noexcept {
+        static_assert(I < 2);
+        if constexpr (I == 0)
+            return expression.left();
+        else
+            return expression.right();
+    }
+};
+template <class F, tensor_expression... Children>
+struct expression_children<mapped_expression<F, Children...>> {
+    static constexpr size_t arity = sizeof...(Children);
+    template <size_t I>
+    static constexpr const auto &get(const mapped_expression<F, Children...> &expression) noexcept {
+        return expression.template child<I>();
+    }
+};
+template <class E, size_t I>
+using expression_child_type = std::remove_cvref_t<decltype(expression_children<E>::template get<I>(
+    std::declval<const E &>()))>;
+template <class E>
+using expression_child_indices = std::make_index_sequence<expression_children<E>::arity>;
+
+template <class E, class Function>
+constexpr bool all_expression_children(const E &expression, Function function) noexcept {
+    return [&]<size_t... I>(std::index_sequence<I...>) {
+        return (function(expression_children<E>::template get<I>(expression)) && ...);
+    }(expression_child_indices<E>{});
+}
 } // namespace detail
 
 template <class T, class Extents, class Layout>
@@ -297,6 +434,14 @@ as_expr(E &&expression) noexcept(std::is_nothrow_constructible_v<std::remove_cvr
 }
 
 namespace detail {
+template <class T>
+using captured_expression = decltype(as_expr(std::declval<T>()));
+
+template <class F, class... Operands>
+concept mapped_operands = sizeof...(Operands) != 0 && requires {
+    typename mapped_expression<std::decay_t<F>, captured_expression<Operands>...>;
+} && std::constructible_from<std::decay_t<F>, F>;
+
 template <class L, class R>
 concept expression_operands =
     (tensor_expression<L> || tensor_expression<R>) && requires(L &&l, R &&r) {
@@ -307,7 +452,9 @@ concept expression_operands =
     };
 
 template <class Op, class L, class R>
-[[nodiscard]] constexpr auto make_binary_expression(L &&left, R &&right) noexcept {
+[[nodiscard]] constexpr auto make_binary_expression(L &&left, R &&right) noexcept(
+    noexcept(binary_expression<Op, captured_expression<L>, captured_expression<R>>(
+        as_expr(std::forward<L>(left)), as_expr(std::forward<R>(right))))) {
     using left_type = decltype(as_expr(std::forward<L>(left)));
     using right_type = decltype(as_expr(std::forward<R>(right)));
     return binary_expression<Op, left_type, right_type>(as_expr(std::forward<L>(left)),
@@ -318,14 +465,38 @@ template <class Op, class L, class R>
 // scalar values are copied into the per-call tuple; no shape state enters the loop.
 template <tensor_expression E>
 inline constexpr size_t expression_leaf_count = [] {
-    if constexpr (E::kind == expression_kind::unary)
-        return expression_leaf_count<typename E::child_type>;
-    else if constexpr (E::kind == expression_kind::binary)
-        return expression_leaf_count<typename E::left_type> +
-               expression_leaf_count<typename E::right_type>;
-    else
+    if constexpr (expression_children<E>::arity == 0)
         return size_t{1};
+    else
+        return []<size_t... I>(std::index_sequence<I...>) {
+            return (size_t{} + ... + expression_leaf_count<expression_child_type<E, I>>);
+        }(expression_child_indices<E>{});
 }();
+
+template <tensor_expression E>
+inline constexpr size_t expression_function_count = []<size_t... I>(std::index_sequence<I...>) {
+    return (size_t{E::kind == expression_kind::mapped} + ... +
+            expression_function_count<expression_child_type<E, I>>);
+}(expression_child_indices<E>{});
+
+template <class E, size_t I, bool Functions = false>
+inline constexpr size_t preceding_expression_slots = []<size_t... J>(std::index_sequence<J...>) {
+    if constexpr (Functions)
+        return (size_t{} + ... + expression_function_count<expression_child_type<E, J>>);
+    else
+        return (size_t{} + ... + expression_leaf_count<expression_child_type<E, J>>);
+}(std::make_index_sequence<I>{});
+
+template <size_t Slot, bool Functions, size_t Child = 0, class E>
+constexpr size_t expression_slot_child() noexcept {
+    using child_type = expression_child_type<E, Child>;
+    constexpr auto count =
+        Functions ? expression_function_count<child_type> : expression_leaf_count<child_type>;
+    if constexpr (Slot < count)
+        return Child;
+    else
+        return expression_slot_child<Slot - count, Functions, Child + 1, E>();
+}
 
 template <size_t I, tensor_expression E>
 WJR_INTRINSIC_INLINE constexpr auto expression_leaf_value(const E &expression) noexcept {
@@ -335,62 +506,128 @@ WJR_INTRINSIC_INLINE constexpr auto expression_leaf_value(const E &expression) n
     } else if constexpr (E::kind == expression_kind::scalar) {
         static_assert(I == 0);
         return expression.value();
-    } else if constexpr (E::kind == expression_kind::unary) {
-        return expression_leaf_value<I>(expression.child());
-    } else if constexpr (I < expression_leaf_count<typename E::left_type>) {
-        return expression_leaf_value<I>(expression.left());
     } else {
-        return expression_leaf_value<I - expression_leaf_count<typename E::left_type>>(
-            expression.right());
+        constexpr auto child = expression_slot_child<I, false, 0, E>();
+        return expression_leaf_value<I - preceding_expression_slots<E, child>>(
+            expression_children<E>::template get<child>(expression));
     }
+}
+
+template <size_t I, tensor_expression E>
+WJR_INTRINSIC_INLINE constexpr auto expression_function_pointer(const E &expression) noexcept {
+    if constexpr (E::kind == expression_kind::mapped && I == 0)
+        return std::addressof(expression.function());
+    else {
+        constexpr auto slot = I - size_t{E::kind == expression_kind::mapped};
+        constexpr auto child = expression_slot_child<slot, true, 0, E>();
+        return expression_function_pointer<slot - preceding_expression_slots<E, child, true>>(
+            expression_children<E>::template get<child>(expression));
+    }
+}
+
+template <class Values, class Functions>
+struct expression_binding {
+    Values values;
+    Functions functions;
+};
+template <class Values>
+WJR_INTRINSIC_INLINE constexpr const Values &expression_values(const Values &values) noexcept {
+    return values;
+}
+template <class Values, class Functions>
+WJR_INTRINSIC_INLINE constexpr const Values &
+expression_values(const expression_binding<Values, Functions> &binding) noexcept {
+    return binding.values;
 }
 
 template <tensor_expression E, size_t... I>
 WJR_INTRINSIC_INLINE constexpr auto bind_expression_values(const E &expression,
                                                            std::index_sequence<I...>) noexcept {
-    return std::tuple{expression_leaf_value<I>(expression)...};
+    if constexpr (expression_function_count<E> == 0)
+        return std::tuple{expression_leaf_value<I>(expression)...};
+    else
+        return [&]<size_t... F>(std::index_sequence<F...>) {
+            return expression_binding{std::tuple{expression_leaf_value<I>(expression)...},
+                                      std::tuple{expression_function_pointer<F>(expression)...}};
+        }(std::make_index_sequence<expression_function_count<E>>{});
 }
 
-template <tensor_expression E, size_t Offset = 0, class Values>
+// Keep unary/binary reads direct: generic invocation inhibits MSVC vectorization.
+// Metadata and arbitrary-arity nodes still share the static child protocol.
+template <tensor_expression E, size_t Offset = 0, size_t Function = 0, class Values>
 WJR_INTRINSIC_INLINE constexpr decltype(auto)
-read_bound_expression(const Values &values,
+read_bound_expression(const Values &binding,
                       size_t i) noexcept(noexcept(std::declval<const E &>().read(i))) {
+    const auto &values = expression_values(binding);
     if constexpr (E::kind == expression_kind::view) {
         return (std::get<Offset>(values)[i]);
     } else if constexpr (E::kind == expression_kind::scalar) {
         return (std::get<Offset>(values));
     } else if constexpr (E::kind == expression_kind::unary) {
-        using operation = typename E::operation_type;
-        return operation::apply(read_bound_expression<typename E::child_type, Offset>(values, i));
-    } else {
-        using operation = typename E::operation_type;
-        return operation::apply(
-            read_bound_expression<typename E::left_type, Offset>(values, i),
+        return E::operation_type::apply(
+            read_bound_expression<typename E::child_type, Offset, Function>(binding, i));
+    } else if constexpr (E::kind == expression_kind::binary) {
+        return E::operation_type::apply(
+            read_bound_expression<typename E::left_type, Offset, Function>(binding, i),
             read_bound_expression<typename E::right_type,
-                                  Offset + expression_leaf_count<typename E::left_type>>(values,
-                                                                                         i));
+                                  Offset + expression_leaf_count<typename E::left_type>,
+                                  Function + expression_function_count<typename E::left_type>>(
+                binding, i));
+    } else {
+        return [&]<size_t... I>(std::index_sequence<I...>) {
+            if constexpr (E::kind == expression_kind::mapped)
+                return std::invoke(
+                    *std::get<Function>(binding.functions),
+                    static_cast<typename expression_child_type<E, I>::value_type>(
+                        read_bound_expression<
+                            expression_child_type<E, I>, Offset + preceding_expression_slots<E, I>,
+                            Function + 1 + preceding_expression_slots<E, I, true>>(binding, i))...);
+            else
+                return E::operation_type::apply(
+                    read_bound_expression<expression_child_type<E, I>,
+                                          Offset + preceding_expression_slots<E, I>,
+                                          Function + preceding_expression_slots<E, I, true>>(
+                        binding, i)...);
+        }(expression_child_indices<E>{});
     }
 }
 
-template <tensor_expression E, size_t Offset = 0, class Values, size_t Count>
+template <tensor_expression E, size_t Offset = 0, size_t Function = 0, class Values, size_t Count>
 WJR_INTRINSIC_INLINE constexpr decltype(auto)
-read_bound_expression(const Values &values, const std::array<size_t, Count> &offsets) noexcept(
+read_bound_expression(const Values &binding, const std::array<size_t, Count> &offsets) noexcept(
     noexcept(std::declval<const E &>().read(size_t{}))) {
+    const auto &values = expression_values(binding);
     if constexpr (E::kind == expression_kind::view) {
         return (std::get<Offset>(values)[offsets[Offset]]);
     } else if constexpr (E::kind == expression_kind::scalar) {
         return (std::get<Offset>(values));
     } else if constexpr (E::kind == expression_kind::unary) {
-        using operation = typename E::operation_type;
-        return operation::apply(
-            read_bound_expression<typename E::child_type, Offset>(values, offsets));
-    } else {
-        using operation = typename E::operation_type;
-        return operation::apply(
-            read_bound_expression<typename E::left_type, Offset>(values, offsets),
+        return E::operation_type::apply(
+            read_bound_expression<typename E::child_type, Offset, Function>(binding, offsets));
+    } else if constexpr (E::kind == expression_kind::binary) {
+        return E::operation_type::apply(
+            read_bound_expression<typename E::left_type, Offset, Function>(binding, offsets),
             read_bound_expression<typename E::right_type,
-                                  Offset + expression_leaf_count<typename E::left_type>>(values,
-                                                                                         offsets));
+                                  Offset + expression_leaf_count<typename E::left_type>,
+                                  Function + expression_function_count<typename E::left_type>>(
+                binding, offsets));
+    } else {
+        return [&]<size_t... I>(std::index_sequence<I...>) {
+            if constexpr (E::kind == expression_kind::mapped)
+                return std::invoke(
+                    *std::get<Function>(binding.functions),
+                    static_cast<typename expression_child_type<E, I>::value_type>(
+                        read_bound_expression<
+                            expression_child_type<E, I>, Offset + preceding_expression_slots<E, I>,
+                            Function + 1 + preceding_expression_slots<E, I, true>>(binding,
+                                                                                   offsets))...);
+            else
+                return E::operation_type::apply(
+                    read_bound_expression<expression_child_type<E, I>,
+                                          Offset + preceding_expression_slots<E, I>,
+                                          Function + preceding_expression_slots<E, I, true>>(
+                        binding, offsets)...);
+        }(expression_child_indices<E>{});
     }
 }
 
@@ -408,13 +645,10 @@ constexpr bool accumulate_expression_shape(const E &expression,
                 return false;
         }
         return true;
-    } else if constexpr (E::kind == expression_kind::unary) {
-        return accumulate_expression_shape(expression.child(), shape);
-    } else if constexpr (E::kind == expression_kind::binary) {
-        return accumulate_expression_shape(expression.left(), shape) &&
-               accumulate_expression_shape(expression.right(), shape);
     } else {
-        return true;
+        return all_expression_children(expression, [&](const auto &child) noexcept {
+            return accumulate_expression_shape(child, shape);
+        });
     }
 }
 
@@ -437,11 +671,11 @@ WJR_INTRINSIC_INLINE constexpr void assert_expression_shape(Dst dst, const E &ex
                           static_cast<size_t>(dst.extent(first_axis + axis)) ==
                               static_cast<size_t>(expression.view().extent(axis)));
         }
-    } else if constexpr (E::kind == expression_kind::unary) {
-        assert_expression_shape(dst, expression.child());
-    } else if constexpr (E::kind == expression_kind::binary) {
-        assert_expression_shape(dst, expression.left());
-        assert_expression_shape(dst, expression.right());
+    } else {
+        all_expression_children(expression, [&](const auto &child) noexcept {
+            assert_expression_shape(dst, child);
+            return true;
+        });
     }
 }
 
@@ -463,13 +697,10 @@ constexpr bool is_linear_expression(Dst dst, const E &expression) noexcept {
             }
             return true;
         }
-    } else if constexpr (E::kind == expression_kind::unary) {
-        return is_linear_expression(dst, expression.child());
-    } else if constexpr (E::kind == expression_kind::binary) {
-        return is_linear_expression(dst, expression.left()) &&
-               is_linear_expression(dst, expression.right());
     } else {
-        return true;
+        return all_expression_children(expression, [&](const auto &child) noexcept {
+            return is_linear_expression(dst, child);
+        });
     }
 }
 
@@ -487,12 +718,12 @@ bind_expression_strides(const E &expression,
                     ? size_t{0}
                     : static_cast<size_t>(expression.view().stride(axis));
         }
-    } else if constexpr (E::kind == expression_kind::unary) {
-        bind_expression_strides<Offset>(expression.child(), strides);
-    } else if constexpr (E::kind == expression_kind::binary) {
-        bind_expression_strides<Offset>(expression.left(), strides);
-        bind_expression_strides<Offset + expression_leaf_count<typename E::left_type>>(
-            expression.right(), strides);
+    } else {
+        [&]<size_t... I>(std::index_sequence<I...>) {
+            (bind_expression_strides<Offset + preceding_expression_slots<E, I>>(
+                 expression_children<E>::template get<I>(expression), strides),
+             ...);
+        }(expression_child_indices<E>{});
     }
 }
 
@@ -568,39 +799,60 @@ eval_projected_expression(Dst dst, const E &expression, const Values &values) no
 }
 } // namespace detail
 
+// Pure pointwise invocation: captured memory remains stable and disjoint from
+// output during evaluation. Explicit data operands retain exact-inplace support.
+template <class F, class... Operands>
+requires detail::mapped_operands<F, Operands...>
+[[nodiscard]] constexpr auto map(F &&function, Operands &&...operands) noexcept(
+    noexcept(mapped_expression<std::decay_t<F>, detail::captured_expression<Operands>...>(
+        std::forward<F>(function), as_expr(std::forward<Operands>(operands))...))) {
+    return mapped_expression<std::decay_t<F>, detail::captured_expression<Operands>...>(
+        std::forward<F>(function), as_expr(std::forward<Operands>(operands))...);
+}
+
 template <class L, class R>
 requires detail::expression_operands<L, R>
-[[nodiscard]] constexpr auto operator+(L &&left, R &&right) noexcept {
+[[nodiscard]] constexpr auto operator+(L &&left, R &&right) noexcept(
+    noexcept(detail::make_binary_expression<detail::add_operation>(std::forward<L>(left),
+                                                                   std::forward<R>(right)))) {
     return detail::make_binary_expression<detail::add_operation>(std::forward<L>(left),
                                                                  std::forward<R>(right));
 }
 template <class L, class R>
 requires detail::expression_operands<L, R>
-[[nodiscard]] constexpr auto operator-(L &&left, R &&right) noexcept {
+[[nodiscard]] constexpr auto operator-(L &&left, R &&right) noexcept(
+    noexcept(detail::make_binary_expression<detail::subtract_operation>(std::forward<L>(left),
+                                                                        std::forward<R>(right)))) {
     return detail::make_binary_expression<detail::subtract_operation>(std::forward<L>(left),
                                                                       std::forward<R>(right));
 }
 template <class L, class R>
 requires detail::expression_operands<L, R>
-[[nodiscard]] constexpr auto operator*(L &&left, R &&right) noexcept {
+[[nodiscard]] constexpr auto operator*(L &&left, R &&right) noexcept(
+    noexcept(detail::make_binary_expression<detail::multiply_operation>(std::forward<L>(left),
+                                                                        std::forward<R>(right)))) {
     return detail::make_binary_expression<detail::multiply_operation>(std::forward<L>(left),
                                                                       std::forward<R>(right));
 }
 template <class L, class R>
 requires detail::expression_operands<L, R>
-[[nodiscard]] constexpr auto operator/(L &&left, R &&right) noexcept {
+[[nodiscard]] constexpr auto operator/(L &&left, R &&right) noexcept(
+    noexcept(detail::make_binary_expression<detail::divide_operation>(std::forward<L>(left),
+                                                                      std::forward<R>(right)))) {
     return detail::make_binary_expression<detail::divide_operation>(std::forward<L>(left),
                                                                     std::forward<R>(right));
 }
 template <tensor_expression E>
 requires std::constructible_from<std::remove_cvref_t<E>, E>
-[[nodiscard]] constexpr auto operator+(E &&expression) noexcept {
+[[nodiscard]] constexpr auto
+operator+(E &&expression) noexcept(std::is_nothrow_constructible_v<std::remove_cvref_t<E>, E>) {
     return unary_expression<detail::positive_operation, std::remove_cvref_t<E>>(
         std::forward<E>(expression));
 }
 template <tensor_expression E>
 requires std::constructible_from<std::remove_cvref_t<E>, E>
-[[nodiscard]] constexpr auto operator-(E &&expression) noexcept {
+[[nodiscard]] constexpr auto
+operator-(E &&expression) noexcept(std::is_nothrow_constructible_v<std::remove_cvref_t<E>, E>) {
     return unary_expression<detail::negative_operation, std::remove_cvref_t<E>>(
         std::forward<E>(expression));
 }
