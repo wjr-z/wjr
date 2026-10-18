@@ -248,3 +248,7 @@ broadcast centering; see [mean.cpp](mean.cpp) and [the contract](../../docs/desi
 double accumulator on an exactly known cancellation case. Pairwise grouping
 improves this example but is not a correctly rounded sum or an accuracy
 guarantee for every input. See the [grouping contract](../../docs/design/tensor-pairwise-sum.md).
+
+
+`wjr_np_variance`: population/sample variance and standard deviation from a
+borrowed view; see [variance.cpp](variance.cpp).

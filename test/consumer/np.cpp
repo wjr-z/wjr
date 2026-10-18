@@ -19,6 +19,7 @@
 #include <wjr/np/tensor.hpp>
 #include <wjr/np/transform.hpp>
 #include <wjr/np/transpose.hpp>
+#include <wjr/np/variance.hpp>
 
 using shape = wjr::np::extents<size_t, wjr::np::dynamic_extent, 3>;
 int main() {
@@ -28,6 +29,9 @@ int main() {
         return 1;
     }
     const int scan_input[]{1, 2, 3};
+    if (wjr::np::variance(
+            wjr::np::tensor_view<const int, wjr::np::extents<size_t, 3>>(scan_input)) != 2.0 / 3.0)
+        return 1;
     if (wjr::np::mean(wjr::np::tensor_view<const int, wjr::np::extents<size_t, 3>>(scan_input)) !=
         2.0)
         return 1;

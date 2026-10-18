@@ -58,8 +58,12 @@ target_link_libraries(wjr_np_mean PRIVATE wjr::np)
 add_executable(wjr_np_norm norm.cpp)
 target_link_libraries(wjr_np_norm PRIVATE wjr::np)
 
+add_executable(wjr_np_variance variance.cpp)
+target_link_libraries(wjr_np_variance PRIVATE wjr::np)
+
 include(CTest)
 if(BUILD_TESTING)
+    add_test(NAME wjr_np_variance COMMAND wjr_np_variance)
     add_test(NAME wjr_np_mean COMMAND wjr_np_mean)
     add_test(NAME wjr_np_elementwise COMMAND wjr_np_elementwise)
     add_test(NAME wjr_np_expression COMMAND wjr_np_expression)
