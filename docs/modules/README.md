@@ -102,7 +102,7 @@ owner/eval 仍使用 shape_result 报告必要元数据失败，见[结果类型
 ## `wjr::np_cblas`（可选、实验性）
 
 设置 `WJR_ENABLE_NP=ON` 和 `WJR_ENABLE_NP_CBLAS=ON`，通过 pkg-config 发现
-OpenBLAS LP64 后提供 `<wjr/np/cblas.hpp>` 的 `dot` 和预分配 `gemm_to`。
+OpenBLAS LP64 后提供 `<wjr/np/cblas.hpp>` 的 `dot`、预分配 `gemm_to` 和 `gemv_to`。
 安装消费使用 `find_package(wjr CONFIG REQUIRED COMPONENTS np_cblas)`。
 普通 `wjr` / `np` 不发现或链接该 provider；不引入 native ISA 编译要求。
 适配只借用 float/double view，复用成熟 BLAS 内核，不构造中间 tensor。

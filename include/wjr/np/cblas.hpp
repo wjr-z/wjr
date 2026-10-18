@@ -35,6 +35,14 @@ constexpr int integer(size_t value) noexcept {
 }
 
 template <class View>
+bool row_major(View view) noexcept {
+    if constexpr (std::same_as<typename View::layout_type, layout_stride>)
+        return view.stride(1) == 1;
+    else
+        return !np::detail::left_layout<typename View::layout_type>;
+}
+
+template <class View>
 int leading_dimension(View view, bool row_major) noexcept {
     const size_t inner = row_major ? 1 : 0;
     const auto pitch = static_cast<size_t>(view.stride(1 - inner));
@@ -104,12 +112,7 @@ void gemm_to(tensor_view<T, CE, CL> c, tensor_view<A, AE, AL> a, tensor_view<B, 
         detail::scale(c, beta);
         return;
     }
-    const bool row_major = [&] {
-        if constexpr (std::same_as<CL, layout_stride>)
-            return c.stride(1) == 1;
-        else
-            return !np::detail::left_layout<CL>;
-    }();
+    const bool row_major = detail::row_major(c);
     const auto lda = detail::leading_dimension(a, row_major);
     const auto ldb = detail::leading_dimension(b, row_major);
     const auto ldc = detail::leading_dimension(c, row_major);
@@ -123,6 +126,48 @@ void gemm_to(tensor_view<T, CE, CL> c, tensor_view<A, AE, AL> a, tensor_view<B, 
     else
         cblas_dgemm(order, ta, tb, rows, cols, inner, alpha, a.data_handle(), lda, b.data_handle(),
                     ldb, beta, c.data_handle(), ldc);
+}
+
+// y = alpha * op(A) * x + beta * y. Output is disjoint from A and x.
+// Positive vector increments and provider arguments must fit LP64 integers.
+// Zero inner dimension or alpha explicitly means beta*y, as for gemm_to.
+// beta==0 never reads y; otherwise written output values must be initialized.
+template <class T, class YE, class YL, class A, class AE, class AL, class X, class XE, class XL>
+requires(detail::element<T> && !std::is_const_v<T> && !std::is_volatile_v<T> &&
+         !std::is_volatile_v<A> && !std::is_volatile_v<X> && std::same_as<T, std::remove_cv_t<A>> &&
+         std::same_as<T, std::remove_cv_t<X>> && YE::rank() == 1 && AE::rank() == 2 &&
+         XE::rank() == 1 && np::detail::kernel_layout<YL> && np::detail::kernel_layout<AL> &&
+         np::detail::kernel_layout<XL>)
+void gemv_to(tensor_view<T, YE, YL> y, tensor_view<A, AE, AL> a, tensor_view<X, XE, XL> x,
+             std::type_identity_t<T> alpha = T{1}, std::type_identity_t<T> beta = T{0},
+             transpose op = transpose::none) noexcept {
+    WJR_ASSERT_L2(op == transpose::none || op == transpose::transposed);
+    const bool transposed = op == transpose::transposed;
+    const auto rows = static_cast<size_t>(a.extent(0));
+    const auto columns = static_cast<size_t>(a.extent(1));
+    const auto inner = transposed ? rows : columns;
+    WJR_ASSERT_L2(static_cast<size_t>(y.extent(0)) == (transposed ? columns : rows));
+    WJR_ASSERT_L2(static_cast<size_t>(x.extent(0)) == inner);
+    if (y.empty())
+        return;
+    if (inner == 0 || alpha == T{0}) {
+        detail::scale(y, beta);
+        return;
+    }
+    const bool row_major = detail::row_major(a);
+    const auto lda = detail::leading_dimension(a, row_major);
+    const auto inc_x = detail::integer(static_cast<size_t>(x.stride(0)));
+    const auto inc_y = detail::integer(static_cast<size_t>(y.stride(0)));
+    WJR_ASSERT_L2(inc_x > 0 && inc_y > 0);
+    const auto m = detail::integer(rows), n = detail::integer(columns);
+    const auto order = row_major ? CblasRowMajor : CblasColMajor;
+    const auto operation = transposed ? CblasTrans : CblasNoTrans;
+    if constexpr (std::same_as<T, float>)
+        cblas_sgemv(order, operation, m, n, alpha, a.data_handle(), lda, x.data_handle(), inc_x,
+                    beta, y.data_handle(), inc_y);
+    else
+        cblas_dgemv(order, operation, m, n, alpha, a.data_handle(), lda, x.data_handle(), inc_x,
+                    beta, y.data_handle(), inc_y);
 }
 
 } // namespace wjr::np::cblas

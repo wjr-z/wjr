@@ -1,9 +1,11 @@
 # Optional CBLAS view boundary
 
 `<wjr/np/cblas.hpp>` provides `np::cblas::dot(x, y)` and
-`np::cblas::gemm_to(c, a, b, alpha, beta, op_a, op_b)`. The latter writes
+`np::cblas::gemm_to(c, a, b, alpha, beta, op_a, op_b)` and
+`np::cblas::gemv_to(y, a, x, alpha, beta, op)`. GEMM writes
 `C = alpha * op(A) * op(B) + beta * C`; coefficients default to one and zero,
-and `transpose::{none, transposed}` default to `none`.
+and `transpose::{none, transposed}` default to `none`. GEMV similarly writes
+`y = alpha * op(A) * x + beta * y` into an existing vector.
 This is an explicit eager kernel boundary. It does not build an expression,
 materialize an input, choose a provider or change provider thread settings.
 
@@ -20,7 +22,7 @@ are 32-bit `int`, including on a 64-bit host. A pkg-config `openblas` package
 must supply matching public headers and libraries. CMake compiles, links and
 runs a C++ probe that checks `blasint`, rejects `USE64BITINT` in
 `openblas_get_config()` before passing integer arguments, and exercises all
-four float/double dot/GEMM symbols with tiny exact cases. Installed component
+six float/double dot/GEMM/GEMV symbols with tiny exact cases. Installed component
 discovery repeats this validation in its consumer environment. Cross-compiling
 is not supported by this initial native probe.
 
@@ -50,19 +52,28 @@ conversion are excluded.
   known order; a `layout_stride` view must have unit inner stride and a positive
   leading dimension at least the physical inner extent. Each transpose flag
   changes the mathematical operand, not its physical major convention.
+- `gemv_to` accepts a rank-two matrix and rank-one input/output vectors.
+  Matrix order and leading dimension follow the same rules as GEMM; the
+  vectors independently support positive increments. Without transpose,
+  `x.size() == A.extent(1)` and `y.size() == A.extent(0)`; transpose exchanges
+  these dimensions. The wrapper forwards the physical matrix dimensions,
+  pitch and increments, without packing or allocating a workspace.
 - Nonempty provider-call dimensions, increments and leading dimensions fit
   `int`. Shapes match the selected operation. These trusted-input preconditions
   use `WJR_ASSERT_L2` at entry, without per-element checks or recoverable checked
   descriptors. A matching valid mapping and sufficient live storage remain
   the caller's responsibility.
-- GEMM output logical elements are disjoint from both inputs. The two inputs
+- GEMM/GEMV output logical elements are disjoint from both inputs. The two inputs
   may overlap each other. There is no alias search or scratch copy.
 
-Empty dot returns positive zero. Empty GEMM output does nothing. Both return
+Empty dot returns positive zero. Empty GEMM/GEMV output does nothing. These return
 before stride access, pointer offsetting or integer narrowing. For nonempty
 output, `K == 0` or `alpha == 0` explicitly computes only `beta*C` without reading
 either input. This includes nonfinite alpha when K is zero; it is a WJR boundary
 choice, rather than a promise to reproduce every provider's nonfinite corner.
+GEMV applies the same rule with its operation's inner dimension and `beta*y`.
+For a zero inner dimension this deliberately scales a nonempty output,
+where a raw provider GEMV may return immediately for a zero physical dimension.
 
 `beta == 0` never reads C. Its objects must already be alive, but their numeric
 values need not be initialized. In the zero-product path WJR writes positive
@@ -73,6 +84,8 @@ output. These rules permit a `default_construct` owner to be filled once by
 normal GEMM. Netlib's
 [GEMM contract and implementation](https://github.com/Reference-LAPACK/lapack/blob/v3.12.0/BLAS/SRC/dgemm.f)
 provide the beta-zero reference.
+The same initialization rule applies to GEMV's output vector. See the
+[GEMV contract and implementation](https://github.com/Reference-LAPACK/lapack/blob/v3.12.0/BLAS/SRC/dgemv.f).
 
 Provider reduction order, FMA, FP environment, nonfinite results during a
 normal call and threading follow OpenBLAS. There is no ordered-sum or
@@ -84,9 +97,10 @@ not a WJR global thread setter.
 
 ## Validation boundary
 
-The dedicated tests cover float/double dot, positive increments, both physical
-orders and all transpose pairs, padded windows, beta-zero default-initialized
-output, zero-product scaling and empty views. One existing Linux NP CI job
+The dedicated tests cover float/double dot/GEMM/GEMV, positive increments, both
+physical orders and transpose modes, pitched matrices, vector padding,
+beta-zero default-initialized output, zero-product scaling and empty views.
+One existing Linux NP CI job
 installs `libopenblas-dev`, runs these numerical tests, checks installed
 component discovery and executes the standalone example. It sets
 `OPENBLAS_NUM_THREADS=1` only in its test environment.

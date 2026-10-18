@@ -18,6 +18,8 @@ template <class X, class Y>
 concept can_dot = requires(X x, Y y) { blas::dot(x, y); };
 template <class C, class A = C, class B = A>
 concept can_gemm = requires(C c, A a, B b) { blas::gemm_to(c, a, b); };
+template <class Y, class A, class X = Y>
+concept can_gemv = requires(Y y, A a, X x) { blas::gemv_to(y, a, x); };
 struct custom_accessor : np::default_accessor<float> {};
 static_assert(can_dot<view<const float, line>, view<float, line>>);
 static_assert(!can_dot<view<float, line>, view<double, line>>);
@@ -30,6 +32,11 @@ static_assert(!can_gemm<view<const double>>);
 static_assert(!can_gemm<view<float>, view<double>>);
 static_assert(!can_gemm<view<float>, view<float, matrix, np::layout_left>>);
 static_assert(!can_gemm<np::tensor_view<float, matrix, np::layout_right, custom_accessor>>);
+static_assert(can_gemv<view<float, line>, view<const float>, view<const float, line>>);
+static_assert(!can_gemv<view<const float, line>, view<float>>);
+static_assert(!can_gemv<view<float, line>, view<double>>);
+static_assert(!can_gemv<view<float, line>, view<float>, view<volatile float, line>>);
+static_assert(!can_gemv<view<float>, view<float>>);
 static_assert(std::same_as<decltype(blas::dot(std::declval<view<const float, line>>(),
                                               std::declval<view<const float, line>>())),
                            float>);
@@ -210,5 +217,103 @@ void check_floating_dot() {
 TEST(NpCblas, DotAllowsProviderReductionOrderWithinTolerance) {
     check_floating_dot<float>();
     check_floating_dot<double>();
+}
+
+template <class T, class Layout>
+void check_gemv() {
+    std::array<T, 6> storage;
+    const view<T, matrix, Layout> a(storage.data(), 2, 3);
+    for (size_t i = 0; i != 2; ++i)
+        for (size_t j = 0; j != 3; ++j)
+            a(i, j) = static_cast<T>(i * 3 + j + 1);
+    for (bool transposed : {false, true}) {
+        const size_t count = transposed ? 3 : 2;
+        const size_t inner = transposed ? 2 : 3;
+        T x[]{1, 2, 3};
+        T y[]{4, 4, 4};
+        blas::gemv_to(view<T, line>(y, count), a, view<const T, line>(x, inner), T{2}, T{.5},
+                      transposed ? blas::transpose::transposed : blas::transpose::none);
+        for (size_t i = 0; i != count; ++i) {
+            T expected{2};
+            for (size_t j = 0; j != inner; ++j)
+                expected += T{2} * a(transposed ? j : i, transposed ? i : j) * x[j];
+            EXPECT_EQ(y[i], expected);
+        }
+    }
+}
+
+TEST(NpCblas, GemvBothOrdersDtypesAndTranspose) {
+    check_gemv<float, np::layout_right>();
+    check_gemv<double, np::layout_right>();
+    check_gemv<float, np::layout_left>();
+    check_gemv<double, np::layout_left>();
+}
+
+TEST(NpCblas, GemvGeneralPitchAndVectorIncrementsPreservePadding) {
+    double matrix_data[]{1, 2, 3, -99, -99, 4, 5, 6};
+    const np::layout_stride::mapping<matrix> mapping(matrix(2, 3), std::array<size_t, 2>{5, 1});
+    const view<const double, matrix, np::layout_stride> a(matrix_data, mapping);
+    const double x_data[]{1, -99, -99, 2, -99, -99, 3};
+    double y_data[]{std::numeric_limits<double>::quiet_NaN(), -99,
+                    std::numeric_limits<double>::quiet_NaN()};
+    const np::layout_stride::mapping<line> xm(line(3), std::array<size_t, 1>{3});
+    const np::layout_stride::mapping<line> ym(line(2), std::array<size_t, 1>{2});
+    blas::gemv_to(view<double, line, np::layout_stride>(y_data, ym), a,
+                  view<const double, line, np::layout_stride>(x_data, xm));
+    EXPECT_EQ(y_data[0], 14.);
+    EXPECT_EQ(y_data[1], -99.);
+    EXPECT_EQ(y_data[2], 32.);
+    EXPECT_EQ(matrix_data[3], -99.);
+    EXPECT_EQ(matrix_data[4], -99.);
+    const double column_data[]{1, 4, -99, -99, 2, 5, -99, -99, 3, 6};
+    const np::layout_stride::mapping<matrix> column_mapping(matrix(2, 3),
+                                                            std::array<size_t, 2>{1, 4});
+    blas::gemv_to(view<double, line, np::layout_stride>(y_data, ym),
+                  view<const double, matrix, np::layout_stride>(column_data, column_mapping),
+                  view<const double, line, np::layout_stride>(x_data, xm));
+    EXPECT_EQ(y_data[0], 14.);
+    EXPECT_EQ(y_data[1], -99.);
+    EXPECT_EQ(y_data[2], 32.);
+}
+
+TEST(NpCblas, GemvBetaZeroAcceptsDefaultInitializedOutput) {
+    const float a[]{1, 2, 3, 4, 5, 6}, x[]{1, 2, 3};
+    float y[2];
+    blas::gemv_to(view<float, line>(y, 2), view<const float>(a, 2, 3),
+                  view<const float, line>(x, 3));
+    EXPECT_EQ(y[0], 14.f);
+    EXPECT_EQ(y[1], 32.f);
+}
+
+TEST(NpCblas, GemvEmptyAndZeroProductOnlyTouchLogicalOutput) {
+    double y_data[]{1, -99, 2, -99, 3};
+    const np::layout_stride::mapping<line> ym(line(3), std::array<size_t, 1>{2});
+    const view<double, line, np::layout_stride> y(y_data, ym);
+    const view<const double> empty_a(nullptr, 3, 0);
+    const view<const double, line> empty_x(nullptr, 0);
+    blas::gemv_to(y, empty_a, empty_x, std::numeric_limits<double>::quiet_NaN());
+    for (size_t i = 0; i != 3; ++i) {
+        EXPECT_EQ(y_data[i * 2], 0.);
+        EXPECT_FALSE(std::signbit(y_data[i * 2]));
+    }
+    np::fill_to(y, -0.);
+    blas::gemv_to(y, empty_a, empty_x, 1., 1.);
+    for (size_t i = 0; i != 3; ++i)
+        EXPECT_TRUE(std::signbit(y_data[i * 2]));
+    np::fill_to(y, 3.);
+    blas::gemv_to(y, empty_a, empty_x, 1., 2.);
+    EXPECT_EQ(y_data[4], 6.);
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const double a[]{nan, nan, nan}, x[]{nan};
+    blas::gemv_to(y, view<const double>(a, 3, 1), view<const double, line>(x, 1), 0., 2.);
+    EXPECT_EQ(y_data[0], 12.);
+    EXPECT_EQ(y_data[4], 12.);
+    EXPECT_EQ(y_data[1], -99.);
+    EXPECT_EQ(y_data[3], -99.);
+    const size_t large = static_cast<size_t>(std::numeric_limits<int>::max()) + 1;
+    const np::layout_stride::mapping<line> empty_mapping(line(0), std::array{large});
+    const double input[]{1, 2, 3};
+    blas::gemv_to(view<double, line, np::layout_stride>(nullptr, empty_mapping),
+                  view<const double>(nullptr, 0, 3), view<const double, line>(input, 3));
 }
 } // namespace

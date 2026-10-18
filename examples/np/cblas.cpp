@@ -11,8 +11,13 @@ int main() {
                        np::tensor_view<const double, square>(b));
     const auto x = np::tensor_view<const double, np::extents<size_t, 4>>(a);
     const auto norm_squared = np::cblas::dot(x, x);
+    using line = np::extents<size_t, 2>;
+    double y[2];
+    np::cblas::gemv_to(np::tensor_view<double, line>(y), np::tensor_view<const double, square>(a),
+                       np::tensor_view<const double, line>(b));
     std::cout << "A*B:\n"
               << c[0] << ' ' << c[1] << '\n'
               << c[2] << ' ' << c[3] << "\ndot(A,A): " << norm_squared << '\n';
-    return c[0] == 19. && c[3] == 50. && norm_squared == 30. ? 0 : 1;
+    std::cout << "A*[5,6]: " << y[0] << ' ' << y[1] << '\n';
+    return c[0] == 19. && c[3] == 50. && norm_squared == 30. && y[0] == 17. && y[1] == 39. ? 0 : 1;
 }
