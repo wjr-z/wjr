@@ -74,7 +74,7 @@ mapping 内含 extents，不重复保存 shape。
 ## checked 连续借用
 
 ```cpp
-#include <wjr/np/checked_view.hpp>
+#include <wjr/np/make_view.hpp>
 
 using shape = wjr::np::extents<std::size_t, wjr::np::dynamic_extent, 300>;
 auto result = wjr::np::try_make_tensor_view<shape>(
@@ -105,7 +105,7 @@ rank-0 需要一个对象，不能用 nullptr/0 作为标量借用。
 检查只发生在适配边界，热循环获得普通 tensor_view 后不重复验证 shape。
 
 正步长、行间填充和转置输入使用独立的
-[checked strided 借用](tensor-strided-view.md)；它只接受可证明满足固定后端构造前置条件的子集。
+[正 stride 构造](tensor-strided-view.md)；它只接受可证明满足固定后端构造前置条件的子集。
 
 索引固定使用 `view(i, j)`。`wjr::np` 通过公开 CMake 定义启用后端 paren 运算符、禁用 bracket 运算符，
 使 C++20/23 使用相同拼写。整个程序直接使用此后端的翻译单元也须遵循相同宏配置与源码版本，

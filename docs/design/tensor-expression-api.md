@@ -20,7 +20,7 @@ np::eval_to(output.view(), 0.5 * difference * difference);
 
 接受默认 accessor、layout_right/left/stride 的算术元素 view，拒绝 volatile 与代理存储。
 layout_stride 必须是有效、正步长且唯一的 mapping；外部输入可先使用
-[checked strided view](tensor-strided-view.md) 构造。
+[positive-stride construction](tensor-strided-view.md) 构造。
 不同布局按逻辑坐标组合，不会把转置描述符误当成同顺序连续数组。
 
 数组 shape 右对齐，缺少的前导轴视为长度 1；每轴长度相等或一方为 1 才兼容。

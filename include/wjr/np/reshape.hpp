@@ -1,7 +1,7 @@
 #ifndef WJR_NP_RESHAPE_HPP__
 #define WJR_NP_RESHAPE_HPP__
 
-#include <wjr/np/checked_view.hpp>
+#include <wjr/np/shape.hpp>
 
 namespace wjr::np {
 
@@ -74,18 +74,15 @@ requires(detail::is_extents<NewExtents> && detail::contiguous_layout<Layout> &&
 try_reshape_view(tensor_view<T, Extents, Layout> source,
                  const std::array<Integer, NewExtents::rank()> &shape) noexcept {
     const auto count = source.mapping().required_span_size();
-    // The valid source storage precondition includes a count representable in size_t.
-    auto result = try_make_tensor_view<NewExtents, Layout>(source.data_handle(),
-                                                           static_cast<size_t>(count), shape);
-    if (!result) {
-        return unexpected(result.error() == shape_error::insufficient_storage
-                              ? shape_error::element_count_mismatch
-                              : result.error());
-    }
-    if (!wjr::cmp_equal(result->size(), count)) {
+    auto metadata = detail::check_metadata<T, NewExtents>(shape);
+    if (!metadata)
+        return unexpected(metadata.error());
+    if (!wjr::cmp_equal(metadata->size, count)) {
         return unexpected(shape_error::element_count_mismatch);
     }
-    return result;
+    using mapping_type = typename Layout::template mapping<NewExtents>;
+    return tensor_view<T, NewExtents, Layout>(source.data_handle(),
+                                              mapping_type(NewExtents(metadata->dimensions)));
 }
 
 } // namespace wjr::np

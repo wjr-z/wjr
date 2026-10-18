@@ -5,7 +5,7 @@
 
 #include <gtest/gtest.h>
 
-#include <wjr/np/checked_view.hpp>
+#include <wjr/np/make_view.hpp>
 
 namespace {
 
@@ -27,7 +27,7 @@ static_assert(std::same_as<decltype(np::try_make_tensor_view<static_shape>(
                            np::shape_result<static_view>>);
 static_assert(
     std::same_as<decltype(np::detail::check_metadata<int, static_shape>(std::array{2, 3})),
-                 np::shape_result<np::detail::checked_metadata<static_shape>>>);
+                 np::shape_result<np::detail::shape_metadata<static_shape>>>);
 static_assert(static_cast<int>(np::shape_error::negative_extent) == 0);
 static_assert(static_cast<int>(np::shape_error::unsupported_stride_order) == 12);
 static_assert(static_cast<int>(np::shape_error::expression_shape_mismatch) == 13);
@@ -95,12 +95,12 @@ struct alignas(64) aligned_element {
 
 } // namespace
 
-TEST(np_checked_view, sentinel_result_and_legacy_readonly_interoperation) {
+TEST(np_make_view, sentinel_result_and_legacy_readonly_interoperation) {
     EXPECT_TRUE(result_interoperation());
     EXPECT_EQ(sizeof(np::shape_result<void>), sizeof(np::shape_error));
 }
 
-TEST(np_checked_view, static_dynamic_const_and_layout) {
+TEST(np_make_view, static_dynamic_const_and_layout) {
     const float values[] = {0, 1, 2, 3, 4, 5};
     auto row = np::try_make_tensor_view<static_shape>(values, 6, std::array{2, 3});
     auto column =
@@ -115,7 +115,7 @@ TEST(np_checked_view, static_dynamic_const_and_layout) {
     EXPECT_EQ((*column)(0, 1), 2);
 }
 
-TEST(np_checked_view, storage_bounds_and_null) {
+TEST(np_make_view, storage_bounds_and_null) {
     int values[8]{};
     auto larger = np::try_make_tensor_view<static_shape>(values, 8, std::array{2, 3});
     ASSERT_TRUE(larger);
@@ -129,7 +129,7 @@ TEST(np_checked_view, storage_bounds_and_null) {
     EXPECT_EQ(null_storage.error(), np::shape_error::null_storage);
 }
 
-TEST(np_checked_view, empty_and_scalar) {
+TEST(np_make_view, empty_and_scalar) {
     auto empty =
         np::try_make_tensor_view<dynamic_shape>(static_cast<int *>(nullptr), 0, std::array{3, 0});
     ASSERT_TRUE(empty);
@@ -152,7 +152,7 @@ TEST(np_checked_view, empty_and_scalar) {
     EXPECT_EQ(missing.error(), np::shape_error::insufficient_storage);
 }
 
-TEST(np_checked_view, negative_and_static_extent_checks_precede_products) {
+TEST(np_make_view, negative_and_static_extent_checks_precede_products) {
     using shape = np::dextents<int, 3>;
     auto negative = np::try_make_tensor_view<shape>(static_cast<int *>(nullptr), 0,
                                                     std::array{46341, 46341, -1});
@@ -164,7 +164,7 @@ TEST(np_checked_view, negative_and_static_extent_checks_precede_products) {
     EXPECT_EQ(mismatch.error(), np::shape_error::static_extent_mismatch);
 }
 
-TEST(np_checked_view, integer_width_and_index_overflow) {
+TEST(np_make_view, integer_width_and_index_overflow) {
     using narrow = np::dextents<uint8_t, 2>;
     auto extent = np::try_make_tensor_view<narrow>(static_cast<int *>(nullptr), 0,
                                                    std::array<uint64_t, 2>{256, 1});
@@ -186,7 +186,7 @@ TEST(np_checked_view, integer_width_and_index_overflow) {
     EXPECT_EQ(signed_extent.error(), np::shape_error::extent_out_of_range);
 }
 
-TEST(np_checked_view, empty_shape_still_checks_stride_products) {
+TEST(np_make_view, empty_shape_still_checks_stride_products) {
     using shape = np::dextents<int, 3>;
     for (const auto dimensions : {std::array{0, 46341, 46341}, std::array{46341, 46341, 0}}) {
         auto row = np::try_make_tensor_view<shape>(static_cast<int *>(nullptr), 0, dimensions);
@@ -204,7 +204,7 @@ TEST(np_checked_view, empty_shape_still_checks_stride_products) {
     EXPECT_EQ(separated->stride(1), 46341);
 }
 
-TEST(np_checked_view, byte_span_overflow_precedes_storage) {
+TEST(np_make_view, byte_span_overflow_precedes_storage) {
     using shape = np::dextents<size_t, 1>;
     constexpr auto too_many = std::numeric_limits<size_t>::max() / sizeof(int) + 1;
     auto overflow =
@@ -219,7 +219,7 @@ TEST(np_checked_view, byte_span_overflow_precedes_storage) {
     EXPECT_EQ(difference.error(), np::shape_error::size_overflow);
 }
 
-TEST(np_checked_view, real_bool_and_overalignment) {
+TEST(np_make_view, real_bool_and_overalignment) {
     bool flags[] = {false, true};
     using shape = np::extents<int, 2>;
     auto booleans = np::try_make_tensor_view<shape>(flags, 2, std::array{2});
@@ -234,7 +234,7 @@ TEST(np_checked_view, real_bool_and_overalignment) {
 }
 
 #if defined(__SIZEOF_INT128__) && defined(__GLIBCXX__) && !defined(__STRICT_ANSI__)
-TEST(np_checked_view, input_wider_than_size_t_is_not_narrowed) {
+TEST(np_make_view, input_wider_than_size_t_is_not_narrowed) {
     using wide = unsigned __int128;
     static_assert(sizeof(wide) > sizeof(size_t));
     auto result = np::try_make_tensor_view<np::dextents<size_t, 1>>(

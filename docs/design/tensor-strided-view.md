@@ -1,6 +1,7 @@
-# checked 正 stride 借用
+# 正 stride view 的可选构造入口
 
-`<wjr/np/checked_strided_view.hpp>` 提供 CPU 外部数据的正 stride 接入边界，链接可选 `wjr::np`：
+`<wjr/np/make_view.hpp>` 提供 CPU 外部数据的正 stride 接入边界，链接可选 `wjr::np`。函数返回的仍是普通 `tensor_view`，不引入 checked 类型或访问状态。
+已可信的 shape/stride 直接构造 mdspan mapping 和 view，不经过此入口：
 
 ```cpp
 using shape = wjr::np::extents<std::size_t, wjr::np::dynamic_extent, 300>;

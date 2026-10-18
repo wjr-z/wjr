@@ -1,7 +1,7 @@
 #ifndef WJR_NP_STRIDED_TENSOR_HPP__
 #define WJR_NP_STRIDED_TENSOR_HPP__
 
-#include <wjr/np/checked_strided_view.hpp>
+#include <wjr/np/detail/strided_mapping.hpp>
 #include <wjr/np/tensor.hpp>
 
 namespace wjr::np {

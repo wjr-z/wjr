@@ -1,7 +1,5 @@
 #include <array>
 
-#include <wjr/np/checked_strided_view.hpp>
-#include <wjr/np/checked_view.hpp>
 #include <wjr/np/copy.hpp>
 #include <wjr/np/evaluate.hpp>
 #include <wjr/np/expression.hpp>
@@ -18,27 +16,10 @@
 #include <wjr/np/transpose.hpp>
 
 using shape = wjr::np::extents<size_t, wjr::np::dynamic_extent, 3>;
-using result_type = wjr::np::shape_result<wjr::np::tensor_view<int, shape>>;
-
-// Keep debug expected access out of line so its assertion linkage is exercised
-// even when the factory can be inlined into the successful call site.
-WJR_NOINLINE int read_value(const result_type &result) { return (*result)(1, 2); }
-WJR_NOINLINE wjr::np::shape_error read_error(const result_type &result) { return result.error(); }
-
-int main(int argc, char **) {
+int main() {
     int values[] = {0, 1, 2, 3, 4, 5};
     wjr::np::tensor_view<int, shape> view(values, 2);
     view(1, 2) = 42;
-    const size_t available = argc == 1 ? 6 : 5;
-    auto checked = wjr::np::try_make_tensor_view<shape>(values, available, std::array{2, 3});
-    auto insufficient =
-        wjr::np::try_make_tensor_view<shape>(values, available - 1, std::array{2, 3});
-    // Existing explicitly spelled results remain usable through conversion.
-    const wjr::expected<wjr::np::tensor_view<const int, shape>, wjr::np::shape_error> legacy(
-        checked);
-    if (!legacy || (*legacy)(1, 2) != 42) {
-        return 1;
-    }
     using owner = wjr::np::tensor<int, shape>;
     auto owned = wjr::np::make_tensor<owner>(std::array{2, 3});
     auto invalid = wjr::np::make_tensor<owner>(std::array{-1, 3});
@@ -53,12 +34,10 @@ int main(int argc, char **) {
         return 1;
     }
     using strided_shape = wjr::np::dextents<size_t, 2>;
-    auto pitched = wjr::np::try_make_strided_tensor_view<strided_shape>(values, 6, std::array{2, 2},
-                                                                        std::array{4, 1});
-    auto overlap = wjr::np::try_make_strided_tensor_view<strided_shape>(values, 6, std::array{2, 2},
-                                                                        std::array{1, 1});
-    if (!pitched || (*pitched)(1, 1) != 42 || overlap ||
-        overlap.error() != wjr::np::shape_error::unsupported_stride_order) {
+    using strided_mapping = wjr::np::layout_stride::mapping<strided_shape>;
+    const strided_mapping mapping(strided_shape(2, 2), std::array<size_t, 2>{4, 1});
+    const wjr::np::tensor_view<int, strided_shape, wjr::np::layout_stride> pitched(values, mapping);
+    if (pitched(1, 1) != 42) {
         return 1;
     }
     auto flat = wjr::np::flatten_view(view);
@@ -126,10 +105,8 @@ int main(int argc, char **) {
     auto reshaped =
         wjr::np::try_reshape_view<wjr::np::extents<size_t, 3, 2>>(view, std::array{3, 2});
     auto mismatch = wjr::np::try_reshape_view<shape>(view, std::array{1, 3});
-    return checked && !insufficient && read_value(checked) == 42 &&
-                   read_error(insufficient) == wjr::np::shape_error::insufficient_storage &&
-                   view.size() == 6 && flat(5) == 42 && reshaped && (*reshaped)(2, 1) == 42 &&
-                   !mismatch && mismatch.error() == wjr::np::shape_error::element_count_mismatch &&
+    return view.size() == 6 && flat(5) == 42 && reshaped && (*reshaped)(2, 1) == 42 && !mismatch &&
+                   mismatch.error() == wjr::np::shape_error::element_count_mismatch &&
                    owned->try_view()->operator()(1, 2) == 9
                ? 0
                : 1;
