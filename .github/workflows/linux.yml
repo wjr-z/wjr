@@ -117,7 +117,9 @@ jobs:
 
       - name: Validate compiler fingerprint guards
         if: matrix.sys.compiler == 'clang' && matrix.sys.version == '20' && matrix.sys.standard == '20'
-        run: python3 .github/scripts/test_compiler_fingerprint.py
+        run: |
+          python3 .github/scripts/test_compiler_fingerprint.py
+          python3 .github/scripts/test_sccache_launcher.py
 
       - name: Configure using CMake
         run: |
