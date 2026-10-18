@@ -1,5 +1,6 @@
 #include <array>
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <limits>
 
@@ -51,8 +52,26 @@ int main() {
     np::eval_to(out, np::select(finite, observed, 0.));
     print("finite observations, others replaced by zero:");
     std::cout << "finite count: " << np::sum(finite) << '\n';
+
+    // Selected small inputs expose cancellation in the naive formulas. The
+    // nodes call std::expm1/log1p; this is not a correct-rounding guarantee.
+    volatile double small_input = 1e-12;
+    volatile float float_input = 1e-8f;
+    const double small = small_input;
+    const float small_float = float_input;
+    const auto exp_delta = np::expm1(small).read(0);
+    const auto log_delta = np::log1p(small).read(0);
+    const auto float_exp_delta = np::expm1(small_float).read(0);
+    const auto float_log_delta = np::log1p(small_float).read(0);
+    std::cout << std::scientific << std::setprecision(17)
+              << "double x=1e-12: exp(x)-1=" << std::exp(small) - 1. << ", expm1(x)=" << exp_delta
+              << ", log(1+x)=" << std::log(1. + small) << ", log1p(x)=" << log_delta << '\n'
+              << "float x=1e-8: exp(x)-1=" << std::exp(small_float) - 1.f
+              << ", expm1(x)=" << float_exp_delta << ", log(1+x)=" << std::log(1.f + small_float)
+              << ", log1p(x)=" << float_log_delta << '\n';
     return magnitude == std::array{1., 0., 3., 4.} && guarded && np::sum(finite) == 2 &&
-                   output == std::array{0., 1., 0., -2.}
+                   output == std::array{0., 1., 0., -2.} && exp_delta != 0. && log_delta != 0. &&
+                   float_exp_delta != 0.f && float_log_delta != 0.f
                ? 0
                : 1;
 }
