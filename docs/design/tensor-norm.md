@@ -1,5 +1,7 @@
 # 稳定 L2 范数
 
+预分配输出的单轴入口见 [`norm_l2_to`](tensor-axis-norm.md)，它复用本文的稳定内核与恢复重扫。
+
 `<wjr/np/norm.hpp>` 提供 `np::norm_l2<Accumulator = void>(view)`，返回一个浮点标量。
 不创建平方数组、不分配存储、不延长输入寿命，也不依赖 BLAS 二进制库。
 本入口接受普通 view，不接受表达式或 owner 的隐式转换；owner 通过左值 `.view()` 借用。
