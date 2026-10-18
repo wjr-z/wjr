@@ -30,6 +30,47 @@ sum_linear_expression(Values values,
     return result;
 }
 
+// The caller has bound the natural domain once and returned for empty input.
+template <class Accumulator, tensor_expression E>
+WJR_INTRINSIC_INLINE constexpr Accumulator
+sum_nonempty_expression(const E &expression,
+                        const expression_sum_domain<typename E::extents_type>
+                            &domain) noexcept(noexcept(expression.read(size_t{}))) {
+    constexpr auto inputs = detail::expression_leaf_count<E>;
+    const auto values =
+        detail::bind_expression_values(expression, std::make_index_sequence<inputs>{});
+    if constexpr (E::rank() == 0) {
+        return detail::sum_linear_expression<E, Accumulator>(values, domain.linear_size());
+    } else {
+        if (detail::is_linear_expression(domain, expression))
+            return detail::sum_linear_expression<E, Accumulator>(values, domain.linear_size());
+        constexpr auto rank = E::rank();
+        std::array<std::array<size_t, rank>, inputs> strides{};
+        detail::bind_expression_strides(expression, strides);
+        const auto count = domain.extent(rank - 1);
+        std::array<size_t, inputs> steps{};
+        for (size_t input = 0; input != inputs; ++input)
+            steps[input] = strides[input][rank - 1];
+        std::array<size_t, rank - 1> outer_shape{};
+        std::array<std::array<size_t, rank - 1>, inputs> outer_strides{};
+        for (size_t axis = 0; axis != rank - 1; ++axis) {
+            outer_shape[axis] = domain.extent(axis);
+            for (size_t input = 0; input != inputs; ++input)
+                outer_strides[input][axis] = strides[input][axis];
+        }
+        Accumulator result{};
+        auto add_row = [values, count, steps,
+                        &result](auto... offsets) noexcept(noexcept(expression.read(size_t{}))) {
+            result = detail::sum_expression_line<E, Accumulator>(
+                values, count, std::array<size_t, detail::expression_leaf_count<E>>{offsets...},
+                steps, std::make_index_sequence<detail::expression_leaf_count<E>>{}, result);
+        };
+        detail::walk_expression_sum(outer_shape, outer_strides, add_row,
+                                    std::make_index_sequence<inputs>{});
+        return result;
+    }
+}
+
 // Each lane is an independent ordered fold. N changes interleaving only;
 // it does not regroup additions within a column.
 template <size_t N, bool Unit, tensor_expression E, class Accumulator, class D, class Values,
@@ -191,42 +232,10 @@ requires(detail::expression_element<typename E::value_type> &&
 [[nodiscard]] WJR_INTRINSIC_INLINE constexpr auto
 sum(const E &expression) noexcept(noexcept(expression.read(size_t{}))) {
     using accumulator_type = detail::sum_accumulator<Accumulator, typename E::value_type>;
-    constexpr auto inputs = detail::expression_leaf_count<E>;
     const auto domain = detail::bind_expression_sum_domain(expression);
     if (domain.empty())
         return accumulator_type{};
-    const auto values =
-        detail::bind_expression_values(expression, std::make_index_sequence<inputs>{});
-    if constexpr (E::rank() == 0) {
-        return detail::sum_linear_expression<E, accumulator_type>(values, domain.linear_size());
-    } else {
-        if (detail::is_linear_expression(domain, expression))
-            return detail::sum_linear_expression<E, accumulator_type>(values, domain.linear_size());
-        constexpr auto rank = E::rank();
-        std::array<std::array<size_t, rank>, inputs> strides{};
-        detail::bind_expression_strides(expression, strides);
-        const auto count = domain.extent(rank - 1);
-        std::array<size_t, inputs> steps{};
-        for (size_t input = 0; input != inputs; ++input)
-            steps[input] = strides[input][rank - 1];
-        std::array<size_t, rank - 1> outer_shape{};
-        std::array<std::array<size_t, rank - 1>, inputs> outer_strides{};
-        for (size_t axis = 0; axis != rank - 1; ++axis) {
-            outer_shape[axis] = domain.extent(axis);
-            for (size_t input = 0; input != inputs; ++input)
-                outer_strides[input][axis] = strides[input][axis];
-        }
-        accumulator_type result{};
-        auto add_row = [values, count, steps,
-                        &result](auto... offsets) noexcept(noexcept(expression.read(size_t{}))) {
-            result = detail::sum_expression_line<E, accumulator_type>(
-                values, count, std::array<size_t, detail::expression_leaf_count<E>>{offsets...},
-                steps, std::make_index_sequence<detail::expression_leaf_count<E>>{}, result);
-        };
-        detail::walk_expression_sum(outer_shape, outer_strides, add_row,
-                                    std::make_index_sequence<inputs>{});
-        return result;
-    }
+    return detail::sum_nonempty_expression<accumulator_type>(expression, domain);
 }
 
 // Input leaves and output must be logically disjoint; output shape is the
