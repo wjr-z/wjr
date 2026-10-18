@@ -252,3 +252,11 @@ guarantee for every input. See the [grouping contract](../../docs/design/tensor-
 
 `wjr_np_variance`: population/sample variance and standard deviation from a
 borrowed view; see [variance.cpp](variance.cpp).
+
+## Full-view extrema
+
+`extrema.cpp` finds the first minimum and maximum in a borrowed padded window.
+Argument reductions return logical row-major indices, independent of the
+window's physical pitch; equal values retain their first logical occurrence.
+See [the extrema contract](../../docs/design/tensor-extrema.md) for empty-input
+preconditions, dtype, NaN and signed-zero behavior.
