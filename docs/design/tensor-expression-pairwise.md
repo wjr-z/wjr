@@ -70,3 +70,27 @@ The shared algorithm retains its NumPy 2.2.0 BSD attribution and installed
 oracle, dtype cases, recursion boundaries and move-only callables. The standalone
 [example](../../examples/np/expression_pairwise.cpp) demonstrates grouping and
 accumulator precision without allocating a transformed tensor.
+
+## Focused generated-code evidence
+
+[Linux run 39098893058](https://github.com/wjr-z/wjr/actions/runs/39098893058)
+compares main `0565e732` with implementation `bc1967d8`, using GCC 13.3/Clang
+18.1.3 on EPYC 7763, C++20, `-O3 -ffp-contract=off -fno-fast-math`, debug level 0.
+Ten existing view entries cover float/double, integer/wider accumulation,
+mutable/const pointers, stride and fixed lengths, each with baseline/native ISA.
+All 40 entry/callee instruction graphs are unchanged after pairing the renamed
+private Input-template symbols, including Clang's conditional helper tail jumps.
+Registers, memory operations, local control flow and helper bodies are preserved.
+Mutable views normalize their pointer to const, retaining the previous set of
+recursive pointer instantiations.
+
+Each compiler also passes 3,150 actual fused/direct-hand grouping comparisons,
+plus an integer-division dtype case. Fusion assembly covers squares, two-input
+affine operations, a wider accumulator, a pure capturing map, and a fixed
+six-element leaf. Inspected hot loops contain no binding-metadata reloads,
+per-point calls, or integer division. These probes still retain entry setup,
+recursive/outlined leaf calls, and GCC stack-protection overhead for escaped
+binding storage. Repeated view leaves in a square need not collapse to one
+physical input load inside a recursive callee. The competent hand implementation
+has fewer setup costs in some cases; no throughput measurement or universal
+zero-overhead claim follows from this comparison.
