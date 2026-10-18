@@ -7,8 +7,9 @@
 ## 状态与文档权威
 
 审查日期 2026-10-18，详细源码审查从 `39fb36ba` 开始，并核对随后合入的 map、mask 和 stride owner。
-本次集成基于 `21521c98` 与[构造入口迁移 #84](https://github.com/wjr-z/wjr/pull/84)。
-下表的“已实现”指本分支已有的接口；审查、生成码和实际测试是不同证据，不能相互替代。
+首次规范集成基于 `21521c98` 与[构造入口迁移 #84](https://github.com/wjr-z/wjr/pull/84)。
+以下能力清单已按 `97486826`（#111）重新核对；原审查基线不代表当前完成状态。
+“已实现”只表示文档声明的子集；审查、生成码和实际测试是不同证据，不能相互替代。
 
 | 状态 | 已确认范围 |
 | --- | --- |
@@ -16,12 +17,18 @@
 | 已实现 | 值闭包算术、静态/动态广播、cast、eval_to、拥有结果的 eval、可选 xsimd、view sum/scan、表达式全量/单轴 ordered sum |
 | 已实现 | map 的真实 callable、独立函数绑定、条件 noexcept、私有 child 协议；比较、具名逻辑和 eager select |
 | 已实现 | 可选 try_make_* 函数使用 make_view.hpp 并返回普通 mdspan；可信内部直接构造，分配元数据处理留在内部 |
-| 接受的后续方向 | 正步长一般切片、保留布局证据、有限数值函数、明确数值 policy、按证据优化执行与表示 |
+| 已实现 | 正步长 slice_view、静态布局信息保留、padded 适配；有限具名数值函数及 min/max/clip 表达式 |
+| 已实现 | numeric/predicate xsimd、广播行与 scalar fallback；私有按操作特化的资格和计算适配 |
+| 已实现 | view pairwise sum、stable norm、mean/variance、extrema、NaN-skipping full-view 规约、diff_to；表达式 scan 与全量/单轴 mean |
+| 已实现 | 保留既定分组与 child dtype 的受限连续表达式 pairwise sum；setup、重复叶等成本边界见其 API 文档 |
+| 已实现 | 独立可选 OpenBLAS LP64 dot/gemm_to，普通 np 不搜索或链接 BLAS |
+| 接受的后续方向 | 按实测缺口优化绑定和别名信息；扩展明确数值 policy 的融合规约与显式成熟后端边界 |
 | 未承诺实现 | signed-stride 借用、exact-storage 替换、公共 plan、通用 alias 求交、动态 rank 内核、调度器、运行时图与设备执行 |
 
 本文对跨模块的不变量和取舍具有优先级；[模块索引](../modules/README.md)说明依赖，
 各 API 文档说明实际签名、已支持子集与失败行为。[表达式设计](tensor-expressions.md)说明内部结构，
 [实施计划](expression-roadmap.md)安排后续能力，[证据](expression-evidence.md)保留带快照的实验结果。
+[下一阶段能力](np-next-capabilities.md)记录本轮集中审视后的实现分组和准入条件。
 发生冲突时须修正文档或代码，不能通过把未来规则改称“已实现”消除差异。
 实验性节点表示和后端对象布局不承诺稳定 ABI；新增契约若改变可见行为，必须随代码、针对性测试一起交付。
 
@@ -235,14 +242,18 @@ sum 是 terminal 操作，可以融合 pointwise 输入，但不是每次 read �
 全量默认按逻辑行主序从零逐项累计；单轴按该轴索引递增，各输出独立。
 accumulator 默认由结果类型相加推导，显式 Acc 改变累计类型，不反向改变 child 类型。
 空 sum 为零，rank-0 是从零加一个值；不能承诺负零输入必然原样返回。
-多轴 runtime 个数、空轴列表、mean/max/variance 等尚需各自明确合同。
+多轴 runtime 个数与空轴列表尚未提供。已实现的
+[mean](tensor-mean.md)、[variance](tensor-variance.md)、[extrema](tensor-extrema.md)
+使用各自的空域、NaN、tie、累计类型与失败前置条件，不由 sum 的规则自动推导。
 
 独立列交错可保持每列原顺序；同一结果分成多 accumulator 再合并则改变分组。
-已有 view 四列路径不能重复列为未来功能；表达式列规约可在 unit/splat 且不抛的子集研究同类优化。
+已有 view 和表达式四列路径不能重复列为未来功能；表达式路径用于 unit/splat、允许交错且不抛的子集。
 默认不因某台机器的宽块计时改成 8/16，也不依据 SIMD lane 数选择通用最优宽度。
 
-pairwise 与 relaxed SIMD 是独立的后续数值选择。
-pairwise 须规定实际分组、cutoff、空域和布局一致性；不支持的布局不能偷偷回退成不同分组并仍称确定。
+[view pairwise](tensor-pairwise-sum.md) 已固定分组、cutoff、空域和布局子集；
+不支持的布局不能偷偷回退成不同分组并仍称确定。
+[融合表达式入口](tensor-expression-pairwise.md)保留同一树与 child dtype，首版有明确的布局/操作准入。
+relaxed SIMD 仍为后续扩展，须明确准入和 fallback 合同。
 relaxed 只授权声明的累计重结合，不授权移动 cast、改写整数除法或全部 fast-math。
 精度对照包含消去、极端量级、NaN/Inf/带符号零；pairwise 不保证每个输入都更准，更不等于正确舍入。
 scan 还需保持每个 prefix 的累计类型，不能通过读回较窄输出继续累计。
@@ -250,18 +261,18 @@ scan 还需保持每个 prefix 的累计类型，不能通过读回较窄输出�
 SIMD 是可选 executor 能力。baseline `wjr::np` 不依赖 ISA；xsimd 使用独立 header/target/policy。
 同一种公开 inline 特化不能按各 TU 的 ISA 宏产生不同语义或定义。
 未知 callable、cast 或 mixed dtype 子树保守 scalar fallback；不能先升成最终 batch dtype 再运算。
-当前 map/mask 整体 fallback，未提供 predicate SIMD。
-
-未来 predicate SIMD 要区分 numeric batch 与 predicate batch，匹配 lane 几何且保持 mask 后端私有。
+map、cast、mixed dtype 和不支持的布局仍整体 fallback。
+现有 predicate SIMD 区分 numeric batch 与 predicate batch，匹配 lane 几何且保持 mask 后端私有；
+同类型 float/double 的比较、逻辑、eager select 和 min/max/clip 可进入既有批量路径。
 不实例化 batch<bool> 冒充真实 bool 存储，不泄漏 native mask bit 编码。
 完整 batch 加有界 tail 不越界读取；初始指针对齐不能替代切片/每行对齐证明。
 显式 backend 不代表每个表达式都可 vectorize，合法 fallback 仍需正确性和成本证据。
 
 ## 8. 扩展准入与交付
 
-优先用少量可说明的函数与真实组合示例增加能力：有域/异常合同的 abs、sqrt、exp、isfinite，
-再按需求扩充 ordered collective、稳定 norm 或 BLAS 边界。不要先复制整个 ufunc 目录。
-min/max 须决定空域、NaN、相等值与带符号零；stable norm 不能用平方和在极端量级溢出的实现冒名。
+有限具名数值函数、ordered collective、stable norm 和独立可选
+[CBLAS 边界](tensor-cblas.md) 已落地；后续只按新用途或性能缺口扩展，不重复建设或复制整个 ufunc 目录。
+min/max 的空域、NaN、相等值与带符号零沿用各自已声明合同；stable norm 不能用平方和在极端量级溢出的实现冒名。
 softmax 显式分出 reduction 和复用 workspace，matmul 优先适配成熟 kernel。
 
 oneTBB、OpenXLA、Python 和设备互操作在独立适配层；不用它们时普通节点无额外状态或依赖。
