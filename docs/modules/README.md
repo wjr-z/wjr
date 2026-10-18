@@ -74,6 +74,16 @@ JSON 数据结构和解析、序列化相关功能。
 
 需要低开销地暂存数据流、事件或生产者消费者之间的数据时使用。它依赖 `wjr::assert` 和 `wjr::iterator`。
 
+## `wjr::tbb`（可选）
+
+设置 `WJR_ENABLE_TBB=ON` 后提供 `<wjr/parallel/tbb.hpp>` 的同步
+`wjr::tbb::parallel_for_chunks`，借用同一个 const callable 执行非重叠分块。
+只通过 config package 发现系统或预编译 oneTBB 2021.11 以上版本，不下载或构建其源码。
+普通 WJR/NP 不发现或链接 oneTBB；该模块只依赖通用配置、断言和 `TBB::tbb`，不引入 ISA 要求。
+安装消费使用 `find_package(wjr CONFIG REQUIRED COMPONENTS tbb)`；
+借用、继承取消及异常合同见[同步分块](../design/parallel-tbb.md)，
+复用调用方 arena 的可运行例子见 [examples/tbb](../../examples/tbb)。
+
 ## `wjr::np`（可选、实验性）
 
 设置 `WJR_ENABLE_NP=ON` 后提供 C++20 的多维借用 view，包含

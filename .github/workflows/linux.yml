@@ -91,9 +91,9 @@ jobs:
       - name: Install GMP
         run: sudo apt-get update && sudo apt-get install -y libgmp-dev
 
-      - name: Install OpenBLAS development files
+      - name: Install optional runtime development files
         if: matrix.sys.compiler == 'clang' && matrix.sys.version == '20' && matrix.sys.standard == '20'
-        run: sudo apt-get install -y libopenblas-dev
+        run: sudo apt-get install -y libopenblas-dev libtbb-dev
 
       - name: Identify compilers and native target
         id: compiler
@@ -132,7 +132,7 @@ jobs:
             benchmark_args+=(-DWJR_ENABLE_NP=ON)
           fi
           if [[ "${{matrix.sys.compiler}}" == "clang" && "${{matrix.sys.version}}" == "20" && "${{matrix.sys.standard}}" == "20" ]]; then
-            benchmark_args+=(-DWJR_BUILD_BENCHMARKS=ON -DWJR_BENCHMARK_PROFILE=simd -DWJR_BENCHMARK_XSIMD=ON -DWJR_ENABLE_XSIMD=ON -DWJR_ENABLE_NP_CBLAS=ON)
+            benchmark_args+=(-DWJR_BUILD_BENCHMARKS=ON -DWJR_BENCHMARK_PROFILE=simd -DWJR_BENCHMARK_XSIMD=ON -DWJR_ENABLE_XSIMD=ON -DWJR_ENABLE_NP_CBLAS=ON -DWJR_ENABLE_TBB=ON)
           fi
           cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON \
             -DWJR_DEBUG_LEVEL_RELEASE=3 -DWJR_ENABLE_ASAN=ON \
@@ -164,7 +164,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ \
             -DCMAKE_CXX_COMPILER_LAUNCHER="python3;$GITHUB_WORKSPACE/.github/scripts/ccache_launcher.py" \
             -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/wjr-install" -DWJR_EXPECT_CXX_STANDARD=20 \
-            -DWJR_TEST_NP=ON -DWJR_TEST_SIMD_XSIMD=ON -DWJR_TEST_NP_CBLAS=ON
+            -DWJR_TEST_NP=ON -DWJR_TEST_SIMD_XSIMD=ON -DWJR_TEST_NP_CBLAS=ON -DWJR_TEST_TBB=ON
           cmake --build consumer-build --parallel
           ctest --test-dir consumer-build --output-on-failure
           cmake -S examples/np -B cblas-example-build -GNinja \
@@ -173,6 +173,19 @@ jobs:
             -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/wjr-install" -DWJR_NP_EXAMPLES_CBLAS=ON
           cmake --build cblas-example-build --target wjr_np_cblas --parallel
           ctest --test-dir cblas-example-build --output-on-failure -R '^wjr_np_cblas$'
+          cmake -S examples/tbb -B tbb-example-build -GNinja \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_CXX_COMPILER_LAUNCHER="python3;$GITHUB_WORKSPACE/.github/scripts/ccache_launcher.py" \
+            -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/wjr-install"
+          cmake --build tbb-example-build --parallel
+          ctest --test-dir tbb-example-build --output-on-failure
+          g++ --version
+          g++ -std=c++20 -O2 -march=x86-64 -DWJR_DEBUG_LEVEL=0 \
+            -Iinclude test/consumer/tbb.cpp -ltbb -o tbb-gcc-consumer
+          ./tbb-gcc-consumer
+          g++ -std=c++20 -O2 -march=x86-64 -fno-exceptions -DWJR_DISABLE_EXCEPTIONS \
+            -DWJR_DEBUG_LEVEL=0 -Iinclude test/consumer/tbb.cpp -ltbb -o tbb-gcc-noexceptions
+          ./tbb-gcc-noexceptions
 
       - name: Validate SIMD benchmark backends
         if: matrix.sys.compiler == 'clang' && matrix.sys.version == '20' && matrix.sys.standard == '20'
