@@ -1,0 +1,12 @@
+if(NOT TARGET wjr::tbb)
+    # QUIET keeps OPTIONAL_COMPONENTS optional; the root config applies policy.
+    find_package(TBB 2021.11 QUIET CONFIG COMPONENTS tbb)
+    if(NOT TBB_FOUND OR NOT TARGET TBB::tbb)
+        set(wjr_tbb_FOUND FALSE)
+        set(wjr_tbb_NOT_FOUND_MESSAGE "The tbb component requires a prebuilt oneTBB 2021.11 or later package.")
+        return()
+    endif()
+    include("${CMAKE_CURRENT_LIST_DIR}/wjrTbbTargets.cmake")
+    target_link_libraries(wjr::tbb INTERFACE TBB::tbb)
+endif()
+set(wjr_tbb_FOUND TRUE)

@@ -9,6 +9,45 @@ find_package(wjr CONFIG REQUIRED OPTIONAL_COMPONENTS wjr_unavailable)
 if(wjr_wjr_unavailable_FOUND)
     message(FATAL_ERROR "An unavailable optional component was reported as found.")
 endif()
+
+option(WJR_TEST_TBB "Validate the installed optional oneTBB component." OFF)
+# Run before other optional components to verify that TBB imports neither NP nor ISA backends.
+if(WJR_TEST_TBB)
+    if(TARGET wjr::tbb)
+        message(FATAL_ERROR "Ordinary package discovery imported the TBB component.")
+    endif()
+    find_package(wjr CONFIG REQUIRED COMPONENTS tbb)
+    find_package(wjr CONFIG REQUIRED COMPONENTS tbb)
+    get_target_property(_WJR_TBB_DEPS wjr::tbb INTERFACE_LINK_LIBRARIES)
+    list(FILTER _WJR_TBB_DEPS INCLUDE REGEX "^TBB::tbb$")
+    list(LENGTH _WJR_TBB_DEPS _WJR_TBB_DEP_COUNT)
+    if(NOT wjr_tbb_FOUND OR NOT _WJR_TBB_DEP_COUNT EQUAL 1)
+        message(FATAL_ERROR "The TBB component must retain exactly one runtime dependency.")
+    endif()
+    if(TARGET wjr::np OR TARGET wjr::simd_xsimd)
+        message(FATAL_ERROR "The TBB component imported unrelated optional modules.")
+    endif()
+    if(NOT CMAKE_PREFIX_PATH STREQUAL WJR_PREFIX_PATH_BEFORE)
+        message(FATAL_ERROR "Finding TBB changed the consumer's CMAKE_PREFIX_PATH.")
+    endif()
+    add_executable(wjr_tbb_consumer tbb.cpp)
+    target_link_libraries(wjr_tbb_consumer PRIVATE wjr::tbb)
+    add_test(NAME wjr_tbb_consumer COMMAND wjr_tbb_consumer)
+    foreach(_WJR_OPTIONAL IN ITEMS ON OFF)
+        add_test(NAME wjr_tbb_missing_dependency_optional_${_WJR_OPTIONAL}
+            COMMAND ${CMAKE_COMMAND}
+            -S "${CMAKE_CURRENT_SOURCE_DIR}/component"
+            -B "${CMAKE_CURRENT_BINARY_DIR}/tbb-missing-dependency-${_WJR_OPTIONAL}"
+            -G "${CMAKE_GENERATOR}"
+            "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
+            "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+            -DWJR_REQUEST_COMPONENT=tbb
+            -DWJR_OPTIONAL_COMPONENT=${_WJR_OPTIONAL}
+            -DCMAKE_DISABLE_FIND_PACKAGE_TBB=TRUE
+        )
+    endforeach()
+    set_tests_properties(wjr_tbb_missing_dependency_optional_OFF PROPERTIES WILL_FAIL TRUE)
+endif()
 # Repeated discovery is common when multiple components use the same package.
 find_package(wjr CONFIG REQUIRED)
 if(NOT CMAKE_PREFIX_PATH STREQUAL WJR_PREFIX_PATH_BEFORE)
