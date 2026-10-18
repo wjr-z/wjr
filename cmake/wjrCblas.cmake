@@ -54,7 +54,10 @@ int main() {
                 1, 1, 1, 1, x, 1, x, 1, 0, &f, 1);
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                 1, 1, 1, 1, y, 1, y, 1, 0, &d, 1);
-    return f == 4 && d == 4 ? 0 : 3;
+    if (f != 4 || d != 4) return 3;
+    cblas_sgemv(CblasRowMajor, CblasNoTrans, 1, 1, 1, x, 1, x, 1, 0, &f, 1);
+    cblas_dgemv(CblasRowMajor, CblasNoTrans, 1, 1, 1, y, 1, y, 1, 0, &d, 1);
+    return f == 4 && d == 4 ? 0 : 4;
 }
 ]=] WJR_CBLAS_LP64)
     cmake_pop_check_state()
