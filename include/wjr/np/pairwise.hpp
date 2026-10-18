@@ -10,9 +10,10 @@ namespace wjr::np {
 
 namespace detail {
 
-template <class Accumulator, class T, class... Stride>
+// Input is a pointer or a nothrow random-access cursor with pointer-like addition.
+template <class Accumulator, class Input, class... Stride>
 requires(sizeof...(Stride) <= 1)
-constexpr Accumulator pairwise_sum_leaf(const T *input, size_t count, Stride... strides) noexcept {
+constexpr Accumulator pairwise_sum_leaf(Input input, size_t count, Stride... strides) noexcept {
     const size_t step = (size_t{1} * ... * strides);
     if (count < 8) {
         Accumulator result = -Accumulator{0};
@@ -48,9 +49,9 @@ constexpr Accumulator pairwise_sum_leaf(const T *input, size_t count, Stride... 
 
 // Bound recursive inlining without preventing small, fixed-size leaves from
 // being optimized in their caller. The contiguous signature has no stride.
-template <class Accumulator, class T, class... Stride>
+template <class Accumulator, class Input, class... Stride>
 requires(sizeof...(Stride) <= 1)
-WJR_NOINLINE constexpr Accumulator pairwise_sum_tree(const T *input, size_t count,
+WJR_NOINLINE constexpr Accumulator pairwise_sum_tree(Input input, size_t count,
                                                      Stride... strides) noexcept {
     if (count <= 128)
         return pairwise_sum_leaf<Accumulator>(input, count, strides...);
@@ -62,10 +63,9 @@ WJR_NOINLINE constexpr Accumulator pairwise_sum_tree(const T *input, size_t coun
     return left + right;
 }
 
-template <class Accumulator, class T, class... Stride>
+template <class Accumulator, class Input, class... Stride>
 requires(sizeof...(Stride) <= 1)
-constexpr Accumulator pairwise_sum_kernel(const T *input, size_t count,
-                                          Stride... strides) noexcept {
+constexpr Accumulator pairwise_sum_kernel(Input input, size_t count, Stride... strides) noexcept {
     if (count <= 128)
         return pairwise_sum_leaf<Accumulator>(input, count, strides...);
     return pairwise_sum_tree<Accumulator>(input, count, strides...);
@@ -86,11 +86,12 @@ requires(detail::kernel_element<T> &&
     if (source.empty())
         return accumulator_type{0};
     const auto count = static_cast<size_t>(source.size());
+    const auto *input = source.data_handle();
     if constexpr (std::same_as<Layout, layout_right> || Extents::rank() == 0 ||
                   std::same_as<Layout, layout_left>)
-        return detail::pairwise_sum_kernel<accumulator_type>(source.data_handle(), count);
+        return detail::pairwise_sum_kernel<accumulator_type>(input, count);
     else
-        return detail::pairwise_sum_kernel<accumulator_type>(source.data_handle(), count,
+        return detail::pairwise_sum_kernel<accumulator_type>(input, count,
                                                              static_cast<size_t>(source.stride(0)));
 }
 

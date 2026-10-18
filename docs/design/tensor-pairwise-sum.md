@@ -5,6 +5,10 @@ It is a direct view kernel, with no expression wrapper, allocation or temporary
 payload. Default `sum` keeps its existing ordered fold; grouping changes only
 when the caller explicitly chooses this entry point.
 
+The separate [expression overload](tensor-expression-pairwise.md) fuses a
+restricted pure, nothrow, equally shaped packed tree into this same grouping;
+it does not broaden the view overload or change the default sum policy.
+
 ```cpp
 const auto result = np::pairwise_sum(samples);
 const auto wider = np::pairwise_sum<double>(samples);
