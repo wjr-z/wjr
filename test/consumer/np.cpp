@@ -7,6 +7,7 @@
 #include <wjr/np/expression_mask.hpp>
 #include <wjr/np/expression_math.hpp>
 #include <wjr/np/expression_reduce.hpp>
+#include <wjr/np/expression_scan.hpp>
 #include <wjr/np/reduce.hpp>
 #include <wjr/np/reshape.hpp>
 #include <wjr/np/scan.hpp>
@@ -19,6 +20,16 @@
 
 using shape = wjr::np::extents<size_t, wjr::np::dynamic_extent, 3>;
 int main() {
+    const int scan_input[]{1, 2, 3};
+    int scan_output[3];
+    using scan_shape = wjr::np::extents<size_t, 3>;
+    wjr::np::cumsum_to(wjr::np::tensor_view<int, scan_shape>(scan_output),
+                       wjr::np::as_expr(wjr::np::tensor_view<const int, scan_shape>(scan_input)) *
+                           2,
+                       wjr::np::axes<0>);
+    if (scan_output[2] != 12) {
+        return 1;
+    }
     int values[] = {0, 1, 2, 3, 4, 5};
     wjr::np::tensor_view<int, shape> view(values, 2);
     view(1, 2) = 42;
