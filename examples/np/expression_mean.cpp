@@ -10,13 +10,19 @@ int main() {
     const auto a =
         np::as_expr(np::tensor_view<const double, np::extents<size_t, 2, 3>>(samples.data()));
     const auto mean_square = np::mean(a * a);
+    std::array<double, 2> row_means{};
+    np::mean_to(np::tensor_view<double, np::extents<size_t, 2>>(row_means.data()), a * a,
+                np::axes<1>);
     const auto nonlinear =
         np::mean(np::map([](double value) noexcept { return value / (1 + value * value); }, a));
     double reference = 0;
     for (auto value : samples)
         reference += value / (1 + value * value);
     reference /= samples.size();
-    std::cout << "mean square: " << mean_square << "\nmean bounded transform: " << nonlinear
-              << '\n';
-    return mean_square == 91.0 / 6 && std::abs(nonlinear - reference) < 1e-14 ? 0 : 1;
+    std::cout << "mean square: " << mean_square << "\nrow means: " << row_means[0] << ", "
+              << row_means[1] << "\nmean bounded transform: " << nonlinear << '\n';
+    return mean_square == 91.0 / 6 && row_means[0] == 14.0 / 3 && row_means[1] == 77.0 / 3 &&
+                   std::abs(nonlinear - reference) < 1e-14
+               ? 0
+               : 1;
 }

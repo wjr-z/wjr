@@ -18,10 +18,24 @@ template <class T>
 using expression = decltype(np::as_expr(std::declval<view<T, np::dextents<size_t, 1>>>()));
 template <class E, class Acc = void>
 concept has_mean = requires(const E &e) { np::mean<Acc>(e); };
+template <class D, class E, class Acc = void>
+concept means_to = requires(D dst, const E &e) { np::mean_to<Acc>(dst, e, np::axes<1>); };
+template <class D, class E, class Acc = void>
+concept means_to_keep =
+    requires(D dst, const E &e) { np::mean_to<Acc>(dst, e, np::axes<1>, np::keepdims); };
 
 static_assert(has_mean<expression<const int>> && has_mean<expression<float>, long double>);
 static_assert(!has_mean<expression<int>, bool> && !has_mean<expression<int>, int>);
 static_assert(!has_mean<expression<int>, const double> && !has_mean<int>);
+using matrix_expression =
+    decltype(np::as_expr(std::declval<view<const int, np::extents<size_t, 2, 3>>>()) * 2);
+static_assert(means_to<view<float, np::extents<size_t, 2>>, matrix_expression>);
+static_assert(means_to<view<double, np::extents<size_t, 2>>, matrix_expression, long double>);
+static_assert(means_to_keep<view<float, np::extents<size_t, 2, 1>>, matrix_expression>);
+static_assert(!means_to<view<int, np::extents<size_t, 2>>, matrix_expression>);
+static_assert(!means_to<view<float, np::extents<size_t, 2>>, matrix_expression, int>);
+static_assert(!means_to<view<float, np::extents<size_t, 3>>, matrix_expression>);
+static_assert(!means_to_keep<view<float, np::extents<size_t, 2, 3>>, matrix_expression>);
 static_assert(std::same_as<decltype(np::mean(std::declval<expression<int>>())), double>);
 static_assert(std::same_as<decltype(np::mean(std::declval<expression<bool>>())), double>);
 static_assert(std::same_as<decltype(np::mean(std::declval<expression<float>>())), float>);
@@ -167,6 +181,129 @@ TEST(NpExpressionMean, NonfiniteAndSignedZeroFollowOrderedArithmetic) {
     const auto a = np::as_expr(view<const double, np::extents<size_t, 2>>(values + 1));
     EXPECT_TRUE(std::isnan(np::mean(a)));
 }
+
+TEST(NpExpressionMean, SingleAxisReductionAndKeepdims) {
+    const int values[]{1, 2, 3, 4, 5, 6};
+    const auto input = np::as_expr(view<const int, np::extents<size_t, 2, 3>>(values));
+    const auto expression = input * 2 + 1;
+    float rows[2]{}, columns[3]{}, kept[2]{};
+    np::mean_to(view<float, np::extents<size_t, 2>>(rows), expression, np::axes<1>);
+    np::mean_to(view<float, np::extents<size_t, 3>>(columns), expression, np::axes<0>);
+    np::mean_to(view<float, np::extents<size_t, 2, 1>>(kept), expression, np::axes<1>,
+                np::keepdims);
+    EXPECT_EQ((std::array{rows[0], rows[1]}), (std::array{5.f, 11.f}));
+    EXPECT_EQ((std::array{columns[0], columns[1], columns[2]}), (std::array{6.f, 8.f, 10.f}));
+    EXPECT_EQ((std::array{kept[0], kept[1]}), (std::array{5.f, 11.f}));
+
+    int matrix[21];
+    for (size_t i = 0; i != 21; ++i)
+        matrix[i] = static_cast<int>(i);
+    const auto wide_matrix =
+        np::as_expr(view<const int, np::extents<size_t, 3, 7>>(matrix)) * 2 + 1;
+    float wide_columns[7]{}, wide_kept[7]{};
+    np::mean_to(view<float, np::extents<size_t, 7>>(wide_columns), wide_matrix, np::axes<0>);
+    np::mean_to(view<float, np::extents<size_t, 1, 7>>(wide_kept), wide_matrix, np::axes<0>,
+                np::keepdims);
+    for (size_t col = 0; col != 7; ++col) {
+        EXPECT_EQ(wide_columns[col], 15.f + 2.f * static_cast<float>(col));
+        EXPECT_EQ(wide_kept[col], wide_columns[col]);
+    }
+
+    long double wide[3]{};
+    np::mean_to<long double>(view<long double, np::extents<size_t, 3>>(wide), input + 0.5,
+                             np::axes<0>);
+    EXPECT_EQ((std::array{wide[0], wide[1], wide[2]}), (std::array{3.L, 4.L, 5.L}));
+
+    const int large[]{std::numeric_limits<int>::max(), 1};
+    const auto large_line = np::as_expr(view<const int, np::extents<size_t, 1, 2>>(large));
+    double large_mean = 0;
+    np::mean_to(view<double, np::extents<size_t, 1>>(&large_mean), large_line, np::axes<1>);
+    EXPECT_EQ(large_mean, 1073741824.0);
+}
+
+TEST(NpExpressionMean, SingleAxisOrderStridesAndPadding) {
+    const double values[]{1e16, 1, -1e16, 2, 1, 3};
+    using shape = np::extents<size_t, 3, 2>;
+    const auto input = np::as_expr(view<const double, shape>(values));
+    double column_means[2]{};
+    np::mean_to(view<double, np::extents<size_t, 2>>(column_means), input, np::axes<0>);
+    EXPECT_EQ(column_means[0], 1.0 / 3);
+    EXPECT_EQ(column_means[1], 2.0);
+
+    const int padded[]{1, 99, 2, 99, 3, 99, 99, 4, 99, 5, 99, 6};
+    using input_view = view<const int, np::extents<size_t, 2, 3>, np::layout_stride>;
+    const input_view strided(padded, input_view::mapping_type({}, std::array<size_t, 2>{7, 2}));
+    const auto pitched = np::as_expr(strided) + 0;
+    double output[]{-1, -1, -1, -1, -1};
+    using output_view = view<double, np::extents<size_t, 3>, np::layout_stride>;
+    output_view separated(output, output_view::mapping_type({}, std::array<size_t, 1>{2}));
+    np::mean_to(separated, pitched, np::axes<0>);
+    EXPECT_EQ(output[0], 2.5);
+    EXPECT_EQ(output[1], -1);
+    EXPECT_EQ(output[2], 3.5);
+    EXPECT_EQ(output[3], -1);
+    EXPECT_EQ(output[4], 4.5);
+}
+
+TEST(NpExpressionMean, EmptyAxisRankOneAndEmptyDestination) {
+    using empty_shape = np::extents<size_t, 2, 0, 3>;
+    const auto empty = np::as_expr(view<const int, empty_shape>(nullptr));
+    int calls = 0;
+    const auto observed = np::map(
+        [&](int value) noexcept {
+            ++calls;
+            return value;
+        },
+        empty);
+    double output[6]{};
+    np::mean_to(view<double, np::extents<size_t, 2, 3>>(output), observed, np::axes<1>);
+    EXPECT_EQ(calls, 0);
+    for (const auto value : output)
+        EXPECT_TRUE(std::isnan(value));
+
+    using no_output_shape = np::extents<size_t, 0, 0, 3>;
+    const auto no_output = np::as_expr(view<const int, no_output_shape>(nullptr));
+    const auto no_output_observed = np::map(
+        [&](int value) noexcept {
+            ++calls;
+            return value;
+        },
+        no_output);
+    np::mean_to(view<double, np::extents<size_t, 0, 3>>(nullptr), no_output_observed, np::axes<1>);
+    EXPECT_EQ(calls, 0);
+
+    const int values[]{3, 6, 9};
+    const auto line = np::as_expr(view<const int, np::extents<size_t, 3>>(values));
+    double scalar = -1;
+    np::mean_to(view<double, np::extents<size_t>>(&scalar), line, np::axes<0>);
+    EXPECT_EQ(scalar, 6.0);
+}
+
+#if !defined(WJR_DISABLE_EXCEPTIONS)
+struct axis_throwing_operation {
+    static inline int threshold = 0;
+    int operator()(int value) const {
+        if (value == threshold)
+            throw std::runtime_error("axis map failed");
+        return value;
+    }
+};
+
+TEST(NpExpressionMean, SingleAxisCommitsOnlyCompletedLinesWhenMapThrows) {
+    int input[]{1, 2, 3, 4, 5, 6};
+    const auto expression = np::map(axis_throwing_operation{},
+                                    np::as_expr(view<const int, np::extents<size_t, 2, 3>>(input)));
+    static_assert(!noexcept(np::mean_to(
+        view<double, np::extents<size_t, 2>>(std::declval<double *>()), expression, np::axes<1>)));
+    double output[]{-1, -1};
+    axis_throwing_operation::threshold = 5;
+    EXPECT_THROW(np::mean_to(view<double, np::extents<size_t, 2>>(output), expression, np::axes<1>),
+                 std::runtime_error);
+    EXPECT_EQ(output[0], 2.0);
+    EXPECT_EQ(output[1], -1);
+    axis_throwing_operation::threshold = 0;
+}
+#endif
 
 #if !defined(WJR_DISABLE_EXCEPTIONS)
 struct throwing_square {
