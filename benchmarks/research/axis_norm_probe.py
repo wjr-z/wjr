@@ -5,7 +5,7 @@ repo = Path(__file__).resolve().parents[2]
 out = repo / 'build/axis-norm-research'
 out.mkdir(parents=True, exist_ok=True)
 before = 'ca8c0e12ff844bb40fb4ed5a3fbd66b31a92a94e'
-after = '15dae1be6477f90560d34a4163e9c076746cd0ef'
+after = '56d17df2bd21986649196092bf18848d7260d99f'
 pin = '0e4eba59ad53451784b3839bdf98b25fa2d64931'
 
 def run(args, log):
