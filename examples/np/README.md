@@ -215,3 +215,17 @@ selected shape: 2x3, strides: 8,2, total: 222
 `strided_slice{offset,extent,step}` uses a source interval length, rather than
 Python's stop coordinate. See the [slice contract](../../docs/design/tensor-slices.md)
 for examples, layout preservation and trusted-input preconditions.
+
+## Fused prefix sums
+
+`wjr_np_expression_scan` broadcasts a row baseline and scans squared residuals
+directly into a preallocated output. Prefix differences then provide window
+totals without building a squared-residual temporary:
+
+```text
+row 0 width-3 squared residual totals: 5 14 29
+row 1 width-3 squared residual totals: 20 56 116
+```
+
+Accumulator promotion, aliasing and partial exception commits are described in
+the [expression scan contract](../../docs/design/tensor-expression-scan.md).

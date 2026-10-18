@@ -229,7 +229,7 @@ if(WJR_ENABLE_NP)
       np/transpose.cpp np/elementwise.cpp np/expression.cpp
       np/expression_broadcast.cpp np/reduce.cpp np/evaluate.cpp np/scan.cpp np/default_storage.cpp
       np/expression_reduce.cpp np/expression_cast.cpp np/expression_map.cpp np/expression_mask.cpp np/strided_tensor.cpp
-      np/expression_math.cpp np/slice.cpp np/expression_columns.cpp)
+      np/expression_math.cpp np/slice.cpp np/expression_columns.cpp np/expression_scan.cpp)
    target_link_libraries(np_tests PRIVATE wjr::np gtest_main)
    if(WJR_ENABLE_XSIMD)
       target_sources(np_tests PRIVATE np/expression_xsimd.cpp np/expression_predicate_xsimd.cpp)
