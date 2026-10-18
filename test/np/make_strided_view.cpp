@@ -5,7 +5,7 @@
 
 #include <gtest/gtest.h>
 
-#include <wjr/np/checked_strided_view.hpp>
+#include <wjr/np/make_view.hpp>
 
 namespace {
 namespace np = wjr::np;
@@ -42,7 +42,7 @@ static_assert(noexcept(np::try_make_strided_tensor_view<dynamic_shape>(static_ca
                                                                        std::array{3, 1})));
 } // namespace
 
-TEST(np_checked_strided, pitched_transposed_const_and_padding) {
+TEST(np_make_strided_view, pitched_transposed_const_and_padding) {
     int values[16]{};
     auto row = np::try_make_strided_tensor_view<fixed_shape>(values, 16, std::array{2, 3},
                                                              std::array{8, 1});
@@ -67,7 +67,7 @@ TEST(np_checked_strided, pitched_transposed_const_and_padding) {
     EXPECT_EQ(insufficient.error(), np::shape_error::insufficient_storage);
 }
 
-TEST(np_checked_strided, rejects_nonpositive_and_wide_strides) {
+TEST(np_make_strided_view, rejects_nonpositive_and_wide_strides) {
     int values[6]{};
     for (auto strides : {std::array{3, 0}, std::array{-3, 1}}) {
         auto result =
@@ -89,7 +89,7 @@ TEST(np_checked_strided, rejects_nonpositive_and_wide_strides) {
     EXPECT_EQ(static_mismatch.error(), np::shape_error::static_extent_mismatch);
 }
 
-TEST(np_checked_strided, permutation_witness_and_singleton_ties) {
+TEST(np_make_strided_view, permutation_witness_and_singleton_ties) {
     int values[6]{};
     for (auto strides : {std::array{1, 1}, std::array{2, 3}}) {
         // [2,3] has distinct offsets {0,2,3,5}, but does not satisfy the pinned
@@ -106,7 +106,7 @@ TEST(np_checked_strided, permutation_witness_and_singleton_ties) {
     EXPECT_EQ(singleton->mapping().required_span_size(), 2u);
 }
 
-TEST(np_checked_strided, last_axis_product_need_not_fit_index_type) {
+TEST(np_make_strided_view, last_axis_product_need_not_fit_index_type) {
     char values[255]{};
     auto result = np::try_make_strided_tensor_view<np::dextents<uint8_t, 2>>(
         values, 255, std::array{2, 2}, std::array{1, 253});
@@ -120,7 +120,7 @@ TEST(np_checked_strided, last_axis_product_need_not_fit_index_type) {
     EXPECT_EQ(overflow.error(), np::shape_error::index_overflow);
 }
 
-TEST(np_checked_strided, empty_shape_still_checks_strides_and_prefix_span) {
+TEST(np_make_strided_view, empty_shape_still_checks_strides_and_prefix_span) {
     auto empty = np::try_make_strided_tensor_view<np::dextents<int, 2>>(
         static_cast<int *>(nullptr), 0, std::array{2, 0}, std::array{100, 1});
     ASSERT_TRUE(empty);
@@ -141,7 +141,7 @@ TEST(np_checked_strided, empty_shape_still_checks_strides_and_prefix_span) {
     EXPECT_EQ(conservative.error(), np::shape_error::unsupported_stride_order);
 }
 
-TEST(np_checked_strided, scalar_null_byte_span_and_real_bool) {
+TEST(np_make_strided_view, scalar_null_byte_span_and_real_bool) {
     int value = 7;
     auto scalar = np::try_make_strided_tensor_view<np::extents<size_t>>(
         &value, 1, std::array<int, 0>{}, std::array<int, 0>{});

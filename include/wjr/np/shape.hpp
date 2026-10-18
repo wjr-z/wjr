@@ -1,5 +1,5 @@
-#ifndef WJR_NP_CHECKED_VIEW_HPP__
-#define WJR_NP_CHECKED_VIEW_HPP__
+#ifndef WJR_NP_SHAPE_HPP__
+#define WJR_NP_SHAPE_HPP__
 
 #include <array>
 #include <concepts>
@@ -43,14 +43,14 @@ template <class Index, size_t... Values>
 inline constexpr bool is_extents<extents<Index, Values...>> = true;
 
 template <class Extents>
-struct checked_metadata {
+struct shape_metadata {
     std::array<typename Extents::index_type, Extents::rank()> dimensions;
     size_t size;
 };
 
 // Shared boundary validation; no backend mapping or allocation exists yet.
 template <class T, class Extents, std::integral Integer>
-constexpr shape_result<checked_metadata<Extents>>
+constexpr shape_result<shape_metadata<Extents>>
 check_metadata(const std::array<Integer, Extents::rank()> &shape) noexcept {
     using index_type = typename Extents::index_type;
     std::array<index_type, Extents::rank()> dimensions{};
@@ -100,38 +100,11 @@ check_metadata(const std::array<Integer, Extents::rank()> &shape) noexcept {
     if (elements > max_bytes / sizeof(T)) {
         return unexpected(shape_error::size_overflow);
     }
-    return checked_metadata<Extents>{dimensions, elements};
+    return shape_metadata<Extents>{dimensions, elements};
 }
 
 } // namespace detail
 
-// Checks metadata before constructing the unchecked backend mapping. The caller
-// still owns the storage and must provide correctly aligned, live T objects.
-template <class Extents, class Layout = layout_right, class T, std::integral Integer>
-requires(detail::is_extents<Extents> &&
-         (std::same_as<Layout, layout_right> || std::same_as<Layout, layout_left>) &&
-         !std::same_as<std::remove_cv_t<Integer>, bool> && std::is_object_v<T> &&
-         requires { sizeof(T); })
-[[nodiscard]] constexpr shape_result<tensor_view<T, Extents, Layout>>
-try_make_tensor_view(T *data, size_t available_elements,
-                     const std::array<Integer, Extents::rank()> &shape) noexcept {
-    using view_type = tensor_view<T, Extents, Layout>;
-    auto metadata = detail::check_metadata<T, Extents>(shape);
-    if (!metadata) {
-        return unexpected(metadata.error());
-    }
-    if (metadata->size > available_elements) {
-        return unexpected(shape_error::insufficient_storage);
-    }
-    if (data == nullptr && available_elements != 0) {
-        return unexpected(shape_error::null_storage);
-    }
-
-    const Extents extents(metadata->dimensions);
-    const typename view_type::mapping_type mapping(extents);
-    return view_type(data, mapping);
-}
-
 } // namespace wjr::np
 
-#endif // WJR_NP_CHECKED_VIEW_HPP__
+#endif // WJR_NP_SHAPE_HPP__

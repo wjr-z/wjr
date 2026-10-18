@@ -224,8 +224,8 @@ endforeach()
 
 if(WJR_ENABLE_NP)
    add_executable(np_tests
-      np/view.cpp np/checked_view.cpp np/tensor.cpp
-      np/reshape.cpp np/checked_strided_view.cpp np/subview.cpp
+      np/view.cpp np/make_view.cpp np/tensor.cpp
+      np/reshape.cpp np/make_strided_view.cpp np/subview.cpp
       np/transpose.cpp np/elementwise.cpp np/expression.cpp
       np/expression_broadcast.cpp np/reduce.cpp np/evaluate.cpp np/scan.cpp np/default_storage.cpp
       np/expression_reduce.cpp np/expression_cast.cpp np/expression_map.cpp np/expression_mask.cpp np/strided_tensor.cpp)

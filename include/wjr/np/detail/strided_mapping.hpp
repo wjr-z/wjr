@@ -1,9 +1,9 @@
-#ifndef WJR_NP_CHECKED_STRIDED_VIEW_HPP__
-#define WJR_NP_CHECKED_STRIDED_VIEW_HPP__
+#ifndef WJR_NP_DETAIL_STRIDED_MAPPING_HPP__
+#define WJR_NP_DETAIL_STRIDED_MAPPING_HPP__
 
 #include <utility>
 
-#include <wjr/np/checked_view.hpp>
+#include <wjr/np/shape.hpp>
 
 namespace wjr::np {
 
@@ -92,28 +92,6 @@ constexpr auto with_strided_mapping(
 
 } // namespace detail
 
-// Strides count T objects, not bytes. Only the backend's ordered, nonoverlapping
-// stride family is accepted; arbitrary injective mappings need another layout.
-template <class Extents, class T, std::integral Integer, std::integral StrideInteger>
-requires(detail::is_extents<Extents> && !std::same_as<std::remove_cv_t<Integer>, bool> &&
-         !std::same_as<std::remove_cv_t<StrideInteger>, bool> && std::is_object_v<T> &&
-         requires { sizeof(T); })
-[[nodiscard]] constexpr shape_result<tensor_view<T, Extents, layout_stride>>
-try_make_strided_tensor_view(
-    T *data, size_t available_elements, const std::array<Integer, Extents::rank()> &shape,
-    const std::array<StrideInteger, Extents::rank()> &input_strides) noexcept {
-    return detail::with_strided_mapping<Extents, T>(
-        shape, input_strides,
-        [=](const auto &mapping,
-            size_t span) noexcept -> shape_result<tensor_view<T, Extents, layout_stride>> {
-            if (span > available_elements)
-                return unexpected(shape_error::insufficient_storage);
-            if (data == nullptr && available_elements != 0)
-                return unexpected(shape_error::null_storage);
-            return tensor_view<T, Extents, layout_stride>(data, mapping);
-        });
-}
-
 } // namespace wjr::np
 
-#endif // WJR_NP_CHECKED_STRIDED_VIEW_HPP__
+#endif // WJR_NP_DETAIL_STRIDED_MAPPING_HPP__

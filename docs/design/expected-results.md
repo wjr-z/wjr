@@ -45,7 +45,7 @@ success value.
 
 ## NP shape results
 
-`<wjr/np/checked_view.hpp>` defines `np::shape_result<T>` as
+`<wjr/np/shape.hpp>` defines `np::shape_result<T>` as
 `wjr::compressed_expected<T, np::shape_error, np::shape_error::ok>`. Checked view,
 reshape, metadata and owner factories, including expression materialization,
 actually use this representation. State is encoded by the stored error code:

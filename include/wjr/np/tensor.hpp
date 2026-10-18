@@ -7,7 +7,7 @@
 #include <vector>
 
 #include <wjr/compressed_pair.hpp>
-#include <wjr/np/checked_view.hpp>
+#include <wjr/np/shape.hpp>
 #include <wjr/np/tensor_vector.hpp>
 
 namespace wjr::np {
@@ -120,7 +120,7 @@ struct tensor_access {
 
     template <class Owner, class... Args>
     static constexpr shape_result<Owner>
-    make(const checked_metadata<typename Owner::extents_type> &metadata, Args &&...args) {
+    make(const shape_metadata<typename Owner::extents_type> &metadata, Args &&...args) {
         using mapping_type = typename Owner::mapping_type;
         return make_mapping<Owner>(mapping_type(typename Owner::extents_type(metadata.dimensions)),
                                    std::forward<Args>(args)...);
