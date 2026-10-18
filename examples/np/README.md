@@ -136,3 +136,17 @@ sum of squared residuals: 10
 
 累计类型、严格逻辑顺序、空域与输出别名要求见
 [表达式规约契约](../../docs/design/tensor-expression-reductions.md)。
+
+## 指定转换发生的位置
+
+`wjr_np_expression_cast` 对比 `cast<double>(a)/b` 与 `cast<double>(a/b)`。
+前者在除法前转换整数输入，后者保留中间整数除法，再转换其结果；
+两者都直接写入预分配输出，不构造转换后的中间数组。
+
+```text
+cast before division: 1.5 3.5 2.66667
+cast after division: 1 3 2
+```
+
+类型、生命周期与 scalar/SIMD 边界见
+[显式转换契约](../../docs/design/tensor-expression-casts.md)。

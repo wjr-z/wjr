@@ -6,6 +6,7 @@
 
 #include <gtest/gtest.h>
 
+#include <wjr/np/expression_cast.hpp>
 #include <wjr/np/expression_xsimd.hpp>
 
 namespace {
@@ -56,6 +57,20 @@ TEST(NpExpressionXsimd, MixedIntegerDivisionKeepsNodeSemantics) {
     np::eval_to(view<float>(output.data(), 19), expression, np::xsimd_policy<>{});
     for (auto value : output)
         EXPECT_EQ(value, 1.0f);
+}
+
+TEST(NpExpressionXsimd, ExplicitCastUsesScalarFallback) {
+    std::array<float, 19> input{}, output{};
+    input.fill(3.75f);
+    auto cast = np::cast<int>(view<float>(input.data(), input.size()));
+    static_assert(!np::detail::homogeneous_xsimd_expression<decltype(cast), float>);
+    np::eval_to(view<float>(output.data(), output.size()), cast / 2, np::xsimd_policy<>{});
+    for (auto value : output)
+        EXPECT_EQ(value, 1.f);
+    auto identity = np::cast<float>(view<float>(input.data(), input.size()));
+    static_assert(!np::detail::homogeneous_xsimd_expression<decltype(identity), float>);
+    np::eval_to(view<float>(output.data(), output.size()), identity, np::xsimd_policy<>{});
+    EXPECT_EQ(output, input);
 }
 
 TEST(NpExpressionXsimd, WiderScalarPreservesIntermediatePrecision) {

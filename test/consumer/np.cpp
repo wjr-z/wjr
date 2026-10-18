@@ -5,6 +5,7 @@
 #include <wjr/np/copy.hpp>
 #include <wjr/np/evaluate.hpp>
 #include <wjr/np/expression.hpp>
+#include <wjr/np/expression_cast.hpp>
 #include <wjr/np/expression_reduce.hpp>
 #include <wjr/np/reduce.hpp>
 #include <wjr/np/reshape.hpp>
@@ -98,6 +99,9 @@ int main(int argc, char **) {
         return 1;
     }
     if (wjr::np::sum(wjr::np::as_expr(output) * wjr::np::as_expr(output)) != 222) {
+        return 1;
+    }
+    if (wjr::np::cast<double>(3).read(0) != 3.) {
         return 1;
     }
     auto reshaped =
