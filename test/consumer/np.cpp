@@ -8,6 +8,7 @@
 #include <wjr/np/expression_math.hpp>
 #include <wjr/np/expression_reduce.hpp>
 #include <wjr/np/expression_scan.hpp>
+#include <wjr/np/extrema.hpp>
 #include <wjr/np/mean.hpp>
 #include <wjr/np/pairwise.hpp>
 #include <wjr/np/reduce.hpp>
@@ -28,6 +29,10 @@ int main() {
             wjr::np::tensor_view<const float, wjr::np::extents<size_t, 3>>(pairwise_input)) != 6.) {
         return 1;
     }
+    const int extreme_values[]{3, -2, -2};
+    const wjr::np::tensor_view<const int, wjr::np::extents<size_t, 3>> extremes(extreme_values);
+    if (wjr::np::min(extremes) != -2 || wjr::np::argmin(extremes) != 1)
+        return 1;
     const int scan_input[]{1, 2, 3};
     if (wjr::np::variance(
             wjr::np::tensor_view<const int, wjr::np::extents<size_t, 3>>(scan_input)) != 2.0 / 3.0)
