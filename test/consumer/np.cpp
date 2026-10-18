@@ -8,6 +8,7 @@
 #include <wjr/np/expression_math.hpp>
 #include <wjr/np/expression_reduce.hpp>
 #include <wjr/np/expression_scan.hpp>
+#include <wjr/np/mean.hpp>
 #include <wjr/np/reduce.hpp>
 #include <wjr/np/reshape.hpp>
 #include <wjr/np/scan.hpp>
@@ -21,6 +22,9 @@
 using shape = wjr::np::extents<size_t, wjr::np::dynamic_extent, 3>;
 int main() {
     const int scan_input[]{1, 2, 3};
+    if (wjr::np::mean(wjr::np::tensor_view<const int, wjr::np::extents<size_t, 3>>(scan_input)) !=
+        2.0)
+        return 1;
     int scan_output[3];
     using scan_shape = wjr::np::extents<size_t, 3>;
     wjr::np::cumsum_to(wjr::np::tensor_view<int, scan_shape>(scan_output),

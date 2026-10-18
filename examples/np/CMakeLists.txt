@@ -49,8 +49,12 @@ target_link_libraries(wjr_np_expression_math PRIVATE wjr::np)
 add_executable(wjr_np_slice slice.cpp)
 target_link_libraries(wjr_np_slice PRIVATE wjr::np)
 
+add_executable(wjr_np_mean mean.cpp)
+target_link_libraries(wjr_np_mean PRIVATE wjr::np)
+
 include(CTest)
 if(BUILD_TESTING)
+    add_test(NAME wjr_np_mean COMMAND wjr_np_mean)
     add_test(NAME wjr_np_elementwise COMMAND wjr_np_elementwise)
     add_test(NAME wjr_np_expression COMMAND wjr_np_expression)
     add_test(NAME wjr_np_row_centering COMMAND wjr_np_row_centering)

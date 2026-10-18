@@ -1,6 +1,8 @@
 #ifndef WJR_NP_REDUCE_HPP__
 #define WJR_NP_REDUCE_HPP__
 
+#include <limits>
+
 #include <wjr/np/detail/elementwise.hpp>
 
 namespace wjr::np {
@@ -56,8 +58,9 @@ constexpr auto axis_stride(const View &view) noexcept {
 
 // Adjacent columns keep independent ordered accumulators. Scan reads every
 // lane before writing it back, including when input and output are identical.
-template <bool Scan, class Accumulator, class D, class T>
+template <bool Scan, class Accumulator, bool Mean = false, class D, class T>
 constexpr void axis_columns_to(D *output, const T *input, size_t rows, size_t columns) noexcept {
+    static_assert(!Scan || !Mean);
     const auto bound = columns - columns % 4;
     size_t first = 0;
     for (; first != bound; first += 4) {
@@ -76,10 +79,18 @@ constexpr void axis_columns_to(D *output, const T *input, size_t rows, size_t co
             }
         }
         if constexpr (!Scan) {
-            output[first] = a;
-            output[first + 1] = b;
-            output[first + 2] = c;
-            output[first + 3] = d;
+            if constexpr (Mean) {
+                const auto divisor = static_cast<Accumulator>(rows);
+                output[first] = a / divisor;
+                output[first + 1] = b / divisor;
+                output[first + 2] = c / divisor;
+                output[first + 3] = d / divisor;
+            } else {
+                output[first] = a;
+                output[first + 1] = b;
+                output[first + 2] = c;
+                output[first + 3] = d;
+            }
         }
     }
     for (; first != columns; ++first) {
@@ -90,8 +101,12 @@ constexpr void axis_columns_to(D *output, const T *input, size_t rows, size_t co
             if constexpr (Scan)
                 output[offset] = value;
         }
-        if constexpr (!Scan)
-            output[first] = value;
+        if constexpr (!Scan) {
+            if constexpr (Mean)
+                output[first] = value / static_cast<Accumulator>(rows);
+            else
+                output[first] = value;
+        }
     }
 }
 
@@ -135,7 +150,7 @@ constexpr void walk_axis_lines(const Dst &dst, const Src &src, Function &functio
     }
 }
 
-template <class Accumulator, size_t Axis, bool Keep, class Dst, class Src>
+template <class Accumulator, size_t Axis, bool Keep, bool Mean = false, class Dst, class Src>
 constexpr void sum_axis_to(const Dst &dst, const Src &src) noexcept {
     using accumulator_type = sum_accumulator<Accumulator, typename Src::element_type>;
     constexpr auto rank = Dst::rank();
@@ -150,15 +165,20 @@ constexpr void sum_axis_to(const Dst &dst, const Src &src) noexcept {
         return;
     const auto count = static_cast<size_t>(src.extent(Axis));
     if (count == 0) {
-        apply_kernel(dst, [](typename Dst::reference value) noexcept { value = {}; });
+        apply_kernel(dst, [](typename Dst::reference value) noexcept {
+            if constexpr (Mean)
+                value = std::numeric_limits<accumulator_type>::quiet_NaN();
+            else
+                value = {};
+        });
         return;
     }
     if constexpr (Axis == 0 && Src::rank() == 2 &&
                   std::same_as<typename Src::layout_type, layout_right> &&
                   (std::same_as<typename Dst::layout_type, layout_right> ||
                    (!Keep && std::same_as<typename Dst::layout_type, layout_left>))) {
-        axis_columns_to<false, accumulator_type>(dst.data_handle(), src.data_handle(), count,
-                                                 static_cast<size_t>(src.extent(1)));
+        axis_columns_to<false, accumulator_type, Mean>(dst.data_handle(), src.data_handle(), count,
+                                                       static_cast<size_t>(src.extent(1)));
         return;
     }
     const auto step = static_cast<size_t>(axis_stride<Axis>(src));
@@ -169,23 +189,24 @@ constexpr void sum_axis_to(const Dst &dst, const Src &src) noexcept {
         const auto bound = static_count == dynamic_extent ? count : static_count;
         for (size_t i = 0; i != bound; ++i)
             result += static_cast<accumulator_type>(input[input_offset + i * step]);
-        output[output_offset] = result;
+        if constexpr (Mean)
+            output[output_offset] = result / static_cast<accumulator_type>(count);
+        else
+            output[output_offset] = result;
     };
     walk_axis_lines<0, Axis, Keep>(dst, src, reduce, 0, 0);
 }
 
-} // namespace detail
-
-// A left fold from zero in logical row-major order, independent of layout.
-// Accumulator defaults to the scalar T+T result; output/storage is not allocated.
-template <class Accumulator = void, class T, class Extents, class Layout>
-requires(detail::kernel_element<T> && detail::kernel_layout<Layout> &&
-         (std::is_void_v<Accumulator> || detail::sum_accumulator_type<Accumulator>))
-[[nodiscard]] constexpr auto sum(tensor_view<T, Extents, Layout> source) noexcept {
-    using accumulator_type = detail::sum_accumulator<Accumulator, T>;
+template <class Accumulator, bool Mean = false, class T, class Extents, class Layout>
+constexpr auto sum_view(tensor_view<T, Extents, Layout> source) noexcept {
+    using accumulator_type = sum_accumulator<Accumulator, T>;
     accumulator_type result{};
-    if (source.empty())
-        return result;
+    if (source.empty()) {
+        if constexpr (Mean)
+            return std::numeric_limits<accumulator_type>::quiet_NaN();
+        else
+            return result;
+    }
     if constexpr (std::same_as<Layout, layout_right> || Extents::rank() == 0 ||
                   (Extents::rank() == 1 && std::same_as<Layout, layout_left>)) {
         const auto count = static_cast<size_t>(source.size());
@@ -209,7 +230,21 @@ requires(detail::kernel_element<T> && detail::kernel_layout<Layout> &&
         };
         detail::walk_kernel<0, false>(shape, strides, add, std::index_sequence<0>{}, size_t{0});
     }
-    return result;
+    if constexpr (Mean)
+        return result / static_cast<accumulator_type>(source.size());
+    else
+        return result;
+}
+
+} // namespace detail
+
+// A left fold from zero in logical row-major order, independent of layout.
+// Accumulator defaults to the scalar T+T result; output/storage is not allocated.
+template <class Accumulator = void, class T, class Extents, class Layout>
+requires(detail::kernel_element<T> && detail::kernel_layout<Layout> &&
+         (std::is_void_v<Accumulator> || detail::sum_accumulator_type<Accumulator>))
+[[nodiscard]] constexpr auto sum(tensor_view<T, Extents, Layout> source) noexcept {
+    return detail::sum_view<Accumulator>(source);
 }
 
 // Preconditions: valid views, matching reduced output shape, and disjoint
