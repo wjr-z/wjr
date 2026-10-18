@@ -13,6 +13,24 @@ namespace {
 namespace np = wjr::np;
 using shape = np::dextents<size_t, 1>;
 
+TEST(NpExpressionXsimd, MappedSubtreesUseScalarFallback) {
+    double source[]{1, 2, 3, 4, 5}, output[5]{};
+    const auto mapped =
+        np::map([](double value) noexcept { return value > 2 ? value * value : -value; },
+                np::tensor_view<double, shape>(source, 5));
+    np::eval_to(np::tensor_view<double, shape>(output, 5), -mapped + 1.0, np::xsimd_policy<>{});
+    EXPECT_EQ((std::array{output[0], output[1], output[2], output[3], output[4]}),
+              (std::array{2.0, 3.0, -8.0, -15.0, -24.0}));
+    using row = np::extents<size_t, 1, 5>;
+    double expanded[10]{};
+    np::eval_to(
+        np::tensor_view<double, np::extents<size_t, 2, 5>>(expanded),
+        np::map([](double x) noexcept { return x + 2; }, np::tensor_view<double, row>(source)),
+        np::xsimd_policy<>{});
+    EXPECT_EQ(expanded[0], 3.0);
+    EXPECT_EQ(expanded[9], 7.0);
+}
+
 template <class T>
 using view = np::tensor_view<T, shape>;
 

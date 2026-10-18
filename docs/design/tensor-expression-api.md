@@ -4,7 +4,9 @@
 它提供 as_expr、内建 +、-、*、/、一元 +/-，以及写入预分配输出的 eval_to。
 支持右对齐数组广播与正步长 view；创建拥有结果的
 [eval](tensor-evaluation.md) 与可选 SIMD policy 使用各自头文件。
-自定义 map、表达式规约与调度不在本接口范围内。
+本页描述基础算术接口；后续的 [pure map](tensor-expression-map.md)、
+[表达式规约](tensor-expression-reductions.md) 与 [cast](tensor-expression-casts.md) 分别说明扩展契约。
+调度不在本接口范围内。
 
 ```cpp
 namespace np = wjr::np;

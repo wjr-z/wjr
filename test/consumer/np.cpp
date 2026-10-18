@@ -104,6 +104,10 @@ int main(int argc, char **) {
     if (wjr::np::cast<double>(3).read(0) != 3.) {
         return 1;
     }
+    if (wjr::np::sum(wjr::np::map([](int value, int scale) noexcept { return value * scale + 1; },
+                                  output, 2)) != 78) {
+        return 1;
+    }
     auto reshaped =
         wjr::np::try_reshape_view<wjr::np::extents<size_t, 3, 2>>(view, std::array{3, 2});
     auto mismatch = wjr::np::try_reshape_view<shape>(view, std::array{1, 3});
