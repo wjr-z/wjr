@@ -90,7 +90,12 @@ template <class Op, class L>
 WJR_INTRINSIC_INLINE auto apply_xsimd_operation(L value) noexcept {
     if constexpr (std::same_as<Op, logical_not_operation>)
         return !value;
-    else
+    else if constexpr (std::same_as<Op, negative_operation>) {
+        // xsimd 14.3's AVX-512 neg uses 0 - x, which loses the sign of +0.
+        // Floating unary minus flips the sign bit, including for zeros.
+        using lane_type = typename L::value_type;
+        return value ^ L(-lane_type{0});
+    } else
         return Op::apply(value);
 }
 template <class Op, class L, class R>

@@ -133,6 +133,27 @@ TEST(NpPredicateXsimd, BoolScalarValuesUseMatchingPredicateLanes) {
     }
 }
 
+template <class T>
+void compare_negation() {
+    constexpr auto lanes = xsimd::batch<T>::size;
+    // Every lane sees both zero signs; the last three values use the scalar tail.
+    for (bool reverse : {false, true}) {
+        std::array<T, 2 * lanes + 3> input{};
+        for (size_t i = 0; i != input.size(); ++i)
+            input[i] = ((i % 2 != 0) != reverse) ? -T{0} : T{0};
+        input[lanes] = std::numeric_limits<T>::infinity();
+        input[lanes + 1] = -std::numeric_limits<T>::infinity();
+        const auto values = np::as_expr(view<const T>(input.data(), input.size()));
+        compare_expression<T>(-values, input.size());
+        compare_expression<T>(np::select(false, values, -values), input.size());
+    }
+}
+
+TEST(NpPredicateXsimd, UnaryMinusPreservesSignedZerosInBatchesAndTails) {
+    compare_negation<float>();
+    compare_negation<double>();
+}
+
 struct scalar_only_operation {
     static float apply(float value) noexcept { return value * 2.f; }
 };
