@@ -209,8 +209,9 @@ inline thread_local stack_allocator_object _stack_allocator_singleton_object;
 } // namespace mem
 
 /**
- * @details Used for container. This allocator won't deallocate memory allocated
- * by _small_allocate until container is destroyed.
+ * @details Used for containers. Small allocations use _small_allocate and are
+ * reclaimed when the owning unique_stack_allocator rewinds; over-aligned types
+ * and allocations at or above the threshold use aligned new/delete instead.
  *
  */
 template <typename T>
@@ -313,7 +314,10 @@ public:
 
     WJR_NODISCARD WJR_MALLOC T *allocate(size_type n) noexcept {
         const size_t size = n * sizeof(T);
-        if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
+        if constexpr (alignof(T) > mem::default_new_alignment) {
+            return static_cast<T *>(
+                mem::_default_allocate<mem::_new_alignof<T>>(size, std::nothrow));
+        } else if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
             return static_cast<T *>(
                 mem::_default_allocate<mem::_new_alignof<T>>(size, std::nothrow));
         }
@@ -323,7 +327,9 @@ public:
 
     void deallocate(T *ptr, size_type n) noexcept {
         const size_t size = n * sizeof(T);
-        if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
+        if constexpr (alignof(T) > mem::default_new_alignment) {
+            mem::_default_deallocate<mem::_new_alignof<T>>(ptr, std::nothrow);
+        } else if (WJR_UNLIKELY(size >= stack_allocator_threshold)) {
             mem::_default_deallocate<mem::_new_alignof<T>>(ptr, std::nothrow);
         }
     }
