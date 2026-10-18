@@ -32,6 +32,12 @@ cmake --build example-build --parallel
 ctest --test-dir example-build --output-on-failure
 ```
 
+Add a standalone `standalone.cpp` directly in this directory to automatically
+create `wjr_np_standalone` and its same-named CTest entry. Every discovered
+source must have its own `main`; nested example projects remain independent.
+`expression_simd.cpp` retains the `WJR_NP_EXAMPLES_XSIMD` option and extra
+`wjr::simd_xsimd` dependency.
+
 直接运行 `example-build/wjr_np_elementwise`（多配置生成器通常在 `Release/` 下）。
 Windows PowerShell 请将 `$PWD` 展开为相应绝对安装路径，并按 shell 规则换行。
 预期输出：

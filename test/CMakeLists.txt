@@ -65,6 +65,9 @@ endif()
 file(GLOB_RECURSE TEST_SRCS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 # Installed-package consumers have their own main and are built independently.
 list(FILTER TEST_SRCS EXCLUDE REGEX "/consumer/")
+# Reuse the same discovery pass for the independently enabled NP tests.
+set(NP_TEST_SRCS ${TEST_SRCS})
+list(FILTER NP_TEST_SRCS INCLUDE REGEX "/np/")
 list(FILTER TEST_SRCS EXCLUDE REGEX "/np/")
 list(FILTER TEST_SRCS EXCLUDE REGEX "/automatic_free_pool_failure\\.cpp$")
 list(FILTER TEST_SRCS EXCLUDE REGEX "/assert_contract\\.cpp$")
@@ -223,16 +226,12 @@ foreach(_WJR_ASSERT_MODE IN ITEMS full light minimal)
 endforeach()
 
 if(WJR_ENABLE_NP)
-   add_executable(np_tests
-      np/view.cpp np/make_view.cpp np/tensor.cpp
-      np/reshape.cpp np/make_strided_view.cpp np/subview.cpp
-      np/transpose.cpp np/elementwise.cpp np/expression.cpp
-      np/expression_broadcast.cpp np/reduce.cpp np/mean.cpp np/extrema.cpp np/variance.cpp np/norm.cpp np/pairwise.cpp np/evaluate.cpp np/scan.cpp np/default_storage.cpp
-      np/expression_reduce.cpp np/expression_cast.cpp np/expression_map.cpp np/expression_mask.cpp np/strided_tensor.cpp
-      np/expression_math.cpp np/slice.cpp np/expression_columns.cpp np/expression_column_width.cpp np/expression_scan.cpp)
+   if(NOT WJR_ENABLE_XSIMD)
+      list(FILTER NP_TEST_SRCS EXCLUDE REGEX "_xsimd\\.cpp$")
+   endif()
+   add_executable(np_tests ${NP_TEST_SRCS})
    target_link_libraries(np_tests PRIVATE wjr::np gtest_main)
    if(WJR_ENABLE_XSIMD)
-      target_sources(np_tests PRIVATE np/expression_xsimd.cpp np/expression_predicate_xsimd.cpp)
       target_link_libraries(np_tests PRIVATE wjr::simd_xsimd)
    endif()
    add_test(NAME wjr_np_tests COMMAND np_tests)
