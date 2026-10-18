@@ -73,7 +73,7 @@ private:
 #endif
 
 #if defined(WJR_HAS_ADDRESS_SANITIZER)
-    void _unpoison_small(const stack_context &context) noexcept;
+    void _poison_small(const stack_context &context) noexcept;
 #endif
 
     WJR_MALLOC static void *_large_allocate(size_t n, large_memory *&mem) noexcept {
@@ -128,7 +128,7 @@ private:
     void _small_deallocate(const stack_context &context) noexcept {
 #if defined(WJR_HAS_ADDRESS_SANITIZER)
         if (m_cache.ptr != nullptr) {
-            _unpoison_small(context);
+            _poison_small(context);
         }
 #endif
 

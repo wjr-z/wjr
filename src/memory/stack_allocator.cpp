@@ -12,30 +12,29 @@ static thread_local automatic_free_pool _stack_free_pool;
 } // namespace
 
 #if defined(WJR_HAS_ADDRESS_SANITIZER)
-void stack_allocator_object::_unpoison_small(const stack_context &context) noexcept {
+void stack_allocator_object::_poison_small(const stack_context &context) noexcept {
     auto *const old_ptr = context.m_ptr == nullptr ? m_first : context.m_ptr;
     const auto old_idx = context.m_idx;
 
     auto *const new_ptr = m_cache.ptr;
 
     if (WJR_LIKELY(old_idx == m_idx)) {
-        WJR_ASAN_UNPOISON_MEMORY_REGION(old_ptr, static_cast<size_t>(new_ptr - old_ptr));
+        WJR_ASAN_POISON_MEMORY_REGION(old_ptr, static_cast<size_t>(new_ptr - old_ptr));
         return;
     }
 
     // last block: [m_ptr[m_idx].ptr, m_cache.ptr)
-    WJR_ASAN_UNPOISON_MEMORY_REGION(m_ptr[m_idx].ptr,
-                                    static_cast<size_t>(new_ptr - m_ptr[m_idx].ptr));
+    WJR_ASAN_POISON_MEMORY_REGION(m_ptr[m_idx].ptr,
+                                  static_cast<size_t>(new_ptr - m_ptr[m_idx].ptr));
 
     // ranges: [m_ptr[i].ptr, m_ptr[i].end) for i in [old_idx + 1, m_idx)
     for (uint_fast32_t i = old_idx + 1; i < m_idx; ++i) {
-        WJR_ASAN_UNPOISON_MEMORY_REGION(m_ptr[i].ptr,
-                                        static_cast<size_t>(m_ptr[i].end - m_ptr[i].ptr));
+        WJR_ASAN_POISON_MEMORY_REGION(m_ptr[i].ptr,
+                                      static_cast<size_t>(m_ptr[i].end - m_ptr[i].ptr));
     }
 
     // first block: [old_ptr, m_ptr[context.m_idx].end)
-    WJR_ASAN_UNPOISON_MEMORY_REGION(old_ptr,
-                                    static_cast<size_t>(m_ptr[context.m_idx].end - old_ptr));
+    WJR_ASAN_POISON_MEMORY_REGION(old_ptr, static_cast<size_t>(m_ptr[context.m_idx].end - old_ptr));
 }
 #endif
 
