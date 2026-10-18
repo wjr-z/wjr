@@ -91,6 +91,10 @@ jobs:
       - name: Install GMP
         run: sudo apt-get update && sudo apt-get install -y libgmp-dev
 
+      - name: Install OpenBLAS development files
+        if: matrix.sys.compiler == 'clang' && matrix.sys.version == '20' && matrix.sys.standard == '20'
+        run: sudo apt-get install -y libopenblas-dev
+
       - name: Identify compilers and native target
         id: compiler
         run: |
@@ -128,7 +132,7 @@ jobs:
             benchmark_args+=(-DWJR_ENABLE_NP=ON)
           fi
           if [[ "${{matrix.sys.compiler}}" == "clang" && "${{matrix.sys.version}}" == "20" && "${{matrix.sys.standard}}" == "20" ]]; then
-            benchmark_args+=(-DWJR_BUILD_BENCHMARKS=ON -DWJR_BENCHMARK_PROFILE=simd -DWJR_BENCHMARK_XSIMD=ON -DWJR_ENABLE_XSIMD=ON)
+            benchmark_args+=(-DWJR_BUILD_BENCHMARKS=ON -DWJR_BENCHMARK_PROFILE=simd -DWJR_BENCHMARK_XSIMD=ON -DWJR_ENABLE_XSIMD=ON -DWJR_ENABLE_NP_CBLAS=ON)
           fi
           cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON \
             -DWJR_DEBUG_LEVEL_RELEASE=3 -DWJR_ENABLE_ASAN=ON \
@@ -143,6 +147,7 @@ jobs:
 
       - name: Run tests
         env:
+          OPENBLAS_NUM_THREADS: '1'
           ASAN_OPTIONS: detect_leaks=1
           LSAN_OPTIONS: suppressions=${{ github.workspace }}/.github/lsan_suppressions.txt
         run: ctest --test-dir build --verbose --output-on-failure
@@ -150,6 +155,7 @@ jobs:
       - name: Validate installed package
         if: matrix.sys.compiler == 'clang' && matrix.sys.version == '20' && matrix.sys.standard == '20'
         env:
+          OPENBLAS_NUM_THREADS: '1'
           ASAN_OPTIONS: detect_leaks=1
           LSAN_OPTIONS: suppressions=${{ github.workspace }}/.github/lsan_suppressions.txt
         run: |
@@ -158,9 +164,15 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ \
             -DCMAKE_CXX_COMPILER_LAUNCHER="python3;$GITHUB_WORKSPACE/.github/scripts/ccache_launcher.py" \
             -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/wjr-install" -DWJR_EXPECT_CXX_STANDARD=20 \
-            -DWJR_TEST_NP=ON -DWJR_TEST_SIMD_XSIMD=ON
+            -DWJR_TEST_NP=ON -DWJR_TEST_SIMD_XSIMD=ON -DWJR_TEST_NP_CBLAS=ON
           cmake --build consumer-build --parallel
           ctest --test-dir consumer-build --output-on-failure
+          cmake -S examples/np -B cblas-example-build -GNinja \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_CXX_COMPILER_LAUNCHER="python3;$GITHUB_WORKSPACE/.github/scripts/ccache_launcher.py" \
+            -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/wjr-install" -DWJR_NP_EXAMPLES_CBLAS=ON
+          cmake --build cblas-example-build --target wjr_np_cblas --parallel
+          ctest --test-dir cblas-example-build --output-on-failure -R '^wjr_np_cblas$'
 
       - name: Validate SIMD benchmark backends
         if: matrix.sys.compiler == 'clang' && matrix.sys.version == '20' && matrix.sys.standard == '20'
