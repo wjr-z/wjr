@@ -40,8 +40,8 @@ shape 与 stride 可以使用不同整数类型；两者都检查后再转成 in
 
 ## 跨度与失败
 
-先验证全部 shape 和 stride，再检查排列、span 乘加、字节跨度和 available_elements，
-最后才构造 extents/mapping/view。正常 metadata 错误返回 expected，不用断言报告输入错误。
+先验证全部 shape 和 stride，再检查排列、span 乘加和字节跨度后构造 mapping。
+借用入口再检查 available_elements 和指针，最后构造 view；拥有存储的入口复用同一 mapping 校验。正常 metadata 错误返回 expected，不用断言报告输入错误。
 非空所需对象数为 `1 + sum((extent - 1) * stride)`，rank-0 为 1，空映射为 0。
 例如 shape `[2,3]` / stride `[8,1]` 的逻辑大小为 6，所需存储跨度为 11；
 末行之后的额外 padding 可以存在，但不要求必须提供。
