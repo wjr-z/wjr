@@ -66,3 +66,19 @@ These tests do not establish universal zero overhead, an optimal width for every
 tree, or performance on other CPUs. No hardware branch/cache counters were collected.
 Throwing callbacks, math and unknown operations retain the existing linewise path;
 their ordering/error-state contract is not exchanged for this optimization.
+
+## Internal block width
+
+The column driver now takes a positive compile-time width:
+`sum_expression_columns_to<N, Unit, E, Accumulator>`. Its block helper keeps
+independent states and expands lanes at compile time; the outer step is `N`.
+Widths above four use four-column blocks before the final scalar tail, so
+`N=8` with seven remaining columns processes `4+1+1+1`.
+
+The public evaluator still selects four. The original four-scalar block is
+retained because a uniform array implementation changed Clang's register
+allocation; packed/map/padded/splat probes then kept identical GCC 12/Clang 18
+instructions before and after this refactor. Widths one and eight have
+correctness coverage, rather than a new performance recommendation. Future
+width-specific code can use `if constexpr` or tag overloads in the block helper;
+there is no runtime width policy or ISA-dependent portable definition.

@@ -30,19 +30,18 @@ sum_linear_expression(Values values,
     return result;
 }
 
-// Each lane is a separate ordered fold. Unit means every pointer leaf has
-// adjacent columns; scalar slots ignore offsets. Splat leaves use the general
-// lane offsets without enumerating per-leaf load-mode combinations.
-template <bool Unit, tensor_expression E, class Accumulator, class D, class Values, size_t Count,
-          size_t... I>
+// Each lane is an independent ordered fold. N changes interleaving only;
+// it does not regroup additions within a column.
+template <size_t N, bool Unit, tensor_expression E, class Accumulator, class D, class Values,
+          size_t Count, size_t... I>
+requires(N > 0)
 WJR_INTRINSIC_INLINE constexpr void
-sum_expression_columns_to(D *output, const Values &values, size_t rows, size_t columns,
-                          size_t output_step, const std::array<size_t, Count> &row_steps,
-                          const std::array<size_t, Count> &column_steps,
-                          std::index_sequence<I...> operands) noexcept {
-    const auto bound = columns - columns % 4;
-    size_t first = 0;
-    for (; first != bound; first += 4) {
+sum_expression_columns_block(D *output, const Values &values, size_t rows, size_t first,
+                             size_t output_step, const std::array<size_t, Count> &row_steps,
+                             const std::array<size_t, Count> &column_steps,
+                             std::index_sequence<I...>) noexcept {
+    if constexpr (N == 4) {
+        // Preserve the reviewed default's register allocation on Clang.
         std::array<size_t, Count> offsets{(Unit ? first : first * column_steps[I])...};
         Accumulator a{}, b{}, c{}, d{};
         for (size_t row = 0; row != rows; ++row) {
@@ -61,6 +60,43 @@ sum_expression_columns_to(D *output, const Values &values, size_t rows, size_t c
         output[(first + 1) * output_step] = b;
         output[(first + 2) * output_step] = c;
         output[(first + 3) * output_step] = d;
+    } else {
+        std::array<size_t, Count> offsets{(Unit ? first : first * column_steps[I])...};
+        std::array<Accumulator, N> states{};
+        auto add = [&]<size_t Column>() {
+            states[Column] += static_cast<Accumulator>(read_bound_expression<E>(
+                values, std::array<size_t, Count>{
+                            (offsets[I] + (Unit ? Column : Column * column_steps[I]))...}));
+        };
+        for (size_t row = 0; row != rows; ++row) {
+            [&]<size_t... Column>(std::index_sequence<Column...>) {
+                (add.template operator()<Column>(), ...);
+            }(std::make_index_sequence<N>{});
+            ((offsets[I] += row_steps[I]), ...);
+        }
+        [&]<size_t... Column>(std::index_sequence<Column...>) {
+            ((output[(first + Column) * output_step] = states[Column]), ...);
+        }(std::make_index_sequence<N>{});
+    }
+}
+
+template <size_t N, bool Unit, tensor_expression E, class Accumulator, class D, class Values,
+          size_t Count, size_t... I>
+requires(N > 0)
+WJR_INTRINSIC_INLINE constexpr void
+sum_expression_columns_to(D *output, const Values &values, size_t rows, size_t columns,
+                          size_t output_step, const std::array<size_t, Count> &row_steps,
+                          const std::array<size_t, Count> &column_steps,
+                          std::index_sequence<I...> operands) noexcept {
+    const auto bound = columns - columns % N;
+    size_t first = 0;
+    for (; first != bound; first += N)
+        sum_expression_columns_block<N, Unit, E, Accumulator>(
+            output, values, rows, first, output_step, row_steps, column_steps, operands);
+    if constexpr (N > 4) {
+        for (; columns - first >= 4; first += 4)
+            sum_expression_columns_block<4, Unit, E, Accumulator>(
+                output, values, rows, first, output_step, row_steps, column_steps, operands);
     }
     for (; first != columns; ++first)
         output[first * output_step] = sum_expression_line<E, Accumulator>(
@@ -112,11 +148,11 @@ sum_expression_axis_to(Dst dst, const E &expression) noexcept(noexcept(expressio
                 }(std::make_index_sequence<inputs>{});
                 const auto output_step = static_cast<size_t>(dst.stride(Keep ? 1 : 0));
                 if (unit)
-                    sum_expression_columns_to<true, E, accumulator_type>(
+                    sum_expression_columns_to<4, true, E, accumulator_type>(
                         dst.data_handle(), values, count, columns, output_step, steps, column_steps,
                         std::make_index_sequence<inputs>{});
                 else
-                    sum_expression_columns_to<false, E, accumulator_type>(
+                    sum_expression_columns_to<4, false, E, accumulator_type>(
                         dst.data_handle(), values, count, columns, output_step, steps, column_steps,
                         std::make_index_sequence<inputs>{});
                 return;
