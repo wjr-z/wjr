@@ -57,14 +57,12 @@ void compare_lengths() {
         const auto named_minimum = np::minimum(a, T(0));
         const auto named_maximum = np::maximum(a, T(0));
         static_assert(
-            !np::detail::homogeneous_xsimd_expression<std::remove_cv_t<decltype(named_minimum)>,
-                                                      T>);
+            np::detail::homogeneous_xsimd_expression<std::remove_cv_t<decltype(named_minimum)>, T>);
         static_assert(
-            !np::detail::homogeneous_xsimd_expression<std::remove_cv_t<decltype(named_maximum)>,
-                                                      T>);
+            np::detail::homogeneous_xsimd_expression<std::remove_cv_t<decltype(named_maximum)>, T>);
         const auto named_clip = np::clip(a, T(-1), T(2));
         static_assert(
-            !np::detail::homogeneous_xsimd_expression<std::remove_cv_t<decltype(named_clip)>, T>);
+            np::detail::homogeneous_xsimd_expression<std::remove_cv_t<decltype(named_clip)>, T>);
         compare_expression<T>(named_minimum, count);
         compare_expression<T>(named_maximum, count);
         compare_expression<T>(named_clip, count);

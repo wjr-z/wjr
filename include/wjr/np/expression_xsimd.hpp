@@ -13,6 +13,9 @@ struct xsimd_policy {};
 
 namespace detail {
 
+struct minimum_operation;
+struct maximum_operation;
+
 template <class Op>
 inline constexpr bool xsimd_unary_operation =
     std::same_as<Op, positive_operation> || std::same_as<Op, negative_operation>;
@@ -20,7 +23,8 @@ inline constexpr bool xsimd_unary_operation =
 template <class Op>
 inline constexpr bool xsimd_binary_operation =
     std::same_as<Op, add_operation> || std::same_as<Op, subtract_operation> ||
-    std::same_as<Op, multiply_operation> || std::same_as<Op, divide_operation>;
+    std::same_as<Op, multiply_operation> || std::same_as<Op, divide_operation> ||
+    std::same_as<Op, minimum_operation> || std::same_as<Op, maximum_operation>;
 
 // Predicate lanes always belong to the selected numeric batch, never batch<bool>.
 enum class xsimd_result_kind { unsupported, numeric, predicate };
@@ -116,6 +120,11 @@ WJR_INTRINSIC_INLINE auto apply_xsimd_operation(L left, R right) noexcept {
         return left & right;
     else if constexpr (std::same_as<Op, logical_or_operation>)
         return left | right;
+    else if constexpr (std::same_as<Op, minimum_operation>)
+        // Raw SIMD min/max do not preserve our NaN and left-tie rules.
+        return xsimd::select((left != left) | (right >= left), left, right);
+    else if constexpr (std::same_as<Op, maximum_operation>)
+        return xsimd::select((left != left) | (left >= right), left, right);
     else
         return Op::apply(left, right);
 }

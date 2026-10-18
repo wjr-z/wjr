@@ -22,6 +22,10 @@ whereas `2.0 * float_expression` retains the scalar evaluator's intermediate
 double precision. Mixed integer division also stays scalar, so SIMD cannot
 turn `int(3) / int(2) + float(0)` into `1.5` in some lanes.
 
+Homogeneous `minimum`, `maximum`, and `clip` also use numeric batches. They
+select with comparison masks to preserve NaN propagation and left-hand ties,
+including the sign of zero; hardware min/max alone do not meet those rules.
+
 These numeric trees can also contain six comparisons, named `logical_not`,
 `logical_and`, `logical_or`, and eager `select`. Comparisons produce the numeric
 batch's matching `batch_bool<T, Arch>`, rather than `batch<bool>`. Bool scalars
