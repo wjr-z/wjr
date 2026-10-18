@@ -40,8 +40,10 @@ mask 类型不参与分支数值提升，结果不会意外成为引用。
 select 复用内部静态 arity/child 协议，不保存 callable，也不增加函数绑定 slot。
 它的 map 子节点仍按既有规则绑定自己的 callable。
 没有临时 mask 数组或中间 payload；`eval(valid)` 的结果分配是显式物化行为。
-本轮所有比较、逻辑和 select 树在显式 xsimd 入口整体走 scalar fallback，
-不实例化 `batch<bool>`，也不改变混合 dtype 的逐节点语义。
+显式 xsimd 入口现可将同一 float/double 数值树中的比较、命名逻辑与 eager select
+映射为数值 batch 对应的 predicate batch，允许 bool scalar splat 和嵌套 predicate select。
+bool view、bool 结果物化、mixed dtype、cast、map、math 和未知操作仍整树走 scalar fallback；
+不实例化 `batch<bool>`，不改变逐节点 dtype。详见 [SIMD 契约](tensor-expression-xsimd.md)。
 编译器仍可自行优化普通 scalar 循环；不保证所有布局都与手写循环指令数相同。
 当前 Clang 18/GCC 12 baseline `-O3 -ffp-contract=off` 的 clip、bool mask、
 混合整数除法选择和逐行广播四组配对探针均无残留调用或中间数组。
