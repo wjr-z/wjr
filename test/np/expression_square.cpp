@@ -42,6 +42,7 @@ TEST(NpSquare, RetainsChildArithmeticBeforeAccumulationAndConversion) {
     EXPECT_EQ(np::square(std::numeric_limits<unsigned>::max()).read(0), 1u);
 }
 
+#ifndef WJR_DISABLE_EXCEPTIONS
 TEST(NpSquare, EvaluatesMappedChildOnceAndPropagatesExceptions) {
     const float values[]{1, 2, 3, 4};
     unsigned calls = 0;
@@ -58,7 +59,12 @@ TEST(NpSquare, EvaluatesMappedChildOnceAndPropagatesExceptions) {
     EXPECT_EQ(calls, 1u);
     EXPECT_THROW(expression.read(2), std::runtime_error);
     EXPECT_EQ(calls, 2u);
-    calls = 0;
+}
+#endif
+
+TEST(NpSquare, EvaluatesNothrowMappedChildOncePerPoint) {
+    const float values[]{1, 2, 3, 4};
+    unsigned calls = 0;
     const auto nothrow = np::square(np::map(
         [&](float value) noexcept {
             ++calls;

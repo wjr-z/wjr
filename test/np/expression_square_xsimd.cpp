@@ -10,6 +10,16 @@
 namespace {
 namespace np = wjr::np;
 
+using shape = np::extents<size_t, 4>;
+using source_view = np::tensor_view<const float, shape>;
+struct unknown_map {
+    float operator()(float value) const noexcept { return value; }
+};
+using mapped_square = decltype(np::square(np::map(unknown_map{}, std::declval<source_view>())));
+using math_square = decltype(np::square(np::sqrt(std::declval<source_view>())));
+static_assert(!np::detail::homogeneous_xsimd_expression<mapped_square, float>);
+static_assert(!np::detail::homogeneous_xsimd_expression<math_square, float>);
+
 template <class T>
 void check_square() {
     constexpr size_t capacity = 3 * xsimd::batch<T>::size + 3;
