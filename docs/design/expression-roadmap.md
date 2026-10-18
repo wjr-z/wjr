@@ -7,6 +7,26 @@ map/mask 与正 stride owner 已于本次审查期间合入，准确快照见核
 当前同步落实构造边界收敛：可选 try_make_* 薄函数合并到 make_view.hpp，返回同一种 mdspan；
 不制作 checked 数据结构，可信内部直接构造，owner/reshape 使用内部 metadata 而不绕公共工厂。
 
+## 执行状态（核对至 #111）
+
+规划尚未全部完成。以下区分已经落地的功能、待解决的成本缺口及仍需准入的方向，
+后文保留原数值合同和验收要求，不代表所有条目都需要重新开发。
+
+| 原任务组 | 当前状态 | 剩余工作 |
+| --- | --- | --- |
+| 1. span owner/构造边界 | 已完成当前子集 | 不重复实现；新生命周期需求单独准入 |
+| 2. 正步长切片 | 已完成 slice_view 与静态信息保留 | signed/reverse 尚未提供 |
+| 3. 有数值合同的函数 | 已完成有限 math、分类、min/max/clip 和组合例子 | 新函数按用途逐个准入 |
+| 4. predicate SIMD | 已完成同类型 float/double 的比较、逻辑、select、min/max/clip | 保留 mixed/map/cast/stride fallback；不强求全树 SIMD |
+| 5. fused collective/scan | 已完成表达式 ordered sum/scan、四列路径、块宽接缝及 mean | 部分 sum/mean 仍有编译器别名版本化；当前 restrict 实验无净收益，不提交无效重构 |
+| 6. 数值选择 | 已完成 view pairwise、norm、mean/variance/extrema 及受限表达式 pairwise | relaxed SIMD 尚未提供；融合 pairwise 的实际成本见其 API 文档 |
+| 7. 绑定与编译成本 | 已完成 callable 绑定拆分和操作特化整理 | 大树/状态加载及编译成本仍按实测缺口收敛 |
+| 8. owner/布局互操作 | 已完成正 stride/padded 子集 | exact storage、signed stride 和外部数据协议尚未承诺 |
+
+独立可选 OpenBLAS LP64 `dot/gemm_to` 已实现，见[CBLAS 边界](tensor-cblas.md)。
+oneTBB、运行时图和设备执行仍未实现；它们不能因前一批 MR 合入而标为完成。
+本轮 Astra 集中审视的后续选择、依赖和验收见[下一阶段能力](np-next-capabilities.md)。
+
 ## 1. 完整 span owner 与组合验收
 
 优先级 P0，依赖现有 owner/mapping；与中性构造头及可信内部路径迁移同步。
@@ -121,7 +141,8 @@ signed read-only descriptor 明确逻辑原点/min-max offset；padded/aligned �
 
 先完成候选组合验收及第 1 组，再推进第 2/3 组可见能力；第 4/5 组按性能需要独立推进。
 第 6 组依据数值需求，第 7/8 组依据实测缺口，避免把计划执行成必须创造全部机制的清单。
-安全 assign/scratch、oneTBB、BLAS、大型 graph export 保留需求门槛，低层接口不增加预防性检查。
+BLAS 已有独立可选的显式边界；oneTBB 的本轮受限入口按[下一阶段能力](np-next-capabilities.md)推进。
+安全 assign/scratch 和大型 graph export 仍保留需求门槛，低层接口不增加预防性检查。
 
 每组运行最小相关 NP 测试/ASan 与必要安装消费，涉及 C++ 时执行仓库规定 clang-format hook。
 额外标准/ISA 组合优先 Linux，保留现有 Windows 两项；性能测试独立于噪声敏感的普通 CI。
