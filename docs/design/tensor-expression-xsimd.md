@@ -15,12 +15,32 @@ layouts. An explicit architecture can be selected through
 `np::xsimd_policy<xsimd::sse2>{}` when supported by the deployment target.
 This interface does not provide runtime CPU dispatch.
 
-The first backend vectorizes built-in arithmetic trees only when the output,
-every leaf, and every intermediate result have the same `float` or `double`
-type. Scalars must have that same type too: `2.0f * float_expression` qualifies,
+The backend vectorizes built-in arithmetic trees when the output and every
+numeric leaf and intermediate result have the same `float` or `double`
+type. Numeric scalars must have that same type too: `2.0f * float_expression` qualifies,
 whereas `2.0 * float_expression` retains the scalar evaluator's intermediate
 double precision. Mixed integer division also stays scalar, so SIMD cannot
 turn `int(3) / int(2) + float(0)` into `1.5` in some lanes.
+
+These numeric trees can also contain six comparisons, named `logical_not`,
+`logical_and`, `logical_or`, and eager `select`. Comparisons produce the numeric
+batch's matching `batch_bool<T, Arch>`, rather than `batch<bool>`. Bool scalars
+use predicate splats, and an inner select may choose predicates. The final
+output must still be numeric. All children are read before selection; a mask
+cannot protect invalid arithmetic or an invalid address in either branch.
+
+```cpp
+const auto a = np::as_expr(input);
+np::eval_to(output, np::select(a < 0., 0., np::select(a > 1., 1., a)),
+            np::xsimd_policy<>{});
+```
+
+Bool views and bool outputs retain scalar evaluation. Casts, maps, standard
+math operations, unknown operation tags, or mixed numeric types also select
+the scalar path for the whole tree before instantiating a batch reader.
+This preserves each node's C++ dtype rules, including integer division inside
+a floating-point select. No temporary mask array, callable slot, runtime
+operation dispatch or additional expression field is introduced.
 
 The shape, lifetime, and alias preconditions are identical to
 scalar `eval_to`. Output must be logically disjoint from each input or exactly
@@ -39,7 +59,7 @@ every leaf's innermost step is statically proven to be one or zero:
 For example, `[dynamic_rows, 300]` plus `[300]`, or plus `[dynamic_rows, 1]`,
 qualifies. Broadcasts containing dynamic innermost extents retain the scalar
 coordinate traversal, since a dynamic extent can be either one or the full row.
-Mixed layouts and positive-stride inputs/outputs retain that traversal as well.
+Mixed layouts, padded slices and positive-stride inputs/outputs retain that traversal as well.
 There is no combinatorial runtime dispatch over leaf strides and no shape or
 load-kind branch inside the batch loop.
 
@@ -79,3 +99,13 @@ metadata; MSVC can retain a one-time outlined walker call and security-cookie
 work. Prototype comparisons found packed row loops on GCC, Clang and MSVC,
 while these setup differences remained. No throughput-equivalence claim follows
 from vectorization or the absence of per-element function calls.
+
+For the typed-predicate extension, paired `-O3 -ffp-contract=off` probes on
+Clang 18 and GCC 12 compared packed clipping, a range predicate and a bool
+scalar gate with handwritten xsimd loops, at baseline x86-64 and native ISA.
+The expression loops contained no residual calls or intermediate arrays;
+whole-function instruction counts still differed because of setup and scalar
+tail organization. Existing packed arithmetic and broadcast-row probes kept
+their instruction counts; Clang's instructions were unchanged, while GCC
+occasionally reversed equivalent compare operands. These are code-generation
+observations, not measured throughput or branch/cache-counter results.

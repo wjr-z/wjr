@@ -34,4 +34,15 @@ int main() {
     }
     std::cout << "broadcast first=" << broadcast_output.front()
               << " last=" << broadcast_output.back() << '\n';
+
+    // Numeric leaves use batch<double>; comparisons use its matching mask.
+    // Both select branches are eager, so every branch must be valid.
+    const auto a = np::as_expr(view(x.data()));
+    const auto clipped = np::select(a < 3., 3., np::select(a > 12., 12., a));
+    np::eval_to(view(output.data()), clipped, np::xsimd_policy<>{});
+    for (size_t i = 0; i != count; ++i) {
+        if (output[i] != (x[i] < 3. ? 3. : (x[i] > 12. ? 12. : x[i])))
+            return 1;
+    }
+    std::cout << "clip first=" << output.front() << " last=" << output.back() << '\n';
 }
