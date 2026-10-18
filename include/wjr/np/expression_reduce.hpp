@@ -73,8 +73,17 @@ sum_nonempty_expression(const E &expression,
 
 // Each lane is an independent ordered fold. N changes interleaving only;
 // it does not regroup additions within a column.
-template <size_t N, bool Unit, tensor_expression E, class Accumulator, class D, class Values,
-          size_t Count, size_t... I>
+template <bool Mean, class Accumulator>
+WJR_INTRINSIC_INLINE constexpr Accumulator finish_expression_axis_sum(Accumulator value,
+                                                                      size_t count) noexcept {
+    if constexpr (Mean)
+        return value / static_cast<Accumulator>(count);
+    else
+        return value;
+}
+
+template <size_t N, bool Unit, tensor_expression E, class Accumulator, bool Mean = false, class D,
+          class Values, size_t Count, size_t... I>
 requires(N > 0)
 WJR_INTRINSIC_INLINE constexpr void
 sum_expression_columns_block(D *output, const Values &values, size_t rows, size_t first,
@@ -97,10 +106,10 @@ sum_expression_columns_block(D *output, const Values &values, size_t rows, size_
                 std::array<size_t, Count>{(offsets[I] + (Unit ? 3 : 3 * column_steps[I]))...}));
             ((offsets[I] += row_steps[I]), ...);
         }
-        output[first * output_step] = a;
-        output[(first + 1) * output_step] = b;
-        output[(first + 2) * output_step] = c;
-        output[(first + 3) * output_step] = d;
+        output[first * output_step] = finish_expression_axis_sum<Mean>(a, rows);
+        output[(first + 1) * output_step] = finish_expression_axis_sum<Mean>(b, rows);
+        output[(first + 2) * output_step] = finish_expression_axis_sum<Mean>(c, rows);
+        output[(first + 3) * output_step] = finish_expression_axis_sum<Mean>(d, rows);
     } else {
         std::array<size_t, Count> offsets{(Unit ? first : first * column_steps[I])...};
         std::array<Accumulator, N> states{};
@@ -116,13 +125,15 @@ sum_expression_columns_block(D *output, const Values &values, size_t rows, size_
             ((offsets[I] += row_steps[I]), ...);
         }
         [&]<size_t... Column>(std::index_sequence<Column...>) {
-            ((output[(first + Column) * output_step] = states[Column]), ...);
+            ((output[(first + Column) * output_step] =
+                  finish_expression_axis_sum<Mean>(states[Column], rows)),
+             ...);
         }(std::make_index_sequence<N>{});
     }
 }
 
-template <size_t N, bool Unit, tensor_expression E, class Accumulator, class D, class Values,
-          size_t Count, size_t... I>
+template <size_t N, bool Unit, tensor_expression E, class Accumulator, bool Mean = false, class D,
+          class Values, size_t Count, size_t... I>
 requires(N > 0)
 WJR_INTRINSIC_INLINE constexpr void
 sum_expression_columns_to(D *output, const Values &values, size_t rows, size_t columns,
@@ -132,20 +143,23 @@ sum_expression_columns_to(D *output, const Values &values, size_t rows, size_t c
     const auto bound = columns - columns % N;
     size_t first = 0;
     for (; first != bound; first += N)
-        sum_expression_columns_block<N, Unit, E, Accumulator>(
+        sum_expression_columns_block<N, Unit, E, Accumulator, Mean>(
             output, values, rows, first, output_step, row_steps, column_steps, operands);
     if constexpr (N > 4) {
         for (; columns - first >= 4; first += 4)
-            sum_expression_columns_block<4, Unit, E, Accumulator>(
+            sum_expression_columns_block<4, Unit, E, Accumulator, Mean>(
                 output, values, rows, first, output_step, row_steps, column_steps, operands);
     }
-    for (; first != columns; ++first)
-        output[first * output_step] = sum_expression_line<E, Accumulator>(
+    for (; first != columns; ++first) {
+        const auto value = sum_expression_line<E, Accumulator>(
             values, rows, std::array<size_t, Count>{first * column_steps[I]...}, row_steps,
             operands);
+        output[first * output_step] = finish_expression_axis_sum<Mean>(value, rows);
+    }
 }
 
-template <class Accumulator, size_t Axis, bool Keep, class Dst, tensor_expression E>
+template <class Accumulator, size_t Axis, bool Keep, bool Mean = false, class Dst,
+          tensor_expression E>
 WJR_INTRINSIC_INLINE constexpr void
 sum_expression_axis_to(Dst dst, const E &expression) noexcept(noexcept(expression.read(size_t{}))) {
     using accumulator_type = sum_accumulator<Accumulator, typename E::value_type>;
@@ -161,7 +175,12 @@ sum_expression_axis_to(Dst dst, const E &expression) noexcept(noexcept(expressio
         return;
     const auto count = domain.extent(Axis);
     if (count == 0) {
-        apply_kernel(dst, [](typename Dst::reference value) noexcept { value = {}; });
+        apply_kernel(dst, [](typename Dst::reference value) noexcept {
+            if constexpr (Mean)
+                value = std::numeric_limits<accumulator_type>::quiet_NaN();
+            else
+                value = {};
+        });
         return;
     }
     const auto values = bind_expression_values(expression, std::make_index_sequence<inputs>{});
@@ -189,11 +208,11 @@ sum_expression_axis_to(Dst dst, const E &expression) noexcept(noexcept(expressio
                 }(std::make_index_sequence<inputs>{});
                 const auto output_step = static_cast<size_t>(dst.stride(Keep ? 1 : 0));
                 if (unit)
-                    sum_expression_columns_to<4, true, E, accumulator_type>(
+                    sum_expression_columns_to<4, true, E, accumulator_type, Mean>(
                         dst.data_handle(), values, count, columns, output_step, steps, column_steps,
                         std::make_index_sequence<inputs>{});
                 else
-                    sum_expression_columns_to<4, false, E, accumulator_type>(
+                    sum_expression_columns_to<4, false, E, accumulator_type, Mean>(
                         dst.data_handle(), values, count, columns, output_step, steps, column_steps,
                         std::make_index_sequence<inputs>{});
                 return;
@@ -216,9 +235,10 @@ sum_expression_axis_to(Dst dst, const E &expression) noexcept(noexcept(expressio
                           auto... input_offsets) noexcept(noexcept(expression.read(size_t{}))) {
         constexpr auto static_count = E::static_extent(Axis);
         const auto bound = static_count == dynamic_extent ? count : static_count;
-        output[output_offset] = sum_expression_line<E, accumulator_type>(
+        const auto value = sum_expression_line<E, accumulator_type>(
             values, bound, std::array<size_t, expression_leaf_count<E>>{input_offsets...}, steps,
             std::make_index_sequence<expression_leaf_count<E>>{});
+        output[output_offset] = finish_expression_axis_sum<Mean>(value, count);
     };
     walk_expression_sum(outer_shape, outer_strides, reduce, std::make_index_sequence<1 + inputs>{});
 }

@@ -87,7 +87,11 @@ mixed integer division/cast/未知 map 整体 fallback，不实例化无效 batc
 pairwise 初版可限制布局，不能无声退回另一种分组；泛 stride 扁平化不能每点增加除模却宣称免费。
 relaxed fallback 须满足所声明的数值合同。整数重结合因不同中间溢出条件另行设计。
 验收高精度 oracle 的消去/量级测试、NaN/Inf/零、精确 grouping oracle、同分组手写性能和无隐藏 payload。
-stable norm、max/mean/variance 在明确空域/NaN/tie/溢出策略后独立进入，不借泛型 reduce 跳过这些决定。
+view 侧的 pairwise sum、norm、mean/variance 和 extrema 已按各自合同落地，分别见
+[pairwise](tensor-pairwise-sum.md)、[norm](tensor-norm.md)、[mean](tensor-mean.md)、
+[variance](tensor-variance.md) 与 [extrema](tensor-extrema.md)。表达式全量 mean 已有独立实现；
+本轮补齐单轴 `mean_to`，见[表达式 mean](tensor-expression-mean.md)。
+后续只在出现新的数值合同或实测缺口时扩展，不由本路线图要求重复建设这些能力。
 
 ## 7. 绑定表示与编译成本收敛
 
