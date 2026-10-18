@@ -1,6 +1,7 @@
 #include <array>
 #include <iostream>
 
+#include <wjr/np/expression_math.hpp>
 #include <wjr/np/expression_xsimd.hpp>
 
 int main() {
@@ -38,7 +39,7 @@ int main() {
     // Numeric leaves use batch<double>; comparisons use its matching mask.
     // Both select branches are eager, so every branch must be valid.
     const auto a = np::as_expr(view(x.data()));
-    const auto clipped = np::select(a < 3., 3., np::select(a > 12., 12., a));
+    const auto clipped = np::clip(a, 3., 12.);
     np::eval_to(view(output.data()), clipped, np::xsimd_policy<>{});
     for (size_t i = 0; i != count; ++i) {
         if (output[i] != (x[i] < 3. ? 3. : (x[i] > 12. ? 12. : x[i])))

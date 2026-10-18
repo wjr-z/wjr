@@ -36,10 +36,18 @@ whitelist. That is an ordering contract for these pure comparisons, not a
 claim that this expression adds no instructions. Homogeneous `clip` composes
 only those min/max nodes and remains eligible; mixed-type `clip` with conversion
 nodes remains outside the whitelist because ordinary casts are not globally
-declared safe to reorder. The explicit xsimd policy has no specialized min/max
-batch implementation yet and therefore uses the scalar fallback. Performance
-claims require comparison with a hand-written loop using the same NaN and tie
-rules.
+declared safe to reorder. The explicit xsimd policy supports homogeneous
+`float`/`double` min/max and clip trees through its existing unit-load/splat
+paths. Batch comparisons and selection preserve NaNs and left ties, including
+signed zero; raw hardware min/max are insufficient for this contract. Mixed
+types, unsupported children and nonunit strides retain the existing fallback.
+No intermediate mask or numerical array is allocated. This adds no batch width
+or ISA state to the public expression objects. See the optional
+[SIMD example](../../examples/np/expression_simd.cpp).
+
+Performance claims require comparison with a hand-written loop using the same
+ISA, NaN and tie rules; selecting this policy does not promise a speedup over
+compiler-vectorized scalar evaluation.
 
 The floating selection uses a combined boolean mask without changing these
 rules. See [the measured Linux comparison](../performance/np-extremum-selection.md)
