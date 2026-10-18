@@ -268,7 +268,8 @@ improves this example but is not a correctly rounded sum or an accuracy
 guarantee for every input. See the [grouping contract](../../docs/design/tensor-pairwise-sum.md).
 
 `wjr_np_expression_pairwise` fuses squared values and a pure scaled expression
-into the same grouping without transformed storage; see
+into the same grouping without transformed storage. `square(x)` captures and
+evaluates one child once per point; see [the square contract](../../docs/design/tensor-square.md),
 [expression_pairwise.cpp](expression_pairwise.cpp) and
 [its narrower expression contract](../../docs/design/tensor-expression-pairwise.md).
 

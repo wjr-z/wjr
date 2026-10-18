@@ -8,12 +8,15 @@ retains its ordered fold and wider set of supported expressions.
 
 ```cpp
 const auto x = np::as_expr(samples);
-const auto energy = np::pairwise_sum<double>(x * x);
+const auto energy = np::pairwise_sum<double>(np::square(x)); // expression_math.hpp
 const auto scaled = np::map([](float value, float factor) noexcept {
     return value * factor;
 }, x, 0.5f);
 const auto total = np::pairwise_sum<double>(scaled);
 ```
+
+[square](tensor-square.md) captures a single child; writing `x*x` instead remains
+valid but captures two subtrees, whose duplicate work is not always eliminated.
 
 The default accumulator follows the same C++ `value_type + value_type` rule as
 the view overload and must be an unqualified floating-point type. Float and

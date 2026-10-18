@@ -8,6 +8,7 @@ namespace wjr::np::detail {
 
 struct minimum_operation;
 struct maximum_operation;
+struct square_operation;
 
 // Eligibility and implementation belong to the same operation adapter.
 // Predicate lanes belong to the numeric batch, never batch<bool>.
@@ -52,6 +53,9 @@ template <>
 struct xsimd_operation<subtract_operation> : xsimd_arithmetic_operation<subtract_operation, 2> {};
 template <>
 struct xsimd_operation<multiply_operation> : xsimd_arithmetic_operation<multiply_operation, 2> {};
+
+template <>
+struct xsimd_operation<square_operation> : xsimd_arithmetic_operation<square_operation, 1> {};
 template <>
 struct xsimd_operation<divide_operation> : xsimd_arithmetic_operation<divide_operation, 2> {};
 
