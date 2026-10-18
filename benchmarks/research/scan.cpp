@@ -87,6 +87,23 @@ extern "C" WJR_NOINLINE void mapped_raw(double* out,const double* in,const doubl
     }
 }
 using mapped_function=void(*)(double*,const double*,const double*,size_t,size_t,size_t);
+extern "C" WJR_NOINLINE void mapped_hoisted(double* out,const double* in,const double* bias,size_t rows,size_t cols,size_t pitch) {
+    size_t col=0;
+    for(;cols-col>=4;col+=4) {
+        const double x=bias[col],y=bias[col+1],z=bias[col+2],w=bias[col+3];
+        double a=0.,b=0.,c=0.,d=0.;
+        for(size_t row=0;row!=rows;++row) {
+            const auto input=row*pitch+col,output=row*cols+col;
+            a+=(in[input]-x)*1.25;b+=(in[input+1]-y)*1.25;
+            c+=(in[input+2]-z)*1.25;d+=(in[input+3]-w)*1.25;
+            out[output]=a;out[output+1]=b;out[output+2]=c;out[output+3]=d;
+        }
+    }
+    for(;col!=cols;++col) {
+        const auto b=bias[col];double state=0.;
+        for(size_t row=0;row!=rows;++row) {state+=(in[row*pitch+col]-b)*1.25;out[row*cols+col]=state;}
+    }
+}
 volatile double sink=0.;
 template<class T> T escape(T value) { asm volatile("" : "+r"(value) :: "memory");return value; }
 double measure(mapped_function fn,double* out,const double* in,const double* bias,size_t rows,size_t cols,size_t pitch,size_t repeats) {
@@ -107,18 +124,19 @@ void fixed_mapped(bool padded) {
         mapped_raw(expected.data(),in.data(),bias.data(),rows,cols,pitch);
         if(actual!=expected) {std::fprintf(stderr,"oracle failed\n");std::exit(1);}
         const auto repeats=std::max(size_t(15),size_t(3000000)/(rows*cols));
-        std::vector<double> a,b;
+        std::array<std::vector<double>,3> samples;
+        const std::array<mapped_function,3> functions{fn,mapped_raw,mapped_hoisted};
+        mapped_hoisted(actual.data(),in.data(),bias.data(),rows,cols,pitch);
+        if(actual!=expected)std::exit(3);
         for(size_t trial=0;trial!=11;++trial) {
-            if(trial%2) {
-                a.push_back(measure(fn,actual.data(),in.data(),bias.data(),rows,cols,pitch,repeats));
-                b.push_back(measure(mapped_raw,expected.data(),in.data(),bias.data(),rows,cols,pitch,repeats));
-            } else {
-                b.push_back(measure(mapped_raw,expected.data(),in.data(),bias.data(),rows,cols,pitch,repeats));
-                a.push_back(measure(fn,actual.data(),in.data(),bias.data(),rows,cols,pitch,repeats));
+            for(size_t i=0;i!=3;++i) {
+                const auto index=(trial+i)%3;
+                samples[index].push_back(measure(functions[index],actual.data(),in.data(),bias.data(),rows,cols,pitch,repeats));
             }
         }
-        std::sort(a.begin(),a.end());std::sort(b.begin(),b.end());
-        std::printf("%s %zux%zu np=%.2f raw4=%.2f ratio=%.3f\n",padded?"padded-map":"map",rows,cols,a[5],b[5],a[5]/b[5]);
+        for(auto& sample:samples)std::sort(sample.begin(),sample.end());
+        const auto a=samples[0][5],b=samples[1][5],h=samples[2][5];
+        std::printf("%s %zux%zu np=%.2f raw4=%.2f hoisted=%.2f ratio=%.3f hoisted_ratio=%.3f\n",padded?"padded-map":"map",rows,cols,a,b,h,a/b,a/h);
     }
 }
 void mixed() {
