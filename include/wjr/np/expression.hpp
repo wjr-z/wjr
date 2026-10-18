@@ -27,7 +27,7 @@ template <class Layout>
 concept expression_layout = std::same_as<Layout, layout_left> || std::same_as<Layout, layout_right>;
 
 template <class Layout>
-concept expression_view_layout = expression_layout<Layout> || std::same_as<Layout, layout_stride>;
+concept expression_view_layout = kernel_layout<Layout>;
 
 template <class View>
 inline constexpr bool is_expression_view = false;
@@ -196,8 +196,8 @@ public:
     using view_type = View;
     using value_type = typename View::value_type;
     using extents_type = typename View::extents_type;
-    using layout_type = std::conditional_t<detail::expression_layout<typename View::layout_type>,
-                                           typename View::layout_type, layout_right>;
+    using layout_type = std::conditional_t<detail::left_layout<typename View::layout_type>,
+                                           layout_left, layout_right>;
     static constexpr auto kind = detail::expression_kind::view;
     static constexpr bool is_scalar = false;
 
@@ -760,8 +760,7 @@ eval_projected_expression(Dst dst, const E &expression, const Values &values) no
     if constexpr (rank == 0) {
         dst.data_handle()[0] = read_bound_expression<E>(values, std::array<size_t, inputs>{});
     } else {
-        constexpr auto inner_axis =
-            std::same_as<typename Dst::layout_type, layout_left> ? size_t{0} : rank - 1;
+        constexpr auto inner_axis = left_layout<typename Dst::layout_type> ? size_t{0} : rank - 1;
         const auto inner_count = shape[inner_axis];
         const auto output_step = strides[0][inner_axis];
         std::array<size_t, inputs> steps{};
@@ -792,7 +791,7 @@ eval_projected_expression(Dst dst, const E &expression, const Values &values) no
             }
         }();
         [&]<size_t... I>(std::index_sequence<I...> operands) {
-            walk_kernel<0, std::same_as<typename Dst::layout_type, layout_left>>(
+            walk_kernel<0, left_layout<typename Dst::layout_type>>(
                 outer_shape, outer_strides, point, operands, decltype(I){}...);
         }(std::make_index_sequence<1 + inputs>{});
     }

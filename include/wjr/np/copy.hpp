@@ -29,8 +29,7 @@ constexpr void copy_to(tensor_view<T, DstExtents, DstLayout> dst,
         if (identical)
             return;
     }
-    if constexpr (!std::same_as<DstLayout, layout_stride> &&
-                  !std::same_as<SrcLayout, layout_stride> &&
+    if constexpr (detail::packed_layout<DstLayout> && detail::packed_layout<SrcLayout> &&
                   (DstExtents::rank() <= 1 || std::same_as<DstLayout, SrcLayout>)) {
         std::copy_n(src.data_handle(), static_cast<size_t>(dst.size()), dst.data_handle());
     } else {
@@ -46,7 +45,7 @@ constexpr void fill_to(tensor_view<T, Extents, Layout> dst,
                        std::type_identity_t<T> value) noexcept {
     if (dst.empty())
         return;
-    if constexpr (!std::same_as<Layout, layout_stride>) {
+    if constexpr (detail::packed_layout<Layout>) {
         std::fill_n(dst.data_handle(), static_cast<size_t>(dst.size()), value);
     } else {
         detail::apply_kernel(dst, [value](T &out) noexcept { out = value; });
