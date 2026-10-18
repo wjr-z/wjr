@@ -66,6 +66,90 @@ static_assert(noexcept(std::declval<const classified &>().read(0)) ==
 static_assert(std::same_as<typename decltype(np::isnan(1.L))::value_type, bool>);
 static_assert(std::same_as<typename decltype(np::isinf(1u))::value_type, bool>);
 
+template <class E>
+concept stable_elementary = requires(E &&value) {
+    np::expm1(std::forward<E>(value));
+    np::log1p(std::forward<E>(value));
+};
+using shifted_exp = decltype(np::expm1(std::declval<const leaf &>()));
+using shifted_log = decltype(np::log1p(std::declval<const leaf &>()));
+static_assert(stable_elementary<int> && stable_elementary<bool>);
+static_assert(stable_elementary<view<const long double, shape>>);
+static_assert(!stable_elementary<int *> && !stable_elementary<view<volatile double, shape>>);
+static_assert(!stable_elementary<np::tensor<double, shape> &>);
+static_assert(std::same_as<typename shifted_exp::value_type, decltype(std::expm1(float{}))>);
+static_assert(std::same_as<typename shifted_log::value_type, decltype(std::log1p(float{}))>);
+static_assert(std::same_as<typename decltype(np::expm1(1))::value_type, double>);
+static_assert(std::same_as<typename decltype(np::log1p(1u))::value_type, double>);
+static_assert(std::same_as<typename decltype(np::log1p(1.L))::value_type, long double>);
+static_assert(std::same_as<typename shifted_exp::extents_type, shape>);
+static_assert(std::same_as<typename shifted_log::layout_type, np::layout_right>);
+static_assert(sizeof(shifted_exp) == sizeof(leaf) && sizeof(shifted_log) == sizeof(leaf));
+static_assert(np::detail::expression_function_count<shifted_exp> == 0 &&
+              np::detail::expression_function_count<shifted_log> == 0);
+static_assert(noexcept(std::declval<const shifted_exp &>().read(0)) ==
+              noexcept(std::expm1(float{})));
+static_assert(noexcept(std::declval<const shifted_log &>().read(0)) ==
+              noexcept(std::log1p(float{})));
+constexpr auto shifted_construction_only = np::log1p(np::expm1(1));
+static_assert(shifted_construction_only.rank() == 0);
+
+TEST(NpExpressionMath, StableElementaryUsesActualOverloadsAndPreservesDivisionDtype) {
+    const float input[]{1e-8f, -1e-8f, .25f, 1.f};
+    const auto a = np::as_expr(view<const float, shape>(input));
+    double output[4]{};
+    np::eval_to(view<double, shape>(output), np::expm1(a));
+    for (size_t i = 0; i != 4; ++i)
+        EXPECT_EQ(output[i], static_cast<double>(std::expm1(input[i])));
+    np::eval_to(view<double, shape>(output), np::log1p(a));
+    for (size_t i = 0; i != 4; ++i)
+        EXPECT_EQ(output[i], static_cast<double>(std::log1p(input[i])));
+    const int numerator[]{3, 7, 8, 11}, denominator[]{2, 2, 3, 4};
+    const auto n = np::as_expr(view<const int, shape>(numerator));
+    const auto d = np::as_expr(view<const int, shape>(denominator));
+    np::eval_to(view<double, shape>(output), np::log1p(n / d));
+    for (size_t i = 0; i != 4; ++i)
+        EXPECT_EQ(output[i], std::log1p(numerator[i] / denominator[i]));
+    EXPECT_EQ(np::expm1(2).read(0), std::expm1(2));
+}
+
+TEST(NpExpressionMath, StableElementaryAvoidsCancellationForSelectedSmallArguments) {
+    volatile double small_input = 1e-12;
+    const double x = small_input;
+    // The exact functions differ from x by O(x*x) here. This illustrates
+    // cancellation in the naive formulas, rather than claiming exact rounding.
+    EXPECT_TRUE(std::abs(np::expm1(x).read(0) - x) < std::abs((std::exp(x) - 1.) - x));
+    EXPECT_TRUE(std::abs(np::log1p(x).read(0) - x) < std::abs(std::log(1. + x) - x));
+    volatile float float_input = 1e-8f;
+    const float y = float_input;
+    EXPECT_TRUE(std::abs(np::expm1(y).read(0) - y) < std::abs((std::exp(y) - 1.f) - y));
+    EXPECT_TRUE(std::abs(np::log1p(y).read(0) - y) < std::abs(std::log(1.f + y) - y));
+}
+
+TEST(NpExpressionMath, StableElementaryFusesStridesBroadcastAndInPlace) {
+    using matrix = np::extents<size_t, 2, 3>;
+    using strided = view<double, matrix, np::layout_stride>;
+    double input[]{.1, 999, .2, 999, .3, 999, 999, .4, 999, .5, 999, .6};
+    const strided source(input, strided::mapping_type({}, std::array<size_t, 2>{7, 2}));
+    const float bias[]{1e-8f, .25f, .5f};
+    double output[6]{};
+    np::eval_to(view<double, matrix, np::layout_left>(output),
+                np::expm1(source) + np::log1p(view<const float, np::extents<size_t, 3>>(bias)));
+    for (size_t row = 0; row != 2; ++row)
+        for (size_t col = 0; col != 3; ++col)
+            EXPECT_EQ(output[col * 2 + row],
+                      std::expm1(input[row * 7 + col * 2]) + std::log1p(bias[col]));
+    // A constant-folded literal can round differently from the runtime libm.
+    // Compare both paths using the same runtime standard-library overload.
+    volatile double first_input = input[0], last_input = input[11];
+    const double first_expected = std::log1p(first_input);
+    const double last_expected = std::log1p(last_input);
+    np::eval_to(source, np::log1p(source));
+    EXPECT_EQ(input[0], first_expected);
+    EXPECT_EQ(input[11], last_expected);
+    EXPECT_EQ(input[1], 999.);
+}
+
 TEST(NpExpressionMath, UsesActualStdOverloadsAndPreservesChildTypes) {
     float input[] = {.25f, .5f, 1.f, 2.f};
     const auto a = np::as_expr(view<const float, shape>(input));
@@ -134,6 +218,9 @@ TEST(NpExpressionMath, EmptyDomainSkipsMathAndRankZeroRunsNormally) {
     const int error = errno;
     EXPECT_EQ(counted_operation::calls, 0);
     EXPECT_EQ(error, E2BIG);
+    np::eval_to(view<double, empty>(nullptr), np::log1p(np::expm1(counted)));
+    EXPECT_EQ(counted_operation::calls, 0);
+    EXPECT_EQ(errno, E2BIG);
     int value = 9;
     double output = 0.;
     np::eval_to(view<double, np::extents<size_t>>(&output),
@@ -280,6 +367,22 @@ TEST(NpExpressionMath, ClassificationUsesTheSameStdErrorStateBehavior) {
     errno = 0;
 }
 
+TEST(NpExpressionMath, StableElementarySpecialValuesAndErrorStateMatchStd) {
+    const double infinity = std::numeric_limits<double>::infinity();
+    volatile double inputs[]{
+        -2., -1., -0., 0., infinity, -infinity, std::numeric_limits<double>::quiet_NaN(), 10000.};
+    for (double value : inputs) {
+        compare_observations([value] { return std::expm1(value); },
+                             [value] { return np::expm1(value).read(0); });
+        compare_observations([value] { return std::log1p(value); },
+                             [value] { return np::log1p(value).read(0); });
+    }
+    EXPECT_EQ(std::signbit(np::expm1(-0.).read(0)), std::signbit(std::expm1(-0.)));
+    EXPECT_EQ(std::signbit(np::log1p(-0.).read(0)), std::signbit(std::log1p(-0.)));
+    std::feclearexcept(FE_ALL_EXCEPT);
+    errno = 0;
+}
+
 #if !defined(WJR_DISABLE_EXCEPTIONS)
 struct throwing_operation {
     static double apply(double) { throw std::runtime_error("child failed"); }
@@ -298,10 +401,16 @@ TEST(NpExpressionMath, BranchAndClosureExceptionsRemainObservable) {
     const auto copied = np::map(throwing_copy{}, scalar);
     static_assert(!noexcept(np::sqrt(copied)) && !noexcept(np::exp(copied)));
     static_assert(!noexcept(np::log(copied)) && !noexcept(np::abs(copied)));
+    static_assert(!noexcept(np::expm1(copied)) && !noexcept(np::log1p(copied)));
+    static_assert(!noexcept(np::expm1(child).read(0)) && !noexcept(np::log1p(child).read(0)));
     EXPECT_THROW((void)np::sqrt(copied), std::runtime_error);
     EXPECT_THROW((void)np::exp(copied), std::runtime_error);
     EXPECT_THROW((void)np::log(copied), std::runtime_error);
     EXPECT_THROW((void)np::abs(copied), std::runtime_error);
+    EXPECT_THROW((void)np::expm1(copied), std::runtime_error);
+    EXPECT_THROW((void)np::log1p(copied), std::runtime_error);
+    EXPECT_THROW((void)np::expm1(child).read(0), std::runtime_error);
+    EXPECT_THROW((void)np::log1p(child).read(0), std::runtime_error);
     static_assert(!noexcept(np::isfinite(child).read(0)));
     EXPECT_THROW((void)np::isfinite(child).read(0), std::runtime_error);
     EXPECT_THROW((void)np::isnan(child).read(0), std::runtime_error);

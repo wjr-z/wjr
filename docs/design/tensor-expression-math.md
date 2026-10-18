@@ -1,6 +1,6 @@
 # 标准 scalar math 表达式
 
-`<wjr/np/expression_math.hpp>` 提供 `np::sqrt(x)`、`np::exp(x)`、`np::log(x)`、
+`<wjr/np/expression_math.hpp>` 提供 `np::sqrt(x)`、`np::exp(x)`、`np::log(x)`, `np::expm1(x)`, `np::log1p(x)`、
 `np::abs(x)`、`np::isfinite(x)`、`np::isnan(x)`、`np::isinf(x)`，
 其中 `x` 是现有 `as_expr` 可捕获的 arithmetic scalar、view 或表达式。
 owner 仍需显式传入存活的 view；不添加新的 checked 入口。
@@ -21,6 +21,30 @@ owner 仍需显式传入存活的 view；不添加新的 checked 入口。
 空执行域不调用数学函数，rank 0 执行一次。
 `constexpr` 允许常量构造节点；数学求值能否成为常量表达式取决于所用标准库和编译器，
 不承诺 C++20 下 `cmath` 的一般常量求值。
+
+## Small arguments
+
+`np::expm1(x)` and `np::log1p(x)` call the actual `std::expm1` and
+`std::log1p` overloads, rather than forming `exp(x)-1` or `log(1+x)` nodes.
+The nodes avoid explicitly forming those cancellation-prone intermediate
+values; actual accuracy remains a property of the standard library. The example
+shows `double` input `1e-12` and `float` input `1e-8f`; it does not establish
+correctly rounded results or an accuracy bound for other implementations or
+inputs.
+
+Integer inputs produce the standard overload's `double` result; `float` stays
+`float`, even when the destination is `double`. Child integer division still
+happens before the mathematical call. Signed zeros, nonfinite inputs, overflow,
+and `log1p`'s pole/domain cases (`x == -1`, `x < -1`) follow the same standard
+function's result, errno and floating-point behavior. No checks or error-state
+reset are added. The existing C++20 constant-evaluation limitation and scalar
+fallback/interleaving restrictions also apply to these nodes.
+
+Windows x64 Clang 18 and GCC 12 paired probes keep the same standard calls and
+inner-loop work as direct handwritten loops. The tested fixed-shape reused
+trees have equal instruction counts. GCC's dynamic local-tree wrappers retain
+six additional static instructions from a duplicated empty-return epilogue;
+this is a code-size difference, not a measured throughput result.
 
 ## 数值与运算域
 

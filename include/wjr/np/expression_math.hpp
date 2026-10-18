@@ -31,6 +31,20 @@ struct log_operation {
         return std::log(value);
     }
 };
+struct expm1_operation {
+    template <class T>
+    static constexpr auto
+    apply(T value) noexcept(noexcept(std::expm1(value))) -> decltype(std::expm1(value)) {
+        return std::expm1(value);
+    }
+};
+struct log1p_operation {
+    template <class T>
+    static constexpr auto
+    apply(T value) noexcept(noexcept(std::log1p(value))) -> decltype(std::log1p(value)) {
+        return std::log1p(value);
+    }
+};
 struct abs_operation {
     template <class T>
     requires(std::signed_integral<T> || std::floating_point<T>)
@@ -174,6 +188,20 @@ requires detail::math_operand<detail::log_operation, E>
 [[nodiscard]] constexpr auto log(E &&value) noexcept(
     noexcept(detail::make_math_expression<detail::log_operation>(std::forward<E>(value)))) {
     return detail::make_math_expression<detail::log_operation>(std::forward<E>(value));
+}
+
+template <class E>
+requires detail::math_operand<detail::expm1_operation, E>
+[[nodiscard]] constexpr auto expm1(E &&value) noexcept(
+    noexcept(detail::make_math_expression<detail::expm1_operation>(std::forward<E>(value)))) {
+    return detail::make_math_expression<detail::expm1_operation>(std::forward<E>(value));
+}
+
+template <class E>
+requires detail::math_operand<detail::log1p_operation, E>
+[[nodiscard]] constexpr auto log1p(E &&value) noexcept(
+    noexcept(detail::make_math_expression<detail::log1p_operation>(std::forward<E>(value)))) {
+    return detail::make_math_expression<detail::log1p_operation>(std::forward<E>(value));
 }
 template <class E>
 requires detail::math_operand<detail::abs_operation, E>
