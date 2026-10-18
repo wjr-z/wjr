@@ -5,6 +5,7 @@
 #include <cstdlib>
 
 #include <wjr/np/expression.hpp>
+#include <wjr/np/expression_cast.hpp>
 
 namespace wjr::np {
 
@@ -58,6 +59,84 @@ struct isinf_operation {
     apply(T value) noexcept(noexcept(std::isinf(value))) -> decltype(std::isinf(value)) {
         return std::isinf(value);
     }
+};
+
+template <bool IsMinimum>
+struct extremum_operation {
+    template <class L, class R>
+    using result_type = std::common_type_t<L, R>;
+
+    template <class L, class R>
+    static constexpr auto apply(L left, R right) noexcept -> result_type<L, R> {
+        using value_type = result_type<L, R>;
+        const value_type lhs = static_cast<value_type>(left);
+        const value_type rhs = static_cast<value_type>(right);
+        if constexpr (std::floating_point<value_type>) {
+            const bool left_nan = lhs != lhs;
+            const bool right_nan = rhs != rhs;
+            if (left_nan)
+                return lhs;
+            if (right_nan)
+                return rhs;
+            if (lhs == rhs)
+                return lhs;
+        }
+        if constexpr (IsMinimum)
+            return lhs < rhs ? lhs : rhs;
+        else
+            return rhs < lhs ? lhs : rhs;
+    }
+};
+
+struct minimum_operation : extremum_operation<true> {};
+struct maximum_operation : extremum_operation<false> {};
+
+template <class Operation, class L, class R>
+concept extremum_operands = requires {
+    typename captured_expression<L>::value_type;
+    typename captured_expression<R>::value_type;
+    requires compatible_expressions<captured_expression<L>, captured_expression<R>>;
+    typename Operation::template result_type<typename captured_expression<L>::value_type,
+                                             typename captured_expression<R>::value_type>;
+    requires expression_element<typename Operation::template result_type<
+        typename captured_expression<L>::value_type, typename captured_expression<R>::value_type>>;
+    Operation::apply(std::declval<typename captured_expression<L>::value_type>(),
+                     std::declval<typename captured_expression<R>::value_type>());
+};
+
+template <class Operation, class L, class R>
+requires extremum_operands<Operation, L, R>
+[[nodiscard]] constexpr auto make_extremum_expression(L &&left, R &&right) noexcept(
+    noexcept(make_binary_expression<Operation>(std::forward<L>(left), std::forward<R>(right)))) {
+    return make_binary_expression<Operation>(std::forward<L>(left), std::forward<R>(right));
+}
+
+template <class E, class L, class H>
+using clip_value_type = std::common_type_t<typename captured_expression<E>::value_type,
+                                           typename captured_expression<L>::value_type,
+                                           typename captured_expression<H>::value_type>;
+
+template <class To, class E>
+[[nodiscard]] constexpr auto
+make_clip_operand(E &&value) noexcept(std::same_as<To, typename captured_expression<E>::value_type>
+                                          ? noexcept(as_expr(std::forward<E>(value)))
+                                          : noexcept(cast<To>(std::forward<E>(value)))) {
+    if constexpr (std::same_as<To, typename captured_expression<E>::value_type>)
+        return as_expr(std::forward<E>(value));
+    else
+        return cast<To>(std::forward<E>(value));
+}
+
+template <class L, class M, class H>
+concept clip_operands = requires {
+    typename captured_expression<L>::value_type;
+    typename captured_expression<M>::value_type;
+    typename captured_expression<H>::value_type;
+    requires compatible_expressions<captured_expression<L>, captured_expression<M>>;
+    requires compatible_expressions<captured_expression<L>, captured_expression<H>>;
+    requires compatible_expressions<captured_expression<M>, captured_expression<H>>;
+    typename clip_value_type<L, M, H>;
+    requires expression_element<clip_value_type<L, M, H>>;
 };
 
 template <class Operation, class E>
@@ -119,6 +198,44 @@ requires detail::math_operand<detail::isinf_operation, E>
 [[nodiscard]] constexpr auto isinf(E &&value) noexcept(
     noexcept(detail::make_math_expression<detail::isinf_operation>(std::forward<E>(value)))) {
     return detail::make_math_expression<detail::isinf_operation>(std::forward<E>(value));
+}
+
+// NaNs propagate, and equal values keep the left operand (including its zero sign).
+// The result type follows std::common_type for the two expression value types.
+template <class L, class R>
+requires detail::extremum_operands<detail::minimum_operation, L, R>
+[[nodiscard]] constexpr auto minimum(L &&left, R &&right) noexcept(
+    noexcept(detail::make_extremum_expression<detail::minimum_operation>(std::forward<L>(left),
+                                                                         std::forward<R>(right)))) {
+    return detail::make_extremum_expression<detail::minimum_operation>(std::forward<L>(left),
+                                                                       std::forward<R>(right));
+}
+
+template <class L, class R>
+requires detail::extremum_operands<detail::maximum_operation, L, R>
+[[nodiscard]] constexpr auto maximum(L &&left, R &&right) noexcept(
+    noexcept(detail::make_extremum_expression<detail::maximum_operation>(std::forward<L>(left),
+                                                                         std::forward<R>(right)))) {
+    return detail::make_extremum_expression<detail::maximum_operation>(std::forward<L>(left),
+                                                                       std::forward<R>(right));
+}
+
+// Promote all three operands together before composing the binary operations.
+// This avoids a different intermediate promotion at either clipping boundary.
+template <class E, class L, class H>
+requires detail::clip_operands<E, L, H>
+[[nodiscard]] constexpr auto clip(E &&value, L &&lower, H &&upper) noexcept(
+    noexcept(detail::make_extremum_expression<detail::minimum_operation>(
+        detail::make_extremum_expression<detail::maximum_operation>(
+            detail::make_clip_operand<detail::clip_value_type<E, L, H>>(std::forward<E>(value)),
+            detail::make_clip_operand<detail::clip_value_type<E, L, H>>(std::forward<L>(lower))),
+        detail::make_clip_operand<detail::clip_value_type<E, L, H>>(std::forward<H>(upper))))) {
+    using value_type = detail::clip_value_type<E, L, H>;
+    auto converted_value = detail::make_clip_operand<value_type>(std::forward<E>(value));
+    auto converted_lower = detail::make_clip_operand<value_type>(std::forward<L>(lower));
+    auto converted_upper = detail::make_clip_operand<value_type>(std::forward<H>(upper));
+    return minimum(maximum(std::move(converted_value), std::move(converted_lower)),
+                   std::move(converted_upper));
 }
 
 } // namespace wjr::np
