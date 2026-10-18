@@ -176,3 +176,10 @@ clipped: 0 -0 0.5 1 1
 
 NaN、带符号零、类型提升、广播与 eager 约定见
 [mask/select 契约](../../docs/design/tensor-expression-masks.md)。
+
+## Padded owning tensor
+
+`strided_tensor.cpp` allocates a positive-stride matrix, fuses an expression
+into its logical elements, and reduces without visiting padding.
+It distinguishes logical size from the allocated address span and uses
+`default_construct` to avoid initializing arithmetic values before overwrite.

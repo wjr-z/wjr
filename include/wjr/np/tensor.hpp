@@ -81,7 +81,8 @@ inline constexpr auto default_tensor_metadata = [] {
     return check_metadata<T, Extents>(shape);
 }();
 
-template <class T, class Extents, class Layout, bool = (Extents::rank_dynamic() == 0)>
+template <class T, class Extents, class Layout,
+          bool = (Extents::rank_dynamic() == 0 && !std::same_as<Layout, layout_stride>)>
 class tensor_mapping_holder {
     using mapping_type = typename Layout::template mapping<Extents>;
 
@@ -111,11 +112,17 @@ public:
 
 struct tensor_access {
     template <class Owner, class... Args>
+    static constexpr shape_result<Owner> make_mapping(const typename Owner::mapping_type &mapping,
+                                                      Args &&...args) {
+        return shape_result<Owner>(std::in_place, typename Owner::construction_key{}, mapping,
+                                   std::forward<Args>(args)...);
+    }
+
+    template <class Owner, class... Args>
     static constexpr shape_result<Owner>
     make(const checked_metadata<typename Owner::extents_type> &metadata, Args &&...args) {
         using mapping_type = typename Owner::mapping_type;
-        return shape_result<Owner>(std::in_place, typename Owner::construction_key{},
-                                   mapping_type(typename Owner::extents_type(metadata.dimensions)),
+        return make_mapping<Owner>(mapping_type(typename Owner::extents_type(metadata.dimensions)),
                                    std::forward<Args>(args)...);
     }
 };
@@ -128,7 +135,8 @@ inline constexpr bool is_tensor = false;
 // Owns objects through Container; computation and ordinary indexing use view().
 template <class T, class Extents, class Layout = layout_right, class Container = tensor_vector<T>>
 requires(detail::is_extents<Extents> && detail::tensor_container<T, Container> &&
-         (std::same_as<Layout, layout_right> || std::same_as<Layout, layout_left>) &&
+         (std::same_as<Layout, layout_right> || std::same_as<Layout, layout_left> ||
+          (std::same_as<Layout, layout_stride> && !detail::is_std_array<Container>)) &&
          (detail::is_std_array<Container> || detail::allocated_tensor_container<Container>))
 class tensor {
     class construction_key {
@@ -165,7 +173,8 @@ public:
     using const_view_type = tensor_view<const T, Extents, Layout>;
 
     constexpr tensor()
-    requires(std::default_initializable<T> && detail::default_tensor_storage<Container>)
+    requires(!std::same_as<Layout, layout_stride> && std::default_initializable<T> &&
+             detail::default_tensor_storage<Container>)
         : m_storage(std::piecewise_construct, wjr::tuple<>{}, default_storage_args()) {}
 
     // The private key lets checked factories construct expected's value in place.
@@ -222,11 +231,21 @@ public:
     const Extents &extents() const && = delete;
     constexpr index_type extent(size_t r) const noexcept { return extents().extent(r); }
     constexpr size_type size() const noexcept {
+        if constexpr (std::same_as<Layout, layout_stride>) {
+            size_t count = 1;
+            for (size_t axis = 0; axis != rank(); ++axis)
+                count *= static_cast<size_t>(extent(axis));
+            return static_cast<size_type>(count);
+        } else {
+            return required_span_size();
+        }
+    }
+    constexpr size_type required_span_size() const noexcept {
         return static_cast<size_type>(mapping().required_span_size());
     }
     constexpr bool empty() const noexcept { return size() == 0; }
     constexpr size_type storage_size() const noexcept { return m_storage.second().size(); }
-    constexpr bool has_storage() const noexcept { return storage_size() == size(); }
+    constexpr bool has_storage() const noexcept { return storage_size() == required_span_size(); }
 
     // Precondition: has_storage(). Use try_view() for a recoverable state check.
     constexpr view_type view() & noexcept {
@@ -282,6 +301,10 @@ template <class Owner, class Integer>
 concept tensor_shape =
     is_tensor<Owner> && std::integral<Integer> && !std::same_as<std::remove_cv_t<Integer>, bool>;
 
+template <class Owner, class Integer>
+concept packed_tensor_shape =
+    tensor_shape<Owner, Integer> && !std::same_as<typename Owner::layout_type, layout_stride>;
+
 template <class Owner, std::integral Integer, class... Initialization>
 constexpr shape_result<Owner>
 make_allocated_tensor(const std::array<Integer, Owner::rank()> &shape,
@@ -304,7 +327,7 @@ make_allocated_tensor(const std::array<Integer, Owner::rank()> &shape,
 } // namespace detail
 
 template <class Owner, std::integral Integer>
-requires(detail::tensor_shape<Owner, Integer> &&
+requires(detail::packed_tensor_shape<Owner, Integer> &&
          detail::allocated_tensor_container<typename Owner::container_type> &&
          std::default_initializable<typename Owner::element_type>)
 [[nodiscard]] constexpr shape_result<Owner>
@@ -315,7 +338,7 @@ make_tensor(const std::array<Integer, Owner::rank()> &shape, std::allocator_arg_
 
 // Default-initializes live objects. Scalar values must be written before reading.
 template <class Owner, std::integral Integer>
-requires(detail::tensor_shape<Owner, Integer> &&
+requires(detail::packed_tensor_shape<Owner, Integer> &&
          detail::default_initialized_tensor_container<typename Owner::container_type> &&
          std::default_initializable<typename Owner::element_type>)
 [[nodiscard]] constexpr shape_result<Owner>
@@ -325,7 +348,7 @@ make_tensor(const std::array<Integer, Owner::rank()> &shape, default_construct_t
 }
 
 template <class Owner, std::integral Integer>
-requires(detail::tensor_shape<Owner, Integer> &&
+requires(detail::packed_tensor_shape<Owner, Integer> &&
          detail::default_initialized_tensor_container<typename Owner::container_type> &&
          std::default_initializable<typename Owner::container_type::allocator_type> &&
          std::default_initializable<typename Owner::element_type>)
@@ -336,7 +359,7 @@ make_tensor(const std::array<Integer, Owner::rank()> &shape, default_construct_t
 }
 
 template <class Owner, std::integral Integer>
-requires(detail::tensor_shape<Owner, Integer> &&
+requires(detail::packed_tensor_shape<Owner, Integer> &&
          std::default_initializable<typename Owner::element_type> &&
          detail::default_tensor_storage<typename Owner::container_type>)
 [[nodiscard]] constexpr shape_result<Owner>
@@ -355,7 +378,7 @@ make_tensor(const std::array<Integer, Owner::rank()> &shape) {
 }
 
 template <class Owner, std::integral Integer>
-requires(detail::tensor_shape<Owner, Integer> &&
+requires(detail::packed_tensor_shape<Owner, Integer> &&
          std::is_move_constructible_v<typename Owner::container_type>)
 [[nodiscard]] constexpr shape_result<Owner>
 adopt_tensor(const std::array<Integer, Owner::rank()> &shape,

@@ -62,7 +62,8 @@ concept borrows_metadata = requires(Owner &&owner) {
 
 static_assert(!owner_type<bool, fixed_shape, np::layout_right, std::vector<bool>>);
 static_assert(!owner_type<const int, fixed_shape, np::layout_right, std::vector<int>>);
-static_assert(!owner_type<int, fixed_shape, np::layout_stride, std::vector<int>>);
+static_assert(owner_type<int, fixed_shape, np::layout_stride, std::vector<int>>);
+static_assert(!owner_type<int, fixed_shape, np::layout_stride, std::array<int, 6>>);
 static_assert(!owner_type<int, fixed_shape, np::layout_right, std::vector<float>>);
 static_assert(!owner_type<int, fixed_shape, np::layout_right, wjr::vector<int>>);
 static_assert(!owner_type<int, fixed_shape, np::layout_right, wjr::fixed_vector<int>>);

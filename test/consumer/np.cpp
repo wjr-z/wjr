@@ -11,6 +11,7 @@
 #include <wjr/np/reduce.hpp>
 #include <wjr/np/reshape.hpp>
 #include <wjr/np/scan.hpp>
+#include <wjr/np/strided_tensor.hpp>
 #include <wjr/np/subview.hpp>
 #include <wjr/np/tensor.hpp>
 #include <wjr/np/transform.hpp>
@@ -110,6 +111,16 @@ int main(int argc, char **) {
         return 1;
     }
     if (wjr::np::select(wjr::np::as_expr(3) < 4, 7, 9).read(0) != 7) {
+        return 1;
+    }
+    using padded_owner = wjr::np::tensor<int, shape, wjr::np::layout_stride>;
+    auto padded = wjr::np::make_tensor<padded_owner>(std::array{2, 3}, std::array{8, 1},
+                                                     wjr::default_construct);
+    if (!padded || padded->size() != 6 || padded->storage_size() != 11) {
+        return 1;
+    }
+    wjr::np::copy_to(padded->view(), view);
+    if (padded->view()(1, 2) != 42) {
         return 1;
     }
     auto reshaped =

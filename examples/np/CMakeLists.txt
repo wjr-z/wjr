@@ -37,6 +37,9 @@ target_link_libraries(wjr_np_expression_map PRIVATE wjr::np)
 add_executable(wjr_np_expression_mask expression_mask.cpp)
 target_link_libraries(wjr_np_expression_mask PRIVATE wjr::np)
 
+add_executable(wjr_np_strided_tensor strided_tensor.cpp)
+target_link_libraries(wjr_np_strided_tensor PRIVATE wjr::np)
+
 include(CTest)
 if(BUILD_TESTING)
     add_test(NAME wjr_np_elementwise COMMAND wjr_np_elementwise)
@@ -51,4 +54,7 @@ if(BUILD_TESTING)
     add_test(NAME wjr_np_expression_cast COMMAND wjr_np_expression_cast)
     add_test(NAME wjr_np_expression_map COMMAND wjr_np_expression_map)
     add_test(NAME wjr_np_expression_mask COMMAND wjr_np_expression_mask)
+
+
+    add_test(NAME wjr_np_strided_tensor COMMAND wjr_np_strided_tensor)
 endif()

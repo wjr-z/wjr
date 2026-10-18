@@ -7,18 +7,20 @@
 
 namespace wjr::np {
 
-// Strides count T objects, not bytes. Only the backend's ordered, nonoverlapping
-// stride family is accepted; arbitrary injective mappings need another layout.
-template <class Extents, class T, std::integral Integer, std::integral StrideInteger>
-requires(detail::is_extents<Extents> && !std::same_as<std::remove_cv_t<Integer>, bool> &&
-         !std::same_as<std::remove_cv_t<StrideInteger>, bool> && std::is_object_v<T> &&
-         requires { sizeof(T); })
-[[nodiscard]] constexpr shape_result<tensor_view<T, Extents, layout_stride>>
-try_make_strided_tensor_view(
-    T *data, size_t available_elements, const std::array<Integer, Extents::rank()> &shape,
-    const std::array<StrideInteger, Extents::rank()> &input_strides) noexcept {
+namespace detail {
+
+template <class Extents, class T, std::integral Integer, std::integral StrideInteger, class Factory>
+constexpr auto with_strided_mapping(
+    const std::array<Integer, Extents::rank()> &shape,
+    const std::array<StrideInteger, Extents::rank()> &input_strides,
+    const Factory
+        &factory) noexcept(noexcept(factory(std::declval<const typename layout_stride::
+                                                             template mapping<Extents> &>(),
+                                            size_t{})))
+    -> decltype(factory(std::declval<const typename layout_stride::template mapping<Extents> &>(),
+                        size_t{})) {
     using index_type = typename Extents::index_type;
-    using view_type = tensor_view<T, Extents, layout_stride>;
+    using mapping_type = typename layout_stride::template mapping<Extents>;
     auto metadata = detail::check_metadata<T, Extents>(shape);
     if (!metadata)
         return unexpected(metadata.error());
@@ -84,14 +86,32 @@ try_make_strided_tensor_view(
     constexpr auto max_bytes = static_cast<size_t>(std::numeric_limits<ptrdiff_t>::max());
     if (required > max_bytes / sizeof(T))
         return unexpected(shape_error::size_overflow);
-    if (required > available_elements)
-        return unexpected(shape_error::insufficient_storage);
-    if (data == nullptr && available_elements != 0)
-        return unexpected(shape_error::null_storage);
-
     const Extents extents(dimensions);
-    const typename view_type::mapping_type mapping(extents, strides);
-    return view_type(data, mapping);
+    return factory(mapping_type(extents, strides), required);
+}
+
+} // namespace detail
+
+// Strides count T objects, not bytes. Only the backend's ordered, nonoverlapping
+// stride family is accepted; arbitrary injective mappings need another layout.
+template <class Extents, class T, std::integral Integer, std::integral StrideInteger>
+requires(detail::is_extents<Extents> && !std::same_as<std::remove_cv_t<Integer>, bool> &&
+         !std::same_as<std::remove_cv_t<StrideInteger>, bool> && std::is_object_v<T> &&
+         requires { sizeof(T); })
+[[nodiscard]] constexpr shape_result<tensor_view<T, Extents, layout_stride>>
+try_make_strided_tensor_view(
+    T *data, size_t available_elements, const std::array<Integer, Extents::rank()> &shape,
+    const std::array<StrideInteger, Extents::rank()> &input_strides) noexcept {
+    return detail::with_strided_mapping<Extents, T>(
+        shape, input_strides,
+        [=](const auto &mapping,
+            size_t span) noexcept -> shape_result<tensor_view<T, Extents, layout_stride>> {
+            if (span > available_elements)
+                return unexpected(shape_error::insufficient_storage);
+            if (data == nullptr && available_elements != 0)
+                return unexpected(shape_error::null_storage);
+            return tensor_view<T, Extents, layout_stride>(data, mapping);
+        });
 }
 
 } // namespace wjr::np
