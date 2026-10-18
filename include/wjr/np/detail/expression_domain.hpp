@@ -5,6 +5,9 @@
 
 namespace wjr::np::detail {
 
+struct minimum_operation;
+struct maximum_operation;
+
 // Metadata only: no dummy mdspan or fictitious pointer range is constructed.
 template <class Extents>
 struct expression_sum_domain {
@@ -70,6 +73,7 @@ inline constexpr bool interleavable_sum_expression = [] {
                 using op = typename E::operation_type;
                 return std::same_as<op, add_operation> || std::same_as<op, subtract_operation> ||
                        std::same_as<op, multiply_operation> || std::same_as<op, divide_operation> ||
+                       std::same_as<op, minimum_operation> || std::same_as<op, maximum_operation> ||
                        std::same_as<op, positive_operation> || std::same_as<op, negative_operation>;
             } else
                 return false;
