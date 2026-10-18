@@ -163,4 +163,60 @@ TEST(NpExpressionMinMax, EmptyScalarAndExactInPlace) {
     EXPECT_EQ(count_value<1>::calls, 1);
     EXPECT_EQ(count_value<2>::calls, 1);
 }
+
+template <class T>
+constexpr auto extremum_edge_values() {
+    const auto inf = std::numeric_limits<T>::infinity();
+    const auto nan = std::numeric_limits<T>::quiet_NaN();
+    const auto tiny = std::numeric_limits<T>::denorm_min();
+    return std::array<T, 10>{-inf, -1, -tiny, -T(0), T(0), tiny, 1, inf, nan, -nan};
+}
+
+template <class L, class R>
+void check_extremum_pairs() {
+    using T = std::common_type_t<L, R>;
+    constexpr size_t count = 100;
+    using pairs = np::extents<size_t, count>;
+    std::array<L, count> left;
+    std::array<R, count> right;
+    std::array<T, count> output;
+    size_t index = 0;
+    for (auto lhs : extremum_edge_values<L>())
+        for (auto rhs : extremum_edge_values<R>()) {
+            left[index] = lhs;
+            right[index++] = rhs;
+        }
+    const auto a = view<const L, pairs>(left.data());
+    const auto b = view<const R, pairs>(right.data());
+    auto check = [&](bool minimum) {
+        for (size_t i = 0; i != count; ++i) {
+            const T lhs = left[i], rhs = right[i];
+            const T expected = std::isnan(lhs)   ? lhs
+                               : std::isnan(rhs) ? rhs
+                               : lhs == rhs      ? lhs
+                               : minimum         ? (lhs < rhs ? lhs : rhs)
+                                                 : (lhs > rhs ? lhs : rhs);
+            if (std::isnan(expected)) {
+                EXPECT_TRUE(std::isnan(output[i]));
+            } else {
+                EXPECT_EQ(output[i], expected);
+                EXPECT_EQ(std::signbit(output[i]), std::signbit(expected));
+            }
+        }
+    };
+    np::eval_to(view<T, pairs>(output.data()), np::minimum(a, b));
+    check(true);
+    np::eval_to(view<T, pairs>(output.data()), np::maximum(a, b));
+    check(false);
+}
+
+TEST(NpExpressionMinMax, FloatingPairsPreserveNanInfinitySubnormalAndZeroSemantics) {
+    check_extremum_pairs<float, float>();
+    check_extremum_pairs<double, double>();
+    check_extremum_pairs<long double, long double>();
+    check_extremum_pairs<float, double>();
+    check_extremum_pairs<double, float>();
+    check_extremum_pairs<float, long double>();
+    check_extremum_pairs<long double, float>();
+}
 } // namespace
