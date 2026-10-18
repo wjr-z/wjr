@@ -233,3 +233,9 @@ the [expression scan contract](../../docs/design/tensor-expression-scan.md).
 
 wjr_np_mean: ordered row means with a keepdims workspace, followed by
 broadcast centering; see [mean.cpp](mean.cpp) and [the contract](../../docs/design/tensor-mean.md).
+## Explicit pairwise summation
+
+`wjr_np_pairwise` compares ordered float, partial pairwise float and an explicit
+double accumulator on an exactly known cancellation case. Pairwise grouping
+improves this example but is not a correctly rounded sum or an accuracy
+guarantee for every input. See the [grouping contract](../../docs/design/tensor-pairwise-sum.md).
