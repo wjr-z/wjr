@@ -44,3 +44,24 @@ rank 1 可归约到 rank 0，rank 0 输入没有可选轴。
 再用已有广播表达式原位归一化两行极大/极小输入。
 例子明确要求每行范数有限且非零；通用应用应自行规定零范数与非有限输入的归一化策略。
 不使用 eager `select` 掩盖已执行的除零。
+
+## 验证与执行成本
+
+7 项新 GTest 与原有 10 项完整范数测试在 Clang 18 O3/ASan/debug 3、MSVC 19.42 通过；
+包括真实 64 MiB 输入的桶溢出恢复。GCC 12 的 C++23/no-exceptions 程序通过 245 组
+shape/数值分布对照。独立安装包消费者只链接 `wjr::np`，运行上述归一化示例。
+该消费者复用已安装的 baseline 库/config，并通过 CMake 安装本次全部公共头文件。
+
+[固定 Linux 研究](https://github.com/wjr-z/wjr/actions/runs/39100307737) 使用
+GCC 13.3、Clang 18.1.3、Ubuntu 24.04、AMD EPYC 9V74，
+`-O3 -ffp-contract=off -fno-fast-math`，分别生成 baseline x86-64/native 代码。
+源码为 `56d17df2`，研究分支 `research/np-axis-stable-norm` 的 `f8e37628` 保留探针及 driver。
+两编译器均通过 245 组实际轴入口、重复公开 `norm_l2`、同 Blue 内核手写循环的数值对照。
+
+原完整/strided 范数的 8 组入口及引用 helper 的指令、寄存器和控制流不变。
+Clang 的行、列、float、宽累积、padded、静态 shape 共 12 组新接口/手写图相同。
+GCC 的静态 shape 两组也相同；动态 packed 行保留常量步长内核，列使用双方同一动态步长内核，
+外层仍有寄存器分配和空线分支布局差异。动态 `layout_stride` 的已知单位步长在手写端可以
+专门化，但当前入口可能保留通用步长内核；这是一项剩余优化差距，没有用额外运行时分派掩盖它。
+各线内数据循环没有逐点 descriptor 读取、分配或除模。
+没有测量吞吐、硬件计数器或成熟 BLAS 二进制，不据此承诺所有布局零开销或加速。
