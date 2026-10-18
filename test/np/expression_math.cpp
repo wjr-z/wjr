@@ -139,9 +139,14 @@ TEST(NpExpressionMath, StableElementaryFusesStridesBroadcastAndInPlace) {
         for (size_t col = 0; col != 3; ++col)
             EXPECT_EQ(output[col * 2 + row],
                       std::expm1(input[row * 7 + col * 2]) + std::log1p(bias[col]));
+    // A constant-folded literal can round differently from the runtime libm.
+    // Compare both paths using the same runtime standard-library overload.
+    volatile double first_input = input[0], last_input = input[11];
+    const double first_expected = std::log1p(first_input);
+    const double last_expected = std::log1p(last_input);
     np::eval_to(source, np::log1p(source));
-    EXPECT_EQ(input[0], std::log1p(.1));
-    EXPECT_EQ(input[11], std::log1p(.6));
+    EXPECT_EQ(input[0], first_expected);
+    EXPECT_EQ(input[11], last_expected);
     EXPECT_EQ(input[1], 999.);
 }
 
