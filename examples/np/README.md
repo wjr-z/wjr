@@ -283,3 +283,11 @@ Argument reductions return logical row-major indices, independent of the
 window's physical pitch; equal values retain their first logical occurrence.
 See [the extrema contract](../../docs/design/tensor-extrema.md) for empty-input
 preconditions, dtype, NaN and signed-zero behavior.
+
+## Stable row normalization
+
+`wjr_np_norm_axis` computes stable row L2 norms into a keepdims workspace and
+uses the existing broadcast evaluator to normalize extreme-magnitude rows.
+Every row in the example has a finite nonzero norm; zero/nonfinite handling
+belongs to the application's normalization policy. See
+[norm_axis.cpp](norm_axis.cpp) and the [axis norm contract](../../docs/design/tensor-axis-norm.md).
