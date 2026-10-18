@@ -229,3 +229,7 @@ row 1 width-3 squared residual totals: 20 56 116
 
 Accumulator promotion, aliasing and partial exception commits are described in
 the [expression scan contract](../../docs/design/tensor-expression-scan.md).
+
+
+wjr_np_mean: ordered row means with a keepdims workspace, followed by
+broadcast centering; see [mean.cpp](mean.cpp) and [the contract](../../docs/design/tensor-mean.md).
