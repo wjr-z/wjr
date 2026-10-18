@@ -8,6 +8,7 @@
 
 #include <wjr/np/expression_cast.hpp>
 #include <wjr/np/expression_mask.hpp>
+#include <wjr/np/expression_math.hpp>
 #include <wjr/np/expression_xsimd.hpp>
 
 namespace {
@@ -115,6 +116,24 @@ TEST(NpExpressionXsimd, NumericSelectAndStoredBoolUseScalarFallback) {
                 np::xsimd_policy<>{});
     for (size_t i = 0; i != stored.size(); ++i)
         EXPECT_EQ(stored[i], input[i] > 2.f);
+}
+
+TEST(NpExpressionXsimd, StdMathAndNumericOuterRootUseScalarFallback) {
+    std::array<float, 19> input{}, output{};
+    for (size_t i = 0; i != input.size(); ++i)
+        input[i] = static_cast<float>(i) / 4.f;
+    const auto a = np::as_expr(view<float>(input.data(), input.size()));
+    const auto expression = np::sqrt(a) + np::log(np::abs(a) + 1.f) + np::exp(-np::abs(a));
+    static_assert(!np::detail::homogeneous_xsimd_expression<decltype(expression), float>);
+    np::eval_to(view<float>(output.data(), output.size()), expression, np::xsimd_policy<>{});
+    for (size_t i = 0; i != output.size(); ++i) {
+        const float first = std::sqrt(input[i]) + std::log(std::abs(input[i]) + 1.f);
+        EXPECT_EQ(output[i], first + std::exp(-std::abs(input[i])));
+    }
+    double scalar = 0.;
+    np::eval_to(np::tensor_view<double, np::extents<size_t>>(&scalar), np::sqrt(true),
+                np::xsimd_policy<>{});
+    EXPECT_EQ(scalar, 1.);
 }
 
 TEST(NpExpressionXsimd, WiderScalarPreservesIntermediatePrecision) {
