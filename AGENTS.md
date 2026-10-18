@@ -43,6 +43,7 @@
 - `linux.yml` 在 `ubuntu-24.04` 上测试 Clang 17-20 和 GCC 11-14，默认 C++20，覆盖 C++20/baseline 和 C++23/baseline，启用测试和 ASan，并运行 GMP 测试环境。
 - Linux、coverage、pre-commit 和 benchmark workflow 固定使用 `ubuntu-24.04`；升级 runner 版本前先验证工具链、依赖和系统库。Linux 编译缓存由现成 ccache action 管理，普通编译共享缓存，仅真实 native 编译通过 launcher 附加 CPU 指纹；不要移除这层区分或将 native 简化为常量缓存标记。
 - `windows.yml` 在 `windows-latest` 上测试 MSVC 和 Clang，安装 NASM，关闭 GMP 测试，并运行 Windows 测试。
+- Windows 两项通过固定版本的官方 sccache action 缓存 C/C++ 编译（包括测试对象），不缓存 CMake build 目录；Clang 的 native 身份仅附加到实际带 native 参数的编译，MSVC 保持 baseline。缓存命中仍可能打印 Ninja 的 Building 行，应看 backend statistics；详见 [CI 缓存说明](docs/performance/ci-cache.md)。
 - Windows CI 保持 MSVC 和 Clang 两项；新的标准版本、ISA 和安装组合优先放在 Linux 验证，不自行增加 Windows 矩阵或额外耗时步骤。
 - Linux、Windows 和 pre-commit workflow 都在 `main` 的 push、pull request 上运行，也支持手动 `workflow_dispatch`；Linux/Windows workflow 会跳过仅修改 `README.md`、`docs/**`、`AGENTS.md`、`.gitignore`、`.editorconfig`、`.gitattributes`、`.clang-format`、`.pre-commit-config.yaml` 或 pre-commit workflow 的变更。
 - coverage workflow 仅在每周一 04:43 UTC 或手动 `workflow_dispatch` 时运行，不在 push/PR 上运行；与每周一 03:17 UTC 的 benchmark 错开。只有 `main` 上的定时或手动运行发布 GitHub Pages，其他分支的手动运行仅上传报告 artifact；coverage 不使用文件路径排除规则。
