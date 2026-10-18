@@ -7,6 +7,7 @@ namespace wjr::np::detail {
 
 struct minimum_operation;
 struct maximum_operation;
+struct square_operation;
 
 // This scalar ordering contract is independent of SIMD eligibility. Neither
 // noexcept nor a compilable batch overload proves an unknown operation pure.
@@ -25,6 +26,9 @@ template <>
 struct expression_operation_traits<subtract_operation> : interleavable_expression_operation {};
 template <>
 struct expression_operation_traits<multiply_operation> : interleavable_expression_operation {};
+
+template <>
+struct expression_operation_traits<square_operation> : interleavable_expression_operation {};
 template <>
 struct expression_operation_traits<divide_operation> : interleavable_expression_operation {};
 template <>

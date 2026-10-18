@@ -10,6 +10,13 @@
 namespace wjr::np {
 
 namespace detail {
+struct square_operation {
+    template <class T>
+    static constexpr auto apply(T value) noexcept -> decltype(value * value) {
+        return value * value;
+    }
+};
+
 struct sqrt_operation {
     template <class T>
     static constexpr auto
@@ -164,6 +171,15 @@ requires math_operand<Operation, E>
     return unary_expression<Operation, captured_expression<E>>(as_expr(std::forward<E>(value)));
 }
 } // namespace detail
+
+// Capture and evaluate one child once, then multiply its value by itself.
+// Ordinary arithmetic promotions and overflow preconditions apply.
+template <class E>
+requires detail::math_operand<detail::square_operation, E>
+[[nodiscard]] constexpr auto square(E &&value) noexcept(
+    noexcept(detail::make_math_expression<detail::square_operation>(std::forward<E>(value)))) {
+    return detail::make_math_expression<detail::square_operation>(std::forward<E>(value));
+}
 
 // Each node calls the actual std overload on its child's arithmetic value.
 // Domain, range, errno and floating-point behavior follow that implementation.

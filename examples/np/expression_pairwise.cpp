@@ -1,6 +1,7 @@
 #include <array>
 #include <iostream>
 
+#include <wjr/np/expression_math.hpp>
 #include <wjr/np/expression_pairwise.hpp>
 #include <wjr/np/expression_reduce.hpp>
 
@@ -14,7 +15,7 @@ int main() {
         np::as_expr(np::tensor_view<const float, np::extents<size_t, 4096>>(samples.data()));
 
     // No squared-values tensor: evaluate each point in float, then accumulate.
-    const auto energy = np::pairwise_sum<double>(x * x);
+    const auto energy = np::pairwise_sum<double>(np::square(x));
     const auto ordered = np::sum(x);
     const auto paired = np::pairwise_sum(x);
     const auto wider = np::pairwise_sum<double>(x);
