@@ -1,8 +1,7 @@
 #ifndef WJR_NP_EXPRESSION_XSIMD_HPP__
 #define WJR_NP_EXPRESSION_XSIMD_HPP__
 
-#include <wjr/np/expression_mask.hpp>
-#include <wjr/simd/xsimd.hpp>
+#include <wjr/np/detail/xsimd_operation.hpp>
 
 namespace wjr::np {
 
@@ -13,29 +12,17 @@ struct xsimd_policy {};
 
 namespace detail {
 
-struct minimum_operation;
-struct maximum_operation;
-
-template <class Op>
-inline constexpr bool xsimd_unary_operation =
-    std::same_as<Op, positive_operation> || std::same_as<Op, negative_operation>;
-
-template <class Op>
-inline constexpr bool xsimd_binary_operation =
-    std::same_as<Op, add_operation> || std::same_as<Op, subtract_operation> ||
-    std::same_as<Op, multiply_operation> || std::same_as<Op, divide_operation> ||
-    std::same_as<Op, minimum_operation> || std::same_as<Op, maximum_operation>;
-
-// Predicate lanes always belong to the selected numeric batch, never batch<bool>.
-enum class xsimd_result_kind { unsupported, numeric, predicate };
-
 template <class T>
 inline constexpr bool xsimd_numeric_lane = std::same_as<T, float> || std::same_as<T, double>;
-template <class Op>
-inline constexpr bool xsimd_comparison_operation =
-    std::same_as<Op, less_operation> || std::same_as<Op, less_equal_operation> ||
-    std::same_as<Op, greater_operation> || std::same_as<Op, greater_equal_operation> ||
-    std::same_as<Op, equal_operation> || std::same_as<Op, not_equal_operation>;
+
+// Numeric intermediates must retain the selected lane type. Predicate results
+// instead use that numeric batch's mask, independently of scalar bool storage.
+template <class E, class T, xsimd_result_kind Result>
+inline constexpr auto xsimd_typed_result =
+    Result == xsimd_result_kind::numeric && !std::same_as<typename E::value_type, T>
+        ? xsimd_result_kind::unsupported
+        : Result;
+
 template <class E, class T>
 inline constexpr xsimd_result_kind xsimd_expression_result = xsimd_result_kind::unsupported;
 
@@ -53,81 +40,23 @@ inline constexpr xsimd_result_kind xsimd_expression_result<scalar_expression<S>,
     : std::same_as<S, bool> ? xsimd_result_kind::predicate
                             : xsimd_result_kind::unsupported;
 template <class Op, class C, class T>
-inline constexpr xsimd_result_kind xsimd_expression_result<unary_expression<Op, C>, T> = [] {
-    if constexpr (xsimd_unary_operation<Op> &&
-                  xsimd_expression_result<C, T> == xsimd_result_kind::numeric &&
-                  std::same_as<typename unary_expression<Op, C>::value_type, T>)
-        return xsimd_result_kind::numeric;
-    else if constexpr (std::same_as<Op, logical_not_operation> &&
-                       xsimd_expression_result<C, T> == xsimd_result_kind::predicate)
-        return xsimd_result_kind::predicate;
-    else
-        return xsimd_result_kind::unsupported;
-}();
-template <class Op, class L, class R, class T>
-inline constexpr xsimd_result_kind xsimd_expression_result<binary_expression<Op, L, R>, T> = [] {
-    constexpr auto l = xsimd_expression_result<L, T>, r = xsimd_expression_result<R, T>;
-    if constexpr (l == xsimd_result_kind::numeric && r == xsimd_result_kind::numeric) {
-        if constexpr (xsimd_binary_operation<Op> &&
-                      std::same_as<typename binary_expression<Op, L, R>::value_type, T>)
-            return xsimd_result_kind::numeric;
-        else if constexpr (xsimd_comparison_operation<Op>)
-            return xsimd_result_kind::predicate;
-    } else if constexpr (l == xsimd_result_kind::predicate && r == xsimd_result_kind::predicate &&
-                         (std::same_as<Op, logical_and_operation> ||
-                          std::same_as<Op, logical_or_operation>))
-        return xsimd_result_kind::predicate;
-    return xsimd_result_kind::unsupported;
-}();
-template <class M, class Y, class N, class T>
-inline constexpr xsimd_result_kind xsimd_expression_result<select_expression<M, Y, N>, T> = [] {
-    constexpr auto m = xsimd_expression_result<M, T>, y = xsimd_expression_result<Y, T>,
-                   n = xsimd_expression_result<N, T>;
-    if constexpr (m == xsimd_result_kind::predicate && y == n &&
-                  (y == xsimd_result_kind::numeric || y == xsimd_result_kind::predicate))
-        return y;
-    else
-        return xsimd_result_kind::unsupported;
-}();
+inline constexpr xsimd_result_kind xsimd_expression_result<unary_expression<Op, C>, T> =
+    xsimd_typed_result<unary_expression<Op, C>, T,
+                       xsimd_operation<Op>::template result<xsimd_expression_result<C, T>>>;
 
-template <class Op, class L>
-WJR_INTRINSIC_INLINE auto apply_xsimd_operation(L value) noexcept {
-    if constexpr (std::same_as<Op, logical_not_operation>)
-        return !value;
-    else if constexpr (std::same_as<Op, negative_operation>) {
-        // xsimd 14.3's AVX-512 neg uses 0 - x, which loses the sign of +0.
-        // Floating unary minus flips the sign bit, including for zeros.
-        using lane_type = typename L::value_type;
-        return value ^ L(-lane_type{0});
-    } else
-        return Op::apply(value);
-}
-template <class Op, class L, class R>
-WJR_INTRINSIC_INLINE auto apply_xsimd_operation(L left, R right) noexcept {
-    if constexpr (std::same_as<Op, less_operation>)
-        return left < right;
-    else if constexpr (std::same_as<Op, less_equal_operation>)
-        return left <= right;
-    else if constexpr (std::same_as<Op, greater_operation>)
-        return left > right;
-    else if constexpr (std::same_as<Op, greater_equal_operation>)
-        return left >= right;
-    else if constexpr (std::same_as<Op, equal_operation>)
-        return left == right;
-    else if constexpr (std::same_as<Op, not_equal_operation>)
-        return left != right;
-    else if constexpr (std::same_as<Op, logical_and_operation>)
-        return left & right;
-    else if constexpr (std::same_as<Op, logical_or_operation>)
-        return left | right;
-    else if constexpr (std::same_as<Op, minimum_operation>)
-        // Raw SIMD min/max do not preserve our NaN and left-tie rules.
-        return xsimd::select((left != left) | (right >= left), left, right);
-    else if constexpr (std::same_as<Op, maximum_operation>)
-        return xsimd::select((left != left) | (left >= right), left, right);
-    else
-        return Op::apply(left, right);
-}
+template <class Op, class L, class R, class T>
+inline constexpr xsimd_result_kind xsimd_expression_result<binary_expression<Op, L, R>, T> =
+    xsimd_typed_result<binary_expression<Op, L, R>, T,
+                       xsimd_operation<Op>::template result<xsimd_expression_result<L, T>,
+                                                            xsimd_expression_result<R, T>>>;
+
+template <class M, class Y, class N, class T>
+inline constexpr xsimd_result_kind xsimd_expression_result<select_expression<M, Y, N>, T> =
+    xsimd_typed_result<select_expression<M, Y, N>, T,
+                       xsimd_operation<select_operation>::template result<
+                           xsimd_expression_result<M, T>, xsimd_expression_result<Y, T>,
+                           xsimd_expression_result<N, T>>>;
+
 template <class E, class T>
 inline constexpr bool homogeneous_xsimd_expression =
     xsimd_expression_result<E, T> == xsimd_result_kind::numeric;
@@ -143,18 +72,18 @@ WJR_INTRINSIC_INLINE auto read_expression_batch(const Values &values, size_t i) 
             return Batch(std::get<Offset>(values));
     } else if constexpr (E::kind == expression_kind::unary) {
         using operation = typename E::operation_type;
-        return apply_xsimd_operation<operation>(
+        return xsimd_operation<operation>::apply(
             read_expression_batch<typename E::child_type, Batch, Offset>(values, i));
     } else if constexpr (E::kind == expression_kind::binary) {
         using operation = typename E::operation_type;
-        return apply_xsimd_operation<operation>(
+        return xsimd_operation<operation>::apply(
             read_expression_batch<typename E::left_type, Batch, Offset>(values, i),
             read_expression_batch<typename E::right_type, Batch,
                                   Offset + expression_leaf_count<typename E::left_type>>(values,
                                                                                          i));
     } else {
         static_assert(std::same_as<typename E::operation_type, select_operation>);
-        return xsimd::select(
+        return xsimd_operation<select_operation>::apply(
             read_expression_batch<expression_child_type<E, 0>, Batch, Offset>(values, i),
             read_expression_batch<expression_child_type<E, 1>, Batch,
                                   Offset + preceding_expression_slots<E, 1>>(values, i),
@@ -227,20 +156,21 @@ WJR_INTRINSIC_INLINE auto read_xsimd_row(const Values &values, size_t i) noexcep
         else
             return Batch::load_unaligned(std::get<Offset>(values) + i);
     } else if constexpr (E::kind == expression_kind::unary) {
-        return apply_xsimd_operation<typename E::operation_type>(
+        return xsimd_operation<typename E::operation_type>::apply(
             read_xsimd_row<typename E::child_type, Batch, Offset>(values, i));
     } else if constexpr (E::kind == expression_kind::binary) {
-        return apply_xsimd_operation<typename E::operation_type>(
+        return xsimd_operation<typename E::operation_type>::apply(
             read_xsimd_row<typename E::left_type, Batch, Offset>(values, i),
             read_xsimd_row<typename E::right_type, Batch,
                            Offset + expression_leaf_count<typename E::left_type>>(values, i));
     } else {
         static_assert(std::same_as<typename E::operation_type, select_operation>);
-        return xsimd::select(read_xsimd_row<expression_child_type<E, 0>, Batch, Offset>(values, i),
-                             read_xsimd_row<expression_child_type<E, 1>, Batch,
-                                            Offset + preceding_expression_slots<E, 1>>(values, i),
-                             read_xsimd_row<expression_child_type<E, 2>, Batch,
-                                            Offset + preceding_expression_slots<E, 2>>(values, i));
+        return xsimd_operation<select_operation>::apply(
+            read_xsimd_row<expression_child_type<E, 0>, Batch, Offset>(values, i),
+            read_xsimd_row<expression_child_type<E, 1>, Batch,
+                           Offset + preceding_expression_slots<E, 1>>(values, i),
+            read_xsimd_row<expression_child_type<E, 2>, Batch,
+                           Offset + preceding_expression_slots<E, 2>>(values, i));
     }
 }
 
