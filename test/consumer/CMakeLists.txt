@@ -143,3 +143,38 @@ if(WJR_TEST_SIMD_XSIMD)
     endforeach()
     set_tests_properties(wjr_simd_missing_dependency_optional_OFF PROPERTIES WILL_FAIL TRUE)
 endif()
+
+option(WJR_TEST_NP_CBLAS "Validate the installed optional OpenBLAS component." OFF)
+if(WJR_TEST_NP_CBLAS)
+    if(TARGET wjr::np_cblas)
+        message(FATAL_ERROR "Ordinary package discovery imported the CBLAS component.")
+    endif()
+    find_package(wjr CONFIG REQUIRED COMPONENTS np_cblas)
+    find_package(wjr CONFIG REQUIRED COMPONENTS np_cblas)
+    get_target_property(_WJR_CBLAS_DEPS wjr::np_cblas INTERFACE_LINK_LIBRARIES)
+    list(FILTER _WJR_CBLAS_DEPS INCLUDE REGEX "^PkgConfig::WJR_OPENBLAS_")
+    list(LENGTH _WJR_CBLAS_DEPS _WJR_CBLAS_DEP_COUNT)
+    if(NOT wjr_np_cblas_FOUND OR NOT _WJR_CBLAS_DEP_COUNT EQUAL 1)
+        message(FATAL_ERROR "The CBLAS component must retain exactly one provider dependency.")
+    endif()
+    if(NOT CMAKE_PREFIX_PATH STREQUAL WJR_PREFIX_PATH_BEFORE)
+        message(FATAL_ERROR "Finding CBLAS changed the consumer's CMAKE_PREFIX_PATH.")
+    endif()
+    add_executable(wjr_np_cblas_consumer np_cblas.cpp)
+    target_link_libraries(wjr_np_cblas_consumer PRIVATE wjr::np_cblas)
+    add_test(NAME wjr_np_cblas_consumer COMMAND wjr_np_cblas_consumer)
+    foreach(_WJR_OPTIONAL IN ITEMS ON OFF)
+        add_test(NAME wjr_cblas_missing_dependency_optional_${_WJR_OPTIONAL}
+            COMMAND ${CMAKE_COMMAND}
+            -S "${CMAKE_CURRENT_SOURCE_DIR}/component"
+            -B "${CMAKE_CURRENT_BINARY_DIR}/cblas-missing-dependency-${_WJR_OPTIONAL}"
+            -G "${CMAKE_GENERATOR}"
+            "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
+            "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+            -DWJR_REQUEST_COMPONENT=np_cblas
+            -DWJR_OPTIONAL_COMPONENT=${_WJR_OPTIONAL}
+            -DCMAKE_DISABLE_FIND_PACKAGE_PkgConfig=TRUE
+        )
+    endforeach()
+    set_tests_properties(wjr_cblas_missing_dependency_optional_OFF PROPERTIES WILL_FAIL TRUE)
+endif()

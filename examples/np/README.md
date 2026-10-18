@@ -38,6 +38,14 @@ source must have its own `main`; nested example projects remain independent.
 `expression_simd.cpp` retains the `WJR_NP_EXAMPLES_XSIMD` option and extra
 `wjr::simd_xsimd` dependency.
 
+`cblas.cpp` is also opt-in. Build and install WJR with
+`-DWJR_ENABLE_NP=ON -DWJR_ENABLE_NP_CBLAS=ON` and an OpenBLAS LP64 development
+package discoverable through pkg-config. Then configure these examples with
+`-DWJR_NP_EXAMPLES_CBLAS=ON` and build/run `wjr_np_cblas`. It multiplies two
+borrowed 2x2 matrices into a live, default-initialized output and computes a dot
+product, without a WJR temporary. Provider workspace and threading remain
+OpenBLAS/user responsibilities; see the [CBLAS contract](../../docs/design/tensor-cblas.md).
+
 直接运行 `example-build/wjr_np_elementwise`（多配置生成器通常在 `Release/` 下）。
 Windows PowerShell 请将 `$PWD` 展开为相应绝对安装路径，并按 shell 规则换行。
 预期输出：
