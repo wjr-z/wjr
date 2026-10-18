@@ -15,6 +15,9 @@ target_link_libraries(wjr_np_row_centering PRIVATE wjr::np)
 add_executable(wjr_np_prefix_sums prefix_sums.cpp)
 target_link_libraries(wjr_np_prefix_sums PRIVATE wjr::np)
 
+add_executable(wjr_np_pairwise pairwise.cpp)
+target_link_libraries(wjr_np_pairwise PRIVATE wjr::np)
+
 add_executable(wjr_np_expression_scan expression_scan.cpp)
 target_link_libraries(wjr_np_expression_scan PRIVATE wjr::np)
 
@@ -59,6 +62,7 @@ if(BUILD_TESTING)
     add_test(NAME wjr_np_expression COMMAND wjr_np_expression)
     add_test(NAME wjr_np_row_centering COMMAND wjr_np_row_centering)
     add_test(NAME wjr_np_prefix_sums COMMAND wjr_np_prefix_sums)
+    add_test(NAME wjr_np_pairwise COMMAND wjr_np_pairwise)
     add_test(NAME wjr_np_expression_scan COMMAND wjr_np_expression_scan)
     if(WJR_NP_EXAMPLES_XSIMD)
         add_test(NAME wjr_np_expression_simd COMMAND wjr_np_expression_simd)

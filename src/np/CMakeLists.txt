@@ -23,6 +23,9 @@ target_compile_definitions(wjr-np INTERFACE
 )
 
 if(WJR_ENABLE_INSTALL)
+    install(FILES "${PROJECT_SOURCE_DIR}/docs/licenses/numpy-pairwise.txt"
+        DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses/wjr"
+    )
     install(TARGETS wjr-np EXPORT wjrNpTargets)
     install(EXPORT wjrNpTargets
         NAMESPACE wjr::

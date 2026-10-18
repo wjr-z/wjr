@@ -9,6 +9,7 @@
 #include <wjr/np/expression_reduce.hpp>
 #include <wjr/np/expression_scan.hpp>
 #include <wjr/np/mean.hpp>
+#include <wjr/np/pairwise.hpp>
 #include <wjr/np/reduce.hpp>
 #include <wjr/np/reshape.hpp>
 #include <wjr/np/scan.hpp>
@@ -21,6 +22,11 @@
 
 using shape = wjr::np::extents<size_t, wjr::np::dynamic_extent, 3>;
 int main() {
+    const float pairwise_input[]{1.f, 2.f, 3.f};
+    if (wjr::np::pairwise_sum<double>(
+            wjr::np::tensor_view<const float, wjr::np::extents<size_t, 3>>(pairwise_input)) != 6.) {
+        return 1;
+    }
     const int scan_input[]{1, 2, 3};
     if (wjr::np::mean(wjr::np::tensor_view<const int, wjr::np::extents<size_t, 3>>(scan_input)) !=
         2.0)
