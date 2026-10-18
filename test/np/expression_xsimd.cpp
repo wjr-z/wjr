@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 
 #include <wjr/np/expression_cast.hpp>
+#include <wjr/np/expression_mask.hpp>
 #include <wjr/np/expression_xsimd.hpp>
 
 namespace {
@@ -89,6 +90,31 @@ TEST(NpExpressionXsimd, ExplicitCastUsesScalarFallback) {
     static_assert(!np::detail::homogeneous_xsimd_expression<decltype(identity), float>);
     np::eval_to(view<float>(output.data(), output.size()), identity, np::xsimd_policy<>{});
     EXPECT_EQ(output, input);
+}
+
+TEST(NpExpressionXsimd, NumericSelectAndStoredBoolUseScalarFallback) {
+    std::array<float, 19> input{};
+    std::array<double, 19> output{};
+    std::array<bool, 19> stored{};
+    for (size_t i = 0; i != input.size(); ++i) {
+        input[i] = static_cast<float>(i);
+        stored[i] = i % 2 != 0;
+    }
+    const auto a = np::as_expr(view<float>(input.data(), input.size()));
+    auto selected = np::select(a > 2.f, a / 2.f, 0.);
+    static_assert(!np::detail::homogeneous_xsimd_expression<decltype(selected), double>);
+    np::eval_to(view<double>(output.data(), output.size()), selected + 1., np::xsimd_policy<>{});
+    for (size_t i = 0; i != output.size(); ++i)
+        EXPECT_EQ(output[i], (input[i] > 2.f ? input[i] / 2.f : 0.) + 1.);
+    np::eval_to(view<double>(output.data(), output.size()),
+                np::select(view<const bool>(stored.data(), stored.size()), a, -a),
+                np::xsimd_policy<>{});
+    for (size_t i = 0; i != output.size(); ++i)
+        EXPECT_EQ(output[i], stored[i] ? input[i] : -input[i]);
+    np::eval_to(view<bool>(stored.data(), stored.size()), np::select(a > 2.f, true, false),
+                np::xsimd_policy<>{});
+    for (size_t i = 0; i != stored.size(); ++i)
+        EXPECT_EQ(stored[i], input[i] > 2.f);
 }
 
 TEST(NpExpressionXsimd, WiderScalarPreservesIntermediatePrecision) {

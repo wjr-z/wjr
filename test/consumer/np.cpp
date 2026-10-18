@@ -6,6 +6,7 @@
 #include <wjr/np/evaluate.hpp>
 #include <wjr/np/expression.hpp>
 #include <wjr/np/expression_cast.hpp>
+#include <wjr/np/expression_mask.hpp>
 #include <wjr/np/expression_reduce.hpp>
 #include <wjr/np/reduce.hpp>
 #include <wjr/np/reshape.hpp>
@@ -106,6 +107,9 @@ int main(int argc, char **) {
     }
     if (wjr::np::sum(wjr::np::map([](int value, int scale) noexcept { return value * scale + 1; },
                                   output, 2)) != 78) {
+        return 1;
+    }
+    if (wjr::np::select(wjr::np::as_expr(3) < 4, 7, 9).read(0) != 7) {
         return 1;
     }
     auto reshaped =

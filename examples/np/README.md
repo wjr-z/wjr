@@ -162,3 +162,17 @@ clipped normalized panel energy: 7
 ```
 
 值闭包、纯度、异常和捕获状态的性能限制见 [pure map](../../docs/design/tensor-expression-map.md)。
+
+## bool mask 与 clip
+
+`wjr_np_expression_mask` 使用比较和命名逻辑运算生成独立 bool owner，
+再通过嵌套 `select` 把数值裁剪到 `[0,1]`，直接写入预分配输出。
+select 两侧都求值；示例的所有分支在整个输入域内都有效。
+
+```text
+within [0,1]: 0 1 1 1 0
+clipped: 0 -0 0.5 1 1
+```
+
+NaN、带符号零、类型提升、广播与 eager 约定见
+[mask/select 契约](../../docs/design/tensor-expression-masks.md)。
