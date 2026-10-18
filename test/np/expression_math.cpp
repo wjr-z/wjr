@@ -11,7 +11,9 @@
 
 #include <wjr/np/evaluate.hpp>
 #include <wjr/np/expression_cast.hpp>
+#include <wjr/np/expression_mask.hpp>
 #include <wjr/np/expression_math.hpp>
+#include <wjr/np/expression_reduce.hpp>
 
 namespace {
 namespace np = wjr::np;
@@ -25,6 +27,12 @@ template <class E>
 concept roots = requires(E &&value) { np::sqrt(std::forward<E>(value)); };
 template <class E>
 concept magnitudes = requires(E &&value) { np::abs(std::forward<E>(value)); };
+template <class E>
+concept classifications = requires(E &&value) {
+    np::isfinite(std::forward<E>(value));
+    np::isnan(std::forward<E>(value));
+    np::isinf(std::forward<E>(value));
+};
 
 static_assert(roots<int> && roots<bool> && roots<view<const double, shape>>);
 static_assert(!roots<int *> && !roots<np::tensor<double, shape> &>);
@@ -44,6 +52,19 @@ static_assert(
     std::same_as<typename decltype(np::abs(std::declval<signed char>()))::value_type, int>);
 constexpr auto constructed_only = np::sqrt(9);
 static_assert(constructed_only.rank() == 0); // Construction never calls cmath.
+using classified = decltype(np::isfinite(std::declval<const leaf &>()));
+static_assert(classifications<bool> && classifications<unsigned long long> &&
+              classifications<view<const long double, shape>>);
+static_assert(!classifications<int *> && !classifications<np::tensor<double, shape> &>);
+static_assert(!classifications<view<volatile float, shape>>);
+static_assert(std::same_as<typename classified::value_type, bool>);
+static_assert(std::same_as<typename classified::extents_type, shape>);
+static_assert(sizeof(classified) == sizeof(leaf) && alignof(classified) == alignof(leaf));
+static_assert(np::detail::expression_function_count<classified> == 0);
+static_assert(noexcept(std::declval<const classified &>().read(0)) ==
+              noexcept(std::isfinite(float{})));
+static_assert(std::same_as<typename decltype(np::isnan(1.L))::value_type, bool>);
+static_assert(std::same_as<typename decltype(np::isinf(1u))::value_type, bool>);
 
 TEST(NpExpressionMath, UsesActualStdOverloadsAndPreservesChildTypes) {
     float input[] = {.25f, .5f, 1.f, 2.f};
@@ -139,6 +160,75 @@ TEST(NpExpressionMath, ExceptionalValuesMatchStdWithoutNumericSubstitution) {
     EXPECT_TRUE(std::isnan(np::abs(nan).read(0)));
 }
 
+template <class T>
+void compare_classification() {
+    using limits = std::numeric_limits<T>;
+    const T input[]{T(0),
+                    -T(0),
+                    T(1),
+                    T(-1),
+                    limits::max(),
+                    limits::lowest(),
+                    limits::denorm_min(),
+                    limits::infinity(),
+                    -limits::infinity(),
+                    limits::quiet_NaN()};
+    using extents = np::extents<size_t, std::size(input)>;
+    const auto a = np::as_expr(view<const T, extents>(input));
+    bool output[std::size(input)]{};
+    np::eval_to(view<bool, extents>(output), np::isfinite(a));
+    for (size_t i = 0; i != std::size(input); ++i)
+        EXPECT_EQ(output[i], std::isfinite(input[i]));
+    np::eval_to(view<bool, extents>(output), np::isnan(a));
+    for (size_t i = 0; i != std::size(input); ++i)
+        EXPECT_EQ(output[i], std::isnan(input[i]));
+    np::eval_to(view<bool, extents>(output), np::isinf(a));
+    for (size_t i = 0; i != std::size(input); ++i)
+        EXPECT_EQ(output[i], std::isinf(input[i]));
+}
+
+TEST(NpExpressionMath, ClassificationMatchesStdForAllFloatingTypesAndIntegers) {
+    compare_classification<float>();
+    compare_classification<double>();
+    compare_classification<long double>();
+    EXPECT_TRUE(np::isfinite(std::numeric_limits<unsigned long long>::max()).read(0));
+    EXPECT_FALSE(np::isnan(std::numeric_limits<long long>::min()).read(0));
+    EXPECT_FALSE(np::isinf(false).read(0));
+}
+
+TEST(NpExpressionMath, ClassificationFusesStridesBroadcastSelectionAndReduction) {
+    using matrix = np::extents<size_t, 2, 3>;
+    using strided = view<double, matrix, np::layout_stride>;
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const double inf = std::numeric_limits<double>::infinity();
+    double input[]{nan, 999., -2., 999., inf, 999., 999., 3., 999., -inf, 999., -0.};
+    const strided source(input, strided::mapping_type({}, std::array<size_t, 2>{7, 2}));
+    const auto a = np::as_expr(source);
+    EXPECT_EQ(np::sum(np::isfinite(a)), 3);
+    EXPECT_EQ(np::sum(np::logical_or(np::isnan(a), np::isinf(a))), 3);
+    double offset[]{1., 2., 3.}, output[6]{};
+    np::eval_to(view<double, matrix, np::layout_left>(output),
+                np::select(np::isfinite(a), a, 0.) +
+                    view<const double, np::extents<size_t, 3>>(offset));
+    const std::array expected{1., 4., 0., 2., 3., 3.};
+    EXPECT_EQ((std::to_array(output)), expected);
+    np::eval_to(source, np::select(np::isfinite(a), a, 0.));
+    EXPECT_EQ(input[0], 0.);
+    EXPECT_EQ(input[2], -2.);
+    EXPECT_EQ(input[7], 3.);
+    EXPECT_EQ(input[1], 999.);
+    EXPECT_TRUE(std::signbit(input[11]));
+    auto mask = np::eval(np::isfinite(a));
+    ASSERT_TRUE(mask);
+    static_assert(std::same_as<typename decltype(mask)::value_type::element_type, bool>);
+    EXPECT_TRUE(mask->view()(1, 2));
+    using empty = np::extents<size_t, 0>;
+    np::eval_to(view<bool, empty>(nullptr), np::isnan(view<const double, empty>(nullptr)));
+    bool scalar = false;
+    np::eval_to(view<bool, np::extents<size_t>>(&scalar), np::isfinite(1));
+    EXPECT_TRUE(scalar);
+}
+
 struct math_observation {
     double value;
     int error;
@@ -177,6 +267,19 @@ TEST(NpExpressionMath, DomainAndRangeObservationsFollowTheSameStdCalls) {
     errno = 0;
 }
 
+TEST(NpExpressionMath, ClassificationUsesTheSameStdErrorStateBehavior) {
+    volatile double input = std::numeric_limits<double>::quiet_NaN();
+    const double value = input;
+    compare_observations([value] { return std::isfinite(value); },
+                         [value] { return np::isfinite(value).read(0); });
+    compare_observations([value] { return std::isnan(value); },
+                         [value] { return np::isnan(value).read(0); });
+    compare_observations([value] { return std::isinf(value); },
+                         [value] { return np::isinf(value).read(0); });
+    std::feclearexcept(FE_ALL_EXCEPT);
+    errno = 0;
+}
+
 #if !defined(WJR_DISABLE_EXCEPTIONS)
 struct throwing_operation {
     static double apply(double) { throw std::runtime_error("child failed"); }
@@ -199,6 +302,12 @@ TEST(NpExpressionMath, BranchAndClosureExceptionsRemainObservable) {
     EXPECT_THROW((void)np::exp(copied), std::runtime_error);
     EXPECT_THROW((void)np::log(copied), std::runtime_error);
     EXPECT_THROW((void)np::abs(copied), std::runtime_error);
+    static_assert(!noexcept(np::isfinite(child).read(0)));
+    EXPECT_THROW((void)np::isfinite(child).read(0), std::runtime_error);
+    EXPECT_THROW((void)np::isnan(child).read(0), std::runtime_error);
+    EXPECT_THROW((void)np::isinf(child).read(0), std::runtime_error);
+    static_assert(!noexcept(np::isfinite(copied)));
+    EXPECT_THROW((void)np::isfinite(copied), std::runtime_error);
 }
 #endif
 } // namespace

@@ -1,7 +1,8 @@
 # 标准 scalar math 表达式
 
 `<wjr/np/expression_math.hpp>` 提供 `np::sqrt(x)`、`np::exp(x)`、`np::log(x)`、
-`np::abs(x)`，其中 `x` 是现有 `as_expr` 可捕获的 arithmetic scalar、view 或表达式。
+`np::abs(x)`、`np::isfinite(x)`、`np::isnan(x)`、`np::isinf(x)`，
+其中 `x` 是现有 `as_expr` 可捕获的 arithmetic scalar、view 或表达式。
 owner 仍需显式传入存活的 view；不添加新的 checked 入口。
 
 每个无状态 unary 节点直接对其子节点的值调用同名 `std` 函数。
@@ -39,6 +40,31 @@ np::eval_to(out, np::map([](double value) {
 ```
 
 因此不应先构造 `map(guard, log(input))` 来试图避免非正输入的 log。
+
+## 分类与缺失值处理
+
+分类节点的结果是 `bool`，接受标准库支持的整数（含 bool、unsigned）和浮点输入。
+整数分类不会先把表达式改成浮点树；每次调用仍使用 child 的实际类型。
+`isfinite` 对有限值为真，`isnan` 对 NaN 为真，`isinf` 对正负无穷为真。
+不把 NaN 或无穷归零，也不承诺在 fast-math/finite-math-only 等排除这些输入的选项下仍可识别它们。
+
+分类可直接参与 mask、求和和物化；没有额外 callable state，不隐式分配布尔中间数组：
+
+```cpp
+const auto a = np::as_expr(input);
+const auto finite = np::isfinite(a);
+const auto count = np::sum(finite); // bool + bool 的默认累计类型是 int。
+np::eval_to(output, np::select(finite, a, 0.));
+```
+
+很大的计数可显式使用 `np::sum<size_t>(finite)`，避免默认 int 的表示范围限制。
+`select` 仍是 eager：上述替换只选择已经读到的值，不能改成
+`select(isfinite(a), log(a), 0.)` 来保护非法 log 输入。
+分类调用的 noexcept、错误状态和浮点异常行为来自当前标准库；有抛出 child 时照常传播。
+当前显式 xsimd policy 对这些新节点整体回退到 scalar，不擅自改用 backend 特有分类语义。
+Windows x64 上，Clang 18 的 baseline/native 三组配对探针（bool 输出、size_t 计数、有限值替换）
+与对应手写循环指令数相同；GCC 12 的计数路径相同，其余最多多两条静态指令。
+这些探针没有额外函数调用；这只是生成码比较，没有测量吞吐率，也不代表所有布局和表达式均无差异。
 
 ## 成本边界
 

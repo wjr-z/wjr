@@ -108,7 +108,8 @@ int main() {
     if (padded->view()(1, 2) != 42) {
         return 1;
     }
-    if (wjr::np::sqrt(9).read(0) != 3.) {
+    if (wjr::np::sqrt(9).read(0) != 3. || !wjr::np::isfinite(1.).read(0) ||
+        wjr::np::isnan(1.).read(0) || wjr::np::isinf(1.).read(0)) {
         return 1;
     }
     auto reshaped =

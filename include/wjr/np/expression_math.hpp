@@ -38,6 +38,27 @@ struct abs_operation {
         return std::abs(value);
     }
 };
+struct isfinite_operation {
+    template <class T>
+    static constexpr auto
+    apply(T value) noexcept(noexcept(std::isfinite(value))) -> decltype(std::isfinite(value)) {
+        return std::isfinite(value);
+    }
+};
+struct isnan_operation {
+    template <class T>
+    static constexpr auto
+    apply(T value) noexcept(noexcept(std::isnan(value))) -> decltype(std::isnan(value)) {
+        return std::isnan(value);
+    }
+};
+struct isinf_operation {
+    template <class T>
+    static constexpr auto
+    apply(T value) noexcept(noexcept(std::isinf(value))) -> decltype(std::isinf(value)) {
+        return std::isinf(value);
+    }
+};
 
 template <class Operation, class E>
 concept math_operand = requires {
@@ -80,6 +101,24 @@ requires detail::math_operand<detail::abs_operation, E>
 [[nodiscard]] constexpr auto abs(E &&value) noexcept(
     noexcept(detail::make_math_expression<detail::abs_operation>(std::forward<E>(value)))) {
     return detail::make_math_expression<detail::abs_operation>(std::forward<E>(value));
+}
+template <class E>
+requires detail::math_operand<detail::isfinite_operation, E>
+[[nodiscard]] constexpr auto isfinite(E &&value) noexcept(
+    noexcept(detail::make_math_expression<detail::isfinite_operation>(std::forward<E>(value)))) {
+    return detail::make_math_expression<detail::isfinite_operation>(std::forward<E>(value));
+}
+template <class E>
+requires detail::math_operand<detail::isnan_operation, E>
+[[nodiscard]] constexpr auto isnan(E &&value) noexcept(
+    noexcept(detail::make_math_expression<detail::isnan_operation>(std::forward<E>(value)))) {
+    return detail::make_math_expression<detail::isnan_operation>(std::forward<E>(value));
+}
+template <class E>
+requires detail::math_operand<detail::isinf_operation, E>
+[[nodiscard]] constexpr auto isinf(E &&value) noexcept(
+    noexcept(detail::make_math_expression<detail::isinf_operation>(std::forward<E>(value)))) {
+    return detail::make_math_expression<detail::isinf_operation>(std::forward<E>(value));
 }
 
 } // namespace wjr::np

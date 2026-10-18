@@ -1,7 +1,9 @@
 #include <array>
 #include <cmath>
 #include <iostream>
+#include <limits>
 
+#include <wjr/np/expression_mask.hpp>
 #include <wjr/np/expression_math.hpp>
 #include <wjr/np/expression_reduce.hpp>
 
@@ -39,8 +41,18 @@ int main() {
                          },
                          x));
     print("guarded log of raw inputs:");
-    return magnitude == std::array{1., 0., 3., 4.} && output[0] == 0. && output[1] == 0. &&
-                   output[2] == std::log(3.) && output[3] == std::log(4.)
+    const bool guarded = output[0] == 0. && output[1] == 0. && output[2] == std::log(3.) &&
+                         output[3] == std::log(4.);
+
+    const std::array observations{std::numeric_limits<double>::quiet_NaN(), 1.,
+                                  std::numeric_limits<double>::infinity(), -2.};
+    const auto observed = np::as_expr(np::tensor_view<const double, shape>(observations.data()));
+    const auto finite = np::isfinite(observed);
+    np::eval_to(out, np::select(finite, observed, 0.));
+    print("finite observations, others replaced by zero:");
+    std::cout << "finite count: " << np::sum(finite) << '\n';
+    return magnitude == std::array{1., 0., 3., 4.} && guarded && np::sum(finite) == 2 &&
+                   output == std::array{0., 1., 0., -2.}
                ? 0
                : 1;
 }
