@@ -16,13 +16,20 @@ jobs:
         run: |
           git rev-parse HEAD | tee context.txt
           lscpu >> context.txt
+          cp include/wjr/np/expression.hpp /tmp/scan-expression-before.hpp
           for cxx in g++-13 clang++-18; do
             "$cxx" --version >> context.txt
             flags="-std=c++20 -O3 -ffp-contract=off -march=x86-64 -DWJR_DEBUG_LEVEL=0 -DMDSPAN_USE_PAREN_OPERATOR=1 -DMDSPAN_USE_BRACKET_OPERATOR=0 -Iinclude -I/tmp/mdspan/include"
             echo "$cxx $flags" >> context.txt
-            "$cxx" $flags -S -masm=intel benchmarks/research/scan.cpp -o "$cxx.s"
-            "$cxx" $flags benchmarks/research/scan.cpp -o "/tmp/$cxx-scan"
-            "/tmp/$cxx-scan" | tee "$cxx-results.txt"
+            for mode in before after; do
+              cp /tmp/scan-expression-before.hpp include/wjr/np/expression.hpp
+              if [[ "$mode" == "after" ]]; then
+                python3 -c 'from pathlib import Path; p=Path("include/wjr/np/expression.hpp"); s=p.read_text(); a="return [&]<size_t... I>(std::index_sequence<I...>) {"; assert s.count(a)==2; p.write_text(s.replace(a,"return [&]<size_t... I>(std::index_sequence<I...>) WJR_FORCEINLINE_LAMBDA {"))'
+              fi
+              "$cxx" $flags -S -masm=intel benchmarks/research/scan.cpp -o "$cxx-$mode.s"
+              "$cxx" $flags benchmarks/research/scan.cpp -o "/tmp/$cxx-scan"
+              "/tmp/$cxx-scan" | tee "$cxx-$mode-results.txt"
+            done
           done
       - uses: actions/upload-artifact@v4
         with:
