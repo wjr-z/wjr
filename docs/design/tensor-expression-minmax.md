@@ -41,6 +41,10 @@ batch implementation yet and therefore uses the scalar fallback. Performance
 claims require comparison with a hand-written loop using the same NaN and tie
 rules.
 
+The floating selection uses a combined boolean mask without changing these
+rules. See [the measured Linux comparison](../performance/np-extremum-selection.md)
+for the tested workloads, compiler profiles, and remaining limitations.
+
 See [the standalone example](../../examples/np/expression_minmax.cpp) and
 `test/np/expression_minmax.cpp` for mixed promotion, broadcasting, NaN, signed
 zero, empty-domain, scalar, and in-place coverage.

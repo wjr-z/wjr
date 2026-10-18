@@ -86,14 +86,10 @@ struct extremum_operation {
         const value_type lhs = static_cast<value_type>(left);
         const value_type rhs = static_cast<value_type>(right);
         if constexpr (std::floating_point<value_type>) {
-            const bool left_nan = lhs != lhs;
-            const bool right_nan = rhs != rhs;
-            if (left_nan)
-                return lhs;
-            if (right_nan)
-                return rhs;
-            if (lhs == rhs)
-                return lhs;
+            // Preserve a left NaN and ordered ties, including the left zero sign.
+            // Evaluate both predicates so compilers can combine the selection masks.
+            const bool keep_left = (lhs != lhs) | (IsMinimum ? rhs >= lhs : lhs >= rhs);
+            return keep_left ? lhs : rhs;
         }
         if constexpr (IsMinimum)
             return lhs < rhs ? lhs : rhs;
