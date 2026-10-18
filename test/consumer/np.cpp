@@ -7,6 +7,7 @@
 #include <wjr/np/expression.hpp>
 #include <wjr/np/expression_cast.hpp>
 #include <wjr/np/expression_mask.hpp>
+#include <wjr/np/expression_math.hpp>
 #include <wjr/np/expression_reduce.hpp>
 #include <wjr/np/reduce.hpp>
 #include <wjr/np/reshape.hpp>
@@ -121,6 +122,9 @@ int main(int argc, char **) {
     }
     wjr::np::copy_to(padded->view(), view);
     if (padded->view()(1, 2) != 42) {
+        return 1;
+    }
+    if (wjr::np::sqrt(9).read(0) != 3.) {
         return 1;
     }
     auto reshaped =

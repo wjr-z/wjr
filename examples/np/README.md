@@ -183,3 +183,20 @@ NaN、带符号零、类型提升、广播与 eager 约定见
 into its logical elements, and reduces without visiting padding.
 It distinguishes logical size from the allocated address span and uses
 `default_construct` to avoid initializing arithmetic values before overwrite.
+
+## 标准数学函数与显式运算域
+
+`wjr_np_expression_math` 将 `abs` 结果写入显式 magnitude workspace，
+再用其总和生成平方根相对幅值；同一输出还用于 `exp`、`log` 和 guarded raw-input map。
+这里的平方根变换不是对极端值提供保护的稳定 L2 norm。
+
+```text
+rooted relative magnitudes: 0.353553 0 0.612372 0.707107
+magnitude decay: 0.367879 1 0.0497871 0.0183156
+log(1+magnitude): 0.693147 0 1.38629 1.60944
+guarded log of raw inputs: 0 0 1.09861 1.38629
+```
+
+guard 接收原始输入，在 callback 内判断后再调用 log；不是用 eager select 保护非法分支。
+标准重载类型、errno/fenv、constexpr 和剩余执行成本见
+[scalar math 契约](../../docs/design/tensor-expression-math.md)。
