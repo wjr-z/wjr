@@ -15,6 +15,19 @@ layouts. An explicit architecture can be selected through
 `np::xsimd_policy<xsimd::sse2>{}` when supported by the deployment target.
 This interface does not provide runtime CPU dispatch.
 
+Private operation adapters live in `detail/xsimd_operation.hpp`. Each
+`xsimd_operation<Op>` specialization keeps its accepted child/result kinds and
+`static apply` together; unknown operations default to unsupported. Packed
+and projected-row readers use the same adapters, including selection. The
+evaluator separately preserves the numeric intermediate dtype and leaf/layout
+requirements. Adding an adapter does not automatically admit mixed dtypes.
+
+Scalar reduction ordering properties live in `detail/expression_operation.hpp`.
+That explicit operation trait is independent of batch support: a backend
+implementation alone does not establish permission to interleave outputs.
+Node, layout and rank dispatch remain compile-time structural decisions;
+these traits add neither expression state nor runtime operation dispatch.
+
 The backend vectorizes built-in arithmetic trees when the output and every
 numeric leaf and intermediate result have the same `float` or `double`
 type. Numeric scalars must have that same type too: `2.0f * float_expression` qualifies,

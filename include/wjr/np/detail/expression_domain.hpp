@@ -1,12 +1,9 @@
 #ifndef WJR_NP_DETAIL_EXPRESSION_DOMAIN_HPP__
 #define WJR_NP_DETAIL_EXPRESSION_DOMAIN_HPP__
 
-#include <wjr/np/expression.hpp>
+#include <wjr/np/detail/expression_operation.hpp>
 
 namespace wjr::np::detail {
-
-struct minimum_operation;
-struct maximum_operation;
 
 // Metadata only: no dummy mdspan or fictitious pointer range is constructed.
 template <class Extents>
@@ -70,11 +67,7 @@ inline constexpr bool interleavable_sum_expression = [] {
                 return true; // User callable follows the pure map contract.
             else if constexpr (E::kind == expression_kind::unary ||
                                E::kind == expression_kind::binary) {
-                using op = typename E::operation_type;
-                return std::same_as<op, add_operation> || std::same_as<op, subtract_operation> ||
-                       std::same_as<op, multiply_operation> || std::same_as<op, divide_operation> ||
-                       std::same_as<op, minimum_operation> || std::same_as<op, maximum_operation> ||
-                       std::same_as<op, positive_operation> || std::same_as<op, negative_operation>;
+                return expression_operation_traits<typename E::operation_type>::interleavable_sum;
             } else
                 return false;
         }();
