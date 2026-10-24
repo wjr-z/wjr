@@ -27,26 +27,26 @@ inline constexpr bool compatible_concatenate_shape = [] {
 
 // Flatten backend mappings once so the recursive loop only sees ordinary
 // scalar metadata. No descriptor refers back to an mdspan/mapping subobject.
-template <class T, size_t Rank, class Layout>
+template <class View>
 struct concatenate_descriptor {
-    using layout_type = Layout;
-    T *data;
-    std::array<size_t, Rank> shape;
-    std::array<size_t, Rank> steps;
+    using layout_type = typename View::layout_type;
+    using extents_type = typename View::extents_type;
+    using mapping_type = typename View::mapping_type;
+    typename View::element_type *data;
+    std::array<size_t, View::rank()> shape;
+    std::array<size_t, View::rank()> steps;
 
-    static constexpr size_t rank() noexcept { return Rank; }
+    static constexpr size_t rank() noexcept { return View::rank(); }
     constexpr size_t extent(size_t axis) const noexcept { return shape[axis]; }
     constexpr size_t stride(size_t axis) const noexcept { return steps[axis]; }
-    constexpr T *data_handle() const noexcept { return data; }
+    constexpr auto data_handle() const noexcept { return data; }
 };
 
 template <class View, size_t... I>
 constexpr auto concatenate_describe(View view, std::index_sequence<I...>) noexcept {
-    return concatenate_descriptor<typename View::element_type, View::rank(),
-                                  typename View::layout_type>{
-        view.data_handle(),
-        {static_cast<size_t>(view.extent(I))...},
-        {static_cast<size_t>(axis_stride<I>(view))...}};
+    return concatenate_descriptor<View>{view.data_handle(),
+                                        {static_cast<size_t>(view.extent(I))...},
+                                        {static_cast<size_t>(axis_stride<I>(view))...}};
 }
 
 template <class D, class T>
@@ -71,14 +71,14 @@ constexpr void concatenate_copy(D *WJR_RESTRICT output, const T *input, const Ds
                        std::same_as<typename Dst::layout_type, typename Src::layout_type>)) {
             concatenate_contiguous(output + output_offset, input + input_offset, count);
         } else {
-            const auto output_step = dst.stride(axis);
-            const auto input_step = src.stride(axis);
+            const auto output_step = static_cast<size_t>(axis_stride<axis>(dst));
+            const auto input_step = static_cast<size_t>(axis_stride<axis>(src));
             for (size_t i = 0; i != count; ++i)
                 output[output_offset + i * output_step] = input[input_offset + i * input_step];
         }
     } else {
-        const auto output_step = dst.stride(axis);
-        const auto input_step = src.stride(axis);
+        const auto output_step = static_cast<size_t>(axis_stride<axis>(dst));
+        const auto input_step = static_cast<size_t>(axis_stride<axis>(src));
         for (size_t i = 0; i != count; ++i)
             concatenate_copy<Level + 1>(output, input, dst, src, output_offset + i * output_step,
                                         input_offset + i * input_step);
@@ -104,7 +104,7 @@ constexpr void concatenate_source(const Dst &dst, concatenate_operand<Src> sourc
         packed_layout<typename Dst::layout_type> && packed_layout<typename Src::layout_type> &&
         (Dst::rank() == 1 || std::same_as<typename Dst::layout_type, typename Src::layout_type>);
     if constexpr (dense) {
-        concatenate_contiguous(output, input, count * src.stride(Axis));
+        concatenate_contiguous(output, input, count * static_cast<size_t>(axis_stride<Axis>(src)));
     } else {
         concatenate_copy<Level>(output, input, dst, src);
     }
@@ -119,7 +119,7 @@ concatenate_outer(const Dst &dst, size_t output_offset,
                   concatenate_operand<Src>... sources) noexcept {
     constexpr size_t axis =
         left_layout<typename Dst::layout_type> ? Dst::rank() - 1 - Level : Level;
-    const auto output_step = dst.stride(axis);
+    const auto output_step = static_cast<size_t>(axis_stride<axis>(dst));
     if constexpr (axis == Axis) {
         auto append = [&](auto source) constexpr noexcept {
             concatenate_source<Axis, Level>(dst, source, output_offset);
@@ -131,8 +131,9 @@ concatenate_outer(const Dst &dst, size_t output_offset,
         for (size_t i = 0; i != count; ++i) {
             concatenate_outer<Axis, Level + 1>(
                 dst, output_offset + i * output_step,
-                concatenate_operand<Src>{sources.view,
-                                         sources.offset + i * sources.view.stride(axis)}...);
+                concatenate_operand<Src>{
+                    sources.view,
+                    sources.offset + i * static_cast<size_t>(axis_stride<axis>(sources.view))}...);
         }
     }
 }
@@ -163,6 +164,24 @@ WJR_INTRINSIC_INLINE constexpr void concatenate_to(tensor_view<D, DE, DL> destin
     WJR_ASSERT_L2(remaining == 0);
     if (destination.empty())
         return;
+    constexpr bool dense =
+        detail::packed_layout<DL> &&
+        ((detail::packed_layout<SL> &&
+          (DE::rank() == 1 ||
+           (std::same_as<DL, SL> && Axis == (detail::left_layout<DL> ? DE::rank() - 1 : 0)))) &&
+         ...);
+    if constexpr (dense) {
+        size_t offset = 0;
+        auto append = [&](auto source) constexpr noexcept {
+            const auto count = static_cast<size_t>(source.size());
+            if (count != 0)
+                detail::concatenate_contiguous(destination.data_handle() + offset,
+                                               source.data_handle(), count);
+            offset += count;
+        };
+        (append(sources), ...);
+        return;
+    }
     const auto indices = std::make_index_sequence<DE::rank()>{};
     detail::concatenate_outer<Axis, 0>(
         detail::concatenate_describe(destination, indices), 0,
