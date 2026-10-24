@@ -94,6 +94,8 @@ owner/eval 仍使用 shape_result 报告必要元数据失败，见[结果类型
 不依赖 `wjr::isa`，不默认链接到 `wjr::wjr`。
 安装消费使用 `find_package(wjr CONFIG REQUIRED COMPONENTS np)`。
 `<wjr/np/partition.hpp>` 和 `<wjr/np/quantile.hpp>` 提供共享划分工作的[多秩选择与线性分位数](../design/tensor-partition-quantile.md)。
+`<wjr/np/sort.hpp>` 提供[原地及保留源数据的值排序](../design/tensor-sort.md)，
+`<wjr/np/run_offsets.hpp>` 提供[相邻段边界](../design/tensor-run-offsets.md)，可直接接入分段规约。
 `<wjr/np/searchsorted.hpp>` 提供支持重复值与 NaN 排序约定的[批量二分查找](../design/tensor-searchsorted.md)。
 `<wjr/np/argsort.hpp>` 提供不移动源数据的[索引排序](../design/tensor-argsort.md)，
 可通过 `<wjr/np/take.hpp>` 的[按索引读取](../design/tensor-take.md)复用同一排列重排其他数组。
