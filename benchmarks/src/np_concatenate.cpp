@@ -10,7 +10,19 @@
 namespace {
 namespace np = wjr::np;
 
-template <bool Library, size_t Axis, bool Strided>
+// Same disjoint output contract, including the standard algorithm's small-block path.
+template <bool CopyN>
+void copy_concatenate_block(double *WJR_RESTRICT output, const double *input,
+                            size_t bytes) noexcept {
+    if constexpr (CopyN)
+        std::copy_n(input, bytes / sizeof(double), output);
+    else {
+        // Flawfinder: ignore - callers copy bounded blocks in allocated fixture buffers.
+        std::memcpy(output, input, bytes);
+    }
+}
+
+template <bool Library, size_t Axis, bool Strided, bool CopyN = false>
 WJR_NOINLINE void concatenate(double *WJR_RESTRICT output, const double *first,
                               const double *second, size_t rows, size_t cols) noexcept {
     const auto output_cols = Axis == 1 ? cols * 2 : cols;
@@ -41,17 +53,17 @@ WJR_NOINLINE void concatenate(double *WJR_RESTRICT output, const double *first,
         if constexpr (!Strided && Axis == 0) {
             const auto count = rows * cols;
             // Flawfinder: ignore - fixture allocates both rows*cols output blocks.
-            std::memcpy(output, first, count * sizeof(double));
+            copy_concatenate_block<CopyN>(output, first, count * sizeof(double));
             // Flawfinder: ignore - the second block has count elements too.
-            std::memcpy(output + count, second, count * sizeof(double));
+            copy_concatenate_block<CopyN>(output + count, second, count * sizeof(double));
         } else if constexpr (!Strided) {
             for (size_t row = 0; row != rows; ++row) {
                 // Flawfinder: ignore - each output row has space for both inputs.
-                std::memcpy(output + row * output_row_step, first + row * input_row_step,
-                            cols * sizeof(double));
+                copy_concatenate_block<CopyN>(output + row * output_row_step,
+                                              first + row * input_row_step, cols * sizeof(double));
                 // Flawfinder: ignore - the second cols-wide block fits this row.
-                std::memcpy(output + row * output_row_step + cols, second + row * input_row_step,
-                            cols * sizeof(double));
+                copy_concatenate_block<CopyN>(output + row * output_row_step + cols,
+                                              second + row * input_row_step, cols * sizeof(double));
             }
         } else {
             for (size_t row = 0; row != rows; ++row)
@@ -65,7 +77,7 @@ WJR_NOINLINE void concatenate(double *WJR_RESTRICT output, const double *first,
     }
 }
 
-template <bool Library, size_t Axis, bool Strided>
+template <bool Library, size_t Axis, bool Strided, bool CopyN = false>
 void BM_NpConcatenate(benchmark::State &state) {
     const auto rows = static_cast<size_t>(state.range(0));
     const auto cols = static_cast<size_t>(state.range(1));
@@ -86,13 +98,15 @@ void BM_NpConcatenate(benchmark::State &state) {
                                        : row * output_row_step + (cols + col) * step;
             expected[out] = second[offset];
         }
-    concatenate<Library, Axis, Strided>(output.data(), first.data(), second.data(), rows, cols);
+    concatenate<Library, Axis, Strided, CopyN>(output.data(), first.data(), second.data(), rows,
+                                               cols);
     if (output != expected) {
         state.SkipWithError("concatenation result mismatch");
         return;
     }
     for (auto _ : state) {
-        concatenate<Library, Axis, Strided>(output.data(), first.data(), second.data(), rows, cols);
+        concatenate<Library, Axis, Strided, CopyN>(output.data(), first.data(), second.data(), rows,
+                                                   cols);
         benchmark::ClobberMemory();
     }
     state.SetItemsProcessed(state.iterations() * static_cast<int64_t>(rows * cols * 2));
@@ -110,4 +124,12 @@ BENCHMARK_TEMPLATE(BM_NpConcatenate, false, 1, false)->Apply(concatenate_argumen
 BENCHMARK_TEMPLATE(BM_NpConcatenate, true, 1, false)->Apply(concatenate_arguments)->UseRealTime();
 BENCHMARK_TEMPLATE(BM_NpConcatenate, false, 1, true)->Apply(concatenate_arguments)->UseRealTime();
 BENCHMARK_TEMPLATE(BM_NpConcatenate, true, 1, true)->Apply(concatenate_arguments)->UseRealTime();
+// Keep the memcpy reference and also compare the standard algorithm's one-element
+// path; runtime memcpy alone is not a strong baseline for narrow inner blocks.
+BENCHMARK_TEMPLATE(BM_NpConcatenate, false, 0, false, true)
+    ->Apply(concatenate_arguments)
+    ->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenate, false, 1, false, true)
+    ->Apply(concatenate_arguments)
+    ->UseRealTime();
 } // namespace

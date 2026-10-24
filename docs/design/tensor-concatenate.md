@@ -40,6 +40,14 @@ separate; a handwritten operation for specifically equal lengths may fuse those
 loops further. This is a performance boundary rather than a zero-overhead claim
 for every source combination.
 
+The current Linux GCC 13.3 strided path still retains mapping/descriptor stack
+state when the calling wrapper constructs the views. A measured Clang 18 public
+inline seam removes its outlined call and descriptor passing; that result does
+not establish the same outcome on GCC. The benchmark retains both memcpy and
+copy_n references, since the latter can specialize small blocks. These remaining
+costs must be resolved or accepted explicitly before treating the interface as a
+zero-overhead replacement for the corresponding direct loops.
+
 See [the example](../../examples/np/concatenate.cpp) and
 `benchmarks/src/np_concatenate.cpp` for same-contract packed outer-axis,
 inner-axis and positive-stride comparisons.
