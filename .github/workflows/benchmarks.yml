@@ -114,21 +114,22 @@ jobs:
 
           output = pathlib.Path('primitive-codegen').resolve()
           modules = {
-              'put': ('81d58932', 'include/wjr/np/put.hpp', 'benchmarks/src/np_put.cpp'),
-              'concatenate': ('ff92d85638a4810db7a1f7b1215b448dcf6afec2', 'include/wjr/np/concatenate.hpp', 'benchmarks/src/np_concatenate.cpp'),
-              'extrema_axis': ('fb224cc8e053a12386d0098e240d0eff225a7e2a', 'include/wjr/np/extrema_axis.hpp', 'benchmarks/src/np_extrema_axis.cpp'),
+              'put': ('81d58932', '43e595f1', 'include/wjr/np/put.hpp', 'benchmarks/src/np_put.cpp'),
+              'concatenate': ('ff92d85638a4810db7a1f7b1215b448dcf6afec2', '9caf0eb9', 'include/wjr/np/concatenate.hpp', 'benchmarks/src/np_concatenate.cpp'),
+              'extrema_axis': ('fb224cc8e053a12386d0098e240d0eff225a7e2a', '3005d1e7', 'include/wjr/np/extrema_axis.hpp', 'benchmarks/src/np_extrema_axis.cpp'),
           }
           provenance = {'head': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
                         'note': 'extrema_axis.hpp adds only explicit <limits>, matching the published module',
                         'modules': {}}
-          for module, (commit, header, benchmark) in modules.items():
+          for module, (original_commit, commit, header, benchmark) in modules.items():
               full_commit = subprocess.check_output(['git', 'rev-parse', commit], text=True).strip()
               files = {}
               for filename in (header, benchmark):
                   data = pathlib.Path(filename).read_bytes()
                   (output / 'source' / pathlib.Path(filename).name).write_bytes(data)
                   files[filename] = hashlib.sha256(data).hexdigest()
-              provenance['modules'][module] = {'commit': full_commit, 'files': files}
+              provenance['modules'][module] = {'original_module_commit': original_commit,
+                                               'published_commit': full_commit, 'files': files}
               diff = subprocess.check_output(['git', 'diff', full_commit, '--', header, benchmark])
               (output / (module + '-source-diff.patch')).write_bytes(diff)
           (output / 'source-provenance.json').write_text(json.dumps(provenance, indent=2))
