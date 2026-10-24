@@ -116,8 +116,8 @@ requires(sizeof...(T) != 0 && detail::kernel_element<D> && !std::is_const_v<D> &
          ((detail::kernel_element<T> && std::same_as<D, std::remove_cv_t<T>> &&
            detail::kernel_layout<SL> && detail::compatible_concatenate_shape<Axis, DE, SE>) &&
           ...))
-constexpr void concatenate_to(tensor_view<D, DE, DL> destination, axes_t<Axis>,
-                              tensor_view<T, SE, SL>... sources) noexcept {
+WJR_INTRINSIC_INLINE constexpr void concatenate_to(tensor_view<D, DE, DL> destination, axes_t<Axis>,
+                                                   tensor_view<T, SE, SL>... sources) noexcept {
     [[maybe_unused]] auto remaining = static_cast<size_t>(destination.extent(Axis));
     auto validate = [&](auto source) constexpr noexcept {
         for (size_t axis = 0; axis != DE::rank(); ++axis) {
