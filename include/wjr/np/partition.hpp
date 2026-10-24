@@ -33,12 +33,14 @@ struct partition_less {
 template <partition_method Method>
 struct rank_selector;
 
+// Only indirect selection supplies construction state. Empty packs keep the
+// original value-selection signatures and pivot-only predicate captures.
 template <>
 struct rank_selector<partition_method::nth_element> {
-    template <class Compare, class T, class Index>
-    static constexpr void apply(T *data, size_t first, size_t last,
-                                std::span<Index> ranks) noexcept {
-        const Compare compare{};
+    template <class Compare, class T, class Index, class... State>
+    static constexpr void apply(T *data, size_t first, size_t last, std::span<Index> ranks,
+                                State... state) noexcept {
+        const Compare compare{state...};
         while (!ranks.empty()) {
             const auto middle = ranks.size() / 2;
             const auto rank = static_cast<size_t>(ranks[middle]);
@@ -54,17 +56,17 @@ struct rank_selector<partition_method::nth_element> {
                 std::lower_bound(ranks.begin(), ranks.begin() + middle, ranks[middle]);
             const auto upper =
                 std::upper_bound(ranks.begin() + middle + 1, ranks.end(), ranks[middle]);
-            apply<Compare>(data, first, rank, std::span<Index>(ranks.begin(), lower));
+            apply<Compare>(data, first, rank, std::span<Index>(ranks.begin(), lower), state...);
             first = rank + 1;
             ranks = std::span<Index>(upper, ranks.end());
         }
     }
 };
 
-template <class Compare, class T, class Index>
+template <class Compare, class T, class Index, class... State>
 constexpr void select_ranks(T *data, size_t first, size_t last, std::span<Index> ranks,
-                            unsigned budget) noexcept {
-    const Compare compare{};
+                            unsigned budget, State... state) noexcept {
+    const Compare compare{state...};
     while (!ranks.empty()) {
         if (ranks.front() == ranks.back()) {
             const auto rank = static_cast<size_t>(ranks.front());
@@ -89,16 +91,18 @@ constexpr void select_ranks(T *data, size_t first, size_t last, std::span<Index>
                                          : (compare(a, c)   ? a
                                             : compare(b, c) ? c
                                                             : b);
-        const auto lower = std::partition(data + first, data + last,
-                                          [pivot](T value) { return Compare{}(value, pivot); });
+        const auto lower = std::partition(data + first, data + last, [pivot, state...](T value) {
+            return Compare{state...}(value, pivot);
+        });
         const auto low = static_cast<size_t>(lower - data);
         // Ordered endpoints classify a whole request range in constant work.
         if (static_cast<size_t>(ranks.back()) < low) {
             last = low;
             continue;
         }
-        const auto upper = std::partition(lower, data + last,
-                                          [pivot](T value) { return !Compare{}(pivot, value); });
+        const auto upper = std::partition(lower, data + last, [pivot, state...](T value) {
+            return !Compare{state...}(pivot, value);
+        });
         const auto high = static_cast<size_t>(upper - data);
         if (static_cast<size_t>(ranks.front()) >= high) {
             first = high;
@@ -109,11 +113,11 @@ constexpr void select_ranks(T *data, size_t first, size_t last, std::span<Index>
         const std::span<Index> left(ranks.begin(), left_end), right(right_begin, ranks.end());
         // Recurse on fewer requests, not fewer data elements, to bound depth.
         if (left.size() < right.size()) {
-            select_ranks<Compare>(data, first, low, left, budget);
+            select_ranks<Compare>(data, first, low, left, budget, state...);
             ranks = right;
             first = high;
         } else {
-            select_ranks<Compare>(data, high, last, right, budget);
+            select_ranks<Compare>(data, high, last, right, budget, state...);
             ranks = left;
             last = low;
         }
@@ -122,11 +126,11 @@ constexpr void select_ranks(T *data, size_t first, size_t last, std::span<Index>
 
 template <>
 struct rank_selector<partition_method::shared_pivot> {
-    template <class Compare, class T, class Index>
-    static constexpr void apply(T *data, size_t first, size_t last,
-                                std::span<Index> ranks) noexcept {
+    template <class Compare, class T, class Index, class... State>
+    static constexpr void apply(T *data, size_t first, size_t last, std::span<Index> ranks,
+                                State... state) noexcept {
         select_ranks<Compare>(data, first, last, ranks,
-                              partition_depth_factor * std::bit_width(last - first));
+                              partition_depth_factor * std::bit_width(last - first), state...);
     }
 };
 
