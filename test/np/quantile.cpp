@@ -32,6 +32,9 @@ constexpr bool constant_quantiles() {
     size_t ranks[6];
     np::quantile_inplace_to(view<double>(output, 3), view<double>(values, 5),
                             view<const double>(probabilities, 3), std::span(ranks));
+    np::quantile_inplace_to<np::quantile_nan_policy::propagate, np::partition_method::shared_pivot>(
+        view<double>(output, 3), view<double>(values, 5), view<const double>(probabilities, 3),
+        std::span(ranks));
     return output[0] == 2 && output[1] == 5 && output[2] == 8;
 }
 static_assert(constant_quantiles());
@@ -174,6 +177,12 @@ TEST(NpQuantile, RandomQuantilesAgainstFullSort) {
                         view<const double>(probabilities.data(), probabilities.size()),
                         std::span(workspace), std::span(ranks));
         std::sort(input.begin(), input.end());
+        const auto ordinary = output;
+        np::quantile_to<np::quantile_nan_policy::propagate, np::partition_method::shared_pivot>(
+            view<double>(output.data(), output.size()), view<const double>(input.data(), count),
+            view<const double>(probabilities.data(), probabilities.size()), std::span(workspace),
+            std::span(ranks));
+        EXPECT_EQ(output, ordinary);
         for (size_t i = 0; i != probabilities.size(); ++i) {
             const double position = probabilities[i] * (count - 1);
             const auto low = static_cast<size_t>(position);
