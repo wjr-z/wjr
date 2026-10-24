@@ -82,6 +82,22 @@ jobs:
       - name: Build benchmarks
         run: cmake --build build --target benchmarks --parallel
 
+      - name: Build Clang cursor research benchmarks
+        run: |
+          cmake -B build-clang -GNinja \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DWJR_BUILD_BENCHMARKS=ON \
+            -DWJR_BUILD_TESTS=OFF \
+            -DWJR_BENCHMARK_PROFILE=np \
+            -DWJR_BENCHMARK_XSIMD=ON \
+            -DWJR_ENABLE_NP=ON \
+            -DWJR_ENABLE_XSIMD=ON \
+            -DWJR_USE_GMP_TESTS=OFF \
+            -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent"
+          cmake --build build-clang --target benchmarks --parallel
+
       - name: Capture actual ordering benchmark code generation
         shell: bash
         run: |
@@ -95,6 +111,7 @@ jobs:
 
           output = pathlib.Path('ordering-codegen').resolve()
           database = json.loads(pathlib.Path('build/compile_commands.json').read_text())
+          database += json.loads(pathlib.Path('build-clang/compile_commands.json').read_text())
           for entry in database:
               name = pathlib.Path(entry['file']).name
               if name not in ('np_run_offsets.cpp', 'np_sort.cpp'):
@@ -111,13 +128,16 @@ jobs:
                   elif arg not in ('-c', '-MD', '-MMD'):
                       args.append(arg)
               stem = pathlib.Path(name).stem
+              if 'build-clang' in entry['directory']:
+                  stem = 'clang-' + stem
               (output / (stem + '-command.json')).write_text(json.dumps(entry, indent=2))
               subprocess.run(args + ['-S', '-fverbose-asm', '-o', str(output / (stem + '.s'))],
                              cwd=entry['directory'], check=True)
               with (output / (stem + '-compiler.txt')).open('w') as log:
                   subprocess.run([args[0], '--version'], stdout=log, stderr=subprocess.STDOUT, check=True)
               with (output / (stem + '-target.txt')).open('w') as log:
-                  subprocess.run([args[0], '-march=native', '-Q', '--help=target'],
+                  flags = ['-march=native', '-###', '-x', 'c++', '/dev/null'] if 'clang' in args[0] else ['-march=native', '-Q', '--help=target']
+                  subprocess.run([args[0]] + flags,
                                  stdout=log, stderr=subprocess.STDOUT, check=True)
           PY
 
@@ -138,6 +158,14 @@ jobs:
             --benchmark_repetitions="$repetitions" \
             --benchmark_report_aggregates_only=true \
             --benchmark_min_time="$min_time"
+          ./build-clang/bin/benchmarks \
+            --benchmark_filter='BM_NpRunOffsets' \
+            --benchmark_enable_random_interleaving=true \
+            --benchmark_format=json \
+            --benchmark_out=clang-benchmark-results.json \
+            --benchmark_repetitions=3 \
+            --benchmark_report_aggregates_only=true \
+            --benchmark_min_time=0.02s
 
       - name: Download previous benchmark result
         uses: dawidd6/action-download-artifact@v9
@@ -170,5 +198,6 @@ jobs:
           path: |
             benchmark-results.json
             benchmark-comparison.json
+            clang-benchmark-results.json
             ordering-codegen/
           retention-days: 90

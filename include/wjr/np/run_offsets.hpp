@@ -28,11 +28,14 @@ constexpr size_t run_offsets_line(D *WJR_RESTRICT output, [[maybe_unused]] size_
     if (count == 0)
         return 0;
     size_t runs = 1;
+    const T *previous = input;
     for (size_t i = 1; i != count; ++i) {
-        if (!static_cast<bool>(std::invoke(equal, input[(i - 1) * step], input[i * step]))) {
+        const T *current = previous + step;
+        if (!static_cast<bool>(std::invoke(equal, *previous, *current))) {
             WJR_ASSERT_L2(runs < capacity);
             output[runs++] = static_cast<D>(i);
         }
+        previous = current;
     }
     WJR_ASSERT_L2(runs < capacity);
     output[runs] = static_cast<D>(count);

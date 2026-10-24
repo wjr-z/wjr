@@ -175,4 +175,26 @@ TEST(NpRunOffsets, RandomOracle) {
         EXPECT_EQ(keys, original);
     }
 }
+
+TEST(NpRunOffsets, ExactPhysicalSpanAndOriginalAdjacentReferences) {
+    for (size_t step : {size_t{1}, size_t{2}, size_t{3}, size_t{5}}) {
+        constexpr size_t count = 4;
+        std::vector<int> keys((count - 1) * step + 1, -99);
+        for (size_t i = 0; i != count; ++i)
+            keys[i * step] = static_cast<int>(i / 2);
+        size_t calls = 0;
+        auto equal = [&](const int &left, const int &right) {
+            EXPECT_EQ(&left, keys.data() + calls * step);
+            EXPECT_EQ(&right, keys.data() + (calls + 1) * step);
+            ++calls;
+            return left == right;
+        };
+        unsigned output[3];
+        EXPECT_EQ(
+            np::run_offsets_to(view<unsigned>(output, 3), strided(keys.data(), count, step), equal),
+            2);
+        EXPECT_EQ(calls, count - 1);
+        EXPECT_EQ((std::array{output[0], output[1], output[2]}), (std::array{0u, 2u, 4u}));
+    }
+}
 } // namespace
