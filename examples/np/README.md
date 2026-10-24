@@ -306,3 +306,10 @@ allocated by WJR. See [rank.cpp](rank.cpp) and the
 omitting pairs containing NaNs. The numerical kernels borrow both inputs and
 allocate no intermediate arrays. See [statistics.cpp](statistics.cpp) and the
 [statistics contract](../../docs/design/tensor-statistics.md).
+
+## Segmented reductions
+
+`wjr_np_segmented_reduce` reuses a compact offset array for sums, means, and a
+custom minimum fold. Empty segments keep each operation's identity or empty
+result; no grouped container is built. See [segmented_reduce.cpp](segmented_reduce.cpp)
+and the [segmented reduction contract](../../docs/design/tensor-segmented-reduce.md).
