@@ -30,49 +30,6 @@ constexpr bool searchsorted_before(T element, T value) noexcept {
     }
 }
 
-template <search_side Side, size_t Block, class D, class T, class OutputStep, class InputStep,
-          class QueryStep>
-WJR_INTRINSIC_INLINE constexpr void
-searchsorted_batch_line(D *output, const T *input, size_t count, const T *values,
-                        size_t query_count, OutputStep output_step, InputStep input_step,
-                        QueryStep query_step) noexcept {
-    size_t start = 0;
-    for (; query_count - start >= Block; start += Block) {
-        std::array<size_t, Block> bases;
-        std::array<T, Block> keys;
-        auto length = count;
-        auto half = length / 2;
-        length -= half;
-        const auto pivot = input[half * input_step];
-        for (size_t i = 0; i != Block; ++i) {
-            keys[i] = values[(start + i) * query_step];
-            bases[i] = searchsorted_before<Side>(pivot, keys[i]) * half;
-        }
-        while (length > 1) {
-            half = length / 2;
-            length -= half;
-            for (size_t i = 0; i != Block; ++i)
-                bases[i] +=
-                    searchsorted_before<Side>(input[(bases[i] + half) * input_step], keys[i]) *
-                    half;
-        }
-        for (size_t i = 0; i != Block; ++i)
-            output[(start + i) * output_step] = static_cast<D>(
-                bases[i] + searchsorted_before<Side>(input[bases[i] * input_step], keys[i]));
-    }
-    for (; start != query_count; ++start) {
-        const auto value = values[start * query_step];
-        size_t base = 0, length = count;
-        while (length > 1) {
-            const auto half = length / 2;
-            length -= half;
-            base += searchsorted_before<Side>(input[(base + half) * input_step], value) * half;
-        }
-        output[start * output_step] =
-            static_cast<D>(base + searchsorted_before<Side>(input[base * input_step], value));
-    }
-}
-
 template <search_side Side, bool Contiguous, bool NaN = false, class T, class Step>
 constexpr size_t searchsorted_index(const T *input, size_t count, Step step,
                                     std::remove_cv_t<T> value) noexcept {
@@ -104,6 +61,57 @@ constexpr size_t searchsorted_index(const T *input, size_t count, Step step,
         }
     }
     return first;
+}
+
+template <search_side Side, bool Contiguous, class T, class Step>
+constexpr size_t searchsorted_value_index(const T *input, size_t count, Step step,
+                                          std::remove_cv_t<T> value) noexcept {
+    if constexpr (std::is_floating_point_v<T>) {
+        if (value != value) {
+            if constexpr (Side == search_side::right)
+                return count;
+            else
+                return searchsorted_index<Side, Contiguous, true>(input, count, step, value);
+        }
+    }
+    return searchsorted_index<Side, Contiguous>(input, count, step, value);
+}
+
+template <search_side Side, size_t Block, bool Contiguous, class D, class T, class OutputStep,
+          class InputStep, class QueryStep>
+WJR_INTRINSIC_INLINE constexpr void
+searchsorted_batch_line(D *output, const T *input, size_t count, const T *values,
+                        size_t query_count, OutputStep output_step, InputStep input_step,
+                        QueryStep query_step) noexcept {
+    size_t start = 0;
+    for (; query_count - start >= Block; start += Block) {
+        std::array<size_t, Block> bases;
+        std::array<T, Block> keys;
+        auto length = count;
+        auto half = length / 2;
+        length -= half;
+        const auto pivot = input[half * input_step];
+        for (size_t i = 0; i != Block; ++i) {
+            keys[i] = values[(start + i) * query_step];
+            bases[i] = searchsorted_before<Side>(pivot, keys[i]) * half;
+        }
+        while (length > 1) {
+            half = length / 2;
+            length -= half;
+            for (size_t i = 0; i != Block; ++i)
+                bases[i] +=
+                    searchsorted_before<Side>(input[(bases[i] + half) * input_step], keys[i]) *
+                    half;
+        }
+        for (size_t i = 0; i != Block; ++i)
+            output[(start + i) * output_step] = static_cast<D>(
+                bases[i] + searchsorted_before<Side>(input[bases[i] * input_step], keys[i]));
+    }
+    for (; start != query_count; ++start) {
+        const auto value = values[start * query_step];
+        output[start * output_step] = static_cast<D>(
+            searchsorted_value_index<Side, Contiguous>(input, count, input_step, value));
+    }
 }
 
 } // namespace detail
@@ -139,19 +147,9 @@ constexpr void searchsorted_to(tensor_view<D, DE, DL> dst, tensor_view<T, SE, SL
     detail::apply_kernel(
         dst,
         [input, count, step](D &output, const std::remove_cv_t<Q> &value) noexcept {
-            if constexpr (std::is_floating_point_v<Q>) {
-                if (value != value) {
-                    if constexpr (Side == search_side::right)
-                        output = static_cast<D>(count);
-                    else
-                        output = static_cast<D>(
-                            detail::searchsorted_index<Side, detail::packed_layout<SL>, true>(
-                                input, count, step, value));
-                    return;
-                }
-            }
-            output = static_cast<D>(detail::searchsorted_index<Side, detail::packed_layout<SL>>(
-                input, count, step, value));
+            output =
+                static_cast<D>(detail::searchsorted_value_index<Side, detail::packed_layout<SL>>(
+                    input, count, step, value));
         },
         queries);
 }
@@ -176,7 +174,8 @@ WJR_INTRINSIC_INLINE
     }
     if constexpr (std::numeric_limits<D>::digits < std::numeric_limits<size_t>::digits)
         WJR_ASSERT_L2(count <= static_cast<size_t>(std::numeric_limits<D>::max()));
-    detail::searchsorted_batch_line<Side, detail::searchsorted_batch_width>(
+    detail::searchsorted_batch_line<Side, detail::searchsorted_batch_width,
+                                    detail::packed_layout<typename Sorted::layout_type>>(
         dst.data_handle(), sorted.data_handle(), count, queries.data_handle(),
         static_cast<size_t>(queries.extent(0)), detail::axis_stride<0>(dst),
         detail::axis_stride<0>(sorted), detail::axis_stride<0>(queries));

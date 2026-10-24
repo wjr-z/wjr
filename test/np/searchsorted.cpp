@@ -150,6 +150,42 @@ TEST(NpSearchsortedBatch, EmptyAndBoolean) {
         EXPECT_EQ(many_output[i], many_queries[i] ? 3 : 2);
 }
 
+TEST(NpSearchsortedBatch, EveryTailSizeWithStridesAndMissingValues) {
+    const auto nan = std::numeric_limits<double>::quiet_NaN();
+    const auto inf = std::numeric_limits<double>::infinity();
+    const double input[] = {-inf, 99, -0., 99, 2, 99, 2, 99, inf, 99, nan};
+    const double keys[] = {-inf, -0., 0., 2, 3, inf, nan};
+    std::array<double, 49> values;
+    for (size_t i = 0; i != 25; ++i)
+        values[i * 2] = keys[i % 7];
+    using shape = np::dextents<size_t, 1>;
+    const np::layout_stride::mapping<shape> imap(shape(6), std::array<size_t, 1>{2});
+    const np::tensor_view<const double, shape, np::layout_stride> source(input, imap);
+    for (size_t count = 0; count != 26; ++count) {
+        const np::layout_stride::mapping<shape> qmap(shape(count), std::array<size_t, 1>{2}),
+            omap(shape(count), std::array<size_t, 1>{3});
+        const np::tensor_view<const double, shape, np::layout_stride> queries(values.data(), qmap);
+        std::array<int, 75> actual;
+        std::array<int, 25> expected;
+        actual.fill(-99);
+        const np::tensor_view<int, shape, np::layout_stride> dst(actual.data(), omap);
+        const vector_view<int> reference(expected.data(), count);
+        const auto check = [&] {
+            for (size_t i = 0; i != count; ++i)
+                EXPECT_EQ(actual[i * 3], expected[i]) << count << ':' << i;
+            for (size_t i = 0; i != actual.size(); ++i)
+                if (i % 3 != 0 || i / 3 >= count)
+                    EXPECT_EQ(actual[i], -99);
+        };
+        np::searchsorted_to(reference, source, queries);
+        np::searchsorted_batch_to(dst, source, queries);
+        check();
+        np::searchsorted_to<np::search_side::right>(reference, source, queries);
+        np::searchsorted_batch_to<np::search_side::right>(dst, source, queries);
+        check();
+    }
+}
+
 TEST(NpSearchsorted, BoundariesDuplicatesAndConstantEvaluation) {
     EXPECT_TRUE(constant_search());
     const uint64_t sorted[] = {0, UINT64_MAX - 1, UINT64_MAX};
