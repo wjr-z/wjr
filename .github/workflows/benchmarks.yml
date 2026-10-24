@@ -35,6 +35,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Init submodule
         run: git submodule update --init --recursive
@@ -118,7 +120,7 @@ jobs:
           database += json.loads(pathlib.Path('build-clang/compile_commands.json').read_text())
           for entry in database:
               name = pathlib.Path(entry['file']).name
-              if name not in ('np_merge.cpp'):
+              if name != 'np_merge.cpp':
                   continue
               command = entry.get('arguments') or shlex.split(entry['command'])
               args = []
