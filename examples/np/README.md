@@ -328,3 +328,13 @@ allocate no intermediate arrays. See [statistics.cpp](statistics.cpp) and the
 custom minimum fold. Empty segments keep each operation's identity or empty
 result; no grouped container is built. See [segmented_reduce.cpp](segmented_reduce.cpp)
 and the [segmented reduction contract](../../docs/design/tensor-segmented-reduce.md).
+
+## Reuse a sorting permutation
+
+`wjr_np_argsort` sorts indices without moving the source, then uses `take_to`
+to reorder a separate label array. Stable ordering needs no extra sorting buffer.
+See [argsort.cpp](argsort.cpp) and the [argsort contract](../../docs/design/tensor-argsort.md).
+
+`wjr_np_take` gathers repeated indices into a two-dimensional destination.
+The output has the index array's shape; all storage belongs to the caller.
+See [take.cpp](take.cpp) and the [indexed-read contract](../../docs/design/tensor-take.md).
