@@ -1,7 +1,9 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <limits>
 #include <random>
+#include <type_traits>
 #include <vector>
 
 #include <benchmark/benchmark.h>
@@ -231,4 +233,166 @@ WJR_BENCH_SEARCH_IMPL(block32);
 WJR_BENCH_SEARCH_IMPL(shared8);
 #undef WJR_BENCH_SEARCH_IMPL
 #undef WJR_BENCH_SEARCH
+
+// Actual library kernels, including the same setup and scalar tail as the
+// public API. Handwritten block prototypes above are not substitutes for these.
+enum class width_candidate { scalar, public_batch, kernel4, kernel8, kernel16, kernel32 };
+
+template <width_candidate Candidate, np::search_side Side, bool Strided, class T, class D>
+WJR_NOINLINE void actual_search_call(D *output, const T *input, size_t count, const T *queries,
+                                     size_t query_count) noexcept {
+    constexpr size_t step = Strided ? 2 : 1;
+    using shape = np::dextents<size_t, 1>;
+    using layout = std::conditional_t<Strided, np::layout_stride, np::layout_right>;
+    const auto mapping = [](size_t size) {
+        if constexpr (Strided)
+            return
+                typename layout::template mapping<shape>(shape(size), std::array<size_t, 1>{step});
+        else
+            return typename layout::template mapping<shape>(shape(size));
+    };
+    const np::tensor_view<D, shape, layout> dst(output, mapping(query_count));
+    const np::tensor_view<const T, shape, layout> source(input, mapping(count)),
+        values(queries, mapping(query_count));
+    if constexpr (Candidate == width_candidate::scalar) {
+        np::searchsorted_to<Side>(dst, source, values);
+    } else if constexpr (Candidate == width_candidate::public_batch) {
+        np::searchsorted_batch_to<Side>(dst, source, values);
+    } else {
+        np::detail::assert_kernel_shape(dst, values);
+        if (dst.empty())
+            return;
+        if (count == 0) {
+            np::detail::apply_kernel(dst, [](D &value) noexcept { value = 0; });
+            return;
+        }
+        if constexpr (std::numeric_limits<D>::digits < std::numeric_limits<size_t>::digits)
+            WJR_ASSERT_L2(count <= static_cast<size_t>(std::numeric_limits<D>::max()));
+        constexpr size_t width = Candidate == width_candidate::kernel4    ? 4
+                                 : Candidate == width_candidate::kernel8  ? 8
+                                 : Candidate == width_candidate::kernel16 ? 16
+                                                                          : 32;
+        np::detail::searchsorted_batch_line<Side, width, !Strided>(
+            dst.data_handle(), source.data_handle(), count, values.data_handle(), query_count,
+            np::detail::axis_stride<0>(dst), np::detail::axis_stride<0>(source),
+            np::detail::axis_stride<0>(values));
+    }
+}
+
+template <width_candidate Candidate, np::search_side Side, bool Strided, class T, class D,
+          bool Mixed>
+void actual_width_kernel(benchmark::State &state) {
+    constexpr size_t step = Strided ? 2 : 1;
+    constexpr size_t request_count = Mixed ? 32 : 1;
+    constexpr std::array<size_t, 9> lengths{0, 1, 31, 32, 33, 63, 64, 65, 1024};
+    const auto count = static_cast<size_t>(state.range(0));
+    const auto maximum = Mixed ? lengths.back() : static_cast<size_t>(state.range(1));
+    struct request {
+        size_t count;
+        size_t query_offset;
+    };
+    std::array<request, request_count> requests;
+    std::vector<T> input(count * step, T{}), queries(maximum * step * request_count, T{});
+    std::vector<D> output(maximum * step), expected(maximum * step);
+    for (size_t i = 0; i != count; ++i) {
+        T value = static_cast<T>(i / 2);
+        if constexpr (std::is_floating_point_v<T>) {
+            if (i + 2 >= count)
+                value = std::numeric_limits<T>::quiet_NaN();
+            else if (i == 0)
+                value = -std::numeric_limits<T>::infinity();
+            else if (i + 3 == count)
+                value = std::numeric_limits<T>::infinity();
+        }
+        input[i * step] = value;
+    }
+    std::mt19937 engine(5837);
+    size_t total_queries = 0;
+    for (size_t request_index = 0; request_index != request_count; ++request_index) {
+        const auto query_count = Mixed ? lengths[request_index % lengths.size()] : maximum;
+        const auto order =
+            Mixed ? (request_index / lengths.size()) % 3 : static_cast<size_t>(state.range(2));
+        const auto offset = request_index * maximum * step;
+        requests[request_index] = {query_count, offset};
+        total_queries += query_count;
+        for (size_t i = 0; i != query_count; ++i) {
+            T value = order == 1 ? static_cast<T>(count / 4)
+                      : order == 2
+                          ? static_cast<T>(i * count / (2 * query_count))
+                          : static_cast<T>(static_cast<int64_t>(engine() % (count / 2 + 3)) - 1);
+            if constexpr (std::is_floating_point_v<T>) {
+                if (i % 11 == 0)
+                    value = std::numeric_limits<T>::quiet_NaN();
+                else if (i % 11 == 1)
+                    value = std::numeric_limits<T>::infinity();
+                else if (i % 11 == 2)
+                    value = -std::numeric_limits<T>::infinity();
+            }
+            queries[offset + i * step] = value;
+        }
+        std::fill(output.begin(), output.end(), std::numeric_limits<D>::max());
+        std::fill(expected.begin(), expected.end(), std::numeric_limits<D>::max());
+        actual_search_call<width_candidate::scalar, Side, Strided>(
+            expected.data(), input.data(), count, queries.data() + offset, query_count);
+        actual_search_call<Candidate, Side, Strided>(output.data(), input.data(), count,
+                                                     queries.data() + offset, query_count);
+        if (output != expected) {
+            state.SkipWithError("actual library kernel differs from scalar search or writes holes");
+            return;
+        }
+    }
+    std::shuffle(requests.begin(), requests.end(), engine);
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(input.data());
+        benchmark::DoNotOptimize(queries.data());
+        for (const auto request : requests)
+            actual_search_call<Candidate, Side, Strided>(output.data(), input.data(), count,
+                                                         queries.data() + request.query_offset,
+                                                         request.count);
+        benchmark::DoNotOptimize(output.data());
+        benchmark::ClobberMemory();
+    }
+    state.SetItemsProcessed(state.iterations() * total_queries);
+}
+
+void actual_width_arguments(benchmark::internal::Benchmark *bench) {
+    for (int64_t count : {16, 65536})
+        for (int64_t queries : {1, 31, 32, 33, 63, 64, 65, 1024})
+            for (int64_t order : {0, 1, 2})
+                bench->Args({count, queries, order});
+    bench->UseRealTime();
+}
+
+void actual_float_arguments(benchmark::internal::Benchmark *bench) {
+    for (int64_t count : {0, 16, 65536})
+        for (int64_t queries : {1, 33, 65, 1024})
+            bench->Args({count, queries, 0});
+    bench->UseRealTime();
+}
+
+void actual_mixed_arguments(benchmark::internal::Benchmark *bench) {
+    for (int64_t count : {0, 16, 65536})
+        bench->Args({count, 0, 0});
+    bench->UseRealTime();
+}
+
+#define WJR_ACTUAL_WIDTH(Candidate, Side, Strided, T, D, Mixed, Arguments)                         \
+    BENCHMARK_TEMPLATE(actual_width_kernel, width_candidate::Candidate, np::search_side::Side,     \
+                       Strided, T, D, Mixed)                                                       \
+        ->Apply(Arguments)
+#define WJR_ACTUAL_CANDIDATE(Candidate)                                                            \
+    WJR_ACTUAL_WIDTH(Candidate, left, false, int64_t, size_t, false, actual_width_arguments);      \
+    WJR_ACTUAL_WIDTH(Candidate, left, true, int64_t, size_t, false, actual_width_arguments);       \
+    WJR_ACTUAL_WIDTH(Candidate, left, false, double, uint32_t, false, actual_float_arguments);     \
+    WJR_ACTUAL_WIDTH(Candidate, right, true, double, uint32_t, false, actual_float_arguments);     \
+    WJR_ACTUAL_WIDTH(Candidate, left, false, int64_t, size_t, true, actual_mixed_arguments);       \
+    WJR_ACTUAL_WIDTH(Candidate, right, true, int64_t, size_t, true, actual_mixed_arguments)
+WJR_ACTUAL_CANDIDATE(scalar);
+WJR_ACTUAL_CANDIDATE(public_batch);
+WJR_ACTUAL_CANDIDATE(kernel4);
+WJR_ACTUAL_CANDIDATE(kernel8);
+WJR_ACTUAL_CANDIDATE(kernel16);
+WJR_ACTUAL_CANDIDATE(kernel32);
+#undef WJR_ACTUAL_CANDIDATE
+#undef WJR_ACTUAL_WIDTH
 } // namespace
