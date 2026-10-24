@@ -93,6 +93,7 @@ elseif(WJR_BENCHMARK_PROFILE STREQUAL "np")
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_run_offsets.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_argpartition.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_take.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/np_put.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_rank.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_statistics.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_segmented_reduce.cpp

@@ -369,6 +369,12 @@ See [argsort.cpp](argsort.cpp) and the [argsort contract](../../docs/design/tens
 The output has the index array's shape; all storage belongs to the caller.
 See [take.cpp](take.cpp) and the [indexed-read contract](../../docs/design/tensor-take.md).
 
+## Apply indexed updates
+
+`wjr_np_put` writes sparse updates into an existing caller-owned buffer.
+Repeated indices keep the last update; unaddressed entries remain intact.
+See [put.cpp](put.cpp) and the [indexed-write contract](../../docs/design/tensor-put.md).
+
 ## Select indices without a full sort
 
 `wjr_np_argpartition` selects the three largest values without moving the source

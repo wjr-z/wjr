@@ -101,6 +101,8 @@ owner/eval 仍使用 shape_result 报告必要元数据失败，见[结果类型
 直接组合两个已排序 view，无额外排序或工作区。
 `<wjr/np/argsort.hpp>` 提供不移动源数据的[索引排序](../design/tensor-argsort.md)，
 可通过 `<wjr/np/take.hpp>` 的[按索引读取](../design/tensor-take.md)复用同一排列重排其他数组。
+`<wjr/np/put.hpp>` 提供[按索引写入](../design/tensor-put.md)，
+依输入顺序更新已有缓冲，重复索引保留最后一次写入，其他位置及孔洞保持原值。
 `<wjr/np/argpartition.hpp>` 提供保留源数据的[索引多位置选择](../design/tensor-argpartition.md)，
 用于只取部分位置或无序的最大/最小若干项，避免必须完整排序。
 `<wjr/np/rank.hpp>` 提供复用调用方工作区的[单轴排名](../design/tensor-rank.md)，
