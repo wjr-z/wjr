@@ -338,3 +338,10 @@ See [argsort.cpp](argsort.cpp) and the [argsort contract](../../docs/design/tens
 `wjr_np_take` gathers repeated indices into a two-dimensional destination.
 The output has the index array's shape; all storage belongs to the caller.
 See [take.cpp](take.cpp) and the [indexed-read contract](../../docs/design/tensor-take.md).
+
+## Select indices without a full sort
+
+`wjr_np_argpartition` selects the three largest values without moving the source
+or sorting the selected prefix. The same indices can gather matching records
+from another array. See [argpartition.cpp](argpartition.cpp) and the
+[indexed selection contract](../../docs/design/tensor-argpartition.md).
