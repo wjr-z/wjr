@@ -292,6 +292,13 @@ window's physical pitch; equal values retain their first logical occurrence.
 See [the extrema contract](../../docs/design/tensor-extrema.md) for empty-input
 preconditions, dtype, NaN and signed-zero behavior.
 
+## Locate extrema along an axis
+
+`wjr_np_extrema_axis` finds each row's minimum column and each column's maximum
+row, preserving the first tie. The second output demonstrates `keepdims`.
+See [extrema_axis.cpp](extrema_axis.cpp) and the
+[axis-index contract](../../docs/design/tensor-axis-argextrema.md).
+
 ## Stable row normalization
 
 `wjr_np_norm_axis` computes stable row L2 norms into a keepdims workspace and
@@ -328,6 +335,12 @@ index container. See [searchsorted.cpp](searchsorted.cpp) and the
 output arrays, returning the actual counts without a counting pass or allocation.
 See [compact.cpp](compact.cpp) and the [compaction contract](../../docs/design/tensor-compaction.md).
 
+## Merge already sorted arrays
+
+`wjr_np_merge` stably merges two sorted borrowed arrays into caller-owned output.
+Equal values from the left precede those from the right; neither input is changed.
+See [merge.cpp](merge.cpp) and the [merge contract](../../docs/design/tensor-merge.md).
+
 ## Paired scalar statistics
 
 `wjr_np_statistics` computes sample covariance and a Pearson coefficient while
@@ -348,6 +361,18 @@ custom minimum fold. Empty segments keep each operation's identity or empty
 result; no grouped container is built. See [segmented_reduce.cpp](segmented_reduce.cpp)
 and the [segmented reduction contract](../../docs/design/tensor-segmented-reduce.md).
 
+## Sort values and reduce adjacent runs
+
+`wjr_np_sort` demonstrates source-preserving and in-place value sorting.
+`wjr_np_run_offsets` extracts adjacent run boundaries and reduces a separate
+value array with those boundaries. Nonadjacent equal keys remain separate.
+
+`wjr_np_sorted_runs` composes sorting, run extraction, segmented sums and first
+differences into per-value counts and sums. All intermediate storage is explicit
+and caller-owned; no grouping container or hidden workspace is introduced.
+See [sorted_runs.cpp](sorted_runs.cpp), the [sorting contract](../../docs/design/tensor-sort.md)
+and the [run-boundary contract](../../docs/design/tensor-run-offsets.md).
+
 ## Reuse a sorting permutation
 
 `wjr_np_argsort` sorts indices without moving the source, then uses `take_to`
@@ -357,6 +382,12 @@ See [argsort.cpp](argsort.cpp) and the [argsort contract](../../docs/design/tens
 `wjr_np_take` gathers repeated indices into a two-dimensional destination.
 The output has the index array's shape; all storage belongs to the caller.
 See [take.cpp](take.cpp) and the [indexed-read contract](../../docs/design/tensor-take.md).
+
+## Apply indexed updates
+
+`wjr_np_put` writes sparse updates into an existing caller-owned buffer.
+Repeated indices keep the last update; unaddressed entries remain intact.
+See [put.cpp](put.cpp) and the [indexed-write contract](../../docs/design/tensor-put.md).
 
 ## Select indices without a full sort
 

@@ -88,14 +88,19 @@ elseif(WJR_BENCHMARK_PROFILE STREQUAL "np")
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_compact.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_partition.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_searchsorted.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/np_merge.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_argsort.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/np_sort.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/np_run_offsets.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_argpartition.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_take.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/np_put.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_rank.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_statistics.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_segmented_reduce.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_bincount.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_expression_reduce.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/np_extrema_axis.cpp
     )
     set_source_files_properties(src/np_expression_reduce.cpp PROPERTIES
         COMPILE_OPTIONS "$<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-ffp-contract=off>"
