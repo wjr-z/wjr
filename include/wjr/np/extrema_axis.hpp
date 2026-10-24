@@ -1,6 +1,8 @@
 #ifndef WJR_NP_EXTREMA_AXIS_HPP__
 #define WJR_NP_EXTREMA_AXIS_HPP__
 
+#include <limits>
+
 #include <wjr/np/reduce.hpp>
 
 namespace wjr::np {

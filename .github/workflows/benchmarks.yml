@@ -35,6 +35,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Init submodule
         run: git submodule update --init --recursive
@@ -69,6 +71,7 @@ jobs:
           fi
           cmake -B build -GNinja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -DWJR_BUILD_BENCHMARKS=ON \
             -DWJR_BUILD_TESTS=OFF \
             -DWJR_BENCHMARK_PROFILE="$BENCHMARK_PROFILE" \
@@ -81,6 +84,89 @@ jobs:
       - name: Build benchmarks
         run: cmake --build build --target benchmarks --parallel
 
+      - name: Build Clang primitive research benchmarks
+        run: |
+          cmake -B build-clang -GNinja \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DWJR_BUILD_BENCHMARKS=ON \
+            -DWJR_BUILD_TESTS=OFF \
+            -DWJR_BENCHMARK_PROFILE=np \
+            -DWJR_BENCHMARK_XSIMD=ON \
+            -DWJR_ENABLE_NP=ON \
+            -DWJR_ENABLE_XSIMD=ON \
+            -DWJR_USE_GMP_TESTS=OFF \
+            -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent"
+          cmake --build build-clang --target benchmarks --parallel
+
+      - name: Capture actual primitive benchmark code generation
+        shell: bash
+        run: |
+          mkdir -p primitive-codegen/source
+          lscpu > primitive-codegen/lscpu.txt
+          python3 - <<'PY'
+          import json
+          import hashlib
+          import pathlib
+          import shlex
+          import subprocess
+
+          output = pathlib.Path('primitive-codegen').resolve()
+          modules = {
+              'put': ('81d58932', 'include/wjr/np/put.hpp', 'benchmarks/src/np_put.cpp'),
+              'concatenate': ('ff92d85638a4810db7a1f7b1215b448dcf6afec2', 'include/wjr/np/concatenate.hpp', 'benchmarks/src/np_concatenate.cpp'),
+              'extrema_axis': ('fb224cc8e053a12386d0098e240d0eff225a7e2a', 'include/wjr/np/extrema_axis.hpp', 'benchmarks/src/np_extrema_axis.cpp'),
+          }
+          provenance = {'head': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+                        'note': 'extrema_axis.hpp adds only explicit <limits>, matching the published module',
+                        'modules': {}}
+          for module, (commit, header, benchmark) in modules.items():
+              full_commit = subprocess.check_output(['git', 'rev-parse', commit], text=True).strip()
+              files = {}
+              for filename in (header, benchmark):
+                  data = pathlib.Path(filename).read_bytes()
+                  (output / 'source' / pathlib.Path(filename).name).write_bytes(data)
+                  files[filename] = hashlib.sha256(data).hexdigest()
+              provenance['modules'][module] = {'commit': full_commit, 'files': files}
+              diff = subprocess.check_output(['git', 'diff', full_commit, '--', header, benchmark])
+              (output / (module + '-source-diff.patch')).write_bytes(diff)
+          (output / 'source-provenance.json').write_text(json.dumps(provenance, indent=2))
+          found = set()
+          database = json.loads(pathlib.Path('build/compile_commands.json').read_text())
+          database += json.loads(pathlib.Path('build-clang/compile_commands.json').read_text())
+          for entry in database:
+              name = pathlib.Path(entry['file']).name
+              if name not in ('np_put.cpp', 'np_concatenate.cpp', 'np_extrema_axis.cpp'):
+                  continue
+              command = entry.get('arguments') or shlex.split(entry['command'])
+              args = []
+              skip = False
+              for arg in command:
+                  if skip:
+                      skip = False
+                      continue
+                  if arg in ('-o', '-MF', '-MT', '-MQ'):
+                      skip = True
+                  elif arg not in ('-c', '-MD', '-MMD'):
+                      args.append(arg)
+              stem = pathlib.Path(name).stem
+              if 'build-clang' in entry['directory']:
+                  stem = 'clang-' + stem
+              found.add(stem)
+              (output / (stem + '-command.json')).write_text(json.dumps(entry, indent=2))
+              subprocess.run(args + ['-S', '-fverbose-asm', '-o', str(output / (stem + '.s'))],
+                             cwd=entry['directory'], check=True)
+              with (output / (stem + '-compiler.txt')).open('w') as log:
+                  subprocess.run([args[0], '--version'], stdout=log, stderr=subprocess.STDOUT, check=True)
+              with (output / (stem + '-target.txt')).open('w') as log:
+                  flags = ['-march=native', '-###', '-x', 'c++', '/dev/null'] if 'clang' in args[0] else ['-march=native', '-Q', '--help=target']
+                  subprocess.run([args[0]] + flags,
+                                 stdout=log, stderr=subprocess.STDOUT, check=True)
+          expected = {prefix + stem for prefix in ('', 'clang-') for stem in ('np_put', 'np_concatenate', 'np_extrema_axis')}
+          assert found == expected, (found, expected)
+          PY
+
       - name: Run benchmarks
         run: |
           if [[ "$BENCHMARK_PROFILE" == "all" ]]; then
@@ -91,11 +177,21 @@ jobs:
             min_time=0.02s
           fi
           ./build/bin/benchmarks \
+            --benchmark_filter='(BM_NpPut|BM_NpConcatenate|BM_NpAxisArgextrema)' \
+            --benchmark_enable_random_interleaving=true \
             --benchmark_format=json \
             --benchmark_out=benchmark-results.json \
             --benchmark_repetitions="$repetitions" \
             --benchmark_report_aggregates_only=true \
             --benchmark_min_time="$min_time"
+          ./build-clang/bin/benchmarks \
+            --benchmark_filter='(BM_NpPut|BM_NpConcatenate|BM_NpAxisArgextrema)' \
+            --benchmark_enable_random_interleaving=true \
+            --benchmark_format=json \
+            --benchmark_out=clang-benchmark-results.json \
+            --benchmark_repetitions=3 \
+            --benchmark_report_aggregates_only=true \
+            --benchmark_min_time=0.02s
 
       - name: Download previous benchmark result
         uses: dawidd6/action-download-artifact@v9
@@ -128,4 +224,6 @@ jobs:
           path: |
             benchmark-results.json
             benchmark-comparison.json
+            clang-benchmark-results.json
+            primitive-codegen/
           retention-days: 90
