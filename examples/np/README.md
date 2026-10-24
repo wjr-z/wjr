@@ -322,6 +322,12 @@ omitting pairs containing NaNs. The numerical kernels borrow both inputs and
 allocate no intermediate arrays. See [statistics.cpp](statistics.cpp) and the
 [statistics contract](../../docs/design/tensor-statistics.md).
 
+## Count and accumulate integer bins
+
+`wjr_np_bincount` counts repeated integer indices and accumulates weights into
+caller-owned output bins. Both operations reset the output and use no workspace.
+See [bincount.cpp](bincount.cpp) and the [bincount contract](../../docs/design/tensor-bincount.md).
+
 ## Segmented reductions
 
 `wjr_np_segmented_reduce` reuses a compact offset array for sums, means, and a
