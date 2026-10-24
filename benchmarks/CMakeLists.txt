@@ -89,6 +89,7 @@ elseif(WJR_BENCHMARK_PROFILE STREQUAL "np")
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_rank.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_statistics.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_segmented_reduce.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/np_bincount.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_expression_reduce.cpp
     )
     set_source_files_properties(src/np_expression_reduce.cpp PROPERTIES
