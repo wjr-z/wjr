@@ -93,6 +93,8 @@ owner/eval 仍使用 shape_result 报告必要元数据失败，见[结果类型
 它复用固定版本 Kokkos mdspan，并传递 expected 所需的 baseline 断言与迭代器依赖，
 不依赖 `wjr::isa`，不默认链接到 `wjr::wjr`。
 安装消费使用 `find_package(wjr CONFIG REQUIRED COMPONENTS np)`。
+`<wjr/np/rank.hpp>` 提供复用调用方工作区的[单轴排名](../design/tensor-rank.md)，
+支持并列规则、NaN policy 及连续/正 stride/padded view。
 数据生命周期、未检查构造的前置条件和已测空间限制见
 [借用数据模型](../design/tensor-data-model.md)与[核心标准](../design/np-core-standard.md)。`<wjr/np/tensor.hpp>` 提供
 容器管理生命周期的连续 owner 及显式借用，见

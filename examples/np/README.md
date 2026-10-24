@@ -292,3 +292,10 @@ uses the existing broadcast evaluator to normalize extreme-magnitude rows.
 Every row in the example has a finite nonzero norm; zero/nonfinite handling
 belongs to the application's normalization policy. See
 [norm_axis.cpp](norm_axis.cpp) and the [axis norm contract](../../docs/design/tensor-axis-norm.md).
+
+## Reusable ranking workspace
+
+`wjr_np_rank` ranks each row with average ties and omitted NaNs. One caller-owned
+index workspace is reused across rows; no result or temporary container is
+allocated by WJR. See [rank.cpp](rank.cpp) and the
+[ranking contract](../../docs/design/tensor-rank.md) for tie policies and strided views.
