@@ -299,3 +299,10 @@ belongs to the application's normalization policy. See
 index workspace is reused across rows; no result or temporary container is
 allocated by WJR. See [rank.cpp](rank.cpp) and the
 [ranking contract](../../docs/design/tensor-rank.md) for tie policies and strided views.
+
+## Paired scalar statistics
+
+`wjr_np_statistics` computes sample covariance and a Pearson coefficient while
+omitting pairs containing NaNs. The numerical kernels borrow both inputs and
+allocate no intermediate arrays. See [statistics.cpp](statistics.cpp) and the
+[statistics contract](../../docs/design/tensor-statistics.md).
