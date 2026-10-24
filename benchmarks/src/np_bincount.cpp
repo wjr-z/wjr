@@ -90,12 +90,12 @@ void bincount_cases(benchmark::internal::Benchmark *benchmark) {
                 benchmark->Args({count, bins, repeated});
 }
 
-BENCHMARK_TEMPLATE(BM_NpBincount, true, false, false)->Apply(bincount_cases);
-BENCHMARK_TEMPLATE(BM_NpBincount, false, false, false)->Apply(bincount_cases);
-BENCHMARK_TEMPLATE(BM_NpBincount, true, true, false)->Apply(bincount_cases);
-BENCHMARK_TEMPLATE(BM_NpBincount, false, true, false)->Apply(bincount_cases);
-BENCHMARK_TEMPLATE(BM_NpBincount, true, false, true)->Apply(bincount_cases);
-BENCHMARK_TEMPLATE(BM_NpBincount, false, false, true)->Apply(bincount_cases);
-BENCHMARK_TEMPLATE(BM_NpBincount, true, true, true)->Apply(bincount_cases);
-BENCHMARK_TEMPLATE(BM_NpBincount, false, true, true)->Apply(bincount_cases);
+BENCHMARK_TEMPLATE(BM_NpBincount, true, false, false)->Apply(bincount_cases)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpBincount, false, false, false)->Apply(bincount_cases)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpBincount, true, true, false)->Apply(bincount_cases)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpBincount, false, true, false)->Apply(bincount_cases)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpBincount, true, false, true)->Apply(bincount_cases)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpBincount, false, false, true)->Apply(bincount_cases)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpBincount, true, true, true)->Apply(bincount_cases)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpBincount, false, true, true)->Apply(bincount_cases)->UseRealTime();
 } // namespace

@@ -100,6 +100,8 @@ owner/eval 仍使用 shape_result 报告必要元数据失败，见[结果类型
 `<wjr/np/statistics.hpp>` 提供无临时数组的[协方差与 Pearson 系数](../design/tensor-statistics.md)，
 包括成对忽略 NaN 的独立入口。
 `<wjr/np/segmented_reduce.hpp>` 提供只借用边界数组的[分段 fold、sum 和 mean](../design/tensor-segmented-reduce.md)。
+`<wjr/np/bincount.hpp>` 提供输出由调用方管理的[整数分桶计数与加权累加](../design/tensor-bincount.md)，
+无需排序索引、创建分组容器或分配临时缓冲。
 数据生命周期、未检查构造的前置条件和已测空间限制见
 [借用数据模型](../design/tensor-data-model.md)与[核心标准](../design/np-core-standard.md)。`<wjr/np/tensor.hpp>` 提供
 容器管理生命周期的连续 owner 及显式借用，见
