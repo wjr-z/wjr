@@ -67,7 +67,7 @@ constexpr void fill_quantile_nan(Dst dst) noexcept {
 
 // Values is a mutable, NaN-free prefix. Its dtype is preserved through selection;
 // only the selected endpoints are converted for interpolation.
-template <class Dst, class T, class Queries>
+template <partition_method Method, class Dst, class T, class Queries>
 constexpr void quantiles_to(Dst dst, T *values, size_t count, Queries probabilities,
                             std::span<size_t> rank_workspace) noexcept {
     if (count == 0) {
@@ -89,8 +89,7 @@ constexpr void quantiles_to(Dst dst, T *values, size_t count, Queries probabilit
         ranks[i * 2 + 1] = lower + (fraction != 0);
     }
     std::sort(ranks.begin(), ranks.end());
-    select_ranks<std::less<>>(values, 0, count, ranks,
-                              partition_depth_factor * std::bit_width(count));
+    rank_selector<Method>::template apply<std::less<>>(values, 0, count, ranks);
     auto *output = dst.data_handle();
     const auto output_step = axis_stride<0>(dst);
     for (size_t i = 0; i != queries; ++i) {
@@ -108,9 +107,11 @@ constexpr void quantiles_to(Dst dst, T *values, size_t count, Queries probabilit
 // leaves the discarded tail unspecified. Rank workspace contains at least 2Q
 // live size_t objects, disjoint from all views. Values, output, and probabilities
 // have pairwise disjoint logical storage.
-template <quantile_nan_policy NaN = quantile_nan_policy::propagate, class D, class DE, class DL,
+template <quantile_nan_policy NaN = quantile_nan_policy::propagate,
+          partition_method Method = partition_method::nth_element, class D, class DE, class DL,
           class T, class SE, class SL, class Q, class QE, class QL, size_t Extent>
-requires((NaN == quantile_nan_policy::propagate || NaN == quantile_nan_policy::omit) &&
+requires(detail::supported_partition_method<Method> &&
+         (NaN == quantile_nan_policy::propagate || NaN == quantile_nan_policy::omit) &&
          detail::quantile_vectors<D, DE, DL, T, SE, SL, Q, QE, QL> && !std::is_const_v<T> &&
          detail::packed_layout<SL>)
 constexpr void quantile_inplace_to(tensor_view<D, DE, DL> dst, tensor_view<T, SE, SL> values,
@@ -132,17 +133,20 @@ constexpr void quantile_inplace_to(tensor_view<D, DE, DL> dst, tensor_view<T, SE
             }
         }
     }
-    detail::quantiles_to(dst, data, count, probabilities, std::span<size_t>(rank_workspace));
+    detail::quantiles_to<Method>(dst, data, count, probabilities,
+                                 std::span<size_t>(rank_workspace));
 }
 
 // Preserve the source using caller-owned live workspace of the source dtype.
 // Data workspace has at least N elements, disjoint from source, probabilities,
 // destination and rank workspace. All numeric conversions must be representable.
 // Source and probabilities remain stable. No allocation or implicit copy-back.
-template <quantile_nan_policy NaN = quantile_nan_policy::propagate, class D, class DE, class DL,
+template <quantile_nan_policy NaN = quantile_nan_policy::propagate,
+          partition_method Method = partition_method::nth_element, class D, class DE, class DL,
           class T, class SE, class SL, class Q, class QE, class QL, size_t DataExtent,
           size_t RankExtent>
-requires((NaN == quantile_nan_policy::propagate || NaN == quantile_nan_policy::omit) &&
+requires(detail::supported_partition_method<Method> &&
+         (NaN == quantile_nan_policy::propagate || NaN == quantile_nan_policy::omit) &&
          detail::quantile_vectors<D, DE, DL, T, SE, SL, Q, QE, QL>)
 constexpr void quantile_to(tensor_view<D, DE, DL> dst, tensor_view<T, SE, SL> source,
                            tensor_view<Q, QE, QL> probabilities,
@@ -170,8 +174,8 @@ constexpr void quantile_to(tensor_view<D, DE, DL> dst, tensor_view<T, SE, SL> so
         }
         data_workspace[valid++] = value;
     }
-    detail::quantiles_to(dst, data_workspace.data(), valid, probabilities,
-                         std::span<size_t>(rank_workspace));
+    detail::quantiles_to<Method>(dst, data_workspace.data(), valid, probabilities,
+                                 std::span<size_t>(rank_workspace));
 }
 
 } // namespace wjr::np
