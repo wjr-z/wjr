@@ -315,6 +315,12 @@ grid, reusing caller-provided output arrays. Duplicate values need no special
 index container. See [searchsorted.cpp](searchsorted.cpp) and the
 [search contract](../../docs/design/tensor-searchsorted.md).
 
+## Compact selected values and positions
+
+`wjr_np_compact` writes masked values and logical nonzero positions into reusable
+output arrays, returning the actual counts without a counting pass or allocation.
+See [compact.cpp](compact.cpp) and the [compaction contract](../../docs/design/tensor-compaction.md).
+
 ## Paired scalar statistics
 
 `wjr_np_statistics` computes sample covariance and a Pearson coefficient while
