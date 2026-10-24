@@ -285,6 +285,13 @@ window's physical pitch; equal values retain their first logical occurrence.
 See [the extrema contract](../../docs/design/tensor-extrema.md) for empty-input
 preconditions, dtype, NaN and signed-zero behavior.
 
+## Locate extrema along an axis
+
+`wjr_np_extrema_axis` finds each row's minimum column and each column's maximum
+row, preserving the first tie. The second output demonstrates `keepdims`.
+See [extrema_axis.cpp](extrema_axis.cpp) and the
+[axis-index contract](../../docs/design/tensor-axis-argextrema.md).
+
 ## Stable row normalization
 
 `wjr_np_norm_axis` computes stable row L2 norms into a keepdims workspace and
