@@ -300,6 +300,13 @@ index workspace is reused across rows; no result or temporary container is
 allocated by WJR. See [rank.cpp](rank.cpp) and the
 [ranking contract](../../docs/design/tensor-rank.md) for tie policies and strided views.
 
+## Search in an ordered array
+
+`wjr_np_searchsorted` finds left/right insertion positions on a borrowed ordered
+grid, reusing caller-provided output arrays. Duplicate values need no special
+index container. See [searchsorted.cpp](searchsorted.cpp) and the
+[search contract](../../docs/design/tensor-searchsorted.md).
+
 ## Paired scalar statistics
 
 `wjr_np_statistics` computes sample covariance and a Pearson coefficient while
