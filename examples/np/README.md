@@ -351,6 +351,13 @@ See [argsort.cpp](argsort.cpp) and the [argsort contract](../../docs/design/tens
 The output has the index array's shape; all storage belongs to the caller.
 See [take.cpp](take.cpp) and the [indexed-read contract](../../docs/design/tensor-take.md).
 
+## Locate extrema along an axis
+
+`wjr_np_extrema_axis` finds each row's minimum column and each column's maximum
+row, preserving the first tie. The second output demonstrates `keepdims`.
+See [extrema_axis.cpp](extrema_axis.cpp) and the
+[axis-index contract](../../docs/design/tensor-axis-argextrema.md).
+
 ## Select indices without a full sort
 
 `wjr_np_argpartition` selects the three largest values without moving the source

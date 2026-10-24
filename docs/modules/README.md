@@ -95,6 +95,8 @@ owner/eval 仍使用 shape_result 报告必要元数据失败，见[结果类型
 安装消费使用 `find_package(wjr CONFIG REQUIRED COMPONENTS np)`。
 `<wjr/np/partition.hpp>` 和 `<wjr/np/quantile.hpp>` 提供共享划分工作的[多秩选择与线性分位数](../design/tensor-partition-quantile.md)。
 `<wjr/np/searchsorted.hpp>` 提供支持重复值与 NaN 排序约定的[批量二分查找](../design/tensor-searchsorted.md)。
+`<wjr/np/extrema_axis.hpp>` 提供输出到借用 view 的[单轴极值索引](../design/tensor-axis-argextrema.md)，
+保留首个相等值及首个 NaN 的轴内位置，支持 `keepdims` 与正 stride/padded 布局。
 `<wjr/np/argsort.hpp>` 提供不移动源数据的[索引排序](../design/tensor-argsort.md)，
 可通过 `<wjr/np/take.hpp>` 的[按索引读取](../design/tensor-take.md)复用同一排列重排其他数组。
 `<wjr/np/argpartition.hpp>` 提供保留源数据的[索引多位置选择](../design/tensor-argpartition.md)，
