@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <limits>
+#include <utility>
 
 #include <wjr/np/reduce.hpp>
 
@@ -44,6 +45,7 @@ constexpr size_t run_offsets_line(D *WJR_RESTRICT output, [[maybe_unused]] size_
 // Empty keys emit one zero. Destination must have room for the actual runs+1
 // offsets, represent keys.size(), and be disjoint from keys. Its suffix is
 // untouched. The borrowed callable is invoked once per adjacent pair in order;
+// it must not access destination storage or modify key storage.
 // a throwing comparison leaves the written prefix without a final sentinel.
 template <class D, class DE, class DL, class T, class TE, class TL, class Equal = std::equal_to<>>
 requires(std::integral<D> && !std::same_as<D, bool> && !std::is_const_v<D> &&

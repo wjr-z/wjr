@@ -341,6 +341,18 @@ custom minimum fold. Empty segments keep each operation's identity or empty
 result; no grouped container is built. See [segmented_reduce.cpp](segmented_reduce.cpp)
 and the [segmented reduction contract](../../docs/design/tensor-segmented-reduce.md).
 
+## Sort values and reduce adjacent runs
+
+`wjr_np_sort` demonstrates source-preserving and in-place value sorting.
+`wjr_np_run_offsets` extracts adjacent run boundaries and reduces a separate
+value array with those boundaries. Nonadjacent equal keys remain separate.
+
+`wjr_np_sorted_runs` composes sorting, run extraction, segmented sums and first
+differences into per-value counts and sums. All intermediate storage is explicit
+and caller-owned; no grouping container or hidden workspace is introduced.
+See [sorted_runs.cpp](sorted_runs.cpp), the [sorting contract](../../docs/design/tensor-sort.md)
+and the [run-boundary contract](../../docs/design/tensor-run-offsets.md).
+
 ## Reuse a sorting permutation
 
 `wjr_np_argsort` sorts indices without moving the source, then uses `take_to`

@@ -22,6 +22,8 @@ No sorting, hashing, allocation, or source mutation is performed.
   lvalues. It receives const references to adjacent keys, in source order,
   exactly `N-1` times for nonempty input. Its result is explicitly converted to
   `bool`; `noexcept` reflects both invocation and this conversion.
+- Keys remain stable during the call. The callable must not modify key storage
+  or access destination storage; its external bookkeeping is otherwise allowed.
 - Default equality groups signed zeros, but each NaN starts a new run. A custom
   equality callable may group NaNs or implement another adjacent relation.
 - If comparison throws, previously emitted starts remain written. There is no

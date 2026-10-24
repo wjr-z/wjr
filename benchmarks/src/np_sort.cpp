@@ -10,6 +10,7 @@
 
 namespace {
 namespace np = wjr::np;
+inline constexpr size_t sort_nan_period = 7;
 
 template <bool Library, bool Strided>
 WJR_NOINLINE void sort_copy_call(double *output, const double *input, size_t count) noexcept {
@@ -53,7 +54,7 @@ void sort_copy_kernel(benchmark::State &state) {
     else if (distribution == 2)
         std::sort(values.begin(), values.end(), std::greater<>{});
     if (distribution == 4)
-        for (size_t i = 0; i != count; i += 7)
+        for (size_t i = 0; i < count; i += sort_nan_period)
             values[i] = std::numeric_limits<double>::quiet_NaN();
     for (size_t i = 0; i != count; ++i)
         input[i * step] = values[i];
