@@ -40,12 +40,16 @@ WJR_NOINLINE void concatenate(double *WJR_RESTRICT output, const double *first,
             return;
         if constexpr (!Strided && Axis == 0) {
             const auto count = rows * cols;
+            // Flawfinder: ignore - fixture allocates both rows*cols output blocks.
             std::memcpy(output, first, count * sizeof(double));
+            // Flawfinder: ignore - the second block has count elements too.
             std::memcpy(output + count, second, count * sizeof(double));
         } else if constexpr (!Strided) {
             for (size_t row = 0; row != rows; ++row) {
+                // Flawfinder: ignore - each output row has space for both inputs.
                 std::memcpy(output + row * output_row_step, first + row * input_row_step,
                             cols * sizeof(double));
+                // Flawfinder: ignore - the second cols-wide block fits this row.
                 std::memcpy(output + row * output_row_step + cols, second + row * input_row_step,
                             cols * sizeof(double));
             }
