@@ -19,7 +19,7 @@ template <class Equal, class T>
 inline constexpr bool run_equality_nothrow = noexcept(static_cast<bool>(
     std::invoke(std::declval<Equal &>(), std::declval<const T &>(), std::declval<const T &>())));
 
-template <class D, class T, class Step, class Equal>
+template <bool Contiguous, class D, class T, class Step, class Equal>
 constexpr size_t run_offsets_line(D *WJR_RESTRICT output, [[maybe_unused]] size_t capacity,
                                   const T *input, size_t count, Step step,
                                   Equal &equal) noexcept(run_equality_nothrow<Equal, T>) {
@@ -28,14 +28,23 @@ constexpr size_t run_offsets_line(D *WJR_RESTRICT output, [[maybe_unused]] size_
     if (count == 0)
         return 0;
     size_t runs = 1;
-    const T *previous = input;
-    for (size_t i = 1; i != count; ++i) {
-        const T *current = previous + step;
-        if (!static_cast<bool>(std::invoke(equal, *previous, *current))) {
-            WJR_ASSERT_L2(runs < capacity);
-            output[runs++] = static_cast<D>(i);
+    if constexpr (Contiguous) {
+        for (size_t i = 1; i != count; ++i) {
+            if (!static_cast<bool>(std::invoke(equal, input[(i - 1) * step], input[i * step]))) {
+                WJR_ASSERT_L2(runs < capacity);
+                output[runs++] = static_cast<D>(i);
+            }
         }
-        previous = current;
+    } else {
+        const T *previous = input;
+        for (size_t i = 1; i != count; ++i) {
+            const T *current = previous + step;
+            if (!static_cast<bool>(std::invoke(equal, *previous, *current))) {
+                WJR_ASSERT_L2(runs < capacity);
+                output[runs++] = static_cast<D>(i);
+            }
+            previous = current;
+        }
     }
     WJR_ASSERT_L2(runs < capacity);
     output[runs] = static_cast<D>(count);
@@ -60,8 +69,10 @@ run_offsets_to(tensor_view<D, DE, DL> dst, tensor_view<T, TE, TL> keys,
                Equal &&equal = {}) noexcept(detail::run_equality_nothrow<Equal, T>) {
     const auto count = static_cast<size_t>(keys.extent(0));
     WJR_ASSERT_L2(count <= static_cast<std::make_unsigned_t<D>>(std::numeric_limits<D>::max()));
-    return detail::run_offsets_line(dst.data_handle(), static_cast<size_t>(dst.extent(0)),
-                                    keys.data_handle(), count, detail::axis_stride<0>(keys), equal);
+    return detail::run_offsets_line < detail::packed_layout<TL> ||
+           detail::padded_layout < TL >> (dst.data_handle(), static_cast<size_t>(dst.extent(0)),
+                                          keys.data_handle(), count, detail::axis_stride<0>(keys),
+                                          equal);
 }
 
 } // namespace wjr::np

@@ -115,6 +115,7 @@ void BM_NpRunOffsetsMixed(benchmark::State &state) {
     constexpr std::array<size_t, 4> steps{1, 2, 3, 5};
     const auto count = static_cast<size_t>(state.range(0));
     const auto distribution = state.range(1);
+    const auto selected_step = static_cast<size_t>(state.range(2));
     std::array<std::vector<uint64_t>, steps.size()> keys;
     std::vector<uint64_t> logical(count);
     std::vector<size_t> expected{0}, output(count + 1);
@@ -142,16 +143,30 @@ void BM_NpRunOffsetsMixed(benchmark::State &state) {
             return;
         }
     }
-    size_t stream = 0;
+    size_t stream = selected_step == 0
+                        ? 0
+                        : static_cast<size_t>(std::find(steps.begin(), steps.end(), selected_step) -
+                                              steps.begin());
     for (auto _ : state) {
         auto runs = run_offsets_runtime_call<Method>(output.data(), keys[stream].data(), count,
                                                      steps[stream]);
         benchmark::DoNotOptimize(runs);
         benchmark::DoNotOptimize(output.data());
         benchmark::ClobberMemory();
-        stream = (stream + 1) % steps.size();
+        if (selected_step == 0)
+            stream = (stream + 1) % steps.size();
     }
     state.SetItemsProcessed(state.iterations() * static_cast<int64_t>(count));
+}
+
+void run_offsets_runtime_cases(benchmark::internal::Benchmark *benchmark) {
+    for (int64_t count : {0, 1, 32, 1024, 65536})
+        for (int64_t distribution : {0, 1, 2, 3})
+            benchmark->Args({count, distribution, 0});
+    for (int64_t count : {1024, 65536})
+        for (int64_t distribution : {0, 1, 2, 3})
+            for (int64_t step : {1, 2, 3, 5})
+                benchmark->Args({count, distribution, step});
 }
 
 BENCHMARK_TEMPLATE(BM_NpRunOffsets, 0, false)->Apply(run_offsets_cases)->UseRealTime();
@@ -160,7 +175,7 @@ BENCHMARK_TEMPLATE(BM_NpRunOffsets, 1, false)->Apply(run_offsets_cases)->UseReal
 BENCHMARK_TEMPLATE(BM_NpRunOffsets, 1, true)->Apply(run_offsets_cases)->UseRealTime();
 BENCHMARK_TEMPLATE(BM_NpRunOffsets, 2, false)->Apply(run_offsets_cases)->UseRealTime();
 BENCHMARK_TEMPLATE(BM_NpRunOffsets, 2, true)->Apply(run_offsets_cases)->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpRunOffsetsMixed, 0)->Apply(run_offsets_cases)->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpRunOffsetsMixed, 1)->Apply(run_offsets_cases)->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpRunOffsetsMixed, 2)->Apply(run_offsets_cases)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpRunOffsetsMixed, 0)->Apply(run_offsets_runtime_cases)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpRunOffsetsMixed, 1)->Apply(run_offsets_runtime_cases)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpRunOffsetsMixed, 2)->Apply(run_offsets_runtime_cases)->UseRealTime();
 } // namespace
