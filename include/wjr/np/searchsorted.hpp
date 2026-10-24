@@ -13,6 +13,8 @@ enum class search_side { left, right };
 
 namespace detail {
 
+inline constexpr size_t searchsorted_batch_width = 8;
+
 template <search_side Side, class T>
 constexpr bool searchsorted_before(T element, T value) noexcept {
     if constexpr (Side == search_side::left) {
@@ -174,7 +176,7 @@ WJR_INTRINSIC_INLINE
     }
     if constexpr (std::numeric_limits<D>::digits < std::numeric_limits<size_t>::digits)
         WJR_ASSERT_L2(count <= static_cast<size_t>(std::numeric_limits<D>::max()));
-    detail::searchsorted_batch_line<Side, 8>(
+    detail::searchsorted_batch_line<Side, detail::searchsorted_batch_width>(
         dst.data_handle(), sorted.data_handle(), count, queries.data_handle(),
         static_cast<size_t>(queries.extent(0)), detail::axis_stride<0>(dst),
         detail::axis_stride<0>(sorted), detail::axis_stride<0>(queries));
