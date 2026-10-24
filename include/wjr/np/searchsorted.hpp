@@ -1,0 +1,100 @@
+#ifndef WJR_NP_SEARCHSORTED_HPP__
+#define WJR_NP_SEARCHSORTED_HPP__
+
+#include <algorithm>
+#include <limits>
+
+#include <wjr/np/reduce.hpp>
+
+namespace wjr::np {
+
+enum class search_side { left, right };
+
+namespace detail {
+
+template <search_side Side, bool Contiguous, bool NaN = false, class T, class Step>
+constexpr size_t searchsorted_index(const T *input, size_t count, Step step,
+                                    std::remove_cv_t<T> value) noexcept {
+    const auto before = [value](std::remove_cv_t<T> element) constexpr noexcept {
+        if constexpr (NaN)
+            return element == element;
+        else if constexpr (Side == search_side::left)
+            return element < value;
+        else
+            return element <= value;
+    };
+    if constexpr (Contiguous) {
+        if constexpr (!NaN && Side == search_side::left)
+            return static_cast<size_t>(std::lower_bound(input, input + count, value) - input);
+        else if constexpr (!NaN && std::is_integral_v<T>)
+            return static_cast<size_t>(std::upper_bound(input, input + count, value) - input);
+        else
+            return static_cast<size_t>(std::partition_point(input, input + count, before) - input);
+    }
+    size_t first = 0;
+    while (count != 0) {
+        const auto half = count / 2;
+        const auto middle = first + half;
+        if (before(input[middle * step])) {
+            first = middle + 1;
+            count -= half + 1;
+        } else {
+            count = half;
+        }
+    }
+    return first;
+}
+
+} // namespace detail
+
+// Return insertion positions in an ascending one-dimensional source. Query and
+// destination shapes agree; source/query element types agree. All NaNs sort
+// after non-NaNs, and signed zeros compare equal. Left selects the first equal
+// position, right selects the position after the last equal value.
+// Destination storage is disjoint from source and queries; source remains
+// sorted/stable during the call. Its length must fit D. No storage is allocated.
+template <search_side Side = search_side::left, class D, class DE, class DL, class T, class SE,
+          class SL, class Q, class QE, class QL>
+requires((Side == search_side::left || Side == search_side::right) && std::integral<D> &&
+         !std::same_as<D, bool> && std::same_as<D, std::remove_cv_t<D>> &&
+         detail::kernel_element<T> && detail::kernel_element<Q> &&
+         std::same_as<std::remove_cv_t<T>, std::remove_cv_t<Q>> && SE::rank() == 1 &&
+         detail::kernel_layout<DL> && detail::kernel_layout<SL> && detail::kernel_layout<QL> &&
+         detail::compatible_kernel_shape<DE, QE>)
+constexpr void searchsorted_to(tensor_view<D, DE, DL> dst, tensor_view<T, SE, SL> sorted,
+                               tensor_view<Q, QE, QL> queries) noexcept {
+    detail::assert_kernel_shape(dst, queries);
+    if (dst.empty())
+        return;
+    const auto count = static_cast<size_t>(sorted.extent(0));
+    if (count == 0) {
+        detail::apply_kernel(dst, [](D &output) noexcept { output = 0; });
+        return;
+    }
+    if constexpr (std::numeric_limits<D>::digits < std::numeric_limits<size_t>::digits)
+        WJR_ASSERT_L2(count <= static_cast<size_t>(std::numeric_limits<D>::max()));
+    const auto *input = sorted.data_handle();
+    const auto step = detail::axis_stride<0>(sorted);
+    detail::apply_kernel(
+        dst,
+        [input, count, step](D &output, const std::remove_cv_t<Q> &value) noexcept {
+            if constexpr (std::is_floating_point_v<Q>) {
+                if (value != value) {
+                    if constexpr (Side == search_side::right)
+                        output = static_cast<D>(count);
+                    else
+                        output = static_cast<D>(
+                            detail::searchsorted_index<Side, detail::packed_layout<SL>, true>(
+                                input, count, step, value));
+                    return;
+                }
+            }
+            output = static_cast<D>(detail::searchsorted_index<Side, detail::packed_layout<SL>>(
+                input, count, step, value));
+        },
+        queries);
+}
+
+} // namespace wjr::np
+
+#endif // WJR_NP_SEARCHSORTED_HPP__
