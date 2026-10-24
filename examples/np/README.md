@@ -321,6 +321,12 @@ index container. See [searchsorted.cpp](searchsorted.cpp) and the
 output arrays, returning the actual counts without a counting pass or allocation.
 See [compact.cpp](compact.cpp) and the [compaction contract](../../docs/design/tensor-compaction.md).
 
+## Merge already sorted arrays
+
+`wjr_np_merge` stably merges two sorted borrowed arrays into caller-owned output.
+Equal values from the left precede those from the right; neither input is changed.
+See [merge.cpp](merge.cpp) and the [merge contract](../../docs/design/tensor-merge.md).
+
 ## Paired scalar statistics
 
 `wjr_np_statistics` computes sample covariance and a Pearson coefficient while
