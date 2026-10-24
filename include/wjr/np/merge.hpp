@@ -1,7 +1,9 @@
 #ifndef WJR_NP_MERGE_HPP__
 #define WJR_NP_MERGE_HPP__
 
+#include <algorithm>
 #include <functional>
+#include <utility>
 
 #include <wjr/np/partition.hpp>
 #include <wjr/np/reduce.hpp>
