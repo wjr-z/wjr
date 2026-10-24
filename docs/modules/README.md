@@ -93,6 +93,7 @@ owner/eval 仍使用 shape_result 报告必要元数据失败，见[结果类型
 它复用固定版本 Kokkos mdspan，并传递 expected 所需的 baseline 断言与迭代器依赖，
 不依赖 `wjr::isa`，不默认链接到 `wjr::wjr`。
 安装消费使用 `find_package(wjr CONFIG REQUIRED COMPONENTS np)`。
+`<wjr/np/partition.hpp>` 和 `<wjr/np/quantile.hpp>` 提供共享划分工作的[多秩选择与线性分位数](../design/tensor-partition-quantile.md)。
 `<wjr/np/searchsorted.hpp>` 提供支持重复值与 NaN 排序约定的[批量二分查找](../design/tensor-searchsorted.md)。
 `<wjr/np/rank.hpp>` 提供复用调用方工作区的[单轴排名](../design/tensor-rank.md)，
 支持并列规则、NaN policy 及连续/正 stride/padded view。
