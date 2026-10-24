@@ -293,6 +293,14 @@ Every row in the example has a finite nonzero norm; zero/nonfinite handling
 belongs to the application's normalization policy. See
 [norm_axis.cpp](norm_axis.cpp) and the [axis norm contract](../../docs/design/tensor-axis-norm.md).
 
+## Shared selection for several quantiles
+
+`wjr_np_quantile` computes several linear quantiles in the original query order.
+It reuses partitioning across the requested ranks and caller-provided rank
+workspace. The example uses the in-place entry to avoid a data copy; a source
+preserving entry takes explicit data workspace. See [quantile.cpp](quantile.cpp)
+and the [selection contract](../../docs/design/tensor-partition-quantile.md).
+
 ## Reusable ranking workspace
 
 `wjr_np_rank` ranks each row with average ties and omitted NaNs. One caller-owned
