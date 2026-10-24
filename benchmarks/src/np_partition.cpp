@@ -9,7 +9,7 @@
 
 namespace {
 namespace np = wjr::np;
-enum class selection { balanced, ascending, library, full_sort };
+enum class selection { balanced, ascending, shared, library, full_sort };
 
 // A request-balanced baseline reuses nth_element on disjoint subranges.
 void balanced_select(int64_t *values, size_t first, size_t last,
@@ -23,6 +23,8 @@ void balanced_select(int64_t *values, size_t first, size_t last,
             std::iter_swap(values + rank, std::max_element(values + first, values + last));
         else
             std::nth_element(values + first, values + rank, values + last);
+        if (ranks.front() == ranks.back())
+            return;
         const auto lower = std::lower_bound(ranks.begin(), ranks.begin() + middle, rank);
         const auto upper = std::upper_bound(ranks.begin() + middle + 1, ranks.end(), rank);
         balanced_select(values, first, rank, std::span<const size_t>(ranks.begin(), lower));
@@ -37,6 +39,11 @@ WJR_NOINLINE void partition_copy_call(int64_t *values, const int64_t *input, siz
     std::copy_n(input, count, values);
     if constexpr (Algorithm == selection::full_sort) {
         std::sort(values, values + count);
+    } else if constexpr (Algorithm == selection::shared) {
+        using shape = np::dextents<size_t, 1>;
+        np::partition_at<np::partition_method::shared_pivot>(
+            np::tensor_view<int64_t, shape>(values, count),
+            std::span<const size_t>(ranks, requests));
     } else if constexpr (Algorithm == selection::library) {
         using shape = np::dextents<size_t, 1>;
         np::partition_at(np::tensor_view<int64_t, shape>(values, count),
@@ -157,6 +164,7 @@ void quantile_copy_kernel(benchmark::State &state) {
 BENCHMARK_TEMPLATE(partition_copy_kernel, selection::balanced)->Apply(partition_arguments);
 BENCHMARK_TEMPLATE(partition_copy_kernel, selection::ascending)->Apply(partition_arguments);
 BENCHMARK_TEMPLATE(partition_copy_kernel, selection::library)->Apply(partition_arguments);
+BENCHMARK_TEMPLATE(partition_copy_kernel, selection::shared)->Apply(partition_arguments);
 BENCHMARK_TEMPLATE(partition_copy_kernel, selection::full_sort)->Apply(partition_arguments);
 BENCHMARK_TEMPLATE(quantile_copy_kernel, false, int64_t)
     ->Args({65536, 3})

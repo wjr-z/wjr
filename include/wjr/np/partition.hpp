@@ -8,7 +8,14 @@
 #include <wjr/np/detail/elementwise.hpp>
 
 namespace wjr::np {
+
+enum class partition_method { nth_element, shared_pivot };
+
 namespace detail {
+
+template <partition_method Method>
+concept supported_partition_method =
+    Method == partition_method::nth_element || Method == partition_method::shared_pivot;
 
 inline constexpr size_t partition_sort_cutoff = 16;
 inline constexpr unsigned partition_depth_factor = 2;
@@ -20,6 +27,37 @@ struct partition_less {
             return left < right || (left == left && right != right);
         else
             return left < right;
+    }
+};
+
+template <partition_method Method>
+struct rank_selector;
+
+template <>
+struct rank_selector<partition_method::nth_element> {
+    template <class Compare, class T, class Index>
+    static constexpr void apply(T *data, size_t first, size_t last,
+                                std::span<Index> ranks) noexcept {
+        const Compare compare{};
+        while (!ranks.empty()) {
+            const auto middle = ranks.size() / 2;
+            const auto rank = static_cast<size_t>(ranks[middle]);
+            if (rank == first)
+                std::iter_swap(data + rank, std::min_element(data + first, data + last, compare));
+            else if (rank + 1 == last)
+                std::iter_swap(data + rank, std::max_element(data + first, data + last, compare));
+            else
+                std::nth_element(data + first, data + rank, data + last, compare);
+            if (ranks.front() == ranks.back())
+                return;
+            const auto lower =
+                std::lower_bound(ranks.begin(), ranks.begin() + middle, ranks[middle]);
+            const auto upper =
+                std::upper_bound(ranks.begin() + middle + 1, ranks.end(), ranks[middle]);
+            apply<Compare>(data, first, rank, std::span<Index>(ranks.begin(), lower));
+            first = rank + 1;
+            ranks = std::span<Index>(upper, ranks.end());
+        }
     }
 };
 
@@ -82,6 +120,16 @@ constexpr void select_ranks(T *data, size_t first, size_t last, std::span<Index>
     }
 }
 
+template <>
+struct rank_selector<partition_method::shared_pivot> {
+    template <class Compare, class T, class Index>
+    static constexpr void apply(T *data, size_t first, size_t last,
+                                std::span<Index> ranks) noexcept {
+        select_ranks<Compare>(data, first, last, ranks,
+                              partition_depth_factor * std::bit_width(last - first));
+    }
+};
+
 } // namespace detail
 
 // In-place multi-selection. Ranks are nondecreasing, nonnegative, in range,
@@ -89,10 +137,14 @@ constexpr void select_ranks(T *data, size_t first, size_t last, std::span<Index>
 // position has its sorted value; each side is partitioned but not sorted.
 // NaNs sort last, signed zeros compare equal, and no stable order is promised.
 // Empty ranks do not access data. The live contiguous range fits ptrdiff_t.
-template <class T, class E, class L, class Index, size_t Extent>
-requires(detail::kernel_element<T> && !std::is_const_v<T> && E::rank() == 1 &&
-         detail::packed_layout<L> && std::integral<Index> &&
-         !std::same_as<std::remove_cv_t<Index>, bool> && !std::is_volatile_v<Index>)
+// The default balances requested ranks using nth_element; shared_pivot is an
+// explicit alternative. Both share work, with different partition traffic.
+template <partition_method Method = partition_method::nth_element, class T, class E, class L,
+          class Index, size_t Extent>
+requires(detail::supported_partition_method<Method> && detail::kernel_element<T> &&
+         !std::is_const_v<T> && E::rank() == 1 && detail::packed_layout<L> &&
+         std::integral<Index> && !std::same_as<std::remove_cv_t<Index>, bool> &&
+         !std::is_volatile_v<Index>)
 constexpr void partition_at(tensor_view<T, E, L> data, std::span<Index, Extent> ranks) noexcept {
     if (ranks.empty())
         return;
@@ -102,9 +154,8 @@ constexpr void partition_at(tensor_view<T, E, L> data, std::span<Index, Extent> 
                       static_cast<size_t>(index) < static_cast<size_t>(data.extent(0)));
         previous = static_cast<size_t>(index);
     }
-    detail::select_ranks<detail::partition_less>(
-        data.data_handle(), 0, static_cast<size_t>(data.extent(0)), std::span<Index>(ranks),
-        detail::partition_depth_factor * std::bit_width(static_cast<size_t>(data.extent(0))));
+    detail::rank_selector<Method>::template apply<detail::partition_less>(
+        data.data_handle(), 0, static_cast<size_t>(data.extent(0)), std::span<Index>(ranks));
 }
 
 } // namespace wjr::np

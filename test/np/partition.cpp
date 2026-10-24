@@ -108,7 +108,8 @@ TEST(NpPartition, OneSidedRequestsAndEquivalentBlocks) {
          {std::vector<size_t>{0, 1, 2}, std::vector<size_t>{509, 510, 511},
           std::vector<size_t>{3, 80, 150, 200, 300, 400, 510}, std::vector<size_t>(100, 200)}) {
         auto values = original;
-        np::partition_at(view<double>(values.data(), values.size()), std::span(ranks));
+        np::partition_at<np::partition_method::shared_pivot>(
+            view<double>(values.data(), values.size()), std::span(ranks));
         for (auto rank : ranks) {
             EXPECT_FALSE(less(values[rank], expected[rank]) || less(expected[rank], values[rank]));
             for (size_t i = 0; i < rank; ++i)
@@ -119,7 +120,8 @@ TEST(NpPartition, OneSidedRequestsAndEquivalentBlocks) {
     }
     std::vector<int> equal(512, 7);
     const size_t ranks[] = {0, 1, 200, 400, 511};
-    np::partition_at(view<int>(equal.data(), equal.size()), std::span(ranks));
+    np::partition_at<np::partition_method::shared_pivot>(view<int>(equal.data(), equal.size()),
+                                                         std::span(ranks));
     EXPECT_TRUE(std::all_of(equal.begin(), equal.end(), [](int value) { return value == 7; }));
     std::vector<int> fallback(512);
     std::mt19937 engine(1057);
@@ -128,5 +130,27 @@ TEST(NpPartition, OneSidedRequestsAndEquivalentBlocks) {
     np::detail::select_ranks<std::less<>>(fallback.data(), 0, fallback.size(),
                                           std::span<const size_t>(ranks), 0);
     EXPECT_TRUE(std::is_sorted(fallback.begin(), fallback.end()));
+}
+
+TEST(NpPartition, BothMethodsMatchSortedRandomRanks) {
+    std::mt19937 engine(1059);
+    std::array<int, 257> input;
+    std::array<uint32_t, 64> ranks;
+    for (int iteration = 0; iteration != 20; ++iteration) {
+        for (auto &value : input)
+            value = static_cast<int>(engine() % 100);
+        for (auto &rank : ranks)
+            rank = engine() % input.size();
+        std::sort(ranks.begin(), ranks.end());
+        auto expected = input, ordinary = input, shared = input;
+        std::sort(expected.begin(), expected.end());
+        np::partition_at(view<int>(ordinary.data(), ordinary.size()), std::span(ranks));
+        np::partition_at<np::partition_method::shared_pivot>(
+            view<int>(shared.data(), shared.size()), std::span(ranks));
+        for (auto rank : ranks) {
+            EXPECT_EQ(ordinary[rank], expected[rank]);
+            EXPECT_EQ(shared[rank], expected[rank]);
+        }
+    }
 }
 } // namespace

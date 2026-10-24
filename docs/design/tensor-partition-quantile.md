@@ -9,6 +9,13 @@ ranks 是调用方提供的非递减整数 span，允许重复，不会被修改
 例如 `{2, 5, 8}` 只要求这三个位置具有完整排序后的值，不要求其他位置有序。
 每个已选位置的左侧均不大于该位置，右侧均不小于该位置。
 
+默认 `partition_method::nth_element` 选择中间请求的秩，用标准库 nth_element 定位，
+再分治仍含请求的两侧子区间；相邻端点秩改用 min/max_element，一样复用已经完成的数据划分。
+递归按请求数平衡，栈深 O(log(K+1))。单秩平均线性的假设下，约需 O(N log(K+1)) 选择工作。
+
+`partition_at<partition_method::shared_pivot>(values, ranks)` 显式选择共享值 pivot 策略。
+以下的三路划分、预算和小区间阈值仅属于该策略，不向默认路径增加状态或检查。
+
 算法从首/中/末三个值选 pivot，用两次标准库 partition 形成小于、等价、大于三个区间。
 仅检查有序请求的首尾，即可 O(1) 判定整批都在一侧并整体收缩，不扫描或重新排序请求。
 跨侧时才二分分流请求；等价值区间一次满足其中所有秩。
@@ -39,6 +46,8 @@ np::quantile_inplace_to(dst, values, probabilities, rank_workspace);
 np::quantile_to(dst, source, probabilities, data_workspace, rank_workspace);
 np::quantile_to<np::quantile_nan_policy::omit>(
     dst, source, probabilities, data_workspace, rank_workspace);
+np::quantile_inplace_to<np::quantile_nan_policy::propagate, np::partition_method::shared_pivot>(
+    dst, values, probabilities, rank_workspace);
 ```
 
 - 原地入口允许重排连续源，避免数据副本；输出与源、概率不交，源与概率也不交。
@@ -49,6 +58,7 @@ np::quantile_to<np::quantile_nan_policy::omit>(
 - 数据工作区与所有视图、秩工作区不交；秩工作区与所有视图不交。输入及概率在调用中保持稳定。
 - 概率和输出支持正 stride/padded 布局，只更新输出逻辑元素，保留孔洞。
 
+quantile 同样默认使用 nth_element 分治，第二个模板参数可显式指定 shared_pivot。
 每个概率生成 `h=q*(N-1)`，选择 floor(h) 及有需要的下一秩，再对两个值插值。
 所有所需秩一起排序并执行多秩选择，不对每个概率从完整源重新开始选择。
 端点和整数位置不额外要求下一秩；浮点舍入到末端时钳到最后合法位置。
@@ -72,21 +82,31 @@ quiet NaN 为约定输入，不支持假设 NaN 不存在的 fast-math 模式。
 空输入、真实 bool、大整数、乱序概率、插值边界、原输入保留和 stride 输出孔洞。
 示例见 [quantile.cpp](../../examples/np/quantile.cpp)。
 
-NP benchmark 的 partition_copy_kernel 比较库的共享 pivot、平衡请求 nth_element 分治、
+NP benchmark 的 partition_copy_kernel 比较默认/显式共享 pivot、平衡请求 nth_element 手写分治、
 升序目标在缩短后缀逐次 nth_element、完整排序，所有方案均包含从相同源恢复数据的成本。
 包含单个/多个秩、均匀/中部聚集/低端聚集/高端聚集请求和小/大源。
 quantile_copy_kernel 对比 int64/double 的整个保留源 quantile 与复制+完整排序+插值，包含秩整理的成本。
 性能结论需注明平台；没有因 Windows 局部结果改变已有标量入口或编译选项。
 
-初步数据：Windows x64、i5-13500HX、Clang 18.1.8、C++20、Release baseline，
+shared_pivot 策略初步数据：Windows x64、i5-13500HX、Clang 18.1.8、C++20、Release baseline，
 每项 3 次重复、随机交错，中位耗时如下（均包含复制，单位 ms）：
 
-| 有限值数据集，N=65536 | 本实现 | 对照 |
+| 有限值数据集，N=65536 | shared_pivot | 对照 |
 | --- | ---: | ---: |
 | 257 个分散秩 | 2.08 | 平衡 nth_element 分治 2.46；升序缩短后缀 6.93；全排序 3.38 |
 | double，3 个 quantile | 0.71 | 全排序后插值 3.84 |
 | double，31 个 quantile | 1.38 | 全排序后插值 3.75 |
 | int64，3 个 quantile | 0.62 | 全排序后插值 3.23 |
 
-小输入中直接排序仍可更快；NaN 数据集性能与 Linux/SysV 性能未在本机测量。
+Linux/SysV 的补充验证使用 ubuntu-24.04 GitHub runner、GNU 13.3、C++20/native，
+[同二进制对照](https://github.com/wjr-z/wjr/actions/runs/40086837646)中，共享 pivot 相比手写平衡 nth 分治，
+在 65536 项源、3/31/257 个分散或聚集请求上慢约 5–31%。该结果决定默认保留 nth 分治，
+不因 Windows 收益改变 Linux 优先的默认选择。两种策略均可显式复现，不增加分布识别调度。
+
+[默认策略补测](https://github.com/wjr-z/wjr/actions/runs/40087523176)同为 GNU 13.3/C++20/native：
+65536 项源、257 个分散秩，库默认 2.72 ms，同合同手写平衡分治 2.70 ms，显式共享 pivot 为 2.93 ms。
+默认 double 3/31 个 quantile 完整流程为 1.11/1.98 ms，完整排序插值为 4.27/4.27 ms。
+这两次使用不同的共享 runner，绝对耗时不能跨运行直接比较；所有比值应在同次同二进制内计算。
+
+小输入中直接排序仍可更快；NaN 数据集性能未测量。
 未采集硬件分支/缓存计数，不据此宣称普遍加速或整个接口无成本。
