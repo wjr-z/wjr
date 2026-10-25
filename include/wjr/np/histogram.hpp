@@ -12,6 +12,19 @@ template <bool Contiguous, class D, class T, class OutputStep, class ValueStep, 
 constexpr void histogram_line(D *WJR_RESTRICT output, size_t bins, OutputStep output_step,
                               const T *values, size_t count, ValueStep value_step, const T *edges,
                               EdgeStep edge_step) noexcept {
+    if (bins == 1) {
+        size_t total = 0;
+        if (count != 0) {
+            const auto first = edges[0];
+            const auto last = edges[edge_step];
+            for (size_t i = 0; i != count; ++i) {
+                const auto value = values[i * value_step];
+                total += first <= value && value <= last;
+            }
+        }
+        output[0] = static_cast<D>(total);
+        return;
+    }
     for (size_t i = 0; i != bins; ++i)
         output[i * output_step] = D{};
     if (count == 0)
@@ -41,7 +54,7 @@ constexpr void histogram_line(D *WJR_RESTRICT output, size_t bins, OutputStep ou
 // Edges are nondecreasing and contain no NaNs; at least two edges are required.
 // NaN and out-of-domain values are ignored. Duplicate edges form empty bins,
 // except the last zero-width bin still includes its right endpoint.
-// Counts are cleared first, including for empty values. Their storage is disjoint
+// Counts are replaced, including for empty values. Their storage is disjoint
 // from both inputs; inputs may overlap each other and remain stable. Each final
 // bin count must be representable in D. No storage is allocated or retained.
 template <class D, class DE, class DL, class T, class VE, class VL, class E, class EE, class EL>

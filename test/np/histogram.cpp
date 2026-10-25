@@ -54,6 +54,16 @@ constexpr bool strided_constants() {
 }
 static_assert(strided_constants());
 
+constexpr bool singleton_constants() {
+    const int edges[] = {2, 2};
+    const int values[] = {1, 2, 2, 3};
+    unsigned counts[] = {99};
+    np::histogram_to(view<unsigned>(counts, 1), view<const int>(values, 4),
+                     view<const int>(edges, 2));
+    return counts[0] == 2;
+}
+static_assert(singleton_constants());
+
 TEST(NpHistogram, ConstantsEndpointsAndRequiredReset) {
     EXPECT_TRUE(constants());
     const int edges[] = {0, 1, 2};
@@ -116,6 +126,28 @@ TEST(NpHistogram, NativeIntegerPrecisionAndPerBinRepresentability) {
                      view<const int>(bins, 3));
     EXPECT_EQ(narrow[0], 200);
     EXPECT_EQ(narrow[1], 200);
+}
+
+TEST(NpHistogram, SingleBinNarrowCountAndStridedSpecialValues) {
+    const int point[] = {2, 2};
+    std::array<int, 255> values;
+    values.fill(2);
+    uint8_t narrow[] = {99, 73};
+    np::histogram_to(strided(narrow, 1, 2), view<const int>(values.data(), values.size()),
+                     view<const int>(point, 2));
+    EXPECT_EQ(narrow[0], 255);
+    EXPECT_EQ(narrow[1], 73);
+
+    const auto infinity = std::numeric_limits<double>::infinity();
+    const auto nan = std::numeric_limits<double>::quiet_NaN();
+    const double input[] = {-infinity, 99., -0., 99., 0., 99., 2., 99., infinity, 99., nan};
+    const double edges[] = {-0., 99., infinity};
+    np::histogram_to(strided(narrow, 1, 2), strided(input, 6, 2), strided(edges, 2, 2));
+    EXPECT_EQ(narrow[0], 4);
+    EXPECT_EQ(narrow[1], 73);
+    np::histogram_to(strided(narrow, 1, 2), view<const double>(nullptr, 0), strided(edges, 2, 2));
+    EXPECT_EQ(narrow[0], 0);
+    EXPECT_EQ(narrow[1], 73);
 }
 
 TEST(NpHistogram, InputOverlapAndStridedHoles) {
