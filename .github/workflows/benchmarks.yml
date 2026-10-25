@@ -117,7 +117,7 @@ jobs:
               'concatenate': ('ff92d85638a4810db7a1f7b1215b448dcf6afec2', '2e2ba952206b698de2d63363d26695d3bff1b0bb', 'include/wjr/np/concatenate.hpp', 'benchmarks/src/np_concatenate.cpp'),
           }
           provenance = {'head': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
-                        'note': 'Research: Method0 memcpy/fused-strided, 1 unit-axis GCC+Clang, 2 current PR135, 3 copy_n, 4 dynamic-unit GCC only; fixed/unequal/cyclic/shuffled dimensions; same constructor/call/algorithm timing boundary',
+                        'note': 'Research: Method0 memcpy/fused-strided, 1 unit-axis GCC+Clang, 2 current PR135, 3 copy_n, 4 dynamic-unit GCC only, 6 unit-aware strong handwritten; fixed/unequal/cyclic/shuffled dimensions; same constructor/call/algorithm timing boundary',
                         'modules': {}}
           for module, (original_commit, commit, header, benchmark) in modules.items():
               full_commit = subprocess.check_output(['git', 'rev-parse', commit], text=True).strip()

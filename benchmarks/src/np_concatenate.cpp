@@ -59,6 +59,15 @@ WJR_NOINLINE void concatenate(double *WJR_RESTRICT output, const double *first,
     } else {
         if (rows == 0 || cols == 0)
             return;
+        if constexpr (Method == 6 && Strided && Axis == 1) {
+            if (cols == 1) {
+                for (size_t row = 0; row != rows; ++row) {
+                    output[row * output_row_step] = first[row * input_row_step];
+                    output[row * output_row_step + step] = second[row * input_row_step];
+                }
+                return;
+            }
+        }
         if constexpr (!Strided && Axis == 0) {
             const auto count = rows * cols;
             // Flawfinder: ignore - fixture allocates both rows*cols output blocks.
@@ -147,7 +156,16 @@ WJR_NOINLINE void concatenate_unequal(double *WJR_RESTRICT output, const double 
     const auto left_row_step = left_cols * 2 + 3;
     const auto right_row_step = right_cols * 2 + 3;
     const auto output_row_step = (left_cols + right_cols) * 2 + 3;
-    if constexpr (Method == 0) {
+    if constexpr (Method == 0 || Method == 6) {
+        if constexpr (Method == 6) {
+            if (left_cols == 1 && right_cols == 1) {
+                for (size_t row = 0; row != rows; ++row) {
+                    output[row * output_row_step] = first[row * left_row_step];
+                    output[row * output_row_step + 2] = second[row * right_row_step];
+                }
+                return;
+            }
+        }
         const auto common = (std::min)(left_cols, right_cols);
         for (size_t row = 0; row != rows; ++row) {
             for (size_t col = 0; col != common; ++col) {
@@ -276,5 +294,10 @@ BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 0, true)->Arg(1)->Arg(32)->Arg(1024)->
 BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 1, true)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
 BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 2, true)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
 BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 4, true)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
+
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 6, 1, true)->Apply(concatenate_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateUnequal, 6)->Apply(unequal_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 6, false)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 6, true)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
 
 } // namespace
