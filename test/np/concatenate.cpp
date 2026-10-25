@@ -216,4 +216,53 @@ constexpr bool constant_strided_unit_concatenate() {
            storage[4] == 1;
 }
 static_assert(constant_strided_unit_concatenate());
+
+TEST(NpConcatenate, UnitAxisInsideThreeDimensionalOuterTraversal) {
+    using source_shape = np::extents<size_t, 2, 3, 1>;
+    using target_shape = np::extents<size_t, 2, 3, 2>;
+    const np::layout_stride::mapping<source_shape> input_mapping(source_shape{},
+                                                                 std::array<size_t, 3>{30, 7, 2});
+    const np::layout_stride::mapping<target_shape> output_mapping(target_shape{},
+                                                                  std::array<size_t, 3>{50, 11, 3});
+    std::array<int, 45> input;
+    input.fill(-9);
+    std::array<int, 76> storage;
+    storage.fill(-99);
+    const np::tensor_view<int, source_shape, np::layout_stride> source(input.data(), input_mapping);
+    const np::tensor_view<int, target_shape, np::layout_stride> output(storage.data(),
+                                                                       output_mapping);
+    for (size_t outer = 0; outer != 2; ++outer)
+        for (size_t row = 0; row != 3; ++row)
+            source(outer, row, 0) = static_cast<int>(outer * 10 + row);
+    np::concatenate_to(output, np::axes<2>, source, source);
+    for (size_t outer = 0; outer != 2; ++outer)
+        for (size_t row = 0; row != 3; ++row)
+            for (size_t col = 0; col != 2; ++col) {
+                EXPECT_EQ(output(outer, row, col), source(outer, row, 0));
+                storage[outer * 50 + row * 11 + col * 3] = -99;
+            }
+    EXPECT_TRUE(
+        std::all_of(storage.begin(), storage.end(), [](int value) { return value == -99; }));
+}
+
+TEST(NpConcatenate, UnitAxisInColumnMajorPaddedOutput) {
+    using source_shape = np::extents<size_t, 1, 3>;
+    using target_shape = np::extents<size_t, 2, 3>;
+    using padded = Kokkos::Experimental::layout_left_padded<8>;
+    const int first[] = {1, 2, 3}, second[] = {4, 5, 6};
+    std::array<int, 18> storage;
+    storage.fill(-99);
+    const np::tensor_view<int, target_shape, padded> output(storage.data());
+    np::concatenate_to(output, np::axes<0>,
+                       np::tensor_view<const int, source_shape, np::layout_left>(first),
+                       np::tensor_view<const int, source_shape, np::layout_left>(second));
+    for (size_t column = 0; column != 3; ++column) {
+        EXPECT_EQ(output(0, column), first[column]);
+        EXPECT_EQ(output(1, column), second[column]);
+        storage[column * 8] = -99;
+        storage[column * 8 + 1] = -99;
+    }
+    EXPECT_TRUE(
+        std::all_of(storage.begin(), storage.end(), [](int value) { return value == -99; }));
+}
 } // namespace
