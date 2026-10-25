@@ -35,12 +35,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Init submodule
         run: git submodule update --init --recursive
 
       - name: Install benchmark dependencies
-        run: sudo apt-get update && sudo apt-get install -y libgmp-dev ninja-build
+        run: sudo apt-get update && sudo apt-get install -y libgmp-dev ninja-build clang-18
 
       - name: Cache CMake dependencies
         uses: actions/cache@v5
@@ -69,6 +71,7 @@ jobs:
           fi
           cmake -B build -GNinja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -DWJR_BUILD_BENCHMARKS=ON \
             -DWJR_BUILD_TESTS=OFF \
             -DWJR_BENCHMARK_PROFILE="$BENCHMARK_PROFILE" \
@@ -81,21 +84,82 @@ jobs:
       - name: Build benchmarks
         run: cmake --build build --target benchmarks --parallel
 
-      - name: Run benchmarks
+      - name: Build Clang histogram benchmark
         run: |
-          if [[ "$BENCHMARK_PROFILE" == "all" ]]; then
-            repetitions=1
-            min_time=0.03s
-          else
-            repetitions=3
-            min_time=0.02s
-          fi
-          ./build/bin/benchmarks \
-            --benchmark_format=json \
-            --benchmark_out=benchmark-results.json \
-            --benchmark_repetitions="$repetitions" \
-            --benchmark_report_aggregates_only=true \
-            --benchmark_min_time="$min_time"
+          cmake -B build-clang -GNinja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_COMPILER=clang++-18 \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DWJR_BUILD_BENCHMARKS=ON \
+            -DWJR_BUILD_TESTS=OFF \
+            -DWJR_BENCHMARK_PROFILE=np \
+            -DWJR_BENCHMARK_XSIMD=ON \
+            -DWJR_ENABLE_NP=ON \
+            -DWJR_ENABLE_XSIMD=ON \
+            -DWJR_USE_GMP_TESTS=OFF \
+            -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent"
+          cmake --build build-clang --target benchmarks --parallel
+
+      - name: Capture actual histogram code generation
+        run: |
+          mkdir -p histogram-codegen
+          lscpu > histogram-codegen/lscpu.txt
+          python3 - <<'PY'
+          import hashlib, json, pathlib, shlex, subprocess
+          output = pathlib.Path('histogram-codegen').resolve()
+          for build, prefix in [('build', ''), ('build-clang', 'clang-')]:
+              entries = [e for e in json.loads(pathlib.Path(build + '/compile_commands.json').read_text())
+                         if pathlib.Path(e['file']).name == 'np_histogram.cpp']
+              assert len(entries) == 1
+              entry = entries[0]
+              (output / (prefix + 'command.json')).write_text(json.dumps(entry, indent=2))
+              args = shlex.split(entry['command'])
+              stripped = []
+              i = 0
+              while i < len(args):
+                  if args[i] == '-o':
+                      i += 2
+                  elif args[i] == '-c':
+                      i += 1
+                  else:
+                      stripped.append(args[i])
+                      i += 1
+              subprocess.run(stripped + ['-S', '-fverbose-asm', '-o', str(output / (prefix + 'np_histogram.s'))],
+                             cwd=entry['directory'], check=True)
+              with (output / (prefix + 'object.txt')).open('w') as log:
+                  subprocess.run(['objdump', '-drwC', build + '/benchmarks/CMakeFiles/benchmarks.dir/src/np_histogram.cpp.o'], stdout=log, check=True)
+              with (output / (prefix + 'compiler.txt')).open('w') as log:
+                  subprocess.run([args[0], '--version'], stdout=log, stderr=subprocess.STDOUT, check=True)
+              with (output / (prefix + 'target.txt')).open('w') as log:
+                  flags = ['-march=native', '-###', '-x', 'c++', '/dev/null'] if prefix else ['-march=native', '-Q', '--help=target']
+                  subprocess.run([args[0]] + flags, stdout=log, stderr=subprocess.STDOUT, check=True)
+          hashes = {}
+          for filename in ['include/wjr/np/histogram.hpp', 'benchmarks/src/np_histogram.cpp', 'benchmarks/src/np_histogram_before.hpp']:
+              content = pathlib.Path(filename).read_bytes()
+              hashes[filename] = hashlib.sha256(content).hexdigest()
+              (output / pathlib.Path(filename).name).write_bytes(content)
+          hashes['research_head'] = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          hashes['published_head'] = 'a99b70439e798d85bce8de71395b4a3aaa8dfca9'
+          hashes['candidate_commit'] = subprocess.check_output(['git', 'rev-parse', '3ce90eaa'], text=True).strip()
+          hashes['old_snapshot_transform'] = 'Only include guard, namespace and importing original private search helpers differ from published header.'
+          (output / 'source-provenance.json').write_text(json.dumps(hashes, indent=2))
+          PY
+
+      - name: Run randomized same-host old new optimized-manual benchmarks
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, subprocess
+          cpu = min(os.sched_getaffinity(0))
+          pathlib.Path('histogram-codegen/affinity.json').write_text(json.dumps({'pinned_cpu': cpu, 'available': sorted(os.sched_getaffinity(0))}))
+          for build, prefix in [('build', ''), ('build-clang', 'clang-')]:
+              command = ['taskset', '-c', str(cpu), './' + build + '/bin/benchmarks',
+                         '--benchmark_format=json', '--benchmark_out=' + prefix + 'benchmark-results.json',
+                         '--benchmark_repetitions=5', '--benchmark_enable_random_interleaving=true',
+                         '--benchmark_filter=BM_NpHistogram', '--benchmark_report_aggregates_only=true',
+                         '--benchmark_min_time=0.03s']
+              with pathlib.Path(prefix + 'benchmark-log.json').open('w') as log:
+                  subprocess.run(command, stdout=log, check=True)
+          PY
 
       - name: Download previous benchmark result
         uses: dawidd6/action-download-artifact@v9
@@ -126,6 +190,8 @@ jobs:
         with:
           name: benchmark-results-${{ env.BENCHMARK_PROFILE }}
           path: |
+            histogram-codegen/
+            clang-benchmark-results.json
             benchmark-results.json
             benchmark-comparison.json
           retention-days: 90

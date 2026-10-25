@@ -121,6 +121,11 @@ add_executable(
     ${BENCHMARK_SRCS}
 )
 
+# Research-only: keep target flags while compiling just the compared family.
+set_property(TARGET benchmarks PROPERTY SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/np_histogram.cpp")
+
 target_compile_definitions(benchmarks PRIVATE
     WJR_BENCHMARK_PROFILE="${WJR_BENCHMARK_PROFILE}"
     WJR_BENCHMARK_COMPILER="${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION}"
