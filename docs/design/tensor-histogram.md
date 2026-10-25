@@ -1,8 +1,8 @@
 # Explicit-boundary histogram
 
 `<wjr/np/histogram.hpp>` provides `histogram_to(counts, values, edges)` using
-caller-owned rank-one views. It first clears every logical count, then visits
-values once and increments the matching bin. It allocates no storage, retains
+caller-owned rank-one views. It replaces every logical count, visiting values
+once to count the matching bins. It allocates no storage, retains
 no input ownership, and does not materialize an array of bin indices.
 
 Bin `i` covers `[edges[i], edges[i+1])`; the final bin includes its right endpoint.
@@ -18,7 +18,7 @@ values outside the closed overall domain are ignored; infinite edges are allowed
   volatile inputs are excluded. Comparisons preserve that dtype, including
   full-width integers. There is no intermediate floating-point conversion.
 - All views are rank one, with packed, positive-stride, or padded layouts.
-  Counts may have holes; only their logical elements are cleared and incremented.
+  Counts may have holes; only their logical elements are replaced.
 - At least two edges are required, with exactly one more edge than bins.
   This metadata relationship uses a level-two boundary assertion with the
   overflow-safe form `edge_count >= 2 && edge_count - 1 == bin_count`.
@@ -42,6 +42,10 @@ avoiding a per-value special case or clamp for the final endpoint.
 Packed and padded rank-one edges use `std::upper_bound`. Positive-stride edges
 reuse the existing private `searchsorted_index<right, false>` binary search.
 The domain test already rejects NaN values, so no second NaN dispatcher is used.
+With one bin there are no internal boundaries: an ordinary local counter counts
+values in the closed interval, then replaces the sole output once. Empty values
+write zero without reading edge elements. Other bin counts use the existing
+clear-and-increment traversal.
 There are no automatic edge strategies, weights, density normalization, sorting,
 thread scheduling, SIMD policy or always-on validation framework in this API.
 

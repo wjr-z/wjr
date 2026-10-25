@@ -36,6 +36,18 @@ WJR_NOINLINE void histogram_call(size_t *WJR_RESTRICT output, const T *values, s
                              np::tensor_view<const T, shape>(edges, bins + 1));
         }
     } else {
+        if (bins == 1) {
+            size_t total = 0;
+            if (count != 0) {
+                const T first = edges[0], last = edges[edge_step];
+                for (size_t i = 0; i != count; ++i) {
+                    const T value = values[i * value_step];
+                    total += first <= value && value <= last;
+                }
+            }
+            output[0] = total;
+            return;
+        }
         if constexpr (Strided)
             for (size_t bin = 0; bin != bins; ++bin)
                 output[bin * output_step] = 0;
