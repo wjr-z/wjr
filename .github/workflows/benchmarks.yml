@@ -140,7 +140,7 @@ jobs:
               (output / pathlib.Path(filename).name).write_bytes(content)
           hashes['research_head'] = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
           hashes['published_head'] = 'a99b70439e798d85bce8de71395b4a3aaa8dfca9'
-          hashes['candidate_commit'] = subprocess.check_output(['git', 'rev-parse', '3ce90eaa'], text=True).strip()
+          hashes['candidate_commit'] = '57375305bf4b0ccab62992730b746da70f9b6089'
           hashes['old_snapshot_transform'] = 'Only include guard, namespace and importing original private search helpers differ from published header.'
           (output / 'source-provenance.json').write_text(json.dumps(hashes, indent=2))
           PY
