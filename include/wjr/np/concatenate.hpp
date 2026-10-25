@@ -60,20 +60,22 @@ struct concatenate_operand {
     size_t offset;
 };
 
-template <class T, class Step>
+template <class T, class Step, class RowStep>
 struct concatenate_line {
     const T *input;
     size_t input_offset;
     size_t count;
     Step input_step;
+    RowStep input_row_step;
     size_t output_offset;
 };
 
 // Interleave the common prefix, then copy each remaining suffix. This keeps
 // short strided rows in one loop without assuming equal source lengths.
-template <class D, class Step, class... Lines>
-WJR_INTRINSIC_INLINE constexpr void concatenate_lines(D *WJR_RESTRICT output, size_t output_offset,
-                                                      Step output_step, Lines... lines) noexcept {
+template <class D, class Step, class RowStep, class... Lines>
+WJR_INTRINSIC_INLINE constexpr void
+concatenate_lines(D *WJR_RESTRICT output, size_t output_offset, size_t rows, Step output_step,
+                  RowStep output_row_step, Lines... lines) noexcept {
     auto common = std::numeric_limits<size_t>::max();
     auto position = [&](auto &line) constexpr noexcept {
         line.output_offset = output_offset;
@@ -81,16 +83,19 @@ WJR_INTRINSIC_INLINE constexpr void concatenate_lines(D *WJR_RESTRICT output, si
         common = (std::min)(common, line.count);
     };
     (position(lines), ...);
-    for (size_t i = 0; i != common; ++i)
-        ((output[lines.output_offset + i * output_step] =
-              lines.input[lines.input_offset + i * lines.input_step]),
-         ...);
-    auto suffix = [&](const auto &line) constexpr noexcept {
-        for (size_t i = common; i != line.count; ++i)
-            output[line.output_offset + i * output_step] =
-                line.input[line.input_offset + i * line.input_step];
-    };
-    (suffix(lines), ...);
+    for (size_t row = 0; row != rows; ++row) {
+        for (size_t i = 0; i != common; ++i)
+            ((output[lines.output_offset + i * output_step] =
+                  lines.input[lines.input_offset + i * lines.input_step]),
+             ...);
+        auto suffix = [&](const auto &line) constexpr noexcept {
+            for (size_t i = common; i != line.count; ++i)
+                output[line.output_offset + i * output_step] =
+                    line.input[line.input_offset + i * line.input_step];
+        };
+        (suffix(lines), ...);
+        ((lines.input_offset += lines.input_row_step, lines.output_offset += output_row_step), ...);
+    }
 }
 
 template <size_t Axis, size_t Level, class Dst, class Src>
@@ -122,25 +127,38 @@ concatenate_outer(const Dst &dst, size_t output_offset,
     constexpr size_t axis =
         left_layout<typename Dst::layout_type> ? Dst::rank() - 1 - Level : Level;
     const auto output_step = static_cast<size_t>(axis_stride<axis>(dst));
-    if constexpr (axis == Axis) {
-        constexpr bool packed = packed_layout<typename Dst::layout_type> &&
-                                (packed_layout<typename Src::layout_type> && ...);
-        if constexpr (Level + 1 == Dst::rank() && !packed) {
-            auto bind = []<class S>(concatenate_operand<S> source) constexpr noexcept {
-                const auto step = axis_stride<Axis>(source.view);
-                return concatenate_line<typename S::value_type, decltype(step)>{
-                    source.view.data_handle(), source.offset,
-                    static_cast<size_t>(source.view.extent(Axis)), step, 0};
-            };
-            concatenate_lines(dst.data_handle(), output_offset, axis_stride<Axis>(dst),
-                              bind(sources)...);
-        } else {
-            auto append = [&](auto source) constexpr noexcept {
-                concatenate_source<Axis, Level>(dst, source, output_offset);
-                output_offset += static_cast<size_t>(source.view.extent(Axis)) * output_step;
-            };
-            (append(sources), ...);
-        }
+    constexpr bool packed = packed_layout<typename Dst::layout_type> &&
+                            (packed_layout<typename Src::layout_type> && ...);
+    constexpr bool inner_axis =
+        left_layout<typename Dst::layout_type> ? Axis == 0 : Axis + 1 == Dst::rank();
+    if constexpr (!packed && inner_axis && Level + 2 >= Dst::rank()) {
+        constexpr bool single_row = Dst::rank() == 1;
+        auto bind = []<class S>(concatenate_operand<S> source) constexpr noexcept {
+            const auto step = axis_stride<Axis>(source.view);
+            const auto row_step = [&]() constexpr noexcept {
+                if constexpr (single_row)
+                    return std::integral_constant<size_t, 0>{};
+                else
+                    return axis_stride<axis>(source.view);
+            }();
+            return concatenate_line<typename S::value_type, decltype(step), decltype(row_step)>{
+                source.view.data_handle(),
+                source.offset,
+                static_cast<size_t>(source.view.extent(Axis)),
+                step,
+                row_step,
+                0};
+        };
+        concatenate_lines(dst.data_handle(), output_offset,
+                          single_row ? size_t{1} : static_cast<size_t>(dst.extent(axis)),
+                          axis_stride<Axis>(dst), single_row ? size_t{0} : output_step,
+                          bind(sources)...);
+    } else if constexpr (axis == Axis) {
+        auto append = [&](auto source) constexpr noexcept {
+            concatenate_source<Axis, Level>(dst, source, output_offset);
+            output_offset += static_cast<size_t>(source.view.extent(Axis)) * output_step;
+        };
+        (append(sources), ...);
     } else {
         const auto count = static_cast<size_t>(dst.extent(axis));
         for (size_t i = 0; i != count; ++i) {
