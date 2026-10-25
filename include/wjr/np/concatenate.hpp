@@ -172,21 +172,10 @@ WJR_INTRINSIC_INLINE constexpr void concatenate_to(tensor_view<D, DE, DL> destin
         return;
     constexpr bool packed = detail::packed_layout<DL> && (detail::packed_layout<SL> && ...);
     constexpr bool inner_axis = detail::left_layout<DL> ? Axis == 0 : Axis + 1 == DE::rank();
-    if constexpr (!packed && inner_axis &&
-                  ((SE::static_extent(Axis) == dynamic_extent || SE::static_extent(Axis) == 1) &&
-                   ...)) {
-        if constexpr (((SE::static_extent(Axis) == 1) && ...)) {
-            detail::concatenate_outer<Axis, 0, true>(
-                destination, 0, detail::concatenate_operand<tensor_view<T, SE, SL>>{sources, 0}...);
-            return;
-        }
-#if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG)
-        else if (((sources.extent(Axis) == 1) && ...)) {
-            detail::concatenate_outer<Axis, 0, true>(
-                destination, 0, detail::concatenate_operand<tensor_view<T, SE, SL>>{sources, 0}...);
-            return;
-        }
-#endif
+    if constexpr (!packed && inner_axis && ((SE::static_extent(Axis) == 1) && ...)) {
+        detail::concatenate_outer<Axis, 0, true>(
+            destination, 0, detail::concatenate_operand<tensor_view<T, SE, SL>>{sources, 0}...);
+        return;
     }
     detail::concatenate_outer<Axis, 0>(
         destination, 0, detail::concatenate_operand<tensor_view<T, SE, SL>>{sources, 0}...);
