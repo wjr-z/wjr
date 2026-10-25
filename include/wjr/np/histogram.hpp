@@ -9,9 +9,9 @@ namespace wjr::np {
 namespace detail {
 
 template <bool Contiguous, class D, class T, class OutputStep, class ValueStep, class EdgeStep>
-constexpr void histogram_line(D *WJR_RESTRICT output, size_t bins, OutputStep output_step,
-                              const T *values, size_t count, ValueStep value_step, const T *edges,
-                              EdgeStep edge_step) noexcept {
+WJR_INTRINSIC_INLINE constexpr void
+histogram_line(D *WJR_RESTRICT output, size_t bins, OutputStep output_step, const T *values,
+               size_t count, ValueStep value_step, const T *edges, EdgeStep edge_step) noexcept {
     if (bins == 1) {
         size_t total = 0;
         if (count != 0) {
