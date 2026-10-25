@@ -81,6 +81,15 @@ concatenate_unit_rows(D *WJR_RESTRICT output, size_t output_offset, size_t rows,
     }
 }
 
+// Keep dynamic unit rows outside the general path's register-allocation region.
+// The shared row body is forced into this single call boundary.
+template <class D, class RowStep, class ColumnStep, class... Inputs>
+WJR_NOINLINE constexpr void concatenate_unit_rows_outlined(D *WJR_RESTRICT output, size_t rows,
+                                                           RowStep row_step, ColumnStep column_step,
+                                                           Inputs... inputs) noexcept {
+    concatenate_unit_rows(output, 0, rows, row_step, column_step, inputs...);
+}
+
 template <size_t Axis, size_t Level, class Dst, class Src>
 constexpr void concatenate_source(const Dst &dst, concatenate_operand<Src> source,
                                   size_t output_offset) noexcept {
@@ -103,7 +112,8 @@ constexpr void concatenate_source(const Dst &dst, concatenate_operand<Src> sourc
 // Coordinates outside the concatenation axis are shared across all inputs.
 // Operand offsets are scalar loop indices, without owning/copying descriptors.
 // Inlining keeps caller-known strides out of an outlined descriptor-based loop.
-template <size_t Axis, size_t Level, bool Unit = false, class Dst, class... Src>
+template <size_t Axis, size_t Level, bool Unit = false, bool Outline = false, class Dst,
+          class... Src>
 WJR_INTRINSIC_INLINE constexpr void
 concatenate_outer(const Dst &dst, size_t output_offset,
                   concatenate_operand<Src>... sources) noexcept {
@@ -122,10 +132,17 @@ concatenate_outer(const Dst &dst, size_t output_offset,
             return concatenate_unit_source<typename S::value_type, decltype(step)>{
                 source.view.data_handle() + source.offset, step};
         };
-        concatenate_unit_rows(dst.data_handle(), output_offset,
-                              single_row ? size_t{1} : static_cast<size_t>(dst.extent(axis)),
-                              single_row ? size_t{0} : output_step, axis_stride<Axis>(dst),
-                              bind(sources)...);
+        if constexpr (Outline) {
+            concatenate_unit_rows_outlined(
+                dst.data_handle() + output_offset,
+                single_row ? size_t{1} : static_cast<size_t>(dst.extent(axis)),
+                single_row ? size_t{0} : output_step, axis_stride<Axis>(dst), bind(sources)...);
+        } else {
+            concatenate_unit_rows(dst.data_handle(), output_offset,
+                                  single_row ? size_t{1} : static_cast<size_t>(dst.extent(axis)),
+                                  single_row ? size_t{0} : output_step, axis_stride<Axis>(dst),
+                                  bind(sources)...);
+        }
     } else if constexpr (axis == Axis) {
         auto append = [&](auto source) constexpr noexcept {
             concatenate_source<Axis, Level>(dst, source, output_offset);
@@ -135,7 +152,7 @@ concatenate_outer(const Dst &dst, size_t output_offset,
     } else {
         const auto count = static_cast<size_t>(dst.extent(axis));
         for (size_t i = 0; i != count; ++i) {
-            concatenate_outer<Axis, Level + 1, Unit>(
+            concatenate_outer<Axis, Level + 1, Unit, Outline>(
                 dst, output_offset + i * output_step,
                 concatenate_operand<Src>{
                     sources.view,
@@ -182,7 +199,7 @@ WJR_INTRINSIC_INLINE constexpr void concatenate_to(tensor_view<D, DE, DL> destin
         }
 #if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG)
         else if (((sources.extent(Axis) == 1) && ...)) {
-            detail::concatenate_outer<Axis, 0, true>(
+            detail::concatenate_outer<Axis, 0, true, true>(
                 destination, 0, detail::concatenate_operand<tensor_view<T, SE, SL>>{sources, 0}...);
             return;
         }
