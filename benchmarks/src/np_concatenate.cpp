@@ -1,36 +1,46 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
-#include <random>
 #include <vector>
 
 #include <benchmark/benchmark.h>
 
+#include "np_inline_concatenate.hpp"
+#include "np_old_concatenate.hpp"
+#include "np_static_concatenate.hpp"
+#include <random>
 #include <wjr/np/concatenate.hpp>
 
 namespace {
 namespace np = wjr::np;
-
-// Same disjoint output contract, including the standard algorithm's small-block path.
-template <bool CopyN>
-void copy_concatenate_block(double *WJR_RESTRICT output, const double *input,
-                            size_t bytes) noexcept {
-    if constexpr (CopyN)
-        std::copy_n(input, bytes / sizeof(double), output);
-    else {
-        // Flawfinder: ignore - callers copy bounded blocks in allocated fixture buffers.
-        std::memcpy(output, input, bytes);
-    }
+template <int Method, class... Args>
+WJR_INTRINSIC_INLINE constexpr void invoke_concatenate(Args... args) noexcept {
+    if constexpr (Method == 2)
+        np::old_concat::concatenate_to(args...);
+    else if constexpr (Method == 7)
+        np::inline_unit_concat::concatenate_to(args...);
+    else if constexpr (Method == 8)
+        np::static_unit_concat::concatenate_to(args...);
+    else
+        np::concatenate_to(args...);
 }
 
-template <bool Library, size_t Axis, bool Strided, bool CopyN = false, bool UnitReference = false>
+template <int Method>
+void copy_block(double *WJR_RESTRICT output, const double *input, size_t bytes) noexcept {
+    if constexpr (Method == 3)
+        std::copy_n(input, bytes / sizeof(double), output);
+    else
+        std::memcpy(output, input, bytes);
+}
+
+template <int Method, size_t Axis, bool Strided>
 WJR_NOINLINE void concatenate(double *WJR_RESTRICT output, const double *first,
                               const double *second, size_t rows, size_t cols) noexcept {
     const auto output_cols = Axis == 1 ? cols * 2 : cols;
     constexpr size_t step = Strided ? 2 : 1;
     const auto input_row_step = cols * step + (Strided ? 3 : 0);
     const auto output_row_step = output_cols * step + (Strided ? 3 : 0);
-    if constexpr (Library) {
+    if constexpr (Method == 1 || Method == 2 || Method == 7 || Method == 8) {
         using shape = np::dextents<size_t, 2>;
         const shape input_shape(rows, cols);
         const shape output_shape(Axis == 0 ? rows * 2 : rows, output_cols);
@@ -39,19 +49,20 @@ WJR_NOINLINE void concatenate(double *WJR_RESTRICT output, const double *first,
                                                        std::array<size_t, 2>{input_row_step, step});
             const np::layout_stride::mapping<shape> om(
                 output_shape, std::array<size_t, 2>{output_row_step, step});
-            np::concatenate_to(np::tensor_view<double, shape, np::layout_stride>(output, om),
-                               np::axes<Axis>,
-                               np::tensor_view<const double, shape, np::layout_stride>(first, im),
-                               np::tensor_view<const double, shape, np::layout_stride>(second, im));
+            invoke_concatenate<Method>(
+                np::tensor_view<double, shape, np::layout_stride>(output, om), np::axes<Axis>,
+                np::tensor_view<const double, shape, np::layout_stride>(first, im),
+                np::tensor_view<const double, shape, np::layout_stride>(second, im));
         } else {
-            np::concatenate_to(np::tensor_view<double, shape>(output, output_shape), np::axes<Axis>,
-                               np::tensor_view<const double, shape>(first, input_shape),
-                               np::tensor_view<const double, shape>(second, input_shape));
+            invoke_concatenate<Method>(np::tensor_view<double, shape>(output, output_shape),
+                                       np::axes<Axis>,
+                                       np::tensor_view<const double, shape>(first, input_shape),
+                                       np::tensor_view<const double, shape>(second, input_shape));
         }
     } else {
         if (rows == 0 || cols == 0)
             return;
-        if constexpr (UnitReference && Strided && Axis == 1) {
+        if constexpr (Method == 6 && Strided && Axis == 1) {
             if (cols == 1) {
                 for (size_t row = 0; row != rows; ++row) {
                     output[row * output_row_step] = first[row * input_row_step];
@@ -63,17 +74,17 @@ WJR_NOINLINE void concatenate(double *WJR_RESTRICT output, const double *first,
         if constexpr (!Strided && Axis == 0) {
             const auto count = rows * cols;
             // Flawfinder: ignore - fixture allocates both rows*cols output blocks.
-            copy_concatenate_block<CopyN>(output, first, count * sizeof(double));
+            copy_block<Method>(output, first, count * sizeof(double));
             // Flawfinder: ignore - the second block has count elements too.
-            copy_concatenate_block<CopyN>(output + count, second, count * sizeof(double));
+            copy_block<Method>(output + count, second, count * sizeof(double));
         } else if constexpr (!Strided) {
             for (size_t row = 0; row != rows; ++row) {
                 // Flawfinder: ignore - each output row has space for both inputs.
-                copy_concatenate_block<CopyN>(output + row * output_row_step,
-                                              first + row * input_row_step, cols * sizeof(double));
+                copy_block<Method>(output + row * output_row_step, first + row * input_row_step,
+                                   cols * sizeof(double));
                 // Flawfinder: ignore - the second cols-wide block fits this row.
-                copy_concatenate_block<CopyN>(output + row * output_row_step + cols,
-                                              second + row * input_row_step, cols * sizeof(double));
+                copy_block<Method>(output + row * output_row_step + cols,
+                                   second + row * input_row_step, cols * sizeof(double));
             }
         } else {
             for (size_t row = 0; row != rows; ++row)
@@ -87,7 +98,7 @@ WJR_NOINLINE void concatenate(double *WJR_RESTRICT output, const double *first,
     }
 }
 
-template <bool Library, size_t Axis, bool Strided, bool CopyN = false, bool UnitReference = false>
+template <int Method, size_t Axis, bool Strided>
 void BM_NpConcatenate(benchmark::State &state) {
     const auto rows = static_cast<size_t>(state.range(0));
     const auto cols = static_cast<size_t>(state.range(1));
@@ -108,15 +119,13 @@ void BM_NpConcatenate(benchmark::State &state) {
                                        : row * output_row_step + (cols + col) * step;
             expected[out] = second[offset];
         }
-    concatenate<Library, Axis, Strided, CopyN, UnitReference>(output.data(), first.data(),
-                                                              second.data(), rows, cols);
+    concatenate<Method, Axis, Strided>(output.data(), first.data(), second.data(), rows, cols);
     if (output != expected) {
         state.SkipWithError("concatenation result mismatch");
         return;
     }
     for (auto _ : state) {
-        concatenate<Library, Axis, Strided, CopyN, UnitReference>(output.data(), first.data(),
-                                                                  second.data(), rows, cols);
+        concatenate<Method, Axis, Strided>(output.data(), first.data(), second.data(), rows, cols);
         benchmark::ClobberMemory();
     }
     state.SetItemsProcessed(state.iterations() * static_cast<int64_t>(rows * cols * 2));
@@ -128,29 +137,27 @@ void concatenate_arguments(benchmark::internal::Benchmark *bench) {
             bench->Args({rows, cols});
 }
 
-BENCHMARK_TEMPLATE(BM_NpConcatenate, false, 0, false)->Apply(concatenate_arguments)->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpConcatenate, true, 0, false)->Apply(concatenate_arguments)->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpConcatenate, false, 1, false)->Apply(concatenate_arguments)->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpConcatenate, true, 1, false)->Apply(concatenate_arguments)->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpConcatenate, false, 1, true)->Apply(concatenate_arguments)->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpConcatenate, true, 1, true)->Apply(concatenate_arguments)->UseRealTime();
-// Keep the memcpy reference and also compare the standard algorithm's one-element
-// path; runtime memcpy alone is not a strong baseline for narrow inner blocks.
-BENCHMARK_TEMPLATE(BM_NpConcatenate, false, 0, false, true)
-    ->Apply(concatenate_arguments)
-    ->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpConcatenate, false, 1, false, true)
-    ->Apply(concatenate_arguments)
-    ->UseRealTime();
-template <bool Library, bool UnitReference = false>
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 0, 0, false)->Apply(concatenate_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 1, 0, false)->Apply(concatenate_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 0, 1, false)->Apply(concatenate_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 1, 1, false)->Apply(concatenate_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 0, 1, true)->Apply(concatenate_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 1, 1, true)->Apply(concatenate_arguments)->UseRealTime();
+
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 2, 0, false)->Apply(concatenate_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 2, 1, false)->Apply(concatenate_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 2, 1, true)->Apply(concatenate_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 3, 0, false)->Apply(concatenate_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 3, 1, false)->Apply(concatenate_arguments)->UseRealTime();
+template <int Method>
 WJR_NOINLINE void concatenate_unequal(double *WJR_RESTRICT output, const double *first,
                                       const double *second, size_t rows, size_t left_cols,
                                       size_t right_cols) noexcept {
     const auto left_row_step = left_cols * 2 + 3;
     const auto right_row_step = right_cols * 2 + 3;
     const auto output_row_step = (left_cols + right_cols) * 2 + 3;
-    if constexpr (!Library) {
-        if constexpr (UnitReference) {
+    if constexpr (Method == 0 || Method == 6) {
+        if constexpr (Method == 6) {
             if (left_cols == 1 && right_cols == 1) {
                 for (size_t row = 0; row != rows; ++row) {
                     output[row * output_row_step] = first[row * left_row_step];
@@ -179,13 +186,13 @@ WJR_NOINLINE void concatenate_unequal(double *WJR_RESTRICT output, const double 
                 ptr, np::layout_stride::mapping<shape>(shape(rows, cols),
                                                        std::array<size_t, 2>{row_step, 2}));
         };
-        np::concatenate_to(view(output, left_cols + right_cols, output_row_step), np::axes<1>,
-                           view(first, left_cols, left_row_step),
-                           view(second, right_cols, right_row_step));
+        invoke_concatenate<Method>(view(output, left_cols + right_cols, output_row_step),
+                                   np::axes<1>, view(first, left_cols, left_row_step),
+                                   view(second, right_cols, right_row_step));
     }
 }
 
-template <bool Library, bool UnitReference = false>
+template <int Method>
 void BM_NpConcatenateUnequal(benchmark::State &state) {
     const auto rows = static_cast<size_t>(state.range(0));
     const auto left_cols = static_cast<size_t>(state.range(1));
@@ -209,14 +216,13 @@ void BM_NpConcatenateUnequal(benchmark::State &state) {
     }
     const auto *a = left_cols ? first.data() : nullptr;
     const auto *b = right_cols ? second.data() : nullptr;
-    concatenate_unequal<Library, UnitReference>(output.data(), a, b, rows, left_cols, right_cols);
+    concatenate_unequal<Method>(output.data(), a, b, rows, left_cols, right_cols);
     if (output != expected) {
         state.SkipWithError("unequal concatenation mismatch");
         return;
     }
     for (auto _ : state) {
-        concatenate_unequal<Library, UnitReference>(output.data(), a, b, rows, left_cols,
-                                                    right_cols);
+        concatenate_unequal<Method>(output.data(), a, b, rows, left_cols, right_cols);
         benchmark::ClobberMemory();
     }
 }
@@ -226,8 +232,12 @@ void unequal_arguments(benchmark::internal::Benchmark *bench) {
              {std::array<int64_t, 2>{1, 1}, {1, 8}, {8, 1}, {7, 64}, {64, 7}, {0, 8}, {8, 0}})
             bench->Args({rows, cols[0], cols[1]});
 }
+BENCHMARK_TEMPLATE(BM_NpConcatenateUnequal, 0)->Apply(unequal_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateUnequal, 1)->Apply(unequal_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateUnequal, 2)->Apply(unequal_arguments)->UseRealTime();
+
 inline constexpr size_t concatenate_mixed_sequence_size = 96;
-template <bool Library, bool Shuffled, bool UnitReference = false>
+template <int Method, bool Shuffled>
 void BM_NpConcatenateMixed(benchmark::State &state) {
     struct fixture {
         size_t cols;
@@ -253,8 +263,7 @@ void BM_NpConcatenateMixed(benchmark::State &state) {
                 f.expected[row * output_step + (cols + col) * 2] =
                     f.second[row * input_step + col * 2];
             }
-        concatenate<Library, 1, true, false, UnitReference>(f.output.data(), f.first.data(),
-                                                            f.second.data(), rows, cols);
+        concatenate<Method, 1, true>(f.output.data(), f.first.data(), f.second.data(), rows, cols);
         if (f.output != f.expected) {
             state.SkipWithError("mixed concatenation mismatch");
             return;
@@ -270,33 +279,35 @@ void BM_NpConcatenateMixed(benchmark::State &state) {
     size_t i = 0;
     for (auto _ : state) {
         auto &f = fixtures[sequence[i]];
-        concatenate<Library, 1, true, false, UnitReference>(f.output.data(), f.first.data(),
-                                                            f.second.data(), rows, f.cols);
+        concatenate<Method, 1, true>(f.output.data(), f.first.data(), f.second.data(), rows,
+                                     f.cols);
         i = (i + 1) % sequence.size();
         benchmark::ClobberMemory();
     }
 }
+BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 0, false)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 1, false)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 2, false)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 0, true)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 1, true)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 2, true)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
 
-// Keep the generic references and also measure a handwritten scalar-column path.
-BENCHMARK_TEMPLATE(BM_NpConcatenate, false, 1, true, false, true)
-    ->Apply(concatenate_arguments)
-    ->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpConcatenateUnequal, false)->Apply(unequal_arguments)->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpConcatenateUnequal, true)->Apply(unequal_arguments)->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpConcatenateUnequal, false, true)->Apply(unequal_arguments)->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, false, false)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, true, false)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, false, false, true)
-    ->Arg(1)
-    ->Arg(32)
-    ->Arg(1024)
-    ->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, false, true)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, true, true)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
-BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, false, true, true)
-    ->Arg(1)
-    ->Arg(32)
-    ->Arg(1024)
-    ->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 6, 1, true)->Apply(concatenate_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateUnequal, 6)->Apply(unequal_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 6, false)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 6, true)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
+
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 7, 0, false)->Apply(concatenate_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 7, 1, false)->Apply(concatenate_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 7, 1, true)->Apply(concatenate_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateUnequal, 7)->Apply(unequal_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 7, false)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 7, true)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 8, 0, false)->Apply(concatenate_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 8, 1, false)->Apply(concatenate_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenate, 8, 1, true)->Apply(concatenate_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateUnequal, 8)->Apply(unequal_arguments)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 8, false)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, 8, true)->Arg(1)->Arg(32)->Arg(1024)->UseRealTime();
 
 } // namespace
