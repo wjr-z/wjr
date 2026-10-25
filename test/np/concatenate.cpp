@@ -151,4 +151,69 @@ TEST(NpConcatenate, StridedDestinationAndEmptyInnerAxisInput) {
     for (size_t hole : {1, 3, 5, 6, 7, 8, 10, 12})
         EXPECT_EQ(output[hole], -99);
 }
+
+TEST(NpConcatenate, StridedUnequalInnerAxesSharePrefixAndKeepIndependentSuffixes) {
+    using shape = np::dextents<size_t, 2>;
+    const np::layout_stride::mapping<shape> input_mapping(shape(2, 3), std::array<size_t, 2>{8, 2});
+    const np::layout_stride::mapping<shape> output_mapping(shape(2, 7),
+                                                           std::array<size_t, 2>{20, 2});
+    const int input[] = {1, -9, 2, -9, 3, -9, -9, -9, 4, -9, 5, -9, 6};
+    const int column[] = {7, 8};
+    std::array<int, 33> storage;
+    storage.fill(-99);
+    const np::tensor_view<int, shape, np::layout_stride> output(storage.data(), output_mapping);
+    const np::tensor_view<const int, shape, np::layout_stride> source(input, input_mapping);
+    np::concatenate_to(output, np::axes<1>, source, np::tensor_view<const int, shape>(column, 2, 1),
+                       source);
+    const int expected[2][7] = {{1, 2, 3, 7, 1, 2, 3}, {4, 5, 6, 8, 4, 5, 6}};
+    for (size_t row = 0; row != 2; ++row)
+        for (size_t col = 0; col != 7; ++col) {
+            EXPECT_EQ(output(row, col), expected[row][col]);
+            storage[row * 20 + col * 2] = -99;
+        }
+    EXPECT_TRUE(
+        std::all_of(storage.begin(), storage.end(), [](int value) { return value == -99; }));
+}
+
+TEST(NpConcatenate, UnitInnerAxisCopiesScalarsAndPreservesHoles) {
+    using source_shape = np::extents<size_t, 3, 1>;
+    using target_shape = np::extents<size_t, 3, 3>;
+    const np::layout_stride::mapping<source_shape> first_mapping(source_shape{},
+                                                                 std::array<size_t, 2>{5, 2});
+    const np::layout_stride::mapping<source_shape> second_mapping(source_shape{},
+                                                                  std::array<size_t, 2>{7, 3});
+    const np::layout_stride::mapping<target_shape> output_mapping(target_shape{},
+                                                                  std::array<size_t, 2>{9, 2});
+    const int first[] = {1, -9, -9, -9, -9, 2, -9, -9, -9, -9, 3};
+    const int second[] = {4, -9, -9, -9, -9, -9, -9, 5, -9, -9, -9, -9, -9, -9, 6};
+    const np::tensor_view<const int, source_shape, np::layout_stride> a(first, first_mapping);
+    const np::tensor_view<const int, source_shape, np::layout_stride> b(second, second_mapping);
+    std::array<int, 23> storage;
+    storage.fill(-99);
+    const np::tensor_view<int, target_shape, np::layout_stride> output(storage.data(),
+                                                                       output_mapping);
+    np::concatenate_to(output, np::axes<1>, a, b, a);
+    for (size_t row = 0; row != 3; ++row) {
+        EXPECT_EQ(output(row, 0), static_cast<int>(row + 1));
+        EXPECT_EQ(output(row, 1), static_cast<int>(row + 4));
+        EXPECT_EQ(output(row, 2), static_cast<int>(row + 1));
+        for (size_t col = 0; col != 3; ++col)
+            storage[row * 9 + col * 2] = -99;
+    }
+    EXPECT_TRUE(
+        std::all_of(storage.begin(), storage.end(), [](int value) { return value == -99; }));
+}
+
+constexpr bool constant_strided_unit_concatenate() {
+    using shape = np::extents<size_t, 3>;
+    const np::layout_stride::mapping<shape> mapping(shape{}, std::array<size_t, 1>{2});
+    int storage[] = {-9, -9, -9, -9, -9};
+    const int first = 1, second = 2;
+    np::concatenate_to(np::tensor_view<int, shape, np::layout_stride>(storage, mapping),
+                       np::axes<0>, view<const int, 1>(&first), view<const int, 1>(&second),
+                       view<const int, 1>(&first));
+    return storage[0] == 1 && storage[1] == -9 && storage[2] == 2 && storage[3] == -9 &&
+           storage[4] == 1;
+}
+static_assert(constant_strided_unit_concatenate());
 } // namespace

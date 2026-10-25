@@ -59,6 +59,28 @@ struct concatenate_operand {
     size_t offset;
 };
 
+template <class T, class Step>
+struct concatenate_unit_source {
+    const T *input;
+    Step row_step;
+};
+
+// A unit concatenation axis contributes one scalar per source to each row.
+// Counts and inner-loop state are absent, rather than dynamically equal to one.
+template <class D, class RowStep, class ColumnStep, class... Inputs>
+WJR_INTRINSIC_INLINE constexpr void
+concatenate_unit_rows(D *WJR_RESTRICT output, size_t output_offset, size_t rows, RowStep row_step,
+                      ColumnStep column_step, Inputs... inputs) noexcept {
+    for (size_t row = 0; row != rows; ++row) {
+        auto offset = output_offset + row * row_step;
+        auto copy = [&](const auto &input) constexpr noexcept {
+            output[offset] = input.input[row * input.row_step];
+            offset += column_step;
+        };
+        (copy(inputs), ...);
+    }
+}
+
 template <size_t Axis, size_t Level, class Dst, class Src>
 constexpr void concatenate_source(const Dst &dst, concatenate_operand<Src> source,
                                   size_t output_offset) noexcept {
@@ -81,14 +103,30 @@ constexpr void concatenate_source(const Dst &dst, concatenate_operand<Src> sourc
 // Coordinates outside the concatenation axis are shared across all inputs.
 // Operand offsets are scalar loop indices, without owning/copying descriptors.
 // Inlining keeps caller-known strides out of an outlined descriptor-based loop.
-template <size_t Axis, size_t Level, class Dst, class... Src>
+template <size_t Axis, size_t Level, bool Unit = false, class Dst, class... Src>
 WJR_INTRINSIC_INLINE constexpr void
 concatenate_outer(const Dst &dst, size_t output_offset,
                   concatenate_operand<Src>... sources) noexcept {
     constexpr size_t axis =
         left_layout<typename Dst::layout_type> ? Dst::rank() - 1 - Level : Level;
     const auto output_step = static_cast<size_t>(axis_stride<axis>(dst));
-    if constexpr (axis == Axis) {
+    if constexpr (Unit && Level + 2 >= Dst::rank()) {
+        constexpr bool single_row = Dst::rank() == 1;
+        auto bind = []<class S>(concatenate_operand<S> source) constexpr noexcept {
+            const auto step = [&]() constexpr noexcept {
+                if constexpr (single_row)
+                    return std::integral_constant<size_t, 0>{};
+                else
+                    return axis_stride<axis>(source.view);
+            }();
+            return concatenate_unit_source<typename S::value_type, decltype(step)>{
+                source.view.data_handle() + source.offset, step};
+        };
+        concatenate_unit_rows(dst.data_handle(), output_offset,
+                              single_row ? size_t{1} : static_cast<size_t>(dst.extent(axis)),
+                              single_row ? size_t{0} : output_step, axis_stride<Axis>(dst),
+                              bind(sources)...);
+    } else if constexpr (axis == Axis) {
         auto append = [&](auto source) constexpr noexcept {
             concatenate_source<Axis, Level>(dst, source, output_offset);
             output_offset += static_cast<size_t>(source.view.extent(Axis)) * output_step;
@@ -97,7 +135,7 @@ concatenate_outer(const Dst &dst, size_t output_offset,
     } else {
         const auto count = static_cast<size_t>(dst.extent(axis));
         for (size_t i = 0; i != count; ++i) {
-            concatenate_outer<Axis, Level + 1>(
+            concatenate_outer<Axis, Level + 1, Unit>(
                 dst, output_offset + i * output_step,
                 concatenate_operand<Src>{
                     sources.view,
@@ -132,6 +170,24 @@ WJR_INTRINSIC_INLINE constexpr void concatenate_to(tensor_view<D, DE, DL> destin
     WJR_ASSERT_L2(remaining == 0);
     if (destination.empty())
         return;
+    constexpr bool packed = detail::packed_layout<DL> && (detail::packed_layout<SL> && ...);
+    constexpr bool inner_axis = detail::left_layout<DL> ? Axis == 0 : Axis + 1 == DE::rank();
+    if constexpr (!packed && inner_axis &&
+                  ((SE::static_extent(Axis) == dynamic_extent || SE::static_extent(Axis) == 1) &&
+                   ...)) {
+        if constexpr (((SE::static_extent(Axis) == 1) && ...)) {
+            detail::concatenate_outer<Axis, 0, true>(
+                destination, 0, detail::concatenate_operand<tensor_view<T, SE, SL>>{sources, 0}...);
+            return;
+        }
+#if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG)
+        else if (((sources.extent(Axis) == 1) && ...)) {
+            detail::concatenate_outer<Axis, 0, true>(
+                destination, 0, detail::concatenate_operand<tensor_view<T, SE, SL>>{sources, 0}...);
+            return;
+        }
+#endif
+    }
     detail::concatenate_outer<Axis, 0>(
         destination, 0, detail::concatenate_operand<tensor_view<T, SE, SL>>{sources, 0}...);
 }
