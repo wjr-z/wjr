@@ -114,6 +114,8 @@ owner/eval 仍使用 shape_result 报告必要元数据失败，见[结果类型
 `<wjr/np/segmented_reduce.hpp>` 提供只借用边界数组的[分段 fold、sum 和 mean](../design/tensor-segmented-reduce.md)。
 `<wjr/np/bincount.hpp>` 提供输出由调用方管理的[整数分桶计数与加权累加](../design/tensor-bincount.md)，
 无需排序索引、创建分组容器或分配临时缓冲。
+`<wjr/np/histogram.hpp>` 提供按显式边界分桶的[直方图计数](../design/tensor-histogram.md)，
+跳过域外及 NaN 值，直接累计到已有输出，无需生成逐元素桶索引数组。
 数据生命周期、未检查构造的前置条件和已测空间限制见
 [借用数据模型](../design/tensor-data-model.md)与[核心标准](../design/np-core-standard.md)。`<wjr/np/tensor.hpp>` 提供
 容器管理生命周期的连续 owner 及显式借用，见

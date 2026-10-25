@@ -347,6 +347,13 @@ allocate no intermediate arrays. See [statistics.cpp](statistics.cpp) and the
 caller-owned output bins. Both operations reset the output and use no workspace.
 See [bincount.cpp](bincount.cpp) and the [bincount contract](../../docs/design/tensor-bincount.md).
 
+## Count values between explicit boundaries
+
+`wjr_np_histogram` bins borrowed values into caller-owned counts without an
+intermediate index array. The final bin includes the rightmost edge; NaN and
+out-of-range values are ignored. See [histogram.cpp](histogram.cpp) and the
+[histogram contract](../../docs/design/tensor-histogram.md).
+
 ## Segmented reductions
 
 `wjr_np_segmented_reduce` reuses a compact offset array for sums, means, and a
