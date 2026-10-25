@@ -69,6 +69,7 @@ jobs:
           fi
           cmake -B build -GNinja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -DWJR_BUILD_BENCHMARKS=ON \
             -DWJR_BUILD_TESTS=OFF \
             -DWJR_BENCHMARK_PROFILE="$BENCHMARK_PROFILE" \
@@ -80,6 +81,46 @@ jobs:
 
       - name: Build benchmarks
         run: cmake --build build --target benchmarks --parallel
+
+      - name: Capture histogram implementation and actual code generation
+        run: |
+          mkdir -p histogram-codegen
+          lscpu > histogram-codegen/lscpu.txt
+          python3 - <<'PY'
+          import hashlib, json, pathlib, shlex, subprocess
+          output = pathlib.Path('histogram-codegen').resolve()
+          commands = json.loads(pathlib.Path('build/compile_commands.json').read_text())
+          entries = [e for e in commands if pathlib.Path(e['file']).name == 'np_histogram.cpp']
+          assert len(entries) == 1
+          entry = entries[0]
+          (output / 'command.json').write_text(json.dumps(entry, indent=2))
+          args = shlex.split(entry['command'])
+          stripped = []
+          i = 0
+          while i < len(args):
+              if args[i] == '-o':
+                  i += 2
+              elif args[i] == '-c':
+                  i += 1
+              else:
+                  stripped.append(args[i])
+                  i += 1
+          subprocess.run(stripped + ['-S', '-fverbose-asm', '-o', str(output / 'np_histogram.s')], cwd=entry['directory'], check=True)
+          with (output / 'object.txt').open('w') as log:
+              subprocess.run(['objdump', '-drwC', 'build/benchmarks/CMakeFiles/benchmarks.dir/src/np_histogram.cpp.o'], stdout=log, check=True)
+          with (output / 'compiler.txt').open('w') as log:
+              subprocess.run([args[0], '--version'], stdout=log, check=True)
+          with (output / 'target.txt').open('w') as log:
+              subprocess.run([args[0], '-march=native', '-Q', '--help=target'], stdout=log, check=True)
+          hashes = {}
+          for filename in ['include/wjr/np/histogram.hpp', 'benchmarks/src/np_histogram.cpp']:
+              content = pathlib.Path(filename).read_bytes()
+              hashes[filename] = hashlib.sha256(content).hexdigest()
+              (output / pathlib.Path(filename).name).write_bytes(content)
+          hashes['research_head'] = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          hashes['published_head'] = 'a99b70439e798d85bce8de71395b4a3aaa8dfca9'
+          (output / 'source-provenance.json').write_text(json.dumps(hashes, indent=2))
+          PY
 
       - name: Run benchmarks
         run: |
@@ -93,9 +134,11 @@ jobs:
           ./build/bin/benchmarks \
             --benchmark_format=json \
             --benchmark_out=benchmark-results.json \
-            --benchmark_repetitions="$repetitions" \
+            --benchmark_repetitions=7 \
+            --benchmark_enable_random_interleaving=true \
+            --benchmark_filter=BM_NpHistogram \
             --benchmark_report_aggregates_only=true \
-            --benchmark_min_time="$min_time"
+            --benchmark_min_time=0.04s
 
       - name: Download previous benchmark result
         uses: dawidd6/action-download-artifact@v9
@@ -126,6 +169,7 @@ jobs:
         with:
           name: benchmark-results-${{ env.BENCHMARK_PROFILE }}
           path: |
+            histogram-codegen/
             benchmark-results.json
             benchmark-comparison.json
           retention-days: 90
