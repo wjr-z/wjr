@@ -299,4 +299,69 @@ BENCHMARK_TEMPLATE(BM_NpConcatenateMixed, false, true, true)
     ->Arg(1024)
     ->UseRealTime();
 
+// The concatenated extent is encoded in the view type, without runtime dispatch.
+template <bool Library>
+WJR_NOINLINE void concatenate_static_unit(double *WJR_RESTRICT output, const double *first,
+                                          const double *second, size_t rows) noexcept {
+    constexpr size_t element_step = 2, padding = 3;
+    constexpr size_t input_row_step = element_step + padding;
+    constexpr size_t output_row_step = element_step * 2 + padding;
+    if constexpr (Library) {
+        using source_shape = np::extents<size_t, np::dynamic_extent, 1>;
+        using target_shape = np::extents<size_t, np::dynamic_extent, 2>;
+        const np::layout_stride::mapping<source_shape> input_mapping(
+            source_shape(rows), std::array<size_t, 2>{input_row_step, element_step});
+        const np::layout_stride::mapping<target_shape> output_mapping(
+            target_shape(rows), std::array<size_t, 2>{output_row_step, element_step});
+        np::concatenate_to(
+            np::tensor_view<double, target_shape, np::layout_stride>(output, output_mapping),
+            np::axes<1>,
+            np::tensor_view<const double, source_shape, np::layout_stride>(first, input_mapping),
+            np::tensor_view<const double, source_shape, np::layout_stride>(second, input_mapping));
+    } else {
+        for (size_t row = 0; row != rows; ++row) {
+            output[row * output_row_step] = first[row * input_row_step];
+            output[row * output_row_step + element_step] = second[row * input_row_step];
+        }
+    }
+}
+
+template <bool Library>
+void BM_NpConcatenateStaticUnit(benchmark::State &state) {
+    constexpr size_t element_step = 2, padding = 3;
+    constexpr size_t input_row_step = element_step + padding;
+    constexpr size_t output_row_step = element_step * 2 + padding;
+    const auto rows = static_cast<size_t>(state.range(0));
+    std::vector<double> first(rows ? (rows - 1) * input_row_step + 1 : 0), second(first.size());
+    std::vector<double> output(rows ? (rows - 1) * output_row_step + element_step + 1 : 0, -99),
+        expected(output);
+    for (size_t row = 0; row != rows; ++row) {
+        first[row * input_row_step] = static_cast<double>(row + 1);
+        second[row * input_row_step] = -first[row * input_row_step];
+        expected[row * output_row_step] = first[row * input_row_step];
+        expected[row * output_row_step + element_step] = second[row * input_row_step];
+    }
+    concatenate_static_unit<Library>(output.data(), first.data(), second.data(), rows);
+    if (output != expected) {
+        state.SkipWithError("static-unit concatenation mismatch");
+        return;
+    }
+    for (auto _ : state) {
+        concatenate_static_unit<Library>(output.data(), first.data(), second.data(), rows);
+        benchmark::ClobberMemory();
+    }
+}
+
+BENCHMARK_TEMPLATE(BM_NpConcatenateStaticUnit, false)
+    ->Arg(0)
+    ->Arg(1)
+    ->Arg(32)
+    ->Arg(1024)
+    ->UseRealTime();
+BENCHMARK_TEMPLATE(BM_NpConcatenateStaticUnit, true)
+    ->Arg(0)
+    ->Arg(1)
+    ->Arg(32)
+    ->Arg(1024)
+    ->UseRealTime();
 } // namespace
