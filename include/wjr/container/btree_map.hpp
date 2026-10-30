@@ -30,6 +30,7 @@ public:
     using reverse_iterator = typename Mybase::reverse_iterator;
     using const_reverse_iterator = typename Mybase::const_reverse_iterator;
 
+    using Mybase::insert;
     using Mybase::Mybase;
 
 private:
@@ -79,6 +80,27 @@ public:
     }
 
     mapped_type &operator[](const key_type &key) { return try_emplace(key).first->second; }
+
+    /// @brief Insert a missing moved key with a default mapped value.
+    mapped_type &operator[](key_type &&key) { return try_emplace(std::move(key)).first->second; }
+
+    /// @brief Assign an existing mapped value, or insert a new const-key pair.
+    template <btree_detail::upsert_source<mapped_type> Source>
+    std::pair<iterator, bool> insert_or_assign(const key_type &key, Source &&value) {
+        auto result = try_emplace(key, std::forward<Source>(value));
+        if (!result.second)
+            result.first->second = std::forward<Source>(value);
+        return result;
+    }
+
+    /// @copydoc insert_or_assign(const key_type &, Source &&)
+    template <btree_detail::upsert_source<mapped_type> Source>
+    std::pair<iterator, bool> insert_or_assign(key_type &&key, Source &&value) {
+        auto result = try_emplace(std::move(key), std::forward<Source>(value));
+        if (!result.second)
+            result.first->second = std::forward<Source>(value);
+        return result;
+    }
 
     std::pair<iterator, bool> insert(const value_type &val) noexcept {
         return this->_emplace_unique(val);

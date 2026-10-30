@@ -27,6 +27,7 @@ public:
     using reverse_iterator = typename Mybase::reverse_iterator;
     using const_reverse_iterator = typename Mybase::const_reverse_iterator;
 
+    using Mybase::insert;
     using Mybase::Mybase;
 
 private:
@@ -88,6 +89,7 @@ public:
     using reverse_iterator = typename Mybase::reverse_iterator;
     using const_reverse_iterator = typename Mybase::const_reverse_iterator;
 
+    using Mybase::insert;
     using Mybase::Mybase;
 
     iterator insert(const value_type &val) noexcept { return this->_emplace_multi(val); }
