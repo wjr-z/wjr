@@ -8,9 +8,12 @@
  *
  */
 
+#include <compare>
 #include <ranges>
+#include <stdexcept>
 
 #include <wjr/compressed_pair.hpp>
+#include <wjr/concept/ranges_base.hpp>
 #include <wjr/container/container_fn.hpp>
 #include <wjr/container/detail/storage_traits.hpp>
 #include <wjr/container/detail/vector_size_reference.hpp>
@@ -35,6 +38,8 @@ public:
     using difference_type = typename Traits::difference_type;
     using pointer = typename Traits::const_pointer;
     using reference = typename Traits::const_reference;
+
+    ring_buffer_const_iterator() = default;
 
     ring_buffer_const_iterator(const RB *rb, _pointer ptr) noexcept
         : m_rb(const_cast<RB *>(rb)), m_ptr(ptr) {}
@@ -107,6 +112,7 @@ public:
         return *(*this + n);
     }
 
+    /// @pre Both iterators refer to the same buffer.
     WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 difference_type
     operator-(const ring_buffer_const_iterator &rhs) const noexcept {
         WJR_ASSERT_L2(m_rb == rhs.m_rb, "can't subtract iterators from different ring_buffer");
@@ -122,6 +128,14 @@ public:
     WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 bool
     operator!=(const ring_buffer_const_iterator &rhs) const noexcept {
         return !(*this == rhs);
+    }
+
+    /// @brief Compare logical positions, including positions across the storage wrap.
+    /// @pre Both iterators refer to the same buffer.
+    WJR_NODISCARD WJR_CONSTEXPR20 std::strong_ordering
+    operator<=>(const ring_buffer_const_iterator &rhs) const noexcept {
+        WJR_ASSERT_L2(m_rb == rhs.m_rb, "can't compare iterators from different ring_buffer");
+        return linearize_pointer(m_ptr) <=> linearize_pointer(rhs.m_ptr);
     }
 
 private:
@@ -162,6 +176,8 @@ public:
     using reference = typename Traits::reference;
 
     using Mybase::Mybase;
+
+    ring_buffer_iterator() = default;
 
     WJR_NODISCARD WJR_CONSTEXPR20 pointer operator->() const noexcept {
         return const_cast<pointer>(Mybase::operator->());
@@ -574,6 +590,26 @@ public:
                       const allocator_type &al = allocator_type())
         : basic_ring_buffer(il.begin(), il.end(), al) {}
 
+    /**
+     * @brief Construct from a C++20 input range, including non-common sentinels.
+     * @details Sized and forward ranges allocate once; input ranges are consumed once.
+     */
+    template <detail::_container_compatible_range<value_type> Range>
+    WJR_CONSTEXPR20 basic_ring_buffer(from_range_t, Range &&range,
+                                      const allocator_type &al = allocator_type())
+        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
+        if constexpr (std::ranges::sized_range<Range> || std::ranges::forward_range<Range>) {
+            const auto count = static_cast<size_type>(std::ranges::distance(range));
+            _construct_n(count, std::ranges::begin(range), std::ranges::end(range));
+        } else {
+            _input_construction_rollback rollback(*this);
+            for (auto &&value : range) {
+                emplace_back(std::forward<decltype(value)>(value));
+            }
+            rollback.release();
+        }
+    }
+
     WJR_CONSTEXPR20 ~basic_ring_buffer() noexcept { _destroy_and_deallocate(); }
 
     basic_ring_buffer &operator=(const basic_ring_buffer &other) noexcept(
@@ -834,6 +870,59 @@ public:
     WJR_CONSTEXPR20 self_type &assign(Iter first, Iter last) {
         _range_assign(wjr::_iter_base(first), wjr::_iter_base(last), iterator_category_t<Iter>());
         return *this;
+    }
+
+    /**
+     * @brief Replace values from a range while reusing existing capacity.
+     * @pre The source does not overlap this container's live elements.
+     * @details A throwing assignment may modify the assigned prefix; all live
+     * elements remain owned by this container. Input ranges are consumed once.
+     */
+    template <detail::_container_compatible_range<value_type> Range>
+    requires requires(value_type &dst, std::ranges::iterator_t<Range> src) { dst = *src; }
+    WJR_CONSTEXPR20 self_type &assign_range(Range &&range) {
+        if constexpr (std::ranges::common_range<Range> &&
+                      requires { typename iterator_category_t<std::ranges::iterator_t<Range>>; }) {
+            return assign(std::ranges::begin(range), std::ranges::end(range));
+        } else {
+            auto first = std::ranges::begin(range);
+            const auto last = std::ranges::end(range);
+            size_type assigned = 0;
+            const auto original_size = size();
+            for (; assigned != original_size && first != last; ++assigned, ++first) {
+                (*this)[assigned] = *first;
+            }
+            if (first == last) {
+                while (size() != assigned) {
+                    pop_back();
+                }
+            } else {
+                for (; first != last; ++first) {
+                    emplace_back(*first);
+                }
+            }
+            return *this;
+        }
+    }
+
+    /**
+     * @brief Append a range in order; a sized range reserves its final capacity once.
+     * @pre The source does not overlap this container's live elements.
+     * @details Successfully appended elements remain owned if source iteration or
+     * element construction throws. The source is traversed only once.
+     */
+    template <detail::_container_compatible_range<value_type> Range>
+    WJR_CONSTEXPR20 void append_range(Range &&range) {
+        if constexpr (std::ranges::sized_range<Range>) {
+            const auto count = std::ranges::size(range);
+            if (count > max_size() - size()) {
+                WJR_THROW(std::length_error("ring_buffer::append_range: size overflow"));
+            }
+            reserve(size() + static_cast<size_type>(count));
+        }
+        for (auto &&value : range) {
+            emplace_back(std::forward<decltype(value)>(value));
+        }
     }
 
     // extension
@@ -1112,13 +1201,14 @@ private:
         }
     }
 
-    template <typename Iter>
-    WJR_CONSTEXPR20 void _construct_n(const size_type n, Iter first, Iter last) {
+    template <typename Iter, typename Sentinel>
+    WJR_CONSTEXPR20 void _construct_n(const size_type n, Iter first, Sentinel last) {
         if (WJR_LIKELY(n != 0)) {
             auto &al = _get_allocator();
             uninitialized_construct(n, n);
             _allocation_rollback allocation(get_storage(), al);
-            wjr::uninitialized_copy_restrict_using_allocator(first, last, data(), al);
+            wjr::uninitialized_copy_restrict_using_allocator(std::move(first), std::move(last),
+                                                             data(), al);
             allocation.release();
         }
     }
