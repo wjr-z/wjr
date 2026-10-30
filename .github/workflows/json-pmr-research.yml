@@ -1,0 +1,28 @@
+name: JSON PMR research
+on:
+  push:
+    branches: [research/json-pmr-20261030]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: true
+      - name: Record platform
+        run: |
+          mkdir -p json-pmr-results
+          lscpu > json-pmr-results/cpu.txt
+          g++-14 --version > json-pmr-results/gcc.txt
+          clang++-18 --version > json-pmr-results/clang.txt
+          git rev-parse HEAD > json-pmr-results/source.txt
+      - name: Build compare and sanitize
+        run: python3 .github/research/json-pmr-run.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: json-pmr-results
+          path: json-pmr-results
