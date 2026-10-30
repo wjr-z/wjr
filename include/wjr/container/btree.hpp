@@ -576,7 +576,6 @@ public:
 
     bool operator!=(const btree_const_iterator &other) const noexcept { return !(*this == other); }
 
-    WJR_PURE leaf_node_type *get_leaf() const noexcept { return m_leaf; }
     WJR_PURE slot_usize_type pos() const noexcept { return m_pos; }
 
 protected:
@@ -594,6 +593,9 @@ protected:
     }
 
 private:
+    /// @brief Node access is reserved for the owning tree's mutation paths.
+    WJR_PURE leaf_node_type *get_leaf() const noexcept { return m_leaf; }
+
     leaf_node_type *m_leaf = nullptr;
     slot_usize_type m_pos = 0;
 };
@@ -616,9 +618,11 @@ public:
     using iterator_category = typename Mybase::iterator_category;
     using value_type = typename Mybase::value_type;
     using difference_type = typename Traits::difference_type;
-    using pointer = value_type *;
-    using reference = value_type &;
+    using pointer = std::conditional_t<Traits::is_map, value_type *, const value_type *>;
+    using reference = std::conditional_t<Traits::is_map, value_type &, const value_type &>;
 
+private:
+    /// @brief Only the owning mutable tree may recover a mutable position.
     btree_iterator(const Mybase &other) noexcept : Mybase(other) {}
 
 protected:
@@ -628,11 +632,9 @@ protected:
     btree_iterator(const leaf_node_type *leaf, slot_usize_type pos) noexcept : Mybase(leaf, pos) {}
 
 public:
-    value_type &operator*() const noexcept { return const_cast<value_type &>(Mybase::operator*()); }
+    reference operator*() const noexcept { return *operator->(); }
 
-    value_type *operator->() const noexcept {
-        return const_cast<value_type *>(Mybase::operator->());
-    }
+    pointer operator->() const noexcept { return const_cast<pointer>(Mybase::operator->()); }
 
     btree_iterator &operator++() noexcept {
         Mybase::operator++();
@@ -656,9 +658,8 @@ public:
         return tmp;
     }
 
-    bool operator==(const btree_iterator &other) const noexcept {
-        return Mybase::operator==(other);
-    }
+    bool operator==(const Mybase &other) const noexcept { return Mybase::operator==(other); }
+    bool operator!=(const Mybase &other) const noexcept { return Mybase::operator!=(other); }
 
 protected:
     WJR_INTRINSIC_INLINE btree_iterator &_adjust_next() noexcept {
@@ -875,7 +876,7 @@ public:
     using allocator_type = _Alty;
     using size_type = typename Traits::size_type;
     using difference_type = typename Traits::difference_type;
-    using reference = value_type &;
+    using reference = std::conditional_t<Traits::is_map, value_type &, const value_type &>;
     using const_reference = const value_type &;
     using pointer = typename _Alty_traits::pointer;
     using const_pointer = typename _Alty_traits::const_pointer;
