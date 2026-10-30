@@ -248,4 +248,41 @@ TEST(BtreeConstruction, ExceptionSpecificationsFollowConstructedState) {
     throwing_allocator<char>::fail_move = false;
 #endif
 }
+TEST(BtreeConstruction, RangeConstructorsFollowBaseStateInitialization) {
+    using normal = wjr::btree_map<int, int>;
+    using compare_tree = wjr::btree_map<int, int, throwing_compare>;
+    using allocator_tree = wjr::btree_map<int, int, std::less<int>, throwing_allocator<char>>;
+    using values = std::initializer_list<normal::value_type>;
+    using iter = const normal::value_type *;
+    EXPECT_TRUE((std::is_nothrow_constructible_v<normal, iter, iter, const std::less<int> &>));
+    EXPECT_TRUE((std::is_nothrow_constructible_v<normal, values, const std::less<int> &>));
+    EXPECT_FALSE(
+        (std::is_nothrow_constructible_v<compare_tree, iter, iter, const throwing_compare &>));
+    EXPECT_FALSE((std::is_nothrow_constructible_v<compare_tree, values, const throwing_compare &>));
+    EXPECT_FALSE(
+        (std::is_nothrow_constructible_v<allocator_tree, iter, iter, const std::less<int> &>));
+    EXPECT_FALSE((std::is_nothrow_constructible_v<allocator_tree, values, const std::less<int> &>));
+#if !defined(WJR_DISABLE_EXCEPTIONS)
+    const normal::value_type input[] = {{1, 10}, {2, 20}, {3, 30}};
+    const throwing_compare comp(0);
+    if constexpr (!std::is_nothrow_constructible_v<compare_tree, iter, iter,
+                                                   const throwing_compare &>) {
+        EXPECT_THROW((void)compare_tree(input, input + 3, comp), std::runtime_error);
+        EXPECT_THROW((void)compare_tree({{1, 10}}, comp), std::runtime_error);
+        throwing_compare::fail_copy = false;
+        compare_tree constructed(input, input + 3, comp);
+        EXPECT_EQ(constructed.size(), 3u);
+        EXPECT_EQ(constructed.at(2), 20);
+        throwing_compare::fail_copy = true;
+    }
+    if constexpr (!std::is_nothrow_constructible_v<allocator_tree, iter, iter,
+                                                   const std::less<int> &>) {
+        const std::less<int> less;
+        throwing_allocator<char>::fail_default = true;
+        EXPECT_THROW((void)allocator_tree(input, input + 3, less), std::runtime_error);
+        EXPECT_THROW((void)allocator_tree({{1, 10}}, less), std::runtime_error);
+        throwing_allocator<char>::fail_default = false;
+    }
+#endif
+}
 } // namespace
