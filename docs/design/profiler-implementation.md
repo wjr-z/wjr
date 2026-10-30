@@ -90,6 +90,10 @@ P01 交付前至少有一份真实 v1.9.0 fixture 和生成记录；fixture owne
 
 ## P02：LLVM-MCA JSON 与汇编关联
 
+P02 的版本化 JSON importer、模型专属比较和 CLI 已实现。
+实际支持边界及可运行示例见 [MCA 工具指南](../../devtools/profiler/LLVM_MCA.md)；
+该交付不把 Windows 上的模型模拟称作 Linux runtime 采集验收。
+
 依赖 P01 的 bundle/report；可提前准备 fixtures。首个格式为已运行的 LLVM 18.1.8，
 新版本通过 fixture 才扩支持；未知版本只允许 exploratory 输出。
 范围是 `adapters/llvm_mca.py`、小型 MCA fixtures 和工具 README。

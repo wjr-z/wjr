@@ -4,6 +4,9 @@ import copy
 import json
 import unittest
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from wjr_profiler.adapters.llvm_mca import import_artifact
 
@@ -17,6 +20,7 @@ class LLVMImportTests(unittest.TestCase):
             "producer": {
                 "provider": "llvm-mca",
                 "version": "18.1.8",
+                "exit_status": 0,
                 "options": [
                     "-iterations=100",
                     "-mcpu=skylake",
@@ -35,7 +39,10 @@ class LLVMImportTests(unittest.TestCase):
         totals = [x for x in observations if x["metric"] == "total_cycles"]
         self.assertEqual([x["samples"] for x in totals], [[104.0], [103.0]])
         for observation in observations:
-            self.assertEqual(observation["kind"], "estimate")
+            if observation["kind"] == "derived":
+                self.assertEqual(observation["metadata"]["inherits_kind"], "estimate")
+            else:
+                self.assertEqual(observation["kind"], "estimate")
             self.assertEqual(observation["time_basis"], "model")
             self.assertEqual(observation["sample_level"], "simulation")
             self.assertEqual(len(observation["samples"]), 1)

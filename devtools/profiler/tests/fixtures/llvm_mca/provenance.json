@@ -16,5 +16,7 @@
   "generated_at_utc": "2026-10-30T12:12:03.170655+00:00",
   "input_sha256": "da0006c44cba2f73345d744498e05d4f660cb98180ff86915055dcd6de09eb6b",
   "raw_sha256": "37f945d7f9589c9ddac1ee43655ac175fb86455eba31f9120c493a4eec72c587",
-  "documentation": "https://releases.llvm.org/18.1.8/docs/CommandGuide/llvm-mca.html"
+  "documentation": "https://releases.llvm.org/18.1.8/docs/CommandGuide/llvm-mca.html",
+  "exit_status": 0,
+  "verification": "Re-executed with local LLVM 18.1.8; exit 0 and byte-identical raw SHA-256."
 }

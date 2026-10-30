@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "bundle_id": "mca-baseline",
+  "created_at": "2026-10-30T12:12:03.170655+00:00",
+  "revision": "source identified by region assembly SHA-256",
+  "dirty_patch_sha256": "none",
+  "producer": {
+    "provider": "llvm-mca",
+    "version": "18.1.8",
+    "exit_status": 0,
+    "options": [
+      "-json",
+      "-iterations=100",
+      "-mcpu=skylake",
+      "-mtriple=x86_64-unknown-linux-gnu"
+    ]
+  },
+  "host": {},
+  "build": {},
+  "raw_source": {
+    "sha256": "37f945d7f9589c9ddac1ee43655ac175fb86455eba31f9120c493a4eec72c587"
+  },
+  "workloads": {
+    "two-instruction-model": {
+      "version": "1",
+      "parameters": {
+        "iterations": 100,
+        "region_scope": "explicit LLVM-MCA markers"
+      },
+      "input_sha256": "da0006c44cba2f73345d744498e05d4f660cb98180ff86915055dcd6de09eb6b",
+      "scope": "marked assembly region",
+      "threads": 1,
+      "instrumentation": "scheduling model",
+      "clock": "model cycles",
+      "time_mode": "model",
+      "sample_level": "simulation"
+    }
+  },
+  "semantic_contracts": {
+    "dependent-identity": {
+      "version": "1",
+      "semantics": "Identity re-import of the exact dependent marked instruction sequence; this is not a claim that the two regions are equivalent.",
+      "correctness_evidence": "Identical source and raw hashes for this normalization self-check."
+    },
+    "independent-identity": {
+      "version": "1",
+      "semantics": "Identity re-import of the exact independent marked instruction sequence; this is not a claim that the two regions are equivalent.",
+      "correctness_evidence": "Identical source and raw hashes for this normalization self-check."
+    }
+  },
+  "regions": [
+    {
+      "id": "dependent",
+      "variant": "baseline",
+      "workload_id": "two-instruction-model",
+      "contract_id": "dependent-identity",
+      "source_sha256": "da0006c44cba2f73345d744498e05d4f660cb98180ff86915055dcd6de09eb6b",
+      "raw_region_index": 0
+    },
+    {
+      "id": "independent",
+      "variant": "baseline",
+      "workload_id": "two-instruction-model",
+      "contract_id": "independent-identity",
+      "source_sha256": "da0006c44cba2f73345d744498e05d4f660cb98180ff86915055dcd6de09eb6b",
+      "raw_region_index": 1
+    }
+  ]
+}
