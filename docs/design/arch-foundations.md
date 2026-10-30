@@ -116,5 +116,6 @@ uint64 比较的 byte movemask 每 lane 占 8 位，xsimd 的 compact mask 每 l
 - [ ] 分别展示静态模型估计与真实运行测量，比较相同语义的优秀手写基线；不将
   MCA 周期数直接当作真实延迟，也不以单一指标自动宣布零开销。
 
-此项为后续规划，本轮不增加 profiler 运行时依赖、采样线程或公共接口；先用现有
-研究脚本验证数据需求，再决定独立工具/模块的边界与实施计划。
+离线 CLI 的范围、数据合同和已验证边界见 [profiler 设计](profiler.md)，
+分阶段交付见 [profiler 实施计划](profiler-implementation.md)。这两份文档是设计，
+不增加运行时依赖、采样线程或公共接口；P01 首先交付已有 Benchmark JSON 的离线对比。
