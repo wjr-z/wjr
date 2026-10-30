@@ -10,6 +10,8 @@ from .report import cell, number
 
 def summarize_profile(bundle):
     require(bundle["manifest"]["producer"]["provider"] == "cprofile-json", "cprofile-summary requires a cprofile-json bundle")
+    first = next(iter(bundle["normalized"]["observations"]), None)
+    producer = first["metadata"]["producer"] if first else {}
     functions = {}
     for observation in bundle["normalized"]["observations"]:
         entry = functions.setdefault(observation["region_id"], dict(
@@ -21,7 +23,8 @@ def summarize_profile(bundle):
         -(row["values"].get("self_time") or 0), row["function"]["file"],
         row["function"]["line"], row["function"]["name"]))
     return dict(schema_version=1, bundle_id=bundle["manifest"]["bundle_id"],
-                raw_source=bundle["manifest"]["raw_source"], functions=rows,
+                raw_source=bundle["manifest"]["raw_source"], producer=producer,
+                sample_level="independent_process_run", n=1, functions=rows,
                 diagnostics=bundle["normalized"]["diagnostics"],
                 limits=["One instrumented run; no independent between-run variance or regression claim.",
                         "Sorted by self seconds; cumulative seconds overlap and are never summed.",
@@ -31,7 +34,10 @@ def summarize_profile(bundle):
 
 def write_summary(bundle, destination):
     report = summarize_profile(bundle)
-    lines = ["# cProfile hotspots", "", *report["limits"], "",
+    producer = report["producer"]
+    timing = f"Timer: {producer.get('timer', 'unknown')}; time basis: {producer.get('time_basis', 'unknown')}."
+    coverage = f"Interpreter: {producer.get('version', 'unknown')}; thread coverage: {producer.get('thread_coverage', 'unknown')}."
+    lines = ["# cProfile hotspots", "", cell(timing), cell(coverage), "", *report["limits"], "",
              "| Function (file:line) | Primitive / total calls | Self seconds | Cumulative seconds |",
              "| --- | ---: | ---: | ---: |"]
     for row in report["functions"]:

@@ -101,6 +101,9 @@ class CProfileTests(unittest.TestCase):
             self.assertEqual(main(["cprofile-summary", str(root / "bundle"), "--out", str(root / "report")]), 0)
             report = json.loads((root / "report/report.json").read_text())
             self.assertEqual(len(report["functions"]), 6)
+            self.assertEqual(report["producer"]["version"], "3.12.7")
+            self.assertEqual(report["producer"]["time_basis"], "wall")
+            self.assertEqual(report["n"], 1)
             self.assertEqual(sum(row["function"]["name"] == "duplicate" for row in report["functions"]), 2)
             self.assertNotIn("total_cumulative_time", report)
             values = [row["values"]["self_time"] for row in report["functions"]]

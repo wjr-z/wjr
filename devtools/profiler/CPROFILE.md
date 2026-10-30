@@ -72,8 +72,8 @@ Recursive semantics and caller edges retain that distinction. It never uses
 
 `tests/fixtures/cprofile/` contains a real run of the owned `program.py`,
 `left.py` and `right.py`: duplicate names in two files, recursion and tiny timing.
-`provenance.json` records the interpreter/build, source hashes, command, raw JSON
-hash, local `.prof` hash, exit status and separate stdout/stderr. Only JSON is
+`provenance.json` records the interpreter/build, source hashes, command, raw
+JSON hash, local `.prof` hash, exit status and separate stdout/stderr. Only JSON is
 distributed; the native marshal artifact stays on its producer. Synthetic
 malformed JSON in tests checks errors without representing measured results.
 
