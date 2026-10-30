@@ -160,6 +160,14 @@ struct avx {
     WJR_INTRINSIC_INLINE static void store(void *p, __m256i a) noexcept;
     WJR_INTRINSIC_INLINE static void storeu(void *p, __m256i a) noexcept;
 
+    /// @brief Store the first n bytes without accessing bytes outside the destination range.
+    /// @pre n <= 32; p addresses n writable bytes, or may be null when n == 0.
+    WJR_INTRINSIC_INLINE static void storeu_bytes(void *p, __m256i a, unsigned int n) noexcept;
+
+    /// @brief Store a compile-time byte prefix with the same bounds as the runtime overload.
+    template <unsigned int N>
+    WJR_INTRINSIC_INLINE static void storeu_bytes(void *p, __m256i a) noexcept;
+
     WJR_INTRINSIC_INLINE static int test_all_zeros(__m256i a) noexcept;
 
     WJR_INTRINSIC_INLINE static int testc(__m256i a, __m256i b) noexcept;
@@ -983,6 +991,31 @@ __m256i avx::setmax(int64_t) noexcept { return setmax_epi64(); }
 void avx::stream(void *p, __m256i a) noexcept { _mm256_stream_si256(static_cast<__m256i *>(p), a); }
 void avx::store(void *p, __m256i a) noexcept { _mm256_store_si256(static_cast<__m256i *>(p), a); }
 void avx::storeu(void *p, __m256i a) noexcept { _mm256_storeu_si256(static_cast<__m256i *>(p), a); }
+
+void avx::storeu_bytes(void *p, __m256i a, unsigned int n) noexcept {
+    WJR_ASSERT_ASSUME_L2(n <= 32);
+    if (n == 32) {
+        storeu(p, a);
+    } else if (n > 16) {
+        sse::storeu(p, getlow(a));
+        sse::storeu_bytes(static_cast<unsigned char *>(p) + 16, gethigh(a), n - 16);
+    } else {
+        sse::storeu_bytes(p, getlow(a), n);
+    }
+}
+
+template <unsigned int N>
+void avx::storeu_bytes(void *p, __m256i a) noexcept {
+    static_assert(N <= 32);
+    if constexpr (N == 32) {
+        storeu(p, a);
+    } else if constexpr (N > 16) {
+        sse::storeu(p, getlow(a));
+        sse::storeu_bytes<N - 16>(static_cast<unsigned char *>(p) + 16, gethigh(a));
+    } else if constexpr (N != 0) {
+        sse::storeu_bytes<N>(p, getlow(a));
+    }
+}
 
 int avx::test_all_zeros(__m256i a) noexcept { return testz(a, a); }
 

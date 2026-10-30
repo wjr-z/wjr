@@ -562,6 +562,14 @@ struct sse {
     WJR_INTRINSIC_INLINE static void store(void *p, __m128i a) noexcept;
     WJR_INTRINSIC_INLINE static void storeu(void *p, __m128i a) noexcept;
 
+    /// @brief Store the first n bytes without accessing bytes outside the destination range.
+    /// @pre n <= 16; p addresses n writable bytes, or may be null when n == 0.
+    WJR_INTRINSIC_INLINE static void storeu_bytes(void *p, __m128i a, unsigned int n) noexcept;
+
+    /// @brief Store a compile-time byte prefix with the same bounds as the runtime overload.
+    template <unsigned int N>
+    WJR_INTRINSIC_INLINE static void storeu_bytes(void *p, __m128i a) noexcept;
+
     WJR_INTRINSIC_INLINE static __m128i sub_epi8(__m128i a, __m128i b) noexcept;
     WJR_INTRINSIC_INLINE static __m128i sub_epi16(__m128i a, __m128i b) noexcept;
     WJR_INTRINSIC_INLINE static __m128i sub_epi32(__m128i a, __m128i b) noexcept;
@@ -1877,6 +1885,69 @@ WJR_SSE_DEFINE_SHIFT_RIGHT(uint64_t, srli_epi64)
 void sse::stream(void *p, __m128i a) noexcept { _mm_stream_si128(static_cast<__m128i *>(p), a); }
 void sse::store(void *p, __m128i a) noexcept { _mm_store_si128(static_cast<__m128i *>(p), a); }
 void sse::storeu(void *p, __m128i a) noexcept { _mm_storeu_si128(static_cast<__m128i *>(p), a); }
+
+void sse::storeu_bytes(void *p, __m128i a, unsigned int n) noexcept {
+    WJR_ASSERT_ASSUME_L2(n <= 16);
+    if (n == 16) {
+        storeu(p, a);
+        return;
+    }
+    if (n == 0) {
+        return;
+    }
+
+    auto *dst = static_cast<unsigned char *>(p);
+    if (n >= 8) {
+        write_memory(dst, simd_cast<int_tag_type, uint64_t>(a));
+        a = bsrli<8>(a);
+        dst += 8;
+        n -= 8;
+    }
+    if (n >= 4) {
+        write_memory(dst, simd_cast<int_tag_type, uint32_t>(a));
+        a = bsrli<4>(a);
+        dst += 4;
+        n -= 4;
+    }
+    if (n >= 2) {
+        write_memory(dst, simd_cast<int_tag_type, uint16_t>(a));
+        a = bsrli<2>(a);
+        dst += 2;
+        n -= 2;
+    }
+    if (n != 0) {
+        *dst = simd_cast<int_tag_type, uint8_t>(a);
+    }
+}
+
+template <unsigned int N>
+void sse::storeu_bytes(void *p, __m128i a) noexcept {
+    static_assert(N <= 16);
+    /// Overlapping end stores stay inside the prefix and keep the vector in registers.
+    if constexpr (N == 16) {
+        storeu(p, a);
+    } else if constexpr (N >= 8) {
+        write_memory(p, simd_cast<int_tag_type, uint64_t>(a));
+        if constexpr (N != 8) {
+            write_memory(static_cast<unsigned char *>(p) + N - 8,
+                         simd_cast<int_tag_type, uint64_t>(bsrli<N - 8>(a)));
+        }
+    } else if constexpr (N >= 4) {
+        write_memory(p, simd_cast<int_tag_type, uint32_t>(a));
+        if constexpr (N != 4) {
+            write_memory(static_cast<unsigned char *>(p) + N - 4,
+                         simd_cast<int_tag_type, uint32_t>(bsrli<N - 4>(a)));
+        }
+    } else if constexpr (N >= 2) {
+        write_memory(p, simd_cast<int_tag_type, uint16_t>(a));
+        if constexpr (N != 2) {
+            write_memory(static_cast<unsigned char *>(p) + N - 2,
+                         simd_cast<int_tag_type, uint16_t>(bsrli<N - 2>(a)));
+        }
+    } else if constexpr (N == 1) {
+        *static_cast<unsigned char *>(p) = simd_cast<int_tag_type, uint8_t>(a);
+    }
+}
 
 __m128i sse::sub_epi8(__m128i a, __m128i b) noexcept { return _mm_sub_epi8(a, b); }
 __m128i sse::sub_epi16(__m128i a, __m128i b) noexcept { return _mm_sub_epi16(a, b); }
