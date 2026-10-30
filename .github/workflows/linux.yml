@@ -130,13 +130,26 @@ jobs:
         run: |
           if [[ "${{steps.preinstalled.outputs.available}}" == true ]]; then
             CC=${{steps.preinstalled.outputs.cc}}; CXX=${{steps.preinstalled.outputs.cxx}}
+            if [[ "${{matrix.sys.compiler}}" == clang ]]; then
+              # Match setup-clang's driver paths and InstalledDir cache identity.
+              sudo ln -sfn "$(command -v "$CC")" /usr/local/bin/clang
+              sudo ln -sfn "$(command -v "$CXX")" /usr/local/bin/clang++
+              CC=/usr/local/bin/clang; CXX=/usr/local/bin/clang++
+            fi
           elif [[ "${{matrix.sys.compiler}}" == gcc ]]; then
             CC=gcc-${{matrix.sys.version}}; CXX=g++-${{matrix.sys.version}}
           else
             CC=clang; CXX=clang++
           fi
-          "$CC" --version
-          "$CXX" --version
+          for driver in "$CC" "$CXX"; do
+            echo "$driver -> $(readlink -f "$(command -v "$driver")")"
+            "$driver" --version
+            version=$("$driver" -dumpversion)
+            if [[ "${version%%.*}" != "${{matrix.sys.version}}" ]]; then
+              echo "::error::Unexpected compiler major: $version"
+              exit 1
+            fi
+          done
           echo "CC=$CC" >> "$GITHUB_ENV"
           echo "CXX=$CXX" >> "$GITHUB_ENV"
           echo "CCACHE_DIR=$RUNNER_TEMP/wjr-ccache" >> "$GITHUB_ENV"
@@ -147,6 +160,7 @@ jobs:
           python3 .github/scripts/compiler_fingerprint.py \
             --family "${{matrix.sys.compiler}}" --cc "$CC" --cxx "$CXX" \
             --output "$fingerprint_file" >> "$GITHUB_OUTPUT"
+          python3 -c 'import json, sys; d = json.load(open(sys.argv[1])); print(json.dumps({lang: {key: d[lang][key] for key in ("path", "version", "target")} for lang in ("c", "cxx")}, indent=2))' "$fingerprint_file"
 
       - name: Cache compiled objects
         # v1.2.24: restore/save, bounded storage and statistics are owned by the action.
