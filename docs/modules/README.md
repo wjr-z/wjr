@@ -182,6 +182,10 @@ OpenBLAS LP64 后提供 `<wjr/np/cblas.hpp>` 的 `dot`、预分配 `gemm_to` 和
 
 `wjr/container/list.hpp` 支持不分配内存的常数时间节点、区间和整环转移，见[侵入式链表示例与合同](intrusive-list.md)。
 
+`wjr/container/bitset.hpp` 的逻辑位支持 C++20 随机访问 ranges，包括可写代理和
+copy、fill、reverse、rotate、sort 等算法；迭代顺序和存储边界见
+[bitset ranges](../design/bitset-ranges.md)。
+
 ## 使用方式
 
 在 WJR 已作为子目录加入项目，或通过安装包 `find_package(wjr CONFIG REQUIRED)` 找到后，链接模块 alias：

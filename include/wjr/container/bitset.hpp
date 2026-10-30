@@ -10,6 +10,7 @@
 #define WJR_CONTAINER_BITSET_HPP__
 
 #include <cstring>
+#include <iterator>
 
 #include <wjr/math/bit.hpp>
 #include <wjr/math/bitwise.hpp>
@@ -30,6 +31,7 @@ class bitset_const_iterator {
 
 public:
     using iterator_category = std::random_access_iterator_tag;
+    using iterator_concept = std::random_access_iterator_tag;
     using value_type = bool;
     using difference_type = std::ptrdiff_t;
     using pointer = void;
@@ -122,7 +124,7 @@ public:
     }
 
 protected:
-    bitset_const_iterator(const Bitset *_bitset, size_t _pos) noexcept
+    constexpr bitset_const_iterator(const Bitset *_bitset, size_t _pos) noexcept
         : m_bitset(const_cast<Bitset *>(_bitset)), m_pos(_pos) {}
 
     Bitset *m_bitset;
@@ -144,10 +146,9 @@ public:
     using reference = typename Bitset::reference;
 
     using Mybase::Mybase;
+    using Mybase::operator-;
 
-    constexpr reference operator*() const noexcept {
-        return reference(this->m_bitset, this->m_pos);
-    }
+    constexpr reference operator*() const noexcept { return (*this->m_bitset)[this->m_pos]; }
 
     constexpr bitset_iterator &operator++() noexcept {
         Mybase::operator++();
@@ -197,6 +198,16 @@ public:
     }
 
     constexpr reference operator[](difference_type n) const noexcept { return *(*this + n); }
+
+    /// @brief Read the bit value, without retaining a proxy into the container.
+    friend constexpr bool iter_move(bitset_iterator iter) noexcept { return *iter; }
+
+    /// @brief Exchange the pointed-to bits, including bits in the same storage word.
+    friend constexpr void iter_swap(bitset_iterator lhs, bitset_iterator rhs) noexcept {
+        const bool value = *lhs;
+        *lhs = static_cast<bool>(*rhs);
+        *rhs = value;
+    }
 };
 
 template <size_t N>
@@ -213,6 +224,11 @@ class bitset {
     static constexpr size_t rest_bits = N % bits;
 
 public:
+    using iterator = bitset_iterator<bitset>;
+    using const_iterator = bitset_const_iterator<bitset>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
     constexpr bitset() noexcept : m_data() {}
     constexpr explicit bitset(default_construct_t) noexcept {}
 
@@ -275,6 +291,23 @@ public:
             return *this;
         }
 
+        /// @brief Assign through a const proxy, as required by C++20 output iterators.
+        constexpr const reference &operator=(bool value) const noexcept {
+            m_bitset->set(m_pos, value);
+            return *this;
+        }
+
+        constexpr const reference &operator=(const reference &other) const noexcept {
+            return *this = static_cast<bool>(other);
+        }
+
+        /// @brief Exchange bit values rather than the proxy's container and position.
+        friend constexpr void swap(reference lhs, reference rhs) noexcept {
+            const bool value = lhs;
+            lhs = static_cast<bool>(rhs);
+            rhs = value;
+        }
+
         constexpr operator bool() const noexcept { return m_bitset->test(m_pos); }
 
         constexpr bool operator~() const noexcept { return !m_bitset->test(m_pos); }
@@ -304,6 +337,24 @@ public:
     }
 
     constexpr static size_t size() noexcept { return N; }
+
+    /// @brief Iterate logical bits from index zero to N; padding bits are excluded.
+    constexpr iterator begin() noexcept { return iterator(this, 0); }
+    constexpr const_iterator begin() const noexcept { return const_iterator(this, 0); }
+    constexpr const_iterator cbegin() const noexcept { return begin(); }
+    constexpr iterator end() noexcept { return iterator(this, N); }
+    constexpr const_iterator end() const noexcept { return const_iterator(this, N); }
+    constexpr const_iterator cend() const noexcept { return end(); }
+    constexpr reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+    constexpr const_reverse_iterator rbegin() const noexcept {
+        return const_reverse_iterator(end());
+    }
+    constexpr const_reverse_iterator crbegin() const noexcept { return rbegin(); }
+    constexpr reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+    constexpr const_reverse_iterator rend() const noexcept {
+        return const_reverse_iterator(begin());
+    }
+    constexpr const_reverse_iterator crend() const noexcept { return rend(); }
 
     constexpr bitset &operator&=(const bitset &other) noexcept {
         math::and_n(m_data, m_data, other.m_data, bytes_size);
