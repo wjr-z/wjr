@@ -34,8 +34,8 @@ struct _is_as_variant_helper : std::false_type {};
 
 /// @private
 template <typename T>
-struct _is_as_variant_helper<T, std::void_t<decltype(_is_as_variant_impl(std::declval<T>()))>>
-    : std::true_type {};
+requires requires { _is_as_variant_impl(std::declval<T>()); }
+struct _is_as_variant_helper<T, void> : std::true_type {};
 
 template <typename T>
 struct is_as_variant : _is_as_variant_helper<T, void> {};
@@ -43,13 +43,17 @@ struct is_as_variant : _is_as_variant_helper<T, void> {};
 template <typename T>
 inline constexpr bool is_as_variant_v = is_as_variant<T>::value;
 
-template <typename Callable, typename... Variants,
-          WJR_REQUIRES(std::conjunction_v<is_as_variant<Variants>...>)>
+namespace variant_detail {
+template <class T>
+concept variant_like = is_as_variant_v<T>;
+} // namespace variant_detail
+
+template <typename Callable, variant_detail::variant_like... Variants>
 constexpr decltype(auto) visit(Callable &&func, Variants &&...vars) {
     return std::visit(std::forward<Callable>(func), std::forward<Variants>(vars)...);
 }
 
-template <typename Var, typename... Args, WJR_REQUIRES(is_as_variant_v<Var>)>
+template <variant_detail::variant_like Var, typename... Args>
 constexpr decltype(auto) match(Var &&var, Args &&...args) {
     return std::visit(variant_detail::overloaded{std::forward<Args>(args)...},
                       std::forward<Var>(var));
@@ -90,7 +94,8 @@ struct _tp_indexs_access {
 
 /// @private Specialization for out-of-bounds index access
 template <typename PIndexs, size_t Idx>
-struct _tp_indexs_access<PIndexs, Idx, std::enable_if_t<(Idx >= tp_size_v<tp_back_t<PIndexs>>)>> {
+requires(Idx >= tp_size_v<tp_back_t<PIndexs>>)
+struct _tp_indexs_access<PIndexs, Idx, void> {
     using Indexs = tp_back_t<PIndexs>;
     using Total = _tp_list_total<tp_front_t<PIndexs>, tp_front_t<Indexs>>;
     /// Padded switch cases must lie outside every valid Cartesian index.
