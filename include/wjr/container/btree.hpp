@@ -56,6 +56,12 @@ template <typename Lookup, typename Compare, typename Key, typename Iterator>
 concept transparent_erase_lookup =
     transparent_lookup<Compare, Key, Lookup> && !std::convertible_to<const Lookup &, Iterator>;
 
+/// @brief Restrict the fixed-capacity integer search to cheap, same-key set comparisons.
+template <typename Key, typename Value, typename Compare, typename Lookup>
+concept standard_integral_set_lookup =
+    std::integral<Key> && std::same_as<Key, Value> && std::same_as<Key, Lookup> &&
+    (std::same_as<Compare, std::less<Key>> || std::same_as<Compare, std::less<>>);
+
 /// @brief Single-pass input whose references can construct stored values.
 template <typename Iter, typename Value>
 concept insert_iterator =
@@ -874,6 +880,29 @@ public:
         return binary_search_impl(size, comp);
     }
 };
+
+namespace btree_detail {
+/// @brief Search a 32-slot integer set node using two pivots and the existing step-two scan.
+/// @pre 1 <= size <= 32; comp is false before its insertion position and true afterwards.
+struct integral_set_searcher32 {
+    template <size_t Min, typename Compare>
+    WJR_INTRINSIC_INLINE static unsigned int search(unsigned int size,
+                                                    const Compare &comp) noexcept {
+        static_assert(Min == 1, "Minimum search size must be 1");
+        WJR_ASSERT(size >= Min);
+        WJR_ASSERT(size <= 32);
+
+        unsigned int offset = 0;
+        if (size > 16 && !comp(16)) {
+            offset = 16;
+        }
+        if (size > offset + 8 && !comp(offset + 8)) {
+            offset += 8;
+        }
+        return linear_search_step2(size, offset, comp);
+    }
+};
+} // namespace btree_detail
 
 template <typename Traits>
 class basic_btree {
@@ -1991,20 +2020,26 @@ private:
     WJR_INTRINSIC_INLINE static slot_usize_type _search(const inner_node_type *current,
                                                         slot_usize_type size, const Lookup &key,
                                                         const key_compare &comp) noexcept {
-        return basic_btree_searcher_impl<node_size>::template search<Min>(
-            size, [current, &key, &comp](slot_usize_type pos) {
-                return _compare<Upper>(from_ikey(current->m_keys[pos]), key, comp);
-            });
+        using searcher = std::conditional_t<
+            node_size == 32 && btree_detail::standard_integral_set_lookup<key_type, value_type,
+                                                                          key_compare, Lookup>,
+            btree_detail::integral_set_searcher32, basic_btree_searcher_impl<node_size>>;
+        return searcher::template search<Min>(size, [current, &key, &comp](slot_usize_type pos) {
+            return _compare<Upper>(from_ikey(current->m_keys[pos]), key, comp);
+        });
     }
 
     template <bool Upper, size_t Min, typename Lookup>
     WJR_INTRINSIC_INLINE static slot_usize_type _search(const leaf_node_type *current,
                                                         slot_usize_type size, const Lookup &key,
                                                         const key_compare &comp) noexcept {
-        return basic_btree_searcher_impl<node_size>::template search<Min>(
-            size, [current, &key, &comp](slot_usize_type pos) {
-                return _compare<Upper>(current->get_key(pos), key, comp);
-            });
+        using searcher = std::conditional_t<
+            node_size == 32 && btree_detail::standard_integral_set_lookup<key_type, value_type,
+                                                                          key_compare, Lookup>,
+            btree_detail::integral_set_searcher32, basic_btree_searcher_impl<node_size>>;
+        return searcher::template search<Min>(size, [current, &key, &comp](slot_usize_type pos) {
+            return _compare<Upper>(current->get_key(pos), key, comp);
+        });
     }
 
     template <typename T>
