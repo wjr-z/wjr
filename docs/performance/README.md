@@ -13,3 +13,5 @@ five-sample variation, and the matching workloads where WJR ties or loses.
 Specialized showcase measurements are opt-in and run only through manual workflow
 dispatch. Timing and memory are reported separately. Ratios compare implementations
 within one machine/compiler profile; different machines do not isolate OS effects.
+
+[Explicit B-tree hint measurements](btree-hints.md) retain sorted/local-run wins and random-input losses; ordinary range defaults are unchanged.

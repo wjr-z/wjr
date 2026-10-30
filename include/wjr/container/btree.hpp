@@ -997,7 +997,13 @@ public:
 
     basic_btree &operator=(std::initializer_list<value_type> il) noexcept {
         clear();
-        insert(il.begin(), il.end());
+        for (auto &item : il) {
+            if constexpr (multi) {
+                _emplace_multi(item);
+            } else {
+                _emplace_unique(item);
+            }
+        }
         return *this;
     }
 
@@ -1531,6 +1537,19 @@ public:
     /// @pre Input iterators remain valid while this tree is modified.
     template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
     void insert(Iter first, Sentinel last) {
+        for (; first != last; ++first) {
+            if constexpr (multi)
+                _emplace_multi(*first);
+            else
+                _emplace_unique(*first);
+        }
+    }
+
+    /// @brief Explicitly use local hints for range import; unsorted input remains valid via
+    /// fallback.
+    /// @note Sorted/local runs can benefit; random input may pay extra validation work.
+    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    void insert_with_hint(Iter first, Sentinel last) {
         auto hint = cend();
         for (; first != last; ++first) {
             if constexpr (multi) {

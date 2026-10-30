@@ -45,9 +45,12 @@ auto make_input(size_t size, order distribution) {
 
 template <bool Range, class Tree, class Input>
 void populate(Tree &tree, const Input &input) {
-    if constexpr (Range)
-        tree.insert(input.begin(), input.end());
-    else
+    if constexpr (Range) {
+        if constexpr (requires { tree.insert_with_hint(input.begin(), input.end()); })
+            tree.insert_with_hint(input.begin(), input.end());
+        else
+            tree.insert(input.begin(), input.end());
+    } else
         for (const auto &value : input)
             tree.emplace(value);
 }

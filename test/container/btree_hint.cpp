@@ -139,10 +139,11 @@ TEST(BtreeHints, CorrectHintsAndSortedRangesAvoidRepeatedRootSearch) {
     for (int i = 0; i != 4096; ++i)
         input.emplace_back(i, i * 7);
     size_t calls = 0;
-    wjr::btree_map<int, int, counted_less> values(input.begin(), input.end(), counted_less{&calls});
+    wjr::btree_map<int, int, counted_less> values(counted_less{&calls});
+    values.insert_with_hint(input.begin(), input.end());
     EXPECT_LE(calls, 3u * values.size());
     calls = 0;
-    values.insert(input.begin(), input.end());
+    values.insert_with_hint(input.begin(), input.end());
     EXPECT_LE(calls, 4u * values.size());
 }
 
@@ -152,10 +153,10 @@ TEST(BtreeHints, MultiRangePreservesInputAndExistingEquivalentOrder) {
     tree values(order);
     std::multiset<int, group_order> reference(order);
     const int first[] = {11, 19, 20, 31, 39, 40, 12, 18};
-    values.insert(std::begin(first), std::end(first));
+    values.insert_with_hint(std::begin(first), std::end(first));
     reference.insert(std::begin(first), std::end(first));
     const int second[] = {1, 17, 16, 35, 34, 22, 15, 14, 2, 3, 13};
-    values.insert(std::begin(second), std::end(second));
+    values.insert_with_hint(std::begin(second), std::end(second));
     reference.insert(std::begin(second), std::end(second));
     same_contents(values, reference);
     values = {11, 19, 12, 18, 31, 39, 32, 38};

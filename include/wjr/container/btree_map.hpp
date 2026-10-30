@@ -52,7 +52,9 @@ public:
     btree_map(Iter first, Sentinel last,
               const key_compare &comp = key_compare()) noexcept(noexcept(Mybase(comp)))
         : Mybase(comp) {
-        this->insert(first, last);
+        for (; first != last; ++first) {
+            emplace(*first);
+        }
     }
 
     btree_map(std::initializer_list<value_type> il,
