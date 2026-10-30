@@ -8,6 +8,9 @@ namespace wjr {
 /**
  * @brief Make functions can be called by `std::integral_constant'
  * @details
+ * Rvalue callables are owned by the returned function; lvalue callables are
+ * borrowed and must outlive it.
+ *
  * ```cpp
  * auto x = tp_make_functions(func0, func1);
  * x(std::integral_constant<size_t, 0>{}); // call func0
@@ -16,10 +19,10 @@ namespace wjr {
  */
 template <typename... Args>
 constexpr auto tp_make_functions(Args &&...args) {
-    return [_tuple = forward_as_tuple(std::forward<Args>(args)...)](auto idx,
-                                                                    auto &&..._args) mutable {
-        return std::get<idx()>(_tuple)(std::forward<decltype(_args)>(_args)...);
-    };
+    return
+        [_tuple = tuple<Args...>(std::forward<Args>(args)...)](auto idx, auto &&..._args) mutable {
+            return std::get<idx()>(_tuple)(std::forward<decltype(_args)>(_args)...);
+        };
 }
 
 } // namespace wjr

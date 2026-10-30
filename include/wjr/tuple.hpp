@@ -194,17 +194,21 @@ public:
 
     template <
         typename Other, typename... _Args,
-        WJR_REQUIRES(sizeof...(_Args) + 1 == Size &&
-                     std::conjunction_v<std::negation<std::conjunction<
-                                            std::is_same<This, std::remove_reference_t<Other>>,
-                                            std::is_same<Args, std::remove_reference_t<_Args>>...>>,
-                                        std::is_constructible<Impl, Other &&, _Args...>>)>
+        WJR_REQUIRES(
+            sizeof...(_Args) + 1 == Size &&
+            std::conjunction_v<
+                std::bool_constant<Size != 1 || !std::is_same_v<tuple, remove_cvref_t<Other>>>,
+                std::is_constructible<Impl, Other &&, _Args...>>)>
     constexpr tuple(Other &&other, _Args &&...args) noexcept(
         std::is_nothrow_constructible_v<Impl, Other &&, _Args...>)
         : m_impl(std::forward<Other>(other), std::forward<_Args>(args)...) {}
 
-    template <typename TupleLike,
-              WJR_REQUIRES(_is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>)>
+    template <
+        typename TupleLike,
+        WJR_REQUIRES(std::conjunction_v<
+                     _is_tuple_test<std::is_constructible, tuple, TupleLike &&>,
+                     std::negation<std::conjunction<std::bool_constant<Size == 1>,
+                                                    std::is_constructible<This, TupleLike &&>>>>)>
     constexpr tuple(TupleLike &&other) noexcept(
         std::is_nothrow_constructible_v<Impl, in_place_empty_t, TupleLike &&>)
         : m_impl(in_place_empty, std::forward<TupleLike>(other)) {}
@@ -314,10 +318,16 @@ constexpr tuple<Args &...> tie(Args &...args) noexcept {
     return tuple<Args &...>(args...);
 }
 
+/**
+ * @brief Borrow arguments as a tuple of forwarding references.
+ * @details Rvalues are stored as rvalue references. This function does not extend
+ * temporary lifetimes; consume temporary arguments within the same full expression.
+ * Use make_tuple or an explicitly owning tuple when retaining values is required.
+ */
 template <typename... Args>
-constexpr tuple<Args...> forward_as_tuple(Args &&...args) noexcept(
+constexpr tuple<Args &&...> forward_as_tuple(Args &&...args) noexcept(
     std::conjunction_v<std::is_nothrow_constructible<Args &&, Args &&>...>) {
-    return tuple<Args...>(std::forward<Args>(args)...);
+    return tuple<Args &&...>(std::forward<Args>(args)...);
 }
 
 /// @private
