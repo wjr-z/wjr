@@ -1,0 +1,33 @@
+{
+  "real": true,
+  "python": "3.12.7",
+  "implementation": "CPython",
+  "build": [
+    "tags/v3.12.7:0b05ead",
+    "Oct  1 2024 03:06:41"
+  ],
+  "created_at": "2026-10-30T12:53:07.537649+00:00",
+  "argv": [
+    "C:\\Users\\19663\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "D:\\repos\\.cache\\wjr\\worktrees\\profiler-cprofile-json-20261030\\devtools\\profiler\\tests\\fixtures\\cprofile\\program.py",
+    "D:\\repos\\.cache\\wjr\\profiler-cprofile-fixture-20261030\\native.prof"
+  ],
+  "exit_status": 0,
+  "stdout": "stdout.txt",
+  "stderr": "stderr.txt",
+  "raw_sha256": "3b8d3fc906e7d51ff606fcaacc3ead6a449f1b52f9ce489d020e0eb80d7e8825",
+  "prof_sha256": "16620c5e79fb7e81d574d9aad9208be62e2d2fe9e7aa74bc441ce032826dc5c3",
+  "prof_note": "Native .prof is kept locally; the distributed fixture is exported JSON only.",
+  "source_sha256": {
+    "program.py": "a9e8de7f8ca4cefb50d17dc50f853a49caf6d20287c0d8c5e0d569f8115f20bc",
+    "left.py": "295352f079e4b2f4b197d17a05ceb18d5f68dbd3cf9be6eb6c75512bdbc9e3d2",
+    "right.py": "aac12165c7eb8d17d67952b15dc800b37f06672f71a3d8064b3f6f1fe4ca458c"
+  },
+  "export": {
+    "producer_version": "3.12.7",
+    "timer": "cProfile default real-time timer",
+    "time_basis": "wall",
+    "thread_coverage": "current thread"
+  },
+  "exporter_source_sha256": "ccc3f5654dfbb6d7b271e345b23e12a225231d0bc915531875b0b9474a614aba"
+}

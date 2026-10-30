@@ -114,6 +114,9 @@ Windows 可离线读取；无本机 MCA 仍可导入。现有 Windows 格式探�
 
 ## P03：cProfile JSON，完成 MVP
 
+P03 的 JSON importer、显式 producer exporter 和单次热点报告已实现；
+运行方式与实际版本边界见 [cProfile 工具指南](../../devtools/profiler/CPROFILE.md)。
+
 依赖 P01，与 P02 相互独立。范围是 `exporters/cprofile_json.py`、
 `adapters/cprofile_json.py`、小型程序、测试和 README。
 分析器读取 `wjr.cprofile-json/1`；producer exporter 先验收 CPython 3.12.7，

@@ -1,0 +1,128 @@
+{
+  "functions": [
+    {
+      "callers": [
+        {
+          "cumulative_s": 6.000000000000001e-07,
+          "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-cprofile-json-20261030\\devtools\\profiler\\tests\\fixtures\\cprofile\\program.py",
+          "line": 20,
+          "name": "batch",
+          "primitive_calls": 7,
+          "self_s": 6.000000000000001e-07,
+          "total_calls": 7
+        }
+      ],
+      "cumulative_s": 6.000000000000001e-07,
+      "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-cprofile-json-20261030\\devtools\\profiler\\tests\\fixtures\\cprofile\\left.py",
+      "line": 4,
+      "name": "duplicate",
+      "primitive_calls": 7,
+      "self_s": 6.000000000000001e-07,
+      "total_calls": 7
+    },
+    {
+      "callers": [
+        {
+          "cumulative_s": 4.1000000000000006e-06,
+          "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-cprofile-json-20261030\\devtools\\profiler\\tests\\fixtures\\cprofile\\program.py",
+          "line": 10,
+          "name": "recurse",
+          "primitive_calls": 7,
+          "self_s": 4.1000000000000006e-06,
+          "total_calls": 28
+        },
+        {
+          "cumulative_s": 5.8e-06,
+          "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-cprofile-json-20261030\\devtools\\profiler\\tests\\fixtures\\cprofile\\program.py",
+          "line": 20,
+          "name": "batch",
+          "primitive_calls": 7,
+          "self_s": 1.7e-06,
+          "total_calls": 7
+        }
+      ],
+      "cumulative_s": 5.8e-06,
+      "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-cprofile-json-20261030\\devtools\\profiler\\tests\\fixtures\\cprofile\\program.py",
+      "line": 10,
+      "name": "recurse",
+      "primitive_calls": 7,
+      "self_s": 5.8e-06,
+      "total_calls": 35
+    },
+    {
+      "callers": [
+        {
+          "cumulative_s": 9.000000000000001e-07,
+          "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-cprofile-json-20261030\\devtools\\profiler\\tests\\fixtures\\cprofile\\program.py",
+          "line": 20,
+          "name": "batch",
+          "primitive_calls": 11,
+          "self_s": 9.000000000000001e-07,
+          "total_calls": 11
+        }
+      ],
+      "cumulative_s": 9.000000000000001e-07,
+      "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-cprofile-json-20261030\\devtools\\profiler\\tests\\fixtures\\cprofile\\program.py",
+      "line": 16,
+      "name": "tiny",
+      "primitive_calls": 11,
+      "self_s": 9.000000000000001e-07,
+      "total_calls": 11
+    },
+    {
+      "callers": [],
+      "cumulative_s": 1.6000000000000003e-05,
+      "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-cprofile-json-20261030\\devtools\\profiler\\tests\\fixtures\\cprofile\\program.py",
+      "line": 20,
+      "name": "batch",
+      "primitive_calls": 1,
+      "self_s": 7.9e-06,
+      "total_calls": 1
+    },
+    {
+      "callers": [
+        {
+          "cumulative_s": 8.000000000000001e-07,
+          "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-cprofile-json-20261030\\devtools\\profiler\\tests\\fixtures\\cprofile\\program.py",
+          "line": 20,
+          "name": "batch",
+          "primitive_calls": 7,
+          "self_s": 8.000000000000001e-07,
+          "total_calls": 7
+        }
+      ],
+      "cumulative_s": 8.000000000000001e-07,
+      "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-cprofile-json-20261030\\devtools\\profiler\\tests\\fixtures\\cprofile\\right.py",
+      "line": 4,
+      "name": "duplicate",
+      "primitive_calls": 7,
+      "self_s": 8.000000000000001e-07,
+      "total_calls": 7
+    },
+    {
+      "callers": [],
+      "cumulative_s": 4.4e-06,
+      "file": "~",
+      "line": 0,
+      "name": "<method 'disable' of '_lsprof.Profiler' objects>",
+      "primitive_calls": 1,
+      "self_s": 4.4e-06,
+      "total_calls": 1
+    }
+  ],
+  "input_prof_sha256": "16620c5e79fb7e81d574d9aad9208be62e2d2fe9e7aa74bc441ce032826dc5c3",
+  "producer": {
+    "build": [
+      "tags/v3.12.7:0b05ead",
+      "Oct  1 2024 03:06:41"
+    ],
+    "exporter_interpreter": "3.12.7 (tags/v3.12.7:0b05ead, Oct  1 2024, 03:06:41) [MSC v.1941 64 bit (AMD64)]",
+    "implementation": "CPython",
+    "provenance": "Producer version/timer/coverage are explicit declarations; .prof does not embed them.",
+    "thread_coverage": "current thread",
+    "time_basis": "wall",
+    "timer": "cProfile default real-time timer",
+    "version": "3.12.7"
+  },
+  "schema": "wjr.cprofile-json/1"
+}

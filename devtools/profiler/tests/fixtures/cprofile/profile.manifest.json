@@ -1,0 +1,110 @@
+{
+  "build": {},
+  "bundle_id": "cprofile-3b8d3fc906e7d51f",
+  "created_at": "unknown",
+  "dirty_patch_sha256": "unknown",
+  "host": {},
+  "producer": {
+    "provider": "cprofile-json",
+    "version": "3.12.7"
+  },
+  "raw_source": {
+    "sha256": "3b8d3fc906e7d51ff606fcaacc3ead6a449f1b52f9ce489d020e0eb80d7e8825"
+  },
+  "regions": [
+    {
+      "contract_id": "cprofile-function-v1",
+      "function": {
+        "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-cprofile-json-20261030\\devtools\\profiler\\tests\\fixtures\\cprofile\\left.py",
+        "line": 4,
+        "name": "duplicate"
+      },
+      "id": "function-b2b6480f9a420a44f06f3c2276fa403c20fdad529dc99939f9be83b3089c42d3",
+      "source_sha256": "unknown",
+      "variant": "profile",
+      "workload_id": "profile-run"
+    },
+    {
+      "contract_id": "cprofile-function-v1",
+      "function": {
+        "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-cprofile-json-20261030\\devtools\\profiler\\tests\\fixtures\\cprofile\\program.py",
+        "line": 10,
+        "name": "recurse"
+      },
+      "id": "function-61ac90eadc66cafe9fd5b357459affb98854dddbc0ab228d0fd44df74a0cbf95",
+      "source_sha256": "unknown",
+      "variant": "profile",
+      "workload_id": "profile-run"
+    },
+    {
+      "contract_id": "cprofile-function-v1",
+      "function": {
+        "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-cprofile-json-20261030\\devtools\\profiler\\tests\\fixtures\\cprofile\\program.py",
+        "line": 16,
+        "name": "tiny"
+      },
+      "id": "function-765fa5fcc1b352cf6ac0b7646c50a70aee838ac50bdef5edefc558626f5beb28",
+      "source_sha256": "unknown",
+      "variant": "profile",
+      "workload_id": "profile-run"
+    },
+    {
+      "contract_id": "cprofile-function-v1",
+      "function": {
+        "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-cprofile-json-20261030\\devtools\\profiler\\tests\\fixtures\\cprofile\\program.py",
+        "line": 20,
+        "name": "batch"
+      },
+      "id": "function-74209c26ee6164195ee843ece71c974c2c7571582199eb43b57ac82a24a79026",
+      "source_sha256": "unknown",
+      "variant": "profile",
+      "workload_id": "profile-run"
+    },
+    {
+      "contract_id": "cprofile-function-v1",
+      "function": {
+        "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-cprofile-json-20261030\\devtools\\profiler\\tests\\fixtures\\cprofile\\right.py",
+        "line": 4,
+        "name": "duplicate"
+      },
+      "id": "function-5c94784b1f15238f8cda7fe49d5b6bbe7ab1fdcd20129d722ac57e477bb0e91e",
+      "source_sha256": "unknown",
+      "variant": "profile",
+      "workload_id": "profile-run"
+    },
+    {
+      "contract_id": "cprofile-function-v1",
+      "function": {
+        "file": "~",
+        "line": 0,
+        "name": "<method 'disable' of '_lsprof.Profiler' objects>"
+      },
+      "id": "function-b6db08fe422c9eee955517f1a3bba8b5c5bba8b28505994e2519b760c0c86216",
+      "source_sha256": "unknown",
+      "variant": "profile",
+      "workload_id": "profile-run"
+    }
+  ],
+  "revision": "unknown",
+  "schema_version": 1,
+  "semantic_contracts": {
+    "cprofile-function-v1": {
+      "correctness_evidence": "unknown",
+      "semantics": "Per-function cProfile call counts and exclusive/inclusive instrumented seconds; cumulative times overlap.",
+      "version": "1"
+    }
+  },
+  "workloads": {
+    "profile-run": {
+      "clock": "cProfile default real-time timer",
+      "input_sha256": "unknown",
+      "instrumentation": "cProfile deterministic",
+      "parameters": "unknown",
+      "sample_level": "independent_process_run",
+      "scope": "one instrumented process run; functions have separate self/inclusive scopes",
+      "threads": "unknown",
+      "time_mode": "instrumented",
+      "version": "1"
+    }
+  }
+}

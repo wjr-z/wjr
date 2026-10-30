@@ -3,12 +3,15 @@
 import argparse
 import sys
 
-from .adapters import google_benchmark
+from .adapters import cprofile_json, google_benchmark
 from .bundle import import_bundle, load_bundle
 from .compare import compare
+from .cprofile_report import write_summary
+from .exporters.cprofile_json import export_profile
 from .report import write_report
 
-PROVIDERS = {"google-benchmark": google_benchmark.import_artifact}
+PROVIDERS = {"google-benchmark": google_benchmark.import_artifact,
+             "cprofile-json": cprofile_json.import_artifact}
 
 
 def main(argv=None):
@@ -27,10 +30,27 @@ def main(argv=None):
                            help="explicit environmental comparison axis, e.g. build.compiler")
     comparing.add_argument("--exploratory", action="store_true",
                            help="show explicitly exploratory deltas despite incomplete provenance/samples; never bypass contracts or units")
+    exporting = commands.add_parser("export-cprofile", help="convert your own local .prof on its matching CPython 3.12.7 producer")
+    exporting.add_argument("--input", required=True)
+    exporting.add_argument("--output", required=True)
+    exporting.add_argument("--producer-version", required=True,
+                           help="explicit original interpreter version; .prof does not embed it")
+    exporting.add_argument("--timer", default="unknown")
+    exporting.add_argument("--time-basis", choices=("wall", "cpu", "unknown"), default="unknown")
+    exporting.add_argument("--thread-coverage", default="unknown")
+    exporting.add_argument("--manifest-out", help="write an editable manifest with unknown metadata and explicit function mappings")
+    hotspots = commands.add_parser("cprofile-summary", help="rank self-time hotspots from one imported profile; no regression claim")
+    hotspots.add_argument("bundle")
+    hotspots.add_argument("--out", required=True)
     args = parser.parse_args(argv)
     try:
         if args.command == "import":
             import_bundle(args.provider, PROVIDERS[args.provider], args.raw, args.manifest, args.out)
+        elif args.command == "export-cprofile":
+            export_profile(args.input, args.output, args.producer_version, args.timer,
+                           args.time_basis, args.thread_coverage, args.manifest_out)
+        elif args.command == "cprofile-summary":
+            write_summary(load_bundle(args.bundle), args.out)
         else:
             report = compare(load_bundle(args.baseline), load_bundle(args.candidate),
                              args.context_axis, args.exploratory)
