@@ -50,6 +50,12 @@
 
 namespace wjr::fastfloat {
 
+namespace detail {
+/// @brief Exact floating-point outputs supported by the runtime-format parser.
+template <typename T>
+concept supported_float = std::same_as<T, float> || std::same_as<T, double>;
+} // namespace detail
+
 template <typename T>
 struct default_writer {
     using float_type = T;
@@ -126,7 +132,7 @@ from_chars_result<> from_chars(const char *first, const char *last, double &valu
     return _from_chars_impl(first, last, default_writer<double>(value), fmt);
 }
 
-template <typename T, WJR_REQUIRES(is_any_of_v<T, float, double>)>
+template <detail::supported_float T>
 from_chars_result<> from_chars(const char *first, const char *last, T &value,
                                chars_format fmt) noexcept {
     if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(fmt)) {
