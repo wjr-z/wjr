@@ -839,8 +839,11 @@ struct _get_common_relocate_mode_impl<Mode> {
 /// @private Recursive case: combine current mode with remaining types
 template <relocate_t Mode, typename T, typename... Args>
 struct _get_common_relocate_mode_impl<Mode, T, Args...> {
-    static constexpr relocate_t value = static_cast<relocate_t>(
-        std::min(to_underlying(Mode), to_underlying(get_relocate_mode_v<T>)));
+    static constexpr relocate_t value =
+        _get_common_relocate_mode_impl<static_cast<relocate_t>(
+                                           std::min(to_underlying(Mode),
+                                                    to_underlying(get_relocate_mode_v<T>))),
+                                       Args...>::value;
 };
 
 template <typename... Args>
