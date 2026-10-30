@@ -48,25 +48,26 @@ template <size_t I, typename... Args>
 constexpr tuple_element_t<I, wjr::tuple<Args...>> &get(wjr::tuple<Args...> &t) noexcept;
 
 template <size_t I, typename... Args>
-constexpr tuple_element_t<I, wjr::tuple<Args...>> &get(const wjr::tuple<Args...> &t) noexcept;
+constexpr const tuple_element_t<I, wjr::tuple<Args...>> &get(const wjr::tuple<Args...> &t) noexcept;
 
 template <size_t I, typename... Args>
 constexpr tuple_element_t<I, wjr::tuple<Args...>> &&get(wjr::tuple<Args...> &&t) noexcept;
 
 template <size_t I, typename... Args>
-constexpr tuple_element_t<I, wjr::tuple<Args...>> &&get(const wjr::tuple<Args...> &&t) noexcept;
+constexpr const tuple_element_t<I, wjr::tuple<Args...>> &&
+get(const wjr::tuple<Args...> &&t) noexcept;
 
 template <typename T, typename... Args>
 constexpr T &get(wjr::tuple<Args...> &t) noexcept;
 
 template <typename T, typename... Args>
-constexpr T &get(const wjr::tuple<Args...> &t) noexcept;
+constexpr const T &get(const wjr::tuple<Args...> &t) noexcept;
 
 template <typename T, typename... Args>
 constexpr T &&get(wjr::tuple<Args...> &&t) noexcept;
 
 template <typename T, typename... Args>
-constexpr T &&get(const wjr::tuple<Args...> &&t) noexcept;
+constexpr const T &&get(const wjr::tuple<Args...> &&t) noexcept;
 
 } // namespace std
 
@@ -389,16 +390,16 @@ constexpr decltype(auto) tuple_cat(Tuples &&...tuples) {
 
 template <typename T, typename Tuple>
 constexpr T make_from_tuple(Tuple &&tuple) {
-    return apply([](auto &&...args) { return T(std::forward<decltype(args)>(args)...); },
-                 std::forward<Tuple>(tuple));
+    return wjr::apply([](auto &&...args) { return T(std::forward<decltype(args)>(args)...); },
+                      std::forward<Tuple>(tuple));
 }
 
 template <typename... TArgs, typename... UArgs>
 constexpr bool operator==(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) noexcept(
     std::conjunction_v<has_noexcept_equal_to<const TArgs &, const UArgs &>...>) {
-    return apply(
+    return wjr::apply(
         [&rhs](const auto &...lhs_args) {
-            return apply(
+            return wjr::apply(
                 [&lhs_args...](const auto &...rhs_args) { return ((lhs_args == rhs_args) && ...); },
                 rhs);
         },
@@ -416,9 +417,9 @@ constexpr bool operator<(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs)
     std::conjunction_v<std::conjunction<has_noexcept_less<const TArgs &, const UArgs &>,
                                         has_noexcept_less<const UArgs &, const TArgs &>>...>) {
     bool ret = false;
-    apply(
+    wjr::apply(
         [&rhs, &ret](const auto &...lhs_args) {
-            return apply(
+            return wjr::apply(
                 [&lhs_args..., &ret](const auto &...rhs_args) {
                     (void)((lhs_args < rhs_args ? (ret = true, false) : (!(rhs_args < lhs_args))) &&
                            ...);
@@ -473,7 +474,8 @@ constexpr tuple_element_t<I, wjr::tuple<Args...>> &get(wjr::tuple<Args...> &t) n
 }
 
 template <size_t I, typename... Args>
-constexpr tuple_element_t<I, wjr::tuple<Args...>> &get(const wjr::tuple<Args...> &t) noexcept {
+constexpr const tuple_element_t<I, wjr::tuple<Args...>> &
+get(const wjr::tuple<Args...> &t) noexcept {
     return t.template get<I>();
 }
 
@@ -483,7 +485,8 @@ constexpr tuple_element_t<I, wjr::tuple<Args...>> &&get(wjr::tuple<Args...> &&t)
 }
 
 template <size_t I, typename... Args>
-constexpr tuple_element_t<I, wjr::tuple<Args...>> &&get(const wjr::tuple<Args...> &&t) noexcept {
+constexpr const tuple_element_t<I, wjr::tuple<Args...>> &&
+get(const wjr::tuple<Args...> &&t) noexcept {
     return std::move(t).template get<I>();
 }
 
@@ -493,7 +496,7 @@ constexpr T &get(wjr::tuple<Args...> &t) noexcept {
 }
 
 template <typename T, typename... Args>
-constexpr T &get(const wjr::tuple<Args...> &t) noexcept {
+constexpr const T &get(const wjr::tuple<Args...> &t) noexcept {
     return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(t);
 }
 
@@ -503,7 +506,7 @@ constexpr T &&get(wjr::tuple<Args...> &&t) noexcept {
 }
 
 template <typename T, typename... Args>
-constexpr T &&get(const wjr::tuple<Args...> &&t) noexcept {
+constexpr const T &&get(const wjr::tuple<Args...> &&t) noexcept {
     return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(std::move(t));
 }
 
