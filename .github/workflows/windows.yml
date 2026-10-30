@@ -33,6 +33,11 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+# Preserve separate PRs, main pushes and manual validation runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   tests:
@@ -111,4 +116,4 @@ jobs:
         run: cmake --build build --config Release --parallel
 
       - name: Run tests
-        run: ctest --test-dir build --verbose --output-on-failure
+        run: ctest --test-dir build --parallel 2 --verbose --output-on-failure

@@ -66,3 +66,43 @@ This does not claim testing a second physical CPU.
 References: [sccache CMake and compiler support](https://github.com/mozilla/sccache/tree/v0.18.0#usage),
 [cache identity extension](https://github.com/mozilla/sccache/tree/v0.18.0#separating-caches-between-invocations),
 [GitHub Actions storage](https://github.com/mozilla/sccache/blob/v0.18.0/docs/GHA.md).
+
+## Scheduling and test execution
+
+Measure runner queue time separately from execution. In successful Linux run
+[41025660538](https://github.com/wjr-z/wjr/actions/runs/41025660538), jobs waited
+11 min 10 s to 21 min 30 s after workflow creation before starting; actual job
+execution took 1 min 52 s to 5 min 24 s. Build steps ranged from 50 s to 225 s,
+and compiler setup took 15 s to 53 s. These are observations of a busy batch,
+not a general performance guarantee. GCC 14 native reported 53 hits/140 calls;
+Clang 20 native reported 164/232, including its additional consumer validation.
+
+In Windows run
+[41026678303](https://github.com/wjr-z/wjr/actions/runs/41026678303), MSVC and
+Clang waited 11 min 38 s and 11 min 11 s respectively, then executed for 124 s
+and 150 s. Their Build steps took 53 s and 31 s, with each backend reporting
+132 hits/138 requests. Improving cache hits alone cannot remove that queue.
+
+Linux now probes the requested versioned C/C++ drivers and compiles an ASan
+header/runtime probe at the matrix's C++ standard. An available matching major
+version avoids reinstalling the compiler; otherwise the existing setup action
+still runs. Compiler contents remain part of the object-cache identity. Installed
+consumers use the selected C++ driver too, rather than the runner's unversioned
+Clang default.
+
+Linux and Windows use two CTest workers. The seven provider-scope configuration
+tests each have an independent build directory and reuse dependency sources
+without updating them. In the Windows Clang run above they consumed 34 s of a
+45.68 s serial test step. Parallelism retains all tests and sanitizer settings.
+Local Windows Clang 18 validation passed all 19 tests with two workers; a pair
+of fresh configuration directories took 29.24 s serial and 15.22 s with two
+workers. This local result does not establish the same saving on every runner.
+
+Linux, Windows and pre-commit cancel superseded workflow runs for the same PR.
+Different PRs, main pushes and manual runs have separate concurrency groups.
+This releases capacity when a PR is revised; it does not reduce the matrix or
+skip the latest revision. Prepare and validate a coherent revision locally
+before pushing, and avoid repeated intermediate pushes that each enqueue the
+full matrix. Separate PRs still require their complete compiler/standard/ISA
+coverage. Additional concurrency limits can lengthen feedback time and should
+not be added without measuring the repository's available runner capacity.
