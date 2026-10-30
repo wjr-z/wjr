@@ -1,6 +1,17 @@
 cmake_minimum_required(VERSION 3.14)
 project(benchmarks LANGUAGES CXX)
 
+set(WJR_BENCHMARK_PROFILE "core" CACHE STRING "Benchmark profile to build")
+set_property(CACHE WJR_BENCHMARK_PROFILE PROPERTY STRINGS core all simd np btree)
+option(WJR_BENCHMARK_ABSEIL "Compare focused btree benchmarks with reviewed Abseil source" OFF)
+if(WJR_BENCHMARK_ABSEIL AND NOT WJR_BENCHMARK_PROFILE STREQUAL "btree")
+    message(FATAL_ERROR "WJR_BENCHMARK_ABSEIL requires the btree benchmark profile")
+endif()
+if(WJR_BENCHMARK_PROFILE STREQUAL "btree")
+    include(${CMAKE_CURRENT_SOURCE_DIR}/btree.cmake)
+    return()
+endif()
+
 set(WJR_USE_GMP_DEFAULT ON)
 
 if(WJR_USE_GMP)
@@ -48,8 +59,6 @@ else()
     FetchContent_MakeAvailable(benchmark)
 endif()
 
-set(WJR_BENCHMARK_PROFILE "core" CACHE STRING "Benchmark profile to build")
-set_property(CACHE WJR_BENCHMARK_PROFILE PROPERTY STRINGS core all simd np)
 option(WJR_BENCHMARK_XSIMD "Compare SIMD kernels with pinned xsimd" OFF)
 
 set(BENCHMARK_CORE_SRCS
@@ -106,7 +115,7 @@ elseif(WJR_BENCHMARK_PROFILE STREQUAL "np")
         COMPILE_OPTIONS "$<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-ffp-contract=off>"
     )
 else()
-    message(FATAL_ERROR "WJR_BENCHMARK_PROFILE must be 'core', 'all', 'simd', or 'np'")
+    message(FATAL_ERROR "WJR_BENCHMARK_PROFILE must be 'core', 'all', 'simd', 'np', or 'btree'")
 endif()
 
 if(WJR_BENCHMARK_XSIMD AND NOT WJR_BENCHMARK_PROFILE MATCHES "^(simd|np)$")
