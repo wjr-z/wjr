@@ -126,6 +126,8 @@ owner/eval 仍使用 shape_result 报告必要元数据失败，见[结果类型
 `<wjr/np/strided_tensor.hpp>`，见[跨度与孔洞契约](../design/tensor-strided-owner.md)。`<wjr/np/copy.hpp>` 和
 `<wjr/np/transform.hpp>` 提供预分配输出的复制、填充及单目/双目融合变换，
 支持连续和正步长输入，见[逐元素计算](../design/tensor-elementwise.md)。
+`<wjr/np/concatenate.hpp>` 提供沿编译期指定轴的[多 view 拼接](../design/tensor-concatenate.md)，
+直接写入已有输出，支持不同轴长度及混合布局，不分配临时 tensor。
 `<wjr/np/compact.hpp>` 提供[掩码压缩与非零位置提取](../design/tensor-compaction.md)，
 单次扫描写入调用方输出，返回实际数量并保留未写后缀。
 `<wjr/np/transpose.hpp>` 提供[二维转置借用](../design/tensor-transpose.md)；

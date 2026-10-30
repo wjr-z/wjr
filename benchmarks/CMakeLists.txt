@@ -98,6 +98,7 @@ elseif(WJR_BENCHMARK_PROFILE STREQUAL "np")
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_owner.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/np_concatenate.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_compact.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_partition.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/np_searchsorted.cpp
