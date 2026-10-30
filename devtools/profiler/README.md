@@ -6,7 +6,8 @@
 Python 3.10+, standard library only. The analysis machine needs no compiler,
 benchmark executable, LLVM, network connection or collector. This implements P01
 from [the profiler plan](../../docs/design/profiler-implementation.md); MCA,
-cProfile, collection services and regression gates are not implemented yet.
+collection services and regression gates are not implemented yet. P03's JSON
+import, explicit local export and single-run hotspots are in [cProfile](CPROFILE.md).
 
 From the repository root:
 
