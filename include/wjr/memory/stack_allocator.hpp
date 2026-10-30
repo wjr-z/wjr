@@ -379,11 +379,6 @@ private:
     unique_stack_allocator stkal;
 };
 
-/**
- * @brief Reuse the first weak_stack_biginteger's allocator in Args as the allocator for
- * unique_stack_allocator_ref.
- *
- */
 namespace lifetime_detail {
 
 /** @brief Require an allocator-bearing argument before selecting the borrowed stack owner. */
@@ -397,6 +392,11 @@ concept weak_stack_owner =
 
 } // namespace lifetime_detail
 
+/**
+ * @brief Reuse the first weak_stack_biginteger's allocator in Args as the allocator for
+ * unique_stack_allocator_ref.
+ *
+ */
 class unique_stack_allocator_ref {
     struct tag {};
 
