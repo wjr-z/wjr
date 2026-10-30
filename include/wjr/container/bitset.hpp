@@ -262,8 +262,12 @@ public:
         reference() = delete;
         reference(const reference &) = default;
         reference(reference &&) = default;
-        reference &operator=(const reference &) = default;
-        reference &operator=(reference &&) = default;
+        constexpr reference &operator=(const reference &other) noexcept {
+            return *this = static_cast<bool>(other);
+        }
+        constexpr reference &operator=(reference &&other) noexcept {
+            return *this = static_cast<bool>(other);
+        }
         ~reference() = default;
 
         constexpr reference &operator=(bool value) noexcept {
