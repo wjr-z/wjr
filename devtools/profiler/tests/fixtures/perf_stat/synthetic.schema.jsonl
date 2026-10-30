@@ -1,0 +1,6 @@
+{"counter-value": "1000.000000", "unit": "", "event": "cycles:u", "event-runtime": 1000000, "pcnt-running": 50.0, "metric-value": 0.0, "metric-unit": ""}
+{"counter-value": "2000.000000", "unit": "", "event": "instructions:u", "event-runtime": 2000000, "pcnt-running": 100.0, "metric-value": 0.0, "metric-unit": ""}
+{"counter-value": "<not counted>", "unit": "", "event": "branches:u", "event-runtime": 0, "pcnt-running": 0.0, "metric-value": 0.0, "metric-unit": ""}
+{"counter-value": "<not supported>", "unit": "", "event": "branch-misses:u", "event-runtime": 0, "pcnt-running": 100.0, "metric-value": 0.0, "metric-unit": ""}
+{"counter-value": "0.000000", "unit": "", "event": "cache-references:u", "event-runtime": 1000000, "pcnt-running": 100.0, "metric-value": 0.0, "metric-unit": ""}
+{"counter-value": "5.750000", "unit": "msec", "event": "task-clock:u", "event-runtime": 1000000, "pcnt-running": 100.0, "metric-value": 0.0, "metric-unit": ""}

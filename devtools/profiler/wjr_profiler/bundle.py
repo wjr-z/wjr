@@ -22,12 +22,13 @@ def manifest_digest(manifest):
     return hashlib.sha256(json.dumps(content, sort_keys=True, allow_nan=False).encode()).hexdigest()
 
 
-def import_bundle(provider, adapter, raw_path, manifest_path, destination, decoder=None):
+def import_bundle(provider, adapter, raw_path, manifest_path, destination, decoder=None, stderr_path=None):
     raw_bytes = Path(raw_path).read_bytes()
     manifest = validate_manifest(read_json(manifest_path))
     require(manifest["producer"]["provider"] == provider, "provider does not match manifest.producer")
     require(hashlib.sha256(raw_bytes).hexdigest() == manifest["raw_source"]["sha256"].lower(),
             "raw SHA-256 does not match manifest")
+    stderr_bytes = _perf_stderr(provider, manifest, stderr_path)
     raw = decoder(raw_bytes) if decoder else json.loads(raw_bytes.decode("utf-8-sig"))
     observations, diagnostics = adapter(raw, manifest)
     validate_observations(observations, manifest)
@@ -42,10 +43,34 @@ def import_bundle(provider, adapter, raw_path, manifest_path, destination, decod
     output.mkdir(parents=True, exist_ok=False)
     (output / "raw").mkdir()
     (output / "raw/input.json").write_bytes(raw_bytes)
+    if stderr_bytes is not None:
+        (output / "raw/stderr.txt").write_bytes(stderr_bytes)
     write_json(output / "normalized.json", normalized)
     manifest["normalized_sha256"] = hashlib.sha256((output / "normalized.json").read_bytes()).hexdigest()
     write_json(output / "manifest.json", manifest)
     return normalized
+
+
+def _perf_stderr(provider, manifest, stderr_path):
+    require(stderr_path is not None or "stderr" not in manifest["raw_source"],
+            "supply --stderr to copy a declared stderr attachment")
+    if stderr_path is None:
+        return None
+    require(provider == "perf-stat", "--stderr is supported only for perf-stat imports")
+    content = Path(stderr_path).read_bytes()
+    manifest["producer"]["stderr"] = content.decode("utf-8-sig", errors="replace")
+    manifest["raw_source"]["stderr"] = dict(path="raw/stderr.txt", sha256=hashlib.sha256(content).hexdigest())
+    return content
+
+
+def _check_stderr(root, manifest):
+    descriptor = manifest["raw_source"].get("stderr")
+    if descriptor is None:
+        return
+    require(isinstance(descriptor, dict) and isinstance(descriptor.get("path"), str), "invalid stderr attachment")
+    path = (root / descriptor["path"]).resolve()
+    require(path.is_relative_to(root), "stderr path escapes bundle directory")
+    require(hashlib.sha256(path.read_bytes()).hexdigest() == descriptor.get("sha256"), "bundle stderr SHA-256 mismatch")
 
 
 def load_bundle(path):
@@ -57,6 +82,7 @@ def load_bundle(path):
     require(raw_path.is_relative_to(root), "raw_source.path escapes bundle directory")
     require(hashlib.sha256(raw_path.read_bytes()).hexdigest() == manifest["raw_source"]["sha256"].lower(),
             "bundle raw SHA-256 mismatch")
+    _check_stderr(root, manifest)
     normalized_bytes = (root / "normalized.json").read_bytes()
     require(hashlib.sha256(normalized_bytes).hexdigest() == manifest.get("normalized_sha256"),
             "normalized SHA-256 mismatch; import raw into a new directory to rebuild")
