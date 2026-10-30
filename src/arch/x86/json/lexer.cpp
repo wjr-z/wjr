@@ -448,10 +448,17 @@ char *minify(char *dst, const char *first, const char *last) noexcept {
             break;
         }
 
-        for (unsigned i = 0; i < u8_loop; ++i) {
-            const typename simd::mask_type mask = (W >> (i * u8_width)) & simd::mask();
-            compress(dst, stk[i], mask);
-            dst += u8_width - popcount(mask);
+        if (W == 0) {
+            for (unsigned i = 0; i < u8_loop; ++i) {
+                simd::storeu(dst + i * u8_width, stk[i]);
+            }
+            dst += 64;
+        } else {
+            for (unsigned i = 0; i < u8_loop; ++i) {
+                const typename simd::mask_type mask = (W >> (i * u8_width)) & simd::mask();
+                compress(dst, stk[i], mask);
+                dst += u8_width - popcount(mask);
+            }
         }
     } while (true);
 
