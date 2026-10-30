@@ -4,6 +4,7 @@
 #include <numeric>
 #include <random>
 #include <set>
+#include <string>
 #include <vector>
 
 #include <benchmark/benchmark.h>
@@ -56,13 +57,15 @@ void measure(benchmark::State &state, order distribution) {
     const auto input = make_input<Map>(static_cast<size_t>(state.range(0)), distribution);
     using reference_type = std::conditional_t<Map, std::map<uint64_t, uint64_t, std::less<>>,
                                               std::set<uint64_t, std::less<>>>;
-    const reference_type reference(input.begin(), input.end());
-    Tree check;
-    populate<Range>(check, input);
-    if (check.size() != reference.size() ||
-        !std::equal(check.begin(), check.end(), reference.begin())) {
-        state.SkipWithError("hint range contents differ from std");
-        return;
+    {
+        const reference_type reference(input.begin(), input.end());
+        Tree check;
+        populate<Range>(check, input);
+        if (check.size() != reference.size() ||
+            !std::equal(check.begin(), check.end(), reference.begin())) {
+            state.SkipWithError("hint range contents differ from std");
+            return;
+        }
     }
     for (auto _ : state) {
         Tree tree;
@@ -109,7 +112,9 @@ int main(int argc, char **argv) {
     benchmark::AddCustomContext("trace_seed", std::to_string(seed));
     benchmark::AddCustomContext("allocator", "std::allocator; timing has no counters");
 #ifdef _MSVC_STL_UPDATE
-    benchmark::AddCustomContext("standard_library", "MSVC STL " + std::to_string(_MSVC_STL_UPDATE));
+    benchmark::AddCustomContext("standard_library", "MSVC STL " +
+                                                        std::to_string(_MSVC_STL_VERSION) + '.' +
+                                                        std::to_string(_MSVC_STL_UPDATE));
 #elif defined(__GLIBCXX__)
     benchmark::AddCustomContext("standard_library", "libstdc++ " + std::to_string(__GLIBCXX__));
 #endif
