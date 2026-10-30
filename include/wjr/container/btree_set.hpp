@@ -80,16 +80,12 @@ public:
 
     using Mybase::Mybase;
 
-    std::pair<iterator, bool> insert(const value_type &val) noexcept {
-        return this->_emplace_multi(val);
-    }
+    iterator insert(const value_type &val) noexcept { return this->_emplace_multi(val); }
 
-    std::pair<iterator, bool> insert(value_type &&val) noexcept {
-        return this->_emplace_multi(std::move(val));
-    }
+    iterator insert(value_type &&val) noexcept { return this->_emplace_multi(std::move(val)); }
 
     template <typename... Args>
-    WJR_INTRINSIC_INLINE std::pair<iterator, bool> emplace(Args &&...args) noexcept {
+    WJR_INTRINSIC_INLINE iterator emplace(Args &&...args) noexcept {
         return this->_emplace_multi(std::forward<Args>(args)...);
     }
 };
