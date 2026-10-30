@@ -30,7 +30,7 @@ enable_testing()
 add_test(NAME focused_json COMMAND pmr_tests)
 """)
 for compiler,cc in [('g++-14','gcc-14'),('clang++-18','clang-18')]:
-    for standard in [20,23]:
+    for standard in ([] if os.environ.get('SANITIZER_ONLY') == '1' else [20,23]):
         label=compiler+'-cxx'+str(standard)
         build=temporary/label
         subprocess.run(['cmake','-S',str(wrapper),'-B',str(build),'-G','Ninja','-DCMAKE_CXX_COMPILER='+compiler,'-DCMAKE_C_COMPILER='+cc,'-DCMAKE_BUILD_TYPE=Release','-DWJR_CPU_TARGET=x86-64-v3','-DWJR_CXX_STANDARD='+str(standard),'-DCMAKE_EXPORT_COMPILE_COMMANDS=ON'],check=True)
@@ -46,4 +46,9 @@ for compiler,cc in [('g++-14','gcc-14'),('clang++-18','clang-18')]:
     build=temporary/label
     subprocess.run(['cmake','-S',str(wrapper),'-B',str(build),'-G','Ninja','-DCMAKE_CXX_COMPILER='+compiler,'-DCMAKE_C_COMPILER='+cc,'-DCMAKE_BUILD_TYPE=Release','-DWJR_CPU_TARGET=x86-64-v3','-DWJR_CXX_STANDARD='+str(standard),'-DWJR_ENABLE_ASAN=ON','-DCMAKE_CXX_FLAGS=-fsanitize=undefined'],check=True)
     subprocess.run(['cmake','--build',str(build),'--target','pmr_tests','--parallel','4'],check=True)
-    subprocess.run(['ctest','--test-dir',str(build),'-R','^focused_json$','--output-on-failure'],check=True)
+    environment = os.environ.copy()
+    environment['UBSAN_OPTIONS'] = 'halt_on_error=1:print_stacktrace=1'
+    environment['ASAN_OPTIONS'] = 'halt_on_error=1:detect_leaks=1'
+    result = subprocess.run(['ctest','--test-dir',str(build),'-R','^focused_json$','--output-on-failure'],env=environment)
+    (out/(label+'-LastTest.log')).write_bytes((build/'Testing/Temporary/LastTest.log').read_bytes())
+    result.check_returncode()

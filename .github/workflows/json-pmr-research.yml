@@ -20,6 +20,8 @@ jobs:
           clang++-18 --version > json-pmr-results/clang.txt
           git rev-parse HEAD > json-pmr-results/source.txt
       - name: Build compare and sanitize
+        env:
+          SANITIZER_ONLY: '1'
         run: python3 .github/research/json-pmr-run.py
       - uses: actions/upload-artifact@v4
         if: always()
