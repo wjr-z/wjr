@@ -621,9 +621,6 @@ public:
     using pointer = std::conditional_t<Traits::is_map, value_type *, const value_type *>;
     using reference = std::conditional_t<Traits::is_map, value_type &, const value_type &>;
 
-    using Mybase::operator==;
-    using Mybase::operator!=;
-
 private:
     /// @brief Only the owning mutable tree may recover a mutable position.
     btree_iterator(const Mybase &other) noexcept : Mybase(other) {}
@@ -661,9 +658,8 @@ public:
         return tmp;
     }
 
-    bool operator==(const btree_iterator &other) const noexcept {
-        return Mybase::operator==(other);
-    }
+    bool operator==(const Mybase &other) const noexcept { return Mybase::operator==(other); }
+    bool operator!=(const Mybase &other) const noexcept { return Mybase::operator!=(other); }
 
 protected:
     WJR_INTRINSIC_INLINE btree_iterator &_adjust_next() noexcept {
