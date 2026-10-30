@@ -461,8 +461,8 @@ _basecase_basecase_from_chars<char_converter_t>(const uint8_t *first, size_t n, 
  * Only support 10 and power of two currently.
  * @return Pointer after the conversion
  */
-template <typename Iter, typename Converter = char_converter_t,
-          WJR_REQUIRES(charconv_detail::_is_fast_convert_iterator_v<Iter>)>
+template <typename Iter, typename Converter = char_converter_t>
+requires(charconv_detail::_is_fast_convert_iterator_v<Iter>)
 uint64_t *biginteger_from_chars(Iter first, Iter last, uint64_t *up, unsigned int base = 10,
                                 Converter conv = {}) noexcept {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
