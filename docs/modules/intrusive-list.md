@@ -80,3 +80,27 @@ removal, or transfers. Tags require no stored state: list hooks remain two
 pointers, hlist hooks one pointer, and iterators one pointer. Different tags
 cannot be mixed in an insertion or iterator conversion. Omitting the tag retains
 the default `void` tag and existing one-hook source syntax.
+
+## Filtering and adjacent duplicates
+
+Include `<wjr/container/intrusive_algorithms.hpp>` for `intrusive::remove_if`
+and `intrusive::unique`. Both accept a typed `list_node<T, Tag>` or
+`hlist_node<T, Tag>` sentinel by reference and return the number unlinked.
+
+```cpp
+auto removed = wjr::intrusive::remove_if(ready, [](const job &j) {
+    return j.priority < 0;
+});
+auto duplicates = wjr::intrusive::unique(ready, [](const job &a, const job &b) {
+    return a.priority == b.priority;
+});
+```
+
+`unique` retains the first element of each adjacent equivalent group; it does
+not sort. Both algorithms take linear time and allocate nothing. They leave
+payloads alive and do not reset removed links, so callers retain responsibility
+for lifetime and may reinsert removed hooks. Other hooks in the same payload
+are unaffected. Predicates must not change links or destroy linked objects.
+If a predicate throws, earlier removals remain applied and the remaining ring
+or chain is valid. Calls are `constexpr` and conditionally `noexcept` according
+to predicate invocation, including its result's conversion to bool.
