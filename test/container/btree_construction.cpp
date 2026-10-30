@@ -206,6 +206,8 @@ struct throwing_allocator : std::allocator<T> {
         }
     }
     throwing_allocator(const throwing_allocator &) noexcept = default;
+    template <typename U>
+    throwing_allocator(const throwing_allocator<U> &) noexcept {}
     throwing_allocator(throwing_allocator &&) noexcept(false) {
         if (fail_move) {
             WJR_THROW(std::runtime_error("move allocator"));

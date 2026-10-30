@@ -1000,18 +1000,35 @@ public:
     }
 
 protected:
+    /// @brief Storage for a leaf header and its trailing values, with the leaf's alignment.
+    struct alignas(leaf_node_type) _Leaf_storage {
+        unsigned char bytes[sizeof(leaf_node_type) + sizeof(ivalue_type) * Traits::node_size];
+    };
+
+    template <typename T>
+    T *_allocate_object() noexcept {
+        using allocator = typename _Alty_traits::template rebind_alloc<T>;
+        allocator al(_get_allocator());
+        return std::allocator_traits<allocator>::allocate(al, 1);
+    }
+
+    template <typename T>
+    void _deallocate_object(T *ptr) noexcept {
+        using allocator = typename _Alty_traits::template rebind_alloc<T>;
+        allocator al(_get_allocator());
+        std::allocator_traits<allocator>::deallocate(al, ptr, 1);
+    }
+
     inner_node_type *_create_inner_node() noexcept {
         auto &al = _get_allocator();
-        auto *const node = reinterpret_cast<inner_node_type *>(
-            _Alty_traits::allocate(al, sizeof(inner_node_type)));
+        auto *const node = _allocate_object<inner_node_type>();
         uninitialized_construct_using_allocator(node, al, default_construct);
         return node;
     }
 
     leaf_node_type *_create_leaf_node() noexcept {
         auto &al = _get_allocator();
-        auto *const node = reinterpret_cast<leaf_node_type *>(_Alty_traits::allocate(
-            al, sizeof(leaf_node_type) + sizeof(ivalue_type) * Traits::node_size));
+        auto *const node = reinterpret_cast<leaf_node_type *>(_allocate_object<_Leaf_storage>());
         uninitialized_construct_using_allocator(node, al, default_construct);
         return node;
     }
@@ -1024,7 +1041,7 @@ protected:
             uninitialized_construct_using_allocator(std::addressof(node), al,
                                                     std::forward<Args>(args)...);
         } else {
-            node = reinterpret_cast<value_type *>(_Alty_traits::allocate(al, sizeof(value_type)));
+            node = _allocate_object<value_type>();
             uninitialized_construct_using_allocator(node, al, std::forward<Args>(args)...);
         }
 
@@ -1034,14 +1051,13 @@ protected:
     void _drop_inner_node(inner_node_type *node) noexcept {
         auto &al = _get_allocator();
         destroy_at_using_allocator(node, al);
-        _Alty_traits::deallocate(al, reinterpret_cast<char *>(node), sizeof(inner_node_type));
+        _deallocate_object(node);
     }
 
     void _drop_leaf_node(leaf_node_type *node) noexcept {
         auto &al = _get_allocator();
         destroy_at_using_allocator(node, al);
-        _Alty_traits::deallocate(al, reinterpret_cast<char *>(node),
-                                 sizeof(leaf_node_type) + sizeof(ivalue_type) * Traits::node_size);
+        _deallocate_object(reinterpret_cast<_Leaf_storage *>(node));
     }
 
     void _drop_node(ivalue_type node) noexcept {
@@ -1050,7 +1066,7 @@ protected:
             destroy_at_using_allocator(std::addressof(node), al);
         } else {
             destroy_at_using_allocator(node, al);
-            _Alty_traits::deallocate(al, reinterpret_cast<char *>(node), sizeof(value_type));
+            _deallocate_object(node);
         }
     }
 
