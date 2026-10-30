@@ -97,6 +97,16 @@ void memory_scenario(const std::string &name, S spec) {
         memory_row<S, typename wjr_backend<S, counting_allocator<char>, 32>::type>(name + "/wjr32",
                                                                                    spec, n);
         memory_row<S, typename std_backend<S, counting_allocator>::type>(name + "/std", spec, n);
+#ifdef WJR_BENCHMARK_COMPACT
+        if constexpr (std::is_same_v<typename S::key_type, uint64_t> &&
+                      (std::is_same_v<typename S::mapped_type, uint64_t> ||
+                       std::is_same_v<typename S::mapped_type, large_value>)) {
+            memory_row<
+                S, wjr::experimental::compact_btree_map<uint64_t, typename S::mapped_type,
+                                                        std::less<>, counting_allocator<char>, 16>>(
+                name + "/compact16", spec, n);
+        }
+#endif
 #ifdef WJR_BENCHMARK_ABSEIL
         memory_row<S, typename absl_backend<S, counting_allocator>::type>(name + "/absl", spec, n);
 #endif

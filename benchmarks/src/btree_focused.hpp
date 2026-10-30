@@ -15,6 +15,10 @@
 #include <wjr/container/btree_map.hpp>
 #include <wjr/container/btree_set.hpp>
 
+#ifdef WJR_BENCHMARK_COMPACT
+    #include <wjr/container/experimental/compact_btree_map.hpp>
+#endif
+
 #ifdef WJR_BENCHMARK_ABSEIL
     #include <absl/container/btree_map.h>
     #include <absl/container/btree_set.h>

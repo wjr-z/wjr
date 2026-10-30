@@ -49,6 +49,15 @@ foreach(btree_target IN ITEMS benchmarks btree_memory)
     )
 endforeach()
 
+if(WJR_BENCHMARK_COMPACT)
+    if(NOT EXISTS "${WJR_INCLUDE_DIR}/wjr/container/experimental/compact_btree_map.hpp")
+        message(FATAL_ERROR "WJR_BENCHMARK_COMPACT requires the experimental compact_btree_map header")
+    endif()
+    foreach(btree_target IN ITEMS benchmarks btree_memory)
+        target_compile_definitions(${btree_target} PRIVATE WJR_BENCHMARK_COMPACT=1)
+    endforeach()
+endif()
+
 # No lookup, fetch or link of Abseil occurs while this option is OFF.
 if(WJR_BENCHMARK_ABSEIL)
     set(WJR_BENCHMARK_ABSEIL_SOURCE_DIR "" CACHE PATH "Existing reviewed Abseil Git checkout")
