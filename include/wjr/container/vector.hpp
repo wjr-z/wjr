@@ -851,6 +851,83 @@ public:
         return assign(il.begin(), il.end());
     }
 
+    /**
+     * @brief Assign a C++20 range, reusing elements and capacity when possible.
+     * @pre The source does not overlap this vector's live elements.
+     * @details Single-pass sources are consumed once. Throwing element operations or source
+     * iteration may modify the assigned prefix; all live elements remain owned.
+     */
+    template <detail::_container_compatible_range<value_type> Range>
+    requires requires(value_type &dst, std::ranges::iterator_t<Range> src) { dst = *src; }
+    WJR_CONSTEXPR20 void assign_range(Range &&range) {
+        if constexpr (std::ranges::common_range<Range> &&
+                      requires { typename iterator_category_t<std::ranges::iterator_t<Range>>; }) {
+            assign(std::ranges::begin(range), std::ranges::end(range));
+        } else {
+            if constexpr (std::ranges::sized_range<Range> || std::ranges::forward_range<Range>) {
+                const auto count = [&] {
+                    if constexpr (std::ranges::sized_range<Range>) {
+                        return std::ranges::size(range);
+                    } else {
+                        return std::ranges::distance(range);
+                    }
+                }();
+                if (count > max_size()) {
+                    WJR_THROW(std::length_error("vector::assign_range: size overflow"));
+                }
+                clear_if_reserved(static_cast<size_type>(count));
+            }
+            auto first = std::ranges::begin(range);
+            const auto last = std::ranges::end(range);
+            size_type assigned = 0;
+            const auto original_size = size();
+            for (; assigned != original_size && first != last; ++assigned, ++first) {
+                (*this)[assigned] = *first;
+            }
+            if (first == last) {
+                _erase_at_end(data() + assigned);
+            } else {
+                for (; first != last; ++first) {
+                    emplace_back(*first);
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief Append a range; sized or forward sources need at most one allocation.
+     * @pre The source does not overlap this vector's live elements.
+     * @details Bulk construction cleans up its new prefix on failure. Unsized
+     * single-pass input retains successfully appended elements if iteration fails.
+     */
+    template <detail::_container_compatible_range<value_type> Range>
+    WJR_CONSTEXPR20 void append_range(Range &&range) {
+        if constexpr (std::ranges::sized_range<Range> || std::ranges::forward_range<Range>) {
+            const auto count = [&] {
+                if constexpr (std::ranges::sized_range<Range>) {
+                    return std::ranges::size(range);
+                } else {
+                    return std::ranges::distance(range);
+                }
+            }();
+            if (count > max_size() - size()) {
+                WJR_THROW(std::length_error("vector::append_range: size overflow"));
+            }
+            if (count != 0) {
+                const auto n = static_cast<size_type>(count);
+                reserve(size() + n);
+                wjr::uninitialized_copy_restrict_using_allocator(std::ranges::begin(range),
+                                                                 std::ranges::end(range),
+                                                                 end_unsafe(), _get_allocator());
+                _get_size() += n;
+            }
+        } else {
+            for (auto &&value : range) {
+                emplace_back(std::forward<decltype(value)>(value));
+            }
+        }
+    }
+
     WJR_CONSTEXPR20 pointer begin_unsafe() noexcept { return data(); }
     WJR_CONSTEXPR20 const_pointer begin_unsafe() const noexcept { return data(); }
     WJR_CONSTEXPR20 const_pointer cbegin_unsafe() const noexcept { return data(); }
