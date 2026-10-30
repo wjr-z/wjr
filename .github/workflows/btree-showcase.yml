@@ -1,0 +1,96 @@
+name: Btree showcase (manual only)
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  showcase:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+      - name: Check out reviewed comparison source
+        uses: actions/checkout@v5
+        with:
+          repository: abseil/abseil-cpp
+          ref: 2a2d6aad626f75a32c8b7bb775fbff73d558b8b1
+          path: .showcase-abseil
+          persist-credentials: false
+      - name: Prepare focused tools
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build g++-13 clang-18 python3-venv
+          python3 -m venv "$RUNNER_TEMP/showcase-python"
+          "$RUNNER_TEMP/showcase-python/bin/pip" install matplotlib==3.11.1
+      - name: Measure both compiler profiles on this worker
+        shell: bash
+        run: |
+          mkdir -p showcase-results
+          lscpu > showcase-results/cpu.txt
+          uname -a > showcase-results/os.txt
+          git diff --exit-code HEAD
+          git rev-parse HEAD > showcase-results/source.txt
+          sha256sum benchmarks/src/btree_focused.hpp > showcase-results/trace-source.sha256
+          for profile in gcc clang; do
+            if [[ "$profile" == gcc ]]; then
+              cc=gcc-13
+              cxx=g++-13
+            else
+              cc=clang-18
+              cxx=clang++-18
+            fi
+            "$cxx" --version > "showcase-results/$profile-compiler.txt"
+            cmake -S . -B "build-showcase-$profile" -GNinja \
+              -DCMAKE_C_COMPILER="$cc" -DCMAKE_CXX_COMPILER="$cxx" \
+              -DCMAKE_BUILD_TYPE=Release -DWJR_CXX_STANDARD=20 \
+              -DWJR_CPU_TARGET=baseline -DWJR_BUILD_BENCHMARKS=ON \
+              -DWJR_BENCHMARK_PROFILE=btree -DWJR_BENCHMARK_ABSEIL=ON \
+              -DWJR_BENCHMARK_ABSEIL_SOURCE_DIR="$GITHUB_WORKSPACE/.showcase-abseil" \
+              -DWJR_ENABLE_INSTALL=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+              -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/showcase-deps-$profile"
+            cmake --build "build-showcase-$profile" --target benchmarks btree_memory --parallel 4
+            "build-showcase-$profile/bin/benchmarks" \
+              --benchmark_filter='^(u64_set|u64_map|large_map)/(wjr16|absl)/.*/4096/' \
+              --benchmark_repetitions=5 --benchmark_min_time=0.05s \
+              --benchmark_report_aggregates_only=false \
+              --benchmark_out="showcase-results/$profile-timing.json"
+            "build-showcase-$profile/bin/btree_memory" > "showcase-results/$profile-memory.csv"
+            cp "build-showcase-$profile/compile_commands.json" "showcase-results/$profile-compile-commands.json"
+            size "build-showcase-$profile/bin/benchmarks" "build-showcase-$profile/bin/btree_memory" > "showcase-results/$profile-code-size.txt"
+            PROFILE="$profile" python3 - <<'PY'
+          import json, os, pathlib, platform, subprocess
+          cpu = next(line.split(':', 1)[1].strip() for line in pathlib.Path('/proc/cpuinfo').read_text().splitlines() if line.startswith('model name'))
+          profile = os.environ['PROFILE']
+          metadata = dict(id='linux-' + profile, label='Linux ' + profile.upper(), cpu=cpu,
+                          os=platform.platform(), abseil_commit='2a2d6aad626f75a32c8b7bb775fbff73d558b8b1',
+                          trace_source_sha256=subprocess.check_output(['sha256sum', 'benchmarks/src/btree_focused.hpp'], text=True).split()[0],
+                          artifact_run='https://github.com/' + os.environ['GITHUB_REPOSITORY'] + '/actions/runs/' + os.environ['GITHUB_RUN_ID'])
+          pathlib.Path('showcase-results/' + profile + '-metadata.json').write_text(json.dumps(metadata, indent=2) + '\n')
+          PY
+            python3 benchmarks/tools/btree_showcase.py collect \
+              --timing "showcase-results/$profile-timing.json" \
+              --memory "showcase-results/$profile-memory.csv" \
+              --metadata "showcase-results/$profile-metadata.json" \
+              --output "showcase-results/$profile-source.json"
+          done
+      - name: Generate evidence charts
+        shell: bash
+        run: |
+          "$RUNNER_TEMP/showcase-python/bin/python" benchmarks/tools/btree_showcase.py render \
+            showcase-results/gcc-source.json showcase-results/clang-source.json \
+            --output-dir showcase-results/charts
+          cat showcase-results/charts/btree-samples.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain reproducible report inputs and outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btree-showcase
+          path: showcase-results/
+          retention-days: 90

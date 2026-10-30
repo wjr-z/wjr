@@ -3,6 +3,8 @@
 
 Coverage runs with Clang every Monday at 04:43 UTC and via manual `workflow_dispatch`; pushes and pull requests do not trigger it. Scheduled and manual runs on `main` publish to GitHub Pages; manual runs on other branches only upload the report artifact. The coverage badge shows the latest published `main` report, updated by scheduled/manual publication, and may predate HEAD. Each generated report is also uploaded as an artifact. The full published report is available at <https://wjr-z.github.io/wjr/> after GitHub Pages is enabled for the repository.
 
+性能图表与可复现实验见 [性能报告](docs/performance/README.md)。报告按模块列出与成熟高性能库的比较、适用负载及持平或落后项；专项 showcase 默认关闭，仅手动触发。
+
 最低要求：  \
 C++20 及以上，64位系统，CMake 3.20 及以上。  \
 绝大多数优化仅针对x64。 目前异常处理支持不佳。  
