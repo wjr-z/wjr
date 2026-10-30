@@ -70,6 +70,11 @@ public:
         return const_cast<btree_map &>(*this).at(key);
     }
 
+    btree_map &operator=(std::initializer_list<value_type> il) noexcept {
+        Mybase::operator=(il);
+        return *this;
+    }
+
     mapped_type &operator[](const key_type &key) { return try_emplace(key).first->second; }
 
     std::pair<iterator, bool> insert(const value_type &val) noexcept {
