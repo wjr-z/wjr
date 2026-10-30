@@ -1624,8 +1624,7 @@ __m128i sse::loadu_si96(const void *ptr) noexcept {
     return insert_epi32<2>(loadu_si64(ptr),
                            read_memory<uint32_t>(static_cast<const char *>(ptr) + 8));
     #else
-    return insert_epi16<5>(loadu_si80(ptr),
-                           read_memory<uint16_t>(static_cast<const char *>(ptr) + 10));
+    return unpacklo_epi64(loadu_si64(ptr), loadu_si32(static_cast<const char *>(ptr) + 8));
     #endif
 }
 
