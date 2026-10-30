@@ -17,7 +17,9 @@ FetchContent_MakeAvailable(benchmark)
 
 add_executable(benchmarks src/btree_focused.cpp)
 add_executable(btree_memory src/btree_memory.cpp)
+add_executable(btree_hint EXCLUDE_FROM_ALL src/btree_hint.cpp)
 target_link_libraries(benchmarks PRIVATE benchmark::benchmark)
+target_link_libraries(btree_hint PRIVATE benchmark::benchmark)
 
 find_package(Git QUIET)
 set(btree_source "unknown")
@@ -37,7 +39,7 @@ set(btree_flags "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${btree_build_type}} ${WJR
 string(REPLACE ";" " " btree_flags "${btree_flags}")
 string(REPLACE "\"" "\\\"" btree_flags "${btree_flags}")
 
-foreach(btree_target IN ITEMS benchmarks btree_memory)
+foreach(btree_target IN ITEMS benchmarks btree_memory btree_hint)
     # The general container path needs config/assert, never wjr::isa or GMP.
     target_link_libraries(${btree_target} PRIVATE wjr::assert wjr::iterator)
     target_compile_options(${btree_target} PRIVATE ${WJR_BASELINE_FLAGS})

@@ -154,6 +154,34 @@ public:
         return this->_try_emplace_unique(std::move(k), std::forward<Args>(args)...);
     }
 
+    /// @brief Try constructing a mapped value using a checked adjacent hint.
+    template <typename... Args>
+    iterator try_emplace(const_iterator hint, const key_type &key, Args &&...args) {
+        return this->_try_emplace_hint_unique(hint, key, std::forward<Args>(args)...).first;
+    }
+    template <typename... Args>
+    iterator try_emplace(const_iterator hint, key_type &&key, Args &&...args) {
+        return this->_try_emplace_hint_unique(hint, std::move(key), std::forward<Args>(args)...)
+            .first;
+    }
+
+    /// @brief Assign or insert using a checked adjacent hint without consuming duplicates early.
+    template <btree_detail::upsert_source<mapped_type> Source>
+    iterator insert_or_assign(const_iterator hint, const key_type &key, Source &&value) {
+        auto result = this->_try_emplace_hint_unique(hint, key, std::forward<Source>(value));
+        if (!result.second)
+            result.first->second = std::forward<Source>(value);
+        return result.first;
+    }
+    template <btree_detail::upsert_source<mapped_type> Source>
+    iterator insert_or_assign(const_iterator hint, key_type &&key, Source &&value) {
+        auto result =
+            this->_try_emplace_hint_unique(hint, std::move(key), std::forward<Source>(value));
+        if (!result.second)
+            result.first->second = std::forward<Source>(value);
+        return result.first;
+    }
+
     size_type count(const key_type &key) const noexcept { return _count_unique(key) ? 1 : 0; }
 
     /// @brief Count an equivalent key using the transparent comparator without constructing a key.
