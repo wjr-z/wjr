@@ -66,6 +66,10 @@ target_link_libraries(my_app PRIVATE wjr::json)
 
 JSON 数据结构和解析、序列化相关功能。
 
+[Owning immutable JSON design](../design/json-readonly-dom.md) records the measured
+mutable-DOM costs and a separate proposed read-only owner/view contract; that
+compact representation and its consumer are not implemented.
+
 程序需要读取、构造或输出 JSON 数据时使用。该模块依赖 `wjr::biginteger` 及 JSON 相关的架构实现。
 
 显式 allocator 实例、PMR 深层传播、生命周期及成本的后续方案见
