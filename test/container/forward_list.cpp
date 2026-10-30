@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <memory>
 #include <ranges>
 
 #include <wjr/container/forward_list.hpp>
@@ -132,16 +133,16 @@ TEST(intrusive_hlist, safe_traversal_can_remove_and_destroy_current_entry) {
             if (entries) {
                 hlist_value *entry, *next;
                 WJR_HLIST_FOR_EACH_ENTRY_SAFE(entry, next, &head) {
+                    std::unique_ptr<hlist_value> current(entry);
                     EXPECT_EQ(entry->value, ++visited);
                     EXPECT_EQ(head.pop_front()->self(), entry);
-                    delete entry;
                 }
             } else {
                 intrusive::hlist_node<hlist_value> *node, *next;
                 WJR_HLIST_FOR_EACH_SAFE(node, next, &head) {
+                    std::unique_ptr<hlist_value> current(node->self());
                     EXPECT_EQ(node->self()->value, ++visited);
                     EXPECT_EQ(head.pop_front(), node);
-                    delete node->self();
                 }
             }
             EXPECT_EQ(visited, count);
