@@ -25,7 +25,7 @@ if(Git_FOUND)
     execute_process(COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
         WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/.."
         OUTPUT_VARIABLE btree_source OUTPUT_STRIP_TRAILING_WHITESPACE)
-    execute_process(COMMAND "${GIT_EXECUTABLE}" status --porcelain --untracked-files=normal --ignore-submodules=all
+    execute_process(COMMAND "${GIT_EXECUTABLE}" status --porcelain --untracked-files=no --ignore-submodules=all
         WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/.."
         OUTPUT_VARIABLE btree_dirty OUTPUT_STRIP_TRAILING_WHITESPACE)
     if(btree_dirty)

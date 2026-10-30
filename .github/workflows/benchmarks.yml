@@ -127,6 +127,8 @@ jobs:
           g++ --version > btree-pilot/gcc-version.txt
           clang++ --version > btree-pilot/clang-version.txt
           git rev-parse HEAD > btree-pilot/source.txt
+          git diff --exit-code HEAD
+          git status --porcelain > btree-pilot/source-worktree-status.txt
           ./build/bin/btree_memory > btree-pilot/gcc-memory.csv
           cp benchmark-results.json btree-pilot/gcc-timing.json
           cp build/compile_commands.json btree-pilot/gcc-compile-commands.json
