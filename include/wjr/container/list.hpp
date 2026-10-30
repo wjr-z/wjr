@@ -11,6 +11,9 @@
 #ifndef WJR_CONTAINER_LIST_HPP__
 #define WJR_CONTAINER_LIST_HPP__
 
+#include <cstddef>
+#include <iterator>
+
 #include <wjr/assert.hpp>
 #include <wjr/type_traits.hpp>
 
@@ -24,6 +27,7 @@ class list_node_const_iterator {
 public:
     using iterator_category = std::bidirectional_iterator_tag;
     using value_type = T;
+    using difference_type = std::ptrdiff_t;
     using pointer = const T *;
     using reference = const T &;
 
@@ -85,10 +89,17 @@ class list_node_iterator : public list_node_const_iterator<T> {
 public:
     using iterator_category = std::bidirectional_iterator_tag;
     using value_type = T;
+    using difference_type = std::ptrdiff_t;
     using pointer = T *;
     using reference = T &;
 
-    using Mybase::Mybase;
+    list_node_iterator() = default;
+
+    /// Construct mutable access only from a mutable node.
+    list_node_iterator(list_node_base<T> *node) noexcept : Mybase(node) {}
+
+    using Mybase::operator==;
+    using Mybase::operator!=;
 
     std::enable_if_t<!std::is_void_v<T>, pointer> operator->() const noexcept {
         return const_cast<pointer>(Mybase::operator->());

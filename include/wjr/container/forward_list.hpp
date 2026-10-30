@@ -1,6 +1,9 @@
 #ifndef WJR_CONTAINER_FORWARD_LIST_HPP__
 #define WJR_CONTAINER_FORWARD_LIST_HPP__
 
+#include <cstddef>
+#include <iterator>
+
 #include <wjr/assert.hpp>
 #include <wjr/type_traits.hpp>
 
@@ -14,6 +17,7 @@ class hlist_node_const_iterator {
 public:
     using iterator_category = std::forward_iterator_tag;
     using value_type = T;
+    using difference_type = std::ptrdiff_t;
     using pointer = const T *;
     using reference = const T &;
 
@@ -64,10 +68,17 @@ class hlist_node_iterator : public hlist_node_const_iterator<T> {
 public:
     using iterator_category = std::forward_iterator_tag;
     using value_type = T;
+    using difference_type = std::ptrdiff_t;
     using pointer = T *;
     using reference = T &;
 
-    using Mybase::Mybase;
+    hlist_node_iterator() = default;
+
+    /// Construct mutable access only from a mutable node.
+    hlist_node_iterator(hlist_node_base<T> *node) noexcept : Mybase(node) {}
+
+    using Mybase::operator==;
+    using Mybase::operator!=;
 
     std::enable_if_t<!std::is_void_v<T>, pointer> operator->() const noexcept {
         return const_cast<pointer>(Mybase::operator->());
@@ -159,8 +170,8 @@ public:
         return static_cast<const hlist_node *>(this->m_next);
     }
 
-    constexpr hlist_node *front() noexcept { return this->m_next; }
-    constexpr const hlist_node *front() const noexcept { return this->m_next; }
+    constexpr hlist_node *front() noexcept { return next(); }
+    constexpr const hlist_node *front() const noexcept { return next(); }
 
     constexpr iterator begin() noexcept { return iterator(next()); }
     constexpr const_iterator begin() const noexcept { return const_iterator(next()); }
