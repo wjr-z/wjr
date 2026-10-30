@@ -101,19 +101,12 @@ public:
     template <typename Container>
     WJR_CONSTEXPR20 static void swap(Container &lhs, Container &rhs) noexcept(
         noexcept(lhs._swap_storage(rhs)) &&
-                !std::conjunction_v<propagate_on_container_swap, std::negation<is_always_equal>>
-            ? true
-            : std::is_nothrow_swappable_v<Alloc>) {
-        if constexpr (std::negation_v<is_always_equal>) {
-            if constexpr (propagate_on_container_swap::value) {
-                auto &lhs_allocator = lhs._get_allocator();
-                auto &rhs_allocator = rhs._get_allocator();
-                if (lhs_allocator != rhs_allocator) {
-                    std::swap(lhs_allocator, rhs_allocator);
-                }
-            } else {
-                WJR_ASSERT(lhs._get_allocator() == rhs._get_allocator());
-            }
+        (!propagate_on_container_swap::value || std::is_nothrow_swappable_v<Alloc>)) {
+        if constexpr (propagate_on_container_swap::value) {
+            using std::swap;
+            swap(lhs._get_allocator(), rhs._get_allocator());
+        } else if constexpr (!is_always_equal::value) {
+            WJR_ASSERT(lhs._get_allocator() == rhs._get_allocator());
         }
 
         lhs._swap_storage(rhs);
