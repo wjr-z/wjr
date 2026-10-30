@@ -78,6 +78,39 @@ warns against frequent shrink/reuse patterns. The dynamic object pool owns an
 arena and is not a copyable borrowed standard allocator instance. Neither is a
 drop-in substitute for the required lifetime and propagation model.
 
+## Fixed upstream ownership references
+
+The reviewed sources are simdjson
+[v3.9.1](https://github.com/simdjson/simdjson/tree/v3.9.1), under
+[Apache-2.0](https://github.com/simdjson/simdjson/blob/v3.9.1/LICENSE), and yyjson
+[0.10.0](https://github.com/ibireme/yyjson/tree/0.10.0), under
+[MIT](https://github.com/ibireme/yyjson/blob/0.10.0/LICENSE). This review copies no
+upstream implementation, changes no vendored source, and adds no dependency.
+The existing minification comparison already uses the pinned simdjson release;
+its throughput does not establish a DOM allocation result.
+
+| Reference | Source-grounded allocation/lifetime design | Difference from WJR owning values |
+| --- | --- | --- |
+| simdjson DOM | [document.h](https://github.com/simdjson/simdjson/blob/v3.9.1/include/simdjson/dom/document.h) stores owning tape and string buffers; document copying is disabled | Elements refer to document storage; independently owned mutable `std::string&` values and detached owning subtrees are a different contract |
+| simdjson OnDemand | [parser.h](https://github.com/simdjson/simdjson/blob/v3.9.1/include/simdjson/generic/ondemand/parser.h) owns intermediate/string storage; parsing proceeds during iteration, with input/parser lifetime and padding requirements | Iteration and projected access cannot be timed as if they materialized the entire mutable WJR tree |
+| yyjson immutable/mutable DOM | [yyjson.h](https://github.com/ibireme/yyjson/blob/0.10.0/src/yyjson.h) retains an allocator in the document; mutable values/strings use document pools, and values share the document lifetime | Individual values cannot be freed independently; in-situ read mode also changes input ownership/mutability |
+
+The reusable lesson is explicit allocation context and capacity/storage reuse.
+It does not justify copying a tape offset, document pool pointer, or byte tag into
+the existing WJR value. WJR's default mutable string references and transferable
+owning subdocuments would need a separate lifetime/access design before adopting
+a document-region representation. The proposed borrowed PMR resource retains
+individual typed ownership and matching destruction instead.
+
+An upstream parser benchmark must state eager versus traversed/projected work,
+whether strings are copied/unescaped, padding, input lifetime, duplicate-key
+policy, numeric range behavior, and validation settings. Use a common valid
+input domain or normalize those contracts explicitly. In particular, do not
+disable upstream UTF-8 validation to manufacture a result. Read-only region DOM
+or OnDemand figures can be useful reference categories, but are not a zero-cost
+ceiling for constructing WJR's owning mutable representation. No region-DOM or
+OnDemand performance result is claimed by this proposal.
+
 ## Proposed capability and scope
 
 Add an opt-in `wjr/json/pmr.hpp` with `json::pmr_document`. Use
