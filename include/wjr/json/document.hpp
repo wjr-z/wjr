@@ -15,7 +15,9 @@
 #ifndef WJR_JSON_DOCUMENT_HPP__
 #define WJR_JSON_DOCUMENT_HPP__
 
+#include <concepts>
 #include <map>
+#include <memory>
 
 #include <wjr/format/ostream_insert.hpp>
 #include <wjr/json/formatter.hpp>
@@ -68,6 +70,19 @@ public:
 };
 
 using default_document_traits = basic_document_traits<std::basic_string, std::map, vector>;
+
+/// @private Empty for existing document traits; the PMR header specializes the opt-in state.
+template <typename Traits>
+class document_allocator_state {
+protected:
+    using storage_allocator_type = std::allocator<char>;
+    static constexpr bool uses_allocator = false;
+};
+
+template <typename T>
+concept document_scalar_tag =
+    std::same_as<T, null_t> || std::same_as<T, boolean_t> || std::same_as<T, number_unsigned_t> ||
+    std::same_as<T, number_signed_t> || std::same_as<T, number_float_t>;
 
 template <typename Document>
 class basic_document_parser;
@@ -404,8 +419,7 @@ public:                                                                         
     static Document construct(const Type &__wjr_tp,                                                \
                               ::wjr::json::in_place_document_serializer_to_t) {                    \
         using namespace wjr::json;                                                                 \
-        using object_type = typename Document::object_type;                                        \
-        Document __wjr_document(object_t(), _document_create<object_type>());                      \
+        Document __wjr_document = Document::_construct_object();                                   \
         assign_object(__wjr_tp, __wjr_document,                                                    \
                       ::wjr::json::in_place_document_serializer_object_copy);                      \
         return __wjr_document;                                                                     \
@@ -417,8 +431,7 @@ public:                                                                         
                       __WJR_REGISTER_TO_DOCUMENT_OBJECT_SERIALIZER_MOVE_ENABLER_CALLER)>)>         \
     static Document construct(Type &&__wjr_tp, ::wjr::json::in_place_document_serializer_to_t) {   \
         using namespace wjr::json;                                                                 \
-        using object_type = typename Document::object_type;                                        \
-        Document __wjr_document(object_t(), _document_create<object_type>());                      \
+        Document __wjr_document = Document::_construct_object();                                   \
         assign_object(std::move(__wjr_tp), __wjr_document,                                         \
                       ::wjr::json::in_place_document_serializer_object_move);                      \
         return __wjr_document;                                                                     \
@@ -499,7 +512,7 @@ void format(Formatter fmt, const basic_document<Traits> &doc) noexcept {
  *
  */
 template <typename Traits>
-class basic_document {
+class basic_document : public detail::document_allocator_state<Traits> {
     friend class detail::basic_document_parser<basic_document>;
 
     template <typename T>
@@ -516,6 +529,10 @@ class basic_document {
 
     template <typename T>
     friend struct _document_serializer_object;
+
+    using allocator_state = detail::document_allocator_state<Traits>;
+    using storage_allocator_type = typename allocator_state::storage_allocator_type;
+    static constexpr bool uses_allocator = allocator_state::uses_allocator;
 
 public:
     using traits_type = Traits;
@@ -536,7 +553,7 @@ public:
     using size_type = typename traits_type::size_type;
 
     basic_document() = default;
-    basic_document(const basic_document &other) {
+    basic_document(const basic_document &other) : allocator_state(other) {
         switch (other.type()) {
         case value_t::null:
         case value_t::boolean:
@@ -565,12 +582,19 @@ public:
         }
     }
 
-    basic_document(basic_document &&other) noexcept : m_value(other.m_value) {
+    basic_document(basic_document &&other) noexcept
+        : allocator_state(std::move(other)), m_value(other.m_value) {
         other.m_value.set(null_t{});
     }
 
     basic_document &operator=(const basic_document &other) {
         if (WJR_UNLIKELY(this == std::addressof(other))) {
+            return *this;
+        }
+
+        if constexpr (uses_allocator) {
+            basic_document replacement(std::allocator_arg, this->get_allocator(), other);
+            std::swap(m_value, replacement.m_value);
             return *this;
         }
 
@@ -615,7 +639,7 @@ public:
             case value_t::number_unsigned:
             case value_t::number_signed:
             case value_t::number_float: {
-                _document_destroy(std::addressof(_get_string()));
+                _destroy_payload(std::addressof(_get_string()));
                 m_value = other.m_value;
                 break;
             }
@@ -624,12 +648,12 @@ public:
                 break;
             }
             case value_t::object: {
-                _document_destroy(std::addressof(_get_string()));
+                _destroy_payload(std::addressof(_get_string()));
                 _emplace_object(other._get_object());
                 break;
             }
             case value_t::array: {
-                _document_destroy(std::addressof(_get_string()));
+                _destroy_payload(std::addressof(_get_string()));
                 _emplace_array(other._get_array());
                 break;
             }
@@ -647,12 +671,12 @@ public:
             case value_t::number_unsigned:
             case value_t::number_signed:
             case value_t::number_float: {
-                _document_destroy(std::addressof(_get_object()));
+                _destroy_payload(std::addressof(_get_object()));
                 m_value = other.m_value;
                 break;
             }
             case value_t::string: {
-                _document_destroy(std::addressof(_get_object()));
+                _destroy_payload(std::addressof(_get_object()));
                 _emplace_string(other._get_string());
                 break;
             }
@@ -661,7 +685,7 @@ public:
                 break;
             }
             case value_t::array: {
-                _document_destroy(std::addressof(_get_object()));
+                _destroy_payload(std::addressof(_get_object()));
                 _emplace_array(other._get_array());
                 break;
             }
@@ -679,17 +703,17 @@ public:
             case value_t::number_unsigned:
             case value_t::number_signed:
             case value_t::number_float: {
-                _document_destroy(std::addressof(_get_array()));
+                _destroy_payload(std::addressof(_get_array()));
                 m_value = other.m_value;
                 break;
             }
             case value_t::string: {
-                _document_destroy(std::addressof(_get_array()));
+                _destroy_payload(std::addressof(_get_array()));
                 _emplace_string(other._get_string());
                 break;
             }
             case value_t::object: {
-                _document_destroy(std::addressof(_get_array()));
+                _destroy_payload(std::addressof(_get_array()));
                 _emplace_object(other._get_object());
                 break;
             }
@@ -713,8 +737,22 @@ public:
         return *this;
     }
 
-    basic_document &operator=(basic_document &&other) noexcept {
+    basic_document &operator=(basic_document &&other) noexcept(!uses_allocator) {
         if (WJR_UNLIKELY(this == std::addressof(other))) {
+            return *this;
+        }
+
+        if constexpr (uses_allocator) {
+            if (this->get_allocator() != other.get_allocator()) {
+                basic_document replacement(std::allocator_arg, this->get_allocator(), other);
+                std::swap(m_value, replacement.m_value);
+                other.reset();
+                return *this;
+            }
+            const basic_value transferred = other.m_value;
+            other.m_value.set(null_t{});
+            _destroy();
+            m_value = transferred;
             return *this;
         }
 
@@ -738,12 +776,96 @@ public:
         : m_value(number_unsigned_t(), value) {}
     basic_document(number_float_t, double value) noexcept : m_value(number_float_t(), value) {}
 
-    basic_document(string_t, string_type *ptr) noexcept : m_value(string_t(), ptr) {}
-    basic_document(object_t, object_type *ptr) noexcept : m_value(object_t(), ptr) {}
-    basic_document(array_t, array_type *ptr) noexcept : m_value(array_t(), ptr) {}
+    basic_document(string_t, string_type *ptr) noexcept
+    requires(!uses_allocator)
+        : m_value(string_t(), ptr) {}
+    basic_document(object_t, object_type *ptr) noexcept
+    requires(!uses_allocator)
+        : m_value(object_t(), ptr) {}
+    basic_document(array_t, array_type *ptr) noexcept
+    requires(!uses_allocator)
+        : m_value(array_t(), ptr) {}
 
-    explicit basic_document(basic_value value) noexcept : m_value(value) {}
+    explicit basic_document(basic_value value) noexcept
+    requires(!uses_allocator)
+        : m_value(value) {}
     explicit basic_document(default_construct_t) noexcept : basic_document() {}
+
+    /// @brief Construct a null value borrowing the allocator's resource.
+    basic_document(std::allocator_arg_t, const storage_allocator_type &allocator) noexcept
+    requires(uses_allocator)
+        : allocator_state(std::allocator_arg, allocator) {}
+
+    basic_document(std::allocator_arg_t, const storage_allocator_type &allocator,
+                   default_construct_t) noexcept
+    requires(uses_allocator)
+        : basic_document(std::allocator_arg, allocator) {}
+
+    template <detail::document_scalar_tag Tag, typename... Args>
+    requires(uses_allocator && std::is_constructible_v<basic_value, Tag, Args && ...>)
+    basic_document(std::allocator_arg_t, const storage_allocator_type &allocator, Tag tag,
+                   Args &&...args) noexcept
+        : allocator_state(std::allocator_arg, allocator),
+          m_value(tag, std::forward<Args>(args)...) {}
+
+    basic_document(std::allocator_arg_t, const storage_allocator_type &allocator,
+                   const basic_document &other)
+    requires(uses_allocator)
+        : allocator_state(std::allocator_arg, allocator) {
+        switch (other.type()) {
+        case value_t::string:
+            _emplace_string(other._get_string());
+            break;
+        case value_t::object:
+            _emplace_object(other._get_object());
+            break;
+        case value_t::array:
+            _emplace_array(other._get_array());
+            break;
+        default:
+            m_value = other.m_value;
+            break;
+        }
+    }
+
+    basic_document(std::allocator_arg_t, const storage_allocator_type &allocator,
+                   basic_document &&other)
+    requires(uses_allocator)
+        : allocator_state(std::allocator_arg, allocator) {
+        if (this->get_allocator() == other.get_allocator()) {
+            m_value = other.m_value;
+            other.m_value.set(null_t{});
+        } else {
+            basic_document replacement(std::allocator_arg, allocator,
+                                       static_cast<const basic_document &>(other));
+            m_value = replacement.m_value;
+            replacement.m_value.set(null_t{});
+            other.reset();
+        }
+    }
+
+    /// @pre value is a scalar produced by the numeric parser, without an owned payload.
+    basic_document(std::allocator_arg_t, const storage_allocator_type &allocator,
+                   basic_value value) noexcept
+    requires(uses_allocator)
+        : allocator_state(std::allocator_arg, allocator), m_value(value) {
+        WJR_ASSERT_ASSUME_L2(value.type() <= value_t::number_float);
+    }
+
+    template <typename T>
+    requires(uses_allocator && has_assign_to_document_v<basic_document, T &&> &&
+             !std::is_same_v<remove_cvref_t<T>, basic_document>)
+    basic_document(std::allocator_arg_t, const storage_allocator_type &allocator, T &&value)
+        : allocator_state(std::allocator_arg, allocator) {
+        WJR_TRY {
+            document_serializer<T>::assign(std::forward<T>(value), *this,
+                                           in_place_document_serializer_to);
+        }
+        WJR_CATCH(...) {
+            _destroy();
+            WJR_THROW();
+        }
+    }
 
     value_t type() const noexcept { return m_value.type(); }
 
@@ -778,6 +900,12 @@ public:
     WJR_CONST static size_type max_depth_size() noexcept { return 256; }
 
     static result<basic_document> parse(ondemand_reader &rd) noexcept;
+
+    /// @brief Parse an owning document borrowing an explicit resource.
+    /// @note Allocation failure retains the terminating mode of the legacy parser.
+    static result<basic_document>
+    parse_with_allocator(ondemand_reader &rd, const storage_allocator_type &allocator) noexcept
+    requires(uses_allocator);
 
     template <typename Container>
     void dump_impl(Container &cont, unsigned indents = -1) const noexcept {
@@ -863,8 +991,14 @@ public:
     template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
                                        has_assign_to_document_v<basic_document, T &&>)>
     basic_document &operator=(T &&val) {
-        document_serializer<T>::assign(std::forward<T>(val), *this,
-                                       in_place_document_serializer_to);
+        if constexpr (uses_allocator) {
+            basic_document replacement(std::allocator_arg, this->get_allocator(),
+                                       std::forward<T>(val));
+            std::swap(m_value, replacement.m_value);
+        } else {
+            document_serializer<T>::assign(std::forward<T>(val), *this,
+                                           in_place_document_serializer_to);
+        }
         return *this;
     }
 
@@ -960,7 +1094,18 @@ public:
         m_value.set(null_t());
     }
 
-    void swap(basic_document &other) noexcept { std::swap(m_value, other.m_value); }
+    void swap(basic_document &other) noexcept {
+        if constexpr (uses_allocator) {
+            WJR_ASSERT_L2(this->get_allocator() == other.get_allocator());
+        }
+        std::swap(m_value, other.m_value);
+    }
+
+    friend void swap(basic_document &left, basic_document &right) noexcept
+    requires(uses_allocator)
+    {
+        left.swap(right);
+    }
 
     bool is_null() const noexcept { return type() == value_t::null; }
     bool is_boolean() const noexcept { return type() == value_t::boolean; }
@@ -993,17 +1138,17 @@ public:
 
     template <typename... Args>
     void _emplace_string(Args &&...args) {
-        m_value.set(string_t(), _document_create<string_type>(std::forward<Args>(args)...));
+        m_value.set(string_t(), _create_payload<string_type>(std::forward<Args>(args)...));
     }
 
     template <typename... Args>
     void _emplace_object(Args &&...args) {
-        m_value.set(object_t(), _document_create<object_type>(std::forward<Args>(args)...));
+        m_value.set(object_t(), _create_payload<object_type>(std::forward<Args>(args)...));
     }
 
     template <typename... Args>
     void _emplace_array(Args &&...args) {
-        m_value.set(array_t(), _document_create<array_type>(std::forward<Args>(args)...));
+        m_value.set(array_t(), _create_payload<array_type>(std::forward<Args>(args)...));
     }
 
     void emplace_null() noexcept {
@@ -1072,6 +1217,65 @@ public:
     }
 
 private:
+    template <typename T, typename... Args>
+    WJR_INTRINSIC_INLINE T *_create_payload(Args &&...args) const {
+        if constexpr (uses_allocator) {
+            return this->get_allocator().template new_object<T>(std::forward<Args>(args)...);
+        } else {
+            return _document_create<T>(std::forward<Args>(args)...);
+        }
+    }
+
+    template <typename T>
+    WJR_INTRINSIC_INLINE void _destroy_payload(T *pointer) const noexcept {
+        if constexpr (uses_allocator) {
+            this->get_allocator().delete_object(pointer);
+        } else {
+            _document_destroy(pointer);
+        }
+    }
+
+public:
+    /// @private Allocate a complete string value for serializer construction.
+    template <typename... Args>
+    WJR_INTRINSIC_INLINE static basic_document _construct_string(Args &&...args) {
+        if constexpr (uses_allocator) {
+            basic_document result;
+            result._emplace_string(std::forward<Args>(args)...);
+            return result;
+        } else {
+            return basic_document(string_t(),
+                                  _document_create<string_type>(std::forward<Args>(args)...));
+        }
+    }
+
+    /// @private Allocate a complete object value for serializer construction.
+    template <typename... Args>
+    WJR_INTRINSIC_INLINE static basic_document _construct_object(Args &&...args) {
+        if constexpr (uses_allocator) {
+            basic_document result;
+            result._emplace_object(std::forward<Args>(args)...);
+            return result;
+        } else {
+            return basic_document(object_t(),
+                                  _document_create<object_type>(std::forward<Args>(args)...));
+        }
+    }
+
+    /// @private Allocate a complete array value for serializer construction.
+    template <typename... Args>
+    WJR_INTRINSIC_INLINE static basic_document _construct_array(Args &&...args) {
+        if constexpr (uses_allocator) {
+            basic_document result;
+            result._emplace_array(std::forward<Args>(args)...);
+            return result;
+        } else {
+            return basic_document(array_t(),
+                                  _document_create<array_type>(std::forward<Args>(args)...));
+        }
+    }
+
+private:
     void _destroy() noexcept {
         if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(type())) {
             switch (type()) {
@@ -1101,15 +1305,15 @@ private:
             break;
         }
         case value_t::string: {
-            _document_destroy(std::addressof(_get_string()));
+            _destroy_payload(std::addressof(_get_string()));
             break;
         }
         case value_t::object: {
-            _document_destroy(std::addressof(_get_object()));
+            _destroy_payload(std::addressof(_get_object()));
             break;
         }
         case value_t::array: {
-            _document_destroy(std::addressof(_get_array()));
+            _destroy_payload(std::addressof(_get_array()));
             break;
         }
         default: {
@@ -1360,7 +1564,7 @@ struct document_serializer_impl<std::string_view> {
 
     template <typename Document>
     constexpr static Document construct(const value_type &val, in_place_document_serializer_to_t) {
-        return Document(string_t(), _document_create<typename Document::string_type>(val));
+        return Document::_construct_string(val);
     }
 };
 
@@ -1419,13 +1623,12 @@ struct document_serializer_impl<std::basic_string<char, std::char_traits<char>, 
 
     template <typename Document>
     constexpr static Document construct(const value_type &val, in_place_document_serializer_to_t) {
-        return Document(string_t(), _document_create<typename Document::string_type>(val));
+        return Document::_construct_string(val);
     }
 
     template <typename Document>
     constexpr static Document construct(value_type &&val, in_place_document_serializer_to_t) {
-        return Document(string_t(),
-                        _document_create<typename Document::string_type>(std::move(val)));
+        return Document::_construct_string(std::move(val));
     }
 };
 
@@ -1633,7 +1836,7 @@ public:
     template <typename Document,
               WJR_REQUIRES(std::is_same_v<typename Document::array_type, value_type>)>
     constexpr static Document construct(const value_type &val, in_place_document_serializer_to_t) {
-        return Document(array_t(), _document_create<typename Document::array_type>(val));
+        return Document::_construct_array(val);
     }
 
     template <typename Document,
@@ -1642,14 +1845,13 @@ public:
                                Document, const iterator_value_t<
                                              decltype(std::declval<value_type &>().begin())> &>)>
     constexpr static Document construct(const value_type &val, in_place_document_serializer_to_t) {
-        return Document(array_t(),
-                        _document_create<typename Document::array_type>(val.begin(), val.end()));
+        return Document::_construct_array(val.begin(), val.end());
     }
 
     template <typename Document,
               WJR_REQUIRES(std::is_same_v<typename Document::array_type, value_type>)>
     constexpr static Document construct(value_type &&val, in_place_document_serializer_to_t) {
-        return Document(array_t(), _document_create<typename Document::array_type>(std::move(val)));
+        return Document::_construct_array(std::move(val));
     }
 
     template <
@@ -1659,9 +1861,8 @@ public:
             has_construct_to_document_v<
                 Document, iterator_value_t<decltype(std::declval<value_type &>().begin())> &&>)>
     constexpr static Document construct(value_type &&val, in_place_document_serializer_to_t) {
-        return Document(array_t(), _document_create<typename Document::array_type>(
-                                       std::make_move_iterator(val.begin()),
-                                       std::make_move_iterator(val.end())));
+        return Document::_construct_array(std::make_move_iterator(val.begin()),
+                                          std::make_move_iterator(val.end()));
     }
 };
 
@@ -1786,29 +1987,26 @@ struct _document_serializer_object {
     template <typename Document,
               WJR_REQUIRES(std::is_same_v<typename Document::array_type, value_type>)>
     constexpr static Document construct(const value_type &val, in_place_document_serializer_to_t) {
-        return Document(object_t(), _document_create<typename Document::object_type>(val));
+        return Document::_construct_object(val);
     }
 
     template <typename Document,
               WJR_REQUIRES(!std::is_same_v<typename Document::array_type, value_type>)>
     constexpr static Document construct(const value_type &val, in_place_document_serializer_to_t) {
-        return Document(object_t(),
-                        _document_create<typename Document::object_type>(val.begin(), val.end()));
+        return Document::_construct_object(val.begin(), val.end());
     }
 
     template <typename Document,
               WJR_REQUIRES(std::is_same_v<typename Document::array_type, value_type>)>
     constexpr static Document construct(value_type &&val, in_place_document_serializer_to_t) {
-        return Document(object_t(),
-                        _document_create<typename Document::object_type>(std::move(val)));
+        return Document::_construct_object(std::move(val));
     }
 
     template <typename Document,
               WJR_REQUIRES(!std::is_same_v<typename Document::array_type, value_type>)>
     constexpr static Document construct(value_type &&val, in_place_document_serializer_to_t) {
-        return Document(object_t(), _document_create<typename Document::object_type>(
-                                        std::make_move_iterator(val.begin()),
-                                        std::make_move_iterator(val.end())));
+        return Document::_construct_object(std::make_move_iterator(val.begin()),
+                                           std::make_move_iterator(val.end()));
     }
 };
 
@@ -1847,6 +2045,51 @@ public:
         current = std::addressof(doc);
         WJR_EXPECTED_TRY(visitor_detail::parse(*this, rd));
         return doc;
+    }
+
+    WJR_INTRINSIC_INLINE result<document_type>
+    parse(ondemand_reader &rd,
+          const typename document_type::storage_allocator_type &allocator) noexcept
+    requires(document_type::uses_allocator)
+    {
+        document_type doc(std::allocator_arg, allocator);
+        current = std::addressof(doc);
+        WJR_EXPECTED_TRY(visitor_detail::parse(*this, rd));
+        return doc;
+    }
+
+private:
+    WJR_INTRINSIC_INLINE string_type _make_key_string() const {
+        if constexpr (document_type::uses_allocator) {
+            return string_type(current->get_allocator());
+        } else {
+            return string_type();
+        }
+    }
+
+    WJR_INTRINSIC_INLINE static result<void>
+    _fill_allocated_string(string_type &string, const char *first, const char *last) noexcept {
+#if defined(__cpp_lib_string_resize_and_overwrite) &&                                              \
+    __cpp_lib_string_resize_and_overwrite >= 202110L
+        error_code error = error_code::SUCCESS;
+        string.resize_and_overwrite(static_cast<size_t>(last - first),
+                                    [&](char *output, size_t) noexcept -> size_t {
+                                        auto result = parse_string(output, first, last);
+                                        if (WJR_UNLIKELY(!result)) {
+                                            error = result.error();
+                                            return 0;
+                                        }
+                                        return static_cast<size_t>(*result - output);
+                                    });
+        if (WJR_UNLIKELY(error != error_code::SUCCESS)) {
+            return unexpected(error);
+        }
+#else
+        string.resize(static_cast<size_t>(last - first));
+        WJR_EXPECTED_INIT(result, parse_string(string.data(), first, last));
+        string.resize(static_cast<size_t>(*result - string.data()));
+#endif
+        return {};
     }
 
 protected:
@@ -1915,59 +2158,85 @@ protected:
 
     WJR_INTRINSIC_INLINE result<void> visit_root_string(const char *first,
                                                         const char *last) const noexcept {
-        string_type *str = _document_create<string_type>();
-        try_uninitialized_resize(*str, last - first);
-
-        auto ret = parse_string(str->data(), first, last);
-        if (WJR_UNLIKELY(!ret)) {
-            _document_destroy(str);
-            return unexpected(std::move(ret).error());
+        string_type *str = current->template _create_payload<string_type>();
+        if constexpr (document_type::uses_allocator) {
+            auto ret = _fill_allocated_string(*str, first, last);
+            if (WJR_UNLIKELY(!ret)) {
+                current->_destroy_payload(str);
+                return unexpected(ret.error());
+            }
+        } else {
+            try_uninitialized_resize(*str, last - first);
+            auto ret = parse_string(str->data(), first, last);
+            if (WJR_UNLIKELY(!ret)) {
+                _document_destroy(str);
+                return unexpected(std::move(ret).error());
+            }
+            str->resize(*ret - str->data());
         }
-
-        str->resize(*ret - str->data());
         current->m_value.set(string_t(), str);
         return {};
     }
 
     WJR_INTRINSIC_INLINE result<void> visit_object_string(const char *first,
                                                           const char *last) const noexcept {
-        string_type *str = _document_create<string_type>();
-        try_uninitialized_resize(*str, last - first);
-
-        auto ret = parse_string(str->data(), first, last);
-        if (WJR_UNLIKELY(!ret)) {
-            _document_destroy(str);
-            return unexpected(std::move(ret).error());
+        string_type *str = element->template _create_payload<string_type>();
+        if constexpr (document_type::uses_allocator) {
+            auto ret = _fill_allocated_string(*str, first, last);
+            if (WJR_UNLIKELY(!ret)) {
+                element->_destroy_payload(str);
+                return unexpected(ret.error());
+            }
+        } else {
+            try_uninitialized_resize(*str, last - first);
+            auto ret = parse_string(str->data(), first, last);
+            if (WJR_UNLIKELY(!ret)) {
+                _document_destroy(str);
+                return unexpected(std::move(ret).error());
+            }
+            str->resize(*ret - str->data());
         }
-
-        str->resize(*ret - str->data());
         element->m_value.set(string_t(), str);
         return {};
     }
 
     WJR_INTRINSIC_INLINE result<void> visit_array_string(const char *first,
                                                          const char *last) const noexcept {
-        string_type *str = _document_create<string_type>();
-        try_uninitialized_resize(*str, last - first);
-
-        auto ret = parse_string(str->data(), first, last);
-        if (WJR_UNLIKELY(!ret)) {
-            _document_destroy(str);
-            return unexpected(std::move(ret).error());
+        string_type *str = current->template _create_payload<string_type>();
+        if constexpr (document_type::uses_allocator) {
+            auto ret = _fill_allocated_string(*str, first, last);
+            if (WJR_UNLIKELY(!ret)) {
+                current->_destroy_payload(str);
+                return unexpected(ret.error());
+            }
+        } else {
+            try_uninitialized_resize(*str, last - first);
+            auto ret = parse_string(str->data(), first, last);
+            if (WJR_UNLIKELY(!ret)) {
+                _document_destroy(str);
+                return unexpected(std::move(ret).error());
+            }
+            str->resize(*ret - str->data());
         }
-
-        str->resize(*ret - str->data());
-        current->_get_array().emplace_back(string_t(), str);
+        if constexpr (document_type::uses_allocator) {
+            auto &value = current->_get_array().emplace_back(default_construct);
+            value.m_value.set(string_t(), str);
+        } else {
+            current->_get_array().emplace_back(string_t(), str);
+        }
         return {};
     }
 
     WJR_INTRINSIC_INLINE result<void> visit_object_key_string(const char *first,
                                                               const char *last) noexcept {
-        string_type str;
-        try_uninitialized_resize(str, last - first);
-
-        WJR_EXPECTED_INIT(ret, parse_string(str.data(), first, last));
-        str.resize(*ret - str.data());
+        auto str = _make_key_string();
+        if constexpr (document_type::uses_allocator) {
+            WJR_EXPECTED_TRY(_fill_allocated_string(str, first, last));
+        } else {
+            try_uninitialized_resize(str, last - first);
+            WJR_EXPECTED_INIT(ret, parse_string(str.data(), first, last));
+            str.resize(*ret - str.data());
+        }
         const auto iter = current->_get_object().try_emplace(std::move(str), default_construct);
         element = std::addressof(iter.first->second);
         if (WJR_UNLIKELY(!iter.second)) {
@@ -1979,12 +2248,12 @@ protected:
     }
 
     WJR_INTRINSIC_INLINE result<void> visit_root_start_object(uint32_t) const noexcept {
-        current->m_value.set(object_t(), _document_create<object_type>());
+        current->m_value.set(object_t(), current->template _create_payload<object_type>());
         return {};
     }
 
     WJR_INTRINSIC_INLINE result<void> visit_object_start_object(uint32_t) noexcept {
-        element->m_value.set(object_t(), _document_create<object_type>());
+        element->m_value.set(object_t(), element->template _create_payload<object_type>());
         stk.emplace_back(current);
         current = element;
         return {};
@@ -1992,18 +2261,23 @@ protected:
 
     WJR_INTRINSIC_INLINE result<void> visit_array_start_object(uint32_t) noexcept {
         stk.emplace_back(current);
-        current = std::addressof(
-            current->_get_array().emplace_back(object_t(), _document_create<object_type>()));
+        if constexpr (document_type::uses_allocator) {
+            current = std::addressof(current->_get_array().emplace_back(default_construct));
+            current->_emplace_object();
+        } else {
+            current = std::addressof(
+                current->_get_array().emplace_back(object_t(), _document_create<object_type>()));
+        }
         return {};
     }
 
     WJR_INTRINSIC_INLINE result<void> visit_root_start_array(uint32_t) const noexcept {
-        current->m_value.set(array_t(), _document_create<array_type>());
+        current->m_value.set(array_t(), current->template _create_payload<array_type>());
         return {};
     }
 
     WJR_INTRINSIC_INLINE result<void> visit_object_start_array(uint32_t) noexcept {
-        element->m_value.set(array_t(), _document_create<array_type>());
+        element->m_value.set(array_t(), element->template _create_payload<array_type>());
         stk.emplace_back(current);
         current = element;
         return {};
@@ -2011,8 +2285,13 @@ protected:
 
     WJR_INTRINSIC_INLINE result<void> visit_array_start_array(uint32_t) noexcept {
         stk.emplace_back(current);
-        current = std::addressof(
-            current->_get_array().emplace_back(array_t(), _document_create<array_type>()));
+        if constexpr (document_type::uses_allocator) {
+            current = std::addressof(current->_get_array().emplace_back(default_construct));
+            current->_emplace_array();
+        } else {
+            current = std::addressof(
+                current->_get_array().emplace_back(array_t(), _document_create<array_type>()));
+        }
         return {};
     }
 
@@ -2198,6 +2477,16 @@ template <typename Traits>
 result<basic_document<Traits>> basic_document<Traits>::parse(ondemand_reader &rd) noexcept {
     detail::basic_document_parser<basic_document<Traits>> par;
     return par.parse(rd);
+}
+
+template <typename Traits>
+result<basic_document<Traits>>
+basic_document<Traits>::parse_with_allocator(ondemand_reader &rd,
+                                             const storage_allocator_type &allocator) noexcept
+requires(uses_allocator)
+{
+    detail::basic_document_parser<basic_document<Traits>> parser;
+    return parser.parse(rd, allocator);
 }
 
 inline result<void> check(ondemand_reader &rd) noexcept { return detail::check_parser::parse(rd); }
