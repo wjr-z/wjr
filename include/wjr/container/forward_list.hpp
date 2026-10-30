@@ -9,17 +9,17 @@
 
 namespace wjr::intrusive {
 
-template <typename T = void>
+template <typename T = void, typename Tag = void>
 class hlist_node_base;
 
-template <typename T>
+template <typename T, typename Tag = void>
 class hlist_node_const_iterator {
 public:
     using iterator_category = std::forward_iterator_tag;
     using value_type = T;
     using difference_type = std::ptrdiff_t;
     using pointer = const T *;
-    using reference = const T &;
+    using reference = std::add_lvalue_reference_t<const T>;
 
     hlist_node_const_iterator() = default;
     hlist_node_const_iterator(const hlist_node_const_iterator &) = default;
@@ -27,14 +27,18 @@ public:
     hlist_node_const_iterator &operator=(const hlist_node_const_iterator &) = default;
     hlist_node_const_iterator &operator=(hlist_node_const_iterator &&) = default;
 
-    hlist_node_const_iterator(const hlist_node_base<T> *node) noexcept
-        : m_node(const_cast<hlist_node_base<T> *>(node)) {}
+    hlist_node_const_iterator(const hlist_node_base<T, Tag> *node) noexcept
+        : m_node(const_cast<hlist_node_base<T, Tag> *>(node)) {}
 
-    std::enable_if_t<!std::is_void_v<T>, pointer> operator->() const noexcept {
+    pointer operator->() const noexcept
+    requires(!std::is_void_v<T>)
+    {
         return m_node->self();
     }
 
-    std::enable_if_t<!std::is_void_v<T>, reference> operator*() const noexcept {
+    reference operator*() const noexcept
+    requires(!std::is_void_v<T>)
+    {
         return *m_node->self();
     }
 
@@ -58,33 +62,37 @@ public:
     }
 
 protected:
-    hlist_node_base<T> *m_node = nullptr;
+    hlist_node_base<T, Tag> *m_node = nullptr;
 };
 
-template <typename T>
-class hlist_node_iterator : public hlist_node_const_iterator<T> {
-    using Mybase = hlist_node_const_iterator<T>;
+template <typename T, typename Tag = void>
+class hlist_node_iterator : public hlist_node_const_iterator<T, Tag> {
+    using Mybase = hlist_node_const_iterator<T, Tag>;
 
 public:
     using iterator_category = std::forward_iterator_tag;
     using value_type = T;
     using difference_type = std::ptrdiff_t;
     using pointer = T *;
-    using reference = T &;
+    using reference = std::add_lvalue_reference_t<T>;
 
     hlist_node_iterator() = default;
 
     /// Construct mutable access only from a mutable node.
-    hlist_node_iterator(hlist_node_base<T> *node) noexcept : Mybase(node) {}
+    hlist_node_iterator(hlist_node_base<T, Tag> *node) noexcept : Mybase(node) {}
 
     using Mybase::operator==;
     using Mybase::operator!=;
 
-    std::enable_if_t<!std::is_void_v<T>, pointer> operator->() const noexcept {
+    pointer operator->() const noexcept
+    requires(!std::is_void_v<T>)
+    {
         return const_cast<pointer>(Mybase::operator->());
     }
 
-    std::enable_if_t<!std::is_void_v<T>, reference> operator*() const noexcept {
+    reference operator*() const noexcept
+    requires(!std::is_void_v<T>)
+    {
         return *operator->();
     }
 
@@ -108,9 +116,9 @@ public:
     }
 };
 
-template <typename T>
+template <typename T, typename Tag>
 class hlist_node_base {
-    template <typename U>
+    template <typename U, typename V>
     friend class hlist_node_const_iterator;
 
 public:
@@ -149,13 +157,13 @@ protected:
 };
 
 template <typename T = void, typename Tag = void>
-struct hlist_node : public hlist_node_base<T> {
+struct hlist_node : public hlist_node_base<T, Tag> {
 private:
-    using Mybase = hlist_node_base<T>;
+    using Mybase = hlist_node_base<T, Tag>;
 
 public:
-    using iterator = hlist_node_iterator<T>;
-    using const_iterator = hlist_node_const_iterator<T>;
+    using iterator = hlist_node_iterator<T, Tag>;
+    using const_iterator = hlist_node_const_iterator<T, Tag>;
 
     using Mybase::Mybase;
 
@@ -181,14 +189,14 @@ public:
     constexpr const_iterator end() const noexcept { return const_iterator(nullptr); }
     constexpr const_iterator cend() const noexcept { return const_iterator(nullptr); }
 
-    template <typename U = T, typename V = Tag,
-              WJR_REQUIRES(std::is_same_v<U, T> &&std::is_same_v<V, Tag>)>
+    template <typename U = T, typename V = Tag>
+    requires(std::is_same_v<U, T> && std::is_same_v<V, Tag>)
     constexpr hlist_node<U, V> *get_node() noexcept {
         return this;
     }
 
-    template <typename U = T, typename V = Tag,
-              WJR_REQUIRES(std::is_same_v<U, T> &&std::is_same_v<V, Tag>)>
+    template <typename U = T, typename V = Tag>
+    requires(std::is_same_v<U, T> && std::is_same_v<V, Tag>)
     constexpr const hlist_node<U, V> *get_node() const noexcept {
         return this;
     }
