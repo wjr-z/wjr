@@ -1,0 +1,3 @@
+*.json -text whitespace=cr-at-eol
+*.stderr -text whitespace=cr-at-eol
+*.stdout -text whitespace=cr-at-eol

@@ -1,0 +1,84 @@
+{
+  "version": "perf version 6.8.12",
+  "kernel": "7.0.0-1017-azure",
+  "machine": "x86_64",
+  "perf_binary": "/usr/lib/linux-tools/6.8.0-147-generic/perf",
+  "paranoid": "4",
+  "cpu_model": "AMD EPYC 9V74 80-Core Processor",
+  "run_id": "41069931655",
+  "captures": [
+    {
+      "name": "tool",
+      "argv": [
+        "/usr/lib/linux-tools/6.8.0-147-generic/perf",
+        "stat",
+        "--json-output",
+        "-o",
+        "capture/tool.json",
+        "-e",
+        "duration_time,user_time,system_time",
+        "--",
+        "python3",
+        "-c",
+        "sum(i*i for i in range(200000))"
+      ],
+      "exit_status": 255,
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "hardware",
+      "argv": [
+        "/usr/lib/linux-tools/6.8.0-147-generic/perf",
+        "stat",
+        "--json-output",
+        "-o",
+        "capture/hardware.json",
+        "-e",
+        "cycles:u,instructions:u,branches:u,branch-misses:u,cache-references:u,cache-misses:u",
+        "--",
+        "python3",
+        "-c",
+        "sum(i*i for i in range(200000))"
+      ],
+      "exit_status": 255,
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "real": true,
+  "run_url": "https://github.com/wjr-z/wjr/actions/runs/41069931655",
+  "schema_sources": {
+    "tools/perf/tests/shell/lib/perf_json_output_lint.py": {
+      "url": "https://raw.githubusercontent.com/gregkh/linux/v6.8.12/tools/perf/tests/shell/lib/perf_json_output_lint.py",
+      "sha256": "98af33843d964460e19decf5a2517d337ebfe2fd17f87c8cb17cd87fac30c552"
+    },
+    "tools/perf/tests/shell/stat+json_output.sh": {
+      "url": "https://raw.githubusercontent.com/gregkh/linux/v6.8.12/tools/perf/tests/shell/stat+json_output.sh",
+      "sha256": "4a1107244480079f361d5825fdd5f81c389ea9395952dd5610a6d326dbc4af63"
+    },
+    "tools/perf/util/stat-display.c": {
+      "url": "https://raw.githubusercontent.com/gregkh/linux/v6.8.12/tools/perf/util/stat-display.c",
+      "sha256": "d4cdec2e12f5350c69cca901604de23780590b1c37a658e82e4c3332fcfff52b"
+    },
+    "tools/perf/Documentation/perf-stat.txt": {
+      "url": "https://raw.githubusercontent.com/gregkh/linux/v6.8.12/tools/perf/Documentation/perf-stat.txt",
+      "sha256": "da798db315a25a338cf6f86bcc0a2e7556e6d92c21940a77332192fb9b362fbd"
+    }
+  },
+  "positive_hardware_smoke": false,
+  "synthetic_fixture": "synthetic.schema.jsonl",
+  "synthetic_note": "Handwritten schema exercise checked by upstream lint; never collected counts.",
+  "upstream_lint": {
+    "argv": [
+      "python",
+      "perf_json_output_lint.py",
+      "--event",
+      "--file",
+      "synthetic.schema.jsonl"
+    ],
+    "exit_status": 0,
+    "source": {
+      "url": "https://raw.githubusercontent.com/gregkh/linux/v6.8.12/tools/perf/tests/shell/lib/perf_json_output_lint.py",
+      "sha256": "98af33843d964460e19decf5a2517d337ebfe2fd17f87c8cb17cd87fac30c552"
+    }
+  }
+}

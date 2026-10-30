@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "bundle_id": "perf-synthetic-schema",
+  "created_at": "2026-10-30T14:12:10Z",
+  "revision": "3d6be99a83f4886681a6af6b417005617b12e151",
+  "dirty_patch_sha256": "none",
+  "producer": {
+    "provider": "perf-stat",
+    "version": "6.8.12",
+    "evidence": "synthetic",
+    "perf_stat": {
+      "mode": "owned_command",
+      "scope": "whole_process",
+      "aggregation": "global",
+      "repeat": 1,
+      "interval": false,
+      "scaling": "perf_scaled",
+      "inherit": true,
+      "pmu": "synthetic-pmu",
+      "filters": "user",
+      "affinity": "synthetic-core",
+      "core_type": "synthetic",
+      "kernel": "synthetic"
+    },
+    "exit_status": 0,
+    "argv": [
+      "perf",
+      "stat",
+      "-e",
+      "cycles:u,instructions:u,branches:u,branch-misses:u,cache-references:u,task-clock:u",
+      "--",
+      "synthetic-command-not-executed"
+    ]
+  },
+  "raw_source": {
+    "sha256": "c8928420737f20667bbb8afef3010b4a38768b5fa1e02c045e9b543d7315317f"
+  },
+  "host": {
+    "id": "synthetic-host-not-measured",
+    "os": "Ubuntu 24.04",
+    "arch": "x86_64",
+    "abi": "Linux",
+    "cpu": "synthetic-cpu-not-measured",
+    "core": "synthetic-core",
+    "stability": "shared_hosted_worker"
+  },
+  "build": {
+    "compiler": "CPython",
+    "flags": "unknown",
+    "fingerprint": "unknown",
+    "standard": "not_applicable",
+    "sanitizer": "none",
+    "lto": false,
+    "pgo": false
+  },
+  "workloads": {
+    "probe": {
+      "version": "1",
+      "parameters": {
+        "work": "sum(i*i for i in range(200000))"
+      },
+      "input_sha256": "d702458c604fc19bc73a764d9efa33c69d8083cf4a9f28a7d4a5361aadaa0b00",
+      "scope": "whole_process",
+      "threads": 1,
+      "instrumentation": "perf stat",
+      "clock": "perf counters",
+      "time_mode": "whole_process",
+      "sample_level": "independent_process_run"
+    }
+  },
+  "semantic_contracts": {
+    "probe": {
+      "version": "1",
+      "semantics": "Start one owned Python summation process, including startup and teardown.",
+      "correctness_evidence": "No workload completion is claimed when perf denies collection before launch."
+    }
+  },
+  "regions": [
+    {
+      "id": "probe",
+      "variant": "synthetic",
+      "workload_id": "probe",
+      "contract_id": "probe",
+      "events": [
+        "cycles:u",
+        "instructions:u",
+        "branches:u",
+        "branch-misses:u",
+        "cache-references:u",
+        "task-clock:u",
+        "cache-misses:u"
+      ]
+    }
+  ]
+}

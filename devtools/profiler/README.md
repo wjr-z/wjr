@@ -11,6 +11,9 @@ services and regression gates are not implemented. P03's JSON
 import, explicit local export and single-run hotspots are in [cProfile](CPROFILE.md).
 [P05 curl request stages](CURL.md) adds offline curl 8.11.1 JSONL import and
 request summaries from independently started HTTP/1.1 GET processes.
+[P04 perf stat counters](PERF_STAT.md) imports source-checked Linux perf
+JSONL and reports whole-process counts or explicit unavailable diagnostics;
+positive hardware collection was blocked on the fixture worker.
 
 From the repository root:
 

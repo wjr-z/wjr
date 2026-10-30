@@ -4,6 +4,7 @@ import math
 
 from .model import ENVIRONMENT_FIELDS, WORKLOAD_FIELDS, field, require, summarize, unknown
 from .mca_compare import eligibility as mca_eligibility
+from .adapters.perf_stat import comparison_reasons as perf_reasons
 
 
 def identity(observation):
@@ -112,6 +113,10 @@ def _eligibility(left, right, lregion, rregion, before, after, context_axes):
         reasons.extend(extra)
         return reasons, hard or blocked, False, failed
     environment, env_blocked, contextual = _environment_reasons(left, right, context_axes)
+    if left["producer"]["provider"] == right["producer"]["provider"] == "perf-stat":
+        extra = perf_reasons(left, right, before, after)
+        reasons.extend(extra)
+        hard |= bool(extra)
     if left["producer"]["provider"] == right["producer"]["provider"] == "curl-json" and before and after:
         if before["metadata"].get("curl_versions") != after["metadata"].get("curl_versions"):
             reasons.append("curl backend/build versions differ; request timings are not equivalent")

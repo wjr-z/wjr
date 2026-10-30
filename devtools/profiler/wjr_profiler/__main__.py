@@ -3,18 +3,20 @@
 import argparse
 import sys
 
-from .adapters import cprofile_json, google_benchmark, llvm_mca, curl_json
+from .adapters import cprofile_json, google_benchmark, llvm_mca, curl_json, perf_stat
 from .bundle import import_bundle, load_bundle
 from .compare import compare
 from .cprofile_report import write_summary
 from .exporters.cprofile_json import export_profile
 from .report import write_report
 from .curl_report import write_summary as write_curl_summary
+from .perf_report import write_summary as write_perf_summary
 
 PROVIDERS = {"google-benchmark": google_benchmark.import_artifact,
              "cprofile-json": cprofile_json.import_artifact,
              "llvm-mca": llvm_mca.import_artifact,
-             "curl-json": curl_json.import_artifact}
+             "curl-json": curl_json.import_artifact,
+             "perf-stat": perf_stat.import_artifact}
 
 
 def main(argv=None):
@@ -25,6 +27,7 @@ def main(argv=None):
     importing.add_argument("--raw", required=True)
     importing.add_argument("--manifest", required=True)
     importing.add_argument("--out", required=True)
+    importing.add_argument("--stderr", help="explicit perf stat diagnostic file, copied and hashed into the bundle")
     comparing = commands.add_parser("compare", help="check eligibility and render descriptive changes")
     comparing.add_argument("baseline")
     comparing.add_argument("candidate")
@@ -48,11 +51,17 @@ def main(argv=None):
     requests = commands.add_parser("curl-summary", help="show request phases from an offline curl JSONL bundle")
     requests.add_argument("bundle")
     requests.add_argument("--out", required=True)
+    counters = commands.add_parser("perf-summary", help="describe one offline whole-process perf stat run")
+    counters.add_argument("bundle")
+    counters.add_argument("--out", required=True)
     args = parser.parse_args(argv)
     try:
         if args.command == "import":
+            decoders = {"curl-json": curl_json.decode_raw, "perf-stat": perf_stat.decode_raw}
             import_bundle(args.provider, PROVIDERS[args.provider], args.raw, args.manifest, args.out,
-                          decoder=curl_json.decode_raw if args.provider == "curl-json" else None)
+                          decoder=decoders.get(args.provider), stderr_path=args.stderr)
+        elif args.command == "perf-summary":
+            write_perf_summary(load_bundle(args.bundle), args.out)
         elif args.command == "curl-summary":
             write_curl_summary(load_bundle(args.bundle), args.out)
         elif args.command == "export-cprofile":

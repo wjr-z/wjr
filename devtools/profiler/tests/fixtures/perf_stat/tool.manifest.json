@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "bundle_id": "perf-unavailable-tool",
+  "created_at": "2026-10-30T14:12:10Z",
+  "revision": "3d6be99a83f4886681a6af6b417005617b12e151",
+  "dirty_patch_sha256": "none",
+  "producer": {
+    "provider": "perf-stat",
+    "version": "6.8.12",
+    "evidence": "measurement_attempt",
+    "perf_stat": {
+      "mode": "owned_command",
+      "scope": "whole_process",
+      "aggregation": "global",
+      "repeat": 1,
+      "interval": false,
+      "scaling": "perf_scaled",
+      "inherit": true,
+      "pmu": "tool",
+      "filters": "all",
+      "affinity": "unknown",
+      "core_type": "unknown",
+      "kernel": "7.0.0-1017-azure"
+    },
+    "argv": [
+      "/usr/lib/linux-tools/6.8.0-147-generic/perf",
+      "stat",
+      "--json-output",
+      "-o",
+      "capture/tool.json",
+      "-e",
+      "duration_time,user_time,system_time",
+      "--",
+      "python3",
+      "-c",
+      "sum(i*i for i in range(200000))"
+    ],
+    "exit_status": 255
+  },
+  "raw_source": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "host": {
+    "id": "GitHub-hosted-run-41069931655",
+    "os": "Ubuntu 24.04",
+    "arch": "x86_64",
+    "abi": "Linux",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "core": "unknown",
+    "stability": "shared_hosted_worker"
+  },
+  "build": {
+    "compiler": "CPython",
+    "flags": "unknown",
+    "fingerprint": "unknown",
+    "standard": "not_applicable",
+    "sanitizer": "none",
+    "lto": false,
+    "pgo": false
+  },
+  "workloads": {
+    "probe": {
+      "version": "1",
+      "parameters": {
+        "work": "sum(i*i for i in range(200000))"
+      },
+      "input_sha256": "d702458c604fc19bc73a764d9efa33c69d8083cf4a9f28a7d4a5361aadaa0b00",
+      "scope": "whole_process",
+      "threads": 1,
+      "instrumentation": "perf stat",
+      "clock": "perf counters",
+      "time_mode": "whole_process",
+      "sample_level": "independent_process_run"
+    }
+  },
+  "semantic_contracts": {
+    "probe": {
+      "version": "1",
+      "semantics": "Start one owned Python summation process, including startup and teardown.",
+      "correctness_evidence": "No workload completion is claimed when perf denies collection before launch."
+    }
+  },
+  "regions": [
+    {
+      "id": "probe",
+      "variant": "unavailable",
+      "workload_id": "probe",
+      "contract_id": "probe",
+      "events": [
+        "duration_time",
+        "user_time",
+        "system_time"
+      ]
+    }
+  ]
+}
