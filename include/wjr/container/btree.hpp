@@ -997,13 +997,7 @@ public:
 
     basic_btree &operator=(std::initializer_list<value_type> il) noexcept {
         clear();
-        for (auto &item : il) {
-            if constexpr (multi) {
-                _emplace_multi(item);
-            } else {
-                _emplace_unique(item);
-            }
-        }
+        insert(il.begin(), il.end());
         return *this;
     }
 
@@ -1153,6 +1147,151 @@ protected:
 
     WJR_INTRINSIC_INLINE const_iterator _get_insert_multi_pos(const key_type &key) const noexcept {
         return _search<true, false>(key);
+    }
+
+    struct _hint_position {
+        const_iterator position;
+        bool duplicate;
+    };
+
+    /// @brief Preserve the insertion engine's separator invariant at a leaf boundary.
+    const_iterator _before_hint(const_iterator position) const noexcept {
+        if (position.pos() == 0 && position != cbegin()) {
+            auto previous = position;
+            --previous;
+            return const_iterator(previous.get_leaf(), previous.pos() + 1);
+        }
+        return position;
+    }
+
+    /// @brief Validate the hinted gap and its immediate neighbor before using root search.
+    /// @pre hint is a valid iterator belonging to this tree, including end().
+    template <bool AppendEquivalent = false>
+    _hint_position _locate_hint(const_iterator hint, const key_type &key) noexcept {
+        if (empty())
+            return {hint, false};
+        const auto &compare = key_comp();
+        const auto finish = cend();
+        if (hint == finish) {
+            auto previous = hint;
+            --previous;
+            const auto &before = Traits::get_key(*previous);
+            if (!compare(key, before)) {
+                if constexpr (!multi) {
+                    if (!compare(before, key))
+                        return {previous, true};
+                }
+                return {_before_hint(hint), false};
+            }
+        } else if (!compare(Traits::get_key(*hint), key)) {
+            if constexpr (multi && AppendEquivalent) {
+                if (!compare(key, Traits::get_key(*hint)))
+                    return {_get_insert_multi_pos(key), false};
+            } else if constexpr (!multi) {
+                if (!compare(key, Traits::get_key(*hint)))
+                    return {hint, true};
+            }
+            if (hint == cbegin())
+                return {hint, false};
+            auto previous = hint;
+            --previous;
+            const auto &before = Traits::get_key(*previous);
+            if (!compare(key, before)) {
+                if constexpr (!multi) {
+                    if (!compare(before, key))
+                        return {previous, true};
+                }
+                return {_before_hint(hint), false};
+            }
+        } else {
+            auto next = hint;
+            ++next;
+            if (next == finish)
+                return {_before_hint(next), false};
+            const auto &after = Traits::get_key(*next);
+            if (!compare(after, key)) {
+                if constexpr (multi && AppendEquivalent) {
+                    if (!compare(key, after))
+                        return {_get_insert_multi_pos(key), false};
+                } else if constexpr (!multi) {
+                    if (!compare(key, after))
+                        return {next, true};
+                }
+                return {_before_hint(next), false};
+            }
+            /// An explicit multi hint before the group is closest to its lower bound.
+            if constexpr (multi && !AppendEquivalent) {
+                return {_before_hint(_search<false, false>(key)), false};
+            }
+        }
+        const auto position = _get_insert_multi_pos(key);
+        if constexpr (!multi) {
+            if (_same_insert_key(position, key))
+                return {_get_same_iterator(position), true};
+        }
+        return {position, false};
+    }
+
+    template <bool AppendEquivalent = false, typename... Args>
+    iterator _emplace_hint_multi(const_iterator hint, Args &&...args) noexcept {
+        ivalue_type value = _create_node(std::forward<Args>(args)...);
+        const auto location =
+            _locate_hint<AppendEquivalent>(hint, Traits::get_key(from_ivalue(value)));
+        return _insert_iter(location.position, value);
+    }
+
+    template <typename... Args>
+    std::pair<iterator, bool> _emplace_hint_unique(const_iterator hint, Args &&...args) noexcept {
+        using extractor = typename Traits::template inplace_key_extractor<remove_cvref_t<Args>...>;
+        if constexpr (extractor::extractable) {
+            const auto &key = extractor::extract(std::forward<Args>(args)...);
+            const auto location = _locate_hint(hint, key);
+            if (location.duplicate)
+                return {iterator(location.position), false};
+            if constexpr (compact_slots) {
+                btree_detail::compact_temporary<value_type, _Alty> value(
+                    _get_allocator(), std::forward<Args>(args)...);
+                return {_insert_iter(location.position, value.get()), true};
+            } else {
+                return {_insert_iter(location.position, _create_node(std::forward<Args>(args)...)),
+                        true};
+            }
+        } else if constexpr (compact_slots) {
+            btree_detail::compact_temporary<value_type, _Alty> value(_get_allocator(),
+                                                                     std::forward<Args>(args)...);
+            const auto location = _locate_hint(hint, Traits::get_key(*value.get()));
+            if (location.duplicate)
+                return {iterator(location.position), false};
+            return {_insert_iter(location.position, value.get()), true};
+        } else {
+            ivalue_type value = _create_node(std::forward<Args>(args)...);
+            const auto location = _locate_hint(hint, Traits::get_key(from_ivalue(value)));
+            if (location.duplicate) {
+                _drop_node(value);
+                return {iterator(location.position), false};
+            }
+            return {_insert_iter(location.position, value), true};
+        }
+    }
+
+    template <typename KeyArg, typename... Args>
+    std::pair<iterator, bool> _try_emplace_hint_unique(const_iterator hint, KeyArg &&key,
+                                                       Args &&...args) {
+        const auto location = _locate_hint(hint, key);
+        if (location.duplicate)
+            return {iterator(location.position), false};
+        if constexpr (compact_slots) {
+            btree_detail::compact_temporary<value_type, _Alty> value(
+                _get_allocator(), std::piecewise_construct,
+                std::forward_as_tuple(std::forward<KeyArg>(key)),
+                std::forward_as_tuple(std::forward<Args>(args)...));
+            return {_insert_iter(location.position, value.get()), true};
+        } else {
+            ivalue_type value = _create_node(std::piecewise_construct,
+                                             std::forward_as_tuple(std::forward<KeyArg>(key)),
+                                             std::forward_as_tuple(std::forward<Args>(args)...));
+            return {_insert_iter(location.position, value), true};
+        }
     }
 
     template <typename... Args>
@@ -1350,12 +1489,33 @@ public:
     /// @pre Input iterators remain valid while this tree is modified.
     template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
     void insert(Iter first, Sentinel last) {
+        auto hint = cend();
         for (; first != last; ++first) {
-            if constexpr (multi)
-                _emplace_multi(*first);
-            else
-                _emplace_unique(*first);
+            if constexpr (multi) {
+                hint = _emplace_hint_multi<true>(hint, *first);
+                ++hint;
+            } else {
+                hint = _emplace_hint_unique(hint, *first).first;
+            }
         }
+    }
+
+    /// @brief Insert adjacent to a valid hint, falling back to ordinary search for a wrong hint.
+    /// @pre hint belongs to this tree; insertion has the existing invalidation and failure
+    /// contract.
+    template <typename... Args>
+    iterator emplace_hint(const_iterator hint, Args &&...args) noexcept {
+        if constexpr (multi)
+            return _emplace_hint_multi(hint, std::forward<Args>(args)...);
+        else
+            return _emplace_hint_unique(hint, std::forward<Args>(args)...).first;
+    }
+
+    iterator insert(const_iterator hint, const value_type &value) noexcept {
+        return emplace_hint(hint, value);
+    }
+    iterator insert(const_iterator hint, value_type &&value) noexcept {
+        return emplace_hint(hint, std::move(value));
     }
 
     /// @brief Insert every initializer-list value using the container's duplicate policy.
