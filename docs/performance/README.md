@@ -8,6 +8,7 @@ five-sample variation, and the matching workloads where WJR ties or loses.
 | --- | --- | --- | --- |
 | Ordered containers | Fixed Abseil B-tree containers | [Legacy B+ tree baseline](btree-showcase.md) | Baseline; layout improvements remain under evaluation |
 | Ordered containers | Compact N16 / legacy N16 maps | [Compact storage prototype](btree-compact.md) | Opt-in; lookup and large-value memory regressions retained |
+| JSON | Previous minifier and simdjson 3.9.1 | [Whitespace-free blocks](json-minify.md) | Direct SIMD stores; formatted-input tradeoffs retained |
 
 Specialized showcase measurements are opt-in and run only through manual workflow
 dispatch. Timing and memory are reported separately. Ratios compare implementations

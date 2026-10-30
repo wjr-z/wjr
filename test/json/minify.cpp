@@ -65,3 +65,26 @@ TEST(json, minify_unclosed_string_stays_bounded) {
         EXPECT_EQ(std::string(output.get(), n), input);
     }
 }
+
+TEST(json, minify_preserved_blocks_after_compaction) {
+    const auto text = std::string(193, ' ') + R"(\"\\)" + std::string(129, 'x');
+    const auto expected = R"({"text":")" + text + R"(","items":[1,2,3]})";
+
+    for (size_t padding = 0; padding < 128; ++padding) {
+        SCOPED_TRACE(padding);
+        const auto content = std::string(padding, ' ') + R"( { "text" : ")" + text +
+                             R"(" , "items" : [ 1 , 2 , 3 ] } )";
+        auto input = std::make_unique<char[]>(content.size());
+        auto output = std::make_unique<char[]>(content.size());
+        std::copy(content.begin(), content.end(), input.get());
+
+        const auto end = json::minify(output.get(), input.get(), input.get() + content.size());
+        EXPECT_EQ(end, output.get() + expected.size());
+        EXPECT_EQ(std::string(output.get(), expected.size()), expected);
+
+        const auto inplace_end =
+            json::minify(input.get(), input.get(), input.get() + content.size());
+        EXPECT_EQ(inplace_end, input.get() + expected.size());
+        EXPECT_EQ(std::string(input.get(), expected.size()), expected);
+    }
+}
