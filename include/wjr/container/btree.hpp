@@ -50,6 +50,11 @@ concept transparent_lookup =
     std::predicate<const Compare &, const Key &, const Lookup &> &&
     std::predicate<const Compare &, const Lookup &, const Key &>;
 
+/// @brief Admit transparent erase queries without taking the iterator erase overload.
+template <typename Lookup, typename Compare, typename Key, typename Iterator>
+concept transparent_erase_lookup =
+    transparent_lookup<Compare, Key, Lookup> && !std::convertible_to<const Lookup &, Iterator>;
+
 /**
  * @brief SIMD-optimized copy for small ranges within B+tree nodes
  *
@@ -151,6 +156,26 @@ struct btree_inline_traits<Key, void> {
     WJR_INTRINSIC_INLINE static const key_type &get_key(const value_type &value) noexcept {
         return value;
     }
+};
+
+/// @brief Compare map values by key while retaining a copy of comparator state.
+template <typename Traits>
+class map_value_compare {
+    using key_compare = typename Traits::key_compare;
+    using value_type = typename Traits::value_type;
+
+public:
+    explicit map_value_compare(const key_compare &compare) noexcept(
+        std::is_nothrow_copy_constructible_v<key_compare>)
+        : m_compare(compare) {}
+
+    bool operator()(const value_type &lhs, const value_type &rhs) const
+        noexcept(noexcept(m_compare(Traits::get_key(lhs), Traits::get_key(rhs)))) {
+        return m_compare(Traits::get_key(lhs), Traits::get_key(rhs));
+    }
+
+private:
+    key_compare m_compare;
 };
 
 } // namespace btree_detail
@@ -866,6 +891,8 @@ public:
     using mapped_type = typename Traits::mapped_type;
     using value_type = typename Traits::value_type;
     using key_compare = typename Traits::key_compare;
+    using value_compare =
+        std::conditional_t<Traits::is_map, btree_detail::map_value_compare<Traits>, key_compare>;
     using allocator_type = _Alty;
     using size_type = typename Traits::size_type;
     using difference_type = typename Traits::difference_type;
@@ -967,6 +994,11 @@ public:
 
     constexpr key_compare &key_comp() noexcept { return m_pair.first(); }
     constexpr const key_compare &key_comp() const noexcept { return m_pair.first(); }
+
+    /// @brief Return a value comparator with the tree's current ordering state.
+    value_compare value_comp() const noexcept(std::is_nothrow_copy_constructible_v<key_compare>) {
+        return value_compare(key_comp());
+    }
 
     /// @brief Return a copy of the allocator used by this tree.
     allocator_type get_allocator() const
@@ -1227,6 +1259,76 @@ protected:
     }
 
 public:
+    /// @brief Find a key equivalent under the comparator, or return end().
+    iterator find(const key_type &key) noexcept { return iterator(_find_key(key)); }
+    const_iterator find(const key_type &key) const noexcept { return _find_key(key); }
+
+    /// @brief Find an equivalent key without constructing a key object.
+    /// @pre Transparent comparisons are consistent with key ordering and do not throw.
+    template <typename Lookup>
+    requires btree_detail::transparent_lookup<key_compare, key_type, Lookup>
+    iterator find(const Lookup &key) noexcept {
+        return iterator(_find_key(key));
+    }
+
+    /// @copydoc find(const Lookup &)
+    template <typename Lookup>
+    requires btree_detail::transparent_lookup<key_compare, key_type, Lookup>
+    const_iterator find(const Lookup &key) const noexcept {
+        return _find_key(key);
+    }
+
+    bool contains(const key_type &key) const noexcept { return _find_key(key) != cend(); }
+
+    /// @brief Test key equivalence without constructing a key object.
+    /// @pre Transparent comparisons are consistent with key ordering and do not throw.
+    template <typename Lookup>
+    requires btree_detail::transparent_lookup<key_compare, key_type, Lookup>
+    bool contains(const Lookup &key) const noexcept {
+        return _find_key(key) != cend();
+    }
+
+    /// @brief Return the half-open range of keys equivalent under the comparator.
+    std::pair<iterator, iterator> equal_range(const key_type &key) noexcept {
+        const auto range = _equal_keys(key);
+        return {iterator(range.first), iterator(range.second)};
+    }
+    std::pair<const_iterator, const_iterator> equal_range(const key_type &key) const noexcept {
+        return _equal_keys(key);
+    }
+
+    /// @brief Return equivalent bounds without constructing a key object.
+    /// @pre Transparent comparisons are consistent with key ordering and do not throw.
+    template <typename Lookup>
+    requires btree_detail::transparent_lookup<key_compare, key_type, Lookup>
+    std::pair<iterator, iterator> equal_range(const Lookup &key) noexcept {
+        const auto range = _equal_keys(key);
+        return {iterator(range.first), iterator(range.second)};
+    }
+
+    /// @copydoc equal_range(const Lookup &)
+    template <typename Lookup>
+    requires btree_detail::transparent_lookup<key_compare, key_type, Lookup>
+    std::pair<const_iterator, const_iterator> equal_range(const Lookup &key) const noexcept {
+        return _equal_keys(key);
+    }
+
+    /// @brief Count every equivalent element in a tree permitting duplicate keys.
+    size_type count(const key_type &key) const noexcept
+    requires multi
+    {
+        const auto range = _equal_keys(key);
+        return static_cast<size_type>(std::distance(range.first, range.second));
+    }
+
+    /// @copydoc count(const key_type &)
+    template <typename Lookup>
+    requires multi && btree_detail::transparent_lookup<key_compare, key_type, Lookup>
+    size_type count(const Lookup &key) const noexcept {
+        const auto range = _equal_keys(key);
+        return static_cast<size_type>(std::distance(range.first, range.second));
+    }
+
     iterator lower_bound(const key_type &key) noexcept { return _search<false, true>(key); }
     const_iterator lower_bound(const key_type &key) const noexcept {
         return _search<false, true>(key);
@@ -1272,10 +1374,87 @@ public:
         return _erase_iter(iter);
     }
 
+    /// @brief Erase [first, last), returning the element that follows the removed range.
+    /// @pre Both iterators delimit a valid range in this tree.
+    iterator erase(const_iterator first, const_iterator last) noexcept {
+        if (first == last)
+            return iterator(first);
+        if (first == cbegin() && last == cend()) {
+            clear();
+            return end();
+        }
+        /// Deletion can invalidate last; preserve the count before the first mutation.
+        const auto count = static_cast<size_type>(std::distance(first, last));
+        return _erase_n(first, count);
+    }
+
+    /// @brief Erase all comparator-equivalent keys and return their count.
+    size_type erase(const key_type &key) noexcept { return _erase_key(key); }
+
+    /// @brief Erase equivalent keys without constructing a key object.
+    /// @pre Transparent comparisons are consistent with key ordering and do not throw.
+    template <btree_detail::transparent_erase_lookup<key_compare, key_type, const_iterator> Lookup>
+    size_type erase(const Lookup &key) noexcept {
+        return _erase_key(key);
+    }
+
     WJR_PURE bool empty() const noexcept { return size() == 0; }
     WJR_PURE size_type size() const noexcept { return _get_size(); }
 
 private:
+    template <typename Lookup>
+    const_iterator _find_key(const Lookup &key) const noexcept {
+        auto position = lower_bound(key);
+        if (position == cend() || key_comp()(key, Traits::get_key(*position)))
+            return cend();
+        return position;
+    }
+
+    template <typename Lookup>
+    std::pair<const_iterator, const_iterator> _equal_keys(const Lookup &key) const noexcept {
+        auto first = lower_bound(key);
+        if constexpr (multi) {
+            return {first, upper_bound(key)};
+        } else {
+            auto last = first;
+            if (first != cend() && !key_comp()(key, Traits::get_key(*first)))
+                ++last;
+            return {first, last};
+        }
+    }
+
+    template <typename Lookup>
+    size_type _erase_key(const Lookup &key) noexcept {
+        if constexpr (multi) {
+            const auto range = _equal_keys(key);
+            if (range.first == range.second)
+                return 0;
+            if (range.first == cbegin() && range.second == cend()) {
+                const auto count = size();
+                clear();
+                return count;
+            }
+            const auto count = static_cast<size_type>(std::distance(range.first, range.second));
+            _erase_n(range.first, count);
+            return count;
+        } else {
+            const auto position = _find_key(key);
+            if (position == cend())
+                return 0;
+            static_cast<void>(_erase_iter(position));
+            return 1;
+        }
+    }
+
+    /// @pre count is positive and first starts a valid range containing count elements.
+    iterator _erase_n(const_iterator first, size_type count) noexcept {
+        iterator position(first);
+        do {
+            position = _erase_iter(position);
+        } while (--count != 0);
+        return position;
+    }
+
     void _move_tree(basic_btree &&other) noexcept {
         node_type *&root = other._get_root();
         if (WJR_UNLIKELY(root == nullptr)) {
