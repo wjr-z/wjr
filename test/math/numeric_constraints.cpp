@@ -3,6 +3,20 @@
 
 namespace {
 
+template <typename T>
+constexpr bool integral_trait_domain =
+    wjr::nonbool_integral<T> == wjr::is_nonbool_integral_v<T> &&
+    wjr::nonbool_unsigned_integral<T> == wjr::is_nonbool_unsigned_integral_v<T> &&
+    wjr::nonbool_signed_integral<T> == wjr::is_nonbool_signed_integral_v<T>;
+
+static_assert(integral_trait_domain<bool> && integral_trait_domain<const bool> &&
+              integral_trait_domain<volatile bool> && integral_trait_domain<const volatile bool> &&
+              integral_trait_domain<int &> && integral_trait_domain<const unsigned &> &&
+              integral_trait_domain<int> && integral_trait_domain<unsigned> &&
+              integral_trait_domain<const int> && integral_trait_domain<volatile unsigned> &&
+              integral_trait_domain<float> && integral_trait_domain<void *>);
+static_assert(!wjr::nonbool_integral<bool> && wjr::nonbool_integral<const bool>);
+
 template <typename Wide, typename T>
 concept wide_scalar = requires(Wide value, T scalar) {
     value.template operator= <T>(scalar);

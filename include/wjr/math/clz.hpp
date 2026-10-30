@@ -12,6 +12,7 @@
 
 #include "wjr/config/attribute.hpp"
 #include <wjr/assert.hpp>
+#include <wjr/concept/integral.hpp>
 #include <wjr/math/popcount.hpp>
 
 #if WJR_HAS_BUILTIN(__builtin_clz)
@@ -141,8 +142,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
  *
  * @tparam T Must be an unsigned integral type
  */
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
     int ans = 0;
 #if WJR_HAS_BUILTIN(CLZ)

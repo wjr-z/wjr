@@ -18,6 +18,7 @@
 #define WJR_MATH_SET_HPP__
 
 #include <cstring>
+#include <wjr/concept/integral.hpp>
 
 #include <wjr/assert.hpp>
 #include <wjr/math/broadcast.hpp>
@@ -49,8 +50,7 @@ WJR_INTRINSIC_CONSTEXPR void fallback_set_n(T *dst, T val, size_t n) noexcept {
  *
  * @todo Test for T = uint16_t/uint32_t when using builtin_set_n
  */
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_INTRINSIC_CONSTEXPR20 void set_n(T *dst, type_identity_t<T> val, size_t n) noexcept {
 #if WJR_HAS_BUILTIN(SET_N)
     if constexpr (sizeof(T) == 2 || sizeof(T) == 4 || sizeof(T) == 8) {
