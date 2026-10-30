@@ -27,7 +27,9 @@ optional<void> builtin_check_unicode(const char *first, const char *last) noexce
 
                 // last backslash, special handling
                 if (WJR_UNLIKELY(pos == u8_width - 1)) {
-                    WJR_ASSERT(first + u8_width + 1 <= last);
+                    if (WJR_UNLIKELY(first + u8_width == last)) {
+                        return nullopt;
+                    }
 
                     const uint8_t ch = first[u8_width];
 
@@ -287,7 +289,9 @@ compressed_optional<char *> builtin_unicode_to_utf8(char *dst, const char *first
 
                 // last backslash, special handling
                 if (WJR_UNLIKELY(pos == u8_width - 1)) {
-                    WJR_ASSERT(first + u8_width + 1 <= last);
+                    if (WJR_UNLIKELY(first + u8_width == last)) {
+                        return nullopt;
+                    }
 
                     const uint8_t ch = first[u8_width];
 
