@@ -99,6 +99,9 @@ WJR_NOINLINE result<void> parse(Parser &&par, ondemand_reader &rd) noexcept {
             }
 
             WJR_EXPECTED_TRY(par.visit_end_object_to_root(token));
+            if (WJR_UNLIKELY(rd.get() != ondemand_reader::npos)) {
+                return unexpected(error_code::TRAILING_CONTENT);
+            }
             return {};
         }
 
@@ -109,6 +112,9 @@ WJR_NOINLINE result<void> parse(Parser &&par, ondemand_reader &rd) noexcept {
 
         if (WJR_UNLIKELY(ptr[token] == ']')) {
             WJR_EXPECTED_TRY(par.visit_end_array_to_root(token));
+            if (WJR_UNLIKELY(rd.get() != ondemand_reader::npos)) {
+                return unexpected(error_code::TRAILING_CONTENT);
+            }
             return {};
         }
 
@@ -193,6 +199,9 @@ OBJECT_ELEMENTS: {
 
         if (depth == 0) {
             WJR_EXPECTED_TRY(par.visit_end_object_to_root(next_token));
+            if (WJR_UNLIKELY(rd.get() != ondemand_reader::npos)) {
+                return unexpected(error_code::TRAILING_CONTENT);
+            }
             return {};
         }
 
@@ -332,6 +341,9 @@ ARRAY_ELEMENTS: {
         if (depth == 0) {
             WJR_EXPECTED_TRY(par.visit_end_array_to_root(next_token));
 
+            if (WJR_UNLIKELY(rd.get() != ondemand_reader::npos)) {
+                return unexpected(error_code::TRAILING_CONTENT);
+            }
             return {};
         }
 

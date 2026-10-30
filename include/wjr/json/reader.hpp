@@ -45,7 +45,9 @@ public:
 
             auto result =
                 m_lexer->read(m_tokens.begin_unsafe(), m_tokens.capacity() - extra_memory);
-            WJR_ASSUME(result != 0);
+            if (WJR_UNLIKELY(result == 0)) {
+                return npos;
+            }
 
             m_ptr = m_tokens.begin_unsafe();
             m_tokens.get_storage().size() = result;
