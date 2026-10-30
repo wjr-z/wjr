@@ -169,6 +169,54 @@ public:
     constexpr void push_back(list_node_base *node) noexcept { insert(m_prev, this, node); }
     constexpr void push_front(list_node_base *node) noexcept { insert(this, m_next, node); }
 
+    /**
+     * @brief Move [first, last) immediately before this node in constant time.
+     * @pre All pointers denote live nodes in valid doubly-linked rings. The range
+     * follows next links without crossing its source sentinel. Unless this equals
+     * first, this must not belong to [first, last). These conditions are not checked.
+     * @note An empty range, this == first, or this == last is a no-op. Other
+     * same-ring transfers are supported. Nodes retain their addresses and values;
+     * iterators to transferred nodes remain valid and follow the destination ring.
+     * No allocation, value construction, or destruction occurs.
+     */
+    constexpr void splice_before(list_node_base *first, list_node_base *last) noexcept {
+        if (first == last || this == first || this == last) {
+            return;
+        }
+
+        auto *const before_first = first->m_prev;
+        auto *const tail = last->m_prev;
+        auto *const before_pos = m_prev;
+
+        before_first->m_next = last;
+        last->m_prev = before_first;
+        before_pos->m_next = first;
+        first->m_prev = before_pos;
+        tail->m_next = this;
+        m_prev = tail;
+    }
+
+    /**
+     * @brief Move one linked node immediately before this node in constant time.
+     * @pre node is a live element (not a sentinel) in a valid ring, and this is
+     * a live node in a valid ring. Moving before itself or its successor is a no-op.
+     * @note Preserves addresses, values, and iterators; does not allocate.
+     */
+    constexpr void splice_before(list_node_base *node) noexcept {
+        splice_before(node, node->m_next);
+    }
+
+    /**
+     * @brief Move every element of head's ring before this node in constant time.
+     * @pre head is a live sentinel of a valid ring. This is a live node in a valid
+     * ring and, unless this == head, does not belong to head's ring. Not checked.
+     * @note Leaves head empty. An empty source or this == head is a no-op.
+     * Preserves addresses, values, and element iterators; does not allocate.
+     */
+    constexpr void splice_all_before(list_node_base *head) noexcept {
+        splice_before(head->m_next, head);
+    }
+
     constexpr void remove() noexcept {
         m_prev->m_next = m_next;
         m_next->m_prev = m_prev;
