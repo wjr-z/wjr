@@ -1,4 +1,7 @@
-# WJR offline profiler — P01
+<!-- markdownlint-disable MD043 -->
+<!-- This tool guide uses CLI-oriented sections, not the fixed document template. -->
+
+# WJR offline profiler - P01
 
 Python 3.10+, standard library only. The analysis machine needs no compiler,
 benchmark executable, LLVM, network connection or collector. This implements P01
@@ -10,10 +13,15 @@ From the repository root:
 ```sh
 python -m unittest discover -s devtools/profiler/tests -v
 cd devtools/profiler
-python -m wjr_profiler import --provider google-benchmark --raw tests/fixtures/btree-v1.9.0.json --manifest tests/fixtures/baseline.manifest.json --out build/baseline
-python -m wjr_profiler import --provider google-benchmark --raw tests/fixtures/btree-v1.9.0.json --manifest tests/fixtures/candidate.manifest.json --out build/candidate
+python -m wjr_profiler import --provider google-benchmark \
+  --raw tests/fixtures/btree-v1.9.0.json \
+  --manifest tests/fixtures/baseline.manifest.json --out build/baseline
+python -m wjr_profiler import --provider google-benchmark \
+  --raw tests/fixtures/btree-v1.9.0.json \
+  --manifest tests/fixtures/candidate.manifest.json --out build/candidate
 python -m wjr_profiler compare build/baseline build/candidate --out build/report
-python -m wjr_profiler compare build/baseline build/candidate --exploratory --out build/exploratory-report
+python -m wjr_profiler compare build/baseline build/candidate \
+  --exploratory --out build/exploratory-report
 ```
 
 Read `report.json` and `report.md` in each report directory. The real fixture has

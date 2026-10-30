@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from . import __version__
-from .model import require, validate_manifest, validate_observations
+from .model import is_integer, require, validate_manifest, validate_observations
 
 
 def read_json(path):
@@ -62,7 +62,7 @@ def load_bundle(path):
             "normalized SHA-256 mismatch; import raw into a new directory to rebuild")
     normalized = json.loads(normalized_bytes)
     require(isinstance(normalized, dict), "normalized document must be an object")
-    require(type(normalized.get("schema_version")) is int and normalized["schema_version"] == 1,
+    require(is_integer(normalized.get("schema_version")) and normalized["schema_version"] == 1,
             "unsupported normalized schema_version")
     require(normalized.get("provider") == manifest["producer"]["provider"], "normalized provider mismatch")
     require(normalized.get("manifest_sha256") == manifest_digest(manifest),

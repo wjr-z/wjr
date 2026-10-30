@@ -7,7 +7,7 @@ import io
 import json
 import math
 from pathlib import Path
-import subprocess
+import subprocess  # nosec B404: only a fixed current-interpreter/module help check is launched.
 import sys
 import tempfile
 import unittest
@@ -20,7 +20,6 @@ from wjr_profiler.adapters.google_benchmark import import_artifact
 from wjr_profiler.bundle import import_bundle, load_bundle, write_json
 from wjr_profiler.compare import compare
 from wjr_profiler.model import summarize, validate_manifest
-from wjr_profiler.report import markdown, write_report
 
 FIXTURES = ROOT / "tests/fixtures"
 
@@ -311,8 +310,11 @@ class BundleAndCliTests(unittest.TestCase):
                     validate_manifest(manifest)
 
     def test_module_entrypoint_needs_no_collector(self):
-        result = subprocess.run([sys.executable, "-m", "wjr_profiler", "--help"], cwd=ROOT,
-                                capture_output=True, text=True, check=False)
+        # No argv element comes from a manifest or raw artifact; no shell is used.
+        # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
+        result = subprocess.run(  # nosec B603: fixed executable and module/help arguments.
+            [sys.executable, "-m", "wjr_profiler", "--help"], cwd=ROOT,
+            capture_output=True, text=True, check=False, shell=False)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("compare", result.stdout)
 
