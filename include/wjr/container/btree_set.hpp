@@ -32,6 +32,18 @@ public:
 
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(btree_set);
 
+    /// @brief Copy values into the supplied allocator/resource.
+    btree_set(const btree_set &other,
+              const allocator_type &alloc) noexcept(noexcept(Mybase(other, alloc)))
+
+        : Mybase(other, alloc) {}
+
+    /// @brief Move using a supplied allocator, migrating elements when resources differ.
+    btree_set(btree_set &&other,
+              const allocator_type &alloc) noexcept(noexcept(Mybase(std::move(other), alloc)))
+
+        : Mybase(std::move(other), alloc) {}
+
     /// @brief Construct a single-pass range using the supplied ordering.
     template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
     btree_set(Iter first, Sentinel last, const key_compare &comp = key_compare()) : Mybase(comp) {
@@ -141,6 +153,18 @@ public:
     using Mybase::Mybase;
 
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(btree_multiset);
+
+    /// @brief Copy values into the supplied allocator/resource.
+    btree_multiset(const btree_multiset &other,
+                   const allocator_type &alloc) noexcept(noexcept(Mybase(other, alloc)))
+
+        : Mybase(other, alloc) {}
+
+    /// @brief Move using a supplied allocator, migrating elements when resources differ.
+    btree_multiset(btree_multiset &&other,
+                   const allocator_type &alloc) noexcept(noexcept(Mybase(std::move(other), alloc)))
+
+        : Mybase(std::move(other), alloc) {}
 
     /// @brief Construct a single-pass range using the supplied ordering.
     template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>

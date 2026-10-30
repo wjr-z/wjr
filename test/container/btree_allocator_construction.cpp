@@ -3,6 +3,7 @@
 #include <map>
 #include <memory>
 #include <memory_resource>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -377,5 +378,209 @@ TEST(BtreeAllocatorConstruction, RangeConstructorsConsumeMoveOnlyValues) {
     using tree = wjr::btree_map<int, int>;
     using source = const std::pair<int, int> *;
     static_assert(std::is_nothrow_constructible_v<tree, source, source>);
+}
+
+template <class Tree, bool Duplicates = false>
+void transfer_fill(Tree &tree, int size) {
+    for (int i = 0; i != size; ++i) {
+        if constexpr (std::is_void_v<typename Tree::mapped_type>) {
+            const auto text =
+                std::to_string(100000 + (Duplicates ? i / 2 : i)) + std::string(120, 'k');
+            tree.emplace(text.c_str());
+        } else if constexpr (std::same_as<typename Tree::mapped_type, std::pmr::string>) {
+            tree.try_emplace(i, 128, char('a' + i % 26));
+        } else
+            tree.try_emplace(i, i);
+    }
+}
+template <class Tree>
+void transfer_check(const Tree &tree, std::pmr::memory_resource *resource, size_t size) {
+    ASSERT_EQ(tree.size(), size);
+    EXPECT_EQ(tree.get_allocator().resource(), resource);
+    for (const auto &entry : tree) {
+        EXPECT_EQ(reinterpret_cast<std::uintptr_t>(&entry) % alignof(typename Tree::value_type),
+                  0u);
+        if constexpr (std::is_void_v<typename Tree::mapped_type>) {
+            EXPECT_EQ(entry.get_allocator().resource(), resource);
+        } else if constexpr (std::same_as<typename Tree::mapped_type, std::pmr::string>) {
+            EXPECT_EQ(entry.second.get_allocator().resource(), resource);
+            EXPECT_EQ(entry.second.size(), 128u);
+            EXPECT_EQ(entry.second.front(), char('a' + entry.first % 26));
+        } else
+            EXPECT_EQ(entry.second.value, entry.first);
+    }
+}
+template <class Tree, bool Compact = false, bool Duplicates = false>
+void transfer_matrix() {
+    using allocator = typename Tree::allocator_type;
+    for (int size : {0, 1, 2, 3, 80}) {
+        for (bool compatible : {false, true}) {
+            tracking_resource first, second;
+            auto *destination = compatible ? &first : &second;
+            {
+                Tree source(typename Tree::key_compare{}, allocator(&first));
+                transfer_fill<Tree, Duplicates>(source, size);
+                {
+                    Tree copied(source, allocator(destination));
+                    transfer_check(copied, destination, size);
+                    transfer_check(source, &first, size);
+                    if (size != 0)
+                        EXPECT_NE(std::addressof(*copied.begin()), std::addressof(*source.begin()));
+                }
+                const auto *previous = size ? std::addressof(*source.begin()) : nullptr;
+                const auto requests = first.allocations + second.allocations;
+                Tree moved(std::move(source), allocator(destination));
+                transfer_check(moved, destination, size);
+                EXPECT_TRUE(source.empty());
+                EXPECT_EQ(source.get_allocator().resource(), &first);
+                if (compatible) {
+                    EXPECT_EQ(first.allocations + second.allocations, requests);
+                    if (size != 0 && (!Compact || size > 2))
+                        EXPECT_EQ(std::addressof(*moved.begin()), previous);
+                } else
+                    EXPECT_TRUE(first.empty());
+                transfer_fill<Tree, Duplicates>(source, 2);
+                transfer_check(source, &first, 2);
+                transfer_check(moved, destination, size);
+            }
+            EXPECT_TRUE(first.empty());
+            EXPECT_TRUE(second.empty());
+            EXPECT_EQ(first.allocations, first.deallocations);
+            EXPECT_EQ(second.allocations, second.deallocations);
+        }
+    }
+}
+TEST(BtreeAllocatorTransfer, CopyAndMoveAcrossSameAndDifferentResources) {
+    using allocator = std::pmr::polymorphic_allocator<char>;
+    transfer_matrix<wjr::btree_map<int, std::pmr::string, std::less<>, allocator>>();
+    transfer_matrix<
+        wjr::experimental::compact_btree_map<int, std::pmr::string, std::less<>, allocator>,
+        true>();
+    transfer_matrix<wjr::btree_set<std::pmr::string, std::less<>, allocator>>();
+    transfer_matrix<wjr::btree_multiset<std::pmr::string, std::less<>, allocator>, false, true>();
+    transfer_matrix<wjr::btree_map<int, payload, std::less<>, allocator>>();
+    transfer_matrix<wjr::experimental::compact_btree_map<int, payload, std::less<>, allocator>,
+                    true>();
+}
+TEST(BtreeAllocatorTransfer, DestinationOutlivesTemporaryMonotonicSource) {
+    using allocator = std::pmr::polymorphic_allocator<char>;
+    using tree =
+        wjr::experimental::compact_btree_map<int, std::pmr::string, std::less<>, allocator>;
+    tracking_resource destination;
+    std::optional<tree> moved;
+    {
+        std::pmr::monotonic_buffer_resource temporary;
+        tree source(std::less<>{}, allocator(&temporary));
+        transfer_fill(source, 80);
+        moved.emplace(std::move(source), allocator(&destination));
+        EXPECT_TRUE(source.empty());
+    }
+    transfer_check(*moved, &destination, 80);
+    moved.reset();
+    EXPECT_TRUE(destination.empty());
+}
+struct immovable_mapped {
+    static inline int live = 0;
+    int value;
+    explicit immovable_mapped(int n) noexcept : value(n) { ++live; }
+    immovable_mapped(const immovable_mapped &) = delete;
+    immovable_mapped(immovable_mapped &&) = delete;
+    ~immovable_mapped() noexcept { --live; }
+};
+TEST(BtreeAllocatorTransfer, AlwaysEqualStorageTransferDoesNotRequireMovingMappedValues) {
+    using tree = wjr::btree_map<int, immovable_mapped>;
+    static_assert(std::is_nothrow_constructible_v<tree, tree &&, const tree::allocator_type &>);
+    for (int size : {0, 1, 2, 3, 80}) {
+        {
+            tree source;
+            for (int i = 0; i != size; ++i)
+                source.try_emplace(i, i);
+            const auto *before = size ? std::addressof(*source.begin()) : nullptr;
+            tree target(std::move(source), tree::allocator_type{});
+            EXPECT_TRUE(source.empty());
+            EXPECT_EQ(target.size(), size);
+            EXPECT_EQ(immovable_mapped::live, size);
+            if (size)
+                EXPECT_EQ(std::addressof(*target.begin()), before);
+        }
+        EXPECT_EQ(immovable_mapped::live, 0);
+    }
+}
+
+struct allocator_only_mapped {
+    using allocator_type = std::pmr::polymorphic_allocator<char>;
+    std::pmr::string text;
+    allocator_only_mapped(std::allocator_arg_t, allocator_type alloc, int size)
+        : text(size, 'x', alloc) {}
+    allocator_only_mapped(std::allocator_arg_t, allocator_type alloc,
+                          const allocator_only_mapped &other)
+        : text(other.text, alloc) {}
+    allocator_only_mapped(std::allocator_arg_t, allocator_type alloc, allocator_only_mapped &&other)
+        : text(std::move(other.text), alloc) {}
+    allocator_only_mapped(const allocator_only_mapped &) = delete;
+    allocator_only_mapped(allocator_only_mapped &&) = delete;
+};
+TEST(BtreeAllocatorTransfer, UsesActualAllocatorConstructionRatherThanOrdinaryValueTraits) {
+    using allocator = std::pmr::polymorphic_allocator<char>;
+    using tree = wjr::btree_map<int, allocator_only_mapped, std::less<>, allocator>;
+    static_assert(!std::constructible_from<tree::value_type, const tree::value_type &>);
+    tracking_resource first, second;
+    {
+        tree source(std::less<>{}, allocator(&first));
+        source.try_emplace(1, 128);
+        tree copied(source, allocator(&second));
+        EXPECT_EQ(copied.begin()->second.text.get_allocator().resource(), &second);
+        tree moved(std::move(source), allocator(&second));
+        EXPECT_TRUE(source.empty());
+        EXPECT_EQ(moved.begin()->second.text.get_allocator().resource(), &second);
+        EXPECT_EQ(moved.begin()->second.text.size(), 128u);
+    }
+    EXPECT_TRUE(first.empty());
+    EXPECT_TRUE(second.empty());
+}
+TEST(BtreeAllocatorTransfer, UnequalAllocatorMoveAssignmentClearsMovedKeys) {
+    using allocator = std::pmr::polymorphic_allocator<char>;
+    using tree = wjr::btree_set<std::string, std::less<>, allocator>;
+    tracking_resource first, second;
+    {
+        tree source({"alpha", "beta", "gamma"}, std::less<>{}, allocator(&first));
+        tree target(std::less<>{}, allocator(&second));
+        target = std::move(source);
+        EXPECT_TRUE(source.empty());
+        EXPECT_TRUE(first.empty());
+        EXPECT_EQ(target.size(), 3u);
+        EXPECT_EQ(target.count("alpha"), 1u);
+        source.emplace("delta");
+        EXPECT_EQ(source.size(), 1u);
+        EXPECT_EQ(source.count("delta"), 1u);
+    }
+    EXPECT_TRUE(first.empty());
+    EXPECT_TRUE(second.empty());
+}
+
+TEST(BtreeAllocatorTransfer, ConstPmrMapKeysAndValuesSurviveSourceResourceDestruction) {
+    using allocator = std::pmr::polymorphic_allocator<char>;
+    using tree = wjr::btree_map<std::pmr::string, std::pmr::string, std::less<>, allocator>;
+    tracking_resource destination;
+    std::optional<tree> copied, moved;
+    {
+        std::pmr::monotonic_buffer_resource temporary;
+        tree source(std::less<>{}, allocator(&temporary));
+        const std::string key(128, 'k'), value(128, 'v');
+        source.emplace(key.c_str(), value.c_str());
+        copied.emplace(source, allocator(&destination));
+        moved.emplace(std::move(source), allocator(&destination));
+        EXPECT_TRUE(source.empty());
+    }
+    for (const tree *values : {&*copied, &*moved}) {
+        ASSERT_EQ(values->size(), 1u);
+        EXPECT_EQ(values->begin()->first.get_allocator().resource(), &destination);
+        EXPECT_EQ(values->begin()->second.get_allocator().resource(), &destination);
+        EXPECT_EQ(values->begin()->first.size(), 128u);
+        EXPECT_EQ(values->begin()->second.size(), 128u);
+    }
+    copied.reset();
+    moved.reset();
+    EXPECT_TRUE(destination.empty());
 }
 } // namespace

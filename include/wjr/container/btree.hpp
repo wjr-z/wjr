@@ -980,6 +980,33 @@ public:
         _move_tree(std::move(other));
     }
 
+    /// @brief Copy values using the supplied allocator rather than allocator copy selection.
+    basic_btree(const basic_btree &other,
+                const allocator_type &alloc) noexcept(noexcept(basic_btree(other.key_comp(),
+                                                                           alloc)))
+
+        : basic_btree(other.key_comp(), alloc) {
+        _copy_assign_tree(other);
+    }
+
+    /// @brief Transfer compatible storage, or migrate elements and clear the source through its
+    /// owner.
+    basic_btree(basic_btree &&other, const allocator_type &alloc) noexcept(
+        _Alty_traits::is_always_equal::value && std::is_nothrow_move_constructible_v<key_compare> &&
+        std::is_nothrow_copy_constructible_v<allocator_type>)
+
+        : m_pair(std::piecewise_construct, wjr::tuple<key_compare &&>(std::move(other.key_comp())),
+                 wjr::forward_as_tuple(std::piecewise_construct, wjr::forward_as_tuple(alloc),
+                                       wjr::forward_as_tuple(btree_node_constructor))) {
+        if constexpr (_Alty_traits::is_always_equal::value) {
+            _move_tree(std::move(other));
+        } else if (_get_allocator() == other._get_allocator()) {
+            _move_tree(std::move(other));
+        } else {
+            _move_assign_tree(std::move(other));
+        }
+    }
+
     basic_btree &operator=(const basic_btree &other) noexcept {
         if (WJR_LIKELY(this != std::addressof(other))) {
             storage_fn_type::copy_assign(*this, other);
@@ -1635,6 +1662,7 @@ private:
 
     void _move_assign_tree(basic_btree &&other) noexcept {
         _assign_tree<value_type &&>(std::move(other));
+        other.clear();
     }
 
     void _rec_destroy_and_deallocate(node_type *current) noexcept;
