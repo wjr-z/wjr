@@ -39,8 +39,8 @@ group policy and the relative input order. These policies use the existing lower
 and upper searches when their hinted gap cannot be used.
 
 Range/list insertion, initializer-list assignment and range/list construction use
-fresh iterators returned by each insertion. A multiset advances the returned
-iterator before using the next hint to preserve equivalent order. No preliminary
+fresh iterators returned by each insertion. The automatic cursor checks its
+forward gap and retains append-to-equivalent-group order. No preliminary
 distance or input staging is added, so single-pass inputs remain supported. The
 actual caller is the range import API, including sorted iterators from existing
 ordered maps/sets and batches composed of locally sorted runs.

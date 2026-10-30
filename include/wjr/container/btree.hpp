@@ -1166,7 +1166,6 @@ protected:
 
     /// @brief Validate the hinted gap and its immediate neighbor before using root search.
     /// @pre hint is a valid iterator belonging to this tree, including end().
-    template <bool AppendEquivalent = false>
     _hint_position _locate_hint(const_iterator hint, const key_type &key) noexcept {
         if (empty())
             return {hint, false};
@@ -1184,10 +1183,7 @@ protected:
                 return {_before_hint(hint), false};
             }
         } else if (!compare(Traits::get_key(*hint), key)) {
-            if constexpr (multi && AppendEquivalent) {
-                if (!compare(key, Traits::get_key(*hint)))
-                    return {_get_insert_multi_pos(key), false};
-            } else if constexpr (!multi) {
+            if constexpr (!multi) {
                 if (!compare(key, Traits::get_key(*hint)))
                     return {hint, true};
             }
@@ -1210,17 +1206,14 @@ protected:
                 return {_before_hint(next), false};
             const auto &after = Traits::get_key(*next);
             if (!compare(after, key)) {
-                if constexpr (multi && AppendEquivalent) {
-                    if (!compare(key, after))
-                        return {_get_insert_multi_pos(key), false};
-                } else if constexpr (!multi) {
+                if constexpr (!multi) {
                     if (!compare(key, after))
                         return {next, true};
                 }
                 return {_before_hint(next), false};
             }
             /// An explicit multi hint before the group is closest to its lower bound.
-            if constexpr (multi && !AppendEquivalent) {
+            if constexpr (multi) {
                 return {_before_hint(_search<false, false>(key)), false};
             }
         }
@@ -1232,20 +1225,69 @@ protected:
         return {position, false};
     }
 
-    template <bool AppendEquivalent = false, typename... Args>
+    /// @brief Validate the next range gap, avoiding predecessor work for an unsorted input.
+    /// @pre hint is end() initially, then the element returned by this range's previous insertion.
+    WJR_INTRINSIC_INLINE _hint_position _locate_range_hint(const_iterator hint,
+                                                           const key_type &key) noexcept {
+        if (hint == cend())
+            return _locate_hint(hint, key);
+        const auto &compare = key_comp();
+        const auto &before = Traits::get_key(*hint);
+        if (compare(before, key)) {
+            auto next = hint;
+            ++next;
+            if (next == cend())
+                return {const_iterator(hint.get_leaf(), hint.pos() + 1), false};
+            const auto &after = Traits::get_key(*next);
+            if (!compare(after, key)) {
+                if constexpr (!multi) {
+                    if (!compare(key, after))
+                        return {next, true};
+                } else {
+                    if (!compare(key, after))
+                        return {_get_insert_multi_pos(key), false};
+                }
+                return {const_iterator(hint.get_leaf(), hint.pos() + 1), false};
+            }
+        } else if (!compare(key, before)) {
+            if constexpr (!multi)
+                return {hint, true};
+            else {
+                /// This cursor was inserted at the group's upper bound, so equivalent input
+                /// appends.
+                return {const_iterator(hint.get_leaf(), hint.pos() + 1), false};
+            }
+        }
+        const auto position = _get_insert_multi_pos(key);
+        if constexpr (!multi) {
+            if (_same_insert_key(position, key))
+                return {_get_same_iterator(position), true};
+        }
+        return {position, false};
+    }
+
+    template <bool Range>
+    WJR_INTRINSIC_INLINE _hint_position _hint_location(const_iterator hint,
+                                                       const key_type &key) noexcept {
+        if constexpr (Range)
+            return _locate_range_hint(hint, key);
+        else
+            return _locate_hint(hint, key);
+    }
+
+    template <bool Range = false, typename... Args>
     iterator _emplace_hint_multi(const_iterator hint, Args &&...args) noexcept {
         ivalue_type value = _create_node(std::forward<Args>(args)...);
-        const auto location =
-            _locate_hint<AppendEquivalent>(hint, Traits::get_key(from_ivalue(value)));
+        const auto location = _hint_location<Range>(hint, Traits::get_key(from_ivalue(value)));
         return _insert_iter(location.position, value);
     }
 
-    template <typename... Args>
+    template <bool Range = false, typename... Args>
     std::pair<iterator, bool> _emplace_hint_unique(const_iterator hint, Args &&...args) noexcept {
         using extractor = typename Traits::template inplace_key_extractor<remove_cvref_t<Args>...>;
         if constexpr (extractor::extractable) {
             const auto &key = extractor::extract(std::forward<Args>(args)...);
-            const auto location = _locate_hint(hint, key);
+            const auto location = _hint_location<Range>(hint, key);
             if (location.duplicate)
                 return {iterator(location.position), false};
             if constexpr (compact_slots) {
@@ -1259,13 +1301,13 @@ protected:
         } else if constexpr (compact_slots) {
             btree_detail::compact_temporary<value_type, _Alty> value(_get_allocator(),
                                                                      std::forward<Args>(args)...);
-            const auto location = _locate_hint(hint, Traits::get_key(*value.get()));
+            const auto location = _hint_location<Range>(hint, Traits::get_key(*value.get()));
             if (location.duplicate)
                 return {iterator(location.position), false};
             return {_insert_iter(location.position, value.get()), true};
         } else {
             ivalue_type value = _create_node(std::forward<Args>(args)...);
-            const auto location = _locate_hint(hint, Traits::get_key(from_ivalue(value)));
+            const auto location = _hint_location<Range>(hint, Traits::get_key(from_ivalue(value)));
             if (location.duplicate) {
                 _drop_node(value);
                 return {iterator(location.position), false};
@@ -1493,9 +1535,8 @@ public:
         for (; first != last; ++first) {
             if constexpr (multi) {
                 hint = _emplace_hint_multi<true>(hint, *first);
-                ++hint;
             } else {
-                hint = _emplace_hint_unique(hint, *first).first;
+                hint = _emplace_hint_unique<true>(hint, *first).first;
             }
         }
     }
