@@ -175,6 +175,9 @@ OpenBLAS LP64 后提供 `<wjr/np/cblas.hpp>` 的 `dot`、预分配 `gemm_to` 和
 转发到环形缓冲区容器。其他功能仍可直接包含对应目录下的头文件，例如
 `wjr/math.hpp`、`wjr/biginteger.hpp` 和 `wjr/container/ring_buffer.hpp`。
 
+`wjr/container/btree_map.hpp` 和 `wjr/container/btree_set.hpp` 提供 B-tree 容器；
+使用透明比较器时可借用 `string_view` 查询 string 键，见[透明查询示例与合同](../design/btree-transparent-lookup.md)。
+
 ## 使用方式
 
 在 WJR 已作为子目录加入项目，或通过安装包 `find_package(wjr CONFIG REQUIRED)` 找到后，链接模块 alias：

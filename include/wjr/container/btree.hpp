@@ -70,6 +70,8 @@
  *
  */
 
+#include <concepts>
+
 #include <wjr/assert.hpp>
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/container_fn.hpp>
@@ -81,6 +83,14 @@
 
 namespace wjr {
 namespace btree_detail {
+
+/// @brief Admit transparent lookup types comparable with keys in both directions.
+/// @note Callability does not imply noexcept; B-tree query comparisons must not throw.
+template <typename Compare, typename Key, typename Lookup>
+concept transparent_lookup =
+    has_compare_is_transparent_v<Compare> && !std::same_as<remove_cvref_t<Lookup>, Key> &&
+    std::predicate<const Compare &, const Key &, const Lookup &> &&
+    std::predicate<const Compare &, const Lookup &, const Key &>;
 
 /**
  * @brief SIMD-optimized copy for small ranges within B+tree nodes
@@ -1171,8 +1181,38 @@ public:
         return _search<false, true>(key);
     }
 
+    /// @brief Find a lower bound without constructing a key.
+    /// @pre The transparent comparator orders keys and lookup values consistently and never throws.
+    template <typename Lookup>
+    requires btree_detail::transparent_lookup<key_compare, key_type, Lookup>
+    iterator lower_bound(const Lookup &key) noexcept {
+        return _search<false, true>(key);
+    }
+
+    /// @copydoc lower_bound(const Lookup &)
+    template <typename Lookup>
+    requires btree_detail::transparent_lookup<key_compare, key_type, Lookup>
+    const_iterator lower_bound(const Lookup &key) const noexcept {
+        return _search<false, true>(key);
+    }
+
     iterator upper_bound(const key_type &key) noexcept { return _search<true, true>(key); }
     const_iterator upper_bound(const key_type &key) const noexcept {
+        return _search<true, true>(key);
+    }
+
+    /// @brief Find an upper bound without constructing a key.
+    /// @pre The transparent comparator orders keys and lookup values consistently and never throws.
+    template <typename Lookup>
+    requires btree_detail::transparent_lookup<key_compare, key_type, Lookup>
+    iterator upper_bound(const Lookup &key) noexcept {
+        return _search<true, true>(key);
+    }
+
+    /// @copydoc upper_bound(const Lookup &)
+    template <typename Lookup>
+    requires btree_detail::transparent_lookup<key_compare, key_type, Lookup>
+    const_iterator upper_bound(const Lookup &key) const noexcept {
         return _search<true, true>(key);
     }
 
@@ -1351,9 +1391,8 @@ private:
         (slot_usize_type)(1) << (std::numeric_limits<slot_usize_type>::digits - 1);
     static_assert(_search_mask > node_size);
 
-    template <bool Upper>
-    WJR_NOINLINE WJR_HOT WJR_FLATTEN const_iterator
-    _search_impl(const key_type &key) const noexcept {
+    template <bool Upper, typename Lookup>
+    WJR_NOINLINE WJR_HOT WJR_FLATTEN const_iterator _search_impl(const Lookup &key) const noexcept {
         const auto &comp = key_comp();
         const node_type *current = _get_root();
 
@@ -1386,8 +1425,8 @@ private:
         return const_iterator(current->as_leaf(), pos | (pos == cur_usize ? _search_mask : 0));
     }
 
-    template <bool Upper, bool Adjust>
-    WJR_HOT WJR_FLATTEN const_iterator _search(const key_type &key) const noexcept {
+    template <bool Upper, bool Adjust, typename Lookup>
+    WJR_HOT WJR_FLATTEN const_iterator _search(const Lookup &key) const noexcept {
         const_iterator iter = _search_impl<Upper>(key);
 
         if constexpr (Adjust) {
@@ -1401,8 +1440,8 @@ private:
         }
     }
 
-    template <bool Upper>
-    WJR_INTRINSIC_INLINE static bool _compare(const key_type &node, const key_type &key,
+    template <bool Upper, typename Lookup>
+    WJR_INTRINSIC_INLINE static bool _compare(const key_type &node, const Lookup &key,
                                               const key_compare &comp) noexcept {
         if constexpr (Upper) {
             return comp(key, node);
@@ -1411,9 +1450,9 @@ private:
         }
     }
 
-    template <bool Upper, size_t Min>
+    template <bool Upper, size_t Min, typename Lookup>
     WJR_INTRINSIC_INLINE static slot_usize_type _search(const inner_node_type *current,
-                                                        slot_usize_type size, const key_type &key,
+                                                        slot_usize_type size, const Lookup &key,
                                                         const key_compare &comp) noexcept {
         return basic_btree_searcher_impl<node_size>::template search<Min>(
             size, [current, &key, &comp](slot_usize_type pos) {
@@ -1421,9 +1460,9 @@ private:
             });
     }
 
-    template <bool Upper, size_t Min>
+    template <bool Upper, size_t Min, typename Lookup>
     WJR_INTRINSIC_INLINE static slot_usize_type _search(const leaf_node_type *current,
-                                                        slot_usize_type size, const key_type &key,
+                                                        slot_usize_type size, const Lookup &key,
                                                         const key_compare &comp) noexcept {
         return basic_btree_searcher_impl<node_size>::template search<Min>(
             size, [current, &key, &comp](slot_usize_type pos) {

@@ -33,11 +33,13 @@ public:
     using Mybase::Mybase;
 
 private:
-    bool _is_lower_bound_same(const_iterator iter, const key_type &key) const {
+    template <typename Lookup>
+    bool _is_lower_bound_same(const_iterator iter, const Lookup &key) const {
         return iter != this->cend() && !this->key_comp()(key, Traits::get_key(*iter));
     }
 
-    bool _count_unique(const key_type &key) const {
+    template <typename Lookup>
+    bool _count_unique(const Lookup &key) const {
         auto iter = this->lower_bound(key);
         return _is_lower_bound_same(iter, key);
     }
@@ -102,6 +104,34 @@ public:
     }
 
     size_type count(const key_type &key) const noexcept { return _count_unique(key) ? 1 : 0; }
+
+    /// @brief Count an equivalent key using the transparent comparator without constructing a key.
+    /// @pre Comparator calls for keys and lookup values do not throw.
+    template <typename Lookup>
+    requires btree_detail::transparent_lookup<key_compare, key_type, Lookup>
+    size_type count(const Lookup &key) const noexcept {
+        return _count_unique(key) ? 1 : 0;
+    }
+
+    /// @brief Access the mapped value using a transparent lookup value.
+    /// @pre Comparator calls for keys and lookup values do not throw.
+    /// @throws std::out_of_range if no equivalent key is present.
+    template <typename Lookup>
+    requires btree_detail::transparent_lookup<key_compare, key_type, Lookup>
+    mapped_type &at(const Lookup &key) {
+        auto iter = this->lower_bound(key);
+        if (!_is_lower_bound_same(iter, key)) {
+            WJR_THROW(std::out_of_range("invalid map key"));
+        }
+        return iter->second;
+    }
+
+    /// @copydoc at(const Lookup &)
+    template <typename Lookup>
+    requires btree_detail::transparent_lookup<key_compare, key_type, Lookup>
+    const mapped_type &at(const Lookup &key) const {
+        return const_cast<btree_map &>(*this).at(key);
+    }
 };
 
 template <typename Key, typename Value, typename Pr, typename Alloc, size_t NodeSize>
