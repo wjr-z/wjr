@@ -736,7 +736,7 @@ public:
         using std::swap;
         if (has_value()) {
             if (other.has_value()) {
-                std::swap(this->m_val, other.m_val);
+                swap(this->m_val, other.m_val);
             } else {
                 _swap_impl(other);
             }
