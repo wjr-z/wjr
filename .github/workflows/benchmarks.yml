@@ -5,6 +5,11 @@ on:
     - cron: "17 3 * * 1"
   workflow_dispatch:
     inputs:
+      showcase:
+        description: Run the manual Abseil B+ tree showcase instead of regular profiles
+        required: false
+        default: false
+        type: boolean
       profile:
         description: Benchmark profile
         required: true
@@ -26,7 +31,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  showcase:
+    if: github.event_name == 'workflow_dispatch' && inputs.showcase
+    uses: ./.github/workflows/btree-showcase.yml
+    permissions:
+      contents: read
   benchmark:
+    if: github.event_name != 'workflow_dispatch' || !inputs.showcase
     runs-on: ubuntu-24.04
     env:
       BENCHMARK_PROFILE: ${{ inputs.profile || 'core' }}

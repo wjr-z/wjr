@@ -1,0 +1,283 @@
+{
+  "schema": 1,
+  "id": "windows-clang18",
+  "label": "Windows Clang 18",
+  "n": 4096,
+  "provenance": {
+    "id": "windows-clang18",
+    "label": "Windows Clang 18",
+    "cpu": "Intel Core i5-13500HX",
+    "os": "Windows-11-10.0.22631-SP0",
+    "abseil_commit": "2a2d6aad626f75a32c8b7bb775fbff73d558b8b1",
+    "trace_source_sha256": "8510ee50b7117ac8fbcda77ca0b1db5b13d3127821d7171a0ed38838b4f4b04e",
+    "artifact_run": null,
+    "raw_source_note": "Local Windows pilot, 2026-10-30; the selected five raw wall-time samples and independent memory rows are retained in this compact source.",
+    "wjr_source": "d9c4db33bbdc235fae0b296d472476d8f9edca41",
+    "wjr_compiler": "Clang-18.1.8",
+    "standard_library": "MSVC STL 143.202408",
+    "wjr_flags": "/DWIN32 /D_WINDOWS /EHsc /O2 /Ob2 /DNDEBUG /Zc:preprocessor /Zc:lambda /EHsc /utf-8  C++20",
+    "allocator": "std::allocator; no counters",
+    "trace_seed": "1656023321",
+    "trace_blocks": "256",
+    "timing_sha256": "e9d89557711ec05d7c8d7910d806a231b6c7e6345e71ade2b0883fa36b56d56b",
+    "memory_sha256": "7a6e370b7465242ac8f06991ab2241aad634472bf3c918a3637e80fa71f6792a",
+    "measurement_date": "2026-10-30T18:30:12+08:00",
+    "hardware_counters": "not collected"
+  },
+  "ns_per_operation_samples": {
+    "u64_set/build_destroy/wjr16": [
+      51.45695612513306,
+      52.08158053886354,
+      49.925631013973785,
+      50.535606974313815,
+      50.23099459796535
+    ],
+    "u64_set/lower_bound_50/wjr16": [
+      17.638299612289842,
+      17.753039328712422,
+      18.5458907876981,
+      17.065110969816054,
+      17.34341853306006
+    ],
+    "u64_set/mixed_90_5_5/wjr16": [
+      38.33895588610231,
+      38.138908629228105,
+      40.71022724853417,
+      38.45140855415511,
+      38.05693650047998
+    ],
+    "u64_set/scan/wjr16": [
+      1.1526517779114591,
+      1.1546808502673744,
+      1.1703511585167177,
+      1.1475016818668322,
+      1.1437450452688342
+    ],
+    "u64_set/build_destroy/absl": [
+      78.53116123047631,
+      76.40769265778017,
+      76.09585848313635,
+      77.23333185115744,
+      76.9309303937472
+    ],
+    "u64_set/lower_bound_50/absl": [
+      46.38671875370318,
+      45.09708180745018,
+      45.74118221444725,
+      45.21843405596157,
+      44.41743738827513
+    ],
+    "u64_set/mixed_90_5_5/absl": [
+      58.80815968516295,
+      58.160590252024726,
+      60.93142362020545,
+      60.538628427290554,
+      59.54557303135111
+    ],
+    "u64_set/scan/absl": [
+      1.1667476251693703,
+      1.1654826477163212,
+      1.238750134900108,
+      1.161021494411943,
+      1.1639562417716753
+    ],
+    "u64_map/build_destroy/wjr16": [
+      102.38739938039248,
+      99.3104876987204,
+      101.70528527108866,
+      100.48754143939091,
+      99.63452888317795
+    ],
+    "u64_map/lower_bound_50/wjr16": [
+      21.206876548192536,
+      21.455368192762016,
+      21.938976124606928,
+      22.649642894629903,
+      21.3454646257668
+    ],
+    "u64_map/mixed_90_5_5/wjr16": [
+      49.0598059770789,
+      48.961139620767675,
+      48.33277200994981,
+      47.68554682768887,
+      47.97952579912331
+    ],
+    "u64_map/scan/wjr16": [
+      1.181936405968979,
+      1.142838347697569,
+      1.1524633552449537,
+      1.1613125440877559,
+      1.1524471925145257
+    ],
+    "u64_map/build_destroy/absl": [
+      82.99211772837333,
+      80.24437313566966,
+      79.00506883627502,
+      78.91961960128567,
+      85.2742513215855
+    ],
+    "u64_map/lower_bound_50/absl": [
+      52.63264973483691,
+      52.13582356944357,
+      55.13549804862331,
+      54.264322916589926,
+      53.45784505432031
+    ],
+    "u64_map/mixed_90_5_5/absl": [
+      63.37100070517126,
+      62.71019349093249,
+      63.5486421580416,
+      63.85881712100443,
+      64.1610862471355
+    ],
+    "u64_map/scan/absl": [
+      1.1400689936532058,
+      1.1601635181038583,
+      1.1488897711701205,
+      1.162963371671915,
+      1.1437360585007448
+    ],
+    "large_map/build_destroy/wjr16": [
+      94.7387695207327,
+      92.49877930272987,
+      92.2512478259326,
+      98.17640515367525,
+      94.79844835051192
+    ],
+    "large_map/lower_bound_50/wjr16": [
+      22.94666675797856,
+      21.611974630350264,
+      23.13279208451184,
+      23.68402247994861,
+      21.79146477512605
+    ],
+    "large_map/mixed_90_5_5/wjr16": [
+      49.71271293770356,
+      50.598011346830226,
+      50.080965934284905,
+      50.06036938032759,
+      49.748224429632415
+    ],
+    "large_map/scan/wjr16": [
+      1.1543177221278536,
+      1.1496515254126434,
+      1.1707023431615855,
+      1.1540815623592173,
+      1.1311740378421038
+    ],
+    "large_map/build_destroy/absl": [
+      116.46077474244028,
+      111.8001301906683,
+      111.6943359432317,
+      115.25960286936272,
+      112.16389973848588
+    ],
+    "large_map/lower_bound_50/absl": [
+      67.37274485381232,
+      68.7208038195279,
+      66.46866945049727,
+      67.10796553506695,
+      65.19662128838948
+    ],
+    "large_map/mixed_90_5_5/absl": [
+      79.63522522198431,
+      80.17233456983189,
+      78.80572166594474,
+      81.52516085481372,
+      81.00815742128522
+    ],
+    "large_map/scan/absl": [
+      2.1190146171079505,
+      2.224798387095278,
+      2.2302639866811,
+      2.249716481922941,
+      2.1153288812337405
+    ]
+  },
+  "memory": {
+    "u64_set/wjr16": {
+      "tree_size": 48,
+      "iterator_size": 16,
+      "build_live_requested": 67904,
+      "mixed_live_requested": 68064,
+      "peak_requested": 68064,
+      "total_requested": 68064,
+      "allocations": 399,
+      "deallocations": 399,
+      "after_clear_requested": 0,
+      "after_destroy_requested": 0,
+      "element_string_capacity_bytes": 0,
+      "pool_reserved_bytes": "NA"
+    },
+    "u64_set/absl": {
+      "tree_size": 24,
+      "iterator_size": 16,
+      "build_live_requested": 44488,
+      "mixed_live_requested": 44488,
+      "peak_requested": 44488,
+      "total_requested": 46096,
+      "allocations": 177,
+      "deallocations": 177,
+      "after_clear_requested": 0,
+      "after_destroy_requested": 0,
+      "element_string_capacity_bytes": 0,
+      "pool_reserved_bytes": "NA"
+    },
+    "u64_map/wjr16": {
+      "tree_size": 48,
+      "iterator_size": 16,
+      "build_live_requested": 133440,
+      "mixed_live_requested": 133600,
+      "peak_requested": 133600,
+      "total_requested": 137696,
+      "allocations": 4751,
+      "deallocations": 4751,
+      "after_clear_requested": 0,
+      "after_destroy_requested": 0,
+      "element_string_capacity_bytes": 0,
+      "pool_reserved_bytes": "NA"
+    },
+    "u64_map/absl": {
+      "tree_size": 24,
+      "iterator_size": 16,
+      "build_live_requested": 87424,
+      "mixed_live_requested": 87424,
+      "peak_requested": 87936,
+      "total_requested": 89008,
+      "allocations": 338,
+      "deallocations": 338,
+      "after_clear_requested": 0,
+      "after_destroy_requested": 0,
+      "element_string_capacity_bytes": 0,
+      "pool_reserved_bytes": "NA"
+    },
+    "large_map/wjr16": {
+      "tree_size": 48,
+      "iterator_size": 16,
+      "build_live_requested": 362816,
+      "mixed_live_requested": 362976,
+      "peak_requested": 362976,
+      "total_requested": 381408,
+      "allocations": 4751,
+      "deallocations": 4751,
+      "after_clear_requested": 0,
+      "after_destroy_requested": 0,
+      "element_string_capacity_bytes": 0,
+      "pool_reserved_bytes": "NA"
+    },
+    "large_map/absl": {
+      "tree_size": 24,
+      "iterator_size": 16,
+      "build_live_requested": 407640,
+      "mixed_live_requested": 408328,
+      "peak_requested": 409240,
+      "total_requested": 415264,
+      "allocations": 1326,
+      "deallocations": 1326,
+      "after_clear_requested": 0,
+      "after_destroy_requested": 0,
+      "element_string_capacity_bytes": 0,
+      "pool_reserved_bytes": "NA"
+    }
+  }
+}
