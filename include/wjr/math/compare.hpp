@@ -71,8 +71,8 @@ WJR_INTRINSIC_CONSTEXPR int fallback_reverse_compare_n(const T *src0, const T *s
     src1 += n;
 
     for (size_t idx = 0; idx < n; ++idx) {
-        if (src0[-1 - idx] != src1[-1 - idx]) {
-            return src0[-1 - idx] < src1[-1 - idx] ? -1 : 1;
+        if (*(src0 - idx - 1) != *(src1 - idx - 1)) {
+            return *(src0 - idx - 1) < *(src1 - idx - 1) ? -1 : 1;
         }
     }
 
