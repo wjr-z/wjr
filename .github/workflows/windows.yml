@@ -17,6 +17,8 @@ on:
       - ".clang-format"
       - ".pre-commit-config.yaml"
       - ".github/workflows/pre-commit.yml"
+      - "devtools/profiler/**"
+      - ".github/workflows/profiler.yml"
   pull_request:
     branches: [ "main" ]
     paths-ignore:
@@ -29,6 +31,8 @@ on:
       - ".clang-format"
       - ".pre-commit-config.yaml"
       - ".github/workflows/pre-commit.yml"
+      - "devtools/profiler/**"
+      - ".github/workflows/profiler.yml"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:

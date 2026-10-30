@@ -1,6 +1,7 @@
 # Profiler：离线证据与可解释对比设计
 
-状态：设计，2026-10-30；本文没有实现 CLI、provider 或采集服务。
+状态：P01 离线 Benchmark CLI 已实现，2026-10-30；MCA、cProfile 和采集服务尚未交付。
+使用方式与当前支持边界见 [工具 README](../../devtools/profiler/README.md)。
 实施顺序与验收见 [profiler 实施计划](profiler-implementation.md)。
 目标是让已有汇编、静态模型、C++/Python 实测和后续网络证据可追溯地比较，
 先交付一个无需安装采集工具的离线 CLI，再按真实需求增加 provider。
