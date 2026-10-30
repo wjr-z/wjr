@@ -187,4 +187,69 @@ TEST(BtreeAssignment, MovePreservesAllocatorOwnershipAndComparator) {
             equal_allocators, false);
     }
 }
+
+TEST(BtreeAssignment, InitializerListRetainsAllocatorAndComparator) {
+    using allocator = tracking_allocator<char, false, true>;
+    using tree = wjr::btree_map<int, std::string, directional_compare, allocator>;
+    using values = std::initializer_list<tree::value_type>;
+    static_assert(
+        std::is_same_v<decltype(std::declval<tree &>() = std::declval<values>()), tree &>);
+    for (int count : {0, 2, 80}) {
+        allocation_state original_state;
+        allocation_state temporary_state;
+        {
+            allocation_state::selected = &original_state;
+            tree target(directional_compare{true});
+            fill_tree(target, count);
+            allocation_state::selected = &temporary_state;
+            auto &assigned = (target = {{0, "0"}, {1, "1"}, {2, "2"}});
+            EXPECT_EQ(std::addressof(assigned), std::addressof(target));
+            check_tree(target, 3, true);
+            EXPECT_GT(original_state.outstanding, 0);
+            EXPECT_EQ(temporary_state.outstanding, 0);
+            target = {};
+            check_tree(target, 0, true);
+            fill_tree(target, 20);
+            check_tree(target, 20, true);
+            EXPECT_GT(original_state.outstanding, 0);
+            EXPECT_EQ(temporary_state.outstanding, 0);
+        }
+        EXPECT_EQ(original_state.outstanding, 0);
+        EXPECT_EQ(temporary_state.outstanding, 0);
+        EXPECT_EQ(original_state.wrong_deallocations, 0);
+        EXPECT_EQ(temporary_state.wrong_deallocations, 0);
+    }
+    allocation_state::selected = nullptr;
+}
+
+struct observed_default_compare {
+    static inline int defaults = 0;
+    observed_default_compare() noexcept : descending(false) { ++defaults; }
+    explicit observed_default_compare(bool descending_) noexcept : descending(descending_) {}
+    bool operator()(int lhs, int rhs) const noexcept { return descending ? lhs > rhs : lhs < rhs; }
+    bool descending;
+};
+
+TEST(BtreeAssignment, InitializerListDoesNotDefaultConstructComparator) {
+    wjr::btree_map<int, int, observed_default_compare> target(observed_default_compare{true});
+    observed_default_compare::defaults = 0;
+    target = {{1, 10}, {2, 20}, {3, 30}};
+    EXPECT_TRUE(target.key_comp().descending);
+    EXPECT_EQ(target.begin()->first, 3);
+    target = {};
+    EXPECT_TRUE(target.empty());
+    EXPECT_TRUE(target.key_comp().descending);
+    EXPECT_EQ(observed_default_compare::defaults, 0);
+}
+
+TEST(BtreeAssignment, BaseInitializerListDispatchesUniqueAndMulti) {
+    wjr::basic_btree<wjr::btree_traits<int, void, false>> unique;
+    wjr::basic_btree<wjr::btree_traits<int, void, true>> multi;
+    unique = {2, 1, 1};
+    multi = {2, 1, 1};
+    EXPECT_EQ(unique.size(), 2u);
+    EXPECT_EQ(multi.size(), 3u);
+    EXPECT_EQ(std::distance(unique.lower_bound(1), unique.upper_bound(1)), 1);
+    EXPECT_EQ(std::distance(multi.lower_bound(1), multi.upper_bound(1)), 2);
+}
 } // namespace

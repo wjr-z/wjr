@@ -953,7 +953,11 @@ public:
     basic_btree &operator=(std::initializer_list<value_type> il) noexcept {
         clear();
         for (auto &item : il) {
-            emplace(item);
+            if constexpr (multi) {
+                _emplace_multi(item);
+            } else {
+                _emplace_unique(item);
+            }
         }
         return *this;
     }
