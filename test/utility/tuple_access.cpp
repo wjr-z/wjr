@@ -54,6 +54,12 @@ struct counted_value {
     counted_value(counted_value &&other) noexcept : value(other.value) { ++moves; }
 };
 
+struct materialized_value {
+    int number;
+    std::string text;
+    materialized_value(int n, const std::string &value) : number(n), text(value) {}
+};
+
 } // namespace
 
 TEST(tuple_access, const_owned_elements_keep_identity_for_both_get_forms) {
@@ -85,17 +91,30 @@ TEST(tuple_access, const_reference_tuple_keeps_referent_mutability) {
 
 TEST(tuple_access, apply_and_comparisons_accept_const_owned_tuples) {
     const wjr::tuple<int, std::string> first(3, "value");
+    const wjr::tuple<int, std::string> same(3, "value");
+    const wjr::tuple<int, std::string> greater(3, "zebra");
     EXPECT_EQ(
         wjr::apply([](const int &number,
                       const std::string &text) { return number + static_cast<int>(text.size()); },
                    first),
         8);
-    const wjr::tuple<int, long> numeric(3, 5);
-    const wjr::tuple<int, long> same(3, 5);
-    const wjr::tuple<int, long> greater(5, 5);
-    EXPECT_TRUE(numeric == same);
-    EXPECT_TRUE(numeric != greater);
-    EXPECT_TRUE(numeric < greater);
+    EXPECT_TRUE(first == same);
+    EXPECT_TRUE(first != greater);
+    EXPECT_TRUE(first < greater);
+    EXPECT_TRUE(first <= same);
+    EXPECT_TRUE(greater > first);
+    EXPECT_TRUE(same >= first);
+}
+
+TEST(tuple_access, make_from_tuple_uses_internal_apply_for_standard_element_types) {
+    const wjr::tuple<int, std::string> extended(7, "extended");
+    const std::tuple<int, std::string> standard(11, "standard");
+    auto first = wjr::make_from_tuple<materialized_value>(extended);
+    auto second = wjr::make_from_tuple<materialized_value>(standard);
+    EXPECT_EQ(first.number, 7);
+    EXPECT_EQ(first.text, "extended");
+    EXPECT_EQ(second.number, 11);
+    EXPECT_EQ(second.text, "standard");
 }
 
 TEST(tuple_access, concatenation_copies_const_sources_into_owning_results) {
