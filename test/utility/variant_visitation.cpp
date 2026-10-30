@@ -88,7 +88,7 @@ TEST(variant_visitation, borrows_lvalues_and_preserves_reference_results) {
 
 TEST(variant_visitation, preserves_all_reference_categories) {
     selected_values<int, 2> input{1, {3, 5}};
-    const auto &constant = input;
+    const selected_values<int, 2> constant{1, {3, 5}};
     EXPECT_EQ(wjr::full_visit<selection_accessor>(reference_category{}, input), 1);
     EXPECT_EQ(wjr::full_visit<selection_accessor>(reference_category{}, constant), 2);
     EXPECT_EQ(wjr::full_visit<selection_accessor>(reference_category{}, std::move(input)), 3);
