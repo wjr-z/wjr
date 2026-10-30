@@ -85,6 +85,19 @@ private:
 public:
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(compact_btree_map);
 
+    /// @brief Copy values into the supplied allocator/resource.
+    compact_btree_map(const compact_btree_map &other,
+                      const allocator_type &alloc) noexcept(noexcept(Mybase(other, alloc)))
+
+        : Mybase(other, alloc) {}
+
+    /// @brief Move using a supplied allocator, migrating elements when resources differ.
+    compact_btree_map(compact_btree_map &&other,
+                      const allocator_type &alloc) noexcept(noexcept(Mybase(std::move(other),
+                                                                            alloc)))
+
+        : Mybase(std::move(other), alloc) {}
+
     template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
     compact_btree_map(Iter first, Sentinel last,
                       const key_compare &comp = key_compare()) noexcept(noexcept(Mybase(comp)))

@@ -7,6 +7,7 @@
 
 #include <wjr/container/btree_map.hpp>
 #include <wjr/container/btree_set.hpp>
+#include <wjr/container/experimental/compact_btree_map.hpp>
 
 namespace {
 struct construction_state {
@@ -284,5 +285,56 @@ TEST(BtreeConstruction, RangeConstructorsFollowBaseStateInitialization) {
         throwing_allocator<char>::fail_default = false;
     }
 #endif
+}
+
+template <class Tree>
+void supplied_allocator_transfer() {
+    using allocator = typename Tree::allocator_type;
+    for (int size : {0, 1, 2, 3, 80}) {
+        for (bool equal : {false, true}) {
+            construction_state source_state, supplied_state, selected_state, unexpected_default;
+            source_state.copy_state = &selected_state;
+            construction_state::selected = &unexpected_default;
+            {
+                Tree source{construction_compare(source_state), allocator(&source_state)};
+                fill_tree(source, size);
+                auto *destination = equal ? &source_state : &supplied_state;
+                {
+                    const auto copies = source_state.comparator_copies;
+                    Tree copied(source, allocator(destination));
+                    check_tree(copied, size);
+                    EXPECT_EQ(copied.get_allocator().state, destination);
+                    EXPECT_EQ(source_state.comparator_copies, copies + 1);
+                    EXPECT_EQ(source_state.selections, 0);
+                }
+                const auto moves = source_state.comparator_moves;
+                const auto allocator_moves = source_state.allocator_moves;
+                Tree moved(std::move(source), allocator(destination));
+                check_tree(moved, size);
+                EXPECT_EQ(moved.get_allocator().state, destination);
+                EXPECT_EQ(source_state.comparator_moves, moves + 1);
+                EXPECT_EQ(source_state.allocator_moves, allocator_moves);
+                EXPECT_TRUE(source.empty());
+                fill_tree(source, 10);
+                EXPECT_TRUE(std::is_sorted(source.begin(), source.end(), source.value_comp()));
+            }
+            for (auto *state :
+                 {&source_state, &supplied_state, &selected_state, &unexpected_default}) {
+                EXPECT_EQ(state->outstanding, 0);
+                EXPECT_EQ(state->wrong_releases, 0);
+            }
+        }
+    }
+    construction_state::selected = nullptr;
+    EXPECT_TRUE(construction_state::owners.empty());
+}
+TEST(BtreeAllocatorTransfer, SuppliedAllocatorSkipsSelectionAndKeepsComparatorState) {
+    using allocator = construction_allocator<char>;
+    supplied_allocator_transfer<
+        wjr::btree_map<int, std::string, construction_compare, allocator>>();
+    supplied_allocator_transfer<wjr::btree_set<int, construction_compare, allocator>>();
+    supplied_allocator_transfer<wjr::btree_multiset<int, construction_compare, allocator>>();
+    supplied_allocator_transfer<
+        wjr::experimental::compact_btree_map<int, std::string, construction_compare, allocator>>();
 }
 } // namespace
