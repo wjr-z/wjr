@@ -67,6 +67,11 @@ concept upsert_source =
     std::constructible_from<Mapped, Source &&> &&
     requires(Mapped &target, Source &&source) { target = std::forward<Source>(source); };
 
+/// @brief Permit default-order allocator convenience without hiding a same-type comparator.
+template <typename Compare, typename Alloc>
+concept default_allocator_order =
+    std::default_initializable<Compare> && !std::same_as<Compare, Alloc>;
+
 /**
  * @brief SIMD-optimized copy for small ranges within B+tree nodes
  *
