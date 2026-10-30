@@ -1,5 +1,6 @@
 #include "detail.hpp"
 
+#include <array>
 #include <charconv>
 #include <list>
 
@@ -754,6 +755,23 @@ TEST(math, reverse_compare_n) {
                 EXPECT_TRUE(f > 0);
             }
         }
+    }
+}
+
+TEST(math, reverse_compare_block_priority) {
+    std::array<uint64_t, 64> a, b;
+    constexpr uint64_t value = uint64_t{1} << 63;
+
+    /// Exercise every SIMD block with a lower, oppositely ordered mismatch.
+    for (size_t position = 32; position < 62; ++position) {
+        a.fill(value);
+        b.fill(value);
+        a[0] = 0;
+        b[0] = UINT64_MAX;
+        b[position] = value - 1;
+
+        EXPECT_GT(reverse_compare_n(a.data(), b.data(), a.size()), 0) << position;
+        EXPECT_LT(reverse_compare_n(b.data(), a.data(), a.size()), 0) << position;
     }
 }
 

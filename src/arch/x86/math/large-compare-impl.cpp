@@ -165,7 +165,8 @@ int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_t n) noex
         WJR_X86_SIMD_UNROLL_NOP, WJR_REGISTER_REVERSE_COMPARE_NOT_N_RET);
 
     using simd = std::conditional_t<WJR_HAS_SIMD(AVX2), avx, sse>;
-    constexpr auto type_width = simd::width() / std::numeric_limits<T>::digits;
+    /// Keep backward element offsets signed when combining them with a SIMD block width.
+    constexpr ptrdiff_t type_width = simd::width() / std::numeric_limits<T>::digits;
 
     do {
         const auto r0 = simd::cmpeq_epi64(simd::loadu(src0 - type_width * 4),

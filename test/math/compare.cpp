@@ -5,9 +5,15 @@
 using namespace wjr;
 
 TEST(compare, forward_and_reverse_arrays) {
-    const uint64_t left[] = {1, 2, 3, 4};
-    const uint64_t right[] = {1, 2, 3, 5};
-    const uint64_t greater[] = {1, 2, 4, 0};
+    constexpr uint64_t left[] = {1, 2, 3, 4};
+    constexpr uint64_t right[] = {1, 2, 3, 5};
+    constexpr uint64_t greater[] = {1, 2, 4, 0};
+
+    static_assert(reverse_compare_n(left, right, 4) == -1);
+    static_assert(reverse_compare_n(right, left, 4) == 1);
+    static_assert(reverse_compare_n(left, greater, 4) == 1);
+    static_assert(fallback_reverse_compare_n(left, right, 0) == 0);
+    static_assert(fallback_reverse_compare_n(left, left, 4) == 0);
 
     EXPECT_EQ(compare_n(left, left, 4), 0);
     EXPECT_EQ(compare_n(left, right, 0), 0);
@@ -20,8 +26,9 @@ TEST(compare, forward_and_reverse_arrays) {
     EXPECT_EQ(reverse_compare_n(right, left, 4), 1);
     EXPECT_EQ(reverse_compare_n(left, greater, 4), 1);
 
-    const int signed_left[] = {-2, 0, 3};
-    const int signed_right[] = {-1, 0, 3};
+    constexpr int signed_left[] = {-2, 0, 3};
+    constexpr int signed_right[] = {-1, 0, 3};
+    static_assert(reverse_compare_n(signed_left, signed_right, 3) == -1);
     EXPECT_EQ(compare_n(signed_left, signed_right, 3), -1);
     EXPECT_EQ(reverse_compare_n(signed_left, signed_right, 3), -1);
 }
