@@ -1,0 +1,17 @@
+2026-10-30T20:24:43+08:00
+Running D:\repos\.cache\wjr\worktrees\btree-compact-measure-20261030\build\clang-release\bin\benchmarks.exe
+Run on (20 X 2688 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x10)
+  L1 Instruction 32 KiB (x10)
+  L2 Unified 1280 KiB (x10)
+  L3 Unified 24576 KiB (x1)
+allocator: std::allocator; no counters
+standard_library: MSVC STL 143.202408
+string_sizeof: 32
+trace_blocks: 256
+trace_seed: 1656023321
+wjr_compiler: Clang-18.1.8
+wjr_cpu_target: baseline
+wjr_flags: /DWIN32 /D_WINDOWS /EHsc /O2 /Ob2 /DNDEBUG /Zc:preprocessor /Zc:lambda /EHsc /utf-8  C++20
+wjr_source: e3b59a81bcb37433510e8dede0fe850a19f326c5

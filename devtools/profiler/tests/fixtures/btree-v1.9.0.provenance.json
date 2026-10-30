@@ -1,0 +1,23 @@
+{
+  "real": true,
+  "provider": "google-benchmark",
+  "version": "v1.9.0",
+  "raw_sha256": "8038ffb7c0679196defb8c1d28da5b2421d13fdc8212ea53163ce6d72771c6e0",
+  "source_revision": "e3b59a81bcb37433510e8dede0fe850a19f326c5",
+  "argv": [
+    "D:\\repos\\.cache\\wjr\\worktrees\\btree-compact-measure-20261030\\build\\clang-release\\bin\\benchmarks.exe",
+    "--benchmark_filter=^u64_map/(wjr16|compact16)/lower_bound_50/64/",
+    "--benchmark_min_time=0.01s",
+    "--benchmark_repetitions=5",
+    "--benchmark_report_aggregates_only=false",
+    "--benchmark_out_format=json",
+    "--benchmark_out=D:\\repos\\.cache\\wjr\\worktrees\\profiler-benchmark-import-20261030\\devtools\\profiler\\tests\\fixtures\\btree-v1.9.0.json"
+  ],
+  "exit_status": 0,
+  "platform": "Windows 11 22631 x86-64",
+  "cpu": "13th Gen Intel(R) Core(TM) i5-13500HX",
+  "affinity": "logical CPU 0",
+  "stdout": "btree-v1.9.0.stdout.txt",
+  "stderr": "btree-v1.9.0.stderr.txt",
+  "generation_note": "Unmodified native JSON from existing focused Btree benchmark v1.9.0 binary; no records were trimmed or timings fabricated."
+}

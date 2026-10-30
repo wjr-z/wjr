@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "bundle_id": "btree64-baseline",
+  "created_at": "2026-10-30T20:24:43+08:00",
+  "producer": {
+    "provider": "google-benchmark",
+    "version": "1.9.0"
+  },
+  "revision": "e3b59a81bcb37433510e8dede0fe850a19f326c5",
+  "dirty_patch_sha256": "none",
+  "build": {
+    "compiler": "Clang-18.1.8",
+    "flags": "/DWIN32 /D_WINDOWS /EHsc /O2 /Ob2 /DNDEBUG /Zc:preprocessor /Zc:lambda /EHsc /utf-8  C++20",
+    "fingerprint": "8bbaa1f053b7d33ce504d7883786c0e16c3a3c86f4d1eb78f58bc48f81048842",
+    "standard": "C++20",
+    "sanitizer": "none",
+    "lto": false,
+    "pgo": false
+  },
+  "host": {
+    "id": "WJR-i5-13500HX-CPU0",
+    "os": "Windows 11 22631",
+    "arch": "x86_64",
+    "abi": "MSVC x64",
+    "cpu": "13th Gen Intel(R) Core(TM) i5-13500HX",
+    "core": "logical CPU 0",
+    "stability": "shared_development_host"
+  },
+  "raw_source": {
+    "sha256": "8038ffb7c0679196defb8c1d28da5b2421d13fdc8212ea53163ce6d72771c6e0"
+  },
+  "workloads": {
+    "lookup64": {
+      "version": "btree-focused-v1",
+      "parameters": {
+        "n": 64,
+        "seed": 1656023321,
+        "existing_key_fraction": 0.5,
+        "queries_per_iteration": 2048,
+        "insertion": "seeded std::shuffle"
+      },
+      "input_sha256": "unknown",
+      "scope": "lookup batch; build and teardown excluded",
+      "threads": 1,
+      "instrumentation": "none",
+      "clock": "Google Benchmark real_time",
+      "time_mode": "real_time",
+      "sample_level": "in_process_repetition"
+    }
+  },
+  "semantic_contracts": {
+    "lower-bound-v1": {
+      "version": "1",
+      "semantics": "Return the key of the first element not less than the query, or end; digest key+1, with zero for end.",
+      "correctness_evidence": "The focused benchmark validates each variant against std::map before timing."
+    }
+  },
+  "regions": [
+    {
+      "id": "lookup64",
+      "variant": "baseline",
+      "workload_id": "lookup64",
+      "contract_id": "lower-bound-v1",
+      "source_sha256": "unknown",
+      "benchmark": "u64_map/wjr16/lower_bound_50/64/repeats:5/real_time"
+    }
+  ]
+}
