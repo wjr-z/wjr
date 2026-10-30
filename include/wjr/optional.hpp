@@ -666,28 +666,53 @@ public:
         return optional<U>{};
     }
 
+    /**
+     * @brief Replace the value, leaving the optional empty if construction throws.
+     * @return A reference to the newly constructed value.
+     */
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<value_type, Args...>)>
-    constexpr value_type &emplace(Args &&...args) noexcept {
-        if (has_value()) {
-            std::destroy_at(std::addressof(this->m_val));
+    constexpr value_type &
+    emplace(Args &&...args) noexcept(std::is_nothrow_destructible_v<value_type> &&
+                                     std::is_nothrow_constructible_v<value_type, Args...>) {
+        if constexpr (std::is_nothrow_destructible_v<value_type> &&
+                      std::is_nothrow_constructible_v<value_type, Args...>) {
+            if (has_value()) {
+                std::destroy_at(std::addressof(this->m_val));
+            } else {
+                this->set_valid();
+            }
+            wjr::construct_at(std::addressof(this->m_val), std::forward<Args>(args)...);
         } else {
-            this->set_valid();
+            if (has_value()) {
+                this->set_invalid();
+                std::destroy_at(std::addressof(this->m_val));
+            }
+            this->construct_value(std::forward<Args>(args)...);
         }
-
-        wjr::construct_at(std::addressof(this->m_val), std::forward<Args>(args)...);
         return this->m_val;
     }
 
     template <typename U, typename... Args,
               WJR_REQUIRES(std::is_constructible_v<T, std::initializer_list<U> &, Args...>)>
-    constexpr T &emplace(std::initializer_list<U> il, Args &&...args) noexcept {
-        if (has_value()) {
-            std::destroy_at(std::addressof(this->m_val));
+    constexpr T &emplace(std::initializer_list<U> il, Args &&...args) noexcept(
+        std::is_nothrow_destructible_v<value_type> &&
+        std::is_nothrow_constructible_v<value_type, std::initializer_list<U> &, Args...>) {
+        if constexpr (std::is_nothrow_destructible_v<value_type> &&
+                      std::is_nothrow_constructible_v<value_type, std::initializer_list<U> &,
+                                                      Args...>) {
+            if (has_value()) {
+                std::destroy_at(std::addressof(this->m_val));
+            } else {
+                this->set_valid();
+            }
+            wjr::construct_at(std::addressof(this->m_val), il, std::forward<Args>(args)...);
         } else {
-            this->set_valid();
+            if (has_value()) {
+                this->set_invalid();
+                std::destroy_at(std::addressof(this->m_val));
+            }
+            this->construct_value(il, std::forward<Args>(args)...);
         }
-
-        wjr::construct_at(std::addressof(this->m_val), il, std::forward<Args>(args)...);
         return this->m_val;
     }
 
