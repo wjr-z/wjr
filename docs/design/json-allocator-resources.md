@@ -1,13 +1,21 @@
 # Allocator instances for an owning JSON document
 
-Status: design proposal. This document adds no PMR document implementation and
-claims no DOM throughput improvement. Its implementation target is an explicit,
-borrowed resource for a complete owning document, using standard PMR facilities.
+Status: the explicit PMR document domain is implemented in
+[`<wjr/json/pmr.hpp>`](../../include/wjr/json/pmr.hpp). It provides a borrowed
+resource for a complete owning document, using standard PMR facilities.
 The default `json::document`, its 16-byte value representation, accessors,
 allocation policy, and successful hot paths remain unchanged.
 
 The source audit uses revision `56f2171a` and the allocation observations below
 were collected from the unchanged materialization paths at `cd5960c4`.
+The boundaries below describe that original default domain. The new opt-in
+`pmr_document` closes them with allocator-aware constructors, recursive standard
+uses-allocator propagation, and `parse_with_allocator(reader, allocator)`.
+It is 24 bytes on the tested x64 toolchains; the original document remains
+16 bytes. See the [working consumer](../../examples/json/README.md) and
+[measured tradeoffs](../performance/json-pmr.md). Pool reuse improves several
+Windows workloads, while Linux and numeric-array results include regressions;
+the default document remains the default.
 
 ## The measured problem
 
@@ -66,11 +74,12 @@ This proposal does not add or extend private STL access.
 | [Relocation](../../include/wjr/json/document.hpp#L2402) | `get_relocate_mode<basic_document<Traits>>` is trivial | A stateful extension needs a fresh proof; the current pointer representation is deliberate |
 | Output strings | `dump`/`to_string` allocator template, or caller-supplied `dump_impl` container | Output allocation is separate from DOM allocation |
 
-Custom traits can change container types, but cannot currently inject a runtime
+In the audited original implementation, custom traits can change container types, but cannot inject a runtime
 allocator into all these boundaries. Merely substituting PMR strings/maps/vectors
 would still leave metadata on `std::allocator` and default-construct resources
 at other sites. There is no existing JSON allocator-instance entry to demonstrate
-as a complete pool-backed document.
+as a complete pool-backed document. The implemented PMR specialization adds this
+entry explicitly; it does not promise arbitrary stateful allocator traits.
 
 The existing weak stack allocator is for nested scratch and growth-oriented
 lifetimes, not arbitrary independently destroyed DOM values. Its own contract

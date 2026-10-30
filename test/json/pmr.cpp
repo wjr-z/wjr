@@ -20,6 +20,10 @@ using pmr_value = wjr::json::pmr_document;
 using allocator = pmr_value::allocator_type;
 using namespace wjr::json;
 
+struct potentially_throwing_boolean {
+    operator bool() const noexcept(false);
+};
+
 static_assert(sizeof(wjr::json::document) == 16);
 static_assert(std::uses_allocator_v<pmr_value, allocator>);
 static_assert(!std::uses_allocator_v<wjr::json::document, allocator>);
@@ -27,6 +31,10 @@ static_assert(std::is_nothrow_move_constructible_v<pmr_value>);
 static_assert(!std::is_nothrow_move_assignable_v<pmr_value>);
 static_assert(std::is_nothrow_move_assignable_v<wjr::json::document>);
 static_assert(std::is_nothrow_swappable_v<pmr_value>);
+static_assert(std::is_constructible_v<pmr_value, std::allocator_arg_t, allocator, boolean_t,
+                                      potentially_throwing_boolean>);
+static_assert(!std::is_nothrow_constructible_v<pmr_value, std::allocator_arg_t, allocator,
+                                               boolean_t, potentially_throwing_boolean>);
 static_assert(!std::is_constructible_v<pmr_value, string_t, pmr_value::string_type *>);
 static_assert(
     std::is_constructible_v<wjr::json::document, string_t, wjr::json::document::string_type *>);
