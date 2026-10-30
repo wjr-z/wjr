@@ -803,8 +803,9 @@ public:
 
     template <detail::document_scalar_tag Tag, typename... Args>
     requires(uses_allocator && std::is_constructible_v<basic_value, Tag, Args && ...>)
-    basic_document(std::allocator_arg_t, const storage_allocator_type &allocator, Tag tag,
-                   Args &&...args) noexcept
+    basic_document(
+        std::allocator_arg_t, const storage_allocator_type &allocator, Tag tag,
+        Args &&...args) noexcept(std::is_nothrow_constructible_v<basic_value, Tag, Args &&...>)
         : allocator_state(std::allocator_arg, allocator),
           m_value(tag, std::forward<Args>(args)...) {}
 
