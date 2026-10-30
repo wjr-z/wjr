@@ -112,6 +112,10 @@ def _eligibility(left, right, lregion, rregion, before, after, context_axes):
         reasons.extend(extra)
         return reasons, hard or blocked, False, failed
     environment, env_blocked, contextual = _environment_reasons(left, right, context_axes)
+    if left["producer"]["provider"] == right["producer"]["provider"] == "curl-json" and before and after:
+        if before["metadata"].get("curl_versions") != after["metadata"].get("curl_versions"):
+            reasons.append("curl backend/build versions differ; request timings are not equivalent")
+            hard = True
     provenance, shared = _provenance_reasons(left, right)
     observations, obs_blocked, failed = _observation_pair_reasons(before, after)
     reasons.extend(environment + provenance + observations)

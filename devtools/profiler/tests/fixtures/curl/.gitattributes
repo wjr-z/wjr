@@ -1,0 +1,2 @@
+*.jsonl -text whitespace=cr-at-eol
+*.stderr.txt -text whitespace=cr-at-eol

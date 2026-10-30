@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "bundle_id": "curl-localhost-redirect",
+  "created_at": "2026-10-30T14:30:57.850618+00:00",
+  "revision": "6104fe865707b0d303777b5c64bf70eb9d875aa5",
+  "dirty_patch_sha256": "unknown",
+  "producer": {
+    "provider": "curl-json",
+    "version": "8.11.1",
+    "curl": {
+      "process_per_request": true,
+      "method": "GET",
+      "protocol": "HTTP/1.1",
+      "redirects": false,
+      "retries": 0,
+      "proxy": false,
+      "reuse": false
+    },
+    "processes": [
+      {
+        "line": 1,
+        "exit_status": 0
+      }
+    ]
+  },
+  "raw_source": {
+    "sha256": "ea41eca53e3fad5707e81ac859e80f6dc82f3b2607396a4efef304f5e3ea189c"
+  },
+  "host": {
+    "id": "owned-Windows-localhost-fixture",
+    "os": "Windows-11-10.0.22631-SP0",
+    "arch": "x86_64",
+    "abi": "Windows",
+    "cpu": "unknown",
+    "core": "unknown",
+    "stability": "shared_development_host"
+  },
+  "build": {
+    "compiler": "Microsoft curl binary",
+    "flags": "unknown",
+    "fingerprint": "478929b784e33a0ac367a7af5cd1198ed4154d70171c35555cc12c8024816bce",
+    "standard": "not_applicable",
+    "sanitizer": "none",
+    "lto": "unknown",
+    "pgo": "unknown"
+  },
+  "workloads": {
+    "localhost": {
+      "version": "1",
+      "parameters": {
+        "endpoint_path": "/redirect",
+        "header_delay_seconds": 0.015,
+        "body_chunk_delay_seconds": 0.025,
+        "expected_bytes": 128
+      },
+      "input_sha256": "649e09ed0a79e037c82aacb3eecc611d3c3a1a35e15c785e0e90f5cbb530335c",
+      "scope": "single_http_request",
+      "threads": 1,
+      "instrumentation": "curl write-out",
+      "clock": "curl cumulative elapsed seconds",
+      "time_mode": "wall",
+      "sample_level": "independent_process_run"
+    }
+  },
+  "semantic_contracts": {
+    "http_get": {
+      "version": "1",
+      "semantics": "HTTP/1.1 GET from owned localhost; Connection close; expected 128 bytes; no retries, redirects, proxy or reuse",
+      "correctness_evidence": "Producer saves independent exit status and curl response code/size; controlled server sends two 64-byte chunks."
+    }
+  },
+  "regions": [
+    {
+      "id": "localhost",
+      "variant": "redirect",
+      "workload_id": "localhost",
+      "contract_id": "http_get",
+      "request_lines": [
+        1
+      ]
+    }
+  ]
+}

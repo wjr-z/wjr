@@ -9,6 +9,8 @@ from [the profiler plan](../../docs/design/profiler-implementation.md).
 [LLVM-MCA estimates](LLVM_MCA.md) and cProfile JSON are supported; collection
 services and regression gates are not implemented. P03's JSON
 import, explicit local export and single-run hotspots are in [cProfile](CPROFILE.md).
+[P05 curl request stages](CURL.md) adds offline curl 8.11.1 JSONL import and
+request summaries from independently started HTTP/1.1 GET processes.
 
 From the repository root:
 
