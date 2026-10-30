@@ -30,11 +30,13 @@ public:
     using Mybase::Mybase;
 
 private:
-    bool _is_lower_bound_same(const_iterator iter, const key_type &key) const {
+    template <typename Lookup>
+    bool _is_lower_bound_same(const_iterator iter, const Lookup &key) const {
         return iter != this->cend() && !this->key_comp()(key, Traits::get_key(*iter));
     }
 
-    bool _count_unique(const key_type &key) const {
+    template <typename Lookup>
+    bool _count_unique(const Lookup &key) const {
         auto iter = this->lower_bound(key);
         return _is_lower_bound_same(iter, key);
     }
@@ -54,6 +56,14 @@ public:
     }
 
     size_type count(const key_type &key) const noexcept { return _count_unique(key) ? 1 : 0; }
+
+    /// @brief Count an equivalent key using the transparent comparator without constructing a key.
+    /// @pre Comparator calls for keys and lookup values do not throw.
+    template <typename Lookup>
+    requires btree_detail::transparent_lookup<key_compare, key_type, Lookup>
+    size_type count(const Lookup &key) const noexcept {
+        return _count_unique(key) ? 1 : 0;
+    }
 };
 
 template <typename Key, typename Pr = std::less<Key>, typename Alloc = std::allocator<char>,
