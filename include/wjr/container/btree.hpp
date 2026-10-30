@@ -1154,6 +1154,7 @@ private:
     void _move_tree(basic_btree &&other) noexcept {
         node_type *&root = other._get_root();
         if (WJR_UNLIKELY(root == nullptr)) {
+            _get_root() = nullptr;
             _get_sentry()->init_self();
             auto &size = other._get_size();
             copy_small_to(other._get_base()->m_values, _get_base()->m_values);
@@ -1282,10 +1283,12 @@ private:
 
     void _destroy_and_deallocate() noexcept;
 
-    void _release_before_copy() {}
+    /// Release nodes through their original allocator before allocator propagation.
+    void _release_before_copy() { clear(); }
 
     void _copy_element(const basic_btree &other) noexcept {
         clear();
+        key_comp() = other.key_comp();
         _copy_assign_tree(other);
     }
 
@@ -1296,6 +1299,7 @@ private:
 
     void _destroy_and_move_element(basic_btree &&other) noexcept {
         clear();
+        key_comp() = std::move(other.key_comp());
         _move_assign_tree(std::move(other));
     }
 
