@@ -25,15 +25,32 @@
 构造失败时由已完成的 RAII 成员回收，不能依赖尚未构造完成对象的析构函数。
 检查容量加一溢出、不可实现的 bucket 请求和 reserve 失败。
 
-allocator 必须负责真实 map pair 的构造与销毁。传递到 T 的 uses-allocator
+allocator 必须负责所选后端真实 pair/Entry 的构造与销毁。传递到 T 的 uses-allocator
 协议需独立核对，不能假定 Entry 包装自动传播内层 allocator；
 先明确支持范围，再用 PMR payload 的资源归属测试验收。
 需要适配时只在 Entry 构造处处理，不复制整个 allocator 框架。
 
-copy/move 默认删除；测试准确的 traits，证明实现没有额外声明 relocatable。
-只在未来真实使用需要时另开 allocator-aware 移动能力，不为通过 trait 测试伪标属性。
+cache 对象 copy/move 默认删除，不影响 inline Entry 自定义移动。
+测试准确的 traits，不为通过 trait 测试伪标 relocatable 或省略必要的 hook 重接。
 transparent 查找只有在 C++20 Hash/Eq 约束及诊断均完整时才加入，
 不借此承诺透明插入、转换后键等价或新的标准库设施。
+
+后端选型优先研究 ankerl v4.5.0 自有 Key 的 inline set，同时比较稳定 Node
+透明指针 set、标准 node 表与 Boost 1.86.0 node_map；flat 指针 set 为同类候选。
+Key/T 不抛移动与 allocator 条件作为 inline 优化域，不让稳定地址基线排除这条路线。
+Node/Key/hook 地址、erase 补洞、
+预留后的实际增长边界、slot iterator 失效、异常调用顺序和 allocator 钩子
+分别验收。不能用 std 的异常保证替代第三方版本的证据；Abseil 的异常安全缺口
+未解决前不得作为满足本文强保证的默认后端。
+inline Entry 使用现有 replace/remove/init_self，验收 vector 重分配时的 move
+构造/析构与 erase 的 move assignment/pop_back 顺序、相邻/唯一/端点/未链接/
+自移动、destination 原有链位置，以及 Key 回指如何合法重绑。
+按所选后端的 moved-from 后续使用选择是否复位 source：只销毁且不自动 unlink
+可以采用破坏性转移，允许复用则需更强后置条件，不为调试冗加正常路径 stores。
+检查移动中途失败的环/索引一致性和容器回滚；需要的 nothrow 条件必须可证明，
+不能以 bulk memcpy 或 traits 绕开自定义移动。这里只规划验收，不新增代码或测试。
+若验证冷热分段，先固定全部 promotion/demotion/预算规则，再增加模型 oracle；
+不能把尚未选定的 segmented LRU 混入精确 LRU 的同契约性能排名。
 
 ## 正确性与失败注入
 
@@ -44,13 +61,16 @@ transparent 查找只有在 C++20 Hash/Eq 约束及诊断均完整时才加入�
 - 容量 0、1、2；重复键、重复 MRU 命中、miss、peek、erase、clear 和销毁。
 - A/B/get A/C 序列；满容量失败后旧 victim 仍在，顺序也完全不变。
 - 重复 try_emplace 不构造 T；容量 0 不构造 Key/T；既有键赋值成功才 promotion。
-- 第 N 次分配、Key/T 构造、Eq 抛出，逐故障点检查资源平衡和后续可用性。
+- 在各后端接受域内注入第 N 次分配、Key/T 构造、Eq 抛出，检查资源与后续可用性。
   赋值部分修改后抛出的 T 用例只验证其自身保证及 recency 不变。
 - 构造阶段 reserve(C+1) 后，C+1 的临时插入不 rehash；victim iterator 有效。
   多种 C、Hash 碰撞和 STL 都要测，不靠某个实现的 bucket 增长偶然通过。
-- 以稳定指针观察其他键插入、promotion 后地址不变；失效后不解引用。
+- 按后端合同检查指针：稳定节点地址不变；inline 增长/erase 补洞可失效；
+  promotion 不搬移，失效后不解引用。
   检查以同 cache 的键/值为参数时的合法 alias 用例和重复命中路径。
 - clear/析构解除全部 hook，正确销毁高对齐对象；allocator 钩子、资源及存活数平衡。
+- 指针索引擦除非末尾项时 Node 地址不变；inline 同场景移动末尾 Entry 后
+  链序列和索引仍一致。审查/故障注入覆盖所选 emplace 重载及全部借用失效。
 
 Hash 抛出不在首期接受域，通过编译期拒绝用例验证，不给它编造回滚测试承诺。
 失败注入/构造计数与时间测量分开，统计插桩不能混入吞吐结论。
@@ -66,7 +86,8 @@ Linux GCC/Clang 优先，Windows 保持既有 MSVC/Clang 两项，验证 C++20�
 比较用第三方来源固定版本/commit，记录许可证、配置和传递依赖。
 若后续采用外部依赖，需单独评审启用方式、支持矩阵和禁用时无查找/链接的行为。
 
-每个对手固定相同的 promotion、淘汰、容量 0、异常域、地址稳定性与构造语义。
+按 promotion、淘汰、容量 0、异常域、借用失效与构造语义分组比较。
+稳定地址基线和 inline 的弱失效合同分列；同组才直接排名，跨组解释省去的保证及成本。
 Folly 的容量 0 行为不同，应单列或排除，不能混入等价排名。
 最强可用候选包括标准 list+map、MultiIndex，以及可实际构建的 Folly；
 构建失败/不适用要留证，不把缺席候选写成已被击败。
@@ -86,6 +107,9 @@ Folly 的容量 0 行为不同，应单列或排除，不能混入等价排名�
 单独记录 sizeof/alignof、节点/bucket/深层分配的次数和字节、live/peak，
 包含瞬时 C+1；RSS 只能作为另一个指标，不能代替精确分配计数。
 敏感选择仅比较 MRU 短路、victim 二次查找、节点/回指布局及必要的分配策略。
+inline 记录 Entry move ctor/assignment 次数、Key/T 搬移字节和 hook 重接 stores；
+指针索引额外记录解引用、pointer-array 搬移与 Node 分配成本；
+冷热策略另以相同 trace 比较 hit ratio、淘汰数和 promotion/demotion 次数。
 检查生成码/代码大小；可用时采 branch/cache counters，缺失则明确说明。
 
 Linux x86-64 与 Windows x86-64 分别做同机 candidate/reference 比较，
