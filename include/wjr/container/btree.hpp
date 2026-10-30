@@ -902,22 +902,35 @@ private:
     }
 
 public:
-    basic_btree() noexcept : basic_btree(key_compare()) {}
+    basic_btree() noexcept(std::is_nothrow_default_constructible_v<key_compare> &&
+                           std::is_nothrow_default_constructible_v<_Alty>)
+        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(),
+                 wjr::forward_as_tuple(std::piecewise_construct, wjr::forward_as_tuple(),
+                                       wjr::forward_as_tuple(btree_node_constructor))) {}
 
     explicit basic_btree(const key_compare &comp) noexcept(
-        std::is_nothrow_copy_constructible_v<key_compare>)
+        std::is_nothrow_copy_constructible_v<key_compare> &&
+        std::is_nothrow_default_constructible_v<_Alty>)
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(comp),
                  wjr::forward_as_tuple(std::piecewise_construct, wjr::forward_as_tuple(),
                                        wjr::forward_as_tuple(btree_node_constructor))) {}
 
-    basic_btree(const basic_btree &other) noexcept(
-        std::is_nothrow_copy_constructible_v<key_compare>)
-        : basic_btree(other.key_comp()) {
+    basic_btree(const basic_btree &other)
+        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(other.key_comp()),
+                 wjr::forward_as_tuple(
+                     std::piecewise_construct,
+                     wjr::tuple<_Alty &&>(_Alty_traits::select_on_container_copy_construction(
+                         other._get_allocator())),
+                     wjr::forward_as_tuple(btree_node_constructor))) {
         _copy_assign_tree(other);
     }
 
-    basic_btree(basic_btree &&other) noexcept(std::is_nothrow_move_constructible_v<key_compare>)
-        : basic_btree(std::move(other.key_comp())) {
+    basic_btree(basic_btree &&other) noexcept(std::is_nothrow_move_constructible_v<key_compare> &&
+                                              std::is_nothrow_move_constructible_v<_Alty>)
+        : m_pair(std::piecewise_construct, wjr::tuple<key_compare &&>(std::move(other.key_comp())),
+                 wjr::forward_as_tuple(std::piecewise_construct,
+                                       wjr::tuple<_Alty &&>(std::move(other._get_allocator())),
+                                       wjr::forward_as_tuple(btree_node_constructor))) {
         _move_tree(std::move(other));
     }
 
