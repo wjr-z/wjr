@@ -108,6 +108,9 @@ WJR_INTRINSIC_CONSTEXPR size_t resolve_find_n_impl(const T *src0, const T *src1,
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t resolve_find_n(const T *src0, const T *src1, size_t n) noexcept {
+    if (is_constant_evaluated()) {
+        return fallback_find_n_iter_ptr(src0, src1, n);
+    }
     return resolve_find_n_impl(_find_cast_ptr(src0), _find_cast_ptr(src1), n);
 }
 
@@ -133,6 +136,10 @@ WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_n_impl(const T *src0, const 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_n(const T *src0, const T *src1,
                                                       size_t n) noexcept {
+    if (is_constant_evaluated()) {
+        return fallback_find_n_iter_ptr(std::make_reverse_iterator(src0 + n),
+                                        std::make_reverse_iterator(src1 + n), n);
+    }
     return resolve_reverse_find_n_impl(_find_cast_ptr(src0), _find_cast_ptr(src1), n);
 }
 
@@ -227,11 +234,15 @@ WJR_INTRINSIC_CONSTEXPR size_t resolve_find_n_impl(const T *src, type_identity_t
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t resolve_find_n(const T *src, T val, size_t n) noexcept {
+    if (is_constant_evaluated()) {
+        return _fallback_find_n_iter_val(src, val, n, std::false_type{});
+    }
     return resolve_find_n_impl(_find_cast_ptr(src), val, n);
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_n_impl(const T *src, T val, size_t n) noexcept {
+WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_n_impl(const T *src, type_identity_t<T> val,
+                                                           size_t n) noexcept {
 #if WJR_HAS_BUILTIN(FIND_N)
     if constexpr (sizeof(T) == 8 && is_nonbool_integral_v<T>) {
         if (!is_constant_evaluated()) {
@@ -245,6 +256,10 @@ WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_n_impl(const T *src, T val, 
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_n(const T *src, T val, size_t n) noexcept {
+    if (is_constant_evaluated()) {
+        return _fallback_find_n_iter_val(std::make_reverse_iterator(src + n), val, n,
+                                         std::false_type{});
+    }
     return resolve_reverse_find_n_impl(_find_cast_ptr(src), val, n);
 }
 
@@ -285,6 +300,9 @@ WJR_INTRINSIC_CONSTEXPR size_t resolve_find_not_n_impl(const T *src0, const T *s
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t resolve_find_not_n(const T *src0, const T *src1, size_t n) noexcept {
+    if (is_constant_evaluated()) {
+        return fallback_find_not_n_iter_ptr(src0, src1, n);
+    }
     return resolve_find_not_n_impl(_find_cast_ptr(src0), _find_cast_ptr(src1), n);
 }
 
@@ -310,6 +328,10 @@ WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_not_n_impl(const T *src0, co
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_not_n(const T *src0, const T *src1,
                                                           size_t n) noexcept {
+    if (is_constant_evaluated()) {
+        return fallback_find_not_n_iter_ptr(std::make_reverse_iterator(src0 + n),
+                                            std::make_reverse_iterator(src1 + n), n);
+    }
     return resolve_reverse_find_not_n_impl(_find_cast_ptr(src0), _find_cast_ptr(src1), n);
 }
 
@@ -401,11 +423,14 @@ WJR_INTRINSIC_CONSTEXPR size_t resolve_find_not_n_impl(const T *src, type_identi
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t resolve_find_not_n(const T *src, T val, size_t n) noexcept {
+    if (is_constant_evaluated()) {
+        return _fallback_find_not_n_iter_val(src, val, n, std::false_type{});
+    }
     return resolve_find_not_n_impl(_find_cast_ptr(src), val, n);
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_not_n_impl(const T *src, T val,
+WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_not_n_impl(const T *src, type_identity_t<T> val,
                                                                size_t n) noexcept {
 #if WJR_HAS_BUILTIN(REVERSE_FIND_NOT_N)
     if constexpr (sizeof(T) == 8 && is_nonbool_integral_v<T>) {
@@ -420,6 +445,10 @@ WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_not_n_impl(const T *src, T v
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_not_n(const T *src, T val, size_t n) noexcept {
+    if (is_constant_evaluated()) {
+        return _fallback_find_not_n_iter_val(std::make_reverse_iterator(src + n), val, n,
+                                             std::false_type{});
+    }
     return resolve_reverse_find_not_n_impl(_find_cast_ptr(src), val, n);
 }
 
