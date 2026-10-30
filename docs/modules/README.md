@@ -189,6 +189,9 @@ OpenBLAS LP64 后提供 `<wjr/np/cblas.hpp>` 的 `dot`、预分配 `gemm_to` 和
 copy、fill、reverse、rotate、sort 等算法；迭代顺序和存储边界见
 [bitset ranges](../design/bitset-ranges.md)。
 
+`wjr/vector.hpp` 的 `wjr::vector` 和 `wjr::small_vector` 支持 `assign_range`、
+`append_range` 与 `from_range` 构造，见 [vector range modifiers](../design/vector-ranges.md)。
+
 ## 使用方式
 
 在 WJR 已作为子目录加入项目，或通过安装包 `find_package(wjr CONFIG REQUIRED)` 找到后，链接模块 alias：
