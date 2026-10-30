@@ -3,7 +3,6 @@
 #if defined(WJR_ARCH_X86)
 
     #include <array>
-    #include <cstring>
     #include <memory>
 
     #include <gtest/gtest.h>
@@ -26,10 +25,9 @@ WJR_NOINLINE auto dynamic_load(const void *ptr, int count) noexcept {
 
 template <class Vector>
 void expect_prefix(Vector value, const unsigned char *ptr, size_t bytes) {
-    std::array<unsigned char, sizeof(Vector)> actual;
-    // Only copy the specified prefix; AVX cast results may have unspecified
+    // Only inspect the specified prefix; AVX cast results may have unspecified
     // upper lanes. Do not make zero extension part of the tested contract.
-    std::memcpy(actual.data(), &value, bytes);
+    const auto *actual = reinterpret_cast<const unsigned char *>(&value);
     for (size_t i = 0; i < bytes; ++i) {
         EXPECT_EQ(actual[i], ptr[i]) << "byte " << i;
     }
@@ -57,10 +55,9 @@ void check_partial_loads(const std::array<Load, Size> &fixed) {
     // Zero length accepts a null pointer without reading it. Its zero result is
     // already guaranteed by the existing switch and is fully specified.
     const auto empty = dynamic_load<Simd>(nullptr, 0);
-    std::array<unsigned char, sizeof(empty)> actual;
-    std::memcpy(actual.data(), &empty, sizeof(empty));
-    for (auto byte : actual) {
-        EXPECT_EQ(byte, 0);
+    const auto *actual = reinterpret_cast<const unsigned char *>(&empty);
+    for (size_t i = 0; i < sizeof(empty); ++i) {
+        EXPECT_EQ(actual[i], 0);
     }
 }
 

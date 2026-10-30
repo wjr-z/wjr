@@ -1,3 +1,6 @@
+<!-- markdownlint-disable MD043 -->
+<!-- This plan uses semantic headings; no required-heading template applies. -->
+
 # arch 实施计划与验收
 
 依据：[架构设计](arch-foundations.md)。执行模型：`gpt-6.1-sol`，reasoning `high`。
@@ -76,12 +79,21 @@ A1 已修复 `loadu_si48/80/96/112` 的五处尾部 typed dereference，改为
 
 | 平台与工具链 | 已完成验证 | 结果 |
 | --- | --- | --- |
-| Ubuntu 24.04 x86-64，GCC 13.3、Clang 18.1.3 | C++20，SSE2/SSE4.1/AVX/AVX2，独立全长度 probe，ASan + alignment sanitizer | 八组新实现均通过；旧实现均报告奇数地址的 `uint16_t` 非对齐读取 |
-| 同一 Linux worker | `-O3 -DNDEBUG -march=x86-64` 加对应 ISA 参数，48/80/96/112 位固定入口与旧实现、合法 scalar memcpy + intrinsic 基线比较 | 32/32 组逐指令一致；没有新增调用、分支、栈写或宽读取 |
-| Windows x64，Clang 18.1.8，i5-13500HX | C++20 Release/native，仓库 `tests` target、完整 CTest（含 JSON/UTF-8 调用方） | 12/12 CTest 通过；新 SSE/AVX 单测通过 |
-| 同一 Windows 工具链 | SSE2/SSE4.1/AVX/AVX2 独立 probe，ASan + alignment sanitizer，以及优化汇编比较 | 四组新实现通过、旧实现失败；16/16 固定入口与旧实现和合法 intrinsic 基线逐指令一致 |
-| Windows x64，MSVC 19.42 | fresh CMake 构建；新单测另行编译链接运行，baseline 与 `/arch:AVX2` | 新测试分别 1/1、2/2 通过；完整 `tests` 构建被既有 preprocessor 测试阻断，见下文 |
-| 格式与补丁 | 新测试显式格式化并暂存后，`python -m pre_commit run clang-format --all-files`、`git diff --check` | 通过 |
+| Linux GCC 13.3 / Clang 18.1.3 | 四种 ISA，ASan + alignment | 八组新通过、旧失败 |
+| 同一 Linux worker | 四个固定入口的优化汇编 | 32/32 组与两个基线逐指令一致 |
+| Windows Clang 18.1.8 | Release/native，仓库 tests/CTest | 12/12 CTest 通过 |
+| 同一 Windows 工具链 | 四种 ISA，sanitizer/汇编 | 新通过、旧失败，16/16 组一致 |
+| Windows MSVC 19.42 | fresh 构建及新单测 | 新测试通过，完整构建见下文 |
+| 格式与补丁 | all-files clang-format、空白检查 | 通过 |
+
+Linux worker 使用 Ubuntu 24.04 x86-64；Windows 本机 CPU 为 i5-13500HX。
+四种 ISA 是 SSE2、SSE4.1、AVX、AVX2，均使用 C++20。汇编使用
+`-O3 -DNDEBUG -march=x86-64` 加对应 ISA 参数，比较 48/80/96/112 位入口与旧实现、
+合法 scalar memcpy + intrinsic 基线，没有新增调用、分支、栈写或宽读取。
+Windows Clang 的完整 CTest 包含 JSON/UTF-8 调用方，新 SSE/AVX 测试通过；
+独立 probe 同时启用 ASan 和 alignment sanitizer。MSVC 新单测的 baseline 与
+`/arch:AVX2` 分别 1/1、2/2 通过。新文件显式格式化并暂存后，
+`python -m pre_commit run clang-format --all-files` 和 `git diff --check` 通过。
 
 ASan probe 为每个长度和偏移分配精确大小的字节数组，使有效前缀终点与分配终点
 重合；任何尾部宽读取都会进入 redzone。运行时入口通过 noinline 包装保留动态长度。

@@ -1,3 +1,6 @@
+<!-- markdownlint-disable MD043 -->
+<!-- Semantic headings apply here; there is no required-heading template. -->
+
 # arch 演进设计
 
 审查日期：2026-10-30。源码基线：`0f0288dececb29f59e4248fee136db36fe1e6e44`。
@@ -13,25 +16,30 @@
 | --- | --- | --- |
 | P0 | x86-64 / Linux / GCC、Clang | 主要性能决策依据；baseline 与显式 ISA 的代码生成和正确性 |
 | P0 | x86-64 / Windows / MSVC、Clang | 保持现有两项 CI；修复共用契约，避免为单一编译器增加通用开销 |
-| P1 | AArch64 / Linux、iOS / Clang，Linux GCC | 先验证配置和 portable fallback，再对真实热点试验 NEON |
+| P1 | AArch64 / Linux、iOS | 先验证 portable fallback，再试验 NEON |
 | 暂缓 | 32 位 x86/ARM、其他架构 | 根 CMake 当前拒绝非 64 位；不因宏存在而声称完整支持 |
 
 不建立编译器 × OS × ISA 的全组合矩阵。本轮不选择第三种架构；以后最多选一种，
 必须有实际用户、工具链和测量设备。iOS 的构建、链接与设备执行独立验收，
 Linux AArch64 结果不能替代 iOS。只有必要的热点才增加平台实现。
+AArch64 的工具链边界包括 Linux/iOS Clang 和 Linux GCC。
 
 ## 当前实现与证据
 
 | 区域 | 当前实现 | 后续处理 |
 | --- | --- | --- |
-| 配置/target | `wjr::config` 与 `wjr::isa` 分开；`ARCH_DEPENDENT` 控制 ISA 传递 | 保持；检查实际 compile commands 和安装消费者 |
-| CPU 信息 | `cpu_features` v0.10.1；baseline `arch-cpuinfo`；公开头暴露 `X86Info` | 保留兼容符号，未来收窄内部依赖；不能把探测误当运行时分派 |
-| SIMD | `sse`/`avx` 静态包装、宏守卫、部分低 ISA fallback | 首先锁定 partial load 与 mask 语义，避免全量包装迁移 |
-| 查找/比较 | uint64 专用内核、前端短长度检查、SSE4.1/AVX2 分支、展开循环 | 用现有 scan benchmark 验证单个候选；保持返回值与尾部边界 |
+| 配置/target | config/ISA 分开，按模块传递 | 检查 compile commands 和安装消费者 |
+| CPU 信息 | cpu_features v0.10.1，公开 `X86Info` | 保留兼容符号，收窄内部依赖 |
+| SIMD | 静态包装、宏守卫、低 ISA fallback | 先锁定 partial load 与 mask 语义 |
+| 查找/比较 | uint64 专用内核、短路径和展开 | 复用 scan benchmark，保持返回值和边界 |
 | 填充/移位 | 自有 SIMD、rep stos、阈值与展开策略 | 先测混合长度；不凭固定长度或 TODO 改阈值 |
 | 大整数 | x86 内联汇编、NASM 与通用实现 | 保留已专门优化的进位链；复用不等于替换所有内核 |
 | JSON/UTF-8 | 字节位集与分类内核 | 与数值 lane predicate 分开；不让逻辑掩码接口破坏字节位图 |
 | 其他 arch | generic 配置、Windows 入口、preview 分配适配 | 存在这些目录不表示已经有 ARM 数值优化 |
+
+`wjr::config` 与 `wjr::isa` 分开，由 `ARCH_DEPENDENT` 控制 ISA 传递。
+`arch-cpuinfo` 保持 baseline；CPU 探测不能当作运行时分派。SIMD 避免全量包装迁移，
+扫描继续保留 SSE4.1/AVX2 分支及现有短长度检查。
 
 具体首个缺陷位于 `include/wjr/arch/x86/simd/sse.hpp`：
 `loadu_si48/80/96/112` 在拼接尾部时把 `void*` 转为 `uint16_t*` 或
