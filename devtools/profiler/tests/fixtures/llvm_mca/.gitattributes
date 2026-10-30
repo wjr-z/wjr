@@ -1,0 +1,2 @@
+# Preserve the analyzer's original output bytes for raw-source SHA-256 verification.
+raw.json -text whitespace=cr-at-eol

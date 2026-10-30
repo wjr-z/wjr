@@ -54,6 +54,24 @@ def _side_lines(name, side):
         lines.append("Locations: " + cell(", ".join(observation["source_locators"])))
         lines.append("Sample level: " + cell(observation["sample_level"]))
         lines.extend(_counter_lines(observation))
+        lines.extend(_model_lines(observation))
+    return lines
+
+
+def _model_lines(observation):
+    if observation["time_basis"] != "model":
+        return []
+    metadata = observation["metadata"]
+    label = f"Scheduling model: {metadata.get('cpu_model')}; target: {metadata.get('target_triple')}."
+    counts = f"Static instructions: {metadata.get('static_instruction_count')}; simulated iterations: {metadata.get('iterations')} (not sample n)."
+    lines = [cell(label), cell(counts), "Model estimates do not simulate real branch prediction, cache misses or OS behavior."]
+    details = metadata.get("instruction_details")
+    if details:
+        lines += ["", "| Instruction | Assembly | Latency | Micro-ops | Model RThroughput |",
+                  "| ---: | --- | ---: | ---: | ---: |"]
+        for row in details:
+            values = (row["index"], row["assembly"], row.get("Latency"), row.get("NumMicroOpcodes"), row.get("RThroughput"))
+            lines.append("| " + " | ".join(cell(value) for value in values) + " |")
     return lines
 
 

@@ -1,0 +1,190 @@
+{
+  "CodeRegions": [
+    {
+      "InstructionInfoView": {
+        "InstructionList": [
+          {
+            "Instruction": 0,
+            "Latency": 1,
+            "NumMicroOpcodes": 1,
+            "RThroughput": 0.25,
+            "hasUnmodeledSideEffects": false,
+            "mayLoad": false,
+            "mayStore": false
+          },
+          {
+            "Instruction": 1,
+            "Latency": 1,
+            "NumMicroOpcodes": 1,
+            "RThroughput": 0.25,
+            "hasUnmodeledSideEffects": false,
+            "mayLoad": false,
+            "mayStore": false
+          }
+        ]
+      },
+      "Instructions": [
+        "addq\t%rax, %rbx",
+        "addq\t%rbx, %rcx"
+      ],
+      "Name": "dependent_add",
+      "ResourcePressureView": {
+        "ResourcePressureInfo": [
+          {
+            "InstructionIndex": 0,
+            "ResourceIndex": 3,
+            "ResourceUsage": 0.5
+          },
+          {
+            "InstructionIndex": 0,
+            "ResourceIndex": 8,
+            "ResourceUsage": 0.5
+          },
+          {
+            "InstructionIndex": 1,
+            "ResourceIndex": 2,
+            "ResourceUsage": 0.5
+          },
+          {
+            "InstructionIndex": 1,
+            "ResourceIndex": 7,
+            "ResourceUsage": 0.5
+          },
+          {
+            "InstructionIndex": 2,
+            "ResourceIndex": 2,
+            "ResourceUsage": 0.5
+          },
+          {
+            "InstructionIndex": 2,
+            "ResourceIndex": 3,
+            "ResourceUsage": 0.5
+          },
+          {
+            "InstructionIndex": 2,
+            "ResourceIndex": 7,
+            "ResourceUsage": 0.5
+          },
+          {
+            "InstructionIndex": 2,
+            "ResourceIndex": 8,
+            "ResourceUsage": 0.5
+          }
+        ]
+      },
+      "SummaryView": {
+        "BlockRThroughput": 0.5,
+        "DispatchWidth": 6,
+        "IPC": 1.9230769230769231,
+        "Instructions": 200,
+        "Iterations": 100,
+        "TotalCycles": 104,
+        "TotaluOps": 200,
+        "uOpsPerCycle": 1.9230769230769231
+      }
+    },
+    {
+      "InstructionInfoView": {
+        "InstructionList": [
+          {
+            "Instruction": 0,
+            "Latency": 1,
+            "NumMicroOpcodes": 1,
+            "RThroughput": 0.25,
+            "hasUnmodeledSideEffects": false,
+            "mayLoad": false,
+            "mayStore": false
+          },
+          {
+            "Instruction": 1,
+            "Latency": 1,
+            "NumMicroOpcodes": 1,
+            "RThroughput": 0.25,
+            "hasUnmodeledSideEffects": false,
+            "mayLoad": false,
+            "mayStore": false
+          }
+        ]
+      },
+      "Instructions": [
+        "addq\t%rax, %rbx",
+        "addq\t%rax, %rcx"
+      ],
+      "Name": "independent_add",
+      "ResourcePressureView": {
+        "ResourcePressureInfo": [
+          {
+            "InstructionIndex": 0,
+            "ResourceIndex": 3,
+            "ResourceUsage": 0.5
+          },
+          {
+            "InstructionIndex": 0,
+            "ResourceIndex": 8,
+            "ResourceUsage": 0.5
+          },
+          {
+            "InstructionIndex": 1,
+            "ResourceIndex": 2,
+            "ResourceUsage": 0.5
+          },
+          {
+            "InstructionIndex": 1,
+            "ResourceIndex": 7,
+            "ResourceUsage": 0.5
+          },
+          {
+            "InstructionIndex": 2,
+            "ResourceIndex": 2,
+            "ResourceUsage": 0.5
+          },
+          {
+            "InstructionIndex": 2,
+            "ResourceIndex": 3,
+            "ResourceUsage": 0.5
+          },
+          {
+            "InstructionIndex": 2,
+            "ResourceIndex": 7,
+            "ResourceUsage": 0.5
+          },
+          {
+            "InstructionIndex": 2,
+            "ResourceIndex": 8,
+            "ResourceUsage": 0.5
+          }
+        ]
+      },
+      "SummaryView": {
+        "BlockRThroughput": 0.5,
+        "DispatchWidth": 6,
+        "IPC": 1.941747572815534,
+        "Instructions": 200,
+        "Iterations": 100,
+        "TotalCycles": 103,
+        "TotaluOps": 200,
+        "uOpsPerCycle": 1.941747572815534
+      }
+    }
+  ],
+  "SimulationParameters": {
+    "-march": "x86_64",
+    "-mcpu": "skylake",
+    "-mtriple": "x86_64-unknown-linux-gnu"
+  },
+  "TargetInfo": {
+    "CPUName": "skylake",
+    "Resources": [
+      "SKLDivider",
+      "SKLFPDivider",
+      "SKLPort0",
+      "SKLPort1",
+      "SKLPort2",
+      "SKLPort3",
+      "SKLPort4",
+      "SKLPort5",
+      "SKLPort6",
+      "SKLPort7"
+    ]
+  }
+}

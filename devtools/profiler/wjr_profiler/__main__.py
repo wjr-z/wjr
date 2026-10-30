@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-from .adapters import cprofile_json, google_benchmark
+from .adapters import cprofile_json, google_benchmark, llvm_mca
 from .bundle import import_bundle, load_bundle
 from .compare import compare
 from .cprofile_report import write_summary
@@ -11,7 +11,8 @@ from .exporters.cprofile_json import export_profile
 from .report import write_report
 
 PROVIDERS = {"google-benchmark": google_benchmark.import_artifact,
-             "cprofile-json": cprofile_json.import_artifact}
+             "cprofile-json": cprofile_json.import_artifact,
+             "llvm-mca": llvm_mca.import_artifact}
 
 
 def main(argv=None):

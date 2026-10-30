@@ -3,6 +3,7 @@
 import math
 
 from .model import ENVIRONMENT_FIELDS, WORKLOAD_FIELDS, field, require, summarize, unknown
+from .mca_compare import eligibility as mca_eligibility
 
 
 def identity(observation):
@@ -106,6 +107,10 @@ def _region_reasons(left, right, lregion, rregion):
 
 def _eligibility(left, right, lregion, rregion, before, after, context_axes):
     reasons, hard = _region_reasons(left, right, lregion, rregion)
+    if left["producer"]["provider"] == right["producer"]["provider"] == "llvm-mca":
+        extra, blocked, failed = mca_eligibility(left, right, before, after)
+        reasons.extend(extra)
+        return reasons, hard or blocked, False, failed
     environment, env_blocked, contextual = _environment_reasons(left, right, context_axes)
     provenance, shared = _provenance_reasons(left, right)
     observations, obs_blocked, failed = _observation_pair_reasons(before, after)
