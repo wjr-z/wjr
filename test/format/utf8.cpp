@@ -1,8 +1,11 @@
 #include "../detail.hpp"
 
+#include <algorithm>
+#include <memory>
 #include <string>
 
 #include <wjr/format/utf8/utf8.hpp>
+#include <wjr/json/string.hpp>
 
 using namespace wjr;
 
@@ -67,4 +70,48 @@ TEST(utf8, invalid_unicode_escapes) {
     }
 
     EXPECT_TRUE(utf8::check_unicode("", ""));
+}
+
+TEST(utf8, trailing_backslash_at_block_boundaries) {
+    const size_t lengths[] = {1, 15, 16, 17, 31, 32, 33, 47, 48, 63, 64, 65, 96, 128};
+    for (const size_t n : lengths) {
+        SCOPED_TRACE(n);
+        auto input = std::make_unique<char[]>(n);
+        auto output = std::make_unique<char[]>(n);
+        std::fill_n(input.get(), n, 'a');
+        input[n - 1] = '\\';
+        const auto first = input.get();
+        const auto last = first + n;
+
+        EXPECT_FALSE(utf8::check_unicode(first, last));
+        EXPECT_FALSE(utf8::unicode_to_utf8(output.get(), first, last));
+        EXPECT_FALSE(utf8::fallback_check_unicode(first, last));
+        EXPECT_FALSE(utf8::fallback_unicode_to_utf8(output.get(), first, last));
+
+        const auto checked = json::detail::check_string(first, last);
+        ASSERT_FALSE(checked);
+        EXPECT_EQ(checked.error(), json::error_code::UTF8_ERROR);
+        const auto parsed = json::detail::parse_string(output.get(), first, last);
+        ASSERT_FALSE(parsed);
+        EXPECT_EQ(parsed.error(), json::error_code::UTF8_ERROR);
+    }
+}
+
+TEST(utf8, valid_escape_crosses_block_boundary) {
+    const size_t boundaries[] = {16, 32, 64};
+    for (const size_t boundary : boundaries) {
+        SCOPED_TRACE(boundary);
+        auto input = std::make_unique<char[]>(boundary + 1);
+        auto output = std::make_unique<char[]>(boundary + 1);
+        std::fill_n(input.get(), boundary - 1, 'a');
+        input[boundary - 1] = '\\';
+        input[boundary] = 'n';
+
+        EXPECT_TRUE(utf8::check_unicode(input.get(), input.get() + boundary + 1));
+        const auto result =
+            utf8::unicode_to_utf8(output.get(), input.get(), input.get() + boundary + 1);
+        ASSERT_TRUE(result);
+        EXPECT_EQ(*result, output.get() + boundary);
+        EXPECT_EQ(std::string(output.get(), boundary), std::string(boundary - 1, 'a') + '\n');
+    }
 }

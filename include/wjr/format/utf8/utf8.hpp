@@ -349,7 +349,9 @@ inline optional<void> fallback_check_unicode(const char *first, const char *last
         uint8_t ch = *first++;
 
         if (WJR_UNLIKELY(ch == '\\')) {
-            WJR_ASSERT(first != last);
+            if (WJR_UNLIKELY(first == last)) {
+                return nullopt;
+            }
             ch = *first++;
 
             if (WJR_UNLIKELY(ch == 'u')) {
@@ -372,6 +374,8 @@ extern WJR_ALL_NONNULL WJR_PURE optional<void> builtin_check_unicode(const char 
                                                                      const char *last) noexcept;
 #endif
 
+/// @brief Validate JSON-style escapes in [first, last), without requiring padding.
+/// @return An empty optional for an invalid or truncated escape.
 WJR_ALL_NONNULL inline optional<void> check_unicode(const char *first, const char *last) noexcept {
 #if WJR_HAS_BUILTIN(UTF8_CHECK_UNICODE)
     return builtin_check_unicode(first, last);
@@ -390,7 +394,9 @@ inline compressed_optional<char *> fallback_unicode_to_utf8(char *dst, const cha
         uint8_t ch = to_u8(*first++);
 
         if (WJR_UNLIKELY(ch == '\\')) {
-            WJR_ASSERT(first != last);
+            if (WJR_UNLIKELY(first == last)) {
+                return nullopt;
+            }
             ch = *first++;
 
             if (WJR_UNLIKELY(ch == 'u')) {
@@ -417,6 +423,9 @@ extern WJR_ALL_NONNULL compressed_optional<char *>
 builtin_unicode_to_utf8(char *dst, const char *first, const char *last) noexcept;
 #endif
 
+/// @brief Decode JSON-style escapes in [first, last), without requiring padding.
+/// @pre dst has space for at least last - first bytes.
+/// @return The output end, or an empty optional for an invalid or truncated escape.
 WJR_ALL_NONNULL inline compressed_optional<char *> unicode_to_utf8(char *dst, const char *first,
                                                                    const char *last) noexcept {
 #if WJR_HAS_BUILTIN(UTF8_UNICODE_TO_UTF8)
