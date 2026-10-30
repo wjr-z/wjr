@@ -63,6 +63,7 @@ SIMD 填充实验使用 `-DWJR_BENCHMARK_PROFILE=simd`；xsimd 对照默认关�
 - [x] biginteger完善，lazy计算（优先级低）
 - [ ] 按设计稿评估成熟 mdspan 实现，以及 view、owner 和表达式层
 - [ ] ring_buffer完善
+- [ ] 按 [LRU cache 设计](docs/design/lru-cache.md) 评估单线程固定容量缓存
 - [ ] log（优先级低）
 - [ ] malloc库替换
 - [ ] ranges支持
