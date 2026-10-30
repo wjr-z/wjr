@@ -144,16 +144,15 @@ template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T mulhi(T a, T b) noexcept {
 #if WJR_HAS_BUILTIN(MSVC_MULH64)
     constexpr auto nd = std::numeric_limits<T>::digits;
-    if constexpr (nd < 64) {
-#endif
-        T ret = 0;
-        (void)mul(a, b, ret);
-        return ret;
-#if WJR_HAS_BUILTIN(MSVC_MULH64)
-    } else {
-        return __umulh(a, b);
+    if constexpr (nd >= 64) {
+        if (!is_constant_evaluated()) {
+            return __umulh(a, b);
+        }
     }
 #endif
+    T ret = 0;
+    (void)mul(a, b, ret);
+    return ret;
 }
 
 /**
@@ -169,7 +168,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T mulhi(T a, T b) noexcept {
  */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T mullo(T a, T b) noexcept {
-    return a * b;
+    return static_cast<T>(to_unsigned(+a) * b);
 }
 
 #if WJR_HAS_BUILTIN(__builtin_mul_overflow)
