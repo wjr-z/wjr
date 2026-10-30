@@ -86,9 +86,12 @@ and 150 s. Their Build steps took 53 s and 31 s, with each backend reporting
 Linux now probes the requested versioned C/C++ drivers and compiles an ASan
 header/runtime probe at the matrix's C++ standard. An available matching major
 version avoids reinstalling the compiler; otherwise the existing setup action
-still runs. Compiler contents remain part of the object-cache identity. Installed
-consumers use the selected C++ driver too, rather than the runner's unversioned
-Clang default.
+still runs. Reused Clang drivers retain setup-clang's `/usr/local/bin/clang`
+and `clang++` aliases: Clang's reported `InstalledDir` belongs to the existing
+fingerprint, so switching directly to a versioned driver would unnecessarily
+select a cold cache pool. Compiler contents remain part of the object-cache
+identity. Installed consumers use the selected C++ driver too, rather than the
+runner's unversioned Clang default.
 
 Linux and Windows use two CTest workers. The seven provider-scope configuration
 tests each have an independent build directory and reuse dependency sources
