@@ -3,16 +3,18 @@
 import argparse
 import sys
 
-from .adapters import cprofile_json, google_benchmark, llvm_mca
+from .adapters import cprofile_json, google_benchmark, llvm_mca, curl_json
 from .bundle import import_bundle, load_bundle
 from .compare import compare
 from .cprofile_report import write_summary
 from .exporters.cprofile_json import export_profile
 from .report import write_report
+from .curl_report import write_summary as write_curl_summary
 
 PROVIDERS = {"google-benchmark": google_benchmark.import_artifact,
              "cprofile-json": cprofile_json.import_artifact,
-             "llvm-mca": llvm_mca.import_artifact}
+             "llvm-mca": llvm_mca.import_artifact,
+             "curl-json": curl_json.import_artifact}
 
 
 def main(argv=None):
@@ -43,10 +45,16 @@ def main(argv=None):
     hotspots = commands.add_parser("cprofile-summary", help="rank self-time hotspots from one imported profile; no regression claim")
     hotspots.add_argument("bundle")
     hotspots.add_argument("--out", required=True)
+    requests = commands.add_parser("curl-summary", help="show request phases from an offline curl JSONL bundle")
+    requests.add_argument("bundle")
+    requests.add_argument("--out", required=True)
     args = parser.parse_args(argv)
     try:
         if args.command == "import":
-            import_bundle(args.provider, PROVIDERS[args.provider], args.raw, args.manifest, args.out)
+            import_bundle(args.provider, PROVIDERS[args.provider], args.raw, args.manifest, args.out,
+                          decoder=curl_json.decode_raw if args.provider == "curl-json" else None)
+        elif args.command == "curl-summary":
+            write_curl_summary(load_bundle(args.bundle), args.out)
         elif args.command == "export-cprofile":
             export_profile(args.input, args.output, args.producer_version, args.timer,
                            args.time_basis, args.thread_coverage, args.manifest_out)

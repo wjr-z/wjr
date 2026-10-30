@@ -22,13 +22,13 @@ def manifest_digest(manifest):
     return hashlib.sha256(json.dumps(content, sort_keys=True, allow_nan=False).encode()).hexdigest()
 
 
-def import_bundle(provider, adapter, raw_path, manifest_path, destination):
+def import_bundle(provider, adapter, raw_path, manifest_path, destination, decoder=None):
     raw_bytes = Path(raw_path).read_bytes()
     manifest = validate_manifest(read_json(manifest_path))
     require(manifest["producer"]["provider"] == provider, "provider does not match manifest.producer")
     require(hashlib.sha256(raw_bytes).hexdigest() == manifest["raw_source"]["sha256"].lower(),
             "raw SHA-256 does not match manifest")
-    raw = json.loads(raw_bytes.decode("utf-8-sig"))
+    raw = decoder(raw_bytes) if decoder else json.loads(raw_bytes.decode("utf-8-sig"))
     observations, diagnostics = adapter(raw, manifest)
     validate_observations(observations, manifest)
     manifest["raw_source"] = dict(manifest["raw_source"], path="raw/input.json")
