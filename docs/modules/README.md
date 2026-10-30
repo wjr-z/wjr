@@ -180,6 +180,8 @@ OpenBLAS LP64 后提供 `<wjr/np/cblas.hpp>` 的 `dot`、预分配 `gemm_to` 和
 
 显式 allocator 实例与 PMR pool/monotonic resource 的使用方式见[B-tree 资源示例](../design/btree-allocator-resources.md)。
 
+`wjr/container/list.hpp` 支持不分配内存的常数时间节点、区间和整环转移，见[侵入式链表示例与合同](intrusive-list.md)。
+
 ## 使用方式
 
 在 WJR 已作为子目录加入项目，或通过安装包 `find_package(wjr CONFIG REQUIRED)` 找到后，链接模块 alias：
