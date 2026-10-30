@@ -358,6 +358,7 @@ char *minify(char *dst, const char *first, const char *last) noexcept {
     uint64_t prev_is_escape = 0;
     simd_int stk[u8_loop];
     char buf[64];
+    size_t tail_size = 64;
 
     do {
         if (const size_t diff = last - first; WJR_LIKELY(diff > 64)) {
@@ -374,6 +375,7 @@ char *minify(char *dst, const char *first, const char *last) noexcept {
             } else {
                 std::memset(buf, ' ', 64);
                 std::memcpy(buf, first, diff);
+                tail_size = diff;
 
                 for (size_t i = 0; i < u8_loop; ++i) {
                     stk[i] = simd::loadu(buf + i * u8_width);
@@ -430,6 +432,10 @@ char *minify(char *dst, const char *first, const char *last) noexcept {
 
         // this is last block
         if (WJR_UNLIKELY(first == last)) {
+            if (tail_size != 64) {
+                /// Exclude padding even if the input ends inside a string.
+                W |= ~uint64_t{0} << tail_size;
+            }
             auto buf_end = buf;
             for (unsigned i = 0; i < u8_loop; ++i) {
                 const typename simd::mask_type mask = (W >> (i * u8_width)) & simd::mask();
@@ -438,6 +444,7 @@ char *minify(char *dst, const char *first, const char *last) noexcept {
             }
 
             std::memcpy(dst, buf, buf_end - buf);
+            dst += buf_end - buf;
             break;
         }
 

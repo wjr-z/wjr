@@ -184,6 +184,7 @@ char *minify(char *dst, const char *first, const char *last) noexcept {
 
     do {
         const char *ptr;
+        const size_t n = std::min<size_t>(last - first, 64);
 
         if (const size_t diff = last - first; WJR_LIKELY(diff > 64)) {
             ptr = first;
@@ -228,7 +229,8 @@ char *minify(char *dst, const char *first, const char *last) noexcept {
         prev_in_string = static_cast<uint64_t>(static_cast<int64_t>(R) >> 63);
         W &= ~(R | Q);
 
-        for (int i = 0; i < 64; i += 4) {
+        size_t i = 0;
+        for (; i + 4 <= n; i += 4) {
             const uint8_t X = (W >> i) & 0x0F;
 
             dst[0] = ptr[i];
@@ -237,6 +239,12 @@ char *minify(char *dst, const char *first, const char *last) noexcept {
             dst[diff_table[X * 8 + 2]] = ptr[i + 3];
 
             dst += diff_table[X * 8 + 3];
+        }
+
+        for (; i < n; ++i) {
+            if (!(W & (uint64_t{1} << i))) {
+                *dst++ = ptr[i];
+            }
         }
 
     } while (WJR_LIKELY(first != last));

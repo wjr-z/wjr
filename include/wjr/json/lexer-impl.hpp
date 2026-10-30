@@ -56,6 +56,9 @@ private:
     uint32_t idx = 0;
 };
 
+/// @brief Remove whitespace outside strings from [first, last).
+/// @pre dst has room for last - first bytes; dst may equal first for in-place minification.
+/// @return The end of the written output.
 extern WJR_ALL_NONNULL WJR_RETURNS_NONNULL char *minify(char *dst, const char *first,
                                                         const char *last) noexcept;
 
