@@ -42,6 +42,13 @@ lifetimes. Relocation uses the existing WJR customization contract for the actua
 pair type; observable allocator construction and destruction hooks remain active.
 No mutable-key pair is reinterpreted as a const-key pair.
 
+Insertion constructs a stack temporary before shifting live slots, so arguments
+can refer to an existing mapped value. Moving that temporary into the destination
+adds a mapped-value move compared with constructing an indirect value directly
+in its separately allocated block. Trivial relocation can avoid invoking a move
+constructor during subsequent slot transfers; custom allocator hooks retain
+their observable construction and destruction calls.
+
 The existing linked leaves, parent and position metadata, compressed root
 representation, two-element SSO, fixed-capacity searches and scalar separator
 strategy remain in use. Legacy slot movement retains its pointer/trivial copy
@@ -53,3 +60,15 @@ pair allocations improves total memory or time depends on value size, fill,
 operation mix, allocator, compiler and platform. Compare the same slot capacity
 with the focused B-tree benchmark and its separate memory-accounting pass;
 allocation counts alone do not establish a throughput benefit.
+
+Observed x64 Windows Clang/MSVC-ABI layout at capacity 16 (requested node bytes,
+excluding allocator overhead):
+
+| Key / mapped value | Legacy tree / leaf | Compact tree / leaf | Pair bytes |
+| --- | ---: | ---: | ---: |
+| uint64 / uint64 | 48 / 160 | 64 / 288 | 16 |
+| uint64 / array<byte, 64> | 48 / 160 | 176 / 1184 | 72 |
+
+Inner nodes are 288 bytes for both cases and strategies. Legacy maps additionally
+request one pair-sized allocation per element. These layout facts do not predict
+leaf fill or total resident memory.
