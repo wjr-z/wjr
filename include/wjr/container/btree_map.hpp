@@ -48,8 +48,8 @@ private:
 public:
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(btree_map);
 
-    template <typename Iter>
-    btree_map(Iter first, Iter last,
+    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    btree_map(Iter first, Sentinel last,
               const key_compare &comp = key_compare()) noexcept(noexcept(Mybase(comp)))
         : Mybase(comp) {
         for (; first != last; ++first) {
@@ -60,6 +60,35 @@ public:
     btree_map(std::initializer_list<value_type> il,
               const key_compare &comp = key_compare()) noexcept(noexcept(Mybase(comp)))
         : btree_map(il.begin(), il.end(), comp) {}
+
+    /// @brief Construct a single-pass range using explicit ordering and allocator state.
+    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    btree_map(Iter first, Sentinel last, const key_compare &comp, const allocator_type &alloc)
+        : Mybase(comp, alloc) {
+        this->insert(first, last);
+    }
+
+    /// @brief Construct a range with the allocator and default ordering.
+    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    requires btree_detail::default_allocator_order<key_compare, allocator_type>
+    btree_map(Iter first, Sentinel last, const allocator_type &alloc)
+        : btree_map(first, last, key_compare(), alloc) {}
+
+    /// @brief Construct list values using explicit ordering and allocator state.
+    btree_map(std::initializer_list<value_type> il, const key_compare &comp,
+              const allocator_type &alloc) noexcept(noexcept(Mybase(comp, alloc)))
+        : btree_map(il.begin(), il.end(), comp, alloc) {}
+
+    /// @brief Construct list values using the allocator and default ordering.
+    btree_map(std::initializer_list<value_type> il,
+              const allocator_type &alloc) noexcept(noexcept(Mybase(key_compare(), alloc)))
+    requires btree_detail::default_allocator_order<key_compare, allocator_type>
+        : btree_map(il.begin(), il.end(), key_compare(), alloc) {}
+
+    /// @brief Construct an empty tree using explicit allocator and default ordering.
+    explicit btree_map(const allocator_type &alloc) noexcept(noexcept(Mybase(key_compare(), alloc)))
+    requires btree_detail::default_allocator_order<key_compare, allocator_type>
+        : Mybase(key_compare(), alloc) {}
 
     mapped_type &at(const key_type &key) {
         auto iter = this->lower_bound(key);
