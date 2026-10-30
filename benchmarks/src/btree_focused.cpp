@@ -96,6 +96,16 @@ void register_scenario(const std::string &name, S spec) {
     register_tree<S, typename wjr_backend<S, std::allocator<char>, 32>::type>(name + "/wjr32",
                                                                               spec);
     register_tree<S, typename std_backend<S, std::allocator>::type>(name + "/std", spec);
+#ifdef WJR_BENCHMARK_COMPACT
+    if constexpr (std::is_same_v<typename S::key_type, uint64_t> &&
+                  (std::is_same_v<typename S::mapped_type, uint64_t> ||
+                   std::is_same_v<typename S::mapped_type, large_value>)) {
+        register_tree<S,
+                      wjr::experimental::compact_btree_map<uint64_t, typename S::mapped_type,
+                                                           std::less<>, std::allocator<char>, 16>>(
+            name + "/compact16", spec);
+    }
+#endif
 #ifdef WJR_BENCHMARK_ABSEIL
     register_tree<S, typename absl_backend<S, std::allocator>::type>(name + "/absl", spec);
 #endif

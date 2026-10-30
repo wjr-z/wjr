@@ -5,6 +5,11 @@ on:
     - cron: "17 3 * * 1"
   workflow_dispatch:
     inputs:
+      compact:
+        description: Include experimental compact N16 maps in the manual btree profile
+        required: false
+        default: false
+        type: boolean
       showcase:
         description: Run the manual Abseil B+ tree showcase instead of regular profiles
         required: false
@@ -88,6 +93,7 @@ jobs:
             -DWJR_BUILD_BENCHMARKS=ON \
             -DWJR_BUILD_TESTS=OFF \
             -DWJR_BENCHMARK_PROFILE="$BENCHMARK_PROFILE" \
+            -DWJR_BENCHMARK_COMPACT="${{ inputs.compact || false }}" \
             -DWJR_BENCHMARK_XSIMD="$xsimd" \
             -DWJR_ENABLE_NP="$np" \
             -DWJR_ENABLE_XSIMD="$np" \
@@ -148,8 +154,9 @@ jobs:
             -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
             -DCMAKE_BUILD_TYPE=Release -DWJR_CPU_TARGET=baseline \
             -DWJR_BUILD_BENCHMARKS=ON -DWJR_BENCHMARK_PROFILE=btree \
+            -DWJR_BENCHMARK_COMPACT="${{ inputs.compact || false }}" \
             -DWJR_ENABLE_INSTALL=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-            -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent"
+            -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent-clang"
           cmake --build build-clang --target benchmarks btree_memory --parallel
           ./build-clang/bin/benchmarks \
             --benchmark_filter='/(64|4096)/' --benchmark_repetitions=5 \

@@ -1,0 +1,1285 @@
+{
+  "schema": 1,
+  "frozen_feature_source": "0575e0cbe2a2586a63bb788d87ec63870ef9d082",
+  "measurement_source": "e3b59a81bcb37433510e8dede0fe850a19f326c5",
+  "measurement_date": "2026-10-30",
+  "measurement_source_blobs": {
+    "include/wjr/container/btree.hpp": "c2d1c8560deacdaf4a2fb38ac5ec3d3932a99702",
+    "include/wjr/container/detail/btree_slot.hpp": "1b3efcf84a7a856fc6a1cf73be916948df2fe945",
+    "include/wjr/container/experimental/compact_btree_map.hpp": "8bb337c1c876b2367367bd5f666c580ca0c0bf37",
+    "test/container/btree_compact.cpp": "744677aa1c40711b6dc0a7477cae3a220f945e6a",
+    "docs/design/btree-compact-map.md": "ad1c3b41fed0716d220ec0784772f3a475626ffb"
+  },
+  "trace_source_sha256": "424092786f0790e7438c59fc297af842b951e1def870fe486e37df01864bd6c5",
+  "measurement_contract": {
+    "timing_allocator": "std::allocator; no counters",
+    "memory_allocator": "separate pass with correctly rebound counting_allocator",
+    "node_capacity": 16,
+    "repetitions": 5,
+    "minimum_time_seconds": 0.05,
+    "metric": "wall time per logical operation",
+    "lower_bound_queries": 2048,
+    "mixed_operations": 5120,
+    "scan": "keys/digest only; mapped payload not consumed",
+    "allocation_window": "build + one mixed trace + clear/destruction",
+    "requested_heap_exclusions": [
+      "tree object",
+      "allocator overhead",
+      "size-class rounding",
+      "RSS",
+      "input/query buffers"
+    ],
+    "pool_reserved_bytes": "NA",
+    "hardware_counters": "not collected",
+    "invalidation": "no iterator/reference/pointer survives mutation",
+    "trace_equivalence": "within compiler/STL profile; std::shuffle may differ between STLs"
+  },
+  "profiles": [
+    {
+      "id": "windows-clang18",
+      "label": "Windows Clang",
+      "cpu": "Intel Core i5-13500HX",
+      "os": "Windows 11 22631",
+      "cpu_affinity": "CPU 0",
+      "context": {
+        "date": "2026-10-30T19:25:52+08:00",
+        "host_name": "WJR",
+        "executable": "D:\\repos\\.cache\\wjr\\worktrees\\btree-compact-measure-20261030\\build\\clang-release\\bin\\benchmarks.exe",
+        "num_cpus": 20,
+        "mhz_per_cpu": 2688,
+        "caches": [
+          {
+            "type": "Data",
+            "level": 1,
+            "size": 49152,
+            "num_sharing": 2
+          },
+          {
+            "type": "Instruction",
+            "level": 1,
+            "size": 32768,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 2,
+            "size": 1310720,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 3,
+            "size": 25165824,
+            "num_sharing": 20
+          }
+        ],
+        "load_avg": [],
+        "library_version": "v1.9.0",
+        "library_build_type": "release",
+        "json_schema_version": 1,
+        "allocator": "std::allocator; no counters",
+        "standard_library": "MSVC STL 143.202408",
+        "string_sizeof": "32",
+        "trace_blocks": "256",
+        "trace_seed": "1656023321",
+        "wjr_compiler": "Clang-18.1.8",
+        "wjr_cpu_target": "baseline",
+        "wjr_flags": "/DWIN32 /D_WINDOWS /EHsc /O2 /Ob2 /DNDEBUG /Zc:preprocessor /Zc:lambda /EHsc /utf-8  C++20",
+        "wjr_source": "e3b59a81bcb37433510e8dede0fe850a19f326c5"
+      },
+      "artifact_run": null,
+      "raw_timing_sha256": "5f96e4933ea5c9da0f49fc618acfe424e1aaf21fcc3563ac7cffe795503da0fd",
+      "raw_memory_sha256": "eb4b14803e372ca69dd712ab64174ca6e61a48543f2cee420e7c7af59312c4b4",
+      "ns_per_operation_samples": {
+        "u64_map/64/build_destroy/wjr16": [
+          55.13792740541164,
+          55.11103185363698,
+          59.36235616747482,
+          52.701102715859626,
+          52.92898404964281
+        ],
+        "u64_map/4096/build_destroy/wjr16": [
+          123.90119280400063,
+          127.93980190193922,
+          129.51851981389342,
+          118.69315011482837,
+          109.47910853431608
+        ],
+        "u64_map/64/lower_bound_50/wjr16": [
+          4.310182314437093,
+          4.3774585218540665,
+          4.23920182037916,
+          4.305634477117539,
+          4.391022568974304
+        ],
+        "u64_map/4096/lower_bound_50/wjr16": [
+          20.67557669936247,
+          20.229591163773325,
+          21.269465266515443,
+          22.709729993216662,
+          22.00452649881791
+        ],
+        "u64_map/64/mixed_90_5_5/wjr16": [
+          18.785891011362008,
+          16.529040536764647,
+          18.577363851245927,
+          16.245110594029107,
+          18.460678477989273
+        ],
+        "u64_map/4096/mixed_90_5_5/wjr16": [
+          48.446825098002265,
+          51.18244830933584,
+          50.08803747302795,
+          51.31733141685946,
+          48.44315380916542
+        ],
+        "u64_map/64/scan/wjr16": [
+          0.9263811944966317,
+          1.0561173461839943,
+          0.8851168895274778,
+          0.8839755625455764,
+          0.9410480437161373
+        ],
+        "u64_map/4096/scan/wjr16": [
+          1.2345141601421972,
+          1.1617358397941757,
+          1.1513793944928352,
+          1.114978027327851,
+          1.1494165039316329
+        ],
+        "u64_map/64/build_destroy/compact16": [
+          12.25015288081414,
+          12.236970437253568,
+          12.175747276227797,
+          11.736763057157056,
+          11.771515163565955
+        ],
+        "u64_map/4096/build_destroy/compact16": [
+          59.375144890419136,
+          53.43253025265317,
+          49.9462455963728,
+          54.17429757018607,
+          54.18567148024253
+        ],
+        "u64_map/64/lower_bound_50/compact16": [
+          10.15608743673938,
+          9.275186090790482,
+          9.335792670539925,
+          9.462444314783411,
+          9.712954468163266
+        ],
+        "u64_map/4096/lower_bound_50/compact16": [
+          30.158850628442018,
+          30.217550525558973,
+          33.89425526525629,
+          29.418626867894204,
+          31.672310206393888
+        ],
+        "u64_map/64/mixed_90_5_5/compact16": [
+          15.786740136253226,
+          16.36716323025214,
+          16.248396673905795,
+          17.5201628700737,
+          16.37415949650504
+        ],
+        "u64_map/4096/mixed_90_5_5/compact16": [
+          41.97810678908082,
+          40.37853154266242,
+          41.169206501759945,
+          39.54090207713203,
+          42.685092636723546
+        ],
+        "u64_map/64/scan/compact16": [
+          0.929307545532276,
+          0.9000912763042577,
+          0.8631694903897333,
+          0.9432225302252522,
+          0.8864564396843368
+        ],
+        "u64_map/4096/scan/compact16": [
+          1.1653029358279456,
+          1.1123202094715616,
+          1.1754780764287736,
+          1.1527433579208906,
+          1.1502730543965332
+        ],
+        "large_map/64/build_destroy/wjr16": [
+          67.08886027454776,
+          67.95737540845859,
+          68.3475283410742,
+          71.92724218913857,
+          69.11425663052138
+        ],
+        "large_map/4096/build_destroy/wjr16": [
+          97.24349529385071,
+          104.21163994123575,
+          108.90228093446581,
+          102.17213770292715,
+          102.8307462987877
+        ],
+        "large_map/64/lower_bound_50/wjr16": [
+          4.528835675122041,
+          5.0238467027913885,
+          4.441788642201432,
+          4.215921326717629,
+          4.330009337833373
+        ],
+        "large_map/4096/lower_bound_50/wjr16": [
+          23.32715465773823,
+          19.767024531863424,
+          21.465838973566193,
+          25.930346835622412,
+          20.562767466112227
+        ],
+        "large_map/64/mixed_90_5_5/wjr16": [
+          17.860749258961416,
+          17.456935601992672,
+          17.9383456991168,
+          17.91176704689382,
+          18.489348387266457
+        ],
+        "large_map/4096/mixed_90_5_5/wjr16": [
+          51.1207075805423,
+          52.12734670713896,
+          52.06006417541714,
+          49.19461445558293,
+          52.63582755560924
+        ],
+        "large_map/64/scan/wjr16": [
+          0.9396488301631771,
+          0.9428639552305481,
+          0.8888983230507541,
+          0.8990461406443961,
+          0.9098956015743748
+        ],
+        "large_map/4096/scan/wjr16": [
+          1.1478823237131686,
+          1.1578030056326643,
+          1.1736263863541523,
+          1.1646340708918408,
+          1.2603545780446708
+        ],
+        "large_map/64/build_destroy/compact16": [
+          16.456839210371054,
+          16.122980766576564,
+          16.49758801698613,
+          16.677489665158394,
+          16.05245065054378
+        ],
+        "large_map/4096/build_destroy/compact16": [
+          58.65712792103827,
+          57.33523384759871,
+          57.33441182501402,
+          57.79170283516052,
+          57.34961923984012
+        ],
+        "large_map/64/lower_bound_50/compact16": [
+          11.316513061632172,
+          11.652709960841001,
+          10.932739257785151,
+          10.404708862266077,
+          11.160583496261367
+        ],
+        "large_map/4096/lower_bound_50/compact16": [
+          33.75360576795536,
+          33.20753205133979,
+          34.187399840299385,
+          32.89968950398886,
+          34.61598557791125
+        ],
+        "large_map/64/mixed_90_5_5/compact16": [
+          17.6138385089352,
+          15.684477859882472,
+          15.184408220900053,
+          15.79992393124077,
+          16.718750012395738
+        ],
+        "large_map/4096/mixed_90_5_5/compact16": [
+          42.38033761735812,
+          44.52670164876708,
+          44.558540270612596,
+          43.71066989883169,
+          40.53697563192958
+        ],
+        "large_map/64/scan/compact16": [
+          0.9287352289079575,
+          0.8691046090710249,
+          0.9341890949156779,
+          0.8745451696685248,
+          0.9450888436075395
+        ],
+        "large_map/4096/scan/compact16": [
+          1.2022769765203092,
+          1.1927567441078353,
+          1.2186147836464791,
+          1.241037326405378,
+          1.2138521635058603
+        ]
+      },
+      "memory_rows": [
+        {
+          "case": "u64_map/wjr16",
+          "n": 64,
+          "tree_size": 48,
+          "iterator_size": 16,
+          "build_live_requested": 2112,
+          "mixed_live_requested": 2112,
+          "peak_requested": 2112,
+          "total_requested": 6208,
+          "allocations": 326,
+          "deallocations": 326,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "u64_map/compact16",
+          "n": 64,
+          "tree_size": 64,
+          "iterator_size": 16,
+          "build_live_requested": 1728,
+          "mixed_live_requested": 1728,
+          "peak_requested": 1728,
+          "total_requested": 1728,
+          "allocations": 6,
+          "deallocations": 6,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "u64_map/wjr16",
+          "n": 4096,
+          "tree_size": 48,
+          "iterator_size": 16,
+          "build_live_requested": 133440,
+          "mixed_live_requested": 133600,
+          "peak_requested": 133600,
+          "total_requested": 137696,
+          "allocations": 4751,
+          "deallocations": 4751,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "u64_map/compact16",
+          "n": 4096,
+          "tree_size": 64,
+          "iterator_size": 16,
+          "build_live_requested": 114624,
+          "mixed_live_requested": 114912,
+          "peak_requested": 114912,
+          "total_requested": 114912,
+          "allocations": 399,
+          "deallocations": 399,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "large_map/wjr16",
+          "n": 64,
+          "tree_size": 48,
+          "iterator_size": 16,
+          "build_live_requested": 5696,
+          "mixed_live_requested": 5696,
+          "peak_requested": 5696,
+          "total_requested": 24128,
+          "allocations": 326,
+          "deallocations": 326,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "large_map/compact16",
+          "n": 64,
+          "tree_size": 176,
+          "iterator_size": 16,
+          "build_live_requested": 6208,
+          "mixed_live_requested": 6208,
+          "peak_requested": 6208,
+          "total_requested": 6208,
+          "allocations": 6,
+          "deallocations": 6,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "large_map/wjr16",
+          "n": 4096,
+          "tree_size": 48,
+          "iterator_size": 16,
+          "build_live_requested": 362816,
+          "mixed_live_requested": 362976,
+          "peak_requested": 362976,
+          "total_requested": 381408,
+          "allocations": 4751,
+          "deallocations": 4751,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "large_map/compact16",
+          "n": 4096,
+          "tree_size": 176,
+          "iterator_size": 16,
+          "build_live_requested": 441664,
+          "mixed_live_requested": 442848,
+          "peak_requested": 442848,
+          "total_requested": 442848,
+          "allocations": 399,
+          "deallocations": 399,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        }
+      ]
+    },
+    {
+      "id": "linux-gcc13",
+      "label": "Linux GCC",
+      "cpu": "Intel Xeon Platinum 8370C",
+      "os": "Ubuntu 24.04",
+      "cpu_affinity": "not pinned",
+      "context": {
+        "date": "2026-10-30T11:27:05+00:00",
+        "host_name": "runnervm48cm3",
+        "executable": "./build/bin/benchmarks",
+        "num_cpus": 4,
+        "mhz_per_cpu": 2800,
+        "cpu_scaling_enabled": true,
+        "caches": [
+          {
+            "type": "Data",
+            "level": 1,
+            "size": 49152,
+            "num_sharing": 2
+          },
+          {
+            "type": "Instruction",
+            "level": 1,
+            "size": 32768,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 2,
+            "size": 1310720,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 3,
+            "size": 50331648,
+            "num_sharing": 4
+          }
+        ],
+        "load_avg": [
+          1.66016,
+          0.51416,
+          0.176758
+        ],
+        "library_version": "v1.9.0",
+        "library_build_type": "release",
+        "json_schema_version": 1,
+        "allocator": "std::allocator; no counters",
+        "standard_library": "libstdc++ 20240904",
+        "string_sizeof": "32",
+        "trace_blocks": "256",
+        "trace_seed": "1656023321",
+        "wjr_compiler": "GNU-13.3.0",
+        "wjr_cpu_target": "baseline",
+        "wjr_flags": " -O3 -DNDEBUG  -march=x86-64 C++20",
+        "wjr_source": "e3b59a81bcb37433510e8dede0fe850a19f326c5"
+      },
+      "artifact_run": "https://github.com/wjr-z/wjr/actions/runs/41047957402",
+      "raw_timing_sha256": "f5ea8c54291bb60096300a4197cb17a77d6b316392cef759e98c1fa0cf4830f8",
+      "raw_memory_sha256": "4f832892d782e07cebd018ab531984ce641be45e245d7c349e8d91d17bc0f80e",
+      "ns_per_operation_samples": {
+        "u64_map/64/build_destroy/wjr16": [
+          29.782379113435816,
+          29.54008802071402,
+          29.198669093596745,
+          29.20748582813545,
+          30.249915801347992
+        ],
+        "u64_map/4096/build_destroy/wjr16": [
+          88.06611051264663,
+          87.70487299651529,
+          87.13418925176735,
+          87.29218850676973,
+          87.42183724628738
+        ],
+        "u64_map/64/lower_bound_50/wjr16": [
+          6.436060708642264,
+          6.476656256149154,
+          6.425239462424437,
+          6.410338382843864,
+          6.4177953587619845
+        ],
+        "u64_map/4096/lower_bound_50/wjr16": [
+          39.87140187230913,
+          38.901285807290854,
+          39.414713541654315,
+          39.78140321928673,
+          39.099548199538425
+        ],
+        "u64_map/64/mixed_90_5_5/wjr16": [
+          22.98010527131369,
+          22.571533379170663,
+          22.513543547010627,
+          22.877093439878145,
+          22.424624534624808
+        ],
+        "u64_map/4096/mixed_90_5_5/wjr16": [
+          59.618635924092374,
+          60.920971895384426,
+          60.97575532369443,
+          60.42966589456073,
+          60.66410311805426
+        ],
+        "u64_map/64/scan/wjr16": [
+          0.8933554309328353,
+          0.8941203668050114,
+          0.8916639546521545,
+          0.8949020038903572,
+          0.8937167831422245
+        ],
+        "u64_map/4096/scan/wjr16": [
+          0.9257606907895883,
+          0.9250830490908121,
+          0.9505478683397643,
+          0.9323337260532606,
+          0.9257489997358183
+        ],
+        "u64_map/64/build_destroy/compact16": [
+          16.42176071242206,
+          16.45960571805206,
+          16.401918296623464,
+          16.53603094540187,
+          16.554800129388084
+        ],
+        "u64_map/4096/build_destroy/compact16": [
+          64.34237705708124,
+          64.76069855780412,
+          64.9277501559342,
+          65.04989844493564,
+          64.69835822391622
+        ],
+        "u64_map/64/lower_bound_50/compact16": [
+          12.880029747253918,
+          12.72389083967625,
+          12.67584936917662,
+          12.825665015795336,
+          12.603367751972144
+        ],
+        "u64_map/4096/lower_bound_50/compact16": [
+          30.55136243036022,
+          30.816065619964114,
+          30.528718836163335,
+          29.774774887976882,
+          30.345143037682337
+        ],
+        "u64_map/64/mixed_90_5_5/compact16": [
+          20.904904221279885,
+          21.070658002207363,
+          21.001992977894467,
+          20.998934180047645,
+          21.21519122832926
+        ],
+        "u64_map/4096/mixed_90_5_5/compact16": [
+          52.33455609411178,
+          52.090090697186405,
+          52.19176095526524,
+          52.24728358469249,
+          52.22628187846484
+        ],
+        "u64_map/64/scan/compact16": [
+          0.8934620934135004,
+          0.8977382771404309,
+          0.895242671579734,
+          0.8946914588414963,
+          0.8945080468667155
+        ],
+        "u64_map/4096/scan/compact16": [
+          0.9061199085701936,
+          0.8989683733158365,
+          0.8837155093317353,
+          0.8876981209184698,
+          0.8956119705816106
+        ],
+        "large_map/64/build_destroy/wjr16": [
+          29.296240698595298,
+          29.24437906830446,
+          29.45217291487258,
+          29.43222723774018,
+          31.261659666703856
+        ],
+        "large_map/4096/build_destroy/wjr16": [
+          90.71784226441002,
+          91.73976557305497,
+          90.97736504736504,
+          90.64367805642739,
+          90.37255080202536
+        ],
+        "large_map/64/lower_bound_50/wjr16": [
+          12.925471571436326,
+          13.33645784297928,
+          13.252640754752603,
+          13.193269036366988,
+          13.301920572913835
+        ],
+        "large_map/4096/lower_bound_50/wjr16": [
+          45.42983874330819,
+          45.68361591496327,
+          45.64007935058962,
+          45.35804836135054,
+          45.58545182638246
+        ],
+        "large_map/64/mixed_90_5_5/wjr16": [
+          23.367293728410395,
+          23.276621329054926,
+          24.126300290247638,
+          23.23620912224583,
+          23.356875268951313
+        ],
+        "large_map/4096/mixed_90_5_5/wjr16": [
+          63.25151389679911,
+          63.30389004901116,
+          63.11098160283037,
+          64.10928949445744,
+          62.53922541000425
+        ],
+        "large_map/64/scan/wjr16": [
+          0.7881949516310948,
+          0.7882406998651749,
+          0.7887364466208386,
+          0.7883683756469072,
+          0.7877500137053127
+        ],
+        "large_map/4096/scan/wjr16": [
+          1.0103904762849327,
+          1.0106019724869415,
+          1.0152208156817877,
+          1.024606765195828,
+          1.0195282756981767
+        ],
+        "large_map/64/build_destroy/compact16": [
+          24.581984574156373,
+          23.112790634953576,
+          23.66023438883151,
+          23.701124161900147,
+          24.757414199419262
+        ],
+        "large_map/4096/build_destroy/compact16": [
+          73.94921550918464,
+          74.16018757778527,
+          74.10871603636954,
+          74.05103511303294,
+          73.41053218333197
+        ],
+        "large_map/64/lower_bound_50/compact16": [
+          12.726342591246219,
+          12.605769553114957,
+          12.634313964844553,
+          12.730809635901208,
+          12.902487319263052
+        ],
+        "large_map/4096/lower_bound_50/compact16": [
+          33.96035125637556,
+          33.88541921775967,
+          34.05104860566396,
+          34.34874557128562,
+          34.050797066844574
+        ],
+        "large_map/64/mixed_90_5_5/compact16": [
+          20.911904649843002,
+          21.150259520365513,
+          20.803247028225957,
+          20.975103203118316,
+          20.708028654812406
+        ],
+        "large_map/4096/mixed_90_5_5/compact16": [
+          55.23894102527839,
+          55.293773024449855,
+          55.49798256491978,
+          55.070578474661,
+          55.056216653872376
+        ],
+        "large_map/64/scan/compact16": [
+          0.7825243259945915,
+          0.7825607139901696,
+          0.7798664966945897,
+          0.781655797435296,
+          0.782223228987968
+        ],
+        "large_map/4096/scan/compact16": [
+          0.9329085022819406,
+          0.9403187193471599,
+          0.9362421427174659,
+          0.9408560718738469,
+          0.945442412632061
+        ]
+      },
+      "memory_rows": [
+        {
+          "case": "u64_map/wjr16",
+          "n": 64,
+          "tree_size": 48,
+          "iterator_size": 16,
+          "build_live_requested": 2272,
+          "mixed_live_requested": 2432,
+          "peak_requested": 2432,
+          "total_requested": 6528,
+          "allocations": 328,
+          "deallocations": 328,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "u64_map/compact16",
+          "n": 64,
+          "tree_size": 64,
+          "iterator_size": 16,
+          "build_live_requested": 2016,
+          "mixed_live_requested": 2304,
+          "peak_requested": 2304,
+          "total_requested": 2304,
+          "allocations": 8,
+          "deallocations": 8,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "u64_map/wjr16",
+          "n": 4096,
+          "tree_size": 48,
+          "iterator_size": 16,
+          "build_live_requested": 132608,
+          "mixed_live_requested": 132768,
+          "peak_requested": 132768,
+          "total_requested": 136864,
+          "allocations": 4745,
+          "deallocations": 4745,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "u64_map/compact16",
+          "n": 4096,
+          "tree_size": 64,
+          "iterator_size": 16,
+          "build_live_requested": 112896,
+          "mixed_live_requested": 113184,
+          "peak_requested": 113184,
+          "total_requested": 113184,
+          "allocations": 393,
+          "deallocations": 393,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "large_map/wjr16",
+          "n": 64,
+          "tree_size": 48,
+          "iterator_size": 16,
+          "build_live_requested": 5856,
+          "mixed_live_requested": 6016,
+          "peak_requested": 6016,
+          "total_requested": 24448,
+          "allocations": 328,
+          "deallocations": 328,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "large_map/compact16",
+          "n": 64,
+          "tree_size": 176,
+          "iterator_size": 16,
+          "build_live_requested": 7392,
+          "mixed_live_requested": 8576,
+          "peak_requested": 8576,
+          "total_requested": 8576,
+          "allocations": 8,
+          "deallocations": 8,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "large_map/wjr16",
+          "n": 4096,
+          "tree_size": 48,
+          "iterator_size": 16,
+          "build_live_requested": 361984,
+          "mixed_live_requested": 362144,
+          "peak_requested": 362144,
+          "total_requested": 380576,
+          "allocations": 4745,
+          "deallocations": 4745,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "large_map/compact16",
+          "n": 4096,
+          "tree_size": 176,
+          "iterator_size": 16,
+          "build_live_requested": 433664,
+          "mixed_live_requested": 434848,
+          "peak_requested": 434848,
+          "total_requested": 434848,
+          "allocations": 393,
+          "deallocations": 393,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        }
+      ]
+    },
+    {
+      "id": "linux-clang18",
+      "label": "Linux Clang",
+      "cpu": "Intel Xeon Platinum 8370C",
+      "os": "Ubuntu 24.04",
+      "cpu_affinity": "not pinned",
+      "context": {
+        "date": "2026-10-30T11:27:54+00:00",
+        "host_name": "runnervm48cm3",
+        "executable": "./build-clang/bin/benchmarks",
+        "num_cpus": 4,
+        "mhz_per_cpu": 2800,
+        "cpu_scaling_enabled": true,
+        "caches": [
+          {
+            "type": "Data",
+            "level": 1,
+            "size": 49152,
+            "num_sharing": 2
+          },
+          {
+            "type": "Instruction",
+            "level": 1,
+            "size": 32768,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 2,
+            "size": 1310720,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 3,
+            "size": 50331648,
+            "num_sharing": 4
+          }
+        ],
+        "load_avg": [
+          1.82666,
+          0.69873,
+          0.254883
+        ],
+        "library_version": "v1.9.0",
+        "library_build_type": "release",
+        "json_schema_version": 1,
+        "allocator": "std::allocator; no counters",
+        "standard_library": "libstdc++ 20240908",
+        "string_sizeof": "32",
+        "trace_blocks": "256",
+        "trace_seed": "1656023321",
+        "wjr_compiler": "Clang-18.1.3",
+        "wjr_cpu_target": "baseline",
+        "wjr_flags": " -O3 -DNDEBUG  -march=x86-64 C++20",
+        "wjr_source": "e3b59a81bcb37433510e8dede0fe850a19f326c5"
+      },
+      "artifact_run": "https://github.com/wjr-z/wjr/actions/runs/41047957402",
+      "raw_timing_sha256": "72d86ed3e19e9a4c835cccc281d6ea86702b164e18e352542bf8cbe735e16b77",
+      "raw_memory_sha256": "b0a49e03511341a455ad1d9d7bcfb507e26d993d59459a759350952742f26245",
+      "ns_per_operation_samples": {
+        "u64_map/64/build_destroy/wjr16": [
+          24.643136427545226,
+          24.710996914704612,
+          24.56618584633552,
+          24.4174804465142,
+          24.410489079078605
+        ],
+        "u64_map/4096/build_destroy/wjr16": [
+          81.77802309784343,
+          82.2914437556836,
+          82.56530348915177,
+          82.92997881759968,
+          82.41524310273219
+        ],
+        "u64_map/64/lower_bound_50/wjr16": [
+          5.9934624756211,
+          6.012515374353093,
+          6.05785268219065,
+          6.064622191524295,
+          6.050982845784113
+        ],
+        "u64_map/4096/lower_bound_50/wjr16": [
+          31.780809746430577,
+          32.569958696230074,
+          32.650460531937604,
+          31.659970009397853,
+          32.85873142930865
+        ],
+        "u64_map/64/mixed_90_5_5/wjr16": [
+          19.233452916475148,
+          19.09431912954038,
+          19.398746985807215,
+          19.382480120685578,
+          19.409895736358386
+        ],
+        "u64_map/4096/mixed_90_5_5/wjr16": [
+          59.77527853251453,
+          59.117219769670896,
+          59.47965947661338,
+          59.290161345803156,
+          58.94574303738873
+        ],
+        "u64_map/64/scan/wjr16": [
+          1.1007714293018156,
+          1.1147708117570776,
+          1.0816888950144414,
+          1.0633243310528508,
+          1.1053691184736036
+        ],
+        "u64_map/4096/scan/wjr16": [
+          1.2284826735039325,
+          1.2246079653099957,
+          1.2261016900767523,
+          1.220015901299985,
+          1.21265453722644
+        ],
+        "u64_map/64/build_destroy/compact16": [
+          12.408576504622541,
+          12.342022130201169,
+          12.451289116420098,
+          12.39730011137837,
+          12.430005842561483
+        ],
+        "u64_map/4096/build_destroy/compact16": [
+          66.18601536102203,
+          66.31062228522177,
+          66.01590967365678,
+          66.08186251964055,
+          66.37799567142469
+        ],
+        "u64_map/64/lower_bound_50/compact16": [
+          5.651475025215406,
+          5.6350959037840544,
+          5.632311182516124,
+          5.647230328154142,
+          5.695515716749501
+        ],
+        "u64_map/4096/lower_bound_50/compact16": [
+          33.83039838456548,
+          34.70537750911551,
+          33.28906402748927,
+          33.663159256070294,
+          33.986536879237555
+        ],
+        "u64_map/64/mixed_90_5_5/compact16": [
+          18.509476004711722,
+          18.60606584831131,
+          18.44724581475824,
+          18.46486886147858,
+          18.484530412849715
+        ],
+        "u64_map/4096/mixed_90_5_5/compact16": [
+          53.82876729307926,
+          53.58156111032637,
+          53.309581120808105,
+          53.31027359161432,
+          54.07619117494518
+        ],
+        "u64_map/64/scan/compact16": [
+          1.0058815421294363,
+          1.0096208890038407,
+          1.0076372633672963,
+          1.0080952514222132,
+          1.008655392146694
+        ],
+        "u64_map/4096/scan/compact16": [
+          1.1807148081724308,
+          1.178431151464159,
+          1.1827302957312975,
+          1.1900932881656594,
+          1.180757386514393
+        ],
+        "large_map/64/build_destroy/wjr16": [
+          25.9333963108001,
+          25.611684091353553,
+          25.63192281632945,
+          26.077249803868224,
+          26.25086479483744
+        ],
+        "large_map/4096/build_destroy/wjr16": [
+          86.90877319955968,
+          86.44100595851569,
+          86.15701588277071,
+          86.89614480884076,
+          86.03684168786633
+        ],
+        "large_map/64/lower_bound_50/wjr16": [
+          5.895429794395727,
+          5.867591987222534,
+          5.811751802085655,
+          5.859826729123805,
+          5.8439452607749045
+        ],
+        "large_map/4096/lower_bound_50/wjr16": [
+          38.82775833300421,
+          38.5270196480113,
+          38.116223706988,
+          38.46050212094993,
+          38.68464328105847
+        ],
+        "large_map/64/mixed_90_5_5/wjr16": [
+          19.907107779294112,
+          19.70272757915417,
+          19.89739800054068,
+          20.621112365359703,
+          19.959399525315643
+        ],
+        "large_map/4096/mixed_90_5_5/wjr16": [
+          63.38881318376698,
+          63.39276623731968,
+          63.289328017732444,
+          62.966274840538134,
+          63.12051681308615
+        ],
+        "large_map/64/scan/wjr16": [
+          1.0806312324457121,
+          1.0929569114675046,
+          1.0937871051643606,
+          1.084358774507449,
+          1.0914905398009764
+        ],
+        "large_map/4096/scan/wjr16": [
+          1.276509347192362,
+          1.2642146097689584,
+          1.259038677871805,
+          1.2764335825799709,
+          1.2708694948299677
+        ],
+        "large_map/64/build_destroy/compact16": [
+          20.59835495164841,
+          21.728492885265354,
+          21.385809783682102,
+          21.453809372505578,
+          21.449905614540103
+        ],
+        "large_map/4096/build_destroy/compact16": [
+          71.65556393393874,
+          71.96814943467123,
+          71.31102073441238,
+          71.79788658689839,
+          71.35692123224301
+        ],
+        "large_map/64/lower_bound_50/compact16": [
+          6.303438213470325,
+          6.304606699483498,
+          6.283154876572882,
+          6.254352704053743,
+          6.270922071205539
+        ],
+        "large_map/4096/lower_bound_50/compact16": [
+          31.765836622972234,
+          32.24719831857197,
+          31.959754476088733,
+          32.22071757731704,
+          32.343517214759494
+        ],
+        "large_map/64/mixed_90_5_5/compact16": [
+          19.267238365918413,
+          19.326346645977083,
+          20.978831907681684,
+          19.07313915129125,
+          19.6752409617895
+        ],
+        "large_map/4096/mixed_90_5_5/compact16": [
+          55.98611498275871,
+          54.96566146941401,
+          55.101786177277496,
+          55.579847963976974,
+          56.203846278637705
+        ],
+        "large_map/64/scan/compact16": [
+          1.020927490587002,
+          1.0077871894551798,
+          1.006795458520654,
+          1.036768074837906,
+          1.0059138476170324
+        ],
+        "large_map/4096/scan/compact16": [
+          1.23434482311447,
+          1.2324395999120312,
+          1.2633323405011199,
+          1.230342716076588,
+          1.230093801304985
+        ]
+      },
+      "memory_rows": [
+        {
+          "case": "u64_map/wjr16",
+          "n": 64,
+          "tree_size": 48,
+          "iterator_size": 16,
+          "build_live_requested": 2272,
+          "mixed_live_requested": 2432,
+          "peak_requested": 2432,
+          "total_requested": 6528,
+          "allocations": 328,
+          "deallocations": 328,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "u64_map/compact16",
+          "n": 64,
+          "tree_size": 64,
+          "iterator_size": 16,
+          "build_live_requested": 2016,
+          "mixed_live_requested": 2304,
+          "peak_requested": 2304,
+          "total_requested": 2304,
+          "allocations": 8,
+          "deallocations": 8,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "u64_map/wjr16",
+          "n": 4096,
+          "tree_size": 48,
+          "iterator_size": 16,
+          "build_live_requested": 132608,
+          "mixed_live_requested": 132768,
+          "peak_requested": 132768,
+          "total_requested": 136864,
+          "allocations": 4745,
+          "deallocations": 4745,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "u64_map/compact16",
+          "n": 4096,
+          "tree_size": 64,
+          "iterator_size": 16,
+          "build_live_requested": 112896,
+          "mixed_live_requested": 113184,
+          "peak_requested": 113184,
+          "total_requested": 113184,
+          "allocations": 393,
+          "deallocations": 393,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "large_map/wjr16",
+          "n": 64,
+          "tree_size": 48,
+          "iterator_size": 16,
+          "build_live_requested": 5856,
+          "mixed_live_requested": 6016,
+          "peak_requested": 6016,
+          "total_requested": 24448,
+          "allocations": 328,
+          "deallocations": 328,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "large_map/compact16",
+          "n": 64,
+          "tree_size": 176,
+          "iterator_size": 16,
+          "build_live_requested": 7392,
+          "mixed_live_requested": 8576,
+          "peak_requested": 8576,
+          "total_requested": 8576,
+          "allocations": 8,
+          "deallocations": 8,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "large_map/wjr16",
+          "n": 4096,
+          "tree_size": 48,
+          "iterator_size": 16,
+          "build_live_requested": 361984,
+          "mixed_live_requested": 362144,
+          "peak_requested": 362144,
+          "total_requested": 380576,
+          "allocations": 4745,
+          "deallocations": 4745,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        },
+        {
+          "case": "large_map/compact16",
+          "n": 4096,
+          "tree_size": 176,
+          "iterator_size": 16,
+          "build_live_requested": 433664,
+          "mixed_live_requested": 434848,
+          "peak_requested": 434848,
+          "total_requested": 434848,
+          "allocations": 393,
+          "deallocations": 393,
+          "after_clear_requested": 0,
+          "after_destroy_requested": 0,
+          "element_string_capacity_bytes": 0,
+          "pool_reserved_bytes": "NA"
+        }
+      ]
+    }
+  ]
+}
