@@ -90,8 +90,11 @@ struct _tp_indexs_access {
 
 /// @private Specialization for out-of-bounds index access
 template <typename PIndexs, size_t Idx>
-struct _tp_indexs_access<PIndexs, Idx, std::enable_if_t<(Idx >= tp_size_v<PIndexs>)>> {
-    static constexpr size_t value = _tp_indexs_access<PIndexs, Idx - 1>::value + 1;
+struct _tp_indexs_access<PIndexs, Idx, std::enable_if_t<(Idx >= tp_size_v<tp_back_t<PIndexs>>)>> {
+    using Indexs = tp_back_t<PIndexs>;
+    using Total = _tp_list_total<tp_front_t<PIndexs>, tp_front_t<Indexs>>;
+    /// Padded switch cases must lie outside every valid Cartesian index.
+    static constexpr size_t value = Total::total + Idx - tp_size_v<Indexs>;
 };
 
 /// @private Execute visitor with expanded index pack
@@ -203,10 +206,10 @@ constexpr decltype(auto) _get_index(const T &first, const Getter &...getter) {
     return _result;
 }
 
-/// @private Wrap accessor for delayed execution
+/// @private Borrow the argument for accessor execution within the synchronous visit call.
 template <template <typename> typename Accessor, typename T>
 constexpr decltype(auto) _accessor_wrapper(T &&t) {
-    return [_t = std::forward<T>(t)](auto ic) mutable {
+    return [&_t = t](auto ic) -> decltype(auto) {
         return Accessor<remove_cvref_t<T>>::run(std::forward<T>(_t), ic);
     };
 }
@@ -221,6 +224,11 @@ constexpr decltype(auto) _visit_impl(size_t index, PIndexs, Callable &&func, Get
 
 } // namespace visit_detail
 
+/**
+ * @brief Dispatch accessor results while preserving their value categories.
+ * @details Inputs are borrowed for the synchronous call. Reference results do not
+ * extend the lifetime of their source objects.
+ */
 template <template <typename> typename Accessor, typename Callable, typename... Args>
 constexpr decltype(auto) full_visit(Callable &&func, Args &&...args) {
     using Sizes = tp_list<integral_constant<size_t, Accessor<remove_cvref_t<Args>>::value>...>;
@@ -233,6 +241,12 @@ constexpr decltype(auto) full_visit(Callable &&func, Args &&...args) {
         visit_detail::_accessor_wrapper<Accessor>(std::forward<Args>(args))...);
 }
 
+/**
+ * @brief Dispatch one of the specified accessor index combinations.
+ * @details Inputs are borrowed for the synchronous call. Reference results do not
+ * extend the lifetime of their source objects.
+ * @pre Indexs contains distinct, valid combinations and includes the active combination.
+ */
 template <template <typename> typename Accessor, typename Indexs, typename Callable,
           typename... Args>
 constexpr decltype(auto) discrete_visit(Indexs, Callable &&func, Args &&...args) {
