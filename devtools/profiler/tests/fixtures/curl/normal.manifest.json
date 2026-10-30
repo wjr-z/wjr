@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "bundle_id": "curl-localhost-normal",
-  "created_at": "2026-10-30T14:22:43.059423+00:00",
-  "revision": "791bab9e825d8baf77d04ff137b727971b4a19bc",
+  "created_at": "2026-10-30T14:30:57.850618+00:00",
+  "revision": "6104fe865707b0d303777b5c64bf70eb9d875aa5",
   "dirty_patch_sha256": "unknown",
   "producer": {
     "provider": "curl-json",
@@ -44,7 +44,7 @@
     ]
   },
   "raw_source": {
-    "sha256": "ae2b1671f8fc35efeb97bf8f0f7c2c16dec0e70f30d5e7794f2ec7f447df1882"
+    "sha256": "d1c330245f1b3162af86717b3dc769f2e5ded595bd2690a859fd2c079fd61df1"
   },
   "host": {
     "id": "owned-Windows-localhost-fixture",

@@ -35,7 +35,7 @@
             "nul",
             "--write-out",
             "%{json}\\n",
-            "http://127.0.0.1:63870/normal"
+            "http://127.0.0.1:57689/normal"
           ],
           "exit_status": 0
         },
@@ -62,7 +62,7 @@
             "nul",
             "--write-out",
             "%{json}\\n",
-            "http://127.0.0.1:63870/normal"
+            "http://127.0.0.1:57689/normal"
           ],
           "exit_status": 0
         },
@@ -89,7 +89,7 @@
             "nul",
             "--write-out",
             "%{json}\\n",
-            "http://127.0.0.1:63870/normal"
+            "http://127.0.0.1:57689/normal"
           ],
           "exit_status": 0
         },
@@ -116,7 +116,7 @@
             "nul",
             "--write-out",
             "%{json}\\n",
-            "http://127.0.0.1:63870/normal"
+            "http://127.0.0.1:57689/normal"
           ],
           "exit_status": 0
         },
@@ -143,7 +143,7 @@
             "nul",
             "--write-out",
             "%{json}\\n",
-            "http://127.0.0.1:63870/normal"
+            "http://127.0.0.1:57689/normal"
           ],
           "exit_status": 0
         },
@@ -170,12 +170,12 @@
             "nul",
             "--write-out",
             "%{json}\\n",
-            "http://127.0.0.1:63870/normal"
+            "http://127.0.0.1:57689/normal"
           ],
           "exit_status": 0
         }
       ],
-      "raw_sha256": "ae2b1671f8fc35efeb97bf8f0f7c2c16dec0e70f30d5e7794f2ec7f447df1882",
+      "raw_sha256": "d1c330245f1b3162af86717b3dc769f2e5ded595bd2690a859fd2c079fd61df1",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
@@ -204,12 +204,12 @@
             "nul",
             "--write-out",
             "%{json}\\n",
-            "http://127.0.0.1:63870/partial"
+            "http://127.0.0.1:57689/partial"
           ],
           "exit_status": 18
         }
       ],
-      "raw_sha256": "46b9da7d8cca3d707dbe5fa935cfc59c667c2659c8342c3462a4b53b90800dba",
+      "raw_sha256": "648eb7bb9f22aaf5c01876b3ce8edb36848278401280c126ea967dd77de7d7fe",
       "stderr_sha256": "f8885154c73de23719b6d5962ad4f5235bd3c174aeef347550848ce0cfa2a294"
     },
     {
@@ -238,16 +238,16 @@
             "nul",
             "--write-out",
             "%{json}\\n",
-            "http://127.0.0.1:63870/redirect"
+            "http://127.0.0.1:57689/redirect"
           ],
           "exit_status": 0
         }
       ],
-      "raw_sha256": "347add06b7e8441a2256aee56269a49eef15e99730a1fa25d88de2b5e81e69fa",
+      "raw_sha256": "ea41eca53e3fad5707e81ac859e80f6dc82f3b2607396a4efef304f5e3ea189c",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ],
-  "source_revision": "791bab9e825d8baf77d04ff137b727971b4a19bc",
+  "source_revision": "6104fe865707b0d303777b5c64bf70eb9d875aa5",
   "producer_script": "devtools/profiler/examples/curl_localhost.py",
   "producer_script_sha256": "2a874147a251ce0c187a852b3ee5a1bfeee6edad43e1cb3d6db9987f7a4013f5",
   "reference": "https://github.com/curl/curl/blob/curl-8_11_1/docs/cmdline-opts/write-out.md"
