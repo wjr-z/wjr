@@ -379,6 +379,19 @@ private:
     unique_stack_allocator stkal;
 };
 
+namespace lifetime_detail {
+
+/** @brief Require an allocator-bearing argument before selecting the borrowed stack owner. */
+template <typename T>
+concept allocator_owner = requires { typename T::allocator_type; };
+
+/** @brief Identify arguments whose allocator borrows an existing stack context. */
+template <typename T>
+concept weak_stack_owner =
+    allocator_owner<T> && is_weak_stack_allocator_v<typename T::allocator_type>;
+
+} // namespace lifetime_detail
+
 /**
  * @brief Reuse the first weak_stack_biginteger's allocator in Args as the allocator for
  * unique_stack_allocator_ref.
@@ -387,13 +400,12 @@ private:
 class unique_stack_allocator_ref {
     struct tag {};
 
-    template <typename T, typename... Args,
-              WJR_REQUIRES(!is_weak_stack_allocator_v<typename T::allocator_type>)>
+    template <lifetime_detail::allocator_owner T, typename... Args>
+    requires(!lifetime_detail::weak_stack_owner<T>)
     unique_stack_allocator_ref(tag, T *, Args *...args)
         : unique_stack_allocator_ref(tag{}, args...) {}
 
-    template <typename T, typename... Args,
-              WJR_REQUIRES(is_weak_stack_allocator_v<typename T::allocator_type>)>
+    template <lifetime_detail::weak_stack_owner T, typename... Args>
     unique_stack_allocator_ref(tag, T *arg, Args *...) noexcept
         : stkal(*arg->get_allocator().alloc()) {}
 
