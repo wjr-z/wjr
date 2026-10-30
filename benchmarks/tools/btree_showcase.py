@@ -156,6 +156,9 @@ def collect(timing_path, memory_path, metadata_path, output):
             },
             "timing_sha256": file_hash(timing_path),
             "memory_sha256": file_hash(memory_path),
+            "measurement_date": context.get(
+                "date", context.get("measurement_date", "unknown")
+            ),
             "hardware_counters": "not collected",
         },
         "ns_per_operation_samples": groups,
@@ -299,10 +302,12 @@ def render(inputs, output_dir, image_format="svg"):
         axis.set_ylim(0, axis.get_ylim()[1] * 1.15)
         axis.legend()
     figure.suptitle(
-        "Separate memory pass · excludes container object and allocator overhead · no pools",
-        fontsize=11,
+        "Separate memory pass · no pools\n"
+        "Requested bytes exclude object size\n"
+        "and allocator overhead",
+        fontsize=10,
     )
-    figure.tight_layout(rect=(0, 0, 1, 0.9))
+    figure.tight_layout(rect=(0, 0, 1, 0.82))
     figure.savefig(
         destination / f"btree-memory.{image_format}", metadata=image_metadata
     )

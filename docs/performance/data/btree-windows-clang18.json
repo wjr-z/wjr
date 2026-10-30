@@ -21,6 +21,7 @@
     "trace_blocks": "256",
     "timing_sha256": "e9d89557711ec05d7c8d7910d806a231b6c7e6345e71ade2b0883fa36b56d56b",
     "memory_sha256": "7a6e370b7465242ac8f06991ab2241aad634472bf3c918a3637e80fa71f6792a",
+    "measurement_date": "2026-10-30T18:30:12+08:00",
     "hardware_counters": "not collected"
   },
   "ns_per_operation_samples": {

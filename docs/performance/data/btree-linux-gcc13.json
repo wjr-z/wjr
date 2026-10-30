@@ -1,0 +1,282 @@
+{
+  "schema": 1,
+  "id": "linux-gcc",
+  "label": "Linux GCC",
+  "n": 4096,
+  "provenance": {
+    "id": "linux-gcc",
+    "label": "Linux GCC",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "os": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+    "abseil_commit": "2a2d6aad626f75a32c8b7bb775fbff73d558b8b1",
+    "trace_source_sha256": "8510ee50b7117ac8fbcda77ca0b1db5b13d3127821d7171a0ed38838b4f4b04e",
+    "artifact_run": "https://github.com/wjr-z/wjr/actions/runs/41044046644",
+    "wjr_source": "6d2d46c2dd731ed2a6dbd5120af49863e834ae46",
+    "wjr_compiler": "GNU-13.3.0",
+    "standard_library": "libstdc++ 20240904",
+    "wjr_flags": " -O3 -DNDEBUG  -march=x86-64 C++20",
+    "allocator": "std::allocator; no counters",
+    "trace_seed": "1656023321",
+    "trace_blocks": "256",
+    "timing_sha256": "1e4538806c1ff215099eafeaed57606f3c8aab5f86326547eb6c175de4fa60c2",
+    "memory_sha256": "9eb7f7e1bfd6bb75d6e301a119db69829c8d9282af6f140d872a51ca18b110d2",
+    "measurement_date": "2026-10-30T10:54:57+00:00",
+    "hardware_counters": "not collected"
+  },
+  "ns_per_operation_samples": {
+    "u64_set/build_destroy/wjr16": [
+      30.4190974980821,
+      30.634259872293786,
+      29.53437601150267,
+      30.336794061175546,
+      29.78357140492422
+    ],
+    "u64_set/lower_bound_50/wjr16": [
+      18.078064061674635,
+      18.00192420511783,
+      18.10501042148335,
+      18.178761030869254,
+      18.028570521136274
+    ],
+    "u64_set/mixed_90_5_5/wjr16": [
+      46.70345709939845,
+      44.515820312675224,
+      46.49232496746021,
+      44.859868385207605,
+      43.05307804337027
+    ],
+    "u64_set/scan/wjr16": [
+      1.4526030358250446,
+      1.4084138048297472,
+      1.410581708960245,
+      1.4061370975818974,
+      1.4078684766593754
+    ],
+    "u64_set/build_destroy/absl": [
+      83.3052172851713,
+      83.43864501953595,
+      83.8578173828139,
+      83.38945068358737,
+      83.78248291014343
+    ],
+    "u64_set/lower_bound_50/absl": [
+      21.594324976716255,
+      21.598383872664407,
+      21.607615391665167,
+      21.606517455516418,
+      21.617786627599088
+    ],
+    "u64_set/mixed_90_5_5/absl": [
+      79.31859809022883,
+      79.129785727327,
+      79.56484032331431,
+      79.60397363851862,
+      79.66063025393149
+    ],
+    "u64_set/scan/absl": [
+      1.4090019140236951,
+      1.4091058878768892,
+      1.4092990716192715,
+      1.4090971829951653,
+      1.408582403358508
+    ],
+    "u64_map/build_destroy/wjr16": [
+      53.282144384443754,
+      53.177412843386584,
+      53.69510585809139,
+      52.82527429916389,
+      54.97099673201523
+    ],
+    "u64_map/lower_bound_50/wjr16": [
+      22.165375511837038,
+      22.278993529477738,
+      22.316520840122504,
+      22.344226503930503,
+      22.773048530189953
+    ],
+    "u64_map/mixed_90_5_5/wjr16": [
+      61.15389665868262,
+      60.404192243207476,
+      61.91288103377102,
+      60.46346522740936,
+      60.63727678553674
+    ],
+    "u64_map/scan/wjr16": [
+      1.414471998210834,
+      1.411469986952117,
+      1.4130775202498338,
+      1.410264705359945,
+      1.410466880845487
+    ],
+    "u64_map/build_destroy/absl": [
+      71.91774019281952,
+      72.00615961603586,
+      71.96620574300965,
+      71.66722905585215,
+      72.32362450132598
+    ],
+    "u64_map/lower_bound_50/absl": [
+      35.3845136088705,
+      35.600443128363786,
+      35.367545572918694,
+      35.38550224714121,
+      35.43339948756389
+    ],
+    "u64_map/mixed_90_5_5/absl": [
+      46.87431395611222,
+      46.980392445026226,
+      46.948757420289034,
+      47.09705211142163,
+      46.81122731853561
+    ],
+    "u64_map/scan/absl": [
+      1.4385807075511003,
+      1.431783821879881,
+      1.4430487251906225,
+      1.4344043370964275,
+      1.4344365964107948
+    ],
+    "large_map/build_destroy/wjr16": [
+      56.95897134257408,
+      58.26264144517298,
+      58.99817372386606,
+      58.509567532253385,
+      59.19705102452837
+    ],
+    "large_map/lower_bound_50/wjr16": [
+      24.032310206579034,
+      24.076278396093073,
+      24.291803094687403,
+      24.807524249636018,
+      24.08592606149208
+    ],
+    "large_map/mixed_90_5_5/wjr16": [
+      67.08503222636885,
+      67.47523828112833,
+      67.57875390599187,
+      67.6083525389254,
+      66.83397363277388
+    ],
+    "large_map/scan/wjr16": [
+      1.442797919602548,
+      1.4460918696159841,
+      1.4444455234659375,
+      1.443886975240953,
+      1.4380669604683205
+    ],
+    "large_map/build_destroy/absl": [
+      143.20892718889024,
+      140.14004874013486,
+      140.6900117891476,
+      142.15177188906046,
+      139.5310894390443
+    ],
+    "large_map/lower_bound_50/absl": [
+      26.51481696290603,
+      26.33379654357979,
+      27.150741753114534,
+      26.436876576659866,
+      26.456296012664662
+    ],
+    "large_map/mixed_90_5_5/absl": [
+      111.45789482189733,
+      110.98727886095769,
+      110.96566696794329,
+      110.89390657288826,
+      111.06751517272133
+    ],
+    "large_map/scan/absl": [
+      3.224360879631771,
+      3.2267765241418815,
+      3.2583633061867743,
+      3.226680169730909,
+      3.1960285572104743
+    ]
+  },
+  "memory": {
+    "u64_set/wjr16": {
+      "tree_size": 48,
+      "iterator_size": 16,
+      "build_live_requested": 67072,
+      "mixed_live_requested": 67232,
+      "peak_requested": 67232,
+      "total_requested": 67232,
+      "allocations": 393,
+      "deallocations": 393,
+      "after_clear_requested": 0,
+      "after_destroy_requested": 0,
+      "element_string_capacity_bytes": 0,
+      "pool_reserved_bytes": "NA"
+    },
+    "u64_set/absl": {
+      "tree_size": 24,
+      "iterator_size": 16,
+      "build_live_requested": 43976,
+      "mixed_live_requested": 43976,
+      "peak_requested": 43976,
+      "total_requested": 44304,
+      "allocations": 170,
+      "deallocations": 170,
+      "after_clear_requested": 0,
+      "after_destroy_requested": 0,
+      "element_string_capacity_bytes": 0,
+      "pool_reserved_bytes": "NA"
+    },
+    "u64_map/wjr16": {
+      "tree_size": 48,
+      "iterator_size": 16,
+      "build_live_requested": 132608,
+      "mixed_live_requested": 132768,
+      "peak_requested": 132768,
+      "total_requested": 136864,
+      "allocations": 4745,
+      "deallocations": 4745,
+      "after_clear_requested": 0,
+      "after_destroy_requested": 0,
+      "element_string_capacity_bytes": 0,
+      "pool_reserved_bytes": "NA"
+    },
+    "u64_map/absl": {
+      "tree_size": 24,
+      "iterator_size": 16,
+      "build_live_requested": 88448,
+      "mixed_live_requested": 88192,
+      "peak_requested": 88448,
+      "total_requested": 89008,
+      "allocations": 338,
+      "deallocations": 338,
+      "after_clear_requested": 0,
+      "after_destroy_requested": 0,
+      "element_string_capacity_bytes": 0,
+      "pool_reserved_bytes": "NA"
+    },
+    "large_map/wjr16": {
+      "tree_size": 48,
+      "iterator_size": 16,
+      "build_live_requested": 361984,
+      "mixed_live_requested": 362144,
+      "peak_requested": 362144,
+      "total_requested": 380576,
+      "allocations": 4745,
+      "deallocations": 4745,
+      "after_clear_requested": 0,
+      "after_destroy_requested": 0,
+      "element_string_capacity_bytes": 0,
+      "pool_reserved_bytes": "NA"
+    },
+    "large_map/absl": {
+      "tree_size": 24,
+      "iterator_size": 16,
+      "build_live_requested": 406888,
+      "mixed_live_requested": 410048,
+      "peak_requested": 410048,
+      "total_requested": 415544,
+      "allocations": 1326,
+      "deallocations": 1326,
+      "after_clear_requested": 0,
+      "after_destroy_requested": 0,
+      "element_string_capacity_bytes": 0,
+      "pool_reserved_bytes": "NA"
+    }
+  }
+}
