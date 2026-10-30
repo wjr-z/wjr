@@ -10,6 +10,7 @@
 #ifndef WJR_MATH_BIT_HPP__
 #define WJR_MATH_BIT_HPP__
 
+#include <wjr/concept/integral.hpp>
 #include <wjr/math/clz.hpp>
 #include <wjr/math/ctz.hpp>
 #include <wjr/math/detail/bit_cast.hpp>
@@ -17,8 +18,7 @@
 
 namespace wjr {
 namespace constant {
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST constexpr int countl_zero(T x) noexcept {
     if (WJR_UNLIKELY(x == 0)) {
         return std::numeric_limits<T>::digits;
@@ -27,8 +27,7 @@ WJR_CONST constexpr int countl_zero(T x) noexcept {
     return constant::clz(x);
 }
 
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST constexpr int countr_zero(T x) noexcept {
     if (WJR_UNLIKELY(x == 0)) {
         return std::numeric_limits<T>::digits;
@@ -37,26 +36,22 @@ WJR_CONST constexpr int countr_zero(T x) noexcept {
     return constant::ctz(x);
 }
 
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST constexpr int countl_one(T x) noexcept {
     return constant::countl_zero(static_cast<T>(~x));
 }
 
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST constexpr int countr_one(T x) noexcept {
     return constant::countr_zero(static_cast<T>(~x));
 }
 
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST constexpr int bit_width(T x) noexcept {
     return std::numeric_limits<T>::digits - constant::countl_zero(x);
 }
 
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST constexpr T bit_ceil(T x) noexcept {
     if (x <= 1) {
         return T(1);
@@ -71,8 +66,7 @@ WJR_CONST constexpr T bit_ceil(T x) noexcept {
     }
 }
 
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST constexpr T bit_floor(T x) noexcept {
     if (x != 0) {
         return T{1} << (constant::bit_width(x) - 1);
@@ -92,8 +86,7 @@ WJR_CONST constexpr T bit_floor(T x) noexcept {
  * @param[in] n Value to check
  * @return bool True if n is a power of two, false otherwise
  */
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {
     return (n != 0) && is_zero_or_single_bit(n);
 }
@@ -109,8 +102,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {
  * @param[in] x Value to count leading zeros
  * @return int Number of leading zero bits
  */
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
     // If not use __builtin_clz and use popcount, then don't need to handle
     // zero.
@@ -134,8 +126,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
  * @param[in] x Value to count trailing zeros
  * @return int Number of trailing zero bits
  */
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_zero(T x) noexcept {
     // If not use __builtin_ctz and use popcount, then don't need to handle
     // zero.
@@ -148,14 +139,12 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_zero(T x) noexcept {
     return ctz(x);
 }
 
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_one(T x) noexcept {
     return countl_zero(static_cast<T>(~x));
 }
 
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_one(T x) noexcept {
     return countr_zero(static_cast<T>(~x));
 }
@@ -170,8 +159,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_one(T x) noexcept {
  * @param[in] x Value to calculate bit width
  * @return int Number of bits needed (0 to digits)
  */
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int bit_width(T x) noexcept {
     return std::numeric_limits<T>::digits - countl_zero(x);
 }
@@ -186,8 +174,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int bit_width(T x) noexcept {
  * @param[in] x Value to round up
  * @return T Next power of two >= x
  */
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_ceil(T x) noexcept {
     if (x <= 1) {
         return T(1);
@@ -212,8 +199,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_ceil(T x) noexcept {
  * @param[in] x Value to round down
  * @return T Previous power of two <= x
  */
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_floor(T x) noexcept {
     if (x != 0) {
         return T{1} << (bit_width(x) - 1);

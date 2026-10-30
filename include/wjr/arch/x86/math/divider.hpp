@@ -1,6 +1,8 @@
 #ifndef WJR_ARCH_X86_MATH_DIVIDER_HPP__
 #define WJR_ARCH_X86_MATH_DIVIDER_HPP__
 
+#include <concepts>
+
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
@@ -15,7 +17,7 @@ namespace wjr {
 
 #if WJR_HAS_BUILTIN(ASM_DIV2BY1_ADJUST)
 
-template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
+template <std::same_as<uint64_t> T>
 WJR_INTRINSIC_INLINE void asm_div2by1_adjust(T rax, T div, T &r8, T &rdx) noexcept {
     T r9 = r8 + div;
     asm("cmp{q %[rax], %[r8]| %[r8], %[rax]}\n\t"
@@ -31,7 +33,7 @@ WJR_INTRINSIC_INLINE void asm_div2by1_adjust(T rax, T div, T &r8, T &rdx) noexce
 
 #if WJR_HAS_BUILTIN(ASM_DIV2BY1_ADJUST_BRANCH)
 
-template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
+template <std::same_as<uint64_t> T>
 WJR_INTRINSIC_INLINE void asm_div2by1_adjust_branch(T div, T &lo) noexcept {
     asm("sub %1, %0" : "+r"(lo) : "r"(div));
 }

@@ -20,6 +20,7 @@
 #ifndef WJR_MATH_DIV_HPP__
 #define WJR_MATH_DIV_HPP__
 
+#include <wjr/concept/integral.hpp>
 #include <wjr/math/uint128_t.hpp>
 
 namespace wjr {
@@ -333,12 +334,12 @@ inline uint128_t operator%(uint128_t lhs, uint128_t rhs) noexcept {
     return rem;
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+template <nonbool_integral T>
 inline uint128_t operator/(uint128_t lhs, T rhs) noexcept {
     return lhs / uint128_t(rhs);
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+template <nonbool_integral T>
 inline uint128_t operator%(uint128_t lhs, T rhs) noexcept {
     return lhs % uint128_t(rhs);
 }
