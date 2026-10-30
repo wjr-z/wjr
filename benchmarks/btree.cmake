@@ -86,3 +86,10 @@ if(WJR_BENCHMARK_ABSEIL)
         target_compile_definitions(${btree_target} PRIVATE WJR_BENCHMARK_ABSEIL=1)
     endforeach()
 endif()
+
+
+# Research-only same-capacity candidate/reference benchmark.
+add_executable(btree_search32 EXCLUDE_FROM_ALL src/btree_search32_probe.cpp)
+target_link_libraries(btree_search32 PRIVATE benchmark::benchmark wjr::assert wjr::iterator)
+target_compile_options(btree_search32 PRIVATE ${WJR_BASELINE_FLAGS})
+target_compile_definitions(btree_search32 PRIVATE WJR_BENCHMARK_SOURCE="${btree_source}" WJR_BENCHMARK_FLAGS="${btree_flags}")

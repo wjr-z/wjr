@@ -875,6 +875,27 @@ public:
     }
 };
 
+namespace btree_detail {
+/// Research comparator selects an alternative search without changing node layout.
+struct search_probe_less : std::less<> {};
+
+struct search_probe_32 {
+    template <size_t Min, typename Compare>
+    WJR_INTRINSIC_INLINE static unsigned int search(unsigned int size,
+                                                    const Compare &comp) noexcept {
+        static_assert(Min == 1);
+        unsigned int offset = 0;
+        if (size > 16 && !comp(16)) {
+            offset = 16;
+        }
+        if (size > offset + 8 && !comp(offset + 8)) {
+            offset += 8;
+        }
+        return linear_search_step2(size, offset, comp);
+    }
+};
+} // namespace btree_detail
+
 template <typename Traits>
 class basic_btree {
     using _Alty = typename Traits::_Alty;
@@ -1991,20 +2012,26 @@ private:
     WJR_INTRINSIC_INLINE static slot_usize_type _search(const inner_node_type *current,
                                                         slot_usize_type size, const Lookup &key,
                                                         const key_compare &comp) noexcept {
-        return basic_btree_searcher_impl<node_size>::template search<Min>(
-            size, [current, &key, &comp](slot_usize_type pos) {
-                return _compare<Upper>(from_ikey(current->m_keys[pos]), key, comp);
-            });
+        using searcher =
+            std::conditional_t<node_size == 32 &&
+                                   std::is_same_v<key_compare, btree_detail::search_probe_less>,
+                               btree_detail::search_probe_32, basic_btree_searcher_impl<node_size>>;
+        return searcher::template search<Min>(size, [current, &key, &comp](slot_usize_type pos) {
+            return _compare<Upper>(from_ikey(current->m_keys[pos]), key, comp);
+        });
     }
 
     template <bool Upper, size_t Min, typename Lookup>
     WJR_INTRINSIC_INLINE static slot_usize_type _search(const leaf_node_type *current,
                                                         slot_usize_type size, const Lookup &key,
                                                         const key_compare &comp) noexcept {
-        return basic_btree_searcher_impl<node_size>::template search<Min>(
-            size, [current, &key, &comp](slot_usize_type pos) {
-                return _compare<Upper>(current->get_key(pos), key, comp);
-            });
+        using searcher =
+            std::conditional_t<node_size == 32 &&
+                                   std::is_same_v<key_compare, btree_detail::search_probe_less>,
+                               btree_detail::search_probe_32, basic_btree_searcher_impl<node_size>>;
+        return searcher::template search<Min>(size, [current, &key, &comp](slot_usize_type pos) {
+            return _compare<Upper>(current->get_key(pos), key, comp);
+        });
     }
 
     template <typename T>
