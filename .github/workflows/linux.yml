@@ -33,6 +33,11 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+# Only superseded revisions of the same PR share a cancellation group.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   tests:
@@ -59,15 +64,40 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Check preinstalled toolchain
+        id: preinstalled
+        run: |
+          if [[ "${{matrix.sys.compiler}}" == gcc ]]; then
+            cc=gcc-${{matrix.sys.version}}; cxx=g++-${{matrix.sys.version}}
+          else
+            cc=clang-${{matrix.sys.version}}; cxx=clang++-${{matrix.sys.version}}
+          fi
+          cc_version=; cxx_version=
+          if command -v "$cc" && command -v "$cxx"; then
+            cc_version=$("$cc" -dumpversion)
+            cxx_version=$("$cxx" -dumpversion)
+          fi
+          if [[ "${cc_version%%.*}" == "${{matrix.sys.version}}" &&
+                "${cxx_version%%.*}" == "${{matrix.sys.version}}" ]]; then
+            # Require the sanitizer headers and runtime used by this matrix too.
+            printf '#include <sanitizer/asan_interface.h>\nint main() {}\n' > "$RUNNER_TEMP/wjr-asan-probe.cpp"
+            if "$cxx" -std=c++${{matrix.sys.standard}} -fsanitize=address \
+               "$RUNNER_TEMP/wjr-asan-probe.cpp" -o "$RUNNER_TEMP/wjr-asan-probe"; then
+              echo "available=true" >> "$GITHUB_OUTPUT"
+              echo "cc=$cc" >> "$GITHUB_OUTPUT"
+              echo "cxx=$cxx" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
       - name: Install GCC
-        if: matrix.sys.compiler == 'gcc'
+        if: matrix.sys.compiler == 'gcc' && steps.preinstalled.outputs.available != 'true'
         uses: egor-tensin/setup-gcc@v1
         with:
           version: ${{matrix.sys.version}}
           platform: x64
 
       - name: Install LLVM and Clang
-        if: matrix.sys.compiler == 'clang'
+        if: matrix.sys.compiler == 'clang' && steps.preinstalled.outputs.available != 'true'
         uses: egor-tensin/setup-clang@v1
         with:
           version: ${{matrix.sys.version}}
@@ -98,7 +128,15 @@ jobs:
       - name: Identify compilers and native target
         id: compiler
         run: |
-          if [[ "${{matrix.sys.compiler}}" = "gcc" ]]; then CC=gcc-${{matrix.sys.version}}; CXX=g++-${{matrix.sys.version}}; else CC=clang; CXX=clang++; fi
+          if [[ "${{steps.preinstalled.outputs.available}}" == true ]]; then
+            CC=${{steps.preinstalled.outputs.cc}}; CXX=${{steps.preinstalled.outputs.cxx}}
+          elif [[ "${{matrix.sys.compiler}}" == gcc ]]; then
+            CC=gcc-${{matrix.sys.version}}; CXX=g++-${{matrix.sys.version}}
+          else
+            CC=clang; CXX=clang++
+          fi
+          "$CC" --version
+          "$CXX" --version
           echo "CC=$CC" >> "$GITHUB_ENV"
           echo "CXX=$CXX" >> "$GITHUB_ENV"
           echo "CCACHE_DIR=$RUNNER_TEMP/wjr-ccache" >> "$GITHUB_ENV"
@@ -150,7 +188,7 @@ jobs:
           OPENBLAS_NUM_THREADS: '1'
           ASAN_OPTIONS: detect_leaks=1
           LSAN_OPTIONS: suppressions=${{ github.workspace }}/.github/lsan_suppressions.txt
-        run: ctest --test-dir build --verbose --output-on-failure
+        run: ctest --test-dir build --parallel 2 --verbose --output-on-failure
 
       - name: Validate installed package
         if: matrix.sys.compiler == 'clang' && matrix.sys.version == '20' && matrix.sys.standard == '20'
@@ -161,20 +199,20 @@ jobs:
         run: |
           cmake --install build --prefix "$RUNNER_TEMP/wjr-install"
           cmake -S test/consumer -B consumer-build -GNinja \
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER="$CXX" \
             -DCMAKE_CXX_COMPILER_LAUNCHER="python3;$GITHUB_WORKSPACE/.github/scripts/ccache_launcher.py" \
             -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/wjr-install" -DWJR_EXPECT_CXX_STANDARD=20 \
             -DWJR_TEST_NP=ON -DWJR_TEST_SIMD_XSIMD=ON -DWJR_TEST_NP_CBLAS=ON -DWJR_TEST_TBB=ON
           cmake --build consumer-build --parallel
           ctest --test-dir consumer-build --output-on-failure
           cmake -S examples/np -B cblas-example-build -GNinja \
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER="$CXX" \
             -DCMAKE_CXX_COMPILER_LAUNCHER="python3;$GITHUB_WORKSPACE/.github/scripts/ccache_launcher.py" \
             -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/wjr-install" -DWJR_NP_EXAMPLES_CBLAS=ON
           cmake --build cblas-example-build --target wjr_np_cblas --parallel
           ctest --test-dir cblas-example-build --output-on-failure -R '^wjr_np_cblas$'
           cmake -S examples/tbb -B tbb-example-build -GNinja \
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER="$CXX" \
             -DCMAKE_CXX_COMPILER_LAUNCHER="python3;$GITHUB_WORKSPACE/.github/scripts/ccache_launcher.py" \
             -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/wjr-install"
           cmake --build tbb-example-build --parallel
