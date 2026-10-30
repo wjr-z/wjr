@@ -107,7 +107,7 @@ const __m128i lh8_mask = sse::set1_epi8(0x0f);
 const __m128i lo8_lookup = sse::set_epi8(0, 0, 12, 1, 4, 10, 8, 0, 0, 0, 0, 0, 0, 0, 0, 16);
 const __m128i hi8_lookup = sse::set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8);
 
-WJR_INTRINSIC_INLINE void compress(char *dst, __m128i x, uint16_t mask) noexcept {
+WJR_INTRINSIC_INLINE __m128i compress_block(__m128i x, uint16_t mask) noexcept {
     const uint8_t mask0 = uint8_t(mask);
     const uint8_t mask1 = uint8_t(mask >> 8);
 
@@ -117,9 +117,17 @@ WJR_INTRINSIC_INLINE void compress(char *dst, __m128i x, uint16_t mask) noexcept
     const int pop0 = popcount_mul_2[mask0];
 
     const __m128i compactmask = sse::loadu(&pshufb_combine_table[pop0 * 8]);
-    const __m128i almostthere = sse::shuffle_epi8(pruned, compactmask);
+    return sse::shuffle_epi8(pruned, compactmask);
+}
 
-    sse::storeu(dst, almostthere);
+WJR_INTRINSIC_INLINE void compress(char *dst, __m128i x, uint16_t mask) noexcept {
+    sse::storeu(dst, compress_block(x, mask));
+}
+
+WJR_INTRINSIC_INLINE char *compress_bounded(char *dst, __m128i x, uint16_t mask) noexcept {
+    const unsigned int count = 16 - popcount(mask);
+    sse::storeu_bytes(dst, compress_block(x, mask), count);
+    return dst + count;
 }
 
     #else
@@ -129,7 +137,7 @@ const __m256i lo8_lookup = avx::set_epi8(0, 0, 12, 1, 4, 10, 8, 0, 0, 0, 0, 0, 0
 const __m256i hi8_lookup = avx::set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8, 0, 0, 0,
                                          0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8);
 
-WJR_INTRINSIC_INLINE void compress(char *dst, __m256i x, uint32_t mask) noexcept {
+WJR_INTRINSIC_INLINE __m256i compress_block(__m256i x, uint32_t mask) noexcept {
     const uint8_t mask0 = uint8_t(mask);
     const uint8_t mask1 = uint8_t(mask >> 8);
     const uint8_t mask2 = uint8_t(mask >> 16);
@@ -146,10 +154,22 @@ WJR_INTRINSIC_INLINE void compress(char *dst, __m256i x, uint32_t mask) noexcept
 
     const __m256i compactmask = avx::concat(sse::loadu(&pshufb_combine_table[pop0 * 8]),
                                             sse::loadu(&pshufb_combine_table[pop2 * 8]));
-    const __m256i almostthere = avx::shuffle_epi8(pruned, compactmask);
+    return avx::shuffle_epi8(pruned, compactmask);
+}
 
+WJR_INTRINSIC_INLINE void compress(char *dst, __m256i x, uint32_t mask) noexcept {
+    const __m256i almostthere = compress_block(x, mask);
     sse::storeu(dst, avx::getlow(almostthere));
     sse::storeu(dst + 16 - popcount<uint16_t>(mask & 0xFFFF), avx::gethigh(almostthere));
+}
+
+WJR_INTRINSIC_INLINE char *compress_bounded(char *dst, __m256i x, uint32_t mask) noexcept {
+    const __m256i almostthere = compress_block(x, mask);
+    const unsigned int low_count = 16 - popcount(static_cast<uint16_t>(mask));
+    const unsigned int high_count = 16 - popcount(static_cast<uint16_t>(mask >> 16));
+    sse::storeu_bytes(dst, avx::getlow(almostthere), low_count);
+    sse::storeu_bytes(dst + low_count, avx::gethigh(almostthere), high_count);
+    return dst + low_count + high_count;
 }
 
     #endif
@@ -436,15 +456,10 @@ char *minify(char *dst, const char *first, const char *last) noexcept {
                 /// Exclude padding even if the input ends inside a string.
                 W |= ~uint64_t{0} << tail_size;
             }
-            auto buf_end = buf;
             for (unsigned i = 0; i < u8_loop; ++i) {
                 const typename simd::mask_type mask = (W >> (i * u8_width)) & simd::mask();
-                compress(buf_end, stk[i], mask);
-                buf_end += u8_width - popcount(mask);
+                dst = compress_bounded(dst, stk[i], mask);
             }
-
-            std::memcpy(dst, buf, buf_end - buf);
-            dst += buf_end - buf;
             break;
         }
 
