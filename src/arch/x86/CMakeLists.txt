@@ -9,7 +9,8 @@ FetchContent_Declare(
     FIND_PACKAGE_ARGS 0.10.1
 )
 
-set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+# Disable provider tests in this directory without changing the embedding project.
+set(BUILD_TESTING OFF)
 
 FetchContent_MakeAvailable(cpu_features)
 
