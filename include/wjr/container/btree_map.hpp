@@ -98,43 +98,37 @@ public:
     size_type count(const key_type &key) const noexcept { return _count_unique(key) ? 1 : 0; }
 };
 
-template <typename Key, typename Value, typename Pr, typename Alloc = std::allocator<char>,
-          size_t NodeSize = 0>
+template <typename Key, typename Value, typename Pr, typename Alloc, size_t NodeSize>
 WJR_NODISCARD bool operator==(const btree_map<Key, Value, Pr, Alloc, NodeSize> &lhs,
                               const btree_map<Key, Value, Pr, Alloc, NodeSize> &rhs) {
     return lhs.size() == rhs.size() && std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 
-template <typename Key, typename Value, typename Pr, typename Alloc = std::allocator<char>,
-          size_t NodeSize = 0>
+template <typename Key, typename Value, typename Pr, typename Alloc, size_t NodeSize>
 WJR_NODISCARD bool operator!=(const btree_map<Key, Value, Pr, Alloc, NodeSize> &lhs,
                               const btree_map<Key, Value, Pr, Alloc, NodeSize> &rhs) {
     return !(lhs == rhs);
 }
 
-template <typename Key, typename Value, typename Pr, typename Alloc = std::allocator<char>,
-          size_t NodeSize = 0>
+template <typename Key, typename Value, typename Pr, typename Alloc, size_t NodeSize>
 WJR_NODISCARD bool operator<(const btree_map<Key, Value, Pr, Alloc, NodeSize> &lhs,
                              const btree_map<Key, Value, Pr, Alloc, NodeSize> &rhs) {
     return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 
-template <typename Key, typename Value, typename Pr, typename Alloc = std::allocator<char>,
-          size_t NodeSize = 0>
+template <typename Key, typename Value, typename Pr, typename Alloc, size_t NodeSize>
 WJR_NODISCARD bool operator>(const btree_map<Key, Value, Pr, Alloc, NodeSize> &lhs,
                              const btree_map<Key, Value, Pr, Alloc, NodeSize> &rhs) {
     return rhs < lhs;
 }
 
-template <typename Key, typename Value, typename Pr, typename Alloc = std::allocator<char>,
-          size_t NodeSize = 0>
+template <typename Key, typename Value, typename Pr, typename Alloc, size_t NodeSize>
 WJR_NODISCARD bool operator<=(const btree_map<Key, Value, Pr, Alloc, NodeSize> &lhs,
                               const btree_map<Key, Value, Pr, Alloc, NodeSize> &rhs) {
     return !(rhs < lhs);
 }
 
-template <typename Key, typename Value, typename Pr, typename Alloc = std::allocator<char>,
-          size_t NodeSize = 0>
+template <typename Key, typename Value, typename Pr, typename Alloc, size_t NodeSize>
 WJR_NODISCARD bool operator>=(const btree_map<Key, Value, Pr, Alloc, NodeSize> &lhs,
                               const btree_map<Key, Value, Pr, Alloc, NodeSize> &rhs) {
     return !(lhs < rhs);
