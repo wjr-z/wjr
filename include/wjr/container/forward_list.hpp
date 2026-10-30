@@ -173,8 +173,17 @@ public:
         return n;
     }
 
-    constexpr hlist_node *next() { return static_cast<hlist_node *>(this->m_next); }
+    /// Avoid MSVC's null base-to-derived adjustment in constant evaluation.
+    constexpr hlist_node *next() {
+        if (std::is_constant_evaluated() && this->m_next == nullptr) {
+            return nullptr;
+        }
+        return static_cast<hlist_node *>(this->m_next);
+    }
     constexpr const hlist_node *next() const {
+        if (std::is_constant_evaluated() && this->m_next == nullptr) {
+            return nullptr;
+        }
         return static_cast<const hlist_node *>(this->m_next);
     }
 
