@@ -330,6 +330,41 @@ TEST(bitset, reference_behavior) {
     EXPECT_TRUE(~bs[1]);
 }
 
+TEST(bitset, proxy_assignment_copies_value) {
+    static_assert([] {
+        bitset<65> value;
+        value.set(64);
+        value[0] = value[64];
+        return value.test(0) && value.test(64);
+    }());
+
+    bitset<65> first;
+    bitset<65> second;
+    first.set(64);
+    first[0] = first[64];
+    EXPECT_TRUE(first.test(0));
+
+    auto target = second[0];
+    const auto source = first[64];
+    EXPECT_EQ(&(target = source), &target);
+    EXPECT_TRUE(second.test(0));
+    target = false;
+    EXPECT_FALSE(second.test(0));
+    EXPECT_TRUE(first.test(64));
+
+    auto movable_source = first[64];
+    EXPECT_EQ(&(target = std::move(movable_source)), &target);
+    EXPECT_TRUE(second.test(0));
+    movable_source = false;
+    EXPECT_FALSE(first.test(64));
+    EXPECT_TRUE(second.test(0));
+    target = false;
+    EXPECT_FALSE(second.test(0));
+
+    first[0] = first[64];
+    EXPECT_FALSE(first.test(0));
+}
+
 TEST(bitset, complex_operations) {
     bitset<16> bs1;
     bitset<16> bs2;
