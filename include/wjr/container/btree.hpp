@@ -28,6 +28,7 @@
  */
 
 #include <concepts>
+#include <iterator>
 
 #include <wjr/assert.hpp>
 #include <wjr/compressed_pair.hpp>
@@ -54,6 +55,22 @@ concept transparent_lookup =
 template <typename Lookup, typename Compare, typename Key, typename Iterator>
 concept transparent_erase_lookup =
     transparent_lookup<Compare, Key, Lookup> && !std::convertible_to<const Lookup &, Iterator>;
+
+/// @brief Single-pass input whose references can construct stored values.
+template <typename Iter, typename Value>
+concept insert_iterator =
+    std::input_iterator<Iter> && std::constructible_from<Value, std::iter_reference_t<Iter>>;
+
+/// @brief Admit a mapped source for both insertion and assignment, without common-reference rules.
+template <typename Source, typename Mapped>
+concept upsert_source =
+    std::constructible_from<Mapped, Source &&> &&
+    requires(Mapped &target, Source &&source) { target = std::forward<Source>(source); };
+
+/// @brief Permit default-order allocator convenience without hiding a same-type comparator.
+template <typename Compare, typename Alloc>
+concept default_allocator_order =
+    std::default_initializable<Compare> && !std::same_as<Compare, Alloc>;
 
 /**
  * @brief SIMD-optimized copy for small ranges within B+tree nodes
@@ -1327,6 +1344,23 @@ public:
     size_type count(const Lookup &key) const noexcept {
         const auto range = _equal_keys(key);
         return static_cast<size_type>(std::distance(range.first, range.second));
+    }
+
+    /// @brief Insert a single-pass range, retaining unique/duplicate-key container semantics.
+    /// @pre Input iterators remain valid while this tree is modified.
+    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    void insert(Iter first, Sentinel last) {
+        for (; first != last; ++first) {
+            if constexpr (multi)
+                _emplace_multi(*first);
+            else
+                _emplace_unique(*first);
+        }
+    }
+
+    /// @brief Insert every initializer-list value using the container's duplicate policy.
+    void insert(std::initializer_list<value_type> values) noexcept {
+        insert(values.begin(), values.end());
     }
 
     iterator lower_bound(const key_type &key) noexcept { return _search<false, true>(key); }

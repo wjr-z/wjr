@@ -67,6 +67,7 @@ public:
     using reverse_iterator = typename Mybase::reverse_iterator;
     using const_reverse_iterator = typename Mybase::const_reverse_iterator;
 
+    using Mybase::insert;
     using Mybase::Mybase;
 
 private:
@@ -84,8 +85,8 @@ private:
 public:
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(compact_btree_map);
 
-    template <typename Iter>
-    compact_btree_map(Iter first, Iter last,
+    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    compact_btree_map(Iter first, Sentinel last,
                       const key_compare &comp = key_compare()) noexcept(noexcept(Mybase(comp)))
         : Mybase(comp) {
         for (; first != last; ++first) {
@@ -96,6 +97,37 @@ public:
     compact_btree_map(std::initializer_list<value_type> il,
                       const key_compare &comp = key_compare()) noexcept(noexcept(Mybase(comp)))
         : compact_btree_map(il.begin(), il.end(), comp) {}
+
+    /// @brief Construct a single-pass range using explicit ordering and allocator state.
+    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    compact_btree_map(Iter first, Sentinel last, const key_compare &comp,
+                      const allocator_type &alloc)
+        : Mybase(comp, alloc) {
+        this->insert(first, last);
+    }
+
+    /// @brief Construct a range with the allocator and default ordering.
+    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    requires btree_detail::default_allocator_order<key_compare, allocator_type>
+    compact_btree_map(Iter first, Sentinel last, const allocator_type &alloc)
+        : compact_btree_map(first, last, key_compare(), alloc) {}
+
+    /// @brief Construct list values using explicit ordering and allocator state.
+    compact_btree_map(std::initializer_list<value_type> il, const key_compare &comp,
+                      const allocator_type &alloc) noexcept(noexcept(Mybase(comp, alloc)))
+        : compact_btree_map(il.begin(), il.end(), comp, alloc) {}
+
+    /// @brief Construct list values using the allocator and default ordering.
+    compact_btree_map(std::initializer_list<value_type> il,
+                      const allocator_type &alloc) noexcept(noexcept(Mybase(key_compare(), alloc)))
+    requires btree_detail::default_allocator_order<key_compare, allocator_type>
+        : compact_btree_map(il.begin(), il.end(), key_compare(), alloc) {}
+
+    /// @brief Construct an empty tree using explicit allocator and default ordering.
+    explicit compact_btree_map(const allocator_type &alloc) noexcept(noexcept(Mybase(key_compare(),
+                                                                                     alloc)))
+    requires btree_detail::default_allocator_order<key_compare, allocator_type>
+        : Mybase(key_compare(), alloc) {}
 
     mapped_type &at(const key_type &key) {
         auto iter = this->lower_bound(key);
@@ -116,6 +148,27 @@ public:
     }
 
     mapped_type &operator[](const key_type &key) { return try_emplace(key).first->second; }
+
+    /// @brief Insert a missing moved key with a default mapped value.
+    mapped_type &operator[](key_type &&key) { return try_emplace(std::move(key)).first->second; }
+
+    /// @brief Assign an existing mapped value, or insert a new const-key pair.
+    template <btree_detail::upsert_source<mapped_type> Source>
+    std::pair<iterator, bool> insert_or_assign(const key_type &key, Source &&value) {
+        auto result = try_emplace(key, std::forward<Source>(value));
+        if (!result.second)
+            result.first->second = std::forward<Source>(value);
+        return result;
+    }
+
+    /// @copydoc insert_or_assign(const key_type &, Source &&)
+    template <btree_detail::upsert_source<mapped_type> Source>
+    std::pair<iterator, bool> insert_or_assign(key_type &&key, Source &&value) {
+        auto result = try_emplace(std::move(key), std::forward<Source>(value));
+        if (!result.second)
+            result.first->second = std::forward<Source>(value);
+        return result;
+    }
 
     std::pair<iterator, bool> insert(const value_type &val) noexcept {
         return this->_emplace_unique(val);

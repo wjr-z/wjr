@@ -27,7 +27,56 @@ public:
     using reverse_iterator = typename Mybase::reverse_iterator;
     using const_reverse_iterator = typename Mybase::const_reverse_iterator;
 
+    using Mybase::insert;
     using Mybase::Mybase;
+
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(btree_set);
+
+    /// @brief Construct a single-pass range using the supplied ordering.
+    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    btree_set(Iter first, Sentinel last, const key_compare &comp = key_compare()) : Mybase(comp) {
+        this->insert(first, last);
+    }
+
+    /// @brief Construct list values using the supplied ordering.
+    btree_set(std::initializer_list<value_type> il,
+              const key_compare &comp = key_compare()) noexcept(noexcept(Mybase(comp)))
+        : btree_set(il.begin(), il.end(), comp) {}
+
+    /// @brief Construct a single-pass range using explicit ordering and allocator state.
+    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    btree_set(Iter first, Sentinel last, const key_compare &comp, const allocator_type &alloc)
+        : Mybase(comp, alloc) {
+        this->insert(first, last);
+    }
+
+    /// @brief Construct a range with the allocator and default ordering.
+    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    requires btree_detail::default_allocator_order<key_compare, allocator_type>
+    btree_set(Iter first, Sentinel last, const allocator_type &alloc)
+        : btree_set(first, last, key_compare(), alloc) {}
+
+    /// @brief Construct list values using explicit ordering and allocator state.
+    btree_set(std::initializer_list<value_type> il, const key_compare &comp,
+              const allocator_type &alloc) noexcept(noexcept(Mybase(comp, alloc)))
+        : btree_set(il.begin(), il.end(), comp, alloc) {}
+
+    /// @brief Construct list values using the allocator and default ordering.
+    btree_set(std::initializer_list<value_type> il,
+              const allocator_type &alloc) noexcept(noexcept(Mybase(key_compare(), alloc)))
+    requires btree_detail::default_allocator_order<key_compare, allocator_type>
+        : btree_set(il.begin(), il.end(), key_compare(), alloc) {}
+
+    /// @brief Construct an empty tree using explicit allocator and default ordering.
+    explicit btree_set(const allocator_type &alloc) noexcept(noexcept(Mybase(key_compare(), alloc)))
+    requires btree_detail::default_allocator_order<key_compare, allocator_type>
+        : Mybase(key_compare(), alloc) {}
+
+    /// @brief Replace list values while retaining this tree's allocator and ordering.
+    btree_set &operator=(std::initializer_list<value_type> il) noexcept {
+        Mybase::operator=(il);
+        return *this;
+    }
 
 private:
     template <typename Lookup>
@@ -88,7 +137,58 @@ public:
     using reverse_iterator = typename Mybase::reverse_iterator;
     using const_reverse_iterator = typename Mybase::const_reverse_iterator;
 
+    using Mybase::insert;
     using Mybase::Mybase;
+
+    WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(btree_multiset);
+
+    /// @brief Construct a single-pass range using the supplied ordering.
+    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    btree_multiset(Iter first, Sentinel last, const key_compare &comp = key_compare())
+        : Mybase(comp) {
+        this->insert(first, last);
+    }
+
+    /// @brief Construct list values using the supplied ordering.
+    btree_multiset(std::initializer_list<value_type> il,
+                   const key_compare &comp = key_compare()) noexcept(noexcept(Mybase(comp)))
+        : btree_multiset(il.begin(), il.end(), comp) {}
+
+    /// @brief Construct a single-pass range using explicit ordering and allocator state.
+    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    btree_multiset(Iter first, Sentinel last, const key_compare &comp, const allocator_type &alloc)
+        : Mybase(comp, alloc) {
+        this->insert(first, last);
+    }
+
+    /// @brief Construct a range with the allocator and default ordering.
+    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    requires btree_detail::default_allocator_order<key_compare, allocator_type>
+    btree_multiset(Iter first, Sentinel last, const allocator_type &alloc)
+        : btree_multiset(first, last, key_compare(), alloc) {}
+
+    /// @brief Construct list values using explicit ordering and allocator state.
+    btree_multiset(std::initializer_list<value_type> il, const key_compare &comp,
+                   const allocator_type &alloc) noexcept(noexcept(Mybase(comp, alloc)))
+        : btree_multiset(il.begin(), il.end(), comp, alloc) {}
+
+    /// @brief Construct list values using the allocator and default ordering.
+    btree_multiset(std::initializer_list<value_type> il,
+                   const allocator_type &alloc) noexcept(noexcept(Mybase(key_compare(), alloc)))
+    requires btree_detail::default_allocator_order<key_compare, allocator_type>
+        : btree_multiset(il.begin(), il.end(), key_compare(), alloc) {}
+
+    /// @brief Construct an empty tree using explicit allocator and default ordering.
+    explicit btree_multiset(const allocator_type &alloc) noexcept(noexcept(Mybase(key_compare(),
+                                                                                  alloc)))
+    requires btree_detail::default_allocator_order<key_compare, allocator_type>
+        : Mybase(key_compare(), alloc) {}
+
+    /// @brief Replace list values while retaining this tree's allocator and ordering.
+    btree_multiset &operator=(std::initializer_list<value_type> il) noexcept {
+        Mybase::operator=(il);
+        return *this;
+    }
 
     iterator insert(const value_type &val) noexcept { return this->_emplace_multi(val); }
 
