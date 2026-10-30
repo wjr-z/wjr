@@ -49,6 +49,11 @@ for compiler,cc in [('g++-14','gcc-14'),('clang++-18','clang-18')]:
     environment = os.environ.copy()
     environment['UBSAN_OPTIONS'] = 'halt_on_error=1:print_stacktrace=1'
     environment['ASAN_OPTIONS'] = 'halt_on_error=1:detect_leaks=1'
+    baseline = subprocess.run([str(build/'pmr_tests'),'--gtest_filter=json.parse'],env=environment,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
+    (out/(label+'-baseline-full-ubsan.log')).write_text(baseline.stdout)
+    (out/(label+'-baseline-full-ubsan-exit.txt')).write_text(str(baseline.returncode))
+    subprocess.run(['cmake','-S',str(wrapper),'-B',str(build),'-DCMAKE_CXX_FLAGS=-fsanitize=undefined -fno-sanitize=builtin'],check=True)
+    subprocess.run(['cmake','--build',str(build),'--target','pmr_tests','--parallel','4'],check=True)
     result = subprocess.run(['ctest','--test-dir',str(build),'-R','^focused_json$','--output-on-failure'],env=environment)
     (out/(label+'-LastTest.log')).write_bytes((build/'Testing/Temporary/LastTest.log').read_bytes())
     result.check_returncode()
