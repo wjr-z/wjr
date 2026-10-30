@@ -35,6 +35,18 @@ Linux GCC 14 and Clang 18, each C++20 and C++23 Release, passed all 17 cases.
 GCC 14 C++20 and Clang 18 C++23 ASan+UBSan executions also returned success;
 these initial executions did not set fatal UBSan recovery, so this result alone
 is not a claim that no recoverable UBSan diagnostic occurred.
+The subsequent [fatal UBSan run](https://github.com/wjr-z/wjr/actions/runs/41085818427)
+stops in the unchanged lexer's speculative token-tail `ctz(0)` builtin check.
+That run is a failure, not an additional passing sanitizer configuration.
+The lexer and the restricted `ctz` helper are outside this PMR change. A separate
+[research run](https://github.com/wjr-z/wjr/actions/runs/41086532570), source
+`98812213`, confirms that the original `json.parse` test reports the same builtin
+diagnostic on both GCC 14 and Clang 18. With only `-fno-sanitize=builtin` added,
+the complete 17-case suite passes on GCC 14 C++20 and Clang 18 C++23, with
+`ASAN_OPTIONS=halt_on_error=1:detect_leaks=1` and
+`UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1`. The retained complete
+`LastTest.log` files contain no other sanitizer diagnostic. This scoped result
+does not claim that the existing lexer passes the excluded builtin check.
 
 Windows Clang 18 `-O3 -march=x86-64-v3` assembly, compared against fixed pre-change
 revision `c59764bd`, is text-identical after removing only the `.file` directive:
@@ -67,6 +79,44 @@ cold pools can be substantially worse, and Linux often loses to the existing
 default allocator. PMR/new-delete exposes the representation/dispatch overhead
 without pool reuse. Choose this explicit capability for resource ownership and
 measured workload benefit; it does not replace the default document.
+
+## Independent allocation observations
+
+A separate Windows C++20 counting executable wraps the PMR client resource and
+the standard pool's upstream resource. It uses the same fixtures, keeps reader
+storage outside the counters, and destroys each document before the next parse.
+No counters run in the throughput executable. These are requested allocation
+sizes, not RSS, allocator usable sizes, or a claim of lower memory consumption.
+
+The table shows one document's logical allocation requests, its peak live
+requested bytes, and upstream storage retained after document 32 is destroyed.
+The pool can retain more capacity than the document needs. With this MSVC STL,
+all fixtures make zero new upstream requests on documents 8 and 32, but some
+still acquire additional chunks on document 2. Calling `release()` after all
+clients die returns every counted upstream byte. Every document destruction
+also returns client live bytes to zero. Resource equality and balanced live
+bytes alone are insufficient to prove backing ownership; the focused tests
+check actual allocation address ranges separately.
+
+| Fixture | Client calls/document | Requested bytes/document | Client peak bytes | Retained upstream bytes after document 32 |
+| --- | ---: | ---: | ---: | ---: |
+| small_config | 19 | 1216 | 1192 | 3000 |
+| strings_8 | 530 | 71800 | 47472 | 328536 |
+| strings_64 | 1042 | 112760 | 85472 | 393560 |
+| strings_256 | 1042 | 211064 | 176840 | 588632 |
+| objects_128 | 1934 | 124920 | 115032 | 237424 |
+| numbers_4096 | 23 | 388640 | 215840 | 1049800 |
+| root_string_65536 | 2 | 65592 | 65592 | 524752 |
+| twitter | 28563 | 2021080 | 2010280 | 3437424 |
+
+For Twitter, document 1 makes 54 new upstream requests totaling 3,436,464 bytes;
+document 2 makes five totaling 3,408,152 bytes. Subsequent reuse removes these
+system requests while logical allocations remain. These per-document upstream
+request totals exclude pool construction, while retained and peak measurements
+include all counted live upstream storage. The PMR representation and container
+growth also request more logical bytes than the original default domain's
+1,719,616-byte Twitter observation. Standard pool policies differ between STLs;
+this Windows retention table must not be extrapolated to Linux.
 
 ### windows-cxx20
 
