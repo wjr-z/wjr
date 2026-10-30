@@ -1923,8 +1923,29 @@ void sse::storeu_bytes(void *p, __m128i a, unsigned int n) noexcept {
 template <unsigned int N>
 void sse::storeu_bytes(void *p, __m128i a) noexcept {
     static_assert(N <= 16);
-    if constexpr (N != 0) {
-        builtin_memcpy(p, std::addressof(a), N);
+    /// Overlapping end stores stay inside the prefix and keep the vector in registers.
+    if constexpr (N == 16) {
+        storeu(p, a);
+    } else if constexpr (N >= 8) {
+        write_memory(p, simd_cast<int_tag_type, uint64_t>(a));
+        if constexpr (N != 8) {
+            write_memory(static_cast<unsigned char *>(p) + N - 8,
+                         simd_cast<int_tag_type, uint64_t>(bsrli<N - 8>(a)));
+        }
+    } else if constexpr (N >= 4) {
+        write_memory(p, simd_cast<int_tag_type, uint32_t>(a));
+        if constexpr (N != 4) {
+            write_memory(static_cast<unsigned char *>(p) + N - 4,
+                         simd_cast<int_tag_type, uint32_t>(bsrli<N - 4>(a)));
+        }
+    } else if constexpr (N >= 2) {
+        write_memory(p, simd_cast<int_tag_type, uint16_t>(a));
+        if constexpr (N != 2) {
+            write_memory(static_cast<unsigned char *>(p) + N - 2,
+                         simd_cast<int_tag_type, uint16_t>(bsrli<N - 2>(a)));
+        }
+    } else if constexpr (N == 1) {
+        *static_cast<unsigned char *>(p) = simd_cast<int_tag_type, uint8_t>(a);
     }
 }
 

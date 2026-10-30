@@ -28,5 +28,12 @@ levels. `storeu_bytes<N>(dst, value)` provides the same operation for a constant
 count and diagnoses an excessive count at compile time.
 
 The API does not validate arbitrary pointers or promise a speedup over a caller's
-existing tail strategy. The fixed-count overload uses a legal fixed-size copy;
-the dynamic overload uses bounded scalar pieces and reuses SSE halves for AVX.
+existing tail strategy. Both overloads use bounded scalar pieces and reuse SSE
+halves for AVX. The fixed-count SSE stores may overlap each other, but every
+written byte stays inside the requested prefix.
+
+These operations suit callers that already hold a vector and have an exact-size
+output allocation. The JSON minifier retains its temporary-buffer tail strategy:
+a direct bounded-store candidate improved short inputs in a focused GCC/Clang
+Linux comparison, but grew the caller and showed a mixed-tail regression on
+Windows AVX2. Fewer copies alone did not establish a general improvement.

@@ -1007,8 +1007,13 @@ void avx::storeu_bytes(void *p, __m256i a, unsigned int n) noexcept {
 template <unsigned int N>
 void avx::storeu_bytes(void *p, __m256i a) noexcept {
     static_assert(N <= 32);
-    if constexpr (N != 0) {
-        builtin_memcpy(p, std::addressof(a), N);
+    if constexpr (N == 32) {
+        storeu(p, a);
+    } else if constexpr (N > 16) {
+        sse::storeu(p, getlow(a));
+        sse::storeu_bytes<N - 16>(static_cast<unsigned char *>(p) + 16, gethigh(a));
+    } else if constexpr (N != 0) {
+        sse::storeu_bytes<N>(p, getlow(a));
     }
 }
 
