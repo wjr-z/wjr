@@ -36,19 +36,23 @@ public:
 
     constexpr uint128_t(uint64_t lo_, uint64_t hi_) noexcept : low(lo_), high(hi_) {}
 
-    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_unsigned_integral_v<T>)
     explicit constexpr uint128_t(T value) noexcept : low(value), high(0) {}
 
-    template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_signed_integral_v<T>)
     explicit constexpr uint128_t(T value) noexcept
         : low(static_cast<T>(value)), high(static_cast<T>(value >= 0 ? 0 : -1)) {}
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     constexpr uint128_t &operator=(T value) noexcept {
         return *this = uint128_t(value);
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     explicit constexpr operator T() const noexcept {
         return static_cast<T>(low);
     }
@@ -78,7 +82,8 @@ public:
         return *this;
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     constexpr uint128_t &operator+=(T value) noexcept {
         return *this += uint128_t(value);
     }
@@ -93,12 +98,14 @@ public:
         return rhs += lhs;
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend WJR_CONST constexpr uint128_t operator+(uint128_t lhs, T rhs) noexcept {
         return lhs += rhs;
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend WJR_CONST constexpr uint128_t operator+(T lhs, uint128_t rhs) noexcept {
         return rhs += lhs;
     }
@@ -120,7 +127,8 @@ public:
         return *this;
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     constexpr uint128_t &operator-=(T value) noexcept {
         return *this -= uint128_t(value);
     }
@@ -129,12 +137,14 @@ public:
         return lhs -= rhs;
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend WJR_CONST constexpr uint128_t operator-(uint128_t lhs, T rhs) noexcept {
         return lhs -= rhs;
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend WJR_CONST constexpr uint128_t operator-(T lhs, uint128_t rhs) noexcept {
         return uint128_t(lhs) - rhs;
     }
@@ -244,12 +254,14 @@ private:
     }
 
 public:
-    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_unsigned_integral_v<T>)
     WJR_CONSTEXPR20 uint128_t &operator*=(T value) noexcept {
         return (*this) = mul_u64(*this, value);
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_signed_integral_v<T>)
     WJR_CONSTEXPR20 uint128_t &operator*=(T value) noexcept {
         return (*this) = mul_i64(*this, value);
     }
@@ -258,12 +270,14 @@ public:
         return lhs *= rhs;
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator*(uint128_t lhs, T rhs) noexcept {
         return lhs *= rhs;
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator*(T lhs, uint128_t rhs) noexcept {
         return rhs *= lhs;
     }
@@ -293,12 +307,14 @@ public:
     uint128_t &operator|=(int128_t other) noexcept;
     uint128_t &operator^=(int128_t other) noexcept;
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     uint128_t &operator/=(T value) noexcept {
         return *this /= uint128_t(value);
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     uint128_t &operator%=(T value) noexcept {
         return *this %= uint128_t(value);
     }
@@ -327,62 +343,74 @@ public:
         return !(lhs == rhs);
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend constexpr bool operator<(uint128_t lhs, T rhs) noexcept {
         return lhs < uint128_t(rhs);
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend constexpr bool operator<(T lhs, uint128_t rhs) noexcept {
         return uint128_t(lhs) < rhs;
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend constexpr bool operator<=(uint128_t lhs, T rhs) noexcept {
         return lhs <= uint128_t(rhs);
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend constexpr bool operator<=(T lhs, uint128_t rhs) noexcept {
         return uint128_t(lhs) <= rhs;
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend constexpr bool operator>(uint128_t lhs, T rhs) noexcept {
         return lhs > uint128_t(rhs);
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend constexpr bool operator>(T lhs, uint128_t rhs) noexcept {
         return uint128_t(lhs) > rhs;
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend constexpr bool operator>=(uint128_t lhs, T rhs) noexcept {
         return lhs >= uint128_t(rhs);
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend constexpr bool operator>=(T lhs, uint128_t rhs) noexcept {
         return uint128_t(lhs) >= rhs;
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend constexpr bool operator==(uint128_t lhs, T rhs) noexcept {
         return lhs == uint128_t(rhs);
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend constexpr bool operator==(T lhs, uint128_t rhs) noexcept {
         return uint128_t(lhs) == rhs;
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend constexpr bool operator!=(uint128_t lhs, T rhs) noexcept {
         return !(lhs == rhs);
     }
 
-    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    template <typename T>
+    requires(is_nonbool_integral_v<T>)
     friend constexpr bool operator!=(T lhs, uint128_t rhs) noexcept {
         return !(lhs == rhs);
     }

@@ -22,9 +22,9 @@ namespace wjr {
 #if defined(__cpp_lib_bit_cast) && __cpp_lib_bit_cast >= 201806L
 using std::bit_cast;
 #else
-template <typename To, typename From,
-          WJR_REQUIRES(sizeof(To) == sizeof(From) && std::is_trivially_copyable_v<From> &&
-                       std::is_trivially_copyable_v<To>)>
+template <typename To, typename From>
+requires(sizeof(To) == sizeof(From) && std::is_trivially_copyable_v<From> &&
+         std::is_trivially_copyable_v<To>)
 WJR_PURE WJR_INTRINSIC_INLINE To bit_cast(const From &src) noexcept {
     static_assert(std::is_trivially_constructible_v<To>);
     #if WJR_HAS_BUILTIN(BIT_CAST)
