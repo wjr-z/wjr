@@ -7,6 +7,7 @@ five-sample variation, and the matching workloads where WJR ties or loses.
 | Module | Comparison | Report | Status |
 | --- | --- | --- | --- |
 | Ordered containers | Fixed Abseil B-tree containers | [Legacy B+ tree baseline](btree-showcase.md) | Baseline; layout improvements remain under evaluation |
+| Ordered containers | Compact N16 / legacy N16 maps | [Compact storage prototype](btree-compact.md) | Opt-in; lookup and large-value memory regressions retained |
 
 Specialized showcase measurements are opt-in and run only through manual workflow
 dispatch. Timing and memory are reported separately. Ratios compare implementations

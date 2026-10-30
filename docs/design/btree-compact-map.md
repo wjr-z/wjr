@@ -61,6 +61,11 @@ operation mix, allocator, compiler and platform. Compare the same slot capacity
 with the focused B-tree benchmark and its separate memory-accounting pass;
 allocation counts alone do not establish a throughput benefit.
 
+The [same-capacity Windows/Linux comparison](../performance/btree-compact.md)
+records the prototype's build/mixed benefits alongside lookup regressions and
+the larger requested memory for 64-byte mapped values. These measured tradeoffs
+retain the opt-in status and legacy default.
+
 Observed x64 Windows Clang/MSVC-ABI layout at capacity 16 (requested node bytes,
 excluding allocator overhead):
 
