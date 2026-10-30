@@ -892,6 +892,14 @@ public:
                  wjr::forward_as_tuple(std::piecewise_construct, wjr::forward_as_tuple(),
                                        wjr::forward_as_tuple(btree_node_constructor))) {}
 
+    /// @brief Construct an empty tree using the supplied comparator and allocator instance.
+    basic_btree(const key_compare &comp, const allocator_type &alloc) noexcept(
+        std::is_nothrow_copy_constructible_v<key_compare> &&
+        std::is_nothrow_copy_constructible_v<allocator_type>)
+        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(comp),
+                 wjr::forward_as_tuple(std::piecewise_construct, wjr::forward_as_tuple(alloc),
+                                       wjr::forward_as_tuple(btree_node_constructor))) {}
+
     basic_btree(const basic_btree &other)
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(other.key_comp()),
                  wjr::forward_as_tuple(
@@ -942,6 +950,12 @@ public:
 
     constexpr key_compare &key_comp() noexcept { return m_pair.first(); }
     constexpr const key_compare &key_comp() const noexcept { return m_pair.first(); }
+
+    /// @brief Return a copy of the allocator used by this tree.
+    allocator_type get_allocator() const
+        noexcept(std::is_nothrow_copy_constructible_v<allocator_type>) {
+        return _get_allocator();
+    }
 
     iterator begin() noexcept { return iterator(_get_sentry()->next(), 0); }
     const_iterator begin() const noexcept { return const_iterator(_get_sentry()->next(), 0); }
