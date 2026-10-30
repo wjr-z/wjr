@@ -46,7 +46,8 @@ public:
     WJR_ENABLE_DEFAULT_SPECIAL_MEMBERS(btree_map);
 
     template <typename Iter>
-    btree_map(Iter first, Iter last, const key_compare &comp = key_compare()) noexcept
+    btree_map(Iter first, Iter last,
+              const key_compare &comp = key_compare()) noexcept(noexcept(Mybase(comp)))
         : Mybase(comp) {
         for (; first != last; ++first) {
             emplace(*first);
@@ -54,7 +55,7 @@ public:
     }
 
     btree_map(std::initializer_list<value_type> il,
-              const key_compare &comp = key_compare()) noexcept
+              const key_compare &comp = key_compare()) noexcept(noexcept(Mybase(comp)))
         : btree_map(il.begin(), il.end(), comp) {}
 
     mapped_type &at(const key_type &key) {
