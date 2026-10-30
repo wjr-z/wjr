@@ -38,6 +38,10 @@ uint64_t cycle(std::pmr::memory_resource *resource, const workload<S> &data) {
     Tree tree(std::less<>{}, typename Tree::allocator_type(resource));
     build<S>(tree, data);
     const auto result = mixed<S>(tree, data);
+#ifndef WJR_POOL_MEMORY
+    benchmark::DoNotOptimize(tree);
+    benchmark::ClobberMemory();
+#endif
     tree.clear();
     return result;
 }
