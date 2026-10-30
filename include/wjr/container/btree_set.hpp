@@ -31,7 +31,7 @@ public:
 
 private:
     bool _is_lower_bound_same(const_iterator iter, const key_type &key) const {
-        return iter != this->cend() && !this->key_comp()(Traits::get_key(*iter), key);
+        return iter != this->cend() && !this->key_comp()(key, Traits::get_key(*iter));
     }
 
     bool _count_unique(const key_type &key) const {
