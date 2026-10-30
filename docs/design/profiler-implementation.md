@@ -1,7 +1,7 @@
 # Profiler 分阶段实施与验收
 
-状态：实施计划，2026-10-30；本 MR 仅交付设计。数据与比较合同见
-[profiler 设计](profiler.md)。以下 CLI 是拟议接口，当前尚未实现、不可据此认为工具已可用。
+状态：P01 已交付，2026-10-30；P02/P03 仍待实施。数据与比较合同见
+[profiler 设计](profiler.md)，实际运行入口见 [工具 README](../../devtools/profiler/README.md)。
 
 ## 首个可用交付：P01
 
@@ -10,7 +10,7 @@
 分析机只需原始 JSON 与 manifest，不安装 Google Benchmark、编译器或其他采集工具。
 
 ```sh
-# 拟议入口；P01 实现后的运行方式由工具 README 固定。
+# 从 devtools/profiler 目录运行；输出目录必须不存在。
 python -m wjr_profiler import --provider google-benchmark \
   --raw baseline.json --manifest baseline.manifest.json --out baseline.bundle
 python -m wjr_profiler import --provider google-benchmark \

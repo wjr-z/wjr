@@ -1,0 +1,21 @@
+-------------------------------------------------------------------------------------------------------------------------
+Benchmark                                                               Time             CPU   Iterations UserCounters...
+-------------------------------------------------------------------------------------------------------------------------
+u64_map/wjr16/lower_bound_50/64/repeats:5/real_time                  8276 ns         9470 ns         1650 items_per_second=247.461M/s
+u64_map/wjr16/lower_bound_50/64/repeats:5/real_time                  8633 ns         9470 ns         1650 items_per_second=237.223M/s
+u64_map/wjr16/lower_bound_50/64/repeats:5/real_time                 11113 ns         9470 ns         1650 items_per_second=184.296M/s
+u64_map/wjr16/lower_bound_50/64/repeats:5/real_time                  9815 ns        0.000 ns         1650 items_per_second=208.669M/s
+u64_map/wjr16/lower_bound_50/64/repeats:5/real_time                 13497 ns         9470 ns         1650 items_per_second=151.733M/s
+u64_map/wjr16/lower_bound_50/64/repeats:5/real_time_mean            10267 ns         7576 ns            5 items_per_second=205.876M/s
+u64_map/wjr16/lower_bound_50/64/repeats:5/real_time_median           9815 ns         9470 ns            5 items_per_second=208.669M/s
+u64_map/wjr16/lower_bound_50/64/repeats:5/real_time_stddev           2121 ns         4235 ns            5 items_per_second=39.1053M/s
+u64_map/wjr16/lower_bound_50/64/repeats:5/real_time_cv              20.66 %         55.90 %             5 items_per_second=18.99%
+u64_map/compact16/lower_bound_50/64/repeats:5/real_time             21192 ns        23321 ns          670 items_per_second=96.6398M/s
+u64_map/compact16/lower_bound_50/64/repeats:5/real_time             21479 ns        23321 ns          670 items_per_second=95.3485M/s
+u64_map/compact16/lower_bound_50/64/repeats:5/real_time             22509 ns        23321 ns          670 items_per_second=90.9848M/s
+u64_map/compact16/lower_bound_50/64/repeats:5/real_time             22708 ns        23321 ns          670 items_per_second=90.1894M/s
+u64_map/compact16/lower_bound_50/64/repeats:5/real_time             20785 ns        23321 ns          670 items_per_second=98.5322M/s
+u64_map/compact16/lower_bound_50/64/repeats:5/real_time_mean        21735 ns        23321 ns            5 items_per_second=94.339M/s
+u64_map/compact16/lower_bound_50/64/repeats:5/real_time_median      21479 ns        23321 ns            5 items_per_second=95.3485M/s
+u64_map/compact16/lower_bound_50/64/repeats:5/real_time_stddev        838 ns        0.000 ns            5 items_per_second=3.61821M/s
+u64_map/compact16/lower_bound_50/64/repeats:5/real_time_cv           3.86 %          0.00 %             5 items_per_second=3.84%
